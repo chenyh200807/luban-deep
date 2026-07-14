@@ -1,0 +1,130 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+.tp-page { min-height: 100vh; font-family: -apple-system, "PingFang SC", sans-serif; }
+.tp-nav { position: fixed; inset: 0 0 auto; z-index: 10; background: var(--pk-card); border-bottom: 1rpx solid var(--pk-bd); }
+.tp-nav-inner { position: relative; height: 96rpx; display: flex; align-items: center; justify-content: center; }
+.tp-back { position: absolute; left: 26rpx; display: flex; align-items: center; gap: 4rpx; color: var(--pk-t2); }
+.tp-back-arrow { font-size: 40rpx; line-height: 1; }
+.tp-back-text, .tp-nav-title { font-size: 26rpx; }
+.tp-nav-title { font-weight: 800; color: var(--pk-t1); }
+.tp-scroll { position: fixed; left: 0; right: 0; bottom: 0; }
+.tp-inner { padding: 28rpx 26rpx 0; }
+
+.tp-hero { display: flex; flex-direction: column; gap: 8rpx; padding: 10rpx 4rpx 30rpx; }
+.tp-title { font-size: 38rpx; line-height: 1.3; font-weight: 850; color: var(--pk-t1); }
+.tp-desc { font-size: 24rpx; line-height: 1.6; color: var(--pk-t3); }
+.tp-loading, .tp-empty { padding: 80rpx 0; text-align: center; font-size: 26rpx; color: var(--pk-t3); }
+.tp-error { margin-top: 32rpx; padding: 28rpx; display: flex; flex-direction: column; align-items: center; gap: 18rpx; border: 1rpx solid var(--pk-bd); border-radius: 24rpx; background: var(--pk-card); color: var(--pk-warn); font-size: 26rpx; }
+.tp-retry { padding: 14rpx 38rpx; border-radius: 999rpx; background: var(--pk-ink-btn); color: var(--pk-ink-btn-t); font-weight: 800; }
+
+/* 五章只是路线排版；74 张卡仍逐集读取后端 card_url。 */
+.tp-chapter { margin: 0 0 38rpx; }
+.tp-chapter-head {
+  position: relative;
+  min-height: 84rpx;
+  padding: 0 2rpx 18rpx;
+  display: grid;
+  grid-template-columns: 48rpx minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 14rpx;
+  border-bottom: 1rpx solid #cfc6b2;
+}
+.tp-chapter-head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1rpx;
+  width: 108rpx;
+  height: 5rpx;
+  border-radius: 999rpx;
+  background: var(--pk-red);
+}
+.tp-chapter-no { color: var(--pk-red); font-family: Georgia, serif; font-size: 40rpx; font-weight: 800; line-height: 1; }
+.tp-chapter-copy { min-width: 0; display: flex; flex-direction: column; gap: 5rpx; }
+.tp-chapter-title { overflow: hidden; color: var(--pk-t1); font-family: "Kaiti SC", "STKaiti", "KaiTi", serif; font-size: 29rpx; font-weight: 800; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.tp-chapter-subtitle, .tp-chapter-count { color: var(--pk-t3); font-size: 19rpx; font-weight: 700; }
+.tp-chapter-count { padding-bottom: 2rpx; white-space: nowrap; }
+
+/* C 版色序由 JS 纯投影钉死；WXSS 只负责三种卡面材质。 */
+.tp-grid { padding-top: 20rpx; display: flex; flex-wrap: wrap; gap: 14rpx 12rpx; }
+.tp-card {
+  position: relative;
+  width: calc((100% - 24rpx) / 3);
+  height: 314rpx;
+  padding: 18rpx 16rpx 16rpx;
+  overflow: hidden;
+  border-radius: 22rpx;
+  box-sizing: border-box;
+  box-shadow: 0 6rpx 0 rgba(72, 62, 44, 0.08), 0 3rpx 12rpx var(--pk-shadow);
+  transition: transform .16s ease, opacity .16s ease;
+}
+.tp-card:active { transform: translateY(3rpx) scale(.985); opacity: .86; }
+.tp-card--ink {
+  color: #f4f3ec;
+  background-color: #26241f;
+  background-image: radial-gradient(rgba(244, 243, 236, 0.08) 1.3rpx, transparent 1.3rpx);
+  background-size: 26rpx 26rpx;
+  box-shadow: 0 7rpx 0 rgba(72, 128, 106, 0.55), 0 3rpx 12rpx var(--pk-shadow);
+}
+.tp-card--red {
+  color: #fff;
+  background-color: var(--pk-red);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1.3rpx, transparent 1.3rpx);
+  background-size: 26rpx 26rpx;
+  box-shadow: 0 7rpx 0 rgba(207, 68, 54, 0.18), 0 3rpx 12rpx var(--pk-shadow);
+}
+.tp-card--paper {
+  color: #26241f;
+  border: 1rpx solid #ddd5c3;
+  background-color: #f4f0e5;
+  background-image: radial-gradient(#dfdacb 1.3rpx, transparent 1.3rpx);
+  background-size: 26rpx 26rpx;
+}
+.tp-card-top { display: flex; align-items: center; gap: 7rpx; }
+.tp-card-id {
+  min-width: 52rpx;
+  height: 36rpx;
+  padding: 0 8rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid currentColor;
+  border-radius: 10rpx;
+  box-sizing: border-box;
+  font-size: 19rpx;
+  font-weight: 850;
+  line-height: 1;
+}
+.tp-card-part {
+  width: 32rpx;
+  height: 32rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--pk-red);
+  color: #fff;
+  font-size: 17rpx;
+  font-weight: 850;
+}
+.tp-card--ink .tp-card-part { background: #f4f0e5; color: #26241f; }
+.tp-card--red .tp-card-part { background: #fff; color: var(--pk-red); }
+.tp-card-name {
+  position: absolute;
+  top: 18rpx;
+  right: 17rpx;
+  max-height: 180rpx;
+  overflow: hidden;
+  writing-mode: vertical-rl;
+  font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive;
+  font-size: 29rpx;
+  line-height: 1;
+  letter-spacing: 4rpx;
+}
+.tp-card-foot { position: absolute; left: 16rpx; right: 14rpx; bottom: 16rpx; display: flex; flex-direction: column; gap: 6rpx; }
+.tp-card-dots { display: flex; gap: 6rpx; }
+.tp-card-dot { width: 20rpx; height: 7rpx; border-radius: 999rpx; background: currentColor; opacity: .32; }
+.tp-card-dot.is-active { opacity: 1; }
+.tp-card-play { overflow: hidden; font-size: 20rpx; font-weight: 850; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.tp-card-progress { font-size: 18rpx; font-weight: 700; opacity: .72; }
+.tp-bottom-space { height: calc(56rpx + env(safe-area-inset-bottom)); }

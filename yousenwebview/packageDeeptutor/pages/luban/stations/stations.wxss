@@ -41,6 +41,9 @@
 .sr-hero { display: flex; flex-direction: column; gap: 8rpx; padding: 8rpx 4rpx 24rpx; }
 .sr-title { font-size: 38rpx; font-weight: 800; color: var(--pk-t1); line-height: 1.3; }
 .sr-lit { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
+.sr-teaching-entry { align-self: flex-start; margin-top: 8rpx; padding: 10rpx 14rpx 10rpx 18rpx; display: flex; align-items: center; gap: 8rpx; border-radius: 999rpx; background: rgba(72, 128, 106, 0.1); color: var(--pk-grn); font-size: 23rpx; font-weight: 800; }
+.sr-teaching-entry:active { opacity: .7; }
+.sr-teaching-entry-arrow { font-size: 30rpx; line-height: .7; }
 
 .sr-error { padding: 40rpx 0; display: flex; flex-direction: column; align-items: center; gap: 18rpx; color: var(--pk-t2); font-size: 26rpx; }
 .sr-retry { width: 200rpx; }

@@ -14,6 +14,7 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/luban/review/review": true,
   "pages/luban/station/station": true,
   "pages/luban/stations/stations": true,
+  "pages/luban/teaching-points/teaching-points": true,
   "pages/mistake-book/mistake-book": true,
   "pages/onboarding/onboarding": true,
   "pages/practice/practice": true,
@@ -112,8 +113,15 @@ module.exports = {
   lubanStations: function (query) {
     return withQuery("pages/luban/stations/stations", query);
   },
-  lubanStation: function (packId) {
-    return withQuery("pages/luban/station/station", { pack_id: packId });
+  lubanTeachingPoints: function () {
+    return resolve("pages/luban/teaching-points/teaching-points");
+  },
+  lubanStation: function (packId, episode) {
+    var n = Number(episode || 1);
+    return withQuery("pages/luban/station/station", {
+      pack_id: packId,
+      episode: Number.isFinite(n) && Math.floor(n) > 1 ? Math.floor(n) : "",
+    });
   },
   lubanReview: function (query) {
     return withQuery("pages/luban/review/review", query);

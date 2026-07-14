@@ -10,6 +10,34 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=c91c4e682bfe205e"></script>
+<script data-luban-card-entry-bridge>
+(function(){
+  var ticket="";
+  try{
+    var current=new URL(window.location.href);
+    var capability=new URLSearchParams(String(current.hash||"").replace(/^#/,""));
+    ticket=String(capability.get("entry_ticket")||"").trim();
+    if(ticket){ window.__lubanCardEntryTicket=ticket; window.history.replaceState(window.history.state,document.title,current.pathname+(current.search||"")); }
+  }catch(_){ }
+  function closestAnchor(node){ while(node&&node!==document){ if(String(node.tagName||"").toUpperCase()==="A")return node; node=node.parentNode; } return null; }
+  function carryCapability(url){ if(!ticket)return url; url.hash="entry_ticket="+encodeURIComponent(ticket); return url; }
+  document.addEventListener("click",function(event){
+    var anchor=closestAnchor(event.target); if(!anchor||event.defaultPrevented)return;
+    var href=String(anchor.getAttribute("href")||"").trim(); if(!href||href.charAt(0)==="#")return;
+    var next; try{ next=new URL(anchor.href,window.location.href); }catch(_){return;}
+    if(next.origin!==window.location.origin)return;
+    var file=next.pathname.split("/").pop()||"";
+    if(/^lesson(?:\d+)?\.html$/i.test(file)){ if(ticket){ event.preventDefault(); window.location.assign(carryCapability(next).toString()); } return; }
+    if(!/^practice(?:\d+)?\.html$/i.test(file))return;
+    event.preventDefault();
+    if(!ticket){ window.alert("学习身份已过期，请返回小程序重新打开这一站。"); return; }
+    fetch("/api/v1/luban-preview/lesson-viewed",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contextId:"S07",cardId:"S07",entryTicket:ticket})})
+      .then(function(response){ if(!response.ok)throw new Error("lesson evidence rejected"); window.location.assign(carryCapability(next).toString()); })
+      .catch(function(){ window.alert("学习记录未确认，请留在本页稍后重试后再做练习。"); });
+  },true);
+})();
+</script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -437,21 +465,75 @@ class Component extends DCLogic {
   preset(t){ this.setState({askText:t}); }
   async submitAsk(){
     const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    const runtime=window.LubanTutorbotSheetRuntime;
+    const entryTicket=String(window.__lubanCardEntryTicket||"").trim();
+    if(!runtime||!entryTicket){ this.setState({askLoading:false,askAnswer:"学习身份已过期，请返回小程序重新打开这一站。"}); return; }
+    const state=this.state||{};
+    const questionIndex=Number(state.qi!=null?state.qi:(state.idx!=null?state.idx:0));
+    let c=null;
+    if(typeof this.curCtx==="function"){ try{ c=this.curCtx(); }catch(_){ c=null; } }
+    if(!c){
+      let q=null;
+      if(Array.isArray(state.drawn))q=state.drawn[questionIndex];
+      if(!q&&typeof this.qAt==="function"){ try{ q=this.qAt(questionIndex); }catch(_){ q=null; } }
+      if(!q&&Array.isArray(this.Q))q=this.Q[questionIndex];
+      q=q||{};
+      const opts=Array.isArray(q.opts)?q.opts.map(function(opt,index){
+        const value=opt&&typeof opt==="object"?(opt.t||opt.text||opt.label||""):opt;
+        return String.fromCharCode(65+index)+". "+String(value||"");
+      }).join("\n"):"";
+      let mine="（还没作答）";
+      if(typeof state.sel==="number"){
+        if(state.sel>=0)mine=String.fromCharCode(65+state.sel);
+      }else if(state.sel!=null&&typeof state.sel!=="object"&&String(state.sel).trim())mine=String(state.sel);
+      else if(state.sel&&state.sel[questionIndex]!=null)mine=String(state.sel[questionIndex]);
+      c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
+    }
+    const currentQuestion=c.q||{};
+    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
+      ?currentQuestion.opts[currentQuestion.c]:"";
+    const correctText=correctOption&&typeof correctOption==="object"
+      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    let contextLine="";
+    if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    const payload={contextId:"S07",cardId:"S07",question:userQ,entryTicket:entryTicket,
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
+    let rawResponse="",lastSeq=0,completed=false,reconnects=0;
+    const self=this;
+    const fail=function(message){ if(completed)return; completed=true; self.setState({askLoading:false,askAnswer:String(message||"TutorBot 暂时不可用，请稍后重试。")}); };
+    const render=function(next,append){ rawResponse=append?rawResponse+String(next||""):String(next||""); self.setState({askLoading:true,askAnswer:rawResponse||"鲁班正在整理答案…"}); };
+    const consume=function(event){
+      if(!event||typeof event!=="object"||completed)return;
+      const seq=typeof event.seq==="number"?event.seq:0; if(seq&&seq<=lastSeq)return; if(seq)lastSeq=seq;
+      const type=String(event.type||"");
+      if(type==="content"){ if(runtime.isPublicEvent(event))render(event.content,true); return; }
+      if(type==="result"){ if(runtime.isPublicEvent(event)){ const finalText=runtime.finalResponse(event); if(finalText)render(finalText,false); } return; }
+      if(type==="error"&&event.metadata&&event.metadata.turn_terminal){ fail(event.content); return; }
+      if(type==="done"){ completed=true; self.setState({askLoading:false}); }
+    };
+    const socketUrl=function(path){ const u=new URL(String(path||"/api/v1/ws"),window.location.href); u.protocol=u.protocol==="https:"?"wss:":"ws:"; return u.toString(); };
+    const connect=function(stream){
+      if(completed)return;
+      let socket;
+      try{
+        socket=new WebSocket(socketUrl(stream.url),[String(stream.protocol||"luban-preview-v1"),String(stream.ticket||"")]);
+        socket.onopen=function(){ socket.send(JSON.stringify({type:"subscribe_turn",turn_id:String(stream.turn_id||""),after_seq:lastSeq||0})); };
+        socket.onmessage=function(message){ try{consume(JSON.parse(String(message.data||"")));}catch(_){ } };
+        socket.onclose=function(){ if(completed)return; if(reconnects>=5){fail("流式连接中断，请稍后重试。");return;} reconnects+=1; setTimeout(function(){connect(stream);},400*reconnects); };
+        socket.onerror=function(){};
+      }catch(_){ fail("流式连接暂时不可用，请稍后重试。"); }
+    };
     this.setState({askLoading:true,askAnswer:""});
-    const c=this.curCtx();
-    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在带学员做“安全事故等级判定与上报”的随堂练。\\n'+
-      '知识口径：①事故类型≠事故等级。②定级量三把尺子(死亡人数/重伤人数/直接经济损失)，任一达更高级即按更高级，不平均不取最低；阈值——一般<3死或<10重伤或<1000万；较大3≤死<10 或 10≤重伤<50 或 1000万≤损失<5000万；重大10≤死<30 或 50≤重伤<100 或 5000万≤损失<1亿；特别重大≥30死或≥100重伤或≥1亿。③上报：现场人员立即向本单位负责人报告→逐级上报至市(设区)级政府住建主管；报告含初步原因/联系人及方式/其他；30天内伤亡变化及时补报。④调查处理：调查组(政府/安监/监察/公安/工会/检察院/专家)提建议→政府批复→单位执行；追直接责任人+领导责任，单位不得自裁。\\n'+
-      '【本题题干】'+c.q.stem+'\\n【选项】\\n'+c.opts+'\\n【正确/满分采分句】'+c.q.model+'\\n【学员的选择】'+c.mine+(c.sub?'（已对答案）':'（尚未对答案，回答时不要直接说哪个字母对，引导他想）')+'\\n'+
-      '【学员追问】'+userQ+'\\n'+
-      '要求：东北话口语、亲切、简短(150字内)，紧扣本题和采分点；先点回答再给一句依据。若学员还没对答案且在问“选哪个”，就给思路别直接报答案。只答这个考点范围内的问题。';
     try{
-      if(window.claude && typeof window.claude.complete==='function'){
-        const ans=await window.claude.complete(prompt);
-        this.setState({askLoading:false,askAnswer:(ans&&String(ans).trim())||"（这次没拿到回答，再点一下试试哈）"});
-      } else {
-        this.setState({askLoading:false,askAnswer:"当前预览环境没接 AI 接口。放进鲁班 App 里，「问追AI」就能直接连老师啦。\\n\\n你的问题我先记下了：“"+userQ+"”。\\n小提示：定级永远先量三把尺子，任一达更高级就按更高级。"});
-      }
-    }catch(err){ this.setState({askLoading:false,askAnswer:"追问出错了："+((err&&err.message)||err)+"。稍后再试。"}); }
+      const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(String(data.detail||"TutorBot 答疑暂时不可用"));
+      const stream=data&&data.stream;
+      if(!stream||!stream.ticket||!stream.turn_id)throw new Error("TutorBot 流式回合未创建");
+      connect(stream);
+    }catch(err){ fail((err&&err.message)||"TutorBot 暂时不可用，请稍后重试。"); }
   }
   renderVals(){
     const qi=this.state.qi, q=this.Q[qi], sub=!!this.state.sub[qi], multi=this.isMulti(q);

@@ -1,0 +1,12 @@
+/* ════════════════════════════════════════════════════════════════════
+   鲁班智考 · 动画学习卡 — Design System entry stylesheet
+   ────────────────────────────────────────────────────────────────────
+   IMPORTANT (brand red line): the *deliverable* templates (*.dc.html)
+   use INLINE STYLES ONLY — no CSS classes, no var() tokens. The tokens
+   below are DOCUMENTATION for the Design System tab + foundation cards.
+   When forking a template, copy the literal hex/px values, not var().
+   ════════════════════════════════════════════════════════════════════ */
+@import "tokens/fonts.css";
+@import "tokens/colors.css";
+@import "tokens/typography.css";
+@import "tokens/spacing.css";

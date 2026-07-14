@@ -34,7 +34,7 @@ def test_shared_card_runtime_is_self_hosted_and_integrity_pinned() -> None:
         assert hashlib.sha256(data).hexdigest() == expected_digest
 
     support_files = sorted(root.glob("*/support.js"))
-    assert len(support_files) == 37
+    assert len(support_files) == 40
     for support in support_files:
         source = support.read_text(encoding="utf-8")
         assert "unpkg.com" not in source
@@ -49,12 +49,13 @@ def test_shared_card_runtime_is_self_hosted_and_integrity_pinned() -> None:
     assert "toWorkflowEvent" in runtime_source
 
 
-def test_all_37_hosted_lessons_preload_only_the_first_audio_segment() -> None:
+def test_all_40_hosted_topics_and_74_teaching_episodes_preload_only_the_first_audio_segment() -> None:
     root = ROOT / "web/public/luban-preview"
     entry_lessons = sorted(root.glob("*/lesson.html"))
     lessons = sorted(root.glob("*/lesson*.html"))
 
-    assert len(entry_lessons) == 37
+    assert len(entry_lessons) == 40
+    assert len(lessons) == 74
     for lesson in lessons:
         source = lesson.read_text(encoding="utf-8")
         assert all(line == line.rstrip() for line in source.splitlines())
@@ -66,11 +67,11 @@ def test_all_37_hosted_lessons_preload_only_the_first_audio_segment() -> None:
         assert (lesson.parent / preload.group(1)).is_file()
 
 
-def test_all_37_hosted_lessons_keep_ai_ask_inside_the_teaching_card() -> None:
+def test_all_74_teaching_episodes_keep_ai_ask_inside_the_teaching_card() -> None:
     """web-view 上方不能可靠叠原生层；问答抽屉必须由 lesson.html 自己承载。"""
-    lessons = sorted((ROOT / "web/public/luban-preview").glob("*/lesson.html"))
+    lessons = sorted((ROOT / "web/public/luban-preview").glob("*/lesson*.html"))
 
-    assert len(lessons) == 37
+    assert len(lessons) == 74
     for lesson in lessons:
         source = lesson.read_text(encoding="utf-8")
         assert "askOpen" in source
@@ -88,6 +89,7 @@ def test_all_37_hosted_lessons_keep_ai_ask_inside_the_teaching_card() -> None:
         assert 'current.searchParams.get("entry_ticket")' not in source
         assert 'new URLSearchParams(String(current.hash||"").replace(/^#/,""))' in source
         assert 'fetch("/api/v1/luban-preview/lesson-viewed"' in source
+        assert "window.location.assign(carryCapability(next).toString())" in source
         assert "data-luban-ask-thread" in source
         assert "data-luban-ask-error" in source
         assert "data-luban-workflow-status" in source
@@ -100,12 +102,29 @@ def test_all_37_hosted_lessons_keep_ai_ask_inside_the_teaching_card() -> None:
         assert "askAnswer }}</div>" not in source
 
 
+def test_all_43_practice_surfaces_use_the_same_authenticated_tutorbot_stream() -> None:
+    practices = sorted((ROOT / "web/public/luban-preview").glob("*/practice*.html"))
+
+    assert len(practices) == 43
+    for practice in practices:
+        source = practice.read_text(encoding="utf-8")
+        assert "window.claude" not in source
+        assert "LubanTutorbotSheetRuntime" in source
+        assert 'fetch("/api/v1/luban-preview/ai-ask"' in source
+        assert "entryTicket:entryTicket" in source
+        assert "new WebSocket" in source
+        assert 'type:"subscribe_turn"' in source
+        assert "entry_ticket" in source
+        assert 'current.searchParams.get("entry_ticket")' not in source
+        assert 'new URLSearchParams(String(current.hash||"").replace(/^#/,""))' in source
+
+
 def test_all_hosted_audio_manifests_have_every_declared_mp3() -> None:
     root = ROOT / "web/public/luban-preview"
 
     assert not list(root.glob("**/.DS_Store"))
     manifests = sorted(root.glob("*/audio/**/manifest.json"))
-    assert len(manifests) >= 37
+    assert len(manifests) >= 40
     for manifest_path in manifests:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         for segment in manifest.get("segments") or []:

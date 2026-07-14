@@ -87,6 +87,15 @@ function urlOf(loaded) {
   assert(url.indexOf("limit=1") >= 0, "limit=1 应保留, got " + url);
 })();
 
+// 同 pack 的第二集必须进 detail query；练习/进度仍由 pack_id 归属。
+(function () {
+  var loaded = loadApiModule();
+  loaded.api.getLubanLessonDetail("D14", { episode: 2, silent: true });
+  var url = urlOf(loaded);
+  assert(url.indexOf("/luban/lessons/D14?episode=2") >= 0, "第二集必须直达 lesson detail, got " + url);
+  assert(loaded.pendingRequests[0].data.episode === undefined, "episode 应在 URL，不应成为 GET body");
+})();
+
 if (fail > 0) {
   console.error(errors.join("\n"));
   console.error("\napi-luban-retest-mode: " + pass + " passed, " + fail + " FAILED");

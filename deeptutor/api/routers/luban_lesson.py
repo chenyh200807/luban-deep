@@ -28,7 +28,7 @@ from deeptutor.services.luban_lesson import (
     build_seethrough,
     build_seethrough_library,
     list_all_pack_ids,
-    list_green_lessons,
+    list_lesson_catalog,
     retest_pool_meta,
 )
 from deeptutor.services.luban_lesson.practice_html import (
@@ -72,15 +72,23 @@ class CardEntryResponse(BaseModel):
 )
 async def lessons(_: AuthContext = Depends(get_current_user)) -> dict:
     light_enabled = _review_module_enabled() and _light_practice_enabled()
+    green_lessons, teaching_points = list_lesson_catalog()
+    teaching_topic_universe = len(
+        {str(point.get("pack_id") or "") for point in teaching_points}
+    )
     return {
         # 总站数由 manifest 唯一枚举；客户端不得继续维护 40/41 的镜像常量。
         "pack_universe": len(list_all_pack_ids()),
+        # 教学集从已发布 lesson*.html 只读投影；它不是第二套学习/练习生命周期。
+        "teaching_point_universe": len(teaching_points),
+        "teaching_topic_universe": teaching_topic_universe,
+        "teaching_points": teaching_points,
         "lessons": [
             {
                 **row,
                 "light_practice_available": light_enabled and row.get("retest_available") is True,
             }
-            for row in list_green_lessons()
+            for row in green_lessons
         ]
     }
 
@@ -91,9 +99,13 @@ async def lessons(_: AuthContext = Depends(get_current_user)) -> dict:
         Depends(route_rate_limit("luban_lesson_detail", default_max_requests=60, default_window_seconds=60.0))
     ],
 )
-async def lesson_detail(pack_id: str, _: AuthContext = Depends(get_current_user)) -> dict:
+async def lesson_detail(
+    pack_id: str,
+    episode: int = 1,
+    _: AuthContext = Depends(get_current_user),
+) -> dict:
     try:
-        return build_lesson_viewmodel(pack_id)
+        return build_lesson_viewmodel(pack_id, episode_index=episode)
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
 

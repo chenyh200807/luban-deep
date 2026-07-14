@@ -320,6 +320,11 @@ celerybeat.pid
 !demo/*.mp4
 # 托管教学卡配音必须进库(2026-07-05: F16 无声根因=全局 *.mp3 静默挡掉 audio/ 提交)
 !web/public/luban-preview/**/*.mp3
+# 2026-07-14 新增 4 包的 finished 是发布唯一源；源音频必须随 clean clone 可重建。
+!artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/audio/**/*.mp3
+!artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/audio/**/*.mp3
+!artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N02/audio/**/*.mp3
+!artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/audio/**/*.mp3
 .gstack/
 
 # Backup .env snapshots may contain rotated secrets (e.g. prod service-role keys)

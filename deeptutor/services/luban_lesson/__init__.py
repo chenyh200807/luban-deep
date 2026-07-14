@@ -16,6 +16,8 @@ from deeptutor.services.luban_lesson.read_model import (
     build_retest_items,
     list_all_pack_ids,
     list_green_lessons,
+    list_lesson_catalog,
+    list_teaching_points,
     retest_pool_meta,
 )
 from deeptutor.services.luban_lesson.seethrough import (
@@ -37,5 +39,7 @@ __all__ = [
     "build_seethrough_library",
     "list_all_pack_ids",
     "list_green_lessons",
+    "list_lesson_catalog",
+    "list_teaching_points",
     "retest_pool_meta",
 ]

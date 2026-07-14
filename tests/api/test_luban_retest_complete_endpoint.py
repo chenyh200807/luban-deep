@@ -84,7 +84,11 @@ def test_forward_item_supply_requires_light_practice_flag(monkeypatch) -> None:
 
 
 def test_lesson_listing_exposes_rollout_gated_light_practice_truth(monkeypatch) -> None:
-    monkeypatch.setattr(router, "list_green_lessons", lambda: [{"pack_id": "F16", "retest_available": True}])
+    monkeypatch.setattr(
+        router,
+        "list_lesson_catalog",
+        lambda: ([{"pack_id": "F16", "retest_available": True}], []),
+    )
     monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
     monkeypatch.setattr(router, "_light_practice_enabled", lambda: False)
 
