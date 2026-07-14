@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import subprocess
 import sys
 
 import pytest
@@ -47,6 +48,37 @@ def test_all_registered_practice_outputs_rebuild_from_tracked_sources() -> None:
         assert (_mod.AUTHORITY_HOST / f"{station_id}.practice.authority.json").read_text(
             encoding="utf-8"
         ) == json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
+
+
+def test_registered_practice_sources_survive_autocrlf_checkout_byte_exact(
+    tmp_path: Path,
+) -> None:
+    prefix = str(tmp_path) + "/"
+    for station in _mod.STATIONS.values():
+        for source_name in station.practice.values():
+            source = _mod.FINISHED / station.pack_dir / source_name
+            relative = source.relative_to(_mod.REPO)
+            attributes = subprocess.check_output(
+                ["git", "check-attr", "text", "whitespace", "--", str(relative)],
+                cwd=_mod.REPO,
+                text=True,
+            )
+            assert f"{relative}: text: unset" in attributes
+            assert f"{relative}: whitespace: unset" in attributes
+            subprocess.run(
+                [
+                    "git",
+                    "-c",
+                    "core.autocrlf=true",
+                    "checkout-index",
+                    f"--prefix={prefix}",
+                    "--",
+                    str(relative),
+                ],
+                cwd=_mod.REPO,
+                check=True,
+            )
+            assert (tmp_path / relative).read_bytes() == source.read_bytes()
 
 
 def test_practice_only_check_does_not_touch_lesson_or_support() -> None:

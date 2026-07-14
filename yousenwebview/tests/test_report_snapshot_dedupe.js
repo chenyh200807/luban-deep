@@ -107,6 +107,18 @@ function loadReportPage(stubs) {
             getUserId: function () {
               return "report-user";
             },
+            readOwnerStorage: function (key) {
+              var envelope = storage[key + ":report-user"];
+              if (!envelope || envelope.ownerId !== "report-user") return null;
+              return envelope.value;
+            },
+            writeOwnerStorage: function (key, value) {
+              storage[key + ":report-user"] = {
+                ownerId: "report-user",
+                value: value,
+              };
+              return true;
+            },
           },
           stubs.auth || {},
         );
@@ -269,7 +281,10 @@ function createPageInstance(pageDef) {
       var capturedQuery = "";
       var pageDef = loadReportPage({
         storageSeed: {
-          "deeptutor.report.pendingTrainingAction": pendingIntent,
+          "deeptutor.report.pendingTrainingAction:report-user": {
+            ownerId: "report-user",
+            value: pendingIntent,
+          },
         },
         api: {},
         auth: {},

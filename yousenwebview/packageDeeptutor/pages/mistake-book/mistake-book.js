@@ -1,4 +1,5 @@
 const api = require("../../utils/api");
+const auth = require("../../utils/auth");
 const route = require("../../utils/route");
 const helpers = require("../../utils/helpers");
 const mistakeBookViewModel = require("../../utils/mistake-book-view-model");
@@ -81,11 +82,11 @@ Page({
     var item = this._itemFromEvent(event);
     if (!item || !item.attemptRef) return;
     var cacheKey = "mistake_book_attempt:" + String(item.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
-    if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
-      try {
-        wx.setStorageSync(cacheKey, { card: buildAttemptCache(item), savedAt: Date.now() });
-      } catch (_err) {}
-    }
+    if (auth.writeOwnerStorage)
+      auth.writeOwnerStorage(cacheKey, {
+        card: buildAttemptCache(item),
+        savedAt: Date.now(),
+      });
     if (typeof wx !== "undefined" && typeof wx.navigateTo === "function") {
       wx.navigateTo({
         url:

@@ -168,6 +168,13 @@ function loadProfilePage(overrides) {
           isLoggedIn: function () {
             return true;
           },
+          readOwnerStorage: function (key) {
+            return key === "local_avatar_path" ? storageValue : null;
+          },
+          writeOwnerStorage: function (key, value) {
+            if (key === "local_avatar_path") storageValue = value;
+            return true;
+          },
         };
       }
       if (request === "../../utils/helpers") return helpersMock;
@@ -274,7 +281,7 @@ function loadProfilePage(overrides) {
       );
       assert(
         loaded.getStorageValue() === "/local/saved-avatar.png",
-        "local avatar path should be persisted only in device storage",
+        "local avatar path should be persisted only in owner-scoped device storage",
       );
       assert(
         loaded.getUpdateSettingsCalls().length === 0,

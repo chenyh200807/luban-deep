@@ -1,6 +1,7 @@
 // pages/assessment/assessment.js — 摸底测试
 
 var api = require("../../utils/api");
+var auth = require("../../utils/auth");
 var route = require("../../utils/route");
 var runtime = require("../../utils/runtime");
 var taxonomy = require("../../utils/taxonomy");
@@ -1281,7 +1282,6 @@ Page({
                 buildP0AResultModel(data, self.data.questions),
               ),
             );
-            wx.setStorageSync("diagnostic_completed", true);
             helpers.vibrate("heavy");
             return;
           }
@@ -1407,7 +1407,6 @@ Page({
             planStrategy: ap.plan_strategy || "",
           });
 
-          wx.setStorageSync("diagnostic_completed", true);
           helpers.vibrate("heavy");
         } catch (renderErr) {
           console.error("[Assessment] submit succeeded but result render failed", renderErr);
@@ -1420,7 +1419,6 @@ Page({
               buildSubmitSuccessFallbackModel(data),
             ),
           );
-          wx.setStorageSync("diagnostic_completed", true);
           helpers.vibrate("heavy");
           wx.showToast({ title: "已提交", icon: "success" });
         }
@@ -1503,9 +1501,8 @@ Page({
     if (followupQuestionContext) {
       intent.followupQuestionContext = followupQuestionContext;
     }
-    if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
-      wx.setStorageSync("deeptutor.report.pendingTrainingAction", intent);
-    }
+    if (auth.writeOwnerStorage)
+      auth.writeOwnerStorage("deeptutor.report.pendingTrainingAction", intent);
     wx.reLaunch({
       url: route.report({
         detail: "training",

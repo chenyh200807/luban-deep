@@ -1,63 +1,45 @@
 // 首次体验本地 UI 状态。canonical 完成事实只在服务端 Learner State；
 // DONE_KEY 仅缓存展示，checkpoint/pending 必须按 canonical user 隔离。
 var route = require("./route");
+var ownerStorage = require("./owner-storage");
 
 var DONE_KEY = "deeptutor_first_run_done_v1";
 var CHECKPOINT_KEY = "deeptutor_first_run_checkpoint_v1";
 var PENDING_SYNC_KEY = "deeptutor_first_run_pending_sync_v1";
 
-function _get(key) {
-  try { return wx.getStorageSync(key) || null; } catch (_e) { return null; }
-}
-
-function _set(key, value) {
-  try { wx.setStorageSync(key, value); } catch (_e) {}
-}
-
-function _remove(key) {
-  try { wx.removeStorageSync(key); } catch (_e) {}
-}
-
-function _owned(record, userId) {
-  var expected = String(userId || "").trim();
-  return !!(record && expected && String(record.userId || "").trim() === expected);
-}
-
 function isFirstRunDone(userId) {
-  var done = _get(DONE_KEY);
-  if (!userId) return !!(done && done.at);
-  return _owned(done, userId) && !!done.at;
+  var done = ownerStorage.read(DONE_KEY, userId);
+  return !!(done && done.at);
 }
 
 function readCheckpoint(userId) {
-  var value = _get(CHECKPOINT_KEY);
-  return _owned(value, userId) ? value.payload || null : null;
+  var value = ownerStorage.read(CHECKPOINT_KEY, userId);
+  return value ? value.payload || null : null;
 }
 
 function writeCheckpoint(userId, payload) {
-  _set(CHECKPOINT_KEY, { userId: String(userId || ""), payload: payload || {}, at: Date.now() });
+  ownerStorage.write(CHECKPOINT_KEY, userId, { payload: payload || {}, at: Date.now() });
 }
 
 function clearCheckpoint(userId) {
-  if (!userId || _owned(_get(CHECKPOINT_KEY), userId)) _remove(CHECKPOINT_KEY);
+  ownerStorage.remove(CHECKPOINT_KEY, userId);
 }
 
 function readPendingSync(userId) {
-  var value = _get(PENDING_SYNC_KEY);
-  return _owned(value, userId) ? value.payload || null : null;
+  var value = ownerStorage.read(PENDING_SYNC_KEY, userId);
+  return value ? value.payload || null : null;
 }
 
 function savePendingSync(userId, payload) {
-  _set(PENDING_SYNC_KEY, { userId: String(userId || ""), payload: payload || {}, at: Date.now() });
+  ownerStorage.write(PENDING_SYNC_KEY, userId, { payload: payload || {}, at: Date.now() });
 }
 
 function clearPendingSync(userId) {
-  if (!userId || _owned(_get(PENDING_SYNC_KEY), userId)) _remove(PENDING_SYNC_KEY);
+  ownerStorage.remove(PENDING_SYNC_KEY, userId);
 }
 
 function markDone(userId, payload) {
-  _set(DONE_KEY, {
-    userId: String(userId || ""),
+  ownerStorage.write(DONE_KEY, userId, {
     completionId: String((payload && payload.completion_id) || ""),
     scriptVersion: String((payload && payload.script_version) || ""),
     at: Date.now(),

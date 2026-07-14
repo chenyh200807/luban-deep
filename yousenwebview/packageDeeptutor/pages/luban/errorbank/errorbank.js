@@ -15,10 +15,7 @@ var errorbankViewModel = require("../../../utils/errorbank-view-model");
 var SETTLED_PREVIEW_COUNT = 2;
 
 function _writeStorage(key, value) {
-  if (typeof wx === "undefined" || !wx.setStorageSync) return;
-  try {
-    wx.setStorageSync(key, value);
-  } catch (_err) {}
+  if (auth.writeOwnerStorage) auth.writeOwnerStorage(key, value);
 }
 
 Page({

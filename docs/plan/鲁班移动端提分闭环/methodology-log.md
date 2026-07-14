@@ -13,13 +13,13 @@
 
 **①现象**：全量 37 pack / 39 surface 在当前 worktree 能跑，但独立专家按 PR diff 复核时发现，分支只包含少量 finished practice 源，其余 sidecar/public 是从别处生成后带入；另有跨账号缓存、lesson/practice 共用缓存版本、sidecar 只验结构不验自身字节三类潜伏问题。
 
-**②发现路径（含走错的岔路）**：首轮验证集中在“运行时能加载 195 题”，没有先问“全新 clone 能否从唯一源重建 195 题”。hostile review 逐一反查 sidecar 的 `source_path/source_html_sha256` 才抓到缺源；把两个选项的 `correct` 对调且不破坏 schema，又证明形状校验不能防合法形状篡改。缓存审计则从退出登录场景反推所有 storage reader，发现只修 dashboard 会留下 history、pending turn、retest seen 等同形漏洞。
+**②发现路径（含走错的岔路）**：首轮验证集中在“运行时能加载 195 题”，没有先问“全新 clone 能否从唯一源重建 195 题”。hostile review 逐一反查 sidecar 的 `source_path/source_html_sha256` 才抓到缺源；把两个选项的 `correct` 对调且不破坏 schema，又证明形状校验不能防合法形状篡改。缓存审计则从退出登录场景反推所有 storage reader，发现只修 dashboard 会留下 history、pending turn、闯关草稿等同形漏洞；最后从 source-only PR 反推 CI 外层 paths，又发现重建闸虽存在但根本不会被题源改动触发，Windows `autocrlf` 还会在 checkout 时改坏 authority 字节。
 
 **③分析**：共同 failure shape 是派生物或缓存开始替代 source/learner authority。sidecar/public 可以是运行时优化，但必须由 tracked finished 源确定性重建并被 manifest 钉住；本地缓存可以加速投影，但 owner 不匹配时必须视为不存在。lesson 内容版本与 practice 答案版本是两个不同事实，硬塞进一个 SHA 会造成无关缓存失效，也掩盖真正改变的是哪一层。
 
 **④修法与理由**：精确纳入注册表消费的 39 个 practice 源，不把整套 teach/audio 资产扩进本 PR；publisher 增加 practice-only 重建/字节检查，full publish 与它复用同一 compiler。manifest 增加 sidecar digest，运行时在 JSON 解析前先验字节，再做内部 source/public 交叉校验。所有小程序 owner-sensitive storage 只经 auth 暴露的统一 adapter；页面 wrapper 不再各自拼 key。read model 分别使用 published lesson SHA 与 practice source bundle SHA。
 
-**⑤验证与教训**：机械闸必须同时覆盖 clean-source completeness、deterministic rebuild、shape-valid tamper、exact unavailable set、schema registry 字段闭合、跨账号读写隔离和 CI 原命令。教训：①“生成物可加载”不等于“仓库可重建”；②schema-valid 不等于 authority-valid，派生物本身也要内容寻址；③缓存不是无害实现细节，它是 reader，必须服从身份 authority；④less is more 不是少提交必要源，而是只提交被注册能力真实消费的最小完整源集合。
+**⑤验证与教训**：机械闸必须同时覆盖 clean-source completeness、deterministic rebuild、shape-valid tamper、exact unavailable set、schema registry 字段闭合、跨账号读写隔离、source-only CI 触发和 autocrlf byte-exact。教训：①“生成物可加载”不等于“仓库可重建”；②schema-valid 不等于 authority-valid，派生物本身也要内容寻址；③缓存不是无害实现细节，它是 reader，必须服从身份 authority；④闸写出来不等于接上 CI，必须用最小变更反推触发面；⑤less is more 不是少提交必要源，而是只提交被注册能力真实消费的最小完整源集合。
 
 ---
 

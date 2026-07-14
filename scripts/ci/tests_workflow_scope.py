@@ -14,6 +14,10 @@ WORKFLOW_FILES = {
     ".github/pull_request_template.md",
 }
 
+FINISHED_PRACTICE_AUTHORITY_PREFIX = (
+    "artifacts/luban_case_family_assets/diagram_microlesson/finished/"
+)
+
 SECRET_SCAN_EXCLUDED_PREFIXES = (
     ".playwright-cli/",
     ".playwright-mcp/",
@@ -100,10 +104,21 @@ def _has(changed: Iterable[str], *, prefixes: tuple[str, ...] = (), exact: tuple
     return any(path in exact_set or any(path.startswith(prefix) for prefix in prefixes) for path in changed)
 
 
+def _has_finished_practice_authority(changed: Iterable[str]) -> bool:
+    return any(
+        path.startswith(FINISHED_PRACTICE_AUTHORITY_PREFIX)
+        and ".practice" in Path(path).name
+        and path.endswith(".dc.html")
+        for path in changed
+    )
+
+
 def classify(changed: Iterable[str]) -> dict[str, bool]:
     changed = list(changed)
+    practice_authority_changed = _has_finished_practice_authority(changed)
     return {
-        "governance": _has(
+        "governance": practice_authority_changed
+        or _has(
             changed,
             prefixes=(
                 "deeptutor/",
@@ -130,7 +145,8 @@ def classify(changed: Iterable[str]) -> dict[str, bool]:
                 "docs/zh/guide/unified-turn-contract.md",
             ),
         ),
-        "backend": _has(
+        "backend": practice_authority_changed
+        or _has(
             changed,
             prefixes=(
                 "deeptutor/",

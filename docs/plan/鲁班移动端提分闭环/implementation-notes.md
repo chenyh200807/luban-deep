@@ -10,9 +10,9 @@
 ## Deviations
 
 ### 2026-07-14（全量练习闭环 · 专家红队后的可交付收口）
-- **[源头可复现]** 首轮候选把 39 个 compiled sidecar/public 页面带进了分支，却只跟踪 8 个对应 finished 源，干净 checkout 无法重建。现改为精确跟踪注册表实际消费的 39 个 practice HTML；新增 `--practice-only --check`，只从这些源重编 practice/public/sidecar 并逐字节比较，不要求把 195MB 教学音频整库搬入本次变更。
+- **[源头可复现]** 首轮候选把 39 个 compiled sidecar/public 页面带进了分支，却只跟踪 8 个对应 finished 源，干净 checkout 无法重建。现改为精确跟踪注册表实际消费的 39 个 practice HTML；新增 `--practice-only --check`，只从这些源重编 practice/public/sidecar 并逐字节比较，不要求把 195MB 教学音频整库搬入本次变更。finished practice 以 `-text` 保证 Windows `autocrlf` checkout 仍字节一致；source-only PR 会触发 backend/governance，并在 CI api-contract shard 真跑同一重建闸。
 - **[投影不可伪造]** manifest 为每个 private sidecar 固定 `authority_sha256`；运行时先验 sidecar 字节，再验 source bundle、pack、surface、source/public SHA 与 5 题结构。仅交换两个答案但保持 JSON 形状合法也会 fail-close；`luban_compiled_practice.v1` 已进入 schema registry，字段集合由测试与运行时常量对齐。
-- **[缓存权威纠偏]** lesson URL 与 practice URL 不再共用一个 bundle SHA：前者绑定已发布 lesson，后者绑定注册 practice 源集合。chat 当前会话、pending turn、history/dashboard/report cache、tombstone 与 retest seen 全部经同一个 owner-scoped storage adapter，以 canonical user 为 key + envelope 双校验；无 user 时拒绝读写，防退出换号后串读上一位学员的 LearnerState 投影。
+- **[缓存权威纠偏]** lesson URL 与 practice URL 不再共用一个 bundle SHA：前者绑定已发布 lesson，后者绑定注册 practice 源集合。chat 当前会话、pending turn、history/dashboard/report cache、tombstone、retest seen、闯关草稿、看穿进度、attempt 摘要、首跑 checkpoint 与头像全部经同一个 owner-scoped storage adapter，以 canonical user 为 key + envelope 双校验；无 user 时拒绝读写，防退出换号后串读上一位学员的 LearnerState 投影或自由文本。
 - **[CI 与边界]** secret scanner 只豁免机器生成且由 digest 校验的 `compiled/*.practice.authority.json`，相邻源码/JSON 仍扫描；不是对整个目录树放开。未登记的 B02/D14/E01/N02 仍保持 unavailable，不以目录存在猜供给。
 - **[根因复盘]** 真正坏掉的一等事实是“可发布练习是否能由当前仓库中的 finished authority 唯一重建”；争权点是旧分支源、生成 sidecar/public、副本缓存以及跨账号本地存储。修复通过补齐唯一源、钉住派生物、分离 lesson/practice cache identity，并把所有本地 reader 收进一个 owner adapter，减少而非新增业务 authority。
 

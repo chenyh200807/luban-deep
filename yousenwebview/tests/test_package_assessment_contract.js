@@ -108,6 +108,9 @@ function loadPage(apiOverrides) {
     clearTimeout: clearTimeout,
     require: function (request) {
       if (request === "../../utils/api") return apiMock;
+      if (request === "../../utils/auth") {
+        return { writeOwnerStorage: function () { return true; } };
+      }
       if (request === "../../utils/route") {
         return {
           chat: function () {

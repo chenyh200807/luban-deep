@@ -180,6 +180,18 @@ function loadPage(apiOverrides) {
     clearTimeout: clearTimeout,
     require: function (request) {
       if (request === "../../utils/api") return apiMock;
+      if (request === "../../utils/auth") {
+        return {
+          getUserId: function () { return "student-a"; },
+          writeOwnerStorage: function (key, value) {
+            sandbox.__storage[key + ":student-a"] = {
+              ownerId: "student-a",
+              value: value,
+            };
+            return true;
+          },
+        };
+      }
       if (request === "../../utils/route") {
         return {
           chat: function () { return "/packageDeeptutor/pages/chat/chat"; },
@@ -729,7 +741,10 @@ function stringify(value) {
     loaded.page.onPracticeWrongItem({ currentTarget: { dataset: { questionId: "q2" } } });
 
     assert(loaded.pendingChatIntents.length === 0, "wrong item practice should not open chat training");
-    var storedIntent = loaded.storage && loaded.storage["deeptutor.report.pendingTrainingAction"];
+    var storedIntent =
+      loaded.storage &&
+      loaded.storage["deeptutor.report.pendingTrainingAction:student-a"] &&
+      loaded.storage["deeptutor.report.pendingTrainingAction:student-a"].value;
     assert(storedIntent.prompt.indexOf("3 道") >= 0, "practice prompt should request three similar questions");
     assert(storedIntent.source === "assessment_result_wrong_item", "stored intent source should be the assessment wrong item");
     assert(storedIntent.attempt_ref === "attempt_signed", "stored intent should carry attempt_ref");

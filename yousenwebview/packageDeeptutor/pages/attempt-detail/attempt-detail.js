@@ -1,4 +1,5 @@
 const api = require("../../utils/api");
+const auth = require("../../utils/auth");
 const helpers = require("../../utils/helpers");
 const attemptDetailViewModel = require("../../utils/attempt-detail-view-model");
 
@@ -11,13 +12,9 @@ function decode(value) {
 }
 
 function readCachedCard(cacheKey) {
-  if (!cacheKey || typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return {};
-  try {
-    var cached = wx.getStorageSync(cacheKey);
-    return cached && typeof cached === "object" ? cached.card || {} : {};
-  } catch (_err) {
-    return {};
-  }
+  var cached =
+    cacheKey && auth.readOwnerStorage ? auth.readOwnerStorage(cacheKey) : null;
+  return cached && typeof cached === "object" ? cached.card || {} : {};
 }
 
 Page({
