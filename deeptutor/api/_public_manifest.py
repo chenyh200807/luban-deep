@@ -38,8 +38,8 @@ PUBLIC_PATHS: list[tuple[str, str, str]] = [
     # Invite test form (PII landing, rate-limited + openid required)
     ("POST", "/api/v1/invite-test/applications", "anonymous invite test form (rate-limited)"),
 
-    # Luban learning-card preview (bounded one-card QA, rate-limited)
-    ("POST", "/api/v1/luban-preview/ai-ask", "anonymous luban preview AI ask (rate-limited)"),
+    # Hosted Luban teaching-card TutorBot adapter (published-card allowlist + rate-limit)
+    ("POST", "/api/v1/luban-preview/ai-ask", "anonymous hosted Luban teaching-card AI ask (published-card allowlist, rate-limited)"),
 
     # Static UI metadata
     ("GET",  "/api/v1/agent-config/agents",                  "static UI agent registry"),
