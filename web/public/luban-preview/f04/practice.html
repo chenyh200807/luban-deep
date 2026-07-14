@@ -9,6 +9,7 @@
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -130,7 +131,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -192,6 +193,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
@@ -201,7 +203,7 @@ class Component extends DCLogic {
   KNOWLEDGE="防水细部节点(阴阳角/管根/穿楼板 + 女儿墙/泛水/檐口/水落口)。上集：①先细部后大面(部件安装完毕后再防水、先做节点处理)；②阴阳角基层宜做圆弧或45度(直角翘空开裂)、基层坚实平整无浮浆起砂裂缝；③阴阳角/管根/地漏先做附加层、夹铺胎体增强材料再铺大面；④管根必须密封、穿楼板套管与管道间防水密封材料嵌填压实、套管高出装饰面≥20mm。下集：⑤其他部位泛水高度≥250mm(200mm错)；⑥女儿墙泛水处防水层下增设附加层、平立面宽度均≥250mm、檐沟天沟伸入屋面≥250mm；⑦女儿墙压顶向内排水坡度≥5%、涂膜直涂至压顶下；⑧收头金属压条钉压固定+密封封严、下端鹰嘴和滴水槽；⑨檐口800mm满粘+收头压条密封；⑩水落口杯牢固固定承重结构、防水层下增设涂膜附加层、伸入杯内≥50mm、周边500mm坡≥5%。采分眼=节点做法对不对+关键数值(250/5%/50/20/800)准不准+节点是否先做。边界：卷材大面铺贴搭接属卷材施工工艺、屋面/地下设防道数属屋面防水，都不是本考点判分眼。";
   moreText="补两组：① 案例综合纠错（泛水/阴阳角/女儿墙附加层/压顶滴水/收头五处）——练一次把五处采分句一次写全；② 边界辨析——把『细部节点做法（圆弧/附加层/收头/压顶坡/水落口）』和『卷材大面铺贴搭接、屋面设防道数』分清，别把大面工艺/设防道数答进细部节点题。";
   Q=[
-    { tag:"阴阳角·条件维", typeHint:"单选 · 选出最能拿分的作答", figLabel:"图示：阴阳角基层处理", figCaption:"直角 vs 圆弧/45度 · 卷材在转角怎么走", fig:"corner",
+{ tag:"阴阳角·条件维", typeHint:"单选 · 选出最能拿分的作答", figLabel:"图示：阴阳角基层处理", figCaption:"直角 vs 圆弧/45度 · 卷材在转角怎么走", fig:"corner",
       stem:"屋面卷材防水施工，阴阳角基层的处理做法，选出最能得分的作答。",
       model:"阴阳角基层宜做圆弧或45度，使卷材平顺过渡、不翘空刺破；基层坚实平整无浮浆起砂裂缝。",
       opts:[
@@ -210,7 +212,7 @@ class Component extends DCLogic {
         { t:"阴阳角处只把大面卷材多刷一遍涂料加厚，不改基层转角形状。", ok:false, code:"E02", tempt:"以为多刷加厚就够。", lose:"没解决直角翘空的几何问题，也漏了圆弧/45度做法。", fix:"先把基层阴阳角做成圆弧或45度。" },
         { t:"阴阳角做成向外凸的尖角，让卷材绷紧贴合更牢。", ok:false, code:"M03", tempt:"把『处理阴阳角』误记成做尖角。", lose:"尖角同样应力集中、卷材更易破，概念反了。", fix:"应做圆弧或45度过渡，不是做尖角。" }
       ] },
-    { tag:"附加层·顺序维", typeHint:"单选 · 选出做法与顺序都对的作答", figLabel:"图示：节点分层顺序", figCaption:"基层 → 附加层（先做）→ 大面卷材（后铺）", fig:"layer",
+{ tag:"附加层·顺序维", typeHint:"单选 · 选出做法与顺序都对的作答", figLabel:"图示：节点分层顺序", figCaption:"基层 → 附加层（先做）→ 大面卷材（后铺）", fig:"layer",
       stem:"阴阳角、管根、地漏等薄弱部位的防水做法与施工顺序，选出能得分的作答。",
       model:"阴阳角/管根/地漏等部位先做附加层、夹铺胎体增强材料，再施工大面卷材。",
       opts:[
@@ -219,7 +221,7 @@ class Component extends DCLogic {
         { t:"阴阳角管根处把大面卷材延伸盖住即可，不单独做附加层。", ok:false, code:"E02", tempt:"以为大面盖住就够。", lose:"漏了『先做附加层、夹胎体增强材料』这一采分点。", fix:"薄弱节点先做附加层、夹铺胎体增强材料。" },
         { t:"附加层做在大面卷材外侧最上层，起面层保护作用。", ok:false, code:"M01", tempt:"把附加层当保护面层。", lose:"附加层是节点处、大面之下的补强层，位置层序记反。", fix:"附加层先做在节点、位于大面之下。" }
       ] },
-    { tag:"管根套管·数值维", typeHint:"单选 · 选出做法与数值都对的作答", figLabel:"图示：穿楼板套管剖面", figCaption:"套管高出装饰面 · 高多少？", fig:"pipe",
+{ tag:"管根套管·数值维", typeHint:"单选 · 选出做法与数值都对的作答", figLabel:"图示：穿楼板套管剖面", figCaption:"套管高出装饰面 · 高多少？", fig:"pipe",
       stem:"穿楼板管道套管处的防水做法，选出能得分的作答。",
       model:"管根密封，穿楼板套管与管道间用防水密封材料嵌填压实，套管高出装饰面≥20mm。",
       opts:[
@@ -228,7 +230,7 @@ class Component extends DCLogic {
         { t:"套管与管道间用密封材料嵌填压实即可，管根、套管高出尺寸不必强调。", ok:false, code:"E02", tempt:"抓住嵌填一项就以为够。", lose:"漏了管根密封和套管高出装饰面≥20mm两处采分点。", fix:"补管根密封、套管高出装饰面≥20mm。" },
         { t:"套管应低于装饰面、埋进面层里，避免外露磕碰。", ok:false, code:"M03", tempt:"怕外露磕碰想埋进面层。", lose:"方向反了，套管要高出装饰面防漫水，不是埋低。", fix:"套管应高出装饰面≥20mm。" }
       ] },
-    { tag:"施工顺序·条件维", typeHint:"单选 · 选出顺序正确的作答", figLabel:"图示：先细部后大面", figCaption:"① 先做细部节点  ·  ② 再施工大面", fig:"order",
+{ tag:"施工顺序·条件维", typeHint:"单选 · 选出顺序正确的作答", figLabel:"图示：先细部后大面", figCaption:"① 先做细部节点  ·  ② 再施工大面", fig:"order",
       stem:"屋面卷材防水施工顺序，下列说法正确的是。",
       model:"应先进行细部节点构造处理、再施工大面；门窗框/管道等部件安装完毕后再做防水。",
       opts:[
@@ -237,99 +239,7 @@ class Component extends DCLogic {
         { t:"大面与细部同时施工、谁快先做谁，先后无所谓。", ok:false, code:"M03", tempt:"觉得都要做、无所谓先后。", lose:"规范明确先细部后大面，顺序是采分点。", fix:"必须先细部后大面。" },
         { t:"只要门窗框、管道装完就能防水，节点先后不用管。", ok:false, code:"E02", tempt:"只记住『部件装完再防水』。", lose:"漏了『先细部后大面』这一核心顺序采分点。", fix:"补『先做节点处理、再施工大面』。" }
       ] },
-    { tag:"泛水高度·案例纠错", typeHint:"单选 · 判别并给正确做法", figLabel:"图示：泛水高度探针", figCaption:"卷材翻起 200mm · 够不够？", fig:"flash",
-      stem:"某屋面女儿墙泛水高度做到 200mm。判别是否妥当并给正确做法。",
-      model:"泛水高度200mm不足，其他部位泛水高度应≥250mm，应加高至不小于250mm。",
-      opts:[
-        { t:"泛水高度200mm不足，其他部位泛水高度应≥250mm，应加高至不小于250mm。", ok:true, fix:"判不妥＋给出≥250mm，数值采分句齐。", code:"" },
-        { t:"泛水做法不妥，应把泛水高度提高一些、做足即可。", ok:false, code:"E03", tempt:"知道要加高、但没写数值。", lose:"漏了关键数字≥250mm，采分句不给分。", fix:"明确写『泛水高度≥250mm』。" },
-        { t:"泛水高度200mm偏低，应加高至≥150mm。", ok:false, code:"M08", tempt:"记得有个限值、记成150。", lose:"数值错，应为≥250mm。", fix:"泛水高度≥250mm。" },
-        { t:"泛水高度200mm符合要求，无需调整。", ok:false, code:"E10", tempt:"200看着差不多就放过。", lose:"低于250限值，判为不妥。", fix:"应加高至≥250mm。" }
-      ] },
-    { tag:"女儿墙附加层·数值维", typeHint:"单选 · 选出做法与数值都对的作答", figLabel:"图示：女儿墙泛水根阴角", figCaption:"附加层 · 平面与立面各量多少", fig:"addlayer",
-      stem:"女儿墙泛水处附加层做法，选出能得分的作答。",
-      model:"女儿墙泛水处防水层下增设附加层，平面和立面宽度均≥250mm。",
-      opts:[
-        { t:"女儿墙泛水处防水层下增设附加层，平面和立面宽度均≥250mm。", ok:true, fix:"增设附加层＋平立面均≥250mm，采分句齐。", code:"" },
-        { t:"女儿墙泛水处防水层下增设附加层即可，宽度按现场情况定。", ok:false, code:"E02", tempt:"知道要加附加层、忽略宽度。", lose:"漏了平立面均≥250mm的数值采分点。", fix:"平面立面宽度均≥250mm。" },
-        { t:"女儿墙泛水附加层平立面宽度均≥100mm。", ok:false, code:"M08", tempt:"记得有宽度要求、数值记小。", lose:"数值错，应≥250mm。", fix:"平立面均≥250mm。" },
-        { t:"女儿墙泛水只需把大面卷材上翻，不必单独设附加层。", ok:false, code:"M03", tempt:"以为上翻就够。", lose:"漏了泛水处应增设附加层。", fix:"防水层下增设附加层、平立面≥250mm。" }
-      ] },
-    { tag:"压顶排水·案例辨析", typeHint:"单选 · 选出做法完整的作答", figLabel:"图示：压顶排水", figCaption:"平顶积水 vs 向内坡排水", fig:"coping",
-      stem:"女儿墙压顶做法，选出能得分的作答。",
-      model:"女儿墙压顶向内排水、坡度≥5%，涂膜防水层直接涂刷至压顶下。",
-      opts:[
-        { t:"女儿墙压顶向内排水、坡度≥5%，涂膜防水层直接涂刷至压顶下。", ok:true, fix:"向内坡≥5%＋涂膜至压顶下，采分句齐。", code:"" },
-        { t:"女儿墙压顶做成水平顶面，便于施工和放置构件。", ok:false, code:"E10", tempt:"平顶好施工。", lose:"平顶积水回渗，应做向内坡≥5%。", fix:"压顶向内坡≥5%。" },
-        { t:"压顶向内排水，坡度≥2%即可。", ok:false, code:"M08", tempt:"记得要坡、数值记成2%。", lose:"数值错，应≥5%。", fix:"坡度≥5%。" },
-        { t:"压顶向内排水坡度≥5%即可，涂膜到不到压顶下无所谓。", ok:false, code:"E02", tempt:"只答坡度一项。", lose:"漏了『涂膜直接涂刷至压顶下』采分点。", fix:"补『涂膜直涂至压顶下』。" }
-      ] },
-    { tag:"卷材收头·案例辨析", typeHint:"单选 · 选出做法齐全的作答", figLabel:"图示：卷材收头", figCaption:"只密封 vs 金属压条钉压+密封", fig:"batten",
-      stem:"女儿墙卷材收头处理，选出能得分的作答。",
-      model:"收头用金属压条钉压固定+密封材料封严，下端做鹰嘴和滴水槽。",
-      opts:[
-        { t:"卷材收头用金属压条钉压固定，再用密封材料封严，下端做鹰嘴和滴水槽。", ok:true, fix:"压条钉压＋密封封严＋鹰嘴滴水槽，三件齐。", code:"" },
-        { t:"卷材收头用密封材料涂封严实即可。", ok:false, code:"E02", tempt:"抹层密封看着已封住。", lose:"漏了金属压条钉压固定，只密封锁不住自由边。", fix:"收头须金属压条钉压＋密封封严。" },
-        { t:"收头把卷材多翻上去一截、压块砖头压住即可。", ok:false, code:"M01", tempt:"随手压块砖当固定。", lose:"非规范做法，应金属压条钉压＋密封。", fix:"金属压条钉压固定＋密封封严。" },
-        { t:"收头用金属压条钉压固定即可，密封和滴水槽可省。", ok:false, code:"E02", tempt:"压条钉住看着牢。", lose:"漏了密封封严和鹰嘴滴水槽。", fix:"压条＋密封＋鹰嘴滴水槽三件齐。" }
-      ] },
-    { tag:"檐口细部·数值维", typeHint:"单选 · 选出做法与数值都对的作答", figLabel:"图示：檐口卷材", figCaption:"檐口满粘范围 · 多少毫米", fig:"sheet",
-      sheet:["檐口 · 卷材满粘范围 = ? mm","收头金属压条钉压 + 密封","下端鹰嘴 + 滴水槽"],
-      stem:"檐口卷材防水做法，选出能得分的作答。",
-      model:"檐口800mm范围内卷材满粘，收头金属压条钉压+密封封严，下端做鹰嘴和滴水槽。",
-      opts:[
-        { t:"檐口800mm范围内卷材满粘，收头金属压条钉压+密封封严，下端做鹰嘴和滴水槽。", ok:true, fix:"800满粘＋收头压条密封＋鹰嘴滴水槽，采分句齐。", code:"" },
-        { t:"檐口500mm范围内卷材满粘，其余空铺。", ok:false, code:"M08", tempt:"记得有个满粘范围、记成500。", lose:"数值错，应为檐口800mm范围内满粘。", fix:"檐口800mm范围内满粘。" },
-        { t:"檐口卷材满粘即可，收头和滴水槽按一般做法。", ok:false, code:"E02", tempt:"只答满粘一项。", lose:"漏了收头压条密封与鹰嘴滴水槽。", fix:"补收头压条密封＋鹰嘴滴水槽。" },
-        { t:"檐口卷材整体空铺、只在最边缘点粘，防止起鼓。", ok:false, code:"M01", tempt:"怕起鼓想空铺。", lose:"檐口800mm范围要满粘，空铺错。", fix:"檐口800mm范围内满粘。" }
-      ] },
-    { tag:"水落口·数值维", typeHint:"单选 · 选出做法与数值最完整的作答", figLabel:"图示：水落口构造", figCaption:"防水层伸入杯内 · 多少毫米", fig:"drain",
-      stem:"水落口构造做法，选出能得分的作答。",
-      model:"水落口杯牢固固定承重结构，防水层下增设涂膜附加层，防水层伸入杯内≥50mm，周边500mm坡≥5%。",
-      opts:[
-        { t:"水落口杯牢固固定在承重结构上，防水层下增设涂膜附加层，防水层伸入杯内≥50mm，周边500mm范围坡度≥5%。", ok:true, fix:"杯固定＋涂膜附加层＋伸入≥50＋周边坡≥5%，采分句齐。", code:"" },
-        { t:"水落口杯固定牢固、防水层盖到杯口即可。", ok:false, code:"E02", tempt:"盖到杯口看着接上了。", lose:"漏了伸入杯内≥50mm、涂膜附加层、周边坡度。", fix:"防水伸入杯内≥50mm＋涂膜附加层＋周边500坡≥5%。" },
-        { t:"防水层伸入水落口杯内≥20mm。", ok:false, code:"M08", tempt:"记得伸进去、数值记成20。", lose:"数值错，应≥50mm。", fix:"伸入杯内≥50mm。" },
-        { t:"水落口杯不必固定在承重结构，随防水层一起浮放即可。", ok:false, code:"M03", tempt:"图省事浮放。", lose:"杯须牢固固定在承重结构上。", fix:"水落口杯牢固固定承重结构。" }
-      ] },
-    { tag:"综合纠错·案例", typeHint:"单选 · 选出诊断最完整的作答", figLabel:"交底摘录（待纠错）", figCaption:"泛水200 · 阴阳角直角 · 女儿墙泛水不设附加层", fig:"sheet",
-      sheet:["泛水高度做 200mm","阴阳角基层做直角","女儿墙泛水处不设附加层"],
-      stem:"某屋面防水交底称：泛水做200mm、阴阳角做直角、女儿墙泛水不设附加层。指出错误并给正确做法（选最完整）。",
-      model:"泛水应≥250mm；阴阳角应做圆弧或45度；女儿墙泛水处应增设附加层、平立面均≥250mm。",
-      opts:[
-        { t:"泛水高度应≥250mm；阴阳角应做圆弧或45度；女儿墙泛水处应增设附加层、平立面均≥250mm。", ok:true, fix:"三处逐一纠正并给数值，综合纠错采分句齐。", code:"" },
-        { t:"只有泛水高度不对、应改≥250mm，其余两项没问题。", ok:false, code:"E02", tempt:"只抓到泛水一处。", lose:"漏诊阴阳角直角、女儿墙不设附加层两处错。", fix:"三处都要纠：泛水250、阴阳角圆弧/45度、附加层平立面250。" },
-        { t:"三处做法都要改得规范些、做足一点。", ok:false, code:"E03", tempt:"知道有问题、没给具体做法数值。", lose:"没写圆弧/45度、≥250mm等采分句。", fix:"逐处给出圆弧或45度、≥250mm等具体做法。" },
-        { t:"泛水200、阴阳角直角都行，只有女儿墙要加附加层。", ok:false, code:"E10", tempt:"放过了泛水和阴阳角。", lose:"泛水应≥250、阴阳角应圆弧/45度，都判不妥。", fix:"三处均纠正。" }
-      ] },
-    { tag:"本考点边界·辨析", typeHint:"单选 · 选出属于本考点判分眼的一项", figLabel:"图示：判分眼归属", figCaption:"细部节点做法 vs 大面工艺/设防道数", fig:"order",
-      stem:"下列哪一项属于本考点（防水细部节点）的判分要点？",
-      model:"阴阳角圆弧/附加层/收头压条/泛水250/水落口50 等节点做法与数值属本考点；大面铺贴搭接、设防道数不属。",
-      opts:[
-        { t:"阴阳角圆弧或45度、薄弱节点先做附加层、收头压条密封、泛水≥250mm等细部节点做法与数值。", ok:true, fix:"这些才是细部节点判分眼——做法＋数值。", code:"" },
-        { t:"卷材大面怎么搭接、搭接宽度多少、平行还是垂直屋脊铺贴。", ok:false, code:"M03", tempt:"同属屋面防水、容易混。", lose:"大面铺贴搭接属卷材施工工艺，不是细部节点判分眼。", fix:"本考点判节点做法/数值，不判大面铺贴。" },
-        { t:"屋面防水设几道、防水等级几级、抗渗等级多少。", ok:false, code:"M03", tempt:"都带『防水』字。", lose:"设防道数/等级属屋面防水构造，非细部节点。", fix:"本考点判细部节点，不判设防道数。" },
-        { t:"防水卷材的化学配方、聚合物含量等材料指标。", ok:false, code:"M01", tempt:"以为要懂材料指标。", lose:"材料化学指标非本考点判分眼。", fix:"本考点判节点构造做法与数值。" }
-      ] },
-    { tag:"阴阳角基层·补全", typeHint:"单选 · 除圆弧/45度外还需满足", figLabel:"图示：阴阳角基层", figCaption:"圆弧/45度之外，基层还要满足什么", fig:"corner",
-      stem:"关于阴阳角基层处理，除做圆弧/45度外，还需满足的是。",
-      model:"基层坚实、平整，无浮浆、起砂、裂缝。",
-      opts:[
-        { t:"阴阳角基层做圆弧或45度，且基层坚实、平整，无浮浆、起砂、裂缝。", ok:true, fix:"圆弧/45度＋基层坚实平整无缺陷，两句都点到。", code:"" },
-        { t:"阴阳角做圆弧或45度就行，基层状况不影响防水。", ok:false, code:"E02", tempt:"只记圆弧一项。", lose:"漏了基层坚实平整、无浮浆起砂裂缝的要求。", fix:"补基层坚实平整、无浮浆起砂裂缝。" },
-        { t:"基层只要不漏水、潮湿点没关系，圆弧做好即可。", ok:false, code:"M01", tempt:"觉得潮点无妨。", lose:"基层应坚实平整无缺陷，潮湿/起砂影响粘结。", fix:"基层坚实平整、无浮浆起砂裂缝。" },
-        { t:"阴阳角做圆弧后，基层越松软越利于卷材贴合。", ok:false, code:"M03", tempt:"误以为松软好贴。", lose:"基层须坚实，松软起砂粘不牢。", fix:"基层坚实平整、无起砂。" }
-      ] },
-    { tag:"檐沟天沟·数值维", typeHint:"单选 · 选出做法与数值都对的作答", figLabel:"图示：檐沟天沟附加层", figCaption:"附加层伸入屋面 · 多少毫米", fig:"addlayer",
-      stem:"檐沟、天沟处附加层做法，选出能得分的作答。",
-      model:"檐沟、天沟防水层下增设附加层，附加层伸入屋面宽度≥250mm。",
-      opts:[
-        { t:"檐沟、天沟防水层下增设附加层，附加层伸入屋面宽度≥250mm。", ok:true, fix:"增设附加层＋伸入屋面≥250mm，采分句齐。", code:"" },
-        { t:"檐沟天沟附加层伸入屋面≥150mm。", ok:false, code:"M08", tempt:"记得伸入、数值记小。", lose:"数值错，应≥250mm。", fix:"伸入屋面≥250mm。" },
-        { t:"檐沟天沟处大面卷材铺过去即可，不必单独做附加层。", ok:false, code:"E02", tempt:"以为大面盖住够。", lose:"漏了增设附加层。", fix:"防水层下增设附加层、伸入≥250mm。" },
-        { t:"檐沟附加层只做在沟底、不必伸入屋面。", ok:false, code:"M03", tempt:"以为沟底做就行。", lose:"附加层要伸入屋面≥250mm。", fix:"附加层伸入屋面≥250mm。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"泛水250 · 压顶平顶 · 收头抹密封", fig:"sheet",
+{ tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"泛水250 · 压顶平顶 · 收头抹密封", fig:"sheet",
       sheet:["① 泛水做 250mm","② 女儿墙压顶做平顶","③ 收头抹密封材料封住"],
       stem:"学生作答女儿墙收边：①泛水做250、②压顶做平顶、③收头抹密封。诊断失分并给正确补写（选最准确）。",
       model:"泛水250正确；压顶平顶不妥、应向内坡≥5%并涂膜至压顶下；收头只密封漏压条、应金属压条钉压+密封+鹰嘴滴水槽。",
@@ -338,16 +248,6 @@ class Component extends DCLogic {
         { t:"三项都对，泛水250、压顶平顶、收头密封都符合要求，可给满分。", ok:false, code:"E10", tempt:"泛水对就以为全对。", lose:"压顶应向内坡≥5%、收头应加压条，两处失分。", fix:"压顶向内坡≥5%、收头压条+密封+滴水槽。" },
         { t:"只有收头要补压条，泛水和压顶都没问题。", ok:false, code:"E02", tempt:"抓到收头一处。", lose:"漏诊压顶平顶应改向内坡≥5%。", fix:"压顶向内坡≥5%、涂膜至压顶下。" },
         { t:"压顶和收头做法要再规范些、补充完整。", ok:false, code:"E03", tempt:"知道有问题、没给具体做法。", lose:"没写『向内坡≥5%』『金属压条钉压』等采分句。", fix:"给出向内坡≥5%、金属压条钉压+密封+滴水槽。" }
-      ] },
-    { tag:"多选·收边综合", typeHint:"多选 · 选出全部正确的做法（正确项不止一个）", figLabel:"图示：屋面收边数值", figCaption:"泛水/附加层/压顶坡/水落口 逐条判", fig:"sheet",
-      sheet:["泛水高度 ≥250mm","女儿墙泛水附加层 平立面≥250mm","压顶向内排水坡度 ≥2%","水落口防水层伸入杯内 ≥50mm"],
-      stem:"（多选）下列屋面收边细部做法，正确的有。",
-      model:"泛水≥250mm、附加层平立面≥250mm、水落口伸入杯内≥50mm 均正确；压顶坡应≥5%（≥2%错）。",
-      opts:[
-        { t:"其他部位泛水高度≥250mm。", ok:true, fix:"泛水≥250mm 正确。", code:"" },
-        { t:"女儿墙泛水附加层平面立面宽度均≥250mm。", ok:true, fix:"附加层平立面均≥250mm 正确。", code:"" },
-        { t:"女儿墙压顶向内排水坡度≥2%。", ok:false, code:"M08", tempt:"记得压顶要坡、数值记成2%。", lose:"数值错，压顶向内坡应≥5%。", fix:"压顶向内排水坡度≥5%。" },
-        { t:"水落口防水层伸入杯内≥50mm。", ok:true, fix:"伸入杯内≥50mm 正确。", code:"" }
       ] }
   ];
   codeMap={
@@ -517,7 +417,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -536,6 +436,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F04")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

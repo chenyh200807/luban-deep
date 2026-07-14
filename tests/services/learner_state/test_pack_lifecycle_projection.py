@@ -3,6 +3,9 @@ revalidation_queue 对未学/exposed 态零 probe（M0）。"""
 
 from __future__ import annotations
 
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    committed_retest_completion_ids,
+)
 from deeptutor.services.learner_state.pack_lifecycle_projection import (
     LIFECYCLE_DORMANT,
     LIFECYCLE_EXPOSED,
@@ -95,6 +98,28 @@ def _signed_terminal(
             },
         },
     )
+
+
+def _compiled_forward_terminal() -> LearnerStateEvent:
+    terminal = _signed_terminal(
+        status="not_verified",
+        assessment_type="luban_forward_completion",
+        target_pack_id="N01",
+    )
+    terminal.payload_json.update(
+        {
+            "practice_mode": "forward",
+            "claim_promotion_allowed": False,
+        }
+    )
+    terminal.payload_json["quality"].update(
+        {
+            "authority": "compiled_html_server_rescore",
+            "measurement_confidence": "medium",
+            "evidence_level": "L0_observed",
+        }
+    )
+    return terminal
 
 
 def test_unlearned_is_derived_as_full_set_minus_evidence() -> None:
@@ -272,6 +297,46 @@ def test_terminal_review_projects_cycle_facts_without_coarse_pack_mastery() -> N
     assert n01["review_cycle_anchor"] == "terminal_r1"
 
 
+def test_compiled_forward_terminal_is_canonical_for_lifecycle_only() -> None:
+    terminal = _compiled_forward_terminal()
+    projection = project_pack_lifecycle(events=[terminal], claims=[], pack_ids=_PACK_IDS)
+
+    n01 = projection["packs"]["N01"]
+    assert n01["lifecycle_state"] == LIFECYCLE_PRACTICED
+    assert n01["last_completion_at"] == terminal.created_at
+    assert n01["terminal_evidence_refs"] == [terminal.event_id]
+    assert projection["unassigned_practice"] == []
+
+
+def test_compiled_authority_cannot_impersonate_review_terminal() -> None:
+    terminal = _compiled_forward_terminal()
+    terminal.payload_json.update(
+        {
+            "assessment_type": "luban_review_completion",
+            "practice_mode": "review",
+            "claim_promotion_allowed": True,
+        }
+    )
+    terminal.payload_json["quality"].update(
+        {
+            "measurement_confidence": "high",
+            "evidence_level": "L2_real_retest",
+        }
+    )
+    projection = project_pack_lifecycle(events=[terminal], claims=[], pack_ids=_PACK_IDS)
+
+    assert projection["packs"]["N01"]["lifecycle_state"] == LIFECYCLE_UNLEARNED
+    assert projection["packs"]["N01"]["last_completion_at"] == ""
+
+
+def test_forged_terminal_cannot_commit_item_promotion() -> None:
+    terminal = _compiled_forward_terminal()
+    assert committed_retest_completion_ids([terminal]) == {"adversarial"}
+
+    terminal.payload_json["quality"]["authority"] = "client_claimed_complete"
+    assert committed_retest_completion_ids([terminal]) == set()
+
+
 def test_item_without_terminal_never_advances_pack_review_cycle() -> None:
     item = _practice_event("1A433000-B041", question_id="variant_partial")
     item.payload_json.update({
@@ -283,8 +348,10 @@ def test_item_without_terminal_never_advances_pack_review_cycle() -> None:
     })
     projection = project_pack_lifecycle(events=[item], claims=[], pack_ids=_PACK_IDS)
     n01 = projection["packs"]["N01"]
+    assert n01["lifecycle_state"] == LIFECYCLE_UNLEARNED
     assert n01["successful_review_streak"] == 0
     assert n01["last_review_status"] == ""
+    assert projection["unassigned_practice"][0]["reason"] == "completion_terminal_missing"
 
 
 def test_terminal_prescription_status_wins_over_conflicting_score_ratio() -> None:
@@ -439,8 +506,8 @@ def test_repo_artifact_cross_year_collision_audit_is_fail_closed() -> None:
     fan-out 不同」实测 >0(2026-07-04 审计 = 14 个)——按规格走运行时
     fail-closed 分支:每个碰撞裸 id 必须落 unassigned,
     reason="cross_year_ambiguous",禁硬塞任何一个 pack。"""
-    import json as _json
     from collections import defaultdict
+    import json as _json
 
     import deeptutor.services.learner_state.pack_lifecycle_projection as plp
 

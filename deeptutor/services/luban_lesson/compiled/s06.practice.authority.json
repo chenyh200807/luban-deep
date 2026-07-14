@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "S06",
+  "source_pack_sha256": "22438b347c9f36c8fb53a305b4c2f3d5eb07b8d7438b7bdb3d6e24e0d71870d8",
+  "source_bundle_sha256": "0142062b113cd9227beebc2231043fd72fdb190cfb256c92f755224f7e99a193",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html",
+      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "S06-html-practice-html-q1-eefc330c48e6",
+        "S06-html-practice-html-q2-f84743fdbc8b",
+        "S06-html-practice-html-q3-a8a6959fcd44",
+        "S06-html-practice-html-q4-e42d54f368cb",
+        "S06-html-practice-html-q16-30dcd356515c"
+      ],
+      "published_practice_sha256": "11ed289ce260df2fa54aad9ca08a8ac5f4c9183565b8f8fc5c32e88e40125388"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "临边触发·条件维",
+      "stem": "某工程楼层临边作业，坠落高度基准面 2.3m。选出判定与做法最能得分的作答。",
+      "model_answer": "坠落高度基准面 2m 及以上临边作业，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
+      "options": [
+        {
+          "text": "坠落高度基准面 2m 及以上，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "2m 触发 + 临空侧栏杆 + 封闭三件齐，换个高度也不错。",
+          "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-1"
+        },
+        {
+          "text": "设「当心坠落」警示标志、拉警戒线提醒工人注意即可。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "觉得提醒到位、看得见就安全。",
+          "loss_reason": "警示标志是口号，没有实体隔离，临边必须设栏杆。",
+          "fix": "临空侧设防护栏杆，配密目网或工具式栏板封闭。",
+          "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-2"
+        },
+        {
+          "text": "高处临边要注意安全，做好临边防护措施，防止人员坠落。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对、话也顺，像答到点了。",
+          "loss_reason": "没写 2m 触发、没写栏杆/封闭具体措施，空泛不给分。",
+          "fix": "写「2m 及以上临空侧设栏杆并封闭」。",
+          "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-3"
+        },
+        {
+          "text": "坠落高度不足 5m 可不设防护，2.3m 未到 5m，本处无需设栏杆。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "误把 5m 当成临边触发线。",
+          "loss_reason": "临边触发线是 2m，不是 5m，达线即须设防护。",
+          "fix": "2m 及以上就设栏杆并封闭。",
+          "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-4"
+        }
+      ],
+      "variant_id": "S06-html-practice-html-q1-eefc330c48e6",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q1",
+      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "栏杆构造·条件维",
+      "stem": "关于临边防护栏杆的构造要求，选出参数完整、能得分的作答。",
+      "model_answer": "上杆离地 1.2m、立杆间距≤2m、挡脚板≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
+      "options": [
+        {
+          "text": "上杆离地 1.2m、立杆间距≤2m、挡脚板高≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四个硬数字 + 密目网一次写全，正是高分密集区。",
+          "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-1"
+        },
+        {
+          "text": "上杆离地 0.9m、立杆间距≤2m、设挡脚板即可，能挡住人就行。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把室内楼梯扶手 0.9m 套到临边栏杆上。",
+          "loss_reason": "临边栏杆上杆是 1.2m；0.9m 是室内楼梯扶手，串章丢分。",
+          "fix": "上杆改 1.2m，其余数字补齐。",
+          "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-2"
+        },
+        {
+          "text": "设防护栏杆，牢固可靠、高度足够，能防止人员坠落即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "觉得「牢固够高」意思到了。",
+          "loss_reason": "漏 1.2m / 间距 / 挡脚板 / 1kN 全部硬数字，空泛。",
+          "fix": "写 1.2m、≤2m、≥180mm、1kN。",
+          "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-3"
+        },
+        {
+          "text": "上杆 1.2m、张挂密目立网，其余参数按现场情况灵活掌握。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "记住主数字，其余想当然省了。",
+          "loss_reason": "漏立杆间距≤2m、挡脚板≥180mm、承 1kN。",
+          "fix": "补≤2m、≥180mm、1kN。",
+          "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-4"
+        }
+      ],
+      "variant_id": "S06-html-practice-html-q2-f84743fdbc8b",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q2",
+      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "洞口≥500·条件维",
+      "stem": "楼板上短边 600mm 的竖向预留洞口，选出防护做法完整、能得分的作答。",
+      "model_answer": "短边≥500mm 洞口临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
+      "options": [
+        {
+          "text": "短边≥500mm，临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "判尺寸档 + 栏杆 + 封闭 + 挡脚板齐，够大的加平网。",
+          "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-1"
+        },
+        {
+          "text": "用一块木板把洞口盖住即可，600mm 的洞盖上就安全了。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为洞口「盖住就行」、不分尺寸。",
+          "loss_reason": "短边≥500 人可整个坠落，盖板兜不住，必须围栏杆封闭。",
+          "fix": "设 1.2m 栏杆并封闭、加挡脚板。",
+          "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-2"
+        },
+        {
+          "text": "25~500mm 用承重盖板，本洞 600 也按承重盖板可靠覆盖固定。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记得盖板口径，却套错了尺寸段。",
+          "loss_reason": "600≥500 属栏杆档；承重盖板是 25~500 档，尺寸配错措施。",
+          "fix": "≥500 设栏杆 + 封闭 + 挡脚板。",
+          "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-3"
+        },
+        {
+          "text": "在洞口周边设警示标志、夜间加警示灯，提醒人员注意避让。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "觉得警示到位就算防护。",
+          "loss_reason": "口号化，没有实体防护，人照样会踩空坠落。",
+          "fix": "设 1.2m 栏杆并封闭、加挡脚板。",
+          "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-4"
+        }
+      ],
+      "variant_id": "S06-html-practice-html-q3-a8a6959fcd44",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q3",
+      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "洞口25~500·条件维",
+      "stem": "楼板上短边 300mm 的洞口，选出防护做法正确、能得分的作答。",
+      "model_answer": "短边 25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
+      "options": [
+        {
+          "text": "25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "尺寸档 + 承重盖板 + 固定防移位，一次到位。",
+          "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-1"
+        },
+        {
+          "text": "300mm 洞口也要临空侧设 1.2m 防护栏杆并封闭、加挡脚板。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为「越严越好」，把栏杆档套到小洞口。",
+          "loss_reason": "25~500 档用承重盖板即可，套栏杆档属规范适用错误。",
+          "fix": "用承重盖板可靠覆盖、固定牢靠。",
+          "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-2"
+        },
+        {
+          "text": "拿彩条布或警戒线把洞口围一下，提醒工人别踩。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "图省事，拿警戒线糊弄。",
+          "loss_reason": "警戒线非承重、人踩即塌，属口号化。",
+          "fix": "用承重盖板可靠覆盖、固定牢靠。",
+          "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-3"
+        },
+        {
+          "text": "把洞口盖上就行，用什么盖、固不固定不重要。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "只记住「盖住」两个字。",
+          "loss_reason": "漏「承重」「固定」关键词，普通板会塌或移位。",
+          "fix": "承重盖板 + 可靠固定防移位。",
+          "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-4"
+        }
+      ],
+      "variant_id": "S06-html-practice-html-q4-e42d54f368cb",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q4",
+      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答临边洞口防护：①临边挂警示牌提醒；②600mm 竖向洞口盖块木板；③防护栏杆高 0.9m。选出最准确的诊断与补写。",
+      "model_answer": "①警示牌须改实体栏杆+密目网封闭；②竖向≥500 洞口须设 1.2m 栏杆封闭加挡脚板（25~500 才用承重盖板）；③栏杆高应 1.2m（0.9m 是室内扶手）。三处都要补写。",
+      "options": [
+        {
+          "text": "三处均失分：①应改实体栏杆+密目网封闭；②≥500 洞口设 1.2m 栏杆封闭加挡脚板（25~500 才用盖板）；③栏杆上杆应 1.2m（0.9m 是室内扶手）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处逐条补成采分句——这就是「会写答案」。",
+          "option_id": "S06-html-practice-html-q16-30dcd356515c:option-1"
+        },
+        {
+          "text": "基本正确，只是栏杆 0.9m 偏低，改成 1.0m 就达标，其余没问题。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "只挑出一处、还改错了数。",
+          "loss_reason": "漏诊警示牌口号化、洞口盖板不分尺寸；栏杆应 1.2m 非 1.0m。",
+          "fix": "三处都补，栏杆改 1.2m。",
+          "option_id": "S06-html-practice-html-q16-30dcd356515c:option-2"
+        },
+        {
+          "text": "只是栏杆高度问题，把 0.9m 改 1.2m 即可，警示牌和盖木板都行。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "抓到栏杆一处就收手。",
+          "loss_reason": "警示牌替不了栏杆、≥500 洞口须设栏杆，漏两处。",
+          "fix": "警示牌改栏杆+网、洞口设 1.2m 栏杆封闭。",
+          "option_id": "S06-html-practice-html-q16-30dcd356515c:option-3"
+        },
+        {
+          "text": "思路对、防护到位，加强现场管理、落实责任即可给分。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "整体表扬式带过。",
+          "loss_reason": "三处实体措施都错或缺，纯口号不得分。",
+          "fix": "实体栏杆+网、洞口按尺寸设栏杆、栏杆 1.2m 三处补写。",
+          "option_id": "S06-html-practice-html-q16-30dcd356515c:option-4"
+        }
+      ],
+      "variant_id": "S06-html-practice-html-q16-30dcd356515c",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q16",
+      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691"
+    }
+  ],
+  "published_lesson_sha256": "460deaae9979581a6cb358cd958dcd6c14e2aac1cee8cd190d2a24b0bcdbf98e"
+}

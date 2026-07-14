@@ -10,6 +10,7 @@
 <!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -133,7 +134,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -195,6 +196,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 /* ░░░ 母版骨架逻辑：随堂练 ░░░
@@ -215,7 +217,7 @@ class Component extends DCLogic {
   moreText="按薄弱轴补练：预制桩(强度70/100·沉桩四先四后·重锤低击·静压终止·断桩五因)、灌注桩(四工法·护壁流程·沉渣50/100/200·超灌0.8~1.0m·沉管单打复打反插·挖孔≥5m·桩底注浆·虚土坍孔)、桩基检测(5法适用·前置强度·完整性Ⅰ-Ⅳ·钻芯孔数·抽检比例)。每错项对着「正确补这句」抄进答题纸，纠错型先照抄题干不妥、再写正确做法、数字写准。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
-    { tag:"定性·条件维", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"题给：灌注桩成孔工法", figCaption:"按成孔工艺分类 · 你来定性", fig:"gongfa",
+{ tag:"定性·条件维", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"题给：灌注桩成孔工法", figCaption:"按成孔工艺分类 · 你来定性", fig:"gongfa",
       stem:"某工程采用灌注桩基础。判定灌注桩按成孔工法的分类，选出完整、能得分的作答。",
       model:"灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查工艺要求。",
       opts:[
@@ -224,7 +226,7 @@ class Component extends DCLogic {
         { t:"灌注桩按受力分端承桩、摩擦桩两类，据受力性状直接确定成孔工艺。", ok:false, code:"E07", tempt:"端承/摩擦听着像分类。", lose:"端承/摩擦是受力性状，不是成孔工法分类，答错维度。", fix:"成孔工法=泥浆护壁/沉管/长螺旋/干作业，别用受力分类替代。" },
         { t:"灌注桩与预制桩一样，先看锤击还是静压，据此确定成孔工法。", ok:false, code:"E05", tempt:"把预制桩打法套到灌注桩。", lose:"锤击/静压是预制桩沉桩方式，灌注桩看成孔工法，审题错位。", fix:"灌注桩按成孔工法定性，不用锤击/静压。" }
       ] },
-    { tag:"预制桩强度·条件维", typeHint:"单选 · 选出数字准确、能得分的作答", figLabel:"题给：预制桩混凝土强度", figCaption:"起吊 / 运输打桩 各需多少强度", fig:"strength",
+{ tag:"预制桩强度·条件维", typeHint:"单选 · 选出数字准确、能得分的作答", figLabel:"题给：预制桩混凝土强度", figCaption:"起吊 / 运输打桩 各需多少强度", fig:"strength",
       stem:"预制混凝土桩的吊运与打桩，对桩身混凝土强度有何要求？选出数字准确的作答。",
       model:"混凝土强度达设计≥70%可起吊、≥100%可运输和打桩；两点吊吊点距桩端0.2L。",
       opts:[
@@ -233,16 +235,7 @@ class Component extends DCLogic {
         { t:"预制桩只要脱模成型、外观完好就能起吊运输，强度按现场经验掌握即可。", ok:false, code:"M10", tempt:"凭手感觉得结实就行。", lose:"用常识替代规范阈值，未达强度吊运会断桩。", fix:"按规范≥70%起吊、≥100%运输打桩。" },
         { t:"混凝土强度达设计值≥75%即可起吊、≥90%即可运输和打桩。", ok:false, code:"M08", tempt:"记了个大概的数。", lose:"数值错位，规范是70%与100%。", fix:"起吊≥70%、运输打桩≥100%。" }
       ] },
-    { tag:"沉桩顺序·程序维", typeHint:"多选 · 选出符合规范的沉桩顺序原则", figLabel:"题给：密集桩群沉桩", figCaption:"顺序怎么排才不憋断中心桩", fig:"seq",
-      stem:"锤击法沉桩的顺序原则，下列符合规范的有哪些？（多选）",
-      model:"先深后浅、先大后小、先长后短、先密后疏；密集桩群从中间向四周或两边对称施打；毗邻建筑物由建筑物处向另一方向施打。",
-      opts:[
-        { t:"沉桩宜先深后浅、先大后小、先长后短、先密后疏。", ok:true, fix:"四先四后口诀，规范原则，得分。", code:"" },
-        { t:"密集桩群宜从中间向四周或向两边对称施打。", ok:true, fix:"给挤土留自由面，防中心桩被围困憋断，得分。", code:"" },
-        { t:"为图省事宜先浅后深、先小后大，从边缘一排排推向中间施打。", ok:false, code:"E06", tempt:"从边往里一排排打看着顺手。", lose:"顺序写反且自外向内挤土围死中心桩，程序错。", fix:"应先深后浅、先大后小，从中间向四周对称打。" },
-        { t:"临近既有建筑物一侧宜朝建筑物方向施打，先把近处打完。", ok:false, code:"E07", tempt:"想先解决靠建筑那侧。", lose:"应由建筑物处向另一方向打，减小挤土对建筑影响。", fix:"毗邻建筑物由建筑物处向另一方向施打。" }
-      ] },
-    { tag:"锤击方式·条件维", typeHint:"单选 · 选出正确的落锤方式", figLabel:"题给：锤击落锤方式", figCaption:"落距大小与桩头完整", fig:"hammer",
+{ tag:"锤击方式·条件维", typeHint:"单选 · 选出正确的落锤方式", figLabel:"题给：锤击落锤方式", figCaption:"落距大小与桩头完整", fig:"hammer",
       stem:"锤击法沉桩宜采用何种落锤方式？选出正确作答。",
       model:"宜重锤低击或低锤重打，避免桩头损坏、桩身开裂。",
       opts:[
@@ -251,7 +244,7 @@ class Component extends DCLogic {
         { t:"宜采用轻锤高击，靠高频轻打逐渐把桩打入。", ok:false, code:"M03", tempt:"觉得轻打不伤桩。", lose:"轻锤高击有效贯入能量不足、桩头反复受冲击也易损。", fix:"应重锤低击或低锤重打。" },
         { t:"落锤方式对桩身无影响，按机械默认落距施打即可。", ok:false, code:"M10", tempt:"以为落锤方式无所谓。", lose:"落锤方式直接影响桩头/桩身完整，须控制。", fix:"宜重锤低击或低锤重打。" }
       ] },
-    { tag:"静压·终止·主体维", typeHint:"单选 · 选出符合规范的静压与终止沉桩要求", figLabel:"题给：静力压桩与终止沉桩", figCaption:"试压桩根数 / 终止标准", fig:"jingya",
+{ tag:"静压·终止·主体维", typeHint:"单选 · 选出符合规范的静压与终止沉桩要求", figLabel:"题给：静力压桩与终止沉桩", figCaption:"试压桩根数 / 终止标准", fig:"jingya",
       stem:"静力压桩施工与终止沉桩控制，下列作答正确的是？",
       model:"试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
       opts:[
@@ -260,88 +253,7 @@ class Component extends DCLogic {
         { t:"试验桩1根即可；终止沉桩摩擦桩以压力为主、端承桩以标高为主。", ok:false, code:"M08", tempt:"根数记少、终止标准配反。", lose:"试压桩≥3根；终止标准摩擦↔端承互换错误。", fix:"试压桩≥3根；摩擦看标高、端承看压力。" },
         { t:"静压桩以压桩力大于机架配重即可，不必设试压桩。", ok:false, code:"E02", tempt:"只盯压桩力。", lose:"漏试压桩要求；最大压桩力还应小于机架配重×0.9。", fix:"补试压桩≥3根，压桩力<(机架+配重)×0.9。" }
       ] },
-    { tag:"泥浆护壁流程·程序维", typeHint:"单选 · 选出流程完整、不漏节点的作答", figLabel:"题给：泥浆护壁成孔流程", figCaption:"哪个节点最易漏", fig:"liucheng",
-      stem:"泥浆护壁回转钻成孔灌注桩的施工流程，选出完整、不漏关键节点的作答。",
-      model:"场地平整→放线→泥浆池→埋设护筒→钻机就位→成孔→清孔→下钢筋笼→水下浇筑→成桩。",
-      opts:[
-        { t:"平整放线→埋设护筒→钻机成孔→清孔→下钢筋笼→水下浇筑混凝土→成桩。", ok:true, fix:"护筒、清孔两个易漏节点都在，流程完整，得分。", code:"" },
-        { t:"平整放线→钻机成孔→下钢筋笼→浇筑混凝土→成桩，成孔后直接下笼。", ok:false, code:"E06", tempt:"觉得成孔完就能下笼。", lose:"漏清孔（除沉渣）和埋护筒，沉渣超标、孔口坍塌。", fix:"成孔后必须清孔、成孔前须埋护筒。" },
-        { t:"平整放线→埋护筒→成孔→下钢筋笼→清孔→浇筑→成桩，先下笼再清孔。", ok:false, code:"E06", tempt:"以为清孔可放到下笼后。", lose:"清孔应在下钢筋笼前完成，顺序颠倒。", fix:"成孔→清孔→下钢筋笼→浇筑。" },
-        { t:"泥浆护壁只需成孔和浇筑两步，其余按干作业成孔处理。", ok:false, code:"E02", tempt:"把流程压成两步。", lose:"漏护筒/清孔/下笼多个采分节点。", fix:"按完整流程逐节点写，别压缩。" }
-      ] },
-    { tag:"孔底沉渣·条件维", typeHint:"单选 · 选出各桩型沉渣数值正确的作答", figLabel:"题给：孔底沉渣厚度", figCaption:"端承 / 摩擦 / 抗拔 各多少", fig:"chenzha",
-      stem:"灌注桩孔底沉渣厚度按桩型控制，选出数值正确的作答。",
-      model:"端承型≤50mm、摩擦型≤100mm、抗拔及抗水平≤200mm。",
-      opts:[
-        { t:"端承型桩≤50mm、摩擦型桩≤100mm、抗拔及抗水平受荷桩≤200mm。", ok:true, fix:"三档数值按桩型写全，端承最严，得分。", code:"" },
-        { t:"各类灌注桩孔底沉渣一律≤200mm，统一控制便于施工。", ok:false, code:"M08", tempt:"图省事记一个数。", lose:"各桩型套同一标准，端承桩持力层最敏感应≤50mm。", fix:"端承≤50、摩擦≤100、抗拔≤200，分档控制。" },
-        { t:"端承型≤200mm、摩擦型≤100mm、抗拔≤50mm。", ok:false, code:"M08", tempt:"数字对上了但配反。", lose:"端承与抗拔数值互换错误。", fix:"端承最严≤50、抗拔最松≤200。" },
-        { t:"沉渣厚度只要肉眼看不出明显淤积即可，不必量测。", ok:false, code:"M10", tempt:"凭观感。", lose:"须按桩型量测控制，不能凭观感。", fix:"端承≤50/摩擦≤100/抗拔≤200mm。" }
-      ] },
-    { tag:"超灌纠错·记录计算维", typeHint:"单选 · 指出不妥并写正确超灌高度", figLabel:"模拟方案（待纠错）", figCaption:"桩顶混凝土面超设计标高500mm", fig:"chaoguan",
-      stem:"某水下灌注桩方案：灌注时桩顶混凝土面超过设计标高500mm即停灌。选出对该做法的正确判断与改正。",
-      model:"不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头混凝土才达标。",
-      opts:[
-        { t:"不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头才达标。", ok:true, fix:"指出不妥+写准0.8~1.0m+点出凿浮浆，三段齐，得分。", code:"" },
-        { t:"妥当。超过设计标高500mm已留有余量，凿桩头后即可满足要求。", ok:false, code:"E05", tempt:"觉得超了就行、500有余量。", lose:"未指出不妥，超灌不足、浮浆凿除后桩顶会低于设计标高。", fix:"应判不妥，超灌0.8~1.0m。" },
-        { t:"不妥，应加大超灌，但具体超灌多少按现场浮浆情况灵活掌握。", ok:false, code:"E03", tempt:"指出了不妥却不敢写数。", lose:"正确做法漏0.8~1.0m具体数字，阅卷不给该分。", fix:"补写超灌0.8~1.0m。" },
-        { t:"不妥，水下灌注应超灌至少2m以上确保桩头质量。", ok:false, code:"M08", tempt:"以为超得越多越保险。", lose:"超灌过高浪费且非规范值，规范0.8~1.0m。", fix:"超灌0.8~1.0m即可。" }
-      ] },
-    { tag:"沉管成桩·程序维", typeHint:"单选 · 选出成桩流程与工法补全正确的作答", figLabel:"题给：沉管灌注桩成桩", figCaption:"边振边拔 / 工法补全", fig:"chenguan",
-      stem:"沉管灌注桩除单打法外还有哪些工法？成桩关键步骤是什么？选出正确作答。",
-      model:"工法还包括复打法、反插法；成桩边振（锤击）边拔管并继续浇筑、下钢筋笼继续浇筑、成桩。",
-      opts:[
-        { t:"工法还包括复打法、反插法；边振边拔管边继续浇筑→下钢筋笼继续浇筑→成桩。", ok:true, fix:"复打/反插补全，边振边拔续浇关键步点到，得分。", code:"" },
-        { t:"工法还包括长螺旋法、旋挖法；沉管到位后一次性浇满拔管即可。", ok:false, code:"E07", tempt:"把别的成孔法当沉管工法。", lose:"长螺旋/旋挖不是沉管工法，且漏边振边拔续浇。", fix:"沉管工法=单打/复打/反插；须边振边拔续浇。" },
-        { t:"单打法之外无其他工法；拔管时快速上拔以免混凝土离析。", ok:false, code:"E02", tempt:"以为只有单打。", lose:"漏复打、反插两工法，快速拔管易缩颈断桩。", fix:"补复打/反插；边振边拔、控制拔管速度。" },
-        { t:"工法还包括复打、反插；先拔完管再下钢筋笼、再浇筑成桩。", ok:false, code:"E06", tempt:"工法补对了但步骤颠倒。", lose:"应边振边拔边浇，先拔完管再浇会离析缩颈。", fix:"边振边拔管边继续浇筑，别先拔完再浇。" }
-      ] },
-    { tag:"人工挖孔·程序维", typeHint:"单选 · 选出挖孔间距与顺序正确的作答", figLabel:"题给：人工挖孔桩", figCaption:"相邻桩怎么开挖", fig:"wakong",
-      stem:"人工挖孔灌注桩的开挖间距与顺序，选出符合规范的作答。",
-      model:"桩距小于2.5m时应间隔开挖浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
-      opts:[
-        { t:"桩距<2.5m时应间隔开挖并浇筑、相邻桩最小间距≥5m；挖土先中间后周边。", ok:true, fix:"间隔开挖、≥5m、先中间后周边三项齐，得分。", code:"" },
-        { t:"相邻桩可同时开挖以加快进度，浇筑后再开挖下一批。", ok:false, code:"E06", tempt:"想同时挖加快进度。", lose:"相邻同时挖易塌孔伤人，应间隔开挖、间距≥5m。", fix:"间隔开挖、相邻最小≥5m。" },
-        { t:"挖土应先周边后中间，扩底时先扩底再挖圆柱段。", ok:false, code:"E06", tempt:"顺序凭感觉。", lose:"挖土应先中间后周边，扩底应先挖圆柱再扩底，全反。", fix:"先中间后周边；先挖圆柱再扩底。" },
-        { t:"只要护壁做好，相邻桩间距不限，紧挨开挖也可以。", ok:false, code:"M08", tempt:"以为护壁到位就无间距要求。", lose:"漏最小间距≥5m的硬约束。", fix:"相邻桩最小间距≥5m、间隔开挖。" }
-      ] },
-    { tag:"桩底注浆·条件维", typeHint:"单选 · 选出注浆终止控制正确的作答", figLabel:"题给：桩底后注浆", figCaption:"以什么为主控终止", fig:"zhujiang",
-      stem:"灌注桩桩底后注浆的终止控制，选出正确作答。",
-      model:"以注浆量为主控：注浆总量达设计值，或注浆量≥80%且注浆压力大于设计值时可终止。",
-      opts:[
-        { t:"以注浆量为主控：注浆总量达设计值，或注浆量≥80%且压力大于设计值时终止。", ok:true, fix:"量为主、双条件写全，得分。", code:"" },
-        { t:"以注浆压力为唯一主控，压力一达设计值立即终止，不看注浆量。", ok:false, code:"E07", tempt:"觉得压力最直观。", lose:"应以注浆量为主控，单看压力可能量不足。", fix:"以注浆量为主控，兼顾压力条件。" },
-        { t:"注浆量达设计值的50%即可终止，以节约浆液。", ok:false, code:"M08", tempt:"记了个偏小的比例。", lose:"比例记错，应≥80%且压力大于设计值。", fix:"注浆量≥80%且压力>设计值，或总量达设计。" },
-        { t:"注浆到桩底冒浆为止，凭现场返浆情况判断即可。", ok:false, code:"M10", tempt:"凭返浆手感。", lose:"须按注浆量/压力量化控制。", fix:"以注浆量为主控：总量达设计或≥80%且压力>设计。" }
-      ] },
-    { tag:"检测方法适用·主体维", typeHint:"单选 · 选出方法与目的匹配正确的作答", figLabel:"题给：桩基检测方法", figCaption:"哪种方法测什么", fig:"wufa",
-      stem:"桩基检测方法与检测目的的匹配，选出正确作答。",
-      model:"承载力用静载或高应变；桩端持力层岩性用钻芯法；桩身完整性缺陷用低应变或声波透射；试验桩定单桩极限承载力。",
-      opts:[
-        { t:"承载力用静载或高应变；持力层岩性用钻芯法；完整性缺陷用低应变或声波透射法。", ok:true, fix:"方法对着目的选，甲级承载力必静载，得分。", code:"" },
-        { t:"桩身承载力用低应变法测定，快速经济、适用于所有桩。", ok:false, code:"M03", tempt:"以为低应变啥都能测。", lose:"低应变只判完整性、给不出承载力，方法目的错配。", fix:"承载力用静载或高应变，低应变测完整性。" },
-        { t:"完整性缺陷用静载试验测定，直接加载看桩身有无破坏。", ok:false, code:"M03", tempt:"以为加载就能看缺陷。", lose:"静载测承载力，完整性缺陷用低应变/声波透射/钻芯。", fix:"缺陷用低应变/声波透射，承载力才用静载。" },
-        { t:"检测方法可任选，只要出报告即可，方法与目的无须对应。", ok:false, code:"M10", tempt:"以为有报告就行。", lose:"方法必须对应目的，否则结论无效。", fix:"按目的选方法：承载力静载/高应变、持力层钻芯、缺陷低应变声波透射。" }
-      ] },
-    { tag:"完整性分类·条件维", typeHint:"单选 · 选出Ⅱ/Ⅲ类分界正确的作答", figLabel:"题给：桩身完整性Ⅰ–Ⅳ类", figCaption:"分界看影不影响承载力", fig:"wanzheng",
-      stem:"桩身完整性分类Ⅰ–Ⅳ类，选出对Ⅱ、Ⅲ类描述正确的作答。",
-      model:"Ⅰ类完整；Ⅱ类有轻微缺陷、不影响承载力；Ⅲ类有明显缺陷、影响承载力；Ⅳ类严重缺陷。",
-      opts:[
-        { t:"Ⅱ类有轻微缺陷但不影响桩身结构承载力；Ⅲ类有明显缺陷、影响承载力。", ok:true, fix:"Ⅱ/Ⅲ分界在影不影响承载力，答对，得分。", code:"" },
-        { t:"Ⅱ类有明显缺陷、影响承载力；Ⅲ类仅轻微缺陷、不影响承载力。", ok:false, code:"E07", tempt:"Ⅱ、Ⅲ描述整体配反。", lose:"Ⅱ轻微不影响、Ⅲ明显影响，互换错误。", fix:"Ⅱ轻微不影响承载力、Ⅲ明显影响承载力。" },
-        { t:"Ⅱ类即为不合格桩、须直接报废，Ⅲ类可正常使用。", ok:false, code:"E07", tempt:"以为Ⅱ类就废。", lose:"Ⅱ类不影响承载力可用，处置判断错。", fix:"Ⅱ类可用（不影响承载力），Ⅲ/Ⅳ才需处理。" },
-        { t:"完整性只分合格与不合格两类，不必细分Ⅰ–Ⅳ。", ok:false, code:"E02", tempt:"图省事分两类。", lose:"漏Ⅰ–Ⅳ四类分级采分点。", fix:"按Ⅰ完整/Ⅱ轻微/Ⅲ明显/Ⅳ严重四类。" }
-      ] },
-    { tag:"钻芯孔数·条件维", typeHint:"单选 · 选出孔数与桩径匹配正确的作答", figLabel:"题给：钻芯法钻孔数量", figCaption:"桩径越大孔越多", fig:"zuanxin",
-      stem:"钻芯法检测的钻孔数量随桩径如何确定？选出正确作答。",
-      model:"桩径<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔；孔位距桩中心(0.15~0.25)D。",
-      opts:[
-        { t:"桩径<1.2m钻1~2孔、1.2~1.6m钻2孔、>1.6m钻3孔；孔位距桩中心(0.15~0.25)D。", ok:true, fix:"三档孔数+孔位写全，粗桩多孔有代表性，得分。", code:"" },
-        { t:"无论桩径大小，钻芯每桩钻1孔即可，取芯代表整桩。", ok:false, code:"M08", tempt:"图省事每桩1孔。", lose:"粗桩1孔代表性不足，须按桩径分档增孔。", fix:"<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔。" },
-        { t:"桩径<1.2m钻3孔、1.2~1.6m钻2孔、>1.6m钻1孔，细桩多钻。", ok:false, code:"M08", tempt:"孔数与桩径关系记反。", lose:"应桩越粗孔越多，方向反了。", fix:"细桩少孔、粗桩多孔：1~2/2/3孔。" },
-        { t:"钻芯孔数由检测单位随意确定，够取样即可。", ok:false, code:"M10", tempt:"以为随意定。", lose:"孔数按桩径规范确定，非随意。", fix:"按桩径<1.2m/1.2~1.6m/>1.6m对应1~2/2/3孔。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 揪出全部失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"甲级灌注桩900根 · 超灌+抽检+断桩", fig:"sheet",
+{ tag:"采分诊断·末题", typeHint:"单选 · 揪出全部失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"甲级灌注桩900根 · 超灌+抽检+断桩", fig:"sheet",
       stem:"甲级灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③接桩段断裂因混凝土质量差、防治为加强管理。选出最准确的诊断与补写。",
       model:"三处都失分：超灌应0.8~1.0m；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；断裂应写五因(弯曲/障碍物/不直/偏心/强度不足)+具体防治。",
       opts:[
@@ -486,7 +398,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -505,6 +417,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G03")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

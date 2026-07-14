@@ -30,6 +30,7 @@ Page({
   },
 
   onLoad: function () {
+    this._hasShown = false;
     var info =
       typeof wx !== "undefined" && wx.getSystemInfoSync
         ? wx.getSystemInfoSync()
@@ -51,6 +52,10 @@ Page({
       isDark: this.data.isDark,
       hidden: !flags.shouldShowWorkspaceShell(),
     });
+    if (this._hasShown && !this.data.loading && auth.isLoggedIn()) {
+      this._loadAll();
+    }
+    this._hasShown = true;
   },
 
   onPullDownRefresh: function () {

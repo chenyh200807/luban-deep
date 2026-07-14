@@ -11,6 +11,7 @@ from deeptutor.services.luban_lesson import (
     build_lesson_viewmodel,
     list_green_lessons,
 )
+from deeptutor.services.luban_lesson.practice_html import load_compiled_practice
 
 
 def _write_manifest(tmp_path: Path, packs, green) -> Path:
@@ -36,9 +37,40 @@ def test_green_pack_projects_viewmodel(tmp_path, monkeypatch):
     assert vm["pack_id"] == "S05"
     assert vm["content_sha256"] == "abc123"
     assert vm["card_url"] == "https://cdn.example.com/luban/s05/lesson.html"
+    assert vm["practice_url"] == ""
     assert vm["evidence_channels"] == {
-        "light_practice": "learner_signal", "full_answer": "case_grading",
+        "practice_completion": "luban_retest_completion.v1",
+        "full_answer": "case_grading",
     }
+
+
+def test_custom_manifest_without_compiled_capability_cannot_guess_practice_url(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+    f16 = dict(_S05, pack_id="F16", title="屋面防水起鼓割补")
+    mp = _write_manifest(tmp_path, [f16], ["F16"])
+
+    vm = build_lesson_viewmodel("F16", manifest_path=mp)
+
+    assert vm["card_url"] == "https://cdn.example.com/luban/f16/lesson.html"
+    assert vm["practice_url"] == ""
+
+
+def test_real_compiled_pack_projects_finished_practice_consumer_url(monkeypatch):
+    monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+    vm = build_lesson_viewmodel("F16")
+    authority = load_compiled_practice("F16")
+    assert authority is not None
+    assert vm["card_url"] == (
+        "https://cdn.example.com/luban/f16/lesson.html?v="
+        + authority["published_lesson_sha256"]
+    )
+    assert vm["practice_url"] == (
+        "https://cdn.example.com/luban/f16/practice.html?v="
+        + authority["source_bundle_sha256"]
+    )
+    assert authority["published_lesson_sha256"] != authority["source_bundle_sha256"]
 
 
 def test_unhosted_green_pack_gets_no_card_url(tmp_path, monkeypatch):
@@ -49,6 +81,7 @@ def test_unhosted_green_pack_gets_no_card_url(tmp_path, monkeypatch):
     mp = _write_manifest(tmp_path, [unhosted], ["G03"])
     vm = build_lesson_viewmodel("g03", manifest_path=mp)
     assert vm["card_url"] == ""
+    assert vm["practice_url"] == ""
 
 
 def test_unpublished_pack_fail_closed_same_as_missing(tmp_path):
@@ -203,6 +236,58 @@ def test_real_manifest_green_packs_all_project():
     for row in rows:
         vm = build_lesson_viewmodel(row["pack_id"])
         assert vm["content_sha256"]
+
+
+def test_f16_forward_uses_fixed_five_compiled_html_questions() -> None:
+    from deeptutor.services.luban_lesson import build_retest_items
+
+    items = build_retest_items(
+        "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026194,
+        limit=1, mode="forward",
+    )
+
+    assert len(items) == 5, "fixed pilot cannot be shortened through the limit query"
+    assert [item["rule_group"] for item in items] == [
+        "分档·条件维", "割补工序·程序维", "判断纠错·三段式",
+        "检验清单·记录维", "采分诊断·末题",
+    ]
+    assert all(item["answer_type"] == "single_choice" for item in items)
+    assert all("expected_ok" not in item for item in items)
+    assert all("is_correct" not in option for item in items for option in item["options"])
+
+
+def test_custom_manifest_without_compiled_capability_uses_its_signed_bank(
+    tmp_path: Path,
+) -> None:
+    from deeptutor.services.luban_lesson import build_retest_items
+
+    pack = dict(_S05, pack_id="F16", title="F16", content_sha256="stale-pack-sha")
+    mp = _write_manifest(tmp_path, [pack], ["F16"])
+    (tmp_path / "_F16_variant_bank.v0.json").write_text(
+        json.dumps(
+            {
+                "status": "signed",
+                "source_pack_sha256": "stale-pack-sha",
+                "variants": [
+                    {
+                        "variant_id": "F16-legacy",
+                        "rule_group": "legacy",
+                        "surface": "旧题",
+                        "expected_ok": True,
+                        "correct_statement": "旧答案",
+                        "anchor": "kc:F16",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    items = build_retest_items(
+        "F16", user_id="qa_eval_f16_sha_drift", day_index=1,
+        mode="forward", manifest_path=mp,
+    )
+    assert [item["variant_id"] for item in items] == ["F16-legacy"]
 
 
 def _bank(tmp_path, n_core=6, n_ext=2):

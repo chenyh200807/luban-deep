@@ -9,6 +9,62 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-14 · “生成物都在”仍不可交付：用干净 checkout 反证练习 authority 闭环
+
+**①现象**：全量 37 pack / 39 surface 在当前 worktree 能跑，但独立专家按 PR diff 复核时发现，分支只包含少量 finished practice 源，其余 sidecar/public 是从别处生成后带入；另有跨账号缓存、lesson/practice 共用缓存版本、sidecar 只验结构不验自身字节三类潜伏问题。
+
+**②发现路径（含走错的岔路）**：首轮验证集中在“运行时能加载 195 题”，没有先问“全新 clone 能否从唯一源重建 195 题”。hostile review 逐一反查 sidecar 的 `source_path/source_html_sha256` 才抓到缺源；把两个选项的 `correct` 对调且不破坏 schema，又证明形状校验不能防合法形状篡改。缓存审计则从退出登录场景反推所有 storage reader，发现只修 dashboard 会留下 history、pending turn、闯关草稿等同形漏洞；最后从 source-only PR 反推 CI 外层 paths，又发现重建闸虽存在但根本不会被题源改动触发，Windows `autocrlf` 还会在 checkout 时改坏 authority 字节。
+
+**③分析**：共同 failure shape 是派生物或缓存开始替代 source/learner authority。sidecar/public 可以是运行时优化，但必须由 tracked finished 源确定性重建并被 manifest 钉住；本地缓存可以加速投影，但 owner 不匹配时必须视为不存在。lesson 内容版本与 practice 答案版本是两个不同事实，硬塞进一个 SHA 会造成无关缓存失效，也掩盖真正改变的是哪一层。
+
+**④修法与理由**：精确纳入注册表消费的 39 个 practice 源，不把整套 teach/audio 资产扩进本 PR；publisher 增加 practice-only 重建/字节检查，full publish 与它复用同一 compiler。manifest 增加 sidecar digest，运行时在 JSON 解析前先验字节，再做内部 source/public 交叉校验。所有小程序 owner-sensitive storage 只经 auth 暴露的统一 adapter；页面 wrapper 不再各自拼 key。read model 分别使用 published lesson SHA 与 practice source bundle SHA。
+
+**⑤验证与教训**：机械闸必须同时覆盖 clean-source completeness、deterministic rebuild、shape-valid tamper、exact unavailable set、schema registry 字段闭合、跨账号读写隔离、source-only CI 触发和 autocrlf byte-exact。教训：①“生成物可加载”不等于“仓库可重建”；②schema-valid 不等于 authority-valid，派生物本身也要内容寻址；③缓存不是无害实现细节，它是 reader，必须服从身份 authority；④闸写出来不等于接上 CI，必须用最小变更反推触发面；⑤less is more 不是少提交必要源，而是只提交被注册能力真实消费的最小完整源集合。
+
+---
+
+## 2026-07-14 · 从 F16 到全量不是复制特判，而是把供给与学情收进两个 authority
+
+**①现象**：F16 链路打通后，其他 finished 卡仍只在 HTML 内本地判分，客户端只对 F16 识别成品练习。表面上是“再加 36 个包”，实际上同一能力被 pack-id 特判、目录 glob、public HTML 和签发变体库四种供给选择争夺。
+
+**②发现路径（含走错的岔路）**：专家组先从 finished 注册表盘点，而不是 glob 目录，得到 37 pack / 39 surface。样本实读发现并非一种 JS 形状：常规 Q 有随机 ord 和直接顺序两型，S07 用 POOL/buildDeck，A02 由 bank() 返回 A/Dg。“一个 regex 扫所有卡”会把多选降格成单选；“按文件名全收”又会把未登记旧卡上线，两条捷径都被否决。hostile 遍历还抓到 ord 页的选项会随机打乱：页内存的是展示位次，服务端 sidecar 要的是源位次，直传 index 会静默判错。
+
+**③分析**：一等业务事实有且只有两个：“这道题的正确答案是什么”由当前 finished HTML 决定；“这个学生这次做了什么、是否形成学习证据”由 canonical terminal/LearnerState 决定。public HTML、sidecar、manifest 都只能是可验证投影，不能成为第三个答案或掌握度 authority。
+
+**④修法与理由**：把编译、格式适配、五题选择、identity 和 SHA 校验下沉到 `practice_html` fat service；publisher、API、web-view bridge 只做登记、投影和传输。manifest 显式声明哪个 pack 有 compiled practice，前端不再猜 URL；取题与 writeback 共读同一 sidecar，S01 用 `practice_surface` 在同一 authority 内区分三面。发现问鲁班 dashboard 的本地缓存未按用户分区，一并改成 user-scoped envelope，因为这是“全模块共享 LearnerState”后必须封住的跨账号读侧漏洞。
+
+**⑤验证与教训**：全量编译要同时证明数量（37/39/195）、适配器形状、展示位次→源选项 identity 还原、未登记文件拒绝、无答案泄漏、public/source SHA 漂移 fail-close、一个非 F16 的真实五 item + 一 terminal 写回，以及五模块返回刷新。可迁移教训：①泛化要从业务形状开分支，不从 ID 开分支；②显式注册比目录存在更接近发布 authority；③内容全量接入不等于 mastery 全量升级，forward 仍必须 L0/non-promoting；④缓存也是 reader，共享学情后必须按 canonical user 隔离；⑤用户点了哪个可见选项与 authoring 数组第几项是两个 identity，必须显式还原。
+
+---
+
+## 2026-07-14 · 写进 LearnerState 不等于用户能感知：terminal 消费者必须共用同一裁决
+
+**①现象**：F16 五题完成接口返回 terminal 和正式分数，但学习路线仍可能显示未学、复习页没有次日任务、今日进度从 0 变 6；用户还会先看 HTML 本地成绩，再点一次“保存”看原生正式成绩。代码看起来每一段都存在，产品上却感知不到闭环。
+
+**②发现路径（含走错的岔路）**：专家组先从真实 `RetestWritebackService` 输出反向追消费者，而不是继续看手写 fixture。直接把 compiled terminal 喂给 `project_pack_lifecycle`，得到 `unlearned + last_completion_at=""`；再聚合 5 item + terminal 得到 6。旧绿测手造的是 signed authority，恰好绕过真实 F16。最诱人的捷径是给 item 的 `payload.pack_id` 加 fallback，但它会让 partial append 在没有 terminal 时也点亮，重新造出第二完成权威，因此被否决。第二轮 hostile review 又发现 dormant replay 会信任任意 `completion_terminal=true`，独立网页还用“稳了 / 满分手”抢先下掌握结论；第三轮沿所有 terminal reader 追踪，继续发现 prescription outcome 旁路可把伪 terminal 投影成“验证通过”，旧 boolean 题也会在 terminal 前显示“真懂”。这些反例说明不能只修 F16 happy path。
+
+**③分析**：shared failure shape 是 authority drift + producer/consumer 粒度不一致。writer 说 compiled terminal 已提交，lifecycle 只认 signed terminal；进度聚合把“提交边界”当成“第六题”；HTML 又把客户端结果当最终结果。真正的一等事实不是某条 item，也不是某个页面状态，而是“这次 completion 是否被 canonical terminal 封口”。所有下游必须消费同一个严格裁决。
+
+**④修法与理由**：建立 mode-authority-confidence-level-promotion 严格矩阵，并让 completion ids、生命周期时钟、item promotion、existing/replay terminal 校验及 prescription outcome reader 共用它；reader 再以 verification source allowlist fail-close 删除字段攻击：只放行合法 construction grading，assessment testset 必须是 canonical terminal，foreign/unknown 一律不验证。item 通过 terminal completion map 归包，terminal 自身从题目循环与进度计数中移除。UI 做减法：第五题自动提交，HTML 与旧 boolean 题都只描述本轮作答、不宣判掌握；原生 terminal receipt 是小程序唯一正式结果。路线/复习 onShow 只重新读取既有 projection，不新增 done cache、状态表或前端调度器。compiled forward 仍为 L0，不进入 mastery authority。
+
+**⑤验证与教训**：真实 compiled terminal 测试先 3 RED 后转绿，hostile review 补出的 forged replay、旁路 prescription reader（伪字段、删字段、foreign source）与预览越权文案都有反例回归；相关 Python 321 PASS，4 个 Node 行为合同、3 个页面脚本 syntax check、publisher determinism、contract guard、Ruff 与 diff check 全绿。DevTools 真实页面确认本 worktree 路线可渲染、F16 receipt route 在 test2 后端 404 时诚实失败且不出收据。教训：①writer 有字段不等于 consumer 认字段；②测试必须用生产 producer 产物，手造相似 payload 会制造假绿；③terminal 是 commit boundary，不是一次作答；④“让用户感知”要同时检查唯一结果、持续投影和刷新时机；⑤replay、旁路 reader 和预览同样受 authority 边界约束；⑥只按字段存在做校验可被删除字段绕过，业务类型还需 fail-close source allowlist；⑦未部署的本地闭环必须与线上 true-entry 分层汇报。
+
+---
+
+## 2026-07-13 · 先确认你接的是哪一版，再谈如何利用视频尾练习
+
+**①现象**：第一次试点误把旧 worktree 的 F16 成品当最终版，又手改 public 生成物并让服务端反向读取它。表面上链路和测试都能跑，实际上用户看到的 teach/practice、选项反馈与 6 段音频都落后一版；若继续完成 writeback，会把“答了旧题”记成当前 F16 学习证据。
+
+**②发现路径（含走错的岔路）**：用户直接指出给出的 F16 不是他认定的版本；专家组随后对 root finished、pilot finished、public、publisher 做逐文件 hash，确认 teach/practice SHA 不同，6 题 identity 0/6 重合，且整包音频与 audit 也发生变化。另一个盲区是 pack Markdown SHA 没变，如果 URL 仍只靠它缓存，即使重新发布，用户也可能继续看到旧卡。
+
+**③分析**：一等事实仍分两类：内容事实归当前 finished HTML，学习事实归 LearnerState/RetestWritebackService。public 只是部署消费者，绝不能反过来成为答案 authority；“六道最终题”和“课后呈现五题”也不是同一事实，前者归内容源，后者归 selection policy。把两者拆开，才能既尊重最终成品又满足五题体验。
+
+**④修法与理由**：只修 F16。把用户指定 bundle 完整同步进试点；publisher 单向生成 lesson/practice、复制全部音频，并从 raw finished HTML 生成后端非公开 answer projection。HTML 继续承担正确的成品作答体验，固定呈现 Q1/Q2/Q3/Q4/Q6 且保留选项随机化；练完后桥接稳定 option identity，原生页只显示服务端重判与 terminal 收据，不让学生重复答第二套。URL 用 bundle SHA 破缓存，source practice SHA 变化则 selection 编译 fail-close。
+
+**⑤验证与教训**：Python 95 PASS，publisher 重跑字节稳定，public 六题块与 finished 完全一致，11/11 音频与 manifest 同 hash；Node 覆盖 bridge、服务端 authority 与 first-run 零回归。真实浏览器走完五题并看到正确结果页；微信 DevTools 真实 package 页完成 lesson→practice 切换，但无登录态/后端 terminal，因此仍只叫 local pilot。可迁移教训：①同名目录不是 authority，必须核 commit/hash/整包；②只同步 HTML 会制造音画漂移；③生成物可被运行时消费，但不能夺取 authoring authority；④缓存键必须跟真正变化的成品 bundle 走；⑤数量策略只选集合，不复制或改写答案。
+
+---
+
 ## 2026-07-12 · 判定器优化闭环:同一 flag 两次相反决策都对(数据驱动非横跳)
 
 **①现象**:判定器输出 token 三批 live 递进——flag 批(思考ON+verbose)p50=197 → nothink 批(思考OFF+verbose)105 → stack 批(思考OFF+slim)**59**,总降 70%,SEV=0/质量零回归。

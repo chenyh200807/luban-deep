@@ -1,11 +1,10 @@
 // 鲁班学习双轮 · 站点页（spike 形态）
-// 两幕切换：幕1 web-view 加载 card_url（讲懂）→ 幕2 web-view 加载 practice url（自测）
-// → 签发轻练。只有服务端 canonical completion receipt 才能渲染完成态。
+// 统一路径：finished 成品讲懂 → finished 成品五题随堂练 → 服务端复核收据。
 //
 // 已知结构性 caveat（spike 先按设计稿实现，不硬编绕过）：
 // 微信 web-view 会自动铺满整个页面并覆盖其他原生组件——底部原生按钮在
 // DevTools 模拟器可见，真机上可能被 web-view 盖住。若真机验证不可用，
-// 后续方案 = 卡内 wx.miniProgram.navigateTo 桥接，或原生壳 + navigateTo 分幕。
+// 成品卡内负责将同一轮作答交给原生收据页；底栏只做 fallback。
 //
 // 学-evidence 上报（融合计划 §2.1）：讲懂幕看完 → lesson_viewed（唯一 writer
 // /api/v1/lesson-progress，后端 progress_countable=false/exposed，绝不算掌握 M0）。
@@ -23,12 +22,6 @@ const helpers = require("../../../utils/helpers");
 var TIER_LESSON = "lesson";
 var TIER_PRACTICE = "practice";
 
-function practiceUrlFrom(cardUrl) {
-  var url = String(cardUrl || "");
-  if (!/lesson\.html$/.test(url)) return "";
-  return url.replace(/lesson\.html$/, "practice.html");
-}
-
 Page({
   data: {
     packId: "",
@@ -36,11 +29,11 @@ Page({
     title: "",
     loading: true,
     errorText: "",
-    tier: TIER_LESSON, // "lesson" | "practice"
+    tier: TIER_LESSON,
     currentUrl: "",
     cardUrl: "",
-    cardSha: "",
     practiceUrl: "",
+    cardSha: "",
     _lessonReported: false, // 客户端去重(后端亦按业务日 dedupe)
   },
 
@@ -79,23 +72,19 @@ Page({
     }
   },
 
-  // 底部常驻按钮：幕1看讲解 → 幕2看自测 → 签发轻练；本页不宣告完成。
+  // 看完讲解进入同 pack 的 finished 成品随堂练。
   onPrimaryTap() {
     if (this.data.tier === TIER_LESSON) {
       // 融合计划 §2.1:讲懂幕看完 = lesson_viewed 学-evidence(唯一 writer)。
-      // fire-and-forget:后端 progress_countable=false/exposed,绝不算掌握(M0);
-      // 上报失败(如后端未部署)不阻塞、不打断闯关。
       this._reportLessonViewed();
+      if (!this.data.practiceUrl) {
+        this.setData({ errorText: "成品练习版本校验失败，请稍后再试" });
+        return;
+      }
       this._enterTier(TIER_PRACTICE);
       return;
     }
-    if (typeof wx !== "undefined" && wx.redirectTo) {
-      wx.redirectTo({
-        url:
-          "/packageDeeptutor/pages/luban/retest/retest?mode=forward&pack_id=" +
-          encodeURIComponent(this.data.packId),
-      });
-    }
+    // 必须由成品结果页提交同一轮答案，禁止绕过题目直接产生完成态。
   },
 
   _reportLessonViewed() {
@@ -142,11 +131,12 @@ Page({
           });
           return;
         }
+        var practiceUrl = String(body.practice_url || "");
         that.setData({
           title: String(body.title || ""),
           cardUrl: cardUrl,
+          practiceUrl: practiceUrl,
           cardSha: String(body.content_sha256 || ""),
-          practiceUrl: practiceUrlFrom(cardUrl),
           loading: false,
           errorText: "",
         });

@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "J01",
+  "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
+  "source_bundle_sha256": "450b89c170a6c81d8515f6bb3ecbe40e5ac2a725aa6af5825d664d2c30ceba9b",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "J01-html-practice-html-q1-c90daf8ddfb3",
+        "J01-html-practice-html-q2-1703f826ad25",
+        "J01-html-practice-html-q3-afa772a5b009",
+        "J01-html-practice-html-q4-1a5d57147d8c",
+        "J01-html-practice-html-q16-c2a1c8df11f6"
+      ],
+      "published_practice_sha256": "e45f66537a70d5a48c823de8c424e3d1f57b260b394bb4d7fa80012dec57a3aa"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "判档·条件维",
+      "stem": "某工程基坑开挖深度 4m。就危大工程判定，选出最完整、能得分的作答。",
+      "model_answer": "开挖深度 4m（≥3m）属危险性较大的分部分项工程，应编制专项施工方案；未达 5m，尚不需专家论证。",
+      "options": [
+        {
+          "text": "基坑开挖深度 4m，达到 3m 及以上，属危险性较大的分部分项工程，应编制专项施工方案（未达 5m，暂不需专家论证）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "阈值 3m + 「危大·编专项方案」结论 + 说明未到论证档，判档链完整。",
+          "option_id": "J01-html-practice-html-q1-c90daf8ddfb3:option-1"
+        },
+        {
+          "text": "基坑深度 4m 已超过 3m，属超过一定规模的危大工程，除编制专项方案外还应组织专家论证后施工。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "看到「超过 3m」就直接联想到最严的专家论证。",
+          "loss_reason": "混档：3m 是危大线、5m 才是超规模论证线，4m 未达论证档。",
+          "fix": "4m 达危大应编方案；未达 5m，不需论证。",
+          "option_id": "J01-html-practice-html-q1-c90daf8ddfb3:option-2"
+        },
+        {
+          "text": "基坑深度 4m 可按一般分部分项工程管理，施工时加强临边防护与变形监测即可，不必单独编方案。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "当成一般「注意安全」的施工问题。",
+          "loss_reason": "漏掉「达危大·编专项方案」这一核心采分点。",
+          "fix": "应写「达 3m 属危大，须编制专项施工方案」。",
+          "option_id": "J01-html-practice-html-q1-c90daf8ddfb3:option-3"
+        },
+        {
+          "text": "基坑深度 4m 未达到 5m 的起算线，尚不属于危险性较大的分部分项工程，无需编制专项施工方案。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把 5m 当成危大起算线。",
+          "loss_reason": "记错阈值：危大基坑起算 3m 不是 5m，4m 已属危大。",
+          "fix": "危大基坑≥3m，4m 已属危大，须编专项方案。",
+          "option_id": "J01-html-practice-html-q1-c90daf8ddfb3:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q1-c90daf8ddfb3",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q1",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "判档·条件维",
+      "stem": "某深基坑开挖深度 6m。就危大工程判定，选出最完整、能得分的作答。",
+      "model_answer": "深基坑 6m（≥5m）属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
+      "options": [
+        {
+          "text": "深基坑开挖深度 6m，达到 5m 及以上，属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "阈值 5m + 「超规模」定性 + 「编方案 + 专家论证」两件事写全。",
+          "option_id": "J01-html-practice-html-q2-1703f826ad25:option-1"
+        },
+        {
+          "text": "深基坑 6m 已属危险性较大的分部分项工程，编制专项施工方案并履行审批签字后即可施工。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "答对了危大档，但停在编方案。",
+          "loss_reason": "漏了「超规模·还应专家论证」，只答半档。",
+          "fix": "6m≥5m 属超规模，除编方案外还应组织专家论证。",
+          "option_id": "J01-html-practice-html-q2-1703f826ad25:option-2"
+        },
+        {
+          "text": "深基坑 6m 属超过一定规模的危大工程，应由建设单位组织召开专家论证会进行论证。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "知道要论证，但组织主体张冠李戴。",
+          "loss_reason": "论证会应由施工总承包单位组织，不是建设单位。",
+          "fix": "超规模应由施工总承包单位组织召开专家论证会。",
+          "option_id": "J01-html-practice-html-q2-1703f826ad25:option-3"
+        },
+        {
+          "text": "深基坑 6m 尚未超过 8m 的界限，不属于超过一定规模的危大工程，不需要组织专家论证。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把模板支撑 8m 的阈值套到深基坑上。",
+          "loss_reason": "混阈值：深基坑超规模线是 5m，6m 已达。",
+          "fix": "深基坑≥5m 即超规模，6m 应论证。",
+          "option_id": "J01-html-practice-html-q2-1703f826ad25:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q2-1703f826ad25",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q2",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "混档辨析·条件维",
+      "stem": "有人说：「基坑只要开挖深度超过 3m，就必须组织专家论证。」选出最准确的判断与纠正。",
+      "model_answer": "说法错误。3m 是危大线（编专项方案），5m 才是超规模线（专家论证）；3～5m 之间只需编方案、不需论证。",
+      "options": [
+        {
+          "text": "错误。开挖深度达 3m 属危大、应编专项方案；达 5m 才属超规模、才需专家论证。3～5m 之间编方案不论证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两条线两档说清楚，纠正到位。",
+          "option_id": "J01-html-practice-html-q3-afa772a5b009:option-1"
+        },
+        {
+          "text": "正确。开挖深度超过 3m 即属危大工程，凡危大工程一律都要组织专家论证后方可施工。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为「危大」和「要论证」是一回事。",
+          "loss_reason": "危大不等于超规模；只有超规模档才论证。",
+          "fix": "3m 编方案、5m 才论证，别把两档并成一档。",
+          "option_id": "J01-html-practice-html-q3-afa772a5b009:option-2"
+        },
+        {
+          "text": "错误。真正的论证起算线应当是开挖深度超过 2m，达到 2m 就必须组织专家论证。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记了个更小的数当阈值。",
+          "loss_reason": "阈值错且档次错，论证是 5m 档不是 2m。",
+          "fix": "论证是超规模 5m 档。",
+          "option_id": "J01-html-practice-html-q3-afa772a5b009:option-3"
+        },
+        {
+          "text": "这主要属于施工方案的编制与审批问题，与是否需要组织专家论证之间没有直接关系。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "回避了「档次」这个考点。",
+          "loss_reason": "答非所问，没判两条线。",
+          "fix": "要点明 3m 危大、5m 超规模两档。",
+          "option_id": "J01-html-practice-html-q3-afa772a5b009:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q3-afa772a5b009",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q3",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "编制主体·主体维",
+      "stem": "某超规模危大工程需编制专项施工方案。该方案应由谁组织编制？选出能得分的作答。",
+      "model_answer": "专项施工方案由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
+      "options": [
+        {
+          "text": "由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "精确到「施工总承包单位」，并补专业分包可编的情形，主体写全。",
+          "option_id": "J01-html-practice-html-q4-1a5d57147d8c:option-1"
+        },
+        {
+          "text": "由施工单位负责编制专项方案即可，编制完成后报送项目监理机构与建设单位备案就算合规。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "顺口写「施工单位」，感觉没错。",
+          "loss_reason": "「施工单位」含糊，阅卷要「施工总承包单位」才给主体分。",
+          "fix": "应写「施工总承包单位组织编制」。",
+          "option_id": "J01-html-practice-html-q4-1a5d57147d8c:option-2"
+        },
+        {
+          "text": "由建设单位作为工程总负责方组织编制专项方案，编制完成后再交施工单位照此组织实施。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得建设单位是甲方、负总责。",
+          "loss_reason": "编制主体是施工总承包单位，不是建设单位。",
+          "fix": "施工总承包单位组织编制。",
+          "option_id": "J01-html-practice-html-q4-1a5d57147d8c:option-3"
+        },
+        {
+          "text": "由项目监理单位负责编制专项方案，编制完成后交施工单位组织实施并对施工现场安全负责。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "把监理的「审查」误当「编制」。",
+          "loss_reason": "监理是审查方不是编制方，主体错。",
+          "fix": "施工总承包单位编、总监理工程师审查。",
+          "option_id": "J01-html-practice-html-q4-1a5d57147d8c:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q4-1a5d57147d8c",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q4",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "真题背景：基坑深 7.6m，基坑支护专业施工单位编制方案并履行审批签字后，组织「包括总承包单位技术负责人在内的 5 名专家」论证。学生答：「论证不妥。专家应有 5 人，够了。让施工单位再仔细检查方案。」选出最准确的诊断与补写。",
+      "model_answer": "漏点：①未指出参建方人员（总包技术负责人）不得当专家（回避）②「5 人够了」应为「5 人以上」③「再检查方案」答非所问。补写：不妥在组织含总承包单位技术负责人在内的 5 名专家论证；专家应为 5 人以上，且本项目参建各方人员不得以专家身份参加。",
+      "options": [
+        {
+          "text": "漏了核心不妥：总包技术负责人属参建方、不得当专家（回避）；「5 人够了」应为「5 人以上」；「再检查方案」答非所问。补写：专家应为 5 人以上，且参建各方人员不得以专家身份参加论证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处失分全揪出，补写即可上答题纸——这就是「会写答案」。",
+          "option_id": "J01-html-practice-html-q16-c2a1c8df11f6:option-1"
+        },
+        {
+          "text": "学生答得基本正确，专家 5 人已符合人数要求，只需再补充说明方案应经总监理工程师审查这道程序即可。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "只看「5 人」和「检查」，觉得方向对。",
+          "loss_reason": "没抓题干埋点：参建方技术负责人当专家（回避）才是第一失分点。",
+          "fix": "应先指出参建方不得当专家、且专家 5 人以上。",
+          "option_id": "J01-html-practice-html-q16-c2a1c8df11f6:option-2"
+        },
+        {
+          "text": "本题失分只是人数写法问题，把「专家应有 5 人」改成「5 人以上」或增加到 6 人，答案就完整了。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "抓到人数一处就以为只此一错。",
+          "loss_reason": "漏诊回避（核心）+「5 人以上」表述 + 答非所问。",
+          "fix": "核心是回避，且应写「5 人以上」。",
+          "option_id": "J01-html-practice-html-q16-c2a1c8df11f6:option-3"
+        },
+        {
+          "text": "本题应诊断为方案编制主体错误，深基坑支护方案不应由专业施工单位编制，改由建设单位组织编制即可。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "往编制主体上带偏。",
+          "loss_reason": "本题失分在专家组回避与人数，编制主体非本问考点。",
+          "fix": "按回避 + 5 人以上诊断并补写。",
+          "option_id": "J01-html-practice-html-q16-c2a1c8df11f6:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q16-c2a1c8df11f6",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q16",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    }
+  ],
+  "published_lesson_sha256": "e9b1e0eff0e344cc2b249579c51565c365b798fc5b558b1f4f02073314ffe0cf"
+}

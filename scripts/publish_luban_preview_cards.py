@@ -6,7 +6,7 @@
   （teach/practice .dc.html + support.js + assets/ + audio/）。托管副本永远由本脚本
   派生，不手改生成物。
 - 2026-07-05 owner 真机反馈两个问题在打包层治本：
-  1. **没有声音**：F16 托管漏了 ``audio/``（根因链 = ``.gitignore`` 全局 ``*.mp3``
+  1. **没有声音**：托管漏了 ``audio/``（根因链 = ``.gitignore`` 全局 ``*.mp3``
      把 11 段配音静默挡在 commit df688f571 之外 → 线上 404 → 回落 webSpeak 在微信
      web-view 静默失败）。本脚本无条件拷贝 audio/，.gitignore 已加窄豁免。
   2. **按钮触发真全屏 + 自适应**：把 owner 参考实现（起重吊装安全 S02 卡 +
@@ -40,6 +40,8 @@
 
     python3 scripts/publish_luban_preview_cards.py           # 发布全部注册站点
     python3 scripts/publish_luban_preview_cards.py f16 c02   # 只发布指定站点
+    python3 scripts/publish_luban_preview_cards.py --practice-only --check
+                                                        # 从 tracked HTML 重编并核对派生物
     python3 scripts/publish_luban_preview_cards.py \\
       --finished-root /absolute/path/to/finished             # 显式使用外部 finished 成品根
 
@@ -51,18 +53,28 @@ lesson2.html（卡自带上下集互链，发布时只重写 href，不改 read_
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass, field
 import hashlib
 import json
+from pathlib import Path
 import re
 import shutil
 import sys
 import tempfile
-from dataclasses import dataclass, field
-from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from deeptutor.services.luban_lesson.practice_html import (
+    build_practice_authority,
+    compile_practice_surface,
+    transform_compiled_practice_html,
+)
+
 FINISHED = REPO / "artifacts" / "luban_case_family_assets" / "diagram_microlesson" / "finished"
 HOST = REPO / "web" / "public" / "luban-preview"
+AUTHORITY_HOST = REPO / "deeptutor" / "services" / "luban_lesson" / "compiled"
 FONTS_CSS = HOST / "fonts" / "fonts.css"
 JWEIXIN_JS = HOST / "vendor" / "jweixin.js"
 SUPPORT_RUNTIME_ASSETS = (
@@ -199,7 +211,7 @@ _FONT_LINKS_OLD = (
 )
 _FONT_LINKS_NEW = '<link href="../fonts/fonts.css" rel="stylesheet"/>'
 
-# teach 卡额外注入微信 JSSDK（自托管，避免外链依赖；practice 卡不需要）
+# teach/practice 卡额外注入微信 JSSDK（practice 保存学习证据时复用）
 _JWEIXIN_TAG = '<script src="../vendor/jweixin.js"></script>'
 
 # 用户进入讲懂卡就是明确播放意图：只预热首段 b0，缩短第一次点播放到出声；
@@ -540,8 +552,26 @@ def transform_teach(text: str, pack_id: str) -> str:
     return text
 
 
-def transform_practice(text: str) -> str:
-    return _sub(text, _FONT_LINKS_OLD, _FONT_LINKS_NEW, "font-links")
+def transform_practice(
+    text: str,
+    *,
+    pack_id: str,
+    compiled_surface: dict[str, object],
+    items: list[dict[str, object]],
+) -> str:
+    """Thin publisher wrapper：字体/JSSDK 处理后交给内容内核。"""
+    text = _sub(
+        text,
+        _FONT_LINKS_OLD,
+        _FONT_LINKS_NEW + "\n" + _JWEIXIN_TAG,
+        "font-links",
+    )
+    return transform_compiled_practice_html(
+        pack_id,
+        surface=compiled_surface,
+        items=items,
+        html=text,
+    )
 
 
 def _rewrite_hrefs(text: str, href_map: dict[str, str]) -> str:
@@ -554,6 +584,94 @@ def _rewrite_hrefs(text: str, href_map: dict[str, str]) -> str:
             text,
         )
     return text
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _practice_source_bundle_sha(src: Path, st: Station) -> str:
+    """只绑定注册练习源；teach/audio 变化不得改写题目 authority。"""
+    files = [
+        {
+            "surface_id": hosted_name,
+            "source_path": source_name,
+            "source_html_sha256": _sha256(src / source_name),
+        }
+        for hosted_name, source_name in st.practice.items()
+    ]
+    payload = json.dumps(files, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _pack_source_sha(pack_id: str) -> str:
+    manifest_path = REPO / "docs" / "原始数据" / "考点原料" / "成品" / "_pack_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    rows = manifest.get("packs") if isinstance(manifest, dict) else manifest
+    row = next(
+        (item for item in rows if str(item.get("pack_id") or "").upper() == pack_id),
+        None,
+    )
+    if not row:
+        raise TransformError(f"manifest pack missing: {pack_id}")
+    source = manifest_path.parent / str(row.get("file") or "")
+    actual = _sha256(source)
+    if actual != str(row.get("content_sha256") or ""):
+        raise TransformError(f"manifest content sha drift: {pack_id}")
+    return actual
+
+
+def _compile_practice_outputs(
+    station_id: str, st: Station, *, finished_root: Path
+) -> tuple[dict[str, str], dict[str, object]]:
+    src = finished_root / st.pack_dir
+    pack_id = station_id.upper()
+    if not src.is_dir():
+        raise TransformError(f"finished pack missing: {src}")
+    missing = [name for name in st.practice.values() if not (src / name).is_file()]
+    if missing:
+        raise TransformError(
+            f"finished practice incomplete: {src} missing {', '.join(missing)}"
+        )
+    rendered_practice: dict[str, str] = {}
+    compiled_surfaces: list[dict[str, object]] = []
+    for hosted_name, src_name in st.practice.items():
+        practice_source = src / src_name
+        source_text = practice_source.read_text(encoding="utf-8")
+        logical_source = (
+            "artifacts/luban_case_family_assets/diagram_microlesson/finished/"
+            f"{st.pack_dir}/{src_name}"
+        )
+        compiled = compile_practice_surface(
+            pack_id,
+            surface_id=hosted_name,
+            html=source_text,
+            source_path=logical_source,
+            source_html_sha256=_sha256(practice_source),
+        )
+        rendered = _strip_trailing_whitespace(
+            _rewrite_hrefs(
+                transform_practice(
+                    source_text,
+                    pack_id=pack_id,
+                    compiled_surface=compiled["surface"],
+                    items=compiled["items"],
+                ),
+                st.href_map,
+            )
+        )
+        compiled["surface"]["published_practice_sha256"] = hashlib.sha256(
+            rendered.encode("utf-8")
+        ).hexdigest()
+        rendered_practice[hosted_name] = rendered
+        compiled_surfaces.append(compiled)
+    authority = build_practice_authority(
+        pack_id,
+        source_pack_sha256=_pack_source_sha(pack_id),
+        source_bundle_sha256=_practice_source_bundle_sha(src, st),
+        compiled_surfaces=compiled_surfaces,
+    )
+    return rendered_practice, authority
 
 
 def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> list[str]:
@@ -575,15 +693,12 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
         rendered_teach[hosted_name] = _strip_trailing_whitespace(
             _rewrite_hrefs(transform_teach(source, station_id.upper()), st.href_map)
         )
-    rendered_practice = {
-        hosted_name: _strip_trailing_whitespace(
-            _rewrite_hrefs(
-                transform_practice((src / src_name).read_text(encoding="utf-8")),
-                st.href_map,
-            )
-        )
-        for hosted_name, src_name in st.practice.items()
-    }
+    rendered_practice, authority = _compile_practice_outputs(
+        station_id, st, finished_root=finished_root
+    )
+    authority["published_lesson_sha256"] = hashlib.sha256(
+        rendered_teach["lesson.html"].encode("utf-8")
+    ).hexdigest()
     support = _self_host_support_runtime(
         (src / "support.js").read_text(encoding="utf-8")
     )
@@ -638,7 +753,78 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
     finally:
         if staged.exists():
             shutil.rmtree(staged)
+
+    AUTHORITY_HOST.mkdir(parents=True, exist_ok=True)
+    authority_path = AUTHORITY_HOST / f"{station_id}.practice.authority.json"
+    authority_path.write_text(
+        json.dumps(authority, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    written.append(f"server-authority/{station_id}")
     return written
+
+
+def _practice_only_outputs(
+    station_id: str, st: Station, *, finished_root: Path
+) -> tuple[dict[str, str], dict[str, object]]:
+    dst = HOST / station_id
+    lesson = dst / "lesson.html"
+    support = dst / "support.js"
+    if not lesson.is_file() or not support.is_file():
+        raise TransformError(f"hosted card incomplete: {dst} needs lesson.html + support.js")
+    rendered, authority = _compile_practice_outputs(
+        station_id, st, finished_root=finished_root
+    )
+    authority["published_lesson_sha256"] = _sha256(lesson)
+    return rendered, authority
+
+
+def check_practice_only(
+    station_id: str, st: Station, *, finished_root: Path = FINISHED
+) -> list[str]:
+    rendered, authority = _practice_only_outputs(
+        station_id, st, finished_root=finished_root
+    )
+    dst = HOST / station_id
+    for hosted_name, text in rendered.items():
+        if not (dst / hosted_name).is_file() or (dst / hosted_name).read_text(
+            encoding="utf-8"
+        ) != text:
+            raise TransformError(f"practice projection drift: {station_id}/{hosted_name}")
+    authority_path = AUTHORITY_HOST / f"{station_id}.practice.authority.json"
+    expected = json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
+    if not authority_path.is_file() or authority_path.read_text(encoding="utf-8") != expected:
+        raise TransformError(f"practice authority drift: {station_id}")
+    return [*rendered, f"server-authority/{station_id}"]
+
+
+def publish_practice_only(
+    station_id: str, st: Station, *, finished_root: Path = FINISHED
+) -> list[str]:
+    rendered, authority = _practice_only_outputs(
+        station_id, st, finished_root=finished_root
+    )
+    dst = HOST / station_id
+    HOST.mkdir(parents=True, exist_ok=True)
+    staged = Path(tempfile.mkdtemp(prefix=f".{station_id}.practice-staging-", dir=HOST))
+    try:
+        for hosted_name, text in rendered.items():
+            (staged / hosted_name).write_text(text, encoding="utf-8")
+        authority_staged = staged / f"{station_id}.practice.authority.json"
+        authority_staged.write_text(
+            json.dumps(authority, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        for hosted_name in rendered:
+            (staged / hosted_name).replace(dst / hosted_name)
+        AUTHORITY_HOST.mkdir(parents=True, exist_ok=True)
+        authority_staged.replace(
+            AUTHORITY_HOST / f"{station_id}.practice.authority.json"
+        )
+    finally:
+        if staged.exists():
+            shutil.rmtree(staged)
+    return [*rendered, f"server-authority/{station_id}"]
 
 
 def main(argv: list[str]) -> int:
@@ -649,8 +835,20 @@ def main(argv: list[str]) -> int:
         default=FINISHED,
         help="finished 成品根目录；默认当前仓 artifacts 下的 finished",
     )
+    parser.add_argument(
+        "--practice-only",
+        action="store_true",
+        help="只从注册 practice HTML 重建练习页与服务端 sidecar，不改 lesson/support/assets",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="与 --practice-only 联用；只核对 tracked source 与派生物，零写入",
+    )
     parser.add_argument("stations", nargs="*", help="可选站点 ID；缺省发布全部注册站点")
     args = parser.parse_args(argv)
+    if args.check and not args.practice_only:
+        parser.error("--check requires --practice-only")
     if not FONTS_CSS.is_file():
         print(f"publish: 缺共享字体 {FONTS_CSS}（先提交自托管字体子集）", file=sys.stderr)
         return 1
@@ -674,7 +872,16 @@ def main(argv: list[str]) -> int:
     failures: list[str] = []
     for sid in targets:
         try:
-            written = publish(sid, STATIONS[sid], finished_root=finished_root)
+            if args.practice_only and args.check:
+                written = check_practice_only(
+                    sid, STATIONS[sid], finished_root=finished_root
+                )
+            elif args.practice_only:
+                written = publish_practice_only(
+                    sid, STATIONS[sid], finished_root=finished_root
+                )
+            else:
+                written = publish(sid, STATIONS[sid], finished_root=finished_root)
             print(f"{sid}: {' '.join(written)}")
         except TransformError as exc:
             failures.append(f"{sid}: {exc}")

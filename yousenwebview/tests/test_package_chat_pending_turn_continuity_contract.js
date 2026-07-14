@@ -25,7 +25,7 @@ assertContains(
   "package chat page should define a durable pending-turn storage key",
 );
 assertContains(
-  "wx.setStorageSync(CHAT_PENDING_TURN_KEY",
+  "writeOwnerValue(CHAT_PENDING_TURN_KEY",
   "pending turns should be written to local storage after a question is sent",
 );
 assertContains(
@@ -41,11 +41,11 @@ assertContains(
   "pending turn storage should keep the client turn id for stable recovery identity",
 );
 assertContains(
-  "wx.getStorageSync(CHAT_PENDING_TURN_KEY",
+  "readOwnerValue(CHAT_PENDING_TURN_KEY)",
   "package chat page should reload pending turns after page recreation",
 );
 assertContains(
-  "wx.removeStorageSync(CHAT_PENDING_TURN_KEY",
+  "removeOwnerValue(CHAT_PENDING_TURN_KEY)",
   "pending turns should be cleared only after terminal recovery or user cancellation",
 );
 assertContains(
@@ -97,11 +97,11 @@ assertContains(
   "package missing conversations should terminate recovery immediately instead of polling or switching base",
 );
 assertContains(
-  'wx.getStorageSync("current_session_id") === pending.conversationId',
+  "storedSession.conversationId === pending.conversationId",
   "package missing pending conversations should clear the stale current session pointer",
 );
 assertContains(
-  'wx.getStorageSync("current_session_id") === convId',
+  "storedSession.conversationId === convId",
   "package missing restored conversations should clear the stale current session pointer",
 );
 assertContains(

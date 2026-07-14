@@ -7,6 +7,7 @@
 //   完成时只发既有非 promoting 信号(station_completed)+ 已登记埋点。
 // - 草稿 = 本地 storage; 退出挽留 sheet 主按钮给退出(不做暗黑挽留)。
 var api = require("../../../utils/api");
+var auth = require("../../../utils/auth");
 var telemetry = require("../../../utils/surface-telemetry");
 var helpers = require("../../../utils/helpers");
 var gauntletViewModel = require("../../../utils/gauntlet-view-model");
@@ -14,19 +15,11 @@ var gauntletViewModel = require("../../../utils/gauntlet-view-model");
 var GAUNTLET_LIMIT = 5;
 
 function _readStorage(key) {
-  if (typeof wx === "undefined" || !wx.getStorageSync) return null;
-  try {
-    return wx.getStorageSync(key) || null;
-  } catch (_err) {
-    return null;
-  }
+  return auth.readOwnerStorage ? auth.readOwnerStorage(key) : null;
 }
 
 function _writeStorage(key, value) {
-  if (typeof wx === "undefined" || !wx.setStorageSync) return;
-  try {
-    wx.setStorageSync(key, value);
-  } catch (_err) {}
+  if (auth.writeOwnerStorage) auth.writeOwnerStorage(key, value);
 }
 
 Page({

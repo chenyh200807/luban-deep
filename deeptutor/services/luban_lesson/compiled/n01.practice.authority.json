@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "N01",
+  "source_pack_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+  "source_bundle_sha256": "0f29e07b665daee24732f088dc920addc515aa5ff187d97ec5acd8f980173360",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html",
+      "source_html_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "N01-html-practice-html-q1-67c08ec964c2",
+        "N01-html-practice-html-q2-d5de654db182",
+        "N01-html-practice-html-q3-ab48a6966a1a",
+        "N01-html-practice-html-q4-36ae4f7b8858",
+        "N01-html-practice-html-q16-ec778529e37e"
+      ],
+      "published_practice_sha256": "3bf2578b44a8cf7acb8bccc1256508b175b526dda680a920c8102f7e7799e8cf"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "判据·条件维",
+      "stem": "双代号网络计划中，如何判定关键工作与关键线路？选出判据最完整、能得分的作答。",
+      "model_answer": "关键工作是总时差最小的工作；关键线路由全部关键工作组成，其工期等于网络计划的计算工期（最长路径）。",
+      "options": [
+        {
+          "text": "关键工作是总时差最小的工作；关键线路由全部关键工作组成，工期等于计算工期。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "判据两句齐：总时差最小 + 工期=计算工期，落到哪条线路都能判。",
+          "option_id": "N01-html-practice-html-q1-67c08ec964c2:option-1"
+        },
+        {
+          "text": "持续时间最长的那道工作所在的线路就是关键线路，抓住最大的工作即可判定。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「最长」二字看着眼熟，容易把单个工作的长短当判据。",
+          "loss_reason": "判据错位：关键看的是路径总长/总时差，不是某道工作自己长不长。",
+          "fix": "关键工作=总时差最小；关键线路=最长路径=计算工期。",
+          "option_id": "N01-html-practice-html-q1-67c08ec964c2:option-2"
+        },
+        {
+          "text": "总时差为零的工作是关键工作，且一个网络图里关键线路只会有一条，找到即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「TF=0」这半句是对的，顺手就选了。",
+          "loss_reason": "后半句错：并列最长路径可有两条及以上，「只有一条」是典型误区。",
+          "fix": "关键线路可能不止一条，并列最长的全部是关键线路。",
+          "option_id": "N01-html-practice-html-q1-67c08ec964c2:option-3"
+        },
+        {
+          "text": "图中最长的线路是关键线路，据此原则判定即可，无须再写具体判据与线路。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "方向对，觉得写个原则就算答了。",
+          "loss_reason": "口号化表达：不落总时差判据、不落具体线路，阅卷无从给分。",
+          "fix": "写判据句并落到具体线路：关键线路为①→②→④→⑥（节点连续）。",
+          "option_id": "N01-html-practice-html-q1-67c08ec964c2:option-4"
+        }
+      ],
+      "variant_id": "N01-html-practice-html-q1-67c08ec964c2",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q1",
+      "source_html_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "全列·记录维",
+      "stem": "某网络计划经计算：路①（①→②→④→⑥）= 11 个月，路②（①→③→④→⑥）= 11 个月，路③ = 8 个月。写出关键线路，选出能拿全分的作答。",
+      "model_answer": "关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥（并列最长，工期相等，均为 11 个月）。",
+      "options": [
+        {
+          "text": "关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥，并列最长、工期相等。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "并列最长全部列出、节点连续，这正是历年两条关键线路题的给分点。",
+          "option_id": "N01-html-practice-html-q2-d5de654db182:option-1"
+        },
+        {
+          "text": "关键线路为 ①→②→④→⑥，共 11 个月，取其中一条最长路径作答即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "算出 11 就急着写，一条看着已经「答上了」。",
+          "loss_reason": "漏掉并列的另一条关键线路，漏一条丢一条的分。",
+          "fix": "补上第二条：和 ①→③→④→⑥，两条并列最长全列出。",
+          "option_id": "N01-html-practice-html-q2-d5de654db182:option-2"
+        },
+        {
+          "text": "本网络计划中最长的路径即为关键线路，其总持续时间为 11 个月。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "判据没错，感觉写了就有分。",
+          "loss_reason": "没落到具体线路（节点序列），口号化表达不得分。",
+          "fix": "落到具体节点序列，且两条并列的都写。",
+          "option_id": "N01-html-practice-html-q2-d5de654db182:option-3"
+        },
+        {
+          "text": "关键线路有两条：①→④→⑥ 和 ①→③→⑥，两条工期相等均为最长。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道要写两条，随手把节点写「顺」了。",
+          "loss_reason": "节点跳号、线路不连续，阅卷按错线路处理。",
+          "fix": "逐节点连续写：①→②→④→⑥ 和 ①→③→④→⑥。",
+          "option_id": "N01-html-practice-html-q2-d5de654db182:option-4"
+        }
+      ],
+      "variant_id": "N01-html-practice-html-q2-d5de654db182",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q2",
+      "source_html_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "总工期·计算表达维",
+      "stem": "承上题（关键线路 ①→②→④→⑥，各工作持续 3、4、4 个月）。写总工期，选出可得分的写法。",
+      "model_answer": "总工期 T =（沿关键线路）3+4+4 = 11 个月；线路、算式、单位三件齐。",
+      "options": [
+        {
+          "text": "总工期沿关键线路①→②→④→⑥求和：T = 3+4+4 = 11 个月。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "线路 + 算式 + 单位三件齐全，过程分结果分都稳。",
+          "option_id": "N01-html-practice-html-q3-ab48a6966a1a:option-1"
+        },
+        {
+          "text": "总工期为 11，由图中数据直接得出，不必再抄线路和算式占篇幅。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "数算对了，觉得写个结果最利索。",
+          "loss_reason": "只写数字不给线路算式单位，过程采分点全丢。",
+          "fix": "补全：沿关键线路 T=3+4+4=11 个月。",
+          "option_id": "N01-html-practice-html-q3-ab48a6966a1a:option-2"
+        },
+        {
+          "text": "总工期沿路③①→②→⑤→⑥求和：T = 3+2+3 = 8 个月。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "随手挑了条看着顺的路径求和。",
+          "loss_reason": "沿非关键线路求和，总工期算错，属计算错误。",
+          "fix": "必须沿最长路径（关键线路）求和：3+4+4=11 个月。",
+          "option_id": "N01-html-practice-html-q3-ab48a6966a1a:option-3"
+        },
+        {
+          "text": "总工期沿关键线路求和：T = 3+4+4 = 11，算式与线路都已写明。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "就差一个字，极容易看漏。",
+          "loss_reason": "漏单位：11 是 11 个月还是 11 天？漏单位压线扣分。",
+          "fix": "数值后补单位：= 11 个月。",
+          "option_id": "N01-html-practice-html-q3-ab48a6966a1a:option-4"
+        }
+      ],
+      "variant_id": "N01-html-practice-html-q3-ab48a6966a1a",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q3",
+      "source_html_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "虚工作·程序维",
+      "stem": "题干新增：工作 F 必须等 B、C 均完成后才能开始，但原图中 F 只与 C 相接。正确的处理是？",
+      "model_answer": "原图逻辑不全，应在 B 的完成节点与 F 的开始节点之间增加一个虚工作（虚箭线，只表达逻辑关系），再在调整后的图上计算关键线路。",
+      "options": [
+        {
+          "text": "在 B 完成节点与 F 开始节点间增加一个虚工作表达该逻辑，再在调整后的图上计算。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先校逻辑补虚工作、后计算，程序与画法都对。",
+          "option_id": "N01-html-practice-html-q4-36ae4f7b8858:option-1"
+        },
+        {
+          "text": "图是题目给定的依据，按原图直接计算关键线路与总工期即可，不必改动。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "觉得「题给的图不会有错」，直接开算省事。",
+          "loss_reason": "没提取题干新增的紧前关系，在错图上算，线路工期全盘错。",
+          "fix": "先补虚工作校正逻辑，再算。",
+          "option_id": "N01-html-practice-html-q4-36ae4f7b8858:option-2"
+        },
+        {
+          "text": "把工作 F 移到 B 之后串联布置，让 B 做完再做 F，即可满足新增关系。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「等 B 完成」听着像要排到 B 后面。",
+          "loss_reason": "改串联改变了原网络逻辑（F 与 C 的关系被破坏），表达方式错。",
+          "fix": "用虚箭线补逻辑，不改动既有工作关系。",
+          "option_id": "N01-html-practice-html-q4-36ae4f7b8858:option-3"
+        },
+        {
+          "text": "增加一项持续时间 1 个月的联系工作连接 B 与 F，把等待时间也算进去。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得「连接工作」总得占点时间才真实。",
+          "loss_reason": "虚工作只表达逻辑、不占时间资源；加了时长会把工期算长。",
+          "fix": "补的是虚工作：持续时间为 0，仅表达逻辑。",
+          "option_id": "N01-html-practice-html-q4-36ae4f7b8858:option-4"
+        }
+      ],
+      "variant_id": "N01-html-practice-html-q4-36ae4f7b8858",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q4",
+      "source_html_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "学生作答：①关键线路为 ①→②→⑤→⑥；②总时差是 3 和 3；③事件系甲方责任，故工期索赔成立。已知正确关键线路为 ①→②→④→⑥ 和 ①→③→④→⑥，E、G 总时差各 3 个月且延误未超时差。选出最准确的诊断与补写。",
+      "model_answer": "三处都要改：①线路求错（选了 8 个月的非最长路径）且漏并列第二条；②时差数值未绑定工作名；③索赔只看责任、未比时差——延误未超时差，不影响总工期，工期索赔不成立。线路是地基，地基错后面判读连锁错。",
+      "options": [
+        {
+          "text": "①线路选错且漏并列一条；②数值没绑定工作名；③只看责任漏比时差，结论应为不成立——三处都要补写。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处失分全揪出，且点明「线路是地基、地基错判读连锁错」——这就是会写答案。",
+          "option_id": "N01-html-practice-html-q16-ec778529e37e:option-1"
+        },
+        {
+          "text": "③的结论虽简略但方向可取，①②只是书写不规范，酌情都能得分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得「意思到了就有分」。",
+          "loss_reason": "①是计算错误不是书写问题；③结论本身就错（应为不成立），不是简略。",
+          "fix": "逐处对照判据改写，别用「酌情」安慰自己。",
+          "option_id": "N01-html-practice-html-q16-ec778529e37e:option-2"
+        },
+        {
+          "text": "只有①关键线路需要改，②③按学生原答保留即可，数值毕竟都对。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到最明显的一处就收手。",
+          "loss_reason": "漏诊②不绑定、③错判据两处失分点。",
+          "fix": "②补工作名与单位；③补「延误未超时差、不影响总工期、不成立」。",
+          "option_id": "N01-html-practice-html-q16-ec778529e37e:option-3"
+        },
+        {
+          "text": "①改为 ①→③→④→⑥ 一条即可；②③的写法在阅卷中通常不扣分。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "改了一条像是修正了计算。",
+          "loss_reason": "并列关键线路要两条全列，只写一条仍漏分；②③明确属扣分写法。",
+          "fix": "两条全列：①→②→④→⑥ 和 ①→③→④→⑥，②③同步补写。",
+          "option_id": "N01-html-practice-html-q16-ec778529e37e:option-4"
+        }
+      ],
+      "variant_id": "N01-html-practice-html-q16-ec778529e37e",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q16",
+      "source_html_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66"
+    }
+  ],
+  "published_lesson_sha256": "fd3eae410d835fd44d8184f28f70b8089a8e57560f5acc769dc6f0a6d4227e89"
+}

@@ -10,6 +10,7 @@
 <!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -133,7 +134,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -195,6 +196,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 /* ░░░ 母版骨架逻辑：随堂练 ░░░
@@ -215,7 +217,7 @@ class Component extends DCLogic {
   moreText="继续补练：① 网络图求关键线路/总时差后再判工期成立性（条件维·工期闸）；② 一道综合案例，把工期（网络分析法）、费用（分层列式）、利润（看责任源）、程序（28天+四性）四块一次写全，练「计算判定链」采分句输出。";
   // ── 题库：≥15 道，覆盖 判成立(双闸门/成因/程序) + 算多少(工期/费用/利润/赶工/证据) + 采分诊断 ──
   Q=[
-    { tag:"责任归因·主体维", typeHint:"单选 · 选出最完整、能得分的定性表达", figLabel:"事件：发包人设计变更致停工", figCaption:"先定责任方 · 再分工期/费用/利润", fig:"gate",
+{ tag:"责任归因·主体维", typeHint:"单选 · 选出最完整、能得分的定性表达", figLabel:"事件：发包人设计变更致停工", figCaption:"先定责任方 · 再分工期/费用/利润", fig:"gate",
       stem:"施工中发生设计变更（发包人原因）致承包人停工。就该索赔能否成立，选出最完整、能得分的定性作答。",
       model:"本事件属发包人原因（设计变更），责任在发包人；应分别就工期、费用、利润逐项判成立性，不合并成一句「可索赔」。",
       opts:[
@@ -224,7 +226,7 @@ class Component extends DCLogic {
         { t:"本事件的索赔成立。", ok:false, code:"E02", tempt:"知道是发包人责任，图省事一句带过。", lose:"没写责任方、没分工期/费用/利润，采分点几乎全漏。", fix:"点明发包人原因、责任在发包人，并分项判工期/费用/利润。" },
         { t:"设计变更属承包人施工方案问题，损失应由承包人自行承担。", ok:false, code:"E08", tempt:"没抓住「设计变更是发包人给的」这个背景。", lose:"责任方判反，后面工期费用连锁全错。", fix:"设计变更属发包人原因，责任在发包人。" }
       ] },
-    { tag:"程序·程序维", typeHint:"单选 · 选出可得分的程序表达", figLabel:"索赔程序：意向通知时限", figCaption:"从事件发生日起算 · 期限？", fig:"timer",
+{ tag:"程序·程序维", typeHint:"单选 · 选出可得分的程序表达", figLabel:"索赔程序：意向通知时限", figCaption:"从事件发生日起算 · 期限？", fig:"timer",
       stem:"合同对索赔期限未作约定。就提出索赔的程序时限，选出可得分的完整表达。",
       model:"应在索赔事件发生后、合同约定期限内（合同未约定的为28天内）提交书面索赔意向通知书，逾期丧失索赔权。",
       opts:[
@@ -233,7 +235,7 @@ class Component extends DCLogic {
         { t:"应在28天内提出索赔。", ok:false, code:"E03", tempt:"记得「28天」，顺手就写。", lose:"漏「合同未约定」前提、漏「书面意向通知」，关键词缺失。", fix:"补「合同未约定的为28天」+「书面索赔意向通知书」。" },
         { t:"口头向监理说明情况即可，事后补交材料。", ok:false, code:"E03", tempt:"现场先口头沟通，感觉也算通知了。", lose:"意向通知必须书面，口头不产生程序效力。", fix:"必须提交书面索赔意向通知书。" }
       ] },
-    { tag:"工期闸·条件维", typeHint:"单选 · 选出可得分的工期判断", figLabel:"延误落在关键线路", figCaption:"关键线路 · 总时差 0", fig:"ruler",
+{ tag:"工期闸·条件维", typeHint:"单选 · 选出可得分的工期判断", figLabel:"延误落在关键线路", figCaption:"关键线路 · 总时差 0", fig:"ruler",
       stem:"某发包人原因致延误的工作位于关键线路上（总时差为0），延误2个月。就工期索赔，选出可得分的判断。",
       model:"该工作在关键线路上、总时差为0，延误直接影响总工期，可索赔工期2个月（延误几月顺延几月）。",
       opts:[
@@ -242,7 +244,7 @@ class Component extends DCLogic {
         { t:"延误是否顺延要看是不是发包人责任，是发包人责任就顺延2个月。", ok:false, code:"E07", tempt:"「责任在发包人所以顺延」听着顺。", lose:"工期闸只认网络位置不认责任方；这里顺延是因为在关键线路。", fix:"工期成立的依据是「在关键线路」，不是「责任在谁」。" },
         { t:"关键线路的延误只能顺延一半，即1个月。", ok:false, code:"E09", tempt:"凭印象觉得要打个折。", lose:"没有「顺延一半」的规则，数值错。", fix:"关键线路延误2个月，顺延2个月。" }
       ] },
-    { tag:"工期闸·条件维", typeHint:"单选 · 选出可得分的工期算法与依据", figLabel:"非关键 · 总时差1 · 延误2", figCaption:"真题C：延误 vs 总时差", fig:"ruler",
+{ tag:"工期闸·条件维", typeHint:"单选 · 选出可得分的工期算法与依据", figLabel:"非关键 · 总时差1 · 延误2", figCaption:"真题C：延误 vs 总时差", fig:"ruler",
       stem:"C工作为非关键工作，总时差1个月，因设计变更延误2个月。就工期索赔，选出可得分的作答。",
       model:"C为非关键工作，延误2个月超总时差1个月，只索赔超出部分，可顺延工期=2−1=1个月。",
       opts:[
@@ -251,97 +253,7 @@ class Component extends DCLogic {
         { t:"C是非关键工作，不影响总工期，工期索赔不成立。", ok:false, code:"E05", tempt:"记得「非关键不影响总工期」，直接判0。", lose:"漏比总时差：延误2已超总时差1，仍顺延1个月。", fix:"延误超过总时差，超出部分1个月仍可索。" },
         { t:"C的总时差是1个月，所以可顺延工期1个月。", ok:false, code:"E07", tempt:"数值1恰好对，顺手就选。", lose:"依据错——顺延1是「延误−总时差」的结果，不是「等于总时差」。", fix:"写「顺延=延误2−总时差1=1个月」，不是「等于总时差」。" }
       ] },
-    { tag:"工期闸·条件维", typeHint:"单选 · 选出可得分的工期判断", figLabel:"非关键 · 总时差4 · 延误3", figCaption:"真题E：延误未超总时差", fig:"ruler",
-      stem:"E工作为非关键工作，总时差4个月，因不可抗力延误3个月。就工期索赔，选出可得分的判断。",
-      model:"E为非关键工作，延误3个月未超总时差4个月，机动时间足以吸收，不发生工期索赔（顺延0）。",
-      opts:[
-        { t:"E为非关键工作，延误3个月未超总时差4个月，机动时间可吸收，不发生工期索赔。", ok:true, fix:"非关键→比总时差→未超→不索赔，判据链完整。", code:"" },
-        { t:"E延误3个月，可顺延工期3个月。", ok:false, code:"E09", tempt:"又是「延误几月赔几月」。", lose:"没比总时差：延误3≤总时差4，被吸收，不影响总工期。", fix:"延误未超总时差，工期索赔不成立（顺延0）。" },
-        { t:"E延误可顺延=延误3−总时差4=−1，即不顺延。", ok:false, code:"E09", tempt:"把「延误−总时差」公式硬套到未超的情形。", lose:"未超总时差直接判「不索赔」，不用算负数。", fix:"延误≤总时差，直接结论「不索赔」，不写负数。" },
-        { t:"不可抗力属双方分担，工期一律各担一半，顺延1.5个月。", ok:false, code:"E10", tempt:"把不可抗力的费用分担规则套到工期上。", lose:"工期看网络位置不看责任分担；这里未超总时差故不顺延。", fix:"工期看总时差，未超即不索赔，与费用分担无关。" }
-      ] },
-    { tag:"互不蕴含·条件+主体维", typeHint:"单选 · 选出对「工期费用是否绑死」最准确的作答", figLabel:"同一C事件 · 两闸门", figCaption:"工期封顶 vs 费用全额", fig:"gate",
-      stem:"C事件（设计变更、非关键、总时差1、延误2）工期只顺延1个月。就其费用索赔27.2万能否成立，选出最准确的作答。",
-      model:"工期与费用两闸互不蕴含；C工期虽被总时差封顶只顺延1月，但属发包人原因致实际经济损失，费用27.2万仍全额成立。",
-      opts:[
-        { t:"工期与费用互不蕴含；C工期虽被总时差封顶只顺延1月，费用属发包人原因致实际损失，27.2万仍全额成立。", ok:true, fix:"点明两闸独立，工期封顶不影响费用全额，正是命门。", code:"" },
-        { t:"工期只顺延了1个月，说明索赔大部分不成立，费用也应按比例只算一部分。", ok:false, code:"E07", tempt:"「工期没全赔，费用也该打折」听着合理。", lose:"把费用绑到工期上——费用闸只看责任与实际损失，与工期封顶无关。", fix:"费用看责任与损失，工期封顶不牵连费用，27.2万全额成立。" },
-        { t:"工期不成立，费用也不成立，本事件不予索赔。", ok:false, code:"E07", tempt:"误以为工期不成立费用就跟着黄。", lose:"两闸绑死，正是最高频错；C费用全额成立。", fix:"工期费用各判各的，C费用27.2万成立。" },
-        { t:"费用能否成立要看这1个月工期是否顺延到位，顺延了才谈费用。", ok:false, code:"E07", tempt:"觉得费用要「以工期为前提」。", lose:"费用不以工期成立为前提，两者互不蕴含。", fix:"费用只看责任归属与实际损失，独立于工期。" }
-      ] },
-    { tag:"费用闸·不可抗力·记录维", typeHint:"单选 · 选出可得分的费用分担作答", figLabel:"责任筛：32.7万分盘", figCaption:"设备8.2 / 清理24.5", fig:"sieve",
-      stem:"不可抗力致承包人设备损坏8.2万、现场清理修复24.5万，共32.7万。就费用索赔，选出可得分的作答。",
-      model:"不可抗力下承包人自身设备损坏8.2万自担，现场清理修复24.5万归发包人可索；主张全部32.7万不合理。",
-      opts:[
-        { t:"不可抗力下承包人设备损坏8.2万自担，清理修复24.5万归发包人可索；主张全部32.7万不合理。", ok:true, fix:"分盘 + 剔除自担项，「成立≠金额全成立」写到位。", code:"" },
-        { t:"不可抗力造成的损失全部32.7万都应由发包人承担。", ok:false, code:"E10", tempt:"「不可抗力不是承包人的错，全给发包人」最省事。", lose:"不可抗力不是一刀切：承包人自身机具/设备损坏自担。", fix:"剔除设备8.2万自担，只24.5万清理可索。" },
-        { t:"不可抗力是双方责任，32.7万由双方各承担一半。", ok:false, code:"E10", tempt:"「双方分担」被理解成「金额对半分」。", lose:"分担是按损失性质分（人机自担、实体/清理归发包人），不是金额对半。", fix:"按范本分：设备8.2自担、清理24.5可索。" },
-        { t:"设备是承包人的，清理也是承包人干的，32.7万全由承包人自担。", ok:false, code:"E10", tempt:"「都是承包人的事」一刀切到另一头。", lose:"清理修复属发包人应担，判反方向。", fix:"清理修复24.5万归发包人，可索。" }
-      ] },
-    { tag:"费用闸·主体维", typeHint:"单选 · 选出可得分的费用成立判断", figLabel:"发包人原因致窝工损失", figCaption:"费用闸：只认责任", fig:"gate",
-      stem:"因发包人未按时提供施工条件，承包人发生窝工、机械停置等经济损失。就费用索赔能否成立，选出可得分的作答。",
-      model:"非承包人原因（发包人未提供条件）致承包人发生实际经济损失，费用索赔成立，按分项法列算窝工、机械停置等。",
-      opts:[
-        { t:"属非承包人原因致实际经济损失，费用索赔成立，按分项法列算窝工、机械停置等各项。", ok:true, fix:"责任基础 + 成立 + 计算方法，费用闸三件齐。", code:"" },
-        { t:"要先看延误是否在关键线路，在关键线路费用才成立。", ok:false, code:"E07", tempt:"把工期闸的「关键线路」条件搬到了费用闸。", lose:"费用闸只看责任与损失，不看网络位置。", fix:"费用成立看责任归属与实际损失，与关键线路无关。" },
-        { t:"发包人有责任，费用连同利润和工期一并全额成立。", ok:false, code:"E02", tempt:"一股脑全说成立，显得「答全了」。", lose:"工期要单独过总时差闸；且未列费用计算方法。", fix:"费用成立单独判，工期另过闸，费用要列分项。" },
-        { t:"窝工损失属承包人管理问题，应由承包人自担。", ok:false, code:"E08", tempt:"没抓住「发包人未提供条件」这个致因。", lose:"责任判反，费用本可索却判自担。", fix:"致因是发包人，费用索赔成立。" }
-      ] },
-    { tag:"工期定量·记录维", typeHint:"单选 · 选出可得分的工期计算表达", figLabel:"网络分析法", figCaption:"比延误前后总工期之差", fig:"ruler",
-      stem:"就「应顺延多少工期」的计算方法，选出阅卷认可、可得分的表达。",
-      model:"用网络分析法，比较延误前后两次施工网络计划的总工期之差，得应顺延的工期，而非只数单项延误天数。",
-      opts:[
-        { t:"用网络分析法，比较延误前后两次网络计划的总工期之差，得应顺延工期，而非只数单项延误天数。", ok:true, fix:"点名「网络分析法」「前后总工期之差」，方法采分到位。", code:"" },
-        { t:"把各项延误的天数直接加起来，就是应顺延的总工期。", ok:false, code:"E09", tempt:"「延误加一加」最省事。", lose:"不看关键线路/总时差、不算网络计划，方法错。", fix:"用网络分析法比延误前后总工期之差。" },
-        { t:"凭施工经验估一个大致的顺延天数即可。", ok:false, code:"E06", tempt:"觉得「差不多就行」。", lose:"缺网络计划分析，无计算依据，不得分。", fix:"须用网络分析法定量比较，不能凭经验估。" },
-        { t:"顺延工期=原工期×新增工程量÷原工程量，用比例法算即可。", ok:false, code:"E07", tempt:"记得有个「比例分析法」，套上来。", lose:"比例法用于工程量变化的工期，本问考的是网络计划延误，方法用错场景。", fix:"延误顺延用网络分析法比前后总工期之差。" }
-      ] },
-    { tag:"费用分层·记录维", typeHint:"单选 · 选出可得分的分层列式", figLabel:"成本+管理费+利润", figCaption:"成本300 管理费率10% 利润率5%", fig:"stack",
-      stem:"某可索费用：增加成本300万，管理费率10%，利润率5%。就索赔值，选出可得分的分层列式与结果。",
-      model:"索赔值=成本+成本×管理费率+(成本+管理费)×利润率=300+300×10%+(300+30)×5%=300+30+16.5=346.5万。",
-      opts:[
-        { t:"索赔值=300+300×10%+(300+30)×5%=300+30+16.5=346.5万（利润基数为成本+管理费）。", ok:true, fix:"三层列式 + 利润基数=成本+管理费，带单位，满分。", code:"" },
-        { t:"索赔值=300+300×10%+300×5%=300+30+15=345万。", ok:false, code:"E09", tempt:"利润顺手也拿「成本」当基数乘。", lose:"利润基数应是成本+管理费(330)，少算了管理费那块，差1.5万。", fix:"利润=(300+30)×5%=16.5，合计346.5万。" },
-        { t:"索赔值=成本300万即可，管理费和利润不另计。", ok:false, code:"E02", tempt:"只算直接成本，省掉分层。", lose:"漏管理费与利润两层，采分点遗漏。", fix:"补管理费30、利润16.5，分层列到346.5万。" },
-        { t:"索赔值=(300+300×10%)×(1+5%)=346.5万，一步到位。", ok:false, code:"E07", tempt:"结果346.5恰好对，觉得算式也成立。", lose:"结果对但未分层列式，阅卷要求逐层写出成本/管理费/利润过程。", fix:"分三步写：300、+30、+16.5=346.5万。" }
-      ] },
-    { tag:"利润归属·后果维", typeHint:"单选 · 选出可得分的利润判断", figLabel:"利润看责任源", figCaption:"发包人原因 vs 不可抗力", fig:"profit",
-      stem:"两个事件：①发包人设计变更致损失；②不可抗力致损失。就「能否加索利润」，选出可得分的作答。",
-      model:"发包人原因/工程变更剥夺了承包人盈利机会，费用外可加索利润；不可抗力属双方分担风险，利润不宜机械主张。",
-      opts:[
-        { t:"发包人原因/变更可在费用外加索利润；不可抗力属双方分担风险，利润不宜机械主张。", ok:true, fix:"利润看责任源分两种情形，写清「发包人才加、不可抗力不套」。", code:"" },
-        { t:"只要有额外支出，两个事件都可以连同利润一起索赔。", ok:false, code:"E10", tempt:"「有支出就含利润」一把抓。", lose:"不可抗力是分担风险，不当然主张利润，机械套用扣分。", fix:"仅发包人原因/变更可加利润，不可抗力不套。" },
-        { t:"利润属于承包人自身经营，两个事件都不能向发包人主张。", ok:false, code:"E02", tempt:"觉得利润「不好意思要」，一律不写。", lose:"发包人原因剥夺盈利机会，利润本可加索却漏写。", fix:"发包人原因/变更可加索利润。" },
-        { t:"两个事件都是非承包人原因，利润都按成本的5%一并计取。", ok:false, code:"E10", tempt:"把利润率机械套到所有非承包人事件。", lose:"不可抗力不当然主张利润；且是否加利润看责任源不看是否非承包人。", fix:"发包人原因才加利润，不可抗力不套。" }
-      ] },
-    { tag:"赶工优选·条件维", typeHint:"单选 · 选出可得分的赶工工序选择", figLabel:"赶工比价", figCaption:"主体2700/天可压2天 vs 装修3000/天", fig:"scale",
-      stem:"工期成立后发包人仍要求原期竣工需赶工。主体结构（关键线路，2700元/天，可压2天）与室内装修（3000元/天）。选出可得分的赶工方案。",
-      model:"优先压缩关键线路上、单位赶工费低且不影响后续的工序，故先压主体结构（2700元/天、可压2天），赶工费由发包人承担。",
-      opts:[
-        { t:"优先压关键线路上、单位赶工费低、不影响后续的工序，先压主体结构（2700元/天），赶工费由发包人担。", ok:true, fix:"三条判据 + 先压主体 + 赶工费归属，全齐。", code:"" },
-        { t:"哪道工序赶工费高就先压哪道，故先压室内装修（3000元/天）。", ok:false, code:"E09", tempt:"误以为「贵的先压更值」。", lose:"应压单位赶工费低的，压贵的多花钱；方向反了。", fix:"压单位赶工费低的主体结构（2700元/天）。" },
-        { t:"任选一道工序压缩即可，只要压够天数就行。", ok:false, code:"E07", tempt:"觉得「压哪个都能缩工期」。", lose:"压非关键线路不缩总工期；须压关键线路上的工序。", fix:"必须压关键线路上、费用低、不影响后续者。" },
-        { t:"赶工是承包人为抢工期采取的措施，赶工费应由承包人自行承担。", ok:false, code:"E10", tempt:"「赶工是施工方的事」听着合理。", lose:"发包人要求提前/原期竣工的赶工费由发包人承担，归属判反。", fix:"发包人要求赶工，赶工费由发包人承担。" }
-      ] },
-    { tag:"证据·记录维", typeHint:"单选 · 选出可得分的证据要求表达", figLabel:"索赔证据四性", figCaption:"真实/全面/法律效力/及时", fig:"evidence",
-      stem:"就索赔证据应满足的要求，选出可得分的完整表达。",
-      model:"索赔证据应满足真实性、全面性、法律效力、及时性四性，常见证据含合同、往来信件、会谈纪要、进度记录、照片、气候报告等。",
-      opts:[
-        { t:"证据应满足真实性、全面性、法律效力、及时性四性，并附合同、信件、纪要、进度记录、照片等。", ok:true, fix:"四性齐全 + 举例证据，记录维采分到位。", code:"" },
-        { t:"只要证据真实就行，其他要求不影响索赔。", ok:false, code:"E03", tempt:"记得「真实」一条就写一条。", lose:"漏全面性/法律效力/及时性三性，关键词缺失。", fix:"补全全面性、法律效力、及时性。" },
-        { t:"施工日记等内部记录即可，不必对外取证。", ok:false, code:"E03", tempt:"觉得自己的记录就够。", lose:"漏法律效力与全面性，单一内部记录证明力不足。", fix:"须满足四性，附合同/信件/纪要/照片等。" },
-        { t:"证据只要在结算时补齐就行，不讲时效。", ok:false, code:"E06", tempt:"想「反正最后补上」。", lose:"漏及时性——证据应及时留存，事后补易失效。", fix:"补及时性：证据应及时收集留存。" }
-      ] },
-    { tag:"逐条裁决·主体维", typeHint:"单选 · 判断该项索赔能否成立并说明理由", figLabel:"无约定垫资利息", figCaption:"逐条裁决 · 成立/不成立", fig:"diag",
-      stem:"承包人要求发包人按银行同期利率支付垫资利息，但合同对垫资利息未作约定。就该项索赔，选出可得分的裁决。",
-      model:"不成立。垫资利息合同有约定的按约定，无约定的不予考虑；本题合同未约定，故该项索赔不成立。",
-      opts:[
-        { t:"不成立。垫资利息合同有约定的按约定、无约定的不予考虑；本题未约定，故不成立。", ok:true, fix:"结论 + 「无约定不予考虑」依据，逐条裁决成对。", code:"" },
-        { t:"成立。垫资是承包人替发包人垫的钱，利息理应由发包人支付。", ok:false, code:"E10", tempt:"「替对方垫钱就该给利息」很直觉。", lose:"垫资利息无合同约定不予考虑，凭常理判反。", fix:"无约定不予考虑，该项不成立。" },
-        { t:"成立。凡是承包人多支出的资金成本都可向发包人索赔。", ok:false, code:"E10", tempt:"把「资金成本」一律当可索。", lose:"垫资利息有专门规则，无约定不考虑，不能一概而论。", fix:"垫资利息看约定，无约定不成立。" },
-        { t:"不成立。因为承包人没有在28天内提出这项索赔。", ok:false, code:"E08", tempt:"结论对，就近抓个「时限」当理由。", lose:"结论对但理由错——本项不成立是「无约定不予考虑」，非时限问题。", fix:"理由应写「垫资利息无约定不予考虑」。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"结论对，过程未必对", fig:"diag",
+{ tag:"采分诊断·末题", typeHint:"单选 · 数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"结论对，过程未必对", fig:"diag",
       stem:"学生答某设计变更事件：「甲方有责任，所以工期费用都成立，工期按延误2个月顺延、费用连利润一起算」。已知C为非关键、总时差1。选出最准确的诊断与补写。",
       model:"工期费用不能绑死、非关键要减总时差、不可抗力才谈分担；补写：工期非关键顺延=2−1=1月，费用属发包人原因成立、可加利润，两闸分开判。",
       opts:[
@@ -482,7 +394,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -501,6 +413,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("K01")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

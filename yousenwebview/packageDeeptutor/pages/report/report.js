@@ -1397,10 +1397,9 @@ Page({
   _readPendingAssessmentTrainingAction(options) {
     var stored = null;
     try {
-      stored =
-        typeof wx !== "undefined" && typeof wx.getStorageSync === "function"
-          ? wx.getStorageSync(ASSESSMENT_PENDING_TRAINING_ACTION_KEY)
-          : null;
+      stored = auth.readOwnerStorage
+        ? auth.readOwnerStorage(ASSESSMENT_PENDING_TRAINING_ACTION_KEY)
+        : null;
     } catch (_) {
       stored = null;
     }
@@ -2581,11 +2580,8 @@ Page({
     var cacheKey =
       "learning_attempt_detail_preview:" +
       String(card.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
-    if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
-      try {
-        wx.setStorageSync(cacheKey, { card: card, savedAt: Date.now() });
-      } catch (_err) {}
-    }
+    if (auth.writeOwnerStorage)
+      auth.writeOwnerStorage(cacheKey, { card: card, savedAt: Date.now() });
     if (typeof wx !== "undefined" && typeof wx.navigateTo === "function") {
       var params = ["cacheKey=" + encodeURIComponent(cacheKey)];
       if (card.attemptRef)

@@ -10,6 +10,7 @@
 <!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -133,7 +134,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -195,6 +196,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 /* ░░░ 母版骨架逻辑：随堂练 ░░░
@@ -215,7 +217,7 @@ class Component extends DCLogic {
   moreText="补两道：① 交接处防裂——不同材料基体交接处设加强网、搭接≥100mm，练“设网+搭接数值”两句都不漏；② 含水率分对象——溶剂型8/乳液型10/木晴12，练“选项错+为什么扣分+正确补哪句”三段式。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
-    { tag:"控厚度·条件维", typeHint:"单选 · 选出能拿分的作答", figLabel:"图示：抹灰总厚度阈值尺", figCaption:"某处总厚 38mm · 是否加强？", fig:"thick",
+{ tag:"控厚度·条件维", typeHint:"单选 · 选出能拿分的作答", figLabel:"图示：抹灰总厚度阈值尺", figCaption:"某处总厚 38mm · 是否加强？", fig:"thick",
       stem:"内墙一般抹灰，某处抹灰总厚度达到 38mm。关于是否采取加强措施，选出正确且能得分的作答。",
       model:"抹灰总厚度≥35mm 时应采取加强措施（分层抹灰、设加强网）；38mm 已达阈值，须加强。",
       opts:[
@@ -224,7 +226,7 @@ class Component extends DCLogic {
         { t:"厚度大了容易开裂，做加强处理一下就行，具体到多少毫米无所谓。", ok:false, code:"E03", tempt:"知道要加强，但嫌记数字麻烦。", lose:"漏了“≥35mm”这个关键阈值，采分点落不到数字上。", fix:"写明总厚≥35mm 须加强，并给出分层+挂网。" },
         { t:"只要控制每一遍抹灰不超过 8mm 薄涂，总厚多少都不用加强。", ok:false, code:"E07", tempt:"把单遍薄抹当成免加强的理由。", lose:"混淆了单遍控制与总厚加强——总厚到 35mm 仍须加强。", fix:"总厚≥35mm 一律加强，与单遍厚薄无关。" }
       ] },
-    { tag:"控厚度·条件维", typeHint:"单选 · 选出数值与对象都对的作答", figLabel:"图示：抹灰层平均总厚度上限", figCaption:"普通 vs 高级 · 各自上限多少？", fig:"layer",
+{ tag:"控厚度·条件维", typeHint:"单选 · 选出数值与对象都对的作答", figLabel:"图示：抹灰层平均总厚度上限", figCaption:"普通 vs 高级 · 各自上限多少？", fig:"layer",
       stem:"内墙普通抹灰与高级抹灰的抹灰层平均总厚度上限，选出正确作答。",
       model:"内墙普通抹灰层平均总厚度≤20mm；高级抹灰层≤25mm。",
       opts:[
@@ -233,7 +235,7 @@ class Component extends DCLogic {
         { t:"内墙普通抹灰层不大于 25mm，高级抹灰层不大于 20mm。", ok:false, code:"E07", tempt:"数值都见过，顺手把两档对调了。", lose:"普通/高级对象与数值张冠李戴。", fix:"普通≤20、高级≤25，别把两档对调。" },
         { t:"这里的 20mm、25mm 指底层、中层、面层每一单层的厚度上限。", ok:false, code:"E07", tempt:"把“平均总厚度”理解成单层厚度。", lose:"题问的是抹灰层平均总厚度，不是底/中/面单层。", fix:"是抹灰层平均总厚度，非底中面单层。" }
       ] },
-    { tag:"交接防裂·条件维", typeHint:"单选 · 选出核心防裂措施", figLabel:"图示：混凝土柱与砖墙交接处", figCaption:"不同材料基体交接 · 怎么防开裂？", fig:"joint",
+{ tag:"交接防裂·条件维", typeHint:"单选 · 选出核心防裂措施", figLabel:"图示：混凝土柱与砖墙交接处", figCaption:"不同材料基体交接 · 怎么防开裂？", fig:"joint",
       stem:"框架填充墙，混凝土柱与砖砌体交接处抹灰。为防止交接处开裂，选出正确作答。",
       model:"不同材料基体交接处应设加强网跨越接缝，分摊差动位移防止通缝开裂。",
       opts:[
@@ -242,7 +244,7 @@ class Component extends DCLogic {
         { t:"交接处贴一层饰面砖盖住就行，下面的抹灰层裂不裂不用管。", ok:false, code:"E11", tempt:"拿饰面遮盖当防裂手段。", lose:"混淆饰面与抹灰防裂，措施张冠李戴。", fix:"应设加强网防裂，不是靠贴砖遮盖。" },
         { t:"只有抹灰总厚超过 50mm 的交接处才设加强网，一般交接处不用设。", ok:false, code:"M08", tempt:"把“设加强网”和厚度阈值绑死。", lose:"不同材料基体交接处一律设网，与总厚阈值是两条独立要求。", fix:"不同材料基体交接处均应设加强网。" }
       ] },
-    { tag:"交接防裂·条件维", typeHint:"单选 · 选出可得分的搭接数值", figLabel:"图示：加强网与基体搭接", figCaption:"加强网各侧搭接多少才够？", fig:"joint",
+{ tag:"交接防裂·条件维", typeHint:"单选 · 选出可得分的搭接数值", figLabel:"图示：加强网与基体搭接", figCaption:"加强网各侧搭接多少才够？", fig:"joint",
       stem:"不同材料基体交接处已设加强网。关于加强网与各基体的搭接宽度，选出能得分的作答。",
       model:"加强网与各基体的搭接宽度不应小于 100mm。",
       opts:[
@@ -251,98 +253,7 @@ class Component extends DCLogic {
         { t:"加强网搭接宽度不小于 80mm 即可。", ok:false, code:"M08", tempt:"80 接近 100，容易当成合格。", lose:"数值不足，规范定的是 100mm。", fix:"不小于 100mm，80mm 不达标。" },
         { t:"加强网搭接够宽就行，具体多少看现场情况定。", ok:false, code:"E03", tempt:"知道要搭接却不肯给数字。", lose:"漏了“不小于 100mm”这个关键数值。", fix:"写明搭接宽度≥100mm。" }
       ] },
-    { tag:"控含水率·条件维", typeHint:"单选 · 选出对象与数值都对的作答", figLabel:"图示：基层含水率上限", figCaption:"溶剂型涂料 · 基层含水率≤？", fig:"water",
-      stem:"混凝土/抹灰基层准备涂刷溶剂型涂料。关于基层含水率上限，选出正确作答。",
-      model:"用溶剂型涂料时，混凝土/抹灰基层含水率不得大于 8%。",
-      opts:[
-        { t:"混凝土或抹灰基层用溶剂型涂料时，含水率不得大于 8%。", ok:true, fix:"对象“溶剂型”+数值 8% 对应准确。", code:"" },
-        { t:"溶剂型涂料基层含水率不得大于 10%。", ok:false, code:"E07", tempt:"把乳液型的 10% 安到溶剂型头上。", lose:"对象与数值错配，10% 是乳液型的上限。", fix:"溶剂型≤8%，10% 是乳液型。" },
-        { t:"溶剂型涂料基层含水率不得大于 12%。", ok:false, code:"E07", tempt:"和木材的 12% 混了。", lose:"12% 是木材基层，不是溶剂型。", fix:"溶剂型≤8%。" },
-        { t:"基层干一点就能刷溶剂型涂料，含水率不用较真具体数。", ok:false, code:"E03", tempt:"图省事不写数字。", lose:"漏了 8% 这个关键上限值。", fix:"写明溶剂型≤8%。" }
-      ] },
-    { tag:"控含水率·条件维", typeHint:"单选 · 选出对象与数值都对的作答", figLabel:"图示：基层含水率上限", figCaption:"乳液型涂料 · 基层含水率≤？", fig:"water",
-      stem:"基层准备涂刷乳液型涂料。关于基层含水率上限，选出正确作答。",
-      model:"用乳液型涂料时，基层含水率不得大于 10%。",
-      opts:[
-        { t:"用乳液型涂料时，基层含水率不得大于 10%。", ok:true, fix:"对象“乳液型”+数值 10% 对应准确。", code:"" },
-        { t:"乳液型涂料基层含水率不得大于 8%。", ok:false, code:"E07", tempt:"把溶剂型的 8% 安到乳液型。", lose:"8% 是溶剂型上限，对象错配。", fix:"乳液型≤10%。" },
-        { t:"乳液型涂料基层含水率不得大于 12%。", ok:false, code:"E07", tempt:"和木材 12% 混。", lose:"12% 是木材基层。", fix:"乳液型≤10%。" },
-        { t:"只要不是溶剂型涂料，基层含水率高一点没关系。", ok:false, code:"E02", tempt:"以为乳液型对含水率不敏感。", lose:"漏了乳液型 10% 这个上限。", fix:"乳液型≤10% 仍有明确上限。" }
-      ] },
-    { tag:"控含水率·条件维", typeHint:"单选 · 选出对象与数值都对的作答", figLabel:"图示：基层含水率上限", figCaption:"木材基层 · 含水率≤？", fig:"water",
-      stem:"木材基层准备做后续涂饰。关于木材基层含水率上限，选出正确作答。",
-      model:"木材基层含水率不得大于 12%。",
-      opts:[
-        { t:"木材基层含水率不得大于 12%。", ok:true, fix:"木材基层单列 12%，与涂料对象分开记。", code:"" },
-        { t:"木材基层含水率不得大于 8%。", ok:false, code:"M08", tempt:"顺手用了溶剂型的 8%。", lose:"8% 是溶剂型涂料基层，不是木材。", fix:"木材基层≤12%。" },
-        { t:"木材基层含水率不得大于 10%。", ok:false, code:"M08", tempt:"用了乳液型的 10%。", lose:"10% 是乳液型，木材是 12%。", fix:"木材基层≤12%。" },
-        { t:"木材基层含水率与涂料一致，统一按 8% 控制即可。", ok:false, code:"E02", tempt:"想一刀切统一一个数。", lose:"木材单列的 12% 被漏掉。", fix:"木材基层≤12% 单独列出。" }
-      ] },
-    { tag:"控环境·条件维", typeHint:"单选 · 选出可得分的温度作答", figLabel:"图示：室内抹灰环境温度", figCaption:"冬期室内抹灰 · 温度下限？", fig:"temp",
-      stem:"冬期室内一般抹灰施工。关于环境温度，选出能得分的作答。",
-      model:"室内抹灰环境温度一般不应低于 5℃。",
-      opts:[
-        { t:"室内抹灰环境温度一般不应低于 5℃。", ok:true, fix:"温度下限 5℃，冬期抹灰的判分眼。", code:"" },
-        { t:"室内抹灰环境温度不低于 0℃ 即可施工。", ok:false, code:"M08", tempt:"觉得只要不结冰（0℃）就行。", lose:"0℃ 偏低，规范是不低于 5℃；低于 5℃ 砂浆冻胀空鼓。", fix:"室内抹灰温度不应低于 5℃，不是 0℃。" },
-        { t:"室内抹灰环境温度不低于 10℃ 才能施工。", ok:false, code:"M08", tempt:"以为越高越保险。", lose:"10℃ 偏高，规范下限是 5℃。", fix:"下限是 5℃。" },
-        { t:"天不太冷就能抹，温度不用卡具体数。", ok:false, code:"E03", tempt:"凭感觉，不写温度值。", lose:"漏了 5℃ 这个关键下限。", fix:"写明室内抹灰温度不低于 5℃。" }
-      ] },
-    { tag:"控材料·多选", typeHint:"多选 · 选出应使用耐水腻子的部位", figLabel:"图示：各部位墙面找平层腻子", figCaption:"哪些部位墙面找平层用耐水腻子？", fig:"putty",
-      stem:"下列哪些部位墙面找平层应使用耐水腻子？（多选）",
-      model:"厨房、卫生间、地下室等潮湿部位墙面找平层应使用耐水腻子。",
-      opts:[
-        { t:"卫生间墙面找平层——潮湿部位，应使用耐水腻子。", ok:true, fix:"卫生间属潮湿部位，选。", code:"" },
-        { t:"厨房墙面找平层——潮湿部位，应使用耐水腻子。", ok:true, fix:"厨房属潮湿部位，选。", code:"" },
-        { t:"地下室墙面找平层——潮湿环境，应使用耐水腻子。", ok:true, fix:"地下室潮湿，最易被漏，别忘选。", code:"" },
-        { t:"卧室墙面找平层——一般干燥环境也一律要求耐水腻子。", ok:false, code:"M07", tempt:"以为都用耐水腻子更保险。", lose:"卧室是一般干燥部位，强行选=多选错选。", fix:"卧室一般环境用普通腻子即可，不选。" }
-      ] },
-    { tag:"抹灰做法综合·多选", typeHint:"多选 · 选出做法正确的选项", figLabel:"图示：抹灰做法逐条判断", figCaption:"逐条判对错 · 选出正确的", fig:"combo",
-      stem:"关于抹灰工程的下列做法，正确的有（多选）。",
-      model:"总厚>35mm 加强、普通层≤20mm、高级层≤25mm 正确；温度 0℃、搭接 50mm 错误（应≥5℃、≥100mm）。",
-      opts:[
-        { t:"抹灰总厚度大于 35mm 时采取加强措施。", ok:true, fix:"总厚到 35mm 即加强，正确。", code:"" },
-        { t:"内墙普通抹灰层平均总厚度不大于 20mm。", ok:true, fix:"普通层≤20mm，正确。", code:"" },
-        { t:"内墙高级抹灰层平均总厚度不大于 25mm。", ok:true, fix:"高级层≤25mm，正确。", code:"" },
-        { t:"不同材料基体交接处加强网与各基体搭接宽度不小于 50mm。", ok:false, code:"M08", tempt:"50mm 看着像个整数标准。", lose:"搭接应不小于 100mm，50mm 是设错值。", fix:"搭接宽度≥100mm。" },
-        { t:"室内抹灰环境温度一般不低于 0℃。", ok:false, code:"M08", tempt:"以为 0℃ 不结冰就行。", lose:"应不低于 5℃，0℃ 是设错值。", fix:"室内抹灰温度≥5℃。" }
-      ] },
-    { tag:"概念边界·迁移", typeHint:"单选 · 分清 territory", figLabel:"图示：外保温薄抹灰 vs 一般抹灰", figCaption:"薄抹灰能按一般抹灰答吗？", fig:"combo",
-      stem:"某外墙外保温工程采用“薄抹灰”做法。判断其与一般（装饰）抹灰工序的关系，选出正确作答。",
-      model:"外保温薄抹灰是外墙外保温系统的构造层（抹面胶浆+玻纤网），不属于一般/装饰抹灰工序，不能套用一般抹灰的厚度/加强要求。",
-      opts:[
-        { t:"外保温薄抹灰是外墙外保温系统的构造层，不属于一般抹灰工序，不能套用一般抹灰的总厚 35 加强等要求。", ok:true, fix:"点明 territory：薄抹灰属外保温系统，不套一般抹灰采分点。", code:"" },
-        { t:"薄抹灰就是抹得薄的一般抹灰，按内墙普通抹灰≤20mm 控制即可。", ok:false, code:"E11", tempt:"望文生义，把“薄抹灰”当薄的一般抹灰。", lose:"把外保温构造层当一般抹灰，迁移失败。", fix:"薄抹灰属外保温系统构造层，非一般抹灰。" },
-        { t:"薄抹灰和一般抹灰一样，交接处也按加强网搭接 100mm 处理。", ok:false, code:"E07", tempt:"硬把本体规则套到薄抹灰上。", lose:"territory 混淆，把外保温系统当抹灰本体。", fix:"薄抹灰属外保温系统，不套一般抹灰采分点。" },
-        { t:"薄抹灰不用特别区分，反正抹灰做法都差不多。", ok:false, code:"E02", tempt:"含糊过去不作区分。", lose:"未指出薄抹灰是外保温构造层这一关键区分。", fix:"须指出薄抹灰属外保温系统构造层。" }
-      ] },
-    { tag:"工序衔接·程序维", typeHint:"单选 · 选出正确的工序先后", figLabel:"图示：涂饰与抹灰先后", figCaption:"涂饰该排在抹灰前还是后？", fig:"combo",
-      stem:"关于涂饰工程与抹灰等湿作业的先后顺序，选出正确作答。",
-      model:"涂饰工程应在抹灰、吊顶、地面等湿作业完成后进行。",
-      opts:[
-        { t:"涂饰工程应在抹灰、吊顶、地面等湿作业完成后进行。", ok:true, fix:"湿作业在前、涂饰在后，工序顺序正确。", code:"" },
-        { t:"为赶工期，涂饰可与抹灰湿作业同时穿插进行。", ok:false, code:"E06", tempt:"抢工期想同步干。", lose:"涂饰应在湿作业后，穿插=程序顺序错误。", fix:"涂饰在抹灰等湿作业完成后进行。" },
-        { t:"先做涂饰再抹灰找平，最后统一收口。", ok:false, code:"E06", tempt:"把先后顺序整个颠倒。", lose:"抹灰在前、涂饰在后，顺序反了。", fix:"抹灰湿作业在前，涂饰在后。" },
-        { t:"涂饰随时都能做，与抹灰没有先后关系。", ok:false, code:"E02", tempt:"以为工序没先后。", lose:"漏了涂饰须在湿作业后这一顺序要求。", fix:"涂饰应在抹灰等湿作业完成后。" }
-      ] },
-    { tag:"含水率诊断·计算表达维", typeHint:"单选 · 诊断失分并给正确补写", figLabel:"图示：基层含水率上限", figCaption:"“统一10%”这句错在哪？", fig:"water",
-      stem:"某技术交底写“基层含水率统一控制在 10% 以内即可涂饰”。选出最准确的诊断与补写。",
-      model:"含水率须分对象：溶剂型≤8%、乳液型≤10%、木材≤12%；统一 10% 对溶剂型偏高、未分对象。",
-      opts:[
-        { t:"未分对象——溶剂型应≤8%、乳液型≤10%、木材≤12%；统一 10% 对溶剂型超标，应按对象分别控制。", ok:true, fix:"指出“未分对象”并补齐 8/10/12 三个上限。", code:"" },
-        { t:"统一 10% 没问题，含水率只要不超过 10% 都安全。", ok:false, code:"E07", tempt:"10 看着居中，误以为通用。", lose:"溶剂型 8% 被放宽到 10%，且未分对象。", fix:"分对象：溶剂型8、乳液型10、木材12。" },
-        { t:"只要把数值统一改成 12% 就行了。", ok:false, code:"M08", tempt:"抓到要改，却改错了方向。", lose:"仍未分对象，且溶剂型/乳液型被放到 12% 超标。", fix:"分对象 8/10/12，不是统一 12。" },
-        { t:"含水率不重要，把加强网写清楚就够了。", ok:false, code:"E02", tempt:"避重就轻只写会的。", lose:"整维漏掉含水率控制。", fix:"含水率分对象 8/10/12 必须写全。" }
-      ] },
-    { tag:"交接搭接诊断·计算表达维", typeHint:"单选 · 指出不妥并改正", figLabel:"图示：加强网与基体搭接", figCaption:"“搭接50mm”这句错在哪？", fig:"joint",
-      stem:"某技术交底写“不同材料基体交接处设加强网，与各基体搭接 50mm”。选出正确的指错与改正。",
-      model:"设加强网正确，但搭接 50mm 不妥——加强网与各基体搭接宽度不应小于 100mm。",
-      opts:[
-        { t:"设加强网正确，但搭接 50mm 不妥——加强网与各基体的搭接宽度不应小于 100mm。", ok:true, fix:"肯定设网这一步，只纠搭接数值到≥100mm。", code:"" },
-        { t:"搭接 50mm 已经合规，无需改正。", ok:false, code:"M08", tempt:"以为 50mm 够用。", lose:"50<100，不合规。", fix:"搭接宽度应≥100mm。" },
-        { t:"应把加强网取消，改成在交接处留伸缩缝处理。", ok:false, code:"E07", tempt:"纠错方向跑偏。", lose:"否定了本来正确的“设加强网”措施。", fix:"保留加强网，把搭接改到≥100mm。" },
-        { t:"把搭接改成 80mm 即可。", ok:false, code:"M08", tempt:"知道要加大，却没加到位。", lose:"80mm 仍小于 100mm。", fix:"搭接宽度不小于 100mm。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 口号答法诊断并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"全是口号 · 差在哪、补哪几句？", fig:"sheet",
+{ tag:"采分诊断·末题", typeHint:"单选 · 口号答法诊断并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"全是口号 · 差在哪、补哪几句？", fig:"sheet",
       stem:"某学生答“抹灰要控制好含水率、做好养护、按规范施工保证质量”。就抹灰质量控制要求，选出最准确的诊断与补写。",
       model:"全是口号、无可判分数值/部位；应补：含水率 8/10/12 分对象、总厚 35 加强+层厚 20/25、交接搭接≥100mm、室内温度≥5℃、厨卫地下室耐水腻子。",
       opts:[
@@ -488,7 +399,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -507,6 +418,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("D11")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

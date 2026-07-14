@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
+import json
 from pathlib import Path
+import subprocess
 import sys
 
 import pytest
-
 
 REPO = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location(
@@ -26,6 +28,71 @@ def test_registry_has_exact_37_finished_topics_and_canonical_variants() -> None:
     assert set(_mod.STATIONS["s01"].practice) == {
         "practice.html", "practice2.html", "practice3.html"
     }
+    registered_sources = {
+        name for station in _mod.STATIONS.values() for name in station.practice.values()
+    }
+    assert "P40_C02.practice.up.dc.html" not in registered_sources
+    assert "P40_C02.practice.down.dc.html" not in registered_sources
+    assert all("S07B" not in name for name in registered_sources)
+
+
+def test_all_registered_practice_outputs_rebuild_from_tracked_sources() -> None:
+    for station_id, station in _mod.STATIONS.items():
+        rendered, authority = _mod._practice_only_outputs(
+            station_id, station, finished_root=_mod.FINISHED
+        )
+        for hosted_name, text in rendered.items():
+            assert (_mod.HOST / station_id / hosted_name).read_text(
+                encoding="utf-8"
+            ) == text
+        assert (_mod.AUTHORITY_HOST / f"{station_id}.practice.authority.json").read_text(
+            encoding="utf-8"
+        ) == json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
+
+
+def test_registered_practice_sources_survive_autocrlf_checkout_byte_exact(
+    tmp_path: Path,
+) -> None:
+    prefix = str(tmp_path) + "/"
+    for station in _mod.STATIONS.values():
+        for source_name in station.practice.values():
+            source = _mod.FINISHED / station.pack_dir / source_name
+            relative = source.relative_to(_mod.REPO)
+            attributes = subprocess.check_output(
+                ["git", "check-attr", "text", "whitespace", "--", str(relative)],
+                cwd=_mod.REPO,
+                text=True,
+            )
+            assert f"{relative}: text: unset" in attributes
+            assert f"{relative}: whitespace: unset" in attributes
+            subprocess.run(
+                [
+                    "git",
+                    "-c",
+                    "core.autocrlf=true",
+                    "checkout-index",
+                    f"--prefix={prefix}",
+                    "--",
+                    str(relative),
+                ],
+                cwd=_mod.REPO,
+                check=True,
+            )
+            assert (tmp_path / relative).read_bytes() == source.read_bytes()
+
+
+def test_practice_only_check_does_not_touch_lesson_or_support() -> None:
+    station_id = "f16"
+    lesson = _mod.HOST / station_id / "lesson.html"
+    support = _mod.HOST / station_id / "support.js"
+    before = (_mod._sha256(lesson), _mod._sha256(support))
+
+    written = _mod.check_practice_only(
+        station_id, _mod.STATIONS[station_id], finished_root=_mod.FINISHED
+    )
+
+    assert written == ["practice.html", "server-authority/f16"]
+    assert (_mod._sha256(lesson), _mod._sha256(support)) == before
 
 
 def test_s07_registry_cannot_regress_to_the_n03_runtime() -> None:
@@ -145,7 +212,25 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
         + '\n<audio data-luban-prewarm preload="auto" src="audio/b0.mp3?v=test" '
         'aria-hidden="true" style="display:none"></audio>',
     )
-    monkeypatch.setattr(_mod, "transform_practice", lambda text: text)
+    monkeypatch.setattr(
+        _mod,
+        "compile_practice_surface",
+        lambda *_args, **_kwargs: {
+            "surface": {"surface_id": "practice.html"},
+            "items": [{"variant_id": str(index)} for index in range(5)],
+        },
+    )
+    monkeypatch.setattr(
+        _mod,
+        "transform_practice",
+        lambda text, **_kwargs: text,
+    )
+    monkeypatch.setattr(
+        _mod,
+        "build_practice_authority",
+        lambda *_args, **_kwargs: {},
+    )
+    monkeypatch.setattr(_mod, "_pack_source_sha", lambda _pack: "0" * 64)
     station = _mod.Station(
         pack_dir="PACK",
         teach={"lesson.html": "teach.html"},
@@ -163,3 +248,64 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
 
 def test_derived_html_strips_trailing_whitespace_without_losing_final_newline() -> None:
     assert _mod._strip_trailing_whitespace("first  \nsecond\t\n") == "first\nsecond\n"
+
+from deeptutor.services.luban_lesson.practice_html import (
+    _array_after,
+    _top_level_objects,
+    compile_practice_surface,
+)
+
+ROOT = Path(__file__).resolve().parents[2]
+SOURCE = (
+    ROOT
+    / "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16"
+)
+PUBLIC = ROOT / "web/public/luban-preview/f16"
+AUTHORITY = (
+    ROOT
+    / "deeptutor/services/luban_lesson/compiled/f16.practice.authority.json"
+)
+
+
+def _sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_f16_compile_is_deterministic_and_public_hashes_match_authority() -> None:
+    source_html = (SOURCE / "P40_F16.practice.dc.html").read_text(encoding="utf-8")
+    public_html = (PUBLIC / "practice.html").read_text(encoding="utf-8")
+    assert len(_top_level_objects(_array_after(public_html, r"\bQ\s*="))) == 5
+    kwargs = {
+        "surface_id": "practice.html",
+        "html": source_html,
+        "source_path": "tracked-f16",
+        "source_html_sha256": hashlib.sha256(source_html.encode()).hexdigest(),
+    }
+    assert compile_practice_surface("F16", **kwargs) == compile_practice_surface(
+        "F16", **kwargs
+    )
+
+    authority = json.loads(AUTHORITY.read_text(encoding="utf-8"))
+    surface = authority["surfaces"][0]
+    assert authority["published_lesson_sha256"] == _sha(PUBLIC / "lesson.html")
+    assert surface["published_practice_sha256"] == _sha(PUBLIC / "practice.html")
+    assert surface["presentation_order"] == [0, 1, 2, 3, 5]
+    assert "__dtRedirectEvidence" in public_html
+    assert "presentation=receipt&pack_id=" in public_html
+    assert "&answer_indexes=" in public_html
+    assert "practice_surface=" in public_html
+    assert "网页预览作答仅供即时反馈" in public_html
+    assert "满分手" not in public_html
+    assert '"稳了"' not in public_html
+    assert "采分点都拿到了" not in public_html
+    assert "是否形成学习记录，以小程序服务端正式收据为准" in public_html
+
+
+def test_f16_publish_copies_all_audio_and_manifest_byte_for_byte() -> None:
+    source_audio = SOURCE / "audio"
+    public_audio = PUBLIC / "audio"
+    source_mp3 = sorted(source_audio.glob("*.mp3"))
+
+    assert len(source_mp3) == 11
+    assert all(_sha(path) == _sha(public_audio / path.name) for path in source_mp3)
+    assert _sha(source_audio / "manifest.json") == _sha(public_audio / "manifest.json")

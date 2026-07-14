@@ -10,6 +10,7 @@
 <!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -133,7 +134,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -195,6 +196,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 /* ░░░ 母版骨架逻辑：随堂练 ░░░
@@ -211,7 +213,7 @@ class Component extends DCLogic {
   moreText="再练两个方向：① 塔机基础与垂直度硬指标——高≥1m、混凝土强度≥C25、垂直度（无载荷）≤4/1000、须设计验算合格后用；② 塔机按固定方式分类——轨道式、附着（墙）式、内爬式✓；自升式、伸缩式✗。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
-    { tag:"危大判定·门槛", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"题给：单件起吊重量 80kN", figCaption:"三档门槛：常规<10 / 危大≥10 / 超危大≥100 · 落哪档？", fig:"ruler",
+{ tag:"危大判定·门槛", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"题给：单件起吊重量 80kN", figCaption:"三档门槛：常规<10 / 危大≥10 / 超危大≥100 · 落哪档？", fig:"ruler",
       stem:"某工程一构件单件起吊重量 80kN，用塔式起重机吊装。关于危大等级，选出能得分的作答。",
       model:"起重吊装单件≥10kN 即属危大工程，须编专项施工方案；80≥10，属危大（未达 100kN，不需专家论证）。",
       opts:[
@@ -220,7 +222,7 @@ class Component extends DCLogic {
         { t:"80kN 属危大且须专家论证。", ok:false, code:"M08", tempt:"一见危大就联想到专家论证。", lose:"专家论证要「非常规且单件≥100kN」（或总重≥300/高≥200），80kN 够不到。", fix:"属危大编专项方案即可，不需专家论证。" },
         { t:"较重，注意加强现场安全即可，等级不必判。", ok:false, code:"M09", tempt:"图省事跳过判等级。", lose:"不判危大等级=丢结论采分，且漏专项方案。", fix:"明确 ≥10kN 属危大、须专项方案。" }
       ] },
-    { tag:"危大判定·两层门槛", typeHint:"单选 · 两层判断，选出能得分的作答", figLabel:"题给：常规塔机，单件 150kN", figCaption:"先比 10（危大），再比 100/300/200（论证）", fig:"ruler",
+{ tag:"危大判定·两层门槛", typeHint:"单选 · 两层判断，选出能得分的作答", figLabel:"题给：常规塔机，单件 150kN", figCaption:"先比 10（危大），再比 100/300/200（论证）", fig:"ruler",
       stem:"某常规塔式起重机吊装，单件起吊重量 150kN。是否需要专家论证？选出能得分的作答。",
       model:"150≥10 属危大须专项方案；但专家论证须「非常规设备/方法」，常规设备的 150kN 够不到，不需论证。",
       opts:[
@@ -229,7 +231,7 @@ class Component extends DCLogic {
         { t:"150kN<300kN，不属危大。", ok:false, code:"M08", tempt:"拿总重 300kN 门槛去比单件。", lose:"混淆单件与总重口径；单件 ≥10 已属危大。", fix:"单件 150≥10，属危大。" },
         { t:"先开吊，专项方案随后补办。", ok:false, code:"E02", tempt:"赶工期，先干后补。", lose:"危大须先编专项方案并审批，漏方案=重大失分。", fix:"属危大，先编专项方案再作业。" }
       ] },
-    { tag:"危大判定·超危大", typeHint:"单选 · 选出能得分的作答", figLabel:"题给：双机抬吊，构件总重 320kN", figCaption:"总重口径落哪档？", fig:"ruler",
+{ tag:"危大判定·超危大", typeHint:"单选 · 选出能得分的作答", figLabel:"题给：双机抬吊，构件总重 320kN", figCaption:"总重口径落哪档？", fig:"ruler",
       stem:"双机抬吊一构件，构件总重 320kN。判定危大等级，选出能得分的作答。",
       model:"总重≥300kN 达超危大，须专家论证（并编专项方案）。",
       opts:[
@@ -238,7 +240,7 @@ class Component extends DCLogic {
         { t:"320kN 属危大，编专项方案即可，不必论证。", ok:false, code:"M08", tempt:"停在危大档、忘了超危大总重档。", lose:"总重≥300 已进超危大论证档。", fix:"须专家论证，不止专项方案。" },
         { t:"抬吊灵活，不受门槛约束。", ok:false, code:"M04", tempt:"把「灵活」当成免检理由。", lose:"抬吊不改门槛，总重≥300 照样论证。", fix:"总重≥300kN 须论证。" }
       ] },
-    { tag:"作业中·起吊90%", typeHint:"单选 · 选出能得分的完整作答", figLabel:"题给：起吊达额定 95%", figCaption:"达 90% 及以上，正式起吊前该做什么？", fig:"hoist",
+{ tag:"作业中·起吊90%", typeHint:"单选 · 选出能得分的完整作答", figLabel:"题给：起吊达额定 95%", figCaption:"达 90% 及以上，正式起吊前该做什么？", fig:"hoist",
       stem:"塔机起吊某构件，荷载达额定起重量的 95%。正式吊运前应如何处置？选出能得分的作答。",
       model:"起吊达额定 90% 及以上，应先将重物吊离地面 200~500mm，检查机械稳定性、制动器、重物平稳性、绑扎牢固后再起吊。",
       opts:[
@@ -247,115 +249,7 @@ class Component extends DCLogic {
         { t:"直接吊到位后再检查制动与绑扎。", ok:false, code:"M09", tempt:"觉得吊上去再查也一样。", lose:"检查须在吊离地面时做，吊到位才查已失意义、程序错。", fix:"先吊离地 200~500mm 检查，合格再升。" },
         { t:"先吊离地面约 1m 稳一稳再检查。", ok:false, code:"M08", tempt:"记得要吊离，却记错高度。", lose:"离地高度应 200~500mm，不是 1m。", fix:"吊离 200~500mm 后四查。" }
       ] },
-    { tag:"作业中·离地检查", typeHint:"单选 · 选出能得分的作答", figLabel:"题给：吊装物正式起吊前", figCaption:"离地多少做全面检查？", fig:"hoist",
-      stem:"一般吊装物正式起吊前的离地检查，选出能得分的作答。",
-      model:"吊装物应先离地 200~300mm，全面检查（吊具、绑扎、平稳、周边）合格后再正式起吊。",
-      opts:[
-        { t:"先将吊装物吊离地面 200~300mm，全面检查合格后再正式起吊。", ok:true, fix:"记准吊装物 200~300、与塔机 90% 的 200~500 分开。", code:"" },
-        { t:"吊装物离地 200~500mm 检查后起吊。", ok:false, code:"M08", tempt:"和塔机 90% 的 200~500 记混。", lose:"吊装物一般检查是 200~300mm，数值口径不同。", fix:"吊装物 200~300mm，塔机 90% 是 200~500mm。" },
-        { t:"绑扎牢即可直接起吊，无需离地检查。", ok:false, code:"M09", tempt:"觉得绑好就行。", lose:"漏了离地检查这道前置程序。", fix:"先离地 200~300mm 全面检查再起吊。" },
-        { t:"离地越高越好，便于观察。", ok:false, code:"M04", tempt:"以为高一点更安全。", lose:"高度有规定 200~300mm，过高反而危险。", fix:"离地 200~300mm 检查即可。" }
-      ] },
-    { tag:"作业条件·气象", typeHint:"单选 · 选出能得分的作答", figLabel:"题给：露天吊装作业，风力 6 级", figCaption:"作业看几级风？", fig:"wind",
-      stem:"塔机露天吊装作业时风力达到 6 级。应如何处置？选出能得分的作答。",
-      model:"遇 6 级及以上大风（或大雨、雪、雾）应停止塔机露天作业。",
-      opts:[
-        { t:"风力达 6 级及以上，应停止塔机露天吊装作业（大雨、雪、雾同样停）。", ok:true, fix:"作业红线「6 级及以上停」，连恶劣天气一起答。", code:"" },
-        { t:"风速未超 9.0m/s，可继续作业。", ok:false, code:"M08", tempt:"把安拆的 9.0m/s 套到作业上。", lose:"露天作业看风级（6 级），9.0m/s 是安拆红线，用错场景。", fix:"作业看 6 级；6 级及以上停。" },
-        { t:"6 级风不大，减速慢吊即可。", ok:false, code:"M10", tempt:"凭常识觉得能扛。", lose:"6 级是规范停工红线，不能凭感觉续吊。", fix:"6 级及以上必须停露天作业。" },
-        { t:"只要构件不重就能继续。", ok:false, code:"E08", tempt:"以为轻就没事。", lose:"气象红线与荷载无关，达 6 级即停。", fix:"6 级及以上停，不看构件轻重。" }
-      ] },
-    { tag:"作业条件·安拆气象", typeHint:"单选 · 选出能得分的作答", figLabel:"题给：拆卸塔机，风速 9.5m/s", figCaption:"安拆看风速？", fig:"wind",
-      stem:"拆卸大型塔式起重机时，测得作业高度处风速 9.5m/s。应如何处置？选出能得分的作答。",
-      model:"大型起重机械安装拆卸，风速>9.0m/s 或低能见度（雨雪雾霾沙尘）时严禁作业，应停止安拆。",
-      opts:[
-        { t:"风速>9.0m/s，应停止塔机安装拆卸作业（低能见度天气同样禁止）。", ok:true, fix:"安拆红线「9.0m/s + 低能见度」，比作业更严。", code:"" },
-        { t:"未达 6 级大风，可继续拆卸。", ok:false, code:"M08", tempt:"把作业的 6 级套到安拆。", lose:"安拆看风速 9.0m/s，9.5 已超；6 级是作业红线。", fix:"安拆看 9.0m/s；9.5>9.0，停。" },
-        { t:"拆卸比安装简单，风大点没关系。", ok:false, code:"M10", tempt:"凭常识轻视拆卸。", lose:"安拆最危险、红线更严，>9.0 必停。", fix:"风速>9.0m/s 停止安拆。" },
-        { t:"戴好安全带就能继续。", ok:false, code:"E08", tempt:"以为个人防护可抵消。", lose:"气象红线是停工条件，防护不能替代。", fix:">9.0m/s 停止安拆作业。" }
-      ] },
-    { tag:"作业条件·动词判别", typeHint:"单选 · 选出判断与依据都对的作答", figLabel:"题给：两种情形对照", figCaption:"作业 6 级 / 安拆 9.0，怎么对号？", fig:"wind",
-      stem:"下列关于塔机风的红线，判断与依据都正确的是？",
-      model:"露天吊装作业看风级（6 级及以上停）；安装拆卸看风速（>9.0m/s 停），安拆更严，按题干动词选线。",
-      opts:[
-        { t:"露天作业按 6 级及以上停；安装拆卸按风速>9.0m/s 停，安拆更严——按题干动词选红线。", ok:true, fix:"一句点透「动词决定红线、安拆更严」。", code:"" },
-        { t:"作业和安拆统一按 6 级风停即可。", ok:false, code:"M08", tempt:"图省事只记一条线。", lose:"两条独立红线：作业 6 级、安拆 9.0m/s，不能合并。", fix:"作业 6 级、安拆 9.0m/s，看动词分。" },
-        { t:"安拆比作业宽松，风大些也行。", ok:false, code:"M10", tempt:"以为拆装是次要环节。", lose:"安拆更危险、红线更靠前更严，不是更宽松。", fix:"安拆 9.0m/s（≈5 级）比作业 6 级更严。" },
-        { t:"风的红线与作业类型无关，看操作者经验。", ok:false, code:"M04", tempt:"把判断权交给「经验」。", lose:"红线是规范硬指标、与动词绑定、非经验。", fix:"作业 6 级、安拆 9.0m/s。" }
-      ] },
-    { tag:"机械本体·装置禁令", typeHint:"单选 · 判断对错并给依据", figLabel:"模拟：操作机构失灵，改用限位继续吊", figCaption:"限位能顶操作机构用吗？", fig:"device",
-      stem:"施工中塔机操作机构失灵，司机改用限位装置代替操作机构继续吊运。对此处置的判断，选出能得分的作答。",
-      model:"错误。严禁用限位装置代替操作机构；限位是最后一道保险、不得作日常操作用，应停机检修。",
-      opts:[
-        { t:"错误。严禁用限位装置代替操作机构，限位仅作行程终点保护、不得作日常操作，应立即停机检修。", ok:true, fix:"点出「严禁代替」绝对禁令 + 限位职能 + 停机检修。", code:"" },
-        { t:"可以，限位也能控制动作，临时代替不影响安全。", ok:false, code:"M10", tempt:"用生活常识「都能停就行」替代规范。", lose:"限位代替操作机构是绝对禁令，出现「代替」即判错。", fix:"严禁代替，须停机检修操作机构。" },
-        { t:"错误，因为限位反应比操作机构慢。", ok:false, code:"M03", tempt:"判断对，但理由归到「反应快慢」。", lose:"错因是「严禁代替」的功能禁令，不是快慢；依据点错不给分。", fix:"依据是「严禁用限位代替操作机构」。" },
-        { t:"可以，先吊完这一钩再修。", ok:false, code:"M10", tempt:"赶进度侥幸。", lose:"装置失灵禁止带病作业，须先停机。", fix:"立即停机检修，严禁代替续吊。" }
-      ] },
-    { tag:"机械本体·装置辨识", typeHint:"单选 · 选出功能对应正确的作答", figLabel:"题给：起重力矩限制器", figCaption:"它算什么、超了怎么办？", fig:"device",
-      stem:"关于起重力矩限制器的作用，选出正确的作答。",
-      model:"力矩限制器实时计算「重量×幅度」，超过额定起重力矩即断电报警、停止危险动作，属安全保护装置、不得拆改。",
-      opts:[
-        { t:"实时计算重量×幅度，超过额定起重力矩即切断危险方向电源并报警，属保护装置、不得拆改。", ok:true, fix:"功能=算力矩+超额断电，且「不得拆改」。", code:"" },
-        { t:"它是控制吊钩上下行程终点的开关。", ok:false, code:"M03", tempt:"和「高度/行程限位」职能混了。", lose:"控制行程终点的是限位开关，力矩限制器管超载。", fix:"力矩限制器防超力矩，限位管行程。" },
-        { t:"它负责让吊钩在断电时停住不下滑。", ok:false, code:"M03", tempt:"和「制动器」职能混了。", lose:"防下滑停位是制动器的活，不是力矩限制器。", fix:"力矩限制器算力矩超额断电；制动器管停位。" },
-        { t:"力矩不够时可临时拆除以提高效率。", ok:false, code:"M10", tempt:"嫌它碍事想拆。", lose:"安全保护装置不得随意调整拆除。", fix:"不得拆改，须完整灵敏。" }
-      ] },
-    { tag:"机械本体·垂直度", typeHint:"单选 · 选出数值与依据都对的作答", figLabel:"题给：塔身垂直度检测（无载荷）", figCaption:"允许偏差是多少？", fig:"vert",
-      stem:"塔式起重机塔身垂直度（无载荷状态）的允许偏差，选出能得分的作答。",
-      model:"塔身垂直度（无载荷）允许偏差不大于 4/1000。",
-      opts:[
-        { t:"无载荷状态下塔身垂直度允许偏差不大于 4/1000。", ok:true, fix:"记准「无载荷 + 4/1000」。", code:"" },
-        { t:"垂直度允许偏差不大于 4/100。", ok:false, code:"M08", tempt:"小数点/量级记错。", lose:"标准是 4/1000，不是 4/100，放大了 10 倍。", fix:"垂直度≤4/1000。" },
-        { t:"带载检测，偏差不大于 4/1000。", ok:false, code:"M09", tempt:"漏了「无载荷」这个前提。", lose:"垂直度按无载荷状态测，条件写错。", fix:"无载荷下≤4/1000。" },
-        { t:"垂直度差点不碍事，能吊起来就行。", ok:false, code:"M10", tempt:"凭经验轻视初始偏心。", lose:"垂直度超差是倾覆先天本钱，必须卡 4/1000。", fix:"无载荷≤4/1000，超差不得用。" }
-      ] },
-    { tag:"机械本体·基础", typeHint:"单选 · 找出不妥并改正", figLabel:"题给：基础 6m×6m×0.9m，C20，仅算地基承载力", figCaption:"基础硬指标够不够？", fig:"vert",
-      stem:"某塔机基础高 0.9m、混凝土 C20，方案仅验算地基承载力即投入使用。指出不妥并改正，选出能得分的作答。",
-      model:"不妥：基础高应≥1m、混凝土强度应≥C25，且须经设计验算合格后使用（非仅算地基承载力）。",
-      opts:[
-        { t:"不妥：高应≥1m（0.9m 不足）、强度应≥C25（C20 不足），且须设计验算合格后再用。", ok:true, fix:"三处硬指标：高≥1m、≥C25、须设计验算。", code:"" },
-        { t:"基础尺寸够大，0.9m 高、C20 可以用。", ok:false, code:"M08", tempt:"看尺寸大就放心。", lose:"高<1m、强度<C25 都不达标，尺寸大不能替代。", fix:"高≥1m、≥C25、须设计验算。" },
-        { t:"只要地基承载力够，混凝土等级不重要。", ok:false, code:"E02", tempt:"抓住承载力一项就收。", lose:"漏了强度≥C25 与高≥1m 等采分点。", fix:"补 C25、≥1m、须设计验算。" },
-        { t:"C20 与 C25 差别不大，可判合格。", ok:false, code:"M10", tempt:"凭「差不多」放行。", lose:"强度是硬门槛，C20<C25 即不合格。", fix:"强度须≥C25。" }
-      ] },
-    { tag:"吊索具·报废线", typeHint:"单选 · 选出数值不背反的作答", figLabel:"题给：钢丝绳一节距内断丝检查", figCaption:"断丝、磨损到多少报废？", fig:"wire",
-      stem:"关于钢丝绳的报废标准，选出能得分的作答。",
-      model:"一节距内断丝率>10%，或表面磨损达 40%，或有死弯、结构变形、绳芯挤出等，即应报废。",
-      opts:[
-        { t:"一节距内断丝率超过 10%，或表面磨损达 40%，或死弯/结构变形/绳芯挤出，即报废。", ok:true, fix:"记「断丝十（看一节距）、磨损四（看表面）」，加结构缺陷。", code:"" },
-        { t:"一节距内断丝率超过 40%，或磨损达 10% 才报废。", ok:false, code:"M08", tempt:"断丝率与磨损率数字对调。", lose:"数字背反：断丝看>10%、磨损看 40%，写反=不给分。", fix:"断丝>10%、磨损 40%，别对调。" },
-        { t:"只要还能吊得动，断几根丝不用换。", ok:false, code:"M10", tempt:"凭「还能用」经验拖着。", lose:"达报废线必须报废，不看还能不能吊。", fix:"断丝>10% 或磨损 40% 即报废。" },
-        { t:"按整根绳统计断丝率超 10% 报废。", ok:false, code:"M09", tempt:"漏了「一节距」这个统计口径。", lose:"断丝按「一节距内」统计，不是整根。", fix:"一节距内断丝>10% 报废。" }
-      ] },
-    { tag:"吊索具·缆风绳", typeHint:"单选 · 选出能得分的作答", figLabel:"题给：抱杆缆风绳", figCaption:"用什么、系数多少、连哪里？", fig:"guy",
-      stem:"关于抱杆缆风绳的要求，选出能得分的作答。",
-      model:"缆风绳应采用钢丝绳，安全系数取 3.5，并与地锚牢固连接。",
-      opts:[
-        { t:"缆风绳应采用钢丝绳，安全系数取 3.5，并与地锚牢固连接。", ok:true, fix:"三件：钢丝绳 + K=3.5 + 接地锚。", code:"" },
-        { t:"缆风绳只要拉紧、绑在牢固物体上即可，系数不必计较。", ok:false, code:"M09", tempt:"凭手感「拉紧就行」。", lose:"漏了安全系数 3.5 与地锚要求，丢采分。", fix:"钢丝绳、K=3.5、连地锚。" },
-        { t:"缆风绳安全系数取 3.5，用麻绳即可。", ok:false, code:"M07", tempt:"记住 3.5 却用错材料。", lose:"缆风绳须用钢丝绳，麻绳不合格。", fix:"钢丝绳 + K=3.5 + 地锚。" },
-        { t:"安全系数按 1.5 取即可。", ok:false, code:"M08", tempt:"和其他系数记混。", lose:"缆风绳安全系数是 3.5，不是 1.5。", fix:"K=3.5。" }
-      ] },
-    { tag:"吊索具·吊点", typeHint:"单选 · 选出硬约束正确的作答", figLabel:"题给：吊点与重心关系", figCaption:"吊点在哪、能不能斜吊？", fig:"sling",
-      stem:"关于吊点位置与起吊方式，选出能得分的作答。",
-      model:"吊点应与重心在同一垂直线上、位于重心之上，垂直起吊，严禁斜吊。",
-      opts:[
-        { t:"吊点与重心在同一垂直线上、位于重心之上，垂直起吊，严禁斜吊。", ok:true, fix:"三硬约束：同垂直线 + 重心之上 + 严禁斜吊。", code:"" },
-        { t:"场地受限时可适当斜吊，以灵活就位。", ok:false, code:"M04", tempt:"把「斜吊」包装成灵活高效。", lose:"「严禁斜吊」是硬约束，斜吊产生水平分力易摆荡脱钩。", fix:"必须垂直起吊、严禁斜吊。" },
-        { t:"吊点在重心下方更稳，便于起吊。", ok:false, code:"M07", tempt:"想当然「低重心更稳」。", lose:"吊点须在重心之上，位于下方会翻转失稳。", fix:"吊点在重心正上方、同一垂直线。" },
-        { t:"吊索水平夹角越小越省力，可小于 45°。", ok:false, code:"M04", tempt:"把「省力」当放松夹角的理由。", lose:"夹角不宜<60°、不应<45°，越小索内拉力越大易断。", fix:"夹角不应<45°，垂直起吊为宜。" }
-      ] },
-    { tag:"设备辨识·塔机分类（多选）", typeHint:"多选 · 按固定方式，选出属于该分类的项", figLabel:"题给：塔式起重机按固定方式分类", figCaption:"哪些是「按固定方式」的类别？", fig:"class",
-      stem:"塔式起重机按固定方式可分为下列哪几类？（多选）",
-      model:"按固定方式分：轨道式、附着（附墙）式、内爬式。伸缩式、自升式（架设方式）不属「固定方式」分类。",
-      opts:[
-        { t:"轨道式（可行走移位）。", ok:true, fix:"轨道式属按固定方式分类。", code:"" },
-        { t:"附着（附墙）式。", ok:true, fix:"附着式属按固定方式分类。", code:"" },
-        { t:"内爬式。", ok:true, fix:"内爬式属按固定方式分类。", code:"" },
-        { t:"伸缩式。", ok:false, code:"M07", tempt:"听着像一种塔机型式。", lose:"伸缩式不是「按固定方式」的类别，属干扰项。", fix:"固定方式=轨道/附着/内爬。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"指出塔机吊装不妥——学生只写了两条", fig:"sheet",
+{ tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"指出塔机吊装不妥——学生只写了两条", fig:"sheet",
       stem:"题目要求指出塔机吊装作业中的不妥。某学生只答：①基础未验收；②钢丝绳有断丝。背景另给：6 级大风仍露天作业、起吊达 92% 未先吊离地检查。选出最准确的诊断与补写。",
       model:"漏采分：未答「6 级风应停露天作业」「起吊≥90% 应先吊离地 200~500 查四项」；补这两句，并把基础改为「须设计验算、高≥1m、C25」、钢丝绳补「断丝>10%/磨损40%报废」。",
       opts:[
@@ -363,33 +257,6 @@ class Component extends DCLogic {
         { t:"学生答了两条不妥，基本到位，可给大部分分。", ok:false, code:"E02", tempt:"看见答了两条就以为差不多。", lose:"漏了气象（6 级停）与 90% 先吊离地两大采分点，逐条给分丢得多。", fix:"逐条比对，补 6 级停、90% 先吊离地四查。" },
         { t:"只要再补一句「注意安全」就完整了。", ok:false, code:"M09", tempt:"用笼统一句凑数。", lose:"「注意安全」不是采分句，须落到具体规范条。", fix:"补具体两句：6 级停、90% 先吊离地查四项。" },
         { t:"背景里 92% 未到 100%，不用先吊离地。", ok:false, code:"M08", tempt:"把 90% 触发线记成 100%。", lose:"触发线是 90% 及以上，92% 已触发先吊离地。", fix:"≥90% 即先吊离 200~500 查四项。" }
-      ] },
-    { tag:"程序·方案审批", typeHint:"单选 · 找出审批程序不妥并改正", figLabel:"题给：安拆专项方案「论证后报总工程师批准」", figCaption:"专项方案该谁签批？", fig:"approve",
-      stem:"某塔机安装（拆卸）专项施工方案，经专家论证后报总工程师批准即实施。指出审批程序不妥并改正，选出能得分的作答。",
-      model:"不妥：专项方案应由施工（总承包）单位技术负责人、专业承包单位技术负责人、总监理工程师、建设单位项目负责人签字批准后方可实施，不能仅报总工程师批准。",
-      opts:[
-        { t:"不妥。应由施工总承包单位技术负责人、专业承包单位技术负责人、总监理工程师、建设单位项目负责人共同签字批准后实施，不能仅报总工程师批准。", ok:true, fix:"审批主体四方齐：总包技负+专业承包技负+总监+建设单位负责人。", code:"" },
-        { t:"报总工程师批准即可，程序无误。", ok:false, code:"E02", tempt:"以为总工程师是最高技术审批就够。", lose:"漏了专业承包技负、总监、建设单位负责人等签批主体，采分点遗漏。", fix:"补齐总包技负+专业承包技负+总监+建设单位负责人。" },
-        { t:"专家论证过了就能直接实施，无需再签批。", ok:false, code:"M09", tempt:"觉得论证=终审。", lose:"论证是环节之一，之后仍须多方技术负责人签字批准。", fix:"论证后仍须四方签批方可实施。" },
-        { t:"由项目经理签字批准即可。", ok:false, code:"M07", tempt:"把现场负责人当审批主体。", lose:"审批主体是各方技术负责人+总监+建设单位负责人，非项目经理。", fix:"技负/总监/建设单位负责人签批，非项目经理。" }
-      ] },
-    { tag:"检查标准·现场布置", typeHint:"单选 · 选出考虑因素较完整的作答", figLabel:"题给：塔式起重机现场布置", figCaption:"布置该看哪几类因素？", fig:"check",
-      stem:"塔式起重机现场布置主要应考虑哪些因素？选出较完整、能得分的作答。",
-      model:"应综合基础位置与承载、附着（附墙）条件、周边环境（临近建筑/管线/架空线路）、起重臂回转覆盖范围与群塔交叉避让等。",
-      opts:[
-        { t:"综合基础位置与承载、附着条件、周边环境（临近建筑与架空线路）、起重臂覆盖范围与群塔交叉避让统筹布置。", ok:true, fix:"四类因素：基础·附着·周边环境·覆盖范围（含群塔避让）。", code:"" },
-        { t:"只要基础牢固、能吊到材料就行。", ok:false, code:"E02", tempt:"只盯「吊得到」。", lose:"漏了附着条件、周边环境、覆盖范围等因素，考虑不全。", fix:"补附着、周边环境（架空线）、覆盖范围与群塔避让。" },
-        { t:"哪里空放哪里，施工中再随时调整。", ok:false, code:"M09", tempt:"以为塔机可随意挪。", lose:"布置须提前规划，涉安全间距与安拆，不能随意。", fix:"提前统筹基础/附着/周边/覆盖范围。" },
-        { t:"按塔机型号大小决定即可，与周边环境无关。", ok:false, code:"M07", tempt:"以为选型定了就行。", lose:"周边建筑、架空线路等环境是布置关键因素。", fix:"周边环境（含架空线）是必考因素。" }
-      ] },
-    { tag:"吊索具·夹角（装配式）", typeHint:"单选 · 选出数值与刚性都对的作答", figLabel:"题给：预制构件吊索水平夹角", figCaption:"夹角有什么下限？", fig:"angle",
-      stem:"预制构件吊装，吊索水平夹角的规范要求，选出能得分的作答。",
-      model:"吊索水平夹角不宜小于 60°、不应小于 45°；夹角越小索内拉力越大，过小易断索。",
-      opts:[
-        { t:"吊索水平夹角不宜小于 60°、不应小于 45°；夹角越小索内拉力越大，应尽量增大夹角。", ok:true, fix:"记双线「不宜<60°(推荐)、不应<45°(强制底线)」。", code:"" },
-        { t:"夹角越小越省绳、越省力，可小于 45°。", ok:false, code:"M04", tempt:"把「省力省绳」当放松夹角的理由。", lose:"夹角越小索内拉力越大、越危险，不应小于 45°。", fix:"不应<45°，尽量增大夹角。" },
-        { t:"夹角不应小于 60°即可。", ok:false, code:"M04", tempt:"把「不宜60°」当成「不应60°」。", lose:"偷换刚性：60° 是「不宜」(推荐)，45° 才是「不应」(强制底线)。", fix:"不宜<60°、不应<45°，底线是 45°。" },
-        { t:"只要绑得牢，夹角大小随意。", ok:false, code:"M04", tempt:"以为绑牢就抵消夹角影响。", lose:"夹角有刚性规定，过小拉力放大易断，与绑扎无关。", fix:"夹角不应<45°。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -550,7 +417,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -569,6 +436,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S02")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

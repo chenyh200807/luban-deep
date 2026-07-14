@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "S05",
+  "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
+  "source_bundle_sha256": "bdc043b7e32bf32f9d79f08ffacafaf67d0b5c2ba45c0634ad233923957ba5a9",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html",
+      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        17
+      ],
+      "variant_ids": [
+        "S05-html-practice-html-q1-7a030fba2679",
+        "S05-html-practice-html-q2-f519771940de",
+        "S05-html-practice-html-q3-0f0b0a35e964",
+        "S05-html-practice-html-q4-eadc2e921fdd",
+        "S05-html-practice-html-q18-38770f84494a"
+      ],
+      "published_practice_sha256": "f7e8bc8bd7f38fa19df79ae61825508e208907cf20d291de0e1fa71acc264a8a"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "三大系统·架构",
+      "stem": "施工现场临时用电必须采用哪几大系统？选出最完整、能得分的作答。",
+      "model_answer": "三级配电系统 + TN-S 接零保护系统 + 二级剩余电流（漏电）动作保护系统，三者缺一不可。",
+      "options": [
+        {
+          "text": "三级配电系统、TN-S 接零保护系统、二级剩余电流（漏电）动作保护系统，三者缺一不可。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三块一块儿写全，正是阅卷分开给分的三个采分点。",
+          "option_id": "S05-html-practice-html-q1-7a030fba2679:option-1"
+        },
+        {
+          "text": "采用三级配电系统即可，把总配电箱、分配电箱、开关箱设齐就满足临时用电要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "三级配电最常被记住，容易以为写这一条就够。",
+          "loss_reason": "漏了 TN-S 接零与二级漏电保护两大系统，系统不完整。",
+          "fix": "补 TN-S 接零保护系统 + 二级剩余电流动作保护系统。",
+          "option_id": "S05-html-practice-html-q1-7a030fba2679:option-2"
+        },
+        {
+          "text": "采用两级配电系统加一级漏电保护，并利用大地作为保护零线导体接零。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记成了「两级／一级」，还把大地当零线。",
+          "loss_reason": "应是三级配电、二级漏保，且严禁利用大地作零线导体。",
+          "fix": "三级配电 + TN-S 接零（PE 线独立）+ 二级漏保。",
+          "option_id": "S05-html-practice-html-q1-7a030fba2679:option-3"
+        },
+        {
+          "text": "采用 TN-C 接零保护系统与三级配电系统，配一级漏电保护装置在总配电箱处。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "知道要接零、要三级，顺手写成 TN-C。",
+          "loss_reason": "应为 TN-S（PE 与 N 分开），且漏保是二级不是一级。",
+          "fix": "TN-S 接零 + 二级漏保（总箱 + 末级开关箱各一级）。",
+          "option_id": "S05-html-practice-html-q1-7a030fba2679:option-4"
+        }
+      ],
+      "variant_id": "S05-html-practice-html-q1-7a030fba2679",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q1",
+      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "三级配电装置·架构",
+      "stem": "三级配电系统由哪三级配电装置组成？选出正确的作答。",
+      "model_answer": "总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级。",
+      "options": [
+        {
+          "text": "总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级直接接用电设备。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三级装置顺序写全并点明「不得越级」，归类到位。",
+          "option_id": "S05-html-practice-html-q2-f519771940de:option-1"
+        },
+        {
+          "text": "总配电箱、开关箱两级配电装置，中间的分配电箱可省略以简化线路。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得两级也能供上电，省一级更省事。",
+          "loss_reason": "少了分配电箱这一级，违反三级配电要求。",
+          "fix": "必须总配电箱、分配电箱、开关箱三级齐全。",
+          "option_id": "S05-html-practice-html-q2-f519771940de:option-2"
+        },
+        {
+          "text": "总配电箱、分配电箱、开关箱、末端插座箱四级配电，层层加箱更安全。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为加得越多越安全。",
+          "loss_reason": "标准是三级配电，多加一级并非规范要求、概念混淆。",
+          "fix": "三级配电即总、分、开三级，不是四级。",
+          "option_id": "S05-html-practice-html-q2-f519771940de:option-3"
+        },
+        {
+          "text": "配电室、配电柜、配电盘三级，按室内配电层级组织临时用电。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把固定式室内配电层级套到临时用电上。",
+          "loss_reason": "临时用电三级是总配电箱、分配电箱、开关箱，规范套错。",
+          "fix": "总配电箱、分配电箱、开关箱三级配电装置。",
+          "option_id": "S05-html-practice-html-q2-f519771940de:option-4"
+        }
+      ],
+      "variant_id": "S05-html-practice-html-q2-f519771940de",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q2",
+      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "一机一闸·管理",
+      "stem": "现场瓷砖切割机与砂浆搅拌机共用一个开关箱。此做法不妥，选出正确做法。",
+      "model_answer": "每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
+      "options": [
+        {
+          "text": "每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "专用开关箱 + 严禁 2 台及以上 + 含插座，判据带全才拿满分。",
+          "option_id": "S05-html-practice-html-q3-0f0b0a35e964:option-1"
+        },
+        {
+          "text": "两台设备分开时段错峰使用同一个开关箱即可，不同时开就不违反一机一闸。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "觉得「不同时用」就等于不共用。",
+          "loss_reason": "一机一闸是硬性配置要求，与是否同时使用无关。",
+          "fix": "每台设备专用开关箱，严禁 2 台及以上共用（含插座）。",
+          "option_id": "S05-html-practice-html-q3-0f0b0a35e964:option-2"
+        },
+        {
+          "text": "给两台设备各装一个漏电保护器后共用一个开关箱，加装保护即可合规。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为加了漏保就能共用一箱。",
+          "loss_reason": "漏保解决不了共用问题，仍违反一机一闸。",
+          "fix": "每台设备必须专用开关箱，不得共用（含插座）。",
+          "option_id": "S05-html-practice-html-q3-0f0b0a35e964:option-3"
+        },
+        {
+          "text": "把两台设备接到同一开关箱不同回路上，一箱两路分开控制就算专用。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "以为分回路就等于专用。",
+          "loss_reason": "仍是一个开关箱控多台，漏了「专用开关箱」关键词。",
+          "fix": "每台设备各自专用开关箱，严禁 2 台及以上共用。",
+          "option_id": "S05-html-practice-html-q3-0f0b0a35e964:option-4"
+        }
+      ],
+      "variant_id": "S05-html-practice-html-q3-0f0b0a35e964",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q3",
+      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "进线端·管理",
+      "stem": "某开关箱使用插头插座与配电箱进线端连接。此做法不妥，选出正确做法。",
+      "model_answer": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应固定可靠连接。",
+      "options": [
+        {
+          "text": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应采用固定可靠的连接方式。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出「进线端」「严禁插头插座活动连接」两个关键词，判据齐。",
+          "option_id": "S05-html-practice-html-q4-eadc2e921fdd:option-1"
+        },
+        {
+          "text": "选用防水防尘的工业插头插座连接即可，防护等级够高就能用于进线端。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为换成高防护插头就合规。",
+          "loss_reason": "进线端本身就严禁插头插座活动连接，与防护等级无关。",
+          "fix": "进线端严禁插头插座活动连接，须固定连接。",
+          "option_id": "S05-html-practice-html-q4-eadc2e921fdd:option-2"
+        },
+        {
+          "text": "只要把插头插座连接处用绝缘胶布缠牢固定，就等于满足可靠连接。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用「缠牢」的常识替代规范。",
+          "loss_reason": "缠胶布仍是活动连接，未达固定可靠连接要求。",
+          "fix": "进线端严禁插头插座活动连接，应固定连接。",
+          "option_id": "S05-html-practice-html-q4-eadc2e921fdd:option-3"
+        },
+        {
+          "text": "进线端可用插头插座、出线端固定连接即可，进出各一种方式最灵活。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把进线端和出线端要求记反。",
+          "loss_reason": "恰恰是进线端严禁插头插座活动连接。",
+          "fix": "电源进线端严禁插头插座活动连接。",
+          "option_id": "S05-html-practice-html-q4-eadc2e921fdd:option-4"
+        }
+      ],
+      "variant_id": "S05-html-practice-html-q4-eadc2e921fdd",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q4",
+      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "案例：现场做法有①装饰阶段仅按原组织设计用电、②切割机与搅拌机共用一开关箱、③开关箱用插头插座与配电箱连接。某学生只答「②共用不妥，应分开」。选出最准确的诊断与补写。",
+      "model_answer": "②改正缺判据（应写专用开关箱、严禁2台及以上含插座）；漏诊①装饰阶段应补编单项用电方案、③进线端严禁插头插座活动连接，三处都要补。",
+      "options": [
+        {
+          "text": "②改正缺规范判据（应写专用开关箱、严禁 2 台及以上含插座）；还漏诊①装饰阶段补方案、③进线端禁插头插座，三处均须补。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "半命中项补判据 + 补齐两处漏诊，指漏到具体采分句。",
+          "option_id": "S05-html-practice-html-q18-38770f84494a:option-1"
+        },
+        {
+          "text": "学生指出②共用不妥、方向正确，本题作答基本到位，可给大部分分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "看方向对就以为差不多。",
+          "loss_reason": "漏诊①③两处不妥，②改正也缺判据，失分严重。",
+          "fix": "补①装饰补方案、③进线端禁插接，②补专用开关箱判据。",
+          "option_id": "S05-html-practice-html-q18-38770f84494a:option-2"
+        },
+        {
+          "text": "只需把②的「应分开」补成「专用开关箱」即可，①③题干本无不妥。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "以为只有②一处不妥。",
+          "loss_reason": "①装饰未补方案、③插头插座连接都是不妥，审题漏项。",
+          "fix": "①③均不妥，须一并指出并改正。",
+          "option_id": "S05-html-practice-html-q18-38770f84494a:option-3"
+        },
+        {
+          "text": "重点是③插头插座连接不妥，①②做法其实符合规范，无需改动。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "抓到③却把①②当合规。",
+          "loss_reason": "②共用开关箱、①装饰未补方案同样不妥，判断反了。",
+          "fix": "①②③三处都不妥，逐条指出并给判据。",
+          "option_id": "S05-html-practice-html-q18-38770f84494a:option-4"
+        }
+      ],
+      "variant_id": "S05-html-practice-html-q18-38770f84494a",
+      "surface_id": "practice.html",
+      "source_index": 17,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q18",
+      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2"
+    }
+  ],
+  "published_lesson_sha256": "42794b04beb5fb4c2af8f8e8bc744f1586ea71a5d4ae883214daa929e6fd77cf"
+}

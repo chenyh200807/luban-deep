@@ -9,6 +9,7 @@
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -126,7 +127,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -187,6 +188,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
@@ -196,17 +198,7 @@ class Component extends DCLogic {
   KNOWLEDGE="土方回填压实与检测。四步链：选料→分层铺填→压实→检测。选料：不得用淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土；能用砂、碎石土，尽量同类土；不得混建筑垃圾。铺填：从场地最低处开始、由下而上整个宽度分层铺填、相对两侧对称回填；虚铺厚度按夯实机具确定，不按含水量。压实：平碾250-300mm/6-8遍，振动压实机250-350mm/3-4遍，柴油打夯机200-250mm/3-4遍，人工打夯小于200mm/3-4遍；下层压实系数试验合格后再上层；含水率过大过小均致密实度不足。检测：施工后检标高及压实系数；必查填筑厚度、含水量控制、压实系数，排水系统非必查；压实系数用标准击实法标定，不能把多层回填环刀土样统一送检；先取样点布置图后试验结果表。";
   moreText="补两道：① 给一组土料判能否用作填方（练禁用四类清单，别把砂/碎石误判禁用）；② 案例给'铺填>400mm、压2遍、多层环刀统一送检'做纠错，练'指不妥+给正确数值方法'三段式（250-350mm/3-4遍/标准击实法）。";
   Q=[
-    { tag:"选料·条件维（多选）", typeHint:"多选 · 选出所有不能用作填方的土料", figLabel:"题给：一组候选土料", figCaption:"哪些不能用作填方土料？", fig:"banlist",
-      stem:"下列土料中，不能用作填方土料的有哪些？（多选）",
-      model:"不能用作填方的：淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土；砂、碎石土可用。",
-      opts:[
-        { t:"淤泥", ok:true, fix:"淤泥含水量高、颗粒软，压不实且后期沉降，禁用。", code:"" },
-        { t:"淤泥质土", ok:true, fix:"淤泥质土同属禁用，压不密实。", code:"" },
-        { t:"有机质大于5%的土", ok:true, fix:"有机质>5%会腐烂脱空，禁用。", code:"" },
-        { t:"含水量不符合压实要求的黏性土", ok:true, fix:"含水量不符要求的黏性土压不实，禁用（最易漏选）。", code:"" },
-        { t:"砂、碎石土", ok:false, code:"E10", tempt:"觉得砂太松、碎石太杂，承载差不能填。", lose:"砂、碎石土是允许的填方土料，判为禁用即多选错选。", fix:"砂、碎石土可用作填方，不应勾选；禁用的是淤泥/淤泥质土/有机质>5%/含水量不符黏性土。" }
-      ] },
-    { tag:"选料·条件维", typeHint:"单选 · 选出完整能得分的选料作答", figLabel:"题给：填方土料选择", figCaption:"选料怎么写才拿分？", fig:"banlist",
+{ tag:"选料·条件维", typeHint:"单选 · 选出完整能得分的选料作答", figLabel:"题给：填方土料选择", figCaption:"选料怎么写才拿分？", fig:"banlist",
       stem:"关于填方土料的选择，下列作答完整、能得分的是？",
       model:"尽量采用同类土；不得用淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土；砂、碎石土可用。",
       opts:[
@@ -215,7 +207,7 @@ class Component extends DCLogic {
         { t:"填方土料越黏越密实，应优先选含水量高的黏性土回填。", ok:false, code:"E07", tempt:"以为黏土密实、含水多好压。", lose:"含水量不符压实要求的黏性土恰是禁用项，概念反了。", fix:"含水量不符要求的黏性土禁用，应选可压密的砂、碎石、同类土。" },
         { t:"淤泥、有机质土只要掺点石灰改良，都可直接用作填方无限制。", ok:false, code:"E10", tempt:"以为掺灰改良就能随便用。", lose:"本考点口径淤泥/有机质>5%属禁用，不以'掺石灰'为由放开。", fix:"按规范禁用四类，不随意放开。" }
       ] },
-    { tag:"铺填·程序维", typeHint:"单选 · 选出正确的起填与铺填方式", figLabel:"题给：基坑回填剖面", figCaption:"从哪起？怎么铺？", fig:"fillseq",
+{ tag:"铺填·程序维", typeHint:"单选 · 选出正确的起填与铺填方式", figLabel:"题给：基坑回填剖面", figCaption:"从哪起？怎么铺？", fig:"fillseq",
       stem:"土方回填时，填土的起填位置与铺填方式，正确的是？",
       model:"填土从场地最低处开始，由下而上整个宽度分层铺填。",
       opts:[
@@ -224,7 +216,7 @@ class Component extends DCLogic {
         { t:"从最低处开始铺即可，厚度铺到多少不影响，压一遍成活。", ok:false, code:"E02", tempt:"记住最低处起就以为够了。", lose:"漏了分层与厚度控制。", fix:"补'由下而上整宽分层'+按机具控厚度遍数。" },
         { t:"由上而下逐层挖填，边挖边填保证密实。", ok:false, code:"E07", tempt:"把开挖顺序当回填顺序。", lose:"回填是由下而上，不是由上而下。", fix:"回填应由下而上分层铺填。" }
       ] },
-    { tag:"铺填·程序维", typeHint:"单选 · 选出正确的对称回填作答", figLabel:"题给：基础两侧回填", figCaption:"两侧怎么回填？", fig:"fillseq",
+{ tag:"铺填·程序维", typeHint:"单选 · 选出正确的对称回填作答", figLabel:"题给：基础两侧回填", figCaption:"两侧怎么回填？", fig:"fillseq",
       stem:"对基础两侧（或周边）进行回填时，正确做法是？",
       model:"相对两侧或周边应对称、均衡回填，防止结构偏压。",
       opts:[
@@ -233,7 +225,7 @@ class Component extends DCLogic {
         { t:"两侧分层回填即可，是否对称无所谓，压实达标就行。", ok:false, code:"E02", tempt:"只记分层，忽略对称。", lose:"漏'对称'，单侧仍会偏压。", fix:"必须相对两侧对称均衡回填。" },
         { t:"哪侧空间大先填哪侧，方便机械进出。", ok:false, code:"E07", tempt:"按施工便利决定顺序。", lose:"忽视结构受力对称要求。", fix:"以结构受力为准，两侧对称回填。" }
       ] },
-    { tag:"虚铺·条件维", typeHint:"单选 · 选出虚铺厚度依据的正确作答", figLabel:"题给：机具与厚度尺", figCaption:"虚铺厚度按什么定？", fig:"ruler",
+{ tag:"虚铺·条件维", typeHint:"单选 · 选出虚铺厚度依据的正确作答", figLabel:"题给：机具与厚度尺", figCaption:"虚铺厚度按什么定？", fig:"ruler",
       stem:"每层虚铺厚度应依据什么确定？选出正确、能得分的作答。",
       model:"每层虚铺厚度应根据夯实机具确定，不按含水量。",
       opts:[
@@ -242,98 +234,7 @@ class Component extends DCLogic {
         { t:"每层虚铺厚度按经验大致铺开就行，压实达标即可，无需固定依据。", ok:false, code:"E02", tempt:"觉得凭经验铺差不多。", lose:"漏了'按夯实机具确定'这一采分依据。", fix:"必须写'按夯实机具确定'。" },
         { t:"每层虚铺厚度统一按300mm铺，任何机具都一样。", ok:false, code:"E10", tempt:"记了个300mm就套所有机具。", lose:"厚度随机具不同，不能一刀切。", fix:"按机具查表：平碾250-300、振动压实机250-350等。" }
       ] },
-    { tag:"压实·计算表达维", typeHint:"单选 · 选出符合参数表、能得分的作答", figLabel:"题给：压实机具参数表", figCaption:"振动压实机 铺厚? 遍数?", fig:"ptable",
-      stem:"采用振动压实机回填压实，其分层（虚铺）厚度与压实遍数应为？",
-      model:"振动压实机分层厚度250-350mm，每层压实3-4遍。",
-      opts:[
-        { t:"分层厚度250-350mm，每层压实3-4遍。", ok:true, fix:"厚度区间+遍数区间，按机具查表写对。", code:"" },
-        { t:"分层厚度可达400mm以上，压实2遍成活即可。", ok:false, code:"E10", tempt:"想少压几遍、铺厚点赶进度。", lose:"铺填>400mm超上限、压2遍遍数不足（2018案例三不妥点）。", fix:"应250-350mm、3-4遍。" },
-        { t:"套用平碾参数：分层250-300mm、压6-8遍。", ok:false, code:"E07", tempt:"记混了机具参数。", lose:"机具-参数错配，振动压实机是3-4遍不是6-8遍。", fix:"振动压实机250-350mm/3-4遍。" },
-        { t:"分层薄铺、多压几遍即可，具体数值凭现场把握。", ok:false, code:"E03", tempt:"方向对但不给数值。", lose:"改正无具体数值=关键词缺失，只得半分。", fix:"必带250-350mm、3-4遍。" }
-      ] },
-    { tag:"压实·计算表达维", typeHint:"单选 · 选出符合参数表的作答", figLabel:"题给：压实机具参数表", figCaption:"平碾 铺厚? 遍数?", fig:"ptable",
-      stem:"采用平碾进行填土压实，其分层厚度与压实遍数应为？",
-      model:"平碾分层厚度250-300mm，每层压实6-8遍。",
-      opts:[
-        { t:"分层厚度250-300mm，每层压实6-8遍。", ok:true, fix:"平碾按表：250-300mm/6-8遍。", code:"" },
-        { t:"分层厚度250-350mm、压3-4遍，与振动压实机相同。", ok:false, code:"E07", tempt:"两种机具数值相近易混。", lose:"平碾是6-8遍，不是3-4遍。", fix:"平碾250-300mm/6-8遍。" },
-        { t:"分层厚度不限，压到不再下沉为止，遍数越多越好。", ok:false, code:"E10", tempt:"以为多压总没错。", lose:"厚度/遍数应按参数表控制。", fix:"平碾250-300mm/6-8遍。" },
-        { t:"薄层多遍碾压即可，数值现场定。", ok:false, code:"E03", tempt:"方向对不给数值。", lose:"缺具体数值。", fix:"必写250-300mm/6-8遍。" }
-      ] },
-    { tag:"压实·程序维", typeHint:"单选 · 选出正确的分层施工顺序", figLabel:"题给：上下层回填", figCaption:"下层要不要先合格？", fig:"stack",
-      stem:"多层回填压实的施工顺序，正确的是？",
-      model:"下层压实系数试验合格后，再进行上层施工。",
-      opts:[
-        { t:"下层压实系数经试验合格后，方可进行上层填土施工。", ok:true, fix:"点出'下层合格再上层'。", code:"" },
-        { t:"各层连续铺填压实、一次做到设计标高，最后统一检测压实系数。", ok:false, code:"E06", tempt:"觉得一口气填完再检省事。", lose:"未逐层验收，下层不合格会埋隐患。", fix:"下层压实系数合格后再上层。" },
-        { t:"分层压实即可，是否检验下层不影响上层施工。", ok:false, code:"E02", tempt:"只记分层压实。", lose:"漏'下层合格再上层'程序采分点。", fix:"补'下层压实系数合格后再上层'。" },
-        { t:"上层先做、下层后补，方便控制总标高。", ok:false, code:"E07", tempt:"想先定顶标高。", lose:"顺序颠倒，违反由下而上+逐层合格。", fix:"由下而上、下层合格再上层。" }
-      ] },
-    { tag:"机理·后果维", typeHint:"单选 · 选出致密实度不足的原因", figLabel:"题给：含水率与压实", figCaption:"哪种含水率压不实？", fig:"moist",
-      stem:"易造成回填土密实度达不到要求的原因是？",
-      model:"土的含水率过大或过小，均不利于压实，致密实度达不到要求。",
-      opts:[
-        { t:"土的含水率过大或过小，均致密实度达不到要求（最优含水率附近最易压实）。", ok:true, fix:"双向：过大过小都不行。", code:"" },
-        { t:"含水率越大越软越好压，密实度不足只因含水率太低。", ok:false, code:"E07", tempt:"以为水多就软好压。", lose:"含水率过大成稀泥同样压不实，单向理解错。", fix:"过大过小均不行，双向写。" },
-        { t:"只要分层压实遍数够，含水率高低都不影响密实度。", ok:false, code:"E02", tempt:"以为遍数够就行。", lose:"忽略含水率对压实的决定作用。", fix:"含水率过大过小均致密实度不足。" },
-        { t:"密实度不足主要因为土料颗粒太粗，与含水率无关。", ok:false, code:"E10", tempt:"归因到颗粒粗细。", lose:"本题采分点是含水率过大过小。", fix:"应答含水率过大或过小。" }
-      ] },
-    { tag:"检测·计算表达维", typeHint:"单选 · 选出施工后检验项的完整作答", figLabel:"题给：施工后检验", figCaption:"回填完检什么？", fig:"detect",
-      stem:"土方回填施工结束后，应进行哪些检验？选出完整作答。",
-      model:"施工结束后应进行标高及压实系数检验。",
-      opts:[
-        { t:"施工结束后应进行标高及压实系数检验。", ok:true, fix:"标高+压实系数，双项齐。", code:"" },
-        { t:"施工结束后检验标高即可，表面平整达标就说明压实合格。", ok:false, code:"E02", tempt:"以为表面平整=压实合格。", lose:"漏压实系数检验。", fix:"补压实系数检验。" },
-        { t:"只检压实系数，标高由测量另管，不在回填检验内。", ok:false, code:"E02", tempt:"以为标高不算回填检验。", lose:"漏标高检验项。", fix:"标高与压实系数都要检。" },
-        { t:"检验外观、色泽、含石量即可，压实系数可免抽查。", ok:false, code:"E10", tempt:"用外观代替量化指标。", lose:"压实系数为必检量化项，不能免。", fix:"必检标高+压实系数。" }
-      ] },
-    { tag:"检测·条件维", typeHint:"单选 · 选出回填质量必查内容的正确作答", figLabel:"题给：验收检查项", figCaption:"哪些是必查内容？", fig:"detect",
-      stem:"回填工程质量验收时，下列属于必查内容的是？",
-      model:"必查：填筑厚度、含水量控制、压实系数；排水系统非必查。",
-      opts:[
-        { t:"填筑厚度、含水量控制、压实系数为必查内容（排水系统非必查）。", ok:true, fix:"三必查+点明排水系统非必查。", code:"" },
-        { t:"填筑厚度、含水量、压实系数、排水系统四项都是必查内容。", ok:false, code:"E07", tempt:"觉得排水系统重要就该必查。", lose:"排水系统非回填质量必查项（真题反向陷阱）。", fix:"必查是填筑厚度/含水量/压实系数，排水系统非必查。" },
-        { t:"只查压实系数一项即可，其余属工艺记录不必查。", ok:false, code:"E02", tempt:"只记住压实系数。", lose:"漏填筑厚度、含水量控制两项。", fix:"三项都必查。" },
-        { t:"必查地基承载力和沉降观测，回填厚度可免查。", ok:false, code:"E10", tempt:"混入地基检验项。", lose:"承载力/沉降非回填必查，填筑厚度必查。", fix:"回填必查填筑厚度/含水量/压实系数。" }
-      ] },
-    { tag:"检测·计算表达维", typeHint:"单选 · 选出压实系数检测方法的正确作答", figLabel:"题给：压实系数检测方法", figCaption:"哪种检测方法对？", fig:"vs",
-      stem:"压实系数的检测方法，正确、能得分的是？",
-      model:"压实系数用标准击实法标定最大干密度、逐层判定；不能把多层回填的环刀土样统一送检。",
-      opts:[
-        { t:"用标准击实法标定最大干密度，逐层测定判定压实系数。", ok:true, fix:"点出标准击实法+逐层判定。", code:"" },
-        { t:"把每天回填2-3层的环刀土样收集起来，统一送检测单位检测。", ok:false, code:"E10", tempt:"觉得攒一起送检省事、常规。", lose:"多层环刀土样统一送检分不清各层（2018案例三不妥点）。", fix:"用标准击实法、逐层标定判定。" },
-        { t:"环刀法本身被禁用，压实系数只能用灌砂法检测。", ok:false, code:"E07", tempt:"以为错在'环刀法'这个方法本身。", lose:"错在'多层统一送检'不分层，非环刀法被禁。", fix:"压实系数用标准击实法标定，分层判定。" },
-        { t:"取样送检测压实系数即可，用什么方法现场定。", ok:false, code:"E03", tempt:"方向对不点方法。", lose:"缺'标准击实法'关键词。", fix:"必写'标准击实法'。" }
-      ] },
-    { tag:"检测·程序维", typeHint:"单选 · 选出正确的取样与试验资料顺序", figLabel:"题给：取样资料", figCaption:"取样图与结果表哪个在先？", fig:"detect",
-      stem:"回填压实检测的取样与试验资料，正确顺序是？",
-      model:"应先有取样点布置图，后有试验结果表。",
-      opts:[
-        { t:"先编制取样点布置图，后形成试验结果表。", ok:true, fix:"先布置图、后结果表，顺序不颠倒。", code:"" },
-        { t:"先出试验结果表，再补画取样点布置图对应，方便凑数据。", ok:false, code:"E06", tempt:"觉得先有数据再画图省事。", lose:"顺序颠倒，资料失真。", fix:"应先取样点布置图，后试验结果表。" },
-        { t:"有试验结果表即可，取样点布置图可省略。", ok:false, code:"E02", tempt:"以为结果表就够。", lose:"漏取样点布置图。", fix:"先布置图后结果表，两者都要。" },
-        { t:"取样点随机定即可，布置图与结果表无先后。", ok:false, code:"E07", tempt:"以为无所谓顺序。", lose:"忽视先图后表的程序要求。", fix:"先取样点布置图，后试验结果表。" }
-      ] },
-    { tag:"回填综合·条件维（多选）", typeHint:"多选 · 选出关于土方回填正确的说法", figLabel:"题给：回填施工说法", figCaption:"哪些说法正确？", fig:"detect",
-      stem:"关于土方回填施工，下列说法正确的有？（多选）",
-      model:"控制含水率；下层压实系数合格后再上层；先取样点布置图后试验结果表。（遍数按机具定、冬期分层厚度应减小）",
-      opts:[
-        { t:"应控制回填土的含水率在最优含水率附近。", ok:true, fix:"含水率控制正确。", code:"" },
-        { t:"压实遍数应根据回填土料的种类确定，与机具无关。", ok:false, code:"E07", tempt:"觉得土料决定遍数。", lose:"遍数按压实机具定，非按土料。", fix:"按机具查表定厚度遍数。" },
-        { t:"下层压实系数试验合格后，再进行上层施工。", ok:true, fix:"逐层验收程序正确。", code:"" },
-        { t:"冬期施工分层厚度可适当增加，以加快进度。", ok:false, code:"E10", tempt:"想冬天赶工加厚。", lose:"冬期分层厚度应减小而非增加。", fix:"冬期分层厚度应减小。" },
-        { t:"应先有取样点布置图，后有试验结果表。", ok:true, fix:"资料顺序正确。", code:"" }
-      ] },
-    { tag:"选料·条件维", typeHint:"单选 · 判断回填土料的不妥并改正", figLabel:"题给：回填土料含建筑垃圾", figCaption:"这样回填妥不妥？", fig:"banlist",
-      stem:"某回填土料中混有建筑垃圾，施工员认为'能填空隙、无妨'。正确判断是？",
-      model:"不妥：回填土料不得混有建筑垃圾，应清除后采用合格同类土回填。",
-      opts:[
-        { t:"不妥：回填土料不得混有建筑垃圾，应清除后用合格土料（尽量同类土）回填。", ok:true, fix:"指不妥+给正确做法。", code:"" },
-        { t:"妥当：建筑垃圾能填空隙、增加密实度，可直接用作填方。", ok:false, code:"E10", tempt:"以为碎块能填空隙增密。", lose:"建筑垃圾成分杂、不均匀，禁止混入。", fix:"应清除建筑垃圾后再回填。" },
-        { t:"只要把大块建筑垃圾挑出来，碎渣可以留在土料里回填。", ok:false, code:"E02", tempt:"觉得挑大块就行。", lose:"仍属混入建筑垃圾，不妥。", fix:"建筑垃圾应清除，不得混入。" },
-        { t:"建筑垃圾属于碎石土，可作填方土料。", ok:false, code:"E07", tempt:"把建筑垃圾等同碎石土。", lose:"建筑垃圾≠碎石土，不得用。", fix:"建筑垃圾禁用，只有合格碎石土才可用。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 诊断案例作答失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"方向对了，但采分句到位没？", fig:"sheet", diag:true,
+{ tag:"采分诊断·末题", typeHint:"单选 · 诊断案例作答失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"方向对了，但采分句到位没？", fig:"sheet", diag:true,
       stem:"某学生就'振动压实机回填施工纠错'作答：②铺得太厚应薄一点；③压得太少多压几遍；④环刀取样送检没问题；①土料没看出问题。选出最准确的诊断与补写。",
       model:"②③方向对但缺数值（应250-350mm、3-4遍）；④多层环刀统一送检不妥、应标准击实法；①建筑垃圾未识别；四处都要补写。",
       opts:[
@@ -341,15 +242,6 @@ class Component extends DCLogic {
         { t:"作答基本正确，只是表述口语化，方向都对，可给满分。", ok:false, code:"E07", tempt:"看方向对就以为拿满分。", lose:"缺数值=半分，且漏④环刀送检与①建筑垃圾两处。", fix:"补数值 + 补④标准击实法、①清除建筑垃圾两处。" },
         { t:"只需把'薄一点''多压几遍'改成具体数值即可，其余都对。", ok:false, code:"E03", tempt:"抓到缺数值一处。", lose:"漏诊④环刀统一送检、①建筑垃圾两处不妥。", fix:"除补数值，还要指④用标准击实法、①清除建筑垃圾。" },
         { t:"环刀法本身违规，四处主要错在都用了环刀，改灌砂法即可。", ok:false, code:"E10", tempt:"以为错在环刀法本身。", lose:"错在多层统一送检不分层，非环刀法被禁；且漏其他失分。", fix:"④错在统一送检、应标准击实法逐层；另补数值与建筑垃圾。" }
-      ] },
-    { tag:"采分句·末题", typeHint:"单选 · 选出最能拿分的四步采分句", figLabel:"题给：土方回填四步", figCaption:"四步各写什么采分句？", fig:"spine", diag:true,
-      stem:"就'土方回填施工要点'作答，选出最完整、最能拿分的采分句组织。",
-      model:"选料→铺填→压实→检测四步写全，每步带关键数值/方法。",
-      opts:[
-        { t:"选料：禁用淤泥/淤泥质土/有机质>5%/含水量不符黏性土、尽量同类土；铺填：最低处起、由下而上、对称分层，虚铺按机具；压实：按机具控厚度遍数（振动压实机250-350mm/3-4遍）、下层合格再上层；检测：标高+压实系数、标准击实法。", ok:true, fix:"四步全、带数值方法，采分句一句不少。", code:"" },
-        { t:"回填要分层压实、控制质量、检测合格，按规范施工即可。", ok:false, code:"E02", tempt:"笼统套话觉得稳妥。", lose:"无具体采分点/数值/方法，四步全空。", fix:"按选料/铺填/压实/检测四步写具体内容。" },
-        { t:"选好土、铺好层、压密实、检测过关，四步做到位。", ok:false, code:"E03", tempt:"四步框架有了。", lose:"缺禁用清单、数值、检测方法等关键词。", fix:"每步补关键词与数值。" },
-        { t:"重点是压实系数用环刀统一送检、虚铺厚度按含水量定、冬期加厚赶工。", ok:false, code:"E07", tempt:"塞了几个'专业'说法。", lose:"三处全是错项（统一送检/按含水量/冬期加厚）。", fix:"应标准击实法、虚铺按机具、冬期减薄。" }
       ] }
   ];
   codeMap={
@@ -479,7 +371,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -498,6 +390,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G02")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

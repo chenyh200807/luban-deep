@@ -31,6 +31,10 @@ from deeptutor.services.luban_lesson import (
     list_green_lessons,
     retest_pool_meta,
 )
+from deeptutor.services.luban_lesson.practice_html import (
+    PracticeHtmlInvalid,
+    is_compiled_practice_pack,
+)
 from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
 
 router = secure_router(tags=["luban_lesson"])
@@ -38,7 +42,8 @@ router = secure_router(tags=["luban_lesson"])
 
 class RetestAnswerRequest(BaseModel):
     variant_id: str
-    choice_ok: bool
+    choice_ok: bool | None = None
+    selected_option_id: str = ""
 
 
 class RetestCompletionRequest(BaseModel):
@@ -95,12 +100,13 @@ async def retest_items(
     pack_id: str,
     limit: int = 5,
     mode: str = "review",
+    practice_surface: str = "",
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
-    """变体题面抽取（同一 builder / 同一签发池，两种取题模式）：
+    """题面投影（同一 endpoint / 同一 completion authority）：
     - ``mode=review``（默认，复习轮换皮复测）；
-    - ``mode=forward``（学习轮 2 分钟轻练：对刚学完的 pack 广度优先取一组，
-      覆盖不同 rule_group）。仅选序不同，均本地判分、证据非 promoting。
+    - ``mode=forward``（学习轮课后轻练；已编译 pack 读取 finished HTML 固定五题）。
+      completion 均由服务端重判；forward 非 promoting。
 
     未识别的 mode 归一为 review（thin 归一，不新增第二 builder/第二端点）。
     """
@@ -119,9 +125,14 @@ async def retest_items(
             day_index=day_index,
             limit=limit,
             mode=mode,
+            practice_surface=practice_surface,
         )
-    except LessonNotAvailable:
+    except (LessonNotAvailable, PracticeHtmlInvalid):
         raise HTTPException(status_code=404, detail="lesson not found")
+    compiled_registered = mode == "forward" and is_compiled_practice_pack(pack_id)
+    if compiled_registered and not items:
+        raise HTTPException(status_code=404, detail="compiled practice unavailable")
+    compiled_forward = compiled_registered
     return {
         "pack_id": pack_id.upper(),
         "items": items,
@@ -134,8 +145,15 @@ async def retest_items(
             mode=mode,
             variant_ids=[str(item.get("variant_id") or "") for item in items],
         ),
-        # 题池元信息(呈现层"换皮是刻意设计"的证据: 题池规模+考法数)
-        "pool": retest_pool_meta(pack_id),
+        "pool": {
+            "core_total": len(items),
+            "rule_groups_total": len(
+                {str(item.get("rule_group") or "") for item in items}
+            ),
+        }
+        if compiled_forward
+        else retest_pool_meta(pack_id),
+        "practice_source": "compiled_html" if compiled_forward else "signed_variant",
     }
 
 

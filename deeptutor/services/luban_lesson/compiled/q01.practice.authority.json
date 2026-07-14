@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "Q01",
+  "source_pack_sha256": "be6eae789509f1b0c19c808b1a6b822e8d6181553fcda4fcfd60f7c183f56354",
+  "source_bundle_sha256": "856a632c7ba7dbcaca74c7c00ba66b48cfd304fd90ec8daf24dde23142d064f4",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html",
+      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "Q01-html-practice-html-q1-9752d199a392",
+        "Q01-html-practice-html-q2-4a84fcba6b1e",
+        "Q01-html-practice-html-q3-eac52d2ed42f",
+        "Q01-html-practice-html-q4-c8005fb201fb",
+        "Q01-html-practice-html-q15-bdd53df442bc"
+      ],
+      "published_practice_sha256": "3bb6c1f31f008304e8a03ff60f0a41e8b9d7d733f65baa6b27df3b93b54be1d6"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "养护时长·条件维",
+      "stem": "某工程有普通硅酸盐水泥现浇柱、有抗渗要求的地下室墙、后浇带三部分。关于最短养护时间，选出完整、能得分的作答。",
+      "model_answer": "普通硅酸盐水泥现浇≥7d；有抗渗要求的≥14d；后浇带养护≥14d。",
+      "options": [
+        {
+          "text": "普通硅酸盐水泥现浇构件养护不少于 7d；有抗渗要求的不少于 14d；后浇带养护不少于 14d。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "按类别分档：普硅 7d、抗渗/后浇带 14d，一档不落。",
+          "option_id": "Q01-html-practice-html-q1-9752d199a392:option-1"
+        },
+        {
+          "text": "三部分统一养护 7d 即可，养护时间不必分类别。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记了个 7d 就想一刀切省事。",
+          "loss_reason": "抗渗与后浇带必须不少于 14d，统一 7d 违反规范。",
+          "fix": "抗渗、后浇带养护≥14d，不能按 7d。",
+          "option_id": "Q01-html-practice-html-q1-9752d199a392:option-2"
+        },
+        {
+          "text": "普硅现浇 14d、抗渗 7d、后浇带 7d。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记得有 7、14 两个数，随手一配。",
+          "loss_reason": "7d/14d 张冠李戴，方向配反。",
+          "fix": "普硅 7d、抗渗与后浇带 14d，别对调。",
+          "option_id": "Q01-html-practice-html-q1-9752d199a392:option-3"
+        },
+        {
+          "text": "只要洒水就行，养护天数不影响得分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得养护是走过场。",
+          "loss_reason": "漏了养护时长这一采分点。",
+          "fix": "写明普硅≥7d、抗渗/后浇带≥14d。",
+          "option_id": "Q01-html-practice-html-q1-9752d199a392:option-4"
+        }
+      ],
+      "variant_id": "Q01-html-practice-html-q1-9752d199a392",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q1",
+      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "大体积温控·条件维",
+      "stem": "大体积混凝土底板测温控制，选出指标完整、能得分的作答。",
+      "model_answer": "里表温差≤25℃；降温速率≤2.0℃/d；温升≤50℃；入模温度 5~30℃。",
+      "options": [
+        {
+          "text": "里表温差不大于 25℃；降温速率不大于 2.0℃/d；温升不大于 50℃；入模温度控制在 5~30℃。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "里表 25、降温 2℃/d、温升 50、入模 5~30，四个数写全。",
+          "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-1"
+        },
+        {
+          "text": "里表温差不大于 20℃、降温速率不大于 3℃/d。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把冬期的 20℃、3℃/d 搬到了大体积。",
+          "loss_reason": "大体积是里表≤25℃、降温≤2℃/d，数值用串。",
+          "fix": "大体积里表≤25℃、降温≤2.0℃/d。",
+          "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-2"
+        },
+        {
+          "text": "只要连续测温、发现异常处理即可，不必给具体指标。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道要测温，懒得报数。",
+          "loss_reason": "缺 25/2/50 等关键数值，口号化不得分。",
+          "fix": "补里表≤25℃、降温≤2℃/d、温升≤50℃。",
+          "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-3"
+        },
+        {
+          "text": "里表温差不大于 25℃即可，其余不用控制。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住了最有名的 25℃。",
+          "loss_reason": "漏降温速率、温升、入模温度多个采分点。",
+          "fix": "补降温≤2℃/d、温升≤50℃、入模 5~30℃。",
+          "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-4"
+        }
+      ],
+      "variant_id": "Q01-html-practice-html-q2-4a84fcba6b1e",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q2",
+      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "冬期温控·条件维",
+      "stem": "冬期大体积混凝土温控，选出指标正确、能得分的作答。",
+      "model_answer": "中心-表面温差≤25℃；表面-大气温差≤20℃；温降梯度≤3℃/d；养护≥14d。",
+      "options": [
+        {
+          "text": "中心与表面温差不大于 25℃；表面与大气温差不大于 20℃；温降梯度不大于 3℃/d；养护不少于 14d。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "25/20/3/14 四数配对写全，方向别反。",
+          "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-1"
+        },
+        {
+          "text": "表面与大气温差不大于 25℃、中心与表面不大于 20℃。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "两个温差都记得，就是配反了。",
+          "loss_reason": "块内(中心-表面)是 25、对外界(表面-大气)是 20，方向写反。",
+          "fix": "中心-表面≤25℃、表面-大气≤20℃。",
+          "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-2"
+        },
+        {
+          "text": "温降梯度不大于 2℃/d。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把大体积的 2℃/d 用到冬期。",
+          "loss_reason": "冬期温降梯度是≤3℃/d，不是 2。",
+          "fix": "冬期温降梯度≤3℃/d。",
+          "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-3"
+        },
+        {
+          "text": "冬期只要保温覆盖即可，不必控温差。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道要保温就以为够了。",
+          "loss_reason": "漏中心-表面 25、表面-大气 20、温降 3 等采分点。",
+          "fix": "补三项温差/温降数值与养护≥14d。",
+          "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-4"
+        }
+      ],
+      "variant_id": "Q01-html-practice-html-q3-eac52d2ed42f",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q3",
+      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "高温措施·程序维",
+      "stem": "高温环境下混凝土防裂，下列哪一组作答完整、能得分？",
+      "model_answer": "安排早间/晚间施工、喷雾降温保湿、连续浇筑；不采用吹风。",
+      "options": [
+        {
+          "text": "安排早间或晚间施工，喷雾降温保湿，连续浇筑避免冷缝；不宜采用吹风。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "早晚施工+喷雾+连续浇筑，且点明不吹风。",
+          "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-1"
+        },
+        {
+          "text": "用鼓风机吹风给混凝土降温，加快散热防裂。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得吹风能降温、跟散热挂钩。",
+          "loss_reason": "吹风加速表面失水，是错误做法。",
+          "fix": "改喷雾保湿，不吹风。",
+          "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-2"
+        },
+        {
+          "text": "安排在正午高温时段一次浇完。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "想着一鼓作气浇完。",
+          "loss_reason": "应避开正午高温，安排早晚施工。",
+          "fix": "避开正午，早间/晚间施工。",
+          "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-3"
+        },
+        {
+          "text": "只要多浇水就行，其他措施不必。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为浇水万能。",
+          "loss_reason": "漏早晚施工、喷雾、连续浇筑等措施。",
+          "fix": "补早晚施工、喷雾、连续浇筑。",
+          "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-4"
+        }
+      ],
+      "variant_id": "Q01-html-practice-html-q4-c8005fb201fb",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q4",
+      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生对一份地下室防水底板交底作答：①防水混凝土养护 7 天；②施工缝留在剪力最大处；③后浇带 10 天后封闭。选出最准确的诊断与补写。",
+      "model_answer": "三处均不妥：防水养护应≥14d；施工缝不应留剪力最大处(避底板侧墙交接)；底板后浇带封闭≥28d。",
+      "options": [
+        {
+          "text": "三处都不妥：①防水养护应不少于 14d；②施工缝不应留在剪力最大处，也不应留底板与侧墙交接处；③底板后浇带封闭不少于 28d。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处逐一纠正并给正确数值——这就是会写答案。",
+          "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-1"
+        },
+        {
+          "text": "只有①养护天数偏短，②③都正确。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只抓到最显眼的养护错。",
+          "loss_reason": "漏诊施工缝位置与后浇带封闭两处失分。",
+          "fix": "施工缝避位、封闭≥28d 两处也要纠。",
+          "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-2"
+        },
+        {
+          "text": "三处都对，符合防水要求。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数字看着眼熟就以为对。",
+          "loss_reason": "7d/剪力最大处/10d 封闭全是经典错项。",
+          "fix": "三处全改：14d、避剪力最大处、封闭 28d。",
+          "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-3"
+        },
+        {
+          "text": "把养护改成 28d、施工缝改留交接处即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "知道要改，却改错了方向。",
+          "loss_reason": "养护是 14d(28 是封闭)，交接处恰恰是禁留处。",
+          "fix": "养护 14d、施工缝避交接处、封闭 28d。",
+          "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-4"
+        }
+      ],
+      "variant_id": "Q01-html-practice-html-q15-bdd53df442bc",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q15",
+      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3"
+    }
+  ],
+  "published_lesson_sha256": "ec0aac69f2a29ff79ff64a6d8961c91521621c8d175398db740c0b2b499194cd"
+}

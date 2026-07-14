@@ -961,13 +961,15 @@ function getLubanRetestItems(packId, limit, mode, opts) {
   var n = Number(limit || 5);
   if (!Number.isFinite(n) || n <= 0) n = 5;
   var m = String(mode || "review") === "forward" ? "forward" : "review";
+  var practiceSurface = String((opts && opts.practiceSurface) || "").trim();
   return requestStateGet(
     "/api/v1/luban/lessons/" +
       encodeURIComponent(String(packId || "")) +
       "/retest-items?limit=" +
       Math.min(Math.round(n), 10) +
       "&mode=" +
-      m,
+      m +
+      (practiceSurface ? "&practice_surface=" + encodeURIComponent(practiceSurface) : ""),
     opts,
   );
 }

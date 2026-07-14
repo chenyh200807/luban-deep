@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "G02",
+  "source_pack_sha256": "c7439e8e1907c65d489879e883d865e136c8f45d633c0aaa92916561f749aecc",
+  "source_bundle_sha256": "6235b8e10360c229e9cc61813b99f6c600128612a822a7a7a15068ae8314ab2b",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html",
+      "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        1,
+        2,
+        3,
+        4,
+        15
+      ],
+      "variant_ids": [
+        "G02-html-practice-html-q2-613193ea6d75",
+        "G02-html-practice-html-q3-97671409244c",
+        "G02-html-practice-html-q4-9a0b35a1c05a",
+        "G02-html-practice-html-q5-7d9d763971e5",
+        "G02-html-practice-html-q16-d5e2e8aea5ac"
+      ],
+      "published_practice_sha256": "4d83abde92ed6f528fa64c4e24ef1948e426901087d2895f766b5fcd38707c77"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "选料·条件维",
+      "stem": "关于填方土料的选择，下列作答完整、能得分的是？",
+      "model_answer": "尽量采用同类土；不得用淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土；砂、碎石土可用。",
+      "options": [
+        {
+          "text": "尽量采用同类土；淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土不得用作填方。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "优选同类土 + 完整禁用四类，一句写全。",
+          "option_id": "G02-html-practice-html-q2-613193ea6d75:option-1"
+        },
+        {
+          "text": "只要不是淤泥就能填，砂、碎石、黏土随取随填省成本。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为只忌讳淤泥一种。",
+          "loss_reason": "漏了淤泥质土/有机质>5%/含水量不符黏性土三类禁用。",
+          "fix": "禁用四类写全，并点'尽量同类土'。",
+          "option_id": "G02-html-practice-html-q2-613193ea6d75:option-2"
+        },
+        {
+          "text": "填方土料越黏越密实，应优先选含水量高的黏性土回填。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为黏土密实、含水多好压。",
+          "loss_reason": "含水量不符压实要求的黏性土恰是禁用项，概念反了。",
+          "fix": "含水量不符要求的黏性土禁用，应选可压密的砂、碎石、同类土。",
+          "option_id": "G02-html-practice-html-q2-613193ea6d75:option-3"
+        },
+        {
+          "text": "淤泥、有机质土只要掺点石灰改良，都可直接用作填方无限制。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为掺灰改良就能随便用。",
+          "loss_reason": "本考点口径淤泥/有机质>5%属禁用，不以'掺石灰'为由放开。",
+          "fix": "按规范禁用四类，不随意放开。",
+          "option_id": "G02-html-practice-html-q2-613193ea6d75:option-4"
+        }
+      ],
+      "variant_id": "G02-html-practice-html-q2-613193ea6d75",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q2",
+      "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "铺填·程序维",
+      "stem": "土方回填时，填土的起填位置与铺填方式，正确的是？",
+      "model_answer": "填土从场地最低处开始，由下而上整个宽度分层铺填。",
+      "options": [
+        {
+          "text": "填土从场地最低处开始，由下而上整个宽度分层铺填。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "起填位置+由下而上+整宽分层，一句齐。",
+          "option_id": "G02-html-practice-html-q3-97671409244c:option-1"
+        },
+        {
+          "text": "从场地最高处往低处赶，一次填到设计标高后再统一压实。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得从高处推土顺势方便。",
+          "loss_reason": "起填位置错、且不分层，下部压不实。",
+          "fix": "应从最低处起、由下而上分层铺。",
+          "option_id": "G02-html-practice-html-q3-97671409244c:option-2"
+        },
+        {
+          "text": "从最低处开始铺即可，厚度铺到多少不影响，压一遍成活。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住最低处起就以为够了。",
+          "loss_reason": "漏了分层与厚度控制。",
+          "fix": "补'由下而上整宽分层'+按机具控厚度遍数。",
+          "option_id": "G02-html-practice-html-q3-97671409244c:option-3"
+        },
+        {
+          "text": "由上而下逐层挖填，边挖边填保证密实。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把开挖顺序当回填顺序。",
+          "loss_reason": "回填是由下而上，不是由上而下。",
+          "fix": "回填应由下而上分层铺填。",
+          "option_id": "G02-html-practice-html-q3-97671409244c:option-4"
+        }
+      ],
+      "variant_id": "G02-html-practice-html-q3-97671409244c",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q3",
+      "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "铺填·程序维",
+      "stem": "对基础两侧（或周边）进行回填时，正确做法是？",
+      "model_answer": "相对两侧或周边应对称、均衡回填，防止结构偏压。",
+      "options": [
+        {
+          "text": "相对两侧（或周边）应对称、均衡回填，避免单侧受力使结构偏移。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出对称均衡+防偏压。",
+          "option_id": "G02-html-practice-html-q4-9a0b35a1c05a:option-1"
+        },
+        {
+          "text": "先把一侧回填压实到顶，再回填另一侧，逐侧完成效率高。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得一侧干完再干一侧省事。",
+          "loss_reason": "单侧回填致结构偏压移位。",
+          "fix": "两侧应对称、均衡同步回填。",
+          "option_id": "G02-html-practice-html-q4-9a0b35a1c05a:option-2"
+        },
+        {
+          "text": "两侧分层回填即可，是否对称无所谓，压实达标就行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记分层，忽略对称。",
+          "loss_reason": "漏'对称'，单侧仍会偏压。",
+          "fix": "必须相对两侧对称均衡回填。",
+          "option_id": "G02-html-practice-html-q4-9a0b35a1c05a:option-3"
+        },
+        {
+          "text": "哪侧空间大先填哪侧，方便机械进出。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "按施工便利决定顺序。",
+          "loss_reason": "忽视结构受力对称要求。",
+          "fix": "以结构受力为准，两侧对称回填。",
+          "option_id": "G02-html-practice-html-q4-9a0b35a1c05a:option-4"
+        }
+      ],
+      "variant_id": "G02-html-practice-html-q4-9a0b35a1c05a",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q4",
+      "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "虚铺·条件维",
+      "stem": "每层虚铺厚度应依据什么确定？选出正确、能得分的作答。",
+      "model_answer": "每层虚铺厚度应根据夯实机具确定，不按含水量。",
+      "options": [
+        {
+          "text": "每层虚铺厚度应根据夯实机具（夯击能）确定，不按含水量确定。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明按夯实机具，且否定'按含水量'。",
+          "option_id": "G02-html-practice-html-q5-7d9d763971e5:option-1"
+        },
+        {
+          "text": "每层虚铺厚度应根据土的含水量确定，含水量越大铺得越薄。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得土湿就该铺薄点，很顺手。",
+          "loss_reason": "2016年真题经典反向陷阱——虚铺厚度按机具不按含水量。",
+          "fix": "按夯实机具定，含水量只影响压实效果。",
+          "option_id": "G02-html-practice-html-q5-7d9d763971e5:option-2"
+        },
+        {
+          "text": "每层虚铺厚度按经验大致铺开就行，压实达标即可，无需固定依据。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得凭经验铺差不多。",
+          "loss_reason": "漏了'按夯实机具确定'这一采分依据。",
+          "fix": "必须写'按夯实机具确定'。",
+          "option_id": "G02-html-practice-html-q5-7d9d763971e5:option-3"
+        },
+        {
+          "text": "每层虚铺厚度统一按300mm铺，任何机具都一样。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记了个300mm就套所有机具。",
+          "loss_reason": "厚度随机具不同，不能一刀切。",
+          "fix": "按机具查表：平碾250-300、振动压实机250-350等。",
+          "option_id": "G02-html-practice-html-q5-7d9d763971e5:option-4"
+        }
+      ],
+      "variant_id": "G02-html-practice-html-q5-7d9d763971e5",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q5",
+      "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生就'振动压实机回填施工纠错'作答：②铺得太厚应薄一点；③压得太少多压几遍；④环刀取样送检没问题；①土料没看出问题。选出最准确的诊断与补写。",
+      "model_answer": "②③方向对但缺数值（应250-350mm、3-4遍）；④多层环刀统一送检不妥、应标准击实法；①建筑垃圾未识别；四处都要补写。",
+      "options": [
+        {
+          "text": "②③方向对但缺数值（应250-350mm、3-4遍）；④多层环刀统一送检不妥、应用标准击实法；①建筑垃圾未识别——四处都要补写。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "半命中补数值 + 两处漏点全揪出，这就是'会写答案'。",
+          "option_id": "G02-html-practice-html-q16-d5e2e8aea5ac:option-1"
+        },
+        {
+          "text": "作答基本正确，只是表述口语化，方向都对，可给满分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "看方向对就以为拿满分。",
+          "loss_reason": "缺数值=半分，且漏④环刀送检与①建筑垃圾两处。",
+          "fix": "补数值 + 补④标准击实法、①清除建筑垃圾两处。",
+          "option_id": "G02-html-practice-html-q16-d5e2e8aea5ac:option-2"
+        },
+        {
+          "text": "只需把'薄一点''多压几遍'改成具体数值即可，其余都对。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "抓到缺数值一处。",
+          "loss_reason": "漏诊④环刀统一送检、①建筑垃圾两处不妥。",
+          "fix": "除补数值，还要指④用标准击实法、①清除建筑垃圾。",
+          "option_id": "G02-html-practice-html-q16-d5e2e8aea5ac:option-3"
+        },
+        {
+          "text": "环刀法本身违规，四处主要错在都用了环刀，改灌砂法即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为错在环刀法本身。",
+          "loss_reason": "错在多层统一送检不分层，非环刀法被禁；且漏其他失分。",
+          "fix": "④错在统一送检、应标准击实法逐层；另补数值与建筑垃圾。",
+          "option_id": "G02-html-practice-html-q16-d5e2e8aea5ac:option-4"
+        }
+      ],
+      "variant_id": "G02-html-practice-html-q16-d5e2e8aea5ac",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q16",
+      "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c"
+    }
+  ],
+  "published_lesson_sha256": "5d05b429b0e9bd885e60d8cc7282cfda04bb01d4c639fb2ae3996b217fe51849"
+}

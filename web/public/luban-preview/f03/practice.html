@@ -10,6 +10,7 @@
 <!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -133,7 +134,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -195,6 +196,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 /* ░░░ 母版骨架逻辑：随堂练 ░░░
@@ -215,7 +217,7 @@ class Component extends DCLogic {
   moreText="本套合并了屋面与地下两阶段：屋面(定级/道数/倒置式层序/隔汽/种植耐根穿刺) + 地下(四级/一级做法/试配抗渗/接缝设防/室内翻起)。错在哪个阶段就回看那一集讲解，把整句采分句练顺。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
-    { tag:"屋面·定级", typeHint:"单选 · 选出分级与道数配套正确的作答", figLabel:"题给：屋面防水等级", figCaption:"屋面分几级？各级几道？", fig:"grade3",
+{ tag:"屋面·定级", typeHint:"单选 · 选出分级与道数配套正确的作答", figLabel:"题给：屋面防水等级", figCaption:"屋面分几级？各级几道？", fig:"grade3",
       stem:"某工程屋面防水设计。关于屋面防水的分级与设防道数，选出正确、能得分的作答。",
       model:"屋面防水分一、二、三级共三级；一级不少于3道(卷材≥1道)、二级不少于2道(卷材≥1道)、三级不少于1道。",
       opts:[
@@ -224,7 +226,7 @@ class Component extends DCLogic {
         { t:"屋面防水分三级，但各级道数不用记，按现场渗漏情况增减道数即可。", ok:false, code:"E02", tempt:"记住「三级」就以为够了，懒得背道数。", lose:"漏了各级设防道数这组采分点，只答分级不给全分。", fix:"补写一级≥3道(卷材≥1道)、二级≥2道、三级≥1道。" },
         { t:"屋面防水分三级，一级不少于2道、二级不少于1道，卷材涂料任选不作要求。", ok:false, code:"E03", tempt:"分级对，道数凭印象往小了写。", lose:"一级道数写少、且漏了「卷材≥1道」这个关键配套，数字错位。", fix:"一级≥3道且卷材≥1道、二级≥2道、三级≥1道。" }
       ] },
-    { tag:"屋面·道数", typeHint:"单选 · 选出一级设防道数写得全的作答", figLabel:"题给：屋面一级防水", figCaption:"一级≥3道，怎么配才拿分？", fig:"roofdef",
+{ tag:"屋面·道数", typeHint:"单选 · 选出一级设防道数写得全的作答", figLabel:"题给：屋面一级防水", figCaption:"一级≥3道，怎么配才拿分？", fig:"roofdef",
       stem:"某屋面防水等级为一级。关于其设防道数，选出完整、能得分的作答。",
       model:"屋面一级防水设防不少于3道，其中卷材防水层不少于1道；多道设防、一道破了后道兜底。",
       opts:[
@@ -233,7 +235,7 @@ class Component extends DCLogic {
         { t:"屋面一级防水不少于3道，三道随便配，涂料涂膜叠三层也算达标。", ok:false, code:"E03", tempt:"记住「3道」就以为齐了。", lose:"漏了「其中卷材≥1道」这一硬性配套，三道全涂膜不达标。", fix:"3道里必须至少1道是卷材防水层。" },
         { t:"屋面一级和地下一级一样，要防水混凝土1道加外设2道共3道。", ok:false, code:"E07", tempt:"都是「一级≥3道」，把地下的做法套到屋面。", lose:"防水混凝土+外设是地下的构成，屋面不用结构自防水这套。", fix:"屋面一级=≥3道(卷材≥1道)；防水混凝土应选是地下的。" }
       ] },
-    { tag:"屋面·基本要求", typeHint:"单选 · 选出基本要求写得全的作答", figLabel:"题给：屋面防水基本要求", figCaption:"排水原则 / 年限 / 附加层", fig:"reqs",
+{ tag:"屋面·基本要求", typeHint:"单选 · 选出基本要求写得全的作答", figLabel:"题给：屋面防水基本要求", figCaption:"排水原则 / 年限 / 附加层", fig:"reqs",
       stem:"关于屋面防水的基本要求，选出完整、能得分的作答。",
       model:"屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位设附加层。",
       opts:[
@@ -242,7 +244,7 @@ class Component extends DCLogic {
         { t:"屋面防水以防为主、以排为辅；设计工作年限不少于20年即可，各部位构造相同不必区别处理。", ok:false, code:"E02", tempt:"原则年限都对，就漏了细部。", lose:"漏了天沟/檐沟/变形缝/泛水设附加层这组采分点。", fix:"补写泛水等薄弱部位加设附加层。" },
         { t:"屋面防水以防为主、以排为辅；设计工作年限不少于10年，泛水部位设附加层。", ok:false, code:"E03", tempt:"原则附加层都对，年限凭印象写10年。", lose:"年限数字写小，屋面防水设计工作年限应≥20年。", fix:"设计工作年限不少于20年，不是10年。" }
       ] },
-    { tag:"屋面·层序", typeHint:"单选 · 选出倒置式层序自下而上正确的作答", figLabel:"题给：倒置式屋面构造层", figCaption:"自下而上怎么排？", fig:"invert",
+{ tag:"屋面·层序", typeHint:"单选 · 选出倒置式层序自下而上正确的作答", figLabel:"题给：倒置式屋面构造层", figCaption:"自下而上怎么排？", fig:"invert",
       stem:"某工程屋面采用倒置式保温屋面。写出自下而上的构造层次顺序，选出正确、能得分的作答。",
       model:"倒置式屋面自下而上：结构层→找坡层→找平层→防水层→保温层→保护层（保温层在防水层之上）。",
       opts:[
@@ -251,97 +253,7 @@ class Component extends DCLogic {
         { t:"自下而上：结构层→防水层→保温层→保护层，找坡找平不属构造层可省略。", ok:false, code:"E02", tempt:"只记住防水保温保护几个大层。", lose:"漏排找坡层、找平层两道过渡层，层次不全。", fix:"补齐结构→找坡→找平→防水→保温→保护。" },
         { t:"自下而上：结构层→找平层→找坡层→防水层→保温层→保护层，先找平再找坡。", ok:false, code:"E06", tempt:"找坡找平都做，顺手把两者调了个位。", lose:"顺序反了，应先找坡再找平（口诀「结构找坡再找平」）。", fix:"是找坡层在下、找平层在上：结构→找坡→找平。" }
       ] },
-    { tag:"屋面·层序辨析", typeHint:"单选 · 指出倒置式的判别特征", figLabel:"题给：正置式 vs 倒置式", figCaption:"区分两者的关键是哪一层的位置？", fig:"invert",
-      stem:"倒置式屋面与正置式屋面的关键区别在哪？选出准确、能得分的作答。",
-      model:"倒置式的特征是保温层设在防水层之上（正置式保温在防水之下），保温层保护防水层、延长其寿命。",
-      opts:[
-        { t:"倒置式特征是保温层设在防水层之上，反过来正置式保温在防水之下；保温在上保护防水层、延寿。", ok:true, fix:"点出唯一判别特征「保温相对防水的位置」，并说清好处。", code:"" },
-        { t:"倒置式与正置式的区别是有没有找坡层，倒置式取消找坡层直接做防水。", ok:false, code:"E07", tempt:"记不清特征，抓个「少一层」当区别。", lose:"两者都有找坡层，区别不在找坡；判别特征找错。", fix:"区别是保温层在防水层之上（倒置）还是之下（正置）。" },
-        { t:"倒置式是把保护层做到最下面、结构层做到最上面，整个层序上下颠倒。", ok:false, code:"E07", tempt:"望文生义，以为「倒置」是整摞层序翻转。", lose:"结构层始终在最下、保护层在最上，倒置只针对保温与防水的相对位置。", fix:"倒置只把保温层挪到防水层之上，其余不倒。" },
-        { t:"倒置式与正置式的区别是防水材料不同，倒置式必须用耐根穿刺卷材。", ok:false, code:"E07", tempt:"把种植屋面的耐根穿刺硬套过来。", lose:"倒置式区别在层位不在材料，耐根穿刺是种植屋面的层。", fix:"判别特征是保温在防水之上，与材料无关。" }
-      ] },
-    { tag:"屋面·隔汽层", typeHint:"单选 · 选出隔汽层位置与数值都对的作答", figLabel:"题给：隔汽层构造", figCaption:"放哪？翻起多高？", fig:"vapor",
-      stem:"关于屋面隔汽层的位置与构造，选出正确、能得分的作答。",
-      model:"隔汽层设在结构层之上、保温层之下，气密性好；沿周边墙面向上连续铺设，高出保温层不少于150mm。",
-      opts:[
-        { t:"隔汽层设在结构层之上、保温层之下，气密性好；沿墙面向上连续铺设、高出保温层不少于150mm。", ok:true, fix:"位置（结构上·保温下）+翻起150mm两个采分点都写到。", code:"" },
-        { t:"隔汽层设在防水层之上、保温层之上，把室内湿汽挡在最外层，高出保温层不少于150mm。", ok:false, code:"E06", tempt:"觉得隔汽要挡在外面、往上放。", lose:"位置错，隔汽层在结构层上、保温层下，不是放防水层上。", fix:"隔汽层在结构层之上、保温层之下。" },
-        { t:"隔汽层设在结构层之上、保温层之下，气密性好，沿墙面铺到与保温层齐平即可。", ok:false, code:"E03", tempt:"位置对，翻起高度凭印象写「齐平」。", lose:"漏了」高出保温层≥150mm「这个数值采分点。", fix:"沿墙翻起要高出保温层不少于150mm。" },
-        { t:"隔汽层设在结构层之上、保温层之下，沿墙面向上高出保温层不少于50mm即可。", ok:false, code:"E03", tempt:"位置对，把150记成了50。", lose:"翻起高度数字写小，应≥150mm不是50mm。", fix:"高出保温层不少于150mm。" }
-      ] },
-    { tag:"屋面·种植", typeHint:"单选 · 种植屋面比普通屋面多哪道", figLabel:"题给：种植屋面构造", figCaption:"多出来的是哪一层？", fig:"green",
-      stem:"种植屋面比普通屋面在构造上多了关键的一道防水层，是哪一道？选出正确、能得分的作答。",
-      model:"种植屋面在普通防水层之上多设一道耐根穿刺防水层，防止植物根系穿破防水层。",
-      opts:[
-        { t:"种植屋面在普通防水层之上多设一道耐根穿刺防水层，专防植物根系扎穿防水层。", ok:true, fix:"点名「耐根穿刺防水层」并说清作用，采分到位。", code:"" },
-        { t:"种植屋面比普通屋面多一道保温隔热层，用来给植物根部保温防冻。", ok:false, code:"E07", tempt:"想当然以为给植物就多保温。", lose:"多的是耐根穿刺防水层，不是保温层；层的性质记错。", fix:"多的是耐根穿刺防水层，防根扎穿。" },
-        { t:"种植屋面比普通屋面多一道过滤层就够，防水层与普通屋面完全相同。", ok:false, code:"E02", tempt:"看到「过滤层」这类新层就以为它是关键。", lose:"漏了耐根穿刺防水层这道关键采分层，过滤层挡不住根。", fix:"关键是多一道耐根穿刺防水层。" },
-        { t:"种植屋面把普通防水层换成一道耐根穿刺层，两者是替换关系、总层数不变。", ok:false, code:"E06", tempt:"以为耐根穿刺是替代普通防水。", lose:"是」多加」一道、普通防水在下耐根穿刺在上，不是替换。", fix:"普通防水层保留，其上再加耐根穿刺防水层。" }
-      ] },
-    { tag:"屋面·种植数值", typeHint:"单选 · 耐根穿刺厚度与排水坡度", figLabel:"题给：种植屋面参数", figCaption:"厚度 / 坡度各是多少？", fig:"green",
-      stem:"关于种植屋面耐根穿刺防水层厚度与排水坡度，选出数值正确、能得分的作答。",
-      model:"耐根穿刺：改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
-      opts:[
-        { t:"耐根穿刺改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。", ok:true, fix:"厚度分材料写全、坡度两档写全，数值采分齐。", code:"" },
-        { t:"耐根穿刺各材料厚度都不少于1mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。", ok:false, code:"E03", tempt:"坡度对，厚度嫌麻烦笼统写「≥1mm」。", lose:"厚度按材料分档，改性沥青要≥4mm，一刀切1mm数值错。", fix:"改性沥青≥4mm、PVC等≥1.2mm、聚脲≥2mm。" },
-        { t:"耐根穿刺改性沥青≥4mm、PVC等≥1.2mm、聚脲≥2mm；排水坡度种植平屋面≥1%即可。", ok:false, code:"E03", tempt:"厚度对，坡度把2%记成1%。", lose:"种植平屋面坡度应≥2%，写1%数值偏小。", fix:"种植平屋面≥2%、天沟檐沟≥1%。" },
-        { t:"耐根穿刺厚度按现场定、无硬性要求；排水坡度种植平屋面≥2%、天沟檐沟≥1%。", ok:false, code:"E02", tempt:"坡度写对，厚度懒得记具体值。", lose:"漏了耐根穿刺分材料的最小厚度这组采分数值。", fix:"补写各材料最小厚度4/1.2/2mm。" }
-      ] },
-    { tag:"地下·定级", typeHint:"单选 · 地下工程防水等级分几级", figLabel:"题给：地下工程防水等级", figCaption:"分几级？和屋面一样吗？", fig:"grade4",
-      stem:"关于地下工程防水等级的分级，选出正确、能得分的作答。",
-      model:"地下工程防水等级分一、二、三、四级共四级（屋面防水才分三级），分级数不同不可互套。",
-      opts:[
-        { t:"地下工程防水等级分一、二、三、四级共四级；屋面防水分三级，两者分级数不同不可互套。", ok:true, fix:"分级数「四级」写准，并点明与屋面三级的区分，防互套。", code:"" },
-        { t:"地下工程防水等级和屋面一样分一、二、三级共三级，按三级选设防。", ok:false, code:"E07", tempt:"把屋面三级顺手套到地下。", lose:"地下是四级、屋面才三级，分级数记混、等级一错全错。", fix:"地下分四级；三级是屋面防水分级。" },
-        { t:"地下工程防水等级分一、二、三、四、五级共五级，级数越高要求越低。", ok:false, code:"E03", tempt:"觉得地下更复杂，多补一级凑「五级」。", lose:"地下只到四级，写五级分级数多了、数字错。", fix:"地下工程防水等级共四级，没有五级。" },
-        { t:"地下工程防水按有无渗水只分合格与不合格两档，不细分等级。", ok:false, code:"E07", tempt:"以为渗漏就是「合格/不合格」二分。", lose:"地下防水按渗漏程度分四级，不是两档。", fix:"分四级：一级不渗水到四级有漏点。" }
-      ] },
-    { tag:"地下·一级做法", typeHint:"单选 · 选出一级做法写得全的作答", figLabel:"题给：地下一级防水", figCaption:"≥3道怎么构成？", fig:"dugdef",
-      stem:"某地下工程防水等级为一级。关于其防水做法与抗渗，选出完整、能得分的作答。",
-      model:"地下一级防水做法不少于3道＝防水混凝土1道(应选)＋外设防水层不少于2道(卷材或涂料≥1道)，抗渗不低于P8。",
-      opts:[
-        { t:"地下一级防水不少于3道＝防水混凝土1道(应选)＋外设防水层≥2道(卷材或涂料≥1道)，抗渗不低于P8。", ok:true, fix:"防水混凝土应选＋外设≥2道＋P8，三件配套写全。", code:"" },
-        { t:"地下一级防水做防水混凝土一道即可，结构自防水抗渗到P8就不必再外加防水层。", ok:false, code:"E02", tempt:"觉得防水混凝土P8已很强、省去外设。", lose:"一级要≥3道，漏了外设防水层≥2道这组采分，只1道不达标。", fix:"防水混凝土1道＋外设≥2道，共≥3道。" },
-        { t:"地下一级防水不少于3道＝外设防水层3道，防水混凝土不作要求、抗渗到P8即可。", ok:false, code:"E02", tempt:"记得「3道」和「P8」，把混凝土漏了。", lose:"漏了」防水混凝土1道应选」这个必选采分项。", fix:"3道里防水混凝土是应选的1道。" },
-        { t:"地下一级防水不少于3道＝防水混凝土1道＋外设≥2道，抗渗不低于P6即可。", ok:false, code:"E03", tempt:"道数配套都对，抗渗把P8记成P6。", lose:"一级抗渗应≥P8，写P6数字偏低（P6是三级）。", fix:"一级抗渗不低于P8。" }
-      ] },
-    { tag:"地下·三级", typeHint:"单选 · 选出三级要求写得准的作答", figLabel:"题给：地下三级防水", figCaption:"三级和一级差在哪？", fig:"grade4",
-      stem:"某地下工程防水等级为三级。关于其防水做法与抗渗，选出正确、能得分的作答。",
-      model:"地下三级防水做法不少于1道，防水混凝土1道(应选)，外设防水层不作要求，抗渗不低于P6。",
-      opts:[
-        { t:"地下三级防水不少于1道、防水混凝土1道应选，外设防水层不作要求，抗渗不低于P6。", ok:true, fix:"道数、外设不作要求、抗渗P6三点写准，与一级区分清。", code:"" },
-        { t:"地下三级防水也要不少于3道、外设≥2道、抗渗P8，与一级要求相同。", ok:false, code:"E07", tempt:"把一级那套硬性要求套到三级。", lose:"三级只需≥1道、抗渗P6，写成一级要求过度设防、口径错。", fix:"三级≥1道、P6、外设不作要求。" },
-        { t:"地下三级防水不少于1道，抗渗不低于P8，外设防水层不作要求。", ok:false, code:"E03", tempt:"道数对，抗渗顺手写成P8。", lose:"三级抗渗应≥P6，P8是一级的数值，数字错位。", fix:"三级抗渗不低于P6。" },
-        { t:"地下三级防水不少于1道即可，防水混凝土可要可不要、抗渗不作要求。", ok:false, code:"E02", tempt:"觉得三级最松、什么都不作要求。", lose:"漏了防水混凝土1道应选、抗渗≥P6这两个采分点。", fix:"防水混凝土仍应选1道、抗渗仍≥P6。" }
-      ] },
-    { tag:"地下·结构自防水", typeHint:"单选 · 选出试配抗渗写得对的作答", figLabel:"题给：防水混凝土抗渗", figCaption:"设计P8，试配配到几？", fig:"mix",
-      stem:"某地下防水混凝土设计抗渗等级P8。关于试配抗渗的取值，选出正确、能得分的作答。",
-      model:"防水混凝土试配抗渗比设计提高0.2MPa，即设计P8时试配配到P10，以预留施工离散的富余。",
-      opts:[
-        { t:"防水混凝土试配抗渗比设计提高0.2MPa，设计P8则试配配到P10，预留施工离散富余。", ok:true, fix:"点出「试配比设计提高0.2MPa」并给出P8→P10，采分到位。", code:"" },
-        { t:"防水混凝土试配抗渗按设计值取，设计P8试配就配到P8，一致即可。", ok:false, code:"E07", tempt:"觉得试配＝设计、按设计值配最省事。", lose:"试配要比设计提高0.2MPa，直接按P8配现场实测易低于设计。", fix:"试配比设计提高0.2MPa，P8配到P10。" },
-        { t:"防水混凝土试配抗渗比设计提高0.2MPa，设计P8则试配配到P9。", ok:false, code:"E03", tempt:"知道要提高，把一个抗渗等级差算成0.1MPa。", lose:"一个抗渗等级是0.2MPa，P8提0.2应到P10不是P9。", fix:"提高0.2MPa即提高一个等级，P8→P10。" },
-        { t:"防水混凝土试配抗渗比设计降低0.2MPa，设计P8则试配P6，方便施工。", ok:false, code:"E07", tempt:"以为放宽试配好施工。", lose:"方向反了，试配要比设计」提高」不是降低，降低会不达标。", fix:"是提高0.2MPa，P8→P10。" }
-      ] },
-    { tag:"地下·接缝", typeHint:"单选 · 选出接缝设防种数写得对的作答", figLabel:"题给：接缝防水设防", figCaption:"施工缝、后浇带各几种？", fig:"joint",
-      stem:"关于地下工程施工缝、后浇带的防水设防种数，选出正确、能得分的作答。",
-      model:"施工缝防水设防不少于2种、后浇带防水设防不少于1种（中埋止水带、遇水膨胀止水条、注浆管、外贴卷材等搭配）。",
-      opts:[
-        { t:"施工缝防水设防不少于2种、后浇带不少于1种，中埋止水带、遇水膨胀止水条、外贴卷材等搭配互相兜底。", ok:true, fix:"两种缝的种数分别写准，并举出有效措施，采分齐。", code:"" },
-        { t:"施工缝、后浇带都只需设1种防水措施，选一种可靠的止水带即可。", ok:false, code:"E03", tempt:"觉得一种可靠措施就够。", lose:"施工缝要≥2种，写1种数字不足；单措施失效即漏。", fix:"施工缝≥2种、后浇带≥1种。" },
-        { t:"施工缝防水设防不少于1种、后浇带不少于2种，后浇带更弱要多设。", ok:false, code:"E07", tempt:"觉得后浇带更弱，把两者种数记反。", lose:"是施工缝≥2种、后浇带≥1种，两者种数记反了。", fix:"施工缝2种、后浇带1种，别调换。" },
-        { t:"施工缝防水设防不少于2种，后浇带用补偿收缩混凝土浇实即可、不必再设止水措施。", ok:false, code:"E02", tempt:"施工缝对，觉得后浇带浇实就行。", lose:"漏了后浇带仍需≥1种防水设防这个采分点。", fix:"后浇带也要≥1种防水设防措施。" }
-      ] },
-    { tag:"地下·施工缝位置", typeHint:"单选 · 选出施工缝位置与止水条数值对的作答", figLabel:"题给：水平施工缝设置", figCaption:"高出底板多少？止水条膨胀率多少？", fig:"joint",
-      stem:"关于地下水平施工缝的设置与遇水膨胀止水条性能，选出数值正确、能得分的作答。",
-      model:"水平施工缝高出底板不少于300mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。",
-      opts:[
-        { t:"水平施工缝高出底板不少于300mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。", ok:true, fix:"缝位300mm与止水条220%两个数值都写全。", code:"" },
-        { t:"水平施工缝留在底板表面处最省事，遇水膨胀止水条最终膨胀率不低于220%。", ok:false, code:"E10", tempt:"觉得缝留底板面好支模、好施工。", lose:"缝留底板面正处积水区易漏，应高出底板≥300mm。", fix:"水平施工缝高出底板不少于300mm。" },
-        { t:"水平施工缝高出底板不少于100mm；遇水膨胀止水条最终膨胀率不低于220%。", ok:false, code:"E03", tempt:"止水条对，缝高把300记成100。", lose:"高出底板应≥300mm，写100mm数字偏小。", fix:"高出底板不少于300mm。" },
-        { t:"水平施工缝高出底板不少于300mm；遇水膨胀止水条最终膨胀率不低于60%即可。", ok:false, code:"E03", tempt:"把7d净膨胀率≤60%当成了最终膨胀率。", lose:"60%是7d净膨胀率的上限，最终膨胀率应≥220%，两个指标混了。", fix:"最终膨胀率不低于220%（7d净膨胀率≤60%最终）。" }
-      ] },
-    { tag:"室内·翻起 · 诊断末题", typeHint:"单选 · 诊断学生作答并给正确采分句补写", figLabel:"模拟学生作答（待诊断）", figCaption:"淋浴翻起写1800、盥洗漏写", fig:"flush",
+{ tag:"室内·翻起 · 诊断末题", typeHint:"单选 · 诊断学生作答并给正确采分句补写", figLabel:"模拟学生作答（待诊断）", figCaption:"淋浴翻起写1800、盥洗漏写", fig:"flush",
       stem:"某学生答室内防水翻起高度：①淋浴区墙面翻起1800mm；②盥洗用水处未写；③其他泛水部位250mm。选出最准确的诊断与采分句补写。",
       model:"淋浴区应≥2000mm(写1800偏低)、盥洗用水处漏写应补≥1200mm、其他泛水≥250mm正确；补写三档：淋浴≥2000、盥洗≥1200、其他≥250mm，迎水面设防潮/防水。",
       opts:[
@@ -485,7 +397,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -504,6 +416,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F03")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

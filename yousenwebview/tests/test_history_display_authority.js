@@ -100,6 +100,25 @@ function loadHistoryPage(rawConversations, initialStorage) {
           isLoggedIn: function () {
             return true;
           },
+          getUserId: function () {
+            return "student-a";
+          },
+          readOwnerStorage: function (key) {
+            var envelope = storage[key + ":student-a"];
+            if (!envelope || envelope.ownerId !== "student-a") return null;
+            return envelope.value;
+          },
+          writeOwnerStorage: function (key, value) {
+            storage[key + ":student-a"] = {
+              ownerId: "student-a",
+              value: value,
+            };
+            return true;
+          },
+          removeOwnerStorage: function (key) {
+            delete storage[key + ":student-a"];
+            return true;
+          },
         };
       }
       if (request === "../../utils/runtime") {
@@ -306,33 +325,36 @@ function loadHistoryPage(rawConversations, initialStorage) {
   );
 
   var cachedPage = loadHistoryPage([], {
-    history_cache: {
-      ts: Date.now(),
-      conversations: [
-        {
-          id: "cached_tb_history_1",
-          title: "New conversation",
-          preview: "考点 分值 ------ ------ 安装牢固、启闭灵活 0.5",
-          capabilityLabel: "TutorBot",
-          time: "1/21 21:36",
-          preferences: {
-            interaction_hints: {
-              effective_response_mode: "fast",
+    "history_cache:student-a": {
+      ownerId: "student-a",
+      value: {
+        ts: Date.now(),
+        conversations: [
+          {
+            id: "cached_tb_history_1",
+            title: "New conversation",
+            preview: "考点 分值 ------ ------ 安装牢固、启闭灵活 0.5",
+            capabilityLabel: "TutorBot",
+            time: "1/21 21:36",
+            preferences: {
+              interaction_hints: {
+                effective_response_mode: "fast",
+              },
             },
+            rawTime: Math.floor(nowMs / 1000),
           },
-          rawTime: Math.floor(nowMs / 1000),
-        },
-        {
-          id: "cached_internal_context",
-          title:
-            "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n## 当前用户问题\n缓存里的进度题",
-          preview:
-            "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n[Question Follow-up Context]\nQuestion ID: tb_q_2",
-          capabilityLabel: "TutorBot",
-          rawTime: Math.floor(nowMs / 1000),
-        },
-      ],
-      groups: [{ label: "今天", items: [] }],
+          {
+            id: "cached_internal_context",
+            title:
+              "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n## 当前用户问题\n缓存里的进度题",
+            preview:
+              "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n[Question Follow-up Context]\nQuestion ID: tb_q_2",
+            capabilityLabel: "TutorBot",
+            rawTime: Math.floor(nowMs / 1000),
+          },
+        ],
+        groups: [{ label: "今天", items: [] }],
+      },
     },
   });
 
@@ -414,9 +436,11 @@ function loadHistoryPage(rawConversations, initialStorage) {
     "history refresh should not resurrect a conversation after delete was acknowledged",
   );
   assert(
-    deletedPage._testStorage.history_cache.conversations.length === 1 &&
-      deletedPage._testStorage.history_cache.conversations[0].id ===
-        "visible_after_refresh",
+    deletedPage._testStorage["history_cache:student-a"].value.conversations
+      .length === 1 &&
+      deletedPage._testStorage[
+        "history_cache:student-a"
+      ].value.conversations[0].id === "visible_after_refresh",
     "history cache should also exclude deleted tombstone conversations",
   );
 

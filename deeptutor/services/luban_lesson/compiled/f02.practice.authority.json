@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "F02",
+  "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
+  "source_bundle_sha256": "9efbda616c8ea0283cd1bc1cdbb55c7490866284c8d8fac5eda709affa400681",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html",
+      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a",
+      "format_kind": "q_direct",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "variant_ids": [
+        "F02-html-practice-html-q1-a901d12f5442",
+        "F02-html-practice-html-q2-8c8411934bd3",
+        "F02-html-practice-html-q3-737cf69735c4",
+        "F02-html-practice-html-q4-d649932926b5",
+        "F02-html-practice-html-q6-bae48b5ad9f5"
+      ],
+      "published_practice_sha256": "fb0e442dc2eac8b614d0dbfd6b53d463fa062eaa32dfc1f1fa63fde6edd1e1a7"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "顺序·程序维",
+      "stem": "某屋面防水等级 1 级、采用卷材防水。关于卷材铺贴顺序与起始方向，选出最完整、能得分的作答。",
+      "model_answer": "先做细部构造处理（阴阳角、泛水、管根、落水口加强），后大面积铺贴；大面由屋面最低标高处起、由低向高铺贴，上幅压下幅。",
+      "options": [
+        {
+          "text": "先做细部构造处理（阴阳角、泛水、管根、落水口加强），后大面积铺贴；大面由屋面最低标高处起、由低向高铺贴，上幅压下幅。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先细部后大面 + 由低向高 + 上幅压下幅，三件齐，程序分稳拿。",
+          "option_id": "F02-html-practice-html-q1-a901d12f5442:option-1"
+        },
+        {
+          "text": "为图省事把大面积卷材先一次性铺贴到位、大面整体完成之后，才回头处理阴阳角、泛水、管根、落水口等各处细部节点，逐一统一收边加强、补做防水加强处理即可。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得先把大面铺完、细部最后收边更顺手。",
+          "loss_reason": "违反「先细部后大面」，细部漏加强成渗漏隐患，程序顺序错误。",
+          "fix": "先做细部构造加强，再大面铺贴。",
+          "option_id": "F02-html-practice-html-q1-a901d12f5442:option-2"
+        },
+        {
+          "text": "先做阴阳角泛水等细部构造加强、后铺大面，大面卷材由屋脊最高标高处起步、由高向低往檐口方向铺贴，下一幅压住上一幅顺着坡势向下收边。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "从高往低铺像是顺着重力、好操作。",
+          "loss_reason": "由高向低、下幅压上幅使缝口迎水倒灌，方向全反。",
+          "fix": "由屋面最低标高起、由低向高、上幅压下幅。",
+          "option_id": "F02-html-practice-html-q1-a901d12f5442:option-3"
+        },
+        {
+          "text": "大面卷材由屋面最低标高处起、由低向高、上幅压下幅铺贴到位，阴阳角、泛水、管根等细部节点与大面采用同一做法一并铺贴、不另行单独加强。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住了「由低向高」，以为顺序就齐了。",
+          "loss_reason": "漏写「先细部后大面、细部需专门加强」，采分点遗漏。",
+          "fix": "补「先做细部构造加强、后大面」。",
+          "option_id": "F02-html-practice-html-q1-a901d12f5442:option-4"
+        }
+      ],
+      "variant_id": "F02-html-practice-html-q1-a901d12f5442",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q1",
+      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "方向·记录维",
+      "stem": "关于屋面卷材的搭接缝方向与铺贴方向，选出能得分的作答。",
+      "model_answer": "搭接缝应顺流水方向搭接；卷材宜平行屋脊铺贴；上下两层及相邻两幅不得相互垂直铺贴。",
+      "options": [
+        {
+          "text": "搭接缝顺流水方向搭接，卷材宜平行屋脊铺贴，上下两层不得相互垂直。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "顺流水 + 平行屋脊 + 上下层不垂直，方向三要件全。",
+          "option_id": "F02-html-practice-html-q2-8c8411934bd3:option-1"
+        },
+        {
+          "text": "卷材宜平行屋脊铺贴、上下两层不得相互垂直，搭接缝宜逆流水方向搭接、缝口迎着水压得更紧更防水。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为缝口顶着水、压紧了更不漏。",
+          "loss_reason": "逆流水即迎水缝，水正好往缝里倒灌，方向概念反。",
+          "fix": "搭接缝必须顺流水方向搭接。",
+          "option_id": "F02-html-practice-html-q2-8c8411934bd3:option-2"
+        },
+        {
+          "text": "搭接缝顺流水方向搭接，卷材垂直屋脊铺贴、上下两层相互垂直交叉铺以增强整体防水性。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得两层交叉像编织、更结实。",
+          "loss_reason": "上下层垂直使两层缝十字交叉成漏点；垂直屋脊又使缝逆坡。",
+          "fix": "平行屋脊铺贴、上下两层不得垂直。",
+          "option_id": "F02-html-practice-html-q2-8c8411934bd3:option-3"
+        },
+        {
+          "text": "卷材宜平行屋脊、顺坡向铺贴即可，搭接缝方向与上下两层的铺贴关系按现场顺手施工处理。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "记住「平行屋脊」，以为方向就够了。",
+          "loss_reason": "漏写「搭接缝顺流水」「上下层不得垂直」两要件，关键词缺失。",
+          "fix": "补「顺流水方向 + 上下层不得垂直」。",
+          "option_id": "F02-html-practice-html-q2-8c8411934bd3:option-4"
+        }
+      ],
+      "variant_id": "F02-html-practice-html-q2-8c8411934bd3",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q2",
+      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "搭接量·记录维",
+      "stem": "双层卷材铺贴，关于搭接错缝量，选出数值与口径都能得分的作答。",
+      "model_answer": "同层相邻两幅短边搭接错缝距离≥500mm；上下两层及长边接缝错开≥1/3 幅宽。",
+      "options": [
+        {
+          "text": "同层相邻两幅短边搭接错缝距离≥500mm；上下两层及长边接缝错开≥1/3 幅宽。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两数值配套：短边≥500mm、错开≥1/3幅宽，换数据也不丢。",
+          "option_id": "F02-html-practice-html-q3-737cf69735c4:option-1"
+        },
+        {
+          "text": "同层相邻两幅短边搭接错缝距离≥50mm；上下两层及长边接缝错开距离≥1/2 幅宽。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数值记个大概，50mm、半幅宽顺口。",
+          "loss_reason": "短边应≥500mm（差了 10 倍）、错开应≥1/3 幅宽，规范数字混淆。",
+          "fix": "短边≥500mm、错开≥1/3 幅宽。",
+          "option_id": "F02-html-practice-html-q3-737cf69735c4:option-2"
+        },
+        {
+          "text": "相邻两幅卷材的短边、长边接缝均要错缝铺贴，接缝彼此避开、不落在同一直线上即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道要错缝，懒得写具体数值。",
+          "loss_reason": "只写定性、不给「≥500mm / ≥1/3幅宽」数值，关键数值缺失=不得分。",
+          "fix": "必带数值：短边≥500mm、错开≥1/3幅宽。",
+          "option_id": "F02-html-practice-html-q3-737cf69735c4:option-3"
+        },
+        {
+          "text": "同层相邻两幅短边搭接错缝距离≥500mm 即可，上下两层与长边接缝可对齐、无需另行错开。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记住了 500，以为长边/上下层随意。",
+          "loss_reason": "漏「长边及上下层错开≥1/3幅宽」，且「无需错开」错误。",
+          "fix": "补「长边及上下层错开≥1/3幅宽」。",
+          "option_id": "F02-html-practice-html-q3-737cf69735c4:option-4"
+        }
+      ],
+      "variant_id": "F02-html-practice-html-q3-737cf69735c4",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q3",
+      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "铺贴方法·条件维",
+      "stem": "某屋面坡度 28%、采用厚度 4mm 的高聚物改性沥青卷材。关于铺贴方法与热熔施工，选出能得分的作答。",
+      "model_answer": "坡度 28%>25%，立面/大坡面采用满粘法并钉压固定；卷材厚度≥3mm 可用热熔法，加热温度控制 180~200℃。",
+      "options": [
+        {
+          "text": "坡度 28%>25%，采用满粘法并加钉压固定；卷材厚度 4mm≥3mm 可用热熔法，加热温度控制 180~200℃。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先点坡度阈值、再定满粘+钉压、热熔温度带区间，条件链全。",
+          "option_id": "F02-html-practice-html-q4-d649932926b5:option-1"
+        },
+        {
+          "text": "坡度 28% 属一般坡面、采用空铺法即可，卷材厚度 4mm≥3mm 可用热熔法、加热 180~200℃、无需另加钉压固定。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得空铺省胶、施工快。",
+          "loss_reason": "坡度>25% 必须满粘+钉压，空铺会下滑，规范适用错误。",
+          "fix": "坡度>25% 满粘并钉压固定。",
+          "option_id": "F02-html-practice-html-q4-d649932926b5:option-2"
+        },
+        {
+          "text": "坡度 28%>25% 采用满粘法并钉压固定，为加快进度厚度 3mm 以下的薄卷材也统一用热熔法施工。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "热熔法统一好操作、不用换工艺。",
+          "loss_reason": "厚度<3mm 卷材严禁热熔（易烤穿），规范适用错误。",
+          "fix": "厚度<3mm 严禁热熔法。",
+          "option_id": "F02-html-practice-html-q4-d649932926b5:option-3"
+        },
+        {
+          "text": "坡度 28%>25% 采用满粘法即可、无需钉压固定，卷材厚度 4mm≥3mm 可热熔、加热温度控制 230~250℃较稳妥。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "满粘记住了，温度凭印象往高写。",
+          "loss_reason": "漏「钉压」，且热熔温度应 180~200℃，数字混淆。",
+          "fix": "满粘+钉压；热熔温度 180~200℃。",
+          "option_id": "F02-html-practice-html-q4-d649932926b5:option-4"
+        }
+      ],
+      "variant_id": "F02-html-practice-html-q4-d649932926b5",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q4",
+      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "细部诊断·末题",
+      "stem": "某学生答女儿墙泛水节点：①泛水高度做 200mm；②阴阳角基层做成直角；③女儿墙泛水未做附加层；④收头处简单压住。选出最准确的诊断与采分句补写。",
+      "model_answer": "四处均不妥：泛水高度应≥250mm；阴阳角基层应做 45°或圆弧（不得直角）；应增设附加层、平面立面宽度均≥250mm；收头应金属压条钉压并密封、下端设鹰嘴和滴水槽。",
+      "options": [
+        {
+          "text": "四处均不妥：泛水高度应≥250mm（非200）；阴阳角基层应做 45°或圆弧（不得直角）；应增设附加层、平面立面均≥250mm；收头金属压条钉压并密封、下端设鹰嘴滴水槽。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四处全揪出、逐项给数值与做法——这就是「会写答案」。",
+          "option_id": "F02-html-practice-html-q6-bae48b5ad9f5:option-1"
+        },
+        {
+          "text": "本题仅第①处泛水高度 200mm 偏低、应改成不小于250mm 即可；②阴阳角基层做成直角、③女儿墙泛水未做附加层、④收头处简单压住这三处做法均已符合规范要求、无需再整改。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到一个数值错，就以为只此一处。",
+          "loss_reason": "漏诊阴阳角直角、未做附加层、收头无鹰嘴滴水槽三处，采分点遗漏。",
+          "fix": "阴阳角圆弧、附加层≥250、收头鹰嘴滴水槽都要补。",
+          "option_id": "F02-html-practice-html-q6-bae48b5ad9f5:option-2"
+        },
+        {
+          "text": "仅①泛水高度和②阴阳角基层直角两处不妥、应整改到位；③增设附加层与④收头鹰嘴滴水槽属屋面大面及后续防水工序做法，女儿墙泛水节点处此处不必逐项单独列出诊断。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为附加层/收头不算细部采分点。",
+          "loss_reason": "附加层（平立面≥250）与收头（鹰嘴滴水槽）正是细部高分采分点，遗漏。",
+          "fix": "补附加层平立面≥250 + 收头金属压条钉压密封+鹰嘴滴水槽。",
+          "option_id": "F02-html-practice-html-q6-bae48b5ad9f5:option-3"
+        },
+        {
+          "text": "①②③④这几处做法都存在明显问题，应统一按屋面卷材防水规范要求整改到位、逐一加强女儿墙各节点构造处理、最终确保该部位长期不发生渗漏水现象。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道有错，懒得逐项点准数值与做法。",
+          "loss_reason": "未点准每处数值/做法（泛水≥250、圆弧、附加层≥250、鹰嘴滴水槽），改正不可操作=泛泛不得分。",
+          "fix": "逐项写：泛水≥250、阴阳角圆弧、附加层平立面≥250、收头鹰嘴滴水槽。",
+          "option_id": "F02-html-practice-html-q6-bae48b5ad9f5:option-4"
+        }
+      ],
+      "variant_id": "F02-html-practice-html-q6-bae48b5ad9f5",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q6",
+      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a"
+    }
+  ],
+  "published_lesson_sha256": "6343b191ebb511fb51e410899be1216d6e328faaa7ce4f144c085ef05e29fe59"
+}

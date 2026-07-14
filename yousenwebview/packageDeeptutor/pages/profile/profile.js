@@ -221,7 +221,9 @@ Page({
       navHeight: info.statusBarHeight + 44,
     });
     // 读取本地缓存的头像
-    var localAvatar = wx.getStorageSync("local_avatar_path");
+    var localAvatar = auth.readOwnerStorage
+      ? auth.readOwnerStorage("local_avatar_path")
+      : "";
     this._localAvatarPath = localAvatar || "";
     if (localAvatar) {
       this.setData({ avatarUrl: localAvatar });
@@ -413,14 +415,16 @@ Page({
           success: function (saveRes) {
             var savedPath = saveRes.savedFilePath;
             self._localAvatarPath = savedPath;
-            wx.setStorageSync("local_avatar_path", savedPath);
+            if (auth.writeOwnerStorage)
+              auth.writeOwnerStorage("local_avatar_path", savedPath);
             self.setData({ avatarUrl: savedPath });
             wx.showToast({ title: "头像已更新", icon: "success" });
           },
           fail: function () {
             // saveFile 失败时直接用临时路径
             self._localAvatarPath = tempPath;
-            wx.setStorageSync("local_avatar_path", tempPath);
+            if (auth.writeOwnerStorage)
+              auth.writeOwnerStorage("local_avatar_path", tempPath);
             self.setData({ avatarUrl: tempPath });
             wx.showToast({ title: "头像已更新", icon: "success" });
           },

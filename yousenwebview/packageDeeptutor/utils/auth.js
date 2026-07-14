@@ -12,6 +12,15 @@ function clearReportCache(userId) {
   } catch (_err) {}
 }
 
+function ownerStorage() {
+  if (typeof require !== "function") return null;
+  try {
+    return require("./owner-storage");
+  } catch (_err) {
+    return null;
+  }
+}
+
 function normalizeExpiry(value) {
   if (typeof value === "string" && !/^\d+$/.test(value.trim())) {
     return 0;
@@ -176,6 +185,21 @@ const auth = {
 
   getUserId() {
     return wx.getStorageSync(USER_ID_KEY) || null;
+  },
+
+  readOwnerStorage(baseKey) {
+    var storage = ownerStorage();
+    return storage ? storage.read(baseKey, this.getUserId()) : null;
+  },
+
+  writeOwnerStorage(baseKey, value) {
+    var storage = ownerStorage();
+    return storage ? storage.write(baseKey, this.getUserId(), value) : false;
+  },
+
+  removeOwnerStorage(baseKey) {
+    var storage = ownerStorage();
+    return storage ? storage.remove(baseKey, this.getUserId()) : false;
   },
 
   getTokenExpiry() {

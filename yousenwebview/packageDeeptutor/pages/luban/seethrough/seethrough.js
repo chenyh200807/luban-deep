@@ -8,6 +8,7 @@
 // 红线:掌握前端不自算(仅本地判对错+呈现,不写掌握);错因只投影签发 error_code(E系);
 //   薄 program-progress(第几天/已完成天,本地呈现层非学情真值);学员端文案禁审视硬词。
 const api = require("../../../utils/api");
+const auth = require("../../../utils/auth");
 const telemetry = require("../../../utils/surface-telemetry");
 
 var PACK_ID = "F16";
@@ -59,22 +60,19 @@ Page({
 
   _restoreProgress() {
     var done = [];
-    try {
-      if (typeof wx !== "undefined" && wx.getStorageSync) {
-        var raw = wx.getStorageSync(PROGRESS_KEY);
-        if (raw && Array.isArray(raw.completedDays)) done = raw.completedDays;
-      }
-    } catch (_e) {}
+    var raw = auth.readOwnerStorage ? auth.readOwnerStorage(PROGRESS_KEY) : null;
+    if (raw && Array.isArray(raw.completedDays)) done = raw.completedDays;
     this.setData({ completedDays: done });
   },
 
   _persistProgress(completedDays) {
     // 本地呈现层进度(第几天/已完成天),非掌握真值——掌握等复测读回,前端不自算。
-    try {
-      if (typeof wx !== "undefined" && wx.setStorageSync) {
-        wx.setStorageSync(PROGRESS_KEY, { completedDays: completedDays, at: Date.now() });
-      }
-    } catch (_e) {}
+    if (auth.writeOwnerStorage) {
+      auth.writeOwnerStorage(PROGRESS_KEY, {
+        completedDays: completedDays,
+        at: Date.now(),
+      });
+    }
   },
 
   _load() {

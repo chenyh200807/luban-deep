@@ -4,16 +4,19 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import subprocess
 import sys
-from pathlib import Path
 from typing import Iterable
-
 
 WORKFLOW_FILES = {
     ".github/workflows/tests.yml",
     ".github/pull_request_template.md",
 }
+
+FINISHED_PRACTICE_AUTHORITY_PREFIX = (
+    "artifacts/luban_case_family_assets/diagram_microlesson/finished/"
+)
 
 SECRET_SCAN_EXCLUDED_PREFIXES = (
     ".playwright-cli/",
@@ -22,6 +25,7 @@ SECRET_SCAN_EXCLUDED_PREFIXES = (
     "artifacts/",
     "deeptutor/services/benchmark/fixtures/",
     "deeptutor/services/construction_grading/runtime_supply/",
+    "deeptutor/services/luban_lesson/compiled/",
     "deeptutor/services/taxonomy/compiled/",
     "dist/",
     "output/",
@@ -100,10 +104,21 @@ def _has(changed: Iterable[str], *, prefixes: tuple[str, ...] = (), exact: tuple
     return any(path in exact_set or any(path.startswith(prefix) for prefix in prefixes) for path in changed)
 
 
+def _has_finished_practice_authority(changed: Iterable[str]) -> bool:
+    return any(
+        path.startswith(FINISHED_PRACTICE_AUTHORITY_PREFIX)
+        and ".practice" in Path(path).name
+        and path.endswith(".dc.html")
+        for path in changed
+    )
+
+
 def classify(changed: Iterable[str]) -> dict[str, bool]:
     changed = list(changed)
+    practice_authority_changed = _has_finished_practice_authority(changed)
     return {
-        "governance": _has(
+        "governance": practice_authority_changed
+        or _has(
             changed,
             prefixes=(
                 "deeptutor/",
@@ -130,7 +145,8 @@ def classify(changed: Iterable[str]) -> dict[str, bool]:
                 "docs/zh/guide/unified-turn-contract.md",
             ),
         ),
-        "backend": _has(
+        "backend": practice_authority_changed
+        or _has(
             changed,
             prefixes=(
                 "deeptutor/",

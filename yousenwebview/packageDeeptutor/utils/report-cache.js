@@ -1,14 +1,14 @@
 // 学情快照仅是可丢弃的 UI 加速层；canonical truth 仍在服务端 learning report。
 // 本模块唯一拥有缓存 key/envelope，防页面与 logout 各复制一套字符串协议。
 var BASE_KEY = "deeptutor.report.unifiedSnapshot.v2";
+var ownerStorage = require("./owner-storage");
 
 function _userId(value) {
   return String(value || "").trim();
 }
 
 function keyFor(userId) {
-  var normalized = _userId(userId);
-  return normalized ? BASE_KEY + ":" + encodeURIComponent(normalized) : "";
+  return ownerStorage.keyFor(BASE_KEY, _userId(userId));
 }
 
 function _snapshotUserId(snapshot) {
@@ -22,8 +22,8 @@ function read(userId, maxAgeMs) {
   var key = keyFor(normalized);
   if (!key || typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return null;
   try {
-    var cached = wx.getStorageSync(key);
-    if (!cached || typeof cached !== "object" || cached.userId !== normalized) return null;
+    var cached = ownerStorage.read(BASE_KEY, normalized);
+    if (!cached || typeof cached !== "object") return null;
     if (!cached.snapshot || typeof cached.snapshot !== "object") return null;
     var snapshotUserId = _snapshotUserId(cached.snapshot);
     if (snapshotUserId && snapshotUserId !== normalized) return null;
@@ -43,8 +43,9 @@ function write(userId, snapshot) {
   if (snapshotUserId && snapshotUserId !== normalized) return false;
   try {
     if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return false;
-    wx.setStorageSync(key, { userId: normalized, cachedAt: Date.now(), snapshot: snapshot });
-    return true;
+    return ownerStorage.write(BASE_KEY, normalized, {
+      cachedAt: Date.now(), snapshot: snapshot,
+    });
   } catch (_) {
     return false;
   }
@@ -54,9 +55,7 @@ function clear(userId) {
   var key = keyFor(userId);
   if (!key) return false;
   try {
-    if (typeof wx === "undefined" || typeof wx.removeStorageSync !== "function") return false;
-    wx.removeStorageSync(key);
-    return true;
+    return ownerStorage.remove(BASE_KEY, userId);
   } catch (_) {
     return false;
   }

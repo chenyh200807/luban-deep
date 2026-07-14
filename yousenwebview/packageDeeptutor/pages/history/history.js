@@ -460,7 +460,7 @@ Page({
     }
     var cacheKey =
       this.data.tab === "archived" ? CACHE_KEY_ARCHIVED : CACHE_KEY;
-    var cached = wx.getStorageSync(cacheKey);
+    var cached = auth.readOwnerStorage ? auth.readOwnerStorage(cacheKey) : null;
     var now = Date.now();
 
     if (cached && cached.groups && cached.ts && now - cached.ts < CACHE_TTL) {
@@ -502,7 +502,7 @@ Page({
 
         var cacheKey = isArchived ? CACHE_KEY_ARCHIVED : CACHE_KEY;
         var visibleConvs = _filterDeletedConversations(convs);
-        wx.setStorageSync(cacheKey, {
+        if (auth.writeOwnerStorage) auth.writeOwnerStorage(cacheKey, {
           conversations: visibleConvs,
           groups: _groupByDate(visibleConvs),
           totalCount: visibleConvs.length,
@@ -636,8 +636,8 @@ Page({
       .then(function () {
         _rememberDeletedConversationIds([convId]);
         self._removeFromGroups([convId]);
-        wx.removeStorageSync(CACHE_KEY);
-        wx.removeStorageSync(CACHE_KEY_ARCHIVED);
+        if (auth.removeOwnerStorage) auth.removeOwnerStorage(CACHE_KEY);
+        if (auth.removeOwnerStorage) auth.removeOwnerStorage(CACHE_KEY_ARCHIVED);
         wx.showToast({ title: "已删除", icon: "success" });
       })
       .catch(function () {
@@ -663,8 +663,8 @@ Page({
           .then(function () {
             wx.hideLoading();
             self._removeFromGroups([convId]);
-            wx.removeStorageSync(CACHE_KEY);
-            wx.removeStorageSync(CACHE_KEY_ARCHIVED);
+            if (auth.removeOwnerStorage) auth.removeOwnerStorage(CACHE_KEY);
+            if (auth.removeOwnerStorage) auth.removeOwnerStorage(CACHE_KEY_ARCHIVED);
             wx.showToast({ title: "已归档", icon: "success" });
           })
           .catch(function () {
@@ -799,8 +799,8 @@ Page({
         self._removeFromGroups(ids);
         self._exitEditMode();
         // 清除两个缓存使数据刷新
-        wx.removeStorageSync(CACHE_KEY);
-        wx.removeStorageSync(CACHE_KEY_ARCHIVED);
+        if (auth.removeOwnerStorage) auth.removeOwnerStorage(CACHE_KEY);
+        if (auth.removeOwnerStorage) auth.removeOwnerStorage(CACHE_KEY_ARCHIVED);
         var msg =
           action === "delete"
             ? "已删除 " + ids.length + " 条"
@@ -834,7 +834,7 @@ Page({
     // 同步缓存
     var cacheKey =
       this.data.tab === "archived" ? CACHE_KEY_ARCHIVED : CACHE_KEY;
-    wx.setStorageSync(cacheKey, {
+    if (auth.writeOwnerStorage) auth.writeOwnerStorage(cacheKey, {
       conversations: newConversations,
       groups: newGroups,
       totalCount: newConversations.length,

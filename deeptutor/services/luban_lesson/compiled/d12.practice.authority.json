@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "D12",
+  "source_pack_sha256": "701c192b8452c27afb6af58d3c7054eeda3e8a2a4f2ef0526df840650a01b8fc",
+  "source_bundle_sha256": "0405f85b607d6600a03d46e99234817a2f1a135360a044d9554fde7b65d6d3f3",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "D12-html-practice-html-q1-c82ac8a6630d",
+        "D12-html-practice-html-q2-55d0c00a5f46",
+        "D12-html-practice-html-q3-df0569592ab3",
+        "D12-html-practice-html-q4-06e0382b5e2b",
+        "D12-html-practice-html-q16-5ba096d5deb8"
+      ],
+      "published_practice_sha256": "de5c955f9e665d4e53aecf17a7704664406c08d785f0cf82e2f9216b1e3aa7e4"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "饰面板分类·记录表达维",
+      "stem": "饰面板工程按面层材料如何分类？选出完整、能得分的作答。",
+      "model_answer": "按面层材料分：石材、瓷板、金属、木质、玻璃、塑料饰面板工程（六类）。",
+      "options": [
+        {
+          "text": "按面层材料分为石材、瓷板、金属、木质、玻璃、塑料饰面板工程，共六类。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六类一字不落、别混入幕墙板，正是分类采分点。",
+          "option_id": "D12-html-practice-html-q1-c82ac8a6630d:option-1"
+        },
+        {
+          "text": "饰面板主要分石材饰面板和瓷板饰面板两类，其余按现场材料灵活归类即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住最常见的石材、瓷板两类。",
+          "loss_reason": "漏了金属/木质/玻璃/塑料四类，采分点整维遗漏。",
+          "fix": "补全六类：石材、瓷板、金属、木质、玻璃、塑料饰面板工程。",
+          "option_id": "D12-html-practice-html-q1-c82ac8a6630d:option-2"
+        },
+        {
+          "text": "按面层材料分石材、瓷板、金属、木质、玻璃、塑料，并把石材幕墙、玻璃幕墙一并列入饰面板。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得挂在墙上的板都算饰面板。",
+          "loss_reason": "幕墙工程另成体系，混入饰面板属概念混淆。",
+          "fix": "饰面板六类不含幕墙；幕墙单独分类，别掺进来。",
+          "option_id": "D12-html-practice-html-q1-c82ac8a6630d:option-3"
+        },
+        {
+          "text": "按材料分好几类，主要有石头的、瓷的、金属的、木头的等常见几种材料板。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "意思对但用口语词代替规范名。",
+          "loss_reason": "缺规范类名（瓷板/木质/塑料饰面板工程），关键词缺失。",
+          "fix": "用规范名：石材、瓷板、金属、木质、玻璃、塑料饰面板工程。",
+          "option_id": "D12-html-practice-html-q1-c82ac8a6630d:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q1-c82ac8a6630d",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q1",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "石材三法·条件程序维",
+      "stem": "墙柱面石材饰面板施工方法及其配套要求，选出正确、能得分的作答。",
+      "model_answer": "分干挂（短槽/背槽/背栓）、干粘、湿贴三法；干挂用工厂加工挂件并做六面防护，湿贴应铲除背网。",
+      "options": [
+        {
+          "text": "墙柱面石材分干挂（短槽/背槽/背栓）、干粘、湿贴三法；干挂工厂加工挂件做六面防护，湿贴应铲除背网。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三法＋干挂六面防护＋湿贴铲背网，配套写全才满分。",
+          "option_id": "D12-html-practice-html-q2-55d0c00a5f46:option-1"
+        },
+        {
+          "text": "墙柱面石材分干挂、干粘、湿贴三种方法，按现场条件任选一种施工即可完成。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答方法名，觉得配套要求不重要。",
+          "loss_reason": "漏了干挂六面防护、湿贴铲除背网等配套采分点。",
+          "fix": "补配套：干挂工厂加工挂件＋六面防护，湿贴铲除背网。",
+          "option_id": "D12-html-practice-html-q2-55d0c00a5f46:option-2"
+        },
+        {
+          "text": "墙柱面石材采用干挂石材幕墙做法，龙骨挂装、打胶密封，不需要六面防护处理。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把干挂饰面板当成石材幕墙。",
+          "loss_reason": "干挂饰面板≠石材幕墙，且干挂石材需六面防护，概念混淆。",
+          "fix": "干挂饰面板用工厂加工挂件＋六面防护，别当幕墙。",
+          "option_id": "D12-html-practice-html-q2-55d0c00a5f46:option-3"
+        },
+        {
+          "text": "石材可以挂上去，也可以粘上去或贴上去，按情况处理好背面和防护就行了。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "意思沾边但没点名方法与配套。",
+          "loss_reason": "缺干挂/干粘/湿贴、六面防护、铲背网等关键词。",
+          "fix": "点名三法＋六面防护＋铲除背网。",
+          "option_id": "D12-html-practice-html-q2-55d0c00a5f46:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q2-55d0c00a5f46",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q2",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "薄型块材·条件维",
+      "stem": "石材薄型小规格块材可否采用粘贴法？其尺寸门槛与粘贴厚度如何？选出能得分的作答。",
+      "model_answer": "厚≤10mm 且边长<40cm 的薄型小规格块材方可粘贴，粘贴厚度 8~10mm；超规格须改干挂。",
+      "options": [
+        {
+          "text": "厚度≤10mm 且边长<40cm 的薄型小规格块材方可粘贴，粘贴厚度 8~10mm，超规格改干挂。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两道门槛（≤10mm、<40cm）＋粘贴厚 8~10mm，缺一不可。",
+          "option_id": "D12-html-practice-html-q3-df0569592ab3:option-1"
+        },
+        {
+          "text": "石材块材都可以采用粘贴法施工，只要粘结剂饱满、基层处理好即可，无尺寸限制。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为粘贴法通用、不看尺寸。",
+          "loss_reason": "忽略尺寸门槛，超规格石材粘贴易脱落，规范适用错误。",
+          "fix": "只有厚≤10mm、边长<40cm 的薄型块材才可粘贴。",
+          "option_id": "D12-html-practice-html-q3-df0569592ab3:option-2"
+        },
+        {
+          "text": "小规格薄块材可以粘贴，注意别选太厚太大的，粘牢一点就行。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对但没给具体数值。",
+          "loss_reason": "缺≤10mm、<40cm、8~10mm 具体门槛，关键词缺失。",
+          "fix": "写全厚≤10mm、边长<40cm、粘贴厚 8~10mm。",
+          "option_id": "D12-html-practice-html-q3-df0569592ab3:option-3"
+        },
+        {
+          "text": "厚度≤10mm 且边长<40cm 可粘贴，粘贴厚度取 3~8mm 与饰面砖一致。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把粘结剂 3~8mm 套到石材粘贴厚度上。",
+          "loss_reason": "薄型块材粘贴厚度是 8~10mm，3~8mm 是饰面砖粘结剂厚度，数值混淆。",
+          "fix": "薄型块材粘贴厚 8~10mm，别与饰面砖粘结剂 3~8mm 混。",
+          "option_id": "D12-html-practice-html-q3-df0569592ab3:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q3-df0569592ab3",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q3",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工准备·记录条件维",
+      "stem": "饰面板工程施工准备阶段应做哪些检验与处理？选出完整、能得分的作答。",
+      "model_answer": "后置埋件做拉拔力检验合格；湿作业法石板背面、侧面做防碱封闭；金属饰面板防雷装置与主体可靠接通。",
+      "options": [
+        {
+          "text": "后置埋件做拉拔力检验合格；湿作业法石板背面侧面防碱封闭；金属饰面板防雷装置与主体可靠接通。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "拉拔力＋防碱封闭＋防雷接通三件写全，防碱最易漏。",
+          "option_id": "D12-html-practice-html-q4-06e0382b5e2b:option-1"
+        },
+        {
+          "text": "后置埋件做拉拔力检验合格，金属饰面板防雷装置与主体接通，基层清理干净后即可施工。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住埋件和防雷，漏了防碱。",
+          "loss_reason": "漏湿作业法石板防碱封闭，采分点遗漏。",
+          "fix": "补上湿作业法石板背面侧面防碱封闭。",
+          "option_id": "D12-html-practice-html-q4-06e0382b5e2b:option-2"
+        },
+        {
+          "text": "湿作业法石板背面侧面要做防酸封闭、防辐射处理，后置埋件做拉拔力检验合格。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把防碱错记成防酸/防辐射。",
+          "loss_reason": "是防碱封闭（防泛碱），不是防酸/防辐射，规范适用错误。",
+          "fix": "湿作业石板做防碱封闭，别写防酸/防辐射。",
+          "option_id": "D12-html-practice-html-q4-06e0382b5e2b:option-3"
+        },
+        {
+          "text": "上墙前把埋件、封闭、接地这些准备都做到位，检验合格了再施工就行。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "笼统带过没点名。",
+          "loss_reason": "缺后置埋件拉拔力、防碱封闭、防雷接通关键词。",
+          "fix": "点名拉拔力检验＋防碱封闭＋防雷接通。",
+          "option_id": "D12-html-practice-html-q4-06e0382b5e2b:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q4-06e0382b5e2b",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q4",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答外墙饰面砖空鼓防治：‘加强现场管理、提高工人责任心、空鼓的敲掉重贴’。选出最准确的诊断与补写。",
+      "model_answer": "全是口号无可判分措施(E04)，且漏空鼓五要点；应改写：基层清理干净、水泥基粘结材料、界面剂＋背砂、大面积设伸缩缝、养护到位。",
+      "options": [
+        {
+          "text": "作答口号化、无可判分措施，且漏空鼓五要点；应改写基层清理、水泥基粘结、界面剂＋背砂、伸缩缝、养护。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "识破口号化＋补五要点实措施，就是‘会写答案’。",
+          "option_id": "D12-html-practice-html-q16-5ba096d5deb8:option-1"
+        },
+        {
+          "text": "作答基本到位，加强管理和敲掉重贴都是有效措施，再补一句养护即可给分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把口号当有效措施，只想补一句。",
+          "loss_reason": "‘加强管理/敲掉重贴’是口号非采分措施，诊断方向错。",
+          "fix": "整体口号化需重写五要点，不是补一句。",
+          "option_id": "D12-html-practice-html-q16-5ba096d5deb8:option-2"
+        },
+        {
+          "text": "只是漏了养护一条，把养护补上，其余作答都算对可以给分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为只差一条。",
+          "loss_reason": "漏基层/材料/界面剂背砂/伸缩缝多条，且原文全是口号。",
+          "fix": "五要点几乎全漏，需整体改写实措施。",
+          "option_id": "D12-html-practice-html-q16-5ba096d5deb8:option-3"
+        },
+        {
+          "text": "方向是对的，只要把这些措施写得再具体些、别太笼统就能得分。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "含糊指出笼统但没给内容。",
+          "loss_reason": "未点名应补哪五条采分措施，指导无落点。",
+          "fix": "明确补基层/材料/界面剂背砂/伸缩缝/养护五条。",
+          "option_id": "D12-html-practice-html-q16-5ba096d5deb8:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q16-5ba096d5deb8",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q16",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+    }
+  ],
+  "published_lesson_sha256": "cc6b8d422d805798a3dc34fe7365968d1186bc8e04afa9fe8fb5b198a76a4772"
+}

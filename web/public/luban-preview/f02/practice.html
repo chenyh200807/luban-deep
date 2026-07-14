@@ -9,6 +9,7 @@
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -130,7 +131,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 四关采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 四关本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -192,6 +193,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
@@ -201,7 +203,7 @@ class Component extends DCLogic {
   moreText="补两道：① 屋面卷材搭接做法正误（{2016第27题}）——练「短边≥500mm + 长边/上下层≥1/3幅宽 + 搭接缝顺流水 + 上下层不垂直」逐项写全；② 地下室外防内贴顺序（{2025第13题}）——练 ③程序箭头链「先立面 → 后平面」，把顺序维补成闭环。";
   // ── 题库：顺序 → 方向 → 搭接量 → 条件 → 地下 → 细部诊断（6 题）──
   Q=[
-    { tag:"顺序·程序维", typeHint:"单选 · 选出最完整、能拿分的作答", figLabel:"图示：屋面卷材铺贴剖面", figCaption:"由低向高 · 上幅压下幅 · 先细部后大面", fig:"order",
+{ tag:"顺序·程序维", typeHint:"单选 · 选出最完整、能拿分的作答", figLabel:"图示：屋面卷材铺贴剖面", figCaption:"由低向高 · 上幅压下幅 · 先细部后大面", fig:"order",
       stem:"某屋面防水等级 1 级、采用卷材防水。关于卷材铺贴顺序与起始方向，选出最完整、能得分的作答。",
       model:"先做细部构造处理（阴阳角、泛水、管根、落水口加强），后大面积铺贴；大面由屋面最低标高处起、由低向高铺贴，上幅压下幅。",
       opts:[
@@ -210,7 +212,7 @@ class Component extends DCLogic {
         { t:"先做阴阳角泛水等细部构造加强、后铺大面，大面卷材由屋脊最高标高处起步、由高向低往檐口方向铺贴，下一幅压住上一幅顺着坡势向下收边。", ok:false, code:"E06", tempt:"从高往低铺像是顺着重力、好操作。", lose:"由高向低、下幅压上幅使缝口迎水倒灌，方向全反。", fix:"由屋面最低标高起、由低向高、上幅压下幅。" },
         { t:"大面卷材由屋面最低标高处起、由低向高、上幅压下幅铺贴到位，阴阳角、泛水、管根等细部节点与大面采用同一做法一并铺贴、不另行单独加强。", ok:false, code:"E02", tempt:"记住了「由低向高」，以为顺序就齐了。", lose:"漏写「先细部后大面、细部需专门加强」，采分点遗漏。", fix:"补「先做细部构造加强、后大面」。" }
       ] },
-    { tag:"方向·记录维", typeHint:"单选 · 选出方向口径完整的作答", figLabel:"图示：搭接缝与流水方向", figCaption:"顺流水 ✓ vs 逆流水迎水缝 ✗", fig:"flow",
+{ tag:"方向·记录维", typeHint:"单选 · 选出方向口径完整的作答", figLabel:"图示：搭接缝与流水方向", figCaption:"顺流水 ✓ vs 逆流水迎水缝 ✗", fig:"flow",
       stem:"关于屋面卷材的搭接缝方向与铺贴方向，选出能得分的作答。",
       model:"搭接缝应顺流水方向搭接；卷材宜平行屋脊铺贴；上下两层及相邻两幅不得相互垂直铺贴。",
       opts:[
@@ -219,7 +221,7 @@ class Component extends DCLogic {
         { t:"搭接缝顺流水方向搭接，卷材垂直屋脊铺贴、上下两层相互垂直交叉铺以增强整体防水性。", ok:false, code:"E07", tempt:"觉得两层交叉像编织、更结实。", lose:"上下层垂直使两层缝十字交叉成漏点；垂直屋脊又使缝逆坡。", fix:"平行屋脊铺贴、上下两层不得垂直。" },
         { t:"卷材宜平行屋脊、顺坡向铺贴即可，搭接缝方向与上下两层的铺贴关系按现场顺手施工处理。", ok:false, code:"E03", tempt:"记住「平行屋脊」，以为方向就够了。", lose:"漏写「搭接缝顺流水」「上下层不得垂直」两要件，关键词缺失。", fix:"补「顺流水方向 + 上下层不得垂直」。" }
       ] },
-    { tag:"搭接量·记录维", typeHint:"单选 · 选出数值与口径都对的作答", figLabel:"图示：搭接错缝量（俯视）", figCaption:"短边错缝 ≥500mm · 长边/上下层 ≥1/3 幅宽", fig:"lapdim",
+{ tag:"搭接量·记录维", typeHint:"单选 · 选出数值与口径都对的作答", figLabel:"图示：搭接错缝量（俯视）", figCaption:"短边错缝 ≥500mm · 长边/上下层 ≥1/3 幅宽", fig:"lapdim",
       stem:"双层卷材铺贴，关于搭接错缝量，选出数值与口径都能得分的作答。",
       model:"同层相邻两幅短边搭接错缝距离≥500mm；上下两层及长边接缝错开≥1/3 幅宽。",
       opts:[
@@ -228,7 +230,7 @@ class Component extends DCLogic {
         { t:"相邻两幅卷材的短边、长边接缝均要错缝铺贴，接缝彼此避开、不落在同一直线上即可。", ok:false, code:"E03", tempt:"知道要错缝，懒得写具体数值。", lose:"只写定性、不给「≥500mm / ≥1/3幅宽」数值，关键数值缺失=不得分。", fix:"必带数值：短边≥500mm、错开≥1/3幅宽。" },
         { t:"同层相邻两幅短边搭接错缝距离≥500mm 即可，上下两层与长边接缝可对齐、无需另行错开。", ok:false, code:"M08", tempt:"记住了 500，以为长边/上下层随意。", lose:"漏「长边及上下层错开≥1/3幅宽」，且「无需错开」错误。", fix:"补「长边及上下层错开≥1/3幅宽」。" }
       ] },
-    { tag:"铺贴方法·条件维", typeHint:"单选 · 选出阈值条件点全的作答", figLabel:"图示：坡度/厚度阈值触发", figCaption:"坡度>25% 满粘+钉压 · 厚<3mm 严禁热熔 · 热熔180~200℃", fig:"cond",
+{ tag:"铺贴方法·条件维", typeHint:"单选 · 选出阈值条件点全的作答", figLabel:"图示：坡度/厚度阈值触发", figCaption:"坡度>25% 满粘+钉压 · 厚<3mm 严禁热熔 · 热熔180~200℃", fig:"cond",
       stem:"某屋面坡度 28%、采用厚度 4mm 的高聚物改性沥青卷材。关于铺贴方法与热熔施工，选出能得分的作答。",
       model:"坡度 28%>25%，立面/大坡面采用满粘法并钉压固定；卷材厚度≥3mm 可用热熔法，加热温度控制 180~200℃。",
       opts:[
@@ -237,16 +239,7 @@ class Component extends DCLogic {
         { t:"坡度 28%>25% 采用满粘法并钉压固定，为加快进度厚度 3mm 以下的薄卷材也统一用热熔法施工。", ok:false, code:"E10", tempt:"热熔法统一好操作、不用换工艺。", lose:"厚度<3mm 卷材严禁热熔（易烤穿），规范适用错误。", fix:"厚度<3mm 严禁热熔法。" },
         { t:"坡度 28%>25% 采用满粘法即可、无需钉压固定，卷材厚度 4mm≥3mm 可热熔、加热温度控制 230~250℃较稳妥。", ok:false, code:"M08", tempt:"满粘记住了，温度凭印象往高写。", lose:"漏「钉压」，且热熔温度应 180~200℃，数字混淆。", fix:"满粘+钉压；热熔温度 180~200℃。" }
       ] },
-    { tag:"地下卷材·程序+记录", typeHint:"单选 · 真题{2018·14}{2025·13}口径", figLabel:"图示：地下室外墙卷材（剖面）", figCaption:"迎水面 · 外墙外侧满贴 · 外防内贴先立面后平面", fig:"under",
-      stem:"地下室外墙采用卷材防水。关于卷材铺设位置、做法与外防内贴法顺序，选出能得分的作答。",
-      model:"卷材防水层铺设在结构迎水面、外墙外侧采用满贴法、上下两层不得相互垂直；外防内贴法宜先铺立面、后铺平面。",
-      opts:[
-        { t:"卷材铺在结构迎水面、外墙外侧满贴，上下两层不得相互垂直；外防内贴法先铺立面、后铺平面。", ok:true, fix:"迎水面 + 外侧满贴 + 不垂直 + 先立面后平面，四点全。", code:"" },
-        { t:"卷材铺在结构背水面、外墙内侧采用空铺法，上下两层可相互垂直，外防内贴法先铺平面后铺立面。", ok:false, code:"E11", tempt:"觉得背水面也能挡水、空铺省事。", lose:"应铺迎水面、外墙外侧满贴；背水面/空铺迁移失败。", fix:"迎水面 + 外墙外侧满贴。" },
-        { t:"卷材铺在结构迎水面、外墙外侧满贴，外防内贴法先铺平面、后铺立面，遵循先大面后转角收边。", ok:false, code:"E06", tempt:"习惯先铺地面大面、再上墙转角。", lose:"外防内贴法应先立面、后平面，程序顺序错误。", fix:"外防内贴法先立面、后平面。" },
-        { t:"卷材防水层铺设在结构迎水面即可，外墙铺贴方式、上下层关系与外防内贴顺序按现场条件灵活处理。", ok:false, code:"E03", tempt:"记住「迎水面」，以为够了。", lose:"漏「外墙外侧满贴、不得垂直、外防内贴先立面后平面」，关键词缺失。", fix:"补满贴/不垂直/先立面后平面。" }
-      ] },
-    { tag:"细部诊断·末题", typeHint:"单选 · 诊断学生作答并补写采分句", figLabel:"图示：学生作答（女儿墙泛水·待诊断）", figCaption:"真题 {2015·案例2} · 逐项找漏、补采分句", fig:"sheet",
+{ tag:"细部诊断·末题", typeHint:"单选 · 诊断学生作答并补写采分句", figLabel:"图示：学生作答（女儿墙泛水·待诊断）", figCaption:"真题 {2015·案例2} · 逐项找漏、补采分句", fig:"sheet",
       stem:"某学生答女儿墙泛水节点：①泛水高度做 200mm；②阴阳角基层做成直角；③女儿墙泛水未做附加层；④收头处简单压住。选出最准确的诊断与采分句补写。",
       model:"四处均不妥：泛水高度应≥250mm；阴阳角基层应做 45°或圆弧（不得直角）；应增设附加层、平面立面宽度均≥250mm；收头应金属压条钉压并密封、下端设鹰嘴和滴水槽。",
       opts:[
@@ -390,7 +383,7 @@ class Component extends DCLogic {
     let score=0; const review=this.Q.map((qq,i)=>{ const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.Q.forEach((qq,i)=>{ if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(this.Q.length*0.4)?0:score<this.Q.length-1?1:score<this.Q.length?2:3;
+    const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(this.Q.length*0.4)?0:score<this.Q.length-1?1:score<this.Q.length?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -409,6 +402,35 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F02")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

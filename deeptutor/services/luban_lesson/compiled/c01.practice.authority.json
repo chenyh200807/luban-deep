@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "C01",
+  "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
+  "source_bundle_sha256": "d5ae48ec488c6de9b21eee2362cefa529525db7146f2e6f9ef84761fd9eb665c",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "C01-html-practice-html-q1-acc6b596f503",
+        "C01-html-practice-html-q2-ef00f8f4d305",
+        "C01-html-practice-html-q3-1e65c200f4eb",
+        "C01-html-practice-html-q4-cab9423f74d4",
+        "C01-html-practice-html-q15-897464688b02"
+      ],
+      "published_practice_sha256": "f325fb73e246aabcaee5477b5af7000823d9ab8045c1a93d0504bc9118864bec"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工缝·位置",
+      "stem": "施工缝的留置位置，选出各构件都对、能得分的作答。",
+      "model_answer": "柱留基础/楼板/梁顶面；单向板平行短边任意位置；有主次梁楼板留次梁跨中1/3；墙留门洞口过梁跨中1/3或纵横交接处；楼梯梯段端部1/3；双向板按设计确定。",
+      "options": [
+        {
+          "text": "柱在梁板顶面、单向板平行短边任意位置、有主次梁楼板留次梁跨中1/3、墙留洞口过梁跨中1/3或交接处、楼梯端部1/3、双向板按设计确定。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "各构件位置逐条写全、数值到位，这就是位置题的满分骨架。",
+          "option_id": "C01-html-practice-html-q1-acc6b596f503:option-1"
+        },
+        {
+          "text": "施工缝宜留在各构件受剪力较大的部位，让新混凝土在受力大处接得更牢、整体性更好。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「受力大处接得牢」听着顺理成章。",
+          "loss_reason": "方向反了——施工缝是薄弱面，规范要求留在受剪力较小处。",
+          "fix": "施工缝宜留在受剪力较小、便于施工处。",
+          "option_id": "C01-html-practice-html-q1-acc6b596f503:option-2"
+        },
+        {
+          "text": "有主次梁的楼板，施工缝留在主梁跨中1/3范围内，跟着最大的主梁走最稳妥。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "主梁比次梁大，直觉认为跟主梁。",
+          "loss_reason": "规定是次梁跨中1/3，把主次梁搞反、构件认错。",
+          "fix": "有主次梁楼板留次梁跨中1/3范围内。",
+          "option_id": "C01-html-practice-html-q1-acc6b596f503:option-3"
+        },
+        {
+          "text": "施工缝留在次梁跨中1/3、楼梯端部1/3就够了，柱墙等其余构件现场看着定。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住两条就以为覆盖全了。",
+          "loss_reason": "漏了柱、墙、单向板、双向板的位置，采分点大面积遗漏。",
+          "fix": "补全柱梁板顶面0~100、墙0~300/交接、单向板平行短边、双向板按设计。",
+          "option_id": "C01-html-practice-html-q1-acc6b596f503:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q1-acc6b596f503",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q1",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工缝·受力位置",
+      "stem": "关于施工缝留在受剪力较小还是较大处，选出正确、能得分的表述。",
+      "model_answer": "施工缝宜留在受剪力较小、便于施工的部位；必要时经设计单位确认。",
+      "options": [
+        {
+          "text": "施工缝宜留在受剪力较小、便于施工的部位，必要时经设计单位确认。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "方向词「受剪力较小」+「设计单位确认」都写到，位置原则满分。",
+          "option_id": "C01-html-practice-html-q2-ef00f8f4d305:option-1"
+        },
+        {
+          "text": "施工缝宜留在受剪力较大部位，让接缝主动承担较大剪力以增强结构整体性。",
+          "is_correct": false,
+          "source_error_code": "M04",
+          "temptation": "选项把「承担剪力」包装成优点，很像正确表述。",
+          "loss_reason": "这是典型选项陷阱，方向恰好反了，留剪力大处会被剪力撕开。",
+          "fix": "改成受剪力较小、便于施工处。",
+          "option_id": "C01-html-practice-html-q2-ef00f8f4d305:option-2"
+        },
+        {
+          "text": "施工缝留哪都行，只要凿毛铺砂浆把接缝处理干净，就不影响结构整体性。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得「处理到位就行」，弱化了位置要求。",
+          "loss_reason": "位置与处理是两个独立采分点，位置错照样扣分。",
+          "fix": "先满足受剪力较小处，再谈处理工序。",
+          "option_id": "C01-html-practice-html-q2-ef00f8f4d305:option-3"
+        },
+        {
+          "text": "施工缝留在受剪力较小处即可，是否经设计单位确认无所谓、施工方自行决定。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "位置说对了，容易忽略主体确认。",
+          "loss_reason": "漏了「必要时经设计单位确认」这个主体维采分点。",
+          "fix": "补一句必要时经设计单位确认。",
+          "option_id": "C01-html-practice-html-q2-ef00f8f4d305:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q2-ef00f8f4d305",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q2",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工缝·时机",
+      "stem": "关于施工缝的留设时机，选出能得分的作答。",
+      "model_answer": "浇筑宜连续；必须间歇时尽量缩短，并在前层混凝土初凝前浇完次层，否则留置施工缝。",
+      "options": [
+        {
+          "text": "浇筑宜连续；必须间歇时尽量缩短，并在前层混凝土初凝前浇完次层，否则留置施工缝。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "连续、初凝前、否则留缝三段齐，时机采分句完整。",
+          "option_id": "C01-html-practice-html-q3-1e65c200f4eb:option-1"
+        },
+        {
+          "text": "浇筑中断多久都不要紧，只要最后把缝处理好，中断时间与是否留缝无关。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得「处理好就行」，忽视时间窗。",
+          "loss_reason": "漏了初凝前浇完这个时机判据，中断过久不留缝会成通缝。",
+          "fix": "须在前层初凝前浇完次层，否则留置施工缝。",
+          "option_id": "C01-html-practice-html-q3-1e65c200f4eb:option-2"
+        },
+        {
+          "text": "只要坚持连续浇筑，任何工程都绝不会出现施工缝，不必考虑留设。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把「宜连续」绝对化成「一定不留」。",
+          "loss_reason": "实际必须间歇时仍要留缝，概念绝对化。",
+          "fix": "宜连续；必须间歇时初凝前浇完，否则留缝。",
+          "option_id": "C01-html-practice-html-q3-1e65c200f4eb:option-3"
+        },
+        {
+          "text": "必须间歇时，在前层混凝土终凝前浇完次层即可，否则留置施工缝。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "「凝」字对，只是初凝写成了终凝。",
+          "loss_reason": "规范是初凝前，不是终凝前，关键时间点记错。",
+          "fix": "是前层初凝前浇完次层。",
+          "option_id": "C01-html-practice-html-q3-1e65c200f4eb:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q3-1e65c200f4eb",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q3",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工缝·数值",
+      "stem": "柱、墙水平施工缝距结构上表面的距离，选出数值正确的作答。",
+      "model_answer": "柱水平施工缝距结构上表面0~100mm；墙0~300mm；均留在梁板顶面等受剪力较小处。",
+      "options": [
+        {
+          "text": "柱水平施工缝距结构上表面0~100mm，墙0~300mm，都留在梁板顶面等受剪力较小处。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "柱0~100、墙0~300分清，数值维采分到位。",
+          "option_id": "C01-html-practice-html-q4-cab9423f74d4:option-1"
+        },
+        {
+          "text": "柱、墙水平施工缝一律距结构上表面0~300mm，两者按同一数值控制即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记了0~300一个数就套用到柱。",
+          "loss_reason": "柱是0~100mm、墙才0~300mm，数值混淆。",
+          "fix": "柱0~100mm、墙0~300mm，分开记。",
+          "option_id": "C01-html-practice-html-q4-cab9423f74d4:option-2"
+        },
+        {
+          "text": "柱的水平施工缝留在柱中段受力较大处，便于后续接柱、施工方便。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「施工方便」当挡箭牌。",
+          "loss_reason": "应留梁板顶面受剪力较小处，留柱中段位置错。",
+          "fix": "柱留基础/楼板/梁顶面，距上表面0~100mm。",
+          "option_id": "C01-html-practice-html-q4-cab9423f74d4:option-3"
+        },
+        {
+          "text": "柱墙水平缝的具体高度不重要，只要留在竖向构件上、方便支模就行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "弱化数值、只谈方便。",
+          "loss_reason": "漏了0~100/0~300mm的具体数值采分点。",
+          "fix": "写明柱0~100mm、墙0~300mm。",
+          "option_id": "C01-html-practice-html-q4-cab9423f74d4:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q4-cab9423f74d4",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q4",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答后浇带措施：「用与原结构同强度的混凝土填、10天后封闭、好好养护」。选出最准确的诊断与补写。",
+      "model_answer": "三处失分：应用微膨胀混凝土(非同强度)、底板≥28d后封闭(非10d)、养护应写≥14d并补强度提高一级/整理钢筋冲洗/接缝按施工缝处理。",
+      "options": [
+        {
+          "text": "三处都要改：应用微膨胀混凝土、底板≥28d后封闭、养护写≥14d并补提高一级/整钢筋冲洗/按缝处理。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "逐处揪出失分并补成可上答题纸的采分句——这就是会写答案。",
+          "option_id": "C01-html-practice-html-q15-897464688b02:option-1"
+        },
+        {
+          "text": "作答基本正确，只是把「10天」改成「28天」封闭就行，其余都对。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到封闭天数一处错，以为只此一错。",
+          "loss_reason": "漏诊「同强度→应微膨胀」和「好好养护→应≥14d并提高一级」，采分点遗漏。",
+          "fix": "微膨胀混凝土、≥28d封闭、≥14d养护+提高一级都要补。",
+          "option_id": "C01-html-practice-html-q15-897464688b02:option-2"
+        },
+        {
+          "text": "作答完全正确，同强度混凝土省钱、10天封闭省工期、好好养护也到位，可给满分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只看「说了三件事」就判对。",
+          "loss_reason": "同强度/10d/好好养护三处全错或空泛，把后浇带当普通缝且口号化。",
+          "fix": "改微膨胀、≥28d封闭、≥14d湿润养护并补六项措施。",
+          "option_id": "C01-html-practice-html-q15-897464688b02:option-3"
+        },
+        {
+          "text": "只需把「好好养护」写具体成「浇水养护」即可，材料和封闭天数都没问题。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "只盯着「好好养护」空泛，忽略更大的错。",
+          "loss_reason": "漏诊同强度(应微膨胀)、10d(应28d)两处硬伤，且养护要写≥14d。",
+          "fix": "微膨胀混凝土、≥28d封闭、≥14d养护三处一起补。",
+          "option_id": "C01-html-practice-html-q15-897464688b02:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q15-897464688b02",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q15",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    }
+  ],
+  "published_lesson_sha256": "64d7c984868d28e8c0343d5f9b20ad2015a20ec0f9394156192aca8f3c7b5415"
+}

@@ -27,6 +27,7 @@ on:
       - ".secrets.baseline"
       - ".bandit-baseline.json"
       - "contracts/**"
+      - "artifacts/luban_case_family_assets/diagram_microlesson/finished/**/*practice*.dc.html"
       # eval/ hosts the harness_authority single-authority gate (eval/gates.yaml);
       # a change there must trigger Tests so the gate cannot drift untested.
       - "eval/**"
@@ -73,6 +74,7 @@ on:
       - ".secrets.baseline"
       - ".bandit-baseline.json"
       - "contracts/**"
+      - "artifacts/luban_case_family_assets/diagram_microlesson/finished/**/*practice*.dc.html"
       # eval/ hosts the harness_authority single-authority gate (eval/gates.yaml);
       # a change there must trigger Tests so the gate cannot drift untested.
       - "eval/**"
@@ -455,16 +457,19 @@ jobs:
           # run; RAG retrieval quality is gated separately by the eval / golden-set baseline.
           case "${{ matrix.shard }}" in
             api-contract)
+              python scripts/publish_luban_preview_cards.py --practice-only --check
               pytest -q --import-mode=importlib \
                 tests/api \
                 tests/cli \
+                tests/scripts/test_publish_luban_preview_cards.py \
                 tests/scripts/test_schema_registry.py \
                 tests/scripts/test_db_registry.py \
                 tests/scripts/test_env_registry.py \
                 tests/scripts/test_provider_registry.py \
                 tests/scripts/test_process_registry.py \
                 tests/scripts/test_registries_meta.py \
-                tests/scripts/test_contract_guard.py
+                tests/scripts/test_contract_guard.py \
+                tests/services/luban_lesson/test_practice_html.py
               ;;
             runtime-capability)
               pytest -q --import-mode=importlib \

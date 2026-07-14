@@ -32,7 +32,8 @@ from typing import Any
 from loguru import logger
 
 from deeptutor.services.learner_state.evidence_lifecycle import (
-    is_signed_luban_retest_terminal,
+    is_canonical_luban_retest_terminal,
+    is_retest_completion_terminal,
 )
 from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event
 
@@ -209,8 +210,21 @@ def _claim_packs(claims: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return by_pack
 
 
+def _canonical_completion_packs(events: list[Any]) -> dict[str, str]:
+    completion_packs: dict[str, str] = {}
+    for event in list(events or []):
+        if not is_canonical_luban_retest_terminal(event):
+            continue
+        payload = getattr(event, "payload_json", None) or {}
+        completion_id = str(payload.get("retest_completion_id") or "").strip()
+        pack_id = str(payload.get("pack_id") or payload.get("target_pack_id") or "").strip().upper()
+        if completion_id and pack_id:
+            completion_packs[completion_id] = pack_id
+    return completion_packs
+
+
 def _pack_retest_facts(events: list[Any]) -> dict[str, dict[str, Any]]:
-    """Project terminal-only signed retest facts per pack.
+    """Project terminal-only canonical retest facts per pack.
 
     Item rows and ``station_completed`` mirrors are intentionally ignored.  The
     canonical completion terminal already carries the server-rescored outcome;
@@ -228,7 +242,7 @@ def _pack_retest_facts(events: list[Any]) -> dict[str, dict[str, Any]]:
     )
     for event in ordered:
         payload = getattr(event, "payload_json", None) or {}
-        if not isinstance(payload, dict) or not is_signed_luban_retest_terminal(event):
+        if not isinstance(payload, dict) or not is_canonical_luban_retest_terminal(event):
             continue
         completion_id = str(payload.get("retest_completion_id") or "").strip()
         pack_id = str(payload.get("pack_id") or payload.get("target_pack_id") or "").strip().upper()
@@ -292,9 +306,11 @@ def project_pack_lifecycle(
     exposed_packs: dict[str, dict[str, int]] = {}
     practiced_packs: dict[str, int] = {}
     unassigned: list[dict[str, Any]] = []
-    retest_by_pack = _pack_retest_facts(list(events or []))
+    all_events = list(events or [])
+    retest_by_pack = _pack_retest_facts(all_events)
+    completion_packs = _canonical_completion_packs(all_events)
 
-    for event in list(events or []):
+    for event in all_events:
         payload = getattr(event, "payload_json", None) or {}
         if not isinstance(payload, dict):
             continue
@@ -305,9 +321,18 @@ def project_pack_lifecycle(
                 slot = exposed_packs.setdefault(pack_id, {})
                 slot[stage] = slot.get(stage, 0) + 1
             continue
+        if is_retest_completion_terminal(event):
+            # The terminal is the completion fact, not a sixth question.  Its
+            # cadence projection was already consumed by _pack_retest_facts.
+            continue
         if not _is_practice_evidence(event):
             continue
-        pack_id, join_path = _resolve_pack_for_practice(payload)
+        completion_id = str(payload.get("retest_completion_id") or "").strip()
+        if completion_id:
+            pack_id = completion_packs.get(completion_id, "")
+            join_path = "completion_terminal" if pack_id else "completion_terminal_missing"
+        else:
+            pack_id, join_path = _resolve_pack_for_practice(payload)
         if pack_id:
             practiced_packs[pack_id] = practiced_packs.get(pack_id, 0) + 1
         else:

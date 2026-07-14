@@ -9,6 +9,7 @@
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -130,7 +131,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -192,6 +193,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
@@ -201,25 +203,7 @@ class Component extends DCLogic {
   KNOWLEDGE="渗漏治理诊断（施工缝/裂缝/穿墙/流淌/起鼓/女儿墙）。判分主线=先按部位诊断→回溯成因→对症治理，不混答。①施工缝渗漏成因：未清理干净粘结不良、接槎明显、钢筋密集浇捣不密实。②防水混凝土裂缝治理：及时保湿养护+多道设防刚柔结合+确保防水层保护层质量。③管道穿墙治理流程：清理管道表面→设止水环（延长渗径）→振捣密实→避免振动→灌浆堵漏。④卷材流淌分三级：严重拆除重铺、中等切割法/局部切除重铺/钉钉子法、轻微不渗漏可不治。⑤卷材起鼓按100mm分档：<100mm抽气灌胶法；≥100mm斜十字割开、清理、吹干、重贴方形卷材。⑥山墙女儿墙成因=收口/压条脱落/滴水线破损/拉结不牢/钝角，治理五步=清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口。相邻背景（非主判分眼）：堵漏灌浆材料分类、外墙淋水检验。常见失分：只背防水没做好不诊断部位、治理方法张冠李戴、穿墙漏止水环、流淌不分级、起鼓漏100mm分档、女儿墙漏烤干与封口。";
   moreText="补练方向：① 混凝土基体与节点侧（施工缝三成因 / 裂缝多道设防刚柔结合 / 穿墙止水环五步）——练部位诊断 + 程序箭头链写全；② 卷材柔性层侧（流淌三级三法 / 起鼓 100mm 分档 / 女儿墙成因五项加治理五步）——练分级分档 + 判断纠错三段式。回看讲解上/下集，再抽 5 道过一遍。";
   Q=[
-    { tag:"施工缝诊断·后果维", typeHint:"单选 · 选出最完整、最能拿分的作答", figLabel:"图示：地下室墙施工缝渗水剖面", figCaption:"上下两段混凝土 · 施工缝界面 · 钢筋密集区", fig:"joint",
-      stem:"地下室墙体施工缝部位渗水。分析成因，选出最完整、能得分的作答。",
-      model:"施工缝未清理干净致新旧混凝土粘结不良渗漏；未按规范处理接槎明显；钢筋密集处浇捣困难、混凝土不密实。",
-      opts:[
-        { t:"施工缝未清理干净致新旧混凝土粘结不良、接槎明显、钢筋密集处浇捣不密实，共同形成渗水通路。", ok:true, fix:"三条成因写全（未清理粘结不良 / 接槎 / 钢筋密集不密实），部位与成因都诊断到位。", code:"" },
-        { t:"是防水层没做好、防水材料不合格导致渗漏，把整个防水层重做一遍即可解决。", ok:false, code:"E08", tempt:"一看渗漏就往'防水层没做好'上套，不去读施工缝这个部位背景。", lose:"没提取施工缝部位背景、没诊断具体成因，答非所问。", fix:"先定位施工缝，写未清理粘结不良、接槎、钢筋密集不密实三条成因。" },
-        { t:"主要是施工缝未清理干净、粘结不良这一条原因造成的渗水，成因就这一点。", ok:false, code:"E02", tempt:"记住了最典型的一条，就以为答完了。", lose:"漏了接槎明显、钢筋密集浇捣不密实两条成因，采分点遗漏。", fix:"补写接槎明显、钢筋密集处浇捣不密实两条。" },
-        { t:"是混凝土强度不足产生结构裂缝渗水，应沿裂缝注浆按结构裂缝处理。", ok:false, code:"E07", tempt:"都是混凝土渗水，容易和裂缝渗漏混为一谈。", lose:"施工缝渗漏与结构裂缝是不同部位不同成因，概念混淆。", fix:"本题是施工缝部位，成因写未清理/接槎/钢筋密集不密实。" }
-      ] },
-    { tag:"施工缝诊断·后果维", typeHint:"单选 · 选出不笼统、能拿判据分的作答", figLabel:"图示：施工缝界面成因", figCaption:"未清理碎渣 · 接槎错台 · 钢筋密集蜂窝", fig:"joint",
-      stem:"就施工缝渗漏「分析成因」这一问，哪种作答阅卷能拿到判据分？",
-      model:"逐条点出：未清理干净→粘结不良；未按规范处理→接槎明显；钢筋密集→浇捣困难→混凝土不密实。",
-      opts:[
-        { t:"未清理干净致粘结不良、接槎明显、钢筋密集处浇捣不密实三条并列，逐条点明成因。", ok:true, fix:"三条并列、每条点到机理，阅卷按点给分。", code:"" },
-        { t:"施工缝部位施工质量差、当时没弄好，所以后来就渗水了。", ok:false, code:"E04", tempt:"'质量差''没弄好'像是答了原因，写起来省事。", lose:"全是口号、没有可判分的具体成因。", fix:"点明未清理粘结不良、接槎、钢筋密集不密实三条。" },
-        { t:"施工缝渗漏是因为养护不到位，加强保湿养护即可。", ok:false, code:"E07", tempt:"把裂缝治理里的'养护'搬过来当施工缝成因。", lose:"养护是裂缝治理措施，不是施工缝渗漏成因，概念混淆。", fix:"施工缝成因写未清理/接槎/钢筋密集不密实。" },
-        { t:"钢筋太密浇不下去导致渗水，主要就这一条。", ok:false, code:"E02", tempt:"抓住钢筋密集一条觉得够了。", lose:"漏未清理粘结不良、接槎明显两条。", fix:"补未清理粘结不良、接槎明显两条。" }
-      ] },
-    { tag:"裂缝治理·记录维", typeHint:"单选 · 选出措施最完整能得分的作答", figLabel:"图示：多道设防 · 刚柔结合", figCaption:"刚性混凝土自防水 + 柔性卷材/涂膜 + 保护层", fig:"layers",
+{ tag:"裂缝治理·记录维", typeHint:"单选 · 选出措施最完整能得分的作答", figLabel:"图示：多道设防 · 刚柔结合", figCaption:"刚性混凝土自防水 + 柔性卷材/涂膜 + 保护层", fig:"layers",
       stem:"防水混凝土墙体出现裂缝渗漏。其治理措施选出最完整、能得分的作答。",
       model:"及时保湿养护；采取多道设防、刚柔结合；确保防水层及保护层质量。",
       opts:[
@@ -228,7 +212,7 @@ class Component extends DCLogic {
         { t:"沿裂缝设置止水环后灌浆堵漏，把裂缝封死。", ok:false, code:"E07", tempt:"止水环+灌浆是穿墙治理，套到裂缝上像是能堵。", lose:"止水环+灌浆是管道穿墙的治理，用于裂缝属方法张冠李戴。", fix:"裂缝治理写养护 + 多道设防刚柔结合 + 保护层质量。" },
         { t:"把防水做扎实、彻底杜绝渗漏，确保工程质量。", ok:false, code:"E04", tempt:"口号顺口、像总结陈词。", lose:"没有可判分的具体措施，全是口号。", fix:"写养护 + 多道设防刚柔结合 + 保护层质量。" }
       ] },
-    { tag:"裂缝治理·概念", typeHint:"单选 · 选出对「多道设防刚柔结合」理解正确的", figLabel:"图示：一道破 · 别道挡", figCaption:"刚性自防水与柔性卷材/涂膜叠合冗余", fig:"layers",
+{ tag:"裂缝治理·概念", typeHint:"单选 · 选出对「多道设防刚柔结合」理解正确的", figLabel:"图示：一道破 · 别道挡", figCaption:"刚性自防水与柔性卷材/涂膜叠合冗余", fig:"layers",
       stem:"「多道设防、刚柔结合」，哪种理解能对应得分作答？",
       model:"刚性混凝土自防水与柔性卷材/涂膜多道叠合，一道破损仍有其余道设防挡水。",
       opts:[
@@ -237,7 +221,7 @@ class Component extends DCLogic {
         { t:"刚柔结合指先做刚性面层再做柔性找平层的抹灰施工顺序。", ok:false, code:"E07", tempt:"把'刚柔'理解成抹灰工序顺序。", lose:"刚柔结合指刚性与柔性防水层搭配，非抹灰顺序，概念混淆。", fix:"刚性自防水 + 柔性卷材/涂膜多道搭配。" },
         { t:"多道设防就是同一种防水涂料多刷几遍加厚。", ok:false, code:"E02", tempt:"'多道'字面理解成多刷几遍。", lose:"漏了'刚柔结合'——多道要刚性柔性搭配，非同料多刷。", fix:"补'刚柔结合'：刚性自防水配柔性卷材涂膜。" }
       ] },
-    { tag:"穿墙治理·程序维", typeHint:"单选 · 选出流程完整、顺序正确的作答", figLabel:"图示：穿墙管 + 止水环", figCaption:"墙 · 管 · 止水环 · 灌浆堵漏", fig:"pipe",
+{ tag:"穿墙治理·程序维", typeHint:"单选 · 选出流程完整、顺序正确的作答", figLabel:"图示：穿墙管 + 止水环", figCaption:"墙 · 管 · 止水环 · 灌浆堵漏", fig:"pipe",
       stem:"管道穿墙部位渗漏。其治理措施按流程组织，选出能得分的作答。",
       model:"清理管道表面→设置止水环→振捣密实→避免振动→灌浆堵漏，按序不漏步。",
       opts:[
@@ -246,7 +230,7 @@ class Component extends DCLogic {
         { t:"先灌浆堵漏，再回头清理管道表面、补设止水环。", ok:false, code:"E06", tempt:"以为先把水堵住再收拾其他，顺手。", lose:"止水环、振捣需在灌浆前，顺序颠倒，程序错误。", fix:"按清理→止水环→振捣密实→避免振动→灌浆堵漏的顺序。" },
         { t:"按卷材流淌的切割法、钉钉子法处理穿墙渗漏部位。", ok:false, code:"E07", tempt:"记了不少治理法，随手抓一个套上。", lose:"切割法/钉钉子法是卷材流淌治理，用于穿墙属张冠李戴。", fix:"穿墙用清理→止水环→振捣→避振→灌浆堵漏。" }
       ] },
-    { tag:"穿墙治理·概念", typeHint:"单选 · 选出止水环作用表述准确的", figLabel:"图示：止水环延长渗径", figCaption:"水沿管壁的渗径被拉长、受阻", fig:"pipe",
+{ tag:"穿墙治理·概念", typeHint:"单选 · 选出止水环作用表述准确的", figLabel:"图示：止水环延长渗径", figCaption:"水沿管壁的渗径被拉长、受阻", fig:"pipe",
       stem:"穿墙管处为何要设置止水环？选出表述准确的作答。",
       model:"止水环沿管壁延长水的渗径、增加渗流阻力，阻断水沿管壁渗入。",
       opts:[
@@ -255,88 +239,7 @@ class Component extends DCLogic {
         { t:"设不设止水环都行，关键把灌浆量灌足就能堵住。", ok:false, code:"E02", tempt:"觉得灌浆足够就够，忽略止水环。", lose:"漏掉止水环这一关键采分句。", fix:"必须设止水环延长渗径，再灌浆堵漏。" },
         { t:"止水环就是管道外包的保温层，起隔热保温作用。", ok:false, code:"E07", tempt:"和管道保温层长得像，容易混。", lose:"止水环是止水构件，非保温层，概念混淆。", fix:"止水环延长渗径止水，不是保温。" }
       ] },
-    { tag:"流淌分级·记录维", typeHint:"单选 · 选出分级对症、不过度处置的作答", figLabel:"图示：流淌三级 · 各级对症", figCaption:"严重 / 中等 / 轻微 · 治理各不同", fig:"flow",
-      stem:"屋面卷材出现流淌，项目部拟对全部流淌部位一律拆除重铺。选出最准确的诊断与作答。",
-      model:"先分严重/中等/轻微三级：严重拆除重铺、中等用三法、轻微不渗漏可不治；一律拆除属过度处置。",
-      opts:[
-        { t:"应先分严重/中等/轻微三级：严重拆除重铺、中等用三法、轻微不渗漏可不治，一律拆除属过度处置。", ok:true, fix:"先分级再对症，指出轻微一律拆除是过度处置，分级采分句齐。", code:"" },
-        { t:"卷材流淌一律拆除重铺最彻底，不必分级，省得反复。", ok:false, code:"E02", tempt:"'拆了重铺最彻底'听着稳妥。", lose:"漏了分级这一整维，轻微不渗漏可不治没体现，属过度处置。", fix:"先分三级：严重拆除、中等三法、轻微可不治。" },
-        { t:"流淌就是热天晒化了，凭经验全部铲掉重铺最稳当。", ok:false, code:"M10", tempt:"用生活常识'晒化了铲掉'替代规范判断。", lose:"以常识替代分级规范，把轻微也大拆，判断失据。", fix:"按规范分三级对症，轻微不渗漏可不治。" },
-        { t:"流淌按起鼓的直径100mm分档来处理即可。", ok:false, code:"E07", tempt:"都是卷材病，容易把分级和分档搞混。", lose:"100mm分档是起鼓的口径，流淌按程度分三级，概念混淆。", fix:"流淌按严重/中等/轻微三级，不是100mm分档。" }
-      ] },
-    { tag:"中等流淌·记录维", typeHint:"单选 · 选出方法完整能得分的作答", figLabel:"图示：中等流淌三法", figCaption:"切割法 · 局部切除重铺 · 钉钉子法", fig:"method3",
-      stem:"中等程度卷材流淌的治理方法，选出作答完整、能得分的。",
-      model:"中等流淌可采用切割法、局部切除重铺、钉钉子法三法，择宜使用。",
-      opts:[
-        { t:"中等流淌可采用切割法、局部切除重铺、钉钉子法三法，视情况择宜使用。", ok:true, fix:"三法列全、点明择宜，中等流淌采分句齐。", code:"" },
-        { t:"中等流淌用切割法把它切开压平就行了。", ok:false, code:"E02", tempt:"记住切割法一种，觉得够了。", lose:"漏局部切除重铺、钉钉子法两法，采分点遗漏。", fix:"补局部切除重铺、钉钉子法两法。" },
-        { t:"中等流淌抽气灌胶抚平即可恢复。", ok:false, code:"E07", tempt:"抽气灌胶是常听到的卷材治法，随手用上。", lose:"抽气灌胶是起鼓治理，用于流淌属方法混淆。", fix:"中等流淌用切割法/局部切除重铺/钉钉子法三法。" },
-        { t:"中等流淌等天凉了自己就恢复，一般不用治理。", ok:false, code:"M10", tempt:"把中等当轻微，凭常识以为能自愈。", lose:"'不渗漏可不治'是轻微级，中等必须三法治理，混级。", fix:"中等要治：切割法/局部切除重铺/钉钉子法。" }
-      ] },
-    { tag:"起鼓分档·条件维", typeHint:"单选 · 选出按直径分档处置正确的作答", figLabel:"图示：起鼓按 100mm 分档", figCaption:"小鼓抽气灌胶 · 大鼓斜十字割开重贴", fig:"bulge",
-      stem:"屋面卷材起鼓，直径分别为 80mm 与 150mm。选出分档处置正确的作答。",
-      model:"80mm<100mm用抽气灌胶法；150mm≥100mm应斜十字形割开、清理、吹干、重贴方形卷材。",
-      opts:[
-        { t:"80mm<100mm用抽气灌胶法；150mm≥100mm应斜十字形割开、清理、吹干、重贴方形卷材。", ok:true, fix:"按100mm分档、两档处置各写清，条件维与做法都到位。", code:"" },
-        { t:"起鼓一律斜十字割开重贴最彻底，不用看直径大小。", ok:false, code:"M08", tempt:"'割开重贴最彻底'像最保险的做法。", lose:"漏了100mm分档，小鼓也大拆属过度、规范数字缺失。", fix:"补100mm分界：<100mm抽气灌胶，≥100mm割开重贴。" },
-        { t:"80mm和150mm都用抽气灌胶法抽气注胶抚平即可。", ok:false, code:"E07", tempt:"抽气灌胶简单，想一招用到底。", lose:"150mm≥100mm胶结料大面积失效，只抽气会复发，方法误用。", fix:"150mm应斜十字割开、吹干、重贴方形卷材。" },
-        { t:"分界应按 50mm：小于50mm抽气灌胶、大于50mm割开重贴。", ok:false, code:"M08", tempt:"记得有个分界值，把数字记错成50。", lose:"分档界值是100mm不是50mm，规范数字混淆。", fix:"分界是直径100mm。" }
-      ] },
-    { tag:"起鼓分档·条件维", typeHint:"单选 · 选出对大鼓只抽气判断准确的", figLabel:"图示：大鼓只抽气 → 复发", figCaption:"直径≥100mm 胶结料大面积失效", fig:"bulge",
-      stem:"某处卷材起鼓直径 150mm，工人只做抽气灌胶。选出最准确的判断与作答。",
-      model:"不妥，≥100mm胶结料大面积失效，应斜十字割开、清理、吹干、重贴，只抽气会复发。",
-      opts:[
-        { t:"不妥，直径≥100mm胶结料大面积失效，应斜十字割开、清理、吹干、重贴，只抽气会复发。", ok:true, fix:"判不妥 + 依据(≥100mm大面积失效) + 正确做法(割开重贴)三段齐。", code:"" },
-        { t:"妥当，抽气灌胶法对各种大小的起鼓都适用有效。", ok:false, code:"E02", tempt:"抽气灌胶用着方便，就认为通用。", lose:"漏了100mm分档，大鼓必须割开重贴，遗漏关键判据。", fix:"≥100mm应割开、吹干、重贴，非抽气。" },
-        { t:"妥当，起鼓不论大小抽气灌胶最省事、成本低。", ok:false, code:"M10", tempt:"图省事、省成本的常识判断。", lose:"以省事常识替代分档规范，大鼓只抽气会复发。", fix:"按100mm分档，大鼓割开重贴。" },
-        { t:"不妥，应改用拆除重铺，起鼓属于流淌治理的一种。", ok:false, code:"E07", tempt:"知道不妥了，却纠成了另一个方法。", lose:"起鼓不是流淌，不用拆除重铺，方向纠错错误。", fix:"≥100mm起鼓斜十字割开、吹干、重贴方形卷材。" }
-      ] },
-    { tag:"女儿墙诊断·后果维", typeHint:"单选 · 选出成因诊断完整能得分的作答", figLabel:"图示：女儿墙收头构造", figCaption:"压顶 · 压条 · 卷材上翻收口 · 滴水线", fig:"parapet",
-      stem:"山墙女儿墙根部渗漏。分析成因，选出能得分的作答。",
-      model:"卷材收口/压条脱落、滴水线破损、拉结不牢、阴阳角成钝角等收头薄弱处失效导致渗漏。",
-      opts:[
-        { t:"卷材收口/压条脱落、滴水线破损、拉结不牢、阴阳角成钝角等收头薄弱处失效导致渗漏。", ok:true, fix:"收头薄弱各项(收口/压条/滴水线/拉结/钝角)列全，部位与成因诊断到位。", code:"" },
-        { t:"就是女儿墙防水没做好，把防水层返工重做即可。", ok:false, code:"E08", tempt:"渗漏就往'防水没做好'上套，不读收头背景。", lose:"没提取女儿墙收头部位背景、无具体成因，答非所问。", fix:"写收口/压条脱落、滴水线破损、拉结不牢、钝角。" },
-        { t:"是施工缝未清理、钢筋密集不密实造成女儿墙渗漏。", ok:false, code:"E07", tempt:"把施工缝的成因套到女儿墙上。", lose:"部位错、成因错，施工缝成因不适用女儿墙，概念混淆。", fix:"女儿墙成因写收口/压条脱落/滴水线破损/拉结不牢/钝角。" },
-        { t:"主要是压条脱落一条原因导致的渗漏。", ok:false, code:"E02", tempt:"抓住压条脱落一条觉得够。", lose:"漏收口、滴水线破损、拉结不牢、钝角其余成因。", fix:"补滴水线破损、拉结不牢、钝角等收头薄弱处。" }
-      ] },
-    { tag:"女儿墙治理·程序维", typeHint:"单选 · 选出五步完整、顺序正确的作答", figLabel:"图示：女儿墙治理五步链", figCaption:"清旧料 · 烤干 · 钉压条 · 新卷材 · 油膏封口", fig:"parapet",
-      stem:"山墙女儿墙渗漏治理。选出步骤最完整、能得分的作答。",
-      model:"清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口，并修复压顶砂浆。",
-      opts:[
-        { t:"清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口，并修复压顶砂浆。", ok:true, fix:"五步齐全、含易漏的烤干基层与油膏封口，程序链完整。", code:"" },
-        { t:"直接重新钉压条、覆盖新卷材，省去清旧料与烤干基层。", ok:false, code:"E06", tempt:"觉得钉压条铺新卷材是主活，前面可省。", lose:"漏清旧料、烤干基层，基层不干新卷材粘不牢，程序缺步。", fix:"补清除旧胶结料、烤干基层，再钉压条、铺新卷材、封口。" },
-        { t:"把女儿墙防水重新做一遍就行，按常规防水施工来。", ok:false, code:"E02", tempt:"'重做防水'笼统好写。", lose:"没有五步具体采分句，采分点遗漏。", fix:"写清旧料→烤干→钉压条→新卷材→油膏封口五步。" },
-        { t:"用抽气灌胶法处理女儿墙收口渗漏。", ok:false, code:"E07", tempt:"抽气灌胶记得牢，随手套用。", lose:"抽气灌胶是起鼓治理，用于女儿墙收口属方法误用。", fix:"女儿墙用清旧料→烤干→钉压条→新卷材→油膏封口五步。" }
-      ] },
-    { tag:"诊断总则·后果维", typeHint:"单选 · 选出作答思路正确的", figLabel:"图示：不同部位 · 不同药方", figCaption:"施工缝 / 穿墙 / 流淌起鼓 / 女儿墙", fig:"scene",
-      stem:"面对不同部位的渗漏，哪种作答思路阅卷能得分？",
-      model:"先按部位定位（施工缝/穿墙/流淌起鼓/女儿墙），回溯成因后对症治理，不混用治理方法。",
-      opts:[
-        { t:"先按部位定位（施工缝/穿墙/流淌起鼓/女儿墙），回溯成因后对症治理，不混用治理方法。", ok:true, fix:"先诊断部位、再对症治理、不混答——正是判分主线。", code:"" },
-        { t:"渗漏题统一答『加强防水、做好防水层』最保险不会错。", ok:false, code:"E05", tempt:"一句话套所有题，图省心。", lose:"没审部位、无对症措施，全是口号，审题失据。", fix:"按部位诊断成因、对症治理。" },
-        { t:"所有渗漏都先灌浆堵漏，一招通用最省事。", ok:false, code:"E07", tempt:"灌浆堵漏听着万能。", lose:"不同部位成因不同、治理不同，一招通用属混答。", fix:"按部位对症：穿墙止水环、流淌分级、起鼓分档、女儿墙五步。" },
-        { t:"只写治理措施就行，不必分析渗漏部位与成因。", ok:false, code:"E02", tempt:"觉得阅卷只看措施。", lose:"漏了部位诊断与成因回溯，诊断分丢掉。", fix:"先诊断部位+成因，再写对症治理。" }
-      ] },
-    { tag:"相邻背景·审题", typeHint:"单选 · 选出对相邻知识定位正确的", figLabel:"图示：治理用材 / 检验背景", figCaption:"堵漏灌浆材料分类 · 外墙淋水检验", fig:"adjacent",
-      stem:"关于堵漏灌浆材料分类与外墙淋水检验，在渗漏治理案例中应如何定位？",
-      model:"属治理用材与诊断检验背景，主答案仍回到部位诊断与对症治理，不作为治理方法主体。",
-      opts:[
-        { t:"属治理用材与诊断检验背景，主答案仍回到部位诊断与对症治理，不作为主判分。", ok:true, fix:"把相邻知识当背景、主答案回诊断治理，审题定位准。", code:"" },
-        { t:"直接以堵漏灌浆材料的分类作为本治理案例的主答案。", ok:false, code:"E05", tempt:"材料分类背得熟，顺手当主答案。", lose:"材料分类是用材背景，非治理方法主体，审题偏了。", fix:"主答案写部位诊断+对症治理，材料只作背景。" },
-        { t:"外墙淋水试验本身就是渗漏的治理方法之一。", ok:false, code:"E07", tempt:"淋水和渗漏都跟水有关，容易混。", lose:"淋水试验是检验/验收方法，不是治理方法，概念混淆。", fix:"淋水是诊断检验背景，治理仍按部位对症。" },
-        { t:"只写灌浆材料分类即可得分，不必诊断治理。", ok:false, code:"E02", tempt:"觉得写了知识点就有分。", lose:"漏诊断治理主线，采分点遗漏。", fix:"主线写诊断+对症治理，材料分类只是背景。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答的失分并给正确补写", figLabel:"图示：学生作答（待诊断）", figCaption:"女儿墙渗漏 · 作答过于笼统", fig:"sheet",
-      stem:"某学生答女儿墙渗漏治理『重新做防水，把漏的地方补上』。选出最准确的诊断与补写。",
-      model:"成因未诊断、治理五步全缺；补成因(收口/压条脱落/滴水线破损/钝角)+五步(清旧料→烤干→钉压条→新卷材→油膏封口)。",
-      opts:[
-        { t:"成因未诊断、治理五步全缺；应补成因(收口/压条脱落/滴水线破损/钝角)与五步(清旧料→烤干→钉压条→新卷材→油膏封口)。", ok:true, fix:"揪出成因与五步都缺，给出可上答题纸的补写——这就是「会写答案」。", code:"" },
-        { t:"作答思路正确、方向没问题，只是不够详细，可酌情给大部分分。", ok:false, code:"E04", tempt:"看到'重做防水'觉得沾边，想给分。", lose:"全是口号、无成因无五步，按点给分几乎为零。", fix:"必须补写成因五项与治理五步。" },
-        { t:"只差写明用哪种防水材料，把材料补上就完整了。", ok:false, code:"E02", tempt:"以为差的只是材料。", lose:"漏诊成因未写、治理五步全缺两大块。", fix:"补成因(收口/压条/滴水线/钝角)与五步治理。" },
-        { t:"应补写卷材流淌三法与起鼓100mm分档的内容。", ok:false, code:"E07", tempt:"把别部位的采分句往上堆。", lose:"流淌三法、起鼓分档不属女儿墙，部位方法混淆。", fix:"补女儿墙成因五项与治理五步，不是流淌起鼓。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答的失分并给正确补写", figLabel:"图示：学生作答（待诊断）", figCaption:"穿墙渗漏 · 只写灌浆堵漏", fig:"sheet",
+{ tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答的失分并给正确补写", figLabel:"图示：学生作答（待诊断）", figCaption:"穿墙渗漏 · 只写灌浆堵漏", fig:"sheet",
       stem:"某学生答管道穿墙渗漏『哪漏堵哪，灌浆把它堵死』。选出最准确的诊断与补写。",
       model:"漏诊断与前置流程；补清理管道表面→设止水环→振捣密实→避免振动→灌浆堵漏，止水环不可漏。",
       opts:[
@@ -515,7 +418,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -534,6 +437,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F05")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

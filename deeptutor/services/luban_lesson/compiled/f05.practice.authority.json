@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "F05",
+  "source_pack_sha256": "eeb066fb568138d8358817e5fd9e05b9e6283ec175664ded3edf965cc80c3bf0",
+  "source_bundle_sha256": "ce35efb72b7d4a0610d728a132753e7311a3943b035b3c7e8e968e7fea9af5f4",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        2,
+        3,
+        4,
+        5,
+        15
+      ],
+      "variant_ids": [
+        "F05-html-practice-html-q3-c8e8abe7e0c1",
+        "F05-html-practice-html-q4-5abd48b93a15",
+        "F05-html-practice-html-q5-fc674c9a61fa",
+        "F05-html-practice-html-q6-38da71f9263e",
+        "F05-html-practice-html-q16-b2706e4117b7"
+      ],
+      "published_practice_sha256": "c2e68656628fd636a6f3a092fc85d7bb2feba5720afc2b36f117abe51af5c8b7"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "裂缝治理·记录维",
+      "stem": "防水混凝土墙体出现裂缝渗漏。其治理措施选出最完整、能得分的作答。",
+      "model_answer": "及时保湿养护；采取多道设防、刚柔结合；确保防水层及保护层质量。",
+      "options": [
+        {
+          "text": "及时保湿养护，采取多道设防、刚柔结合的防水做法，并确保防水层及保护层质量。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "养护 + 多道设防刚柔结合 + 保护层质量三件齐，关键句'多道设防、刚柔结合'不丢。",
+          "option_id": "F05-html-practice-html-q3-c8e8abe7e0c1:option-1"
+        },
+        {
+          "text": "加强防水、及时养护，把渗漏部位处理好就行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "'加强防水''养护'听着对，容易觉得够了。",
+          "loss_reason": "漏了核心采分句'多道设防、刚柔结合'与保护层质量。",
+          "fix": "补'多道设防、刚柔结合'和确保防水层保护层质量。",
+          "option_id": "F05-html-practice-html-q3-c8e8abe7e0c1:option-2"
+        },
+        {
+          "text": "沿裂缝设置止水环后灌浆堵漏，把裂缝封死。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "止水环+灌浆是穿墙治理，套到裂缝上像是能堵。",
+          "loss_reason": "止水环+灌浆是管道穿墙的治理，用于裂缝属方法张冠李戴。",
+          "fix": "裂缝治理写养护 + 多道设防刚柔结合 + 保护层质量。",
+          "option_id": "F05-html-practice-html-q3-c8e8abe7e0c1:option-3"
+        },
+        {
+          "text": "把防水做扎实、彻底杜绝渗漏，确保工程质量。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "口号顺口、像总结陈词。",
+          "loss_reason": "没有可判分的具体措施，全是口号。",
+          "fix": "写养护 + 多道设防刚柔结合 + 保护层质量。",
+          "option_id": "F05-html-practice-html-q3-c8e8abe7e0c1:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q3-c8e8abe7e0c1",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q3",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "裂缝治理·概念",
+      "stem": "「多道设防、刚柔结合」，哪种理解能对应得分作答？",
+      "model_answer": "刚性混凝土自防水与柔性卷材/涂膜多道叠合，一道破损仍有其余道设防挡水。",
+      "options": [
+        {
+          "text": "刚性混凝土自防水与柔性卷材/涂膜多道叠合，一道破损仍有其余道挡水，形成冗余。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出刚柔搭配 + 多道冗余 + 一道破别道挡，理解到位。",
+          "option_id": "F05-html-practice-html-q4-5abd48b93a15:option-1"
+        },
+        {
+          "text": "只要一道防水层做得够厚够好就行，多做几道是浪费材料。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "觉得做厚一道更省更牢。",
+          "loss_reason": "单道一处破即漏，与多道设防要求相悖，概念错误。",
+          "fix": "要多道设防、刚柔结合，一道破仍有别道挡。",
+          "option_id": "F05-html-practice-html-q4-5abd48b93a15:option-2"
+        },
+        {
+          "text": "刚柔结合指先做刚性面层再做柔性找平层的抹灰施工顺序。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把'刚柔'理解成抹灰工序顺序。",
+          "loss_reason": "刚柔结合指刚性与柔性防水层搭配，非抹灰顺序，概念混淆。",
+          "fix": "刚性自防水 + 柔性卷材/涂膜多道搭配。",
+          "option_id": "F05-html-practice-html-q4-5abd48b93a15:option-3"
+        },
+        {
+          "text": "多道设防就是同一种防水涂料多刷几遍加厚。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "'多道'字面理解成多刷几遍。",
+          "loss_reason": "漏了'刚柔结合'——多道要刚性柔性搭配，非同料多刷。",
+          "fix": "补'刚柔结合'：刚性自防水配柔性卷材涂膜。",
+          "option_id": "F05-html-practice-html-q4-5abd48b93a15:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q4-5abd48b93a15",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q4",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "穿墙治理·程序维",
+      "stem": "管道穿墙部位渗漏。其治理措施按流程组织，选出能得分的作答。",
+      "model_answer": "清理管道表面→设置止水环→振捣密实→避免振动→灌浆堵漏，按序不漏步。",
+      "options": [
+        {
+          "text": "清理管道表面→设置止水环→振捣密实→避免振动→灌浆堵漏，按此流程组织不漏步。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五步顺序齐全，止水环与灌浆堵漏都在，程序箭头链完整。",
+          "option_id": "F05-html-practice-html-q5-fc674c9a61fa:option-1"
+        },
+        {
+          "text": "直接对渗水处灌浆堵漏，把水封住即可，简单有效。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得堵漏就是灌浆，一步到位。",
+          "loss_reason": "漏了清理管面、止水环、振捣密实、避免振动等前置，采分点遗漏。",
+          "fix": "补清理管面→止水环→振捣密实→避免振动→灌浆堵漏。",
+          "option_id": "F05-html-practice-html-q5-fc674c9a61fa:option-2"
+        },
+        {
+          "text": "先灌浆堵漏，再回头清理管道表面、补设止水环。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为先把水堵住再收拾其他，顺手。",
+          "loss_reason": "止水环、振捣需在灌浆前，顺序颠倒，程序错误。",
+          "fix": "按清理→止水环→振捣密实→避免振动→灌浆堵漏的顺序。",
+          "option_id": "F05-html-practice-html-q5-fc674c9a61fa:option-3"
+        },
+        {
+          "text": "按卷材流淌的切割法、钉钉子法处理穿墙渗漏部位。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记了不少治理法，随手抓一个套上。",
+          "loss_reason": "切割法/钉钉子法是卷材流淌治理，用于穿墙属张冠李戴。",
+          "fix": "穿墙用清理→止水环→振捣→避振→灌浆堵漏。",
+          "option_id": "F05-html-practice-html-q5-fc674c9a61fa:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q5-fc674c9a61fa",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q5",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "穿墙治理·概念",
+      "stem": "穿墙管处为何要设置止水环？选出表述准确的作答。",
+      "model_answer": "止水环沿管壁延长水的渗径、增加渗流阻力，阻断水沿管壁渗入。",
+      "options": [
+        {
+          "text": "止水环沿管壁延长水的渗径、增加渗流阻力，从而阻断水沿管壁渗入。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明'延长渗径、增加阻力'的机理，是采分句。",
+          "option_id": "F05-html-practice-html-q6-38da71f9263e:option-1"
+        },
+        {
+          "text": "止水环是固定管道、防止管道晃动的支架构件。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "'环'像个卡箍，容易当成固定件。",
+          "loss_reason": "止水环功能是止水延长渗径，非固定支架，概念错误。",
+          "fix": "止水环延长渗径、增加渗流阻力止水。",
+          "option_id": "F05-html-practice-html-q6-38da71f9263e:option-2"
+        },
+        {
+          "text": "设不设止水环都行，关键把灌浆量灌足就能堵住。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得灌浆足够就够，忽略止水环。",
+          "loss_reason": "漏掉止水环这一关键采分句。",
+          "fix": "必须设止水环延长渗径，再灌浆堵漏。",
+          "option_id": "F05-html-practice-html-q6-38da71f9263e:option-3"
+        },
+        {
+          "text": "止水环就是管道外包的保温层，起隔热保温作用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "和管道保温层长得像，容易混。",
+          "loss_reason": "止水环是止水构件，非保温层，概念混淆。",
+          "fix": "止水环延长渗径止水，不是保温。",
+          "option_id": "F05-html-practice-html-q6-38da71f9263e:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q6-38da71f9263e",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q6",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答管道穿墙渗漏『哪漏堵哪，灌浆把它堵死』。选出最准确的诊断与补写。",
+      "model_answer": "漏诊断与前置流程；补清理管道表面→设止水环→振捣密实→避免振动→灌浆堵漏，止水环不可漏。",
+      "options": [
+        {
+          "text": "漏了前置流程，应补清理管道表面→设止水环→振捣密实→避免振动→灌浆堵漏，止水环不可漏。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "指出止水环与前置流程都缺，补齐五步程序链。",
+          "option_id": "F05-html-practice-html-q16-b2706e4117b7:option-1"
+        },
+        {
+          "text": "作答已点到灌浆堵漏，基本完整，可给大部分分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "看到'灌浆堵漏'关键词就觉得答到了。",
+          "loss_reason": "漏止水环与清理、振捣、避振等前置，采分点大量遗漏。",
+          "fix": "补清理管面→止水环→振捣→避振→灌浆堵漏。",
+          "option_id": "F05-html-practice-html-q16-b2706e4117b7:option-2"
+        },
+        {
+          "text": "只需把『灌浆堵漏』放到最后一步，其余不用补。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得顺序理顺就行。",
+          "loss_reason": "不止顺序问题，止水环、振捣密实等步骤本就缺，仍遗漏。",
+          "fix": "补齐止水环、振捣密实、避免振动等步骤。",
+          "option_id": "F05-html-practice-html-q16-b2706e4117b7:option-3"
+        },
+        {
+          "text": "应补写多道设防、刚柔结合与保湿养护的内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把裂缝治理的采分句搬过来。",
+          "loss_reason": "多道设防/养护是裂缝治理，用于穿墙属方法混淆。",
+          "fix": "穿墙补清理→止水环→振捣→避振→灌浆堵漏五步。",
+          "option_id": "F05-html-practice-html-q16-b2706e4117b7:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q16-b2706e4117b7",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q16",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+    }
+  ],
+  "published_lesson_sha256": "7d77375ac7a2b6b1fcb095d6e18e42b1e03b29fea718b70335f34a2b9b813efd"
+}

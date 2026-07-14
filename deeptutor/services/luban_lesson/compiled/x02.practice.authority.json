@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "X02",
+  "source_pack_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
+  "source_bundle_sha256": "a38e55c013125f8881d796cc2c816dbaa39b8e8bbfc5f718efc436df26486fe0",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "X02-html-practice-html-q1-d0d23e6eb29d",
+        "X02-html-practice-html-q2-acfd97194c1f",
+        "X02-html-practice-html-q3-959eccf4e18d",
+        "X02-html-practice-html-q4-89f738210457",
+        "X02-html-practice-html-q16-18d949db7562"
+      ],
+      "published_practice_sha256": "e8ccf767a6044a3be7569e78a412ab474f39d3c6ca3cbe36ccaee8e06f1544df"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "仓库间距·条件维",
+      "stem": "某工地把危险品仓库紧贴在建工程布置。指出不妥并写出正确做法，选出能得分的作答。",
+      "model_answer": "不妥：危险品仓库贴在建工程。正确做法：危险品仓库应远离现场，距在建工程≥15m；临时仓库则接近使用地点。",
+      "options": [
+        {
+          "text": "不妥：危险品仓库贴在建工程。正确做法：危险品仓库远离现场、距在建工程≥15m（临时仓库才接近使用地点）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "指出不妥+给出15m正确数值+区分两类仓库布置原则，三件齐。",
+          "option_id": "X02-html-practice-html-q1-d0d23e6eb29d:option-1"
+        },
+        {
+          "text": "不妥：危险品仓库位置不合理。正确做法：应合理布置、加强消防管理，确保安全。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "'合理布置、加强管理'听着面面俱到，最顺手。",
+          "loss_reason": "整句无任何规格数字，属口号化表达，阅卷不给分。",
+          "fix": "必须落到数字：危险品仓库距在建工程≥15m。",
+          "option_id": "X02-html-practice-html-q1-d0d23e6eb29d:option-2"
+        },
+        {
+          "text": "不妥：危险品仓库离得太远取料不便。正确做法：应尽量靠近在建工程、方便取用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把'临时仓库接近使用地点'的原则套到了危险品仓库上。",
+          "loss_reason": "两类仓库记反了——接近使用地点是普通临时仓库，危险品仓库反要远离≥15m。",
+          "fix": "危险品仓库距在建≥15m，只有临时仓库才接近使用地点。",
+          "option_id": "X02-html-practice-html-q1-d0d23e6eb29d:option-3"
+        },
+        {
+          "text": "不妥：危险品仓库应搬进在建工程首层临时存放，取用最方便、也好看管。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得放楼里既近又有人看管。",
+          "loss_reason": "危险品进在建工程更危险，违反远离现场、距在建≥15m的规范。",
+          "fix": "危险品仓库远离现场、距在建工程≥15m。",
+          "option_id": "X02-html-practice-html-q1-d0d23e6eb29d:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q1-d0d23e6eb29d",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q1",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "道路宽度·条件维",
+      "stem": "问：现场临时道路的宽度规格应满足哪些要求？按规格清单作答，选出列全能得分的一项。",
+      "model_answer": "主干道单行≥4m、双行≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。",
+      "options": [
+        {
+          "text": "单行≥4m、双行≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六项规格逐条带数字列全，正是内容清单题的给分点。",
+          "option_id": "X02-html-practice-html-q2-acfd97194c1f:option-1"
+        },
+        {
+          "text": "道路应满足消防车通行要求，路面平整、排水通畅、宽度合理即可。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "通用套话，像什么题都能写。",
+          "loss_reason": "无任一可判分的宽度数字，整个条件维空缺。",
+          "fix": "逐项列：单行4/双行6/消防4/木材场6/回车场12×12/转弯15。",
+          "option_id": "X02-html-practice-html-q2-acfd97194c1f:option-2"
+        },
+        {
+          "text": "所有临时道路一律按消防车道≥4m 布置，统一4m就能保证消防通行。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记住了'消防车道4m'，就当成一个数通用。",
+          "loss_reason": "木材场通道要6m、双行道要6m，一律4m会漏项且错档。",
+          "fix": "分场合：消防车道4m、木材场通道6m、双行6m、单行4m。",
+          "option_id": "X02-html-practice-html-q2-acfd97194c1f:option-3"
+        },
+        {
+          "text": "主干道单行≥4m、双行≥6m 两条即可，回车场和转弯半径现场灵活定。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住了主干道两个数就以为够了。",
+          "loss_reason": "漏了消防车道、木材场通道、回车场12×12、转弯半径15m等采分点。",
+          "fix": "补消防车道4m、木材场6m、回车场12×12、转弯半径15m。",
+          "option_id": "X02-html-practice-html-q2-acfd97194c1f:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q2-acfd97194c1f",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q2",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "道路错档·条件维",
+      "stem": "某工地木材场内运输通道宽4m（与现场消防车道同宽）。指出是否妥当并给正确做法。",
+      "model_answer": "不妥：木材场通道4m。正确做法：木材场通道≥6m（消防车道≥4m，但不能用消防车道4m套木材场）。",
+      "options": [
+        {
+          "text": "不妥：木材场通道4m。正确做法：木材场通道≥6m；消防车道≥4m 是另一档，不能拿4m套木材场。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出错档、给6m正确值、并说明与消防车道4m的区别。",
+          "option_id": "X02-html-practice-html-q3-959eccf4e18d:option-1"
+        },
+        {
+          "text": "妥当：消防车道就是≥4m，木材场通道4m 已达标，无需修改。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "两处都叫'通道'，容易当成一个标准。",
+          "loss_reason": "混淆了消防车道(4m)与木材场通道(6m)两档，判断方向就错了。",
+          "fix": "木材场通道≥6m，与消防车道4m不是一档。",
+          "option_id": "X02-html-practice-html-q3-959eccf4e18d:option-2"
+        },
+        {
+          "text": "不妥：木材场通道太窄。正确做法：适当加宽通道，保证车辆通行顺畅。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道要改，但只写'加宽'省了数字。",
+          "loss_reason": "改正未给'≥6m'关键数值，判断纠错缺数字只给半分。",
+          "fix": "正确做法必带数值：木材场通道≥6m。",
+          "option_id": "X02-html-practice-html-q3-959eccf4e18d:option-3"
+        },
+        {
+          "text": "不妥：木材场通道4m。正确做法：应按≥8m布置，木材易燃要留足消防距离。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得木材易燃就往大了写更保险。",
+          "loss_reason": "数字写错——木材场通道规范是≥6m，不是8m。",
+          "fix": "木材场通道≥6m，不是8m。",
+          "option_id": "X02-html-practice-html-q3-959eccf4e18d:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q3-959eccf4e18d",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q3",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "宿舍改错·条件维",
+      "stem": "检查发现：某宿舍住18人、通道宽0.8m。指出不妥并写出正确做法，选出能得分的作答。",
+      "model_answer": "不妥：每间住18人、通道0.8m。正确做法：每间宿舍≤16人；通道≥0.9m（床铺≤2层、净高≥2.5m、人均≥2.5m²）。",
+      "options": [
+        {
+          "text": "不妥：每间住18人、通道0.8m。正确做法：每间宿舍≤16人；通道宽度≥0.9m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "逐项找不妥+给出16人/0.9m正确数值，直命真题{2020第1题}给分点。",
+          "option_id": "X02-html-practice-html-q4-89f738210457:option-1"
+        },
+        {
+          "text": "不妥：宿舍住的人太多、通道太窄。正确做法：适当减少住宿人数、加宽通道。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向找对了，'适当减少/加宽'写着也顺。",
+          "loss_reason": "改正未给≤16人、≥0.9m 正确数值，缺关键数字只给半分。",
+          "fix": "每间≤16人、通道≥0.9m，正确做法必带数字。",
+          "option_id": "X02-html-practice-html-q4-89f738210457:option-2"
+        },
+        {
+          "text": "不妥：只有住18人不妥。正确做法：每间≤16人；通道0.8m 尚可、无需调整。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到住18人一项就以为改完了。",
+          "loss_reason": "漏改通道0.8m（应≥0.9m），采分点遗漏。",
+          "fix": "补一句：通道0.8m→通道宽度≥0.9m。",
+          "option_id": "X02-html-practice-html-q4-89f738210457:option-3"
+        },
+        {
+          "text": "不妥：住18人、通道0.8m。正确做法：每间≤20人、通道≥0.8m 即符合要求。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记了个大概数，20人、0.8m 看着差不多。",
+          "loss_reason": "数字全错——每间≤16人、通道≥0.9m。",
+          "fix": "每间≤16人、通道≥0.9m，不是20人/0.8m。",
+          "option_id": "X02-html-practice-html-q4-89f738210457:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q4-89f738210457",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q4",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答易燃材料仓库列要求：'易燃仓库要放在通风好的地方，远离火源，配好灭火器就行。'选出最准确的诊断与正确补写。",
+      "model_answer": "失分：方向未点'下风向'、间距无数字、漏消防通道。补写：设下风向、水源充足；消防通道≥6m；距明火≥30m；危险品间距≥10m。",
+      "options": [
+        {
+          "text": "失分在只写'通风好/远离火源'口号、无方向无数字。补写：设下风向、水源充足；消防通道≥6m；距明火≥30m；危险品间距≥10m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "揪出口号化+漏数字，补成下风向/6m/30m/10m 四句可拿分采分句。",
+          "option_id": "X02-html-practice-html-q16-18d949db7562:option-1"
+        },
+        {
+          "text": "作答基本到位，'通风好、远离火源、配灭火器'已覆盖要点，补一句'注意防火'即可。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "觉得意思都说到了，再加句防火更全。",
+          "loss_reason": "整段无一个规格数字、方向也没点，属口号化零分写法，'注意防火'仍是口号。",
+          "fix": "补下风向、消防通道≥6m、距明火≥30m、危险品间距≥10m。",
+          "option_id": "X02-html-practice-html-q16-18d949db7562:option-2"
+        },
+        {
+          "text": "只差方向没写，补一句'设在上风方向通风好'就完整了，其余都对。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "知道要补方向，却补成了上风向。",
+          "loss_reason": "方向补反——易燃仓库应设下风向，补上风向照样0分。",
+          "fix": "补'设下风向'，不是上风向；再加通道6m/明火30m。",
+          "option_id": "X02-html-practice-html-q16-18d949db7562:option-3"
+        },
+        {
+          "text": "主要是灭火器没说清，补'每100㎡2只10L'就够了，方向和间距无所谓。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住灭火器一处补，觉得就差这个。",
+          "loss_reason": "漏了最关键的下风向方向和消防通道6m/明火30m 间距采分点。",
+          "fix": "先补下风向、消防通道≥6m、距明火≥30m，方向间距才是本题眼。",
+          "option_id": "X02-html-practice-html-q16-18d949db7562:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q16-18d949db7562",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q16",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    }
+  ],
+  "published_lesson_sha256": "97e7bdcd957bad52d23f1bcedb51162448a141419047a6216197d90798d94e5e"
+}

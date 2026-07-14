@@ -9,12 +9,16 @@ Thin 投影层（§3 所有权表）：本模块**只读投影、零生成**—�
   ``source_pack_sha256`` 与 manifest 该 pack 的 ``content_sha256`` 一致——
   candidate 未签发/pack 正文修订后的旧变体，一律与 bank 缺失同形不可见
   （签发动作 = ``docs/原始数据/考点原料/promote_variant_bank.py``，人闸）；
+- 视频后 forward 由 ``practice_html`` 只读 publisher 从 finished 编译的
+  非公开 authority sidecar；客户端投影剥离答案，review 仍只认上述 signed bank；
 - 讲懂卡 URL = 业务托管基址（env ``LUBAN_LESSON_CARD_BASE``）+ pack slug 约定，
   卡产物按压缩预研 0.39MB 口径产出并开 Content-Encoding（托管侧职责）；
-- ``content_sha256`` 透传给客户端作缓存键（§9-D7/D8：pack 升版 → sha 变 → 重取）。
+- ``content_sha256`` 仍表示 pack Markdown；lesson 与 practice 各用自己的发布/源摘要
+  做 URL cache-bust，禁止一个 bundle SHA 同时代表两种内容事实。
 
-学习证据边界（防第四 builder）：本模块**不写任何学习证据**。档位①②轻练走既有
-``learner_signal`` 路由（非 promoting），档位③走判分链路；学-evidence
+学习证据边界（防第四 builder）：本模块**不写任何学习证据**。课后练统一走
+``luban_retest_completion.v1`` → ``RetestWritebackService``（forward 非 promoting），
+档位③走判分链路；学-evidence
 （lesson_viewed）唯一 writer = ``learner_state/lesson_evidence.py``（经
 ``lesson_progress`` 路由，融合计划 §2.1）——本投影模块仍零写入。
 """
@@ -23,9 +27,16 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import re
 from pathlib import Path
+import re
 from typing import Any
+
+from deeptutor.services.luban_lesson.practice_html import (
+    PracticeHtmlInvalid,
+    is_compiled_practice_pack,
+    load_compiled_practice,
+    project_compiled_practice,
+)
 
 _REPO = Path(__file__).resolve().parents[3]
 _MANIFEST_PATH = (
@@ -66,11 +77,36 @@ def _load_manifest(manifest_path: Path | None = None) -> dict[str, Any]:
     return manifest
 
 
-def _card_url(pack_id: str) -> str:
+def _compiled_practice_meta(pack_id: str) -> dict[str, str]:
+    try:
+        authority = load_compiled_practice(pack_id)
+    except PracticeHtmlInvalid:
+        return {}
+    if authority is None:
+        return {}
+    return {
+        "practice_sha": str(authority.get("source_bundle_sha256") or ""),
+        "lesson_sha": str(authority.get("published_lesson_sha256") or ""),
+    }
+
+
+def _card_url(pack_id: str, *, bundle_sha: str = "") -> str:
     base = str(os.getenv(_CARD_BASE_ENV) or "").strip().rstrip("/")
     if not base:
         return ""  # 托管未配置：viewmodel 仍可用（练档数据不依赖卡），客户端按无卡降级
+    if bundle_sha:
+        return f"{base}/{pack_id.lower()}/lesson.html?v={bundle_sha}"
     return f"{base}/{pack_id.lower()}/lesson.html"
+
+
+def _practice_card_url(pack_id: str, *, bundle_sha: str = "") -> str:
+    """已编译随堂练成品的托管 URL；没有成品练习的 pack 不猜路径。"""
+    if not bundle_sha:
+        return ""
+    base = str(os.getenv(_CARD_BASE_ENV) or "").strip().rstrip("/")
+    if not base:
+        return ""
+    return f"{base}/{pack_id.lower()}/practice.html?v={bundle_sha}"
 
 
 _BANK_CACHE: dict[tuple[str, int], Any] = {}
@@ -151,9 +187,9 @@ def list_all_pack_ids(*, manifest_path: Path | None = None) -> list[str]:
 def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
     """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。
 
-    ``retest_available`` = signed 变体池真值（复用 ``_variant_summary`` 同一闸，
-    不建第二判定）——供学习页头牌轻练按供给路由/降级：承诺宽度收窄到有货的
-    站，不对空池站渲染练不了的按钮。
+    ``retest_available`` = manifest 登记的 compiled finished 供给或 signed 变体池真值
+    （各自复用唯一 loader/签发闸，不建第二判定）——供学习页按真实供给
+    路由/降级，不对空池站渲染练不了的按钮。
     """
     manifest = _load_manifest(manifest_path)
     green = set(manifest.get("projection_green") or [])
@@ -169,7 +205,11 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
                 "content_sha256": str(pack.get("content_sha256") or ""),
                 # 托管真值来自 manifest 对 lesson.html 的确定性扫描；路线绿灯与可播放分开。
                 "card_hosted": bool(pack.get("card_hosted")),
-                "retest_available": _variant_summary(
+                "retest_available": bool(
+                    manifest_path is None
+                    and _compiled_practice_meta(str(pack["pack_id"]))
+                )
+                or _variant_summary(
                     str(pack["pack_id"]),
                     manifest_dir,
                     str(pack.get("content_sha256") or ""),
@@ -195,19 +235,40 @@ def build_lesson_viewmodel(
     if pack is None:  # manifest 自身不一致也 fail-closed
         raise LessonNotAvailable(pack_id)
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
+    practice_meta = _compiled_practice_meta(pack_id) if manifest_path is None else {}
+    practice_sha = practice_meta.get("practice_sha", "")
+    lesson_sha = practice_meta.get("lesson_sha", "")
     return {
         "pack_id": pack_id,
         "title": str(pack.get("title") or ""),
         "content_sha256": str(pack.get("content_sha256") or ""),
         # card_hosted=manifest 确定性扫描(web/public/luban-preview/<id>/lesson.html 实存);
         # 非 hosted 站不发 URL——防 web-view 打开 404(部署探针实证 22/28 站无卡)
-        "card_url": _card_url(pack_id) if pack.get("card_hosted") else "",
+        "card_url": (
+            _card_url(pack_id, bundle_sha=lesson_sha)
+            if pack.get("card_hosted")
+            else ""
+        ),
+        # finished 随堂练的托管副本；客户端不再从 lesson URL 猜路径。
+        "practice_url": (
+            _practice_card_url(pack_id, bundle_sha=practice_sha)
+            if pack.get("card_hosted")
+            else ""
+        ),
+        "practice_surface": {
+            "available": bool(pack.get("card_hosted") and practice_sha),
+            "kind": "compiled_html" if practice_sha else "",
+            "question_count": 5 if practice_sha else 0,
+            "completion_contract": (
+                "luban_retest_completion.v1" if practice_sha else ""
+            ),
+        },
         "variant_retest": _variant_summary(
             pack_id, manifest_dir, str(pack.get("content_sha256") or "")
         ),
         # 证据写入路径声明（客户端按此接线，防第四 builder）：
         "evidence_channels": {
-            "light_practice": "learner_signal",  # 档位①②（非 promoting）
+            "practice_completion": "luban_retest_completion.v1",
             "full_answer": "case_grading",  # 档位③（判分内核链路）
         },
     }
@@ -256,20 +317,20 @@ def build_retest_items(
     day_index: int,
     limit: int = 5,
     mode: str = "review",
+    practice_surface: str = "",
     manifest_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """变体题面投影——runtime 只从编译期预生成池**抽取**（§8 红线）。
+    """练习题面投影——runtime 只读编译产物，绝不在线生成。
 
-    两种取题模式共用**同一签发池、同一 builder**（不分叉第二 builder）：
+    两种模式共用同一 endpoint、selection identity 与 completion writer：
     - ``mode="review"``（默认，复习轮换皮复测）：跨天扁平确定性轮换，同一用户
       同一天取同一切片（多端幂等，§9-D3）；跨天按 ``day_index``（服务端本地日，
       §9-D2）前进，池耗尽自动回绕复用旧变体（产能降级预案①，绝不 runtime 现编）。
-    - ``mode="forward"``（学习轮 2 分钟轻练，对刚学完的 pack 立即练一遍）：广度
-      优先 round-robin 覆盖不同 ``rule_group``（见 ``_forward_rule_group_spread``）。
-      仅**选序**不同，证据仍走 learner_signal 非 promoting（轻练不关闭弱点，PRD 红线）。
+    - ``mode="forward"``：已编译 pack 读 finished HTML 固定五题投影
+      （不下发正确项）；``practice_surface`` 只能选 manifest 登记的成品面。
+      证据仍由 RetestWritebackService server-rescore 且 non-promoting。
 
-    两模式都只发核心变体（extension=false）；judge 所需期望判定随题下发（判断题
-    二选一，本地确定性判分，D5 离线可用）。对外只投影签发字段
+    signed variant 分支只发核心变体（extension=false）；对外投影字段
     {variant_id, rule_group, surface, expected_ok, correct_statement, anchor}——
     绝不派生 scoring_point 文本 / exam_refs / chapter（变体池无此供给=不臆造）。
 
@@ -283,6 +344,21 @@ def build_retest_items(
     正文的 bank 抽取——不满足与 bank 缺失同形返回 ``[]``（既有降级）。
     """
     vm = build_lesson_viewmodel(pack_id, manifest_path=manifest_path)
+    normalized_mode = str(mode or "").strip().lower()
+    if normalized_mode == "forward" and manifest_path is None:
+        try:
+            compiled = project_compiled_practice(
+                vm["pack_id"],
+                expected_pack_sha256=vm["content_sha256"],
+                surface_id=practice_surface,
+            )
+        except PracticeHtmlInvalid:
+            compiled = None
+        if compiled is not None:
+            # 成品面是固定五题，不能用 limit 截短后仍签发完成凭证。
+            return compiled
+        if is_compiled_practice_pack(vm["pack_id"]):
+            return []  # compiled 内容损坏/SHA 漂移时禁回退第二套 signed-variant 题面
     if not vm["variant_retest"]["available"]:
         return []
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
@@ -305,7 +381,7 @@ def build_retest_items(
         hashlib.sha256(f"{user_id}:{int(day_index)}".encode("utf-8")).hexdigest()[:12],
         16,
     )
-    if str(mode or "").strip().lower() == "forward":
+    if normalized_mode == "forward":
         ordered = _forward_rule_group_spread(core, seed, len(core))
     else:
         start = seed % len(core)
