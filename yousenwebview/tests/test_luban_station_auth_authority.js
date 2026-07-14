@@ -71,6 +71,11 @@ function makePage(definition) {
   const route = require(path.join(ROOT, "utils/route.js"));
   const target = route.lubanStation("A01");
   assert.strictEqual(target, "/packageDeeptutor/pages/luban/station/station?pack_id=A01");
+  assert.strictEqual(
+    route.lubanStation("D14", 2),
+    "/packageDeeptutor/pages/luban/station/station?pack_id=D14&episode=2",
+    "第二集保留在原生站点深链，服务端负责 fail-closed 选择实际发布页",
+  );
   assert.strictEqual(route.resolveInternalUrl(target, "/fallback"), target, "login returnTo must preserve station deep links");
   const stationsWxml = fs.readFileSync(path.join(ROOT, "pages/luban/stations/stations.wxml"), "utf8");
   assert(stationsWxml.indexOf('<view class="sr-hero" wx:if="{{!errorText}}">') >= 0, "route errors must not render false 0/40 progress");

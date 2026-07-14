@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
+   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
+     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
+   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
+     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+class Component extends DCLogic {
+  // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
+  //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="基坑支护选型（上）";
+  KNOWLEDGE="基坑支护选型（B02上集,采分点P1–P5）。P1施工前编专项施工方案(支护/降水/土方开挖/工艺流程/安全/应急/监测),开挖≥5m属危大须专家论证。P2支护选型按土层/地下水位/开挖深度/周边环境+安全等级综合:一级宜排桩/地连墙/型钢水泥土搅拌墙,二三级宜土钉墙/水泥土重力墙(重力墙适淤泥质、深≤7m);安全等级仅首轮筛选。P3地连墙导墙厚≥200mm、高≥1.2m;灌注桩间隔成桩>4倍桩径或>36h。P4土钉墙五原则(超前支护/分层分段/逐层施作/限时封闭/严禁超挖)+坡比≤1:0.2。P5锚杆垂直≥2.0m/水平≥1.5m;锚固段≥15MPa且达设计强度75%方张拉,张拉至1.05~1.10倍设计值。";
+  moreText="补两道：① 一级深基坑邻近地铁的支护选型，练排桩/地连墙 + 间隔成桩(>4倍桩径或>36h) + 刚度控制变形；② 土钉墙工序改错，练超前支护/分层分段/逐层施作/限时封闭/严禁超挖 + 坡比≤1:0.2 的判断纠错三段式。";
+  // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
+  Q=[
+{ tag:"专项方案·记录维", typeHint:"单选 · 选出内容列举最完整、能拿分的作答", figLabel:"题给：基坑专项施工方案", figCaption:"施工前应编 · 内容包含哪几项？", fig:"plan",
+      stem:"基坑施工前应编制专项施工方案。选出内容列举最完整、能得分的作答。",
+      model:"专项方案含支护、降水（地下水控制）、土方开挖、工艺流程、安全、应急、监测；开挖≥5m 属危大须专家论证。",
+      opts:[
+        { t:"专项方案应含支护、降水、土方开挖、工艺流程、安全、应急、监测七项；开挖深度≥5m 的基坑属危大工程，须专家论证。", ok:true, fix:"七项内容 + 危大≥5m 专家论证一并写全，正是采分点。", code:"" },
+        { t:"编制支护和土方开挖两部分即可，降水与监测由现场随机应变，不必写进方案。", ok:false, code:"E02", tempt:"觉得支护、开挖是主体，其余临时定。", lose:"漏降水、监测、应急等多项采分点。", fix:"补齐降水、工艺、安全、应急、监测，共七项。" },
+        { t:"方案写清支护、降水、开挖即可，无需注明危大工程与专家论证的要求。", ok:false, code:"E02", tempt:"三大件齐了就以为够。", lose:"漏'开挖≥5m 属危大、须专家论证'采分点。", fix:"补'开挖≥5m 属危大、须专家论证'。" },
+        { t:"浅基坑不必编专项方案，直接按经验开挖，只有深基坑才编制方案。", ok:false, code:"E10", tempt:"以为浅坑可免方案。", lose:"基坑施工前均应编专项方案，违反规范。", fix:"施工前均应编专项方案，≥5m 另须专家论证。" }
+      ] },
+{ tag:"专项方案·程序维", typeHint:"单选 · 选出编制与论证程序正确的作答", figLabel:"题给：方案编制—审批—论证", figCaption:"谁编、谁批、何时论证？", fig:"plan",
+      stem:"关于基坑专项施工方案的编制与论证程序，选出正确、能得分的作答。",
+      model:"专项方案由施工单位编制、报监理审批；开挖≥5m 危大基坑须组织专家论证后实施。",
+      opts:[
+        { t:"专项施工方案由施工单位编制、报监理审批；开挖深度≥5m 的危大基坑，还须组织专家论证后实施。", ok:true, fix:"编制主体、审批、危大论证三步齐，程序分清。", code:"" },
+        { t:"专项方案由监理单位编制、施工单位执行，深基坑由建设单位直接组织论证。", ok:false, code:"E06", tempt:"分不清编制主体。", lose:"编制主体答反、论证组织错。", fix:"施工单位编、报监理审批，危大再专家论证。" },
+        { t:"施工单位编制后即可施工，危大工程也无需专家论证，加强技术交底即可。", ok:false, code:"E02", tempt:"想省掉论证环节。", lose:"漏危大专家论证采分点。", fix:"≥5m 危大须专家论证方可实施。" },
+        { t:"所有基坑无论深浅都须先专家论证、后编制方案。", ok:false, code:"E10", tempt:"以为都要论证且顺序在前。", lose:"论证限危大(≥5m)、且程序颠倒。", fix:"先编方案，≥5m 危大才须专家论证。" }
+      ] },
+{ tag:"支护选型·条件维", typeHint:"单选 · 一级基坑支护选型", figLabel:"题给：安全等级—支护类型", figCaption:"安全等级一级 → 选哪类支护？", fig:"level",
+      stem:"某深基坑安全等级为一级。选出支护结构选型正确、能得分的作答。",
+      model:"一级宜选灌注桩排桩、地下连续墙、型钢水泥土搅拌墙等刚度大的支护。",
+      opts:[
+        { t:"安全等级一级宜选灌注桩排桩、地下连续墙或型钢水泥土搅拌墙等刚度大的支护结构。", ok:true, fix:"一级对应排桩/地连墙/型钢搅拌墙，刚度大控制变形。", code:"" },
+        { t:"一级基坑可采用土钉墙支护，施工快、造价低，适合各类深基坑。", ok:false, code:"E10", tempt:"土钉墙常见就直接套用。", lose:"土钉墙限二三级，用于一级越界。", fix:"一级用排桩/地连墙/型钢搅拌墙。" },
+        { t:"一级基坑宜选水泥土重力式围护墙，靠自重挡土稳定可靠。", ok:false, code:"E10", tempt:"重力墙听着稳当。", lose:"重力墙属二三级、且限淤泥质≤7m。", fix:"一级用排桩/地连墙等；重力墙限二三级。" },
+        { t:"支护类型与安全等级无关，按造价最低的方案选即可。", ok:false, code:"E01", tempt:"只顾省造价。", lose:"忽略安全等级这道首轮筛选。", fix:"先按安全等级筛，一级用排桩/地连墙。" }
+      ] },
+{ tag:"支护选型·条件维", typeHint:"单选 · 选出选型依据最完整的作答", figLabel:"题给：支护选型依据", figCaption:"选支护看哪几样？", fig:"level",
+      stem:"关于基坑支护选型的依据，选出最完整、能得分的作答。",
+      model:"按土层、地下水位、开挖深度、周边环境+安全等级综合确定，安全等级仅首轮筛选。",
+      opts:[
+        { t:"支护选型应综合土层、地下水位、开挖深度、周边环境和安全等级确定，安全等级只是首轮筛选。", ok:true, fix:"五要素综合 + 点明安全等级为首轮筛选，最稳。", code:"" },
+        { t:"只要按安全等级对号入座即可，一级排桩、二三级土钉墙，不必再看别的。", ok:false, code:"E01", tempt:"以为安全等级单因子定死。", lose:"忽略土层/水位/深度/周边，选型不封闭。", fix:"安全等级是首轮筛选，还需综合四要素。" },
+        { t:"按造价和工期选最省的支护即可，土层和水位不是选型依据。", ok:false, code:"E01", tempt:"只算经济账。", lose:"漏土层、水位等技术依据。", fix:"选型先看安全等级 + 土层水位深度周边。" },
+        { t:"只看开挖深度定支护，深就排桩、浅就土钉墙，一刀切即可。", ok:false, code:"E02", tempt:"以为深度单因子决定。", lose:"漏安全等级/土层/周边多因子。", fix:"综合安全等级 + 土层水位深度周边。" }
+      ] },
+{ tag:"支护选型·条件维", typeHint:"单选 · 淤泥质土二级基坑", figLabel:"题给：淤泥质土·深6m·二级", figCaption:"这坑可选哪种支护？", fig:"level",
+      stem:"某淤泥质土基坑，开挖深度6m，安全等级二级。选出支护可选、能得分的作答。",
+      model:"二级可选水泥土重力式围护墙（适淤泥质土、深度≤7m）或土钉墙等。",
+      opts:[
+        { t:"该基坑安全等级二级、淤泥质土、深度≤7m，可选用水泥土重力式围护墙，也可用土钉墙。", ok:true, fix:"抓住二级 + 淤泥质 + ≤7m，正对应重力墙适用条件。", code:"" },
+        { t:"水泥土重力墙适用深度不超过10m，本基坑6m 完全适用。", ok:false, code:"M08", tempt:"记错了适用深度阈值。", lose:"重力墙限深度≤7m，写10m 数字错。", fix:"水泥土重力墙适用深度≤7m。" },
+        { t:"该基坑必须选地下连续墙，重力墙不能用于淤泥质土。", ok:false, code:"E10", tempt:"以为软土一定要硬支护。", lose:"二级淤泥质≤7m 正适重力墙。", fix:"二级淤泥质≤7m 可选水泥土重力墙。" },
+        { t:"淤泥质深基坑宜选土钉墙，超前支护、逐层施作即可。", ok:false, code:"E10", tempt:"土钉墙直接套用。", lose:"淤泥质软土不宜土钉墙。", fix:"淤泥质≤7m 宜水泥土重力墙。" }
+      ] }
+  ];
+  // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
+  codeMap={
+    E01:{label:"知识点缺失",advice:"支护选型先看安全等级+土层水位深度周边，不套模板。"},
+    E02:{label:"采分点遗漏",advice:"专项方案七项、土钉墙五原则逐条写，缺一扣一。"},
+    E06:{label:"程序顺序错误",advice:"土钉墙分层逐层施作、先撑后挖，不一次挖到底。"},
+    E07:{label:"概念混淆",advice:"分清安全等级档与支护类型、放坡与支护、截水与挡土。"},
+    E10:{label:"规范适用错误",advice:"土钉墙/重力墙限二三级；重力墙适淤泥质≤7m。"},
+    M08:{label:"规范数字混淆",advice:"导墙≥200/1.2m、间隔>4D/36h、锚杆≥2.0/1.5m、≥15MPa且75%。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    // 抽题顺序与选项乱序在首帧惰性生成并缓存（ord()/optPerm()），不依赖此处 setState，
+    // 保证首屏渲染即已随机（消除"A 先出现再洗牌"的闪烁与对 componentDidMount 的依赖）。
+  }
+  // ── 随机抽题：从 Q[] 全量候选池洗牌后取前 SHOW_COUNT 条真实索引 ──
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  // ── 选项乱序：每题对 opts 独立洗牌，正确项落随机位置（防"永远选第一个/最长的"位置泄露）；重做重新洗 ──
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="plan"){ figH=104; const t=["支护","降水","土方开挖","工艺流程","安全","应急","监测"];
+      t.forEach((tk,i)=>{ const c=i%4, r=Math.floor(i/4); els.push(D({x:6+c*82,top:8+r*46,w:76,h:38,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:8,fg:"#2f6db0",fs:10.5,lab:tk})); });
+      els.push(D({x:6+3*82,top:8+46,w:76,h:38,bg:"#fdf2f0",bd:"1.5px solid #f0c4bc",r:8,fg:"#cf4436",fs:9.5,lab:"≥5m论证"})); }
+    else if(type==="level"){ figH=104;
+      els.push(D({x:4,top:8,w:72,h:18,fg:"#217a4e",fs:11,ta:"left",jc:"flex-start",lab:"一级(高)"}));
+      [["排桩"],["地连墙"],["型钢搅拌墙"]].forEach((l,i)=>els.push(D({x:82+i*82,top:4,w:78,h:24,bg:"#2c8a5b",r:6,fg:"#fff",fs:9.5,lab:l[0]})));
+      els.push(D({x:4,top:44,w:72,h:18,fg:"#2f6db0",fs:11,ta:"left",jc:"flex-start",lab:"二三级"}));
+      [["土钉墙"],["水泥土重力墙"]].forEach((l,i)=>els.push(D({x:82+i*118,top:40,w:112,h:24,bg:"#2f6db0",r:6,fg:"#fff",fs:9.5,lab:l[0]})));
+      els.push(D({x:4,top:78,w:326,h:16,fg:"#cf8a44",fs:9.5,ta:"left",jc:"flex-start",lab:"再综合 土层·地下水位·开挖深度·周边环境"})); }
+    else if(type==="guidewall"){ figH=100;
+      els.push(D({x:150,top:22,w:34,h:54,bg:"#a7adb0",r:2}));
+      els.push(D({x:150,top:12,w:34,h:3,bg:"#cf4436"}));
+      els.push(D({x:190,top:8,w:130,h:14,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"厚 ≥200mm"}));
+      els.push(D({x:136,top:22,w:3,h:54,bg:"#cf4436"}));
+      els.push(D({x:14,top:42,w:116,h:14,fg:"#cf4436",fs:11,ta:"right",jc:"flex-end",lab:"高 ≥1.2m"}));
+      els.push(D({x:110,top:82,w:210,h:14,fg:"#8b9398",fs:9.5,ta:"left",jc:"flex-start",lab:"导墙给成槽导向·稳槽口"})); }
+    else if(type==="pile"){ figH=96;
+      const p=[["①浇","#8a9296","none","#fff"],["间隔","transparent","2px dashed #c0392b","#c0392b"],["②浇","#8a9296","none","#fff"],["间隔","transparent","2px dashed #c0392b","#c0392b"],["③浇","#8a9296","none","#fff"]];
+      p.forEach((c,i)=>els.push(D({x:14+i*62,top:12,w:46,h:46,r:23,bg:c[1],bd:c[2],fg:c[3],fs:10,lab:c[0]})));
+      els.push(D({x:0,top:68,w:330,h:16,fg:"#cf8a44",fs:10,lab:"已浇桩与邻桩 间距>4倍桩径 或 间隔>36h"})); }
+    else if(type==="nail"){ figH=104;
+      els.push(D({x:170,top:8,w:150,h:3,bg:"#9a8a66"}));
+      els.push(D({x:170,top:11,w:150,h:86,bg:"#c9b48f",r:0}));
+      [0,1,2,3].forEach(i=>{ els.push(D({x:184+i*4,top:24+i*19,w:76,h:4,bg:"#6b6358"})); els.push(D({x:180+i*4,top:20+i*19,w:8,h:11,bg:"#cf4436",r:2})); });
+      els.push(D({x:6,top:18,w:150,h:16,fg:"#8a6d1f",fs:10,ta:"left",jc:"flex-start",lab:"超前支护·分层分段"}));
+      els.push(D({x:6,top:42,w:150,h:16,fg:"#8a6d1f",fs:10,ta:"left",jc:"flex-start",lab:"逐层施作·限时封闭"}));
+      els.push(D({x:6,top:66,w:150,h:16,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"严禁超挖 · 坡比≤1:0.2"})); }
+    else if(type==="anchor"){ figH=100;
+      els.push(D({x:10,top:6,w:180,h:16,fg:"#23282b",fs:10.5,ta:"left",jc:"flex-start",lab:"锚固段强度 → 达标才张拉"}));
+      els.push(D({x:10,top:36,w:132,h:18,bg:"#fadcd6"}));
+      els.push(D({x:142,top:36,w:168,h:18,bg:"#dff0e6"}));
+      els.push(D({x:139,top:31,w:3,h:28,bg:"#23282b"}));
+      els.push(D({x:96,top:58,w:130,h:14,fg:"#23282b",fs:9.5,ta:"left",jc:"flex-start",lab:"15MPa 且 75%"}));
+      els.push(D({x:150,top:78,w:170,h:16,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"达标→可张拉；未达→拔出"}));
+      els.push(D({x:10,top:78,w:130,h:16,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"垂直≥2.0·水平≥1.5m"})); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("B02")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
+}
+</script>
+</body>
+</html>

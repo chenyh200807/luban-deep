@@ -44,6 +44,8 @@ _MANIFEST_PATH = (
 )
 _VARIANT_BANK_TEMPLATE = "_{pack_id}_variant_bank.v0.json"
 _CARD_BASE_ENV = "LUBAN_LESSON_CARD_BASE"
+_PUBLIC_PREVIEW_ROOT = _REPO / "web" / "public" / "luban-preview"
+_LESSON_PAGE_NAME = re.compile(r"^lesson(?P<episode>[2-9][0-9]*)?\.html$")
 
 
 class LessonNotAvailable(Exception):
@@ -55,6 +57,7 @@ class LessonNotAvailable(Exception):
 # fail-closed 且**不缓存**——修好文件后同进程下次调用即恢复。
 _MANIFEST_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
 _MANIFEST_UNAVAILABLE: dict[str, Any] = {"projection_green": [], "packs": []}
+_LESSON_FILE_SHA_CACHE: dict[str, tuple[tuple[int, int], str]] = {}
 
 
 def _load_manifest(manifest_path: Path | None = None) -> dict[str, Any]:
@@ -90,13 +93,115 @@ def _compiled_practice_meta(pack_id: str) -> dict[str, str]:
     }
 
 
-def _card_url(pack_id: str, *, bundle_sha: str = "") -> str:
+def _lesson_url(
+    pack_id: str, *, lesson_file: str = "lesson.html", bundle_sha: str = ""
+) -> str:
+    """某个已发布讲解页面的托管 URL。
+
+    ``lesson_file`` 只由 ``_published_lesson_pages`` 生成，不能从客户端直通；
+    这样 ``lesson2.html``/``lesson3.html`` 是教学集的真实入口，而非字符串猜测。
+    """
     base = str(os.getenv(_CARD_BASE_ENV) or "").strip().rstrip("/")
     if not base:
         return ""  # 托管未配置：viewmodel 仍可用（练档数据不依赖卡），客户端按无卡降级
     if bundle_sha:
-        return f"{base}/{pack_id.lower()}/lesson.html?v={bundle_sha}"
-    return f"{base}/{pack_id.lower()}/lesson.html"
+        return f"{base}/{pack_id.lower()}/{lesson_file}?v={bundle_sha}"
+    return f"{base}/{pack_id.lower()}/{lesson_file}"
+
+
+def _card_url(pack_id: str, *, bundle_sha: str = "") -> str:
+    """兼容默认首集的既有消费方。"""
+    return _lesson_url(pack_id, bundle_sha=bundle_sha)
+
+
+def _published_lesson_pages(pack_id: str) -> list[Path]:
+    """从已发布页确定性枚举同一考点的教学集。
+
+    站点注册表/publisher 是发布映射的唯一 writer；运行时只读其实际输出。
+    只接受无缺口的 ``lesson.html``、``lesson2.html``、``lesson3.html`` …序列：
+    少任意一集或出现未知文件名均不把后续页面暴露给学习端。
+    """
+    station_dir = _PUBLIC_PREVIEW_ROOT / str(pack_id or "").strip().lower()
+    try:
+        candidates = list(station_dir.glob("lesson*.html"))
+    except OSError:
+        return []
+    indexed: dict[int, Path] = {}
+    for path in candidates:
+        match = _LESSON_PAGE_NAME.fullmatch(path.name)
+        if match is None:
+            return []
+        index = int(match.group("episode") or "1")
+        if index in indexed:
+            return []
+        indexed[index] = path
+    if not indexed:
+        return []
+    expected = list(range(1, max(indexed) + 1))
+    if sorted(indexed) != expected:
+        return []
+    return [indexed[index] for index in expected]
+
+
+def _lesson_page_sha(path: Path) -> str:
+    """页面级缓存摘要；内容页变更即失效，避免列表请求反复读 74 份 HTML。"""
+    try:
+        stat = path.stat()
+    except OSError:
+        return ""
+    cache_key = str(path)
+    stat_key = (stat.st_mtime_ns, stat.st_size)
+    cached = _LESSON_FILE_SHA_CACHE.get(cache_key)
+    if cached is not None and cached[0] == stat_key:
+        return cached[1]
+    try:
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return ""
+    _LESSON_FILE_SHA_CACHE[cache_key] = (stat_key, digest)
+    return digest
+
+
+def _episode_label(index: int, total: int) -> str:
+    if total == 1:
+        return "完整讲解"
+    if total == 2:
+        return "上集" if index == 1 else "下集"
+    if total == 3:
+        return ("上集", "中集", "下集")[index - 1]
+    return f"第 {index} 集"
+
+
+def _teaching_points_for_lesson(lesson: dict[str, Any]) -> list[dict[str, Any]]:
+    """一个 pack 的已发布教学集投影（零写入、零第二份目录）。"""
+    if not lesson.get("card_hosted"):
+        return []
+    pages = _published_lesson_pages(str(lesson.get("pack_id") or ""))
+    total = len(pages)
+    if not total:
+        return []
+    points: list[dict[str, Any]] = []
+    for index, page in enumerate(pages, start=1):
+        page_sha = _lesson_page_sha(page)
+        if not page_sha:
+            return []  # 任一页不可读 = 整个教学集不完整，fail-closed
+        label = _episode_label(index, total)
+        pack_id = str(lesson["pack_id"])
+        points.append(
+            {
+                "teaching_point_id": f"{pack_id}:lesson:{index}",
+                "pack_id": pack_id,
+                "title": str(lesson.get("title") or ""),
+                "episode_index": index,
+                "episode_total": total,
+                "episode_label": label,
+                "lesson_file": page.name,
+                "card_url": _lesson_url(
+                    pack_id, lesson_file=page.name, bundle_sha=page_sha
+                ),
+            }
+        )
+    return points
 
 
 def _practice_card_url(pack_id: str, *, bundle_sha: str = "") -> str:
@@ -216,11 +321,34 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
                 )["available"],
             }
         )
-    return sorted(rows, key=lambda r: r["pack_id"])
+    rows = sorted(rows, key=lambda r: r["pack_id"])
+    # 集数是发布产物的只读投影，不改写 manifest 的 pack 生命周期真值。
+    if manifest_path is None:
+        for row in rows:
+            row["teaching_episode_count"] = len(
+                _published_lesson_pages(str(row["pack_id"]))
+            )
+    return rows
+
+
+def list_teaching_points(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
+    """可独立播放的教学集列表。
+
+    ``pack_universe`` 仍是完整考点/进度范围；本函数只回答“当前已发布多少集
+    视频”。它从发布输出的连续 ``lesson*.html`` 序列投影，既不把 74 集伪装为
+    74 个练习包，也不保存一张需要人工同步的 episode 清单。
+    """
+    if manifest_path is not None:
+        # 临时 manifest 没有配套发布根，不能拿主仓静态页替它猜教学集。
+        return []
+    points: list[dict[str, Any]] = []
+    for lesson in list_green_lessons():
+        points.extend(_teaching_points_for_lesson(lesson))
+    return points
 
 
 def build_lesson_viewmodel(
-    pack_id: str, *, manifest_path: Path | None = None
+    pack_id: str, *, episode_index: int = 1, manifest_path: Path | None = None
 ) -> dict[str, Any]:
     """单站 viewmodel；不过投影门一律 LessonNotAvailable（fail-closed）。"""
     pack_id = str(pack_id or "").strip().upper()
@@ -235,9 +363,31 @@ def build_lesson_viewmodel(
     if pack is None:  # manifest 自身不一致也 fail-closed
         raise LessonNotAvailable(pack_id)
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
+    try:
+        episode_index = int(episode_index)
+    except (TypeError, ValueError):
+        episode_index = 1
+    if episode_index < 1:
+        raise LessonNotAvailable(pack_id)
+
     practice_meta = _compiled_practice_meta(pack_id) if manifest_path is None else {}
     practice_sha = practice_meta.get("practice_sha", "")
     lesson_sha = practice_meta.get("lesson_sha", "")
+    pages = _published_lesson_pages(pack_id) if manifest_path is None else []
+    if episode_index > 1 and (not pages or episode_index > len(pages)):
+        raise LessonNotAvailable(pack_id)
+    selected_page = pages[episode_index - 1] if pages else None
+    selected_lesson_sha = (
+        # 首集继续使用 compiled sidecar 的发布摘要，保持既有 URL 缓存语义；
+        # 其余集使用自己 HTML 的摘要，绝不借首集版本号。
+        lesson_sha
+        if episode_index == 1 and lesson_sha
+        else _lesson_page_sha(selected_page)
+        if selected_page is not None
+        else ""
+    )
+    episode_total = len(pages) if pages else 1
+    episode_label = _episode_label(episode_index, episode_total)
     return {
         "pack_id": pack_id,
         "title": str(pack.get("title") or ""),
@@ -245,10 +395,20 @@ def build_lesson_viewmodel(
         # card_hosted=manifest 确定性扫描(web/public/luban-preview/<id>/lesson.html 实存);
         # 非 hosted 站不发 URL——防 web-view 打开 404(部署探针实证 22/28 站无卡)
         "card_url": (
-            _card_url(pack_id, bundle_sha=lesson_sha)
+            _lesson_url(
+                pack_id,
+                lesson_file=selected_page.name if selected_page is not None else "lesson.html",
+                bundle_sha=selected_lesson_sha,
+            )
             if pack.get("card_hosted")
             else ""
         ),
+        # 页面级教学集元数据只用于播放/展示；学习证据、练习、掌握仍归 pack。
+        "teaching_episode": {
+            "index": episode_index,
+            "total": episode_total,
+            "label": episode_label,
+        },
         # finished 随堂练的托管副本；客户端不再从 lesson URL 猜路径。
         "practice_url": (
             _practice_card_url(pack_id, bundle_sha=practice_sha)

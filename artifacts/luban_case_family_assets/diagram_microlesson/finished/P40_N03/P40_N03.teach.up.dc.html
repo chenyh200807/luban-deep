@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <!-- ░░ 顶部安全区红线（母版冻结，勿改）：舞台顶部 top:0–48px 为常驻 UI 带（旁白按钮/钥匙卡胶囊/全屏按钮，胶囊底沿≈40px）。
+         所有 beat 的领域对象/气泡/标签 top 最小值 = 48px，含手绘位移阴影厚度另计。双轴 gate 正确轴固定判据之一：截 beat0 中段帧核对任一对象 top≥48 且与胶囊/按钮无重叠、有可见空隙。 ░░ -->
+    <!-- ░░ 底部字幕安全区红线（母版冻结，勿改）：舞台底部 CAPTION 字幕卡 bottom:0 常驻，播放态才出现（isQA/静态编辑时 opacity=0 看不到），实测遮挡带（含卡体+底部内边距+顶部渐变过渡带、按母版上限 3 行算）≈ 90px。
+         所有 beat 的领域对象/标签底沿 top+height ≤ 462 − 90 = 372px；收尾标签/汇总句放舞台中上部留白带，不贴底。字幕卡静态看不到，必须按此常量预留，不能凭肉眼。双轴 gate 正确轴固定判据之一：截播放中段帧（字幕已出现）核对无任一对象被字幕卡遮挡。 ░░ -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 三大组织方式：依次 / 平行 / 流水 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ om_title }}</div>
+        <div style="position:absolute;left:16px;top:70px;font-size:11px;font-weight:900;color:#2f6db0;opacity:{{ om_o0 }};">依次施工 · 工期最长 · 省人</div>
+        <sc-for list="{{ om_seq }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ c.x }}px;top:90px;width:{{ c.w }}px;height:18px;background:{{ c.bg }};opacity:{{ c.op }};border-radius:3px;box-shadow:1px 1px 0 rgba(0,0,0,.12);"></div>
+        </sc-for>
+        <div style="position:absolute;left:16px;top:146px;font-size:11px;font-weight:900;color:#cf8a44;opacity:{{ om_o1 }};">平行施工 · 工期最短 · 耗人 N 倍</div>
+        <sc-for list="{{ om_par }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:70px;top:{{ c.y }}px;width:82px;height:16px;background:{{ c.bg }};opacity:{{ c.op }};border-radius:3px;box-shadow:1px 1px 0 rgba(0,0,0,.12);"></div>
+        </sc-for>
+        <div style="position:absolute;left:16px;top:230px;font-size:11px;font-weight:900;color:#2c8a5b;opacity:{{ om_o2 }};">流水施工 · 错位搭接 · 又快又稳</div>
+        <div style="position:absolute;left:60px;top:246px;width:210px;height:62px;border:2px dashed #2c8a5b;border-radius:8px;opacity:{{ om_hl }};"></div>
+        <sc-for list="{{ om_flow }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ c.x }}px;top:{{ c.y }}px;width:96px;height:16px;background:{{ c.bg }};opacity:{{ c.op }};border-radius:3px;box-shadow:1px 1px 0 rgba(0,0,0,.12);"></div>
+        </sc-for>
+      </div>
+
+      <!-- ░░ BEAT 1 · 三大参数 t / K / T ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ pr_title }}</div>
+        <sc-for list="{{ pr_cells }}" as="c" hint-placeholder-count="9">
+          <div style="position:absolute;left:{{ c.x }}px;top:{{ c.y }}px;width:50px;height:20px;background:{{ c.bg }};opacity:{{ c.op }};border-radius:4px;box-shadow:1px 1px 0 rgba(0,0,0,.12);"></div>
+        </sc-for>
+        <div style="position:absolute;left:70px;top:90px;width:50px;opacity:{{ pr_tO }};">
+          <div style="border-top:2px solid #2c8a5b;position:relative;"><div style="position:absolute;left:0;top:-4px;width:0;height:7px;border-left:2px solid #2c8a5b;"></div><div style="position:absolute;right:0;top:-4px;width:0;height:7px;border-left:2px solid #2c8a5b;"></div></div>
+          <div style="text-align:center;font-size:10px;font-weight:800;color:#2c8a5b;margin-top:2px;white-space:nowrap;">t 节拍·一段工时</div>
+        </div>
+        <div style="position:absolute;left:70px;top:198px;width:34px;opacity:{{ pr_kO }};">
+          <div style="border-top:2px solid #cf4436;position:relative;"><div style="position:absolute;left:0;top:-4px;width:0;height:7px;border-left:2px solid #cf4436;"></div><div style="position:absolute;right:0;top:-4px;width:0;height:7px;border-left:2px solid #cf4436;"></div></div>
+          <div style="font-size:10px;font-weight:800;color:#cf4436;margin-top:2px;white-space:nowrap;">K 步距·相邻队错开</div>
+        </div>
+        <div style="position:absolute;left:70px;top:230px;width:218px;opacity:{{ pr_TO }};">
+          <div style="border-top:2.5px solid #cf8a44;position:relative;"><div style="position:absolute;left:0;top:-4px;width:0;height:8px;border-left:2px solid #cf8a44;"></div><div style="position:absolute;right:0;top:-4px;width:0;height:8px;border-left:2px solid #cf8a44;"></div></div>
+          <div style="text-align:center;font-size:11px;font-weight:800;color:#cf8a44;margin-top:3px;white-space:nowrap;">T 工期·首队入 → 末队退</div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 参数三分类：工艺 / 时间 / 空间 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ cls_title }}</div>
+        <div style="position:absolute;left:16px;top:76px;width:110px;text-align:center;background:#2f6db0;color:#fff;border-radius:8px;padding:7px 0;font-size:12px;font-weight:900;opacity:{{ cls_h0 }};">工艺参数<div style="font-size:8.5px;font-weight:600;opacity:.85;margin-top:1px;">干啥 · 分几块</div></div>
+        <div style="position:absolute;left:140px;top:76px;width:110px;text-align:center;background:#2c8a5b;color:#fff;border-radius:8px;padding:7px 0;font-size:12px;font-weight:900;opacity:{{ cls_h1 }};">时间参数<div style="font-size:8.5px;font-weight:600;opacity:.85;margin-top:1px;">多久</div></div>
+        <div style="position:absolute;left:264px;top:76px;width:110px;text-align:center;background:#cf8a44;color:#fff;border-radius:8px;padding:7px 0;font-size:12px;font-weight:900;opacity:{{ cls_h2 }};">空间参数<div style="font-size:8.5px;font-weight:600;opacity:.85;margin-top:1px;">在哪干</div></div>
+        <sc-for list="{{ cls_toks }}" as="c" hint-placeholder-count="7">
+          <div style="position:absolute;left:{{ c.x }}px;top:{{ c.y }}px;width:110px;text-align:center;background:{{ c.bg }};border:{{ c.bd }};border-radius:7px;padding:7px 0;font-size:11px;font-weight:700;color:{{ c.fg }};opacity:{{ c.op }};">{{ c.lab }}</div>
+        </sc-for>
+        <div style="position:absolute;left:0;right:0;top:238px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ cls_noteO }};">节拍 · 步距 · 工期都是「时间参数」，别归错到工艺</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 施工段划分：劳动量差≤15% · 对结构缝 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ seg_title }}</div>
+        <div style="position:absolute;left:56px;top:160px;width:300px;height:26px;background:rgba(44,138,91,.13);border-top:1.5px dashed #2c8a5b;border-bottom:1.5px dashed #2c8a5b;opacity:{{ seg_bandO }};"></div>
+        <div style="position:absolute;left:56px;top:138px;font-size:9.5px;font-weight:800;color:#2c8a5b;opacity:{{ seg_bandO }};">各段劳动量落在 ±15% 带内</div>
+        <sc-for list="{{ seg_seams }}" as="s" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ s.x }}px;top:150px;width:0;height:124px;border-left:1.5px dashed #b06a2a;opacity:{{ s.op }};"></div>
+        </sc-for>
+        <sc-for list="{{ seg_bars }}" as="b" hint-placeholder-count="4">
+          <div style="position:absolute;left:{{ b.x }}px;top:{{ b.y }}px;width:52px;height:{{ b.h }}px;background:#2f6db0;opacity:{{ b.op }};border-radius:5px 5px 0 0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-size:10px;font-weight:800;color:#fff;">{{ b.lab }}</div>
+        </sc-for>
+        <div style="position:absolute;left:40px;width:316px;top:274px;border-top:2.5px solid #bdb8a8;"></div>
+        <div style="position:absolute;left:0;right:0;top:284px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ seg_noteO }};">劳动量差 ≤ 15% · 界限对结构缝 · 工作面充足</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 判型三分叉：全等 / 成倍数 / 无规律 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:38px;font-size:12px;font-weight:900;color:#23282b;">{{ jt_title }}</div>
+        <div style="position:absolute;left:50%;top:70px;transform:translateX(-50%);background:#23282b;color:#fff;border-radius:11px;padding:8px 16px;font-size:12px;font-weight:800;white-space:nowrap;opacity:{{ jt_srcO }};">看各段节拍关系</div>
+        <div style="position:absolute;left:195px;top:106px;width:0;height:26px;border-left:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <div style="position:absolute;left:70px;top:132px;width:250px;border-top:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <div style="position:absolute;left:70px;top:132px;width:0;height:16px;border-left:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <div style="position:absolute;left:195px;top:132px;width:0;height:16px;border-left:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <div style="position:absolute;left:320px;top:132px;width:0;height:16px;border-left:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <sc-for list="{{ jt_cards }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ c.x }}px;top:150px;width:112px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid {{ c.ac }};border-radius:10px;padding:9px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c.op }};">
+            <div style="font-size:9.5px;font-weight:800;color:#8b9398;">{{ c.cond }}</div>
+            <div style="font-size:13px;font-weight:900;color:{{ c.ac }};margin-top:3px;">{{ c.type }}</div>
+            <div style="font-size:9.5px;color:#6b6358;margin-top:5px;font-weight:600;line-height:1.45;">{{ c.k }}</div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:0;right:0;top:292px;text-align:center;font-size:11px;font-weight:700;color:#cf4436;opacity:{{ jt_noteO }};">判型是地基 · 判错则 K、队数、工期连锁错</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 概念口诀：方式·参数·分类·判型 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ c_title }}</div>
+        <div style="position:absolute;left:14px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c0 }};"><div style="font-size:14px;font-weight:900;color:#2f6db0;">1 方式</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">依次·平行·流水</div></div>
+        <div style="position:absolute;left:102px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c1 }};"><div style="font-size:14px;font-weight:900;color:#2c8a5b;">2 参数</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">t · K · T</div></div>
+        <div style="position:absolute;left:190px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c2 }};"><div style="font-size:14px;font-weight:900;color:#cf8a44;">3 分类</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">工艺·时间·空间</div></div>
+        <div style="position:absolute;left:278px;top:150px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #d9a521;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c3 }};"><div style="font-size:14px;font-weight:900;color:#d9a521;">4 判型</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">全等/倍数/无规律</div></div>
+        <div style="position:absolute;left:96px;top:188px;font-size:20px;color:#b3a692;opacity:{{ c1 }};">·</div>
+        <div style="position:absolute;left:184px;top:188px;font-size:20px;color:#b3a692;opacity:{{ c2 }};">·</div>
+        <div style="position:absolute;left:272px;top:188px;font-size:20px;color:#b3a692;opacity:{{ c3 }};">·</div>
+        <div style="position:absolute;left:0;right:0;top:262px;text-align:center;font-size:13px;font-weight:900;color:#23282b;opacity:{{ c3 }};">四关认清，下集开算 K·队数·工期</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN（播到底 t≥DUR 才出 · 与海报对称）░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">上集·概念判型 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">上半场把概念和判型唠明白了——三种组织方式、三个参数、三类归属，最后按节拍关系判对型。判型是地基，判错后面全错。歇口气，下集咱就动手算 K、算队数、算工期。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句概念采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">三方式：依次 · 平行 · 流水</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">t=一格 · K=错开 · T=全程</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">三分类：工艺 · 时间 · 空间</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">判型：全等 / 成倍数 / 无规律</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="P40_N03.teach.down.dc.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">下集·算工期</a>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <!-- 分集切换（本考点 ≥2 集时出现；单集时 hasEpisodes=false 隐藏）-->
+      <sc-if value="{{ hasEpisodes }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:8px;margin-top:11px;">
+        <div style="flex:none;font-size:11px;font-weight:800;color:#7f8a8f;line-height:1.25;white-space:nowrap;">{{ epLabel }}</div>
+        <sc-for list="{{ episodes }}" as="ep" hint-placeholder-count="2">
+          <a href="{{ ep.href }}" style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:11px;padding:11px 8px;font-size:12px;font-weight:900;text-decoration:none;background:{{ ep.bg }};color:{{ ep.fg }};pointer-events:{{ ep.pe }};">{{ ep.label }}</a>
+        </sc-for>
+      </div>
+      </sc-if>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="P40_N03.practice.dc.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- 全屏浮层控制条（真·全屏时点屏唤出，3.5s 自隐）-->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══════════════════════════════════════════════════════════════════════════
+   鲁班智考 · 动画学习卡 母版（讲解页）
+   ───────────────────────────────────────────────────────────────────────────
+   做新考点时，fork 本文件改名 <考点名>_讲解.dc.html，只改【内容区】，骨架别动。
+
+   ▼ 内容区（每张卡都要换）：
+     · examTitle / examCode / examCat / posterSub / posterMeta / KNOWLEDGE
+     · DUR（总秒数，≈每页旁白 6–8 秒累加）
+     · beats[]（≥6 主讲 + ≥4 问答，[id,起,止,短标题]）
+     · keycards[]（每主讲 beat 一句记忆点）
+     · narr[]（每主讲 beat 旁白，老师 longanhuan_v3 口语）
+     · qa[]（≥4 问，每问含 figLabel + fig 类型 + q + a）
+     · qaFig() 里 4 种迷你图 / figFor 的领域图（按新考点重画）
+     · 模板里 6 个 BEAT 块的领域对象 SVG/CSS（这是唯一要手画的部分）
+
+   ▲ 骨架（禁止改，改了就丢功能）：
+     · RAF 时间轴 loop / toggle / seek / jump
+     · paginate() + 旁白条 ≤3 行分页（capPages/capText/captionPage）
+     · QA 师生气泡 + 老师气泡内嵌 qaFig 迷你领域图
+     · 问追AI 弹层 + window.claude.complete
+     · 视口/全屏注入 componentDidMount
+
+   规则速记：动画讲知识不用文字讲；先判 6+1 认知结构再画领域对象；
+   每 beat 一个对象级动作、不堆画面；旁白条一页 ≤3 行（QA 气泡可整段显示）；
+   logo 用 assets/mark-white.png(暗底) / mark-red.png(亮底)，不用 emoji。
+   ═══════════════════════════════════════════════════════════════════════════ */
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/up/";
+  audioVersion="20260714144642";
+  DUR = 214.104;
+  examTitle="流水施工参数与工期"; examCode="N03·上"; examCat="案例·进度";
+  // 分集：单集留 []；分集时按顺序列出，cur:true 标当前集。文件名放项目根目录（同级）。
+  episodes=[
+    {label:"上集·概念判型",href:"P40_N03.teach.up.dc.html",cur:true},
+    {label:"下集·计算工期",href:"P40_N03.teach.down.dc.html"}
+  ];
+  posterSub="上集·概念判型关：组织方式 · 三参数 · 三分类 · 判型"; posterMeta="点击播放 · 6 幕精讲 + 4 追问 · 约 4 分半";
+  KNOWLEDGE="流水施工参数与工期·上集(概念判型关)。三大组织方式:依次施工(顺序无搭接,工期最长,省人)/平行施工(各段同时,工期最短,耗人N倍)/流水施工(分段分序错位搭接,又快又稳)。三大参数:流水节拍t=某专业队在一个施工段的施工时间;流水步距K=相邻两专业队进入流水的时间间隔;工期T=首队投入到末队退出。参数三分类:工艺参数(施工过程数/施工段数)、时间参数(节拍t/步距K/工期T)、空间参数(施工段/施工层)——节拍步距工期属时间参数,勿归工艺。施工段划分原则:劳动量差异≤15%、工作面充足、界限与结构缝吻合、段数合理、多层分段分层。类型判别:节拍全等→等节奏(K=t、队数=过程数、连续无空闲);不全等但成倍数→等步距异节奏(K=最大公约数、队数>过程数);无规律→无节奏(大差法、过程间可能有间隔)。判型是地基,判错则K/队数/工期连锁错。本集只讲概念与判型,K/队数/工期的具体计算在下集。";
+    beats=[["b0",0.0,19.7,"组织方式"],["b1",19.7,41.512,"三参数"],["b2",41.512,61.212,"三分类"],["b3",61.212,78.536,"施工段"],["b4",78.536,98.596,"判型"],["b5",98.596,112.776,"概念口诀"],["q0",112.776,140.484,"问答"],["q1",140.484,165.504,"问答"],["q2",165.504,190.092,"问答"],["q3",190.092,214.104,"问答"]];
+  keycards=[
+    "三种组织方式：依次·平行·流水，流水又快又稳",
+    "t=一格 · K=错开 · T=全程",
+    "工艺‘干啥分几块’ · 时间‘多久’ · 空间‘在哪’",
+    "施工段：劳动量差≤15% · 对结构缝",
+    "判型看节拍：全等/成倍数/无规律",
+    "认方式·分参数·归三类·判对型"
+  ];
+  narr=[
+    "先认识流水施工是啥。同样的活儿有三种排法：依次施工——一段段挨着干、不搭接，人省可工期最长；平行施工——所有段一块儿上，快是快、可要好几倍的人；流水施工——分段分序、错开搭接，又快又稳，这才是咱要学的。",
+    "流水施工盯三个参数。流水节拍 t：一个专业队在一个施工段上干的时间，就是一个方块的长；流水步距 K：相邻俩队进场差的那个间隔；工期 T：头一个队进场到最后一个队退场、整条流水拉满的总时间。t 是一格、K 是错开、T 是全程，别搞混。",
+    "这些参数分三类记。工艺参数管‘干啥、分几块’——施工过程数、施工段数；时间参数管‘多久’——节拍、步距、工期；空间参数管‘在哪儿干’——施工段、施工层。注意哈，节拍步距工期是时间参数，别错归到工艺里去。",
+    "排流水先得分施工段。分段有讲究：各段劳动量差异别超 15%，不然队伍忙闲不均、接不上茵；分段界限尽量对着结构缝走，工作面还得够。段分得匀，节拍才稳，后面判型算账才顺。",
+    "参数备齐，最关键一步——判型。就看节拍关系：全都相等，等节奏，步距 K 等于节拍；不全等但成倍数，等步距异节奏，步距取最大公约数；没规律，无节奏，步距得用大差法。判型判错是地基错，后面全跟着错。",
+    "上集这条概念链记牢：三种组织方式认清、三个参数分清、三类参数归清、按节拍关系判清型。这四关过了，下集咱就上手算 K、算队数、算工期。"
+  ];
+  qa=[
+    { figLabel:"依次最长 · 平行最短耗人 · 流水居中又稳", fig:"modes", q:"老师，依次、平行、流水这仨到底差在哪啊？我老分不清。", a:"就看搭不搭接哈。依次是一段段挨着干、谁也不搭谁，工期最长、可人最省；平行是所有段一块儿开工，最快、可得好几倍的人和料；流水是错开一个步距搭着干，工期居中、人还匀。记：依次省人、平行费人、流水又快又稳。" },
+    { figLabel:"t = 一格长 · K = 相邻队错开", fig:"tk", q:"老师我寻思着，流水节拍 t 和流水步距 K 老搞混，咋记啊？", a:"记俩画面哈。t 是‘一格’——一个队在一个施工段上干多久，就是横道图上一个方块的长；K 是‘错开’——后一个队比前一个队晚进场多少，是相邻俩队起点之间那段距离。一个说自己干多久，一个说俩队差多少，维度不一样。" },
+    { figLabel:"节拍/步距/工期 → 时间参数栏", fig:"cls", q:"那流水节拍、步距、工期，是算工艺参数还是时间参数啊？", a:"是时间参数哈，别归错。工艺参数管‘干啥、分几块’——施工过程数、施工段数；时间参数管‘多久’——节拍、步距、工期都在这儿；空间参数管‘在哪干’——施工段、施工层。凡是带时间的都进时间参数栏。" },
+    { figLabel:"不全等先看成不成倍数", fig:"fork", q:"节拍要是不全相等，是不是就直接判无节奏啊？", a:"可别急着判！不全等还得再看一眼成不成倍数。像 3、3、6、3 不全等、可都是 3 的倍数，那是‘等步距异节奏’，不是无节奏；只有真没规律、约不出公倍关系，才判无节奏。先看全等、再看成倍数、最后才无节奏。" }
+  ];
+  askPresets=["依次、平行、流水咋区分？","流水节拍和步距怎么记不混？","节拍不全等一定是无节奏吗？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return; // 忽略舞台内交互控件（全屏钮/QA点/终屏按钮等），只有点空白画面才切换控制条
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="modes"){ h=58;
+      els.push(D({x:0,top:2,w:34,h:14,fg:"#9fc7e0",fs:8,jc:"flex-start",lab:"依次"}));
+      els.push(D({x:36,top:2,w:180,h:14,bg:"#b5564a",r:3}));
+      els.push(D({x:0,top:22,w:34,h:14,fg:"#e0b48f",fs:8,jc:"flex-start",lab:"平行"}));
+      els.push(D({x:36,top:22,w:66,h:14,bg:"#cf8a44",r:3}));
+      els.push(D({x:106,top:23,w:120,h:12,fg:"#a8997a",fs:7.5,jc:"flex-start",lab:"人料 N 倍"}));
+      els.push(D({x:0,top:42,w:34,h:14,fg:"#9fd3b4",fs:8,jc:"flex-start",lab:"流水"}));
+      els.push(D({x:36,top:42,w:110,h:14,bg:"#2c8a5b",r:3}));
+      els.push(D({x:150,top:43,w:100,h:12,fg:"#7fbf95",fs:7.5,jc:"flex-start",lab:"又快又稳"})); }
+    else if(it.fig==="tk"){ h=58;
+      els.push(D({x:0,top:8,w:30,h:14,fg:"#9fc7e0",fs:8,jc:"flex-start",lab:"队1"}));
+      els.push(D({x:36,top:8,w:38,h:14,bg:"#2f6db0",r:3}));
+      els.push(D({x:76,top:8,w:38,h:14,bg:"#2f6db0",r:3}));
+      els.push(D({x:0,top:28,w:30,h:14,fg:"#e0b48f",fs:8,jc:"flex-start",lab:"队2"}));
+      els.push(D({x:76,top:28,w:38,h:14,bg:"#cf8a44",r:3}));
+      els.push(D({x:116,top:28,w:38,h:14,bg:"#cf8a44",r:3}));
+      els.push(D({x:36,top:-7,w:38,h:8,fg:"#7fbf95",fs:7.5,lab:"t 一格"}));
+      els.push(D({x:36,top:46,w:78,h:8,fg:"#e0a89f",fs:7.5,lab:"K 错开"})); }
+    else if(it.fig==="cls"){ h=52;
+      els.push(D({x:0,top:2,w:80,h:16,bg:"#20343f",bd:"1px solid #33566a",r:5,fg:"#9fc7e0",fs:9,lab:"工艺"}));
+      els.push(D({x:86,top:2,w:80,h:16,bg:"#2c8a5b",r:5,fg:"#fff",fs:9,lab:"时间"}));
+      els.push(D({x:172,top:2,w:80,h:16,bg:"#3a2e1f",bd:"1px solid #5a4526",r:5,fg:"#e0b48f",fs:9,lab:"空间"}));
+      els.push(D({x:0,top:22,w:80,h:26,fg:"#a8997a",fs:8,lab:"过程数·段数"}));
+      els.push(D({x:86,top:22,w:80,h:26,bg:"#16281d",bd:"1px solid #2c8a5b",r:5,fg:"#7fbf95",fs:8,lab:"节拍·步距·工期"}));
+      els.push(D({x:172,top:22,w:80,h:26,fg:"#a8997a",fs:8,lab:"施工段·施工层"})); }
+    else if(it.fig==="fork"){ h=52;
+      els.push(D({x:96,top:0,w:60,h:14,fg:"#f1e6cf",fs:8.5,lab:"看节拍关系"}));
+      els.push(D({x:0,top:22,w:80,h:28,bg:"#20343f",bd:"1px solid #33566a",r:6,fg:"#9fc7e0",fs:8,lab:"全等→等节奏"}));
+      els.push(D({x:86,top:22,w:80,h:28,bg:"#3a2e1f",bd:"1px solid #6a5326",r:6,fg:"#e0b48f",fs:8,lab:"成倍数→等步距异节奏"}));
+      els.push(D({x:172,top:22,w:80,h:28,bg:"#2a2622",bd:"1px solid #4a4238",r:6,fg:"#c9b79a",fs:8,lab:"无规律→无节奏"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      om_title:"三大组织方式：依次 · 平行 · 流水", om_seq:[], om_par:[], om_flow:[], om_o0:0,om_o1:0,om_o2:0,om_hl:0,
+      pr_title:"三大参数：t 节拍 · K 步距 · T 工期", pr_cells:[], pr_tO:0,pr_kO:0,pr_TO:0,
+      cls_title:"参数三分类：工艺 · 时间 · 空间", cls_toks:[], cls_h0:0,cls_h1:0,cls_h2:0,cls_noteO:0,
+      seg_title:"分施工段：劳动量差 ≤ 15% · 对结构缝", seg_bars:[], seg_seams:[], seg_bandO:0,seg_noteO:0,
+      jt_title:"判型：看节拍关系分三型", jt_cards:[], jt_srcO:0,jt_lineO:0,jt_noteO:0,
+      c_title:"上集概念链：认方式 · 分参数 · 归三类 · 判型", c0:0,c1:0,c2:0,c3:0 };
+
+    if(A(0)){ const a=W(0,.24),b=W(.3,.54),c=W(.6,.9);
+      const seqC=["#2f6db0","#cf8a44","#2c8a5b"];
+      v.om_seq=seqC.map((bg,i)=>({x:70+i*78,w:76,bg,op:this.cl(a*5-i,0,1)}));
+      v.om_par=seqC.map((bg,i)=>({y:166+i*20,bg,op:this.cl(b*5-i,0,1)}));
+      v.om_flow=seqC.map((bg,i)=>({x:70+i*34,y:250+i*20,bg,op:this.cl(c*5-i,0,1)}));
+      v.om_o0=a; v.om_o1=b; v.om_o2=c; v.om_hl=W(.7,.95); }
+    if(A(1)){ const cell=W(0,.4),tb=W(.42,.58),kb=W(.6,.76),Tb=W(.78,.96);
+      const qC=["#2f6db0","#cf8a44","#2c8a5b"]; const cells=[];
+      for(let i=0;i<3;i++)for(let j=0;j<3;j++){ cells.push({x:70+i*34+j*50,y:120+i*24,bg:qC[i],op:this.cl(cell*8-(i*3+j),0,1)}); }
+      v.pr_cells=cells; v.pr_tO=tb; v.pr_kO=kb; v.pr_TO=Tb; }
+    if(A(2)){ const h=W(0,.3),tk=W(.3,.9);
+      v.cls_h0=this.cl(h*4,0,1); v.cls_h1=this.cl(h*4-0.6,0,1); v.cls_h2=this.cl(h*4-1.2,0,1);
+      const hi={bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",fg:"#2c8a5b"}, pl={bg:"#fff",bd:"1.5px solid #ddd2bb",fg:"#23282b"};
+      const toks=[
+        {x:16,y:128,lab:"施工过程数",bg:pl.bg,bd:pl.bd,fg:pl.fg},{x:16,y:158,lab:"施工段数",bg:pl.bg,bd:pl.bd,fg:pl.fg},
+        {x:140,y:128,lab:"流水节拍 t",bg:hi.bg,bd:hi.bd,fg:hi.fg},{x:140,y:158,lab:"流水步距 K",bg:hi.bg,bd:hi.bd,fg:hi.fg},{x:140,y:188,lab:"工期 T",bg:hi.bg,bd:hi.bd,fg:hi.fg},
+        {x:264,y:128,lab:"施工段",bg:pl.bg,bd:pl.bd,fg:pl.fg},{x:264,y:158,lab:"施工层",bg:pl.bg,bd:pl.bd,fg:pl.fg}
+      ];
+      v.cls_toks=toks.map((t,i)=>({x:t.x,y:t.y,lab:t.lab,bg:t.bg,bd:t.bd,fg:t.fg,op:this.cl(tk*9-i,0,1)})); v.cls_noteO=W(.7,1); }
+    if(A(3)){ const bars=W(0,.4),seam=W(.3,.5),band=W(.55,.75),note=W(.8,1);
+      const hs=[104,96,100,92]; const base=272;
+      v.seg_bars=hs.map((h,i)=>({x:64+i*68,y:base-h,h,lab:"段"+(i+1),op:this.cl(bars*5-i,0,1)}));
+      v.seg_seams=[0,1,2].map(i=>({x:122+i*68,op:this.cl(seam*4-i,0,1)}));
+      v.seg_bandO=band; v.seg_noteO=note; }
+    if(A(4)){ const src=W(0,.2),line=W(.22,.4),cards=W(.4,.86),note=W(.88,1);
+      const cd=[
+        {x:14,ac:"#2f6db0",cond:"节拍全等",type:"等节奏",k:"K = t，队数=过程数，连续无空闲"},
+        {x:139,ac:"#2c8a5b",cond:"不全等·成倍数",type:"等步距异节奏",k:"K = 最大公约数，队数>过程数"},
+        {x:264,ac:"#cf8a44",cond:"无规律",type:"无节奏",k:"大差法求 K，过程间可能有间隔"}
+      ];
+      v.jt_cards=cd.map((c,i)=>({x:c.x,ac:c.ac,cond:c.cond,type:c.type,k:c.k,op:this.cl(cards*4-i,0,1)}));
+      v.jt_srcO=src; v.jt_lineO=line; v.jt_noteO=note; }
+    if(A(5)){ v.c0=W(.1,.34); v.c1=W(.28,.5); v.c2=W(.44,.66); v.c3=W(.6,.84); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaPageInfo="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaPageInfo=""; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    const _eps=(this.episodes||[]).map(e=>({label:e.cur?(e.label+" · 当前"):e.label,href:e.cur?"#":e.href,bg:e.cur?"#cf4436":"#23282b",fg:e.cur?"#fff":"#cdd2d5",pe:e.cur?"none":"auto"}));
+    return Object.assign(v,lo,lpe,{
+      episodes:_eps,hasEpisodes:_eps.length>=2,epLabel:"本考点分 "+_eps.length+" 集",
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaPageInfo,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

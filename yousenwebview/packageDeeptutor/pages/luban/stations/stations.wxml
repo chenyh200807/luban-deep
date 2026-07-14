@@ -16,6 +16,10 @@
         <text class="pk-kicker">鲁班学习双轮</text>
         <text class="sr-title">你的提分路线 · 每天走一站</text>
         <text class="sr-lit">已点亮 {{litCount}} / {{packUniverse}} 站</text>
+        <view class="sr-teaching-entry" wx:if="{{teachingPointUniverse}}" bindtap="openTeachingPoints">
+          <text>全部教学集 · {{teachingPointUniverse}} 集</text>
+          <text class="sr-teaching-entry-arrow">›</text>
+        </view>
       </view>
 
       <view class="sr-error" wx:if="{{errorText}}">

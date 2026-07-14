@@ -1,0 +1,29 @@
+/* ── Spacing / radius / shadow tokens — 鲁班智考 ──────────────────────
+   Groups always use flex + gap (never bare inline + margin). */
+:root {
+  /* Padding scale */
+  --pad-card:    14px;  /* cards 11–16px */
+  --pad-header:  13px;  /* header 13–14px */
+  --pad-controls:14px;  /* controls 12–18px */
+
+  /* Radius */
+  --r-card:     12px;   /* cards 8–16px */
+  --r-pill:     999px;  /* capsules / tags */
+  --r-tag:      10px;   /* tags 7–14px */
+  --r-button:   12px;   /* buttons 11–13px */
+  --r-object:   6px;    /* stage object blocks 5–9px */
+
+  /* Hand-drawn solid offset shadows (no blur) */
+  --sh-hand-1: 2px 2px 0 rgba(35,40,43,.12);
+  --sh-hand-2: 3px 3px 0 rgba(207,68,54,.22);
+  --sh-hand-3: 4px 4px 0 rgba(44,138,91,.25);
+
+  /* Floating shadows (buttons / overlays) */
+  --sh-float-red: 0 3px 12px rgba(207,68,54,.28);
+  --sh-float-grn: 0 3px 12px rgba(44,138,91,.28);
+  --sh-sheet:     0 -8px 30px rgba(0,0,0,.5);
+
+  /* Paper dot texture */
+  --texture-dot: radial-gradient(#e4e2d7 .7px, transparent .7px); /* @kind other */
+  --texture-dot-size: 18px 18px;
+}

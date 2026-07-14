@@ -1,0 +1,145 @@
+{
+  "id": "N03_流水施工参数与工期",
+  "title": "流水施工参数与工期",
+  "archetype": "calc_judgment_chain",
+  "voices": {
+    "teacher": "longanhuan_v3",
+    "student": "longlaotie_v3"
+  },
+  "style": {
+    "teacher": "口语自然，只在开头/结尾少量用「注意哈/记住哈」，讲计算判定链不堆术语",
+    "student": "东北男孩口吻，真问真懵，不抖段子；QA 集中在主讲之后"
+  },
+  "main": [
+    {
+      "scene": "b0_破误区",
+      "role": "teacher",
+      "t": [
+        0,
+        28
+      ],
+      "text": "节拍 3·3·6·3 不全相等就判无节奏 / K 取最大节拍 6 —— 两个误区，红章淘汰。"
+    },
+    {
+      "scene": "b1_判型",
+      "role": "teacher",
+      "t": [
+        28,
+        58
+      ],
+      "text": "判型标尺：成倍数 → 等步距异节奏（探针命中中档）。"
+    },
+    {
+      "scene": "b2_取步距K",
+      "role": "teacher",
+      "t": [
+        58,
+        92
+      ],
+      "text": "K=gcd(3,6)=3；淘汰 K 取最大节拍 6（队排稀、段空等）。"
+    },
+    {
+      "scene": "b3_拆队",
+      "role": "teacher",
+      "t": [
+        92,
+        124
+      ],
+      "text": "砌筑 6=2K 拆 2 队；队数=节拍÷K=1+1+2+1=5，队数>工序数。"
+    },
+    {
+      "scene": "b4_算工期",
+      "role": "teacher",
+      "t": [
+        124,
+        168
+      ],
+      "text": "横道图 5 队 2 段对角咬合，从不搭接 30 morph 到搭接 18；T=(2+5−1)×3。"
+    },
+    {
+      "scene": "b5_口诀",
+      "role": "teacher",
+      "t": [
+        168,
+        188
+      ],
+      "text": "判型→K→队数→工期，四步走全。"
+    }
+  ],
+  "qa": [
+    {
+      "scene": "q0",
+      "role": "student",
+      "t": [
+        188,
+        208
+      ],
+      "text": "K 为啥非得是最大公约数？取平均中不？"
+    },
+    {
+      "scene": "q0",
+      "role": "teacher",
+      "t": [
+        188,
+        208
+      ],
+      "text": "取 gcd 才能整段咬合；取平均/最大准撞或空等。"
+    },
+    {
+      "scene": "q1",
+      "role": "student",
+      "t": [
+        208,
+        230
+      ],
+      "text": "拆完 5 个，工期咋按 5 算？工序就 4 道。"
+    },
+    {
+      "scene": "q1",
+      "role": "teacher",
+      "t": [
+        208,
+        230
+      ],
+      "text": "N′ 是拆队后总队数 5，不是工序数 4。"
+    },
+    {
+      "scene": "q2",
+      "role": "student",
+      "t": [
+        230,
+        250
+      ],
+      "text": "工期为啥不能直接把节拍加起来？"
+    },
+    {
+      "scene": "q2",
+      "role": "teacher",
+      "t": [
+        230,
+        250
+      ],
+      "text": "直接加是依次施工 30 个月；流水搭接才 18，必须体现搭接。"
+    },
+    {
+      "scene": "q3",
+      "role": "student",
+      "t": [
+        250,
+        268
+      ],
+      "text": "阅卷我得咋写才给分？"
+    },
+    {
+      "scene": "q3",
+      "role": "teacher",
+      "t": [
+        250,
+        268
+      ],
+      "text": "采分四句：判型理由 / K=gcd / 队数求和 / 搭接工期带单位。"
+    }
+  ],
+  "duration_sec": 268,
+  "format": "template-based DC (鲁班 design system) · phone shell + RAF timeline + 问追AI"
+}

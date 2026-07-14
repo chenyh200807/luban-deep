@@ -34,10 +34,10 @@ def test_all_registered_finished_practices_compile_to_private_five_question_surf
     pack_ids = _compiled_pack_ids()
     authorities = [load_compiled_practice(pack_id) for pack_id in pack_ids]
 
-    assert len(pack_ids) == 37
+    assert len(pack_ids) == 40
     assert all(authority is not None for authority in authorities)
-    assert sum(len(authority["surfaces"]) for authority in authorities if authority) == 39
-    assert sum(len(authority["items"]) for authority in authorities if authority) == 195
+    assert sum(len(authority["surfaces"]) for authority in authorities if authority) == 43
+    assert sum(len(authority["items"]) for authority in authorities if authority) == 215
     for authority in authorities:
         assert authority is not None
         assert len({item["variant_id"] for item in authority["items"]}) == len(
@@ -67,8 +67,8 @@ def test_compiled_and_unavailable_pack_sets_are_exact() -> None:
         for row in manifest["packs"]
         if (row.get("practice") or {}).get("status") == "unavailable"
     }
-    assert len(compiled) == 37
-    assert unavailable == {"B02", "D14", "E01", "N02"}
+    assert len(compiled) == 40
+    assert unavailable == {"E01"}
 
 
 def test_f16_projects_curated_five_without_answer_leakage() -> None:
@@ -186,6 +186,13 @@ def test_manifest_digest_rejects_shape_valid_answer_swap(
 
 
 def test_unregistered_or_wrong_surface_never_falls_back_to_another_question_set() -> None:
-    assert load_compiled_practice("B02") is None
+    b02 = load_compiled_practice("B02")
+    assert b02 is not None
+    assert [surface["surface_id"] for surface in b02["surfaces"]] == [
+        "practice.html", "practice2.html"
+    ]
+    assert load_compiled_practice("E01") is None
+    with pytest.raises(PracticeHtmlInvalid, match="surface_not_found"):
+        resolve_compiled_practice_items("B02", surface_id="practice3.html")
     with pytest.raises(PracticeHtmlInvalid, match="surface_not_found"):
         resolve_compiled_practice_items("S01", surface_id="practice4.html")

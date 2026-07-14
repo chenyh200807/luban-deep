@@ -1,0 +1,78 @@
+<!-- 全部教学集：按原考点分组，但每一集都是独立可播放入口。 -->
+<view class="paper {{isDark ? '' : 'light'}} tp-page pk-paper-bg">
+  <view class="tp-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="tp-nav-inner">
+      <view class="tp-back" bindtap="goBack">
+        <text class="tp-back-arrow">‹</text>
+        <text class="tp-back-text">返回</text>
+      </view>
+      <text class="tp-nav-title">全部教学集</text>
+    </view>
+  </view>
+
+  <scroll-view class="tp-scroll" scroll-y enhanced show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="tp-inner">
+      <view class="tp-hero" wx:if="{{!errorText}}">
+        <text class="pk-kicker">鲁班学习双轮 · 已发布视频</text>
+        <text class="tp-title">{{topicUniverse}} 个考点 · {{teachingPointUniverse}} 集讲解</text>
+        <text class="tp-desc">每一集可单独播放；练习、进度与掌握仍归属原考点。</text>
+      </view>
+
+      <view class="tp-loading" wx:if="{{loading}}"><text>正在整理教学集…</text></view>
+
+      <view class="tp-error" wx:if="{{errorText}}">
+        <text>{{errorText}}</text>
+        <view class="tp-retry" bindtap="retry">重试</view>
+      </view>
+
+      <block wx:if="{{!loading && !errorText}}">
+        <view class="tp-empty" wx:if="{{!chapterSections.length}}">
+          <text>教学集正在发布中，请稍后再试。</text>
+        </view>
+
+        <view class="tp-chapter" wx:for="{{chapterSections}}" wx:for-item="chapter" wx:key="id">
+          <view class="tp-chapter-head">
+            <text class="tp-chapter-no">{{chapter.id}}</text>
+            <view class="tp-chapter-copy">
+              <text class="tp-chapter-title">{{chapter.title}}</text>
+              <text class="tp-chapter-subtitle">{{chapter.subtitle}}</text>
+            </view>
+            <text class="tp-chapter-count">{{chapter.topicCount}} 考点 · {{chapter.lessonCount}} 讲</text>
+          </view>
+
+          <view class="tp-grid">
+            <view
+              wx:for="{{chapter.cards}}"
+              wx:for-item="card"
+              wx:key="id"
+              class="tp-card tp-card--{{card.tone}}"
+              bindtap="openEpisode"
+              data-pack-id="{{card.packId}}"
+              data-episode="{{card.index}}"
+              data-card-url="{{card.cardUrl}}"
+            >
+              <view class="tp-card-top">
+                <text class="tp-card-id">{{card.packId}}</text>
+                <text class="tp-card-part">{{card.labelShort}}</text>
+              </view>
+              <text class="tp-card-name">{{card.displayTitle}}</text>
+              <view class="tp-card-foot">
+                <view class="tp-card-dots">
+                  <view
+                    wx:for="{{card.dots}}"
+                    wx:for-item="dot"
+                    wx:key="key"
+                    class="tp-card-dot {{dot.active ? 'is-active' : ''}}"
+                  ></view>
+                </view>
+                <text class="tp-card-play">{{card.label}} · 动画精讲</text>
+                <text class="tp-card-progress">第 {{card.index}} / {{card.total}} 讲</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+      <view class="tp-bottom-space"></view>
+    </view>
+  </scroll-view>
+</view>

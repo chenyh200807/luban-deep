@@ -19,10 +19,31 @@ sys.modules["publish_luban_preview_cards"] = _mod
 _spec.loader.exec_module(_mod)
 
 
-def test_registry_has_exact_37_finished_topics_and_canonical_variants() -> None:
-    assert len(_mod.STATIONS) == 37
+def test_registry_has_exact_40_finished_topics_and_canonical_variants() -> None:
+    assert len(_mod.STATIONS) == 40
     assert _mod.STATIONS["c02"].pack_dir == "C02"
     assert _mod.STATIONS["s07"].pack_dir == "P40_S07"
+    assert _mod.STATIONS["b02"].teach == {
+        "lesson.html": "P40_B02.teach.up.dc.html",
+        "lesson2.html": "P40_B02.teach.down.dc.html",
+    }
+    assert _mod.STATIONS["b02"].practice == {
+        "practice.html": "P40_B02.practice.up.dc.html",
+        "practice2.html": "P40_B02.practice.down.dc.html",
+    }
+    assert _mod.STATIONS["d14"].teach == {
+        "lesson.html": "P40_D14.teach.up.dc.html",
+        "lesson2.html": "P40_D14.teach.middle.dc.html",
+        "lesson3.html": "P40_D14.teach.down.dc.html",
+    }
+    assert _mod.STATIONS["n02"].teach == {
+        "lesson.html": "P40_N02.teach.up.dc.html",
+        "lesson2.html": "P40_N02.teach.down.dc.html",
+    }
+    assert _mod.STATIONS["n03"].teach == {
+        "lesson.html": "P40_N03.teach.up.dc.html",
+        "lesson2.html": "P40_N03.teach.down.dc.html",
+    }
     assert set(_mod.STATIONS["s01"].teach) == {
         "lesson.html", "lesson2.html", "lesson3.html"
     }

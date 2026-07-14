@@ -19,6 +19,7 @@ Page({
     posters: [],
     litCount: 0,
     packUniverse: 40,
+    teachingPointUniverse: 0,
   },
 
   onLoad() {
@@ -90,6 +91,12 @@ Page({
     }
   },
 
+  openTeachingPoints() {
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({ url: route.lubanTeachingPoints() });
+    }
+  },
+
   _load() {
     var that = this;
     if (!this._requireAuth()) return Promise.resolve();
@@ -114,6 +121,7 @@ Page({
         posters: vm.posters || [],
         litCount: vm.litCount || 0,
         packUniverse: vm.packUniverse || 40,
+        teachingPointUniverse: Number(lessons.teaching_point_universe || 0),
         loading: false,
         errorText: "",
       });

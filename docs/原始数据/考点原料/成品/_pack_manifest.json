@@ -65,7 +65,7 @@
    "title": "隐蔽验收材料复验见证取样"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "5386e2fa881ff36c29700b42e04c11dff17b6b4d0c41f19d832b24e0d4f7cd39",
    "explicitly_barred_default_entry": false,
    "file": "B02_基坑支护选型与降水监测.md",
@@ -80,7 +80,14 @@
    "needs_leaf_review": false,
    "pack_id": "B02",
    "practice": {
-    "status": "unavailable"
+    "authority_path": "b02.practice.authority.json",
+    "authority_sha256": "24fd6548e09dfcd0fcd74ac356d12374580d3466feea8ae684343b29cc4a766e",
+    "question_count": 10,
+    "source_bundle_sha256": "dee7e76dc839a82ae9d3e1db66c8f27a6719bda9e00d76fec2de81677dbcf8ab",
+    "source_pack_sha256": "5386e2fa881ff36c29700b42e04c11dff17b6b4d0c41f19d832b24e0d4f7cd39",
+    "status": "compiled",
+    "surface_count": 2,
+    "writeback_contract": "luban_retest_completion.v1"
    },
    "publish_note": "2026-07-06 裁决流水线机器准入：recheck exit 0；verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 15 + 案例锚 1 = 16，零漂移）；jury 高可信 3/未决 0；🔴=15（R7 候选为主）；含答题层。签发裁决人=owner。",
    "published": true,
@@ -370,7 +377,7 @@
    "title": "幕墙防火防雷层间封堵"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "11ecd47be950ed09d72b3d93cf11e5f5ab29922f408099a9c4861442ea4a2fc0",
    "explicitly_barred_default_entry": false,
    "file": "D14_吊顶门窗地面装饰质量综合.md",
@@ -385,7 +392,14 @@
    "needs_leaf_review": false,
    "pack_id": "D14",
    "practice": {
-    "status": "unavailable"
+    "authority_path": "d14.practice.authority.json",
+    "authority_sha256": "e2a52ae7a02447ce2cbc9ff5fe0e6819067ae68debed297b9cd7ac55316ccee6",
+    "question_count": 5,
+    "source_bundle_sha256": "25fe57e1a5f7438f8d49b781bda457c4d5de73cc5ecbf67d476fb2c5ade912f8",
+    "source_pack_sha256": "11ecd47be950ed09d72b3d93cf11e5f5ab29922f408099a9c4861442ea4a2fc0",
+    "status": "compiled",
+    "surface_count": 1,
+    "writeback_contract": "luban_retest_completion.v1"
    },
    "publish_note": "2026-07-06 裁决流水线机器准入：recheck exit 0（含本次新裁 row0=fixed）；verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 12 + 案例锚 0 = 12，零漂移）；jury 高可信 1/未决 0；🔴=27。**D14 裁决**：三源 flag（DeepSeek/Qwen/Codex）『门窗采分簇误引入涂饰基层含水率/耐水腻子』为真——教材原文直读证实 kc:1A422000_043_0069:1（溶剂型涂料含水率≤8%）与 :2（找平层耐水腻子）系涂饰工程、非门窗本体，门窗真锚仅 :0（砌体禁射钉）；手术已剔除/降级并归类涂饰（R5.3/R6.3/R8误区12），补位核=DeepSeek-V4-Pro 盲测判两条均属涂饰工程（利益回避：Codex 系 flagger 不自裁）。**注意**：D14 为 composite teaching prototype，`has_answer_layer=false`（尚无答题层样板），owner 若签发需知晓此形态差异。签发裁决人=owner。",
    "published": true,
@@ -823,7 +837,7 @@
    "title": "网络计划关键线路"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "272cacd10a5be6faa88e13c85a79cfd5570cde2e4bf03de07beaee99af40effd",
    "explicitly_barred_default_entry": false,
    "file": "N02_网络计划工期优化.md",
@@ -838,7 +852,14 @@
    "needs_leaf_review": false,
    "pack_id": "N02",
    "practice": {
-    "status": "unavailable"
+    "authority_path": "n02.practice.authority.json",
+    "authority_sha256": "a07e7e4864144949737c5472bc4b685188cf7e05b9e71164c5dc628faebf1f3d",
+    "question_count": 5,
+    "source_bundle_sha256": "a8593ca578d6c6c1d6a8fb36b5c100b70a8a6ecd316b52535643d68f3ef01408",
+    "source_pack_sha256": "272cacd10a5be6faa88e13c85a79cfd5570cde2e4bf03de07beaee99af40effd",
+    "status": "compiled",
+    "surface_count": 1,
+    "writeback_contract": "luban_retest_completion.v1"
    },
    "publish_note": "2026-07-05 owner 批次签发（重尾批 Batch C，owner 明文'通过，全按建议来'）。依据：裁决流水线 D4 全部高可信 issue 收口 jury_clean=true（99 条/123 处编辑/零升色）；本包机器核验（集成分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 3 个, 案例锚 5 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
    "published": true,

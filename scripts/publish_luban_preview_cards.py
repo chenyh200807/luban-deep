@@ -46,8 +46,8 @@
 
 站点注册表 = 本文件 STATIONS：新增托管卡在这里登记（station id = pack_id 小写，
 manifest 的 card_hosted 按 web/public/luban-preview/<pack_id小写>/lesson.html 扫描）。
-C02 上下集：消费端只认单入口 lesson.html —— lesson.html=上集，集内「下集」链接
-lesson2.html（卡自带上下集互链，发布时只重写 href，不改 read_model 契约）。
+上下/中下集均保留独立入口：lesson.html、lesson2.html、lesson3.html。集内链接
+由发布器确定性重写，不改 pack 级 read_model / 练习权威。
 """
 from __future__ import annotations
 
@@ -137,7 +137,7 @@ def _staged_station(
 ) -> Station:
     """从一个 finished 成品目录派生托管文件名和全部卡内互链。
 
-    目录名和文件前缀始终同源；C02 与 S07B 的版本选择只在 STATIONS 明示，
+    目录名和文件前缀始终同源；C02 与 S07 的版本选择只在 STATIONS 明示，
     不在发布循环里猜测或降级到同名旧目录。
     """
     teach = {
@@ -164,6 +164,11 @@ def _p40(pack: str) -> Station:
 STATIONS: dict[str, Station] = {
     "a01": _staged_station("P40_A01", teach_stages=("up", "down")),
     "a02": _staged_station("P40_A02", teach_stages=("up", "down")),
+    "b02": _staged_station(
+        "P40_B02",
+        teach_stages=("up", "down"),
+        practice_stages=("up", "down"),
+    ),
     "c01": _staged_station("P40_C01", teach_stages=("up", "down")),
     # C02 唯一使用独立 C02 成品目录，不回退到历史 P40_C02 目录。
     "c02": _staged_station("C02", teach_stages=("up", "down")),
@@ -174,6 +179,7 @@ STATIONS: dict[str, Station] = {
     "d11": _p40("P40_D11"),
     "d12": _staged_station("P40_D12", teach_stages=("up", "down")),
     "d13": _staged_station("P40_D13", teach_stages=("up", "down")),
+    "d14": _staged_station("P40_D14", teach_stages=("up", "middle", "down")),
     "e05": _p40("P40_E05"),
     "f02": _p40("P40_F02"),
     "f03": _staged_station("P40_F03", teach_stages=("up", "down")),
@@ -187,6 +193,7 @@ STATIONS: dict[str, Station] = {
     "j01": _p40("P40_J01"),
     "k01": _staged_station("P40_K01", teach_stages=("up", "down")),
     "n01": _staged_station("P40_N01", teach_stages=("up", "down")),
+    "n02": _staged_station("P40_N02", teach_stages=("up", "down")),
     # N03 最终成品已拆为上下集；旧单页登记会静默继续托管历史版本。
     "n03": _staged_station("P40_N03", teach_stages=("up", "down")),
     "q01": _staged_station("P40_Q01", teach_stages=("up", "down")),

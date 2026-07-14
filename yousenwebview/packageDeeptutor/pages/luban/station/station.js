@@ -42,6 +42,7 @@ function appendCardEntryTicket(cardUrl, ticket) {
 Page({
   data: {
     packId: "",
+    episodeIndex: 1,
     isDark: false,
     title: "",
     loading: true,
@@ -56,7 +57,10 @@ Page({
 
   onLoad(query) {
     var packId = String((query && query.pack_id) || "").trim();
-    this.setData({ packId: packId, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
+    var episode = Number(query && query.episode);
+    if (!Number.isFinite(episode) || episode < 1) episode = 1;
+    episode = Math.floor(episode);
+    this.setData({ packId: packId, episodeIndex: episode, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
     if (!packId) {
       this.setData({ loading: false, errorText: "缺少站点参数，请从提分路线进入" });
       return;
@@ -84,7 +88,7 @@ Page({
     }
     if (!this._authRedirectPending) {
       this._authRedirectPending = true;
-      runtime.redirectToLogin(route.lubanStation(this.data.packId));
+      runtime.redirectToLogin(route.lubanStation(this.data.packId, this.data.episodeIndex));
     }
     return false;
   },
@@ -175,7 +179,10 @@ Page({
     var that = this;
     if (!this._requireAuth()) return Promise.resolve();
     return api
-      .getLubanLessonDetail(this.data.packId, { suppressAuthRedirect: true })
+      .getLubanLessonDetail(this.data.packId, {
+        episode: this.data.episodeIndex,
+        suppressAuthRedirect: true,
+      })
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var cardUrl = String(body.card_url || "");

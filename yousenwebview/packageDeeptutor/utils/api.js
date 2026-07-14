@@ -894,11 +894,19 @@ function getLubanLessons(opts) {
   return requestStateGet("/api/v1/luban/lessons", opts);
 }
 
-/** 鲁班 — 单站 viewmodel（card_url / variant_retest 等） */
+/** 鲁班 — 单站 viewmodel（card_url / variant_retest 等）。
+ * opts.episode 只选择同一 pack 下已发布的教学集；不改变练习/进度的 pack authority。 */
 function getLubanLessonDetail(packId, opts) {
+  var options = Object.assign({}, opts || {});
+  var episode = Number(options.episode || 1);
+  if (!Number.isFinite(episode) || episode < 1) episode = 1;
+  episode = Math.floor(episode);
+  delete options.episode;
   return requestStateGet(
-    "/api/v1/luban/lessons/" + encodeURIComponent(String(packId || "")),
-    opts,
+    "/api/v1/luban/lessons/" +
+      encodeURIComponent(String(packId || "")) +
+      (episode > 1 ? "?episode=" + episode : ""),
+    options,
   );
 }
 

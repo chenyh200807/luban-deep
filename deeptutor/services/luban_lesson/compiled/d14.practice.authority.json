@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "D14",
+  "source_pack_sha256": "11ecd47be950ed09d72b3d93cf11e5f5ab29922f408099a9c4861442ea4a2fc0",
+  "source_bundle_sha256": "25fe57e1a5f7438f8d49b781bda457c4d5de73cc5ecbf67d476fb2c5ade912f8",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html",
+      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "D14-html-practice-html-q1-dc70ba7f710c",
+        "D14-html-practice-html-q2-0adfdf5445c9",
+        "D14-html-practice-html-q3-680f21e9359a",
+        "D14-html-practice-html-q4-6967b3b24577",
+        "D14-html-practice-html-q16-1d4791490ee6"
+      ],
+      "published_practice_sha256": "b5624b56bcbd592814a732381f3425fd64ab78f8e407d29afb825d08c198b875"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "吊顶·龙骨参数",
+      "stem": "暗龙骨吊顶的主、次龙骨，选出间距与构造要求完整、能得分的作答。",
+      "model_answer": "主龙骨间距≤1200mm、悬臂≤300mm、接头错开；次龙骨间距≤600mm、不得搭接，洞口周边设附加龙骨。",
+      "options": [
+        {
+          "text": "主龙骨间距≤1200mm、悬臂段≤300mm且接头错开；次龙骨间距≤600mm、不得搭接，洞口周边设附加龙骨。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "主次间距、悬臂、接头、洞口四件齐，正是采分点。",
+          "option_id": "D14-html-practice-html-q1-dc70ba7f710c:option-1"
+        },
+        {
+          "text": "主龙骨间距≤600mm、次龙骨间距≤1200mm，主密次疏排布，把两个数记住即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "主次间距数值记得，却把谁密谁疏记反。",
+          "loss_reason": "主≤1200、次≤600，此项主次值张冠李戴。",
+          "fix": "主龙骨≤1200、次龙骨≤600，别记反。",
+          "option_id": "D14-html-practice-html-q1-dc70ba7f710c:option-2"
+        },
+        {
+          "text": "主龙骨间距≤1200mm即可，悬臂、接头、洞口这些细节现场灵活掌握不必写。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住主间距一个数就下笔。",
+          "loss_reason": "漏悬臂≤300、接头错开、次≤600不搭接、洞口附加龙骨。",
+          "fix": "补悬臂≤300、次≤600不搭接、洞口设附加龙骨。",
+          "option_id": "D14-html-practice-html-q1-dc70ba7f710c:option-3"
+        },
+        {
+          "text": "次龙骨可搭接加长以增强刚度，间距≤600mm，洞口周边无需额外处理。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为搭接更结实、洞口不用管。",
+          "loss_reason": "次龙骨不得搭接、洞口必须设附加龙骨，两处均错。",
+          "fix": "次龙骨不得搭接，洞口周边设附加龙骨。",
+          "option_id": "D14-html-practice-html-q1-dc70ba7f710c:option-4"
+        }
+      ],
+      "variant_id": "D14-html-practice-html-q1-dc70ba7f710c",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q1",
+      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "吊顶·吊杆超长",
+      "stem": "某吊顶吊杆较长，并遇梁、风管。选出吊杆超长处理与吊挂构造完整、能得分的作答。",
+      "model_answer": "吊杆>1500mm设反支撑，>2500mm设钢结构转换层；遇梁、风管处设横担，不得直接吊挂于设备，灯具风口设附加龙骨。",
+      "options": [
+        {
+          "text": "吊杆>1500mm设反支撑，>2500mm设钢结构转换层；遇梁风管设横担、不得吊挂于设备、灯具风口设附加龙骨。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两道门槛+横担+不吊挂设备+灯口附加龙骨，全写才拿满。",
+          "option_id": "D14-html-practice-html-q2-0adfdf5445c9:option-1"
+        },
+        {
+          "text": "吊杆超长时按比例加密吊杆、多吊几根即可保证牢固，不必另设支撑构造。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把超长稳定问题当成数量问题。",
+          "loss_reason": "吊杆超长是侧向失稳，加密解决不了，须设反支撑/转换层。",
+          "fix": ">1500反支撑、>2500转换层，不是加密。",
+          "option_id": "D14-html-practice-html-q2-0adfdf5445c9:option-2"
+        },
+        {
+          "text": "吊杆>1500mm一律设钢结构转换层，2500mm 只是参考值、可不区分。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记得有个门槛，却把两道并成一道。",
+          "loss_reason": "混淆两道门槛：>1500反支撑、>2500才转换层。",
+          "fix": "分清 1500 反支撑、2500 转换层两道门槛。",
+          "option_id": "D14-html-practice-html-q2-0adfdf5445c9:option-3"
+        },
+        {
+          "text": "吊杆可直接吊挂在风管、设备上就近固定，遇梁绕开即可，省去横担。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "就近固定看着省事。",
+          "loss_reason": "不得直接吊挂于设备，遇梁风管应设横担。",
+          "fix": "遇梁风管设横担，不得吊挂于设备。",
+          "option_id": "D14-html-practice-html-q2-0adfdf5445c9:option-4"
+        }
+      ],
+      "variant_id": "D14-html-practice-html-q2-0adfdf5445c9",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q2",
+      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "吊顶·石膏板固定",
+      "stem": "纸面石膏板罩面板的固定，选出方向与要求完整、能得分的作答。",
+      "model_answer": "从板中间向四周自由固定，长边沿纵向铺设，螺钉间距150-170mm，钉眼防锈，双层板接缝错开。",
+      "options": [
+        {
+          "text": "从板中间向四周自由固定、长边沿纵向铺，螺钉间距150-170mm、钉眼防锈、双层板接缝错开。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "固定方向+钉距+防锈+错缝四件齐，缺一扣一。",
+          "option_id": "D14-html-practice-html-q3-680f21e9359a:option-1"
+        },
+        {
+          "text": "从板四边先固定牢再向中间收，钉距150-170mm、钉眼防锈、双层接缝错开。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得先钉牢四边更稳。",
+          "loss_reason": "方向反了：应从中间向四周自由固定，让板释放变形。",
+          "fix": "从中间向四周固定，不是从四边向中间。",
+          "option_id": "D14-html-practice-html-q3-680f21e9359a:option-2"
+        },
+        {
+          "text": "从中间向四周固定即可，钉距、钉眼防锈、错缝属细节，现场看着办。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住固定方向一条。",
+          "loss_reason": "漏钉距150-170、钉眼防锈、双层错缝三处采分。",
+          "fix": "补钉距150-170、防锈、双层错缝。",
+          "option_id": "D14-html-practice-html-q3-680f21e9359a:option-3"
+        },
+        {
+          "text": "顶棚裂了主要靠面层：重新刷腻子、刷漆找平即可，固定方式不影响开裂。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "把裂缝当表面问题。",
+          "loss_reason": "口号化、避开固定与骨架，裂缝根子在固定与骨架。",
+          "fix": "回到中间向四周固定+防裂五点，不是只刷漆。",
+          "option_id": "D14-html-practice-html-q3-680f21e9359a:option-4"
+        }
+      ],
+      "variant_id": "D14-html-practice-html-q3-680f21e9359a",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q3",
+      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "吊顶·顶棚防裂",
+      "stem": "某石膏板顶棚出现裂缝。选出防裂原因与措施完整、能得分的作答。",
+      "model_answer": "按防裂五点：吊筋间距≤1200、拼缝错缝不密拼、螺钉固定牢固、转角加强、嵌缝饱满。",
+      "options": [
+        {
+          "text": "从五点治理：吊筋间距≤1200、拼缝错缝且不密拼、螺钉固定牢固、转角加强、嵌缝饱满。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "吊筋·错缝·螺钉·转角·嵌缝五点全写，对应五个断点。",
+          "option_id": "D14-html-practice-html-q4-6967b3b24577:option-1"
+        },
+        {
+          "text": "裂缝铲除后重新刷腻子、刷两遍乳胶漆找平，把面层做光就不裂了。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "把裂缝当面层问题。",
+          "loss_reason": "口号化治标，没回到骨架、缝、钉、角、嵌缝。",
+          "fix": "按防裂五点治理，不是只刷漆。",
+          "option_id": "D14-html-practice-html-q4-6967b3b24577:option-2"
+        },
+        {
+          "text": "主要保证吊筋间距≤1200、螺钉固定牢固两条，其余现场把控即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记两点就下笔。",
+          "loss_reason": "漏拼缝错缝不密拼、转角加强、嵌缝饱满三点。",
+          "fix": "补错缝不密拼、转角加强、嵌缝饱满。",
+          "option_id": "D14-html-practice-html-q4-6967b3b24577:option-3"
+        },
+        {
+          "text": "裂缝多在拼缝处，把板密拼、缝挤紧不留缝，就不会从缝里裂。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为密拼更严实。",
+          "loss_reason": "应拼缝错缝、不密拼；密拼反而应力集中开裂。",
+          "fix": "拼缝要错缝、不密拼。",
+          "option_id": "D14-html-practice-html-q4-6967b3b24577:option-4"
+        }
+      ],
+      "variant_id": "D14-html-practice-html-q4-6967b3b24577",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q4",
+      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "综合·采分诊断",
+      "stem": "某生答装饰质量：①吊顶次龙骨搭接加长更结实；②地面瓷砖直接干铺、空鼓了敲掉重铺；③砌体门窗用射钉固定又快又牢。选出最准确的诊断与补写。",
+      "model_answer": "三处全错：次龙骨不得搭接（应断开对接、洞口附加龙骨）；瓷砖须浸砖在铺砂浆前、空鼓按界面五断点防治；砌体门窗严禁射钉。",
+      "options": [
+        {
+          "text": "三处都错：次龙骨应不搭接、断开对接并洞口附加龙骨；瓷砖须浸砖（铺浆前）、空鼓按五断点治；砌体门窗严禁射钉。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三子域三处硬伤全揪出并补正确采分句。",
+          "option_id": "D14-html-practice-html-q16-1d4791490ee6:option-1"
+        },
+        {
+          "text": "只有第③条错，射钉改膨胀螺栓即可；①次龙骨搭接、②瓷砖干铺敲掉重铺都没问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只抓到射钉一处。",
+          "loss_reason": "漏诊次龙骨不得搭接、瓷砖须浸砖+空鼓五断点两处。",
+          "fix": "三处都要改，不止射钉。",
+          "option_id": "D14-html-practice-html-q16-1d4791490ee6:option-2"
+        },
+        {
+          "text": "三条都属施工质量差，加强管理、按规范施工、保证质量即可，无需逐条纠。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "笼统喊口号。",
+          "loss_reason": "未落到各采分点（搭接/浸砖/空鼓/射钉），不得分。",
+          "fix": "逐条纠：不搭接、浸砖在前、五断点、禁射钉。",
+          "option_id": "D14-html-practice-html-q16-1d4791490ee6:option-3"
+        },
+        {
+          "text": "①②对，只③射钉需注明用于混凝土墙可以、砌体不行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只部分纠③。",
+          "loss_reason": "①次龙骨搭接、②瓷砖干铺+敲掉重铺仍未纠。",
+          "fix": "①不搭接洞口附加；②浸砖在前、空鼓五断点；③砌体禁射钉。",
+          "option_id": "D14-html-practice-html-q16-1d4791490ee6:option-4"
+        }
+      ],
+      "variant_id": "D14-html-practice-html-q16-1d4791490ee6",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q16",
+      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8"
+    }
+  ],
+  "published_lesson_sha256": "e7396798929e3f2c56841159938c312988364cfa1499f309fbbc562cd8da36cb"
+}

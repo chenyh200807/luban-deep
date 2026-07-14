@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<audio data-luban-prewarm preload="auto" src="audio/down/b0.mp3?v=4dc3011503e1d2f9" aria-hidden="true" style="display:none"></audio>
+<x-dc>
+<!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=c91c4e682bfe205e"></script>
+<script data-luban-card-entry-bridge>
+(function(){
+  var ticket="";
+  try{
+    var current=new URL(window.location.href);
+    var capability=new URLSearchParams(String(current.hash||"").replace(/^#/,""));
+    ticket=String(capability.get("entry_ticket")||"").trim();
+    if(ticket){ window.__lubanCardEntryTicket=ticket; window.history.replaceState(window.history.state,document.title,current.pathname+(current.search||"")); }
+  }catch(_){ }
+  function closestAnchor(node){ while(node&&node!==document){ if(String(node.tagName||"").toUpperCase()==="A")return node; node=node.parentNode; } return null; }
+  function carryCapability(url){ if(!ticket)return url; url.hash="entry_ticket="+encodeURIComponent(ticket); return url; }
+  document.addEventListener("click",function(event){
+    var anchor=closestAnchor(event.target); if(!anchor||event.defaultPrevented)return;
+    var href=String(anchor.getAttribute("href")||"").trim(); if(!href||href.charAt(0)==="#")return;
+    var next; try{ next=new URL(anchor.href,window.location.href); }catch(_){return;}
+    if(next.origin!==window.location.origin)return;
+    var file=next.pathname.split("/").pop()||"";
+    if(/^lesson(?:\d+)?\.html$/i.test(file)){ if(ticket){ event.preventDefault(); window.location.assign(carryCapability(next).toString()); } return; }
+    if(!/^practice(?:\d+)?\.html$/i.test(file))return;
+    event.preventDefault();
+    if(!ticket){ window.alert("学习身份已过期，请返回小程序重新打开这一站。"); return; }
+    fetch("/api/v1/luban-preview/lesson-viewed",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contextId:"B02",cardId:"B02",entryTicket:ticket})})
+      .then(function(response){ if(!response.ok)throw new Error("lesson evidence rejected"); window.location.assign(next.toString()); })
+      .catch(function(){ window.alert("学习记录未确认，请留在本页稍后重试后再做练习。"); });
+  },true);
+})();
+</script>
+<style data-luban-ask-sheet-motion>@keyframes lzAskSheetIn{from{transform:translateY(100%);opacity:.72}to{transform:translateY(0);opacity:1}}</style>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <!-- ░░ 顶部安全区红线（母版冻结，勿改）：舞台顶部 top:0–48px 为常驻 UI 带（旁白按钮/钥匙卡胶囊/全屏按钮，胶囊底沿≈40px）。
+         所有 beat 的领域对象/气泡/标签 top 最小值 = 48px，含手绘位移阴影厚度另计。双轴 gate 正确轴固定判据之一：截 beat0 中段帧核对任一对象 top≥48 且与胶囊/按钮无重叠、有可见空隙。 ░░ -->
+    <!-- ░░ 底部字幕安全区红线（母版冻结，勿改）：舞台底部 CAPTION 字幕卡 bottom:0 常驻，播放态才出现（isQA/静态编辑时 opacity=0 看不到），实测遮挡带（含卡体+底部内边距+顶部渐变过渡带、按母版上限 3 行算）≈ 90px。
+         所有 beat 的领域对象/标签底沿 top+height ≤ 462 − 90 = 372px；收尾标签/汇总句放舞台中上部留白带，不贴底。字幕卡静态看不到，必须按此常量预留，不能凭肉眼。双轴 gate 正确轴固定判据之一：截播放中段帧（字幕已出现）核对无任一对象被字幕卡遮挡。 ░░ -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：基坑地下水 + 流沙 + 误区气泡 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(180deg,transparent,#e9e7da);opacity:{{ b0_op }};"></div>
+        <div style="position:absolute;inset:0;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">
+          <div style="position:absolute;left:30px;top:214px;width:330px;height:3px;background:#9a8a66;border-radius:2px;"></div>
+          <div style="position:absolute;left:30px;top:217px;width:122px;height:96px;background:repeating-linear-gradient(0deg,#c9b48f,#c9b48f 22px,#c3ad85 22px,#c3ad85 24px);border-radius:0 0 3px 3px;"></div>
+          <div style="position:absolute;left:238px;top:217px;width:122px;height:96px;background:repeating-linear-gradient(0deg,#c9b48f,#c9b48f 22px,#c3ad85 22px,#c3ad85 24px);border-radius:0 0 3px 3px;"></div>
+          <div style="position:absolute;left:152px;top:293px;width:86px;height:20px;background:#c9b48f;border-radius:0 0 3px 3px;"></div>
+          <div style="position:absolute;left:148px;top:217px;width:7px;height:78px;background:#8a9296;border-radius:2px;"></div>
+          <div style="position:absolute;left:235px;top:217px;width:7px;height:78px;background:#8a9296;border-radius:2px;"></div>
+          <div style="position:absolute;left:30px;top:262px;width:330px;height:0;border-top:2px dashed #3f8fd0;"></div>
+          <div style="position:absolute;left:34px;top:248px;font-size:9px;font-weight:800;color:#2f6db0;">地下水位</div>
+          <div style="position:absolute;left:168px;top:298px;width:8px;height:8px;border-radius:50%;background:#3f8fd0;opacity:.75;"></div>
+          <div style="position:absolute;left:186px;top:302px;width:6px;height:6px;border-radius:50%;background:#3f8fd0;opacity:.6;"></div>
+          <div style="position:absolute;left:206px;top:299px;width:7px;height:7px;border-radius:50%;background:#3f8fd0;opacity:.7;"></div>
+          <div style="position:absolute;left:160px;top:312px;width:70px;text-align:center;font-size:8.5px;font-weight:800;color:#2f6db0;">流沙·管涌</div>
+          <div style="position:absolute;left:0;right:0;top:330px;text-align:center;font-size:12px;font-weight:800;color:#5c6469;">{{ b0_tag }}</div>
+        </div>
+        <div style="position:absolute;left:46px;top:62px;width:250px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:13.5px;font-weight:700;color:#23282b;line-height:1.4;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">{{ b0_bubble }}
+          <div style="position:absolute;left:30px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:54px;top:152px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">{{ b0_stamp }}</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 降水选型：渗透系数标尺 + 井点卡 + 水位500 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b1_title }}</div>
+        <div style="position:absolute;left:16px;top:80px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ b1_rulerO }};">渗透系数</div>
+        <div style="position:absolute;left:70px;top:78px;width:290px;height:20px;display:flex;border-radius:6px;overflow:hidden;opacity:{{ b1_rulerO }};">
+          <div style="width:90px;background:#eef3f7;border-right:1px solid #fff;"></div>
+          <div style="width:90px;background:#e6efe6;border-right:1px solid #fff;"></div>
+          <div style="width:110px;background:#dff0e6;"></div>
+        </div>
+        <div style="position:absolute;left:72px;top:100px;font-size:8px;font-weight:800;color:#9aa0a3;opacity:{{ b1_rulerO }};">小·填土黏土</div>
+        <div style="position:absolute;left:312px;top:100px;font-size:8px;font-weight:800;color:#217a4e;opacity:{{ b1_rulerO }};">大·砂砾</div>
+        <div style="position:absolute;left:{{ b1_ptr }}px;top:56px;transform:translateX(-50%);z-index:10;opacity:{{ b1_rulerO }};">
+          <div style="background:#cf4436;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:9px;white-space:nowrap;">渗透大→管井</div>
+          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #cf4436;margin:0 auto;"></div>
+        </div>
+        <sc-for list="{{ b1cards }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ c.x }}px;top:130px;width:110px;height:100px;background:{{ c.bg }};border:1.5px solid {{ c.bd }};border-top:5px solid {{ c.col }};border-radius:10px;padding:9px 8px;box-shadow:0 3px 10px rgba(0,0,0,.06);opacity:{{ c.op }};">
+            <div style="font-size:12.5px;font-weight:900;color:{{ c.col }};">{{ c.tt }}</div>
+            <div style="font-size:9.5px;font-weight:600;color:#5c6469;margin-top:7px;line-height:1.45;">{{ c.sub }}</div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:16px;right:16px;top:250px;text-align:center;background:#2c8a5b;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800;box-shadow:3px 3px 0 rgba(44,138,91,.22);opacity:{{ b1_bannerO }};">水位降至坑底以下 500mm · 持续降水至基础完工</div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 周边保护：抽水降落漏斗致沉降 → 截水/回灌 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b2_title }}</div>
+        <div style="position:absolute;left:24px;top:150px;width:342px;height:3px;background:#9a8a66;opacity:{{ b2_probO }};"></div>
+        <div style="position:absolute;left:44px;top:112px;width:66px;height:38px;background:#c7ccd0;border:1.5px solid #9aa0a3;border-radius:3px;opacity:{{ b2_probO }};"></div>
+        <div style="position:absolute;left:44px;top:96px;width:0;height:0;border-left:33px solid transparent;border-right:33px solid transparent;border-bottom:18px solid #a7adb0;opacity:{{ b2_probO }};"></div>
+        <div style="position:absolute;left:114px;top:104px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ b2_probO }};">沉降↓ 开裂</div>
+        <div style="position:absolute;left:286px;top:152px;width:80px;height:100px;background:repeating-linear-gradient(0deg,#c9b48f,#c9b48f 22px,#c3ad85 22px,#c3ad85 24px);opacity:{{ b2_probO }};"></div>
+        <div style="position:absolute;left:298px;top:152px;width:8px;height:96px;background:#8a9296;border-radius:2px;opacity:{{ b2_probO }};"></div>
+        <div style="position:absolute;left:296px;top:132px;font-size:13px;color:#3f8fd0;opacity:{{ b2_probO }};">↑</div>
+        <div style="position:absolute;left:280px;top:120px;font-size:8.5px;font-weight:800;color:#2f6db0;opacity:{{ b2_probO }};">降水井·抽水</div>
+        <div style="position:absolute;left:110px;top:168px;width:186px;border-top:2px dashed #3f8fd0;transform:rotate(15deg);transform-origin:left;opacity:{{ b2_probO }};"></div>
+        <div style="position:absolute;left:158px;top:206px;background:#f4f3ec;padding:0 3px;font-size:9px;font-weight:800;color:#2f6db0;opacity:{{ b2_probO }};">降落漏斗</div>
+        <div style="position:absolute;left:258px;top:150px;width:8px;height:102px;background:#2f6db0;border-radius:2px;opacity:{{ b2_fixO }};"></div>
+        <div style="position:absolute;left:126px;top:152px;width:8px;height:66px;background:#2f6db0;border-radius:2px;opacity:{{ b2_fixO }};"></div>
+        <div style="position:absolute;left:120px;top:136px;font-size:13px;color:#2f6db0;opacity:{{ b2_fixO }};">↓</div>
+        <div style="position:absolute;left:206px;top:256px;width:150px;font-size:9px;font-weight:800;color:#2f6db0;opacity:{{ b2_fixO }};">截水帷幕 k<1×10⁻⁶cm/s</div>
+        <div style="position:absolute;left:90px;top:256px;width:110px;font-size:9px;font-weight:800;color:#2f6db0;opacity:{{ b2_fixO }};">井点回灌·稳水位</div>
+        <div style="position:absolute;left:16px;right:16px;top:288px;text-align:center;font-size:10.5px;font-weight:800;color:#cf8a44;opacity:{{ b2_fixO }};">周边沉降风险 → 截水帷幕 或 回灌，维持原水位平衡</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 分层开挖：每层≤3m + 严禁超挖 + 不损坏设施 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b3_title }}</div>
+        <div style="position:absolute;left:60px;top:72px;font-size:9px;font-weight:800;color:#8b9398;opacity:{{ b3_wallO }};">支护墙</div>
+        <div style="position:absolute;left:84px;top:96px;width:10px;height:158px;background:#a7adb0;border-radius:2px;opacity:{{ b3_wallO }};"></div>
+        <sc-for list="{{ b3bands }}" as="b" hint-placeholder-count="3">
+          <div style="position:absolute;left:96px;top:{{ b.top }}px;width:200px;height:48px;background:{{ b.c }};border-top:1.5px dashed #8a7a5c;display:flex;align-items:center;padding-left:12px;font-size:10.5px;font-weight:800;color:#6b5a3c;opacity:{{ b.op }};">{{ b.lab }}</div>
+        </sc-for>
+        <div style="position:absolute;left:298px;top:72px;font-size:9px;font-weight:800;color:#2f6db0;opacity:{{ b3_wallO }};">降水井</div>
+        <div style="position:absolute;left:300px;top:96px;width:8px;height:150px;background:#8a9296;border-radius:2px;opacity:{{ b3_wallO }};"></div>
+        <div style="position:absolute;left:96px;top:258px;background:#fdf2f0;border:1.5px solid #f0c4bc;border-radius:7px;padding:3px 8px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ b3_digO }};">先撑后挖 · 严禁超挖 · 预留土人工清</div>
+        <div style="position:absolute;left:16px;right:16px;top:294px;text-align:center;font-size:10.5px;font-weight:800;color:#cf8a44;opacity:{{ b3_noteO }};">不得损坏支护结构与降水设施</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 监测触发：三条件任一即测（浅坑地质复杂也测） ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b4_title }}</div>
+        <sc-for list="{{ b4conds }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:16px;top:{{ c.top }}px;width:172px;height:32px;background:#fff8e2;border:1.5px solid #e2c877;border-radius:8px;display:flex;align-items:center;padding-left:12px;font-size:11.5px;font-weight:800;color:#8a6d1f;opacity:{{ c.op }};">{{ c.lab }}</div>
+        </sc-for>
+        <div style="position:absolute;left:196px;top:132px;font-size:11px;font-weight:900;color:#cf8a44;opacity:{{ b4_lampO }};">任一满足</div>
+        <div style="position:absolute;left:256px;top:96px;width:118px;height:72px;background:#f0f8f3;border:2px solid #2c8a5b;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:{{ b4_lampO }};">
+          <div style="width:16px;height:16px;border-radius:50%;background:#2c8a5b;"></div>
+          <div style="font-size:12.5px;font-weight:900;color:#217a4e;margin-top:5px;">必须监测</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:220px;text-align:center;background:#eef3f7;border:1.5px solid #cdd9e2;border-radius:8px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#2f6db0;opacity:{{ b4_ahaO }};">浅坑（不到 5m）+ 地质复杂 → 仍须监测</div>
+        <div style="position:absolute;left:16px;right:16px;top:262px;text-align:center;font-size:10px;font-weight:700;color:#5c6469;opacity:{{ b4_objO }};">监测对象：基坑及支护结构变形 + 周边环境变形</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 四表报警 + 监测主体（第三方） ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b5_title }}</div>
+        <sc-for list="{{ b5gauges }}" as="g" hint-placeholder-count="4">
+          <div style="position:absolute;left:{{ g.x }}px;top:96px;width:84px;height:66px;background:{{ g.bg }};border:1.5px solid {{ g.bd }};border-radius:10px;padding:8px 6px;opacity:{{ g.op }};">
+            <div style="font-size:10.5px;font-weight:900;color:{{ g.col }};">{{ g.tt }}</div>
+            <div style="font-size:11px;font-weight:800;color:{{ g.col }};margin-top:12px;">{{ g.st }}</div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:16px;right:16px;top:176px;text-align:center;background:#fdf2f0;border:1.5px solid #f0c4bc;border-radius:9px;padding:7px 10px;font-size:10.5px;font-weight:800;color:#cf4436;opacity:{{ b5_alarmO }};">位移突增 / 管涌 / 支撑锚杆断裂 → 报警·停工·分析·应急</div>
+        <div style="position:absolute;left:22px;top:230px;width:80px;height:34px;background:#2f6db0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;opacity:{{ b5_subjO }};">建设方</div>
+        <div style="position:absolute;left:106px;top:239px;font-size:11px;font-weight:800;color:#8b9398;opacity:{{ b5_subjO }};">委托</div>
+        <div style="position:absolute;left:150px;top:230px;width:150px;height:34px;background:#2c8a5b;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;opacity:{{ b5_subjO }};">具备资质第三方 实施</div>
+        <div style="position:absolute;left:16px;right:16px;top:276px;text-align:center;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ b5_subjO }};">✕ 不是施工单位自己测</div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 回扣：下半场五步链 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b6_title }}</div>
+        <div style="position:absolute;left:8px;top:150px;width:68px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:9px 7px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ r0 }};"><div style="font-size:13px;font-weight:900;color:#2f6db0;">1 降水</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.35;">渗透+降深·坑底下500</div></div>
+        <div style="position:absolute;left:80px;top:150px;width:68px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:9px 7px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ r1 }};"><div style="font-size:13px;font-weight:900;color:#2c8a5b;">2 周边</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.35;">截水帷幕/回灌</div></div>
+        <div style="position:absolute;left:152px;top:150px;width:68px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:9px 7px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ r2 }};"><div style="font-size:13px;font-weight:900;color:#cf8a44;">3 开挖</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.35;">分层≤3m·严禁超挖</div></div>
+        <div style="position:absolute;left:224px;top:150px;width:68px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #d9a521;border-radius:10px;padding:9px 7px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ r3 }};"><div style="font-size:13px;font-weight:900;color:#d9a521;">4 监测</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.35;">一二级/≥5m/地质复杂</div></div>
+        <div style="position:absolute;left:296px;top:150px;width:70px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf4436;border-radius:10px;padding:9px 7px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ r4 }};"><div style="font-size:13px;font-weight:900;color:#cf4436;">5 报警</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.35;">四表突变·第三方测</div></div>
+        <div style="position:absolute;left:0;right:0;top:270px;text-align:center;font-size:12.5px;font-weight:900;color:#23282b;opacity:{{ r4 }};">五句写全 · 配上集，满分链齐了</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN（播到底 t≥DUR 才出 · 与海报对称）░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">降水监测（下）· 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">降水监测这半场唠到这儿哈——降水按渗透系数加降深选，周边沉降写截水帷幕或回灌，分层开挖每层不超3米、严禁超挖，监测三条件任一触发、四表任一突变就报警，还得建设方委托第三方来测。配上上集支护五句，基坑这道题的满分链就齐整了。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">降水按渗透系数+降深 · 坑底以下500mm</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">周边沉降 → 截水帷幕k<1×10⁻⁶ 或回灌</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">分层开挖≤3m · 严禁超挖</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#d9a521;">一二级/≥5m/地质复杂 → 必须监测</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">四表突变即报警 · 建设方委托第三方</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="practice2.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <!-- 分集切换（本考点 ≥2 集时出现；单集时 hasEpisodes=false 隐藏）-->
+      <sc-if value="{{ hasEpisodes }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:8px;margin-top:11px;">
+        <div style="flex:none;font-size:11px;font-weight:800;color:#7f8a8f;line-height:1.25;white-space:nowrap;">{{ epLabel }}</div>
+        <sc-for list="{{ episodes }}" as="ep" hint-placeholder-count="2">
+          <a href="{{ ep.href }}" style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:11px;padding:11px 8px;font-size:12px;font-weight:900;text-decoration:none;background:{{ ep.bg }};color:{{ ep.fg }};pointer-events:{{ ep.pe }};">{{ ep.label }}</a>
+        </sc-for>
+      </div>
+      </sc-if>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="practice2.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- 全屏浮层控制条（真·全屏时点屏唤出，3.5s 自隐）-->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;animation:lzAskSheetIn .24s cubic-bezier(.22,.8,.28,1) both;will-change:transform;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div data-luban-ask-thread style="display:flex;flex-direction:column;gap:10px;">
+            <div style="align-self:flex-end;max-width:82%;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;">
+              <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#e8e4d8;color:#3a3329;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">我</div>
+              <div style="background:#f2eee3;color:#292820;border-radius:13px 13px 4px 13px;padding:9px 11px;font-size:12.5px;line-height:1.55;font-weight:650;">{{ askText }}</div>
+            </div>
+            <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+              <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+              <div style="flex:1;min-width:0;">
+                <div data-luban-workflow-status style="border:1px solid #527463;border-radius:12px;padding:10px 11px;background:#242820;margin-bottom:10px;">
+                  <div style="display:inline-flex;border:1px solid #527463;border-radius:999px;padding:3px 8px;color:#93c4a8;font-size:10px;font-weight:900;margin-bottom:6px;">{{ askWorkflowBadge }}</div>
+                  <div style="font-size:13px;color:#f1e6cf;font-weight:850;line-height:1.45;">{{ askWorkflowTitle }}</div>
+                  <div style="margin-top:3px;font-size:11px;color:#b9b59f;line-height:1.55;">{{ askWorkflowSub }}</div>
+                  <button data-luban-workflow-toggle onClick="{{ toggleAskWorkflow }}" style="margin-top:8px;border:0;background:transparent;padding:0;color:#93c4a8;font-size:10.5px;font-weight:800;cursor:pointer;">{{ askWorkflowToggleText }}</button>
+                  <sc-if value="{{ askWorkflowExpanded }}" hint-placeholder-val="{{ false }}">
+                    <sc-for list="{{ askWorkflowEntries }}" as="step" hint-placeholder-count="5">
+                      <div style="margin-top:7px;padding-top:7px;border-top:1px solid #3a4438;font-size:10.5px;color:#c9c5ae;line-height:1.45;">{{ step.badge }} · {{ step.title }}</div>
+                    </sc-for>
+                  </sc-if>
+                </div>
+                <sc-for list="{{ askBlocks }}" as="b" hint-placeholder-count="5">
+                  <sc-if value="{{ b.type === 'heading' }}" hint-placeholder-val="{{ false }}"><div style="margin:11px 0 6px;color:#fff4dc;font-size:16px;line-height:1.45;font-weight:900;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                  <sc-if value="{{ b.type === 'paragraph' }}" hint-placeholder-val="{{ false }}"><div style="margin:8px 0;color:#f1e6cf;font-size:13.5px;line-height:1.75;font-weight:500;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                  <sc-if value="{{ b.type === 'callout' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:10px;border-left:3px solid #7fb69a;background:#202920;border-radius:8px;"><div style="display:inline-flex;color:#a8d1b4;font-size:10px;font-weight:900;margin-bottom:4px;">{{ b.label }}</div><div style="color:#eef3e9;font-size:13px;line-height:1.7;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-if>
+                  <sc-if value="{{ b.type === 'ul' || b.type === 'ol' }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ b.items }}" as="item"><div style="display:flex;gap:7px;margin:7px 0;color:#f1e6cf;font-size:13px;line-height:1.7;"><span style="flex:none;color:#cf8a44;font-weight:900;">{{ item.marker }}</span><div style="flex:1;"><sc-for list="{{ item.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-for></sc-if>
+                  <sc-if value="{{ b.type === 'blockquote' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:8px 10px;border-left:3px solid #cf8a44;background:#251f19;color:#e9dec7;font-size:12.5px;line-height:1.7;"><sc-for list="{{ b.lines }}" as="line"><div><sc-for list="{{ line }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-for></div></sc-if>
+                  <sc-if value="{{ b.type === 'code_block' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:9px 10px;border-radius:8px;background:#101415;color:#dfe7df;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.55;white-space:pre-wrap;">{{ b.code }}</div></sc-if>
+                  <sc-if value="{{ b.type === 'table' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;border:1px solid #4a3d2a;border-radius:8px;overflow:hidden;"><div style="padding:7px 9px;background:#30291f;color:#f3cd91;font-size:11px;font-weight:900;">{{ b.headers }}</div><sc-for list="{{ b.rows }}" as="row"><div style="padding:7px 9px;border-top:1px solid #3a3127;color:#efe4ce;font-size:11.5px;line-height:1.55;">{{ row.cells }}</div></sc-for></div></sc-if>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askError }}" hint-placeholder-val="{{ false }}">
+          <div data-luban-ask-error style="margin-top:12px;border:1px solid #80503c;background:#2b211d;color:#f0c9a8;border-radius:12px;padding:11px 12px;font-size:12.5px;line-height:1.6;">{{ askError }}</div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══════════════════════════════════════════════════════════════════════════
+   鲁班智考 · 动画学习卡 母版（讲解页）
+   ───────────────────────────────────────────────────────────────────────────
+   做新考点时，fork 本文件改名 <考点名>_讲解.dc.html，只改【内容区】，骨架别动。
+
+   ▼ 内容区（每张卡都要换）：
+     · examTitle / examCode / examCat / posterSub / posterMeta / KNOWLEDGE
+     · DUR（总秒数，≈每页旁白 6–8 秒累加）
+     · beats[]（≥6 主讲 + ≥4 问答，[id,起,止,短标题]）
+     · keycards[]（每主讲 beat 一句记忆点）
+     · narr[]（每主讲 beat 旁白，老师 longanhuan_v3 口语）
+     · qa[]（≥4 问，每问含 figLabel + fig 类型 + q + a）
+     · qaFig() 里 4 种迷你图 / figFor 的领域图（按新考点重画）
+     · 模板里 6 个 BEAT 块的领域对象 SVG/CSS（这是唯一要手画的部分）
+
+   ▲ 骨架（禁止改，改了就丢功能）：
+     · RAF 时间轴 loop / toggle / seek / jump
+     · paginate() + 旁白条 ≤3 行分页（capPages/capText/captionPage）
+     · QA 师生气泡 + 老师气泡内嵌 qaFig 迷你领域图
+     · 问追AI 弹层 + authoring preview bridge
+     · 视口/全屏注入 componentDidMount
+
+   规则速记：动画讲知识不用文字讲；先判 6+1 认知结构再画领域对象；
+   每 beat 一个对象级动作、不堆画面；旁白条一页 ≤3 行（QA 气泡可整段显示）；
+   logo 用 assets/mark-white.png(暗底) / mark-red.png(亮底)，不用 emoji。
+   ═══════════════════════════════════════════════════════════════════════════ */
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askRawResponse:"", askBlocks:[], askWorkflowEntries:[], askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowExpanded:false, askWorkflowToggleText:"查看处理摘要", askWorkflowActive:false, askStreaming:false, askError:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/down/";
+  audioVersion="4dc3011503e1d2f9";
+  DUR = 248.540;
+  examTitle="降水选型与监测（下）"; examCode="B02 · 下集"; examCat="案例·地基基础";
+  // 分集：单集留 []；分集时按顺序列出，cur:true 标当前集。文件名放项目根目录（同级）。
+  // 示例：[{label:"上集",href:"流水施工参数与工期_讲解_上.dc.html"},{label:"下集",href:"流水施工参数与工期_讲解_下.dc.html",cur:true}]
+  episodes=[
+    {label:"上集 · 支护选型",href:"lesson.html"},
+    {label:"下集 · 降水监测",href:"lesson2.html",cur:true}
+  ];
+  posterSub="降水选型 · 周边保护 · 分层开挖 · 监测触发 · 报警主体"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 48 秒";
+  KNOWLEDGE="基坑降水与监测（B02下集,采分点P6–P9）。P6降水选型按渗透系数+降水深度:渗透系数大的砂砾层→降水管井(重力排水);填土/黏土渗透系数小→不宜用降水管井;降深≤6m→轻型井点(多级6~10m),降深8~20m→喷射井点,>6m可用真空降水井管;水位须降至坑底以下500mm以上并持续至基础完工(真题{2015第9题}渗透系数大选管井、{2019第7题}/{2023第14题}填土不宜管井、{2025第25题}降深>6m多选)。P7周边有沉降/建筑保护风险→截水帷幕(渗透系数宜<1×10⁻⁶cm/s)阻断补给,或井点回灌维持原水位平衡防周边沉降。P8土方分层开挖每层≤3m,先撑后挖、严禁超挖,预留土层人工挖除,不得损坏支护结构与降水设施。P9监测触发:安全等级一二级 OR 开挖深度≥5m OR 地质复杂,满足任一即须监测;监测对象=基坑及支护结构变形+周边环境变形(真题{2024第8题});监测应由建设方委托具备相应资质的第三方实施(非施工单位自测);报警条件(任一即报警):位移突增/流沙管涌隆起陷落/支撑锚杆断裂拔出/周边建筑危害裂缝/地面下陷/管线泄漏,报警后停工分析应急。坑底承压水突涌防治:水平封底隔渗或钻孔减压有效,集水明排/井点降水/井点回灌不防突涌(真题{2016第24题})。常见失分:软土有水一律集水明排不看深度(E10)、渗透系数大用轻型/喷射(E07)、漏水位降至坑底以下500mm(E10)、只降水不提周边保护漏截水回灌(E03)、监测主体答成施工单位自测(E07)、浅坑不监测(E07)。边界:专项方案/支护选型/关键数字/土钉墙/锚杆归上集P1–P5。";
+    beats=[["b0",0.0,16.604,"破误区"],["b1",16.604,44.224,"降水选型"],["b2",44.224,68.892,"周边保护"],["b3",68.892,85.616,"分层开挖"],["b4",85.616,106.516,"监测触发"],["b5",106.516,127.992,"报警主体"],["b6",127.992,150.092,"回扣"],["q0",150.092,173.888,"问答"],["q1",173.888,203.396,"问答"],["q2",203.396,228.152,"问答"],["q3",228.152,248.54,"问答"]];
+  keycards=[
+    "别一刀切：软土有水≠一律明排；渗透系数大≠轻型井点",
+    "降水选型看两样：渗透系数 + 降水深度",
+    "周边沉降风险 → 截水帷幕（k<1×10⁻⁶）或回灌",
+    "分层开挖每层≤3m · 严禁超挖 · 不损坏支护降水设施",
+    "一二级 OR 深度≥5m OR 地质复杂 → 必须监测",
+    "四表任一突变即报警 · 监测由建设方委托第三方",
+    "降水·周边·开挖·监测·报警主体，一条不落"
+  ];
+  narr=[
+    "接着上集唠降水和监测。这块儿坑也多——软土一见水就喊集水明排，不管挖多深；渗透系数明明大，还硬上轻型井点；监测呢，寻思施工单位自己测就完。注意哈，这几样全是错的，先划掉。",
+    "降水选哪种，就盯两样：渗透系数、降水深度。渗透系数大的砂砾层，用降水管井重力排水；填土、黏土渗透小，不宜用管井。降深看深浅——不超 6 米用轻型井点，多级能到 6 到 10 米；要 8 到 20 米深，上喷射井点。还有一句别漏：水位得降到坑底以下 500 毫米，一直降到基础完工。",
+    "抽水会出事——坑外水位被抽出个降落漏斗，土一固结，周边的楼就跟着沉、跟着裂。所以周边有建筑、有沉降风险，别光顾着抽：一是打截水帷幕，渗透系数压到 1×10⁻⁶ 以下，把坑外的水挡在外头；二是井点回灌，抽多少往回灌多少，把原来的水位稳住，楼就不沉了。",
+    "水控住了才挖土。深基坑得分层开挖，每层不超 3 米，先撑后挖、严禁超挖，挖到底还得留一层人工清。还有一条常被忘——开挖别损坏支护结构和降水设施，把井管挖漏了，前头降水全白干。",
+    "哪些坑必须监测？记这三条，满足任意一条就得测：安全等级一级二级、开挖深度到 5 米、或者地质条件复杂。别以为浅坑就不用——你看这坑不到 5 米，可地质复杂，照样得上监测。监测的对象，是基坑及支护结构变形，加上周边环境变形。",
+    "监测盯四块表：位移、支撑内力、周边沉降、水位。哪块表一突变——位移突增、管涌流沙、支撑锚杆断裂——立马报警、停工、分析、应急。还有主体别答反：基坑监测得由建设方委托有资质的第三方来测，不是施工单位自己测自己。",
+    "下半场拢一拢：降水按渗透系数加降深选，周边沉降写截水帷幕或回灌，分层开挖每层不超 3 米严禁超挖，监测三条件任一触发，四表任一突变就报警、由第三方测。这五句写全，配上上集，基坑这道题满分链就齐了。"
+  ];
+  qa=[
+    { figLabel:"渗透系数大 → 降水管井（填土黏土不宜）", fig:"kseep", q:"老师，渗透系数大到底用啥井点啊，我老弄反。", a:"记死这条哈——渗透系数大的砂砾层，用降水管井，靠重力把水排出去；填土、黏土渗透系数小，反倒不宜用管井。别把大渗透配成轻型、喷射井点，那是给中等渗透系数用的。真题{2015第9题}就考这个，选管井 D。" },
+    { figLabel:"承压水突涌 → 钻孔减压 / 水平封底", fig:"burst", q:"坑底老是往上鼓，加大明排抽水管用不？", a:"不管用、还危险。坑底下有承压水顶着，你在上头明排、回灌，压不住底下的压力水，照样突涌。得对症——要么水平封底隔渗把底压住，要么钻孔减压把承压水压力泄掉。明排、井点降水、回灌都防不了突涌，真题{2016第24题}答的就是钻孔减压加水平封底。" },
+    { figLabel:"监测=建设方委托第三方（非施工单位自测）", fig:"subject", q:"基坑监测到底谁来做？施工单位自己测不行么？", a:"不行哈，最容易答反。基坑监测得由建设方委托具备相应资质的第三方来做，图个中立、数据准。施工单位自己测自己，等于既是运动员又是裁判。专项方案是施工单位编、报监理审批；监测这活儿，认准建设方委托第三方。" },
+    { figLabel:"四表任一突变 → 报警·停工·应急", fig:"alarm", q:"监测到啥程度就得报警啊？", a:"盯住这几样，出任一就报警：位移突然增大、坑底流沙管涌隆起、支撑或锚杆断裂拔出、周边建筑开裂下陷、管线泄漏。报警了就得停工、分析、应急，处理完复测没问题再接着干。别等塌了才想起来看数。" }
+  ];
+  askPresets=["渗透系数大用哪种井点？","坑底突涌怎么防治？","基坑监测由谁实施？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return; // 忽略舞台内交互控件（全屏钮/QA点/终屏按钮等），只有点空白画面才切换控制条
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    const runtime=window.LubanTutorbotSheetRuntime;
+    const entryTicket=String(window.__lubanCardEntryTicket||"").trim();
+    if(!runtime||!runtime.workflow||!entryTicket){ this.setState({askError:"学习身份已过期，请返回小程序重新打开这一站。"}); return; }
+    let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; }
+    const beat=this.beats[bi]||[];
+    const isFollowup=bi>=this.narr.length;
+    const followup=isFollowup?(this.qa[bi-this.narr.length]||{}):{};
+    const captionText=isFollowup?(String(followup.q||"")+"。"+String(followup.a||"")):String(this.narr[bi]||"");
+    const keycard=isFollowup?("学生追问 · 第 "+(bi-this.narr.length+1)+" / "+this.qa.length+" 问"):String(this.keycards[bi]||"");
+    const payload={contextId:"B02",cardId:"B02",question:q,entryTicket:entryTicket,
+      currentScene:{id:String(beat[0]||bi+1),label:String(beat[3]||"当前画面").slice(0,80),keycard:keycard.slice(0,160),coach:captionText.slice(0,320)},
+      currentCaption:{speaker:isFollowup?"学员追问":"鲁班讲解",text:captionText.slice(0,260)},
+      time:Number(this.state.t||0)};
+    let rawResponse="", workflowEntries=[], lastSeq=0, completed=false, reconnects=0, socket=null;
+    const self=this;
+    const renderWorkflow=function(active, extra){
+      const summary=runtime.workflow.summarizeWorkflow(workflowEntries,active!==false);
+      const expanded=!!self.state.askWorkflowExpanded;
+      self.setState(Object.assign({askWorkflowEntries:workflowEntries,askWorkflowBadge:summary.badge||"",askWorkflowTitle:summary.headline||"",askWorkflowSub:summary.subline||"",askWorkflowActive:active!==false,askWorkflowToggleText:expanded?"收起处理摘要":(summary.toggleText||"查看处理摘要")},extra||{}));
+    };
+    const setResponse=function(next, append){
+      rawResponse=append?rawResponse+String(next||""):String(next||"");
+      self.setState({askLoading:false,askStreaming:true,askRawResponse:rawResponse,askAnswer:rawResponse,askBlocks:runtime.projectMarkdown(rawResponse),askError:""});
+    };
+    const fail=function(message){
+      if(completed)return; completed=true;
+      renderWorkflow(false,{askLoading:false,askStreaming:true,askError:String(message||"TutorBot 暂时没有接通，请留在本页稍后重试。")});
+    };
+    const finish=function(){ if(completed)return; completed=true; renderWorkflow(false,{askLoading:false,askStreaming:true}); };
+    const consume=function(event){
+      if(!event||typeof event!=="object"||completed)return;
+      const seq=typeof event.seq==="number"?event.seq:0;
+      if(seq&&seq<=lastSeq)return; if(seq)lastSeq=seq;
+      const type=String(event.type||"");
+      if(type==="content"){ if(runtime.isPublicEvent(event))setResponse(event.content,true); return; }
+      const workflowEvent=runtime.toWorkflowEvent(event);
+      if(workflowEvent){ workflowEntries=runtime.workflow.appendWorkflowEntry(workflowEntries,workflowEvent); renderWorkflow(true,{askStreaming:true}); return; }
+      if(type==="result"){ if(runtime.isPublicEvent(event)){ const finalText=runtime.finalResponse(event); if(finalText)setResponse(finalText,false); } return; }
+      if(type==="error"){ const metadata=event.metadata||{}; if(metadata.turn_terminal)fail(event.content||"TutorBot 暂时不可用，请稍后重试。"); return; }
+      if(type==="done")finish();
+    };
+    const socketUrl=function(path){
+      const u=new URL(String(path||"/api/v1/ws"),window.location.href);
+      u.protocol=u.protocol==="https:"?"wss:":"ws:"; return u.toString();
+    };
+    const connect=function(stream){
+      if(completed)return;
+      try{
+        socket=new WebSocket(socketUrl(stream.url),[String(stream.protocol||"luban-preview-v1"),String(stream.ticket||"")]);
+        socket.onopen=function(){ if(completed)return; socket.send(JSON.stringify({type:"subscribe_turn",turn_id:String(stream.turn_id||""),after_seq:lastSeq||0})); };
+        socket.onmessage=function(message){ try{consume(JSON.parse(String(message.data||"")));}catch(_){ } };
+        socket.onclose=function(){
+          if(completed)return;
+          if(reconnects>=5){ fail("流式连接中断，请留在本页稍后重试。"); return; }
+          reconnects+=1; workflowEntries=runtime.workflow.appendWorkflowEntry(workflowEntries,{type:"status",eventType:"reconnect",data:"retry",content:"正在续接本轮回答…",seq:lastSeq||0}); renderWorkflow(true,{askStreaming:true});
+          setTimeout(function(){connect(stream);},400*reconnects);
+        };
+        socket.onerror=function(){};
+      }catch(err){ fail("流式连接暂时不可用，请留在本页稍后重试。"); }
+    };
+    this.setState({askLoading:true,askAnswer:"",askRawResponse:"",askBlocks:[],askWorkflowEntries:[],askWorkflowBadge:"",askWorkflowTitle:"",askWorkflowSub:"",askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要",askWorkflowActive:true,askStreaming:true,askError:""});
+    renderWorkflow(true,{askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要"});
+    try{
+      const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(String(data.detail||"TutorBot 答疑暂时不可用"));
+      const stream=data&&data.stream;
+      if(!stream||!stream.ticket||!stream.turn_id)throw new Error("TutorBot 流式回合未创建");
+      connect(stream);
+    }catch(err){ fail((err&&err.message)||"TutorBot 暂时没有接通，请留在本页稍后重试。"); }
+  }
+  toggleAskWorkflow(){
+    const expanded=!this.state.askWorkflowExpanded;
+    this.setState({askWorkflowExpanded:expanded,askWorkflowToggleText:expanded?"收起处理摘要":"查看处理摘要"});
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="kseep"){ h=52;
+      els.push(D({x:0,top:20,w:40,h:14,fg:"#9aa0a3",fs:8.5,jc:"flex-start",lab:"渗透 小"}));
+      els.push(D({x:44,top:18,w:56,h:16,bg:"#eef3f7",r:0,fg:"#5c6469",fs:8,lab:"填土黏土"}));
+      els.push(D({x:100,top:18,w:52,h:16,bg:"#e6efe6",r:0,fg:"#5c6469",fs:8,lab:"砂土"}));
+      els.push(D({x:152,top:18,w:56,h:16,bg:"#dff0e6",r:0,fg:"#217a4e",fs:8,lab:"砂砾"}));
+      els.push(D({x:210,top:20,w:38,h:14,fg:"#217a4e",fs:8.5,jc:"flex-start",lab:"大"}));
+      els.push(D({x:176,top:4,w:24,h:10,fg:"#cf4436",fs:9,lab:"▼"}));
+      els.push(D({x:0,top:38,w:248,h:12,fg:"#cf8a44",fs:8.5,jc:"flex-start",lab:"渗透大→管井；填土黏土不宜管井"})); }
+    else if(it.fig==="burst"){ h=54;
+      els.push(D({x:0,top:22,w:150,h:3,bg:"#8a7a5c"}));
+      els.push(D({x:60,top:6,w:30,h:16,fg:"#cf4436",fs:12,lab:"▲▲"}));
+      els.push(D({x:0,top:26,w:150,h:14,fg:"#cf4436",fs:8.5,jc:"flex-start",lab:"承压水顶托·坑底鼓起"}));
+      els.push(D({x:158,top:2,w:90,h:16,bg:"#2c8a5b",r:5,fg:"#fff",fs:8.5,lab:"钻孔减压"}));
+      els.push(D({x:158,top:22,w:90,h:16,bg:"#2c8a5b",r:5,fg:"#fff",fs:8.5,lab:"水平封底隔渗"}));
+      els.push(D({x:0,top:42,w:248,h:12,fg:"#9aa0a3",fs:8,jc:"flex-start",lab:"明排/降水/回灌 不防突涌"})); }
+    else if(it.fig==="subject"){ h=52;
+      els.push(D({x:0,top:4,w:64,h:20,bg:"#2f6db0",r:6,fg:"#fff",fs:9,lab:"建设方"}));
+      els.push(D({x:66,top:6,w:34,h:16,fg:"#a8997a",fs:8.5,lab:"委托·"}));
+      els.push(D({x:104,top:4,w:104,h:20,bg:"#2c8a5b",r:6,fg:"#fff",fs:9,lab:"第三方·有资质"}));
+      els.push(D({x:0,top:30,w:150,h:18,bg:"transparent",bd:"1.5px solid #cf4436",r:6,fg:"#cf4436",fs:8.5,lab:"✕ 施工单位自测"})); }
+    else if(it.fig==="alarm"){ h=54;
+      const g=[["位移","#cf4436"],["支撑内力","#5c6469"],["周边沉降","#5c6469"],["水位","#5c6469"]];
+      g.forEach((c,i)=>{ els.push(D({x:i*62,top:2,w:58,h:20,bg:i===0?"#fadcd6":"#f1ece0",bd:i===0?"1.5px solid #cf4436":"1px solid #d8ccaa",r:6,fg:c[1],fs:8.5,lab:c[0]})); });
+      els.push(D({x:0,top:30,w:248,h:14,fg:"#cf4436",fs:9,jc:"flex-start",lab:"位移突增/管涌/支撑断裂 → 报警·停工·应急"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      b0_op:0,b0_y:46,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
+      b0_tag:"降水·监测 · 别一刀切", b0_bubble:"软土有水一律明排？渗透系数大也上轻型井点？监测施工单位自己测？", b0_stamp:"误区 ✕",
+      b1_title:"降水选型 · 看渗透系数 + 降水深度", b1_rulerO:0, b1_ptr:140, b1cards:[], b1_bannerO:0,
+      b2_title:"周边保护 · 抽水致沉降 → 截水/回灌", b2_probO:0, b2_fixO:0,
+      b3_title:"分层开挖 · 每层≤3m · 严禁超挖", b3bands:[], b3_wallO:0, b3_noteO:0, b3_digO:0,
+      b4_title:"监测触发 · 三条件任一即测", b4conds:[], b4_lampO:0, b4_ahaO:0, b4_objO:0,
+      b5_title:"四表报警 + 监测主体", b5gauges:[], b5_alarmO:0, b5_subjO:0,
+      b6_title:"下半场链子：降水·周边·开挖·监测·报警主体", r0:0,r1:0,r2:0,r3:0,r4:0 };
+
+    if(A(0)){ const sp=W(0,.22),bp=W(.28,.46),dim=W(.74,.9),st=W(.56,.74);
+      v.b0_op=sp; v.b0_y=this.lp(46,0,sp); v.b0_bs=this.lp(.6,1,bp); v.b0_bo=bp*(1-.55*dim); v.b0_so=st*.95; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ v.b1_rulerO=W(0,.2); v.b1_ptr=Math.round(this.lp(140,320,W(.15,.5)));
+      const rc=W(.35,.78); const hi=W(.5,.72)>0.5;
+      v.b1cards=[
+        {x:16,tt:"轻型井点",col:"#2f6db0",sub:"渗透中 · 降深≤6m（多级6~10m）",hi:false},
+        {x:140,tt:"喷射井点",col:"#cf8a44",sub:"渗透中 · 降深8~20m",hi:false},
+        {x:264,tt:"降水管井",col:"#2c8a5b",sub:"渗透大 · 砂砾；填土黏土不宜",hi:hi}
+      ].map((c,i)=>Object.assign(c,{op:this.cl(rc*4-i,0,1),bg:c.hi?"#f0f8f3":"#fff",bd:c.hi?"#7bc39a":"#e2e0d5"}));
+      v.b1_bannerO=W(.82,.98); }
+    if(A(2)){ v.b2_probO=W(0,.42); v.b2_fixO=W(.5,.92); }
+    if(A(3)){ v.b3_wallO=W(0,.24);
+      const rb=W(.2,.7);
+      v.b3bands=[{top:100,c:"#c9b48f",lab:"第①层 ≤3m"},{top:150,c:"#c3ad85",lab:"第②层 ≤3m"},{top:200,c:"#c9b48f",lab:"第③层 ≤3m"}].map((b,i)=>Object.assign(b,{op:this.cl(rb*4-i,0,1)}));
+      v.b3_noteO=W(.66,.86); v.b3_digO=W(.82,.98); }
+    if(A(4)){ const rc=W(.05,.45);
+      v.b4conds=[{lab:"安全等级 一、二级"},{lab:"开挖深度 ≥5m"},{lab:"地质条件复杂"}].map((c,i)=>Object.assign(c,{top:92+i*40,op:this.cl(rc*4-i,0,1)}));
+      v.b4_lampO=W(.5,.7); v.b4_ahaO=W(.66,.86); v.b4_objO=W(.82,.98); }
+    if(A(5)){ const rg=W(.05,.5);
+      v.b5gauges=[{tt:"位移",st:"突增 ▲",hi:true},{tt:"支撑内力",st:"正常",hi:false},{tt:"周边沉降",st:"正常",hi:false},{tt:"水位",st:"正常",hi:false}].map((g,i)=>Object.assign(g,{x:8+i*90,op:this.cl(rg*5-i,0,1),bg:g.hi?"#fadcd6":"#fff",bd:g.hi?"#f0c4bc":"#e2e0d5",col:g.hi?"#cf4436":"#5c6469"}));
+      v.b5_alarmO=W(.52,.72); v.b5_subjO=W(.74,.94); }
+    if(A(6)){ v.r0=W(.05,.3); v.r1=W(.2,.45); v.r2=W(.35,.6); v.r3=W(.5,.75); v.r4=W(.65,.9); }
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaPageInfo="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaPageInfo=""; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    const _eps=(this.episodes||[]).map(e=>({label:e.cur?(e.label+" · 当前"):e.label,href:e.cur?"#":e.href,bg:e.cur?"#cf4436":"#23282b",fg:e.cur?"#fff":"#cdd2d5",pe:e.cur?"none":"auto"}));
+    return Object.assign(v,lo,lpe,{
+      episodes:_eps,hasEpisodes:_eps.length>=2,epLabel:"本考点分 "+_eps.length+" 集",
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaPageInfo,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askBlocks:this.state.askBlocks,askWorkflowEntries:this.state.askWorkflowEntries,askWorkflowBadge:this.state.askWorkflowBadge,askWorkflowTitle:this.state.askWorkflowTitle,askWorkflowSub:this.state.askWorkflowSub,askWorkflowExpanded:this.state.askWorkflowExpanded,askWorkflowToggleText:this.state.askWorkflowToggleText,askError:this.state.askError,
+      hasAnswer:!!this.state.askStreaming||!!this.state.askBlocks.length||!!this.state.askWorkflowActive,askIdle:!this.state.askLoading&&!this.state.askStreaming&&!this.state.askError,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

@@ -10,6 +10,7 @@ from deeptutor.services.luban_lesson import (
     LessonNotAvailable,
     build_lesson_viewmodel,
     list_green_lessons,
+    list_teaching_points,
 )
 from deeptutor.services.luban_lesson.practice_html import load_compiled_practice
 
@@ -118,6 +119,63 @@ def test_green_listing_keeps_unhosted_truth_for_learning_home(tmp_path):
     assert rows[0]["content_sha256"] == "abc123"
     assert rows[0]["card_hosted"] is False
     assert rows[0]["retest_available"] is False
+
+
+def test_teaching_points_project_contiguous_published_episodes(monkeypatch, tmp_path):
+    """74 集只从发布页投影；缺集不猜，不能把 pack 生命周期拆成 episode。"""
+    import deeptutor.services.luban_lesson.read_model as read_model
+
+    monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+    public_root = tmp_path / "luban-preview"
+    station_root = public_root / "s05"
+    station_root.mkdir(parents=True)
+    (station_root / "lesson.html").write_text("lesson one", encoding="utf-8")
+    (station_root / "lesson2.html").write_text("lesson two", encoding="utf-8")
+    monkeypatch.setattr(read_model, "_PUBLIC_PREVIEW_ROOT", public_root)
+    manifest = _write_manifest(tmp_path, [_S05], ["S05"])
+
+    # 临时 manifest 不允许借用主仓发布目录；生产投影使用唯一 published root。
+    assert list_teaching_points(manifest_path=manifest) == []
+
+    # 直接钉住页级 projection helper，避免测试为了目录注入而伪造第二个 registry。
+    lesson = {
+        "pack_id": "S05",
+        "title": _S05["title"],
+        "card_hosted": True,
+    }
+    points = read_model._teaching_points_for_lesson(lesson)
+    assert [(point["episode_index"], point["episode_label"]) for point in points] == [
+        (1, "上集"),
+        (2, "下集"),
+    ]
+    assert [point["lesson_file"] for point in points] == ["lesson.html", "lesson2.html"]
+    assert all(point["card_url"].startswith("https://cdn.example.com/luban/s05/") for point in points)
+
+    # 有 lesson3 而缺 lesson2 时整套 fail-closed，不让用户进入错序视频。
+    (station_root / "lesson2.html").unlink()
+    (station_root / "lesson3.html").write_text("lesson three", encoding="utf-8")
+    assert read_model._teaching_points_for_lesson(lesson) == []
+
+
+def test_real_published_catalog_has_40_topics_and_74_teaching_points(monkeypatch):
+    monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+    points = list_teaching_points()
+    assert len(points) == 74
+    assert len({point["pack_id"] for point in points}) == 40
+    d14 = [point for point in points if point["pack_id"] == "D14"]
+    assert [(point["episode_index"], point["episode_label"]) for point in d14] == [
+        (1, "上集"), (2, "中集"), (3, "下集")
+    ]
+    assert all(point["card_url"] for point in points)
+
+
+def test_episode_detail_selects_the_exact_published_page(monkeypatch):
+    monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+    vm = build_lesson_viewmodel("D14", episode_index=2)
+    assert vm["teaching_episode"] == {"index": 2, "total": 3, "label": "中集"}
+    assert "/d14/lesson2.html?v=" in vm["card_url"]
+    with pytest.raises(LessonNotAvailable):
+        build_lesson_viewmodel("D14", episode_index=4)
 
 
 def test_retest_items_textbook_join_same_pack_signed_cards(tmp_path):

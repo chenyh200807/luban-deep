@@ -1,0 +1,223 @@
+// 鲁班学习双轮 · 全部教学集
+// 40 个考点是进度/练习/掌握的唯一归属；这里仅把已发布 lesson*.html 投影成可点视频集。
+// 不写学习证据，不缓存或自造 episode 名单；后端缺页时 fail-closed，前端宁可少展示。
+const api = require("../../../utils/api");
+const auth = require("../../../utils/auth");
+const route = require("../../../utils/route");
+const runtime = require("../../../utils/runtime");
+const packNames = require("../../../utils/pack-short-names");
+
+// 五章只是 40 pack 路线的版式分段，不参与知识分类、练习或掌握判定。
+const CHAPTER_LAYOUT = [
+  { id: "01", title: "验收与基础施工", subtitle: "程序 · 支护 · 主体基础" },
+  { id: "02", title: "结构装饰与防水", subtitle: "钢构 · 装饰 · 防水构造" },
+  { id: "03", title: "防水地基与专项", subtitle: "节点 · 地基 · 危大工程" },
+  { id: "04", title: "进度质量与现场", subtitle: "索赔 · 网络 · 质量管理" },
+  { id: "05", title: "安全管理与施工组织", subtitle: "安全 · 布置 · 绿色施工" },
+];
+const TOPICS_PER_CHAPTER = 8;
+// C 版：重色行 / 全纸行交替；下一重色行黑红镜像。
+const C_TONE_PATTERN = [
+  ["ink", "paper", "red"],
+  ["paper", "paper", "paper"],
+  ["red", "paper", "ink"],
+  ["paper", "paper", "paper"],
+];
+
+function compactTitle(title) {
+  const value = String(title || "").trim();
+  return value.length > 6 ? value.slice(0, 6) : value;
+}
+
+function buildEpisodeGroups(rawPoints) {
+  const byPack = Object.create(null);
+  const packOrder = [];
+  (Array.isArray(rawPoints) ? rawPoints : []).forEach(function (point) {
+    const item = point || {};
+    const packId = String(item.pack_id || "").trim().toUpperCase();
+    const index = Number(item.episode_index);
+    const total = Number(item.episode_total);
+    if (!packId || !Number.isInteger(index) || !Number.isInteger(total) || index < 1 || total < index) return;
+    if (!byPack[packId]) {
+      packOrder.push(packId);
+      byPack[packId] = {
+        packId: packId,
+        title: String(item.title || ""),
+        total: total,
+        episodes: [],
+      };
+    }
+    const group = byPack[packId];
+    if (group.total !== total || group.episodes.some(function (episode) { return episode.index === index; })) return;
+    group.episodes.push({
+      id: String(item.teaching_point_id || packId + ":lesson:" + index),
+      index: index,
+      total: total,
+      label: String(item.episode_label || "第 " + index + " 集"),
+      cardUrl: String(item.card_url || ""),
+    });
+  });
+
+  return packOrder
+    .map(function (packId) {
+      const group = byPack[packId];
+      group.episodes.sort(function (left, right) { return left.index - right.index; });
+      // 只展示 1..N 无缺口的真实完整集；避免接口异常时把错序页露给学员。
+      if (group.episodes.length !== group.total || group.episodes.some(function (episode, index) {
+        return episode.index !== index + 1;
+      })) return null;
+      return Object.assign(group, {
+        displayTitle: packNames.shortName(group.packId, compactTitle(group.title)),
+      });
+    })
+    .filter(function (group) { return group; });
+}
+
+function buildChapterSections(rawPoints) {
+  const groups = buildEpisodeGroups(rawPoints);
+  return CHAPTER_LAYOUT.map(function (chapter, chapterIndex) {
+    const chapterGroups = groups.slice(
+      chapterIndex * TOPICS_PER_CHAPTER,
+      (chapterIndex + 1) * TOPICS_PER_CHAPTER,
+    );
+    const cards = [];
+    chapterGroups.forEach(function (group) {
+      group.episodes.forEach(function (episode) {
+        const localIndex = cards.length;
+        const row = Math.floor(localIndex / 3);
+        const column = localIndex % 3;
+        cards.push({
+          id: episode.id,
+          packId: group.packId,
+          title: group.title,
+          displayTitle: group.displayTitle,
+          index: episode.index,
+          total: episode.total,
+          label: episode.label,
+          labelShort: episode.total === 1 ? "讲" : episode.label.slice(0, 1),
+          cardUrl: episode.cardUrl,
+          tone: C_TONE_PATTERN[row % C_TONE_PATTERN.length][column],
+          dots: Array.from({ length: episode.total }, function (_unused, dotIndex) {
+            return { key: dotIndex + 1, active: dotIndex + 1 === episode.index };
+          }),
+        });
+      });
+    });
+    return {
+      id: chapter.id,
+      title: chapter.title,
+      subtitle: chapter.subtitle,
+      topicCount: chapterGroups.length,
+      lessonCount: cards.length,
+      cards: cards,
+    };
+  }).filter(function (chapter) { return chapter.cards.length; });
+}
+
+Page({
+  data: {
+    statusBarHeight: 0,
+    navHeight: 96,
+    isDark: false,
+    loading: true,
+    errorText: "",
+    chapterSections: [],
+    teachingPointUniverse: 0,
+    topicUniverse: 0,
+  },
+
+  onLoad: function () {
+    const info = typeof wx !== "undefined" && wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
+    const statusBarHeight = info.statusBarHeight || 0;
+    this.setData({ statusBarHeight: statusBarHeight, navHeight: statusBarHeight + 48, isDark: false });
+    if (!this._requireAuth()) return;
+    this._load();
+  },
+
+  _requireAuth: function () {
+    if (auth.isLoggedIn()) {
+      this._authRedirectPending = false;
+      return true;
+    }
+    if (!this._authRedirectPending) {
+      this._authRedirectPending = true;
+      runtime.redirectToLogin(route.lubanTeachingPoints());
+    }
+    return false;
+  },
+
+  goBack: function () {
+    const pages = typeof getCurrentPages === "function" ? getCurrentPages() : [];
+    if (pages.length > 1 && typeof wx !== "undefined" && wx.navigateBack) {
+      wx.navigateBack();
+      return;
+    }
+    if (typeof wx !== "undefined" && wx.redirectTo) wx.redirectTo({ url: route.lubanStations() });
+  },
+
+  retry: function () {
+    this.setData({ loading: true, errorText: "" });
+    this._load();
+  },
+
+  openEpisode: function (event) {
+    const dataset = (event && event.currentTarget && event.currentTarget.dataset) || {};
+    const packId = String(dataset.packId || "").trim();
+    const index = Number(dataset.episode);
+    if (!packId || !Number.isInteger(index) || index < 1) return;
+    if (!dataset.cardUrl) {
+      if (typeof wx !== "undefined" && wx.showToast) wx.showToast({ title: "视频正在部署，请稍后再试", icon: "none" });
+      return;
+    }
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({ url: route.lubanStation(packId, index) });
+    }
+  },
+
+  _load: function () {
+    const that = this;
+    if (!this._requireAuth()) return Promise.resolve();
+    return api.getLubanLessons({ silent: true, suppressAuthRedirect: true })
+      .then(function (response) {
+        if (!auth.isLoggedIn()) {
+          that._requireAuth();
+          return null;
+        }
+        const body = api.unwrapResponse(response) || {};
+        const chapters = buildChapterSections(body.teaching_points);
+        const visibleTeachingPointCount = chapters.reduce(function (total, chapter) {
+          return total + chapter.lessonCount;
+        }, 0);
+        const publishedTeachingPointCount = Number(body.teaching_point_universe || 0);
+        if (publishedTeachingPointCount !== visibleTeachingPointCount) {
+          throw new Error("teaching_point_projection_mismatch");
+        }
+        that.setData({
+          chapterSections: chapters,
+          teachingPointUniverse: publishedTeachingPointCount,
+          topicUniverse: chapters.reduce(function (total, chapter) {
+            return total + chapter.topicCount;
+          }, 0),
+          loading: false,
+          errorText: "",
+        });
+        return null;
+      })
+      .catch(function (error) {
+        if (!auth.isLoggedIn()) {
+          that._requireAuth();
+          return null;
+        }
+        that.setData({
+          loading: false,
+          errorText: api.describeRequestError(error, "教学集加载失败，请稍后重试"),
+        });
+        return null;
+      });
+  },
+});
+
+module.exports = {
+  buildEpisodeGroups: buildEpisodeGroups,
+  buildChapterSections: buildChapterSections,
+};
