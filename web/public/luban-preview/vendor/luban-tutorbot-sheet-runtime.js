@@ -1430,11 +1430,28 @@ module.exports = {
     if(typeof response!=="string"||!response.trim()) response=nested.assistant_content;
     return typeof response==="string"?response.trim():"";
   }
+  function archiveTurn(state) {
+    var source=state&&typeof state==="object"?state:{};
+    var history=Array.isArray(source.askHistory)?source.askHistory.slice():[];
+    var question=String(source.askQuestion||"").trim();
+    var blocks=Array.isArray(source.askBlocks)?source.askBlocks:[];
+    var error=String(source.askError||"").trim();
+    if(question&&(blocks.length||error)) history.push({question:question,blocks:blocks.slice(),error:error});
+    return history;
+  }
+  function scrollToLatest() {
+    if(!global.document||typeof global.document.querySelector!=="function") return;
+    global.setTimeout(function() {
+      var node=global.document.querySelector("[data-luban-ask-scroll]");
+      if(node) node.scrollTop=node.scrollHeight;
+    },0);
+  }
   global.LubanTutorbotSheetRuntime={
     projectMarkdown:projectMarkdown,
     workflow:workflow,
     toWorkflowEvent:workflow.toWorkflowEvent,
     isPublicEvent:isPublicEvent,
-    finalResponse:finalResponse
+    finalResponse:finalResponse,
+    conversation:{archiveTurn:archiveTurn,scrollToLatest:scrollToLatest}
   };
 })(window);

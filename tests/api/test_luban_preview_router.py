@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 from types import SimpleNamespace
 
-import pytest
 from fastapi import HTTPException
+import pytest
 
 from deeptutor.api.routers import luban_preview
 
@@ -32,11 +32,12 @@ def test_hosted_card_ask_resolves_server_title_and_uses_runtime(monkeypatch) -> 
             seen["stream_turn"] = turn_id
             return "stream-capability"
 
-    async def fake_start(payload, card, *, user_id: str):
+    async def fake_start(payload, card, *, user_id: str, session_id: str):
         seen["question"] = payload.question
         seen["pack_id"] = card.pack_id
         seen["title"] = card.title
         seen["runtime_user"] = user_id
+        seen["runtime_session"] = session_id
         return {"id": "session-real"}, {"id": "turn-real"}
 
     monkeypatch.setattr(luban_preview, "get_sqlite_session_store", lambda: FakeStore())
@@ -63,6 +64,9 @@ def test_hosted_card_ask_resolves_server_title_and_uses_runtime(monkeypatch) -> 
         "entry_ticket": "card-capability",
         "entry_pack": "F16",
         "runtime_user": "student_real",
+        "runtime_session": luban_preview._conversation_session_id(
+            ticket="card-capability", pack_id="F16"
+        ),
         "stream_user": "student_real",
         "stream_pack": "F16",
         "stream_turn": "turn-real",
@@ -87,7 +91,7 @@ def test_runtime_failure_fails_closed_without_client_side_knowledge_fallback(mon
         async def resolve_luban_card_entry_ticket(self, _ticket: str, *, pack_id: str):
             return {"user_id": "student_real", "pack_id": pack_id}
 
-    async def failed_start(_payload, _card, *, user_id: str):
+    async def failed_start(_payload, _card, *, user_id: str, session_id: str):
         raise RuntimeError("runtime unavailable")
 
     monkeypatch.setattr(luban_preview, "get_sqlite_session_store", lambda: FakeStore())
@@ -123,6 +127,23 @@ def test_hosted_card_ask_rejects_missing_or_wrong_card_capability(monkeypatch) -
         )
 
     assert exc_info.value.status_code == 401
+
+
+def test_card_capability_is_the_single_conversation_session_authority() -> None:
+    first = luban_preview._conversation_session_id(
+        ticket="same-card-capability", pack_id="F16"
+    )
+    followup = luban_preview._conversation_session_id(
+        ticket="same-card-capability", pack_id="f16"
+    )
+    different_entry = luban_preview._conversation_session_id(
+        ticket="new-card-capability", pack_id="F16"
+    )
+
+    assert first == followup
+    assert first.startswith("luban-preview:F16:")
+    assert first != different_entry
+    assert "same-card-capability" not in first
 
 
 def test_h5_lesson_viewed_delegates_to_existing_evidence_writer_with_real_user(monkeypatch) -> None:
@@ -222,11 +243,18 @@ def test_luban_card_reuses_mobile_turn_bootstrap_and_preserves_plain_question(mo
         time=75.3,
     )
 
-    asyncio.run(luban_preview._start_tutorbot_turn(payload, card, user_id="student-real"))
+    asyncio.run(
+        luban_preview._start_tutorbot_turn(
+            payload,
+            card,
+            user_id="student-real",
+            session_id="luban-preview:F16:stable",
+        )
+    )
 
     assert captured["content"] == "为什么这一步不能省？"
     assert captured["capability"] is None
-    assert str(captured["session_id"]).startswith("luban-preview:F16:")
+    assert captured["session_id"] == "luban-preview:F16:stable"
     config = captured["config"]
     assert isinstance(config, dict)
     assert config["general_knowledge_context"] is True

@@ -395,17 +395,42 @@
               <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
             </sc-for>
           </div>
-          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+
         </div>
-        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+        <div data-luban-ask-scroll style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
           <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
           </sc-if>
           <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
           <div data-luban-ask-thread style="display:flex;flex-direction:column;gap:10px;">
+            <div data-luban-ask-history>
+              <sc-for list="{{ askHistory }}" as="turn" hint-placeholder-count="3">
+                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
+                  <div style="align-self:flex-end;max-width:82%;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;">
+                    <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#e8e4d8;color:#3a3329;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">我</div>
+                    <div style="background:#f2eee3;color:#292820;border-radius:13px 13px 4px 13px;padding:9px 11px;font-size:12.5px;line-height:1.55;font-weight:650;">{{ turn.question }}</div>
+                  </div>
+                  <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+                    <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+                    <div style="flex:1;min-width:0;">
+                      <sc-for list="{{ turn.blocks }}" as="b" hint-placeholder-count="5">
+                        <sc-if value="{{ b.type === 'heading' }}" hint-placeholder-val="{{ false }}"><div style="margin:11px 0 6px;color:#fff4dc;font-size:16px;line-height:1.45;font-weight:900;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                        <sc-if value="{{ b.type === 'paragraph' }}" hint-placeholder-val="{{ false }}"><div style="margin:8px 0;color:#f1e6cf;font-size:13.5px;line-height:1.75;font-weight:500;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                        <sc-if value="{{ b.type === 'callout' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:10px;border-left:3px solid #7fb69a;background:#202920;border-radius:8px;"><div style="display:inline-flex;color:#a8d1b4;font-size:10px;font-weight:900;margin-bottom:4px;">{{ b.label }}</div><div style="color:#eef3e9;font-size:13px;line-height:1.7;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-if>
+                        <sc-if value="{{ b.isList }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ b.items }}" as="item"><div style="display:flex;gap:7px;margin:7px 0;color:#f1e6cf;font-size:13px;line-height:1.7;"><span style="flex:none;color:#cf8a44;font-weight:900;">{{ item.marker }}</span><div style="flex:1;"><sc-for list="{{ item.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-for></sc-if>
+                        <sc-if value="{{ b.type === 'blockquote' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:8px 10px;border-left:3px solid #cf8a44;background:#251f19;color:#e9dec7;font-size:12.5px;line-height:1.7;"><sc-for list="{{ b.lines }}" as="line"><div><sc-for list="{{ line }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-for></div></sc-if>
+                        <sc-if value="{{ b.type === 'code_block' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:9px 10px;border-radius:8px;background:#101415;color:#dfe7df;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.55;white-space:pre-wrap;">{{ b.code }}</div></sc-if>
+                        <sc-if value="{{ b.type === 'table' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;border:1px solid #4a3d2a;border-radius:8px;overflow:hidden;"><div style="padding:7px 9px;background:#30291f;color:#f3cd91;font-size:11px;font-weight:900;">{{ b.headers }}</div><sc-for list="{{ b.rows }}" as="row"><div style="padding:7px 9px;border-top:1px solid #3a3127;color:#efe4ce;font-size:11.5px;line-height:1.55;">{{ row.cells }}</div></sc-for></div></sc-if>
+                      </sc-for>
+                      <sc-if value="{{ turn.error }}" hint-placeholder-val="{{ false }}"><div style="color:#f0c9a8;font-size:12.5px;line-height:1.6;">{{ turn.error }}</div></sc-if>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
             <div style="align-self:flex-end;max-width:82%;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;">
               <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#e8e4d8;color:#3a3329;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">我</div>
-              <div style="background:#f2eee3;color:#292820;border-radius:13px 13px 4px 13px;padding:9px 11px;font-size:12.5px;line-height:1.55;font-weight:650;">{{ askText }}</div>
+              <div style="background:#f2eee3;color:#292820;border-radius:13px 13px 4px 13px;padding:9px 11px;font-size:12.5px;line-height:1.55;font-weight:650;">{{ askQuestion }}</div>
             </div>
             <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
               <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
@@ -441,8 +466,9 @@
           <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
           </sc-if>
         </div>
-        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
-          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+        <div data-luban-ask-composer style="flex:none;padding:8px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #23282b;background:#181b1e;">
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="继续追问…" style="box-sizing:border-box;width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;margin-top:8px;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
           <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
         </div>
       </div>
@@ -480,7 +506,7 @@
    logo 用 assets/mark-white.png(暗底) / mark-red.png(亮底)，不用 emoji。
    ═══════════════════════════════════════════════════════════════════════════ */
 class Component extends DCLogic {
-  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askRawResponse:"", askBlocks:[], askWorkflowEntries:[], askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowExpanded:false, askWorkflowToggleText:"查看处理摘要", askWorkflowActive:false, askStreaming:false, askError:"", fs:false, ctrlHidden:false, muted:false };
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askRawResponse:"", askBlocks:[], askQuestion:"", askHistory:[], askWorkflowEntries:[], askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowExpanded:false, askWorkflowToggleText:"查看处理摘要", askWorkflowActive:false, askStreaming:false, askError:"", fs:false, ctrlHidden:false, muted:false };
   audioBase="audio/down/";
   audioVersion="73f5fac3ca3072fd";
   DUR = 230.496;
@@ -569,7 +595,7 @@ class Component extends DCLogic {
   dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
   dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
   async submitAsk(){
-    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading||this.state.askStreaming)return;
     const runtime=window.LubanTutorbotSheetRuntime;
     const entryTicket=String(window.__lubanCardEntryTicket||"").trim();
     if(!runtime||!runtime.workflow||!entryTicket){ this.setState({askError:"学习身份已过期，请返回小程序重新打开这一站。"}); return; }
@@ -589,16 +615,18 @@ class Component extends DCLogic {
       const summary=runtime.workflow.summarizeWorkflow(workflowEntries,active!==false);
       const expanded=!!self.state.askWorkflowExpanded;
       self.setState(Object.assign({askWorkflowEntries:workflowEntries,askWorkflowBadge:summary.badge||"",askWorkflowTitle:summary.headline||"",askWorkflowSub:summary.subline||"",askWorkflowActive:active!==false,askWorkflowToggleText:expanded?"收起处理摘要":(summary.toggleText||"查看处理摘要")},extra||{}));
+      runtime.conversation.scrollToLatest();
     };
     const setResponse=function(next, append){
       rawResponse=append?rawResponse+String(next||""):String(next||"");
       self.setState({askLoading:false,askStreaming:true,askRawResponse:rawResponse,askAnswer:rawResponse,askBlocks:runtime.projectMarkdown(rawResponse),askError:""});
+      runtime.conversation.scrollToLatest();
     };
     const fail=function(message){
       if(completed)return; completed=true;
-      renderWorkflow(false,{askLoading:false,askStreaming:true,askError:String(message||"TutorBot 暂时没有接通，请留在本页稍后重试。")});
+      renderWorkflow(false,{askLoading:false,askStreaming:false,askError:String(message||"TutorBot 暂时没有接通，请留在本页稍后重试。")});
     };
-    const finish=function(){ if(completed)return; completed=true; renderWorkflow(false,{askLoading:false,askStreaming:true}); };
+    const finish=function(){ if(completed)return; completed=true; renderWorkflow(false,{askLoading:false,askStreaming:false}); };
     const consume=function(event){
       if(!event||typeof event!=="object"||completed)return;
       const seq=typeof event.seq==="number"?event.seq:0;
@@ -630,7 +658,9 @@ class Component extends DCLogic {
         socket.onerror=function(){};
       }catch(err){ fail("流式连接暂时不可用，请留在本页稍后重试。"); }
     };
-    this.setState({askLoading:true,askAnswer:"",askRawResponse:"",askBlocks:[],askWorkflowEntries:[],askWorkflowBadge:"",askWorkflowTitle:"",askWorkflowSub:"",askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要",askWorkflowActive:true,askStreaming:true,askError:""});
+    const askHistory=runtime.conversation.archiveTurn(this.state);
+    this.setState({askLoading:true,askText:"",askQuestion:q,askHistory:askHistory,askAnswer:"",askRawResponse:"",askBlocks:[],askWorkflowEntries:[],askWorkflowBadge:"",askWorkflowTitle:"",askWorkflowSub:"",askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要",askWorkflowActive:true,askStreaming:true,askError:""});
+    runtime.conversation.scrollToLatest();
     renderWorkflow(true,{askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要"});
     try{
       const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
@@ -748,9 +778,9 @@ class Component extends DCLogic {
       stageWrapRef:el=>this.stageWrapRef(el),
       openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
       dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
-      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askBlocks:this.state.askBlocks,askWorkflowEntries:this.state.askWorkflowEntries,askWorkflowBadge:this.state.askWorkflowBadge,askWorkflowTitle:this.state.askWorkflowTitle,askWorkflowSub:this.state.askWorkflowSub,askWorkflowExpanded:this.state.askWorkflowExpanded,askWorkflowToggleText:this.state.askWorkflowToggleText,askError:this.state.askError,
+      askOpen:this.state.askOpen,askText:this.state.askText,askQuestion:this.state.askQuestion,askHistory:this.state.askHistory,askLoading:this.state.askLoading,askBlocks:this.state.askBlocks,askWorkflowEntries:this.state.askWorkflowEntries,askWorkflowBadge:this.state.askWorkflowBadge,askWorkflowTitle:this.state.askWorkflowTitle,askWorkflowSub:this.state.askWorkflowSub,askWorkflowExpanded:this.state.askWorkflowExpanded,askWorkflowToggleText:this.state.askWorkflowToggleText,askError:this.state.askError,
       hasAnswer:!!this.state.askStreaming||!!this.state.askBlocks.length||!!this.state.askWorkflowActive,askIdle:!this.state.askLoading&&!this.state.askStreaming&&!this.state.askError,
-      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askDisabled:empty||this.state.askLoading||this.state.askStreaming,askCursor:(empty||this.state.askLoading||this.state.askStreaming)?"not-allowed":"pointer",
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
       askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
       posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",

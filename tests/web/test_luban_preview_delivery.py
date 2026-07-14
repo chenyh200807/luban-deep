@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 import re
 
-
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -91,6 +90,19 @@ def test_all_74_teaching_episodes_keep_ai_ask_inside_the_teaching_card() -> None
         assert 'fetch("/api/v1/luban-preview/lesson-viewed"' in source
         assert "window.location.assign(carryCapability(next).toString())" in source
         assert "data-luban-ask-thread" in source
+        assert "data-luban-ask-history" in source
+        assert "data-luban-ask-composer" in source
+        assert "data-luban-ask-scroll" in source
+        assert source.count('<textarea value="{{ askText }}"') == 1
+        assert source.index("data-luban-ask-thread") < source.index("data-luban-ask-composer")
+        assert source.index("data-luban-ask-composer") < source.index(
+            '<textarea value="{{ askText }}"'
+        )
+        assert "askQuestion:q,askHistory:askHistory" in source
+        assert "askLoading||this.state.askStreaming" in source
+        assert "askDisabled:empty||this.state.askLoading||this.state.askStreaming" in source or (
+            "askDisabled:askEmpty||this.state.askLoading||this.state.askStreaming" in source
+        )
         assert "data-luban-ask-error" in source
         assert "data-luban-workflow-status" in source
         assert "data-luban-workflow-toggle" in source

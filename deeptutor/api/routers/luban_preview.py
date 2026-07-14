@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+import hashlib
 import logging
 from uuid import uuid4
 
@@ -22,7 +23,6 @@ from deeptutor.api.dependencies.rate_limit import route_rate_limit
 from deeptutor.api.routers.mobile import MobileStartTurnRequest, build_mobile_turn_payload
 from deeptutor.services.luban_lesson import list_green_lessons
 from deeptutor.services.session import get_sqlite_session_store, get_turn_runtime_manager
-
 
 router = public_router(reason="hosted Luban card bridge requires scoped station capability and rate-limit")
 
@@ -175,6 +175,18 @@ def _build_luban_turn_context_metadata(
     }
 
 
+def _conversation_session_id(*, ticket: str, pack_id: str) -> str:
+    """Derive one opaque TutorBot session for one validated card entry.
+
+    The entry capability is already the server-validated authority for learner
+    and pack.  Its digest keeps follow-up turns in that same canonical session
+    without exposing the bearer value or adding client-owned session state.
+    """
+    normalized_pack = str(pack_id or "").strip().upper()
+    digest = hashlib.sha256(str(ticket or "").encode("utf-8")).hexdigest()[:32]
+    return f"luban-preview:{normalized_pack}:{digest}"
+
+
 async def _resolve_entry_user(*, ticket: str, card: PublishedCardContext) -> str:
     access = await get_sqlite_session_store().resolve_luban_card_entry_ticket(
         ticket,
@@ -194,9 +206,9 @@ async def _start_tutorbot_turn(
     card: PublishedCardContext,
     *,
     user_id: str,
+    session_id: str,
 ) -> tuple[dict[str, object], dict[str, object]]:
     turn_runtime = get_turn_runtime_manager()
-    session_id = f"luban-preview:{card.pack_id}:{uuid4().hex}"
     request = _build_luban_turn_request(payload)
     tutorbot_payload = build_mobile_turn_payload(
         body=request,
@@ -236,7 +248,15 @@ async def ask_luban_preview(payload: LubanPreviewAskRequest) -> LubanPreviewAskR
 
     user_id = await _resolve_entry_user(ticket=payload.entryTicket, card=card)
     try:
-        session, turn = await _start_tutorbot_turn(payload, card, user_id=user_id)
+        session, turn = await _start_tutorbot_turn(
+            payload,
+            card,
+            user_id=user_id,
+            session_id=_conversation_session_id(
+                ticket=payload.entryTicket,
+                pack_id=card.pack_id,
+            ),
+        )
         session_id = str(session.get("id") or session.get("session_id") or "").strip()
         turn_id = str(turn.get("id") or "").strip()
         if not session_id or not turn_id:

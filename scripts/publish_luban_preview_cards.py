@@ -307,12 +307,29 @@ def _render_tutorbot_sheet_runtime() -> tuple[str, str]:
     if(typeof response!=="string"||!response.trim()) response=nested.assistant_content;
     return typeof response==="string"?response.trim():"";
   }}
+  function archiveTurn(state) {{
+    var source=state&&typeof state==="object"?state:{{}};
+    var history=Array.isArray(source.askHistory)?source.askHistory.slice():[];
+    var question=String(source.askQuestion||"").trim();
+    var blocks=Array.isArray(source.askBlocks)?source.askBlocks:[];
+    var error=String(source.askError||"").trim();
+    if(question&&(blocks.length||error)) history.push({{question:question,blocks:blocks.slice(),error:error}});
+    return history;
+  }}
+  function scrollToLatest() {{
+    if(!global.document||typeof global.document.querySelector!=="function") return;
+    global.setTimeout(function() {{
+      var node=global.document.querySelector("[data-luban-ask-scroll]");
+      if(node) node.scrollTop=node.scrollHeight;
+    }},0);
+  }}
   global.LubanTutorbotSheetRuntime={{
     projectMarkdown:projectMarkdown,
     workflow:workflow,
     toWorkflowEvent:workflow.toWorkflowEvent,
     isPublicEvent:isPublicEvent,
-    finalResponse:finalResponse
+    finalResponse:finalResponse,
+    conversation:{{archiveTurn:archiveTurn,scrollToLatest:scrollToLatest}}
   }};
 }})(window);
 '''
@@ -592,9 +609,34 @@ _ASK_RESPONSE_RE = re.compile(
 )
 _ASK_RESPONSE_THREAD = '''          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
           <div data-luban-ask-thread style="display:flex;flex-direction:column;gap:10px;">
+            <div data-luban-ask-history>
+              <sc-for list="{{ askHistory }}" as="turn" hint-placeholder-count="3">
+                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
+                  <div style="align-self:flex-end;max-width:82%;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;">
+                    <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#e8e4d8;color:#3a3329;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">我</div>
+                    <div style="background:#f2eee3;color:#292820;border-radius:13px 13px 4px 13px;padding:9px 11px;font-size:12.5px;line-height:1.55;font-weight:650;">{{ turn.question }}</div>
+                  </div>
+                  <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+                    <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+                    <div style="flex:1;min-width:0;">
+                      <sc-for list="{{ turn.blocks }}" as="b" hint-placeholder-count="5">
+                        <sc-if value="{{ b.type === 'heading' }}" hint-placeholder-val="{{ false }}"><div style="margin:11px 0 6px;color:#fff4dc;font-size:16px;line-height:1.45;font-weight:900;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                        <sc-if value="{{ b.type === 'paragraph' }}" hint-placeholder-val="{{ false }}"><div style="margin:8px 0;color:#f1e6cf;font-size:13.5px;line-height:1.75;font-weight:500;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                        <sc-if value="{{ b.type === 'callout' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:10px;border-left:3px solid #7fb69a;background:#202920;border-radius:8px;"><div style="display:inline-flex;color:#a8d1b4;font-size:10px;font-weight:900;margin-bottom:4px;">{{ b.label }}</div><div style="color:#eef3e9;font-size:13px;line-height:1.7;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-if>
+                        <sc-if value="{{ b.isList }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ b.items }}" as="item"><div style="display:flex;gap:7px;margin:7px 0;color:#f1e6cf;font-size:13px;line-height:1.7;"><span style="flex:none;color:#cf8a44;font-weight:900;">{{ item.marker }}</span><div style="flex:1;"><sc-for list="{{ item.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-for></sc-if>
+                        <sc-if value="{{ b.type === 'blockquote' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:8px 10px;border-left:3px solid #cf8a44;background:#251f19;color:#e9dec7;font-size:12.5px;line-height:1.7;"><sc-for list="{{ b.lines }}" as="line"><div><sc-for list="{{ line }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-for></div></sc-if>
+                        <sc-if value="{{ b.type === 'code_block' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:9px 10px;border-radius:8px;background:#101415;color:#dfe7df;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.55;white-space:pre-wrap;">{{ b.code }}</div></sc-if>
+                        <sc-if value="{{ b.type === 'table' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;border:1px solid #4a3d2a;border-radius:8px;overflow:hidden;"><div style="padding:7px 9px;background:#30291f;color:#f3cd91;font-size:11px;font-weight:900;">{{ b.headers }}</div><sc-for list="{{ b.rows }}" as="row"><div style="padding:7px 9px;border-top:1px solid #3a3127;color:#efe4ce;font-size:11.5px;line-height:1.55;">{{ row.cells }}</div></sc-for></div></sc-if>
+                      </sc-for>
+                      <sc-if value="{{ turn.error }}" hint-placeholder-val="{{ false }}"><div style="color:#f0c9a8;font-size:12.5px;line-height:1.6;">{{ turn.error }}</div></sc-if>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
             <div style="align-self:flex-end;max-width:82%;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;">
               <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#e8e4d8;color:#3a3329;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">我</div>
-              <div style="background:#f2eee3;color:#292820;border-radius:13px 13px 4px 13px;padding:9px 11px;font-size:12.5px;line-height:1.55;font-weight:650;">{{ askText }}</div>
+              <div style="background:#f2eee3;color:#292820;border-radius:13px 13px 4px 13px;padding:9px 11px;font-size:12.5px;line-height:1.55;font-weight:650;">{{ askQuestion }}</div>
             </div>
             <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
               <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
@@ -626,26 +668,44 @@ _ASK_RESPONSE_THREAD = '''          <sc-if value="{{ hasAnswer }}" hint-placehol
 _ASK_ERROR_THREAD = '''          <sc-if value="{{ askError }}" hint-placeholder-val="{{ false }}">
           <div data-luban-ask-error style="margin-top:12px;border:1px solid #80503c;background:#2b211d;color:#f0c9a8;border-radius:12px;padding:11px 12px;font-size:12.5px;line-height:1.6;">{{ askError }}</div>
           </sc-if>'''
+_ASK_TEXTAREA_RE = re.compile(
+    r'^          <textarea value="\{\{ askText \}\}" onInput="\{\{ setAsk \}\}" '
+    r'placeholder="[^"]+" style="width:100%;height:54px;resize:none;background:#0f1214;'
+    r'border:1\.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;'
+    r'color:#f1efe8;font-family:inherit;line-height:1\.5;outline:none;"></textarea>$',
+    re.M,
+)
+_ASK_COMPOSER_OLD = '''        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>'''
+_ASK_COMPOSER_NEW = '''        <div data-luban-ask-composer style="flex:none;padding:8px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #23282b;background:#181b1e;">
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="继续追问…" style="box-sizing:border-box;width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;margin-top:8px;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>'''
+_ASK_SCROLL_OLD = '''        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">'''
+_ASK_SCROLL_NEW = '''        <div data-luban-ask-scroll style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">'''
 _ASK_STATE_OLD = 'askAnswer:"", fs:false'
-_ASK_STATE_NEW = ('askAnswer:"", askRawResponse:"", askBlocks:[], askWorkflowEntries:[], '
+_ASK_STATE_NEW = ('askAnswer:"", askRawResponse:"", askBlocks:[], askQuestion:"", askHistory:[], askWorkflowEntries:[], '
                   'askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowExpanded:false, askWorkflowToggleText:"查看处理摘要", '
                   'askWorkflowActive:false, askStreaming:false, askError:"", fs:false')
 _ASK_RENDER_VALS_OLD = '''askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
       hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,'''
-_ASK_RENDER_VALS_NEW = '''askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askBlocks:this.state.askBlocks,askWorkflowEntries:this.state.askWorkflowEntries,askWorkflowBadge:this.state.askWorkflowBadge,askWorkflowTitle:this.state.askWorkflowTitle,askWorkflowSub:this.state.askWorkflowSub,askWorkflowExpanded:this.state.askWorkflowExpanded,askWorkflowToggleText:this.state.askWorkflowToggleText,askError:this.state.askError,
+_ASK_RENDER_VALS_NEW = '''askOpen:this.state.askOpen,askText:this.state.askText,askQuestion:this.state.askQuestion,askHistory:this.state.askHistory,askLoading:this.state.askLoading,askBlocks:this.state.askBlocks,askWorkflowEntries:this.state.askWorkflowEntries,askWorkflowBadge:this.state.askWorkflowBadge,askWorkflowTitle:this.state.askWorkflowTitle,askWorkflowSub:this.state.askWorkflowSub,askWorkflowExpanded:this.state.askWorkflowExpanded,askWorkflowToggleText:this.state.askWorkflowToggleText,askError:this.state.askError,
       hasAnswer:!!this.state.askStreaming||!!this.state.askBlocks.length||!!this.state.askWorkflowActive,askIdle:!this.state.askLoading&&!this.state.askStreaming&&!this.state.askError,'''
 _ASK_RENDER_VALS_S07_OLD = '''askOpen:this.state.askOpen, askText:this.state.askText, askLoading:this.state.askLoading,
       askAnswer:this.state.askAnswer, hasAnswer:!!this.state.askAnswer,
       askIdle:!this.state.askLoading && !this.state.askAnswer,'''
-_ASK_RENDER_VALS_S07_NEW = '''askOpen:this.state.askOpen, askText:this.state.askText, askLoading:this.state.askLoading,
+_ASK_RENDER_VALS_S07_NEW = '''askOpen:this.state.askOpen, askText:this.state.askText, askQuestion:this.state.askQuestion, askHistory:this.state.askHistory, askLoading:this.state.askLoading,
       askBlocks:this.state.askBlocks, askWorkflowEntries:this.state.askWorkflowEntries, askWorkflowBadge:this.state.askWorkflowBadge, askWorkflowTitle:this.state.askWorkflowTitle, askWorkflowSub:this.state.askWorkflowSub, askWorkflowExpanded:this.state.askWorkflowExpanded, askWorkflowToggleText:this.state.askWorkflowToggleText, askError:this.state.askError, hasAnswer:!!this.state.askStreaming || !!this.state.askBlocks.length || !!this.state.askWorkflowActive,
       askIdle:!this.state.askLoading && !this.state.askStreaming && !this.state.askError,'''
+_ASK_SEND_STATE_OLD = '''askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",'''
+_ASK_SEND_STATE_NEW = '''askDisabled:empty||this.state.askLoading||this.state.askStreaming,askCursor:(empty||this.state.askLoading||this.state.askStreaming)?"not-allowed":"pointer",'''
+_ASK_SEND_STATE_S07_OLD = '''askDisabled:askEmpty||this.state.askLoading, askCursor:(askEmpty||this.state.askLoading)?"not-allowed":"pointer",'''
+_ASK_SEND_STATE_S07_NEW = '''askDisabled:askEmpty||this.state.askLoading||this.state.askStreaming, askCursor:(askEmpty||this.state.askLoading||this.state.askStreaming)?"not-allowed":"pointer",'''
 
 
 def _inline_tutorbot_ask_method(pack_id: str) -> str:
     """Render a thin browser transport over the existing TutorBot turn stream."""
     return '''  async submitAsk(){
-    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading||this.state.askStreaming)return;
     const runtime=window.LubanTutorbotSheetRuntime;
     const entryTicket=String(window.__lubanCardEntryTicket||"").trim();
     if(!runtime||!runtime.workflow||!entryTicket){ this.setState({askError:"学习身份已过期，请返回小程序重新打开这一站。"}); return; }
@@ -665,16 +725,18 @@ def _inline_tutorbot_ask_method(pack_id: str) -> str:
       const summary=runtime.workflow.summarizeWorkflow(workflowEntries,active!==false);
       const expanded=!!self.state.askWorkflowExpanded;
       self.setState(Object.assign({askWorkflowEntries:workflowEntries,askWorkflowBadge:summary.badge||"",askWorkflowTitle:summary.headline||"",askWorkflowSub:summary.subline||"",askWorkflowActive:active!==false,askWorkflowToggleText:expanded?"收起处理摘要":(summary.toggleText||"查看处理摘要")},extra||{}));
+      runtime.conversation.scrollToLatest();
     };
     const setResponse=function(next, append){
       rawResponse=append?rawResponse+String(next||""):String(next||"");
       self.setState({askLoading:false,askStreaming:true,askRawResponse:rawResponse,askAnswer:rawResponse,askBlocks:runtime.projectMarkdown(rawResponse),askError:""});
+      runtime.conversation.scrollToLatest();
     };
     const fail=function(message){
       if(completed)return; completed=true;
-      renderWorkflow(false,{askLoading:false,askStreaming:true,askError:String(message||"TutorBot 暂时没有接通，请留在本页稍后重试。")});
+      renderWorkflow(false,{askLoading:false,askStreaming:false,askError:String(message||"TutorBot 暂时没有接通，请留在本页稍后重试。")});
     };
-    const finish=function(){ if(completed)return; completed=true; renderWorkflow(false,{askLoading:false,askStreaming:true}); };
+    const finish=function(){ if(completed)return; completed=true; renderWorkflow(false,{askLoading:false,askStreaming:false}); };
     const consume=function(event){
       if(!event||typeof event!=="object"||completed)return;
       const seq=typeof event.seq==="number"?event.seq:0;
@@ -706,7 +768,9 @@ def _inline_tutorbot_ask_method(pack_id: str) -> str:
         socket.onerror=function(){};
       }catch(err){ fail("流式连接暂时不可用，请留在本页稍后重试。"); }
     };
-    this.setState({askLoading:true,askAnswer:"",askRawResponse:"",askBlocks:[],askWorkflowEntries:[],askWorkflowBadge:"",askWorkflowTitle:"",askWorkflowSub:"",askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要",askWorkflowActive:true,askStreaming:true,askError:""});
+    const askHistory=runtime.conversation.archiveTurn(this.state);
+    this.setState({askLoading:true,askText:"",askQuestion:q,askHistory:askHistory,askAnswer:"",askRawResponse:"",askBlocks:[],askWorkflowEntries:[],askWorkflowBadge:"",askWorkflowTitle:"",askWorkflowSub:"",askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要",askWorkflowActive:true,askStreaming:true,askError:""});
+    runtime.conversation.scrollToLatest();
     renderWorkflow(true,{askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要"});
     try{
       const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
@@ -787,6 +851,17 @@ def transform_teach(text: str, pack_id: str, *, sheet_runtime_tag: str | None = 
         "ask-response-thread",
         literal_pattern=False,
     )
+    # 快捷问题留在顶部，实际输入与发送动作固定在抽屉底部；消息区独立滚动，
+    # 不让输入框把连续阅读切成“上面编辑、下面作答”的两块状态。
+    text = _sub(
+        text,
+        _ASK_TEXTAREA_RE,
+        "",
+        "ask-top-textarea",
+        literal_pattern=False,
+    )
+    text = _sub(text, _ASK_COMPOSER_OLD, _ASK_COMPOSER_NEW, "ask-bottom-composer")
+    text = _sub(text, _ASK_SCROLL_OLD, _ASK_SCROLL_NEW, "ask-scroll-anchor")
     text = _sub(text, _ASK_STATE_OLD, _ASK_STATE_NEW, "ask-error-state")
     if _ASK_RENDER_VALS_OLD in text:
         text = _sub(text, _ASK_RENDER_VALS_OLD, _ASK_RENDER_VALS_NEW, "ask-error-render")
@@ -799,6 +874,17 @@ def transform_teach(text: str, pack_id: str, *, sheet_runtime_tag: str | None = 
         )
     else:
         raise TransformError("anchor [ask-error-render] not found")
+    if _ASK_SEND_STATE_OLD in text:
+        text = _sub(text, _ASK_SEND_STATE_OLD, _ASK_SEND_STATE_NEW, "ask-send-state")
+    elif _ASK_SEND_STATE_S07_OLD in text:
+        text = _sub(
+            text,
+            _ASK_SEND_STATE_S07_OLD,
+            _ASK_SEND_STATE_S07_NEW,
+            "ask-send-state-s07",
+        )
+    else:
+        raise TransformError("anchor [ask-send-state] not found")
     # 同时清掉作者注释中对预览桥的提及，避免未来有人误以为它是发布时依赖。
     text = _AUTHORING_CLAUDE_RE.sub("authoring preview bridge", text)
     # 新一批 finished 已内置全屏/控制条结构（ctrlHidden），不能再把旧母版的
