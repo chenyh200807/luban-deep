@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import stat
 import subprocess
 import sys
 
@@ -244,6 +245,48 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
     assert (old / "support.js").read_text(encoding="utf-8") == "old-support"
     assert (old / "audio" / "b0.mp3").read_bytes() == b"old-audio"
     assert not list(host.glob(".x01.staging-*"))
+
+
+def test_publish_makes_completed_station_directory_publicly_traversable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "finished" / "PACK"
+    audio = source / "audio"
+    audio.mkdir(parents=True)
+    (source / "teach.html").write_text("teach", encoding="utf-8")
+    (source / "practice.html").write_text("practice", encoding="utf-8")
+    (source / "support.js").write_text("support", encoding="utf-8")
+    (audio / "b0.mp3").write_bytes(b"audio")
+
+    host = tmp_path / "host"
+    monkeypatch.setattr(_mod, "HOST", host)
+    monkeypatch.setattr(_mod, "AUTHORITY_HOST", tmp_path / "authority")
+    monkeypatch.setattr(_mod, "_validate_audio_assets", lambda _src: None)
+    monkeypatch.setattr(_mod, "_version_audio_assets", lambda text, _src: text)
+    monkeypatch.setattr(
+        _mod,
+        "transform_teach",
+        lambda _text, _pack: (
+            '<audio data-luban-prewarm preload="auto" '
+            'src="audio/b0.mp3?v=test" aria-hidden="true" '
+            'style="display:none"></audio>'
+        ),
+    )
+    monkeypatch.setattr(
+        _mod,
+        "_compile_practice_outputs",
+        lambda *_args, **_kwargs: ({"practice.html": "practice"}, {}),
+    )
+    monkeypatch.setattr(_mod, "_self_host_support_runtime", lambda text: text)
+    station = _mod.Station(
+        pack_dir="PACK",
+        teach={"lesson.html": "teach.html"},
+        practice={"practice.html": "practice.html"},
+    )
+
+    _mod.publish("x01", station, finished_root=tmp_path / "finished")
+
+    assert stat.S_IMODE((host / "x01").stat().st_mode) == 0o755
 
 
 def test_derived_html_strips_trailing_whitespace_without_losing_final_newline() -> None:
