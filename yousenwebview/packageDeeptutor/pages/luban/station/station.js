@@ -200,11 +200,14 @@ Page({
         return api.issueLubanCardEntry(that.data.packId, { suppressAuthRedirect: true }).then(function (ticketResp) {
           var ticketBody = api.unwrapResponse(ticketResp) || {};
           var cardEntryUrl = appendCardEntryTicket(cardUrl, ticketBody.entry_ticket);
+          var practiceEntryUrl = practiceUrl
+            ? appendCardEntryTicket(practiceUrl, ticketBody.entry_ticket)
+            : "";
           if (!cardEntryUrl) throw new Error("CARD_ENTRY_UNAVAILABLE");
           that.setData({
             title: String(body.title || ""),
             cardUrl: cardEntryUrl,
-            practiceUrl: practiceUrl,
+            practiceUrl: practiceEntryUrl,
             cardSha: String(body.content_sha256 || ""),
             loading: false,
             errorText: "",

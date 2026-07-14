@@ -70,12 +70,18 @@ function loadStation(detail) {
   await flush();
   await f16.page.onPrimaryTap();
   assert.strictEqual(f16.page.data.tier, "practice");
-  assert.strictEqual(f16.page.data.currentUrl, "https://cdn/f16/practice.html?v=bundle");
+  assert.strictEqual(f16.page.data.currentUrl, "https://cdn/f16/practice.html?v=bundle#entry_ticket=card-capability");
   assert.strictEqual(
     f16.page.data.cardUrl,
     "https://cdn/f16/lesson.html?v=bundle#entry_ticket=card-capability",
     "station must pass a narrow card-entry capability in the fragment, not its bearer credential",
   );
+  assert.strictEqual(
+    f16.page.data.practiceUrl,
+    "https://cdn/f16/practice.html?v=bundle#entry_ticket=card-capability",
+    "practice must reuse the same pack-scoped capability in the fragment",
+  );
+  assert.strictEqual(f16.page.data.practiceUrl.indexOf("entry_ticket=") < f16.page.data.practiceUrl.indexOf("#"), false, "ticket must never enter URL query");
   f16.page.onPrimaryTap();
   assert.deepStrictEqual(f16.redirects, [], "F16 must not skip finished answers into a second quiz");
 
@@ -89,7 +95,7 @@ function loadStation(detail) {
   await flush();
   await s05.page.onPrimaryTap();
   assert.strictEqual(s05.page.data.tier, "practice");
-  assert.strictEqual(s05.page.data.currentUrl, "https://cdn/s05/practice.html?v=bundle");
+  assert.strictEqual(s05.page.data.currentUrl, "https://cdn/s05/practice.html?v=bundle#entry_ticket=card-capability");
   s05.page.onPrimaryTap();
   assert.deepStrictEqual(s05.redirects, [], "all compiled packs must submit the finished answers");
 

@@ -10,6 +10,7 @@ from deeptutor.services.luban_lesson import (
     LessonNotAvailable,
     build_lesson_viewmodel,
     list_green_lessons,
+    list_lesson_catalog,
     list_teaching_points,
 )
 from deeptutor.services.luban_lesson.practice_html import load_compiled_practice
@@ -69,7 +70,7 @@ def test_real_compiled_pack_projects_finished_practice_consumer_url(monkeypatch)
     )
     assert vm["practice_url"] == (
         "https://cdn.example.com/luban/f16/practice.html?v="
-        + authority["source_bundle_sha256"]
+        + authority["surfaces"][0]["published_practice_sha256"]
     )
     assert authority["published_lesson_sha256"] != authority["source_bundle_sha256"]
 
@@ -169,6 +170,35 @@ def test_real_published_catalog_has_40_topics_and_74_teaching_points(monkeypatch
     assert all(point["card_url"] for point in points)
 
 
+def test_combined_catalog_scans_each_green_pack_and_hosted_page_set_once(monkeypatch):
+    import deeptutor.services.luban_lesson.read_model as read_model
+
+    meta_calls = 0
+    page_calls = 0
+    original_meta = read_model._compiled_practice_meta
+    original_pages = read_model._published_lesson_pages
+
+    def counted_meta(pack_id):
+        nonlocal meta_calls
+        meta_calls += 1
+        return original_meta(pack_id)
+
+    def counted_pages(pack_id):
+        nonlocal page_calls
+        page_calls += 1
+        return original_pages(pack_id)
+
+    monkeypatch.setattr(read_model, "_compiled_practice_meta", counted_meta)
+    monkeypatch.setattr(read_model, "_published_lesson_pages", counted_pages)
+
+    lessons, points = list_lesson_catalog()
+
+    assert len(lessons) == 41
+    assert len(points) == 74
+    assert meta_calls == 41
+    assert page_calls == 40
+
+
 def test_episode_detail_selects_the_exact_published_page(monkeypatch):
     monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
     vm = build_lesson_viewmodel("D14", episode_index=2)
@@ -176,6 +206,25 @@ def test_episode_detail_selects_the_exact_published_page(monkeypatch):
     assert "/d14/lesson2.html?v=" in vm["card_url"]
     with pytest.raises(LessonNotAvailable):
         build_lesson_viewmodel("D14", episode_index=4)
+
+
+@pytest.mark.parametrize(
+    ("pack_id", "episode_index", "expected_file"),
+    [
+        ("B02", 2, "practice2.html"),
+        ("S01", 3, "practice3.html"),
+        # D14 只有一份通用随堂练，三集都明确复用同一份成品练习。
+        ("D14", 3, "practice.html"),
+    ],
+)
+def test_episode_detail_pairs_real_practice_page_or_explicitly_reuses_first(
+    monkeypatch, pack_id, episode_index, expected_file
+):
+    monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+
+    vm = build_lesson_viewmodel(pack_id, episode_index=episode_index)
+
+    assert f"/{pack_id.lower()}/{expected_file}?v=" in vm["practice_url"]
 
 
 def test_retest_items_textbook_join_same_pack_signed_cards(tmp_path):

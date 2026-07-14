@@ -80,7 +80,7 @@ def _load_manifest(manifest_path: Path | None = None) -> dict[str, Any]:
     return manifest
 
 
-def _compiled_practice_meta(pack_id: str) -> dict[str, str]:
+def _compiled_practice_meta(pack_id: str) -> dict[str, Any]:
     try:
         authority = load_compiled_practice(pack_id)
     except PracticeHtmlInvalid:
@@ -90,6 +90,13 @@ def _compiled_practice_meta(pack_id: str) -> dict[str, str]:
     return {
         "practice_sha": str(authority.get("source_bundle_sha256") or ""),
         "lesson_sha": str(authority.get("published_lesson_sha256") or ""),
+        "surfaces": {
+            str(surface.get("surface_id") or ""): str(
+                surface.get("published_practice_sha256") or ""
+            )
+            for surface in authority.get("surfaces") or []
+            if surface.get("surface_id") and surface.get("published_practice_sha256")
+        },
     }
 
 
@@ -204,14 +211,16 @@ def _teaching_points_for_lesson(lesson: dict[str, Any]) -> list[dict[str, Any]]:
     return points
 
 
-def _practice_card_url(pack_id: str, *, bundle_sha: str = "") -> str:
+def _practice_card_url(
+    pack_id: str, *, practice_file: str = "practice.html", bundle_sha: str = ""
+) -> str:
     """已编译随堂练成品的托管 URL；没有成品练习的 pack 不猜路径。"""
     if not bundle_sha:
         return ""
     base = str(os.getenv(_CARD_BASE_ENV) or "").strip().rstrip("/")
     if not base:
         return ""
-    return f"{base}/{pack_id.lower()}/practice.html?v={bundle_sha}"
+    return f"{base}/{pack_id.lower()}/{practice_file}?v={bundle_sha}"
 
 
 _BANK_CACHE: dict[tuple[str, int], Any] = {}
@@ -289,13 +298,10 @@ def list_all_pack_ids(*, manifest_path: Path | None = None) -> list[str]:
     )
 
 
-def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
-    """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。
-
-    ``retest_available`` = manifest 登记的 compiled finished 供给或 signed 变体池真值
-    （各自复用唯一 loader/签发闸，不建第二判定）——供学习页按真实供给
-    路由/降级，不对空池站渲染练不了的按钮。
-    """
+def _list_green_lesson_rows(
+    *, manifest_path: Path | None = None
+) -> list[dict[str, Any]]:
+    """只投影 pack 行；不扫描教学页，供不同只读视图复用。"""
     manifest = _load_manifest(manifest_path)
     green = set(manifest.get("projection_green") or [])
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
@@ -322,6 +328,17 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
             }
         )
     rows = sorted(rows, key=lambda r: r["pack_id"])
+    return rows
+
+
+def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
+    """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。
+
+    ``retest_available`` = manifest 登记的 compiled finished 供给或 signed 变体池真值
+    （各自复用唯一 loader/签发闸，不建第二判定）——供学习页按真实供给
+    路由/降级，不对空池站渲染练不了的按钮。
+    """
+    rows = _list_green_lesson_rows(manifest_path=manifest_path)
     # 集数是发布产物的只读投影，不改写 manifest 的 pack 生命周期真值。
     if manifest_path is None:
         for row in rows:
@@ -329,6 +346,17 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
                 _published_lesson_pages(str(row["pack_id"]))
             )
     return rows
+
+
+def list_lesson_catalog() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """一次读取 canonical pack 投影，同时给出 pack 与教学集两个只读视图。"""
+    green_lessons = _list_green_lesson_rows()
+    teaching_points: list[dict[str, Any]] = []
+    for lesson in green_lessons:
+        lesson_points = _teaching_points_for_lesson(lesson)
+        lesson["teaching_episode_count"] = len(lesson_points)
+        teaching_points.extend(lesson_points)
+    return green_lessons, teaching_points
 
 
 def list_teaching_points(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
@@ -341,10 +369,7 @@ def list_teaching_points(*, manifest_path: Path | None = None) -> list[dict[str,
     if manifest_path is not None:
         # 临时 manifest 没有配套发布根，不能拿主仓静态页替它猜教学集。
         return []
-    points: list[dict[str, Any]] = []
-    for lesson in list_green_lessons():
-        points.extend(_teaching_points_for_lesson(lesson))
-    return points
+    return list_lesson_catalog()[1]
 
 
 def build_lesson_viewmodel(
@@ -372,6 +397,7 @@ def build_lesson_viewmodel(
 
     practice_meta = _compiled_practice_meta(pack_id) if manifest_path is None else {}
     practice_sha = practice_meta.get("practice_sha", "")
+    practice_surfaces = practice_meta.get("surfaces", {})
     lesson_sha = practice_meta.get("lesson_sha", "")
     pages = _published_lesson_pages(pack_id) if manifest_path is None else []
     if episode_index > 1 and (not pages or episode_index > len(pages)):
@@ -388,6 +414,24 @@ def build_lesson_viewmodel(
     )
     episode_total = len(pages) if pages else 1
     episode_label = _episode_label(episode_index, episode_total)
+    requested_practice = (
+        "practice.html" if episode_index == 1 else f"practice{episode_index}.html"
+    )
+    # surface 列表来自已登记且逐文件验 SHA 的 compiled authority。存在同集才配对，
+    # 否则明确复用唯一首份练习；绝不从客户端参数或目录名猜一个未签发页面。
+    selected_practice_file = (
+        requested_practice
+        if requested_practice in practice_surfaces
+        else "practice.html"
+    )
+    selected_practice_sha = str(
+        practice_surfaces.get(selected_practice_file) or practice_sha
+    )
+    practice_available = bool(
+        pack.get("card_hosted")
+        and practice_surfaces.get("practice.html")
+        and selected_practice_sha
+    )
     return {
         "pack_id": pack_id,
         "title": str(pack.get("title") or ""),
@@ -411,16 +455,20 @@ def build_lesson_viewmodel(
         },
         # finished 随堂练的托管副本；客户端不再从 lesson URL 猜路径。
         "practice_url": (
-            _practice_card_url(pack_id, bundle_sha=practice_sha)
-            if pack.get("card_hosted")
+            _practice_card_url(
+                pack_id,
+                practice_file=selected_practice_file,
+                bundle_sha=selected_practice_sha,
+            )
+            if practice_available
             else ""
         ),
         "practice_surface": {
-            "available": bool(pack.get("card_hosted") and practice_sha),
-            "kind": "compiled_html" if practice_sha else "",
-            "question_count": 5 if practice_sha else 0,
+            "available": practice_available,
+            "kind": "compiled_html" if practice_available else "",
+            "question_count": 5 if practice_available else 0,
             "completion_contract": (
-                "luban_retest_completion.v1" if practice_sha else ""
+                "luban_retest_completion.v1" if practice_available else ""
             ),
         },
         "variant_retest": _variant_summary(

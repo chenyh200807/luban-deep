@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import copy
 from pathlib import Path
 
 import pytest
@@ -139,6 +140,21 @@ def test_authority_sidecar_answer_tamper_fails_closed(tmp_path: Path) -> None:
 
     with pytest.raises(PracticeHtmlInvalid, match="answer_invalid"):
         load_compiled_practice("F16", authority_path=path)
+
+
+def test_authority_sidecar_rejects_practice_surface_gaps(tmp_path: Path) -> None:
+    canonical = load_compiled_practice("B02")
+    assert canonical is not None
+    tampered = copy.deepcopy(canonical)
+    tampered["surfaces"][1]["surface_id"] = "practice3.html"
+    for item in tampered["items"]:
+        if item["surface_id"] == "practice2.html":
+            item["surface_id"] = "practice3.html"
+    path = tmp_path / "practice.authority.json"
+    path.write_text(json.dumps(tampered, ensure_ascii=False), encoding="utf-8")
+
+    with pytest.raises(PracticeHtmlInvalid, match="surface_set_invalid"):
+        load_compiled_practice("B02", authority_path=path)
 
 
 def test_manifest_digest_rejects_shape_valid_answer_swap(

@@ -9,13 +9,12 @@ const packNames = require("../../../utils/pack-short-names");
 
 // 五章只是 40 pack 路线的版式分段，不参与知识分类、练习或掌握判定。
 const CHAPTER_LAYOUT = [
-  { id: "01", title: "验收与基础施工", subtitle: "程序 · 支护 · 主体基础" },
-  { id: "02", title: "结构装饰与防水", subtitle: "钢构 · 装饰 · 防水构造" },
-  { id: "03", title: "防水地基与专项", subtitle: "节点 · 地基 · 危大工程" },
-  { id: "04", title: "进度质量与现场", subtitle: "索赔 · 网络 · 质量管理" },
-  { id: "05", title: "安全管理与施工组织", subtitle: "安全 · 布置 · 绿色施工" },
+  { id: "01", title: "验收与基础施工", subtitle: "程序 · 支护 · 主体基础", packIds: ["A01", "A02", "B02", "C01", "C04", "C05", "C06", "C07"] },
+  { id: "02", title: "装饰与防水工程", subtitle: "砌体 · 装饰 · 防水构造", packIds: ["D11", "D12", "D13", "D14", "F02", "F03", "F04", "F05"] },
+  { id: "03", title: "地基防水与专项工程", subtitle: "起鼓 · 地基 · 危大 · 支架", packIds: ["F16", "G01", "G02", "G03", "G04", "J01", "R01", "S01"] },
+  { id: "04", title: "进度质量与索赔", subtitle: "进度 · 质量 · 网络计划", packIds: ["C02", "E05", "K01", "N01", "N02", "N03", "Q01", "Q02"] },
+  { id: "05", title: "安全管理与施工组织", subtitle: "安全 · 现场 · 绿色施工", packIds: ["Q03", "S02", "S05", "S06", "S07", "X01", "X02", "X03"] },
 ];
-const TOPICS_PER_CHAPTER = 8;
 // C 版：重色行 / 全纸行交替；下一重色行黑红镜像。
 const C_TONE_PATTERN = [
   ["ink", "paper", "red"],
@@ -75,11 +74,12 @@ function buildEpisodeGroups(rawPoints) {
 
 function buildChapterSections(rawPoints) {
   const groups = buildEpisodeGroups(rawPoints);
-  return CHAPTER_LAYOUT.map(function (chapter, chapterIndex) {
-    const chapterGroups = groups.slice(
-      chapterIndex * TOPICS_PER_CHAPTER,
-      (chapterIndex + 1) * TOPICS_PER_CHAPTER,
-    );
+  const groupsByPack = Object.create(null);
+  groups.forEach(function (group) { groupsByPack[group.packId] = group; });
+  return CHAPTER_LAYOUT.map(function (chapter) {
+    // 章节归属是显式展示配置；不能按 API 字母序每 8 个硬切，否则进度款会落进基础施工。
+    const chapterGroups = chapter.packIds.map(function (packId) { return groupsByPack[packId]; })
+      .filter(function (group) { return group; });
     const cards = [];
     chapterGroups.forEach(function (group) {
       group.episodes.forEach(function (episode) {
@@ -189,15 +189,20 @@ Page({
           return total + chapter.lessonCount;
         }, 0);
         const publishedTeachingPointCount = Number(body.teaching_point_universe || 0);
+        const publishedTopicCount = Number(body.teaching_topic_universe || 0);
+        const visibleTopicCount = chapters.reduce(function (total, chapter) {
+          return total + chapter.topicCount;
+        }, 0);
         if (publishedTeachingPointCount !== visibleTeachingPointCount) {
           throw new Error("teaching_point_projection_mismatch");
+        }
+        if (publishedTopicCount !== visibleTopicCount) {
+          throw new Error("teaching_topic_projection_mismatch");
         }
         that.setData({
           chapterSections: chapters,
           teachingPointUniverse: publishedTeachingPointCount,
-          topicUniverse: chapters.reduce(function (total, chapter) {
-            return total + chapter.topicCount;
-          }, 0),
+          topicUniverse: publishedTopicCount,
           loading: false,
           errorText: "",
         });
@@ -218,6 +223,8 @@ Page({
 });
 
 module.exports = {
+  CHAPTER_LAYOUT: CHAPTER_LAYOUT,
+  C_TONE_PATTERN: C_TONE_PATTERN,
   buildEpisodeGroups: buildEpisodeGroups,
   buildChapterSections: buildChapterSections,
 };

@@ -21,6 +21,7 @@ _spec.loader.exec_module(_mod)
 
 def test_registry_has_exact_40_finished_topics_and_canonical_variants() -> None:
     assert len(_mod.STATIONS) == 40
+    assert sum(len(station.teach) for station in _mod.STATIONS.values()) == 74
     assert _mod.STATIONS["c02"].pack_dir == "C02"
     assert _mod.STATIONS["s07"].pack_dir == "P40_S07"
     assert _mod.STATIONS["b02"].teach == {
@@ -56,6 +57,25 @@ def test_registry_has_exact_40_finished_topics_and_canonical_variants() -> None:
     assert "P40_C02.practice.up.dc.html" not in registered_sources
     assert "P40_C02.practice.down.dc.html" not in registered_sources
     assert all("S07B" not in name for name in registered_sources)
+    assert all(station.pack_dir not in {"P40_C02", "P40_A01_PROCESS", "P40_S07B"}
+               for station in _mod.STATIONS.values())
+
+
+def test_new_finished_audio_sources_are_tracked_for_clean_clone_rebuilds() -> None:
+    pack_dirs = ("P40_B02", "P40_D14", "P40_N02", "P40_N03")
+    expected = sorted(
+        path.relative_to(REPO).as_posix()
+        for pack_dir in pack_dirs
+        for path in (_mod.FINISHED / pack_dir / "audio").glob("**/*.mp3")
+    )
+    tracked = set(
+        subprocess.check_output(
+            ["git", "ls-files", "--", *expected], cwd=REPO, text=True
+        ).splitlines()
+    )
+
+    assert len(expected) == 96
+    assert tracked == set(expected)
 
 
 def test_all_registered_practice_outputs_rebuild_from_tracked_sources() -> None:
@@ -206,6 +226,119 @@ def test_teach_transform_replaces_authoring_preview_ai_with_tutorbot_adapter() -
     assert 'current.searchParams.get("entry_ticket")' not in rendered
     assert 'new URLSearchParams(String(current.hash||"").replace(/^#/,""))' in rendered
     assert "lesson-viewed" in rendered
+
+
+def test_practice_transform_replaces_authoring_preview_ai_with_same_tutorbot_stream() -> None:
+    source_path = (
+        _mod.FINISHED / "P40_B02" / "P40_B02.practice.up.dc.html"
+    )
+    source = source_path.read_text(encoding="utf-8")
+    compiled = _mod.compile_practice_surface(
+        "B02",
+        surface_id="practice.html",
+        html=source,
+        source_path=str(source_path),
+        source_html_sha256=hashlib.sha256(source_path.read_bytes()).hexdigest(),
+    )
+
+    rendered = _mod.transform_practice(
+        source,
+        pack_id="B02",
+        compiled_surface=compiled["surface"],
+        items=compiled["items"],
+    )
+
+    assert "window.claude" not in rendered
+    assert "LubanTutorbotSheetRuntime" in rendered
+    assert 'fetch("/api/v1/luban-preview/ai-ask"' in rendered
+    assert 'type:"subscribe_turn"' in rendered
+    assert 'contextId:"B02"' in rendered
+    assert "entry_ticket" in rendered
+    assert "currentScene" in rendered
+    assert "currentCaption" in rendered
+    assert "carryCapability(next).toString()" in rendered
+
+
+def test_practice_tutorbot_context_supports_drawn_question_templates() -> None:
+    source_path = _mod.FINISHED / "P40_A02" / "P40_A02.practice.dc.html"
+    source = source_path.read_text(encoding="utf-8")
+    compiled = _mod.compile_practice_surface(
+        "A02",
+        surface_id="practice.html",
+        html=source,
+        source_path=str(source_path),
+        source_html_sha256=hashlib.sha256(source_path.read_bytes()).hexdigest(),
+    )
+
+    rendered = _mod.transform_practice(
+        source,
+        pack_id="A02",
+        compiled_surface=compiled["surface"],
+        items=compiled["items"],
+    )
+
+    assert 'typeof this.curCtx==="function"' in rendered
+    assert "Array.isArray(state.drawn)" in rendered
+    assert 'typeof this.qAt==="function"' in rendered
+    assert "Array.isArray(this.Q)" in rendered
+    assert "currentQuestion.stem||currentQuestion.q" in rendered
+    assert 'contextId:"A02"' in rendered
+
+
+def test_all_published_practice_tutorbot_methods_are_valid_javascript() -> None:
+    pages = sorted(_mod.HOST.glob("*/practice*.html"))
+    assert len(pages) == 43
+    classes = []
+    for index, page in enumerate(pages):
+        match = _mod._SUBMIT_ASK_RE.search(page.read_text(encoding="utf-8"))
+        assert match is not None, page
+        classes.append(f"class PracticeCard{index} {{\n{match.group(0)}\n}}")
+
+    checked = subprocess.run(
+        ["node", "--check", "-"],
+        input="\n".join(classes),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert checked.returncode == 0, checked.stderr
+
+
+def test_practice_tutorbot_keeps_single_turn_authority_until_done() -> None:
+    page = _mod.HOST / "a02" / "practice.html"
+    match = _mod._SUBMIT_ASK_RE.search(page.read_text(encoding="utf-8"))
+    assert match is not None
+    script = """
+global.window={
+  LubanTutorbotSheetRuntime:{isPublicEvent:()=>true,finalResponse:(event)=>event.content||""},
+  __lubanCardEntryTicket:"entry-ticket",
+  location:{href:"https://example.test/luban-preview/a02/practice.html"}
+};
+global.fetch=async()=>({ok:true,json:async()=>({stream:{url:"/api/v1/ws",protocol:"luban-preview-v1",ticket:"stream-ticket",turn_id:"turn-1"}})});
+let socket=null;
+global.WebSocket=class { constructor(){socket=this;} send(){} };
+""" + f"class PracticeCard {{\n{match.group(0)}\n" + """
+  setState(next){ this.state={...this.state,...next}; }
+}
+(async()=>{
+  const card=new PracticeCard();
+  card.state={askText:"为什么",askLoading:false,drawn:[{stem:"题干",opts:["甲","乙"],c:0}],idx:0,sel:-1,revealed:false};
+  await card.submitAsk();
+  if(!card.state.askLoading)throw new Error("turn unlocked before stream event");
+  socket.onmessage({data:JSON.stringify({type:"content",seq:1,content:"第一段"})});
+  if(!card.state.askLoading)throw new Error("turn unlocked on content");
+  socket.onmessage({data:JSON.stringify({type:"done",seq:2})});
+  if(card.state.askLoading)throw new Error("turn remained locked after done");
+})().catch((error)=>{console.error(error);process.exit(1);});
+"""
+    checked = subprocess.run(
+        ["node", "-"],
+        input=script,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert checked.returncode == 0, checked.stderr
 
 
 def test_audio_manifest_missing_segment_fails_closed(tmp_path: Path) -> None:

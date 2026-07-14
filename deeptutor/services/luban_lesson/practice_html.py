@@ -507,10 +507,16 @@ def _validate_authority(value: Any, *, expected_pack: str) -> dict[str, Any]:
         ) != 1:
             raise PracticeHtmlInvalid("practice_authority_answer_invalid")
     surface_ids = [str(surface.get("surface_id") or "") for surface in surfaces]
+    surface_indexes = sorted(
+        1 if surface_id == "practice.html" else int(surface_id[8:-5])
+        for surface_id in surface_ids
+        if re.fullmatch(r"practice(?:[2-9][0-9]*)?\.html", surface_id)
+    )
     if (
         len(set(surface_ids)) != len(surface_ids)
         or set(surface_ids) != set(by_surface)
         or len(items) != PRACTICE_LIMIT * len(surfaces)
+        or surface_indexes != list(range(1, len(surface_ids) + 1))
     ):
         raise PracticeHtmlInvalid("practice_authority_surface_set_invalid")
     for surface in surfaces:

@@ -582,7 +582,7 @@ _CAPSULE_RE = re.compile(
     r'(<div style="position:absolute;top:10px;left:50%;transform:translateX\(-50%\);z-index:40;[^"]*)(">)')
 _AUTOSTART_RE = re.compile(r"^\s*this\._autoTimer=setTimeout\([^\n]*\n", re.M)
 _SUBMIT_ASK_RE = re.compile(
-    r"^  async submitAsk\(\)\{.*?^  \}\n(?=  [A-Za-z_]\w*\()", re.M | re.S
+    r"^  async submitAsk\(\)\{.*?^  \}\n(?:\s*\n)*(?=  [A-Za-z_]\w*\()", re.M | re.S
 )
 _AUTHORING_CLAUDE_RE = re.compile(r"window\.claude(?:\.complete)?")
 _ASK_RESPONSE_RE = re.compile(
@@ -748,7 +748,7 @@ def _card_entry_bridge(pack_id: str) -> str:
     event.preventDefault();
     if(!ticket){ window.alert("学习身份已过期，请返回小程序重新打开这一站。"); return; }
     fetch("/api/v1/luban-preview/lesson-viewed",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contextId:"__PACK_ID__",cardId:"__PACK_ID__",entryTicket:ticket})})
-      .then(function(response){ if(!response.ok)throw new Error("lesson evidence rejected"); window.location.assign(next.toString()); })
+      .then(function(response){ if(!response.ok)throw new Error("lesson evidence rejected"); window.location.assign(carryCapability(next).toString()); })
       .catch(function(){ window.alert("学习记录未确认，请留在本页稍后重试后再做练习。"); });
   },true);
 })();
@@ -874,6 +874,83 @@ def transform_teach(text: str, pack_id: str, *, sheet_runtime_tag: str | None = 
     return text
 
 
+def _inline_practice_tutorbot_ask_method(pack_id: str) -> str:
+    """练习页只负责 TutorBot transport；题目理解与回答仍由服务端唯一决定。"""
+    return '''  async submitAsk(){
+    const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    const runtime=window.LubanTutorbotSheetRuntime;
+    const entryTicket=String(window.__lubanCardEntryTicket||"").trim();
+    if(!runtime||!entryTicket){ this.setState({askLoading:false,askAnswer:"学习身份已过期，请返回小程序重新打开这一站。"}); return; }
+    const state=this.state||{};
+    const questionIndex=Number(state.qi!=null?state.qi:(state.idx!=null?state.idx:0));
+    let c=null;
+    if(typeof this.curCtx==="function"){ try{ c=this.curCtx(); }catch(_){ c=null; } }
+    if(!c){
+      let q=null;
+      if(Array.isArray(state.drawn))q=state.drawn[questionIndex];
+      if(!q&&typeof this.qAt==="function"){ try{ q=this.qAt(questionIndex); }catch(_){ q=null; } }
+      if(!q&&Array.isArray(this.Q))q=this.Q[questionIndex];
+      q=q||{};
+      const opts=Array.isArray(q.opts)?q.opts.map(function(opt,index){
+        const value=opt&&typeof opt==="object"?(opt.t||opt.text||opt.label||""):opt;
+        return String.fromCharCode(65+index)+". "+String(value||"");
+      }).join("\\n"):"";
+      let mine="（还没作答）";
+      if(typeof state.sel==="number"){
+        if(state.sel>=0)mine=String.fromCharCode(65+state.sel);
+      }else if(state.sel!=null&&typeof state.sel!=="object"&&String(state.sel).trim())mine=String(state.sel);
+      else if(state.sel&&state.sel[questionIndex]!=null)mine=String(state.sel[questionIndex]);
+      c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
+    }
+    const currentQuestion=c.q||{};
+    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
+      ?currentQuestion.opts[currentQuestion.c]:"";
+    const correctText=correctOption&&typeof correctOption==="object"
+      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    let contextLine="";
+    if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    const payload={contextId:"__PACK_ID__",cardId:"__PACK_ID__",question:userQ,entryTicket:entryTicket,
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
+    let rawResponse="",lastSeq=0,completed=false,reconnects=0;
+    const self=this;
+    const fail=function(message){ if(completed)return; completed=true; self.setState({askLoading:false,askAnswer:String(message||"TutorBot 暂时不可用，请稍后重试。")}); };
+    const render=function(next,append){ rawResponse=append?rawResponse+String(next||""):String(next||""); self.setState({askLoading:true,askAnswer:rawResponse||"鲁班正在整理答案…"}); };
+    const consume=function(event){
+      if(!event||typeof event!=="object"||completed)return;
+      const seq=typeof event.seq==="number"?event.seq:0; if(seq&&seq<=lastSeq)return; if(seq)lastSeq=seq;
+      const type=String(event.type||"");
+      if(type==="content"){ if(runtime.isPublicEvent(event))render(event.content,true); return; }
+      if(type==="result"){ if(runtime.isPublicEvent(event)){ const finalText=runtime.finalResponse(event); if(finalText)render(finalText,false); } return; }
+      if(type==="error"&&event.metadata&&event.metadata.turn_terminal){ fail(event.content); return; }
+      if(type==="done"){ completed=true; self.setState({askLoading:false}); }
+    };
+    const socketUrl=function(path){ const u=new URL(String(path||"/api/v1/ws"),window.location.href); u.protocol=u.protocol==="https:"?"wss:":"ws:"; return u.toString(); };
+    const connect=function(stream){
+      if(completed)return;
+      let socket;
+      try{
+        socket=new WebSocket(socketUrl(stream.url),[String(stream.protocol||"luban-preview-v1"),String(stream.ticket||"")]);
+        socket.onopen=function(){ socket.send(JSON.stringify({type:"subscribe_turn",turn_id:String(stream.turn_id||""),after_seq:lastSeq||0})); };
+        socket.onmessage=function(message){ try{consume(JSON.parse(String(message.data||"")));}catch(_){ } };
+        socket.onclose=function(){ if(completed)return; if(reconnects>=5){fail("流式连接中断，请稍后重试。");return;} reconnects+=1; setTimeout(function(){connect(stream);},400*reconnects); };
+        socket.onerror=function(){};
+      }catch(_){ fail("流式连接暂时不可用，请稍后重试。"); }
+    };
+    this.setState({askLoading:true,askAnswer:""});
+    try{
+      const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(String(data.detail||"TutorBot 答疑暂时不可用"));
+      const stream=data&&data.stream;
+      if(!stream||!stream.ticket||!stream.turn_id)throw new Error("TutorBot 流式回合未创建");
+      connect(stream);
+    }catch(err){ fail((err&&err.message)||"TutorBot 暂时不可用，请稍后重试。"); }
+  }
+'''.replace("__PACK_ID__", pack_id)
+
+
 def transform_practice(
     text: str,
     *,
@@ -881,13 +958,22 @@ def transform_practice(
     compiled_surface: dict[str, object],
     items: list[dict[str, object]],
 ) -> str:
-    """Thin publisher wrapper：字体/JSSDK 处理后交给内容内核。"""
+    """Thin publisher wrapper：共享 runtime/鉴权桥接后交给内容内核。"""
     text = _sub(
         text,
         _FONT_LINKS_OLD,
-        _FONT_LINKS_NEW + "\n" + _JWEIXIN_TAG,
+        _FONT_LINKS_NEW + "\n" + _JWEIXIN_TAG + "\n" + _tutorbot_sheet_runtime_tag()
+        + "\n" + _card_entry_bridge(pack_id),
         "font-links",
     )
+    text = _sub(
+        text,
+        _SUBMIT_ASK_RE,
+        _inline_practice_tutorbot_ask_method(pack_id),
+        "practice-tutorbot-ask",
+        literal_pattern=False,
+    )
+    text = _AUTHORING_CLAUDE_RE.sub("authoring preview bridge", text)
     return transform_compiled_practice_html(
         pack_id,
         surface=compiled_surface,
@@ -977,6 +1063,7 @@ def _compile_practice_outputs(
     station_id: str, st: Station, *, finished_root: Path
 ) -> tuple[dict[str, str], dict[str, object]]:
     src = finished_root / st.pack_dir
+    _ensure_tutorbot_sheet_runtime()
     pack_id = station_id.upper()
     if not src.is_dir():
         raise TransformError(f"finished pack missing: {src}")

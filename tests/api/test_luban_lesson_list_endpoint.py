@@ -11,22 +11,15 @@ from deeptutor.api.routers import luban_lesson
 
 def test_lessons_exposes_manifest_pack_universe(monkeypatch) -> None:
     monkeypatch.setattr(luban_lesson, "list_all_pack_ids", lambda: ["A01", "B02", "C02"])
-    monkeypatch.setattr(
-        luban_lesson,
-        "list_green_lessons",
-        lambda: [
+    green_lessons = [
             {
                 "pack_id": "A01",
                 "retest_available": False,
                 "card_hosted": True,
                 "teaching_episode_count": 2,
             }
-        ],
-    )
-    monkeypatch.setattr(
-        luban_lesson,
-        "list_teaching_points",
-        lambda: [
+        ]
+    teaching_points = [
             {
                 "teaching_point_id": "A01:lesson:1",
                 "pack_id": "A01",
@@ -39,7 +32,11 @@ def test_lessons_exposes_manifest_pack_universe(monkeypatch) -> None:
                 "episode_index": 2,
                 "episode_total": 2,
             },
-        ],
+        ]
+    monkeypatch.setattr(
+        luban_lesson,
+        "list_lesson_catalog",
+        lambda: (green_lessons, teaching_points),
     )
     monkeypatch.setattr(luban_lesson, "_review_module_enabled", lambda: False)
     monkeypatch.setattr(luban_lesson, "_light_practice_enabled", lambda: False)
@@ -48,6 +45,7 @@ def test_lessons_exposes_manifest_pack_universe(monkeypatch) -> None:
 
     assert payload["pack_universe"] == 3
     assert payload["teaching_point_universe"] == 2
+    assert payload["teaching_topic_universe"] == 1
     assert payload["teaching_points"] == [
         {
             "teaching_point_id": "A01:lesson:1",

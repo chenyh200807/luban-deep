@@ -35,7 +35,7 @@
     event.preventDefault();
     if(!ticket){ window.alert("学习身份已过期，请返回小程序重新打开这一站。"); return; }
     fetch("/api/v1/luban-preview/lesson-viewed",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contextId:"D11",cardId:"D11",entryTicket:ticket})})
-      .then(function(response){ if(!response.ok)throw new Error("lesson evidence rejected"); window.location.assign(next.toString()); })
+      .then(function(response){ if(!response.ok)throw new Error("lesson evidence rejected"); window.location.assign(carryCapability(next).toString()); })
       .catch(function(){ window.alert("学习记录未确认，请留在本页稍后重试后再做练习。"); });
   },true);
 })();

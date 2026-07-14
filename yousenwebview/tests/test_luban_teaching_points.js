@@ -13,6 +13,7 @@ var definition = null;
 var navigatedTo = "";
 var apiPayload = {
   teaching_point_universe: 3,
+  teaching_topic_universe: 1,
   teaching_points: [
     { teaching_point_id: "D14:lesson:1", pack_id: "D14", title: "吊顶质量", episode_index: 1, episode_total: 3, episode_label: "上集", card_url: "https://cdn/d14/lesson.html" },
     { teaching_point_id: "D14:lesson:2", pack_id: "D14", title: "吊顶质量", episode_index: 2, episode_total: 3, episode_label: "中集", card_url: "https://cdn/d14/lesson2.html" },
@@ -82,12 +83,12 @@ var orderedGroups = sandbox.module.exports.buildEpisodeGroups([
 assert.strictEqual(orderedGroups.map(function (group) { return group.packId; }).join("/"), "B02/A01", "前端不得按 pack_id 覆盖 API 路线顺序");
 assert.strictEqual(orderedGroups[0].displayTitle, "基坑支护", "竖排卡应复用唯一显示层短名，避免长标题折列");
 
-var colorPoints = Array.from({ length: 9 }, function (_unused, index) {
-  var packId = "T" + String(index + 1).padStart(2, "0");
+var colorPackIds = sandbox.module.exports.CHAPTER_LAYOUT[0].packIds;
+var colorPoints = colorPackIds.map(function (packId, index) {
   return { teaching_point_id: packId + ":lesson:1", pack_id: packId, title: "测试考点" + index, episode_index: 1, episode_total: 1, episode_label: "完整讲解", card_url: "https://cdn/" + packId + "/lesson.html" };
 });
 var colorChapters = sandbox.module.exports.buildChapterSections(colorPoints);
-assert.strictEqual(colorChapters.length, 2);
+assert.strictEqual(colorChapters.length, 1);
 assert.strictEqual(colorChapters[0].topicCount, 8);
 assert.strictEqual(colorChapters[0].lessonCount, 8);
 assert.strictEqual(
@@ -98,10 +99,15 @@ assert.strictEqual(
 
 var chapters = sandbox.module.exports.buildChapterSections(apiPayload.teaching_points);
 assert.strictEqual(chapters.length, 1);
-assert.strictEqual(chapters[0].title, "验收与基础施工");
+assert.strictEqual(chapters[0].title, "装饰与防水工程");
 assert.strictEqual(chapters[0].lessonCount, 3);
 assert.strictEqual(chapters[0].cards.map(function (card) { return card.tone; }).join("/"), "ink/paper/red");
 assert.strictEqual(chapters[0].cards.map(function (card) { return card.labelShort; }).join("/"), "上/中/下");
+assert.strictEqual(
+  sandbox.module.exports.CHAPTER_LAYOUT.reduce(function (all, chapter) { return all.concat(chapter.packIds); }, []).join("/"),
+  "A01/A02/B02/C01/C04/C05/C06/C07/D11/D12/D13/D14/F02/F03/F04/F05/F16/G01/G02/G03/G04/J01/R01/S01/C02/E05/K01/N01/N02/N03/Q01/Q02/Q03/S02/S05/S06/S07/X01/X02/X03",
+  "五章必须显式覆盖40个正式考点且不靠API顺序猜归属",
+);
 
 var page = Object.assign({}, definition);
 page.data = JSON.parse(JSON.stringify(definition.data));
