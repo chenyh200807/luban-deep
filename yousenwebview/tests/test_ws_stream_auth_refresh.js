@@ -132,6 +132,23 @@ function loadWsStream(config) {
           },
         };
       }
+      if (request === "./workflow-status") {
+        return {
+          toWorkflowEvent: function (event) {
+            if (!event || typeof event !== "object") return null;
+            if (["thinking", "progress", "observation", "stage_start", "tool_call", "tool_result"].indexOf(String(event.type || "")) === -1) {
+              return null;
+            }
+            return {
+              type: "status",
+              data: String(event.content || event.stage || event.type || ""),
+              content: String(event.content || ""),
+              metadata: event.metadata || {},
+              seq: Number(event.seq || 0),
+            };
+          },
+        };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {
