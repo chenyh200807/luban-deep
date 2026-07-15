@@ -124,6 +124,7 @@ _PUBLIC_FAILED_MESSAGE = "本轮生成失败，后台已记录问题。请稍后
 _PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这道题内容较多，这次没批完，请把题目拆小一点再发一次。"
 _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE = "服务暂时繁忙，请稍后再试。"
 _PUBLIC_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
+_PUBLIC_MODEL_TRUNCATED_MESSAGE = "这次答案没有生成完整，已停止保存。请重新发送一次。"
 _PUBLIC_ORPHAN_RESTART_MESSAGE = "刚才服务重启，这条没答上，请再发一次。"
 _REQUEST_SNAPSHOT_REDACTED = "[redacted]"
 _REQUEST_SNAPSHOT_MAX_TEXT = 4000
@@ -666,6 +667,8 @@ def map_turn_failure_to_public_text(failure_kind: str | None, *, status: str = "
         return _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE
     if kind == "model_empty_answer":
         return _PUBLIC_MODEL_EMPTY_MESSAGE
+    if kind == "model_output_truncated":
+        return _PUBLIC_MODEL_TRUNCATED_MESSAGE
     if kind == "orphaned_on_restart":
         return _PUBLIC_ORPHAN_RESTART_MESSAGE
     return _PUBLIC_FAILED_MESSAGE
@@ -712,6 +715,7 @@ _NON_CHARGEABLE_PUBLIC_MESSAGES = frozenset(
         _PUBLIC_BUDGET_EXHAUSTED_MESSAGE,
         _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE,
         _PUBLIC_MODEL_EMPTY_MESSAGE,
+        _PUBLIC_MODEL_TRUNCATED_MESSAGE,
         _PUBLIC_ORPHAN_RESTART_MESSAGE,
         "暂时未生成适合直接展示的答案，请重试一次。",
         "模型调用失败，请稍后重试。",

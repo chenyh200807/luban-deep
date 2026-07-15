@@ -58,6 +58,14 @@ def test_terminal_mapper_maps_provider_failures_to_busy_chinese() -> None:
         assert "Error" not in text
 
 
+def test_terminal_mapper_maps_truncation_to_retryable_chinese() -> None:
+    from deeptutor.services.session.turn_runtime import map_turn_failure_to_public_text
+
+    text = map_turn_failure_to_public_text("model_output_truncated")
+    assert "没有生成完整" in text
+    assert "重新发送" in text
+
+
 def test_terminal_mapper_keeps_cancelled_and_generic_fallbacks() -> None:
     from deeptutor.services.session.turn_runtime import (
         _PUBLIC_CANCELLED_MESSAGE,
@@ -383,6 +391,19 @@ class _HealthyProvider(LLMProvider):
         return "fake-model"
 
 
+class _TruncatedProvider(LLMProvider):
+    async def chat(self, messages, tools=None, model=None, max_tokens=4096,
+                   temperature=0.7, reasoning_effort=None, tool_choice=None,
+                   on_content_delta=None) -> LLMResponse:
+        partial = "先把消防用水量代入公式，再计算"
+        if on_content_delta is not None:
+            await on_content_delta(partial)
+        return LLMResponse(content=partial, finish_reason="length")
+
+    def get_default_model(self) -> str:
+        return "fake-model"
+
+
 def _build_agent_loop(provider: LLMProvider, tmp_path, with_rag_tool: bool = False):
     from deeptutor.tutorbot.agent.loop import AgentLoop
     from deeptutor.tutorbot.agent.tools.base import Tool
@@ -465,6 +486,38 @@ async def test_agent_loop_provider_error_is_typed_failure(tmp_path) -> None:
     assert isinstance(failure, dict)
     assert failure["kind"] == "provider_error"
     assert "Access denied" in str(failure.get("detail") or "")
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_truncated_output_is_typed_failure_not_history(tmp_path) -> None:
+    loop = _build_agent_loop(_TruncatedProvider(), tmp_path)
+    metadata: dict[str, Any] = {}
+
+    final_content, _tools_used, messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "请给出完整计算过程"}],
+        runtime_metadata=metadata,
+    )
+
+    assert final_content is None
+    assert messages == [{"role": "user", "content": "请给出完整计算过程"}]
+    assert metadata["turn_failure"]["kind"] == "model_output_truncated"
+    assert metadata["llm_stream_telemetry"]["calls"][-1]["finish_reason"] == "length"
+
+
+@pytest.mark.asyncio
+async def test_fast_policy_truncated_output_is_typed_failure_not_history(tmp_path) -> None:
+    loop = _build_agent_loop(_TruncatedProvider(), tmp_path)
+    metadata: dict[str, Any] = {}
+    initial = [{"role": "user", "content": "请简答"}]
+
+    final_content, messages, _streamed = await loop._run_fast_policy_once(
+        initial,
+        runtime_metadata=metadata,
+    )
+
+    assert final_content is None
+    assert messages == initial
+    assert metadata["turn_failure"]["kind"] == "model_output_truncated"
 
 
 @pytest.mark.asyncio

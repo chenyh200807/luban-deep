@@ -468,6 +468,10 @@ class AgentLoop:
             call_site=call_site,
             iteration=iteration,
         )
+        finish_reason = str(getattr(response, "finish_reason", "") or "").strip()
+        if finish_reason:
+            call = dict(call or {"call_site": str(call_site or "").strip()})
+            call["finish_reason"] = finish_reason
         if not call:
             return
         existing = runtime_metadata.get("llm_stream_telemetry")
@@ -550,6 +554,14 @@ class AgentLoop:
         runtime_metadata.pop("turn_failure", None)
         if external_runtime_metadata is not None:
             external_runtime_metadata.pop("turn_failure", None)
+
+    @staticmethod
+    def _response_was_truncated(response: Any) -> bool:
+        """Return whether the provider ended before producing a complete answer."""
+        return str(getattr(response, "finish_reason", "") or "").strip().lower() in {
+            "length",
+            "max_tokens",
+        }
 
     @staticmethod
     def _strip_think(text: str | None) -> str | None:
@@ -2308,6 +2320,15 @@ class AgentLoop:
                     )
                     final_content = None
                     break
+                if self._response_was_truncated(response):
+                    self._record_turn_failure(
+                        runtime_metadata,
+                        external_runtime_metadata,
+                        kind="model_output_truncated",
+                        detail=f"finish_reason={response.finish_reason}",
+                    )
+                    final_content = None
+                    break
                 if not self._is_user_visible_final_answer(clean):
                     retry_messages = list(messages)
                     retry_messages.append(
@@ -2345,6 +2366,15 @@ class AgentLoop:
                             external_runtime_metadata,
                             kind=response.failure_kind or "provider_error",
                             detail=response.error_detail or clean or "",
+                        )
+                        final_content = None
+                        break
+                    if self._response_was_truncated(response):
+                        self._record_turn_failure(
+                            runtime_metadata,
+                            external_runtime_metadata,
+                            kind="model_output_truncated",
+                            detail=f"finish_reason={response.finish_reason}",
                         )
                         final_content = None
                         break
@@ -3090,6 +3120,15 @@ class AgentLoop:
             if response.finish_reason == "error":
                 final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
                 break
+            if self._response_was_truncated(response):
+                self._record_turn_failure(
+                    runtime_metadata,
+                    external_runtime_metadata,
+                    kind="model_output_truncated",
+                    detail=f"finish_reason={response.finish_reason}",
+                )
+                final_content = None
+                break
             if self._is_user_visible_final_answer(candidate):
                 final_content = candidate
                 break
@@ -3101,14 +3140,16 @@ class AgentLoop:
                 }
             )
 
-        if final_content is None:
+        if final_content is None and not isinstance(runtime_metadata.get("turn_failure"), dict):
             final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
-        messages = self.context.add_assistant_message(
-            initial_messages,
-            final_content,
-            reasoning_content=response.reasoning_content if response is not None else None,
-            thinking_blocks=response.thinking_blocks if response is not None else None,
-        )
+        messages = list(initial_messages)
+        if final_content is not None:
+            messages = self.context.add_assistant_message(
+                initial_messages,
+                final_content,
+                reasoning_content=response.reasoning_content if response is not None else None,
+                thinking_blocks=response.thinking_blocks if response is not None else None,
+            )
         self._export_llm_stream_telemetry(runtime_metadata, external_runtime_metadata)
         return final_content, messages, public_streamed_text
 
@@ -4245,6 +4286,27 @@ class AgentLoop:
                 runtime_metadata=runtime_metadata,
                 on_content_delta=None if suppress_fast_stream else on_content_delta,
             )
+            turn_failure = runtime_metadata.get("turn_failure")
+            if final_content is None and isinstance(turn_failure, dict) and str(
+                turn_failure.get("kind") or ""
+            ).strip():
+                self._save_turn(
+                    session,
+                    all_msgs,
+                    1 + len(history),
+                    persist_user_content=persist_user_content,
+                )
+                session.metadata["last_exact_fast_path"] = False
+                self.sessions.save(session)
+                response_metadata = dict(msg.metadata or {})
+                self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+                response_metadata["turn_failure"] = dict(turn_failure)
+                return OutboundMessage(
+                    channel=msg.channel,
+                    chat_id=msg.chat_id,
+                    content="",
+                    metadata=response_metadata,
+                )
             if final_content is None:
                 final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
             final_content = await self._finalize_visible_answer(

@@ -67,7 +67,9 @@ class LLMResponse:
     failures must keep their TYPE from birth. Error bodies are NEVER written
     into ``content`` (the learner-visible channel); they live in
     ``error_detail`` with ``failure_kind`` naming the class of failure, and
-    ``finish_reason == "error"`` marking the response non-final.
+    ``finish_reason == "error"`` marking a provider failure. The terminal
+    authority also treats provider length limits (``length`` / ``max_tokens``)
+    as non-final even when partial ``content`` exists.
     """
     content: str | None
     tool_calls: list[ToolCallRequest] = field(default_factory=list)
