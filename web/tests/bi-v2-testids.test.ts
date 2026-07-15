@@ -51,6 +51,12 @@ test('member ops exposes product behavior UI anchors', async () => {
   assert.ok(drawer.includes('data-testid="bi-member-behavior-timeline"'))
   assert.ok(drawer.includes('data-testid="bi-member-learning-report-breakdown"'))
   assert.ok(drawer.includes('data-testid="bi-member-360-summary"'))
+  assert.ok(drawer.includes('data-testid="bi-member-first-run-status"'))
+  const cockpit = await readWeb('components/bi-cockpit/MemberOpsCockpit.tsx')
+  assert.ok(cockpit.includes('data-testid="bi-member-module-usage"'))
+  assert.ok(cockpit.includes('data-testid="bi-member-first-run-funnel"'))
+  assert.ok(cockpit.includes('First Run 完成漏斗'))
+  assert.ok(cockpit.includes('模块使用 (近 7 天)'))
 })
 
 test('member ops exposes member search by phone or account', async () => {

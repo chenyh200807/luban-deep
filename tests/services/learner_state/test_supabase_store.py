@@ -510,3 +510,57 @@ def test_sync_full_learning_evidence_read_pages_past_postgrest_row_cap() -> None
     assert len(projected) == 1201
     assert [request["offset"] for request in requests] == ["0", "500", "1000"]
     client.close()
+
+
+def test_sync_profile_batch_read_uses_one_request_and_preserves_missing_rows() -> None:
+    requests: list[dict[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(dict(request.url.params))
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "user_id": "member-a",
+                    "summary": "",
+                    "attributes": {"learning_preferences": {"first_run": {"source": "explicit_first_run_v1"}}},
+                    "last_updated": "2026-07-15T00:00:00+00:00",
+                }
+            ],
+            request=request,
+        )
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    store = LearnerStateSupabaseSyncCoreStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+
+    profiles = store.read_profiles(["member-a", "member-b", "member-a"])
+
+    assert list(profiles) == ["member-a"]
+    assert len(requests) == 1
+    assert requests[0]["user_id"] == 'in.("member-a","member-b")'
+    client.close()
+
+
+def test_sync_profile_batch_read_keeps_request_urls_below_gateway_limit() -> None:
+    request_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        request_urls.append(str(request.url))
+        return httpx.Response(200, json=[], request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    store = LearnerStateSupabaseSyncCoreStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    user_ids = [f"00000000-0000-4000-8000-{index:012d}" for index in range(201)]
+
+    assert store.read_profiles(user_ids) == {}
+    assert len(request_urls) == 3
+    assert max(map(len, request_urls)) < 8_000
+    client.close()

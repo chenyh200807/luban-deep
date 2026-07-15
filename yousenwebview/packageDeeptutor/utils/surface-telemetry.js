@@ -3,7 +3,34 @@ const endpoints = require("./endpoints");
 
 var sentEventKeys = {};
 var PENDING_EVENTS_MAX = 20;
-var pendingEvents = [];
+var PENDING_EVENTS_STORAGE_KEY = "deeptutor_surface_telemetry_pending_v1";
+var pendingEvents = null;
+var inFlightEventIds = {};
+
+function currentOwnerId() {
+  try {
+    return String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+  } catch (_) {
+    return "";
+  }
+}
+
+function readPendingEvents() {
+  if (pendingEvents) return pendingEvents;
+  try {
+    var stored = wx.getStorageSync(PENDING_EVENTS_STORAGE_KEY);
+    pendingEvents = Array.isArray(stored) ? stored.slice(-PENDING_EVENTS_MAX) : [];
+  } catch (_) {
+    pendingEvents = [];
+  }
+  return pendingEvents;
+}
+
+function persistPendingEvents() {
+  try {
+    wx.setStorageSync(PENDING_EVENTS_STORAGE_KEY, readPendingEvents());
+  } catch (_) {}
+}
 
 function buildEventId() {
   return (
@@ -15,10 +42,20 @@ function buildEventId() {
 }
 
 function enqueuePendingEvent(event) {
-  if (pendingEvents.length >= PENDING_EVENTS_MAX) {
-    pendingEvents.shift();
+  var queue = readPendingEvents();
+  if (queue.some(function (item) { return item.eventId === event.eventId; })) return;
+  if (queue.length >= PENDING_EVENTS_MAX) {
+    queue.shift();
   }
-  pendingEvents.push(event);
+  queue.push(event);
+  persistPendingEvents();
+}
+
+function acknowledgePendingEvent(eventId) {
+  pendingEvents = readPendingEvents().filter(function (event) {
+    return event.eventId !== eventId;
+  });
+  persistPendingEvents();
 }
 
 function buildEvent(eventName, data, collectedAtMs) {
@@ -26,16 +63,20 @@ function buildEvent(eventName, data, collectedAtMs) {
     eventId: buildEventId(),
     eventName: eventName,
     data: data,
+    ownerId: currentOwnerId(),
     collectedAtMs: collectedAtMs,
   };
 }
 
 function deliverEvent(event, token) {
+  enqueuePendingEvent(event);
   var baseUrl = endpoints.getPrimaryBaseUrl(false);
   if (!baseUrl) {
     enqueuePendingEvent(event);
     return;
   }
+  if (inFlightEventIds[event.eventId]) return;
+  inFlightEventIds[event.eventId] = true;
   var headers = {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",
@@ -48,6 +89,7 @@ function deliverEvent(event, token) {
       header: headers,
       data: {
         event_id: event.eventId,
+        event_version: event.data.eventVersion || 1,
         surface: "wechat_yousenwebview",
         event_name: String(event.eventName || "").trim(),
         session_id: event.data.sessionId || "",
@@ -56,19 +98,36 @@ function deliverEvent(event, token) {
         sent_at_ms: Date.now(),
         metadata: event.data.metadata || {},
       },
+      success: function (response) {
+        delete inFlightEventIds[event.eventId];
+        var body = (response && response.data) || {};
+        var durableFailure = body.product_behavior_status === "persistence_failed";
+        if (!durableFailure && (body.accepted === true || body.status === "duplicate")) {
+          acknowledgePendingEvent(event.eventId);
+        }
+      },
       fail: function () {
-        enqueuePendingEvent(event);
+        delete inFlightEventIds[event.eventId];
+        persistPendingEvents();
       },
     });
   } catch (_) {
+    delete inFlightEventIds[event.eventId];
     enqueuePendingEvent(event);
   }
 }
 
 function flushPendingEvents(token) {
-  if (!pendingEvents.length) return;
-  var queued = pendingEvents;
-  pendingEvents = [];
+  var ownerId = currentOwnerId();
+  var retained = readPendingEvents().filter(function (event) {
+    return !!event.ownerId && !!ownerId && event.ownerId === ownerId;
+  });
+  if (retained.length !== readPendingEvents().length) {
+    pendingEvents = retained;
+    persistPendingEvents();
+  }
+  var queued = retained.slice();
+  if (!queued.length) return;
   for (var i = 0; i < queued.length; i++) {
     deliverEvent(queued[i], token);
   }
@@ -122,9 +181,11 @@ function trackProductBehavior(eventName, payload) {
   var data = payload && typeof payload === "object" ? payload : {};
   var visitId = data.visitId || getOrCreateVisitId();
   track(eventName, {
+    eventVersion: data.eventVersion || 1,
     sessionId: data.sessionId || "",
     turnId: data.turnId || "",
     metadata: {
+      event_version: data.eventVersion || 1,
       visit_id: visitId,
       module: data.module || "",
       section: data.section || "",
@@ -149,9 +210,46 @@ function trackProductBehavior(eventName, payload) {
   });
 }
 
+function trackModuleView(page, payload) {
+  if (!page || page.__productBehaviorVisit) return;
+  var data = payload && typeof payload === "object" ? payload : {};
+  var visitId = getOrCreateVisitId();
+  page.__productBehaviorVisit = {
+    visitId: visitId,
+    startedAt: Date.now(),
+    module: data.module || "",
+    section: data.section || "home",
+  };
+  trackProductBehavior("module_viewed", {
+    visitId: visitId,
+    module: data.module || "",
+    section: data.section || "home",
+    action: "view",
+  });
+}
+
+function trackModuleExit(page, overrides) {
+  if (!page || !page.__productBehaviorVisit) return;
+  var active = page.__productBehaviorVisit;
+  page.__productBehaviorVisit = null;
+  var extra = overrides && typeof overrides === "object" ? overrides : {};
+  trackProductBehavior("module_exited", {
+    visitId: active.visitId,
+    module: active.module,
+    section: active.section,
+    action: extra.action || "return",
+    objectType: extra.objectType || "",
+    objectId: extra.objectId || "",
+    result: extra.result || "",
+    durationMs: Math.max(0, Date.now() - active.startedAt),
+  });
+}
+
 module.exports = {
   getOrCreateVisitId: getOrCreateVisitId,
   track: track,
   trackOnce: trackOnce,
   trackProductBehavior: trackProductBehavior,
+  trackModuleView: trackModuleView,
+  trackModuleExit: trackModuleExit,
 };

@@ -1432,6 +1432,7 @@ Page({
   },
 
   onShow() {
+    surfaceTelemetry.trackModuleView(this, { module: "learning_report", section: "home" });
     var workspaceBack = runtime.getWorkspaceBack(route.report());
     if (!flags.ensureFeatureEnabled("report")) return;
     this.setData({ isDark: helpers.isDarkOr("light") });
@@ -1471,6 +1472,14 @@ Page({
       learningBrainEmpty: false,
     });
       this._loadReportPage();
+  },
+
+  onHide() {
+    surfaceTelemetry.trackModuleExit(this);
+  },
+
+  onUnload() {
+    surfaceTelemetry.trackModuleExit(this);
   },
 
   async _loadReportSnapshot() {

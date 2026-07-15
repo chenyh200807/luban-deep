@@ -12,6 +12,7 @@ var route = require("../../utils/route");
 var flags = require("../../utils/flags");
 var auth = require("../../utils/auth");
 var learnViewModel = require("../../utils/learn-view-model");
+var surfaceTelemetry = require("../../utils/surface-telemetry");
 
 // [W5-3] Debounce timer for settings save
 var _saveTimer = null;
@@ -231,6 +232,7 @@ Page({
   },
 
   onShow: function () {
+    surfaceTelemetry.trackModuleView(this, { module: "profile", section: "home" });
     var workspaceBack = runtime.getWorkspaceBack(route.profile());
     var workspaceFlags = flags.getWorkspaceFlags();
     if (!flags.ensureFeatureEnabled("profile")) return;
@@ -255,6 +257,14 @@ Page({
     this._loadUserInfo();
     this._loadUsage();
     this._loadRoute();
+  },
+
+  onHide: function () {
+    surfaceTelemetry.trackModuleExit(this);
+  },
+
+  onUnload: function () {
+    surfaceTelemetry.trackModuleExit(this);
   },
 
   _loadUsage: function () {

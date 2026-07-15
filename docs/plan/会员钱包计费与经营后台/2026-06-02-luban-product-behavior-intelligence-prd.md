@@ -1,6 +1,6 @@
 # PRD：鲁班 Product Behavior Intelligence 产品行为智能系统
 
-- 状态：Implemented P0 locally（自动化与本地视觉/API 证据已完成；WeChat DevTools/真机与 production observation pending，不能标 Done）
+- 状态：P0.5 hardening implemented locally（2026-07-15：可靠 ACK、First Run 同步证据、主模块生命周期、会员 BI 决策面已实现；28 页真实包覆盖、DevTools/真机与 production observation 尚未闭环，不能标 Done）
 - 日期：2026-06-02
 - 复审：2026-06-02，按 CEO / 产品 / 工程 / 设计 review 加固场景矩阵、P0 触点、数据质量、运营队列、不确定性验证；v0.3 再按工程现实校准，收敛到复用现有 `surface-telemetry` 通路；v0.4 按执行计划工程复审收口为独立 `product_behavior.db` + indexed raw read model，daily/hourly aggregate 延后到 P1 或 volume gate
 - 归属主线：BI / 会员经营后台、学习工作台、Observability
@@ -13,6 +13,15 @@
   - [2026-05-20-luban-learning-report-read-model-execution-plan.md](../学习脑与学员记忆/2026-05-20-luban-learning-report-read-model-execution-plan.md)
 
 ## 1. 结论
+
+### 2026-07-15 加固裁决
+
+- First Run 正式完成仍只属于 `FirstRunWritebackService -> learner_state.learning_preferences.first_run`；行为账本中的 `result=synced,event_version>=2` 只是服务端写回成功后的漏斗证据，不得反向写 learner state。
+- 旧 `go_report/remind` 只算 CTA 历史信号，不进入完成数。
+- 产品行为持久化失败时不得先 ACK；同一 `event_id` 必须可重试。小程序事件在 durable ACK 前保留于有界本地队列。
+- BI 同时显示应覆盖、已开始、已完成、未开始和全员完成率；禁止只用“完成/已开始”掩盖完全没开始的会员。
+- 模块排行展示真实会员 UV/visit/行动/完成/退出事实，不把打开次数命名为“喜欢”或黑箱价值分。
+- 当前新增显式生命周期覆盖 7 个核心模块页面；其余 `packageDeeptutor` 页面仍需逐页覆盖矩阵和真实包回读，未达到 28/28 前不得宣称微信全覆盖。
 
 鲁班现在需要的不是零散埋点，也不是先接一个第三方看板把点击数画出来，而是一套产品行为事实系统：
 

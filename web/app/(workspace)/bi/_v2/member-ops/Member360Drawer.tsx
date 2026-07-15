@@ -68,6 +68,8 @@ export function Member360Drawer({
   const historyCount = behaviorSummary?.history_open_count_7d ?? member.behavior_history_7d ?? 0
   const actionCount = behaviorSummary?.action_start_count_7d ?? 0
   const eventCount = behaviorSummary?.event_count_7d ?? member.behavior_event_count_7d ?? 0
+  const firstRunStatus = behaviorSummary?.first_run_status ?? 'not_started'
+  const topModule = behaviorSummary?.top_module_7d ?? ''
   const notes = detail?.recent_notes ?? []
   const ledger = detail?.recent_ledger ?? []
   const canUpgradeToVip = tier !== 'VIP' && tier !== 'SVIP'
@@ -198,11 +200,13 @@ export function Member360Drawer({
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(300px,0.85fr)]">
           <Section title="行为证据" trust={behaviorTrust}>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div data-testid="bi-member-first-run-status" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <EvidenceStat label="行为样本" value={eventCount} />
               <EvidenceStat label="学情" value={learningReportCount} />
               <EvidenceStat label="历史" value={historyCount} />
               <EvidenceStat label="行动" value={actionCount} />
+              <EvidenceStat label="First Run" value={firstRunStatusLabel(firstRunStatus)} />
+              <EvidenceStat label="高使用模块" value={moduleLabel(topModule)} />
             </div>
 
             <div data-testid="bi-member-learning-report-breakdown" className="space-y-2">
@@ -462,6 +466,19 @@ function behaviorCohortLabel(cohort?: string): string {
   return cohort || '正常观察'
 }
 
+function firstRunStatusLabel(status: string): string {
+  if (status === 'completed') return '已完成'
+  if (status === 'in_progress') return '进行中'
+  if (status === 'sync_anomaly') return '同步异常'
+  if (status === 'truth_unavailable') return '真相不可用'
+  if (status === 'not_eligible') return '不在覆盖范围'
+  return '未开始'
+}
+
+function moduleLabel(module: string): string {
+  return ({ learning: '学习', chat: '问鲁班', history: '历史', learning_report: '学情', notebook: '错题本', practice: '练习', assessment: '测评', profile: '我的' } as Record<string, string>)[module] || module || '暂无'
+}
+
 function behaviorNextAction(cohort?: string): string {
   if (cohort === 'report_high_no_action') return '安排训练回访'
   if (cohort === 'history_high_no_review') return '发送错题复盘'
@@ -516,7 +533,7 @@ function MetricTile({ label, value }: { label: string; value: React.ReactNode })
   )
 }
 
-function EvidenceStat({ label, value }: { label: string; value: number }) {
+function EvidenceStat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.055] p-3">
       <div className="text-[11px] font-bold text-cyan-100/75">{label}</div>

@@ -3,6 +3,7 @@ const auth = require("../../utils/auth");
 const route = require("../../utils/route");
 const helpers = require("../../utils/helpers");
 const mistakeBookViewModel = require("../../utils/mistake-book-view-model");
+const surfaceTelemetry = require("../../utils/surface-telemetry");
 
 function buildAttemptCache(item) {
   return {
@@ -43,7 +44,16 @@ Page({
   },
 
   onShow() {
+    surfaceTelemetry.trackModuleView(this, { module: "notebook", section: "mistake_book" });
     this.setData({ isDark: helpers.isDark() });
+  },
+
+  onHide() {
+    surfaceTelemetry.trackModuleExit(this);
+  },
+
+  onUnload() {
+    surfaceTelemetry.trackModuleExit(this);
   },
 
   onPullDownRefresh() {
