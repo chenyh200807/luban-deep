@@ -93,7 +93,7 @@ Page({
     }
     if (typeof wx !== "undefined" && wx.navigateTo) {
       wx.navigateTo({
-        url: "/packageDeeptutor/pages/luban/stations/stations",
+        url: route.lubanTeachingPoints(),
       });
     }
   },

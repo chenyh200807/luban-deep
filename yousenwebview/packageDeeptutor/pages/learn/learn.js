@@ -256,9 +256,9 @@ Page({
     this._navTo("/packageDeeptutor/pages/luban/station/station?pack_id=" + encodeURIComponent(String(packId)));
   },
 
-  // 完整路线 → 站点列表(纸墨朱竹路线图)
+  // 完整路线 → 74 集 C 版强弱分句路线
   openStations() {
-    this._navTo("/packageDeeptutor/pages/luban/stations/stations");
+    this._navTo(route.lubanTeachingPoints());
   },
 
   // 复习到期条 → 复习页(10c 回炉屏, 归位);今日任务 → 现有 practice/chat

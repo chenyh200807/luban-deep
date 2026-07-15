@@ -40,6 +40,7 @@ var sandbox = {
       return {
         lubanTeachingPoints: function () { return "/teaching-points"; },
         lubanStations: function () { return "/stations"; },
+        learn: function () { return "/learn"; },
         lubanStation: function (packId, episode) { return "/station?pack_id=" + packId + "&episode=" + episode; },
       };
     }
@@ -96,6 +97,11 @@ assert.strictEqual(
   "ink/paper/red/paper/paper/paper/red/paper",
   "C 版必须按重色行、全纸行、镜像重色行的固定节拍排列",
 );
+assert.strictEqual(
+  sandbox.module.exports.C_TONE_PATTERN.map(function (row) { return row.join("/"); }).join("|"),
+  "ink/paper/red|paper/paper/paper|red/paper/ink|paper/paper/paper",
+  "C 版视觉节拍必须是强句、停顿、镜像强句、停顿",
+);
 
 var chapters = sandbox.module.exports.buildChapterSections(apiPayload.teaching_points);
 assert.strictEqual(chapters.length, 1);
@@ -129,6 +135,7 @@ page.setData = function (patch) { Object.assign(this.data, patch || {}); };
   var packNames = require(path.join(__dirname, "../packageDeeptutor/utils/pack-short-names.js"));
   assert(appConfig.indexOf("pages/luban/teaching-points/teaching-points") >= 0, "教学集页必须注册到小程序分包");
   assert(routeSource.indexOf("pages/luban/teaching-points/teaching-points") >= 0, "登录回跳白名单必须识别教学集页");
+  assert.strictEqual(route.lubanStations(), route.lubanTeachingPoints(), "所有完整路线入口必须立即归一到 C 版 74 集页面");
   assert(wxml.indexOf("chapterSections") >= 0, "74 张课卡必须由章节投影渲染");
   assert(wxml.indexOf("tp-card--{{card.tone}}") >= 0, "课卡必须消费 C 版固定色序");
   assert.strictEqual(Object.keys(packNames.SHORT_MAP).length, 40, "40 个当前考点都应有单列竖排短名");
