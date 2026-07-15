@@ -390,7 +390,10 @@ class AnthropicProvider(LLMProvider):
                 })
 
         stop_map = {"tool_use": "tool_calls", "end_turn": "stop", "max_tokens": "length"}
-        finish_reason = stop_map.get(response.stop_reason or "", response.stop_reason or "stop")
+        finish_reason = stop_map.get(
+            response.stop_reason or "",
+            response.stop_reason or "incomplete",
+        )
 
         usage: dict[str, int] = {}
         if response.usage:

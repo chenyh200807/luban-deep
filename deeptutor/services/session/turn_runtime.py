@@ -124,6 +124,7 @@ _PUBLIC_FAILED_MESSAGE = "本轮生成失败，后台已记录问题。请稍后
 _PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这道题内容较多，这次没批完，请把题目拆小一点再发一次。"
 _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE = "服务暂时繁忙，请稍后再试。"
 _PUBLIC_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
+_PUBLIC_MODEL_TRUNCATED_MESSAGE = "这次答案没有生成完整，已停止保存。请重新发送一次。"
 _PUBLIC_ORPHAN_RESTART_MESSAGE = "刚才服务重启，这条没答上，请再发一次。"
 _REQUEST_SNAPSHOT_REDACTED = "[redacted]"
 _REQUEST_SNAPSHOT_MAX_TEXT = 4000
@@ -666,6 +667,8 @@ def map_turn_failure_to_public_text(failure_kind: str | None, *, status: str = "
         return _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE
     if kind == "model_empty_answer":
         return _PUBLIC_MODEL_EMPTY_MESSAGE
+    if kind == "model_output_truncated":
+        return _PUBLIC_MODEL_TRUNCATED_MESSAGE
     if kind == "orphaned_on_restart":
         return _PUBLIC_ORPHAN_RESTART_MESSAGE
     return _PUBLIC_FAILED_MESSAGE
@@ -693,9 +696,9 @@ def _safe_terminal_assistant_content(
     failure_kind: str | None = None,
 ) -> str:
     fallback = map_turn_failure_to_public_text(failure_kind, status=status)
-    if str(failure_kind or "").strip():
-        # Typed failures map deterministically — partial/leaked content never
-        # overrides the mapper (it may BE the raw error body).
+    if str(status or "").strip() != "completed" or str(failure_kind or "").strip():
+        # Non-completed states map deterministically. Accumulated stream text is
+        # provisional transport, never canonical assistant history.
         return fallback
     source = str(assistant_content or "").strip()
     if not source:
@@ -712,6 +715,7 @@ _NON_CHARGEABLE_PUBLIC_MESSAGES = frozenset(
         _PUBLIC_BUDGET_EXHAUSTED_MESSAGE,
         _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE,
         _PUBLIC_MODEL_EMPTY_MESSAGE,
+        _PUBLIC_MODEL_TRUNCATED_MESSAGE,
         _PUBLIC_ORPHAN_RESTART_MESSAGE,
         "暂时未生成适合直接展示的答案，请重试一次。",
         "模型调用失败，请稍后重试。",
@@ -6684,6 +6688,35 @@ class TurnRuntimeManager:
     ) -> dict[str, Any]:
         metadata = dict(event.metadata or {})
         metadata = _sanitize_public_terminal_event(event, metadata)
+        failure_result = (
+            _extract_turn_failure(metadata)
+            if event.type == StreamEventType.RESULT
+            else None
+        )
+        if failure_result:
+            # Terminal fail-closed belt: even if a capability accidentally
+            # derives state from provisional content, a failed RESULT cannot
+            # mutate question/session business truth.
+            for key in (
+                "active_object",
+                "question_followup_context",
+                "presentation",
+                "suspended_object_stack",
+                "next_best_action",
+            ):
+                metadata.pop(key, None)
+            nested_metadata = metadata.get("metadata")
+            if isinstance(nested_metadata, dict):
+                nested_metadata = dict(nested_metadata)
+                for key in (
+                    "active_object",
+                    "question_followup_context",
+                    "presentation",
+                    "suspended_object_stack",
+                    "next_best_action",
+                ):
+                    nested_metadata.pop(key, None)
+                metadata["metadata"] = nested_metadata
         if event.type == StreamEventType.DONE and not metadata.get("status"):
             metadata["status"] = "completed"
         if event.type == StreamEventType.RESULT:
@@ -6710,8 +6743,10 @@ class TurnRuntimeManager:
             )
             if execution_path and not str(metadata.get("execution_path") or "").strip():
                 metadata["execution_path"] = execution_path
-            active_object = _result_active_object(metadata)
-            suspended_object_stack = _result_suspended_object_stack(metadata)
+            active_object = None if failure_result else _result_active_object(metadata)
+            suspended_object_stack = (
+                [] if failure_result else _result_suspended_object_stack(metadata)
+            )
             # object-continuity single-authority (E8/E1, 2026-06-22): turn-END is NOT a
             # second active_object writer. A grading turn judges ONE item of a batch set;
             # capabilities (tutorbot kb_first / deep_question) emit a single-question
@@ -6726,13 +6761,16 @@ class TurnRuntimeManager:
                 )
             if active_object is not None:
                 metadata["active_object"] = dict(active_object)
-            metadata["suspended_object_stack"] = list(suspended_object_stack)
+            if not failure_result:
+                metadata["suspended_object_stack"] = list(suspended_object_stack)
 
-            question_followup_context = (
-                extract_question_context_from_active_object(active_object)
-                if active_object is not None
-                else _result_question_followup_context(metadata)
-            )
+            question_followup_context = None
+            if not failure_result:
+                question_followup_context = (
+                    extract_question_context_from_active_object(active_object)
+                    if active_object is not None
+                    else _result_question_followup_context(metadata)
+                )
             if question_followup_context is not None and "question_followup_context" not in metadata:
                 metadata["question_followup_context"] = dict(question_followup_context)
             if active_object is not None:

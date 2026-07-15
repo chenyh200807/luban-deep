@@ -727,6 +727,8 @@ domains:
       # Battle1 W5/W1: single finalize pipeline behavior + think-strip streamer for protected loop.py.
       - tests/tutorbot/test_finalize_visible_answer_pipeline.py
       - tests/tutorbot/test_think_strip_streamer.py
+      # Terminal completeness for protected loop.py: length/max_tokens is typed failure.
+      - tests/services/test_terminal_error_semantics.py
       # B2/B4 followup 判定器提速差分 harness: 输出 schema 瘦身/输入载荷裁剪/快档 flag
       # 守门(protected question_followup.py, flag 关 = bit-for-bit 不变)。
       - tests/services/test_question_followup_prompt_slim_differential.py

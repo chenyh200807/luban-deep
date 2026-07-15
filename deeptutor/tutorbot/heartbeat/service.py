@@ -170,7 +170,7 @@ class HeartbeatService:
             model=self._decision_model(),
         )
 
-        if not response.has_tool_calls:
+        if not response.is_complete or not response.has_tool_calls:
             return "skip", ""
 
         args = response.tool_calls[0].arguments

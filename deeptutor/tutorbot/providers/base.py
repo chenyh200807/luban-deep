@@ -67,7 +67,9 @@ class LLMResponse:
     failures must keep their TYPE from birth. Error bodies are NEVER written
     into ``content`` (the learner-visible channel); they live in
     ``error_detail`` with ``failure_kind`` naming the class of failure, and
-    ``finish_reason == "error"`` marking the response non-final.
+    ``finish_reason == "error"`` marking a provider failure. The terminal
+    authority also treats provider length limits (``length`` / ``max_tokens``)
+    as non-final even when partial ``content`` exists.
     """
     content: str | None
     tool_calls: list[ToolCallRequest] = field(default_factory=list)
@@ -83,6 +85,28 @@ class LLMResponse:
     def has_tool_calls(self) -> bool:
         """Check if response contains tool calls."""
         return len(self.tool_calls) > 0
+
+    @property
+    def completion_failure_kind(self) -> str | None:
+        """Canonical completion verdict consumed before text or tools.
+
+        Provider adapters normalize successful terminal reasons to ``stop`` or
+        ``tool_calls``. Every other reason is non-final: partial content and
+        partial tool calls must not become a downstream truth or side effect.
+        """
+        reason = str(self.finish_reason or "").strip().lower()
+        if reason in {"stop", "tool_calls"}:
+            return None
+        if reason == "error":
+            return str(self.failure_kind or "").strip() or "provider_error"
+        if reason in {"length", "max_tokens"}:
+            return "model_output_truncated"
+        return "model_incomplete_response"
+
+    @property
+    def is_complete(self) -> bool:
+        """Whether content/tool calls are safe for a consumer to use."""
+        return self.completion_failure_kind is None
 
 
 # ---------------------------------------------------------------------------

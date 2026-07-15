@@ -9260,8 +9260,13 @@ async def test_tutorbot_capability_exports_turn_failure_to_result_event(
             self,
             *,
             session_metadata: dict[str, Any] | None = None,
+            on_content_delta=None,
             **_kwargs: Any,
         ) -> str:
+            if on_content_delta is not None:
+                await on_content_delta(
+                    "1. 临时题\nA. 10\nB. 20\n答案：B\n这是尚未完整的片段。"
+                )
             if session_metadata is not None:
                 session_metadata["turn_failure"] = {
                     "kind": "tool_budget_exhausted",
@@ -9298,3 +9303,6 @@ async def test_tutorbot_capability_exports_turn_failure_to_result_event(
     assert "maximum number of tool call iterations" not in str(
         result_events[-1].metadata.get("response") or ""
     )
+    assert result_events[-1].metadata.get("response") == ""
+    for forbidden in ("presentation", "question_followup_context", "active_object"):
+        assert forbidden not in result_events[-1].metadata

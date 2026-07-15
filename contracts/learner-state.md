@@ -50,6 +50,10 @@
 - 计数器只允许在一次**完整跑完两跳**（含 NO_CHANGE）之后重置；LLM 异常时不得重置，让陈旧计数下一轮立即重试。陈旧上限为 **per-worker N-1 个实质轮次**（`_MEMORY_GATE_TURN_THRESHOLD`）。
 - 与 S1 的关键结构差异（合理偏离）：`MemoryService` 没有事件账本，门状态是进程内**单实例**计数器（非 per-user 游标），因此没有 S1 的 evidence-scan 分支，也没有 backlog re-feed——被节流跳过的轮次不入账本、不回补。公开记忆是滚动文档、稳定事实会在后续轮次复现，此丢弃可接受；补一套账本属"发明新机制"，不做。
 - 门控决策计数走 observe-only Prometheus 计数器 `deeptutor_memory_maintainer_total{decision,outcome}`（`TurnRuntimeMetrics.record_memory_maintainer`），含 UVICORN_WORKERS>1 的多 worker 合并路径；与 `summary_maintainer` 同纪律、同 PR 上线。
+- TutorBot workspace memory consolidation 只能消费完整的 provider response；
+  `error`、`length`、`max_tokens`、缺失终止原因或其他 non-complete response 即使携带
+  partial `save_memory` tool payload，也不得写 PROFILE/SUMMARY/HISTORY。失败仍沿既有
+  bounded raw-archive recovery 计数，不得把截断的 LLM 参数提升成 durable memory truth。
 
 ### Learning Evidence Pipeline
 
