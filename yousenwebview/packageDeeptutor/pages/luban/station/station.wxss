@@ -55,31 +55,3 @@ web-view {
   font-size: 26rpx;
   color: var(--pk-t3);
 }
-
-.st-footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 100;
-  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: var(--pk-card);
-  border-top: 1rpx solid var(--pk-bd);
-}
-
-.st-primary {
-  height: 92rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 22rpx;
-  background: var(--pk-ink-btn);
-  color: var(--pk-ink-btn-t);
-  font-size: 30rpx;
-  font-weight: 800;
-  letter-spacing: 2rpx;
-}
-
-.st-primary:active {
-  opacity: 0.85;
-}

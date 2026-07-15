@@ -24,7 +24,7 @@
         "C07-html-practice-html-q4-3ff4600ca2e6",
         "C07-html-practice-html-q15-e2594578228f"
       ],
-      "published_practice_sha256": "bf882d0593e234f9d016bd510b7fcbc16b22bcb5f0ff6c8f65851c3727c6f016"
+      "published_practice_sha256": "ac63bc48ad4ed531a78627bf73913d3c8bda15df1ae0c72bf4aa964d85bb2fb4"
     }
   ],
   "items": [
@@ -284,5 +284,5 @@
       "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb"
     }
   ],
-  "published_lesson_sha256": "5f00eae0a475c87689ed28b35580772e7f982457fec6543c441f0fecb92c8789"
+  "published_lesson_sha256": "a467488ce316b0368465a071c86e9bc2f933f4b00928f95dfb93fdba8057b796"
 }

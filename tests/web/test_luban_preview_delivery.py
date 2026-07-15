@@ -48,6 +48,21 @@ def test_shared_card_runtime_is_self_hosted_and_integrity_pinned() -> None:
     assert "toWorkflowEvent" in runtime_source
 
 
+def test_every_hosted_card_versions_the_complete_shared_sheet_runtime() -> None:
+    """Wrapper-only runtime changes must invalidate long-lived WebView caches."""
+    root = ROOT / "web/public/luban-preview"
+    runtime = root / "vendor/luban-tutorbot-sheet-runtime.js"
+    expected = hashlib.sha256(runtime.read_bytes()).hexdigest()[:16]
+    pages = sorted(root.glob("*/lesson*.html")) + sorted(root.glob("*/practice*.html"))
+
+    assert len(pages) == 117
+    for page in pages:
+        source = page.read_text(encoding="utf-8")
+        match = re.search(r'luban-tutorbot-sheet-runtime\.js\?v=([0-9a-f]{16})', source)
+        assert match is not None, page
+        assert match.group(1) == expected, page
+
+
 def test_all_40_hosted_topics_and_74_teaching_episodes_preload_only_the_first_audio_segment() -> None:
     root = ROOT / "web/public/luban-preview"
     entry_lessons = sorted(root.glob("*/lesson.html"))
