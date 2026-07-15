@@ -139,6 +139,11 @@ class SubagentManager:
                     model=self.model,
                 )
 
+                if not response.is_complete:
+                    raise RuntimeError(
+                        f"incomplete model response: {response.completion_failure_kind}"
+                    )
+
                 if response.has_tool_calls:
                     tool_call_dicts = [
                         tc.to_openai_tool_call()

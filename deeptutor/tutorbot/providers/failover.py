@@ -44,8 +44,13 @@ class FailoverProvider(LLMProvider):
 
     @classmethod
     def _should_failover(cls, response: LLMResponse) -> bool:
-        if response.finish_reason == "error":
+        if response.completion_failure_kind and response.finish_reason == "error":
             return True
+        if not response.is_complete:
+            # A truncated primary may already have streamed provisional deltas.
+            # Reusing the callback for a fallback would concatenate two answers;
+            # preserve the typed incomplete result for the terminal consumer.
+            return False
         if response.has_tool_calls:
             return False
         return not cls._visible_text(response.content)
@@ -61,6 +66,15 @@ class FailoverProvider(LLMProvider):
         tool_choice: str | dict[str, Any] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
     ) -> LLMResponse:
+        primary_public_delta_emitted = False
+
+        async def _capture_primary_delta(text: str) -> None:
+            nonlocal primary_public_delta_emitted
+            if text:
+                primary_public_delta_emitted = True
+            if on_content_delta is not None:
+                await on_content_delta(text)
+
         primary_response = await self.primary.chat(
             messages=messages,
             tools=tools,
@@ -69,9 +83,11 @@ class FailoverProvider(LLMProvider):
             temperature=temperature,
             reasoning_effort=reasoning_effort,
             tool_choice=tool_choice,
-            on_content_delta=on_content_delta,
+            on_content_delta=(
+                _capture_primary_delta if on_content_delta is not None else None
+            ),
         )
-        if not self._should_failover(primary_response):
+        if primary_public_delta_emitted or not self._should_failover(primary_response):
             return primary_response
 
         logger.warning(

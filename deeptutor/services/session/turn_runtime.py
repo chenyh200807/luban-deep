@@ -696,9 +696,9 @@ def _safe_terminal_assistant_content(
     failure_kind: str | None = None,
 ) -> str:
     fallback = map_turn_failure_to_public_text(failure_kind, status=status)
-    if str(failure_kind or "").strip():
-        # Typed failures map deterministically — partial/leaked content never
-        # overrides the mapper (it may BE the raw error body).
+    if str(status or "").strip() != "completed" or str(failure_kind or "").strip():
+        # Non-completed states map deterministically. Accumulated stream text is
+        # provisional transport, never canonical assistant history.
         return fallback
     source = str(assistant_content or "").strip()
     if not source:
@@ -6688,6 +6688,35 @@ class TurnRuntimeManager:
     ) -> dict[str, Any]:
         metadata = dict(event.metadata or {})
         metadata = _sanitize_public_terminal_event(event, metadata)
+        failure_result = (
+            _extract_turn_failure(metadata)
+            if event.type == StreamEventType.RESULT
+            else None
+        )
+        if failure_result:
+            # Terminal fail-closed belt: even if a capability accidentally
+            # derives state from provisional content, a failed RESULT cannot
+            # mutate question/session business truth.
+            for key in (
+                "active_object",
+                "question_followup_context",
+                "presentation",
+                "suspended_object_stack",
+                "next_best_action",
+            ):
+                metadata.pop(key, None)
+            nested_metadata = metadata.get("metadata")
+            if isinstance(nested_metadata, dict):
+                nested_metadata = dict(nested_metadata)
+                for key in (
+                    "active_object",
+                    "question_followup_context",
+                    "presentation",
+                    "suspended_object_stack",
+                    "next_best_action",
+                ):
+                    nested_metadata.pop(key, None)
+                metadata["metadata"] = nested_metadata
         if event.type == StreamEventType.DONE and not metadata.get("status"):
             metadata["status"] = "completed"
         if event.type == StreamEventType.RESULT:
@@ -6714,8 +6743,10 @@ class TurnRuntimeManager:
             )
             if execution_path and not str(metadata.get("execution_path") or "").strip():
                 metadata["execution_path"] = execution_path
-            active_object = _result_active_object(metadata)
-            suspended_object_stack = _result_suspended_object_stack(metadata)
+            active_object = None if failure_result else _result_active_object(metadata)
+            suspended_object_stack = (
+                [] if failure_result else _result_suspended_object_stack(metadata)
+            )
             # object-continuity single-authority (E8/E1, 2026-06-22): turn-END is NOT a
             # second active_object writer. A grading turn judges ONE item of a batch set;
             # capabilities (tutorbot kb_first / deep_question) emit a single-question
@@ -6730,13 +6761,16 @@ class TurnRuntimeManager:
                 )
             if active_object is not None:
                 metadata["active_object"] = dict(active_object)
-            metadata["suspended_object_stack"] = list(suspended_object_stack)
+            if not failure_result:
+                metadata["suspended_object_stack"] = list(suspended_object_stack)
 
-            question_followup_context = (
-                extract_question_context_from_active_object(active_object)
-                if active_object is not None
-                else _result_question_followup_context(metadata)
-            )
+            question_followup_context = None
+            if not failure_result:
+                question_followup_context = (
+                    extract_question_context_from_active_object(active_object)
+                    if active_object is not None
+                    else _result_question_followup_context(metadata)
+                )
             if question_followup_context is not None and "question_followup_context" not in metadata:
                 metadata["question_followup_context"] = dict(question_followup_context)
             if active_object is not None:

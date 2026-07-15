@@ -196,7 +196,9 @@ async def test_failover_provider_uses_backup_model_when_primary_has_no_visible_c
 @pytest.mark.asyncio
 async def test_failover_provider_keeps_primary_tool_calls_without_backup() -> None:
     class PrimaryProvider(LLMProvider):
-        async def chat(self, **_kwargs):
+        async def chat(self, on_content_delta=None, **_kwargs):
+            if on_content_delta is not None:
+                await on_content_delta("partial")
             return LLMResponse(
                 content=None,
                 tool_calls=[
@@ -224,6 +226,98 @@ async def test_failover_provider_keeps_primary_tool_calls_without_backup() -> No
 
     assert response.has_tool_calls
     assert response.tool_calls[0].name == "rag"
+
+
+@pytest.mark.asyncio
+async def test_failover_provider_preserves_truncation_without_mixing_fallback_stream() -> None:
+    class PrimaryProvider(LLMProvider):
+        async def chat(self, on_content_delta=None, **_kwargs):
+            if on_content_delta is not None:
+                await on_content_delta("partial")
+            return LLMResponse(
+                content="partial",
+                finish_reason="length",
+                tool_calls=[
+                    ToolCallRequest(id="partial", name="rag", arguments={"query": "partial"})
+                ],
+            )
+
+        def get_default_model(self) -> str:
+            return "primary"
+
+    class BackupProvider(LLMProvider):
+        async def chat(self, **_kwargs):
+            raise AssertionError("truncated streamed responses must reach the terminal consumer")
+
+        def get_default_model(self) -> str:
+            return "backup"
+
+    provider = FailoverProvider(
+        primary=PrimaryProvider(),
+        fallback=BackupProvider(),
+        fallback_model="backup",
+    )
+
+    deltas: list[str] = []
+
+    async def _collect(text: str) -> None:
+        deltas.append(text)
+
+    response = await provider.chat(
+        messages=[{"role": "user", "content": "hi"}],
+        on_content_delta=_collect,
+    )
+
+    assert response.content == "partial"
+    assert not response.is_complete
+    assert deltas == ["partial"]
+
+
+@pytest.mark.asyncio
+async def test_failover_provider_does_not_mix_error_after_primary_stream_with_backup() -> None:
+    backup_calls = 0
+
+    class PrimaryProvider(LLMProvider):
+        async def chat(self, on_content_delta=None, **_kwargs):
+            if on_content_delta is not None:
+                await on_content_delta("primary partial")
+            return LLMResponse(
+                content=None,
+                finish_reason="error",
+                failure_kind="provider_timeout",
+                error_detail="stream timed out",
+            )
+
+        def get_default_model(self) -> str:
+            return "primary"
+
+    class BackupProvider(LLMProvider):
+        async def chat(self, **_kwargs):
+            nonlocal backup_calls
+            backup_calls += 1
+            return LLMResponse(content="backup complete")
+
+        def get_default_model(self) -> str:
+            return "backup"
+
+    provider = FailoverProvider(
+        primary=PrimaryProvider(),
+        fallback=BackupProvider(),
+        fallback_model="backup",
+    )
+    deltas: list[str] = []
+
+    async def _collect(text: str) -> None:
+        deltas.append(text)
+
+    response = await provider.chat(
+        messages=[{"role": "user", "content": "hi"}],
+        on_content_delta=_collect,
+    )
+
+    assert response.failure_kind == "provider_timeout"
+    assert backup_calls == 0
+    assert deltas == ["primary partial"]
 
 
 @pytest.mark.asyncio

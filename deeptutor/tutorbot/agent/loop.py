@@ -555,13 +555,29 @@ class AgentLoop:
         if external_runtime_metadata is not None:
             external_runtime_metadata.pop("turn_failure", None)
 
-    @staticmethod
-    def _response_was_truncated(response: Any) -> bool:
-        """Return whether the provider ended before producing a complete answer."""
-        return str(getattr(response, "finish_reason", "") or "").strip().lower() in {
-            "length",
-            "max_tokens",
-        }
+    @classmethod
+    def _record_incomplete_response(
+        cls,
+        response: Any,
+        runtime_metadata: dict[str, Any],
+        external_runtime_metadata: dict[str, Any] | None,
+    ) -> bool:
+        """Consume the provider response completion authority exactly once."""
+        failure_kind = str(getattr(response, "completion_failure_kind", "") or "").strip()
+        if not failure_kind:
+            return False
+        detail = str(getattr(response, "error_detail", "") or "").strip()
+        if not detail and failure_kind.startswith("provider"):
+            detail = str(getattr(response, "content", "") or "").strip()
+        if not detail:
+            detail = f"finish_reason={getattr(response, 'finish_reason', '')}"
+        cls._record_turn_failure(
+            runtime_metadata,
+            external_runtime_metadata,
+            kind=failure_kind,
+            detail=detail,
+        )
+        return True
 
     @staticmethod
     def _strip_think(text: str | None) -> str | None:
@@ -2163,6 +2179,16 @@ class AgentLoop:
                 iteration=iteration,
             )
 
+            # Completion authority is checked BEFORE content or tool calls.
+            # A truncated tool-call payload is data, not permission to execute.
+            if self._record_incomplete_response(
+                response,
+                runtime_metadata,
+                external_runtime_metadata,
+            ):
+                final_content = None
+                break
+
             if response.has_tool_calls:
                 if (
                     self._prefetched_case_exact_question_can_answer(runtime_metadata)
@@ -2306,29 +2332,6 @@ class AgentLoop:
                     )
             else:
                 clean = self._strip_think(response.content)
-                # Don't persist error responses to session history — they can
-                # poison the context and cause permanent 400 loops (#1303).
-                if response.finish_reason == "error":
-                    logger.error(
-                        "LLM returned error: {}", (response.error_detail or clean or "")[:200]
-                    )
-                    self._record_turn_failure(
-                        runtime_metadata,
-                        external_runtime_metadata,
-                        kind=response.failure_kind or "provider_error",
-                        detail=response.error_detail or clean or "",
-                    )
-                    final_content = None
-                    break
-                if self._response_was_truncated(response):
-                    self._record_turn_failure(
-                        runtime_metadata,
-                        external_runtime_metadata,
-                        kind="model_output_truncated",
-                        detail=f"finish_reason={response.finish_reason}",
-                    )
-                    final_content = None
-                    break
                 if not self._is_user_visible_final_answer(clean):
                     retry_messages = list(messages)
                     retry_messages.append(
@@ -2356,31 +2359,22 @@ class AgentLoop:
                         iteration=iteration,
                     )
                     clean = self._strip_think(response.content) or "".join(retry_parts).strip() or None
-                    if response.finish_reason == "error":
-                        logger.error(
-                            "LLM retry returned error: {}",
-                            (response.error_detail or clean or "")[:200],
-                        )
-                        self._record_turn_failure(
-                            runtime_metadata,
-                            external_runtime_metadata,
-                            kind=response.failure_kind or "provider_error",
-                            detail=response.error_detail or clean or "",
-                        )
-                        final_content = None
-                        break
-                    if self._response_was_truncated(response):
-                        self._record_turn_failure(
-                            runtime_metadata,
-                            external_runtime_metadata,
-                            kind="model_output_truncated",
-                            detail=f"finish_reason={response.finish_reason}",
-                        )
+                    if self._record_incomplete_response(
+                        response,
+                        runtime_metadata,
+                        external_runtime_metadata,
+                    ):
                         final_content = None
                         break
                     if not self._is_user_visible_final_answer(clean):
                         logger.error("LLM returned no user-visible final answer after retry")
-                        final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
+                        self._record_turn_failure(
+                            runtime_metadata,
+                            external_runtime_metadata,
+                            kind="model_empty_answer",
+                            detail="LLM returned no user-visible final answer after repair",
+                        )
+                        final_content = None
                     else:
                         final_content = clean
                         if on_content_delta and final_content:
@@ -3115,20 +3109,15 @@ class AgentLoop:
                 response,
                 call_site="fast_policy",
             )
-            clean = self._strip_think(response.content)
-            candidate = clean or "".join(streamed_parts).strip()
-            if response.finish_reason == "error":
-                final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
-                break
-            if self._response_was_truncated(response):
-                self._record_turn_failure(
-                    runtime_metadata,
-                    external_runtime_metadata,
-                    kind="model_output_truncated",
-                    detail=f"finish_reason={response.finish_reason}",
-                )
+            if self._record_incomplete_response(
+                response,
+                runtime_metadata,
+                external_runtime_metadata,
+            ):
                 final_content = None
                 break
+            clean = self._strip_think(response.content)
+            candidate = clean or "".join(streamed_parts).strip()
             if self._is_user_visible_final_answer(candidate):
                 final_content = candidate
                 break
@@ -3141,7 +3130,12 @@ class AgentLoop:
             )
 
         if final_content is None and not isinstance(runtime_metadata.get("turn_failure"), dict):
-            final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
+            self._record_turn_failure(
+                runtime_metadata,
+                external_runtime_metadata,
+                kind="model_empty_answer",
+                detail="fast policy returned no user-visible final answer after repair",
+            )
         messages = list(initial_messages)
         if final_content is not None:
             messages = self.context.add_assistant_message(

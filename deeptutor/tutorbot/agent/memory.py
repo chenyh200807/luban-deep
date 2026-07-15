@@ -166,6 +166,13 @@ class MemoryStore:
                     tool_choice="auto",
                 )
 
+            if not response.is_complete:
+                logger.warning(
+                    "Memory consolidation: incomplete LLM response (finish_reason={})",
+                    response.finish_reason,
+                )
+                return self._fail_or_raw_archive(messages)
+
             if not response.has_tool_calls:
                 logger.warning(
                     "Memory consolidation: LLM did not call save_memory "

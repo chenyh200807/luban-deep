@@ -86,6 +86,28 @@ class LLMResponse:
         """Check if response contains tool calls."""
         return len(self.tool_calls) > 0
 
+    @property
+    def completion_failure_kind(self) -> str | None:
+        """Canonical completion verdict consumed before text or tools.
+
+        Provider adapters normalize successful terminal reasons to ``stop`` or
+        ``tool_calls``. Every other reason is non-final: partial content and
+        partial tool calls must not become a downstream truth or side effect.
+        """
+        reason = str(self.finish_reason or "").strip().lower()
+        if reason in {"stop", "tool_calls"}:
+            return None
+        if reason == "error":
+            return str(self.failure_kind or "").strip() or "provider_error"
+        if reason in {"length", "max_tokens"}:
+            return "model_output_truncated"
+        return "model_incomplete_response"
+
+    @property
+    def is_complete(self) -> bool:
+        """Whether content/tool calls are safe for a consumer to use."""
+        return self.completion_failure_kind is None
+
 
 # ---------------------------------------------------------------------------
 # Provider error-body classification (typed-failure belt for 200-SSE streams)

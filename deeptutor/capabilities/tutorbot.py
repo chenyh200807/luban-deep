@@ -67,6 +67,35 @@ from deeptutor.tutorbot.response_mode import (
 )
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
+_RESULT_SAFE_DIAGNOSTIC_METADATA_KEYS = (
+    "question_lifecycle_decision",
+    "decision_source",
+    "scene_confidence",
+    "required_anchor_status",
+    "exact_question_blocked_reason",
+    "selected_skill_names",
+    "llm_scene_candidate",
+    "business_gate_result",
+    "question_lifecycle_scene",
+    "skill_stack",
+    "skill_trace",
+    "loader_source",
+    "skill_source_status",
+    "rag_retrieval_degraded",
+    "rag_retrieval_status",
+    "rag_retrieval_error_type",
+    "degraded_exact_answer_guard_applied",
+    "degraded_mcq_grading_guard_applied",
+    "content_truth_guard_applied",
+    "content_truth_low_confidence_claims",
+    "release_id",
+    "git_sha",
+    "deployment_environment",
+    "luban_general_knowledge_context",
+    "luban_general_knowledge_context_status",
+    "llm_stream_telemetry",
+)
+
 # WP3 Stage A（2026-07-12）窄隐式求助兜底表：06-30 红队证实会把自由 LLM 引到泄底的
 # 隐式求助形态。命中 = anti-peek 短路无条件开火（不消费、也不被 canonical LLM 裁决
 # 解除）——SEV 护栏不依赖 LLM 在场，这同时就是 LLM-down 兜底。注意：它在
@@ -605,6 +634,39 @@ class TutorBotCapability(BaseCapability):
                 session_metadata=session_metadata,
                 raw_user_content=self._raw_user_message(context),
             )
+            turn_failure = (
+                session_metadata.get("turn_failure")
+                if isinstance(session_metadata.get("turn_failure"), dict)
+                else None
+            )
+            if turn_failure and str(turn_failure.get("kind") or "").strip():
+                # Typed failure is terminal authority. Stream chunks are only
+                # provisional transport and must not be promoted back into a
+                # final answer or parsed into presentation/question state.
+                failure_payload: dict[str, Any] = {
+                    "response": "",
+                    "bot_id": bot_id,
+                    "execution_engine": "tutorbot_runtime",
+                    "authority_applied": False,
+                    "requested_response_mode": policy.requested_mode,
+                    "selected_mode": policy.selected_mode,
+                    "effective_response_mode": policy.effective_mode,
+                    "execution_path": str(session_metadata.get("execution_path") or "").strip()
+                    or policy.execution_path,
+                    "exact_fast_path_hit": False,
+                    "actual_tool_rounds": int(session_metadata.get("actual_tool_rounds") or 0),
+                    "turn_failure": dict(turn_failure),
+                }
+                for metadata_key in _RESULT_SAFE_DIAGNOSTIC_METADATA_KEYS:
+                    if metadata_key in session_metadata:
+                        failure_payload[metadata_key] = session_metadata[metadata_key]
+                await stream.emit(
+                    TerminalResultAssembler.build_event(
+                        source=self.name,
+                        metadata=failure_payload,
+                    )
+                )
+                return
             final_response = response or "".join(chunks)
             exact_state_summary = build_choice_result_summary_from_exact_question(
                 turn_summary["exact_question"]
@@ -700,42 +762,9 @@ class TutorBotCapability(BaseCapability):
             # question lifecycle builder ran). Diagnostic only; per
             # contracts/capability.md §硬约束 27 these must not feed
             # downstream routing or be student-visible.
-            for metadata_key in (
-                "question_lifecycle_decision",
-                "decision_source",
-                "scene_confidence",
-                "required_anchor_status",
-                "exact_question_blocked_reason",
-                "selected_skill_names",
-                "llm_scene_candidate",
-                "business_gate_result",
-                "question_lifecycle_scene",
-                "skill_stack",
-                "skill_trace",
-                "loader_source",
-                "skill_source_status",
-                "rag_retrieval_degraded",
-                "rag_retrieval_status",
-                "rag_retrieval_error_type",
-                "degraded_exact_answer_guard_applied",
-                "degraded_mcq_grading_guard_applied",
-                # ② content-truth review loop (observe-only): export the low-confidence
-                # regulation claims from session metadata into the result event so the
-                # terminal observation event + offline review agent can see them. Same
-                # diagnostic-only channel as the degraded_* flags above; never routes.
-                "content_truth_guard_applied",
-                "content_truth_low_confidence_claims",
-                # 律4 typed failure marker (kind/detail): turn runtime's single
-                # terminal mapper consumes it — maps the learner-visible text,
-                # commits the turn as failed (no completed fake-green), and
-                # redacts the raw detail from public events.
-                "turn_failure",
-                "release_id",
-                "git_sha",
-                "deployment_environment",
-                "luban_general_knowledge_context",
-                "luban_general_knowledge_context_status",
-                "llm_stream_telemetry",
+            for metadata_key in _RESULT_SAFE_DIAGNOSTIC_METADATA_KEYS + (
+                # Typed failure is exported only on the failure early-return;
+                # presentation is success-only content-derived state.
                 "presentation",
             ):
                 if metadata_key in session_metadata:

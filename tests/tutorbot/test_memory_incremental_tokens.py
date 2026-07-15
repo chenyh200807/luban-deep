@@ -35,6 +35,7 @@ sys.modules.setdefault("loguru", fake_loguru)
 
 import deeptutor.tutorbot.agent.memory as memory
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
+from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 from deeptutor.tutorbot.session.manager import Session
 
 _SYSTEM_PROMPT = (
@@ -84,6 +85,41 @@ def _make_session(n: int, *, key: str = "chan:chat") -> Session:
         )
         msgs.append({"role": role, "content": content})
     return Session(key=key, messages=msgs)
+
+
+@pytest.mark.asyncio
+async def test_memory_consolidation_rejects_truncated_tool_payload(tmp_path) -> None:
+    class TruncatedProvider(LLMProvider):
+        async def chat(self, *args, **kwargs):
+            return LLMResponse(
+                content="partial",
+                finish_reason="length",
+                tool_calls=[
+                    ToolCallRequest(
+                        id="partial",
+                        name="save_memory",
+                        arguments={
+                            "history_entry": "must not persist",
+                            "memory_update": "must not persist",
+                        },
+                    )
+                ],
+            )
+
+        def get_default_model(self) -> str:
+            return "fake"
+
+    store = memory.MemoryStore(tmp_path)
+
+    result = await store.consolidate(
+        [{"role": "user", "content": "remember this"}],
+        TruncatedProvider(),
+        "fake",
+    )
+
+    assert result is False
+    assert not store.memory_file.exists()
+    assert not store.history_file.exists()
 
 
 @pytest.mark.asyncio

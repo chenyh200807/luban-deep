@@ -100,14 +100,43 @@ def test_safe_terminal_content_failure_kind_overrides_partial_content() -> None:
     ) == map_turn_failure_to_public_text("provider_error")
 
 
-def test_safe_terminal_content_keeps_legacy_behavior_without_failure_kind() -> None:
+def test_safe_terminal_content_never_promotes_partial_on_non_completed_status() -> None:
     from deeptutor.services.session.turn_runtime import (
         _PUBLIC_CANCELLED_MESSAGE,
+        _PUBLIC_FAILED_MESSAGE,
         _safe_terminal_assistant_content,
     )
 
     assert _safe_terminal_assistant_content("", status="cancelled") == _PUBLIC_CANCELLED_MESSAGE
-    assert _safe_terminal_assistant_content("已经写好的部分答案。", status="cancelled") == "已经写好的部分答案。"
+    assert (
+        _safe_terminal_assistant_content("已经写好的部分答案。", status="cancelled")
+        == _PUBLIC_CANCELLED_MESSAGE
+    )
+    assert (
+        _safe_terminal_assistant_content("异常前的部分答案。", status="failed")
+        == _PUBLIC_FAILED_MESSAGE
+    )
+
+
+@pytest.mark.parametrize(
+    ("finish_reason", "expected_failure"),
+    [
+        ("stop", None),
+        ("tool_calls", None),
+        ("error", "provider_error"),
+        ("length", "model_output_truncated"),
+        ("max_tokens", "model_output_truncated"),
+        ("content_filter", "model_incomplete_response"),
+    ],
+)
+def test_llm_response_is_single_completion_authority(
+    finish_reason: str,
+    expected_failure: str | None,
+) -> None:
+    response = LLMResponse(content="partial", finish_reason=finish_reason)
+
+    assert response.completion_failure_kind == expected_failure
+    assert response.is_complete is (expected_failure is None)
 
 
 def test_new_failure_messages_are_not_chargeable() -> None:
@@ -307,6 +336,34 @@ async def test_openai_compat_stream_converts_error_body_to_typed_failure() -> No
 
 
 @pytest.mark.asyncio
+async def test_openai_compat_stream_without_terminal_chunk_is_incomplete() -> None:
+    provider = _openai_compat_provider_with_chunks([_sse_chunk("partial answer")])
+
+    response = await provider.chat_stream(
+        [{"role": "user", "content": "请完整回答"}],
+    )
+
+    assert response.content == "partial answer"
+    assert response.finish_reason == "incomplete"
+    assert response.completion_failure_kind == "model_incomplete_response"
+
+
+def test_anthropic_response_without_stop_reason_is_incomplete() -> None:
+    from deeptutor.tutorbot.providers.anthropic_provider import AnthropicProvider
+
+    response = AnthropicProvider._parse_response(
+        SimpleNamespace(
+            content=[SimpleNamespace(type="text", text="partial answer")],
+            stop_reason=None,
+            usage=None,
+        )
+    )
+
+    assert response.finish_reason == "incomplete"
+    assert response.completion_failure_kind == "model_incomplete_response"
+
+
+@pytest.mark.asyncio
 async def test_openai_compat_stream_normal_answer_is_byte_identical() -> None:
     text = (
         "施工缝留设要点：先看结构受力。调试报错时看到 Error: xxx 不要慌，"
@@ -399,6 +456,32 @@ class _TruncatedProvider(LLMProvider):
         if on_content_delta is not None:
             await on_content_delta(partial)
         return LLMResponse(content=partial, finish_reason="length")
+
+    def get_default_model(self) -> str:
+        return "fake-model"
+
+
+class _TruncatedToolProvider(LLMProvider):
+    async def chat(self, messages, tools=None, model=None, max_tokens=4096,
+                   temperature=0.7, reasoning_effort=None, tool_choice=None,
+                   on_content_delta=None) -> LLMResponse:
+        return LLMResponse(
+            content="正在检索",
+            finish_reason="length",
+            tool_calls=[
+                ToolCallRequest(id="partial", name="rag", arguments={"topic": "partial"})
+            ],
+        )
+
+    def get_default_model(self) -> str:
+        return "fake-model"
+
+
+class _InvisibleProvider(LLMProvider):
+    async def chat(self, messages, tools=None, model=None, max_tokens=4096,
+                   temperature=0.7, reasoning_effort=None, tool_choice=None,
+                   on_content_delta=None) -> LLMResponse:
+        return LLMResponse(content="<think>internal only</think>", finish_reason="stop")
 
     def get_default_model(self) -> str:
         return "fake-model"
@@ -518,6 +601,53 @@ async def test_fast_policy_truncated_output_is_typed_failure_not_history(tmp_pat
     assert final_content is None
     assert messages == initial
     assert metadata["turn_failure"]["kind"] == "model_output_truncated"
+
+
+@pytest.mark.asyncio
+async def test_truncated_tool_call_is_never_executed(tmp_path, monkeypatch) -> None:
+    loop = _build_agent_loop(_TruncatedToolProvider(), tmp_path, with_rag_tool=True)
+    executions: list[tuple[str, dict[str, Any]]] = []
+
+    async def _execute(name: str, arguments: dict[str, Any]) -> str:
+        executions.append((name, arguments))
+        return "must not run"
+
+    monkeypatch.setattr(loop.tools, "execute", _execute)
+    metadata: dict[str, Any] = {}
+    initial = [{"role": "user", "content": "请检索并计算"}]
+
+    final_content, _tools_used, messages = await loop._run_agent_loop(
+        initial,
+        runtime_metadata=metadata,
+    )
+
+    assert final_content is None
+    assert messages == initial
+    assert executions == []
+    assert metadata["turn_failure"]["kind"] == "model_output_truncated"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("policy", ["deep", "fast"])
+async def test_invisible_answer_is_typed_failure_not_completed_history(tmp_path, policy) -> None:
+    loop = _build_agent_loop(_InvisibleProvider(), tmp_path)
+    metadata: dict[str, Any] = {}
+    initial = [{"role": "user", "content": "请回答"}]
+
+    if policy == "deep":
+        final_content, _tools_used, messages = await loop._run_agent_loop(
+            initial,
+            runtime_metadata=metadata,
+        )
+    else:
+        final_content, messages, _streamed = await loop._run_fast_policy_once(
+            initial,
+            runtime_metadata=metadata,
+        )
+
+    assert final_content is None
+    assert messages == initial
+    assert metadata["turn_failure"]["kind"] == "model_empty_answer"
 
 
 @pytest.mark.asyncio
@@ -650,6 +780,26 @@ async def test_turn_runtime_budget_exhaustion_persists_failed_chinese_terminal(
                 source="tutorbot",
                 metadata={
                     "response": "",
+                    "presentation": {"type": "question_card"},
+                    "question_followup_context": {"question_id": "partial-q"},
+                    "active_object": {
+                        "object_type": "question",
+                        "object_id": "partial-q",
+                        "state_snapshot": {"question_id": "partial-q"},
+                    },
+                    "suspended_object_stack": [{"object_id": "old"}],
+                    "next_best_action": {"action": "practice"},
+                    "metadata": {
+                        "active_object": {
+                            "object_type": "question",
+                            "object_id": "nested-partial-q",
+                            "state_snapshot": {"question_id": "nested-partial-q"},
+                        },
+                        "question_followup_context": {"question_id": "nested-partial-q"},
+                        "suspended_object_stack": [{"object_id": "nested-old"}],
+                        "presentation": {"type": "nested-question-card"},
+                        "next_best_action": {"action": "nested-practice"},
+                    },
                     "turn_failure": {
                         "kind": "tool_budget_exhausted",
                         "budget": 4,
@@ -693,12 +843,101 @@ async def test_turn_runtime_budget_exhaustion_persists_failed_chinese_terminal(
     assert result_events
     assert result_events[-1]["metadata"]["error_code"] == "tool_budget_exhausted"
     assert "拆小" in result_events[-1]["metadata"]["response"]
+    for forbidden in (
+        "presentation",
+        "question_followup_context",
+        "active_object",
+        "suspended_object_stack",
+        "next_best_action",
+    ):
+        assert forbidden not in result_events[-1]["metadata"]
+        assert forbidden not in result_events[-1]["metadata"].get("metadata", {})
+    persisted_active_object = await store.get_active_object(session["id"])
+    assert str((persisted_active_object or {}).get("object_id") or "") != "partial-q"
+    assert str((persisted_active_object or {}).get("object_id") or "") != "nested-partial-q"
 
     done_events = [e for e in events if e.get("type") == "done"]
     assert done_events and done_events[-1]["metadata"]["status"] == "failed"
 
     persisted_events = await store.get_turn_events(turn["id"])
     assert BUDGET_SURROGATE_MARKER not in _public_events_text(persisted_events)
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_exception_after_partial_never_commits_partial_as_assistant(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    from deeptutor.services.session.turn_runtime import map_turn_failure_to_public_text
+
+    partial = "这是异常发生前尚未完成的半截答案"
+
+    class ExceptionAfterPartialOrchestrator:
+        async def handle(self, _context, **_kwargs):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="tutorbot",
+                stage="responding",
+                content=partial,
+                metadata={"call_kind": "llm_final_response"},
+            )
+            raise RuntimeError("synthetic terminal failure")
+
+    _install_runtime_fakes(monkeypatch, ExceptionAfterPartialOrchestrator)
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    free_trial_finalize_calls: list[dict[str, Any]] = []
+    learning_calls: list[object] = []
+
+    def _spy_finalize(_billing_context, **kwargs):
+        free_trial_finalize_calls.append(dict(kwargs))
+        return {"status": "released"}
+
+    monkeypatch.setattr(
+        runtime,
+        "_finalize_free_trial_reservation",
+        _spy_finalize,
+    )
+    monkeypatch.setattr(
+        runtime,
+        "_record_mobile_learning",
+        lambda *args, **kwargs: learning_calls.append((args, kwargs)),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "请完整回答",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "wallet_user_id": "terminal-failure-user",
+                    "free_trial": "reserved",
+                    "free_trial_reservation_key": "terminal-failure-reservation",
+                }
+            },
+        }
+    )
+    events = await _drain_turn(runtime, turn["id"])
+
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn["status"] == "failed"
+    detail = await store.get_session_with_messages(session["id"])
+    assistant_messages = [m for m in detail["messages"] if m["role"] == "assistant"]
+    assert len(assistant_messages) == 1
+    assert partial not in assistant_messages[0]["content"]
+    assert assistant_messages[0]["content"] == map_turn_failure_to_public_text(None)
+    error_events = [event for event in events if event.get("type") == "error"]
+    assert error_events and partial not in str(error_events[-1].get("content") or "")
+    done_events = [event for event in events if event.get("type") == "done"]
+    assert done_events[-1]["metadata"]["status"] == "failed"
+    assert len(free_trial_finalize_calls) == 1
+    assert free_trial_finalize_calls[0]["chargeable"] is False
+    assert learning_calls == []
 
 
 @pytest.mark.asyncio
