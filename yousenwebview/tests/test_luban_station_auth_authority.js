@@ -40,12 +40,12 @@ function makePage(definition) {
     "../../../utils/api": { getLubanLessons() { lessonCalls += 1; return Promise.resolve({}); } },
     "../../../utils/auth": { isLoggedIn: () => false },
     "../../../utils/helpers": {},
-    "../../../utils/route": { lubanStations: () => "/packageDeeptutor/pages/luban/stations/stations" },
+    "../../../utils/route": { lubanStations: () => "/packageDeeptutor/pages/luban/teaching-points/teaching-points" },
     "../../../utils/runtime": { redirectToLogin: (target) => { redirected = target; } },
     "../../../utils/learn-view-model": { buildLearnViewModel: () => ({}) },
   }));
   page.onLoad();
-  assert.strictEqual(redirected, "/packageDeeptutor/pages/luban/stations/stations");
+  assert.strictEqual(redirected, "/packageDeeptutor/pages/luban/teaching-points/teaching-points");
   assert.strictEqual(lessonCalls, 0, "anonymous route page must not call protected lessons API");
 }
 
@@ -95,13 +95,13 @@ function makePage(definition) {
     },
     "../../../utils/auth": { isLoggedIn: () => stationsLoggedIn },
     "../../../utils/helpers": {},
-    "../../../utils/route": { lubanStations: () => "/packageDeeptutor/pages/luban/stations/stations" },
+    "../../../utils/route": { lubanStations: () => "/packageDeeptutor/pages/luban/teaching-points/teaching-points" },
     "../../../utils/runtime": { redirectToLogin: (target) => { stationsRedirect = target; } },
     "../../../utils/learn-view-model": { buildLearnViewModel: () => ({}) },
   }));
   stationsPage.onLoad();
   await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.strictEqual(stationsRedirect, "/packageDeeptutor/pages/luban/stations/stations");
+  assert.strictEqual(stationsRedirect, "/packageDeeptutor/pages/luban/teaching-points/teaching-points");
   assert.strictEqual(stationsOptions.suppressAuthRedirect, true);
   assert.strictEqual(stationsPage.data.errorText, "", "expired route auth must redirect, not fabricate an empty route");
 

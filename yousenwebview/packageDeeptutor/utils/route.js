@@ -111,10 +111,12 @@ module.exports = {
     return withQuery("pages/learn/learn", query);
   },
   lubanStations: function (query) {
-    return withQuery("pages/luban/stations/stations", query);
+    // “完整路线”唯一入口是 40 考点 / 74 集的 C 版教学页。
+    // 旧 stations 页面仅保留历史链接兼容，不能继续成为第二套路线视觉。
+    return withQuery("pages/luban/teaching-points/teaching-points", query);
   },
-  lubanTeachingPoints: function () {
-    return resolve("pages/luban/teaching-points/teaching-points");
+  lubanTeachingPoints: function (query) {
+    return withQuery("pages/luban/teaching-points/teaching-points", query);
   },
   lubanStation: function (packId, episode) {
     var n = Number(episode || 1);

@@ -36,8 +36,9 @@ function instantiate(relativePath, dependencies, wxOverrides) {
   return page;
 }
 
-async function testStationsRefresh() {
+async function testStationsNormalizesToTeachingPoints() {
   var reportCalls = 0;
+  var redirectedTo = "";
   var api = {
     getLubanLessons: function () { return Promise.resolve({ items: [] }); },
     getLearningReport: function () { reportCalls += 1; return Promise.resolve({}); },
@@ -48,19 +49,22 @@ async function testStationsRefresh() {
     "../../../utils/api": api,
     "../../../utils/auth": { isLoggedIn: function () { return true; } },
     "../../../utils/helpers": { isDark: function () { return false; } },
-    "../../../utils/route": { lubanStations: function () { return "/stations"; } },
+    "../../../utils/route": {
+      lubanStations: function () { return "/teaching-points"; },
+      lubanTeachingPoints: function () { return "/teaching-points"; },
+    },
     "../../../utils/runtime": { redirectToLogin: function () {} },
     "../../../utils/learn-view-model": {
       buildLearnViewModel: function () { return { posters: [], litCount: 0, packUniverse: 40 }; },
     },
+  }, {
+    redirectTo: function (payload) { redirectedTo = payload.url; },
   });
 
   page.onLoad();
   page.onShow();
-  assert.strictEqual(reportCalls, 1, "first onShow must not duplicate onLoad requests");
-  await flush();
-  page.onShow();
-  assert.strictEqual(reportCalls, 2, "returning to stations must refresh exactly once");
+  assert.strictEqual(redirectedTo, "/teaching-points", "legacy stations route must normalize to the 74-card C route");
+  assert.strictEqual(reportCalls, 0, "legacy stations route must not fetch or render the competing 40-card projection");
 }
 
 async function testReviewRefresh() {
@@ -97,7 +101,7 @@ async function testReviewRefresh() {
 }
 
 (async function main() {
-  await testStationsRefresh();
+  await testStationsNormalizesToTeachingPoints();
   await testReviewRefresh();
   console.log("PASS test_luban_projection_refresh.js");
 })().catch(function (error) {

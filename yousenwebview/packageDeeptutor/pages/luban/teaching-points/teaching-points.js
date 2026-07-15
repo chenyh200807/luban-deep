@@ -152,7 +152,7 @@ Page({
       wx.navigateBack();
       return;
     }
-    if (typeof wx !== "undefined" && wx.redirectTo) wx.redirectTo({ url: route.lubanStations() });
+    if (typeof wx !== "undefined" && wx.redirectTo) wx.redirectTo({ url: route.learn() });
   },
 
   retry: function () {
