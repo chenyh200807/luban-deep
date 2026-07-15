@@ -884,7 +884,6 @@ Page({
 
   onLoad: function () {
     this._submitted = false;
-    trackBehavior("module_viewed", { module: "assessment", action: "view" });
     var info = helpers.getWindowInfo();
     this.setData({
       statusBarHeight: info.statusBarHeight,
@@ -896,19 +895,30 @@ Page({
   },
 
   onShow: function () {
+    surfaceTelemetry.trackModuleView(this, { module: "assessment", section: "home" });
     this.setData({ isDark: helpers.isDark() });
   },
 
+  onHide: function () {
+    this._trackModuleExit();
+  },
+
   onUnload: function () {
-    if (this.data.stage === "quiz" && !this._submitted) {
-      trackBehavior("module_exited", {
-        module: "assessment",
-        action: "return",
-        objectType: "assessment_quiz",
-        objectId: this._quizId || "",
-        result: "incomplete",
-      });
-    }
+    this._trackModuleExit();
+  },
+
+  _trackModuleExit: function () {
+    var incomplete = this.data.stage === "quiz" && !this._submitted;
+    surfaceTelemetry.trackModuleExit(
+      this,
+      incomplete
+        ? {
+            objectType: "assessment_quiz",
+            objectId: this._quizId || "",
+            result: "incomplete",
+          }
+        : null,
+    );
   },
 
   loadTopicCatalog: function () {

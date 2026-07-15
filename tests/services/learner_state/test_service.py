@@ -160,6 +160,29 @@ def _make_service(tmp_path, *, core_store=None):
     )
 
 
+def test_read_existing_profile_does_not_seed_missing_learner_state(tmp_path) -> None:
+    service = _make_service(tmp_path)
+
+    assert service.read_existing_profile("member-without-state") == {}
+    assert not (tmp_path / "learner_state" / "member-without-state").exists()
+
+
+def test_read_existing_profiles_propagates_canonical_store_failure(tmp_path) -> None:
+    class _FailingProfileBatchStore:
+        is_configured = True
+
+        def read_profiles(self, _user_ids: list[str]):
+            raise RuntimeError("supabase unavailable")
+
+    local_profile = tmp_path / "learner_state" / "member-a" / "PROFILE.json"
+    local_profile.parent.mkdir(parents=True)
+    local_profile.write_text('{"display_name":"stale local"}', encoding="utf-8")
+    service = _make_service(tmp_path, core_store=_FailingProfileBatchStore())
+
+    with pytest.raises(RuntimeError, match="supabase unavailable"):
+        service.read_existing_profiles(["member-a"])
+
+
 def test_learner_state_build_context_seeds_profile_summary_progress(tmp_path) -> None:
     service = _make_service(tmp_path)
 

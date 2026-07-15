@@ -216,7 +216,8 @@ def test_surface_event_router_surfaces_product_behavior_persistence_failure(monk
         )
 
     assert response.status_code == 202
-    assert response.json()["status"] == "accepted"
+    assert response.json()["accepted"] is False
+    assert response.json()["status"] == "retryable_persistence_failure"
     assert response.json()["product_behavior_status"] == "persistence_failed"
     snapshot = observability_module.get_surface_event_store().snapshot()
     assert {

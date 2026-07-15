@@ -481,7 +481,6 @@ Page({
   // ── 生命周期 ──────────────────────────────────
 
   onLoad: function (options) {
-    trackBehavior("module_viewed", { module: "chat", action: "view" });
     var info = helpers.getWindowInfo();
     var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
     var pendingInitialConversationId =
@@ -605,6 +604,7 @@ Page({
   },
 
   onShow: function () {
+    surfaceTelemetry.trackModuleView(this, { module: "chat", section: "home" });
     var self = this;
     var dark = helpers.isDark();
     var pendingConversationId =
@@ -711,6 +711,7 @@ Page({
   },
 
   onHide: function () {
+    surfaceTelemetry.trackModuleExit(this);
     // [FIX] 切后台时不中断流式会话，只暂停 observer 降低内存开销。
     // 切回 onShow 时流式输出继续，避免用户切 app 后内容断掉。
     // 只有 onUnload（页面销毁）才调 _stop() 中断连接。
@@ -718,6 +719,7 @@ Page({
     this._teardownObserver();
   },
   onUnload: function () {
+    surfaceTelemetry.trackModuleExit(this);
     this._flushDeferredWrites();
     this._stop();
     this._teardownObserver();

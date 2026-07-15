@@ -398,3 +398,187 @@ def test_default_product_behavior_store_uses_independent_sibling_db(
 
     assert Path(store.db_path) == tmp_path / "product_behavior.db"
     assert Path(store.db_path) != session_db
+
+
+def test_store_exposes_first_run_terminal_truth_and_member_module_usage(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    now_ms = int(time.time() * 1000)
+
+    events = [
+        ("start", "first_run_started", "first_run", "view", "act_war", "", "", 1),
+        ("question", "first_run_question_completed", "first_run", "complete", "", "question", "correct", 1),
+        ("legacy", "learning_action_completed", "first_run", "complete", "", "script", "go_report", 1),
+        ("terminal", "learning_action_completed", "first_run", "complete", "", "script", "synced", 2),
+        ("history", "module_viewed", "history", "view", "", "", "", 1),
+        ("report", "module_viewed", "learning_report", "view", "", "", "", 1),
+        ("training", "learning_action_started", "learning_report", "start_training", "next_action", "", "", 1),
+    ]
+    for index, (suffix, event_name, module, action, section, object_type, result, version) in enumerate(events):
+        store.record_event(
+            {
+                "event_id": f"evt-{suffix}",
+                "event_name": event_name,
+                "event_version": version,
+                "occurred_at_ms": now_ms + index,
+                "received_at_ms": now_ms + index,
+                "user_id": "canonical-u1" if index % 2 else "legacy-u1",
+                "visit_id": "visit-u1",
+                "session_id": "",
+                "turn_id": "",
+                "surface": "wechat_yousenwebview",
+                "module": module,
+                "section": section,
+                "action": action,
+                "properties_json": {
+                    "object_type": object_type,
+                    "result": result,
+                },
+            }
+        )
+
+    summary = store.get_member_behavior_summaries_for_identity_groups(
+        {"member-u1": ["legacy-u1", "canonical-u1"]},
+        days=7,
+    )["member-u1"]
+
+    assert summary["first_run_evidence_status"] == "completed"
+    assert summary["first_run_question_count"] == 1
+    assert summary["first_run_legacy_completion_count"] == 1
+    assert summary["top_module_7d"] == "learning_report"
+    assert summary["module_usage_7d"][0] == {
+        "module": "learning_report",
+        "view_count": 1,
+        "action_count": 1,
+        "completion_count": 0,
+        "event_count": 2,
+    }
+
+
+def test_store_builds_real_member_product_usage_overview_without_raw_ledger_leak(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    now_ms = int(time.time() * 1000)
+
+    def record(
+        event_id: str,
+        user_id: str,
+        event_name: str,
+        module: str,
+        action: str,
+        *,
+        visit_id: str,
+        section: str = "",
+        object_type: str = "",
+        result: str = "",
+        event_version: int = 1,
+        duration_ms: int = 0,
+    ) -> None:
+        store.record_event(
+            {
+                "event_id": event_id,
+                "event_name": event_name,
+                "event_version": event_version,
+                "occurred_at_ms": now_ms,
+                "received_at_ms": now_ms,
+                "user_id": user_id,
+                "visit_id": visit_id,
+                "session_id": "",
+                "turn_id": "",
+                "surface": "wechat_yousenwebview",
+                "module": module,
+                "section": section,
+                "action": action,
+                "properties_json": {
+                    "object_type": object_type,
+                    "result": result,
+                    "duration_ms": duration_ms,
+                },
+            }
+        )
+
+    record("start-1", "legacy-u1", "first_run_started", "first_run", "view", visit_id="visit-1", section="act_war")
+    record("question-1", "canonical-u1", "first_run_question_completed", "first_run", "complete", visit_id="visit-1")
+    record(
+        "complete-1",
+        "canonical-u1",
+        "learning_action_completed",
+        "first_run",
+        "complete",
+        visit_id="visit-1",
+        object_type="script",
+        result="synced",
+        event_version=2,
+    )
+    record("history-view-1", "canonical-u1", "module_viewed", "history", "view", visit_id="visit-1")
+    record("history-exit-1", "canonical-u1", "module_exited", "history", "return", visit_id="visit-1", duration_ms=4_000)
+    record("history-view-2", "canonical-u2", "module_viewed", "history", "view", visit_id="visit-2")
+    record("chat-view", "internal-qa", "module_viewed", "chat", "view", visit_id="qa-visit")
+
+    overview = store.get_product_usage_overview_for_identity_groups(
+        {
+            "member-u1": ["legacy-u1", "canonical-u1"],
+            "member-u2": ["canonical-u2"],
+        },
+        days=7,
+    )
+
+    assert overview["tracked_member_count"] == 2
+    assert overview["first_run"] == {
+        "started_member_count": 1,
+        "eligible_member_count": 2,
+        "not_started_member_count": 1,
+        "question_member_count": 1,
+        "completed_member_count": 1,
+        "legacy_completion_member_count": 0,
+        "completion_rate": 1.0,
+        "completion_rate_of_eligible": 0.5,
+    }
+    assert overview["module_usage"][0] == {
+        "module": "history",
+        "member_count": 2,
+        "visit_count": 2,
+        "view_count": 2,
+        "action_count": 0,
+        "completion_count": 0,
+        "exit_count": 1,
+        "quick_exit_count": 1,
+    }
+    assert all(row["module"] != "chat" for row in overview["module_usage"])
+
+
+def test_identity_collision_is_excluded_instead_of_double_attributed(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    now_ms = int(time.time() * 1000)
+    store.record_event(
+        {
+            "event_id": "shared-identity-view",
+            "event_name": "module_viewed",
+            "event_version": 1,
+            "occurred_at_ms": now_ms,
+            "received_at_ms": now_ms,
+            "user_id": "shared-alias",
+            "visit_id": "visit-shared",
+            "session_id": "",
+            "turn_id": "",
+            "surface": "wechat_yousenwebview",
+            "module": "history",
+            "section": "home",
+            "action": "view",
+            "properties_json": {},
+        }
+    )
+    identity_groups = {
+        "member-a": ["member-a", "shared-alias"],
+        "member-b": ["member-b", "shared-alias"],
+    }
+
+    summaries = store.get_member_behavior_summaries_for_identity_groups(identity_groups, days=7)
+    overview = store.get_product_usage_overview_for_identity_groups(identity_groups, days=7)
+
+    assert summaries["member-a"]["event_count_7d"] == 0
+    assert summaries["member-b"]["event_count_7d"] == 0
+    assert overview["tracked_member_count"] == 0
+    assert overview["module_usage"] == []
+    assert overview["identity_collision_count"] == 1
+    assert overview["identity_collision_member_count"] == 2
+    assert summaries["member-a"]["identity_collision_count"] == 1
+    assert summaries["member-a"]["trust_level"] == "C"

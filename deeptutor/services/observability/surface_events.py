@@ -96,6 +96,40 @@ class SurfaceEventStore:
                     "event_name": event_name,
                 }
 
+        if product_event is not None:
+            product_behavior_status = self._record_product_behavior_event(
+                event_id=event_id,
+                event_name=event_name,
+                normalized_metadata=normalized_metadata,
+                collected_at_ms=collected_at_ms,
+                ingested_at_ms=ingested_at_ms,
+                user_id=user_id,
+                session_id=session_id,
+                turn_id=turn_id,
+                surface=surface,
+                product_event=product_event,
+            )
+            if product_behavior_status == "persistence_failed":
+                return {
+                    "accepted": False,
+                    "status": "retryable_persistence_failure",
+                    "event_id": event_id,
+                    "surface": surface,
+                    "event_name": event_name,
+                    "product_behavior_status": product_behavior_status,
+                }
+
+        with self._lock:
+            if event_id in self._seen_event_ids:
+                self._event_status_counts[(surface, event_name, "duplicate")] += 1
+                return {
+                    "accepted": False,
+                    "status": "duplicate",
+                    "event_id": event_id,
+                    "surface": surface,
+                    "event_name": event_name,
+                    "product_behavior_status": product_behavior_status,
+                }
             if len(self._recent_event_ids) == self._recent_event_ids.maxlen:
                 evicted = self._recent_event_ids.popleft()
                 self._seen_event_ids.discard(evicted)
@@ -117,19 +151,6 @@ class SurfaceEventStore:
                     "ingested_at_ms": ingested_at_ms,
                     "metadata": normalized_metadata,
                 }
-            )
-        if product_event is not None:
-            product_behavior_status = self._record_product_behavior_event(
-                event_id=event_id,
-                event_name=event_name,
-                normalized_metadata=normalized_metadata,
-                collected_at_ms=collected_at_ms,
-                ingested_at_ms=ingested_at_ms,
-                user_id=user_id,
-                session_id=session_id,
-                turn_id=turn_id,
-                surface=surface,
-                product_event=product_event,
             )
         response = {
             "accepted": True,

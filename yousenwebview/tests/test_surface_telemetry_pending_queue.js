@@ -20,7 +20,7 @@ function loadTelemetry(state) {
     "utf8",
   );
   var requests = [];
-  var storage = {};
+  var storage = state.storage || {};
   var sandbox = {
     console: console,
     Date: Date,
@@ -28,7 +28,10 @@ function loadTelemetry(state) {
     module: { exports: {} },
     require: function (request) {
       if (request === "./auth") {
-        return { getToken: function () { return state.token; } };
+        return {
+          getToken: function () { return state.token; },
+          getUserId: function () { return state.userId || ""; },
+        };
       }
       if (request === "./endpoints") {
         return { getPrimaryBaseUrl: function () { return "https://example.test"; } };
@@ -40,6 +43,8 @@ function loadTelemetry(state) {
         requests.push(options);
         if (state.networkOnline === false && typeof options.fail === "function") {
           options.fail({ errMsg: "request:fail network disconnected" });
+        } else if (state.autoRespond && typeof options.success === "function") {
+          options.success({ data: { accepted: true, status: "accepted" } });
         }
       },
       getStorageSync: function (key) { return storage[key]; },
@@ -48,10 +53,10 @@ function loadTelemetry(state) {
   };
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox, { filename: "surface-telemetry.js" });
-  return { telemetry: sandbox.module.exports, requests: requests };
+  return { telemetry: sandbox.module.exports, requests: requests, storage: storage };
 }
 
-(function testPreAuthQueueFlushesAfterLogin() {
+(function testPreAuthQueueIsNotAttributedToLaterLogin() {
   var state = { token: "", networkOnline: true };
   var loaded = loadTelemetry(state);
   loaded.telemetry.track("module_viewed", {
@@ -62,16 +67,47 @@ function loadTelemetry(state) {
   loaded.telemetry.track("auth_result", {
     metadata: { module: "login", action: "complete", result: "success" },
   });
-  assert(loaded.requests.length === 2, "login flushes queued event before current event");
+  assert(loaded.requests.length === 1, "login discards unowned pre-auth event instead of attributing it to the member");
   assert(
-    loaded.requests[0].data.event_name === "module_viewed" &&
-      loaded.requests[1].data.event_name === "auth_result",
-    "pre-auth order is preserved",
+    loaded.requests[0].data.event_name === "auth_result",
+    "only the authenticated member event is sent",
   );
 })();
 
+(function testAsyncRequestsDoNotResendInFlightQueue() {
+  var state = { token: "tok", userId: "member-a", networkOnline: true };
+  var loaded = loadTelemetry(state);
+  for (var i = 0; i < 10; i++) {
+    loaded.telemetry.track("module_viewed", {
+      metadata: { module: "learning", action: "view", index: i },
+    });
+  }
+  assert(loaded.requests.length === 10, "ten in-flight events produce ten requests, not a triangular retry storm");
+  loaded.requests.forEach(function (request) {
+    request.success({ data: { accepted: true, status: "accepted" } });
+  });
+})();
+
+(function testAccountSwitchDoesNotReplayPriorOwnerEvents() {
+  var state = { token: "tok-a", userId: "member-a", networkOnline: false };
+  var loaded = loadTelemetry(state);
+  loaded.telemetry.track("module_viewed", {
+    metadata: { module: "history", action: "view" },
+  });
+  var priorEventId = loaded.requests[0].data.event_id;
+  state.token = "tok-b";
+  state.userId = "member-b";
+  state.networkOnline = true;
+  state.autoRespond = true;
+  loaded.telemetry.track("module_viewed", {
+    metadata: { module: "chat", action: "view" },
+  });
+  assert(loaded.requests.length === 2, "account switch drops mismatched owner event instead of replaying it");
+  assert(loaded.requests[1].data.event_id !== priorEventId, "new owner only sends its own event");
+})();
+
 (function testNetworkFailureRetriesStableEnvelope() {
-  var state = { token: "tok", networkOnline: false };
+  var state = { token: "tok", userId: "member-a", networkOnline: false };
   var loaded = loadTelemetry(state);
   loaded.telemetry.track("chat_message_sent", {
     metadata: { module: "chat", action: "send" },

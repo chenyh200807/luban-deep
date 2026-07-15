@@ -10,6 +10,7 @@ FastAPI = pytest.importorskip("fastapi").FastAPI
 TestClient = pytest.importorskip("fastapi.testclient").TestClient
 
 from deeptutor.api.dependencies import AuthContext, get_current_user
+from deeptutor.services.observability.surface_events import SurfaceEventStore
 
 observability_router = importlib.import_module("deeptutor.api.routers.observability").router
 observability_module = importlib.import_module("deeptutor.services.observability")
@@ -77,3 +78,33 @@ def test_product_behavior_p0_surface_event_to_member_summary(tmp_path) -> None:
     assert summary["learning_report_open_count_7d"] == 1
     assert summary["history_open_count_7d"] == 1
     assert sections == [{"section": "next_action", "view_count": 1}]
+
+
+def test_product_behavior_persistence_failure_allows_same_event_id_retry(monkeypatch) -> None:
+    attempts = []
+
+    class FlakyStore:
+        def record_event(self, event):
+            attempts.append(event["event_id"])
+            if len(attempts) == 1:
+                raise RuntimeError("temporary sqlite failure")
+            return {"accepted": True, "status": "accepted", "event_id": event["event_id"]}
+
+    monkeypatch.setattr(observability_module, "get_product_behavior_store", lambda: FlakyStore())
+    store = SurfaceEventStore()
+    payload = {
+        "event_id": "evt-retry-1",
+        "surface": "wechat_yousenwebview",
+        "event_name": "module_viewed",
+        "user_id": "member-1",
+        "metadata": {"visit_id": "visit-1", "module": "learning", "action": "view"},
+    }
+
+    first = store.ingest(payload)
+    second = store.ingest(payload)
+
+    assert first["accepted"] is False
+    assert first["status"] == "retryable_persistence_failure"
+    assert second["accepted"] is True
+    assert second["product_behavior_status"] == "accepted"
+    assert attempts == ["evt-retry-1", "evt-retry-1"]

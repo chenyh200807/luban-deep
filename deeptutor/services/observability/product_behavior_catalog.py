@@ -56,7 +56,9 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
         "assessment_prompt_result",
         # 首跑剧本（2026-07-10 登记，计划 §4 G0）：module=first_run。
         # 维度约定: 幕曝光=module_viewed(section=act_*), 逃生舱=module_exited(dismiss),
-        # 剧本完成=learning_action_completed(object_type=script, result=go_report|remind),
+        # 服务端写回成功证据=learning_action_completed(object_type=script, result=synced,
+        # event_version>=2)；正式完成仍只读 learner_state marker。go_report/remind 是废弃 CTA 信号，
+        # 只允许历史数据兼容，不得再由客户端生产或进入完成率。
         # d1_return 由 BI 按用户×日期从任意事件派生, 不设独立事件名。
         "first_run_started",
         "first_run_question_completed",

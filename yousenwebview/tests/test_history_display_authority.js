@@ -147,6 +147,9 @@ function loadHistoryPage(rawConversations, initialStorage) {
           },
         };
       }
+      if (request === "../../utils/surface-telemetry") {
+        return { trackModuleView: function () {}, trackModuleExit: function () {} };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {

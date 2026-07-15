@@ -71,6 +71,7 @@ from deeptutor.services.assessment.topic_catalog import (
 )
 from deeptutor.services.assessment.writeback import AssessmentWritebackService
 from deeptutor.services.learner_state.mistake_book import MistakeBookService
+from deeptutor.services.first_run.status import project_first_run_completion
 from deeptutor.services.learner_state.progress_feedback import (
     build_progress_feedback,
     build_progress_feedback_from_learner_snapshot,
@@ -117,6 +118,7 @@ from deeptutor.services.wallet.identity import is_uuid_like
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
 BI_OPERATION_START_AT = datetime(2026, 6, 22, 0, 0, tzinfo=_TZ)
+FIRST_RUN_OPERATION_START_AT = datetime(2026, 7, 11, 0, 0, tzinfo=_TZ)
 _MEMBERSHIP_PACKAGE_ALIASES = {
     "light_99": "light_98",
     "light99": "light_98",
@@ -4001,6 +4003,13 @@ class MemberConsoleService:
             "action_start_count_7d": 0,
             "event_count_7d": 0,
             "last_event_at_ms": 0,
+            "first_run_status": "truth_unavailable",
+            "first_run_evidence_status": "not_started",
+            "first_run_question_count": 0,
+            "first_run_completion_count": 0,
+            "first_run_legacy_completion_count": 0,
+            "top_module_7d": "",
+            "module_usage_7d": [],
             "cohort": "",
             "cohort_reasons": [],
             "next_action": "检查埋点状态",
@@ -4055,11 +4064,13 @@ class MemberConsoleService:
             section_groups = getattr(store, "get_learning_report_section_breakdown_for_identity_group", None)
             timeline_groups = getattr(store, "get_member_timeline_for_identity_group", None)
             if callable(summary_groups) and callable(section_groups) and callable(timeline_groups):
-                return {
-                    "summary": summary_groups({user_id: identities}, days=7).get(
+                summary = summary_groups({user_id: identities}, days=7).get(
                         user_id,
                         self._fallback_member_behavior_summary(),
-                    ),
+                    )
+                summary = self._overlay_canonical_first_run([member], {user_id: summary})[user_id]
+                return {
+                    "summary": summary,
                     "learning_report_sections": section_groups(identities, days=7),
                     "timeline": timeline_groups(identities, days=7, limit=20),
                 }
@@ -4085,14 +4096,118 @@ class MemberConsoleService:
             store = self._get_product_behavior_store()
             grouped_loader = getattr(store, "get_member_behavior_summaries_for_identity_groups", None)
             if callable(grouped_loader):
-                return grouped_loader(group_by_user_id, days=7)
-            return self._load_member_behavior_summaries(list(group_by_user_id))
+                summaries = grouped_loader(group_by_user_id, days=7)
+            else:
+                summaries = self._load_member_behavior_summaries(list(group_by_user_id))
+            return self._overlay_canonical_first_run(members, summaries)
         except Exception:
             logger.warning("Failed to load product behavior summaries for member list", exc_info=True)
             return {
                 user_id: self._fallback_member_behavior_summary()
                 for user_id in group_by_user_id
             }
+
+    @staticmethod
+    def _is_first_run_eligible(member: dict[str, Any]) -> bool:
+        if not str(member.get("created_at") or "").strip():
+            return False
+        try:
+            return _parse_time(member.get("created_at")).astimezone(_TZ) >= FIRST_RUN_OPERATION_START_AT
+        except Exception:
+            return False
+
+    def _overlay_canonical_first_run(
+        self,
+        members: list[dict[str, Any]],
+        summaries: dict[str, dict[str, Any]],
+    ) -> dict[str, dict[str, Any]]:
+        learner_state_service = self._get_learner_state_service()
+        batch_reader = getattr(learner_state_service, "read_existing_profiles", None)
+        if not callable(batch_reader):
+            return {
+                str(member.get("user_id") or "").strip(): {
+                    **dict(
+                        summaries.get(str(member.get("user_id") or "").strip())
+                        or self._fallback_member_behavior_summary()
+                    ),
+                    "first_run_status": (
+                        "truth_unavailable" if self._is_first_run_eligible(member) else "not_eligible"
+                    ),
+                }
+                for member in members
+                if str(member.get("user_id") or "").strip()
+            }
+
+        candidates = [member for member in members if str(member.get("user_id") or "").strip()]
+        identity_owners: dict[str, set[str]] = {}
+        for member in candidates:
+            if not self._is_first_run_eligible(member):
+                continue
+            user_id = str(member.get("user_id") or "").strip()
+            for identity in self._member_behavior_identity_group(member):
+                identity_owners.setdefault(identity, set()).add(user_id)
+        safe_identities = {
+            identity for identity, owners in identity_owners.items() if len(owners) == 1
+        }
+        identities = sorted(safe_identities)
+        try:
+            profiles = batch_reader(identities)
+            canonical_truth_available = True
+        except Exception:
+            logger.warning("Failed to batch-read canonical First Run truth", exc_info=True)
+            profiles = {}
+            canonical_truth_available = False
+
+        def load(member: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+            user_id = str(member.get("user_id") or "").strip()
+            summary = dict(summaries.get(user_id) or self._fallback_member_behavior_summary())
+            evidence_status = str(summary.get("first_run_evidence_status") or "not_started")
+            if not self._is_first_run_eligible(member):
+                summary.update(
+                    {
+                        "first_run_status": "not_eligible",
+                        "first_run_completed_at": "",
+                        "first_run_script_version": "",
+                        "first_run_truth_source": "learner_state.learning_preferences.first_run",
+                    }
+                )
+                return user_id, summary
+            if not canonical_truth_available:
+                summary["first_run_status"] = "truth_unavailable"
+                return user_id, summary
+            try:
+                projection = project_first_run_completion({})
+                for identity in self._member_behavior_identity_group(member):
+                    if identity not in safe_identities:
+                        continue
+                    candidate = project_first_run_completion(profiles.get(identity))
+                    if candidate["completed"]:
+                        projection = candidate
+                        break
+                status = (
+                    "completed"
+                    if projection["completed"]
+                    else "sync_anomaly"
+                    if evidence_status == "completed"
+                    else "in_progress"
+                    if evidence_status in {"in_progress", "legacy_completion_signal"}
+                    else "not_started"
+                )
+                summary.update(
+                    {
+                        "first_run_status": status,
+                        "first_run_completed_at": projection["completed_at"],
+                        "first_run_script_version": projection["script_version"],
+                        "first_run_truth_source": projection["source"],
+                    }
+                )
+            except Exception:
+                summary["first_run_status"] = "truth_unavailable"
+            return user_id, summary
+
+        if not candidates:
+            return summaries
+        return {user_id: summary for user_id, summary in map(load, candidates)}
 
     def _load_member_behavior_summaries_in_batches(
         self,
@@ -4103,6 +4218,35 @@ class MemberConsoleService:
         for start in range(0, len(members), 200):
             summaries.update(self._load_member_behavior_summaries_for_members(members[start : start + 200]))
         return summaries
+
+    def _load_product_usage_overview_for_members(self, members: list[dict[str, Any]]) -> dict[str, Any]:
+        identity_groups = {
+            str(member.get("user_id") or "").strip(): self._member_behavior_identity_group(member)
+            for member in members
+            if str(member.get("user_id") or "").strip()
+        }
+        fallback = {
+            "tracked_member_count": 0,
+            "identity_collision_count": 0,
+            "identity_collision_member_count": 0,
+            "module_usage": [],
+            "first_run": {
+                "eligible_member_count": len(identity_groups),
+                "started_member_count": 0,
+                "question_member_count": 0,
+                "completed_member_count": 0,
+                "legacy_completion_member_count": 0,
+                "not_started_member_count": len(identity_groups),
+                "completion_rate": 0.0,
+                "completion_rate_of_eligible": 0.0,
+            },
+        }
+        try:
+            loader = getattr(self._get_product_behavior_store(), "get_product_usage_overview_for_identity_groups", None)
+            return loader(identity_groups, days=7) if callable(loader) else fallback
+        except Exception:
+            logger.warning("Failed to load product usage overview for member dashboard", exc_info=True)
+            return fallback
 
     def _load_member_behavior_summaries(self, user_ids: list[str]) -> dict[str, dict[str, Any]]:
         try:
@@ -4138,6 +4282,66 @@ class MemberConsoleService:
         days: int,
     ) -> dict[str, Any]:
         behavior_summaries = self._load_member_behavior_summaries_for_members(members)
+        product_usage = self._load_product_usage_overview_for_members(members)
+        eligible_summaries = [
+            summary
+            for summary in behavior_summaries.values()
+            if str(summary.get("first_run_status") or "") != "not_eligible"
+        ]
+        first_run_started = sum(
+            1
+            for summary in eligible_summaries
+            if str(summary.get("first_run_evidence_status") or "not_started") != "not_started"
+        )
+        first_run_completed = sum(
+            1 for summary in eligible_summaries if summary.get("first_run_status") == "completed"
+        )
+        confirmed_summaries = [
+            summary
+            for summary in eligible_summaries
+            if summary.get("first_run_status") != "truth_unavailable"
+        ]
+        first_run = {
+            "eligible_member_count": len(eligible_summaries),
+            "started_member_count": first_run_started,
+            "question_member_count": sum(
+                1 for summary in eligible_summaries if int(summary.get("first_run_question_count") or 0) > 0
+            ),
+            "completed_member_count": first_run_completed,
+            "not_started_member_count": sum(
+                1 for summary in eligible_summaries if summary.get("first_run_status") == "not_started"
+            ),
+            "sync_anomaly_member_count": sum(
+                1 for summary in eligible_summaries if summary.get("first_run_status") == "sync_anomaly"
+            ),
+            "truth_unavailable_member_count": sum(
+                1 for summary in eligible_summaries if summary.get("first_run_status") == "truth_unavailable"
+            ),
+            "confirmed_member_count": len(confirmed_summaries),
+            "legacy_completion_member_count": sum(
+                1
+                for summary in eligible_summaries
+                if summary.get("first_run_evidence_status") == "legacy_completion_signal"
+            ),
+            "completion_rate": round(
+                sum(
+                    1
+                    for summary in eligible_summaries
+                    if summary.get("first_run_status") == "completed"
+                    and str(summary.get("first_run_evidence_status") or "not_started") != "not_started"
+                )
+                / first_run_started,
+                4,
+            )
+            if first_run_started
+            else 0.0,
+            "completion_rate_of_confirmed": round(first_run_completed / len(confirmed_summaries), 4)
+            if confirmed_summaries
+            else 0.0,
+            "truth_coverage_rate": round(len(confirmed_summaries) / len(eligible_summaries), 4)
+            if eligible_summaries
+            else 0.0,
+        }
         behavior_health = {
             "learning_report_open_count_7d": sum(
                 int(summary.get("learning_report_open_count_7d") or 0)
@@ -4160,6 +4364,11 @@ class MemberConsoleService:
                 for summary in behavior_summaries.values()
                 if str(summary.get("trust_level") or "C") != "A"
             ),
+            "tracked_member_count": product_usage["tracked_member_count"],
+            "identity_collision_count": int(product_usage.get("identity_collision_count") or 0),
+            "identity_collision_member_count": int(product_usage.get("identity_collision_member_count") or 0),
+            "module_usage": product_usage["module_usage"],
+            "first_run": first_run,
         }
         now = _now()
         active_count = sum(1 for item in members if item["status"] == "active")

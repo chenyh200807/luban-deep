@@ -78,6 +78,9 @@ function loadLearn(options) {
       if (request === "../../utils/learn-view-model") {
         return { buildLearnViewModel: function () { return { hasSupply: false, posters: [], stats: {} }; } };
       }
+      if (request === "../../utils/surface-telemetry") {
+        return { trackModuleView: function () {}, trackModuleExit: function () {} };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {

@@ -213,6 +213,8 @@ function loadChatPage(overrides) {
         return {
           track: function () {},
           trackOnce: function () {},
+          trackModuleView: function () {},
+          trackModuleExit: function () {},
         };
       }
       if (request === "../../utils/runtime") return runtimeMock;

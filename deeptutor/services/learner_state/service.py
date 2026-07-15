@@ -373,6 +373,35 @@ class LearnerStateService:
         self._ensure_seed_state(normalized)
         return self._read_profile_raw(normalized)
 
+    def read_existing_profile(self, user_id: str) -> dict[str, Any]:
+        """Read canonical profile truth without seeding or mutating learner state."""
+        normalized = _normalize_user_id(user_id)
+        return dict(self.read_existing_profiles([normalized]).get(normalized) or {})
+
+    def read_existing_profiles(self, user_ids: list[str]) -> dict[str, dict[str, Any]]:
+        """Strict, non-seeding canonical batch read for BI and other truth projections."""
+        normalized = sorted({_normalize_user_id(user_id) for user_id in user_ids if str(user_id or "").strip()})
+        if not normalized:
+            return {}
+        if self._local_projection_fallback_enabled():
+            return {
+                user_id: profile
+                for user_id in normalized
+                if (profile := self._read_profile_local_raw(user_id))
+            }
+        if bool(getattr(self._core_store, "is_configured", False)):
+            reader = getattr(self._core_store, "read_profiles", None)
+            if not callable(reader):
+                raise RuntimeError("canonical learner-state batch reader is unavailable")
+            return {str(key): dict(value) for key, value in reader(normalized).items()}
+        if is_production_environment():
+            raise RuntimeError("canonical learner-state core store is not configured")
+        return {
+            user_id: profile
+            for user_id in normalized
+            if (profile := self._read_profile_local_raw(user_id))
+        }
+
     def _write_profile_local(self, user_id: str, profile: dict[str, Any]) -> dict[str, Any]:
         path = self._path(user_id, "profile")
         path.parent.mkdir(parents=True, exist_ok=True)
