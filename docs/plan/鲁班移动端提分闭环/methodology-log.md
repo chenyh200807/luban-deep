@@ -9,6 +9,20 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-16 · HOLD 不是关闭路径，首批验证也不能变成 F16 特权
+
+**①现象**：上版计划识别了内容资格、H5 exact identity、多端 probe 并发和真微信/A/A 四项风险，却把它们都压成一句 `Product P0A HOLD`；同时要求先审完 633 道 candidates，才进入一个 Pack 纵切。第一次修正又把 F16 写成唯一首发主角，把“窄切片”误做成“特定 Pack 特权”。结果是判断安全，但计划仍然对单 Pack 过拟合。
+
+**②发现路径（含走错的岔路）**：红队先从全库中找到 A01/F03/G03 反例，由此提出“内容冲突不清零不发布”。这个安全结论本身没错，错的岔路是把“不安全的题不得被发出”等同为“所有题都必须先变安全”。随后又因旧父级 PRD 把 F16 当历史默认，就直接把它升格为首发概念；用户指出后回到 first principles：要验证的是留存链路能否跨内容成立，不是 F16 本身。再从 H5 bridge 的 `surface + answer_indexes`、selection digest 不绑 probe、review claim 按 completion 去重的代码路径，将另三项分别定性为通用身份缺口、幂等键缺口和验收/时间证据。第二轮再追 INDEX、旧 P0A/M0 与五模块 IA，发现旧 authority 仍会把 F16、独立复习 Tab、半写/AI 批改重新带回执行面。
+
+**③分析**：root cause 是**把仓库完整性当成发布集合完整性，又把发布样本名当成产品概念，并把不同成熟度的证据压成一个 HOLD**。一等事实应是“某个 Pack 这次允许发哪些 exact items”，唯一 authority 应是现有 pack manifest + SHA-pinned per-Pack signed artifacts 所表达的 Pack-agnostic default-deny eligible issued set；“首发 Pack 切片”只是检查视图，不能长成新的 `release_cell_id`/schema/store。633 compiled inventory 只是候选原料，F16 只是其中一个 pack_id。同理，7 日 A/A 不能在当天“修完”，但它只阻断 treatment 和产品 GO，不应阻断代码和内部 QA。
+
+**④修法与理由**：把计划改为 Pack-agnostic 首发 Pack 切片、B1–B5 关闭表和 R0–R4 release ladder。B1 从同一资格池准备 2–3 个代表性 Pack，每个只签发 5 道 anchor + 1–2 个 fact 三件套，其余默认不可选；treatment 默认 2 个，第 3 个由自然流量门决定。B2 将 H5 收权到 exact IDs + digest；B3 将 review 幂等从 completion 收权到 user + probe/cycle；B4 分为真微信验收、测量预检和不可压缩的 7 日 A/A；B5 将产品表面收权到五 Tab、学习首页唯一 CTA。父 PRD 拆为 P0A-0 Practice 留存切片与 P0A-1 半写/AI 批改深度层，旧 F16/复习 IA authority 顶部标记 superseded。禁止 Pack ID 专属分支；未入选只代表本 cohort 未轮到，不是资产降级。
+
+**⑤验证与教训**：计划反例必须同时成立：“仓库仍有 A01/F03/G03 冲突”与“另外 2–3 个 Pack issued set 全部已签发”可以并存，此时合格 Pack 内部 QA 应通过，有冲突 Pack 仍不可发。实现测试必须参数化覆盖可发/冲突/供给不足三种 Pack，且搜索不得出现 `pack_id == F16` 专属路径；文档一致性检查必须证明当前 IA 只有 `学习 / 历史 / 问鲁班 / 学情 / 我的`，旧文档不再自称执行 authority。后续任何计划发现 blocker，必须同时写明 owner、输入、产出、Pass、估算、并行关系和只阻断哪一层；不再用一句 HOLD 冒充计划，也不再用一个样板 Pack 冒充产品。
+
+---
+
 ## 2026-07-15 · completion ID 不是提交证书，compiled 数量也不是内容签发
 
 **①现象**：计划写成“633 道 Practice 已释放、错后可同组换题、D+1 可精确复测”，但代码与数据出现三组反例：视频 H5 仍只传 surface/index；同 completion ID 的孤儿 item 可以在 terminal 后进入弱点和图谱；撤题清单缺失或损坏时，signed variant 会在部分读路径复活。内容侧还存在 A01/F03/G03 已知冲突进入 compiled/public Practice。
