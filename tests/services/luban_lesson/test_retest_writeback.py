@@ -368,6 +368,7 @@ def test_partial_item_append_never_commits_terminal_until_retry() -> None:
     partial_projection = synthesize_learning_truth(learner.events)
     assert partial_projection["weak_points"] == []
     assert partial_projection["improvement_signals"] == []
+    assert partial_projection["typed_graph"]["edges"] == []
 
     result = _complete(service, completion_id="partial-completion")
 
@@ -419,6 +420,125 @@ def test_replay_reads_only_terminal_item_refs() -> None:
     )
 
     assert _complete(service, completion_id="closed-replay") == first
+
+
+def test_learner_truth_reads_only_terminal_item_refs() -> None:
+    learner = _LearnerState()
+    service = _service(learner)
+    _complete(
+        service,
+        completion_id="closed-learning-truth",
+        mode="review",
+        probe_id="probe-f16",
+        answers=_answers(first=False, second=True),
+    )
+    terminal = next(
+        event for event in learner.events if event.payload_json.get("completion_terminal")
+    )
+    item = next(
+        event
+        for event in learner.events
+        if event.source_feature == "assessment_testset"
+        and not event.payload_json.get("completion_terminal")
+    )
+    orphan_payload = dict(item.payload_json)
+    orphan_payload.update(
+        {
+            "question_id": "orphan-not-in-terminal-refs",
+            "source_question_id": "orphan-not-in-terminal-refs",
+            "is_correct": False,
+            "error_codes": ["unknown_error"],
+            "error_events": [
+                {
+                    "error_code": "unknown_error",
+                    "concept_tag": "pack:F16:rule:orphan",
+                    "diagnosis": "synthetic orphan must not become learner truth",
+                }
+            ],
+            "next_training_signal": {
+                "concept": "pack:F16:rule:orphan",
+                "concept_label": "orphan",
+                "error_code": "unknown_error",
+                "target_error_code": "unknown_error",
+            },
+        }
+    )
+    orphan = learner.append_memory_event(
+        "qa_eval_first_run_loop",
+        source_feature="assessment_testset",
+        source_id="closed-learning-truth:orphan",
+        memory_kind="learning_evidence",
+        payload_json=orphan_payload,
+        dedupe_key="synthetic-orphan-not-in-terminal-refs",
+    )
+
+    projection = synthesize_learning_truth(learner.events)
+
+    assert projection["weak_points"] == []
+    assert all(
+        edge.get("evidence_event_id") != orphan.event_id
+        for edge in projection["typed_graph"]["edges"]
+    )
+    assert orphan.event_id not in terminal.payload_json["item_event_refs"]
+
+
+@pytest.mark.parametrize("invalid_max_score", [float("nan"), float("inf")])
+def test_non_finite_terminal_score_fails_closed_without_projection_crash(
+    invalid_max_score,
+) -> None:
+    learner = _LearnerState()
+    service = _service(learner)
+    _complete(
+        service,
+        completion_id="invalid-terminal-score",
+        mode="review",
+        probe_id="probe-f16",
+        answers=_answers(first=True),
+    )
+    terminal = next(
+        event for event in learner.events if event.payload_json.get("completion_terminal")
+    )
+    terminal.payload_json["max_score"] = invalid_max_score
+
+    projection = synthesize_learning_truth(learner.events)
+
+    assert projection["weak_points"] == []
+    assert projection["typed_graph"]["edges"] == []
+
+
+@pytest.mark.parametrize(
+    ("field", "malformed_value"),
+    [
+        ("score_awarded", "broken"),
+        ("score_awarded", True),
+        ("is_correct", "false"),
+    ],
+)
+def test_malformed_item_scoring_fields_fail_closed(
+    field,
+    malformed_value,
+) -> None:
+    learner = _LearnerState()
+    service = _service(learner)
+    _complete(
+        service,
+        completion_id="invalid-item-score",
+        mode="review",
+        probe_id="probe-f16",
+        answers=_answers(first=True),
+    )
+    item = next(
+        event
+        for event in learner.events
+        if event.source_feature == "assessment_testset"
+        and not event.payload_json.get("completion_terminal")
+    )
+    item.payload_json[field] = malformed_value
+
+    projection = synthesize_learning_truth(learner.events)
+
+    assert projection["weak_points"] == []
+    assert projection["typed_graph"]["edges"] == []
 
 
 def test_review_replay_succeeds_after_original_probe_is_no_longer_due() -> None:

@@ -31,6 +31,8 @@ def _terminal(
     authority="signed_variant_server_rescore",
 ):
     result_status = status or ("verified" if mode == "review" and score_ratio >= 1.0 else "not_verified")
+    question_count = 1 if score_ratio in {0.0, 1.0} else 2
+    score_awarded = score_ratio * question_count
     return SimpleNamespace(
         event_id=f"terminal_{completion_id}",
         created_at=created,
@@ -43,10 +45,16 @@ def _terminal(
             "assessment_type": f"luban_{mode}_completion",
             "retest_completion_id": completion_id,
             "completion_terminal": True,
+            "request_hash": f"request:{completion_id}",
             "practice_mode": mode,
             "pack_id": pack,
             "target_pack_id": pack,
             "score_ratio": score_ratio,
+            "score_awarded": score_awarded,
+            "max_score": float(question_count),
+            "item_event_refs": [
+                f"item_{completion_id}_{index}" for index in range(question_count)
+            ],
             "claim_promotion_allowed": mode == "review",
             "prescription_result": {"status": result_status, "score_ratio": score_ratio},
             "quality": {
@@ -59,14 +67,46 @@ def _terminal(
     )
 
 
+def _items_for_terminal(terminal):
+    payload = terminal.payload_json
+    completion_id = payload["retest_completion_id"]
+    correct_count = int(payload["score_awarded"])
+    return [
+        SimpleNamespace(
+            event_id=event_id,
+            created_at=terminal.created_at,
+            source_feature="assessment_testset",
+            source_id=f"{completion_id}:q{index + 1}",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "retest_completion_id": completion_id,
+                "request_hash": payload["request_hash"],
+                "practice_mode": payload["practice_mode"],
+                "pack_id": payload["pack_id"],
+                "target_pack_id": payload["target_pack_id"],
+                "question_id": f"q{index + 1}",
+                "is_correct": index < correct_count,
+                "score_awarded": 1.0 if index < correct_count else 0.0,
+                "max_score": 1.0,
+            },
+        )
+        for index, event_id in enumerate(payload["item_event_refs"])
+    ]
+
+
 def _completion_pair(created, pack, *, completion_id, mode="forward", score_ratio=1.0):
     station = _ev(created, pack)
     station.payload_json["completion_id"] = completion_id
     station.event_id = f"station_{completion_id}"
-    return [
-        _terminal(created, pack, completion_id=completion_id, mode=mode, score_ratio=score_ratio),
-        station,
-    ]
+    terminal = _terminal(
+        created,
+        pack,
+        completion_id=completion_id,
+        mode=mode,
+        score_ratio=score_ratio,
+    )
+    return [*_items_for_terminal(terminal), terminal, station]
 
 
 def _lesson_viewed_ev(created, pack, stage="lesson"):
@@ -113,15 +153,16 @@ def test_compiled_forward_completion_starts_next_calendar_day_review() -> None:
         completion_id="cmp_f16_compiled",
         authority="compiled_html_server_rescore",
     )
+    events = [*_items_for_terminal(terminal), terminal]
 
     before = build_review_due_projection(
         user_id="u1",
-        events=[terminal],
+        events=events,
         now_iso="2026-07-03T23:59:00+08:00",
     )
     due = build_review_due_projection(
         user_id="u1",
-        events=[terminal],
+        events=events,
         now_iso="2026-07-04T00:01:00+08:00",
     )
 

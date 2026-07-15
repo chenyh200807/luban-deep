@@ -55,6 +55,7 @@
 
 - `LearnerStateService.append_memory_event(memory_kind="learning_evidence")` 是学习证据写入、dedupe 和后续 synthesis 触发的唯一服务入口；API/router/wrapper 不得各自触发第二套长期画像刷新。
 - `dedupe_key` 命中时必须返回既有事件，不得再次写入 `MEMORY_EVENTS.jsonl`，也不得再次触发 compiled-truth synthesis；读模型可以按同一 `dedupe_key`/内容 fingerprint 折叠 local+remote replay，但不得折叠 dedupe 不同的真实复练/复测。
+- `memory_kind="learning_evidence"` 只是存储分区，不足以让一条事件成为学习证据。local/remote reader 必须共用 `evidence_lifecycle.is_learning_evidence_event`：只放行登记的 evidence source 与 `payload.event_type="learning_evidence"`（兼容 construction grading 的既有例外）。durable completion claim 等控制记录即使同居该分区，也不得进入 synthesis、报告或学情投影。
 - 自动 synthesis 只允许在显式开关 `LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED=1` 下运行；生产环境还必须受既有 `qa_`/`operator_` canonical cohort gate 约束。broad learner canonical truth 仍由 `canonical_truth_promotion_decision()` 决定，不能因为自动 synthesis 而默认打开。
 - `learning_evidence.payload_json.canonical_topic` 是 taxonomy resolver 对证据的只读投影。Learning report、Learning Brain 和 synthesis 消费它时，不得在 UI/router 层重新猜 topic；若该字段缺失，旧事件继续按兼容路径读取。
 - PGO shadow same-attempt evidence 只能作为 `learning_signal_type="pgo_case_rubric_shadow"` 的
@@ -644,8 +645,15 @@ Overlay 必须支持：
    `pack:{pack_id}:rule:{rule_group}` 的同粒度概念，不得以 pack 粗粒度清除 sibling 错因。
    review 的 canonical `training_intent_id` 由服务端恢复为该 `probe_id`，忽略客户端自报 intent/mode；
    取题日使用服务端 UTC+8 日历日。
-8. 所有 read projection 必须先看同一 `retest_completion_id` 的 terminal commit。terminal 缺失时，
-   即使 item 带高置信/L2 字段也只能作为 L0；partial append 不得产生 weak/improvement/verified。
+8. 所有 read projection 必须共用 `evidence_lifecycle` 的 terminal closure，而不是只看同一
+   `retest_completion_id` 或 `completion_terminal=true`。canonical terminal 必须精确列出唯一
+   `item_event_refs`；每条被引用 item 必须匹配同一 request hash、completion、pack、mode，且题数、
+   `max_score`、`score_awarded` 与正确数可重算一致。只有 closure 引用的 item 可以进入 weak、
+   improvement、typed graph、三层学情、report、pack lifecycle、prescription outcome 或 replay；
+   同 completion 的孤儿 item 与 partial append 必须 fail-closed，不得移动复测时钟或形成 verified。
+   当前 Luban retest 只允许单选/判断的逐题二元 1 分制：item `max_score=1`、`score_awarded∈{0,1}`
+   且必须与 `is_correct` 一致；NaN/Infinity、损坏分数、加权题或部分给分不得静默进入该 closure。
+   未来支持加权题必须先升级 scoring contract，不能把容差 fallback 塞进现有 reader。
    `LUBAN_REVIEW_MODULE_ENABLED`（以及 forward 的 `LUBAN_LIGHT_PRACTICE_ENABLED`）必须在任何
    append 前 fail closed，禁止“写完 terminal 才撞 rollout flag”。
 9. GET 取题必须签发 `selection_id`，绑定 canonical user、pack、服务端 UTC+8 day、mode 与

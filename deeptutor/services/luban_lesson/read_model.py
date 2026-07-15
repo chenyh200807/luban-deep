@@ -31,6 +31,8 @@ from pathlib import Path
 import re
 from typing import Any
 
+from loguru import logger
+
 from deeptutor.services.luban_lesson.practice_html import (
     PracticeHtmlInvalid,
     compiled_practice_supply_digest,
@@ -275,10 +277,10 @@ def _load_signed_bank(
 def _variant_summary(
     pack_id: str, manifest_dir: Path, expected_sha: str
 ) -> dict[str, Any]:
-    bank = _load_signed_bank(pack_id, manifest_dir, expected_sha)
-    if bank is None:
+    supply = _active_signed_variants(pack_id, manifest_dir, expected_sha)
+    if supply is None:
         return {"available": False, "count": 0}
-    variants = bank.get("variants") or []
+    bank, variants = supply
     return {
         "available": bool(variants),
         "count": len(variants),
@@ -576,15 +578,12 @@ def build_retest_items(
     if not vm["variant_retest"]["available"]:
         return []
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
-    bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
-    if bank is None:
+    supply = _active_signed_variants(
+        vm["pack_id"], manifest_dir, vm["content_sha256"]
+    )
+    if supply is None:
         return []
-    blocked = _variant_blocklist(manifest_dir)
-    core = [
-        v
-        for v in bank.get("variants") or []
-        if not v.get("extension") and str(v.get("variant_id") or "") not in blocked
-    ]
+    _, core = supply
     if not core:
         return []
     limit = max(1, min(int(limit), 10))
@@ -658,15 +657,14 @@ def resolve_retest_items(
         if is_compiled_practice_pack(vm["pack_id"]):
             return []
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
-    bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
-    if bank is None:
+    supply = _active_signed_variants(
+        vm["pack_id"], manifest_dir, vm["content_sha256"]
+    )
+    if supply is None:
         return []
-    blocked = _variant_blocklist(manifest_dir)
+    _, active = supply
     by_id = {
-        str(item.get("variant_id") or ""): item
-        for item in bank.get("variants") or []
-        if not item.get("extension")
-        and str(item.get("variant_id") or "") not in blocked
+        str(item.get("variant_id") or "").strip(): item for item in active
     }
     selected = [by_id.get(variant_id) for variant_id in wanted]
     if any(item is None for item in selected):
@@ -698,16 +696,12 @@ def retest_supply_identity(
         if is_compiled_practice_pack(vm["pack_id"]):
             return {"kind": "", "digest": ""}
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
-    bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
-    if bank is None:
+    supply = _active_signed_variants(
+        vm["pack_id"], manifest_dir, vm["content_sha256"]
+    )
+    if supply is None:
         return {"kind": "", "digest": ""}
-    blocked = _variant_blocklist(manifest_dir)
-    active = [
-        item
-        for item in bank.get("variants") or []
-        if not item.get("extension")
-        and str(item.get("variant_id") or "") not in blocked
-    ]
+    _, active = supply
     raw = json.dumps(
         {
             "pack_id": vm["pack_id"],
@@ -727,25 +721,58 @@ def retest_supply_identity(
 _VARIANT_BLOCKLIST_FILE = "_variant_blocklist.json"
 
 
-def _variant_blocklist(manifest_dir: Path) -> set[str]:
+def _variant_blocklist(manifest_dir: Path) -> set[str] | None:
     """对抗面板 A 级停发变体清单（serve 侧过滤, 签发 bank 原样不动）。
 
     2026-07-11 变体 statement 验尸：9 条 A 级门道语句（旧真题官答与 2026 新
     规范教材冲突为主——地下防水四级/超灌0.8~1.0m/钢丝网保留/变形缝依据等）
     波及 40 变体。救活 = 教研按 2026 教材口径修 pack 后重签并从清单移除。
-    缺文件 = 空集（不改变既有行为）。"""
+    该清单是当前撤题 authority；缺失、损坏或 schema 异常都必须 fail-closed，
+    否则已经撤下的错题会在部署漂移后静默复活。"""
     path = manifest_dir / _VARIANT_BLOCKLIST_FILE
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        return set()
-    except Exception:
-        return set()  # 清单损坏时不放大故障(保守: 不过滤, 由测试盯格式)
-    return {
-        str(item.get("variant_id") or "")
-        for item in data.get("variants") or []
-        if item.get("variant_id")
-    }
+    except Exception as exc:
+        logger.error(
+            "luban variant revocation authority unavailable path={} error={}",
+            path,
+            type(exc).__name__,
+        )
+        return None
+    if not isinstance(data, dict) or not isinstance(data.get("variants"), list):
+        logger.error("luban variant revocation authority invalid schema path={}", path)
+        return None
+    blocked: set[str] = set()
+    for item in data["variants"]:
+        if not isinstance(item, dict):
+            logger.error("luban variant revocation authority invalid row path={}", path)
+            return None
+        variant_id = str(item.get("variant_id") or "").strip()
+        if not variant_id:
+            logger.error("luban variant revocation authority empty id path={}", path)
+            return None
+        blocked.add(variant_id)
+    return blocked
+
+
+def _active_signed_variants(
+    pack_id: str,
+    manifest_dir: Path,
+    expected_sha: str,
+) -> tuple[dict[str, Any], list[dict[str, Any]]] | None:
+    """Resolve the one active signed-variant supply for every read path."""
+    bank = _load_signed_bank(pack_id, manifest_dir, expected_sha)
+    blocked = _variant_blocklist(manifest_dir)
+    if bank is None or blocked is None:
+        return None
+    active = [
+        item
+        for item in bank.get("variants") or []
+        if isinstance(item, dict)
+        and not item.get("extension")
+        and str(item.get("variant_id") or "").strip() not in blocked
+    ]
+    return bank, active
 
 
 _SKELETON_ENTITY_RE = re.compile(r"「[^」]*」")
@@ -790,14 +817,12 @@ def retest_pool_meta(
     except LessonNotAvailable:
         return {"core_total": 0, "rule_groups_total": 0}
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
-    bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
-    if bank is None:
+    supply = _active_signed_variants(
+        vm["pack_id"], manifest_dir, vm["content_sha256"]
+    )
+    if supply is None:
         return {"core_total": 0, "rule_groups_total": 0}
-    blocked = _variant_blocklist(manifest_dir)
-    core = [
-        v for v in bank.get("variants") or []
-        if not v.get("extension") and str(v.get("variant_id") or "") not in blocked
-    ]
+    _, core = supply
     return {
         "core_total": len(core),
         "rule_groups_total": len({str(v.get("rule_group") or "") for v in core}),

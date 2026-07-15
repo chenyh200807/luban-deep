@@ -9,6 +9,20 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-15 · completion ID 不是提交证书，compiled 数量也不是内容签发
+
+**①现象**：计划写成“633 道 Practice 已释放、错后可同组换题、D+1 可精确复测”，但代码与数据出现三组反例：视频 H5 仍只传 surface/index；同 completion ID 的孤儿 item 可以在 terminal 后进入弱点和图谱；撤题清单缺失或损坏时，signed variant 会在部分读路径复活。内容侧还存在 A01/F03/G03 已知冲突进入 compiled/public Practice。
+
+**②发现路径（含走错的岔路）**：先把 generic learning home 的无-surface 路径当成视频主链已接通，逐跳追 H5 bridge→retest page→read model 后才发现视频显式带 surface，所以仍固定 public 五题。又用真实 writeback 先产生合法 terminal，再追加一个同 completion、同 request hash、但不在 `item_event_refs` 的错题；旧 synthesis 把它晋升为 confirmed weak point，证明 replay 的闭包校验没有被其他 reader 共用。最后分别比较 variant summary、selection、resolve、supply digest 与 pool meta，发现它们各自重算 active set，而 blocklist 异常默认空集。最危险的岔路是继续加一个 compiled runtime blocklist；它只能遮住已知字符串，仍没有事实级撤销。
+
+**③分析**：shared failure shape 是“相关键/派生物冒充 authority”。`completion_id` 只能关联事件，不能证明哪些 item 已提交；compiled/manifest 只证明结构和可重建，不能证明事实正确；serve-side blocklist 只影响一个 projection，不能撤销同一 source fact 的其他派生面。三个问题的共同根因不是少 if，而是缺少唯一 closure 与内容资格层。
+
+**④修法与理由**：把 retest commit authority 收到 `evidence_lifecycle.committed_retest_closure`：canonical terminal 必须精确引用 item，并重核 completion/request/pack/mode、题数和分数；synthesis、typed graph、三层学情、report、pack lifecycle、prescription outcome 和 replay 统一消费它。remote evidence reader 复用 canonical classifier，控制 claim 不再泄漏。signed variant 由一个 active resolver 同时服务摘要、选题、解析、digest 和 meta，撤题 authority 缺失/损坏全链 fail-closed。计划则把原 P0-A 改成 S0 事务基础设施，把 S1 内容资格和 S2 F16 产品纵切设为 release blockers；不在本轮脏前端上补 UI，也不假装已完成真微信链路。
+
+**⑤验证与教训**：孤儿 item 与 partial typed graph 先 RED 后转绿；remote claim 泄漏测试先准确失败后通过；撤题 authority missing/corrupt 对 summary/select/identity/meta 全部 fail-close。Claude Code 对抗再抓出 NaN/Infinity 读侧崩溃、损坏 item score 被当 0 和远端 terminal 穿透测试盲区，补成非有限/损坏分数 fail-close 与 remote closure 回归；Git 追溯确认 terminal 从首次引入就携带 request hash/item refs/逐题分数，未凭猜测添加危险 legacy fallback。教训：①关联键不等于 commit certificate；②一个 reader 有 closure 不等于全系统有 closure；③结构可判不等于内容可签发；④动态池代码可达不等于目标入口已接通；⑤less is more 要减少裁决点和产品承诺，而不是少做发布真相核验。
+
+---
+
 ## 2026-07-14 · “生成物都在”仍不可交付：用干净 checkout 反证练习 authority 闭环
 
 **①现象**：全量 37 pack / 39 surface 在当前 worktree 能跑，但独立专家按 PR diff 复核时发现，分支只包含少量 finished practice 源，其余 sidecar/public 是从别处生成后带入；另有跨账号缓存、lesson/practice 共用缓存版本、sidecar 只验结构不验自身字节三类潜伏问题。

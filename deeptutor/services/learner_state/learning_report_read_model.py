@@ -14,7 +14,7 @@ from deeptutor.services.construction_grading.learning_evidence import compute_qu
 from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.evidence_lifecycle import (
-    committed_retest_completion_ids,
+    committed_retest_item_event_ids,
     event_promotion_allowed,
     evidence_attempt_id,
     is_retest_completion_terminal,
@@ -2290,7 +2290,7 @@ def _with_next_best_action_view(card: dict[str, Any], *, intent: dict[str, Any])
 def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
     grouped: dict[tuple[str, str], dict[str, Any]] = {}
     needs_confirmation: list[dict[str, Any]] = []
-    committed_retest_ids = committed_retest_completion_ids(events)
+    committed_retest_item_ids = committed_retest_item_event_ids(events)
     for event in events:
         payload = _safe_dict(getattr(event, "payload_json", {}))
         quality = _attempt_quality(payload)
@@ -2319,7 +2319,7 @@ def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
         item["count"] += 1
         if _is_progress_countable_event(event) and event_promotion_allowed(
             event,
-            committed_retest_ids=committed_retest_ids,
+            committed_retest_item_ids=committed_retest_item_ids,
         ):
             attempt_id = evidence_attempt_id(event, payload)
             if attempt_id and attempt_id not in item["stable_attempt_ids"]:

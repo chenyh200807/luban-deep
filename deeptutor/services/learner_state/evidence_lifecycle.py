@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import Any, Iterable
 
 PRACTICE_EVIDENCE_SOURCE_FEATURES = frozenset(
@@ -51,17 +52,140 @@ def promotion_allowed(payload: dict[str, Any]) -> bool:
     return True
 
 
-def committed_retest_completion_ids(events: Iterable[Any]) -> set[str]:
-    """Return only completion ids sealed by the canonical retest terminal.
+def canonical_retest_item_events(
+    events: Iterable[Any],
+    *,
+    terminal: Any,
+) -> tuple[Any, ...] | None:
+    """Validate and return the exact item set sealed by one retest terminal.
 
-    Item promotion and pack cadence must share the same commit authority.  A
-    copied ``completion_terminal=true`` boolean is not a commit certificate.
+    A completion id is only a correlation key.  The commit certificate is the
+    canonical terminal plus its ordered ``item_event_refs`` closure: every
+    referenced item must belong to the same request, completion, mode and pack,
+    and the item totals must reproduce the terminal score.
     """
+    if not is_canonical_luban_retest_terminal(terminal):
+        return None
+    terminal_payload = _safe_dict(getattr(terminal, "payload_json", {}))
+    completion_id = _clean(terminal_payload.get("retest_completion_id"))
+    request_hash = _clean(terminal_payload.get("request_hash"))
+    pack_id = _clean(terminal_payload.get("pack_id")).upper()
+    mode = _clean(terminal_payload.get("practice_mode")).lower()
+    item_refs = [_clean(item) for item in list(terminal_payload.get("item_event_refs") or [])]
+    question_count = _whole_number(terminal_payload.get("max_score"))
+    score_awarded = _number(terminal_payload.get("score_awarded"))
+    if (
+        not completion_id
+        or not request_hash
+        or question_count is None
+        or question_count <= 0
+        or score_awarded is None
+        or len(item_refs) != question_count
+        or any(not item for item in item_refs)
+        or len(set(item_refs)) != question_count
+    ):
+        return None
+
+    by_event_id: dict[str, Any] = {}
+    duplicate_event_ids: set[str] = set()
+    for event in events:
+        event_id = _clean(getattr(event, "event_id", ""))
+        if not event_id:
+            continue
+        if event_id in by_event_id:
+            duplicate_event_ids.add(event_id)
+        by_event_id[event_id] = event
+    if duplicate_event_ids.intersection(item_refs):
+        return None
+
+    item_events = tuple(by_event_id.get(event_id) for event_id in item_refs)
+    if any(event is None for event in item_events):
+        return None
+    for event in item_events:
+        payload = _safe_dict(getattr(event, "payload_json", {}))
+        if not (
+            _clean(getattr(event, "source_feature", "")) == "assessment_testset"
+            and _clean(getattr(event, "memory_kind", "")) == "learning_evidence"
+            and _clean(payload.get("event_type")) == "learning_evidence"
+            and payload.get("completion_terminal") is not True
+            and _clean(payload.get("retest_completion_id")) == completion_id
+            and _clean(payload.get("request_hash")) == request_hash
+            and _clean(payload.get("pack_id")).upper() == pack_id
+            and _clean(payload.get("target_pack_id")).upper() == pack_id
+            and _clean(payload.get("practice_mode")).lower() == mode
+        ):
+            return None
+
+    item_scores = [
+        _number(
+            _safe_dict(getattr(event, "payload_json", {})).get("score_awarded")
+        )
+        for event in item_events
+    ]
+    item_max_scores = [
+        _number(_safe_dict(getattr(event, "payload_json", {})).get("max_score"))
+        for event in item_events
+    ]
+    item_correctness = [
+        _safe_dict(getattr(event, "payload_json", {})).get("is_correct")
+        for event in item_events
+    ]
+    if (
+        any(value not in {0.0, 1.0} for value in item_scores)
+        or any(value != 1.0 for value in item_max_scores)
+        or any(not isinstance(value, bool) for value in item_correctness)
+        or any(
+            item_correctness[index] is not (item_scores[index] == 1.0)
+            for index in range(len(item_events))
+        )
+    ):
+        return None
+    item_score = sum(value for value in item_scores if value is not None)
+    item_max_score = sum(value for value in item_max_scores if value is not None)
+    correct_count = sum(value is True for value in item_correctness)
+    if (
+        item_score != score_awarded
+        or item_max_score != float(question_count)
+        or float(correct_count) != score_awarded
+    ):
+        return None
+    return item_events
+
+
+def committed_retest_closure(events: Iterable[Any]) -> dict[str, tuple[str, ...]]:
+    """Return completion -> ordered item ids for fully closed retests only."""
+    event_list = list(events)
+    closure: dict[str, tuple[str, ...]] = {}
+    invalid_completions: set[str] = set()
+    for terminal in event_list:
+        if not is_canonical_luban_retest_terminal(terminal):
+            continue
+        payload = _safe_dict(getattr(terminal, "payload_json", {}))
+        completion_id = _clean(payload.get("retest_completion_id"))
+        item_events = canonical_retest_item_events(event_list, terminal=terminal)
+        if not completion_id or item_events is None or completion_id in closure:
+            invalid_completions.add(completion_id)
+            closure.pop(completion_id, None)
+            continue
+        closure[completion_id] = tuple(
+            _clean(getattr(event, "event_id", "")) for event in item_events
+        )
+    for completion_id in invalid_completions:
+        closure.pop(completion_id, None)
+    return closure
+
+
+def committed_retest_item_event_ids(events: Iterable[Any]) -> set[str]:
     return {
-        _clean(_safe_dict(getattr(event, "payload_json", {})).get("retest_completion_id"))
-        for event in events
-        if is_canonical_luban_retest_terminal(event)
+        event_id
+        for item_refs in committed_retest_closure(events).values()
+        for event_id in item_refs
     }
+
+
+def committed_retest_completion_ids(events: Iterable[Any]) -> set[str]:
+    """Return completion ids backed by a fully validated terminal closure."""
+    return set(committed_retest_closure(events))
 
 
 def is_retest_completion_terminal(event: Any) -> bool:
@@ -119,14 +243,16 @@ def is_canonical_luban_retest_terminal(event: Any) -> bool:
 def event_promotion_allowed(
     event: Any,
     *,
-    committed_retest_ids: set[str] | None = None,
+    committed_retest_item_ids: set[str] | None = None,
 ) -> bool:
     payload = _safe_dict(getattr(event, "payload_json", {}))
     if not promotion_allowed(payload):
         return False
     completion_id = _clean(payload.get("retest_completion_id"))
     if completion_id and payload.get("completion_terminal") is not True:
-        return completion_id in set(committed_retest_ids or set())
+        return _clean(getattr(event, "event_id", "")) in set(
+            committed_retest_item_ids or set()
+        )
     return True
 
 
@@ -157,11 +283,31 @@ def _clean(value: Any) -> str:
     return str(value or "").strip()
 
 
+def _number(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _whole_number(value: Any) -> int | None:
+    number = _number(value)
+    if number is None or number != int(number):
+        return None
+    return int(number)
+
+
 __all__ = [
     "LEARNING_EVIDENCE_SOURCE_FEATURES",
     "PRACTICE_EVIDENCE_SOURCE_FEATURES",
+    "canonical_retest_item_events",
+    "committed_retest_closure",
     "distinct_attempt_count",
     "committed_retest_completion_ids",
+    "committed_retest_item_event_ids",
     "evidence_attempt_id",
     "event_promotion_allowed",
     "is_learning_evidence_event",

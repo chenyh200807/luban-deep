@@ -34,8 +34,12 @@ def _event(
             "evidence_source": source,
             "completion_id": attempt_id if source == "first_run_diagnostic" else "",
             "retest_completion_id": attempt_id if source == "assessment_testset" else "",
+            "request_hash": f"request:{attempt_id}",
             "practice_mode": mode,
+            "pack_id": "F16" if source == "assessment_testset" else "",
+            "target_pack_id": "F16" if source == "assessment_testset" else "",
             "question_id": f"q:{event_id}",
+            "is_correct": correct,
             "score_awarded": 1.0 if correct else 0.0,
             "max_score": 1.0,
             "claim_promotion_allowed": promotion_allowed,
@@ -49,7 +53,14 @@ def _event(
     )
 
 
-def _terminal(event_id: str, *, attempt_id: str, mode: str = "review"):
+def _terminal(
+    event_id: str,
+    *,
+    attempt_id: str,
+    item_ids: tuple[str, ...],
+    mode: str = "review",
+    score_awarded: float = 0.0,
+):
     return SimpleNamespace(
         event_id=event_id,
         user_id="qa_eval_lifecycle",
@@ -64,10 +75,14 @@ def _terminal(event_id: str, *, attempt_id: str, mode: str = "review"):
             "assessment_type": f"luban_{mode}_completion",
             "retest_completion_id": attempt_id,
             "completion_terminal": True,
+            "request_hash": f"request:{attempt_id}",
             "practice_mode": mode,
             "pack_id": "F16",
             "target_pack_id": "F16",
             "claim_promotion_allowed": mode == "review",
+            "score_awarded": score_awarded,
+            "max_score": float(len(item_ids)),
+            "item_event_refs": list(item_ids),
             "prescription_result": {
                 "status": "not_verified",
                 "score_ratio": 0.0,
@@ -135,7 +150,7 @@ def test_same_attempt_multiple_items_never_counts_as_repeated() -> None:
             promotion_allowed=True,
             mode="review",
         ),
-        _terminal("e3", attempt_id="review-1"),
+        _terminal("e3", attempt_id="review-1", item_ids=("e1", "e2")),
     ]
 
     truth = synthesize_learning_truth(events)
@@ -160,8 +175,8 @@ def test_second_distinct_attempt_promotes_repeated_error() -> None:
             promotion_allowed=True,
             mode="review",
         ),
-        _terminal("e3", attempt_id="attempt-1"),
-        _terminal("e4", attempt_id="attempt-2"),
+        _terminal("e3", attempt_id="attempt-1", item_ids=("e1",)),
+        _terminal("e4", attempt_id="attempt-2", item_ids=("e2",)),
         _event(
             "e2",
             source="assessment_testset",
@@ -216,9 +231,14 @@ def test_real_retest_can_confirm_or_resolve_only_matching_rule_group() -> None:
     truth = synthesize_learning_truth([
         weak,
         other,
-        _terminal("e4", attempt_id="review-1"),
+        _terminal("e4", attempt_id="review-1", item_ids=("e1", "e2")),
         resolved,
-        _terminal("e5", attempt_id="review-2"),
+        _terminal(
+            "e5",
+            attempt_id="review-2",
+            item_ids=("e3",),
+            score_awarded=1.0,
+        ),
     ])
 
     assert {(item["concept_id"], item["error_code"]) for item in truth["weak_points"]} == {
@@ -240,7 +260,16 @@ def test_real_retest_success_without_prior_weak_is_retained_not_improved() -> No
         mode="review",
         evidence_level="L2_real_retest",
     )
-    terminal = _terminal("e2", attempt_id="review-clean")
+    terminal = _terminal(
+        "e2",
+        attempt_id="review-clean",
+        item_ids=("e1",),
+        score_awarded=1.0,
+    )
+    terminal.payload_json["prescription_result"] = {
+        "status": "verified",
+        "score_ratio": 1.0,
+    }
 
     truth = synthesize_learning_truth([success, terminal])
     three_layer = project_three_layer_learning_state(events=[success, terminal])

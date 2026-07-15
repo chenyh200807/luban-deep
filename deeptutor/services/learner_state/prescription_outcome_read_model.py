@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable
 
 from deeptutor.services.learner_state.evidence_lifecycle import (
+    committed_retest_completion_ids,
     is_canonical_luban_retest_terminal,
 )
 
@@ -106,8 +107,17 @@ def _prescription_outcome(training_intent_id: str, events: list[Any]) -> dict[st
         latest_result.get("score_ratio", latest_payload.get("score_ratio"))
     )
 
-    verified_probe = _latest_grading_probe(ordered, require_success=True)
-    failed_probe = _latest_grading_probe(ordered, require_success=False)
+    committed_retest_ids = committed_retest_completion_ids(ordered)
+    verified_probe = _latest_grading_probe(
+        ordered,
+        require_success=True,
+        committed_retest_ids=committed_retest_ids,
+    )
+    failed_probe = _latest_grading_probe(
+        ordered,
+        require_success=False,
+        committed_retest_ids=committed_retest_ids,
+    )
 
     if verified_probe is not None and evidence_refs:
         status = "verified"
@@ -131,7 +141,10 @@ def _prescription_outcome(training_intent_id: str, events: list[Any]) -> dict[st
     elif latest_status == "verified":
         status = "not_verified"
         next_required_action = "complete_verification_probe"
-    elif _assigned_needs_followup(ordered):
+    elif _assigned_needs_followup(
+        ordered,
+        committed_retest_ids=committed_retest_ids,
+    ):
         status = "needs_followup"
         next_required_action = "resume_prescription"
     elif latest_status in {"assigned", "in_progress", "completed"}:
@@ -165,7 +178,12 @@ def _prescription_outcome(training_intent_id: str, events: list[Any]) -> dict[st
     }
 
 
-def _latest_grading_probe(events: list[Any], *, require_success: bool) -> Any | None:
+def _latest_grading_probe(
+    events: list[Any],
+    *,
+    require_success: bool,
+    committed_retest_ids: set[str],
+) -> Any | None:
     for event in reversed(list(events or [])):
         if not str(getattr(event, "event_id", "") or "").strip():
             continue
@@ -175,6 +193,9 @@ def _latest_grading_probe(events: list[Any], *, require_success: bool) -> Any | 
         source_feature = str(getattr(event, "source_feature", "") or "").strip()
         payload_source = str(payload.get("evidence_source") or "").strip()
         is_canonical_retest = is_canonical_luban_retest_terminal(event)
+        completion_id = str(payload.get("retest_completion_id") or "").strip()
+        if is_canonical_retest and completion_id not in committed_retest_ids:
+            continue
         carries_retest_identity = bool(
             str(payload.get("retest_completion_id") or "").strip()
             or source_feature == "assessment_testset"
@@ -213,7 +234,11 @@ def _is_preview_or_simulated(payload: dict[str, Any]) -> bool:
     return False
 
 
-def _assigned_needs_followup(events: list[Any]) -> bool:
+def _assigned_needs_followup(
+    events: list[Any],
+    *,
+    committed_retest_ids: set[str],
+) -> bool:
     assigned = [
         event
         for event in list(events or [])
@@ -226,8 +251,14 @@ def _assigned_needs_followup(events: list[Any]) -> bool:
     if not assigned:
         return False
     latest_probe = _latest_grading_probe(
-        list(events or []), require_success=True
-    ) or _latest_grading_probe(list(events or []), require_success=False)
+        list(events or []),
+        require_success=True,
+        committed_retest_ids=committed_retest_ids,
+    ) or _latest_grading_probe(
+        list(events or []),
+        require_success=False,
+        committed_retest_ids=committed_retest_ids,
+    )
     if latest_probe is not None:
         return False
     oldest_at = min(str(getattr(event, "created_at", "") or "") for event in assigned)

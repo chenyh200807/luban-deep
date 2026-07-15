@@ -185,6 +185,26 @@ def test_untrusted_probe_cannot_bypass_terminal_by_omitting_completion_id(
 
 
 def test_canonical_review_terminal_can_verify_prescription() -> None:
+    item = _event(
+        event_id="evt_canonical_item",
+        status="verified",
+        score_ratio=1.0,
+        evidence_source="assessment_testset",
+    )
+    item.source_id = "canonical:q1"
+    item.payload_json.update(
+        {
+            "retest_completion_id": "canonical",
+            "request_hash": "canonical-request",
+            "practice_mode": "review",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "question_id": "q1",
+            "is_correct": True,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+        }
+    )
     terminal = _event(
         event_id="evt_canonical_terminal",
         status="verified",
@@ -199,11 +219,15 @@ def test_canonical_review_terminal_can_verify_prescription() -> None:
             "evidence_source": "assessment_testset",
             "retest_completion_id": "canonical",
             "completion_terminal": True,
+            "request_hash": "canonical-request",
             "assessment_type": "luban_review_completion",
             "practice_mode": "review",
             "pack_id": "F16",
             "target_pack_id": "F16",
             "claim_promotion_allowed": True,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "item_event_refs": ["evt_canonical_item"],
             "quality": {
                 "authority": "signed_variant_server_rescore",
                 "writeback_eligible": True,
@@ -213,7 +237,9 @@ def test_canonical_review_terminal_can_verify_prescription() -> None:
         }
     )
 
-    outcome = build_prescription_outcomes_read_projection(events=[terminal])[0]
+    outcome = build_prescription_outcomes_read_projection(
+        events=[item, terminal]
+    )[0]
 
     assert outcome["status"] == "verified"
     assert outcome["next_required_action"] == "maintain"

@@ -7,6 +7,7 @@ import os
 from typing import Any
 
 from deeptutor.services.learner_state.evidence_lifecycle import (
+    canonical_retest_item_events,
     is_canonical_luban_retest_terminal,
 )
 from deeptutor.services.learner_state.learner_signal import record_learner_signal
@@ -590,38 +591,12 @@ class RetestWritebackService:
         correct_count = int(float(terminal_payload.get("score_awarded") or 0))
         question_count = int(float(terminal_payload.get("max_score") or 0))
         request_hash = str(terminal_payload.get("request_hash") or "")
-        item_refs = [str(item or "") for item in terminal_payload.get("item_event_refs") or []]
-        by_event_id = {
-            str(getattr(event, "event_id", "") or ""): event
-            for event in events
-            if str(getattr(event, "event_id", "") or "")
-        }
-        item_events = [by_event_id.get(event_id) for event_id in item_refs]
-        if (
-            not request_hash
-            or len(item_refs) != question_count
-            or len(set(item_refs)) != question_count
-            or any(event is None for event in item_events)
-            or any(
-                getattr(event, "source_feature", "") != SOURCE_FEATURE
-                or getattr(event, "payload_json", {}).get("event_type") != "learning_evidence"
-                or getattr(event, "payload_json", {}).get("completion_terminal") is True
-                or str(getattr(event, "payload_json", {}).get("request_hash") or "")
-                != request_hash
-                for event in item_events
-                if event is not None
-            )
-            or sum(
-                bool(getattr(event, "payload_json", {}).get("is_correct"))
-                for event in item_events
-                if event is not None
-            )
-            != correct_count
-        ):
+        item_events = canonical_retest_item_events(events, terminal=terminal)
+        if not request_hash or item_events is None:
             raise RetestIdempotencyConflict(
                 str(terminal_payload.get("retest_completion_id") or "")
             )
-        item_events = [event for event in item_events if event is not None]
+        item_refs = [str(getattr(event, "event_id", "") or "") for event in item_events]
         mode = str(terminal_payload.get("practice_mode") or "forward")
         station = next(
             (event for event in events if getattr(event, "payload_json", {}).get("learning_signal_type") == "station_completed"),

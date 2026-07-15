@@ -17,6 +17,9 @@ from deeptutor.services.learner_state.canonical_truth_policy import (
     canonical_truth_production_write_cohort_allowed,
     canonical_truth_promotion_decision,
 )
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    is_learning_evidence_event,
+)
 from deeptutor.services.learner_state.heartbeat import (
     LearnerHeartbeatJob,
     LearnerHeartbeatJobService,
@@ -707,11 +710,7 @@ class LearnerStateService:
         local_events = [
             event
             for event in self._list_local_memory_events(normalized)
-            if event.memory_kind == "learning_evidence"
-            and (
-                str(dict(event.payload_json or {}).get("event_type") or "") == "learning_evidence"
-                or event.source_feature == "construction_grading"
-            )
+            if is_learning_evidence_event(event)
             and _iso_unknown_or_gte(event.created_at, since)
         ]
         if self._local_projection_fallback_enabled():
@@ -728,15 +727,17 @@ class LearnerStateService:
             reader = getattr(self._core_store, "read_learning_evidence_events", None)
             if callable(reader):
                 try:
-                    events.extend([
+                    events.extend(
                         event
                         for event in (
                             self._event_from_mapping(item, default_user_id=normalized)
-                            for item in list(reader(normalized, limit=limit, since=since) or [])
+                            for item in list(
+                                reader(normalized, limit=limit, since=since) or []
+                            )
                             if isinstance(item, dict)
                         )
-                        if event is not None
-                    ])
+                        if event is not None and is_learning_evidence_event(event)
+                    )
                 except Exception:
                     if is_production_environment():
                         return []

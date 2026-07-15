@@ -22,6 +22,10 @@ def _write_manifest(tmp_path: Path, packs, green) -> Path:
         json.dumps({"projection_green": green, "packs": packs}, ensure_ascii=False),
         encoding="utf-8",
     )
+    (tmp_path / "_variant_blocklist.json").write_text(
+        json.dumps({"variants": []}),
+        encoding="utf-8",
+    )
     return p
 
 
@@ -303,6 +307,56 @@ def test_variant_summary_signed_sha_match_passes(tmp_path):
     assert vm["variant_retest"]["source_pack_sha256"] == "abc123"
 
 
+@pytest.mark.parametrize("blocklist_state", ["missing", "corrupt"])
+def test_variant_revocation_authority_failure_fails_closed(
+    tmp_path,
+    blocklist_state,
+):
+    from deeptutor.services.luban_lesson import build_retest_items
+    from deeptutor.services.luban_lesson.read_model import (
+        retest_pool_meta,
+        retest_supply_identity,
+    )
+
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(
+        json.dumps({
+            "status": "signed",
+            "source_pack_sha256": "abc123",
+            "variants": [
+                {
+                    "variant_id": "S05-B-000",
+                    "rule_group": "B",
+                    "surface": "s1",
+                    "expected_ok": True,
+                    "correct_statement": "c1",
+                    "anchor": "kc:X:1",
+                }
+            ],
+        }),
+        encoding="utf-8",
+    )
+    blocklist = tmp_path / "_variant_blocklist.json"
+    if blocklist_state == "missing":
+        blocklist.unlink()
+    else:
+        blocklist.write_text("{not-json", encoding="utf-8")
+
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+
+    assert vm["variant_retest"] == {"available": False, "count": 0}
+    assert build_retest_items(
+        "S05", user_id="u", day_index=1, manifest_path=mp
+    ) == []
+    assert retest_supply_identity(
+        "S05", manifest_path=mp
+    ) == {"kind": "", "digest": ""}
+    assert retest_pool_meta("S05", manifest_path=mp) == {
+        "core_total": 0,
+        "rule_groups_total": 0,
+    }
+
+
 def test_variant_bank_candidate_rejected_same_as_missing(tmp_path):
     """签发闸①：candidate（未签发）bank 与缺失同形——不直通真实考生。"""
     from deeptutor.services.luban_lesson import build_retest_items
@@ -343,6 +397,14 @@ def test_real_manifest_green_packs_all_project():
     for row in rows:
         vm = build_lesson_viewmodel(row["pack_id"])
         assert vm["content_sha256"]
+
+
+def test_real_manifest_has_mandatory_variant_revocation_authority():
+    import deeptutor.services.luban_lesson.read_model as read_model
+
+    assert read_model._variant_blocklist(
+        read_model._MANIFEST_PATH.parent
+    ) is not None
 
 
 def test_f16_forward_rotates_inside_compiled_html_pool_and_explicit_surface_stays_fixed() -> None:
@@ -603,6 +665,8 @@ def test_retest_blocklisted_variants_never_served(tmp_path):
     (tmp_path / "_variant_blocklist.json").write_text(json.dumps({
         "variants": [{"variant_id": "S05-A-order-000", "reason": "面板A级"}]
     }), encoding="utf-8")
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+    assert vm["variant_retest"]["count"] == 5
     for uid in ("u1", "u2", "u3"):
         for day in (738000, 738001):
             items = build_retest_items("S05", user_id=uid, day_index=day,
