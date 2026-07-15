@@ -10,17 +10,16 @@ from deeptutor.services.learner_state.evidence_lifecycle import (
     is_canonical_luban_retest_terminal,
 )
 from deeptutor.services.learner_state.learner_signal import record_learner_signal
-from deeptutor.services.luban_lesson.practice_html import (
-    load_compiled_practice,
-)
 from deeptutor.services.luban_lesson.read_model import (
     build_lesson_viewmodel,
-    build_retest_items,
+    resolve_retest_items,
+    retest_supply_identity,
 )
 from deeptutor.services.luban_lesson.retest_selection import verify_retest_selection
 from deeptutor.services.luban_lesson.review_due import build_review_due_projection
 
 SOURCE_FEATURE = "assessment_testset"
+CLAIM_SOURCE_FEATURE = "luban_retest_claim"
 ERROR_CODE = "unknown_error"
 _REVIEW_FLAG = "LUBAN_REVIEW_MODULE_ENABLED"
 _LIGHT_PRACTICE_FLAG = "LUBAN_LIGHT_PRACTICE_ENABLED"
@@ -134,15 +133,6 @@ class RetestWritebackService:
         if not normalized_answers or len(normalized_answers) > 10:
             raise ValueError("retest_answer_count_invalid")
         normalized_selection = str(selection_id or "").strip()
-        if not verify_retest_selection(
-            normalized_selection,
-            user_id=normalized_user,
-            pack_id=normalized_pack,
-            day_index=normalized_day,
-            mode=normalized_mode,
-            variant_ids=[item["variant_id"] for item in normalized_answers],
-        ):
-            raise ValueError("retest_selection_invalid")
         intent_id = normalized_probe if normalized_mode == "review" else str(training_intent_id or "").strip()
         canonical_request = {
             "completion_id": normalized_completion,
@@ -158,6 +148,11 @@ class RetestWritebackService:
         existing_events = self._events_for_completion(
             user_id=normalized_user,
             completion_id=normalized_completion,
+        )
+        self._assert_request_consistency(
+            existing_events,
+            completion_id=normalized_completion,
+            request_hash=request_hash,
         )
         terminal_rows = [
             event
@@ -192,6 +187,18 @@ class RetestWritebackService:
                 )
                 existing_events.append(station)
             return self._replay_result(existing_events, terminal=existing_terminal)
+        supply = retest_supply_identity(normalized_pack, mode=normalized_mode)
+        if not verify_retest_selection(
+            normalized_selection,
+            user_id=normalized_user,
+            pack_id=normalized_pack,
+            day_index=normalized_day,
+            mode=normalized_mode,
+            variant_ids=[item["variant_id"] for item in normalized_answers],
+            supply_kind=supply.get("kind", ""),
+            supply_digest=supply.get("digest", ""),
+        ):
+            raise ValueError("retest_selection_invalid")
         _require_rollout_enabled(normalized_mode)
         if normalized_mode == "review":
             self._require_due_probe(
@@ -207,36 +214,11 @@ class RetestWritebackService:
             raise ValueError("retest_training_intent_mismatch")
 
         lesson = build_lesson_viewmodel(normalized_pack)
-        compiled_practice = (
-            load_compiled_practice(normalized_pack)
-            if normalized_mode == "forward"
-            else None
+        canonical_items = resolve_retest_items(
+            normalized_pack,
+            variant_ids=[item["variant_id"] for item in normalized_answers],
+            mode=normalized_mode,
         )
-        if compiled_practice is not None:
-            if str(compiled_practice.get("source_pack_sha256") or "") != str(
-                lesson.get("content_sha256") or ""
-            ):
-                raise ValueError("retest_compiled_practice_pack_sha_mismatch")
-            wanted_ids = {item["variant_id"] for item in normalized_answers}
-            surfaces = list(compiled_practice.get("surfaces") or [])
-            if surfaces and not any(
-                set(surface.get("variant_ids") or []) == wanted_ids
-                for surface in surfaces
-            ):
-                raise ValueError("retest_compiled_practice_surface_mismatch")
-            canonical_items = [
-                item
-                for item in compiled_practice.get("items") or []
-                if str(item.get("variant_id") or "") in wanted_ids
-            ]
-        else:
-            canonical_items = build_retest_items(
-                normalized_pack,
-                user_id=normalized_user,
-                day_index=normalized_day,
-                limit=len(normalized_answers),
-                mode=normalized_mode,
-            )
         canonical_by_id = {
             str(item.get("variant_id") or "").strip(): dict(item)
             for item in canonical_items
@@ -297,6 +279,33 @@ class RetestWritebackService:
         score_ratio = correct_count / len(scored)
         phase = "transfer_case" if normalized_mode == "forward" else "verification_probe"
         result_status = "verified" if normalized_mode == "review" and score_ratio >= 1.0 else "not_verified"
+        claim = self._learner_state.append_memory_event(
+            normalized_user,
+            source_feature=CLAIM_SOURCE_FEATURE,
+            source_id=normalized_completion,
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "retest_completion_claim",
+                "retest_completion_id": normalized_completion,
+                "request_hash": request_hash,
+                "pack_id": normalized_pack,
+                "practice_mode": normalized_mode,
+                "day_index": normalized_day,
+                "variant_ids": [item["variant_id"] for item in normalized_answers],
+            },
+            dedupe_key=f"luban_retest_claim:{normalized_user}:{normalized_completion}",
+        )
+        if str(getattr(claim, "payload_json", {}).get("request_hash") or "") != request_hash:
+            raise RetestIdempotencyConflict(normalized_completion)
+        claimed_events = self._events_for_completion(
+            user_id=normalized_user,
+            completion_id=normalized_completion,
+        )
+        self._assert_request_consistency(
+            claimed_events,
+            completion_id=normalized_completion,
+            request_hash=request_hash,
+        )
         event_ids: list[str] = []
         public_items: list[dict[str, Any]] = []
         for item in scored:
@@ -549,6 +558,28 @@ class RetestWritebackService:
             )
         ]
 
+    @staticmethod
+    def _assert_request_consistency(
+        events: list[Any], *, completion_id: str, request_hash: str
+    ) -> None:
+        bound_hashes: list[str] = []
+        for event in events:
+            payload = dict(getattr(event, "payload_json", {}) or {})
+            if getattr(event, "source_feature", "") == CLAIM_SOURCE_FEATURE:
+                bound_hashes.append(str(payload.get("request_hash") or ""))
+                continue
+            if (
+                getattr(event, "source_feature", "") == SOURCE_FEATURE
+                and payload.get("event_type") == "learning_evidence"
+                and payload.get("completion_terminal") is not True
+            ):
+                bound_hashes.append(str(payload.get("request_hash") or ""))
+        if bound_hashes and (
+            any(not item for item in bound_hashes)
+            or set(bound_hashes) != {request_hash}
+        ):
+            raise RetestIdempotencyConflict(completion_id)
+
     def _replay_result(self, events: list[Any], *, terminal: Any) -> dict[str, Any]:
         if not is_canonical_luban_retest_terminal(terminal):
             completion_id = str(
@@ -556,25 +587,46 @@ class RetestWritebackService:
             )
             raise RetestIdempotencyConflict(completion_id)
         terminal_payload = dict(getattr(terminal, "payload_json", {}) or {})
-        item_events = [
-            event
-            for event in events
-            if getattr(event, "source_feature", "") == SOURCE_FEATURE
-            and getattr(event, "payload_json", {}).get("completion_terminal") is not True
-        ]
-        item_events.sort(
-            key=lambda event: str(
-                getattr(event, "payload_json", {}).get("question_id") or ""
-            )
-        )
         correct_count = int(float(terminal_payload.get("score_awarded") or 0))
         question_count = int(float(terminal_payload.get("max_score") or 0))
+        request_hash = str(terminal_payload.get("request_hash") or "")
+        item_refs = [str(item or "") for item in terminal_payload.get("item_event_refs") or []]
+        by_event_id = {
+            str(getattr(event, "event_id", "") or ""): event
+            for event in events
+            if str(getattr(event, "event_id", "") or "")
+        }
+        item_events = [by_event_id.get(event_id) for event_id in item_refs]
+        if (
+            not request_hash
+            or len(item_refs) != question_count
+            or len(set(item_refs)) != question_count
+            or any(event is None for event in item_events)
+            or any(
+                getattr(event, "source_feature", "") != SOURCE_FEATURE
+                or getattr(event, "payload_json", {}).get("event_type") != "learning_evidence"
+                or getattr(event, "payload_json", {}).get("completion_terminal") is True
+                or str(getattr(event, "payload_json", {}).get("request_hash") or "")
+                != request_hash
+                for event in item_events
+                if event is not None
+            )
+            or sum(
+                bool(getattr(event, "payload_json", {}).get("is_correct"))
+                for event in item_events
+                if event is not None
+            )
+            != correct_count
+        ):
+            raise RetestIdempotencyConflict(
+                str(terminal_payload.get("retest_completion_id") or "")
+            )
+        item_events = [event for event in item_events if event is not None]
         mode = str(terminal_payload.get("practice_mode") or "forward")
         station = next(
             (event for event in events if getattr(event, "payload_json", {}).get("learning_signal_type") == "station_completed"),
             None,
         )
-        item_refs = [str(getattr(event, "event_id", "") or "") for event in item_events]
         terminal_id = str(getattr(terminal, "event_id", "") or "")
         return {
             "completion_id": str(terminal_payload.get("retest_completion_id") or ""),

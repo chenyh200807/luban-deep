@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
-import copy
 from pathlib import Path
 
 import pytest
@@ -31,14 +31,14 @@ def _compiled_pack_ids() -> list[str]:
     ]
 
 
-def test_all_registered_finished_practices_compile_to_private_five_question_surfaces() -> None:
+def test_all_registered_finished_practices_compile_full_private_pools_and_five_question_projections() -> None:
     pack_ids = _compiled_pack_ids()
     authorities = [load_compiled_practice(pack_id) for pack_id in pack_ids]
 
     assert len(pack_ids) == 40
     assert all(authority is not None for authority in authorities)
     assert sum(len(authority["surfaces"]) for authority in authorities if authority) == 43
-    assert sum(len(authority["items"]) for authority in authorities if authority) == 215
+    assert sum(len(authority["items"]) for authority in authorities if authority) == 633
     for authority in authorities:
         assert authority is not None
         assert len({item["variant_id"] for item in authority["items"]}) == len(
@@ -49,6 +49,10 @@ def test_all_registered_finished_practices_compile_to_private_five_question_surf
             for item in authority["items"]
         )
         for surface in authority["surfaces"]:
+            assert len(surface["variant_ids"]) == 5
+            assert set(surface["variant_ids"]).issubset(
+                {item["variant_id"] for item in authority["items"]}
+            )
             source = ROOT / surface["source_path"]
             assert source.is_file()
             assert hashlib.sha256(source.read_bytes()).hexdigest() == surface[
@@ -75,10 +79,12 @@ def test_compiled_and_unavailable_pack_sets_are_exact() -> None:
 def test_f16_projects_curated_five_without_answer_leakage() -> None:
     canonical = load_compiled_practice("F16")
     projected = project_compiled_practice("F16")
+    selected = resolve_compiled_practice_items("F16", surface_id="practice.html")
 
-    assert canonical is not None and projected is not None
-    assert [item["source_index"] for item in canonical["items"]] == [0, 1, 2, 3, 5]
-    assert [item["rule_group"] for item in canonical["items"]] == [
+    assert canonical is not None and projected is not None and selected is not None
+    assert len(canonical["items"]) == 6
+    assert [item["source_index"] for item in selected] == [0, 1, 2, 3, 5]
+    assert [item["rule_group"] for item in selected] == [
         "分档·条件维",
         "割补工序·程序维",
         "判断纠错·三段式",
@@ -87,6 +93,41 @@ def test_f16_projects_curated_five_without_answer_leakage() -> None:
     ]
     assert all("is_correct" not in option for item in projected for option in item["options"])
     assert all("model_answer" not in item for item in projected)
+
+
+def test_dynamic_projection_is_deterministic_varied_and_stays_inside_signed_surface() -> None:
+    first = project_compiled_practice("F16", selection_key="user-a:2026196:forward")
+    repeated = project_compiled_practice("F16", selection_key="user-a:2026196:forward")
+    next_day = project_compiled_practice("F16", selection_key="user-a:2026197:forward")
+
+    assert first == repeated and first is not None and next_day is not None
+    assert len(first) == len(next_day) == 5
+    assert [item["variant_id"] for item in first] != [
+        item["variant_id"] for item in next_day
+    ]
+    assert any("诊断" in item["rule_group"] for item in first)
+    assert all("is_correct" not in option for item in first for option in item["options"])
+
+
+def test_every_compiled_surface_can_issue_five_from_its_private_pool() -> None:
+    for pack_id in _compiled_pack_ids():
+        authority = load_compiled_practice(pack_id)
+        assert authority is not None
+        for surface in authority["surfaces"]:
+            surface_id = surface["surface_id"]
+            projected = project_compiled_practice(
+                pack_id,
+                surface_id=surface_id,
+                selection_key=f"qa_eval_all_surfaces:2026196:{surface_id}",
+            )
+            assert projected is not None and len(projected) == 5
+            assert len({item["variant_id"] for item in projected}) == 5
+            surface_ids = {
+                item["variant_id"]
+                for item in authority["items"]
+                if item["surface_id"] == surface_id
+            }
+            assert {item["variant_id"] for item in projected}.issubset(surface_ids)
 
 
 def test_public_projection_contains_only_compiled_questions_and_server_bridge() -> None:

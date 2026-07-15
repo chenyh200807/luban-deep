@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v2",
   "pack_id": "N02",
   "source_pack_sha256": "272cacd10a5be6faa88e13c85a79cfd5570cde2e4bf03de07beaee99af40effd",
   "source_bundle_sha256": "a8593ca578d6c6c1d6a8fb36b5c100b70a8a6ecd316b52535643d68f3ef01408",
@@ -230,6 +230,57 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N02/P40_N02.practice.dc.html#Q4",
+      "source_html_sha256": "40ae38946c9fbd00680e542e577bcc87eb9a11c85b4cd39b1caf4beebdcb625e"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "参数体系·条件维",
+      "stem": "组织流水施工要确定哪几类参数？选出归类完整、能得分的作答。",
+      "model_answer": "工艺参数（施工过程数、施工段数）／时间参数（流水节拍 t、流水步距 K、工期 T）／空间参数（施工段、施工层）。",
+      "options": [
+        {
+          "text": "工艺参数：施工过程数、施工段数；时间参数：节拍、步距、工期；空间参数：施工段、施工层。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三体系齐全、各参数归类正确，正是真题给分点。",
+          "option_id": "N02-html-practice-html-q5-da7592cef4de:option-1"
+        },
+        {
+          "text": "组织流水只要确定时间参数：流水节拍、流水步距、工期，这三个算出来就够了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "流水题最常算的就是节拍/步距/工期，容易只答这一类。",
+          "loss_reason": "漏了工艺参数与空间参数两类，采分点遗漏。",
+          "fix": "补工艺参数（过程数、段数）与空间参数（施工段、施工层）。",
+          "option_id": "N02-html-practice-html-q5-da7592cef4de:option-2"
+        },
+        {
+          "text": "把流水节拍、流水步距也归进工艺参数，与施工过程数、施工段数一起算工艺安排。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得节拍/步距也算「工艺」上的安排。",
+          "loss_reason": "节拍/步距/工期属时间参数，归错体系。",
+          "fix": "时间参数=节拍/步距/工期；工艺参数=过程数/段数。",
+          "option_id": "N02-html-practice-html-q5-da7592cef4de:option-3"
+        },
+        {
+          "text": "流水施工的参数主要就是施工过程数、施工段数这两个工艺量，其余按现场情况灵活定即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住了工艺参数。",
+          "loss_reason": "漏时间参数与空间参数，三缺二。",
+          "fix": "补全时间参数（节拍/步距/工期）与空间参数（施工段/施工层）。",
+          "option_id": "N02-html-practice-html-q5-da7592cef4de:option-4"
+        }
+      ],
+      "variant_id": "N02-html-practice-html-q5-da7592cef4de",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N02/P40_N02.practice.dc.html#Q5",
       "source_html_sha256": "40ae38946c9fbd00680e542e577bcc87eb9a11c85b4cd39b1caf4beebdcb625e"
     },
     {

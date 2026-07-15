@@ -542,10 +542,10 @@ def test_rag_evidence_bundle_v1_fields_pinned_match_producer() -> None:
     )
 
 
-def test_compiled_practice_v1_fields_pinned_match_producer() -> None:
+def test_compiled_practice_v2_fields_pinned_match_producer() -> None:
     from deeptutor.services.luban_lesson.practice_html import AUTHORITY_FIELDS
 
-    entry = _t2_entry("luban_compiled_practice.v1")
+    entry = _t2_entry("luban_compiled_practice.v2")
     assert entry.get("needs_field_canonicalization") is False
     assert set(entry.get("canonical_fields") or []) == set(AUTHORITY_FIELDS)
 

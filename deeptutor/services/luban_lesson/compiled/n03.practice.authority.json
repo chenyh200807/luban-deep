@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v2",
   "pack_id": "N03",
   "source_pack_sha256": "ae9e5525c4f86bda1a0868a65663b2b56dcd4bd48846f8aa7e5a62af9999b590",
   "source_bundle_sha256": "58fa7d39d501017884dc068f17e20f100741ae8b2e680775c648025422c957c9",
@@ -234,6 +234,57 @@
     },
     {
       "answer_type": "single_choice",
+      "rule_group": "参数体系·条件维",
+      "stem": "组织流水施工要确定哪几类参数？选出归类完整、能得分的作答。",
+      "model_answer": "工艺参数（施工过程数、施工段数）／时间参数（流水节拍 t、流水步距 K、工期 T）／空间参数（施工段、施工层）。",
+      "options": [
+        {
+          "text": "工艺参数：施工过程数、施工段数；时间参数：节拍、步距、工期；空间参数：施工段、施工层。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三体系齐全、各参数归类正确，正是真题给分点。",
+          "option_id": "N03-html-practice-html-q5-da7592cef4de:option-1"
+        },
+        {
+          "text": "组织流水只要确定时间参数：流水节拍、流水步距、工期，这三个算出来就够了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "流水题最常算的就是节拍/步距/工期，容易只答这一类。",
+          "loss_reason": "漏了工艺参数与空间参数两类，采分点遗漏。",
+          "fix": "补工艺参数（过程数、段数）与空间参数（施工段、施工层）。",
+          "option_id": "N03-html-practice-html-q5-da7592cef4de:option-2"
+        },
+        {
+          "text": "把流水节拍、流水步距也归进工艺参数，与施工过程数、施工段数一起算工艺安排。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得节拍/步距也算「工艺」上的安排。",
+          "loss_reason": "节拍/步距/工期属时间参数，归错体系。",
+          "fix": "时间参数=节拍/步距/工期；工艺参数=过程数/段数。",
+          "option_id": "N03-html-practice-html-q5-da7592cef4de:option-3"
+        },
+        {
+          "text": "流水施工的参数主要就是施工过程数、施工段数这两个工艺量，其余按现场情况灵活定即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住了工艺参数。",
+          "loss_reason": "漏时间参数与空间参数，三缺二。",
+          "fix": "补全时间参数（节拍/步距/工期）与空间参数（施工段/施工层）。",
+          "option_id": "N03-html-practice-html-q5-da7592cef4de:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q5-da7592cef4de",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q5",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
       "rule_group": "采分诊断·末题",
       "stem": "某学生作答：①K 取最大节拍=6 个月；②设 4 个专业队；③总工期=3+3+6+6=18 个月。其总工期 18 恰与标准答案一致。选出最准确的诊断与补写。",
       "model_answer": "判型理由缺、K 取最大节拍（应 gcd=3）、未拆队（应 5 队）、工期机械相加未体现搭接；补写四句：成倍数·等步距异节奏／K=gcd(3,6)=3／队数 1+1+2+1=5／T=(2+5−1)×3=18 个月。",
@@ -281,6 +332,465 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q6",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "组织方式·条件维",
+      "stem": "同样的施工任务有依次、平行、流水三种组织方式。选出对三者关系最准确、能得分的表述。",
+      "model_answer": "依次施工顺序无搭接、工期最长但省人；平行施工各段同时、工期最短但耗人料 N 倍；流水施工分段分序、错位搭接，工期居中且资源均衡。",
+      "options": [
+        {
+          "text": "依次施工顺序无搭接、工期最长而省人；平行施工各段同时、工期最短但耗人料 N 倍；流水施工错位搭接、工期居中且资源均衡。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三种方式的时间与资源特征都点到，正是给分点。",
+          "option_id": "N03-html-practice-html-q7-35b58017fdb5:option-1"
+        },
+        {
+          "text": "三种方式里平行施工既最快又最省人料，工程上应当一律优先选用平行施工组织。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "看「平行最快」就以为它最省最优。",
+          "loss_reason": "平行工期虽短却要 N 倍人料，并非最省，也非普遍最优。",
+          "fix": "平行工期最短但耗人料 N 倍；流水才是又快又资源均衡。",
+          "option_id": "N03-html-practice-html-q7-35b58017fdb5:option-2"
+        },
+        {
+          "text": "依次施工因为一段段挨着干、不搭接，所以工期在三者里最短、效率最高。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把「挨着干」误当成「快」。",
+          "loss_reason": "依次无搭接、工期最长，不是最短。",
+          "fix": "依次工期最长；工期最短的是平行施工。",
+          "option_id": "N03-html-practice-html-q7-35b58017fdb5:option-3"
+        },
+        {
+          "text": "组织方式其实只有依次和平行两种，流水施工只是平行施工的另一种叫法，不单列一类。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "把流水混同平行、少记一类。",
+          "loss_reason": "漏掉流水这一独立方式，且流水是错位搭接、≠平行同时。",
+          "fix": "三种方式：依次、平行、流水，流水单独一类。",
+          "option_id": "N03-html-practice-html-q7-35b58017fdb5:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q7-35b58017fdb5",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q7",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工段划分·条件维",
+      "stem": "组织流水施工划分施工段时应遵循的原则是？选出完整、能得分的作答。",
+      "model_answer": "各施工段劳动量差异宜≤15% 以保证节拍均衡，工作面充足，分段界限尽量与结构缝吻合，段数合理，多层工程分段又分层。",
+      "options": [
+        {
+          "text": "各段劳动量差异宜控制在 15% 以内以均衡节拍，工作面充足，界限尽量与结构缝吻合，段数合理，多层分段分层。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "劳动量≤15%、对结构缝、工作面、段数、分层，原则齐。",
+          "option_id": "N03-html-practice-html-q8-1cfa1f03f5bb:option-1"
+        },
+        {
+          "text": "施工段只要保证每段工作面够一个专业队施展就行，各段活儿多活儿少、劳动量差多少都无所谓。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "只盯工作面，忽略劳动量差异。",
+          "loss_reason": "漏了劳动量差异≤15% 这一关键约束，节拍会忽长忽短、接不上茬。",
+          "fix": "还须各段劳动量差异≤15%。",
+          "option_id": "N03-html-practice-html-q8-1cfa1f03f5bb:option-2"
+        },
+        {
+          "text": "各段劳动量差异控制在 50% 以内即可，段与段之间差一半属正常，不影响流水连续。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "记得有个百分比却记错成 50%。",
+          "loss_reason": "阈值错：应≤15% 不是 50%，差一半节拍严重失衡。",
+          "fix": "劳动量差异应≤15%。",
+          "option_id": "N03-html-practice-html-q8-1cfa1f03f5bb:option-3"
+        },
+        {
+          "text": "施工段划分主要看工期紧不紧，工期紧就多分几段、松就少分，与结构缝、劳动量无关。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "凭「工期」直觉定段数。",
+          "loss_reason": "漏了劳动量≤15%、界限对结构缝等硬原则。",
+          "fix": "分段须劳动量差≤15%、界限对结构缝、工作面充足。",
+          "option_id": "N03-html-practice-html-q8-1cfa1f03f5bb:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q8-1cfa1f03f5bb",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q8",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "参数定义·记录表达维",
+      "stem": "流水施工三大时间参数 流水节拍 t、流水步距 K、工期 T 的定义，哪一项全部正确？",
+      "model_answer": "t=某专业队在一个施工段上的施工时间；K=相邻两专业队先后进入流水的时间间隔；T=首队投入到末队完成最后一段退出的持续时间。",
+      "options": [
+        {
+          "text": "t 是某专业队在一个施工段上的施工时间；K 是相邻两专业队进入流水的时间间隔；T 是首队投入到末队退出的持续时间。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "t、K、T 三个定义各自准确、维度分清。",
+          "option_id": "N03-html-practice-html-q9-44a47701b565:option-1"
+        },
+        {
+          "text": "t 是相邻两专业队进场的时间间隔；K 是一个专业队在一个施工段上的施工时间；T 是全部时间之和。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "t 和 K 定义正好记反。",
+          "loss_reason": "t 与 K 互换，概念混淆，两参数维度不同。",
+          "fix": "t=单队一段工时；K=相邻队进场间隔，别互换。",
+          "option_id": "N03-html-practice-html-q9-44a47701b565:option-2"
+        },
+        {
+          "text": "t、K、T 说的是一回事——都是一个专业队干完一个施工段所用的时间，只是叫法不同。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "三个符号混为一谈。",
+          "loss_reason": "把三个不同参数当成同一个，全混。",
+          "fix": "t 单队一段、K 相邻队间隔、T 首入末退，三者不同。",
+          "option_id": "N03-html-practice-html-q9-44a47701b565:option-3"
+        },
+        {
+          "text": "t 是一个专业队在一段上的施工时间；K 是相邻队进场间隔（T 会算就行、略）。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "t、K 对了就省略 T。",
+          "loss_reason": "漏写 T 定义，采分点遗漏。",
+          "fix": "补 T=首队投入到末队退出的持续时间。",
+          "option_id": "N03-html-practice-html-q9-44a47701b565:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q9-44a47701b565",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q9",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "等节奏辨析·后果维",
+      "stem": "关于等节奏流水施工的特点，选出表述准确、能得分的一项。",
+      "model_answer": "等节奏各段节拍相等、流水步距 K=t、专业队数=施工过程数，各队在各施工段上能连续作业、无空闲。",
+      "options": [
+        {
+          "text": "等节奏各段节拍相等、流水步距 K=t、专业队数=施工过程数，各队在各施工段上能连续作业、无空闲。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "节拍相等、K=t、队数=过程数、连续无空闲，四点齐。",
+          "option_id": "N03-html-practice-html-q10-6debd0dae5af:option-1"
+        },
+        {
+          "text": "等节奏虽然节拍相等，但相邻专业队之间必然有空闲等待，各队不能连续作业。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为节拍相等也会停工等待（真题同款陷阱）。",
+          "loss_reason": "等节奏 K=t、前队完成即后队进入，必然连续无空闲；「有间隔」是无节奏特点。",
+          "fix": "等节奏各队能连续作业、无空闲。",
+          "option_id": "N03-html-practice-html-q10-6debd0dae5af:option-2"
+        },
+        {
+          "text": "等节奏流水步距 K 等于各节拍的最大公约数，且专业队数大于施工过程数。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把等步距异节奏的 K=gcd、队数>过程数套到等节奏。",
+          "loss_reason": "等节奏 K=t、队数=过程数，不是 gcd、不>过程数。",
+          "fix": "等节奏 K=t、队数=过程数。",
+          "option_id": "N03-html-practice-html-q10-6debd0dae5af:option-3"
+        },
+        {
+          "text": "等节奏就是各段节拍都相等（其余特点略）。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答一句节拍相等。",
+          "loss_reason": "漏 K=t、队数=过程数、连续无空闲等特点。",
+          "fix": "补 K=t、队数=过程数、连续作业。",
+          "option_id": "N03-html-practice-html-q10-6debd0dae5af:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q10-6debd0dae5af",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q10",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "大差法·程序维",
+      "stem": "无节奏流水施工（各段节拍无规律）求相邻专业队的流水步距，正确方法是？",
+      "model_answer": "用大差法：先列各施工过程节拍的累加数列，再将相邻两累加数列错位相减，取差值中的最大值作为流水步距，三动作缺一不可。",
+      "options": [
+        {
+          "text": "用大差法：先列各施工过程节拍的累加数列，再相邻累加数列错位相减，取差值的最大值作为流水步距。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "累加→错位相减→取最大值，三动作齐，正是给分点。",
+          "option_id": "N03-html-practice-html-q11-aba0a49f493e:option-1"
+        },
+        {
+          "text": "无节奏直接说明「采用大差法计算流水步距」即可，具体累加、相减过程不必展开写。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为报方法名就给分。",
+          "loss_reason": "漏写累加→错位相减→取最大值三动作，采分点遗漏。",
+          "fix": "必须展开累加数列、错位相减、取最大值三步。",
+          "option_id": "N03-html-practice-html-q11-aba0a49f493e:option-2"
+        },
+        {
+          "text": "大差法就是把相邻累加数列错位相减后，取差值的最小值作为流水步距。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "记得错位相减，却把「取最大」记成「取最小」。",
+          "loss_reason": "应取差值最大值，取最小会让后队抢工作面。",
+          "fix": "错位相减后取最大值，不是最小值。",
+          "option_id": "N03-html-practice-html-q11-aba0a49f493e:option-3"
+        },
+        {
+          "text": "无节奏流水步距直接取各段节拍里的最大值即可，用不着列累加数列。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把「取最大」误当成取最大节拍。",
+          "loss_reason": "取的是错位相减后差值的最大值，不是节拍最大值。",
+          "fix": "先累加、错位相减，再取差值最大值。",
+          "option_id": "N03-html-practice-html-q11-aba0a49f493e:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q11-aba0a49f493e",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q11",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "判型·条件维",
+      "stem": "某工程四个施工过程流水节拍均为 4 个月。判定类型并求流水步距，选出能得分的作答。",
+      "model_answer": "各节拍全部相等，判为等节奏流水；流水步距 K=流水节拍 t=4 个月，专业队数=施工过程数，各段连续无空闲。",
+      "options": [
+        {
+          "text": "节拍全部相等，判为等节奏流水，流水步距 K=t=4 个月，专业队数=施工过程数、连续无空闲。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "判等节奏 + K=t=4 + 队数=过程数，链齐。",
+          "option_id": "N03-html-practice-html-q12-660166fe1c7c:option-1"
+        },
+        {
+          "text": "节拍相等判等节奏，但流水步距要取各节拍最大公约数 gcd(4,4,4,4)，还得再拆队。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "把 gcd／拆队套到等节奏。",
+          "loss_reason": "等节奏 K 直接=t=4，队数=过程数、无需拆队。",
+          "fix": "等节奏 K=t=4，不拆队。",
+          "option_id": "N03-html-practice-html-q12-660166fe1c7c:option-2"
+        },
+        {
+          "text": "四个节拍都是 4、看着无规律，判为无节奏流水，用大差法求步距。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "没认出「全等」。",
+          "loss_reason": "全等应判等节奏，不是无节奏。",
+          "fix": "节拍全等→等节奏、K=t。",
+          "option_id": "N03-html-practice-html-q12-660166fe1c7c:option-3"
+        },
+        {
+          "text": "节拍相等判等节奏，流水步距 K=各节拍之和=16 个月。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把步距当成节拍求和。",
+          "loss_reason": "K=t=4，不是节拍求和。",
+          "fix": "等节奏 K=t=4 个月。",
+          "option_id": "N03-html-practice-html-q12-660166fe1c7c:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q12-660166fe1c7c",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q12",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "判型·条件维",
+      "stem": "某工程四个施工过程流水节拍为 2、4、3、5 天，彼此不成倍数关系。判定流水组织类型，选出能得分的作答。",
+      "model_answer": "节拍既不全相等、也不成整数倍关系，判为无节奏流水，流水步距用大差法逐对求出、步距不尽相等，专业队数=施工过程数。",
+      "options": [
+        {
+          "text": "节拍不全等且不成倍数，判为无节奏流水，步距用大差法求、各步距不尽相等，专业队数=施工过程数。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "判无节奏 + 大差法 + 队数=过程数，判据齐。",
+          "option_id": "N03-html-practice-html-q13-bf334ff1fa59:option-1"
+        },
+        {
+          "text": "节拍不全相等，判为等步距异节奏流水，流水步距取各节拍最大公约数。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "一见不等就往异节奏靠。",
+          "loss_reason": "等步距异节奏要求节拍成倍数；2/4/3/5 不成倍数，应判无节奏。",
+          "fix": "不成倍数→无节奏，用大差法。",
+          "option_id": "N03-html-practice-html-q13-bf334ff1fa59:option-2"
+        },
+        {
+          "text": "其中有两个节拍不同，判为等节奏流水，流水步距 K=t。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「等节奏」张冠李戴。",
+          "loss_reason": "等节奏要求全部节拍相等，此处不等。",
+          "fix": "节拍无规律→无节奏。",
+          "option_id": "N03-html-practice-html-q13-bf334ff1fa59:option-3"
+        },
+        {
+          "text": "节拍里最小 2、最大 5，判型看最大节拍、按 5 天定步距即可，不必分类型。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "跳过判型直接取步距。",
+          "loss_reason": "跳过判型丢判据分，且步距非取最大节拍。",
+          "fix": "先判无节奏，再用大差法求步距。",
+          "option_id": "N03-html-practice-html-q13-bf334ff1fa59:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q13-bf334ff1fa59",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q13",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "队数变式·计算表达维",
+      "stem": "某工程五个施工过程流水节拍为 3、3、9、6、6 天（成倍节拍）。求专业施工队总数，选出能得分的作答。",
+      "model_answer": "K=各节拍最大公约数 gcd=3；各工序队数=节拍÷K=1、1、3、2、2，合计 9 个专业队，队数>施工过程数。",
+      "options": [
+        {
+          "text": "K=gcd=3，各工序队数=节拍÷K=1+1+3+2+2=9 个专业队，成倍节拍拆队、队数大于工序数。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "K=gcd + 逐工序÷K 求和=9 + 队数>工序数，齐。",
+          "option_id": "N03-html-practice-html-q14-853fa53c0eea:option-1"
+        },
+        {
+          "text": "五个施工过程就配 5 个专业队，每过程 1 队，队数等于工序数即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "直觉「几工序几队」。",
+          "loss_reason": "未按节拍÷K 拆队，节拍 9、6 应各拆多队。",
+          "fix": "队数=节拍÷K 求和=9，队数>工序数。",
+          "option_id": "N03-html-practice-html-q14-853fa53c0eea:option-2"
+        },
+        {
+          "text": "K 取最大节拍 9，各工序队数=节拍÷9，凑不成整数就都算 1 队，共 5 队。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "K 取最大节拍导致队数全≈1。",
+          "loss_reason": "K 应取 gcd=3，取 9 连锁错队数。",
+          "fix": "K=gcd=3，队数=1+1+3+2+2=9。",
+          "option_id": "N03-html-practice-html-q14-853fa53c0eea:option-3"
+        },
+        {
+          "text": "把节拍直接当队数：3+3+9+6+6=27 个专业队。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "节拍当队数。",
+          "loss_reason": "队数=节拍÷K，不是节拍本身。",
+          "fix": "节拍÷K 求和=9 队。",
+          "option_id": "N03-html-practice-html-q14-853fa53c0eea:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q14-853fa53c0eea",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q14",
+      "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分句输出·末题",
+      "stem": "节拍 3、3、6、3 个月、施工段 M=2，组织成倍节拍流水。按阅卷采分点写全答案，选出四步采分句最完整的作答。",
+      "model_answer": "①判型：节拍成倍数→等步距异节奏；②K=最大公约数 gcd(3,6)=3 个月；③队数=节拍÷K=1+1+2+1=5、拆队队数>工序数；④工期 T=(M+N′−1)×K=(2+5−1)×3=18 个月，带单位。",
+      "options": [
+        {
+          "text": "①成倍数→等步距异节奏；②K=gcd(3,6)=3 个月；③队数=1+1+2+1=5（拆队>工序数）；④T=(2+5−1)×3=18 个月。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "判型理由+K+队数拆队+搭接工期，四句一句不少。",
+          "option_id": "N03-html-practice-html-q15-fa297fdfefd8:option-1"
+        },
+        {
+          "text": "K=3 个月，专业队 5 个，总工期 18 个月。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只报数值结论、省了判型理由。",
+          "loss_reason": "漏判型理由（成倍数·等步距异节奏），采分点遗漏。",
+          "fix": "开头补「判型：成倍数→等步距异节奏」再列 K/队数/工期。",
+          "option_id": "N03-html-practice-html-q15-fa297fdfefd8:option-2"
+        },
+        {
+          "text": "判型等步距异节奏；K=3；队数 4 个（每工序 1 队）；工期 3+3+6+3=15 个月。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "判型对、后面不拆队又机械相加。",
+          "loss_reason": "队数未拆队（应 5）、工期机械相加未体现搭接（应 18）。",
+          "fix": "队数=1+1+2+1=5，工期=(2+5−1)×3=18。",
+          "option_id": "N03-html-practice-html-q15-fa297fdfefd8:option-3"
+        },
+        {
+          "text": "判型等节奏；K=t=3；队数=工序数 4；工期按 K=t 排=18 个月。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "判成等节奏、蒙到 18。",
+          "loss_reason": "节拍不全等应判等步距异节奏、须拆队 5；判型地基错。",
+          "fix": "判等步距异节奏、拆队 5、T=(2+5−1)×3=18。",
+          "option_id": "N03-html-practice-html-q15-fa297fdfefd8:option-4"
+        }
+      ],
+      "variant_id": "N03-html-practice-html-q15-fa297fdfefd8",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q15",
       "source_html_sha256": "c123e04fed6fba7a96375acec3d686371dbb104e835603e24f4f54a82b5e8d3c"
     }
   ],

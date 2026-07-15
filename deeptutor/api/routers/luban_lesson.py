@@ -30,9 +30,11 @@ from deeptutor.services.luban_lesson import (
     list_all_pack_ids,
     list_lesson_catalog,
     retest_pool_meta,
+    retest_supply_identity,
 )
 from deeptutor.services.luban_lesson.practice_html import (
     PracticeHtmlInvalid,
+    compiled_practice_pool_meta,
     is_compiled_practice_pack,
 )
 from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
@@ -156,7 +158,7 @@ async def retest_items(
 ) -> dict:
     """题面投影（同一 endpoint / 同一 completion authority）：
     - ``mode=review``（默认，复习轮换皮复测）；
-    - ``mode=forward``（学习轮课后轻练；已编译 pack 读取 finished HTML 固定五题）。
+    - ``mode=forward``（学习轮课后轻练；已编译 pack 从 finished HTML 私有题池取五题）。
       completion 均由服务端重判；forward 非 promoting。
 
     未识别的 mode 归一为 review（thin 归一，不新增第二 builder/第二端点）。
@@ -184,6 +186,14 @@ async def retest_items(
     if compiled_registered and not items:
         raise HTTPException(status_code=404, detail="compiled practice unavailable")
     compiled_forward = compiled_registered
+    compiled_pool = (
+        compiled_practice_pool_meta(pack_id, surface_id=practice_surface)
+        if compiled_forward
+        else None
+    )
+    supply = retest_supply_identity(pack_id, mode=mode)
+    if not supply.get("kind") or not supply.get("digest"):
+        raise HTTPException(status_code=404, detail="retest supply unavailable")
     return {
         "pack_id": pack_id.upper(),
         "items": items,
@@ -195,13 +205,10 @@ async def retest_items(
             day_index=day_index,
             mode=mode,
             variant_ids=[str(item.get("variant_id") or "") for item in items],
+            supply_kind=supply["kind"],
+            supply_digest=supply["digest"],
         ),
-        "pool": {
-            "core_total": len(items),
-            "rule_groups_total": len(
-                {str(item.get("rule_group") or "") for item in items}
-            ),
-        }
+        "pool": compiled_pool
         if compiled_forward
         else retest_pool_meta(pack_id),
         "practice_source": "compiled_html" if compiled_forward else "signed_variant",

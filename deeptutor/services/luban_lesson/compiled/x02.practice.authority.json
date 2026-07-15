@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v2",
   "pack_id": "X02",
   "source_pack_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
   "source_bundle_sha256": "a38e55c013125f8881d796cc2c816dbaa39b8e8bbfc5f718efc436df26486fe0",
@@ -230,6 +230,567 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q4",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "易燃库方向·后果维",
+      "stem": "某露天易燃材料仓库设在现场上风方向、消防通道宽5m。指出不妥并写出正确做法。",
+      "model_answer": "不妥：易燃仓库设上风向、通道5m。正确做法：应设下风向、水源充足处；消防通道≥6m；距明火≥30m、危险品间距≥10m。",
+      "options": [
+        {
+          "text": "不妥：易燃仓库设上风向、通道5m。正确做法：设下风向、水源充足处；消防通道≥6m；距明火≥30m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "改对方向(下风向)+补通道6m/明火30m，直命真题{2015第30题}。",
+          "option_id": "X02-html-practice-html-q5-e9ee6cd8eb1b:option-1"
+        },
+        {
+          "text": "妥当：设上风向通风好、不容易积聚可燃气体，通道5m 也够用，无需修改。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "'上风向通风好'听着有道理。",
+          "loss_reason": "方向正好判反——易燃仓库应设下风向，一起火烟火才吹离作业区；这是真题核心0分错项。",
+          "fix": "易燃材料仓库应设下风向、水源充足处。",
+          "option_id": "X02-html-practice-html-q5-e9ee6cd8eb1b:option-2"
+        },
+        {
+          "text": "不妥：易燃仓库位置和通道不合理。正确做法：按消防要求合理设置、加强管理。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "不敢判方向，写句安全套话保底。",
+          "loss_reason": "无方向、无数字，口号化表达不给分。",
+          "fix": "点明：下风向、消防通道≥6m、距明火≥30m。",
+          "option_id": "X02-html-practice-html-q5-e9ee6cd8eb1b:option-3"
+        },
+        {
+          "text": "不妥：只有通道5m 窄了。正确做法：通道加到≥6m 即可，上风向布置没问题。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "只盯着通道宽度，忽略了方向。",
+          "loss_reason": "漏判最关键的方向错(上风向应改下风向)，只改通道拿不到核心分。",
+          "fix": "先改方向：设下风向；再补通道≥6m。",
+          "option_id": "X02-html-practice-html-q5-e9ee6cd8eb1b:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q5-e9ee6cd8eb1b",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q5",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "仓库分区·条件维",
+      "stem": "问：仓库与堆料场的防火分区应满足哪些要求？选出规格正确、能得分的作答。",
+      "model_answer": "每500m²设防火墙；可燃材料库单间≤30m²；易燃易爆品库单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
+      "options": [
+        {
+          "text": "每500m²设防火墙；可燃材料库单间≤30m²；易燃易爆品库单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "防火墙+可燃30+易燃20+房门0.8+疏散10 逐项带数字列全。",
+          "option_id": "X02-html-practice-html-q6-8a32c1db9f36:option-1"
+        },
+        {
+          "text": "每500m²设防火墙；可燃材料库单间≤20m²；易燃易爆品库单间≤30m²；房门≥0.8m。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "两个面积都记得，就是分不清哪个库配哪个数。",
+          "loss_reason": "可燃30、易燃易爆20 记反了——越危险的间面积越小。",
+          "fix": "可燃库≤30m²、易燃易爆库≤20m²（越危险越小）。",
+          "option_id": "X02-html-practice-html-q6-8a32c1db9f36:option-2"
+        },
+        {
+          "text": "仓库分区面积越大越好，便于集中堆放和管理，配好灭火器即可，不必设防火墙。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得大间好管理、灭火器补上就行。",
+          "loss_reason": "漏防火墙、错解分区目的——分区是把单区可燃物压小防蔓延。",
+          "fix": "每500m²防火墙、可燃≤30m²、易燃易爆≤20m²。",
+          "option_id": "X02-html-practice-html-q6-8a32c1db9f36:option-3"
+        },
+        {
+          "text": "每500m²设防火墙、可燃库≤30m²、易燃易爆≤20m² 即可，房门和疏散距离按现场定。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住了面积三项就以为齐了。",
+          "loss_reason": "漏房门净宽≥0.8m、任一点到疏散门≤10m 两项采分点。",
+          "fix": "补房门净宽≥0.8m、任一点到疏散门≤10m。",
+          "option_id": "X02-html-practice-html-q6-8a32c1db9f36:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q6-8a32c1db9f36",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q6",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "电气间距·条件维",
+      "stem": "问：易燃堆垛区的电气防火间距应满足哪些要求？选出规格正确、能得分的作答。",
+      "model_answer": "架空电力线与堆垛≥电杆高度×1.5；照明灯具距堆垛≥1m；开关箱/接线盒距堆垛≥1.5m；严禁使用碘钨灯。",
+      "options": [
+        {
+          "text": "架空电力线与堆垛≥电杆高×1.5；照明灯具距堆垛≥1m；开关箱/接线盒≥1.5m；严禁使用碘钨灯。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三条间距带数字+'严禁碘钨灯'一句不漏，正是给分点。",
+          "option_id": "X02-html-practice-html-q7-636b6a704988:option-1"
+        },
+        {
+          "text": "电气线路和灯具与堆垛保持安全距离、加强绝缘检查，防止电气火灾即可。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "'保持安全距离'像标准表述。",
+          "loss_reason": "无任一数值、漏碘钨灯禁令，口号化不给分。",
+          "fix": "架空线≥杆高×1.5、灯具≥1m、开关箱≥1.5m、禁碘钨灯。",
+          "option_id": "X02-html-practice-html-q7-636b6a704988:option-2"
+        },
+        {
+          "text": "架空线≥杆高×1.5、灯具≥1m、开关箱≥1.5m，照明可用碘钨灯提高亮度。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "间距都对，顺手加了句'碘钨灯提亮'。",
+          "loss_reason": "碘钨灯温度极高、严禁在易燃堆垛区使用，加这句反而错。",
+          "fix": "严禁使用碘钨灯，其余间距保留。",
+          "option_id": "X02-html-practice-html-q7-636b6a704988:option-3"
+        },
+        {
+          "text": "照明灯具距堆垛≥1m、开关箱≥1.5m 即可，架空线在高处不用管间距。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得架空线在高空没风险。",
+          "loss_reason": "漏了架空线≥电杆高×1.5 这条采分点。",
+          "fix": "补架空电力线与堆垛≥电杆高度×1.5。",
+          "option_id": "X02-html-practice-html-q7-636b6a704988:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q7-636b6a704988",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q7",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "灭火器·条件维",
+      "stem": "问：施工现场临时设施的灭火器应如何配置？选出配置率正确、能得分的作答。",
+      "model_answer": "临建每100㎡配2只10L灭火器；木料间、油漆间每25㎡配1只；场地超1200㎡设太平桶、积水池、黄砂池。",
+      "options": [
+        {
+          "text": "临建每100㎡配2只10L；木料间、油漆间每25㎡配1只；场地超1200㎡设太平桶、积水池、黄砂池。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两种配置率+超大场地三件套都列全，配置率精确。",
+          "option_id": "X02-html-practice-html-q8-c64a60aaa7a5:option-1"
+        },
+        {
+          "text": "各临时设施都按每100㎡配2只10L灭火器统一配置，简单好记也够用。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记住了'100㎡2只'，想一个率通用。",
+          "loss_reason": "木料间/油漆间危险，要每25㎡1只（更密），一律100㎡会配不够。",
+          "fix": "木料间、油漆间每25㎡1只；临建每100㎡2只。",
+          "option_id": "X02-html-practice-html-q8-c64a60aaa7a5:option-2"
+        },
+        {
+          "text": "现场配足灭火器、放在明显易取处、定期检查即可，数量按面积大小酌情增减。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "'配足、易取、定期检查'像规范用语。",
+          "loss_reason": "无配置率数字，口号化表达不给分。",
+          "fix": "临建每100㎡2只10L、木料间每25㎡1只。",
+          "option_id": "X02-html-practice-html-q8-c64a60aaa7a5:option-3"
+        },
+        {
+          "text": "临建每100㎡2只10L、木料间每25㎡1只即可，场地再大也按这两个率配。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "两个配置率都对，以为齐了。",
+          "loss_reason": "漏了场地超1200㎡设太平桶、积水池、黄砂池这一采分点。",
+          "fix": "补：超1200㎡设太平桶、积水池、黄砂池。",
+          "option_id": "X02-html-practice-html-q8-c64a60aaa7a5:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q8-c64a60aaa7a5",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q8",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "材料验收·程序记录维",
+      "stem": "问：材料进场验收应做哪些工作？选出要素齐全、能得分的作答。",
+      "model_answer": "进场须凭证、数量、规格、外观验收；挂牌标识；建立收料台账。",
+      "options": [
+        {
+          "text": "材料进场须进行凭证、数量、规格、外观验收；挂牌标识；建立收料台账。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "验收三要素+挂牌+台账三块齐全，正是给分点。",
+          "option_id": "X02-html-practice-html-q9-1cec61174459:option-1"
+        },
+        {
+          "text": "材料进场验收合格后即可投入使用，确保质量满足要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "'验收合格后使用'是最常见的顺口写法。",
+          "loss_reason": "漏了凭证/数量规格/外观三要素、挂牌标识、收料台账等采分点。",
+          "fix": "补凭证/数量/规格/外观验收+挂牌标识+收料台账。",
+          "option_id": "X02-html-practice-html-q9-1cec61174459:option-2"
+        },
+        {
+          "text": "材料进场只需核对凭证（质量证明文件）齐全即可，外观和数量现场差不多就行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得有质保书就万事大吉。",
+          "loss_reason": "漏数量、规格、外观验收和挂牌、台账，验收要素残缺。",
+          "fix": "凭证只是其一，还要数量/规格/外观验收+挂牌+台账。",
+          "option_id": "X02-html-practice-html-q9-1cec61174459:option-3"
+        },
+        {
+          "text": "材料进场后先堆放到位、边用边查，发现问题再复检处理，节省进场时间。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "想着先用起来、有问题再说，省事。",
+          "loss_reason": "未验先用违反进场验收要求，缺挂牌、台账书面环节。",
+          "fix": "必须先验收（凭证/数量/规格/外观）+挂牌+台账再使用。",
+          "option_id": "X02-html-practice-html-q9-1cec61174459:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q9-1cec61174459",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q9",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "材料堆放·条件维",
+      "stem": "某工地钢管露天码放高2.2m、直接堆在地面无遮盖。指出不妥并写出正确做法。",
+      "model_answer": "不妥：码放2.2m、露天无下垫上盖。正确做法：料具码放高度≤1.5m；库外材料应下垫上盖。",
+      "options": [
+        {
+          "text": "不妥：码放2.2m、露天无遮盖。正确做法：料具码放高度≤1.5m；库外材料应下垫上盖（下垫防潮、上盖防雨）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "限高≤1.5m+下垫上盖两项都带出来，判断纠错完整。",
+          "option_id": "X02-html-practice-html-q10-21f280779765:option-1"
+        },
+        {
+          "text": "不妥：钢管堆太高、没盖。正确做法：适当降低堆放高度、加个防雨盖。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对，'适当降低'写着省事。",
+          "loss_reason": "未给≤1.5m 数值、漏'下垫'，缺关键数字与要素。",
+          "fix": "码放高度≤1.5m；库外材料下垫上盖（下垫也要）。",
+          "option_id": "X02-html-practice-html-q10-21f280779765:option-2"
+        },
+        {
+          "text": "不妥：只是没遮盖。正确做法：加防雨遮盖即可，码放2.2m 高度没问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只看到没盖，忽略了超高。",
+          "loss_reason": "漏改码放高度（2.2m>1.5m），采分点遗漏。",
+          "fix": "补：料具码放高度≤1.5m。",
+          "option_id": "X02-html-practice-html-q10-21f280779765:option-3"
+        },
+        {
+          "text": "不妥：码放2.2m。正确做法：码放高度≤2m 即可，露天堆放地面平整就行。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "知道要限高，但数字记成了2m。",
+          "loss_reason": "限高数字错(应≤1.5m)、且漏下垫上盖。",
+          "fix": "码放≤1.5m、库外下垫上盖。",
+          "option_id": "X02-html-practice-html-q10-21f280779765:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q10-21f280779765",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q10",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "不合格退场·程序后果维",
+      "stem": "进场材料验收不合格。问应如何处置？选出流程正确、能得分的作答。",
+      "model_answer": "不合格材料按流程退场：申请→审批→通知→见证退场→记录确认→报告提交；不得直接或降级使用。",
+      "options": [
+        {
+          "text": "按退场流程处置：申请→审批→通知→见证退场→记录确认→报告提交，不得直接或降级使用。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六步流程顺序完整+点出'见证退场'不可省+禁降级用。",
+          "option_id": "X02-html-practice-html-q11-3607ac516ee3:option-1"
+        },
+        {
+          "text": "不合格材料可降级用于次要部位或非承重部位，避免浪费、节约成本。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "想着降级用不浪费，看着'合理利用'。",
+          "loss_reason": "不合格材料严禁直接或降级使用，属违规处置。",
+          "fix": "不合格材料按流程退场，不得降级使用。",
+          "option_id": "X02-html-practice-html-q11-3607ac516ee3:option-2"
+        },
+        {
+          "text": "通知供应商把不合格材料拉走就行，现场登记一下数量即可，流程从简。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得拉走登记就完了，省去中间环节。",
+          "loss_reason": "漏'申请→审批'与'见证退场、报告提交'，流程环节缺失。",
+          "fix": "补全：申请→审批→通知→见证退场→记录确认→报告提交。",
+          "option_id": "X02-html-practice-html-q11-3607ac516ee3:option-3"
+        },
+        {
+          "text": "不合格材料先隔离堆放、挂待检牌，等复检合格再决定是否使用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把'待检'和'不合格'混为一谈。",
+          "loss_reason": "已判不合格不能等复检再用，应退场；隔离待检是未检状态的做法。",
+          "fix": "验收不合格即按退场流程处置、见证退场。",
+          "option_id": "X02-html-practice-html-q11-3607ac516ee3:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q11-3607ac516ee3",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q11",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "工具式临设·辨析维",
+      "stem": "问：下列哪一组属于工具式、定型化临时设施？选出分类正确、能得分的作答。",
+      "model_answer": "工具式定型化临设：标准化箱式房、定型化临边洞口防护、加工棚、构件化PVC围墙、装配式马道、可重复使用临时道路板。",
+      "options": [
+        {
+          "text": "标准化箱式房、加工棚、构件化PVC围墙、装配式马道、可重复使用临时道路板（能拆能挪、反复使用）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "都是可拆装、反复使用的定型化产品，分类准确。",
+          "option_id": "X02-html-practice-html-q12-71f66b8d19ce:option-1"
+        },
+        {
+          "text": "现浇混凝土围墙、砖砌临时道路、现场支模的加工棚，牢固耐用属定型化临设。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得'牢固耐用'就是定型化。",
+          "loss_reason": "现浇/砖砌是一次性做法，不能拆挪复用，不属工具式定型化。",
+          "fix": "工具式定型化指能拆装复用：箱式房/PVC围墙/道路板等。",
+          "option_id": "X02-html-practice-html-q12-71f66b8d19ce:option-2"
+        },
+        {
+          "text": "只要是临时用的房子、围墙、道路都算工具式定型化临设，不分做法。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把'临时'等同于'工具式定型化'。",
+          "loss_reason": "临时不等于定型化，关键看是否标准化、可拆装反复使用。",
+          "fix": "看是否可拆装复用：箱式房/加工棚/PVC围墙/道路板才算。",
+          "option_id": "X02-html-practice-html-q12-71f66b8d19ce:option-3"
+        },
+        {
+          "text": "标准化箱式房、加工棚都算；但可重复使用道路板是路面材料、不算临设。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得道路板属'路面'不属'设施'。",
+          "loss_reason": "可重复使用临时道路板正是典型工具式定型化临设，漏了它。",
+          "fix": "可重复使用临时道路板也属工具式定型化临设。",
+          "option_id": "X02-html-practice-html-q12-71f66b8d19ce:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q12-71f66b8d19ce",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q12",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "仓库间距·辨析维",
+      "stem": "问：普通临时仓库与危险品仓库的布置原则分别是什么？选出都对的一项。",
+      "model_answer": "临时仓库应接近使用地点、方便取料；危险品仓库应远离现场，距在建工程≥15m。",
+      "options": [
+        {
+          "text": "临时仓库接近使用地点、方便取料；危险品仓库远离现场、距在建工程≥15m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两类仓库布置原则各就各位，危险品带出15m数值。",
+          "option_id": "X02-html-practice-html-q13-863a2ef0026d:option-1"
+        },
+        {
+          "text": "两类仓库都应远离现场布置，越远越安全，统一距在建工程≥15m。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得仓库都远点更安全、好记。",
+          "loss_reason": "普通临时仓库应接近使用地点方便取料，不是越远越好。",
+          "fix": "临时仓库接近使用地点；只有危险品仓库远离≥15m。",
+          "option_id": "X02-html-practice-html-q13-863a2ef0026d:option-2"
+        },
+        {
+          "text": "两类仓库都应接近使用地点、方便取用，危险品也就近放好看管。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得都近点取用方便、好管理。",
+          "loss_reason": "危险品仓库必须远离现场、距在建≥15m，就近违规。",
+          "fix": "危险品仓库远离现场≥15m，只有临时仓库才接近使用点。",
+          "option_id": "X02-html-practice-html-q13-863a2ef0026d:option-3"
+        },
+        {
+          "text": "临时仓库接近使用地点；危险品仓库也接近作业面、方便随用随取。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "前半句对，顺势把危险品也写成接近。",
+          "loss_reason": "危险品仓库应远离现场、距在建≥15m，与临时仓库相反。",
+          "fix": "危险品仓库远离现场、距在建工程≥15m。",
+          "option_id": "X02-html-practice-html-q13-863a2ef0026d:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q13-863a2ef0026d",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q13",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "回车场转弯·条件维",
+      "stem": "问：为保证消防车进得去、倒得出，回车场和转弯半径应满足什么规格？",
+      "model_answer": "回车场不小于12m×12m；载重车（消防车）转弯半径≥15m。",
+      "options": [
+        {
+          "text": "回车场不小于12m×12m；载重车（消防车）转弯半径≥15m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "回车场12×12+转弯半径15m 两个数都到位。",
+          "option_id": "X02-html-practice-html-q14-b7dd5118e780:option-1"
+        },
+        {
+          "text": "回车场留够空间让车掉头、道路转弯处适当放大即可，保证通行顺畅。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "'留够空间''适当放大'像描述。",
+          "loss_reason": "无12m×12m、15m 数字，口号化不给分。",
+          "fix": "回车场12m×12m；转弯半径≥15m。",
+          "option_id": "X02-html-practice-html-q14-b7dd5118e780:option-2"
+        },
+        {
+          "text": "回车场不小于6m×6m、转弯半径≥6m，能容小型车辆掉头即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "凭印象往小了估，觉得车能转就行。",
+          "loss_reason": "数字全错——回车场12×12、转弯半径15m 是为消防大车定的。",
+          "fix": "回车场12m×12m、转弯半径≥15m。",
+          "option_id": "X02-html-practice-html-q14-b7dd5118e780:option-3"
+        },
+        {
+          "text": "只要转弯半径≥15m 就行，有足够转弯半径就不必单独设回车场。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住转弯半径，觉得能转就不用回车场。",
+          "loss_reason": "漏了回车场12m×12m 这个独立采分点。",
+          "fix": "补：回车场不小于12m×12m。",
+          "option_id": "X02-html-practice-html-q14-b7dd5118e780:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q14-b7dd5118e780",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q14",
+      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "综合列要求·多维",
+      "stem": "问：现场临时设施、道路及材料堆场布置应满足哪些要求？按对象成组作答，选出列得最全的一项。",
+      "model_answer": "仓库：临时接近使用点、危险品距在建≥15m、易燃库下风向距明火≥30m；道路：单4双6消防4木材6回车12×12转弯15；消防分区：500墙可燃30易燃20疏散10；材料：验收挂牌台账、码放≤1.5m下垫上盖、不合格退场。",
+      "options": [
+        {
+          "text": "仓库(临时近用点/危险品距在建≥15m/易燃库下风向≥30m)、道路(单4双6消防4木材6/回车12×12/转弯15)、消防分区(500墙/可燃30/易燃20/疏散10)、材料(验收挂牌台账/码放≤1.5m下垫上盖/不合格退场)。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "按对象分四组、每组落数字，正是列要求题满分结构。",
+          "option_id": "X02-html-practice-html-q15-2a68a3a2fd01:option-1"
+        },
+        {
+          "text": "应合理规划平面布置、临设道路材料堆场安排得当、加强现场消防和材料管理。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "'合理规划''安排得当'像总纲，最好写。",
+          "loss_reason": "通篇无规格数字、无分组，口号化表达不给分。",
+          "fix": "按对象分组列数字：仓库15m/道路4·6/分区500·30·20/材料1.5m。",
+          "option_id": "X02-html-practice-html-q15-2a68a3a2fd01:option-2"
+        },
+        {
+          "text": "主要把临时道路修好(单4双6)、宿舍住好(≤16人)两块管住，其余现场灵活安排。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "挑了自己记得牢的两块写。",
+          "loss_reason": "漏了仓库间距、易燃库方向、消防分区、电气、灭火器、材料保管多组采分点。",
+          "fix": "补齐仓库/易燃库/消防分区/材料保管各组规格。",
+          "option_id": "X02-html-practice-html-q15-2a68a3a2fd01:option-3"
+        },
+        {
+          "text": "重点是把构件堆场场地平整坚实、排水良好、方便起吊，其余按施组设计执行。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "把相邻的钢构件堆场条件当成了本题主答案。",
+          "loss_reason": "跑偏到相邻知识，未回到临设/道路/堆场规格数值主线。",
+          "fix": "主答案回到临设/道路规格：仓库15m/道路4·6/分区/材料。",
+          "option_id": "X02-html-practice-html-q15-2a68a3a2fd01:option-4"
+        }
+      ],
+      "variant_id": "X02-html-practice-html-q15-2a68a3a2fd01",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q15",
       "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554"
     },
     {

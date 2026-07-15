@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v2",
   "pack_id": "Q02",
   "source_pack_sha256": "81d50133b6f7f8f7b777d40c46a67bd6a69096d6a7f4d69a546fdb8af7f639c4",
   "source_bundle_sha256": "8898cc2836c854bc16794ea76f608b83cb10b039f0395754c1fbe6664e1f6773",
@@ -230,6 +230,567 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q4",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "计算·四步链",
+      "stem": "案例计算题（如配合比换算）要拿全过程分，作答结构应当怎么写？选出完整口径。",
+      "model_answer": "四步链：①亮公式（判据）②代入题干数据列式 ③写数值结论带单位 ④回判规范限值（如水胶比≤0.45）。",
+      "options": [
+        {
+          "text": "先亮公式，再代入数据列式，然后写数值结论带上单位，最后回判规范限值是否满足。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "公式、列式、数值、回判——四步链一步不缺，步步是分。",
+          "option_id": "Q02-html-practice-html-q5-0a5cc80bbeaf:option-1"
+        },
+        {
+          "text": "直接写出最终数值结论并标明单位，计算过程在草稿纸上完成即可，不必誊写上卷。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "平时刷题就习惯只报得数，图快。",
+          "loss_reason": "阅卷按步给分，卷面无算式，公式分、列式分全丢。",
+          "fix": "公式和列式都要誊上答题纸。",
+          "option_id": "Q02-html-practice-html-q5-0a5cc80bbeaf:option-2"
+        },
+        {
+          "text": "写出公式并代入数据列式，算出数值结论带上单位，计算作答到此即告完成。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "三步都全了，看着已经闭环。",
+          "loss_reason": "漏第④步回判——不对回规范限值，丢定性分。",
+          "fix": "末尾补一句「经复核，水胶比≤0.45，满足要求」。",
+          "option_id": "Q02-html-practice-html-q5-0a5cc80bbeaf:option-3"
+        },
+        {
+          "text": "先写数值结论让阅卷一眼看到答案，再倒推补一段大致的计算说明即可。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "「结论先行」在论述题里确实常被推荐。",
+          "loss_reason": "计算题按链路采分，倒装且「大致说明」不构成列式。",
+          "fix": "按①公式②列式③数值④回判的顺序写。",
+          "option_id": "Q02-html-practice-html-q5-0a5cc80bbeaf:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q5-0a5cc80bbeaf",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q5",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "计算·等量替换",
+      "stem": "设计水泥用量400kg/m³，粉煤灰掺量20%（等量替换水泥）。求每立方米水泥、粉煤灰用量，选出能得过程分的作答。",
+      "model_answer": "水泥=400×(1−20%)=320kg/m³；粉煤灰=400×20%=80kg/m³（胶材总量仍400）。",
+      "options": [
+        {
+          "text": "水泥=400×(1−20%)=320kg/m³，粉煤灰=400×20%=80kg/m³，列式与数值齐全。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「×(1−20%)」这一笔就是过程分，两条算式都要落卷。",
+          "option_id": "Q02-html-practice-html-q6-1d2b4271f6d9:option-1"
+        },
+        {
+          "text": "水泥用量为320kg/m³，粉煤灰用量为80kg/m³，两项均已按掺量换算完成。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "数全对，感觉稳了。",
+          "loss_reason": "没有「×(1−20%)」的算式，过程分拿不到。",
+          "fix": "把两条算式原样写上答题纸。",
+          "option_id": "Q02-html-practice-html-q6-1d2b4271f6d9:option-2"
+        },
+        {
+          "text": "水泥=400−20=380kg/m³，粉煤灰=20kg/m³，按掺量20直接从水泥用量中扣减。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "「掺20就减20」，顺手一减。",
+          "loss_reason": "把百分比当成公斤数，等量替换是按20%的比例替换。",
+          "fix": "400×20%=80替换，水泥=400×(1−20%)=320。",
+          "option_id": "Q02-html-practice-html-q6-1d2b4271f6d9:option-3"
+        },
+        {
+          "text": "水泥仍为400kg/m³，另外加入粉煤灰80kg/m³，两种胶凝材料用量分别计取。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "「掺」字容易理解成「额外加」。",
+          "loss_reason": "等量替换是「替」不是「加」，胶材总量应保持400。",
+          "fix": "水泥减到320、粉煤灰80，合计仍400。",
+          "option_id": "Q02-html-practice-html-q6-1d2b4271f6d9:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q6-1d2b4271f6d9",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q6",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "计算·扣含水率",
+      "stem": "实测中砂含水率4%、碎石含水率1.2%。由设计配合比换算施工配合比时，用水量应如何处理？",
+      "model_answer": "骨料自带水计入用水：实际加水=设计用水−砂石带入的水；砂、石称量按含水率相应增加。",
+      "options": [
+        {
+          "text": "从设计用水量中扣除砂石自带的水求出实际加水量，砂石称量按含水率相应增加。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「扣自带水+砂石称量相应加」两句齐，换算才算完整。",
+          "option_id": "Q02-html-practice-html-q7-ec9235dbfde4:option-1"
+        },
+        {
+          "text": "按设计配合比的用水量直接投料拌制，含水率的波动由现场坍落度试验随时调整。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "「看坍落度调」听着很实操。",
+          "loss_reason": "不扣自带水，实际水胶比直接超限——题干给含水率就是要你扣。",
+          "fix": "先扣骨料自带水，再定实际加水量。",
+          "option_id": "Q02-html-practice-html-q7-ec9235dbfde4:option-2"
+        },
+        {
+          "text": "在设计用水量之外再增加4%和1.2%的水，用于补偿骨料表面吸附的水分损失。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "见到百分比就想「补偿」。",
+          "loss_reason": "方向反了——骨料是带着水进来的，应扣不应加。",
+          "fix": "实际加水=设计水−骨料带入的水。",
+          "option_id": "Q02-html-practice-html-q7-ec9235dbfde4:option-3"
+        },
+        {
+          "text": "只需扣除中砂带入的水量即可，碎石含水率1.2%数值很小，可以忽略不计。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "1.2%看着确实不起眼。",
+          "loss_reason": "漏了碎石折算，换算要求砂、石都按实测含水率折。",
+          "fix": "砂、石都按实测含水率折算。",
+          "option_id": "Q02-html-practice-html-q7-ec9235dbfde4:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q7-ec9235dbfde4",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q7",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "计算·回判收尾",
+      "stem": "配合比换算完成后，第④步「回判」应写哪句才能把计算链闭环？选出得分口径。",
+      "model_answer": "回判句：经复核，水胶比不大于0.45（拌合水不超过170kg/m³），满足大体积混凝土配合比要求。",
+      "options": [
+        {
+          "text": "写明经复核水胶比不大于0.45、满足大体积配合比要求，把结果对回规范限值。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点名限值0.45+满足结论，一句定性把链闭环。",
+          "option_id": "Q02-html-practice-html-q8-c47e11a4d38f:option-1"
+        },
+        {
+          "text": "数值结论已经写清并带单位，计算链即告完成，不需要再补充其他说明性文字。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得算完就完了，回判像是多余。",
+          "loss_reason": "缺第④步回判，丢定性分，链没闭环。",
+          "fix": "末尾补「经复核，水胶比≤0.45，满足要求」。",
+          "option_id": "Q02-html-practice-html-q8-c47e11a4d38f:option-2"
+        },
+        {
+          "text": "回判是把计算结果与设计强度对比，写明混凝土强度满足C35设计要求即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「回判」听着像是对强度。",
+          "loss_reason": "本题回判对象是配合比限值（水胶比0.45），不是强度评定。",
+          "fix": "对回水胶比≤0.45等配合比红线。",
+          "option_id": "Q02-html-practice-html-q8-c47e11a4d38f:option-3"
+        },
+        {
+          "text": "写一句经复核各项指标均满足规范要求，对计算结果进行总体性的确认收尾。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "也算「回判」，读着挺像样。",
+          "loss_reason": "不点名0.45这个限值，关键词缺失。",
+          "fix": "点名「水胶比≤0.45」再下满足结论。",
+          "option_id": "Q02-html-practice-html-q8-c47e11a4d38f:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q8-c47e11a4d38f",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q8",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "材料·选水泥",
+      "stem": "厚大体积混凝土基础选用水泥，选出品种与理由都正确、能得分的作答。",
+      "model_answer": "宜选矿渣、火山灰、粉煤灰、复合等低水化热水泥（后期强度增长快）；忌用硅酸盐水泥（早期强度高、水化热大）。",
+      "options": [
+        {
+          "text": "宜选矿渣、火山灰、粉煤灰或复合水泥，水化热小；忌用水化热大的硅酸盐水泥。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「宜四类+忌硅酸盐」两头都写，理由落在水化热上。",
+          "option_id": "Q02-html-practice-html-q9-8b435005502e:option-1"
+        },
+        {
+          "text": "宜选强度等级高的硅酸盐水泥，早期强度高、成型快，利于底板尽早达到设计强度。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「强度高=好混凝土」的直觉太顺了。",
+          "loss_reason": "硅酸盐早强高、水化热大，大体积正是忌用。",
+          "fix": "大体积选低水化热的矿渣/火山灰/粉煤灰/复合水泥。",
+          "option_id": "Q02-html-practice-html-q9-8b435005502e:option-2"
+        },
+        {
+          "text": "宜选矿渣、火山灰类水泥，其早期强度增长快、可缩短养护时间，适合大体积基础。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "结论选对了，理由看着也顺。",
+          "loss_reason": "理由说反了：这类水泥水化热小、后期强度增长快，不是早强快。",
+          "fix": "理由写「水化热小、后期强度增长快」。",
+          "option_id": "Q02-html-practice-html-q9-8b435005502e:option-3"
+        },
+        {
+          "text": "水泥品种不限，关键在于掺入足量粉煤灰与磨细矿渣粉，即可有效降低水化热。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "掺合料确实降热，像是抓住了本质。",
+          "loss_reason": "回避了水泥选型采分点——「宜四类、忌硅酸盐」没写。",
+          "fix": "品种句+掺合料句都要写。",
+          "option_id": "Q02-html-practice-html-q9-8b435005502e:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q9-8b435005502e",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q9",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "材料·外加剂",
+      "stem": "大体积混凝土外加剂的选用，选出正确且能得分的作答。",
+      "model_answer": "宜掺缓凝剂（延缓放热峰、利于散热）；早强剂不宜用于大体积混凝土。",
+      "options": [
+        {
+          "text": "宜掺缓凝剂延缓放热峰、利于散热；早强剂不宜用于大体积混凝土。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「缓凝适用+早强不宜」一对句子都写，才算答全。",
+          "option_id": "Q02-html-practice-html-q10-a3526c03cf6e:option-1"
+        },
+        {
+          "text": "宜掺早强剂加快混凝土硬化，缩短温升持续时间，使底板尽快度过危险期。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「快点硬就快点安全」很符合直觉。",
+          "loss_reason": "早强剂加速水化=放热更猛更集中，大体积不宜用。",
+          "fix": "大体积要缓凝削峰，不是催熟。",
+          "option_id": "Q02-html-practice-html-q10-a3526c03cf6e:option-2"
+        },
+        {
+          "text": "缓凝剂与早强剂配合使用：前期缓凝控制温升，后期早强加快强度增长。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「两头都占」看着聪明。",
+          "loss_reason": "早强剂对大体积本身就不宜用，不存在这种配合口径。",
+          "fix": "只写缓凝剂适用、早强剂不宜。",
+          "option_id": "Q02-html-practice-html-q10-a3526c03cf6e:option-3"
+        },
+        {
+          "text": "按泵送施工要求选用泵送剂即可，温度控制主要依靠养护措施而不靠外加剂。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "现场确实常按泵送配外加剂。",
+          "loss_reason": "漏「缓凝剂适用、早强剂不宜」这组采分点。",
+          "fix": "补缓凝剂、早强剂两句。",
+          "option_id": "Q02-html-practice-html-q10-a3526c03cf6e:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q10-a3526c03cf6e",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q10",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "配合比·限值",
+      "stem": "大体积混凝土配合比的控制指标，选出数值全部正确的作答。",
+      "model_answer": "水胶比≤0.45；粉煤灰≤50%、矿渣粉≤40%、总掺量≤50%；拌合水≤170kg/m³、坍落度≤180mm。",
+      "options": [
+        {
+          "text": "水胶比≤0.45，粉煤灰≤50%、矿渣粉≤40%且总掺量≤50%，拌合水≤170kg/m³、坍落度≤180mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "记口诀：0.45红线、灰五渣四总不过半、水170坍180。",
+          "option_id": "Q02-html-practice-html-q11-9e2dc452df3e:option-1"
+        },
+        {
+          "text": "水胶比≤0.50，粉煤灰≤50%、矿渣粉≤40%且总掺量≤50%，拌合水≤170kg/m³、坍落度≤180mm。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "0.50是防水混凝土的熟数，很容易串过来。",
+          "loss_reason": "大体积水胶比限值是0.45，0.50是防水混凝土口径。",
+          "fix": "大体积写≤0.45。",
+          "option_id": "Q02-html-practice-html-q11-9e2dc452df3e:option-2"
+        },
+        {
+          "text": "水胶比≤0.45，粉煤灰≤40%、矿渣粉≤50%且总掺量≤50%，拌合水≤170kg/m³、坍落度≤180mm。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只把50和40换了个位，极难察觉。",
+          "loss_reason": "掺量限值写反：粉煤灰≤50%、矿渣粉≤40%。",
+          "fix": "记「灰五渣四」，总掺量不过半。",
+          "option_id": "Q02-html-practice-html-q11-9e2dc452df3e:option-3"
+        },
+        {
+          "text": "水胶比≤0.45，粉煤灰≤50%、矿渣粉≤40%且总掺量≤50%，拌合水≤180kg/m³、坍落度≤170mm。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "170和180两个数都对，只是位置对调。",
+          "loss_reason": "拌合水≤170kg/m³、坍落度≤180mm，对调即错。",
+          "fix": "水170、坍180，别互换。",
+          "option_id": "Q02-html-practice-html-q11-9e2dc452df3e:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q11-9e2dc452df3e",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q11",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工·浇筑入模",
+      "stem": "底板大体积混凝土的浇筑工艺与入模温度控制，选出正确且能得分的作答。",
+      "model_answer": "宜整体分层或推移式连续浇筑，浇筑层厚300~500mm；入模温度5~30℃，高温期大体积不超过30℃。",
+      "options": [
+        {
+          "text": "整体分层或推移式连续浇筑，层厚300~500mm；入模温度5~30℃，高温期不超过30℃。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "工艺+层厚+入模温度三个数值全落位。",
+          "option_id": "Q02-html-practice-html-q12-7bf59ea783fb:option-1"
+        },
+        {
+          "text": "一次整体浇筑到顶不留间歇，避免出现施工缝，同时加大浇筑层厚以加快施工进度。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「连续浇完最省事」符合抢工期的直觉。",
+          "loss_reason": "不分层热更聚，层厚300~500mm是硬口径。",
+          "fix": "分层浇筑、层厚300~500mm。",
+          "option_id": "Q02-html-practice-html-q12-7bf59ea783fb:option-2"
+        },
+        {
+          "text": "分层浇筑层厚300~500mm；入模温度不低于5℃是为了防止混凝土早期受冻破坏。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "5℃与冬施防冻的5℃数值相同，很容易混。",
+          "loss_reason": "大体积5~30℃控的是温升起点，与冬施防冻是两码事。",
+          "fix": "写「入模5~30℃控温升」，勿套防冻口径。",
+          "option_id": "Q02-html-practice-html-q12-7bf59ea783fb:option-3"
+        },
+        {
+          "text": "采用整体分层或推移式连续浇筑，分层厚度按方案确定，入模温度控制在合理范围。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "措辞四平八稳，不会「写错」。",
+          "loss_reason": "300~500mm与5~30℃两个数值全缺，采分眼没踩。",
+          "fix": "数值补齐：层厚300~500mm、入模5~30℃。",
+          "option_id": "Q02-html-practice-html-q12-7bf59ea783fb:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q12-7bf59ea783fb",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q12",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工·跳仓法",
+      "stem": "底板超长，采用跳仓法施工。选出口径正确、能得分的作答。",
+      "model_answer": "跳仓法最大分块单向尺寸不宜大于40m，隔仓跳打、各仓依次连续浇筑（真题按1/3长×1/3宽分9仓、每仓浇筑3d）。",
+      "options": [
+        {
+          "text": "跳仓法分块单向尺寸不宜大于40m，隔仓跳打，各仓依次连续浇筑连成整体。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "40m是采分数值，配上「隔仓跳打、依次连续」的做法句。",
+          "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-1"
+        },
+        {
+          "text": "跳仓法分块单向尺寸不宜大于50m，隔仓跳打，各仓依次连续浇筑连成整体。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "50m是真题里挂出来的干扰值，特别眼熟。",
+          "loss_reason": "官方口径是40m，50m正是被判错的选项。",
+          "fix": "记死「跳仓分块单向≤40m」。",
+          "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-2"
+        },
+        {
+          "text": "分块越大越好以减少仓缝数量，仓缝按后浇带构造处理并预留足够时间再封闭。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「缝少=隐患少」听着有理。",
+          "loss_reason": "跳仓靠小块先各自收缩释放约束，分块过大失去意义且40m是上限。",
+          "fix": "分块单向≤40m，隔仓跳打。",
+          "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-3"
+        },
+        {
+          "text": "采用跳仓法时按专项方案确定分块并组织浇筑，减少大体积整浇产生的约束应力。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "原理说得对，像是懂行。",
+          "loss_reason": "40m这个采分数值没写，方案两个字兜不住分。",
+          "fix": "补「单向尺寸≤40m」。",
+          "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q13-3ace0b0cc94e",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q13",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "测温·布点",
+      "stem": "厚2.0m底板的测温点沿厚度方向如何布置？选出能得分的作答。",
+      "model_answer": "沿厚度方向至少布表层、底层、中心三处测点，测点间距不宜大于500mm；表层温度取表面以下50mm处。",
+      "options": [
+        {
+          "text": "沿厚度至少布表层、底层、中心测点，间距不大于500mm，表层温度取表面下50mm处。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三层位+500mm+表层50mm，三个采分眼全踩。",
+          "option_id": "Q02-html-practice-html-q14-babc1462d5d4:option-1"
+        },
+        {
+          "text": "在底板中心埋设测温点连续监测中心温度，即可掌握混凝土内部的温升情况。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「测最热的芯部」看着抓住了要害。",
+          "loss_reason": "只测中心算不出里表温差，三层位与间距全漏。",
+          "fix": "表/底/中心三层位+间距≤500mm。",
+          "option_id": "Q02-html-practice-html-q14-babc1462d5d4:option-2"
+        },
+        {
+          "text": "沿厚度方向布表层、底层、中心三处测点，测点间距不宜大于1000mm即可满足。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "三层位齐了，间距看着也「差不多」。",
+          "loss_reason": "间距限值是500mm，1000mm超限一倍。",
+          "fix": "间距≤500mm。",
+          "option_id": "Q02-html-practice-html-q14-babc1462d5d4:option-3"
+        },
+        {
+          "text": "表层温度直接取混凝土表面的温度读数，与底层、中心温度对比计算里表温差。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「表层=表面」，字面上很顺。",
+          "loss_reason": "表层温度宜取表面以下50mm处，表面读数受环境干扰。",
+          "fix": "写「表层取表面下50mm处温度」。",
+          "option_id": "Q02-html-practice-html-q14-babc1462d5d4:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q14-babc1462d5d4",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q14",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "测温·频次",
+      "stem": "大体积混凝土测温的频次要求，选出数值齐全且正确的作答。",
+      "model_answer": "每条轴线不少于4个测点；每昼夜测温不少于4次；入模温度每台班不少于2次（口诀：轴4·昼夜4·台班2）。",
+      "options": [
+        {
+          "text": "每条轴线不少于4个测点，每昼夜测温不少于4次，入模温度每台班不少于2次。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "口诀「轴4·昼夜4·台班2」，三个频次一口气写全。",
+          "option_id": "Q02-html-practice-html-q15-0d573fa65515:option-1"
+        },
+        {
+          "text": "浇筑后前三天每昼夜测温不少于4次，此后视温度变化情况适当减少测温次数。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「前紧后松」很像现场实际做法。",
+          "loss_reason": "每轴≥4点、入模每台班≥2次两项漏写。",
+          "fix": "三个频次一起写：4点、4次、2次。",
+          "option_id": "Q02-html-practice-html-q15-0d573fa65515:option-2"
+        },
+        {
+          "text": "每条轴线不少于2个测点，每昼夜测温不少于4次，入模温度每台班不少于4次。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数都是2和4，顺序一晃就过去了。",
+          "loss_reason": "4/4/2串位：每轴≥4点、每台班≥2次。",
+          "fix": "记「轴4·昼夜4·台班2」。",
+          "option_id": "Q02-html-practice-html-q15-0d573fa65515:option-3"
+        },
+        {
+          "text": "安排专人按方案要求定时测温并如实记录，发现数据异常及时向技术负责人报告。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "管理动作齐全，读着很规范。",
+          "loss_reason": "口号化，三个频次数值一个没有。",
+          "fix": "写明4点、4次、2次。",
+          "option_id": "Q02-html-practice-html-q15-0d573fa65515:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q15-0d573fa65515",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q15",
       "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
     },
     {

@@ -345,22 +345,64 @@ def test_real_manifest_green_packs_all_project():
         assert vm["content_sha256"]
 
 
-def test_f16_forward_uses_fixed_five_compiled_html_questions() -> None:
+def test_f16_forward_rotates_inside_compiled_html_pool_and_explicit_surface_stays_fixed() -> None:
     from deeptutor.services.luban_lesson import build_retest_items
 
     items = build_retest_items(
         "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026194,
         limit=1, mode="forward",
     )
+    repeated = build_retest_items(
+        "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026194,
+        limit=5, mode="forward",
+    )
+    next_day = build_retest_items(
+        "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026195,
+        limit=5, mode="forward",
+    )
+    public_bridge = build_retest_items(
+        "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026194,
+        limit=5, mode="forward", practice_surface="practice.html",
+    )
 
-    assert len(items) == 5, "fixed pilot cannot be shortened through the limit query"
-    assert [item["rule_group"] for item in items] == [
+    assert items == repeated and len(items) == 5
+    assert [item["variant_id"] for item in items] != [
+        item["variant_id"] for item in next_day
+    ]
+    assert [item["rule_group"] for item in public_bridge] == [
         "分档·条件维", "割补工序·程序维", "判断纠错·三段式",
         "检验清单·记录维", "采分诊断·末题",
     ]
     assert all(item["answer_type"] == "single_choice" for item in items)
     assert all("expected_ok" not in item for item in items)
     assert all("is_correct" not in option for item in items for option in item["options"])
+
+
+def test_f16_completion_resolves_exact_issued_set_and_supply_identity() -> None:
+    from deeptutor.services.luban_lesson import (
+        build_retest_items,
+        resolve_retest_items,
+        retest_supply_identity,
+    )
+
+    issued = build_retest_items(
+        "F16",
+        user_id="qa_eval_f16_exact_selection",
+        day_index=2026194,
+        mode="forward",
+    )
+    wanted = [item["variant_id"] for item in reversed(issued)]
+    resolved = resolve_retest_items("F16", variant_ids=wanted, mode="forward")
+
+    assert [item["variant_id"] for item in resolved] == wanted
+    assert all(
+        sum(option.get("is_correct") is True for option in item["options"]) == 1
+        for item in resolved
+    )
+    forward = retest_supply_identity("F16", mode="forward")
+    review = retest_supply_identity("F16", mode="review")
+    assert forward["kind"] == "compiled_html" and len(forward["digest"]) == 64
+    assert review["kind"] == "signed_variant" and len(review["digest"]) == 64
 
 
 def test_custom_manifest_without_compiled_capability_uses_its_signed_bank(

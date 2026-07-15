@@ -436,10 +436,10 @@ schemas:
 # warning if a T2 file is touched while marked needs_field_canonicalization, to
 # nudge eventual field-level pinning. T2 grants no official-score / write authority.
 tier2_canonical_contracts:
-  - name: luban_compiled_practice.v1
+  - name: luban_compiled_practice.v2
     status: runtime_canonical
     owner: luban_lesson
-    canonical_for: manifest-pinned finished HTML practice sidecar used for server question projection and canonical answer re-scoring
+    canonical_for: manifest-pinned finished HTML full single-choice pool plus five-item public projection used for server selection and canonical answer re-scoring
     module: deeptutor/services/luban_lesson/practice_html.py
     consumed_by: deeptutor/services/luban_lesson/read_model.py + deeptutor/services/luban_lesson/retest_writeback.py
     needs_field_canonicalization: false

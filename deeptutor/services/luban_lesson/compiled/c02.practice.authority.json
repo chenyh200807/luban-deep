@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v2",
   "pack_id": "C02",
   "source_pack_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
   "source_bundle_sha256": "94240e3e6d7af85ccd4db470e52a92fc149e0e8817786993dcfd6f1c4a00fec9",
@@ -230,6 +230,57 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q4",
+      "source_html_sha256": "057d55f5cc48b76de45f87d6e60eb623db5b1f277321b5c3c5735489806c0a82"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "质保金·后果维",
+      "stem": "合同约定每月按进度款 3% 预留质量保证金，质保期满返还；题面另写‘累计预留质保金为合同价的 5%’。下列关于质保金上限，哪句能得分？",
+      "model_answer": "累计预留质保金（或保函）不得超过工程结算总价的 3%，以结算总价为基数；逐月按 3% 扣、累计不超结算总价 3%。题面 5% 是诱饵。",
+      "options": [
+        {
+          "text": "累计预留质保金不得超过工程结算总价的 3%，以结算总价为基数；逐月按 3% 扣、累计封顶结算总价 3%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点‘结算总价为基数’+‘≤3%’+逐月与累计封顶并存。",
+          "option_id": "C02-html-practice-html-q5-dfeda6458d05:option-1"
+        },
+        {
+          "text": "按题面累计预留到合同价的 5% 为上限。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "题面白纸黑字写了 5%，照抄最稳。",
+          "loss_reason": "5% 是题面诱饵，规范钉死 ≤3%；写诱饵值＝判反丢分。",
+          "fix": "规范上限是结算总价 3%，不是 5%。",
+          "option_id": "C02-html-practice-html-q5-dfeda6458d05:option-2"
+        },
+        {
+          "text": "以合同价为基数，累计预留不超过合同价的 3%。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "基数随手用了合同价。",
+          "loss_reason": "质保金以工程结算总价为基数，不是合同价。",
+          "fix": "以结算总价为基数、累计 ≤3%。",
+          "option_id": "C02-html-practice-html-q5-dfeda6458d05:option-3"
+        },
+        {
+          "text": "每月扣 3% 即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答了逐月扣法。",
+          "loss_reason": "漏了‘累计不超结算总价 3%’的封顶口径。",
+          "fix": "逐月扣 3% + 累计不超结算总价 3%，两句都写。",
+          "option_id": "C02-html-practice-html-q5-dfeda6458d05:option-4"
+        }
+      ],
+      "variant_id": "C02-html-practice-html-q5-dfeda6458d05",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q5",
       "source_html_sha256": "057d55f5cc48b76de45f87d6e60eb623db5b1f277321b5c3c5735489806c0a82"
     },
     {

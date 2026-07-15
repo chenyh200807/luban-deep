@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v2",
   "pack_id": "Q03",
   "source_pack_sha256": "4e22a6697aeba00353186f44a8ea1568041734406eabbda632b1a7262303e8bc",
   "source_bundle_sha256": "ebae1dfc4237664918384021113f784042989f7b4443944e8e057ba1524175b8",
@@ -230,6 +230,567 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q4",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "缺陷治理·材料养护",
+      "stem": "孔洞修补用什么材料、怎么养护？选出能得分的作答。",
+      "model_answer": "用高一强度等级的细石混凝土仔细浇筑密实，不能用普通砂浆；保温保湿养护不少于7天。",
+      "options": [
+        {
+          "text": "用高一强度等级的细石混凝土仔细浇筑密实，不能用普通砂浆，保温保湿养护不少于7天。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "高一强度+不用普通砂浆+养护≤7天，三个采分点齐。",
+          "option_id": "Q03-html-practice-html-q5-57e68f7130bc:option-1"
+        },
+        {
+          "text": "凿掉松散部分后用普通水泥砂浆抹平压光，表面看不出缺陷即可。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "普通砂浆随手抹省事。",
+          "loss_reason": "普通砂浆强度接不上、易再裂，且漏界面剂与养护，属知识点缺失。",
+          "fix": "改高一强度细石混凝土浇筑密实，养护不少于7天。",
+          "option_id": "Q03-html-practice-html-q5-57e68f7130bc:option-2"
+        },
+        {
+          "text": "用同强度等级的细石混凝土浇筑，自然干燥即可、无需专门养护。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "同强度、看着合理。",
+          "loss_reason": "应高一强度等级，且必须保温保湿养护不少于7天，等级与养护都错。",
+          "fix": "高一强度等级+保温保湿养护不少于7天。",
+          "option_id": "Q03-html-practice-html-q5-57e68f7130bc:option-3"
+        },
+        {
+          "text": "涂界面剂后用细石混凝土浇筑密实即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "抓到界面剂+细石混凝土。",
+          "loss_reason": "漏了高一强度等级与养护不少于7天两个采分词。",
+          "fix": "补高一强度等级与保温保湿养护不少于7天。",
+          "option_id": "Q03-html-practice-html-q5-57e68f7130bc:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q5-57e68f7130bc",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q5",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆模强度·条件维",
+      "stem": "底模拆除时混凝土需达到的强度门槛（占设计值百分比）。选出能得分的作答。",
+      "model_answer": "板跨≤2m达50%、板梁跨≤8m达75%、跨>8m及悬臂达100%，方可拆除底模。",
+      "options": [
+        {
+          "text": "板跨≤2m达设计值50%、板梁跨≤8m达75%、跨>8m及悬臂构件达100%，方可拆除底模。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "按跨度分档5/75/100，是拆模采分的规范数值。",
+          "option_id": "Q03-html-practice-html-q6-77f1fbdbdc42:option-1"
+        },
+        {
+          "text": "所有构件底模一律达到设计强度的75%即可拆除，方便统一管理。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记一个数省事。",
+          "loss_reason": "门槛随跨度分档50/75/100，一刀列75%规范错。",
+          "fix": "分档：≤2m 50%、≤8m 75%、>8m及悬臂 100%。",
+          "option_id": "Q03-html-practice-html-q6-77f1fbdbdc42:option-2"
+        },
+        {
+          "text": "跨度越大越早拆没关系，悬臂构件达到50%就能拆底模。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把大跨门槛记低了。",
+          "loss_reason": "悬臂/大跨风险高，应达100%，写50%严重偏低。",
+          "fix": "跨>8m及悬臂必须达100%。",
+          "option_id": "Q03-html-practice-html-q6-77f1fbdbdc42:option-3"
+        },
+        {
+          "text": "只要侧模能拆就说明强度够了，底模跟着侧模一起拆即可。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "把侧模条件当底模条件。",
+          "loss_reason": "侧模拆除看棱角强度、底模看承载百分比，混淆条件。",
+          "fix": "底模按50/75/100分档，与侧模条件不同。",
+          "option_id": "Q03-html-practice-html-q6-77f1fbdbdc42:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q6-77f1fbdbdc42",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q6",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆模找错·背景提取",
+      "stem": "某工程混凝土强度未达标即提前拆除底模，梁底随后出现缺陷。选出对该问题分析能得分的作答。",
+      "model_answer": "强度未达门槛提前拆模，构件承自重后易出现麻面、蜂窝、孔洞、露筋；应达规定强度再拆。",
+      "options": [
+        {
+          "text": "强度未达门槛就提前拆模，构件承受自重后易出现麻面、蜂窝、孔洞、露筋，应达规定强度再拆。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出强度未达提前拆模是直接诱因，拆模须达标。",
+          "option_id": "Q03-html-practice-html-q7-6db698a24ccb:option-1"
+        },
+        {
+          "text": "梁底缺陷是拆模时工人磕碰蹭掉的，与混凝土强度无关，注意轻拿轻放即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把成因归到操作磕碰。",
+          "loss_reason": "根因是强度不足提前拆模、非磕碰，方向错。",
+          "fix": "指出强度未达提前拆模是直接诱因。",
+          "option_id": "Q03-html-practice-html-q7-6db698a24ccb:option-2"
+        },
+        {
+          "text": "提前拆模没问题，只要拆后立即回顶支撑，强度多少都能先拆。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为回顶能兜底。",
+          "loss_reason": "回顶不能替代拆模强度门槛，仍须达50/75/100。",
+          "fix": "必须达规定强度再拆，回顶不替代门槛。",
+          "option_id": "Q03-html-practice-html-q7-6db698a24ccb:option-3"
+        },
+        {
+          "text": "这是抢工期造成的，以后加强进度管理、保证质量就行。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "口号化好写。",
+          "loss_reason": "没点出强度门槛与缺陷因果，拿不到采分。",
+          "fix": "写强度未达提前拆模→表面缺陷，须达标再拆。",
+          "option_id": "Q03-html-practice-html-q7-6db698a24ccb:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q7-6db698a24ccb",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q7",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "空鼓·成因",
+      "stem": "地面板块或饰面出现大面积空鼓（敲击空响）。选出成因分析能得分的作答。",
+      "model_answer": "基层未清理有浮渣浮浆、粘结材料或水灰比不当、油性防护剂阻隔粘结、瓷砖未浸砖，界面粘结失效致空鼓。",
+      "options": [
+        {
+          "text": "基层未清理有浮渣浮浆、粘结材料或水灰比不当、油性防护剂阻隔粘结、瓷砖未浸砖，界面粘结失效致空鼓。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "基层·粘结材料·油性防护剂·未浸砖，界面链采分齐。",
+          "option_id": "Q03-html-practice-html-q8-46b209b7fac7:option-1"
+        },
+        {
+          "text": "空鼓是混凝土内部石子成堆、砂浆包裹不足的密实度问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把空鼓当蜂窝的本体问题。",
+          "loss_reason": "空鼓是面层与基层界面脱开、非本体密实，两条链混淆。",
+          "fix": "空鼓归界面粘结失效，蜂窝才是本体密实。",
+          "option_id": "Q03-html-practice-html-q8-46b209b7fac7:option-2"
+        },
+        {
+          "text": "空鼓就是基层没清理干净一条，写上即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答一条省事。",
+          "loss_reason": "漏了粘结材料/水灰比、油性防护剂、未浸砖等采分点。",
+          "fix": "补齐粘结材料·油性防护剂·未浸砖等成因。",
+          "option_id": "Q03-html-practice-html-q8-46b209b7fac7:option-3"
+        },
+        {
+          "text": "空鼓是偶发的手艺问题，敲掉重贴即可，不必追前道工序。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "归运气、图省事。",
+          "loss_reason": "空鼓是前道工序系统缺陷，只重贴不治本，知识点缺失。",
+          "fix": "追前道：清基层·浸砖·界面剂+背砂再贴。",
+          "option_id": "Q03-html-practice-html-q8-46b209b7fac7:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q8-46b209b7fac7",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q8",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "概念辨析·本体vs界面",
+      "stem": "有人把空鼓和蜂窝混为一谈。选出正确辨析、能得分的作答。",
+      "model_answer": "蜂窝是混凝土本体石子成堆砂浆不足的本体不密实；空鼓是面层与基层界面脱开的粘结失效，两条链成因治法不同。",
+      "options": [
+        {
+          "text": "蜂窝是混凝土本体石子成堆砂浆不足的本体不密实；空鼓是面层与基层界面脱开的粘结失效，两者不同链。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "本体链/界面链分清楚，才能各写对症措施。",
+          "option_id": "Q03-html-practice-html-q9-2f79e42c4001:option-1"
+        },
+        {
+          "text": "空鼓和蜂窝本质一样，都是振捣不实，治理都靠加强振捣即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "都空、都想归振捣。",
+          "loss_reason": "空鼓是界面粘结问题、与振捣无关，治法是清基层浸砖界面剂。",
+          "fix": "空鼓归界面、蜂窝归本体，分开治。",
+          "option_id": "Q03-html-practice-html-q9-2f79e42c4001:option-2"
+        },
+        {
+          "text": "蜂窝在贴面层里、空鼓在混凝土构件里，位置正好反过来。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记反了位置。",
+          "loss_reason": "蜂窝在构件本体内、空鼓在饰面与基层界面，说反了。",
+          "fix": "蜂窝=本体内部，空鼓=饰面界面。",
+          "option_id": "Q03-html-practice-html-q9-2f79e42c4001:option-3"
+        },
+        {
+          "text": "两者都空，敲掉重做就行，成因不用分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "图省事不追成因。",
+          "loss_reason": "不分成因就写不出对症措施，采分点全丢。",
+          "fix": "先分本体/界面，再各写对应防治。",
+          "option_id": "Q03-html-practice-html-q9-2f79e42c4001:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q9-2f79e42c4001",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q9",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "空鼓·瓷砖工艺",
+      "stem": "为防止瓷砖饰面空鼓，铺贴前应如何处理？选出能得分的作答。",
+      "model_answer": "清除瓷砖背面脱模剂、充分浸砖后阴干，基层清理并用水泥基粘结材料满粘铺贴。",
+      "options": [
+        {
+          "text": "清除瓷砖背面脱模剂、充分浸砖后阴干，基层清理并用水泥基粘结材料满粘铺贴。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "清脱模剂·浸砖阴干·基层清理·水泥基粘结，正是防空鼓采分。",
+          "option_id": "Q03-html-practice-html-q10-409fb137740d:option-1"
+        },
+        {
+          "text": "瓷砖干贴即可，直接上墙铺贴最省事，无需浸泡。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "干贴省一道工。",
+          "loss_reason": "未浸砖会吸走砂浆水分致空鼓，工艺违规。",
+          "fix": "须清脱模剂、充分浸砖后阴干再贴。",
+          "option_id": "Q03-html-practice-html-q10-409fb137740d:option-2"
+        },
+        {
+          "text": "先铺贴上墙，再往砖缝里补浸水养护，让砖吸饱水。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为事后补水一样。",
+          "loss_reason": "浸砖须在铺贴前，贴后补水顺序错、无法治空鼓。",
+          "fix": "浸砖阴干在铺贴前完成。",
+          "option_id": "Q03-html-practice-html-q10-409fb137740d:option-3"
+        },
+        {
+          "text": "把瓷砖浸湿就直接贴。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "抓到浸砖一条。",
+          "loss_reason": "漏了清脱模剂与浸后阴干，且未提基层与粘结材料。",
+          "fix": "补清脱模剂·阴干·基层清理·水泥基粘结材料。",
+          "option_id": "Q03-html-practice-html-q10-409fb137740d:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q10-409fb137740d",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q10",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "裂缝·收缩裂缝",
+      "stem": "混凝土表面出现不规则收缩裂缝。选出成因与防治能得分的作答。",
+      "model_answer": "含泥量大、水胶比或坤落度偏大、养护不足致收缩裂缝；防治控原材料、合理配比、加强振捣、及时养护。",
+      "options": [
+        {
+          "text": "含泥量大、水胶比或坤落度偏大、养护不足致收缩裂缝；防治控原材料、合理配比、加强振捣、及时养护。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "成因三件+防治四步，养护是治根关键。",
+          "option_id": "Q03-html-practice-html-q11-316b231847bf:option-1"
+        },
+        {
+          "text": "收缩裂缝是地基不均匀沉降造成的，加固地基即可解决。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把收缩裂缝当沉降裂缝。",
+          "loss_reason": "地基沉降是另一类裂缝；收缩裂缝根在材料与养护。",
+          "fix": "成因归含泥量/水胶比/养护，非地基沉降。",
+          "option_id": "Q03-html-practice-html-q11-316b231847bf:option-2"
+        },
+        {
+          "text": "收缩裂缝无需养护，抹面压光后自然干燥即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为干燥就好。",
+          "loss_reason": "养护不足正是主因，及时保湿养护是关键防治。",
+          "fix": "必须及时保湿养护，控收缩。",
+          "option_id": "Q03-html-practice-html-q11-316b231847bf:option-3"
+        },
+        {
+          "text": "裂缝是材料质量差，换好材料、加强质量管理就行。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "口号化好写。",
+          "loss_reason": "没点出含泥量/水胶比坤落度/养护等采分点。",
+          "fix": "写控含泥量·水胶比坤落度·及时养护。",
+          "option_id": "Q03-html-practice-html-q11-316b231847bf:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q11-316b231847bf",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q11",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "填充墙裂缝·部位",
+      "stem": "填充墙与主体结构交接处易开裂。选出裂缝易发部位判断能得分的作答。",
+      "model_answer": "裂缝常出现在柱边、梁底、门窗洞口处，因填充墙与主体变形不协调、刚度突变。",
+      "options": [
+        {
+          "text": "裂缝常出现在柱边、梁底、门窗洞口处，因填充墙与主体结构变形不协调、刚度突变。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "柱边/梁底/洞口三部位，是真题采分部位。",
+          "option_id": "Q03-html-practice-html-q12-36948d1860d3:option-1"
+        },
+        {
+          "text": "填充墙裂缝只会出现在墙体正中央大面上，与柱梁边无关。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为大面最薄弱。",
+          "loss_reason": "裂缝恰在柱边/梁底/洞口等约束突变处，非正中大面。",
+          "fix": "部位是柱边、梁底、门窗洞口。",
+          "option_id": "Q03-html-practice-html-q12-36948d1860d3:option-2"
+        },
+        {
+          "text": "裂缝就出现在梁底一处，写梁底即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记一个部位。",
+          "loss_reason": "漏了柱边与门窗洞口，采分点遗漏。",
+          "fix": "补柱边与门窗洞口两处部位。",
+          "option_id": "Q03-html-practice-html-q12-36948d1860d3:option-3"
+        },
+        {
+          "text": "这是抹灰层收缩裂缝，跟砌筑和主体交接没关系。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "把构造裂缝当抹灰问题。",
+          "loss_reason": "题问交接构造裂缝，归到抹灰收缩，审题偏。",
+          "fix": "是填充墙与主体变形不协调的构造裂缝。",
+          "option_id": "Q03-html-practice-html-q12-36948d1860d3:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q12-36948d1860d3",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q12",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "填充墙裂缝·措施数值",
+      "stem": "填充墙交接处裂缝的防治措施（带规范数值）。选出能得分的作答。",
+      "model_answer": "柱或墙边设间距不大于500mm的2φ6钢筋、下部墙砌完14d后砌顶半砖斜砌、洞口加强网片、窗台细石混凝土配筋。",
+      "options": [
+        {
+          "text": "柱或墙边设间距不大于500mm的2φ6钢筋、下部墙砌完14d后半砖斜砌塔顶、洞口加强网片、窗台细石混凝土配筋。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "500mm、2φ6、14d 三个数值配部位，阅卷要的就这几个。",
+          "option_id": "Q03-html-practice-html-q13-14601e8a5618:option-1"
+        },
+        {
+          "text": "沿墙高每隔一段设拉结钢筋，墙砌到顶后及时塞缝，洞口做好加固。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "意思对但没数值。",
+          "loss_reason": "漏了间距不大于500mm、2φ6、14d等关键数值，关键词缺失。",
+          "fix": "补间距≤500mm的2φ6、下部墙砌完14d后砌。",
+          "option_id": "Q03-html-practice-html-q13-14601e8a5618:option-2"
+        },
+        {
+          "text": "柱边设间距1000mm的2φ8钢筋、下部墙砌完3d后即可砌顶。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "有数值、看着专业。",
+          "loss_reason": "间距应≤500mm、钢筋2φ6、应砌完14d后砌，数值全错。",
+          "fix": "间距≤500mm、2φ6、下部墙砌完14d后砌。",
+          "option_id": "Q03-html-practice-html-q13-14601e8a5618:option-3"
+        },
+        {
+          "text": "先砌填充墙顶塞紧，等主体沉降后再补柱边拉结筋。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "顺序颠倒。",
+          "loss_reason": "应先砌下部墙、等14d再砌顶，拉结筋随砌随设，顺序错。",
+          "fix": "下部墙砌完14d后再半砖斜砌塔顶。",
+          "option_id": "Q03-html-practice-html-q13-14601e8a5618:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q13-14601e8a5618",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q13",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "渗漏·施工缝",
+      "stem": "地下室墙施工缝处出现渗漏。选出成因与防治能得分的作答。",
+      "model_answer": "施工缝处混凝土松散、骨料集中、接榺明显形成渗水通路；防治清理凿毛、加强浇捣密实。",
+      "options": [
+        {
+          "text": "施工缝处混凝土松散、骨料集中、接榺明显形成渗水通路；防治清理凿毛、加强浇捣密实。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "接榺松散成因+凿毛浇捣密实措施，采分齐。",
+          "option_id": "Q03-html-practice-html-q14-52a317eedb5e:option-1"
+        },
+        {
+          "text": "施工缝渗漏直接在表面刷一道防水涂料盖住即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "表面处理省事。",
+          "loss_reason": "只封表面不处理接榺松散，漏凿毛与浇捣密实，治标。",
+          "fix": "补清理凿毛与加强浇捣密实。",
+          "option_id": "Q03-html-practice-html-q14-52a317eedb5e:option-2"
+        },
+        {
+          "text": "施工缝渗漏是混凝土表面麻面造成的，按麻面涂界面剂修补。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "套用麻面治理。",
+          "loss_reason": "施工缝渗漏是接榺松散通路、非麻面缺浆，成因混淆。",
+          "fix": "按施工缝清理凿毛、浇捣密实处理。",
+          "option_id": "Q03-html-practice-html-q14-52a317eedb5e:option-3"
+        },
+        {
+          "text": "施工缝渗漏是防水没做好，加强防水施工管理即可。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "口号化好写。",
+          "loss_reason": "没点出接榺松散成因与凿毛浇捣措施。",
+          "fix": "写清理凿毛+加强浇捣密实。",
+          "option_id": "Q03-html-practice-html-q14-52a317eedb5e:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q14-52a317eedb5e",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q14",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "渗漏·穿墙管",
+      "stem": "穿墙管根部出现渗水。选出成因与防治能得分的作答。",
+      "model_answer": "管壁未清理、无止水环、周边振捣不密实致渗漏；防治清理管壁、加强振捣、设止水环并灌浆。",
+      "options": [
+        {
+          "text": "管壁未清理、无止水环、周边混凝土振捣不密实致渗漏；防治清理管壁、加强振捣、设止水环并灌浆。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "止水环是穿墙管防水规范做法，配清管壁与灌浆。",
+          "option_id": "Q03-html-practice-html-q15-d4df07dedd01:option-1"
+        },
+        {
+          "text": "穿墙管周边多浇点混凝土捣实就行了。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "以为捣实一条够。",
+          "loss_reason": "漏了止水环与清理管壁、灌浆等关键采分词。",
+          "fix": "补设止水环、清理管壁、灌浆。",
+          "option_id": "Q03-html-practice-html-q15-d4df07dedd01:option-2"
+        },
+        {
+          "text": "穿墙管无需止水环，用密封胶把管根打一圈封住即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为打胶能替代。",
+          "loss_reason": "止水环是防水混凝土穿墙管的规范做法，打胶不替代。",
+          "fix": "须设止水环并灌浆，配合加强振捣。",
+          "option_id": "Q03-html-practice-html-q15-d4df07dedd01:option-3"
+        },
+        {
+          "text": "管根渗水是收缩裂缝渗漏，按保湿养护处理即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "套用收缩裂缝治法。",
+          "loss_reason": "管根渗漏是节点构造问题、非本体收缩，治法不同。",
+          "fix": "按穿墙管止水环+灌浆+加强振捣处理。",
+          "option_id": "Q03-html-practice-html-q15-d4df07dedd01:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q15-d4df07dedd01",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q15",
       "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
     },
     {

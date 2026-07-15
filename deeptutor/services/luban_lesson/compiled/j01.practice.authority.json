@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v2",
   "pack_id": "J01",
   "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
   "source_bundle_sha256": "450b89c170a6c81d8515f6bb3ecbe40e5ac2a725aa6af5825d664d2c30ceba9b",
@@ -230,6 +230,567 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q4",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "编制主体·主体维",
+      "stem": "起重机械安装拆卸、深基坑等专业工程的专项方案，除总包外还可由谁编制？选出能得分的作答。",
+      "model_answer": "起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
+      "options": [
+        {
+          "text": "起重机械安装拆卸、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出「专业承包单位」及适用的专业工程范围。",
+          "option_id": "J01-html-practice-html-q5-751cf67dae80:option-1"
+        },
+        {
+          "text": "无论何种专业工程都必须一律由施工总承包单位统一编制，专业分包单位一概无权编制专项方案。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "记住「总包组织」就以为分包一概不能编。",
+          "loss_reason": "专业工程可由专业承包单位编制，说「一律总包」不全。",
+          "fix": "专业工程可由专业承包单位编制。",
+          "option_id": "J01-html-practice-html-q5-751cf67dae80:option-2"
+        },
+        {
+          "text": "起重机械等设备类专业工程的专项方案，可由提供设备的租赁单位结合设备参数负责编制。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "起重设备联想到租赁单位。",
+          "loss_reason": "编制主体是专业承包单位，不是租赁单位。",
+          "fix": "专业承包单位编制。",
+          "option_id": "J01-html-practice-html-q5-751cf67dae80:option-3"
+        },
+        {
+          "text": "由专业承包单位自行编制专项方案后即可实施，无需施工总承包单位组织、也无需施工单位审核。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住分包可编就忽略总包。",
+          "loss_reason": "总包仍要组织、施工单位仍要审核，漏了总包职责。",
+          "fix": "专业承包编制，仍由总包组织、施工单位审核。",
+          "option_id": "J01-html-practice-html-q5-751cf67dae80:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q5-751cf67dae80",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q5",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "前置程序·程序维",
+      "stem": "专项方案编制完成后到组织专家论证之前，正确的程序顺序是？选出能得分的作答。",
+      "model_answer": "专项方案应先经施工单位审核、再经总监理工程师审查，方可组织专家论证；顺序不可颠倒。",
+      "options": [
+        {
+          "text": "方案编制后，先经施工单位审核、再经总监理工程师审查，方可组织专家论证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "审核·审查·论证顺序写全，主体各归各位。",
+          "option_id": "J01-html-practice-html-q6-9d8303e489f9:option-1"
+        },
+        {
+          "text": "方案编制完成后即可直接组织专家论证，论证通过后便可据此进行现场施工。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得编完就能上会论证。",
+          "loss_reason": "漏了施工单位审核、总监审查两道前置程序。",
+          "fix": "先审核、再审查，方可论证。",
+          "option_id": "J01-html-practice-html-q6-9d8303e489f9:option-2"
+        },
+        {
+          "text": "方案编制后先组织专家论证，论证通过后再交由总监理工程师审查确认后施工。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "顺序记反，觉得先论证权威。",
+          "loss_reason": "顺序颠倒：审查在论证之前，不能先论证。",
+          "fix": "审核·审查·论证，论证在最后。",
+          "option_id": "J01-html-practice-html-q6-9d8303e489f9:option-3"
+        },
+        {
+          "text": "方案编制后，经建设单位审批同意即可组织专家论证，无需再经项目总监理工程师审查。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为甲方审批就够。",
+          "loss_reason": "前置是施工单位审核 + 总监审查，不是建设单位审批。",
+          "fix": "施工单位审核、总监理工程师审查。",
+          "option_id": "J01-html-practice-html-q6-9d8303e489f9:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q6-9d8303e489f9",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q6",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "程序纠错·程序维",
+      "stem": "某项目专项方案经施工单位审核后，直接组织了专家论证。指出程序不妥并纠正，选出能得分的作答。",
+      "model_answer": "不妥：审核后未经总监理工程师审查即论证。正确：应先经总监理工程师审查，方可组织专家论证。",
+      "options": [
+        {
+          "text": "不妥之处：审核后未经总监理工程师审查即组织论证。正确做法：应先经总监理工程师审查，方可组织专家论证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "照抄不妥点 + 补上总监审查这一步，三段式到位。",
+          "option_id": "J01-html-practice-html-q7-fe71e2eefa5c:option-1"
+        },
+        {
+          "text": "该程序没有问题，专项方案经施工单位审核通过之后，本来就可以直接组织专家论证。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "只看到「审核」就以为程序齐了。",
+          "loss_reason": "没抓题干埋点：缺了总监理工程师审查这一步。",
+          "fix": "应指出缺总监理工程师审查。",
+          "option_id": "J01-html-practice-html-q7-fe71e2eefa5c:option-2"
+        },
+        {
+          "text": "不妥之处：论证前应由建设单位对方案进行审查后再论证，此处缺少了建设单位的审查环节。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "知道缺一步，但补错了主体。",
+          "loss_reason": "审查主体是总监理工程师，不是建设单位。",
+          "fix": "缺的是总监理工程师审查。",
+          "option_id": "J01-html-practice-html-q7-fe71e2eefa5c:option-3"
+        },
+        {
+          "text": "不妥之处：专家论证应安排在方案编制之前先行进行，此处论证与编制的先后顺序颠倒了。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "乱调顺序凑「不妥」。",
+          "loss_reason": "论证必在编制、审核、审查之后，说编前论证错。",
+          "fix": "顺序是编制·审核·审查·论证。",
+          "option_id": "J01-html-practice-html-q7-fe71e2eefa5c:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q7-fe71e2eefa5c",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q7",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "组织主体·主体维",
+      "stem": "某超规模危大工程的专家论证会应由谁组织召开？选出能得分的作答。",
+      "model_answer": "本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
+      "options": [
+        {
+          "text": "本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出「超规模」触发 + 「施工总承包单位组织召开」。",
+          "option_id": "J01-html-practice-html-q8-36d8192c20c9:option-1"
+        },
+        {
+          "text": "本工程属超规模危大工程，专家论证会应由建设单位作为工程总负责方组织召开。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "甲方牵头开会看着合理。",
+          "loss_reason": "组织召开主体是施工总承包单位，不是建设单位。",
+          "fix": "施工总承包单位组织召开。",
+          "option_id": "J01-html-practice-html-q8-36d8192c20c9:option-2"
+        },
+        {
+          "text": "本工程属超规模危大工程，专家论证会应由项目监理单位负责牵头组织召开。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "监理管现场，像是组织者。",
+          "loss_reason": "监理是审查方，不组织论证会。",
+          "fix": "施工总承包单位组织召开。",
+          "option_id": "J01-html-practice-html-q8-36d8192c20c9:option-3"
+        },
+        {
+          "text": "本工程应当及时组织有关专家对专项施工方案进行论证，确保方案安全可行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "答了论证却没写谁组织。",
+          "loss_reason": "漏了组织主体这个采分点。",
+          "fix": "应写「由施工总承包单位组织召开」。",
+          "option_id": "J01-html-practice-html-q8-36d8192c20c9:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q8-36d8192c20c9",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q8",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "方案内容·记录维",
+      "stem": "基坑工程专项施工方案应包含哪些内容？选出最完整、能得分的作答。",
+      "model_answer": "应含：①工程概况②编制依据③施工计划④施工工艺技术⑤施工保证措施⑥施工管理及人员配备⑦验收要求⑧应急处置措施。",
+      "options": [
+        {
+          "text": "工程概况、编制依据、施工计划、施工工艺技术、施工保证措施、施工管理及人员配备、验收要求、应急处置措施，共八项。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "八项写全，尤其验收要求、应急处置不漏。",
+          "option_id": "J01-html-practice-html-q9-443ade4fd936:option-1"
+        },
+        {
+          "text": "工程概况、编制依据、施工计划、施工工艺技术、施工保证措施、施工管理及人员配备。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "前六项顺手写完就收笔。",
+          "loss_reason": "漏了⑦验收要求、⑧应急处置措施两项。",
+          "fix": "补上验收要求、应急处置措施。",
+          "option_id": "J01-html-practice-html-q9-443ade4fd936:option-2"
+        },
+        {
+          "text": "本质上就是一份施工组织设计的主要内容，按施工组织设计的章节框架逐项编写即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把专项方案当成施工组织设计。",
+          "loss_reason": "混淆文件：专项方案有其固定八项内容。",
+          "fix": "按专项方案八项内容写。",
+          "option_id": "J01-html-practice-html-q9-443ade4fd936:option-3"
+        },
+        {
+          "text": "主要包括工程概况、施工工艺做法、安全保证措施这三大板块的内容，分块阐述即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "归成三大块图省事。",
+          "loss_reason": "笼统三块，漏编制依据、验收、应急等采分项。",
+          "fix": "按八项逐项写全。",
+          "option_id": "J01-html-practice-html-q9-443ade4fd936:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q9-443ade4fd936",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q9",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "模板方案·记录维",
+      "stem": "模板工程及支撑体系专项方案，除常规内容外，特别应包含哪一项（最易漏）？选出能得分的作答。",
+      "model_answer": "模板支撑方案应含工程概况、技术参数、工艺流程、施工方法、检查要求，特别是计算书及相关施工图纸。",
+      "options": [
+        {
+          "text": "除工程概况、技术参数、工艺流程、施工方法、检查要求外，特别应包含计算书及相关施工图纸。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出模板支撑特有的「计算书及相关施工图纸」。",
+          "option_id": "J01-html-practice-html-q10-79b73e44b6b8:option-1"
+        },
+        {
+          "text": "与基坑专项方案完全相同的八项内容即可，模板支撑方案并没有需要特别附加的内容。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为所有方案内容都一样。",
+          "loss_reason": "漏了模板支撑特有的计算书及施工图纸。",
+          "fix": "必须含计算书及相关施工图纸。",
+          "option_id": "J01-html-practice-html-q10-79b73e44b6b8:option-2"
+        },
+        {
+          "text": "主要包括工程概况、技术参数、工艺流程、施工方法、检查要求这五项常规内容。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "写了五项看着挺全。",
+          "loss_reason": "恰恰漏掉最关键、最易丢分的计算书及施工图纸。",
+          "fix": "补上计算书及相关施工图纸。",
+          "option_id": "J01-html-practice-html-q10-79b73e44b6b8:option-3"
+        },
+        {
+          "text": "除常规内容外，还应特别包含经专家组论证通过后形成的专家论证报告及专家签字表。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把后续论证材料塞进方案内容。",
+          "loss_reason": "论证报告是论证环节产物，非方案编制内容。",
+          "fix": "方案内容应含计算书及施工图纸。",
+          "option_id": "J01-html-practice-html-q10-79b73e44b6b8:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q10-79b73e44b6b8",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q10",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "编案清单·记录维",
+      "stem": "下列需单独编制专项施工方案的工程，选出列举完整、能得分的作答。",
+      "model_answer": "深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等。",
+      "options": [
+        {
+          "text": "深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等，均需单独编制专项方案。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五类列全，降水、幕墙不漏。",
+          "option_id": "J01-html-practice-html-q11-04eace3d0f8c:option-1"
+        },
+        {
+          "text": "深基坑支护、土方开挖、模板工程及支撑体系这几类工程，需要单独编制专项施工方案。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住几个大项。",
+          "loss_reason": "漏了降水、建筑幕墙安装。",
+          "fix": "补上降水、建筑幕墙安装。",
+          "option_id": "J01-html-practice-html-q11-04eace3d0f8c:option-2"
+        },
+        {
+          "text": "深基坑支护、砌筑工程、抹灰装饰工程等工程，都需要单独编制专项施工方案。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把普通分项工程混进来。",
+          "loss_reason": "砌筑/抹灰非危大，不需单独专项方案。",
+          "fix": "应为深基坑/降水/土方/模板支撑/幕墙等危大工程。",
+          "option_id": "J01-html-practice-html-q11-04eace3d0f8c:option-3"
+        },
+        {
+          "text": "只有深基坑支护这一类工程需要单独编制专项方案，其余工程并入施工组织设计即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记了最典型的一项。",
+          "loss_reason": "清单不全，漏了降水、土方、模板、幕墙。",
+          "fix": "按五类列全。",
+          "option_id": "J01-html-practice-html-q11-04eace3d0f8c:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q11-04eace3d0f8c",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q11",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "专家组·主体维",
+      "stem": "专家论证会的专家组人数应如何表述才准确、能得分？选出能得分的作答。",
+      "model_answer": "专家组成员应为 5 人以上，且与本工程无利害关系。",
+      "options": [
+        {
+          "text": "专家组成人员应为 5 人以上，且与本工程无利害关系。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "写「5 人以上」（含下限）+ 无利害关系，两点齐。",
+          "option_id": "J01-html-practice-html-q12-e94cfe94c653:option-1"
+        },
+        {
+          "text": "专家组由 5 名专家组成即可，人数达到 5 名就已经符合论证的人数要求。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「5 人」脱口而出，觉得数字对了。",
+          "loss_reason": "应为「5 人以上」，写死「5 名」漏了「以上」。",
+          "fix": "应写「5 人以上」。",
+          "option_id": "J01-html-practice-html-q12-e94cfe94c653:option-2"
+        },
+        {
+          "text": "专家人数原则上越多越好，一般不少于 3 人即可满足专家论证的组织要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "凭印象给个下限。",
+          "loss_reason": "下限记错（应 5 人以上），且漏无利害关系。",
+          "fix": "5 人以上且无利害关系。",
+          "option_id": "J01-html-practice-html-q12-e94cfe94c653:option-3"
+        },
+        {
+          "text": "专家组成员达到 5 人以上即可，对其是否与本工程有利害关系没有硬性要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "写对了人数就收笔。",
+          "loss_reason": "漏了「与本工程无利害关系」这一并列采分点。",
+          "fix": "补上「与本工程无利害关系」。",
+          "option_id": "J01-html-practice-html-q12-e94cfe94c653:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q12-e94cfe94c653",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q12",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "专家回避·主体维",
+      "stem": "某基坑论证组织了「包括总承包单位技术负责人在内的 5 名专家」。指出不妥并纠正，选出能得分的作答。",
+      "model_answer": "不妥：本项目参建各方人员不得以专家身份参加，总包技术负责人属参建方、不能当专家；且专家应为 5 人以上。",
+      "options": [
+        {
+          "text": "不妥：总承包单位技术负责人属本项目参建方，不得以专家身份参加论证，应更换为无利害关系的外部专家；且专家组人数应为 5 人以上。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "回避 + 5 人以上两点都点到，照抄不妥点后给正确做法。",
+          "option_id": "J01-html-practice-html-q13-de3c8f20255e:option-1"
+        },
+        {
+          "text": "没有不妥之处，专家组已达到 5 名，满足论证的人数要求，可以据此正常开展专家论证工作。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只数人数够 5，就以为合规。",
+          "loss_reason": "漏了核心不妥：参建方人员不得当专家（回避）。",
+          "fix": "应指出参建方人员不得以专家身份参加。",
+          "option_id": "J01-html-practice-html-q13-de3c8f20255e:option-2"
+        },
+        {
+          "text": "不妥之处仅在于专家人数偏少，应当把专家人数增加到 6 人以上，之后再重新组织专家论证。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "抓到人数感觉，却没抓回避。",
+          "loss_reason": "关键是回避而非单纯加人；参建方当专家才是问题。",
+          "fix": "核心是参建方不得当专家，须更换。",
+          "option_id": "J01-html-practice-html-q13-de3c8f20255e:option-3"
+        },
+        {
+          "text": "不妥之处在于：本工程的专家论证会应由建设单位组织召开，而不应由施工总承包单位组织。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "看到「总承包」就往组织主体上想。",
+          "loss_reason": "没抓题干埋点「技术负责人当专家」，组织主体本身没错。",
+          "fix": "不妥在参建方人员当专家（回避）。",
+          "option_id": "J01-html-practice-html-q13-de3c8f20255e:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q13-de3c8f20255e",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q13",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "论证内容·记录维",
+      "stem": "专家论证的主要内容包括哪三项？选出准确、能得分的作答。",
+      "model_answer": "①方案是否完整、可行②计算书及验算依据、施工图是否符合标准规范③是否满足现场实际、确保施工安全。",
+      "options": [
+        {
+          "text": "①方案是否完整、可行；②计算书及验算依据、施工图是否符合规范；③是否满足现场实际、能否确保施工安全。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三项论证内容写全，不掺经济性、资质。",
+          "option_id": "J01-html-practice-html-q14-83aaacb28444:option-1"
+        },
+        {
+          "text": "重点论证专项方案在经济性与工程造价方面是否合理，能否有效节省施工成本与投入。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "觉得论证也该管省钱。",
+          "loss_reason": "经济性不是论证内容，审题偏了。",
+          "fix": "论证只看完整可行、计算书施工图、确保安全。",
+          "option_id": "J01-html-practice-html-q14-83aaacb28444:option-2"
+        },
+        {
+          "text": "重点论证承担该工程的专业分包单位其资质等级是否合格、是否满足施工要求。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把资质审查混进论证。",
+          "loss_reason": "分包资质非论证内容，概念混淆。",
+          "fix": "论证内容是三项技术与安全性内容。",
+          "option_id": "J01-html-practice-html-q14-83aaacb28444:option-3"
+        },
+        {
+          "text": "主要论证专项方案是否完整、是否可行这一项内容即可，其余方面不作为论证重点。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "答对一项就停。",
+          "loss_reason": "漏了计算书施工图、确保安全两项。",
+          "fix": "补齐三项内容。",
+          "option_id": "J01-html-practice-html-q14-83aaacb28444:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q14-83aaacb28444",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q14",
+      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "实施控制·后果维",
+      "stem": "专项方案实施过程中如需修改，正确的处理是？选出最完整、能得分的作答。",
+      "model_answer": "施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证后方可执行。",
+      "options": [
+        {
+          "text": "施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证，通过后方可执行。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「不得擅自修改」+「确需改须重新论证」后果维两句都写。",
+          "option_id": "J01-html-practice-html-q15-6ed7f9858fc8:option-1"
+        },
+        {
+          "text": "施工过程中一律不得擅自修改已批准的专项方案，必须始终严格按照原方案组织施工。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "写了「不能改」就以为答完。",
+          "loss_reason": "漏了「确需修改须重新审核/论证」后半句，后果维半分。",
+          "fix": "补上「确需修改须重新论证后执行」。",
+          "option_id": "J01-html-practice-html-q15-6ed7f9858fc8:option-2"
+        },
+        {
+          "text": "施工中如需修改方案，经项目经理审批同意后即可按修改后的方案继续组织施工。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得内部签字就能改。",
+          "loss_reason": "属擅自修改，未走重新审核论证程序。",
+          "fix": "确需修改须重新审核、重新论证。",
+          "option_id": "J01-html-practice-html-q15-6ed7f9858fc8:option-3"
+        },
+        {
+          "text": "专项方案在实施前完成公示和技术交底即可，实施过程中对方案的修改没有特别限制要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "答了实施前程序，避开修改问题。",
+          "loss_reason": "漏了「不得擅自修改 + 须重新论证」这一核心。",
+          "fix": "施工中不得擅自修改，确需改须重新论证。",
+          "option_id": "J01-html-practice-html-q15-6ed7f9858fc8:option-4"
+        }
+      ],
+      "variant_id": "J01-html-practice-html-q15-6ed7f9858fc8",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q15",
       "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214"
     },
     {

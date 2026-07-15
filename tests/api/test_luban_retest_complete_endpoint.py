@@ -116,7 +116,7 @@ def test_retest_answer_schema_accepts_compiled_html_option_identity() -> None:
     assert body.answers[0].selected_option_id.endswith("option-2")
 
 
-def test_forward_compiled_html_endpoint_reports_fixed_pool_without_answer_key(
+def test_forward_compiled_html_endpoint_reports_full_pool_without_answer_key(
     monkeypatch,
 ) -> None:
     items = [
@@ -132,6 +132,16 @@ def test_forward_compiled_html_endpoint_reports_fixed_pool_without_answer_key(
     monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
     monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
     monkeypatch.setattr(router, "build_retest_items", lambda *args, **kwargs: items)
+    monkeypatch.setattr(
+        router,
+        "retest_supply_identity",
+        lambda *args, **kwargs: {"kind": "compiled_html", "digest": "a" * 64},
+    )
+    monkeypatch.setattr(
+        router,
+        "compiled_practice_pool_meta",
+        lambda *args, **kwargs: {"core_total": 16, "rule_groups_total": 6},
+    )
     monkeypatch.setattr(router, "issue_retest_selection", lambda **kwargs: "signed-five")
 
     result = asyncio.run(
@@ -143,7 +153,7 @@ def test_forward_compiled_html_endpoint_reports_fixed_pool_without_answer_key(
     )
 
     assert result["practice_source"] == "compiled_html"
-    assert result["pool"] == {"core_total": 5, "rule_groups_total": 5}
+    assert result["pool"] == {"core_total": 16, "rule_groups_total": 6}
     assert result["selection_id"] == "signed-five"
     assert all("is_correct" not in option for item in result["items"] for option in item["options"])
 

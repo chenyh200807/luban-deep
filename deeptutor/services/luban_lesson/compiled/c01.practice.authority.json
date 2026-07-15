@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v2",
   "pack_id": "C01",
   "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
   "source_bundle_sha256": "d5ae48ec488c6de9b21eee2362cefa529525db7146f2e6f9ef84761fd9eb665c",
@@ -234,6 +234,465 @@
     },
     {
       "answer_type": "single_choice",
+      "rule_group": "施工缝·次梁1/3",
+      "stem": "有主次梁的楼板，施工缝应留在哪里？选出正确、能得分的作答。",
+      "model_answer": "施工缝留在次梁跨中1/3范围内（受剪力较小段）。",
+      "options": [
+        {
+          "text": "施工缝留在次梁跨中1/3范围内，该段受剪力较小、便于施工。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「次梁+跨中+1/3范围」三要素齐，位置采分满。",
+          "option_id": "C01-html-practice-html-q5-5ecb69769696:option-1"
+        },
+        {
+          "text": "施工缝留在次梁支座处，紧挨支座留缝、方便钢筋搭接和支模。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "支座处「结实」的错觉。",
+          "loss_reason": "支座受剪力最大，恰是不该留缝的位置。",
+          "fix": "留次梁跨中1/3范围内受剪力较小处。",
+          "option_id": "C01-html-practice-html-q5-5ecb69769696:option-2"
+        },
+        {
+          "text": "施工缝随便留在跨中某一点即可，不用限定1/3范围，跨中都行。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道跨中，但漏了1/3。",
+          "loss_reason": "缺「1/3范围」关键词，范围不写清扣分。",
+          "fix": "须写次梁跨中1/3范围内。",
+          "option_id": "C01-html-practice-html-q5-5ecb69769696:option-3"
+        },
+        {
+          "text": "有主次梁的楼板，施工缝留在主梁跨中1/3范围内，按主梁定位。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "主次梁认错，跟着大的走。",
+          "loss_reason": "规定是次梁跨中1/3，构件对象错。",
+          "fix": "是次梁跨中1/3，不是主梁。",
+          "option_id": "C01-html-practice-html-q5-5ecb69769696:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q5-5ecb69769696",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q5",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工缝·处理工序",
+      "stem": "施工缝处理后再浇筑的工序，选出顺序和关键词都对、能得分的作答。",
+      "model_answer": "已浇混凝土强度达1.2N/mm²→凿毛处理→清理松动石子和浮浆→铺30mm厚水泥砂浆→浇筑振捣养护。",
+      "options": [
+        {
+          "text": "已浇强度达1.2N/mm²→凿毛→清理松动石子和浮浆→铺30mm水泥砂浆→浇筑振捣养护。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "达强度前置、凿毛、30mm砂浆关键词齐、顺序不颠倒，工序满分。",
+          "option_id": "C01-html-practice-html-q6-b89d5a8ce30f:option-1"
+        },
+        {
+          "text": "先浇筑新混凝土把缝盖住，再回头凿毛、清理，最后铺砂浆找平即可。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得「先接上再收拾」省事。",
+          "loss_reason": "顺序颠倒——必须先凿毛清理再浇，先浇后凿是程序错误。",
+          "fix": "达1.2N/mm²→凿毛→清理→30mm砂浆→浇筑。",
+          "option_id": "C01-html-practice-html-q6-b89d5a8ce30f:option-2"
+        },
+        {
+          "text": "把旧缝表面扫干净、直接浇新混凝土接上，凿毛和铺砂浆可省。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "嫌凿毛铺砂浆麻烦想省步。",
+          "loss_reason": "漏了凿毛、30mm砂浆等关键词，界面咬合不足会开裂渗水。",
+          "fix": "必须凿毛处理并铺30mm水泥砂浆。",
+          "option_id": "C01-html-practice-html-q6-b89d5a8ce30f:option-3"
+        },
+        {
+          "text": "待已浇混凝土强度达到12N/mm²后凿毛、铺砂浆再浇筑接槎。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "工序对，数值只差个小数点。",
+          "loss_reason": "强度门槛是1.2N/mm²，写成12N/mm²数值错。",
+          "fix": "强度门槛是1.2N/mm²。",
+          "option_id": "C01-html-practice-html-q6-b89d5a8ce30f:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q6-b89d5a8ce30f",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q6",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "防水混凝土·养护",
+      "stem": "防水混凝土的养护时间要求，选出正确、能得分的作答。",
+      "model_answer": "防水混凝土养护时间不少于14d。",
+      "options": [
+        {
+          "text": "防水混凝土养护时间不少于14d，保持湿润养护。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "≥14d，湿润养护，数值维得分。",
+          "option_id": "C01-html-practice-html-q8-66d34c05639c:option-1"
+        },
+        {
+          "text": "防水混凝土养护时间不少于7d即可，7天后可停止养护。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "普通混凝土常记7d，顺手套用。",
+          "loss_reason": "防水混凝土是≥14d，背7d是命题陷阱，直接丢分。",
+          "fix": "防水混凝土养护不少于14d。",
+          "option_id": "C01-html-practice-html-q8-66d34c05639c:option-2"
+        },
+        {
+          "text": "防水混凝土养护到强度达1.2N/mm²即可停止，与天数无关。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把处理工序的1.2N/mm²搬来当养护标准。",
+          "loss_reason": "1.2N/mm²是施工缝凿毛门槛，与养护天数是两码事，概念混淆。",
+          "fix": "养护按天数，不少于14d。",
+          "option_id": "C01-html-practice-html-q8-66d34c05639c:option-3"
+        },
+        {
+          "text": "防水混凝土养护不少于28d，与底板后浇带封闭时间保持一致。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把28d封闭和14d养护弄串。",
+          "loss_reason": "养护≥14d、底板后浇带封闭≥28d，两个数字互串。",
+          "fix": "养护≥14d；28d是后浇带封闭时间。",
+          "option_id": "C01-html-practice-html-q8-66d34c05639c:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q8-66d34c05639c",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q8",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "接槎·后果",
+      "stem": "施工缝、接槎部位若不清理干净就浇筑，会导致什么？选出正确作答。",
+      "model_answer": "施工缝/接槎未清理干净→新旧混凝土粘结不良→接槎明显、易渗漏；故须清理松动石子浮浆并凿毛。",
+      "options": [
+        {
+          "text": "接槎未清理干净→新旧混凝土粘结不良→接槎明显、易渗漏，故须清理浮浆并凿毛。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "清理→粘结→渗漏因果链完整，后果维讲透。",
+          "option_id": "C01-html-practice-html-q9-16bd09afecef:option-1"
+        },
+        {
+          "text": "接槎干不干净不影响结构，只要养护到位、混凝土强度够就不会渗漏。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为强度够就万事大吉。",
+          "loss_reason": "忽视界面处理，接槎不清理照样粘结不良渗漏。",
+          "fix": "须清理松动石子浮浆、凿毛，保证粘结。",
+          "option_id": "C01-html-practice-html-q9-16bd09afecef:option-2"
+        },
+        {
+          "text": "接槎处只要多浇些混凝土堆高、把缝盖住，就能防止渗漏。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "想用「堆料」代替清理凿毛。",
+          "loss_reason": "漏了清理、凿毛关键词，堆料不解决界面粘结。",
+          "fix": "关键是清理浮浆+凿毛增大咬合。",
+          "option_id": "C01-html-practice-html-q9-16bd09afecef:option-3"
+        },
+        {
+          "text": "接槎渗漏只跟防水涂料有关，与施工缝清理凿毛无关。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把责任推给防水涂料。",
+          "loss_reason": "混淆考点——本处考的是施工缝界面处理，不是防水涂料。",
+          "fix": "接槎渗漏源于界面未清理凿毛。",
+          "option_id": "C01-html-practice-html-q9-16bd09afecef:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q9-16bd09afecef",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q9",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "后浇带·材料",
+      "stem": "后浇带浇筑应选用什么混凝土？选出正确、能得分的作答。",
+      "model_answer": "采用微膨胀混凝土，靠膨胀建立预压应力、补偿两侧收缩，防止后浇带被拉裂。",
+      "options": [
+        {
+          "text": "采用微膨胀混凝土，靠膨胀建立预压应力补偿收缩，抵消两侧收缩拉力。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「微膨胀混凝土」是后浇带命根子采分点，写死。",
+          "option_id": "C01-html-practice-html-q10-a29d3be91ddf:option-1"
+        },
+        {
+          "text": "采用与原结构同强度的普通混凝土填充，跟两侧一致最省事、最协调。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「跟主体一致」听着协调。",
+          "loss_reason": "普通混凝土只会收缩，两侧一拽后浇带就裂，把后浇带当普通缝了。",
+          "fix": "须用微膨胀混凝土补偿收缩。",
+          "option_id": "C01-html-practice-html-q10-a29d3be91ddf:option-2"
+        },
+        {
+          "text": "采用低强度混凝土填充，让后浇带更柔、能随两侧变形而不开裂。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「柔性变形」的想当然。",
+          "loss_reason": "低强度反而更易被拉裂，且强度应提高一级而非降低。",
+          "fix": "用微膨胀混凝土且强度提高一级。",
+          "option_id": "C01-html-practice-html-q10-a29d3be91ddf:option-3"
+        },
+        {
+          "text": "后浇带用什么混凝土无所谓，关键是养护做好、封闭及时就行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只强调养护封闭，忽略材料。",
+          "loss_reason": "漏了微膨胀混凝土这一核心采分点。",
+          "fix": "必须点明微膨胀混凝土。",
+          "option_id": "C01-html-practice-html-q10-a29d3be91ddf:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q10-a29d3be91ddf",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q10",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "后浇带·强度等级",
+      "stem": "后浇带混凝土的强度等级要求，选出正确、能得分的作答。",
+      "model_answer": "后浇带混凝土强度等级应比原结构提高一级（如C30→C35）。",
+      "options": [
+        {
+          "text": "后浇带混凝土强度等级应比原结构提高一级，如原结构C30则后浇带用C35。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「提高一级」+ 具体举例，强度采分句到位。",
+          "option_id": "C01-html-practice-html-q11-181529315ae5:option-1"
+        },
+        {
+          "text": "后浇带混凝土与原结构同一强度等级即可，保持C30与两侧一致。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「一致」听着合理。",
+          "loss_reason": "规范要求提高一级，同级达不到补偿收缩的内聚支撑。",
+          "fix": "应比原结构提高一级（C30→C35）。",
+          "option_id": "C01-html-practice-html-q11-181529315ae5:option-2"
+        },
+        {
+          "text": "后浇带混凝土强度等级应比原结构降低一级，降标号减少收缩开裂。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「降标减收缩」的错误推理。",
+          "loss_reason": "方向反了，应提高一级不是降低。",
+          "fix": "比原结构提高一级。",
+          "option_id": "C01-html-practice-html-q11-181529315ae5:option-3"
+        },
+        {
+          "text": "后浇带强度等级现场随材料定，能浇上就行，不必与原结构挂钩。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "弱化等级要求。",
+          "loss_reason": "漏了「提高一级」这个明确采分点。",
+          "fix": "必须比原结构提高一级。",
+          "option_id": "C01-html-practice-html-q11-181529315ae5:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q11-181529315ae5",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q11",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "后浇带·封闭时间",
+      "stem": "基础底板后浇带应在什么时候封闭？选出正确、能得分的作答。",
+      "model_answer": "基础底板后浇带应在两侧主体完成初期收缩后，至少28d后再封闭。",
+      "options": [
+        {
+          "text": "基础底板后浇带应至少28d后再封闭，待两侧主体完成初期收缩。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「≥28d后封闭」数值到位，条件维得分。",
+          "option_id": "C01-html-practice-html-q12-dd4a33b3812b:option-1"
+        },
+        {
+          "text": "基础底板后浇带在两侧主体浇完约10d后即可封闭，早封早完工。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "「早封早完工」的进度诱惑。",
+          "loss_reason": "10d两侧仍在收缩，会把后浇带拉裂，天数记错。",
+          "fix": "底板后浇带≥28d后封闭。",
+          "option_id": "C01-html-practice-html-q12-dd4a33b3812b:option-2"
+        },
+        {
+          "text": "基础底板后浇带养护满14d即可随即封闭，与28d无关。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把14d养护当成封闭时间。",
+          "loss_reason": "14d是养护、28d是封闭，两个数字混淆。",
+          "fix": "养护≥14d、底板封闭≥28d，分清。",
+          "option_id": "C01-html-practice-html-q12-dd4a33b3812b:option-3"
+        },
+        {
+          "text": "后浇带封闭时间现场看进度定，不必卡具体天数。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "弱化天数要求。",
+          "loss_reason": "漏了≥28d这个明确采分点。",
+          "fix": "须写底板后浇带≥28d后封闭。",
+          "option_id": "C01-html-practice-html-q12-dd4a33b3812b:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q12-dd4a33b3812b",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q12",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "后浇带·技术措施",
+      "stem": "写出后浇带混凝土施工的主要技术措施，选出最完整、能得分的作答。",
+      "model_answer": "整理钢筋→冲洗松动部分→微膨胀混凝土→强度比原结构提高一级→≥14d湿润养护→接缝按施工缝处理。",
+      "options": [
+        {
+          "text": "整理钢筋、冲洗松动部分、微膨胀混凝土、强度提高一级、≥14d湿润养护、接缝按施工缝处理。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六项清单一项不落，措施题满分骨架。",
+          "option_id": "C01-html-practice-html-q13-41249b14bfc5:option-1"
+        },
+        {
+          "text": "用微膨胀混凝土浇筑，然后加强养护，把后浇带处理好就行。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "抓住微膨胀+养护两项就觉得够。",
+          "loss_reason": "「处理好」是口号，漏整理钢筋/冲洗/提高一级/接缝按施工缝处理，措施坍缩。",
+          "fix": "补全六项：整钢筋/冲洗/微膨胀/提一级/≥14d/按缝处理。",
+          "option_id": "C01-html-practice-html-q13-41249b14bfc5:option-2"
+        },
+        {
+          "text": "用与原结构同强度混凝土连续浇筑、振捣密实、及时养护即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "套用普通混凝土浇筑措施。",
+          "loss_reason": "把后浇带当普通缝，漏微膨胀、提高一级等专项措施。",
+          "fix": "须微膨胀混凝土、强度提高一级等六项。",
+          "option_id": "C01-html-practice-html-q13-41249b14bfc5:option-3"
+        },
+        {
+          "text": "整理钢筋、微膨胀混凝土、≥14d养护三项即可，其余按常规。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住三项就以为齐了。",
+          "loss_reason": "漏冲洗松动、强度提高一级、接缝按施工缝处理，采分点遗漏。",
+          "fix": "补齐冲洗松动、提高一级、接缝按施工缝处理。",
+          "option_id": "C01-html-practice-html-q13-41249b14bfc5:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q13-41249b14bfc5",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q13",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "后浇带·指错（模板/钢丝网）",
+      "stem": "某后浇带专项方案：「模板独立支设、剔除模板用钢丝网」。选出指错并写出正确做法、能得分的作答。",
+      "model_answer": "模板独立支设不妥，应与主体结构同步支撑；钢丝网不应剔除，应保留防漏浆。",
+      "options": [
+        {
+          "text": "模板独立支设不妥，应与主体结构同步支撑；钢丝网应保留防漏浆，不应剔除。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两处不妥+正确做法成对写出，指错题三段式到位。",
+          "option_id": "C01-html-practice-html-q14-2f040e518766:option-1"
+        },
+        {
+          "text": "方案没有问题，模板独立支设受力独立更清晰，钢丝网碍事剔除也合理。",
+          "is_correct": false,
+          "source_error_code": "M04",
+          "temptation": "「受力独立更清晰」是迷惑性说法。",
+          "loss_reason": "真题判「独立支设=不妥」「钢丝网应保留」，把两处不妥当成对。",
+          "fix": "模板应同步支撑、钢丝网应保留。",
+          "option_id": "C01-html-practice-html-q14-2f040e518766:option-2"
+        },
+        {
+          "text": "只有钢丝网剔除不妥、应保留；模板独立支设没问题，可保持独立。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到一处不妥就收手。",
+          "loss_reason": "漏了「模板独立支设不妥」这处，只指对一半。",
+          "fix": "补上模板应与主体同步支撑。",
+          "option_id": "C01-html-practice-html-q14-2f040e518766:option-3"
+        },
+        {
+          "text": "模板独立支设不妥、应同步支撑；但钢丝网确实碍事，剔除是对的。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "模板改对了，却把钢丝网判反。",
+          "loss_reason": "钢丝网用于挡浆防漏浆，应保留，判「剔除对」是规范适用错误。",
+          "fix": "钢丝网应保留，不应剔除。",
+          "option_id": "C01-html-practice-html-q14-2f040e518766:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q14-2f040e518766",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q14",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
       "rule_group": "采分诊断·末题",
       "stem": "某学生答后浇带措施：「用与原结构同强度的混凝土填、10天后封闭、好好养护」。选出最准确的诊断与补写。",
       "model_answer": "三处失分：应用微膨胀混凝土(非同强度)、底板≥28d后封闭(非10d)、养护应写≥14d并补强度提高一级/整理钢筋冲洗/接缝按施工缝处理。",
@@ -281,6 +740,57 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q15",
+      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "概念·后浇带vs普通缝",
+      "stem": "后浇带与普通施工缝在处理上的区别，选出正确、能得分的作答。",
+      "model_answer": "后浇带需微膨胀混凝土、强度提高一级、底板≥28d封闭、≥14d养护；普通施工缝按达1.2N/mm²→凿毛→清理→30mm砂浆→浇筑处理。",
+      "options": [
+        {
+          "text": "后浇带需微膨胀混凝土、提高一级、≥28d封闭；普通施工缝按达强度→凿毛→清理→砂浆→浇筑处理。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两者措施分清、不混用，概念维得分。",
+          "option_id": "C01-html-practice-html-q16-b53b81b63fc4:option-1"
+        },
+        {
+          "text": "后浇带就是普通施工缝的一种，处理方式完全相同，都按凿毛铺砂浆走即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "名字都带「缝」，容易划等号。",
+          "loss_reason": "后浇带需微膨胀/提高一级/28d封闭，与普通缝处理完全不同。",
+          "fix": "后浇带另有微膨胀、提高一级、28d封闭等专项要求。",
+          "option_id": "C01-html-practice-html-q16-b53b81b63fc4:option-2"
+        },
+        {
+          "text": "普通施工缝也要用微膨胀混凝土、强度提高一级、28d后封闭，与后浇带一致。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "反向混用，把后浇带要求套到普通缝。",
+          "loss_reason": "普通施工缝按达强度凿毛砂浆处理，不需微膨胀/提高一级/28d。",
+          "fix": "普通缝按1.2N/mm²→凿毛→30mm砂浆处理即可。",
+          "option_id": "C01-html-practice-html-q16-b53b81b63fc4:option-3"
+        },
+        {
+          "text": "两者区别只在名字，采分时写哪套措施都给分，不必区分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "图省事不想区分。",
+          "loss_reason": "混用术语会漏各自的专属采分点。",
+          "fix": "后浇带与普通缝措施分开写全。",
+          "option_id": "C01-html-practice-html-q16-b53b81b63fc4:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q16-b53b81b63fc4",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q16",
       "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532"
     }
   ],

@@ -4,8 +4,8 @@
 ``finished/*.practice.dc.html``。publisher 只在构建时调用本模块：
 
 1. 按 HTML 格式而非 pack 名选择 parser；
-2. 跳过当前服务端还不能严格重判的多选题，确定性选出 5 道单选；
-3. 生成带 source SHA 的私有 sidecar，并将 public HTML 限定为同五题；
+2. 跳过当前服务端还不能严格重判的多选题，将全部合法单选编译进私有题池；
+3. 从同一题池确定性选出 5 道 public HTML 展示题，并生成带 source SHA 的 sidecar；
 4. 运行时只从 manifest 登记的 sidecar 投影题面，不在请求期解释 HTML。
 
 学生作答仍由 ``RetestWritebackService`` 重判并写 LearnerState；本模块
@@ -25,7 +25,7 @@ _COMPILED_DIR = _REPO / "deeptutor" / "services" / "luban_lesson" / "compiled"
 _MANIFEST_PATH = _REPO / "docs" / "原始数据" / "考点原料" / "成品" / "_pack_manifest.json"
 _JS_STRING = r"(?P<quote>[\"'])(?P<value>(?:\\.|(?!\1).)*)\1"
 PRACTICE_LIMIT = 5
-SCHEMA_VERSION = "luban_compiled_practice.v1"
+SCHEMA_VERSION = "luban_compiled_practice.v2"
 AUTHORITY_FIELDS = (
     "schema_version",
     "pack_id",
@@ -284,7 +284,7 @@ def compile_practice_surface(
     source_path: str,
     source_html_sha256: str,
 ) -> dict[str, Any]:
-    """从一个显式注册的 practice surface 编译五题。"""
+    """从一个显式注册的 practice surface 编译全量单选题池与五题公开投影。"""
     normalized_pack = str(pack_id or "").strip().upper()
     if not re.fullmatch(r"[A-Z][A-Z0-9_-]{1,31}", normalized_pack):
         raise PracticeHtmlInvalid("practice_html_pack_invalid")
@@ -308,7 +308,8 @@ def compile_practice_surface(
     selected = _select_five(candidates, format_kind=format_kind)
 
     items: list[dict[str, Any]] = []
-    for candidate in selected:
+    variant_by_candidate: dict[int, str] = {}
+    for candidate in candidates:
         canonical = {
             "answer_type": "single_choice",
             "rule_group": candidate["rule_group"],
@@ -336,6 +337,7 @@ def compile_practice_surface(
                 "source_html_sha256": source_sha,
             }
         )
+        variant_by_candidate[id(candidate)] = variant_id
     return {
         "surface": {
             "surface_id": surface,
@@ -343,8 +345,8 @@ def compile_practice_surface(
             "source_html_sha256": source_sha,
             "format_kind": format_kind,
             "array_marker": marker,
-            "presentation_order": [item["source_index"] for item in items],
-            "variant_ids": [item["variant_id"] for item in items],
+            "presentation_order": [item["source_index"] for item in selected],
+            "variant_ids": [variant_by_candidate[id(item)] for item in selected],
         },
         "items": items,
     }
@@ -366,7 +368,7 @@ def build_practice_authority(
             raise PracticeHtmlInvalid(error)
     surfaces = [dict(compiled["surface"]) for compiled in compiled_surfaces]
     items = [dict(item) for compiled in compiled_surfaces for item in compiled["items"]]
-    if not surfaces or len(items) != PRACTICE_LIMIT * len(surfaces):
+    if not surfaces or len(items) < PRACTICE_LIMIT * len(surfaces):
         raise PracticeHtmlInvalid("practice_authority_surface_count_invalid")
     if len({item["variant_id"] for item in items}) != len(items):
         raise PracticeHtmlInvalid("practice_html_duplicate_question_identity")
@@ -391,6 +393,10 @@ def transform_compiled_practice_html(
 ) -> str:
     """把 public 投影限定为 sidecar 同五题，并注入统一证据桥。"""
     format_kind = str(surface.get("format_kind") or "")
+    presentation_ids = [str(item or "") for item in surface.get("variant_ids") or []]
+    if len(items) != PRACTICE_LIMIT and len(presentation_ids) == PRACTICE_LIMIT:
+        by_id = {str(item.get("variant_id") or ""): item for item in items}
+        items = [by_id[variant_id] for variant_id in presentation_ids if variant_id in by_id]
     if len(items) != PRACTICE_LIMIT:
         raise PracticeHtmlInvalid("practice_transform_requires_five_items")
     if format_kind == "bank_drawn":
@@ -515,18 +521,21 @@ def _validate_authority(value: Any, *, expected_pack: str) -> dict[str, Any]:
     if (
         len(set(surface_ids)) != len(surface_ids)
         or set(surface_ids) != set(by_surface)
-        or len(items) != PRACTICE_LIMIT * len(surfaces)
+        or len(items) < PRACTICE_LIMIT * len(surfaces)
         or surface_indexes != list(range(1, len(surface_ids) + 1))
     ):
         raise PracticeHtmlInvalid("practice_authority_surface_set_invalid")
     for surface in surfaces:
         surface_id = str(surface.get("surface_id") or "")
+        presentation_ids = list(surface.get("variant_ids") or [])
         if (
             not re.fullmatch(r"practice(?:[2-9][0-9]*)?\.html", surface_id)
             or not re.fullmatch(r"[0-9a-f]{64}", str(surface.get("source_html_sha256") or ""))
             or not re.fullmatch(r"[0-9a-f]{64}", str(surface.get("published_practice_sha256") or ""))
-            or list(surface.get("variant_ids") or []) != by_surface.get(surface_id)
-            or len(by_surface.get(surface_id) or []) != PRACTICE_LIMIT
+            or len(presentation_ids) != PRACTICE_LIMIT
+            or len(set(presentation_ids)) != PRACTICE_LIMIT
+            or not set(presentation_ids).issubset(set(by_surface.get(surface_id) or []))
+            or len(list(surface.get("presentation_order") or [])) != PRACTICE_LIMIT
         ):
             raise PracticeHtmlInvalid("practice_authority_surface_invalid")
     return value
@@ -617,6 +626,15 @@ def compiled_practice_bundle_sha(pack_id: str) -> str:
     return str((practice or {}).get("source_bundle_sha256") or "")
 
 
+def compiled_practice_supply_digest(pack_id: str) -> str:
+    """返回 manifest 签发的 sidecar 字节摘要；先完整校验再暴露 identity。"""
+    normalized = str(pack_id or "").strip().upper()
+    registration = _registration(normalized)
+    if registration is None or load_compiled_practice(normalized) is None:
+        return ""
+    return str(registration[1].get("authority_sha256") or "")
+
+
 def _surface_items(practice: dict[str, Any], surface_id: str) -> list[dict[str, Any]]:
     requested = str(surface_id or "practice.html").strip()
     surface = next(
@@ -629,6 +647,63 @@ def _surface_items(practice: dict[str, Any], surface_id: str) -> list[dict[str, 
     return [by_id[variant_id] for variant_id in surface["variant_ids"]]
 
 
+def _surface_bank_items(practice: dict[str, Any], surface_id: str) -> list[dict[str, Any]]:
+    requested = str(surface_id or "practice.html").strip()
+    if not any(item.get("surface_id") == requested for item in practice["surfaces"]):
+        raise PracticeHtmlInvalid("practice_authority_surface_not_found")
+    return [item for item in practice["items"] if item.get("surface_id") == requested]
+
+
+def _selection_rank(selection_key: str, variant_id: str) -> int:
+    digest = hashlib.sha256(f"{selection_key}:{variant_id}".encode("utf-8")).hexdigest()
+    return int(digest[:16], 16)
+
+
+def _select_surface_items(
+    practice: dict[str, Any], *, surface_id: str, selection_key: str
+) -> list[dict[str, Any]]:
+    """从同一签发面确定性取四道考法题 + 一道诊断题。
+
+    空 ``selection_key`` 保留 public HTML 的五题投影；非空 key 只改变选择，
+    不改答案、不在线解释源 HTML，也不产生第二份题目 authority。
+    """
+    if not selection_key:
+        return _surface_items(practice, surface_id)
+    bank = _surface_bank_items(practice, surface_id)
+    ordered = sorted(
+        bank,
+        key=lambda item: _selection_rank(selection_key, str(item.get("variant_id") or "")),
+    )
+    diagnostic = [
+        item for item in ordered if "诊断" in str(item.get("rule_group") or "")
+    ]
+    regular = [item for item in ordered if item not in diagnostic]
+    picked: list[dict[str, Any]] = []
+    seen_groups: set[str] = set()
+    for item in regular:
+        group = str(item.get("rule_group") or "")
+        if group in seen_groups:
+            continue
+        picked.append(item)
+        seen_groups.add(group)
+        if len(picked) == PRACTICE_LIMIT - (1 if diagnostic else 0):
+            break
+    if len(picked) < PRACTICE_LIMIT - (1 if diagnostic else 0):
+        picked_ids = {str(item.get("variant_id") or "") for item in picked}
+        picked.extend(
+            item
+            for item in regular
+            if str(item.get("variant_id") or "") not in picked_ids
+        )
+    if diagnostic:
+        picked = picked[: PRACTICE_LIMIT - 1] + diagnostic[:1]
+    else:
+        picked = picked[:PRACTICE_LIMIT]
+    if len(picked) != PRACTICE_LIMIT:
+        raise PracticeHtmlInvalid("practice_authority_selection_insufficient")
+    return picked
+
+
 def resolve_compiled_practice_items(
     pack_id: str, *, surface_id: str = "", variant_ids: list[str] | None = None
 ) -> list[dict[str, Any]] | None:
@@ -637,22 +712,24 @@ def resolve_compiled_practice_items(
         return None
     if variant_ids is not None:
         wanted = [str(item or "").strip() for item in variant_ids]
-        matches = [
-            _surface_items(practice, str(surface["surface_id"]))
-            for surface in practice["surfaces"]
-        ]
-        selected = next(
-            (items for items in matches if [item["variant_id"] for item in items] == wanted),
-            None,
-        )
-        if selected is None:
+        if len(wanted) != PRACTICE_LIMIT or len(set(wanted)) != PRACTICE_LIMIT:
             raise PracticeHtmlInvalid("practice_authority_variant_set_not_found")
-        return selected
+        by_id = {str(item.get("variant_id") or ""): item for item in practice["items"]}
+        selected = [by_id.get(variant_id) for variant_id in wanted]
+        if any(item is None for item in selected) or len(
+            {str(item.get("surface_id") or "") for item in selected if item}
+        ) != 1:
+            raise PracticeHtmlInvalid("practice_authority_variant_set_not_found")
+        return [item for item in selected if item]
     return _surface_items(practice, surface_id or "practice.html")
 
 
 def project_compiled_practice(
-    pack_id: str, *, expected_pack_sha256: str = "", surface_id: str = ""
+    pack_id: str,
+    *,
+    expected_pack_sha256: str = "",
+    surface_id: str = "",
+    selection_key: str = "",
 ) -> list[dict[str, Any]] | None:
     practice = load_compiled_practice(pack_id)
     if practice is None:
@@ -660,7 +737,11 @@ def project_compiled_practice(
     expected_sha = str(expected_pack_sha256 or "").strip()
     if expected_sha and practice["source_pack_sha256"] != expected_sha:
         return None
-    items = _surface_items(practice, surface_id or "practice.html")
+    items = _select_surface_items(
+        practice,
+        surface_id=surface_id or "practice.html",
+        selection_key=str(selection_key or ""),
+    )
     return [
         {
             "answer_type": "single_choice",
@@ -679,13 +760,30 @@ def project_compiled_practice(
     ]
 
 
+def compiled_practice_pool_meta(
+    pack_id: str, *, surface_id: str = ""
+) -> dict[str, int] | None:
+    practice = load_compiled_practice(pack_id)
+    if practice is None:
+        return None
+    items = _surface_bank_items(practice, surface_id or "practice.html")
+    return {
+        "core_total": len(items),
+        "rule_groups_total": len(
+            {str(item.get("rule_group") or "") for item in items}
+        ),
+    }
+
+
 __all__ = [
     "AUTHORITY_FIELDS",
     "PRACTICE_LIMIT",
     "PracticeHtmlInvalid",
     "build_practice_authority",
     "compile_practice_surface",
+    "compiled_practice_pool_meta",
     "compiled_practice_bundle_sha",
+    "compiled_practice_supply_digest",
     "is_compiled_practice_pack",
     "load_compiled_practice",
     "project_compiled_practice",

@@ -108,23 +108,33 @@ def _practice_capability(pack_id: str, content_sha256: str) -> dict[str, Any]:
     items = authority.get("items") if isinstance(authority, dict) else None
     public = CARD_HOST_DIR / pack_id.lower()
     if (
-        authority.get("schema_version") != "luban_compiled_practice.v1"
+        authority.get("schema_version") != "luban_compiled_practice.v2"
         or authority.get("pack_id") != pack_id
         or authority.get("source_pack_sha256") != content_sha256
         or not isinstance(surfaces, list)
         or not surfaces
         or not isinstance(items, list)
-        or len(items) != 5 * len(surfaces)
+        or len(items) < 5 * len(surfaces)
         or authority.get("published_lesson_sha256")
         != (_sha256(public / "lesson.html") if (public / "lesson.html").is_file() else "")
     ):
         return {"status": "unavailable"}
+    item_ids = {
+        str(item.get("variant_id") or "")
+        for item in items
+        if isinstance(item, dict) and item.get("variant_id")
+    }
+    if len(item_ids) != len(items):
+        return {"status": "unavailable"}
     for surface in surfaces:
         hosted = public / str(surface.get("surface_id") or "")
+        presentation_ids = list(surface.get("variant_ids") or [])
         if (
             not hosted.is_file()
             or surface.get("published_practice_sha256") != _sha256(hosted)
-            or len(surface.get("variant_ids") or []) != 5
+            or len(presentation_ids) != 5
+            or len(set(presentation_ids)) != 5
+            or not set(presentation_ids).issubset(item_ids)
         ):
             return {"status": "unavailable"}
     return {

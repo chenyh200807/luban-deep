@@ -9,6 +9,14 @@
 
 ## Deviations
 
+### 2026-07-15（视频 Practice 全池释放 + exact issued set 收权 · local candidate）
+- **[库存真值]** public HTML 继续展示作者精选五题，但 `luban_compiled_practice.v2` 私有 sidecar 改为保存全部合法单选：40 个 pack、43 个 practice surface、633 道（每面 6–24 道），不再把 215 个公开展示位误当全部供给。未完成 finished Practice 编译的 E01 继续 fail-close。
+- **[选择收权]** 未显式指定 public surface 时，服务端按 canonical user + day 在同一签发面确定性取五题；显式 `practice_surface` 仍精确返回 public 同五题，保留 WebView 收据桥。selection v2 额外绑定 `supply_kind + supply_digest + exact variant set`；题池重签或停发后旧凭证失效。
+- **[完成收权]** `RetestWritebackService` 不再重跑选题算法，而是精确解析已签发 variant IDs 后 server-rescore。真正的一等事实从“同样参数应该再抽到同样题”收紧为“完成只认当初发出的精确题集”。forward 仍是 L0/non-promoting，不改变 LearnerState promotion authority。
+- **[幂等闭包]** hostile review 抓到 partial item 后可被另一合法请求接管的旧缺口；现于写题前用唯一 dedupe key 建立 durable completion claim 并绑定 `request_hash`，claim 后重读校验。terminal replay 只按 `item_event_refs` 恢复，并核 request hash、题数、唯一性与正确数；孤儿 item 不再混进成功收据。
+- **[诚实边界]** 本轮未改小程序 UI、未启用运行时 LLM 出题、未部署。数据盘点发现 variant blocklist 与 cloze 等派生物存在撤销漂移；在事实级跨派生撤销 gate 完成前，关键词填空/半写不扩默认入口。实施与后续门见 [Practice × 母题库留存闭环计划](./2026-07-15-luban-practice-mother-bank-retention-loop-implementation-plan.md)。
+- **[验证]** practice-only 重建与 check 逐字节一致；exact-selection/writeback 定向复测 `80 passed`，完整 `tests/services/luban_lesson` 加相关 API 套件 `131 passed`；最终架构红队由 NO-GO 复核为 GO。
+
 ### 2026-07-14（全量练习闭环 · 专家红队后的可交付收口）
 - **[源头可复现]** 首轮候选把 39 个 compiled sidecar/public 页面带进了分支，却只跟踪 8 个对应 finished 源，干净 checkout 无法重建。现改为精确跟踪注册表实际消费的 39 个 practice HTML；新增 `--practice-only --check`，只从这些源重编 practice/public/sidecar 并逐字节比较，不要求把 195MB 教学音频整库搬入本次变更。finished practice 以 `-text` 保证 Windows `autocrlf` checkout 仍字节一致；source-only PR 会触发 backend/governance，并在 CI api-contract shard 真跑同一重建闸。
 - **[投影不可伪造]** manifest 为每个 private sidecar 固定 `authority_sha256`；运行时先验 sidecar 字节，再验 source bundle、pack、surface、source/public SHA 与 5 题结构。仅交换两个答案但保持 JSON 形状合法也会 fail-close；`luban_compiled_practice.v1` 已进入 schema registry，字段集合由测试与运行时常量对齐。

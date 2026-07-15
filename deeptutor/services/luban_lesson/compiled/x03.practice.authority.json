@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v2",
   "pack_id": "X03",
   "source_pack_sha256": "6da4f10de5f46af7abdb5f1665d3a6db44e1cc6f870000a5c9e70fcc620769e1",
   "source_bundle_sha256": "38d38ebf847217afb9c769f92dc8db80f38e10882dda3ebd5461072e72c194e7",
@@ -230,6 +230,516 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q4",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "四节·归类",
+      "stem": "「用绿化代替施工现场的场地硬化」这一做法，属于绿色施工四节中的哪一节？",
+      "model_answer": "属于「节地与施工用地保护」（节地）——省的是地、保护施工用地，不是省材料。",
+      "options": [
+        {
+          "text": "属于节地（节地与施工用地保护）——绿化代替硬化省的是场地，保护施工用地。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "绿化代替硬化=省地=节地，真题 2017 第16题答案。",
+          "option_id": "X03-html-practice-html-q6-58d599496816:option-1"
+        },
+        {
+          "text": "属于节材——用绿化代替硬化，省下了硬化要用的混凝土等材料，是节约材料。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "硬化要用混凝土，绿化省了它，直觉觉得是省材料=节材。",
+          "loss_reason": "归类混淆：这里省的是「地」不是「料」，绿化代替硬化归节地不归节材。",
+          "fix": "绿化代替硬化=节地，不是节材。",
+          "option_id": "X03-html-practice-html-q6-58d599496816:option-2"
+        },
+        {
+          "text": "属于节能——绿化能降温、减少地表反射，省下了施工现场的用能。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "绿化降温联想到「省能」。",
+          "loss_reason": "绿化代替硬化的判分点是保护施工用地，属节地，不是节能。",
+          "fix": "归节地（施工用地保护），不是节能。",
+          "option_id": "X03-html-practice-html-q6-58d599496816:option-3"
+        },
+        {
+          "text": "属于节水——绿地能蓄水、涵养水分，减少现场用水，是节水措施。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "绿地蓄水联想到「省水」。",
+          "loss_reason": "判分点是省地、保护用地，属节地，不按蓄水归节水。",
+          "fix": "归节地，不是节水。",
+          "option_id": "X03-html-practice-html-q6-58d599496816:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q6-58d599496816",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q6",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "四节·节水",
+      "stem": "关于绿色施工「节水与水资源利用」，选出落到可执行动作、能得分的一项。",
+      "model_answer": "冲洗用水设循环装置反复利用；施工降水抽水量大于 50 万 m³ 的，应回灌地下水。",
+      "options": [
+        {
+          "text": "冲洗用水设循环装置反复利用；施工降水抽水量大于 50 万 m³ 的应回灌地下水。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "循环装置 + 抽水 50 万 m³ 回灌，两个可判分的采分动作。",
+          "option_id": "X03-html-practice-html-q7-e6cd16886f24:option-1"
+        },
+        {
+          "text": "加强节约用水管理，节约用水、杜绝浪费，提高全员节水意识。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「节约用水」是节水最顺口的说法。",
+          "loss_reason": "纯口号，没有循环装置、回灌等可执行动作，不给分。",
+          "fix": "落到动作：设循环装置、抽水大于 50 万 m³ 回灌。",
+          "option_id": "X03-html-practice-html-q7-e6cd16886f24:option-2"
+        },
+        {
+          "text": "施工用水优先用自来水，用完直接排入市政管网，保证现场用水通畅。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得「用完就排」现场省事。",
+          "loss_reason": "直接排放不是节水，节水要循环利用、回灌，方向反了。",
+          "fix": "设循环装置反复用；大量抽水须回灌地下水。",
+          "option_id": "X03-html-practice-html-q7-e6cd16886f24:option-3"
+        },
+        {
+          "text": "现场设沉淀池对废水简单沉淀，能省一点是一点，其余按经验安排。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "提了沉淀池，感觉「有措施」。",
+          "loss_reason": "漏了循环装置和抽水回灌两个核心采分点，只提沉淀不全。",
+          "fix": "补循环装置反复利用、抽水大于 50 万 m³ 回灌地下水。",
+          "option_id": "X03-html-practice-html-q7-e6cd16886f24:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q7-e6cd16886f24",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q7",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "四节·节能辨析",
+      "stem": "关于绿色施工四节中的「节能」，下列表述正确的是哪一项？",
+      "model_answer": "四节的节能指施工现场用能：优先节能设备、临时照明按最低照度、优先用太阳能地热等可再生能源；不同于建筑节能工程（墙体门窗保温验收）。",
+      "options": [
+        {
+          "text": "优先选用节能施工设备，临时照明按最低照度设计，优先利用太阳能、地热等可再生能源。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三条都是施工现场用能的可执行动作，正是四节·节能采分句。",
+          "option_id": "X03-html-practice-html-q8-d80d47179e19:option-1"
+        },
+        {
+          "text": "节能就是做好墙体保温、门窗气密性和外墙保温层，按建筑节能工程标准验收合格。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「节能」两个字和建筑节能工程完全一样，最容易混。",
+          "loss_reason": "墙体门窗保温是建筑节能工程（围护结构验收），不是四节现场用能，同字不同考。",
+          "fix": "四节·节能写现场用能：节能设备/最低照度/可再生能源。",
+          "option_id": "X03-html-practice-html-q8-d80d47179e19:option-2"
+        },
+        {
+          "text": "加强用电管理、节约用电、随手关灯，提高现场节能意识即可。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「节约用电」顺口，像在答节能。",
+          "loss_reason": "口号，没有节能设备/照度/可再生能源等可判分动作。",
+          "fix": "落到动作：节能设备、临时照明最低照度、太阳能地热。",
+          "option_id": "X03-html-practice-html-q8-d80d47179e19:option-3"
+        },
+        {
+          "text": "临时照明尽量用大功率灯具照得更亮，保证夜间施工安全就是节能的核心。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「照得亮=安全」优先。",
+          "loss_reason": "临时照明应按最低照度设计，用大功率照更亮与节能背道而驰。",
+          "fix": "临时照明按最低照度设计，优先可再生能源。",
+          "option_id": "X03-html-practice-html-q8-d80d47179e19:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q8-d80d47179e19",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q8",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "绿色施工·评价顺序",
+      "stem": "绿色施工评价应按怎样的层级顺序进行？选出顺序正确的一项。",
+      "model_answer": "按基本规定 → 指标 → 要素 → 批次 → 阶段 → 单位工程的顺序评价。",
+      "options": [
+        {
+          "text": "基本规定 → 指标 → 要素 → 批次 → 阶段 → 单位工程。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "从基本规定逐层到单位工程，层级顺序完整，是评价流程采分句。",
+          "option_id": "X03-html-practice-html-q9-346958028b96:option-1"
+        },
+        {
+          "text": "单位工程 → 阶段 → 批次 → 要素 → 指标 → 基本规定，从整体倒推到规定。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "倒着排看着也「有逻辑」，像从大到小。",
+          "loss_reason": "顺序颠倒，评价是从基本规定逐层展开到单位工程，不是倒推。",
+          "fix": "正序：基本规定→指标→要素→批次→阶段→单位工程。",
+          "option_id": "X03-html-practice-html-q9-346958028b96:option-2"
+        },
+        {
+          "text": "基本规定 → 要素 → 阶段 → 单位工程，中间的指标和批次可省略。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得指标、批次是「细节」，可以略过。",
+          "loss_reason": "漏了指标、批次两个中间层级，顺序不完整。",
+          "fix": "六层都要写，别漏指标和批次。",
+          "option_id": "X03-html-practice-html-q9-346958028b96:option-3"
+        },
+        {
+          "text": "绿色施工不必按固定顺序评价，按项目实际灵活组织即可。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "想省去记顺序，答「灵活组织」。",
+          "loss_reason": "评价有固定层级顺序，答「灵活」等于没答，拿不到顺序分。",
+          "fix": "写明基本规定→指标→要素→批次→阶段→单位工程。",
+          "option_id": "X03-html-practice-html-q9-346958028b96:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q9-346958028b96",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q9",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "环保·扬尘",
+      "stem": "关于施工现场扬尘控制，选出措施完整、能得分的一项。",
+      "model_answer": "源头裸土覆盖固化或绿化、物料篷盖；路径自动喷淋 + 雾炮除尘；出口设冲洗池沉淀池、车辆冲洗后出场。",
+      "options": [
+        {
+          "text": "源头裸土覆盖固化或绿化、物料篷盖；路径自动喷淋加雾炮除尘；出口设冲洗池、车辆冲洗后出场。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "源头 + 路径 + 出口三步齐，立体防尘的采分句。",
+          "option_id": "X03-html-practice-html-q10-2cd479081298:option-1"
+        },
+        {
+          "text": "现场定时洒水降尘，保持地面湿润，减少扬尘飞扬。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「洒水降尘」是扬尘最先想到的措施。",
+          "loss_reason": "只写洒水漏了源头覆盖和出口车辆冲洗，三步缺两步，不全。",
+          "fix": "补源头裸土覆盖/篷盖、出口冲洗池车辆冲洗。",
+          "option_id": "X03-html-practice-html-q10-2cd479081298:option-2"
+        },
+        {
+          "text": "加强扬尘管控，控制现场扬尘，做到不起尘、不污染周边环境。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「控制扬尘」听着已经把要求说到位了。",
+          "loss_reason": "纯口号，没有覆盖/喷淋/冲洗等可执行动作，不给分。",
+          "fix": "落到动作：源头覆盖→喷淋雾炮→出口冲洗。",
+          "option_id": "X03-html-practice-html-q10-2cd479081298:option-3"
+        },
+        {
+          "text": "在工地出入口设车辆冲洗池，车辆冲洗干净再出场，即可控制扬尘。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住「车辆冲洗」这一具体动作，觉得够了。",
+          "loss_reason": "只写出口冲洗，漏了源头覆盖和路径喷淋雾炮。",
+          "fix": "补源头裸土覆盖固化、路径自动喷淋加雾炮。",
+          "option_id": "X03-html-practice-html-q10-2cd479081298:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q10-2cd479081298",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q10",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "环保·噪声",
+      "stem": "关于施工现场噪声控制，选出措施完整、能得分的一项。",
+      "model_answer": "选用低噪声设备（源强）；设隔声屏、隔声罩（传播）；封闭木工加工房；优化施工工艺减少噪声。",
+      "options": [
+        {
+          "text": "选用低噪声设备；设隔声屏、隔声罩；封闭木工加工房；优化施工工艺降低噪声。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "低噪设备→隔声屏罩→封闭木工房→优化工艺，按源强到受体四步齐。",
+          "option_id": "X03-html-practice-html-q11-60521b3ad397:option-1"
+        },
+        {
+          "text": "合理安排施工时间、减少噪声扰民，尽量降低施工噪声对周边的影响。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「减少噪声扰民」听着是在答噪声控制。",
+          "loss_reason": "口号，没有设备/隔声/封闭/工艺等可判分措施。",
+          "fix": "落到动作：低噪声设备、隔声屏罩、封闭木工房、优化工艺。",
+          "option_id": "X03-html-practice-html-q11-60521b3ad397:option-2"
+        },
+        {
+          "text": "给施工设备加隔声罩，把噪声挡住就行，其余按现场情况安排。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住「隔声罩」一个具体措施，觉得点到了。",
+          "loss_reason": "只写传播环节的隔声，漏了低噪声设备（源头）、封闭木工房、优化工艺。",
+          "fix": "补低噪声设备、封闭木工房、优化工艺，四步齐。",
+          "option_id": "X03-html-practice-html-q11-60521b3ad397:option-3"
+        },
+        {
+          "text": "夜间禁止一切施工作业，白天正常干，就能从根本上解决噪声问题。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「夜间不干」最省事、最彻底。",
+          "loss_reason": "夜间施工需办许可证而非一律禁止，且白天噪声仍需设备/隔声等措施控制。",
+          "fix": "噪声按低噪设备/隔声屏罩/封闭木工房/优化工艺控制。",
+          "option_id": "X03-html-practice-html-q11-60521b3ad397:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q11-60521b3ad397",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q11",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "环保·夜间光污染",
+      "stem": "关于夜间施工与光污染控制，选出措施到位、能得分的一项。",
+      "model_answer": "办理夜间施工许可证并公告周边居民；照明灯加灯罩使透光集中；电焊作业采取遮挡防止弧光外泄。",
+      "options": [
+        {
+          "text": "办夜间施工许可证并公告周边居民；照明灯加灯罩使透光集中；电焊作业遮挡防止弧光外泄。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "许可 + 灯罩 + 电焊遮挡三条都是可判分动作，光污染采分句。",
+          "option_id": "X03-html-practice-html-q12-bb0e04e2f314:option-1"
+        },
+        {
+          "text": "注意夜间光污染，尽量不影响周边居民休息，做到文明施工。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「注意光污染」像已经答到点上。",
+          "loss_reason": "口号，没有许可证、灯罩、电焊遮挡等具体动作。",
+          "fix": "落到动作：办许可证公告居民、灯加灯罩、电焊遮挡。",
+          "option_id": "X03-html-practice-html-q12-bb0e04e2f314:option-2"
+        },
+        {
+          "text": "夜间施工把照明灯开到最亮，方便作业，保证进度和安全。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「灯越亮越安全」。",
+          "loss_reason": "照明应加灯罩使透光集中控制光污染，开到最亮恰恰制造光污染。",
+          "fix": "灯加灯罩透光集中，并办许可证、电焊遮挡。",
+          "option_id": "X03-html-practice-html-q12-bb0e04e2f314:option-3"
+        },
+        {
+          "text": "提前跟居民打个招呼就行，光污染现场很难避免，作业为主。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住「公告居民」一条。",
+          "loss_reason": "漏了办许可证、灯加灯罩、电焊遮挡，措施不全。",
+          "fix": "补办夜间施工许可证、灯加灯罩、电焊遮挡防弧光。",
+          "option_id": "X03-html-practice-html-q12-bb0e04e2f314:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q12-bb0e04e2f314",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q12",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "环保·污水泥浆",
+      "stem": "关于施工污水与泥浆的处理，选出符合规范、能得分的一项。",
+      "model_answer": "工程泥浆经泥浆池或封闭容器收集，未经处理不得随意排放；污水排放应申领临时排水许可证，由市政管理部门发证。",
+      "options": [
+        {
+          "text": "工程泥浆经泥浆池封闭收集、未处理不得随意排放；污水排放申领临时排水许可证，由市政管理部门发证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "泥浆封闭收集不乱排 + 许可市政发证，两个采分点齐。",
+          "option_id": "X03-html-practice-html-q13-3b432e4f169d:option-1"
+        },
+        {
+          "text": "泥浆在现场沉淀池沉淀后，就地排入市政雨水管或附近水体，简单省事。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「沉淀过了」就达标可以排。",
+          "loss_reason": "泥浆未经处理不得随意排放，沉淀不等于处理达标，就地排放违规。",
+          "fix": "泥浆封闭收集，未处理不得随意排放。",
+          "option_id": "X03-html-practice-html-q13-3b432e4f169d:option-2"
+        },
+        {
+          "text": "污水排放许可证由建设行政主管部门（住建部门）审批发证。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "施工的事，习惯性想到建设/住建部门。",
+          "loss_reason": "临时排水（污水排放）许可证由市政管理部门发证，发证部门答错。",
+          "fix": "污水排放临时排水许可证由市政管理部门发证。",
+          "option_id": "X03-html-practice-html-q13-3b432e4f169d:option-3"
+        },
+        {
+          "text": "做好污水处理、达标排放即可，泥浆晾干后当普通渣土外运，不必单独收集。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「晾干当渣土」方便处理。",
+          "loss_reason": "泥浆须经泥浆池/封闭容器收集、未处理不得排放，不能简单晾干外运。",
+          "fix": "泥浆封闭容器收集、未处理不排；补雨水回收利用。",
+          "option_id": "X03-html-practice-html-q13-3b432e4f169d:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q13-3b432e4f169d",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q13",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "环保·建筑垃圾",
+      "stem": "关于建筑垃圾的现场管理与资源化，选出措施完整、能得分的一项。",
+      "model_answer": "堆放不宜高于 3m、超 3m 须做堆体和地基稳定性验算；分类计量、建台账，未分类不得运出场；分类收集→级配回填/就地粉碎→再生骨料。",
+      "options": [
+        {
+          "text": "堆放不宜高于 3m、超 3m 须做稳定性验算；分类计量建台账、未分类不得运出场；就地粉碎级配回填做再生骨料。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "限高验算 + 分类台账 + 资源化路径三条齐，建筑垃圾采分句。",
+          "option_id": "X03-html-practice-html-q14-e6276e8c6094:option-1"
+        },
+        {
+          "text": "建筑垃圾及时清运出场，运到消纳场统一处理，保持现场整洁，能运多少运多少。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「及时清运」现场就干净了。",
+          "loss_reason": "未分类不得运出场；只清运不分类、不做资源化违规且漏采分点。",
+          "fix": "先分类计量建台账，未分类不得运出，再资源化利用。",
+          "option_id": "X03-html-practice-html-q14-e6276e8c6094:option-2"
+        },
+        {
+          "text": "做好建筑垃圾分类，减少垃圾产生，绿色环保，实现垃圾减量化目标。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「分类、减量化」都是听着对的绿色词。",
+          "loss_reason": "口号化，没有限高验算、台账、资源化路径等可判分动作。",
+          "fix": "落到动作：不宜高于 3m、建台账、级配回填/再生骨料。",
+          "option_id": "X03-html-practice-html-q14-e6276e8c6094:option-3"
+        },
+        {
+          "text": "建筑垃圾分类堆放整齐即可，堆多高、要不要台账按现场情况灵活掌握。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "提了「分类堆放」，感觉有措施了。",
+          "loss_reason": "漏了不宜高于 3m（超 3m 验算）、建台账、资源化路径。",
+          "fix": "补堆放不宜高于 3m、分类计量建台账、资源化再生骨料。",
+          "option_id": "X03-html-practice-html-q14-e6276e8c6094:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q14-e6276e8c6094",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q14",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "综合·五组齐",
+      "stem": "某案例要求「写出该工程的文明、绿色、环境保护施工措施」。下列作答覆盖最完整、能拿满分的是哪一项？",
+      "model_answer": "①文明施工（围挡分区五牌）②绿色施工组织（体系方案影像）③环境保护（扬尘/噪声/光/污水泥浆）④四节（材水能地）⑤建筑垃圾资源化——五组齐、每条落到可执行动作。",
+      "options": [
+        {
+          "text": "文明施工（围挡分区五牌）+ 绿色施工组织 + 环境保护（扬尘噪声光污水）+ 四节 + 建筑垃圾资源化，五组齐、每条落到动作。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "文明/组织/污染/四节/固废五组齐、条条可执行，综合写措施满分作答。",
+          "option_id": "X03-html-practice-html-q15-130d497b6a54:option-1"
+        },
+        {
+          "text": "重点写好文明施工措施：标准化围挡、施工区与生活区隔离、材料码放整齐、五牌一图，做到现场文明有序。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "文明施工写得很细，容易以为「详细=完整」。",
+          "loss_reason": "只答文明施工一组，漏了四节、扬尘、噪声、污水、固废，采分点大面积遗漏。",
+          "fix": "补绿色施工组织、四类污染控制、四节、建筑垃圾五组。",
+          "option_id": "X03-html-practice-html-q15-130d497b6a54:option-2"
+        },
+        {
+          "text": "加强文明施工、搞好绿色施工、做好环境保护，全面落实各项绿色建造要求，创建绿色工地。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "三句把「文明/绿色/环保」都点到了，像覆盖全面。",
+          "loss_reason": "全是口号，五组措施一条可执行动作都没有，near-miss 0 分。",
+          "fix": "每组落到动作：围挡分区、扬尘三件套、四节、垃圾资源化…",
+          "option_id": "X03-html-practice-html-q15-130d497b6a54:option-3"
+        },
+        {
+          "text": "写文明施工、扬尘控制、噪声控制三组即可，四节和建筑垃圾属于另外的题不用写进来。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得「污染控制」就是环保措施的全部。",
+          "loss_reason": "漏了绿色施工组织、四节、建筑垃圾三组，综合写措施要五组齐。",
+          "fix": "补绿色施工组织、四节、建筑垃圾资源化。",
+          "option_id": "X03-html-practice-html-q15-130d497b6a54:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q15-130d497b6a54",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q15",
       "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
     },
     {

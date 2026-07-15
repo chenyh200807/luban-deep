@@ -33,9 +33,11 @@ from typing import Any
 
 from deeptutor.services.luban_lesson.practice_html import (
     PracticeHtmlInvalid,
+    compiled_practice_supply_digest,
     is_compiled_practice_pack,
     load_compiled_practice,
     project_compiled_practice,
+    resolve_compiled_practice_items,
 )
 
 _REPO = Path(__file__).resolve().parents[3]
@@ -534,8 +536,9 @@ def build_retest_items(
     - ``mode="review"``（默认，复习轮换皮复测）：跨天扁平确定性轮换，同一用户
       同一天取同一切片（多端幂等，§9-D3）；跨天按 ``day_index``（服务端本地日，
       §9-D2）前进，池耗尽自动回绕复用旧变体（产能降级预案①，绝不 runtime 现编）。
-    - ``mode="forward"``：已编译 pack 读 finished HTML 固定五题投影
-      （不下发正确项）；``practice_surface`` 只能选 manifest 登记的成品面。
+    - ``mode="forward"``：已编译 pack 从 finished HTML 私有全量题池确定性取五题
+      （不下发正确项）；显式 ``practice_surface`` 保留 public HTML 同五题收据桥，
+      未显式指定时按 user/day 换题。
       证据仍由 RetestWritebackService server-rescore 且 non-promoting。
 
     signed variant 分支只发核心变体（extension=false）；对外投影字段
@@ -559,11 +562,14 @@ def build_retest_items(
                 vm["pack_id"],
                 expected_pack_sha256=vm["content_sha256"],
                 surface_id=practice_surface,
+                selection_key=(
+                    "" if practice_surface else f"{user_id}:{int(day_index)}:forward"
+                ),
             )
         except PracticeHtmlInvalid:
             compiled = None
         if compiled is not None:
-            # 成品面是固定五题，不能用 limit 截短后仍签发完成凭证。
+            # 一轮固定签发五题，不能用 limit 截短后仍签发完成凭证。
             return compiled
         if is_compiled_practice_pack(vm["pack_id"]):
             return []  # compiled 内容损坏/SHA 漂移时禁回退第二套 signed-variant 题面
@@ -595,11 +601,23 @@ def build_retest_items(
         start = seed % len(core)
         ordered = [core[(start + i) % len(core)] for i in range(len(core))]
     picked = _balance_expected_ok(_diversify_skeletons(ordered, limit), seed, limit)
+    return _project_variant_rows(
+        vm["pack_id"], picked, manifest_dir, vm["content_sha256"]
+    )
+
+
+def _project_variant_rows(
+    pack_id: str,
+    variants: list[dict[str, Any]],
+    manifest_dir: Path,
+    content_sha256: str,
+) -> list[dict[str, Any]]:
+    """将已选中的 signed variants 投影成统一题面；不参与选择。"""
     textbook_by_point = _textbook_quote_index(
-        vm["pack_id"], manifest_dir, vm["content_sha256"]
+        pack_id, manifest_dir, content_sha256
     )
     rows: list[dict[str, Any]] = []
-    for v in picked:
+    for v in variants:
         row: dict[str, Any] = {
             "variant_id": v["variant_id"],
             "rule_group": v["rule_group"],
@@ -613,6 +631,97 @@ def build_retest_items(
             row["textbook"] = textbook
         rows.append(row)
     return rows
+
+
+def resolve_retest_items(
+    pack_id: str,
+    *,
+    variant_ids: list[str],
+    mode: str = "review",
+    manifest_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """精确解析已签发题集；completion 不得重新运行选题算法。"""
+    wanted = [str(item or "").strip() for item in variant_ids]
+    if not wanted or len(wanted) > 10 or len(set(wanted)) != len(wanted):
+        return []
+    vm = build_lesson_viewmodel(pack_id, manifest_path=manifest_path)
+    normalized_mode = "forward" if str(mode or "").strip().lower() == "forward" else "review"
+    if normalized_mode == "forward" and manifest_path is None:
+        try:
+            compiled = resolve_compiled_practice_items(
+                vm["pack_id"], variant_ids=wanted
+            )
+        except PracticeHtmlInvalid:
+            compiled = None
+        if compiled is not None:
+            return compiled
+        if is_compiled_practice_pack(vm["pack_id"]):
+            return []
+    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
+    bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
+    if bank is None:
+        return []
+    blocked = _variant_blocklist(manifest_dir)
+    by_id = {
+        str(item.get("variant_id") or ""): item
+        for item in bank.get("variants") or []
+        if not item.get("extension")
+        and str(item.get("variant_id") or "") not in blocked
+    }
+    selected = [by_id.get(variant_id) for variant_id in wanted]
+    if any(item is None for item in selected):
+        return []
+    return _project_variant_rows(
+        vm["pack_id"],
+        [item for item in selected if isinstance(item, dict)],
+        manifest_dir,
+        vm["content_sha256"],
+    )
+
+
+def retest_supply_identity(
+    pack_id: str,
+    *,
+    mode: str = "review",
+    manifest_path: Path | None = None,
+) -> dict[str, str]:
+    """当前可送达供给的签发 identity；选题凭证用它阻断过期题池提交。"""
+    vm = build_lesson_viewmodel(pack_id, manifest_path=manifest_path)
+    normalized_mode = "forward" if str(mode or "").strip().lower() == "forward" else "review"
+    if normalized_mode == "forward" and manifest_path is None:
+        try:
+            digest = compiled_practice_supply_digest(vm["pack_id"])
+        except PracticeHtmlInvalid:
+            digest = ""
+        if digest:
+            return {"kind": "compiled_html", "digest": digest}
+        if is_compiled_practice_pack(vm["pack_id"]):
+            return {"kind": "", "digest": ""}
+    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
+    bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
+    if bank is None:
+        return {"kind": "", "digest": ""}
+    blocked = _variant_blocklist(manifest_dir)
+    active = [
+        item
+        for item in bank.get("variants") or []
+        if not item.get("extension")
+        and str(item.get("variant_id") or "") not in blocked
+    ]
+    raw = json.dumps(
+        {
+            "pack_id": vm["pack_id"],
+            "source_pack_sha256": vm["content_sha256"],
+            "variants": active,
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return {
+        "kind": "signed_variant",
+        "digest": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+    }
 
 
 _VARIANT_BLOCKLIST_FILE = "_variant_blocklist.json"

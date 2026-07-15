@@ -7,6 +7,7 @@ import pytest
 
 from deeptutor.services.learner_state.learning_report_read_model import (
     _aggregate_learning_evidence,
+    _learning_evidence_events,
 )
 from deeptutor.services.learner_state.learning_synthesis import synthesize_learning_truth
 from deeptutor.services.learner_state.pack_lifecycle_projection import (
@@ -68,7 +69,7 @@ class _LearnerState:
 class _NonLexicalEventIdLearnerState(_LearnerState):
     """Mimic UUID ordering that does not preserve append/question order."""
 
-    _ids = ("evt-z", "evt-a", "evt-y", "evt-b")
+    _ids = ("evt-claim", "evt-z", "evt-a", "evt-y", "evt-b")
 
     def append_memory_event(self, user_id: str, **kwargs: Any) -> _Event:
         before = len(self.events)
@@ -100,8 +101,12 @@ def signed_pack(monkeypatch: pytest.MonkeyPatch) -> None:
             "anchor": "kc:F16",
         },
     ]
-    monkeypatch.setattr(module, "build_retest_items", lambda *args, **kwargs: list(items))
-    monkeypatch.setattr(module, "load_compiled_practice", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module, "resolve_retest_items", lambda *args, **kwargs: list(items))
+    monkeypatch.setattr(
+        module,
+        "retest_supply_identity",
+        lambda *args, **kwargs: {"kind": "signed_variant", "digest": "f" * 64},
+    )
     monkeypatch.setattr(
         module,
         "build_lesson_viewmodel",
@@ -136,6 +141,8 @@ def _complete(service: RetestWritebackService, **overrides: Any) -> dict[str, An
             day_index=payload["day_index"],
             mode=canonical_mode,
             variant_ids=[item["variant_id"] for item in payload["answers"]],
+            supply_kind="signed_variant",
+            supply_digest="f" * 64,
         )
     return service.complete(**payload)
 
@@ -157,7 +164,11 @@ def test_forward_practice_is_server_rescored_idempotent_and_short_term() -> None
 
     assert first == replay
     assert first["score"] == {"correct_count": 1, "question_count": 2}
-    assert len(learner.events) == 4
+    assert len(learner.events) == 5
+    assert all(
+        event.payload_json.get("event_type") != "retest_completion_claim"
+        for event in _learning_evidence_events(learner.events)
+    )
     item_events = [event for event in learner.events if event.source_feature == "assessment_testset" and not event.payload_json.get("completion_terminal")]
     assert len(item_events) == 2
     assert all(event.payload_json["prescription_phase"] == "transfer_case" for event in item_events)
@@ -175,7 +186,22 @@ def test_same_completion_id_with_different_answers_conflicts() -> None:
     with pytest.raises(RetestIdempotencyConflict):
         _complete(service, answers=_answers(first=False, second=False))
 
-    assert len(learner.events) == 4
+    assert len(learner.events) == 5
+
+
+def test_completed_request_replays_after_supply_rotation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    learner = _LearnerState()
+    service = _service(learner)
+    first = _complete(service, answers=_answers(first=True, second=True))
+    monkeypatch.setattr(
+        module,
+        "retest_supply_identity",
+        lambda *args, **kwargs: {"kind": "signed_variant", "digest": "0" * 64},
+    )
+
+    assert _complete(service, answers=_answers(first=True, second=True)) == first
 
 
 def test_noncanonical_terminal_cannot_be_replayed_or_seed_station() -> None:
@@ -188,6 +214,8 @@ def test_noncanonical_terminal_cannot_be_replayed_or_seed_station() -> None:
         day_index=2026192,
         mode="forward",
         variant_ids=[item["variant_id"] for item in answers],
+        supply_kind="signed_variant",
+        supply_digest="f" * 64,
     )
     normalized_answers = module._normalize_answers(answers)
     request_hash = module._request_hash(
@@ -334,6 +362,7 @@ def test_partial_item_append_never_commits_terminal_until_retry() -> None:
         _complete(service, completion_id="partial-completion")
 
     assert len(learner.events) == 2
+    assert any(event.payload_json.get("event_type") == "retest_completion_claim" for event in learner.events)
     assert not any(event.payload_json.get("completion_terminal") for event in learner.events)
     assert not any(event.payload_json.get("learning_signal_type") == "station_completed" for event in learner.events)
     partial_projection = synthesize_learning_truth(learner.events)
@@ -345,6 +374,51 @@ def test_partial_item_append_never_commits_terminal_until_retry() -> None:
     assert result["sync_status"] == "synced"
     assert sum(bool(event.payload_json.get("completion_terminal")) for event in learner.events) == 1
     assert sum(event.payload_json.get("learning_signal_type") == "station_completed" for event in learner.events) == 1
+
+
+def test_partial_completion_claim_rejects_a_different_retry_request() -> None:
+    learner = _LearnerState(fail_on_append_call=3)
+    service = _service(learner)
+
+    with pytest.raises(RuntimeError, match="synthetic_terminal_failure"):
+        _complete(
+            service,
+            completion_id="partial-conflict",
+            answers=_answers(first=True, second=True),
+        )
+
+    with pytest.raises(RetestIdempotencyConflict):
+        _complete(
+            service,
+            completion_id="partial-conflict",
+            answers=_answers(first=False, second=True),
+        )
+
+    assert not any(event.payload_json.get("completion_terminal") for event in learner.events)
+
+
+def test_replay_reads_only_terminal_item_refs() -> None:
+    learner = _LearnerState()
+    service = _service(learner)
+    first = _complete(service, completion_id="closed-replay")
+    terminal = next(event for event in learner.events if event.payload_json.get("completion_terminal"))
+    learner.append_memory_event(
+        "qa_eval_first_run_loop",
+        source_feature="assessment_testset",
+        source_id="closed-replay:orphan",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "retest_completion_id": "closed-replay",
+            "request_hash": terminal.payload_json["request_hash"],
+            "question_id": "orphan-from-interrupted-request",
+            "answer_type": "boolean",
+            "is_correct": False,
+        },
+        dedupe_key="synthetic-orphan",
+    )
+
+    assert _complete(service, completion_id="closed-replay") == first
 
 
 def test_review_replay_succeeds_after_original_probe_is_no_longer_due() -> None:
@@ -375,7 +449,7 @@ def test_review_replay_succeeds_after_original_probe_is_no_longer_due() -> None:
 
 
 def test_retry_heals_terminal_committed_but_station_write_failed() -> None:
-    learner = _LearnerState(fail_on_append_call=4)
+    learner = _LearnerState(fail_on_append_call=5)
     service = _service(learner)
 
     with pytest.raises(RuntimeError, match="synthetic_terminal_failure"):
@@ -430,6 +504,8 @@ def test_selection_identity_prevents_day_or_variant_tampering_before_write() -> 
         day_index=2026192,
         mode="forward",
         variant_ids=["F16-v1", "F16-v2"],
+        supply_kind="signed_variant",
+        supply_digest="f" * 64,
     )
 
     with pytest.raises(ValueError, match="retest_selection_invalid"):
@@ -473,15 +549,7 @@ def test_forward_compiled_html_mcq_is_server_rescored_and_written_as_l0(
             ],
         },
     ]
-    monkeypatch.setattr(
-        module,
-        "load_compiled_practice",
-        lambda pack_id: {
-            "pack_id": pack_id,
-            "source_pack_sha256": "pack-sha",
-            "items": items,
-        },
-    )
+    monkeypatch.setattr(module, "resolve_retest_items", lambda *args, **kwargs: items)
     monkeypatch.setattr(
         module,
         "build_lesson_viewmodel",
@@ -552,8 +620,11 @@ def test_non_f16_compiled_surface_writes_five_items_and_one_canonical_terminal(
     from deeptutor.services.luban_lesson.read_model import (
         build_lesson_viewmodel as real_build_lesson_viewmodel,
     )
+    from deeptutor.services.luban_lesson.read_model import (
+        resolve_retest_items as real_resolve_retest_items,
+    )
 
-    monkeypatch.setattr(module, "load_compiled_practice", real_load_compiled_practice)
+    monkeypatch.setattr(module, "resolve_retest_items", real_resolve_retest_items)
     monkeypatch.setattr(module, "build_lesson_viewmodel", real_build_lesson_viewmodel)
     authority = real_load_compiled_practice("S05")
     assert authority is not None
@@ -606,11 +677,7 @@ def test_forward_compiled_html_rejects_unknown_option_before_write(
             {"option_id": "q1:b", "text": "B", "is_correct": False},
         ],
     }
-    monkeypatch.setattr(
-        module,
-        "load_compiled_practice",
-        lambda pack_id: {"source_pack_sha256": "pack-sha", "items": [item]},
-    )
+    monkeypatch.setattr(module, "resolve_retest_items", lambda *args, **kwargs: [item])
     monkeypatch.setattr(
         module,
         "build_lesson_viewmodel",
