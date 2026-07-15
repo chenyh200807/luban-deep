@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-15 - 教学卡底部「问鲁班」无响应：共享 runtime 缓存键漏算 wrapper 代码
+
+- 问题：教学卡内快速问题和输入框都可操作，但点击弹层底部「问鲁班」没有 loading、workflow status、错误提示或网络请求；同一公网卡片在普通浏览器中可以正常创建 canonical turn 并进入流式输出，因此不是 TutorBot 或网络整体不可用。
+- 根因：共享 `luban-tutorbot-sheet-runtime.js` 已新增 `conversation.archiveTurn/scrollToLatest`，但发布器的 `?v=` 只计算被嵌入的 Markdown/workflow 两个 kernel，完全漏掉 wrapper 自身。于是 runtime 文件内容 SHA 已是 `b57b5ca5...`，全部 117 个 lesson/practice 页面仍引用旧键 `c91c4e68...`；微信 WebView 长缓存继续返回没有 `conversation` 的旧 runtime。`submitAsk()` 在首个 loading 之前调用 `runtime.conversation.archiveTurn()` 并同步抛错，因此表现为“点了完全没反应”，也不会产生网络请求。另发现站点页仍在全屏 `web-view` 上叠原生 fixed「看完了，练 5 题」底栏，并保留第二套练习跳转/lesson progress writer；它不是复测后的唯一致因，但属于同一交互 authority 的结构性风险。
+- 失败尝试 / 被否决方案：先删除原生 fixed 底栏后，修复版 DevTools 仍能复现无响应，证明“只有触摸遮挡”假设不完整；同样否决按钮重复绑定、重试、网络 fallback 和 try/catch 吞错，这些都会遮住 runtime 版本漂移且无法让旧缓存取得新能力。
+- 成功修法：runtime 版本改为完整生成文件的内容 SHA，重新发布全部 40 站、74 个教学页面和 43 个练习页面，并同步 authoritative practice SHA/pack manifest；新增全量门逐页断言 script query 与实际 runtime SHA 一致。站点原生 fixed 底栏、`onPrimaryTap`、客户端 `practiceUrl` 分支和 `postLessonProgress` writer 一并删除；站点壳只做鉴权、签发 entry ticket、加载 finished 卡与入口埋点，卡内相对链接和 hosted lesson-evidence bridge 成为唯一交互/证据入口，五题 terminal 仍唯一交给 `RetestWritebackService`。
+- 验证：修复前在真实微信开发者工具复现「快捷问题可填充、底部问鲁班无任何状态变化」；相同 live HTML 在新缓存 Playwright 中能进入「鲁班正在按采分点琢磨 / 组织作答」，排除后端与 canonical turn 整体故障；静态证据精确复现 `HTML ?v=c91c... != runtime SHA=b57b...`。修复后 117/117 页面引用 `?v=b57b5ca5fbb99554`，并由内容哈希回归机械约束；station 结构回归钉死不得再出现 fixed footer、第二 practice router 或第二 lesson writer。线上真入口需在合并部署后用微信 WebView 新 URL 再做最终点击确认。
+- 教训：缓存键也是 executable authority；只哈希依赖 kernel、不哈希生成 wrapper，会让“代码已更新”和“用户实际执行的代码”分裂。排查无响应必须区分 click 未到达、handler 同步崩溃、请求未发出、请求失败和 stream 未消费，不能看到无网络包就归因于触摸层或网络。
+
 ## 2026-07-15 - 教学卡问答已落 SessionStore 但历史页找不到：入口标签覆盖 session source
 
 - 问题：教学卡底部弹层可连续追问，同一 entry ticket 也已复用同一个 canonical session，但小程序「历史对话」查不到该会话，用户无法从历史页继续；同时需要确认这条问答是否进入 LearnerState，而不是另建卡内状态。

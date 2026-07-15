@@ -15,6 +15,10 @@ var station = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/pages/luban/station/station.js"),
   "utf8",
 );
+var stationWxml = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/luban/station/station.wxml"),
+  "utf8",
+);
 var review = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/pages/luban/review/review.js"),
   "utf8",
@@ -64,11 +68,11 @@ assert.ok(retest.indexOf("completeLubanRetest") >= 0, "retest must use canonical
 assert.strictEqual(retest.indexOf("postStationCompleted"), -1, "retest page must not be a second station writer");
 assert.strictEqual(handoff.indexOf("postStationCompleted"), -1, "handoff must be presentation-only");
 assert.strictEqual(station.indexOf("handoff/handoff"), -1, "ungraded station self-check must never open a completion handoff");
-assert.ok(station.indexOf("practiceUrl") >= 0, "station fallback must open the hosted finished practice product surface");
-assert.strictEqual(station.indexOf("practiceUrlFrom"), -1, "client must not guess a practice URL");
+assert.strictEqual(station.indexOf("practiceUrl"), -1, "station shell must not be a second practice-navigation authority");
 assert.strictEqual(station.indexOf("isF16"), -1, "compiled practice capability must not branch on F16");
-assert.ok(station.indexOf("body.practice_url") >= 0, "practice URL must come from the server capability");
-assert.ok(station.indexOf("TIER_PRACTICE") >= 0, "station must distinguish the finished lesson and finished practice product stages");
+assert.strictEqual(station.indexOf("TIER_PRACTICE"), -1, "lesson/practice navigation must stay inside the finished card");
+assert.strictEqual(station.indexOf("postLessonProgress"), -1, "station shell must not duplicate the card evidence bridge");
+assert.strictEqual(stationWxml.indexOf("st-footer"), -1, "native fallback must not intercept finished-card touches");
 assert.ok(f16Lesson.indexOf('href="practice.html"') >= 0, "F16 lesson CTA must open the publisher-derived finished practice consumer");
 assert.ok(f16Practice.indexOf("__dtRedirectEvidence") >= 0, "the fifth answer must bridge automatically into canonical learner evidence");
 assert.strictEqual(f16Practice.indexOf("保存学习证据 · 查看正式收据"), -1, "the user must not choose whether a completed practice is recorded");

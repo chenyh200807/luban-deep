@@ -1,29 +1,25 @@
 // 鲁班学习双轮 · 站点页（spike 形态）
 // 统一路径：finished 成品讲懂 → finished 成品五题随堂练 → 服务端复核收据。
 //
-// 已知结构性 caveat（spike 先按设计稿实现，不硬编绕过）：
-// 微信 web-view 会自动铺满整个页面并覆盖其他原生组件——底部原生按钮在
-// DevTools 模拟器可见，真机上可能被 web-view 盖住。若真机验证不可用，
-// 成品卡内负责将同一轮作答交给原生收据页；底栏只做 fallback。
+// 微信 web-view 是本页唯一交互面：卡内负责问答、进入练习与学习证据桥接。
+// 禁止在 web-view 上叠原生 fixed 控件；即使视觉上被 H5 覆盖，原生层仍会
+// 截获底部触摸，导致卡内「问鲁班」等控件看得见却点不动。
 //
-// 学-evidence 上报（融合计划 §2.1）：讲懂幕看完 → lesson_viewed（唯一 writer
-// /api/v1/lesson-progress，后端 progress_countable=false/exposed，绝不算掌握 M0）。
-// 除此之外仍零学习证据写入：掌握态/判分归判分链路，本页不碰。
+// 学-evidence 由 finished 卡内 bridge 委托 canonical 服务写入；掌握态/判分归
+// 判分链路，本页不碰，也不保留第二个 native lesson_viewed writer。
 //
 // 埋点走 register-before-use catalog（product_behavior_catalog.py D15 登记，
 // 白名单外事件名会被 ingest 拒收，故不用任务稿的 luban_* 自由名）：
 // - 站进入 = module_viewed（object_type=station, object_id=pack_id）
-// - 幕/档位切换 = learning_action_started（action=start_training,
-//   object_id="<pack>:<tier>"）
+// - 卡片打开 = learning_action_started（action=start_training,
+//   object_id="<pack>:lesson"）
 const api = require("../../../utils/api");
 const auth = require("../../../utils/auth");
 const route = require("../../../utils/route");
 const runtime = require("../../../utils/runtime");
 const telemetry = require("../../../utils/surface-telemetry");
-const helpers = require("../../../utils/helpers");
 
 var TIER_LESSON = "lesson";
-var TIER_PRACTICE = "practice";
 
 function appendCardEntryTicket(cardUrl, ticket) {
   var source = String(cardUrl || "");
@@ -47,12 +43,8 @@ Page({
     title: "",
     loading: true,
     errorText: "",
-    tier: TIER_LESSON,
     currentUrl: "",
     cardUrl: "",
-    practiceUrl: "",
-    cardSha: "",
-    _lessonReported: false, // 客户端去重(后端亦按业务日 dedupe)
   },
 
   onLoad(query) {
@@ -106,72 +98,13 @@ Page({
     }
   },
 
-  // 看完讲解进入同 pack 的 finished 成品随堂练。
-  onPrimaryTap() {
-    if (!this._requireAuth()) return Promise.resolve(false);
-    if (this.data.tier === TIER_LESSON) {
-      if (!this.data.practiceUrl) {
-        this.setData({ errorText: "成品练习版本校验失败，请稍后再试" });
-        return Promise.resolve(false);
-      }
-      // 融合计划 §2.1:讲懂幕看完 = lesson_viewed 学-evidence(唯一 writer)。
-      // 服务端判 token 过期时必须先回登录，不能与进入练习幕竞速。
-      var that = this;
-      return this._reportLessonViewed().then(function (canContinue) {
-        if (!canContinue || !that._requireAuth()) return false;
-        that._enterTier(TIER_PRACTICE);
-        return true;
-      });
-    }
-    // 必须由成品结果页提交同一轮答案，禁止绕过题目直接产生完成态。
-    return Promise.resolve(false);
-  },
-
-  _reportLessonViewed() {
-    if (this.data._lessonReported || !this.data.packId) return Promise.resolve(true);
-    this.setData({ _lessonReported: true });
-    var packId = this.data.packId;
-    var that = this;
-    // 只等待身份裁决：普通网络失败不阻断练习，401 则由本页保留 pack 回登录。
-    try {
-      var p = api.postLessonProgress(packId, TIER_LESSON, this.data.cardSha, {
-        silent: true,
-        suppressAuthRedirect: true,
-      });
-      if (p && typeof p.then === "function") {
-        return p.then(function () {
-          return true;
-        }).catch(function (err) {
-          that.setData({ _lessonReported: false });
-          if (!auth.isLoggedIn()) {
-            that._requireAuth();
-            return false;
-          }
-          console.warn("[station] lesson_viewed 上报失败(不打断学习流)", packId, err);
-          return true;
-        });
-      }
-      return Promise.resolve(true);
-    } catch (e) {
-      this.setData({ _lessonReported: false });
-      if (!auth.isLoggedIn()) {
-        this._requireAuth();
-        return Promise.resolve(false);
-      }
-      console.warn("[station] lesson_viewed 上报异常(不打断学习流)", packId, e);
-      return Promise.resolve(true);
-    }
-  },
-
-  _enterTier(tier) {
-    var url = tier === TIER_PRACTICE ? this.data.practiceUrl : this.data.cardUrl;
-    this.setData({ tier: tier, currentUrl: url });
-    // 幕/档位切换（任务稿 luban_practice_tier 的登记名）
+  _showLessonCard() {
+    this.setData({ currentUrl: this.data.cardUrl });
     telemetry.trackProductBehavior("learning_action_started", {
       module: "learning",
       action: "start_training",
       objectType: "station",
-      objectId: this.data.packId + ":" + tier,
+      objectId: this.data.packId + ":" + TIER_LESSON,
     });
   },
 
@@ -194,25 +127,19 @@ Page({
           });
           return;
         }
-        var practiceUrl = String(body.practice_url || "");
         // web-view 无法安全取得小程序 Authorization header。这里由已认证的
         // 站点签发仅绑定本卡的短期凭据；H5 会马上从地址栏抹去，绝不写入缓存。
         return api.issueLubanCardEntry(that.data.packId, { suppressAuthRedirect: true }).then(function (ticketResp) {
           var ticketBody = api.unwrapResponse(ticketResp) || {};
           var cardEntryUrl = appendCardEntryTicket(cardUrl, ticketBody.entry_ticket);
-          var practiceEntryUrl = practiceUrl
-            ? appendCardEntryTicket(practiceUrl, ticketBody.entry_ticket)
-            : "";
           if (!cardEntryUrl) throw new Error("CARD_ENTRY_UNAVAILABLE");
           that.setData({
             title: String(body.title || ""),
             cardUrl: cardEntryUrl,
-            practiceUrl: practiceEntryUrl,
-            cardSha: String(body.content_sha256 || ""),
             loading: false,
             errorText: "",
           });
-          that._enterTier(TIER_LESSON);
+          that._showLessonCard();
           return null;
         });
       })

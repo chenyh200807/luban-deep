@@ -26,7 +26,6 @@ function loadStation(detail) {
           getLubanLessonDetail: function () { return Promise.resolve(detail); },
           issueLubanCardEntry: function () { return Promise.resolve({ entry_ticket: "card-capability" }); },
           unwrapResponse: function (value) { return value; },
-          postLessonProgress: function () { return Promise.resolve({}); },
           describeRequestError: function (_error, fallback) { return fallback; },
         };
       }
@@ -68,22 +67,14 @@ function loadStation(detail) {
   });
   f16.page.onLoad({ pack_id: "F16" });
   await flush();
-  await f16.page.onPrimaryTap();
-  assert.strictEqual(f16.page.data.tier, "practice");
-  assert.strictEqual(f16.page.data.currentUrl, "https://cdn/f16/practice.html?v=bundle#entry_ticket=card-capability");
+  assert.strictEqual(f16.page.data.currentUrl, "https://cdn/f16/lesson.html?v=bundle#entry_ticket=card-capability");
   assert.strictEqual(
     f16.page.data.cardUrl,
     "https://cdn/f16/lesson.html?v=bundle#entry_ticket=card-capability",
     "station must pass a narrow card-entry capability in the fragment, not its bearer credential",
   );
-  assert.strictEqual(
-    f16.page.data.practiceUrl,
-    "https://cdn/f16/practice.html?v=bundle#entry_ticket=card-capability",
-    "practice must reuse the same pack-scoped capability in the fragment",
-  );
-  assert.strictEqual(f16.page.data.practiceUrl.indexOf("entry_ticket=") < f16.page.data.practiceUrl.indexOf("#"), false, "ticket must never enter URL query");
-  f16.page.onPrimaryTap();
-  assert.deepStrictEqual(f16.redirects, [], "F16 must not skip finished answers into a second quiz");
+  assert.strictEqual(f16.page.data.cardUrl.indexOf("entry_ticket=") < f16.page.data.cardUrl.indexOf("#"), false, "ticket must never enter URL query");
+  assert.deepStrictEqual(f16.redirects, [], "opening a finished card must not leave the canonical web-view flow");
 
   var s05 = loadStation({
     title: "S05",
@@ -93,11 +84,25 @@ function loadStation(detail) {
   });
   s05.page.onLoad({ pack_id: "S05" });
   await flush();
-  await s05.page.onPrimaryTap();
-  assert.strictEqual(s05.page.data.tier, "practice");
-  assert.strictEqual(s05.page.data.currentUrl, "https://cdn/s05/practice.html?v=bundle#entry_ticket=card-capability");
-  s05.page.onPrimaryTap();
-  assert.deepStrictEqual(s05.redirects, [], "all compiled packs must submit the finished answers");
+  assert.strictEqual(s05.page.data.currentUrl, "https://cdn/s05/lesson.html#entry_ticket=card-capability");
+  assert.deepStrictEqual(s05.redirects, [], "all compiled packs must stay inside the finished card flow");
+
+  var stationWxml = fs.readFileSync(
+    path.join(__dirname, "../packageDeeptutor/pages/luban/station/station.wxml"),
+    "utf8",
+  );
+  var stationWxss = fs.readFileSync(
+    path.join(__dirname, "../packageDeeptutor/pages/luban/station/station.wxss"),
+    "utf8",
+  );
+  var stationJs = fs.readFileSync(
+    path.join(__dirname, "../packageDeeptutor/pages/luban/station/station.js"),
+    "utf8",
+  );
+  assert.strictEqual(stationWxml.indexOf("st-footer"), -1, "native controls must not cover the web-view touch surface");
+  assert.strictEqual(stationWxss.indexOf("position: fixed"), -1, "station shell must not keep a hidden fixed touch layer");
+  assert.strictEqual(stationJs.indexOf("onPrimaryTap"), -1, "practice navigation belongs to the finished card, not a second native controller");
+  assert.strictEqual(stationJs.indexOf("postLessonProgress"), -1, "lesson evidence must keep the card bridge as its only client writer");
 
   console.log("PASS test_station_f16_practice_scope.js");
 })().catch(function (error) {

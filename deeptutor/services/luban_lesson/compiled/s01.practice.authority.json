@@ -24,7 +24,7 @@
         "S01-html-practice-html-q4-91c55a65672c",
         "S01-html-practice-html-q15-c84007e64ab2"
       ],
-      "published_practice_sha256": "ef7a42d971923ae7042b60bee1b8b9a84f3fc148578892c8da76d0cddd133a17"
+      "published_practice_sha256": "2ec1239659be43c82d46addd1d140eb1ed342640a1aeb9a30e267b336ce14dc5"
     },
     {
       "surface_id": "practice2.html",
@@ -46,7 +46,7 @@
         "S01-html-practice2-html-q4-0c8177f2026b",
         "S01-html-practice2-html-q15-21defa249fa3"
       ],
-      "published_practice_sha256": "9ac80f7ce7ce2ce1f3106918c365c1d9650c3127fa01ad61b9ccd68863504e62"
+      "published_practice_sha256": "17b564a2ea4ec5b4118a12d5929aacb378daebb22bb2c6e7835233695d35e801"
     },
     {
       "surface_id": "practice3.html",
@@ -68,7 +68,7 @@
         "S01-html-practice3-html-q4-25a4df8b2864",
         "S01-html-practice3-html-q14-6441c5410af5"
       ],
-      "published_practice_sha256": "afd25210a5a0eee9c0faf530c8369215fdb2110aaf5d6f210abca68caa0e7a29"
+      "published_practice_sha256": "459fe4f07cac072da4a4446465fa4836223e58bc8590fa94c15cc64de5b32941"
     }
   ],
   "items": [
@@ -838,5 +838,5 @@
       "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
     }
   ],
-  "published_lesson_sha256": "85c20557a229cd7e2b0fc0d30a9fc61ab2ab42ea0e8ce0d06e5a7435d946b315"
+  "published_lesson_sha256": "433320cf6904ffbe1d234482ff97a36804a717bd374f14120b41c14e5c685c9d"
 }
