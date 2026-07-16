@@ -48,6 +48,7 @@ from deeptutor.services.luban_lesson.variant_eligibility import (  # noqa: E402
     VARIANT_DECISION_SCHEMA,
     VARIANT_PROBE_ROLES,
     decision_identity_sha256,
+    review_signature_envelope_sha256,
     variant_content_sha256,
 )
 
@@ -510,6 +511,18 @@ _N01_EXTRA_FACTS: dict[str, tuple[str, str]] = {
     ),
 }
 
+# facts[] 摘要层 correct_statement 覆盖（对抗审查二轮新病 1）：改挂后旧
+# fact 摘要不得再含已拆去新 fact 的「延误≤总时差不影响」子句（否则新旧
+# fact 摘要语义包含 = package 级 authority 分叉）；覆盖稿两个子句均取自
+# bank 已签 correct_statement（A-line 判据子句 + C-delay 关键线路子句），
+# 不引入新知识。聚类 key 用的原始 statement 不受影响。
+_N01_FACT_STATEMENT_OVERRIDES: dict[str, str] = {
+    "n01-fact-critical-work-zero-float": (
+        "关键工作按「总时差最小」判据判定并落到具体工作；"
+        "延误工作在关键线路上（总时差为 0）则影响总工期"
+    ),
+}
+
 
 # 每个 pack 一张表；没有表的 pack 明确拒绝（不产低质量模板）。
 _PACK_TABLES: dict[str, tuple[dict[tuple[str, str], str], dict[str, Any]]] = {
@@ -517,9 +530,13 @@ _PACK_TABLES: dict[str, tuple[dict[tuple[str, str], str], dict[str, Any]]] = {
     "N01": (_N01_FACTS, _N01_DRAFTS),
 }
 
-# pack → (variant_id → fact_id) 改挂表；pack → (fact_id → 元信息) 新 fact 表。
+# pack → (variant_id → fact_id) 改挂表；pack → (fact_id → 元信息) 新 fact 表；
+# pack → (fact_id → 摘要 statement 覆盖) 表。
 _PACK_FACT_OVERRIDES: dict[str, dict[str, str]] = {"N01": _N01_FACT_OVERRIDES}
 _PACK_EXTRA_FACTS: dict[str, dict[str, tuple[str, str]]] = {"N01": _N01_EXTRA_FACTS}
+_PACK_FACT_STATEMENT_OVERRIDES: dict[str, dict[str, str]] = {
+    "N01": _N01_FACT_STATEMENT_OVERRIDES
+}
 
 
 # ----------------------------------------------------------------- 佐证 join
@@ -614,6 +631,7 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
     fact_table, draft_table = _PACK_TABLES[pack_id]
     fact_overrides = _PACK_FACT_OVERRIDES.get(pack_id, {})
     extra_facts = _PACK_EXTRA_FACTS.get(pack_id, {})
+    statement_overrides = _PACK_FACT_STATEMENT_OVERRIDES.get(pack_id, {})
     bank_path = base_dir / f"_{pack_id}_variant_bank.v0.json"
     bank = json.loads(bank_path.read_text(encoding="utf-8"))
     variants = [v for v in bank.get("variants") or [] if isinstance(v, dict)]
@@ -655,8 +673,9 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
             f"{'ok' if v.get('expected_ok') else 'bad'}"
         )
         # source_anchor：kc 头能被同 pack 签发卡 quote 复核且主题一致才截取；
-        # quote 主题不一致（E5 类错锚）→ 保留完整 composite anchor
-        # （含真题部分），绝不把无关教材点当本 fact 的唯一佐证。
+        # quote 主题不一致（E5 类错锚）→ 从 composite 中**剥掉错锚 kc 头**、
+        # 只保留其余已裁决证据（如真题 anchor）——绝不把无关教材点声明为
+        # 本 fact 佐证，也绝不截掉真题部分（对抗审查二轮 E5 余项）。
         anchor = str(v.get("anchor") or "")
         kc = _kc_anchor(anchor)
         kc_quote = _quote_of(kc) if kc else ""
@@ -664,7 +683,12 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
         if kc and kc_quote and not _quote_supports(
             str(v.get("correct_statement") or ""), kc_quote
         ):
-            source_anchor = anchor
+            rest = [
+                part.strip()
+                for part in anchor.split(" + ")
+                if part.strip() and part.strip() != kc
+            ]
+            source_anchor = " + ".join(rest) if rest else anchor
         decision: dict[str, Any] = {
             "schema": VARIANT_DECISION_SCHEMA,
             "fact_id": fact_of[variant_id],
@@ -691,6 +715,9 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
                 "template_leakage_checked": False,
             },
         }
+        decision["review"]["signature_envelope_sha256"] = (
+            review_signature_envelope_sha256(decision)
+        )
         items.append(
             {
                 "variant_id": variant_id,
@@ -712,6 +739,14 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
     for fact_id in sorted(fact_meta):
         rule_group, correct_statement = fact_meta[fact_id]
         rows = by_fact.get(fact_id) or []
+        # facts[] 元数据必须与实际挂载一致（对抗审查二轮新病 1）：
+        # rule_group 从实际挂载的变体派生（跨组改挂后如实标多组）；
+        # statement 按覆盖表呈现拆分后的摘要，不复读已拆走的子句。
+        if rows:
+            rule_group = "/".join(
+                sorted({str(row.get("rule_group") or "") for row in rows})
+            )
+        correct_statement = statement_overrides.get(fact_id, correct_statement)
         kc = ""
         for v in rows:
             kc = _kc_anchor(str(v.get("anchor") or ""))

@@ -343,7 +343,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "0bcdc25b553169a1cbad086bca46a17c7990ac061842b2bbc310852b370eadfb"
         }
       }
     },
@@ -378,7 +379,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "757e57fd1fa9e668d4058b3f48978f01223c9148d60cae8c6eeba92abffc2788"
         }
       }
     },
@@ -413,7 +415,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "aa3405d1a1020543257674a0443d3563db1e61fdb31ed49a1440e0d51c19ba30"
         }
       }
     },
@@ -448,7 +451,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "8627e52935913e7393cc8be384a17a294944613357d12d5364ef8a9f0863b6ee"
         }
       }
     },
@@ -483,7 +487,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "5ebabc7a3a03f7680af5d11a479a478968bae13cd9c7b8c9659176c9cbef243c"
         }
       }
     },
@@ -518,7 +523,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "549c8048110f3e5a0b9b88d54fd5745554c2d2b2f3cab503f4b590a9180e0ede"
         }
       }
     },
@@ -553,7 +559,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "c6456767037362fd3bd2121cb0f5aedab52e403451ece7ee41e965bb1db9dbb4"
         }
       }
     },
@@ -588,7 +595,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "2ae922a3e5c434e7e50f3d7d2f38ba889a10028fb04f7245c7382a2d3ba6e1b0"
         }
       }
     },
@@ -623,7 +631,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "984f36bca01dadbd087d4c6c4b205d754198a98201ae223f1d7b180fee44d83b"
         }
       }
     },
@@ -658,7 +667,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "42dc82a7199c290d976a76df61e106293a5c2e63afa91cc39b418893e1127bb1"
         }
       }
     },
@@ -693,7 +703,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "46506e8a909b1041c822be5765b942e3927327a95bd52da40bb9f522efcdcb94"
         }
       }
     },
@@ -728,7 +739,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "5da9f3bacc18358660b5b8fbc0389ba690331577d497ffb665d8190d0e205c61"
         }
       }
     },
@@ -763,7 +775,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "7e0e1423403957e428c2f8f22c913c739d9ac105c6c41b741d887530d7e32a40"
         }
       }
     },
@@ -798,7 +811,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "dd05cdc38fb333ab9cfa0a4cdeca966b2ca97d913ead6312850a12c58a3575ab"
         }
       }
     },
@@ -833,7 +847,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "8873f6888f7ca20e9a986c9a65131e8d90d5ce8930803531efa8a8f7569189ea"
         }
       }
     },
@@ -868,7 +883,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "da77cb52134efe23b5e209a363f7fb343fb2895b61d4cf9a6a81b159b661b821"
         }
       }
     },
@@ -903,7 +919,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "686677dc82176410821d1e74328f1e27eca302466a38d021a3ce6bdedfc79e19"
         }
       }
     },
@@ -938,7 +955,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "161a0fc66e2eb45387373489d54e713f10d9868cbe81d9ec349a0a5a5f838bd8"
         }
       }
     },
@@ -973,7 +991,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "16a9521817d7329d143ff45c75e678e96fb98a231a7699834ddb09bf52fc578b"
         }
       }
     },
@@ -1008,7 +1027,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "e75b540c2c2385d613698d912b38da95df1294cd4e9410e8030aafda8e95ccda"
         }
       }
     },
@@ -1043,7 +1063,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "b1f0902cc1eb718d295aaad3067129a35057721d39ff39a54cd9742509eeaf1a"
         }
       }
     },
@@ -1078,7 +1099,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "0465f455047735f94468645781ffca2a09097907d92acc4b0039f08e5f06654d"
         }
       }
     },
@@ -1113,7 +1135,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "08e5f8ba44f4564bdf60ae98ee19eb64e954e4dd7418f9192f7c3af0a70756f1"
         }
       }
     },
@@ -1148,7 +1171,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "08c222ed91b6de01fc70310ec476e672b74c223a6d9250d6686bef5de29f832b"
         }
       }
     },
@@ -1183,7 +1207,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "4c9a82722e3a8a846880056347e7f3e309ea7a9db9b81504335dc283fe8f377a"
         }
       }
     },
@@ -1218,7 +1243,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "0d2b19b91dec4cefd581aace28bdab89fdef29889612952f4c7ce782db8c3c57"
         }
       }
     },
@@ -1253,7 +1279,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "90e4f1689b455670dcc0a0e5920858b64a14969fcf3f0e01c34546f7985e6451"
         }
       }
     },
@@ -1288,7 +1315,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "d27e20cfa9f0f15dc220b5b907d52d0ae2a119c9420c1fe10f857a19842d1a03"
         }
       }
     },
@@ -1323,7 +1351,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "bffbdbf0d99cc096ed891f2037fae8bcbcc6f32517d2ca04edf7cee8b5dab6b4"
         }
       }
     },
@@ -1358,7 +1387,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "e02437c807da2c280b557787300c8f912d0be0dd07f2df131c94d53e2b24d0fb"
         }
       }
     },
@@ -1393,7 +1423,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "5371ec3a7b913b0874dc03ad25d568276ed7927244db2104711819f95d53c295"
         }
       }
     },
@@ -1428,7 +1459,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "9f9b9120a550bf4e886e441f56f727dd5f342a80140da2dcfc3010b2c3a3ab3e"
         }
       }
     },
@@ -1463,7 +1495,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "00768d84ed2741ba500344ffba276302353159c35d3d43cc30754786178a3fbe"
         }
       }
     },
@@ -1498,7 +1531,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "73c40206c92947eae21e5fad212e6c0b5475d057ef56532d590fc7d18706e4d0"
         }
       }
     },
@@ -1533,7 +1567,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "27fe7f7169d8bfff9e45e2ab0e58cca1a7f92738576ce822c0b2d7228526bdc3"
         }
       }
     },
@@ -1568,7 +1603,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "5e9023d7e9e393578bfe42905796bd23131a394fe9ef33f94dd4015956a4b202"
         }
       }
     },
@@ -1603,7 +1639,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "08e6804a96375440f1c7bd5c44a565d368b5f64c6967d36832b8f0d95dbf9a6a"
         }
       }
     },
@@ -1638,7 +1675,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "cd4e9a77aac1c2542bf7a3e57f257e5c394d071bb3196150ceb88d8c3c1031ec"
         }
       }
     },
@@ -1673,7 +1711,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "1af648f809c912a1668d832e34a205a7825f80b7981b01f0cf329394bc9e10ee"
         }
       }
     },
@@ -1708,7 +1747,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "9f4ef033caeaea4307f073aa1e2fa9d0a646763809779a6c3619959b290a5b0a"
         }
       }
     },
@@ -1743,7 +1783,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "4b44152629edf99ca2861e7ad70f610c4d2e506f14ef04eeb9101772d479571f"
         }
       }
     },
@@ -1778,7 +1819,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "dff80474a1d961ec97f9c2703d468d92c26b634c66889029be3daf79fdf7a81e"
         }
       }
     },
@@ -1813,7 +1855,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "0eec7f037615c113fb933a82e9251651f2da5407c1c41872de81070a9e1d722e"
         }
       }
     },
@@ -1848,7 +1891,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "343f72491907f8895199e1347adce835f228d4fc60e25e097b8ecf0afb7b8506"
         }
       }
     },
@@ -1883,7 +1927,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "e3eae7bc7a48de880a0477e33ca1018cd400ed7c0b8a2c9ef44b00e713bbf985"
         }
       }
     },
@@ -1918,7 +1963,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "508094e24b94db5ddfe576a5d1cd7ebdbc3957738504d4998a17812fd32c9042"
         }
       }
     },
@@ -1953,7 +1999,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "738b7c4ef1c8f827d7720e0c4ab7065efe3d71bce716f2c1880515e3b6bb1dc5"
         }
       }
     },
@@ -1988,7 +2035,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "38ade1d02c0745de76dadb0732e3d5685c8b5facf57f4e175c34cee130ce2517"
         }
       }
     },
@@ -2023,7 +2071,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "71adbc2edadab09d07753e4923246eb10ebb9eecbb83705f3babfd752e5afeae"
         }
       }
     },
@@ -2058,7 +2107,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "a3050fe8b7478bd463941da6125af13b671950f85a1cc7477ea0bc3f5c4c0a20"
         }
       }
     },
@@ -2093,7 +2143,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "50ee31d6cb768b30c5f230574f639b1ffb5c1e6d42837c6abb817abe7feb36c4"
         }
       }
     },
@@ -2128,7 +2179,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "f428d1cde0438a7bbd9092b91abf9de9baeebc05b57b9f15ced001b5f7bf08b1"
         }
       }
     },
@@ -2163,7 +2215,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "b41b8ec7b91820d3d83c4c9590724fb0948e33eb4e52c8a2f905159fa621e0ae"
         }
       }
     },
@@ -2198,7 +2251,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "37e0d94e4a761841be9a88afcc87edffd33425429a15002b47aae5b9ce35f871"
         }
       }
     },
@@ -2233,7 +2287,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "b1a86b7cf3ac38b452c73a3a97c36a9d0160c9391f44028cddd860a21f9b8c1b"
         }
       }
     },
@@ -2268,7 +2323,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "8d40ebb9fc7e1d77c4a683109b41fcc4c9f19636af6abd72f3b628c2573b20ee"
         }
       }
     },
@@ -2303,7 +2359,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "f1bdfb6b5350b2198c8ac3c9c3c854f0d23417cce58cc34f8c291ef0c414a094"
         }
       }
     },
@@ -2338,7 +2395,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "12dba4ca24524ae6f9470ae8e7bfed2a8dc58d05517348aee7c00d4a7f0efba3"
         }
       }
     },
@@ -2373,7 +2431,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "0fb77e366d5ec71fdde174ad87e87d2c8c2ecc9ca52ab6a871d5edcaf6e12cdd"
         }
       }
     },
@@ -2408,7 +2467,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "2a989b72222ba21e165f127d2b37ea89d76fe64a150b0444f621b2af7bf6c50f"
         }
       }
     },
@@ -2443,7 +2503,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "c27db3a88e456ecbcc03255da034ed6884917e3e9e0ce24259e12c79c1b3074d"
         }
       }
     },
@@ -2462,15 +2523,15 @@
         "probe_role": "immediate_confirm",
         "temptation": "N 线与 PE 线的颜色规定容易记反，看到正确配色反而不敢确认。",
         "loss_reason": "N 线必须为蓝色、PE 线必须为黄绿双色，本题配色正确；记法：零线蓝、地线黄绿。",
-        "source_anchor": "kc:1A431011_014_0015:1 + {2019,第14题}",
+        "source_anchor": "{2019,第14题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "910ba1035535df0fe5d821e84ea0f147a537c595a245083dbbe37aaf1fa10988",
-        "decision_identity_sha256": "4454e35016c9f766ab089fc2dadb17d42d8d9062de8ad1a91487c0fe7b8f445e",
+        "decision_identity_sha256": "b9267fbb0ea02bfc4c3e63cec9deead7afeea262342aa2aca1fd9970346d1a6b",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "910ba1035535df0fe5d821e84ea0f147a537c595a245083dbbe37aaf1fa10988",
-          "reviewed_decision_sha256": "4454e35016c9f766ab089fc2dadb17d42d8d9062de8ad1a91487c0fe7b8f445e",
+          "reviewed_decision_sha256": "b9267fbb0ea02bfc4c3e63cec9deead7afeea262342aa2aca1fd9970346d1a6b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2478,7 +2539,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "af6793b34c13d63b0b78088383137edb269ce9f0f8a7d148f8556a43a866722f"
         }
       }
     },
@@ -2497,15 +2559,15 @@
         "probe_role": "d1_probe",
         "temptation": "只记得「要用蓝色和黄绿双色」，容易忽略各自对应哪根线、能不能混用。",
         "loss_reason": "N 线必须为蓝色、PE 线必须为黄绿双色且不得混用；本题 N 线=黄绿双色、PE 线=蓝色，与规定色标不符即违规。",
-        "source_anchor": "kc:1A431011_014_0015:1 + {2019,第14题}",
+        "source_anchor": "{2019,第14题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "0231d4db9cb2a6ba7edc47944be73e4228712baf7bbaac83805267d0147577c1",
-        "decision_identity_sha256": "8512693b5b90b87eaece0db824b53cc21caf4d07b18a1e3e2cbb380a36163dcf",
+        "decision_identity_sha256": "51d25f51078b4115054406dd467b8312161b80ecfc77e391a21ba7579579256c",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "0231d4db9cb2a6ba7edc47944be73e4228712baf7bbaac83805267d0147577c1",
-          "reviewed_decision_sha256": "8512693b5b90b87eaece0db824b53cc21caf4d07b18a1e3e2cbb380a36163dcf",
+          "reviewed_decision_sha256": "51d25f51078b4115054406dd467b8312161b80ecfc77e391a21ba7579579256c",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2513,7 +2575,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "63d35ecd78659ac1e8227c9e79943ec1bff05eeb7f3f3e7a3596778b1023b85a"
         }
       }
     },
@@ -2532,15 +2595,15 @@
         "probe_role": "immediate_confirm",
         "temptation": "只记得「要用蓝色和黄绿双色」，容易忽略各自对应哪根线、能不能混用。",
         "loss_reason": "N 线必须为蓝色、PE 线必须为黄绿双色且不得混用；本题 N 线=蓝色、PE 线=蓝色，与规定色标不符即违规。",
-        "source_anchor": "kc:1A431011_014_0015:1 + {2019,第14题}",
+        "source_anchor": "{2019,第14题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "213d453533438475cb7dbfa1386ddbbd0808736186901455eb61014ea17434bf",
-        "decision_identity_sha256": "b1d983220a67f24de9e6210a8cbd0e058526ead6fadaaa58b0943f352acf1ee2",
+        "decision_identity_sha256": "db2561a7bbdfa5016b831625da436dd130c0565f97983a8fdc7be7088ec09138",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "213d453533438475cb7dbfa1386ddbbd0808736186901455eb61014ea17434bf",
-          "reviewed_decision_sha256": "b1d983220a67f24de9e6210a8cbd0e058526ead6fadaaa58b0943f352acf1ee2",
+          "reviewed_decision_sha256": "db2561a7bbdfa5016b831625da436dd130c0565f97983a8fdc7be7088ec09138",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2548,7 +2611,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "353c08c44718c5370a241e99a8a8a997c50530cbba922ea0bb2531428a7aa8ea"
         }
       }
     },
@@ -2583,7 +2647,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "f4b568ad6977e5b0af387e3574d4e7b2b68f9fe703e09d526442dcee48a88f62"
         }
       }
     },
@@ -2618,7 +2683,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "100008a833e12372ac9b596ca07fb9d9b402f0442a1058cb5fec34bd951ab873"
         }
       }
     },
@@ -2653,7 +2719,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "025338a87c3bd98756b47100f120e2b09e8b5cae7802377a8ceb1ece8710a9db"
         }
       }
     },
@@ -2688,7 +2755,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "4da652190c7f31cb2afabc8fd8125e0651d3bca9ff4b9b7f4912fd38ae006908"
         }
       }
     },
@@ -2723,7 +2791,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "eeddb0310ea94cd2fc6ccb8248c07398b62342286bc4dc87369426ce3233b43e"
         }
       }
     },
@@ -2758,7 +2827,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "6867052b6a19d304a96fce0e3948220672b1559071516b3dd49fd14caca967d5"
         }
       }
     },
@@ -2793,7 +2863,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "c56c04823f8827488fa8ab3743c2e0d579db003091bb6ede74afeaeb1c7b65e5"
         }
       }
     },
@@ -2828,7 +2899,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "3304a6a0c3beb5b3d3558eb75ee145cd638d77e6860a4e351454ead4e3e34075"
         }
       }
     },
@@ -2863,7 +2935,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "e4fed033617f837d23dbec12b6a1800eabaa7ce5ffeef9a5710fef87825db246"
         }
       }
     },
@@ -2898,7 +2971,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "ca9380c2151364778185249ecdda8b804441fe090b6a7f7be167d14fdcb653f1"
         }
       }
     },
@@ -2933,7 +3007,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "b50fed2ca5bb956b2008ed6178530a238e2b71bd2524704fc53b291bb0997b50"
         }
       }
     }

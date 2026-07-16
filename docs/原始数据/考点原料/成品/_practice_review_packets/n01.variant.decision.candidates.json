@@ -9,8 +9,8 @@
   "facts": [
     {
       "fact_id": "n01-fact-critical-work-zero-float",
-      "rule_group": "C-delay",
-      "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
+      "rule_group": "A-line/C-delay",
+      "correct_statement": "关键工作按「总时差最小」判据判定并落到具体工作；延误工作在关键线路上（总时差为 0）则影响总工期",
       "variant_count": 4,
       "core_variant_count": 4,
       "kc_anchor": "kc:1A433000_056_0085:1",
@@ -19,15 +19,15 @@
       "compiled_mcq_candidates": [
         {
           "variant_id": "N01-html-practice-html-q8-2b44435fdb4a",
-          "match_score": 0.375
+          "match_score": 0.457
+        },
+        {
+          "variant_id": "N01-html-practice-html-q1-67c08ec964c2",
+          "match_score": 0.343
         },
         {
           "variant_id": "N01-html-practice-html-q16-ec778529e37e",
-          "match_score": 0.325
-        },
-        {
-          "variant_id": "N01-html-practice-html-q7-05f526eae084",
-          "match_score": 0.3
+          "match_score": 0.314
         }
       ]
     },
@@ -171,15 +171,15 @@
         "probe_role": "immediate_confirm",
         "temptation": "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
         "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整；把对判错同样丢分，判断方向要跟着作答要素走。",
-        "source_anchor": "kc:1A433000_056_0085:1 + {2015,案例1} + {2020,案例二问题2}",
+        "source_anchor": "{2015,案例1} + {2020,案例二问题2}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "296fae15c56257ba5ee39eac497cc85cffc3c8c533e264321c03733892fe8bc0",
-        "decision_identity_sha256": "0d317da06a0b6552973332ad2c4938499b633ca352386286cce53e308d568a35",
+        "decision_identity_sha256": "840e56638f01151a220c86699802dc1a07ba0860cf6982f05440168f709d7c35",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "296fae15c56257ba5ee39eac497cc85cffc3c8c533e264321c03733892fe8bc0",
-          "reviewed_decision_sha256": "0d317da06a0b6552973332ad2c4938499b633ca352386286cce53e308d568a35",
+          "reviewed_decision_sha256": "840e56638f01151a220c86699802dc1a07ba0860cf6982f05440168f709d7c35",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -187,7 +187,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "f4b2656f3db458be1c45edf27dc03bac28fce024857cf4e61641a647bc7fb59a"
         }
       }
     },
@@ -206,15 +207,15 @@
         "probe_role": "d1_probe",
         "temptation": "两条线路一样长，写出其中一条看着「已经找到关键线路」了，容易就此收笔。",
         "loss_reason": "并列最长路径必须全部列出（本题 2 条只写了 1 条），漏列即未全部列出；答题要点是把并列的关键线路逐条写全。",
-        "source_anchor": "kc:1A433000_056_0085:1 + {2015,案例1} + {2020,案例二问题2}",
+        "source_anchor": "{2015,案例1} + {2020,案例二问题2}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "92645e509fb2d843cb91f3a20b4ee4ac95a63adc523ec6fe2e8a09ff8e8056fb",
-        "decision_identity_sha256": "7094f8219fc0c726d0914b46beea33d7c4a5fdfe58a4e1ce7de15281f9be7352",
+        "decision_identity_sha256": "26f34c42312676895e2cff1a23f7619e694807cdbeb3b3c2c4136291c1d6917b",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "92645e509fb2d843cb91f3a20b4ee4ac95a63adc523ec6fe2e8a09ff8e8056fb",
-          "reviewed_decision_sha256": "7094f8219fc0c726d0914b46beea33d7c4a5fdfe58a4e1ce7de15281f9be7352",
+          "reviewed_decision_sha256": "26f34c42312676895e2cff1a23f7619e694807cdbeb3b3c2c4136291c1d6917b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -222,7 +223,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "440a7a862f6e07d0c90c01b008c8328efa8355c5a9e02ca70ab9eca0d6f117a5"
         }
       }
     },
@@ -241,15 +243,15 @@
         "probe_role": "immediate_confirm",
         "temptation": "「最长的线路就是关键线路」这句判据本身没错，容易以为写到这就算答完。",
         "loss_reason": "只写判据、未落到本图的具体线路（哪几个节点串成的路径），不满足「落到具体线路」的要求；要点是把线路节点逐一写出。",
-        "source_anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
+        "source_anchor": "{2017,案例一}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "b74c68e1261a1c88896aacec05744b44040578673db1c2985ce0cd6638da3498",
-        "decision_identity_sha256": "f3fae4dcde543ce949951aa0b75f2cf00865451dca584020939072df2202fd97",
+        "decision_identity_sha256": "1c34c869b7c68f633bce7081f9d39ac20eb57e42993b6e9053b6a414f5e6c849",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "b74c68e1261a1c88896aacec05744b44040578673db1c2985ce0cd6638da3498",
-          "reviewed_decision_sha256": "f3fae4dcde543ce949951aa0b75f2cf00865451dca584020939072df2202fd97",
+          "reviewed_decision_sha256": "1c34c869b7c68f633bce7081f9d39ac20eb57e42993b6e9053b6a414f5e6c849",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -257,7 +259,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "0b4196ce7342f685d23b513153ae06884f9c365bcc6d7267fafd66efb8653b08"
         }
       }
     },
@@ -276,15 +279,15 @@
         "probe_role": "d1_probe",
         "temptation": "线路里的节点看着都在，容易只核对「有没有这些点」而漏核对前后连不连得上。",
         "loss_reason": "写出的关键线路节点跳号、前后不连续，不能构成从开始到结束的连续路径；答题要点是节点连续无跳号地贯通全线。",
-        "source_anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
+        "source_anchor": "{2017,案例一}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "8bea3aad0232b5ad8b81d16b6e33db93d965d1d32400c487cdfea3c355c9d763",
-        "decision_identity_sha256": "9f5d5c3d946c4c334e19dbaf38704a6f4b4b103b6f72fb66209bc5313fcfd09b",
+        "decision_identity_sha256": "e580d431eb36835f68cd233fccfa23cf18090ccd3f3d2ea4169137fc2e402ab4",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "8bea3aad0232b5ad8b81d16b6e33db93d965d1d32400c487cdfea3c355c9d763",
-          "reviewed_decision_sha256": "9f5d5c3d946c4c334e19dbaf38704a6f4b4b103b6f72fb66209bc5313fcfd09b",
+          "reviewed_decision_sha256": "e580d431eb36835f68cd233fccfa23cf18090ccd3f3d2ea4169137fc2e402ab4",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -292,7 +295,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "700fcbe04189d979cd40d2aa85053bc4c90b0c4b3ddc5e6e1a6be10fe339b766"
         }
       }
     },
@@ -311,15 +315,15 @@
         "probe_role": "immediate_confirm",
         "temptation": "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
         "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整；把对判错同样丢分，判断方向要跟着作答要素走。",
-        "source_anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
+        "source_anchor": "{2017,案例一}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "9843fd206dc5d00861063ff4ebe20d02cda26a674e4a9a5a3b6326d40ad8680b",
-        "decision_identity_sha256": "cb62e54ddadd91d3ff4f0c05b32d2f8e7b7c6c7d4498367ad634e005d21430c4",
+        "decision_identity_sha256": "d0b52a616a16f9af68aef6aa860365710064054250ff49c55cd4b1e18f72b073",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "9843fd206dc5d00861063ff4ebe20d02cda26a674e4a9a5a3b6326d40ad8680b",
-          "reviewed_decision_sha256": "cb62e54ddadd91d3ff4f0c05b32d2f8e7b7c6c7d4498367ad634e005d21430c4",
+          "reviewed_decision_sha256": "d0b52a616a16f9af68aef6aa860365710064054250ff49c55cd4b1e18f72b073",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -327,7 +331,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "aaa80317ea986a26213c00d00b59d4a516b6b9ebdc2d29ef189204af832ed407"
         }
       }
     },
@@ -362,7 +367,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "7f1b621f8af96ced850b70632245a81e15018300068d4bf385e4e563aa0a9c24"
         }
       }
     },
@@ -397,7 +403,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "5ce66b62801db3ca5aff5078f74a4c1a49c5b7110eebd44bb0a0214dd33348e0"
         }
       }
     },
@@ -432,7 +439,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "bc39a9fad461c11bbd872e7eb884de8d4f5f5101812d3fb9e76c6c00d6af6ef2"
         }
       }
     },
@@ -467,7 +475,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "a138d3fd478f76c38e779fc6da3f275a6f0b22de233b2b69bbaa52bf20161c00"
         }
       }
     },
@@ -502,7 +511,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "a2162022ffc37a2762b0a6b034c110e3c313dd2034a5cf1f43c6cd28e26c5e23"
         }
       }
     },
@@ -537,7 +547,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "d482d11b1964c793ae8a317b4543316db630891e017047ad160b53cacc8a50e6"
         }
       }
     },
@@ -572,7 +583,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "09af0bc8834795a566e3722e88ddeeb74e8f728f8e6f11d20ed56cda923c0473"
         }
       }
     },
@@ -607,7 +619,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "7ac563300a6135083528fcebe99e7895ff04b1b57d227867aaa556000b0b3eb3"
         }
       }
     },
@@ -642,7 +655,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "76159338840183c4a9d96d940e49c54a34bb9079014f7a02330a58052e4e16b8"
         }
       }
     },
@@ -677,7 +691,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "bc647cf0950468dce75e2ec08f04a7a8f73773de2566b94eea4f953c2f6a8e12"
         }
       }
     },
@@ -712,7 +727,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "dbe89373a2cd79ff59bf4c793e24a7ec7d02fb25376f278d23ec44f91dfff330"
         }
       }
     },
@@ -747,7 +763,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "6c0f4ef9bd425bda1d9faa1fd2182b30d67a3344340092de252f9387c507bc1e"
         }
       }
     },
@@ -782,7 +799,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "b3c5a805696645da6a2db194048a34a34ed9c3f7b38d76f63c0c71182978a851"
         }
       }
     },
@@ -817,7 +835,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "ae0036e561a1d90ff24551d758a5ce74bf04ba3c29d086919d9c1f84f82913fa"
         }
       }
     },
@@ -852,7 +871,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "0b377a4ce9fbe91def566e7f264e8ae7201ea46a19ee16fd4d5e17d178aecef5"
         }
       }
     },
@@ -887,7 +907,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "94130fad424b321330903372297ede09e5f557c6ae2b12cf9ee5a8c15814d934"
         }
       }
     },
@@ -922,7 +943,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "83ce5c4a5c69bccb11337dd207025ae316a6e98e42f89516f98c0c4ca3693930"
         }
       }
     },
@@ -957,7 +979,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "630a9d1c745ed2a59ac88a661ee8561099abeca790fba718ba104715df054a3f"
         }
       }
     },
@@ -992,7 +1015,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "efb43d71378aa56425470493e3a0e28a7fd2b4591937a38f4bafb37b8574dd6d"
         }
       }
     },
@@ -1027,7 +1051,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "08635e3c940f5cab766d424f2c7119e3ba9c553d3cdea4f145986d32937a11f4"
         }
       }
     },
@@ -1062,7 +1087,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "54726d3097372e63f8ce076313684b3ffee00cc18221857029792db562abe729"
         }
       }
     },
@@ -1097,7 +1123,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "f38f53a087c119cb39838dc6add09991d6e899601f7c878b852bca84d4184f21"
         }
       }
     },
@@ -1132,7 +1159,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "2a26ea5d7c6c2b724235bf9832e4990f2cd4d7eb874137523dd486de4218685a"
         }
       }
     },
@@ -1167,7 +1195,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "d46fff43df5d1705096c8c4dc3a8b9740de003798d8d967407bfab7ea0b78156"
         }
       }
     },
@@ -1202,7 +1231,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "991a0871ddc246a1d947e6fe73a865d024e5fb730e42adb743de338fa78fb835"
         }
       }
     },
@@ -1237,7 +1267,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "b67964dc84ddc41ec279c396a4cd39baddeb1f269f6c19d09ad0a6c195d4b49f"
         }
       }
     },
@@ -1272,7 +1303,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "b77d90ac1396417360a7c43305e4d5d41cd9e32683d9dbf67c91f1a4ee18b6d5"
         }
       }
     },
@@ -1307,7 +1339,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "f7d359a46e0f1e0f94891174a35effb8c9454f7bd1b1ecdd1fdda516d93f57e5"
         }
       }
     },
@@ -1342,7 +1375,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "ca1af95355e4f62ef53798f1e9008253aed4610a325a00c5e5723af85cc3ba19"
         }
       }
     },
@@ -1377,7 +1411,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "e14c1a7bbe9e23cf4899af68950caed7075db32474d2169395c87b9914a15be7"
         }
       }
     },
@@ -1412,7 +1447,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "33d39b6c6d95ccda5cf0f950bd916ca84a65c8f1684ad8a3796caa6de3210536"
         }
       }
     },
@@ -1447,7 +1483,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "66015377441ad4178f6954828952a3266bb2c12206e72ce7d68b47dcdca036d7"
         }
       }
     },
@@ -1482,7 +1519,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "aab8a9049da3a045c8845f174c4a8c7397e6b70847a2ca1a5ccdc9937c7ee1c1"
         }
       }
     },
@@ -1517,7 +1555,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "05db7516a881d8b0b57ed8b197a74070784ed1210ab6b793e67ce659bfc433ea"
         }
       }
     },
@@ -1552,7 +1591,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "f8519f896eb7dab8460b01e463686cf804ee4793756bfc63aae1635c00084b2d"
         }
       }
     },
@@ -1587,7 +1627,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "76c96470f369813c930d3be615e15be7d8cc9e009737cd286ce65bce4cd02ed0"
         }
       }
     },
@@ -1622,7 +1663,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "71b1b6f39d12971d21aa9527e8717d63346d7b135a9f975d94cfb0a202a30644"
         }
       }
     },
@@ -1657,7 +1699,8 @@
             "diagnosis_verified": false,
             "longest_option_checked": false,
             "template_leakage_checked": false
-          }
+          },
+          "signature_envelope_sha256": "808fa165f182feb82be09a46decad7b6a523b43807402755cc0516a14a559df2"
         }
       }
     }

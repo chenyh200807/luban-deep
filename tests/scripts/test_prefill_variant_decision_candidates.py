@@ -18,6 +18,7 @@ _spec.loader.exec_module(_mod)
 from deeptutor.services.luban_lesson.variant_eligibility import (  # noqa: E402
     VARIANT_PROBE_ROLES,
     decision_identity_sha256,
+    review_signature_envelope_sha256,
     variant_content_sha256,
 )
 
@@ -97,6 +98,10 @@ def test_content_sha_matches_governance_identity(s05_payload) -> None:
             decision["review"]["reviewed_decision_sha256"]
             == decision["decision_identity_sha256"]
         )
+        # 签名信封（二轮 B1）：pending 候选即带信封摘要，bake 后可直接核验
+        assert decision["review"][
+            "signature_envelope_sha256"
+        ] == review_signature_envelope_sha256(decision)
 
 
 def test_probe_roles_cover_both_pools_per_multi_variant_fact(s05_payload) -> None:
@@ -172,6 +177,38 @@ def test_fact_quote_join_is_topic_consistent(s05_payload, n01_payload) -> None:
     )
     assert color["kc_anchor"] == ""
     assert color["textbook_quote"] == ""
+
+
+def test_e_color_item_source_anchor_drops_mismatched_kc(s05_payload) -> None:
+    """对抗审查二轮 E5 余项：行级 source_anchor 也必须剥掉错锚 KC 头，
+    只保留已裁决的 2019 真题证据（fact 摘要修了、行级证据也要修）。"""
+    color_rows = [
+        row for row in s05_payload["items"] if row["rule_group"] == "E-color"
+    ]
+    assert len(color_rows) == 3
+    for row in color_rows:
+        source_anchor = row["decision_candidate"]["source_anchor"]
+        assert "1A431011_014_0015:1" not in source_anchor, row["variant_id"]
+        assert source_anchor == "{2019,第14题}", row["variant_id"]
+        # bank 原文 anchor 如实保留（content identity 覆盖它，不得改写）
+        assert "kc:1A431011_014_0015:1" in row["anchor"]
+
+
+def test_n01_fact_summary_matches_actual_assignment(n01_payload) -> None:
+    """对抗审查二轮新病 1：facts[] 元数据必须与实际挂载一致——
+    zero-float fact 摘要不得再含「延误≤总时差不影响」子句（已拆去新 fact），
+    rule_group 必须如实反映 A-line + C-delay 两组来源。"""
+    facts = {fact["fact_id"]: fact for fact in n01_payload["facts"]}
+    zero_float = facts["n01-fact-critical-work-zero-float"]
+    delay_float = facts["n01-fact-delay-vs-total-float"]
+    # 新旧 fact 摘要不得语义包含（新 fact 不是旧 fact 摘要的子集）
+    assert delay_float["correct_statement"] not in zero_float["correct_statement"]
+    assert "总时差最小" in zero_float["correct_statement"]  # 判据面并入
+    assert "延误 ≤" not in zero_float["correct_statement"]
+    # rule_group 如实反映实际挂载的两组
+    assert zero_float["rule_group"] == "A-line/C-delay"
+    assert zero_float["variant_count"] == 4
+    assert delay_float["rule_group"] == "C-delay"
 
 
 def test_n01_refuted_fact_assignments_are_remapped(n01_payload) -> None:
