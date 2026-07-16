@@ -53,6 +53,10 @@ def test_dockerignore_allowlists_luban_supply_files() -> None:
     # fusion-a(生命周期 join 工件)——缺任一则生产投影静默全空(Codex P3 回归缺口)
     assert "!docs/原始数据/考点原料/成品/_question_pack_map.v0.json" in dockerignore
     assert "!docs/原始数据/考点原料/成品/_pack_taxonomy_registry.v0.json" in dockerignore
+    # 变体撤发 authority(唯一撤题真值)——漏反选致 runtime fail-closed、完整作答面停发(同型第五次)
+    assert "!docs/原始数据/考点原料/成品/_variant_blocklist.json" in dockerignore
+    # 看穿库池(/seethrough runtime 消费)——同 F16 漏拷教训
+    assert "!docs/原始数据/考点原料/成品/_*_seethrough_bank.v0.json" in dockerignore
 
 
 def test_dockerignore_wildcard_covers_all_variant_banks_on_disk() -> None:
@@ -70,10 +74,14 @@ def test_dockerignore_wildcard_covers_all_variant_banks_on_disk() -> None:
     assert antidote_banks, f"R8 解药池应已产(23 包), 实际: {antidote_banks}"
     targets += antidote_banks
     targets += sorted(p.name for p in supply.glob("_*_r6_cloze_bank.v0.json"))
+    # 看穿库池(F16 已产)——runtime /seethrough 消费, 漏反选即容器缺供给(防同型)
+    targets += sorted(p.name for p in supply.glob("_*_seethrough_bank.v0.json"))
     for name in targets + [
         "_pack_manifest.json",
         "_question_pack_map.v0.json",
         "_pack_taxonomy_registry.v0.json",
+        # 撤发 authority: read_model 唯一撤题真值, 缺失 = runtime fail-closed 停发完整作答面
+        "_variant_blocklist.json",
     ]:
         assert not _excluded(f"{SUPPLY_DIR}/{name}", patterns), (
             f"{name} 被 .dockerignore 挡在 build context 外(远端 build 后运行时缺供给)"
@@ -83,5 +91,12 @@ def test_dockerignore_wildcard_covers_all_variant_banks_on_disk() -> None:
 def test_dockerignore_still_excludes_pack_bodies() -> None:
     """白名单只放供给 sidecar，pack 正文/jury 等不进镜像（防镜像膨胀）。"""
     patterns = _dockerignore_patterns()
-    for name in ("S05_临时用电三级配电.md", "_S05_jury.json", "_pack_manifest.overrides.json"):
+    for name in (
+        "S05_临时用电三级配电.md",
+        "_S05_jury.json",
+        "_pack_manifest.overrides.json",
+        # 审核包/candidates 是 build-time 工件(教研评审用), runtime 无消费者, 不该进镜像
+        "_practice_review_packets/n01.practice.review.json",
+        "_S05_adjudication_log.json",
+    ):
         assert _excluded(f"{SUPPLY_DIR}/{name}", patterns), f"{name} 不应进镜像"
