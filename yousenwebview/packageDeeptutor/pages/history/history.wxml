@@ -1,5 +1,5 @@
 <!-- pages/history/history.wxml — 历史对话列表（支持管理/归档） -->
-<view class="history-page {{isDark?'':'light'}}">
+<view class="history-page paper {{isDark?'':'light'}} pk-paper-bg">
 
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">

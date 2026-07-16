@@ -1,3 +1,5 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
 /* F16 看穿 5天体验 · 纸墨朱竹暖色(宣纸亮) */
 .st-page { position: fixed; inset: 0; background: #f4efe6; color: #2b2620; }
 .st-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 10; background: #f4efe6; box-shadow: 0 1rpx 0 rgba(0,0,0,0.05); }
@@ -65,3 +67,37 @@
 
 .st-primary { margin: 16rpx 0 8rpx; height: 92rpx; line-height: 92rpx; text-align: center; background: #8a2b20; color: #fff; border-radius: 46rpx; font-size: 32rpx; font-weight: 600; box-shadow: 0 6rpx 20rpx rgba(138,43,32,0.25); }
 .st-primary.disabled { background: #cbb; box-shadow: none; }
+
+/* 已有暖色布局收归共享 palette，避免相似但不同的第三套“米色版”。 */
+.st-page.paper { background-color: var(--pk-paper); color: var(--pk-t1); }
+.st-page.paper .st-nav { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
+.st-page.paper .st-back,
+.st-page.paper .st-day-no,
+.st-page.paper .st-kicker,
+.st-page.paper .st-section,
+.st-page.paper .st-replay { color: var(--pk-grn); }
+.st-page.paper .st-day-chip,
+.st-page.paper .st-opt,
+.st-page.paper .st-textarea,
+.st-page.paper .st-honesty { background: var(--pk-gauge); color: var(--pk-t2); }
+.st-page.paper .st-day-chip.active { background: var(--pk-ink-btn); color: var(--pk-ink-btn-t); }
+.st-page.paper .st-card,
+.st-page.paper .st-warm { background: var(--pk-card); border: 1rpx solid var(--pk-bd); box-shadow: 0 2rpx 12rpx var(--pk-shadow); }
+.st-page.paper .st-cut-text,
+.st-page.paper .st-stem,
+.st-page.paper .st-opt-text,
+.st-page.paper .st-seg-v,
+.st-page.paper .st-sp-label,
+.st-page.paper .st-warm-text,
+.st-page.paper .st-promise-text { color: var(--pk-t1); }
+.st-page.paper .st-loading,
+.st-page.paper .st-error,
+.st-page.paper .st-competency,
+.st-page.paper .st-ev-ref { color: var(--pk-t3); }
+.st-page.paper .st-opt.right,
+.st-page.paper .st-feedback.good,
+.st-page.paper .st-sp.hit .st-sp-mark { background: rgba(72, 128, 106, 0.12); border-color: var(--pk-grn); color: var(--pk-grn); }
+.st-page.paper .st-opt.wrong,
+.st-page.paper .st-feedback.warm,
+.st-page.paper .st-sp.miss .st-sp-mark { background: rgba(194, 101, 85, 0.10); border-color: var(--pk-warn); color: var(--pk-warn); }
+.st-page.paper .st-primary { background: var(--pk-ink-btn); color: var(--pk-ink-btn-t); box-shadow: 0 8rpx 20rpx var(--pk-shadow); }

@@ -30,12 +30,19 @@ from deeptutor.services.luban_lesson import (
     list_all_pack_ids,
     list_lesson_catalog,
     retest_pool_meta,
+    retest_supply_identity,
 )
 from deeptutor.services.luban_lesson.practice_html import (
     PracticeHtmlInvalid,
+    compiled_practice_pool_meta,
+    decode_projection_receipt,
     is_compiled_practice_pack,
 )
 from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
+from deeptutor.services.luban_lesson.review_due import (
+    build_review_due_projection,
+    resolve_due_review_probe,
+)
 from deeptutor.services.session import get_sqlite_session_store
 
 router = secure_router(tags=["luban_lesson"])
@@ -152,12 +159,17 @@ async def retest_items(
     limit: int = 5,
     mode: str = "review",
     practice_surface: str = "",
+    projection_receipt: str = "",
+    probe_id: str = "",
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
     """题面投影（同一 endpoint / 同一 completion authority）：
     - ``mode=review``（默认，复习轮换皮复测）；
-    - ``mode=forward``（学习轮课后轻练；已编译 pack 读取 finished HTML 固定五题）。
+    - ``mode=forward``（学习轮课后轻练；已编译 pack 从 finished HTML 私有题池取五题）。
       completion 均由服务端重判；forward 非 promoting。
+    - ``projection_receipt``（H5 receipt bridge，仅 compiled forward）：选题严格
+      解析到客户所见题集并原样回显；与当前供给漂移（重签/撤销/篡改）→
+      409 ``content_updated_retake`` 要求整卷重取，绝不按 index 重映射。
 
     未识别的 mode 归一为 review（thin 归一，不新增第二 builder/第二端点）。
     """
@@ -169,6 +181,34 @@ async def retest_items(
     mode = "forward" if str(mode or "").strip().lower() == "forward" else "review"
     if not _review_module_enabled() or (mode == "forward" and not _light_practice_enabled()):
         raise HTTPException(status_code=404, detail="retest not available")
+    selection_probe = ""
+    cycle_anchor = ""
+    if mode == "review":
+        selection_probe = str(probe_id or "").strip()
+        if not selection_probe:
+            raise HTTPException(status_code=400, detail="retest_probe_id_required")
+        from deeptutor.services.learner_state.service import get_learner_state_service
+
+        learner_state = get_learner_state_service()
+        events = learner_state.list_learning_evidence_events(
+            current_user.user_id,
+            limit=None,
+            since=None,
+        )
+        due_projection = build_review_due_projection(
+            user_id=current_user.user_id,
+            events=events,
+            exam_date_iso=_exam_date_for(current_user.user_id),
+        )
+        due_probe = resolve_due_review_probe(
+            due_projection,
+            pack_id=pack_id,
+            probe_id=selection_probe,
+        )
+        if due_probe is None:
+            raise HTTPException(status_code=400, detail="retest_probe_not_due")
+        cycle_anchor = str(due_probe.get("cycle_anchor") or "").strip()
+    projection_receipt = str(projection_receipt or "").strip()
     try:
         items = build_retest_items(
             pack_id,
@@ -177,14 +217,31 @@ async def retest_items(
             limit=limit,
             mode=mode,
             practice_surface=practice_surface,
+            projection_receipt=projection_receipt,
         )
-    except (LessonNotAvailable, PracticeHtmlInvalid):
+    except PracticeHtmlInvalid as exc:
+        if str(exc) == "content_updated_retake":
+            # receipt 与当前供给漂移（重签/撤销/篡改）——语义错误要求客户端
+            # 整卷重取；服务端绝不按 index 重映射或静默换题。
+            raise HTTPException(
+                status_code=409, detail={"error": "content_updated_retake"}
+            ) from exc
+        raise HTTPException(status_code=404, detail="lesson not found") from exc
+    except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
     compiled_registered = mode == "forward" and is_compiled_practice_pack(pack_id)
     if compiled_registered and not items:
         raise HTTPException(status_code=404, detail="compiled practice unavailable")
     compiled_forward = compiled_registered
-    return {
+    compiled_pool = (
+        compiled_practice_pool_meta(pack_id, surface_id=practice_surface)
+        if compiled_forward
+        else None
+    )
+    supply = retest_supply_identity(pack_id, mode=mode)
+    if not supply.get("kind") or not supply.get("digest"):
+        raise HTTPException(status_code=404, detail="retest supply unavailable")
+    response = {
         "pack_id": pack_id.upper(),
         "items": items,
         "day_index": day_index,
@@ -195,17 +252,24 @@ async def retest_items(
             day_index=day_index,
             mode=mode,
             variant_ids=[str(item.get("variant_id") or "") for item in items],
+            supply_kind=supply["kind"],
+            supply_digest=supply["digest"],
+            probe_id=selection_probe,
+            cycle_anchor=cycle_anchor,
         ),
-        "pool": {
-            "core_total": len(items),
-            "rule_groups_total": len(
-                {str(item.get("rule_group") or "") for item in items}
-            ),
-        }
+        "pool": compiled_pool
         if compiled_forward
         else retest_pool_meta(pack_id),
         "practice_source": "compiled_html" if compiled_forward else "signed_variant",
     }
+    if projection_receipt:
+        # 桥接契约：客户端要求响应 receipt 与桥接值逐字节相等（retest.js）。
+        # 只回显、不重签——builder 解析成功即证明该 token 仍锚定当前供给。
+        response["projection_receipt"] = projection_receipt
+        response["projection_digest"] = decode_projection_receipt(
+            projection_receipt
+        )["projection_digest"]
+    return response
 
 
 @router.post(
@@ -221,13 +285,16 @@ async def retest_complete(
 ) -> dict:
     from deeptutor.services.learner_state.service import get_learner_state_service
     from deeptutor.services.luban_lesson.retest_writeback import (
+        RetestCompletionInProgress,
         RetestIdempotencyConflict,
+        RetestProbeClaimUnavailable,
         RetestWritebackService,
     )
 
     try:
         return RetestWritebackService(
-            learner_state_service=get_learner_state_service()
+            learner_state_service=get_learner_state_service(),
+            review_exam_date_resolver=_exam_date_for,
         ).complete(
             user_id=current_user.user_id,
             completion_id=body.completion_id,
@@ -241,6 +308,13 @@ async def retest_complete(
         )
     except RetestIdempotencyConflict as exc:
         raise HTTPException(status_code=409, detail="retest completion conflict") from exc
+    except RetestCompletionInProgress as exc:
+        raise HTTPException(status_code=409, detail="retest completion in progress") from exc
+    except RetestProbeClaimUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="retest probe atomic authority unavailable",
+        ) from exc
     except LessonNotAvailable as exc:
         raise HTTPException(status_code=404, detail="lesson not found") from exc
     except ValueError as exc:
@@ -283,8 +357,6 @@ async def review_due(current_user: AuthContext = Depends(get_current_user)) -> d
     if not _review_module_enabled():
         return {"due": [], "learned_count": 0, "authority": "revalidation_queue", "enabled": False}
     from deeptutor.services.learner_state.service import get_learner_state_service
-    from deeptutor.services.luban_lesson.review_due import build_review_due_projection
-
     events = get_learner_state_service().list_learning_evidence_events(
         current_user.user_id, limit=None, since=None
     )

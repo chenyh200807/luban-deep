@@ -1,3 +1,5 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
 /* pages/history/history.wxss — 历史对话（含管理模式+归档） */
 
 .history-page { height: 100vh; background: #080c18; overflow: hidden; }
@@ -501,3 +503,60 @@
 .history-page.light .btn-archive .bottom-btn-txt { color: #4f46e5; }
 .history-page.light .btn-unarchive { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.2); }
 .history-page.light .btn-unarchive .bottom-btn-txt { color: #10b981; }
+
+/* ── 五模块纸墨壳：会话历史只保留列表结构，不保留旧蓝 palette ── */
+.history-page.paper {
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
+  color: var(--pk-t1);
+}
+.history-page.paper .nav-bar,
+.history-page.paper .tab-bar,
+.history-page.paper .bottom-bar {
+  background: var(--pk-paper);
+  border-color: var(--pk-bd);
+  box-shadow: none;
+}
+.history-page.paper .nav-back-arrow,
+.history-page.paper .nav-back-txt,
+.history-page.paper .nav-btn-txt.done,
+.history-page.paper .empty-btn-txt,
+.history-page.paper .search-clear-txt { color: var(--pk-grn); }
+.history-page.paper .nav-count,
+.history-page.paper .nav-btn-txt,
+.history-page.paper .tab-text,
+.history-page.paper .search-placeholder,
+.history-page.paper .stat-label,
+.history-page.paper .date-label,
+.history-page.paper .date-count,
+.history-page.paper .conv-preview,
+.history-page.paper .conv-meta,
+.history-page.paper .conv-time { color: var(--pk-t3); }
+.history-page.paper .tab-active .tab-text,
+.history-page.paper .empty-title,
+.history-page.paper .stat-value,
+.history-page.paper .conv-title,
+.history-page.paper .search-input { color: var(--pk-t1); }
+.history-page.paper .tab-active::after { background: var(--pk-grn); }
+.history-page.paper .history-overview,
+.history-page.paper .history-search,
+.history-page.paper .stat-chip,
+.history-page.paper .empty-card,
+.history-page.paper .conv-item,
+.history-page.paper .conv-action-btn {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+.history-page.paper .conv-selected { background: rgba(72, 128, 106, 0.10); }
+.history-page.paper .checkbox { border-color: var(--pk-bd); }
+.history-page.paper .checkbox.checked { background: var(--pk-grn); border-color: var(--pk-grn); }
+.history-page.paper .conv-tag { background: var(--pk-gauge); border-color: var(--pk-bd); color: var(--pk-t2); }
+.history-page.paper .tag-blue,
+.history-page.paper .tag-sky { color: var(--pk-grn); }
+.history-page.paper .tag-rose,
+.history-page.paper .tag-amber { color: var(--pk-warn); }
+.history-page.paper .btn-archive { background: rgba(72, 128, 106, 0.10); border-color: var(--pk-grn); }
+.history-page.paper .btn-archive .bottom-btn-txt,
+.history-page.paper .btn-unarchive .bottom-btn-txt { color: var(--pk-grn); }

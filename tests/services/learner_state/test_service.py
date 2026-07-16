@@ -6,6 +6,9 @@ import sqlite3
 
 import pytest
 
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    committed_retest_completion_ids,
+)
 from deeptutor.services.learner_state.learning_brain_read_model import (
     build_learning_brain_read_model,
 )
@@ -409,6 +412,127 @@ def test_list_learning_evidence_events_merges_local_write_ahead_in_production(
 
     assert [event.event_id for event in events] == [local.event_id]
     assert events[0].source_feature == "assessment_testset"
+
+
+def test_list_learning_evidence_events_excludes_remote_control_claims(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
+    store = _CoreStoreStub()
+    store.memory_events = [
+        {
+            "event_id": "evt_completion_claim",
+            "user_id": "student_demo",
+            "source_feature": "luban_retest_claim",
+            "source_id": "completion-1",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "retest_completion_claim",
+                "retest_completion_id": "completion-1",
+                "request_hash": "a" * 64,
+            },
+            "dedupe_key": "luban_retest_claim:student_demo:completion-1",
+            "created_at": "2026-07-15T00:00:00+00:00",
+        },
+        {
+            "event_id": "evt_item_evidence",
+            "user_id": "student_demo",
+            "source_feature": "assessment_testset",
+            "source_id": "completion-1:q1",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q1",
+                "is_correct": False,
+            },
+            "dedupe_key": "luban_retest_item:student_demo:completion-1:q1",
+            "created_at": "2026-07-15T00:00:01+00:00",
+        },
+    ]
+    service = _make_service(tmp_path, core_store=store)
+
+    events = service.list_learning_evidence_events("student_demo", limit=20)
+
+    assert [event.event_id for event in events] == ["evt_item_evidence"]
+
+
+def test_remote_canonical_terminal_survives_evidence_filter_and_closes(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        learner_state_service_module,
+        "is_production_environment",
+        lambda: True,
+    )
+    store = _CoreStoreStub()
+    store.memory_events = [
+        {
+            "event_id": "evt_remote_item",
+            "user_id": "student_demo",
+            "source_feature": "assessment_testset",
+            "source_id": "remote-completion:q1",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "retest_completion_id": "remote-completion",
+                "request_hash": "r" * 64,
+                "practice_mode": "review",
+                "pack_id": "F16",
+                "target_pack_id": "F16",
+                "question_id": "q1",
+                "is_correct": False,
+                "score_awarded": 0.0,
+                "max_score": 1.0,
+            },
+            "dedupe_key": "remote-item",
+            "created_at": "2026-07-15T00:00:00+00:00",
+        },
+        {
+            "event_id": "evt_remote_terminal",
+            "user_id": "student_demo",
+            "source_feature": "assessment_testset",
+            "source_id": "remote-completion:terminal",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "evidence_source": "assessment_testset",
+                "assessment_type": "luban_review_completion",
+                "retest_completion_id": "remote-completion",
+                "completion_terminal": True,
+                "request_hash": "r" * 64,
+                "practice_mode": "review",
+                "pack_id": "F16",
+                "target_pack_id": "F16",
+                "score_awarded": 0.0,
+                "max_score": 1.0,
+                "item_event_refs": ["evt_remote_item"],
+                "claim_promotion_allowed": True,
+                "prescription_result": {
+                    "status": "not_verified",
+                    "score_ratio": 0.0,
+                },
+                "quality": {
+                    "authority": "signed_variant_server_rescore",
+                    "writeback_eligible": True,
+                    "measurement_confidence": "high",
+                    "evidence_level": "L2_real_retest",
+                },
+            },
+            "dedupe_key": "remote-terminal",
+            "created_at": "2026-07-15T00:00:01+00:00",
+        },
+    ]
+    service = _make_service(tmp_path, core_store=store)
+
+    events = service.list_learning_evidence_events("student_demo", limit=20)
+
+    assert {event.event_id for event in events} == {
+        "evt_remote_item",
+        "evt_remote_terminal",
+    }
+    assert committed_retest_completion_ids(events) == {"remote-completion"}
 
 
 def test_taxonomy_superseded_events_are_skipped_by_all_readers(tmp_path) -> None:
@@ -961,6 +1085,29 @@ def test_append_memory_event_dedupe_returns_existing_event_without_second_outbox
         if item.event_type == "learning_evidence"
     ]
     assert len(pending_learning_events) == 1
+
+
+def test_luban_retest_dedupe_has_stable_event_identity_across_service_instances(
+    tmp_path,
+) -> None:
+    service_a = _make_service(tmp_path / "worker-a")
+    service_b = _make_service(tmp_path / "worker-b")
+    kwargs = {
+        "source_feature": "assessment_testset",
+        "source_id": "completion-1:F16-v1",
+        "memory_kind": "learning_evidence",
+        "payload_json": {
+            "event_type": "learning_evidence",
+            "retest_completion_id": "completion-1",
+            "question_id": "F16-v1",
+        },
+        "dedupe_key": "luban_retest_item:student_demo:completion-1:F16-v1",
+    }
+
+    event_a = service_a.append_memory_event("student_demo", **kwargs)
+    event_b = service_b.append_memory_event("student_demo", **kwargs)
+
+    assert event_a.event_id == event_b.event_id
 
 
 def test_learning_evidence_append_auto_synthesizes_for_enabled_cohort(tmp_path, monkeypatch) -> None:

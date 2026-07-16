@@ -22,6 +22,10 @@ def _write_manifest(tmp_path: Path, packs, green) -> Path:
         json.dumps({"projection_green": green, "packs": packs}, ensure_ascii=False),
         encoding="utf-8",
     )
+    (tmp_path / "_variant_blocklist.json").write_text(
+        json.dumps({"variants": []}),
+        encoding="utf-8",
+    )
     return p
 
 
@@ -59,7 +63,7 @@ def test_custom_manifest_without_compiled_capability_cannot_guess_practice_url(
     assert vm["practice_url"] == ""
 
 
-def test_real_compiled_pack_projects_finished_practice_consumer_url(monkeypatch):
+def test_pending_compiled_pack_hides_practice_consumer_url(monkeypatch):
     monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
     vm = build_lesson_viewmodel("F16")
     authority = load_compiled_practice("F16")
@@ -68,10 +72,8 @@ def test_real_compiled_pack_projects_finished_practice_consumer_url(monkeypatch)
         "https://cdn.example.com/luban/f16/lesson.html?v="
         + authority["published_lesson_sha256"]
     )
-    assert vm["practice_url"] == (
-        "https://cdn.example.com/luban/f16/practice.html?v="
-        + authority["surfaces"][0]["published_practice_sha256"]
-    )
+    assert authority["surfaces"][0]["eligible_variant_ids"] == []
+    assert vm["practice_url"] == ""
     assert authority["published_lesson_sha256"] != authority["source_bundle_sha256"]
 
 
@@ -195,7 +197,7 @@ def test_combined_catalog_scans_each_green_pack_and_hosted_page_set_once(monkeyp
 
     assert len(lessons) == 41
     assert len(points) == 74
-    assert meta_calls == 41
+    assert meta_calls == 40  # E01 无 compiled authority，不伪造 meta 或覆盖 signed-only 路径。
     assert page_calls == 40
 
 
@@ -217,14 +219,15 @@ def test_episode_detail_selects_the_exact_published_page(monkeypatch):
         ("D14", 3, "practice.html"),
     ],
 )
-def test_episode_detail_pairs_real_practice_page_or_explicitly_reuses_first(
+def test_pending_episode_practice_surfaces_remain_hidden(
     monkeypatch, pack_id, episode_index, expected_file
 ):
     monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
 
     vm = build_lesson_viewmodel(pack_id, episode_index=episode_index)
 
-    assert f"/{pack_id.lower()}/{expected_file}?v=" in vm["practice_url"]
+    assert expected_file
+    assert vm["practice_url"] == ""
 
 
 def test_retest_items_textbook_join_same_pack_signed_cards(tmp_path):
@@ -303,6 +306,56 @@ def test_variant_summary_signed_sha_match_passes(tmp_path):
     assert vm["variant_retest"]["source_pack_sha256"] == "abc123"
 
 
+@pytest.mark.parametrize("blocklist_state", ["missing", "corrupt"])
+def test_variant_revocation_authority_failure_fails_closed(
+    tmp_path,
+    blocklist_state,
+):
+    from deeptutor.services.luban_lesson import build_retest_items
+    from deeptutor.services.luban_lesson.read_model import (
+        retest_pool_meta,
+        retest_supply_identity,
+    )
+
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(
+        json.dumps({
+            "status": "signed",
+            "source_pack_sha256": "abc123",
+            "variants": [
+                {
+                    "variant_id": "S05-B-000",
+                    "rule_group": "B",
+                    "surface": "s1",
+                    "expected_ok": True,
+                    "correct_statement": "c1",
+                    "anchor": "kc:X:1",
+                }
+            ],
+        }),
+        encoding="utf-8",
+    )
+    blocklist = tmp_path / "_variant_blocklist.json"
+    if blocklist_state == "missing":
+        blocklist.unlink()
+    else:
+        blocklist.write_text("{not-json", encoding="utf-8")
+
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+
+    assert vm["variant_retest"] == {"available": False, "count": 0}
+    assert build_retest_items(
+        "S05", user_id="u", day_index=1, manifest_path=mp
+    ) == []
+    assert retest_supply_identity(
+        "S05", manifest_path=mp
+    ) == {"kind": "", "digest": ""}
+    assert retest_pool_meta("S05", manifest_path=mp) == {
+        "core_total": 0,
+        "rule_groups_total": 0,
+    }
+
+
 def test_variant_bank_candidate_rejected_same_as_missing(tmp_path):
     """签发闸①：candidate（未签发）bank 与缺失同形——不直通真实考生。"""
     from deeptutor.services.luban_lesson import build_retest_items
@@ -345,22 +398,66 @@ def test_real_manifest_green_packs_all_project():
         assert vm["content_sha256"]
 
 
-def test_f16_forward_uses_fixed_five_compiled_html_questions() -> None:
+@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
+def test_pending_v3_pack_never_advertises_light_practice_or_retest(
+    pack_id: str,
+) -> None:
+    rows = {row["pack_id"]: row for row in list_green_lessons()}
+    vm = build_lesson_viewmodel(pack_id)
+
+    assert rows[pack_id]["retest_available"] is False
+    assert vm["practice_surface"]["available"] is False
+    assert vm["variant_retest"] == {
+        "available": False,
+        "count": 0,
+        "bank_status": "compiled_v3",
+        "source_pack_sha256": vm["content_sha256"],
+    }
+
+
+def test_real_manifest_has_mandatory_variant_revocation_authority():
+    import deeptutor.services.luban_lesson.read_model as read_model
+
+    assert read_model._variant_blocklist(
+        read_model._MANIFEST_PATH.parent
+    ) is not None
+
+
+@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
+def test_pending_candidate_pack_never_falls_back_to_signed_bank(pack_id: str) -> None:
     from deeptutor.services.luban_lesson import build_retest_items
 
-    items = build_retest_items(
-        "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026194,
-        limit=1, mode="forward",
+    for mode in ("forward", "review"):
+        assert build_retest_items(
+            pack_id,
+            user_id=f"qa_eval_{pack_id.lower()}_pending",
+            day_index=2026194,
+            limit=5,
+            mode=mode,
+        ) == []
+
+
+@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
+def test_compiled_artifact_is_same_supply_identity_for_forward_and_review(
+    pack_id: str,
+) -> None:
+    from deeptutor.services.luban_lesson import (
+        build_retest_items,
+        resolve_retest_items,
+        retest_supply_identity,
     )
 
-    assert len(items) == 5, "fixed pilot cannot be shortened through the limit query"
-    assert [item["rule_group"] for item in items] == [
-        "分档·条件维", "割补工序·程序维", "判断纠错·三段式",
-        "检验清单·记录维", "采分诊断·末题",
-    ]
-    assert all(item["answer_type"] == "single_choice" for item in items)
-    assert all("expected_ok" not in item for item in items)
-    assert all("is_correct" not in option for item in items for option in item["options"])
+    assert build_retest_items(
+        pack_id,
+        user_id=f"qa_eval_{pack_id.lower()}_exact_selection",
+        day_index=2026194,
+        mode="forward",
+    ) == []
+    assert resolve_retest_items(pack_id, variant_ids=["not-eligible"], mode="review") == []
+    forward = retest_supply_identity(pack_id, mode="forward")
+    review = retest_supply_identity(pack_id, mode="review")
+    assert forward["kind"] == "compiled_html" and len(forward["digest"]) == 64
+    assert review == forward
 
 
 def test_custom_manifest_without_compiled_capability_uses_its_signed_bank(
@@ -561,6 +658,8 @@ def test_retest_blocklisted_variants_never_served(tmp_path):
     (tmp_path / "_variant_blocklist.json").write_text(json.dumps({
         "variants": [{"variant_id": "S05-A-order-000", "reason": "面板A级"}]
     }), encoding="utf-8")
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+    assert vm["variant_retest"]["count"] == 5
     for uid in ("u1", "u2", "u3"):
         for day in (738000, 738001):
             items = build_retest_items("S05", user_id=uid, day_index=day,
@@ -651,3 +750,95 @@ def test_manifest_cache_hits_by_stat_and_invalidates_on_change(tmp_path, monkeyp
     _write_manifest(tmp_path, [_S05], ["S05"])
     assert rm.list_all_pack_ids(manifest_path=mp) == ["S05"]
     rm._MANIFEST_CACHE.clear()
+
+
+def test_retest_receipt_path_resolves_through_single_receipt_authority(monkeypatch):
+    """receipt 桥接经唯一 builder 委托 resolve_projection_receipt(带 surface+sha 双锚)。"""
+    import deeptutor.services.luban_lesson.read_model as read_model
+
+    monkeypatch.setattr(
+        read_model,
+        "build_lesson_viewmodel",
+        lambda pack_id, manifest_path=None: {
+            "pack_id": "F16",
+            "content_sha256": "1" * 64,
+            "variant_retest": {"available": False},
+        },
+    )
+    monkeypatch.setattr(read_model, "is_compiled_practice_pack", lambda pack_id: True)
+    rows = [{"variant_id": f"F16-html-q{index}"} for index in range(5)]
+    captured = {}
+
+    def _resolve(pack_id, receipt, *, surface_id="", expected_pack_sha256=""):
+        captured.update(
+            pack_id=pack_id,
+            receipt=receipt,
+            surface_id=surface_id,
+            expected_pack_sha256=expected_pack_sha256,
+        )
+        return rows
+
+    monkeypatch.setattr(read_model, "resolve_projection_receipt", _resolve)
+
+    items = read_model.build_retest_items(
+        "f16",
+        user_id="u",
+        day_index=1,
+        mode="forward",
+        practice_surface="practice.html",
+        projection_receipt="receipt-token",
+    )
+
+    assert items is rows
+    assert captured == {
+        "pack_id": "F16",
+        "receipt": "receipt-token",
+        "surface_id": "practice.html",
+        "expected_pack_sha256": "1" * 64,
+    }
+
+
+def test_retest_receipt_outside_compiled_forward_fails_closed(monkeypatch):
+    """receipt 只对 compiled forward 生效;review 模式/非编译包一律 fail-close 重取。"""
+    from deeptutor.services.luban_lesson.practice_html import PracticeHtmlInvalid
+    import deeptutor.services.luban_lesson.read_model as read_model
+
+    monkeypatch.setattr(
+        read_model,
+        "build_lesson_viewmodel",
+        lambda pack_id, manifest_path=None: {
+            "pack_id": "F16",
+            "content_sha256": "1" * 64,
+            "variant_retest": {"available": False},
+        },
+    )
+
+    monkeypatch.setattr(read_model, "is_compiled_practice_pack", lambda pack_id: True)
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        read_model.build_retest_items(
+            "F16",
+            user_id="u",
+            day_index=1,
+            mode="review",
+            projection_receipt="receipt-token",
+        )
+
+    monkeypatch.setattr(read_model, "is_compiled_practice_pack", lambda pack_id: False)
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        read_model.build_retest_items(
+            "F16",
+            user_id="u",
+            day_index=1,
+            mode="forward",
+            projection_receipt="receipt-token",
+        )
+
+
+def test_signed_first_batch_pack_advertises_retest_supply() -> None:
+    """N01 首批签发后,读模型必须点亮同一签发供给(不回退 signed bank)。"""
+    rows = {row["pack_id"]: row for row in list_green_lessons()}
+    assert rows["N01"]["retest_available"] is True
+    vm = build_lesson_viewmodel("N01")
+    assert vm["practice_surface"]["available"] is True
+    assert vm["variant_retest"]["available"] is True
+    assert vm["variant_retest"]["bank_status"] == "compiled_v3"

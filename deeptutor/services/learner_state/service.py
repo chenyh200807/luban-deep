@@ -17,6 +17,9 @@ from deeptutor.services.learner_state.canonical_truth_policy import (
     canonical_truth_production_write_cohort_allowed,
     canonical_truth_promotion_decision,
 )
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    is_learning_evidence_event,
+)
 from deeptutor.services.learner_state.heartbeat import (
     LearnerHeartbeatJob,
     LearnerHeartbeatJobService,
@@ -47,6 +50,11 @@ logger = logging.getLogger(__name__)
 LearnerStateEventKind = Literal["turn", "guide", "notebook", "progress", "manual"]
 
 _NO_CHANGE = "NO_CHANGE"
+_LUBAN_RETEST_STABLE_EVENT_PREFIXES = (
+    "luban_retest_claim:",
+    "luban_retest_item:",
+    "luban_retest_terminal:",
+)
 # Battle2 S1-T1: summary-maintainer gate counter threshold. The gate's single
 # authority is the learner_memory_events ledger plus an in-process cursor; the
 # counter branch caps staleness at N-1 substantive turns PER WORKER — the
@@ -736,11 +744,7 @@ class LearnerStateService:
         local_events = [
             event
             for event in self._list_local_memory_events(normalized)
-            if event.memory_kind == "learning_evidence"
-            and (
-                str(dict(event.payload_json or {}).get("event_type") or "") == "learning_evidence"
-                or event.source_feature == "construction_grading"
-            )
+            if is_learning_evidence_event(event)
             and _iso_unknown_or_gte(event.created_at, since)
         ]
         if self._local_projection_fallback_enabled():
@@ -757,15 +761,17 @@ class LearnerStateService:
             reader = getattr(self._core_store, "read_learning_evidence_events", None)
             if callable(reader):
                 try:
-                    events.extend([
+                    events.extend(
                         event
                         for event in (
                             self._event_from_mapping(item, default_user_id=normalized)
-                            for item in list(reader(normalized, limit=limit, since=since) or [])
+                            for item in list(
+                                reader(normalized, limit=limit, since=since) or []
+                            )
                             if isinstance(item, dict)
                         )
-                        if event is not None
-                    ])
+                        if event is not None and is_learning_evidence_event(event)
+                    )
                 except Exception:
                     if is_production_environment():
                         return []
@@ -890,21 +896,36 @@ class LearnerStateService:
         dedupe_key: str | None = None,
     ) -> LearnerStateEvent:
         normalized = _normalize_user_id(user_id)
+        resolved_dedupe_key = dedupe_key or self._default_dedupe_key(
+            normalized,
+            source_feature=source_feature,
+            source_id=source_id,
+            memory_kind=memory_kind,
+            payload_json=payload_json,
+        )
+        stable_luban_identity = bool(
+            resolved_dedupe_key.startswith(_LUBAN_RETEST_STABLE_EVENT_PREFIXES)
+            or (
+                resolved_dedupe_key.startswith("learner_signal:")
+                and ":station_completed:" in resolved_dedupe_key
+            )
+        )
         event = LearnerStateEvent(
-            event_id=uuid.uuid4().hex,
+            event_id=(
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL,
+                    f"deeptutor:learner_memory_events:{resolved_dedupe_key}",
+                ).hex
+                if stable_luban_identity
+                else uuid.uuid4().hex
+            ),
             user_id=normalized,
             source_feature=str(source_feature or "").strip() or "manual",
             source_id=str(source_id or "").strip() or "unknown",
             source_bot_id=str(source_bot_id or "").strip() or None,
             memory_kind=str(memory_kind or "").strip() or "manual",
             payload_json=dict(payload_json or {}),
-            dedupe_key=dedupe_key or self._default_dedupe_key(
-                normalized,
-                source_feature=source_feature,
-                source_id=source_id,
-                memory_kind=memory_kind,
-                payload_json=payload_json,
-            ),
+            dedupe_key=resolved_dedupe_key,
             created_at=_iso_now(),
         )
 
@@ -921,6 +942,70 @@ class LearnerStateService:
         self._enqueue_memory_event_outbox(event)
         self._maybe_auto_synthesize_learning_truth(event)
         return event
+
+    def claim_retest_probe(
+        self,
+        *,
+        user_id: str,
+        probe_id: str,
+        cycle_anchor: str,
+        completion_id: str,
+        request_hash: str,
+    ) -> dict[str, Any]:
+        """Delegate review-probe arbitration to the durable core store.
+
+        JSONL and the asynchronous outbox are deliberately not fallbacks: they
+        cannot arbitrate two service instances before either writes evidence.
+        """
+        claimer = getattr(self._core_store, "claim_retest_probe", None)
+        if not bool(getattr(self._core_store, "is_configured", False)) or not callable(claimer):
+            raise RuntimeError("retest_probe_atomic_authority_unavailable")
+        return dict(
+            claimer(
+                user_id=_normalize_user_id(user_id),
+                probe_id=str(probe_id or "").strip(),
+                cycle_anchor=str(cycle_anchor or "").strip(),
+                completion_id=str(completion_id or "").strip(),
+                request_hash=str(request_hash or "").strip(),
+            )
+            or {}
+        )
+
+    def list_retest_completion_events_authoritative(
+        self,
+        user_id: str,
+        completion_id: str,
+    ) -> list[LearnerStateEvent]:
+        """Read the winning retest completion from durable storage without cache.
+
+        A losing service instance must not consult the 20-second general event
+        cache after the Postgres claim reports replay.  Missing/unconfigured
+        durable read authority is therefore an error, not a JSONL fallback.
+        """
+        normalized = _normalize_user_id(user_id)
+        normalized_completion = str(completion_id or "").strip()
+        reader = getattr(self._core_store, "read_retest_completion_events", None)
+        if (
+            not normalized_completion
+            or not bool(getattr(self._core_store, "is_configured", False))
+            or not callable(reader)
+        ):
+            raise RuntimeError("retest_completion_authoritative_read_unavailable")
+        return [
+            event
+            for event in (
+                self._event_from_mapping(item, default_user_id=normalized)
+                for item in list(
+                    reader(
+                        user_id=normalized,
+                        completion_id=normalized_completion,
+                    )
+                    or []
+                )
+                if isinstance(item, dict)
+            )
+            if event is not None
+        ]
 
     def _maybe_auto_synthesize_learning_truth(self, event: LearnerStateEvent) -> None:
         if event.memory_kind != "learning_evidence":

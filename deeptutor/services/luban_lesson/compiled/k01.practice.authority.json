@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "K01",
   "source_pack_sha256": "53a81cccfc3292efcb9e8827bd7162ae930acdf52d7fe7baaeb12b5c6afc5f03",
   "source_bundle_sha256": "2f342d7cafee43a674da8c87847430e0deb72856ecb01b31f29eeab70dbf2545",
@@ -24,7 +24,9 @@
         "K01-html-practice-html-q4-0ba04d80c42e",
         "K01-html-practice-html-q15-3423b28936e0"
       ],
-      "published_practice_sha256": "9a1a6f7b503ca275eeb1655864d20cf27912856c0aebed82bf3ab82f9046af49"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTcyYTlmMWM1ZWIwIiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi05NmJmMDMxMDA1M2MiLCJLMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWU0MmI2MzI2NTBlYiIsIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMGJhMDRkODBjNDJlIiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMzQyM2IyODkzNmUwIl0sInBhY2tfaWQiOiJLMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjRmMWRkNzVhZDMyMmUxMmQzZWMyM2QxMmJjN2FhNjZlMjM0MDcwZGY1YmYzZGRmYzI0ZjkyZTMxOWRjNmE5NjIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "ad5273391db54d36ac5cc1a9d7f189f61432fad899f9fc53dd3942ff3511add1"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q1",
-      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "811364d50698751b599845e22de920e9758b38f87173f494424cbd1f20e925d1",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "811364d50698751b599845e22de920e9758b38f87173f494424cbd1f20e925d1",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q2",
-      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d863ef420427a8260858a7cd763fbb1de2a54bc81fcd6d0cd5ca424559de2564",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d863ef420427a8260858a7cd763fbb1de2a54bc81fcd6d0cd5ca424559de2564",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q3",
-      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c6d5887cde74dc613d5476a8b3ebbe5715f6d7b5e5550f86881331c86e1f91c8",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c6d5887cde74dc613d5476a8b3ebbe5715f6d7b5e5550f86881331c86e1f91c8",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,759 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q4",
-      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6cfbe12b25d99ac1a0bf7aab327b6b75dc8540dcbe27f061dfe8405ad071d9b8",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6cfbe12b25d99ac1a0bf7aab327b6b75dc8540dcbe27f061dfe8405ad071d9b8",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "工期闸·条件维",
+      "stem": "E工作为非关键工作，总时差4个月，因不可抗力延误3个月。就工期索赔，选出可得分的判断。",
+      "model_answer": "E为非关键工作，延误3个月未超总时差4个月，机动时间足以吸收，不发生工期索赔（顺延0）。",
+      "options": [
+        {
+          "text": "E为非关键工作，延误3个月未超总时差4个月，机动时间可吸收，不发生工期索赔。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "非关键→比总时差→未超→不索赔，判据链完整。",
+          "option_id": "K01-html-practice-html-q5-1d1dffeed15b:option-1"
+        },
+        {
+          "text": "E延误3个月，可顺延工期3个月。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "又是「延误几月赔几月」。",
+          "loss_reason": "没比总时差：延误3≤总时差4，被吸收，不影响总工期。",
+          "fix": "延误未超总时差，工期索赔不成立（顺延0）。",
+          "option_id": "K01-html-practice-html-q5-1d1dffeed15b:option-2"
+        },
+        {
+          "text": "E延误可顺延=延误3−总时差4=−1，即不顺延。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "把「延误−总时差」公式硬套到未超的情形。",
+          "loss_reason": "未超总时差直接判「不索赔」，不用算负数。",
+          "fix": "延误≤总时差，直接结论「不索赔」，不写负数。",
+          "option_id": "K01-html-practice-html-q5-1d1dffeed15b:option-3"
+        },
+        {
+          "text": "不可抗力属双方分担，工期一律各担一半，顺延1.5个月。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把不可抗力的费用分担规则套到工期上。",
+          "loss_reason": "工期看网络位置不看责任分担；这里未超总时差故不顺延。",
+          "fix": "工期看总时差，未超即不索赔，与费用分担无关。",
+          "option_id": "K01-html-practice-html-q5-1d1dffeed15b:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q5-1d1dffeed15b",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "130fc672842f128f2c755bb59f0967735ca7209593ac22a73547ee3d4547ed57",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "130fc672842f128f2c755bb59f0967735ca7209593ac22a73547ee3d4547ed57",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "互不蕴含·条件+主体维",
+      "stem": "C事件（设计变更、非关键、总时差1、延误2）工期只顺延1个月。就其费用索赔27.2万能否成立，选出最准确的作答。",
+      "model_answer": "工期与费用两闸互不蕴含；C工期虽被总时差封顶只顺延1月，但属发包人原因致实际经济损失，费用27.2万仍全额成立。",
+      "options": [
+        {
+          "text": "工期与费用互不蕴含；C工期虽被总时差封顶只顺延1月，费用属发包人原因致实际损失，27.2万仍全额成立。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明两闸独立，工期封顶不影响费用全额，正是命门。",
+          "option_id": "K01-html-practice-html-q6-a0b79e73cb40:option-1"
+        },
+        {
+          "text": "工期只顺延了1个月，说明索赔大部分不成立，费用也应按比例只算一部分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「工期没全赔，费用也该打折」听着合理。",
+          "loss_reason": "把费用绑到工期上——费用闸只看责任与实际损失，与工期封顶无关。",
+          "fix": "费用看责任与损失，工期封顶不牵连费用，27.2万全额成立。",
+          "option_id": "K01-html-practice-html-q6-a0b79e73cb40:option-2"
+        },
+        {
+          "text": "工期不成立，费用也不成立，本事件不予索赔。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "误以为工期不成立费用就跟着黄。",
+          "loss_reason": "两闸绑死，正是最高频错；C费用全额成立。",
+          "fix": "工期费用各判各的，C费用27.2万成立。",
+          "option_id": "K01-html-practice-html-q6-a0b79e73cb40:option-3"
+        },
+        {
+          "text": "费用能否成立要看这1个月工期是否顺延到位，顺延了才谈费用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得费用要「以工期为前提」。",
+          "loss_reason": "费用不以工期成立为前提，两者互不蕴含。",
+          "fix": "费用只看责任归属与实际损失，独立于工期。",
+          "option_id": "K01-html-practice-html-q6-a0b79e73cb40:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q6-a0b79e73cb40",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c089ce077b8929a38e6f86b48c4057c778de21fb7d31013a4d39958cbd0a7c1c",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c089ce077b8929a38e6f86b48c4057c778de21fb7d31013a4d39958cbd0a7c1c",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "费用闸·不可抗力·记录维",
+      "stem": "不可抗力致承包人设备损坏8.2万、现场清理修复24.5万，共32.7万。就费用索赔，选出可得分的作答。",
+      "model_answer": "不可抗力下承包人自身设备损坏8.2万自担，现场清理修复24.5万归发包人可索；主张全部32.7万不合理。",
+      "options": [
+        {
+          "text": "不可抗力下承包人设备损坏8.2万自担，清理修复24.5万归发包人可索；主张全部32.7万不合理。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "分盘 + 剔除自担项，「成立≠金额全成立」写到位。",
+          "option_id": "K01-html-practice-html-q7-4f86fc164563:option-1"
+        },
+        {
+          "text": "不可抗力造成的损失全部32.7万都应由发包人承担。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「不可抗力不是承包人的错，全给发包人」最省事。",
+          "loss_reason": "不可抗力不是一刀切：承包人自身机具/设备损坏自担。",
+          "fix": "剔除设备8.2万自担，只24.5万清理可索。",
+          "option_id": "K01-html-practice-html-q7-4f86fc164563:option-2"
+        },
+        {
+          "text": "不可抗力是双方责任，32.7万由双方各承担一半。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「双方分担」被理解成「金额对半分」。",
+          "loss_reason": "分担是按损失性质分（人机自担、实体/清理归发包人），不是金额对半。",
+          "fix": "按范本分：设备8.2自担、清理24.5可索。",
+          "option_id": "K01-html-practice-html-q7-4f86fc164563:option-3"
+        },
+        {
+          "text": "设备是承包人的，清理也是承包人干的，32.7万全由承包人自担。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「都是承包人的事」一刀切到另一头。",
+          "loss_reason": "清理修复属发包人应担，判反方向。",
+          "fix": "清理修复24.5万归发包人，可索。",
+          "option_id": "K01-html-practice-html-q7-4f86fc164563:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q7-4f86fc164563",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c0b515840d93eeb2ce837dd6434946fed22f61d8487e8da0f1c44503bcb0583b",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c0b515840d93eeb2ce837dd6434946fed22f61d8487e8da0f1c44503bcb0583b",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "费用闸·主体维",
+      "stem": "因发包人未按时提供施工条件，承包人发生窝工、机械停置等经济损失。就费用索赔能否成立，选出可得分的作答。",
+      "model_answer": "非承包人原因（发包人未提供条件）致承包人发生实际经济损失，费用索赔成立，按分项法列算窝工、机械停置等。",
+      "options": [
+        {
+          "text": "属非承包人原因致实际经济损失，费用索赔成立，按分项法列算窝工、机械停置等各项。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "责任基础 + 成立 + 计算方法，费用闸三件齐。",
+          "option_id": "K01-html-practice-html-q8-a9e6a3035b20:option-1"
+        },
+        {
+          "text": "要先看延误是否在关键线路，在关键线路费用才成立。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把工期闸的「关键线路」条件搬到了费用闸。",
+          "loss_reason": "费用闸只看责任与损失，不看网络位置。",
+          "fix": "费用成立看责任归属与实际损失，与关键线路无关。",
+          "option_id": "K01-html-practice-html-q8-a9e6a3035b20:option-2"
+        },
+        {
+          "text": "发包人有责任，费用连同利润和工期一并全额成立。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "一股脑全说成立，显得「答全了」。",
+          "loss_reason": "工期要单独过总时差闸；且未列费用计算方法。",
+          "fix": "费用成立单独判，工期另过闸，费用要列分项。",
+          "option_id": "K01-html-practice-html-q8-a9e6a3035b20:option-3"
+        },
+        {
+          "text": "窝工损失属承包人管理问题，应由承包人自担。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "没抓住「发包人未提供条件」这个致因。",
+          "loss_reason": "责任判反，费用本可索却判自担。",
+          "fix": "致因是发包人，费用索赔成立。",
+          "option_id": "K01-html-practice-html-q8-a9e6a3035b20:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q8-a9e6a3035b20",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "3eb1f1d6eb8875856f32d22136f058bc9a03bf06b30dc34737f619a4c136325e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "3eb1f1d6eb8875856f32d22136f058bc9a03bf06b30dc34737f619a4c136325e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "工期定量·记录维",
+      "stem": "就「应顺延多少工期」的计算方法，选出阅卷认可、可得分的表达。",
+      "model_answer": "用网络分析法，比较延误前后两次施工网络计划的总工期之差，得应顺延的工期，而非只数单项延误天数。",
+      "options": [
+        {
+          "text": "用网络分析法，比较延误前后两次网络计划的总工期之差，得应顺延工期，而非只数单项延误天数。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点名「网络分析法」「前后总工期之差」，方法采分到位。",
+          "option_id": "K01-html-practice-html-q9-3a12b43e4b39:option-1"
+        },
+        {
+          "text": "把各项延误的天数直接加起来，就是应顺延的总工期。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "「延误加一加」最省事。",
+          "loss_reason": "不看关键线路/总时差、不算网络计划，方法错。",
+          "fix": "用网络分析法比延误前后总工期之差。",
+          "option_id": "K01-html-practice-html-q9-3a12b43e4b39:option-2"
+        },
+        {
+          "text": "凭施工经验估一个大致的顺延天数即可。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得「差不多就行」。",
+          "loss_reason": "缺网络计划分析，无计算依据，不得分。",
+          "fix": "须用网络分析法定量比较，不能凭经验估。",
+          "option_id": "K01-html-practice-html-q9-3a12b43e4b39:option-3"
+        },
+        {
+          "text": "顺延工期=原工期×新增工程量÷原工程量，用比例法算即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记得有个「比例分析法」，套上来。",
+          "loss_reason": "比例法用于工程量变化的工期，本问考的是网络计划延误，方法用错场景。",
+          "fix": "延误顺延用网络分析法比前后总工期之差。",
+          "option_id": "K01-html-practice-html-q9-3a12b43e4b39:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q9-3a12b43e4b39",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "8d1fc9aef6eef18a24ee9501dbe4154c0b5fef7a1e9c508426e0af6668e955dc",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "8d1fc9aef6eef18a24ee9501dbe4154c0b5fef7a1e9c508426e0af6668e955dc",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "费用分层·记录维",
+      "stem": "某可索费用：增加成本300万，管理费率10%，利润率5%。就索赔值，选出可得分的分层列式与结果。",
+      "model_answer": "索赔值=成本+成本×管理费率+(成本+管理费)×利润率=300+300×10%+(300+30)×5%=300+30+16.5=346.5万。",
+      "options": [
+        {
+          "text": "索赔值=300+300×10%+(300+30)×5%=300+30+16.5=346.5万（利润基数为成本+管理费）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三层列式 + 利润基数=成本+管理费，带单位，满分。",
+          "option_id": "K01-html-practice-html-q10-702eee7a71ab:option-1"
+        },
+        {
+          "text": "索赔值=300+300×10%+300×5%=300+30+15=345万。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "利润顺手也拿「成本」当基数乘。",
+          "loss_reason": "利润基数应是成本+管理费(330)，少算了管理费那块，差1.5万。",
+          "fix": "利润=(300+30)×5%=16.5，合计346.5万。",
+          "option_id": "K01-html-practice-html-q10-702eee7a71ab:option-2"
+        },
+        {
+          "text": "索赔值=成本300万即可，管理费和利润不另计。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只算直接成本，省掉分层。",
+          "loss_reason": "漏管理费与利润两层，采分点遗漏。",
+          "fix": "补管理费30、利润16.5，分层列到346.5万。",
+          "option_id": "K01-html-practice-html-q10-702eee7a71ab:option-3"
+        },
+        {
+          "text": "索赔值=(300+300×10%)×(1+5%)=346.5万，一步到位。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "结果346.5恰好对，觉得算式也成立。",
+          "loss_reason": "结果对但未分层列式，阅卷要求逐层写出成本/管理费/利润过程。",
+          "fix": "分三步写：300、+30、+16.5=346.5万。",
+          "option_id": "K01-html-practice-html-q10-702eee7a71ab:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q10-702eee7a71ab",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "ad977adeb9953b338d7f2f5dd0d0e8ea636af70857710bc18b4cdfae5d6727da",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "ad977adeb9953b338d7f2f5dd0d0e8ea636af70857710bc18b4cdfae5d6727da",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "利润归属·后果维",
+      "stem": "两个事件：①发包人设计变更致损失；②不可抗力致损失。就「能否加索利润」，选出可得分的作答。",
+      "model_answer": "发包人原因/工程变更剥夺了承包人盈利机会，费用外可加索利润；不可抗力属双方分担风险，利润不宜机械主张。",
+      "options": [
+        {
+          "text": "发包人原因/变更可在费用外加索利润；不可抗力属双方分担风险，利润不宜机械主张。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "利润看责任源分两种情形，写清「发包人才加、不可抗力不套」。",
+          "option_id": "K01-html-practice-html-q11-aa6f3b3f7cd1:option-1"
+        },
+        {
+          "text": "只要有额外支出，两个事件都可以连同利润一起索赔。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「有支出就含利润」一把抓。",
+          "loss_reason": "不可抗力是分担风险，不当然主张利润，机械套用扣分。",
+          "fix": "仅发包人原因/变更可加利润，不可抗力不套。",
+          "option_id": "K01-html-practice-html-q11-aa6f3b3f7cd1:option-2"
+        },
+        {
+          "text": "利润属于承包人自身经营，两个事件都不能向发包人主张。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得利润「不好意思要」，一律不写。",
+          "loss_reason": "发包人原因剥夺盈利机会，利润本可加索却漏写。",
+          "fix": "发包人原因/变更可加索利润。",
+          "option_id": "K01-html-practice-html-q11-aa6f3b3f7cd1:option-3"
+        },
+        {
+          "text": "两个事件都是非承包人原因，利润都按成本的5%一并计取。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把利润率机械套到所有非承包人事件。",
+          "loss_reason": "不可抗力不当然主张利润；且是否加利润看责任源不看是否非承包人。",
+          "fix": "发包人原因才加利润，不可抗力不套。",
+          "option_id": "K01-html-practice-html-q11-aa6f3b3f7cd1:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q11-aa6f3b3f7cd1",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "308395ade0c1bc4aaea0d904caccaa542391b6fc4dd7f8b25902406903598e0c",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "308395ade0c1bc4aaea0d904caccaa542391b6fc4dd7f8b25902406903598e0c",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "赶工优选·条件维",
+      "stem": "工期成立后发包人仍要求原期竣工需赶工。主体结构（关键线路，2700元/天，可压2天）与室内装修（3000元/天）。选出可得分的赶工方案。",
+      "model_answer": "优先压缩关键线路上、单位赶工费低且不影响后续的工序，故先压主体结构（2700元/天、可压2天），赶工费由发包人承担。",
+      "options": [
+        {
+          "text": "优先压关键线路上、单位赶工费低、不影响后续的工序，先压主体结构（2700元/天），赶工费由发包人担。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三条判据 + 先压主体 + 赶工费归属，全齐。",
+          "option_id": "K01-html-practice-html-q12-107a5b8e95a0:option-1"
+        },
+        {
+          "text": "哪道工序赶工费高就先压哪道，故先压室内装修（3000元/天）。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "误以为「贵的先压更值」。",
+          "loss_reason": "应压单位赶工费低的，压贵的多花钱；方向反了。",
+          "fix": "压单位赶工费低的主体结构（2700元/天）。",
+          "option_id": "K01-html-practice-html-q12-107a5b8e95a0:option-2"
+        },
+        {
+          "text": "任选一道工序压缩即可，只要压够天数就行。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得「压哪个都能缩工期」。",
+          "loss_reason": "压非关键线路不缩总工期；须压关键线路上的工序。",
+          "fix": "必须压关键线路上、费用低、不影响后续者。",
+          "option_id": "K01-html-practice-html-q12-107a5b8e95a0:option-3"
+        },
+        {
+          "text": "赶工是承包人为抢工期采取的措施，赶工费应由承包人自行承担。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「赶工是施工方的事」听着合理。",
+          "loss_reason": "发包人要求提前/原期竣工的赶工费由发包人承担，归属判反。",
+          "fix": "发包人要求赶工，赶工费由发包人承担。",
+          "option_id": "K01-html-practice-html-q12-107a5b8e95a0:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q12-107a5b8e95a0",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "07f473513edd3b6303d36c636f8b5da09927c481ec4f7bd67132a5acc4f27186",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "07f473513edd3b6303d36c636f8b5da09927c481ec4f7bd67132a5acc4f27186",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "证据·记录维",
+      "stem": "就索赔证据应满足的要求，选出可得分的完整表达。",
+      "model_answer": "索赔证据应满足真实性、全面性、法律效力、及时性四性，常见证据含合同、往来信件、会谈纪要、进度记录、照片、气候报告等。",
+      "options": [
+        {
+          "text": "证据应满足真实性、全面性、法律效力、及时性四性，并附合同、信件、纪要、进度记录、照片等。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四性齐全 + 举例证据，记录维采分到位。",
+          "option_id": "K01-html-practice-html-q13-072d348b71a8:option-1"
+        },
+        {
+          "text": "只要证据真实就行，其他要求不影响索赔。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "记得「真实」一条就写一条。",
+          "loss_reason": "漏全面性/法律效力/及时性三性，关键词缺失。",
+          "fix": "补全全面性、法律效力、及时性。",
+          "option_id": "K01-html-practice-html-q13-072d348b71a8:option-2"
+        },
+        {
+          "text": "施工日记等内部记录即可，不必对外取证。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "觉得自己的记录就够。",
+          "loss_reason": "漏法律效力与全面性，单一内部记录证明力不足。",
+          "fix": "须满足四性，附合同/信件/纪要/照片等。",
+          "option_id": "K01-html-practice-html-q13-072d348b71a8:option-3"
+        },
+        {
+          "text": "证据只要在结算时补齐就行，不讲时效。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "想「反正最后补上」。",
+          "loss_reason": "漏及时性——证据应及时留存，事后补易失效。",
+          "fix": "补及时性：证据应及时收集留存。",
+          "option_id": "K01-html-practice-html-q13-072d348b71a8:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q13-072d348b71a8",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "dff745451e302eb4ceb1b630a7d4c21e253b35d0748ccf1e7b51e63e1bf1d0d9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "dff745451e302eb4ceb1b630a7d4c21e253b35d0748ccf1e7b51e63e1bf1d0d9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "逐条裁决·主体维",
+      "stem": "承包人要求发包人按银行同期利率支付垫资利息，但合同对垫资利息未作约定。就该项索赔，选出可得分的裁决。",
+      "model_answer": "不成立。垫资利息合同有约定的按约定，无约定的不予考虑；本题合同未约定，故该项索赔不成立。",
+      "options": [
+        {
+          "text": "不成立。垫资利息合同有约定的按约定、无约定的不予考虑；本题未约定，故不成立。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "结论 + 「无约定不予考虑」依据，逐条裁决成对。",
+          "option_id": "K01-html-practice-html-q14-f12ffbc9acb3:option-1"
+        },
+        {
+          "text": "成立。垫资是承包人替发包人垫的钱，利息理应由发包人支付。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「替对方垫钱就该给利息」很直觉。",
+          "loss_reason": "垫资利息无合同约定不予考虑，凭常理判反。",
+          "fix": "无约定不予考虑，该项不成立。",
+          "option_id": "K01-html-practice-html-q14-f12ffbc9acb3:option-2"
+        },
+        {
+          "text": "成立。凡是承包人多支出的资金成本都可向发包人索赔。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把「资金成本」一律当可索。",
+          "loss_reason": "垫资利息有专门规则，无约定不考虑，不能一概而论。",
+          "fix": "垫资利息看约定，无约定不成立。",
+          "option_id": "K01-html-practice-html-q14-f12ffbc9acb3:option-3"
+        },
+        {
+          "text": "不成立。因为承包人没有在28天内提出这项索赔。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "结论对，就近抓个「时限」当理由。",
+          "loss_reason": "结论对但理由错——本项不成立是「无约定不予考虑」，非时限问题。",
+          "fix": "理由应写「垫资利息无约定不予考虑」。",
+          "option_id": "K01-html-practice-html-q14-f12ffbc9acb3:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q14-f12ffbc9acb3",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6793c35becf4296624da5893a5fc0e49842f8b9d090a6ac44d81fcb1547e2c18",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6793c35becf4296624da5893a5fc0e49842f8b9d090a6ac44d81fcb1547e2c18",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +1101,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q15",
-      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6ba8978dd8762214420fa800fe1dae71fc66bce32fe4e44edaec99db767841d9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6ba8978dd8762214420fa800fe1dae71fc66bce32fe4e44edaec99db767841d9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "b3a20552f38f878a8c618c7c4f718b1aa50f77c0a310fd7fcc042dde088a8ce7"

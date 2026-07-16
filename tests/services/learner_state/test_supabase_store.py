@@ -564,3 +564,85 @@ def test_sync_profile_batch_read_keeps_request_urls_below_gateway_limit() -> Non
     assert len(request_urls) == 3
     assert max(map(len, request_urls)) < 8_000
     client.close()
+
+
+def test_sync_retest_probe_claim_and_completion_read_use_narrow_rpcs() -> None:
+    requests: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = json.loads(request.content.decode("utf-8"))
+        requests.append({"path": request.url.path, "json": payload})
+        if request.url.path.endswith("/claim_luban_retest_probe"):
+            return httpx.Response(
+                200,
+                json={
+                    "status": "acquired",
+                    "completion_id": payload["p_completion_id"],
+                    "request_hash": payload["p_request_hash"],
+                    "claim_event_id": "claim-event",
+                },
+                request=request,
+            )
+        if request.url.path.endswith("/read_luban_retest_completion_events"):
+            return httpx.Response(
+                200,
+                json=[
+                    {
+                        "event_id": "terminal-event",
+                        "user_id": payload["p_user_id"],
+                        "source_feature": "assessment_testset",
+                        "source_id": f"{payload['p_completion_id']}:terminal",
+                        "memory_kind": "learning_evidence",
+                        "payload_json": {
+                            "retest_completion_id": payload["p_completion_id"],
+                            "completion_terminal": True,
+                        },
+                        "dedupe_key": "terminal-key",
+                        "created_at": "2026-07-16T00:00:00+00:00",
+                    }
+                ],
+                request=request,
+            )
+        return httpx.Response(404, request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    store = LearnerStateSupabaseSyncCoreStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+
+    claim = store.claim_retest_probe(
+        user_id="student_demo",
+        probe_id="probe-1",
+        cycle_anchor="cycle-1",
+        completion_id="completion-1",
+        request_hash="a" * 64,
+    )
+    events = store.read_retest_completion_events(
+        user_id="student_demo",
+        completion_id="completion-1",
+    )
+
+    assert claim["status"] == "acquired"
+    assert events[0]["event_id"] == "terminal-event"
+    assert requests == [
+        {
+            "path": "/rest/v1/rpc/claim_luban_retest_probe",
+            "json": {
+                "p_user_id": "student_demo",
+                "p_probe_id": "probe-1",
+                "p_cycle_anchor": "cycle-1",
+                "p_completion_id": "completion-1",
+                "p_request_hash": "a" * 64,
+            },
+        },
+        {
+            "path": "/rest/v1/rpc/read_luban_retest_completion_events",
+            "json": {
+                "p_user_id": "student_demo",
+                "p_completion_id": "completion-1",
+            },
+        },
+    ]
+    client.close()

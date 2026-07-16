@@ -32,6 +32,7 @@ var profileWxss = read("pages/profile/profile.wxss");
 var practiceWxss = read("pages/practice/practice.wxss");
 var reportWxml = read("pages/report/report.wxml");
 var reportWxss = read("pages/report/report.wxss");
+var paperInkWxss = read("styles/paper-ink.wxss");
 
 assert(
   (chatWxml.match(/bindfocus="onKeyboardFocus"/g) || []).length >= 2,
@@ -76,9 +77,10 @@ assert(
   "package light history row archive/delete glyphs should remain visible on white cards",
 );
 assert(
-  // profile 已切第10轮纸墨 token：编辑箭头走 --pk-t3，亮态 token 由 .light 作用域给定
+  // profile 已切第10轮纸墨 token：编辑箭头走 --pk-t3；亮态 token 唯一权威
+  // 收权到 styles/paper-ink.wxss 的 .paper.light 作用域（#6f6b5d 满足白卡对比度）
   /\.user-name-edit\s*\{[^}]*color:\s*var\(--pk-t3\);/.test(profileWxss) &&
-    /\.profile-page\.light\s*\{[^}]*--pk-t3:\s*#96917e/.test(profileWxss) &&
+    /\.paper\.light\s*\{[^}]*--pk-t3:\s*#6f6b5d/.test(paperInkWxss) &&
     /\.practice-page\.light \.link-arrow\s*\{\s*color:\s*#64748b;/.test(practiceWxss) &&
     /\.lr-card-link\s*\{[^}]*color:\s*var\(--pk-t1\);/.test(reportWxss),
   "package light secondary action arrows/links should keep enough contrast on white cards",

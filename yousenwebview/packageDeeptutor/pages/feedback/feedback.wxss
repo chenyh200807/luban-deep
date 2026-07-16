@@ -1,3 +1,5 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
 /* pages/feedback/feedback.wxss — 结构化意见反馈 */
 
 .feedback-page {
@@ -417,3 +419,44 @@
 .feedback-page.light .symptom-chip-active .symptom-text {
   color: #0f172a;
 }
+
+/* ── 我的→反馈：表单控件与五模块共用纸墨 token ── */
+.feedback-page.paper {
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
+  color: var(--pk-t1);
+}
+.feedback-page.paper .nav-bar { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
+.feedback-page.paper .nav-back-arrow,
+.feedback-page.paper .nav-back-txt,
+.feedback-page.paper .hero-kicker,
+.feedback-page.paper .locate-kicker { color: var(--pk-grn); }
+.feedback-page.paper .nav-title,
+.feedback-page.paper .hero-title,
+.feedback-page.paper .locate-title,
+.feedback-page.paper .section-title,
+.feedback-page.paper .type-title,
+.feedback-page.paper .attachment-title,
+.feedback-page.paper .context-title { color: var(--pk-t1); }
+.feedback-page.paper .hero-sub,
+.feedback-page.paper .section-hint,
+.feedback-page.paper .type-desc,
+.feedback-page.paper .attachment-sub,
+.feedback-page.paper .context-text { color: var(--pk-t2); }
+.feedback-page.paper .glass-card,
+.feedback-page.paper .type-card,
+.feedback-page.paper .symptom-chip,
+.feedback-page.paper .feedback-input,
+.feedback-page.paper .attachment-item,
+.feedback-page.paper .context-box {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+.feedback-page.paper .type-card-active,
+.feedback-page.paper .symptom-chip-active { background: rgba(72, 128, 106, 0.12); border-color: var(--pk-grn); }
+.feedback-page.paper .symptom-chip-active .symptom-text,
+.feedback-page.paper .type-card-active .type-mark { color: var(--pk-grn); }
+.feedback-page.paper .submit-btn { background: var(--pk-ink-btn); box-shadow: 0 8rpx 20rpx var(--pk-shadow); }
+.feedback-page.paper .submit-btn-text { color: var(--pk-ink-btn-t); }

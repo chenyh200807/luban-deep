@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "G04",
   "source_pack_sha256": "658a60001d44a2c125e1c7b3576bb4083ca52c4a17d55f04c9abf98e1d79775f",
   "source_bundle_sha256": "a46dc6a3d20755b26e8dd53cbf06cc34cb3204088a2cdef995c2a533827956a2",
@@ -24,7 +24,9 @@
         "G04-html-practice-html-q5-336fe2d3fe07",
         "G04-html-practice-html-q17-bb8e11ba7aab"
       ],
-      "published_practice_sha256": "74ae4a3407367502b4f9f8cf2ccc7a93691aa126e5478374b1abc8c7b5bc0367"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtN2NjMTFkNWU5ODM4IiwiRzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03OTAxYjEyODdkZWMiLCJHMDQtaHRtbC1wcmFjdGljZS1odG1sLXE0LWU2NmU1NTBiYjRiNyIsIkcwNC1odG1sLXByYWN0aWNlLWh0bWwtcTUtMzM2ZmUyZDNmZTA3IiwiRzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTctYmI4ZTExYmE3YWFiIl0sInBhY2tfaWQiOiJHMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjlmZDMzNTg1MGQ1OTY3M2I5Y2JkMzMxNTk0YWUyNDE4MzdkNDgzOTJiZGI3MmJiYWFjNGFmNzllZjA5ZGExNTciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "0586937f98b438bbd543b64e1b6a2b79d99b8216c33d1d24245be75212e12240"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q1",
-      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "487185b897031a44e4415205ce940554891c1ec919147fd54d6e82765fa94522",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "487185b897031a44e4415205ce940554891c1ec919147fd54d6e82765fa94522",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q2",
-      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "15c76c812f627f7b40ea65f5bebf0b1d36016bf85fb6c9bbff370d6fd7bf6cff",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "15c76c812f627f7b40ea65f5bebf0b1d36016bf85fb6c9bbff370d6fd7bf6cff",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q4",
-      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "659a850cf5913aafbbd446949147aa9df8e45fefca8802c65e9d56a0eab0d71f",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "659a850cf5913aafbbd446949147aa9df8e45fefca8802c65e9d56a0eab0d71f",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,832 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q5",
-      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "fefa05a6ba225009a5a9ce5d8ac3af43b2b1c835870d0f9dd04a061de9867631",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "fefa05a6ba225009a5a9ce5d8ac3af43b2b1c835870d0f9dd04a061de9867631",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "换填参数·条件维",
+      "stem": "换填垫层施工，下列关于分层厚度与压实系数的说法，正确的是？",
+      "model_answer": "分层厚度 200~300mm；压实系数灰土/粉煤灰≥0.95，其他材料≥0.97。",
+      "options": [
+        {
+          "text": "分层厚度 200~300mm 逐层夯实；压实系数灰土/粉煤灰≥0.95、其他材料≥0.97。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "分层 200~300 + 压实两档(0.95/0.97)，数值与分档都对。",
+          "option_id": "G04-html-practice-html-q6-b56823595332:option-1"
+        },
+        {
+          "text": "分层厚度 200~300mm；压实系数灰土/粉煤灰≥0.97、其他材料≥0.95。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有 0.95 和 0.97，方向随手写反。",
+          "loss_reason": "两档写反了：灰土/粉煤灰≥0.95、其他材料才≥0.97。",
+          "fix": "灰土/粉煤灰≥0.95、其他材料≥0.97，别反。",
+          "option_id": "G04-html-practice-html-q6-b56823595332:option-2"
+        },
+        {
+          "text": "一次性回填到设计标高后整体夯实即可，压实系数达到 0.9 以上就算合格。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得一次填完更省事，0.9 差不多够。",
+          "loss_reason": "必须分层 200~300mm，压实系数至少 0.95，不分层、0.9 都不达标。",
+          "fix": "分层 200~300mm，压实系数≥0.95（其他≥0.97）。",
+          "option_id": "G04-html-practice-html-q6-b56823595332:option-3"
+        },
+        {
+          "text": "分层厚度 500~600mm，压实系数统一按≥0.95 控制，不分材料。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得层厚一点效率高，压实统一好记。",
+          "loss_reason": "分层厚度应 200~300mm，且压实系数分材料(0.95/0.97)，数字与分档都错。",
+          "fix": "分层 200~300mm；灰土/粉煤灰≥0.95、其他≥0.97。",
+          "option_id": "G04-html-practice-html-q6-b56823595332:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q6-b56823595332",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5021ff774853aea751c2c2fdf227bdeb55de784582dcb875a29e158ac0c0a3e8",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5021ff774853aea751c2c2fdf227bdeb55de784582dcb875a29e158ac0c0a3e8",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "换填接缝·判断纠错",
+      "stem": "某换填施工：上下两层接缝距离 300mm，并将接缝设在承重墙墙角下方便施工。选出正确的判断与改正。",
+      "model_answer": "不妥：接缝不得设在柱基/墙角/承重窗间墙下；上下层缝距应≥500mm、接缝处夯压密实。",
+      "options": [
+        {
+          "text": "不妥：接缝不得设在柱基/墙角/承重窗间墙下；上下层缝距应≥500mm，接缝处夯压密实。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "位置(避墙角)+缝距(≥500)+夯压密实，三处一起补才满分。",
+          "option_id": "G04-html-practice-html-q7-0034ff46eb09:option-1"
+        },
+        {
+          "text": "缝距 300mm 偏小，改成 400mm 即可；接缝设在墙角下便于施工，可以保留。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "只盯着缝距小，改大点就完事。",
+          "loss_reason": "缝距应≥500mm(非400)，且墙角下接缝本身违规、必须避开。",
+          "fix": "缝距≥500mm，且接缝避开柱基/墙角/承重窗间墙。",
+          "option_id": "G04-html-practice-html-q7-0034ff46eb09:option-2"
+        },
+        {
+          "text": "做法均无不妥：接缝位置随施工方便布置，缝距 300mm 满足夯压密实即可。",
+          "is_correct": false,
+          "source_error_code": "M04",
+          "temptation": "图省事，认为接缝怎么设都行。",
+          "loss_reason": "墙角下接缝、缝距 300mm 两处都违规，判「无不妥」漏光采分点。",
+          "fix": "避柱基/墙角/承重窗间墙下接缝，缝距≥500mm。",
+          "option_id": "G04-html-practice-html-q7-0034ff46eb09:option-3"
+        },
+        {
+          "text": "只需将接缝改到柱基正下方集中处理，缝距 300mm 保持不变。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得挪到柱基下「统一」更整齐。",
+          "loss_reason": "柱基下同样禁接缝，且缝距应≥500mm，改错了方向。",
+          "fix": "避柱基/墙角/承重窗间墙下接缝，缝距≥500mm。",
+          "option_id": "G04-html-practice-html-q7-0034ff46eb09:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q7-0034ff46eb09",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b50f00dcae64c89608fb9e09b89b2d3a6ce4505b00c5796b070cc5d85c6e2d3d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b50f00dcae64c89608fb9e09b89b2d3a6ce4505b00c5796b070cc5d85c6e2d3d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "换填铺填·程序维",
+      "stem": "关于换填材料的铺填时间，下列做法正确的是？",
+      "model_answer": "灰土应当日铺填夯实、夯实后 3d 内不得受水浸泡；粉煤灰当日铺填压实。",
+      "options": [
+        {
+          "text": "灰土当日铺填夯实、夯实后 3d 内不得受水浸泡；粉煤灰当日铺填压实。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "灰土、粉煤灰均当日铺填，粉煤灰当日压实，时间要求写全。",
+          "option_id": "G04-html-practice-html-q8-ca1b466c8811:option-1"
+        },
+        {
+          "text": "灰土拌合后可隔日再铺填夯实，只要夯实到位不影响压实系数即可。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "觉得拌好的灰土放一天没啥事。",
+          "loss_reason": "灰土须当日铺填夯实，隔日铺填不符合要求，扣分。",
+          "fix": "灰土当日铺填夯实。",
+          "option_id": "G04-html-practice-html-q8-ca1b466c8811:option-2"
+        },
+        {
+          "text": "粉煤灰铺填后可等一周自然固结再压实，省去当日碾压工序。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "以为粉煤灰能像混凝土一样养护。",
+          "loss_reason": "粉煤灰应当日铺填压实，拖延违反要求。",
+          "fix": "粉煤灰当日铺填压实。",
+          "option_id": "G04-html-practice-html-q8-ca1b466c8811:option-3"
+        },
+        {
+          "text": "铺填时间无硬性规定，按现场安排灵活铺填，重点是最终压实系数达标。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只认压实系数，忽视时间要求。",
+          "loss_reason": "铺填时间有明确要求(当日)，漏掉这一采分点。",
+          "fix": "灰土/粉煤灰均当日铺填（灰土当日夯实、粉煤灰当日压实）。",
+          "option_id": "G04-html-practice-html-q8-ca1b466c8811:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q8-ca1b466c8811",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "42b1b57f88922503456f27649643a5756a7ebb1ca802ea641e2c54b1c8190eb3",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "42b1b57f88922503456f27649643a5756a7ebb1ca802ea641e2c54b1c8190eb3",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "强夯起算面·后果维",
+      "stem": "强夯地基的有效加固深度应从哪个面起算？选出正确的作答。",
+      "model_answer": "从最初起夯面（第一次夯击前的地面）起算。",
+      "options": [
+        {
+          "text": "从最初起夯面（第一次夯击前的地面标高）起算。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "起算零点=最初起夯面，选项爱拿终夯后/锤顶面坑你。",
+          "option_id": "G04-html-practice-html-q9-6323431bb8fb:option-1"
+        },
+        {
+          "text": "从强夯完成后（终夯后）沉降稳定的地面起算。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "觉得夯完的地面才是「最终」基准。",
+          "loss_reason": "终夯后地面已下沉，从这算深度偏小；起算面是最初起夯面。",
+          "fix": "从最初起夯面起算。",
+          "option_id": "G04-html-practice-html-q9-6323431bb8fb:option-2"
+        },
+        {
+          "text": "从夯锤锤顶面起算，锤顶到影响底面即为有效加固深度。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "锤顶看着是个明确的面。",
+          "loss_reason": "锤顶面无实际工程意义，不作起算面。",
+          "fix": "从最初起夯面（第一次夯击前地面）起算。",
+          "option_id": "G04-html-practice-html-q9-6323431bb8fb:option-3"
+        },
+        {
+          "text": "从未经任何扰动的原始天然地面起算，无论是否已做整平。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「原始地面」听着最原汁原味。",
+          "loss_reason": "原始地面可能已被扰动/整平，规范口径是最初起夯面。",
+          "fix": "从最初起夯面起算。",
+          "option_id": "G04-html-practice-html-q9-6323431bb8fb:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q9-6323431bb8fb",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "124548d4ca177d8809b2ed13565eb3a825cc56c190595a66ef2973c5322aea6a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "124548d4ca177d8809b2ed13565eb3a825cc56c190595a66ef2973c5322aea6a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "强夯参数·条件维",
+      "stem": "关于强夯施工的关键参数，下列正确的是？",
+      "model_answer": "夯锤质量 10~60t；锤底静接地压力 25~80kPa；排气孔直径 300~400mm。",
+      "options": [
+        {
+          "text": "夯锤质量 10~60t；锤底静接地压力 25~80kPa；排气孔直径 300~400mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三项参数量级都对，排气孔在锤底利于夯击。",
+          "option_id": "G04-html-practice-html-q10-7c9dea96095f:option-1"
+        },
+        {
+          "text": "夯锤质量 1~6t；锤底静接地压力 2.5~8kPa；排气孔直径 30~40mm。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数字形状对，量级随手小了十倍。",
+          "loss_reason": "参数量级全错（应 10~60t / 25~80kPa / 300~400mm）。",
+          "fix": "夯锤 10~60t、接地压力 25~80kPa、排气孔 300~400mm。",
+          "option_id": "G04-html-practice-html-q10-7c9dea96095f:option-2"
+        },
+        {
+          "text": "排气孔直径 300~400mm 指的是夯锤本身的直径，用来控制夯击面积。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "看到 300~400mm 就往夯锤直径上套。",
+          "loss_reason": "300~400mm 是排气孔直径，不是夯锤直径，概念混淆。",
+          "fix": "排气孔直径 300~400mm；夯锤按质量 10~60t 记。",
+          "option_id": "G04-html-practice-html-q10-7c9dea96095f:option-3"
+        },
+        {
+          "text": "夯锤质量越大越好，不设上限；接地压力只要够大就行，无需控制范围。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得越重越狠、加固越深。",
+          "loss_reason": "夯锤 10~60t、接地压力 25~80kPa 都有范围，无限加大违反规范。",
+          "fix": "夯锤 10~60t、接地压力 25~80kPa 有明确区间。",
+          "option_id": "G04-html-practice-html-q10-7c9dea96095f:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q10-7c9dea96095f",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "053de204ad6043ff59cc78a1f2e850c2bd0ab811ea7137a79f435eec3af34ce2",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "053de204ad6043ff59cc78a1f2e850c2bd0ab811ea7137a79f435eec3af34ce2",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "强夯检验·记录维",
+      "stem": "强夯地基施工结束后，应检验哪些内容？选出最完整的作答。",
+      "model_answer": "检验地基承载力、地基土强度、变形指标及其他设计要求的指标。",
+      "options": [
+        {
+          "text": "检验地基承载力、地基土强度、变形指标及其他设计要求的指标。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "承载力+强度+变形+其他设计要求，四项写全。",
+          "option_id": "G04-html-practice-html-q11-527a7649b6b5:option-1"
+        },
+        {
+          "text": "只需检查夯坑回填后的场地标高与平整度是否达到设计标高。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得夯完看看平不平就行。",
+          "loss_reason": "漏了承载力/强度/变形等关键指标，只测标高远不够。",
+          "fix": "检承载力、地基土强度、变形指标及其他设计要求。",
+          "option_id": "G04-html-practice-html-q11-527a7649b6b5:option-2"
+        },
+        {
+          "text": "目测夯坑外观、无明显隆起即判合格，不必做承载力检验。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "图省事，凭外观判定。",
+          "loss_reason": "必须做承载力等检验，仅凭外观违反质量验收要求。",
+          "fix": "须检承载力/强度/变形指标，不能只看外观。",
+          "option_id": "G04-html-practice-html-q11-527a7649b6b5:option-3"
+        },
+        {
+          "text": "仅检验夯击遍数与单击夯击能是否达到施工参数要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "施工参数达标像是就完事了。",
+          "loss_reason": "施工参数是过程控制，验收还须检承载力/强度/变形等效果指标。",
+          "fix": "施工后检承载力、地基土强度、变形指标等。",
+          "option_id": "G04-html-practice-html-q11-527a7649b6b5:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q11-527a7649b6b5",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "7f65e6009955622daccfd0923d015031e5a01c429b33780952339161b4069aee",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "7f65e6009955622daccfd0923d015031e5a01c429b33780952339161b4069aee",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "灰土挤密适用·条件维",
+      "stem": "某场地为地下水位以上的湿陷性黄土、含水量约 26%，拟用灰土挤密桩处理。下列作答正确的是？",
+      "model_answer": "灰土挤密桩适用地下水位以上湿陷性黄土等；含水量>24%或饱和度>65%时需先做现场试验。本例含水 26%>24%，须先试验。",
+      "options": [
+        {
+          "text": "适用：灰土挤密桩用于水位以上湿陷性黄土；因含水量 26%>24%，应先做现场试验再施工。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "命中适用(水位以上湿陷黄土)+ 含水>24% 触发试验，条件判到位。",
+          "option_id": "G04-html-practice-html-q12-8409ff4d3dce:option-1"
+        },
+        {
+          "text": "适用且可直接施工：湿陷黄土正是灰土挤密的对象，含水量高低不影响，无需试验。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "抓住「湿陷黄土适用」就直接开干。",
+          "loss_reason": "含水量>24%须先做现场试验，跳过试验是规范适用错误。",
+          "fix": "含水量>24%或饱和度>65%时应先做现场试验。",
+          "option_id": "G04-html-practice-html-q12-8409ff4d3dce:option-2"
+        },
+        {
+          "text": "不适用：灰土挤密桩只能用于地下水位以下的饱和软土，本场地在水位以上，应改用别的方法。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭「桩要打进水里」的常识想当然。",
+          "loss_reason": "恰恰相反：灰土挤密仅用于水位以上，把适用条件记反了。",
+          "fix": "灰土挤密适用水位以上（湿陷黄土等），本场地适用。",
+          "option_id": "G04-html-practice-html-q12-8409ff4d3dce:option-3"
+        },
+        {
+          "text": "适用：直接按含水量 26% 施工即可，试验只对饱和度>65% 的情况才要求。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "只记住饱和度那条，漏了含水量那条。",
+          "loss_reason": "含水量>24% 与 饱和度>65% 任一满足都要试验，本例含水 26% 已触发。",
+          "fix": "含水量>24% 即须先做现场试验。",
+          "option_id": "G04-html-practice-html-q12-8409ff4d3dce:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q12-8409ff4d3dce",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c0d753cbb615d6f96b185aa4efcc482878aa390233d292c6d6807f3a5dedbf80",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c0d753cbb615d6f96b185aa4efcc482878aa390233d292c6d6807f3a5dedbf80",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "软土选型·条件维",
+      "stem": "关于软土地基处理方法的适用性，下列说法正确的是？",
+      "model_answer": "注浆加固：软弱土用双液浆，地下水流动时禁用单液水泥浆；水泥土搅拌桩不适用大孤石/密实砂/渗流影响区。",
+      "options": [
+        {
+          "text": "注浆加固软弱土宜用双液浆，地下水流动时禁用单液水泥浆；搅拌桩不适用大孤石、密实砂、渗流影响区。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "注浆水流禁单液(用双液)+ 搅拌桩禁用地层，两条都对。",
+          "option_id": "G04-html-practice-html-q13-064b81ea4873:option-1"
+        },
+        {
+          "text": "地下水流动的地层注浆，用单液水泥浆更经济、凝结更快，优先采用单液浆。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "单液浆便宜、看着简单。",
+          "loss_reason": "地下水流动会把单液浆冲走，规定禁用单液、须用双液。",
+          "fix": "地下水流动时禁单液浆，用双液浆。",
+          "option_id": "G04-html-practice-html-q13-064b81ea4873:option-2"
+        },
+        {
+          "text": "水泥土搅拌桩地层适应性强，密实砂土和含大孤石地层照样能施工。",
+          "is_correct": false,
+          "source_error_code": "E11",
+          "temptation": "觉得搅拌桩「万能」，啥地层都行。",
+          "loss_reason": "大孤石、密实砂、渗流区搅拌桩不适用，迁移过度。",
+          "fix": "搅拌桩不适用大孤石/密实砂/渗流影响区。",
+          "option_id": "G04-html-practice-html-q13-064b81ea4873:option-3"
+        },
+        {
+          "text": "软土处理只要打桩即可，选注浆还是搅拌桩没区别，按造价低的定。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得方法差不多，挑便宜的就行。",
+          "loss_reason": "各法适用条件不同(水位/地层/水流)，混为一谈概念错。",
+          "fix": "按地层/水位/水流选：水流禁单液、搅拌避大孤石密实砂。",
+          "option_id": "G04-html-practice-html-q13-064b81ea4873:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q13-064b81ea4873",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b7e1c553f1da4939488cec6eb662569f2daf563c763755190de54dafada72ef1",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b7e1c553f1da4939488cec6eb662569f2daf563c763755190de54dafada72ef1",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "CFG选型·条件维",
+      "stem": "CFG（水泥粉煤灰碎石）桩的成桩工艺应主要依据什么选择？选出正确的作答。",
+      "model_answer": "按地下水位选工艺：水位以上宜用长螺旋钻孔灌注，水位以下宜用泥浆护壁成孔。",
+      "options": [
+        {
+          "text": "按地下水位选：水位以上宜用长螺旋钻孔灌注，水位以下宜用泥浆护壁成孔。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "上-长螺旋 / 下-泥浆护壁，抓住水位这个判据。",
+          "option_id": "G04-html-practice-html-q14-b15e9c84600e:option-1"
+        },
+        {
+          "text": "一律采用长螺旋钻孔灌注，不论地下水位高低都能干，最通用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "长螺旋听着最常用，图省事一刀切。",
+          "loss_reason": "水位以下应泥浆护壁，长螺旋钻孔灌注不适合水位以下，一律用错。",
+          "fix": "水位以下用泥浆护壁，水位以上才用长螺旋钻孔灌注。",
+          "option_id": "G04-html-practice-html-q14-b15e9c84600e:option-2"
+        },
+        {
+          "text": "按桩长选：桩短用长螺旋、桩长用泥浆护壁，与地下水位无关。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为工艺是按桩长定。",
+          "loss_reason": "CFG 成桩工艺按地下水位选，不是按桩长，判据错。",
+          "fix": "按地下水位：上-长螺旋 / 下-泥浆护壁。",
+          "option_id": "G04-html-practice-html-q14-b15e9c84600e:option-3"
+        },
+        {
+          "text": "按造价选，哪种便宜用哪种，成孔工艺不影响桩身质量。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得成孔方式无所谓、省钱要紧。",
+          "loss_reason": "水位条件决定成孔方式，选错工艺会塌孔/断桩。",
+          "fix": "按地下水位选成孔工艺（上-长螺旋 / 下-泥浆护壁）。",
+          "option_id": "G04-html-practice-html-q14-b15e9c84600e:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q14-b15e9c84600e",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "683545aba3084dd701d437c6c463129a7e05af579fd456ed749e14f80b68a840",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "683545aba3084dd701d437c6c463129a7e05af579fd456ed749e14f80b68a840",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "承载力检验·记录维",
+      "stem": "处理后的地基承载力检验频率，下列正确的是？",
+      "model_answer": "每300m²不少于1点；超3000m²时每500m²不少于1点；每单位工程不少于3点。",
+      "options": [
+        {
+          "text": "每300m²不少于1点；超3000m²时每500m²不少于1点；且每单位工程不少于3点。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "300/500 两档 + 每工程≥3点兜底，频率写全。",
+          "option_id": "G04-html-practice-html-q15-863b73da2a63:option-1"
+        },
+        {
+          "text": "每500m²不少于1点，每单位工程不少于1点即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记了个 500，兜底也随手写 1 点。",
+          "loss_reason": "基本档是每300m²≥1点，兜底是每单位工程≥3点，数字都偏。",
+          "fix": "每300m²≥1点、超3000m²每500m²≥1点、每单位工程≥3点。",
+          "option_id": "G04-html-practice-html-q15-863b73da2a63:option-2"
+        },
+        {
+          "text": "检验点数按经验现场确定即可，规范没有具体频率要求。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "觉得点数「差不多就行」。",
+          "loss_reason": "有明确频率(300/500/每工程≥3点)，缺关键数值不给分。",
+          "fix": "每300m²≥1点、每单位工程≥3点等。",
+          "option_id": "G04-html-practice-html-q15-863b73da2a63:option-3"
+        },
+        {
+          "text": "只要每单位工程做满 3 点就够了，面积多大都不用增加点数。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住了「≥3点」兜底一条。",
+          "loss_reason": "漏了按面积每300m²(超3000m²每500m²)≥1点的主档。",
+          "fix": "先按300m²/500m²布点，再以每单位工程≥3点兜底。",
+          "option_id": "G04-html-practice-html-q15-863b73da2a63:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q15-863b73da2a63",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q15",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "34a3fa65624299daf6440de72a72933a70efe0a3344b855ad04747dba86c62f6",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "34a3fa65624299daf6440de72a72933a70efe0a3344b855ad04747dba86c62f6",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "强夯休止·条件维",
+      "stem": "强夯施工后需休止一段时间再做检测，下列休止时间对应正确的是？",
+      "model_answer": "砂土≥7d、粉性土≥14d、黏性土≥28d 后再检测。",
+      "options": [
+        {
+          "text": "砂土≥7d、粉性土≥14d、黏性土≥28d 后再检测。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "7/14/28 对应砂/粉/黏，土越黏休止越长。",
+          "option_id": "G04-html-practice-html-q16-e8ef2d0ca61c:option-1"
+        },
+        {
+          "text": "黏性土≥7d、粉性土≥14d、砂土≥28d 后再检测。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得 7/14/28，土类对应随手排反。",
+          "loss_reason": "排反了：砂土最短 7d、黏性土最长 28d。",
+          "fix": "砂土≥7d、粉性土≥14d、黏性土≥28d。",
+          "option_id": "G04-html-practice-html-q16-e8ef2d0ca61c:option-2"
+        },
+        {
+          "text": "三类土统一休止 7d 后即可检测，与土的类别无关。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "图省事，觉得七天差不多都恢复了。",
+          "loss_reason": "休止时间随土类不同(7/14/28d)，一刀切违反规定。",
+          "fix": "砂土7d、粉性土14d、黏性土28d 分别对待。",
+          "option_id": "G04-html-practice-html-q16-e8ef2d0ca61c:option-3"
+        },
+        {
+          "text": "强夯完成后可立即检测承载力，无需休止时间。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "想快点出结果，觉得夯完就能测。",
+          "loss_reason": "须休止让超静孔隙水压力消散、强度恢复后再测，立即测不真实。",
+          "fix": "按砂7d/粉14d/黏28d 休止后再检测。",
+          "option_id": "G04-html-practice-html-q16-e8ef2d0ca61c:option-4"
+        }
+      ],
+      "variant_id": "G04-html-practice-html-q16-e8ef2d0ca61c",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q16",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "31e94ce9336773e14d08809f1314503579129d8ce51ed1339c6a40d6707de131",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "31e94ce9336773e14d08809f1314503579129d8ce51ed1339c6a40d6707de131",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +1174,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q17",
-      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e46cb0b444ca34ab84a1e83efe3e9c75c063843d6139ecb1f26123ecc70d3fb6",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e46cb0b444ca34ab84a1e83efe3e9c75c063843d6139ecb1f26123ecc70d3fb6",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "bdfc6026fd57939be81b364ada44782ef2e42c059b67ec6648ebc6575728ad7a"

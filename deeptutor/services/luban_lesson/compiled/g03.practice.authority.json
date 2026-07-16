@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "G03",
   "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
   "source_bundle_sha256": "551390b6da3161fdf968d3a93c50ea5649110ae9750813c7aa439efe8687c664",
@@ -24,7 +24,9 @@
         "G03-html-practice-html-q5-a89c9f731582",
         "G03-html-practice-html-q15-f68850feb673"
       ],
-      "published_practice_sha256": "5673722dcdf0782ac039e20118dc0120bcbfc1b5091bfe79e72e0075e31e6302"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZWVhNDE4NDg0NGJlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1hYWU3NWNkZGM0OGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTgwODJlZTIwZWE5MSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtYTg5YzlmNzMxNTgyIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZjY4ODUwZmViNjczIl0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImEyZmUwODNmZmUyYjkwMmFkNWJhMWU0YmEzNzZmODJkZDE2NTI5MDAzNjk5M2IxYTllMzc2OGE5NzE4YzFlNjgiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "dd16de8bef219fadbf0318c381f3eb6200ac315359c26bd9678b7de3893aa824"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q1",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "baf63138de9106f2ba3271d28ca25fb700e30a88099b286686daefd8ef95fa18",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "baf63138de9106f2ba3271d28ca25fb700e30a88099b286686daefd8ef95fa18",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q2",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "34bf492ff79f97a753945d39284fde9561258f5bda8f98a8475cb0bbe96a4219",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "34bf492ff79f97a753945d39284fde9561258f5bda8f98a8475cb0bbe96a4219",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q4",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "403d2a4d08d39f0dd05cd2ab01ad18c77960ba56cc2ab6b1aab584fe59825af2",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "403d2a4d08d39f0dd05cd2ab01ad18c77960ba56cc2ab6b1aab584fe59825af2",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,686 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q5",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "35174eb3a64667da3427afc750afb566ddd40c41a34a53b9dbdb62973fd43228",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "35174eb3a64667da3427afc750afb566ddd40c41a34a53b9dbdb62973fd43228",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "泥浆护壁流程·程序维",
+      "stem": "泥浆护壁回转钻成孔灌注桩的施工流程，选出完整、不漏关键节点的作答。",
+      "model_answer": "场地平整→放线→泥浆池→埋设护筒→钻机就位→成孔→清孔→下钢筋笼→水下浇筑→成桩。",
+      "options": [
+        {
+          "text": "平整放线→埋设护筒→钻机成孔→清孔→下钢筋笼→水下浇筑混凝土→成桩。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "护筒、清孔两个易漏节点都在，流程完整，得分。",
+          "option_id": "G03-html-practice-html-q6-5cd8a117649b:option-1"
+        },
+        {
+          "text": "平整放线→钻机成孔→下钢筋笼→浇筑混凝土→成桩，成孔后直接下笼。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得成孔完就能下笼。",
+          "loss_reason": "漏清孔（除沉渣）和埋护筒，沉渣超标、孔口坍塌。",
+          "fix": "成孔后必须清孔、成孔前须埋护筒。",
+          "option_id": "G03-html-practice-html-q6-5cd8a117649b:option-2"
+        },
+        {
+          "text": "平整放线→埋护筒→成孔→下钢筋笼→清孔→浇筑→成桩，先下笼再清孔。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为清孔可放到下笼后。",
+          "loss_reason": "清孔应在下钢筋笼前完成，顺序颠倒。",
+          "fix": "成孔→清孔→下钢筋笼→浇筑。",
+          "option_id": "G03-html-practice-html-q6-5cd8a117649b:option-3"
+        },
+        {
+          "text": "泥浆护壁只需成孔和浇筑两步，其余按干作业成孔处理。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "把流程压成两步。",
+          "loss_reason": "漏护筒/清孔/下笼多个采分节点。",
+          "fix": "按完整流程逐节点写，别压缩。",
+          "option_id": "G03-html-practice-html-q6-5cd8a117649b:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q6-5cd8a117649b",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5322dd7f71cd4ab6b90e0214d93e298f35b5682caed1e8f3bf087af54e686f7b",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5322dd7f71cd4ab6b90e0214d93e298f35b5682caed1e8f3bf087af54e686f7b",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "孔底沉渣·条件维",
+      "stem": "灌注桩孔底沉渣厚度按桩型控制，选出数值正确的作答。",
+      "model_answer": "端承型≤50mm、摩擦型≤100mm、抗拔及抗水平≤200mm。",
+      "options": [
+        {
+          "text": "端承型桩≤50mm、摩擦型桩≤100mm、抗拔及抗水平受荷桩≤200mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三档数值按桩型写全，端承最严，得分。",
+          "option_id": "G03-html-practice-html-q7-9514db1cdf06:option-1"
+        },
+        {
+          "text": "各类灌注桩孔底沉渣一律≤200mm，统一控制便于施工。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "图省事记一个数。",
+          "loss_reason": "各桩型套同一标准，端承桩持力层最敏感应≤50mm。",
+          "fix": "端承≤50、摩擦≤100、抗拔≤200，分档控制。",
+          "option_id": "G03-html-practice-html-q7-9514db1cdf06:option-2"
+        },
+        {
+          "text": "端承型≤200mm、摩擦型≤100mm、抗拔≤50mm。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数字对上了但配反。",
+          "loss_reason": "端承与抗拔数值互换错误。",
+          "fix": "端承最严≤50、抗拔最松≤200。",
+          "option_id": "G03-html-practice-html-q7-9514db1cdf06:option-3"
+        },
+        {
+          "text": "沉渣厚度只要肉眼看不出明显淤积即可，不必量测。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭观感。",
+          "loss_reason": "须按桩型量测控制，不能凭观感。",
+          "fix": "端承≤50/摩擦≤100/抗拔≤200mm。",
+          "option_id": "G03-html-practice-html-q7-9514db1cdf06:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q7-9514db1cdf06",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b3d602f4d66161fa81375b1d15c35f16b731ccb3671374f5278b8b6b2c30a276",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b3d602f4d66161fa81375b1d15c35f16b731ccb3671374f5278b8b6b2c30a276",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "超灌纠错·记录计算维",
+      "stem": "某水下灌注桩方案：灌注时桩顶混凝土面超过设计标高500mm即停灌。选出对该做法的正确判断与改正。",
+      "model_answer": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头混凝土才达标。",
+      "options": [
+        {
+          "text": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头才达标。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "指出不妥+写准0.8~1.0m+点出凿浮浆，三段齐，得分。",
+          "option_id": "G03-html-practice-html-q8-aaa9020ac5f9:option-1"
+        },
+        {
+          "text": "妥当。超过设计标高500mm已留有余量，凿桩头后即可满足要求。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "觉得超了就行、500有余量。",
+          "loss_reason": "未指出不妥，超灌不足、浮浆凿除后桩顶会低于设计标高。",
+          "fix": "应判不妥，超灌0.8~1.0m。",
+          "option_id": "G03-html-practice-html-q8-aaa9020ac5f9:option-2"
+        },
+        {
+          "text": "不妥，应加大超灌，但具体超灌多少按现场浮浆情况灵活掌握。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "指出了不妥却不敢写数。",
+          "loss_reason": "正确做法漏0.8~1.0m具体数字，阅卷不给该分。",
+          "fix": "补写超灌0.8~1.0m。",
+          "option_id": "G03-html-practice-html-q8-aaa9020ac5f9:option-3"
+        },
+        {
+          "text": "不妥，水下灌注应超灌至少2m以上确保桩头质量。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为超得越多越保险。",
+          "loss_reason": "超灌过高浪费且非规范值，规范0.8~1.0m。",
+          "fix": "超灌0.8~1.0m即可。",
+          "option_id": "G03-html-practice-html-q8-aaa9020ac5f9:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q8-aaa9020ac5f9",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d3ab32367f82b1ddfa16eb2d1bb468cc8217ab813f7e264d63ca5877a882d02d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d3ab32367f82b1ddfa16eb2d1bb468cc8217ab813f7e264d63ca5877a882d02d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "沉管成桩·程序维",
+      "stem": "沉管灌注桩除单打法外还有哪些工法？成桩关键步骤是什么？选出正确作答。",
+      "model_answer": "工法还包括复打法、反插法；成桩边振（锤击）边拔管并继续浇筑、下钢筋笼继续浇筑、成桩。",
+      "options": [
+        {
+          "text": "工法还包括复打法、反插法；边振边拔管边继续浇筑→下钢筋笼继续浇筑→成桩。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "复打/反插补全，边振边拔续浇关键步点到，得分。",
+          "option_id": "G03-html-practice-html-q9-6430051dff96:option-1"
+        },
+        {
+          "text": "工法还包括长螺旋法、旋挖法；沉管到位后一次性浇满拔管即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把别的成孔法当沉管工法。",
+          "loss_reason": "长螺旋/旋挖不是沉管工法，且漏边振边拔续浇。",
+          "fix": "沉管工法=单打/复打/反插；须边振边拔续浇。",
+          "option_id": "G03-html-practice-html-q9-6430051dff96:option-2"
+        },
+        {
+          "text": "单打法之外无其他工法；拔管时快速上拔以免混凝土离析。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为只有单打。",
+          "loss_reason": "漏复打、反插两工法，快速拔管易缩颈断桩。",
+          "fix": "补复打/反插；边振边拔、控制拔管速度。",
+          "option_id": "G03-html-practice-html-q9-6430051dff96:option-3"
+        },
+        {
+          "text": "工法还包括复打、反插；先拔完管再下钢筋笼、再浇筑成桩。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "工法补对了但步骤颠倒。",
+          "loss_reason": "应边振边拔边浇，先拔完管再浇会离析缩颈。",
+          "fix": "边振边拔管边继续浇筑，别先拔完再浇。",
+          "option_id": "G03-html-practice-html-q9-6430051dff96:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q9-6430051dff96",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6fe1c68436966aa132648c88acf811cad7438a447f20f7eb9025cea9e9d00fcd",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6fe1c68436966aa132648c88acf811cad7438a447f20f7eb9025cea9e9d00fcd",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "人工挖孔·程序维",
+      "stem": "人工挖孔灌注桩的开挖间距与顺序，选出符合规范的作答。",
+      "model_answer": "桩距小于2.5m时应间隔开挖浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
+      "options": [
+        {
+          "text": "桩距<2.5m时应间隔开挖并浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "间隔开挖、≥5m、先中间后周边三项齐，得分。",
+          "option_id": "G03-html-practice-html-q10-0dc4fb66e917:option-1"
+        },
+        {
+          "text": "相邻桩可同时开挖以加快进度，浇筑后再开挖下一批。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "想同时挖加快进度。",
+          "loss_reason": "相邻同时挖易塌孔伤人，应间隔开挖、间距≥5m。",
+          "fix": "间隔开挖、相邻最小≥5m。",
+          "option_id": "G03-html-practice-html-q10-0dc4fb66e917:option-2"
+        },
+        {
+          "text": "挖土应先周边后中间，扩底时先扩底再挖圆柱段。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "顺序凭感觉。",
+          "loss_reason": "挖土应先中间后周边，扩底应先挖圆柱再扩底，全反。",
+          "fix": "先中间后周边；先挖圆柱再扩底。",
+          "option_id": "G03-html-practice-html-q10-0dc4fb66e917:option-3"
+        },
+        {
+          "text": "只要护壁做好，相邻桩间距不限，紧挨开挖也可以。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为护壁到位就无间距要求。",
+          "loss_reason": "漏最小间距≥5m的硬约束。",
+          "fix": "相邻桩最小间距≥5m、间隔开挖。",
+          "option_id": "G03-html-practice-html-q10-0dc4fb66e917:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q10-0dc4fb66e917",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b479ea8826c2b026b7b7d89281ac97ed23bb03e9fbc678fb57985dbd12b6a65a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b479ea8826c2b026b7b7d89281ac97ed23bb03e9fbc678fb57985dbd12b6a65a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "桩底注浆·条件维",
+      "stem": "灌注桩桩底后注浆的终止控制，选出正确作答。",
+      "model_answer": "以注浆量为主控：注浆总量达设计值，或注浆量≥80%且注浆压力大于设计值时可终止。",
+      "options": [
+        {
+          "text": "以注浆量为主控：注浆总量达设计值，或注浆量≥80%且压力大于设计值时终止。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "量为主、双条件写全，得分。",
+          "option_id": "G03-html-practice-html-q11-7ea9a0a60e79:option-1"
+        },
+        {
+          "text": "以注浆压力为唯一主控，压力一达设计值立即终止，不看注浆量。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得压力最直观。",
+          "loss_reason": "应以注浆量为主控，单看压力可能量不足。",
+          "fix": "以注浆量为主控，兼顾压力条件。",
+          "option_id": "G03-html-practice-html-q11-7ea9a0a60e79:option-2"
+        },
+        {
+          "text": "注浆量达设计值的50%即可终止，以节约浆液。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记了个偏小的比例。",
+          "loss_reason": "比例记错，应≥80%且压力大于设计值。",
+          "fix": "注浆量≥80%且压力>设计值，或总量达设计。",
+          "option_id": "G03-html-practice-html-q11-7ea9a0a60e79:option-3"
+        },
+        {
+          "text": "注浆到桩底冒浆为止，凭现场返浆情况判断即可。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭返浆手感。",
+          "loss_reason": "须按注浆量/压力量化控制。",
+          "fix": "以注浆量为主控：总量达设计或≥80%且压力>设计。",
+          "option_id": "G03-html-practice-html-q11-7ea9a0a60e79:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q11-7ea9a0a60e79",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "9d68184408697cf28b00d2dc5c722b84bf569702628bb93257011ac0aea9a59e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "9d68184408697cf28b00d2dc5c722b84bf569702628bb93257011ac0aea9a59e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "检测方法适用·主体维",
+      "stem": "桩基检测方法与检测目的的匹配，选出正确作答。",
+      "model_answer": "承载力用静载或高应变；桩端持力层岩性用钻芯法；桩身完整性缺陷用低应变或声波透射；试验桩定单桩极限承载力。",
+      "options": [
+        {
+          "text": "承载力用静载或高应变；持力层岩性用钻芯法；完整性缺陷用低应变或声波透射法。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "方法对着目的选，甲级承载力必静载，得分。",
+          "option_id": "G03-html-practice-html-q12-480eec804655:option-1"
+        },
+        {
+          "text": "桩身承载力用低应变法测定，快速经济、适用于所有桩。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "以为低应变啥都能测。",
+          "loss_reason": "低应变只判完整性、给不出承载力，方法目的错配。",
+          "fix": "承载力用静载或高应变，低应变测完整性。",
+          "option_id": "G03-html-practice-html-q12-480eec804655:option-2"
+        },
+        {
+          "text": "完整性缺陷用静载试验测定，直接加载看桩身有无破坏。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "以为加载就能看缺陷。",
+          "loss_reason": "静载测承载力，完整性缺陷用低应变/声波透射/钻芯。",
+          "fix": "缺陷用低应变/声波透射，承载力才用静载。",
+          "option_id": "G03-html-practice-html-q12-480eec804655:option-3"
+        },
+        {
+          "text": "检测方法可任选，只要出报告即可，方法与目的无须对应。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "以为有报告就行。",
+          "loss_reason": "方法必须对应目的，否则结论无效。",
+          "fix": "按目的选方法：承载力静载/高应变、持力层钻芯、缺陷低应变声波透射。",
+          "option_id": "G03-html-practice-html-q12-480eec804655:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q12-480eec804655",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "be2d9c10a77ebc719245718c59d28ed1477eb561a1d8d3169b30399690ca6ba0",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "be2d9c10a77ebc719245718c59d28ed1477eb561a1d8d3169b30399690ca6ba0",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "完整性分类·条件维",
+      "stem": "桩身完整性分类Ⅰ–Ⅳ类，选出对Ⅱ、Ⅲ类描述正确的作答。",
+      "model_answer": "Ⅰ类完整；Ⅱ类有轻微缺陷、不影响承载力；Ⅲ类有明显缺陷、影响承载力；Ⅳ类严重缺陷。",
+      "options": [
+        {
+          "text": "Ⅱ类有轻微缺陷但不影响桩身结构承载力；Ⅲ类有明显缺陷、影响承载力。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "Ⅱ/Ⅲ分界在影不影响承载力，答对，得分。",
+          "option_id": "G03-html-practice-html-q13-151b2e98f9f7:option-1"
+        },
+        {
+          "text": "Ⅱ类有明显缺陷、影响承载力；Ⅲ类仅轻微缺陷、不影响承载力。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "Ⅱ、Ⅲ描述整体配反。",
+          "loss_reason": "Ⅱ轻微不影响、Ⅲ明显影响，互换错误。",
+          "fix": "Ⅱ轻微不影响承载力、Ⅲ明显影响承载力。",
+          "option_id": "G03-html-practice-html-q13-151b2e98f9f7:option-2"
+        },
+        {
+          "text": "Ⅱ类即为不合格桩、须直接报废，Ⅲ类可正常使用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为Ⅱ类就废。",
+          "loss_reason": "Ⅱ类不影响承载力可用，处置判断错。",
+          "fix": "Ⅱ类可用（不影响承载力），Ⅲ/Ⅳ才需处理。",
+          "option_id": "G03-html-practice-html-q13-151b2e98f9f7:option-3"
+        },
+        {
+          "text": "完整性只分合格与不合格两类，不必细分Ⅰ–Ⅳ。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "图省事分两类。",
+          "loss_reason": "漏Ⅰ–Ⅳ四类分级采分点。",
+          "fix": "按Ⅰ完整/Ⅱ轻微/Ⅲ明显/Ⅳ严重四类。",
+          "option_id": "G03-html-practice-html-q13-151b2e98f9f7:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q13-151b2e98f9f7",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "50afe6d643adb5ba7605d0c93b162f4637432addd4b1b4c1ae9740e43421e090",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "50afe6d643adb5ba7605d0c93b162f4637432addd4b1b4c1ae9740e43421e090",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "钻芯孔数·条件维",
+      "stem": "钻芯法检测的钻孔数量随桩径如何确定？选出正确作答。",
+      "model_answer": "桩径<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔；孔位距桩中心(0.15~0.25)D。",
+      "options": [
+        {
+          "text": "桩径<1.2m钻1~2孔、1.2~1.6m钻2孔、>1.6m钻3孔；孔位距桩中心(0.15~0.25)D。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三档孔数+孔位写全，粗桩多孔有代表性，得分。",
+          "option_id": "G03-html-practice-html-q14-00c69546d2bb:option-1"
+        },
+        {
+          "text": "无论桩径大小，钻芯每桩钻1孔即可，取芯代表整桩。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "图省事每桩1孔。",
+          "loss_reason": "粗桩1孔代表性不足，须按桩径分档增孔。",
+          "fix": "<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔。",
+          "option_id": "G03-html-practice-html-q14-00c69546d2bb:option-2"
+        },
+        {
+          "text": "桩径<1.2m钻3孔、1.2~1.6m钻2孔、>1.6m钻1孔，细桩多钻。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "孔数与桩径关系记反。",
+          "loss_reason": "应桩越粗孔越多，方向反了。",
+          "fix": "细桩少孔、粗桩多孔：1~2/2/3孔。",
+          "option_id": "G03-html-practice-html-q14-00c69546d2bb:option-3"
+        },
+        {
+          "text": "钻芯孔数由检测单位随意确定，够取样即可。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "以为随意定。",
+          "loss_reason": "孔数按桩径规范确定，非随意。",
+          "fix": "按桩径<1.2m/1.2~1.6m/>1.6m对应1~2/2/3孔。",
+          "option_id": "G03-html-practice-html-q14-00c69546d2bb:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q14-00c69546d2bb",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b07b096ccd05aa3216a405abeb8903432c3d0c97cd455d4ff9dac1ec0aabed7d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b07b096ccd05aa3216a405abeb8903432c3d0c97cd455d4ff9dac1ec0aabed7d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +1028,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q15",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "a7eb934b131a81210c8faf2510a5c968fa5e6db55d909da7c5bdcf1e20b4725e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "a7eb934b131a81210c8faf2510a5c968fa5e6db55d909da7c5bdcf1e20b4725e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "a9d219fcfd42434a65f8744178a00a9a79050805be8ea142df42836067ed48e9"

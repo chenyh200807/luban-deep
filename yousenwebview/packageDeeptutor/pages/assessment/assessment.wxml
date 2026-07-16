@@ -1,5 +1,5 @@
 <!-- pages/assessment/assessment.wxml — 摸底测试 -->
-<view class="assess-page {{isDark?'':'light'}}">
+<view class="assess-page paper {{isDark?'':'light'}} pk-paper-bg">
 
   <!-- 呼吸极光背景（低端设备跳过） -->
   <view class="aurora-layer" wx:if="{{enableOrbs}}">
@@ -439,9 +439,9 @@
       </view>
 
       <!-- 2. 学员画像（核心卡片） -->
-      <view class="archetype-card" wx:if="{{archetype}}" style="border-left-color:{{archetypeColor}}">
+      <view class="archetype-card" wx:if="{{archetype}}">
         <view class="archetype-header">
-          <view class="archetype-icon" style="background:{{archetypeColor}}">
+          <view class="archetype-icon">
             <text class="archetype-icon-txt">{{archetypeIcon}}</text>
           </view>
           <view class="archetype-title-col">

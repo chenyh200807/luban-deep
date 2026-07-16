@@ -7,6 +7,7 @@ from pathlib import Path
 import stat
 import subprocess
 import sys
+from urllib.parse import quote
 
 import pytest
 
@@ -155,6 +156,79 @@ def test_practice_only_check_does_not_touch_lesson_or_support() -> None:
 
     assert written == ["practice.html", "server-authority/f16"]
     assert (_mod._sha256(lesson), _mod._sha256(support)) == before
+
+
+@pytest.mark.parametrize(("station_id", "candidate_count"), [("n01", 16), ("s05", 18), ("x01", 15)])
+def test_candidate_review_packets_are_complete_and_never_machine_signed(
+    station_id: str, candidate_count: int
+) -> None:
+    path = _mod._practice_review_packet_path(station_id.upper())
+    packet = json.loads(path.read_text(encoding="utf-8"))
+
+    assert packet["schema"] == "luban_practice_review_packet.v1"
+    assert packet["candidate_count"] == candidate_count
+    assert packet["human_gate"] == {
+        "required_roles": ["teaching", "scoring"],
+        "machine_must_not_sign": True,
+    }
+    signed_rows = 0
+    for row in packet["items"]:
+        decision = row["decision"]
+        review = decision["review"]
+        if review["status"] == "pending":
+            # 未签发题必须整块留空——机器预填只允许进独立 candidates 文件。
+            assert review["signatures"] == []
+            assert decision["fact_id"] == ""
+            assert decision["skeleton_id"] == ""
+            assert decision["probe_role"] == ""
+            assert decision["source_anchor"] == ""
+            assert decision["source_sha256"] == ""
+            continue
+        # 已签发题必须携带完整的 owner 责任链,不接受裸机器签名。
+        signed_rows += 1
+        assert review["status"] == "signed"
+        assert review["verdict"] == "approved"
+        assert review["reviewed_content_sha256"] == row["content_sha256"]
+        assert all(review["checks"][name] is True for name in review["checks"])
+        roles = {sig["role"] for sig in review["signatures"]}
+        assert roles == {"teaching", "scoring"}
+        for sig in review["signatures"]:
+            assert sig["reviewer_id"].startswith("owner")
+            assert sig["signed_at"].strip()
+        assert decision["fact_id"] and decision["skeleton_id"]
+        assert decision["probe_role"] in {"anchor", "immediate_confirm", "d1_probe"}
+        assert decision["source_anchor"]
+        assert len(decision["source_sha256"]) == 64
+        assert decision["revoked"] is False
+    assert packet["eligible_count"] == signed_rows
+    assert all(row["authoring_anchor"].startswith("compiled_html:") for row in packet["items"])
+    assert all(len(row["authoring_sha256"]) == 64 for row in packet["items"])
+
+
+@pytest.mark.parametrize("station_id", ["n01", "s05", "x01"])
+def test_candidate_exact_bridge_url_stays_below_wechat_budget(station_id: str) -> None:
+    authority = json.loads(
+        (_mod.AUTHORITY_HOST / f"{station_id}.practice.authority.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    surface = authority["surfaces"][0]
+    by_id = {item["variant_id"]: item for item in authority["items"]}
+    answers = [
+        {
+            "variant_id": variant_id,
+            "selected_option_id": by_id[variant_id]["options"][0]["option_id"],
+        }
+        for variant_id in surface["variant_ids"]
+    ]
+    url = (
+        "/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt"
+        f"&pack_id={quote(authority['pack_id'])}"
+        f"&practice_surface={quote(surface['surface_id'])}"
+        f"&projection_receipt={quote(surface['projection_receipt'])}"
+        f"&answers={quote(json.dumps(answers, ensure_ascii=False, separators=(',', ':')))}"
+    )
+    assert len(url) < 1800
 
 
 def test_s07_registry_cannot_regress_to_the_n03_runtime() -> None:
@@ -473,6 +547,7 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
     (old / "support.js").write_text("old-support", encoding="utf-8")
     (old / "audio" / "b0.mp3").write_bytes(b"old-audio")
     monkeypatch.setattr(_mod, "HOST", host)
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path / "reviews")
     monkeypatch.setattr(
         _mod,
         "transform_teach",
@@ -602,7 +677,9 @@ def test_f16_compile_is_deterministic_and_public_hashes_match_authority() -> Non
     assert surface["presentation_order"] == [0, 1, 2, 3, 5]
     assert "__dtRedirectEvidence" in public_html
     assert "presentation=receipt&pack_id=" in public_html
-    assert "&answer_indexes=" in public_html
+    assert "&projection_receipt=" in public_html
+    assert "&answers=" in public_html
+    assert "&answer_indexes=" not in public_html
     assert "practice_surface=" in public_html
     assert "网页预览作答仅供即时反馈" in public_html
     assert "满分手" not in public_html

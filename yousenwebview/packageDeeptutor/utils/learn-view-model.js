@@ -131,52 +131,119 @@ function _posters(packs, titleIdx, recommendedId) {
   return rows;
 }
 
-// 今日主任务 = 针对推荐薄弱考点的 2 分钟轻练(PRD v1.3 §0.0 / §12.2 TodayMainTaskCard)。
-// 前端只投递路由意图,由学习页 handler 按 practice_kind 路由;不判分、不造第二套答题 authority。
-// practice_kind = 按签发供给真值路由(承诺宽度收窄,不对空池站渲染练不了的按钮):
-//   "seethrough"(该站有签发看穿包) > "retest"(有 signed 变体池 → retest?mode=forward) > "none"(降级)
-function _lightPracticeTask(concept, packId, reason, practiceKind) {
+// 今日任务只投影一个动作。到期验证与课后练共用 retest 内核；前端不判断
+// 掌握、不重算到期，也不把任何 Pack 专属 spike 提升成首页 authority。
+function _retestTask(concept, packId, reason, practiceKind, taskState) {
   var c = _str(concept) || "你的薄弱点";
-  var kind = practiceKind === "seethrough" || practiceKind === "retest" ? practiceKind : "none";
+  var kind = practiceKind === "retest" ? "retest" : "none";
+  var reviewDue = taskState === "review_due";
   return {
-    title: c + " · 2 分钟轻练",
+    title: c + (reviewDue ? " · 到期验证" : " · 课后检验"),
     reason: _str(reason),
-    // primary_cta: 无供给站不渲染主按钮(cta 空 = WXML 隐藏),诚实降级为 supplyNote
-    cta: kind === "none" ? "" : "开始 2 分钟轻练",
-    secondaryCta: "换轻练",        // secondary_cta:换成更广的综合摸底
-    supplyNote: kind === "none" ? "这一站的轻练正在教研签发中 · 先看讲解打底" : "",
-    task_type: "light_practice",
+    cta: kind === "none"
+      ? ""
+      : reviewDue
+      ? "用 2 分钟验证昨天的盲点"
+      : "完成刚学内容的 5 题检验",
+    supplyNote: kind === "none"
+      ? reviewDue
+        ? "这次验证暂时没有安全题；学习记录仍会保留"
+        : "这一站的课后题正在教研签发中 · 先看讲解打底"
+      : "",
+    task_type: reviewDue ? "review_due" : "light_practice",
+    task_state: reviewDue ? "review_due" : "practice_active",
+    action_kind: "retest",
     practice_kind: kind,
     estimated_minutes: 2,
     concept: c,
     pack_id: _str(packId).toUpperCase(),
     training_intent_id: "",
     probe_id: "",
-    mode: "topic",                 // assessment 专题模式(聚焦推荐考点)
+    mode: reviewDue ? "review" : "forward",
   };
 }
 
-// 看穿库总览 → 有签发看穿包的 pack_id 集合(缺响应/旗标关 = 空集,保守降级)
-function _seethroughSet(libraryResp) {
-  var set = {};
-  _safeArr(_safeObj(libraryResp).packs).forEach(function (p) {
-    var id = _str(_safeObj(p).pack_id).toUpperCase();
-    if (id) set[id] = true;
-  });
-  return set;
-}
-
 // 供给真值 → practice_kind 单一裁决点(禁在页面层再判一次)
-function _practiceKindFor(packId, titleIdx, seethroughSet) {
+function _practiceKindFor(packId, titleIdx) {
   var id = _str(packId).toUpperCase();
-  if (seethroughSet[id]) return "seethrough";
   if (_safeObj(titleIdx[id]).retest === true) return "retest";
   return "none";
 }
 
+function _lessonTask(station) {
+  var s = _safeObj(station);
+  var available = s.green === true && s.card_hosted !== false;
+  return {
+    title: _str(s.title) || "最需要提分的考点",
+    reason: _str(s.reason) || "先学懂这一小节，再用五题确认",
+    cta: available ? "学这一小节，随后做 5 题" : "",
+    supplyNote: available ? "" : "这一节微课正在制作中",
+    task_type: "microlesson",
+    task_state: "learn_next",
+    action_kind: "lesson",
+    practice_kind: "",
+    estimated_minutes: 5,
+    concept: _str(s.title),
+    pack_id: _str(s.pack_id).toUpperCase(),
+    training_intent_id: "",
+    probe_id: "",
+    mode: "learn",
+  };
+}
+
+// homeDashboard.next_step 是学习首页唯一任务 authority。本函数只做协议到
+// 展示动作的翻译；lessons 仅回答该任务的内容/题目供给是否已签发，不能在
+// next_step 缺失时自行补一个“推荐任务”。学习页与学情页必须共用本函数。
+function buildCanonicalLearningTask(args) {
+  var a = _safeObj(args);
+  var dash = _safeObj(a.homeDashboard);
+  var nextStep = _safeObj(dash.next_step);
+  var mode = _str(nextStep.mode);
+  var titleIdx = _titleIndex(a.lessons);
+  var sourceRef = _str(nextStep.source_ref);
+  var packId = _str(
+    mode === "practice_active" || mode === "review_due"
+      ? nextStep.target_pack_id
+      : nextStep.source_ref,
+  ).toUpperCase();
+  if (!packId) return null;
+  var pack = _safeObj(titleIdx[packId]);
+
+  if (mode === "review_due") {
+    var reviewTask = _retestTask(
+      pack.title || "你的薄弱点",
+      packId,
+      _str(nextStep.reason),
+      _practiceKindFor(packId, titleIdx),
+      "review_due",
+    );
+    reviewTask.probe_id = sourceRef;
+    return reviewTask;
+  }
+  if (mode === "practice_active") {
+    var practiceTask = _retestTask(
+      pack.title || "刚学内容",
+      packId,
+      _str(nextStep.reason),
+      _practiceKindFor(packId, titleIdx),
+      "practice_active",
+    );
+    practiceTask.training_intent_id = sourceRef;
+    return practiceTask;
+  }
+  if (mode !== "learn_next") return null;
+  return _lessonTask({
+    pack_id: packId,
+    title: pack.title || "即将开通",
+    reason: _str(nextStep.reason),
+    green: pack.green === true,
+    card_hosted: pack.card_hosted,
+  });
+}
+
 /**
  * 组装学习页 data。
- * @param {object} args {homeDashboard, report, lessons, seethroughLibrary}
+ * @param {object} args {homeDashboard, report, lessons}
  * @returns {object} setData payload
  */
 function buildLearnViewModel(args) {
@@ -262,51 +329,20 @@ function buildLearnViewModel(args) {
   // 首页预览只裁切真实投影，禁止为视觉效果覆写已学/推荐/锁定状态。
   var routePreview = posters.slice(0, 3);
 
-  // ── 复习到期(revalidation_queue items) ──
-  var packReview = _safeObj(report.pack_review);
-  var reval = _safeObj(report.revalidation_queue);
-  var dueCount = packReview.authority === "revalidation_queue"
-    ? _safeArr(packReview.due).length
-    : _safeArr(reval.items).length;
+  // ── 今日唯一任务：直接投影 server next_step，不在前端重排优先级 ──
+  // next_step 的 review_due 已由 home_next_step_projection 读取 canonical
+  // revalidation queue 后裁决；本层只把状态翻译成对应动作。
+  var todayTask = buildCanonicalLearningTask({
+    homeDashboard: a.homeDashboard,
+    lessons: a.lessons,
+  });
 
-  // ── 今日任务(PRD v1.3 §0.0 重心收口:头牌 = 2 分钟 MCQ 轻练,非案例题批改) ──
-  // task_type=light_practice + mode=topic:前端只投递路由意图(→ assessment 专题模式),
-  // 复用既有 MCQ 摸底流,不判分、不造第二套答题入口、不带案例批改 prompt。
-  // 案例题批改按 v1.3 降级为深度护城河层,不再当今日任务默认。
-  var seethroughSet = _seethroughSet(a.seethroughLibrary);
-  var todayTask = null;
-  if ((nextStep.mode === "practice_active" || nextStep.mode === "review_due") && nsRef) {
-    todayTask = _lightPracticeTask(
-      nsMeta.title || "你的薄弱点",
-      nsRef,
-      _str(nextStep.reason),
-      _practiceKindFor(nsRef, titleIdx, seethroughSet),
-    );
-    if (nextStep.mode === "review_due") todayTask.probe_id = sourceRef;
-    else todayTask.training_intent_id = sourceRef;
-  } else if (nextStation) {
-    // 有站可学即给通用今日任务(设计始终显示此卡);诚实=针对该站的 2 分钟轻练
-    todayTask = _lightPracticeTask(
-      nextStation.title || "你的薄弱点",
-      nextStation.pack_id,
-      "先用一组 2 分钟选择题定位薄弱采分点,答完当场看盲点和教材章节定位。",
-      _practiceKindFor(nextStation.pack_id, titleIdx, seethroughSet),
-    );
-  }
-
-  // ── 指标卡(report stats,尽力读+降级) ──
+  // ── 行为指标只透传事实计数；首页不呈现或解释 mastery 百分比 ──
   var overview = _safeObj(report.overview);
-  var mastery = _safeObj(report.mastery);
   var learnerSettings = _safeObj(dash.learner_settings);
-  var overallMastery = _int(
-    (mastery.overall_mastery && mastery.overall_mastery.score) != null
-      ? mastery.overall_mastery.score
-      : overview.overall_mastery
-  );
   var stats = {
     recent_practice: _int(overview.recent_three_done),
     pending_errors: _int(overview.weak_point_count != null ? overview.weak_point_count : overview.pending_error_count),
-    mastery_score: overallMastery,
   };
   var dailyTarget = _int(overview.daily_target || learnerSettings.daily_target);
   var todayDone = _int(overview.today_done);
@@ -317,7 +353,6 @@ function buildLearnViewModel(args) {
     nextStation: nextStation,          // null → 显示"内容即将上线"空态卡
     posters: posters,                  // [] → 课程架空态(完整地图/stations 用真实态)
     routePreview: routePreview,        // 首页 3 卡真实状态预览
-    dueCount: dueCount,                // 0 → 隐藏复习条
     todayTask: todayTask,              // null → 隐藏今日任务卡
     stats: stats,
     examDate: _str(learnerSettings.exam_date),
@@ -327,12 +362,13 @@ function buildLearnViewModel(args) {
       percent: dailyTarget ? Math.min(100, Math.round((todayDone / dailyTarget) * 100)) : 0,
     },
     // 供给面可用性(全空 = 后端未部署/无数据,页面走降级但不崩)
-    hasSupply: !!(nextStation || posters.length || dueCount || overallMastery),
+    hasSupply: !!(nextStation || posters.length || todayTask),
   };
 }
 
 module.exports = {
   buildLearnViewModel: buildLearnViewModel,
+  buildCanonicalLearningTask: buildCanonicalLearningTask,
   isLitLifecycleState: isLitLifecycleState,
   PACK_UNIVERSE: PACK_UNIVERSE,
 };

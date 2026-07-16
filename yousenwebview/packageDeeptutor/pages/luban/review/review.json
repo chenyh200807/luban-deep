@@ -1,7 +1,4 @@
 {
   "navigationStyle": "custom",
-  "enablePullDownRefresh": true,
-  "usingComponents": {
-    "workspace-shell": "../../../custom-tab-bar/index"
-  }
+  "enablePullDownRefresh": true
 }

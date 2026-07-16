@@ -30,7 +30,7 @@ from typing import Any, Iterable
 
 from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
 from deeptutor.services.learner_state.evidence_lifecycle import (
-    committed_retest_completion_ids,
+    committed_retest_item_event_ids,
     distinct_attempt_count,
     event_promotion_allowed,
     evidence_attempt_id,
@@ -88,7 +88,7 @@ def project_three_layer_learning_state(
     legacy_count = 0
     lesson_view_count = 0
     completion_terminal_count = 0
-    committed_retest_ids = committed_retest_completion_ids(ordered)
+    committed_retest_item_ids = committed_retest_item_event_ids(ordered)
 
     for event in ordered:
         if is_retest_completion_terminal(event):
@@ -99,7 +99,10 @@ def project_three_layer_learning_state(
         if is_lesson_view_event(event):
             lesson_view_count += 1
             continue
-        fact = _extract_grading_fact(event, committed_retest_ids=committed_retest_ids)
+        fact = _extract_grading_fact(
+            event,
+            committed_retest_item_ids=committed_retest_item_ids,
+        )
         if fact is not None:
             grading_facts.extend(fact)
             continue
@@ -143,7 +146,7 @@ def _is_learning_evidence_event(event: LearnerStateEvent) -> bool:
 def _extract_grading_fact(
     event: LearnerStateEvent,
     *,
-    committed_retest_ids: set[str] | None = None,
+    committed_retest_item_ids: set[str] | None = None,
 ) -> list[dict[str, Any]] | None:
     payload = _safe_dict(getattr(event, "payload_json", {}))
     if str(payload.get("evidence_source") or "").strip() == "conversation_synthesis":
@@ -157,7 +160,7 @@ def _extract_grading_fact(
     attempt_id = evidence_attempt_id(event, payload)
     can_promote = event_promotion_allowed(
         event,
-        committed_retest_ids=committed_retest_ids,
+        committed_retest_item_ids=committed_retest_item_ids,
     )
     real_retest = is_real_retest(payload)
 

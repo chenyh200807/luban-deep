@@ -1,3 +1,5 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
 .attempt-detail-page {
   height: 100vh;
   overflow: hidden;
@@ -314,3 +316,46 @@
   line-height: 1.6;
   color: #e2e8f0;
 }
+
+/* ── 学情证据链三级页：沿用同一张宣纸诊断单 ── */
+.attempt-detail-page.paper {
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
+  color: var(--pk-t1);
+}
+.attempt-detail-page.paper .detail-nav {
+  background: var(--pk-paper);
+  border-color: var(--pk-bd);
+  box-shadow: none;
+}
+.attempt-detail-page.paper .detail-back-arrow,
+.attempt-detail-page.paper .detail-back-text,
+.attempt-detail-page.paper .section-kicker,
+.attempt-detail-page.paper .explanation-label { color: var(--pk-grn); }
+.attempt-detail-page.paper .detail-nav-title,
+.attempt-detail-page.paper .detail-title,
+.attempt-detail-page.paper .summary-value,
+.attempt-detail-page.paper .explanation-content,
+.attempt-detail-page.paper .explanation-rich-text,
+.attempt-detail-page.paper .explanation-list-text,
+.attempt-detail-page.paper .next-text { color: var(--pk-t1); }
+.attempt-detail-page.paper .detail-subtitle,
+.attempt-detail-page.paper .summary-label,
+.attempt-detail-page.paper .detail-loading { color: var(--pk-t3); }
+.attempt-detail-page.paper .detail-hero,
+.attempt-detail-page.paper .detail-summary,
+.attempt-detail-page.paper .explanation-card,
+.attempt-detail-page.paper .md-table,
+.attempt-detail-page.paper .md-table-card,
+.attempt-detail-page.paper .detail-next {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+.attempt-detail-page.paper .summary-row,
+.attempt-detail-page.paper .md-th,
+.attempt-detail-page.paper .md-td,
+.attempt-detail-page.paper .md-table-card-row { border-color: var(--pk-bd); }
+.attempt-detail-page.paper .result-good { background: rgba(72, 128, 106, 0.12); color: var(--pk-grn); }
+.attempt-detail-page.paper .result-danger { background: rgba(194, 101, 85, 0.12); color: var(--pk-warn); }

@@ -15,7 +15,7 @@ from deeptutor.services.learner_state.evidence_lifecycle import (
     PRACTICE_EVIDENCE_SOURCE_FEATURES as PRACTICE_EVIDENCE_SOURCE_FEATURES,
 )
 from deeptutor.services.learner_state.evidence_lifecycle import (
-    committed_retest_completion_ids,
+    committed_retest_item_event_ids,
     distinct_attempt_count,
     event_promotion_allowed,
     evidence_attempt_id,
@@ -60,7 +60,7 @@ def synthesize_learning_truth(
     event_limit: int | None = None,
 ) -> dict[str, Any]:
     ordered_events = sorted(list(events), key=lambda event: (str(event.created_at or ""), str(event.event_id or "")))
-    committed_retest_ids = committed_retest_completion_ids(ordered_events)
+    committed_retest_item_ids = committed_retest_item_event_ids(ordered_events)
     # Phase -1.D: opt-in event window. Keeps the most-recent N events when
     # event_limit > 0; zero/negative/None disable windowing so existing
     # callers see no behavior change. The truncated flag surfaces upward so
@@ -73,7 +73,10 @@ def synthesize_learning_truth(
         item
         for event in ordered_events
         if _is_learning_evidence(event) and _is_release_eligible_evidence(event)
-        for item in _learning_items(event, committed_retest_ids=committed_retest_ids)
+        for item in _learning_items(
+            event,
+            committed_retest_item_ids=committed_retest_item_ids,
+        )
     ]
     # Review-only observation channel: candidate/shadow learning evidence excluded by
     # the release-eligibility safety net is OBSERVED here instead of silently dropped.
@@ -178,7 +181,10 @@ def synthesize_learning_truth(
         "candidate_observations": candidate_observations,
         "improvement_signals": improvements,
         "stale_claims": stale_claims,
-        "typed_graph": project_learning_graph(ordered_events),
+        "typed_graph": project_learning_graph(
+            ordered_events,
+            committed_retest_item_ids=committed_retest_item_ids,
+        ),
         "window_truncated": window_truncated,
         "learning_state": project_three_layer_learning_state(events=ordered_events),
     }
@@ -199,15 +205,27 @@ def synthesize_learning_truth(
     return projection
 
 
-def project_learning_graph(events: Iterable[LearnerStateEvent]) -> dict[str, Any]:
+def project_learning_graph(
+    events: Iterable[LearnerStateEvent],
+    *,
+    committed_retest_item_ids: set[str] | None = None,
+) -> dict[str, Any]:
+    event_list = list(events)
+    if committed_retest_item_ids is None:
+        committed_retest_item_ids = committed_retest_item_event_ids(event_list)
     edges: list[dict[str, Any]] = []
     readiness_gaps: list[dict[str, Any]] = []
-    for event in events:
+    for event in event_list:
         if not _is_learning_evidence(event):
             continue
         if is_retest_completion_terminal(event):
             continue
         payload = dict(event.payload_json or {})
+        if (
+            _clean_text(payload.get("retest_completion_id"))
+            and _clean_text(event.event_id) not in committed_retest_item_ids
+        ):
+            continue
         event_edges: list[dict[str, Any]] = []
         for raw_edge in list(payload.get("typed_edges") or []):
             if not isinstance(raw_edge, dict):
@@ -453,13 +471,13 @@ def _is_manual_correction(event: LearnerStateEvent) -> bool:
 def _learning_items(
     event: LearnerStateEvent,
     *,
-    committed_retest_ids: set[str] | None = None,
+    committed_retest_item_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     payload = dict(event.payload_json or {})
     attempt_id = evidence_attempt_id(event, payload)
     can_promote = event_promotion_allowed(
         event,
-        committed_retest_ids=committed_retest_ids,
+        committed_retest_item_ids=committed_retest_item_ids,
     )
     errors = [error for error in list(payload.get("error_events") or payload.get("errors") or []) if isinstance(error, dict)]
     signal = payload.get("next_training_signal") if isinstance(payload.get("next_training_signal"), dict) else {}

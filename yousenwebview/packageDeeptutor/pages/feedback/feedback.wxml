@@ -1,5 +1,5 @@
 <!-- pages/feedback/feedback.wxml — 结构化意见反馈 -->
-<view class="feedback-page {{isDark?'':'light'}}">
+<view class="feedback-page paper {{isDark?'':'light'}} pk-paper-bg">
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
     <view class="nav-content">
       <view class="nav-back" bindtap="goBack">

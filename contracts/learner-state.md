@@ -59,6 +59,7 @@
 
 - `LearnerStateService.append_memory_event(memory_kind="learning_evidence")` 是学习证据写入、dedupe 和后续 synthesis 触发的唯一服务入口；API/router/wrapper 不得各自触发第二套长期画像刷新。
 - `dedupe_key` 命中时必须返回既有事件，不得再次写入 `MEMORY_EVENTS.jsonl`，也不得再次触发 compiled-truth synthesis；读模型可以按同一 `dedupe_key`/内容 fingerprint 折叠 local+remote replay，但不得折叠 dedupe 不同的真实复练/复测。
+- `memory_kind="learning_evidence"` 只是存储分区，不足以让一条事件成为学习证据。local/remote reader 必须共用 `evidence_lifecycle.is_learning_evidence_event`：只放行登记的 evidence source 与 `payload.event_type="learning_evidence"`（兼容 construction grading 的既有例外）。durable completion claim 等控制记录即使同居该分区，也不得进入 synthesis、报告或学情投影。
 - 自动 synthesis 只允许在显式开关 `LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED=1` 下运行；生产环境还必须受既有 `qa_`/`operator_` canonical cohort gate 约束。broad learner canonical truth 仍由 `canonical_truth_promotion_decision()` 决定，不能因为自动 synthesis 而默认打开。
 - `learning_evidence.payload_json.canonical_topic` 是 taxonomy resolver 对证据的只读投影。Learning report、Learning Brain 和 synthesis 消费它时，不得在 UI/router 层重新猜 topic；若该字段缺失，旧事件继续按兼容路径读取。
 - PGO shadow same-attempt evidence 只能作为 `learning_signal_type="pgo_case_rubric_shadow"` 的
@@ -616,8 +617,11 @@ Overlay 必须支持：
 2. 练习完成事实只认服务端重判且满足严格 mode-authority 矩阵的
    `completion_terminal=true` 事件：forward 可接受 `signed_variant_server_rescore` 或
    `compiled_html_server_rescore`，但必须是 `medium/L0_observed/promotion=false`；review
-   只接受 `signed_variant_server_rescore`，且必须是
-   `high/L2_real_retest/promotion=true`。compiled HTML 绝不能冒充 review/L2。item append、
+   接受来自唯一 canonical supply resolver 的服务端重判：compiled Pack 只允许 SHA-pinned
+   per-Pack Practice v3 eligible/non-revoked artifact 的 `compiled_html_server_rescore`；仅无
+   compiled authority 的 legacy/custom Pack 才允许 `signed_variant_server_rescore`，且必须是
+   `high/L2_real_retest/promotion=true`。未通过 v3 eligibility/revocation/SHA gates 的 compiled
+   HTML 绝不能冒充 review/L2。item append、
    前端收据、本机 storage 和孤立 `station_completed` 都不得推进生命周期或移动复习时钟。
    `station_completed` 继续作为 completion 后的幂等业务信号，但不是 terminal outcome 的
    mirror，也不得复制分数/状态。相同 `retest_completion_id` replay 只算一次。
@@ -643,17 +647,32 @@ Overlay 必须支持：
    是变体练唯一 completion writer：item 事件只承载不可变作答证据，不得自报 pack 终态；
    全部 item 写成后再追加唯一 `completion_terminal=true` 事件，随后由同一服务写一次
    `station_completed`。页面、handoff 与 API wrapper 不得成为并行 writer。
-7. review completion 必须绑定 `revalidation_queue` 当前到期的 `probe_id`；客户端只传选择，
-   服务端从 signed variant bank 重判。forward 永远 non-promoting；review 只允许影响
+7. review GET 与 completion 必须绑定 `revalidation_queue` 当前到期的 `probe_id + cycle_anchor`；
+   客户端只能提交 probe hint，GET 必须从当前 due projection 精确解析 cycle 后才签发
+   self-describing `selection_id v3`，缺 probe、非当前 due、无 cycle 或无可发供给均 fail-closed。
+   GET 签发与 completion 复核必须向同一 revalidation projection 透传 member profile 的
+   `exam_date` 地平线，不能一边压缩 cadence、一边按无地平线重算 due。
+   completion 只解码并信任签名内的 pack/day/mode/exact variants/probe/cycle；客户端自报
+   mode/day/probe 不得选择执行 authority。客户端只传选择，服务端按 selection 绑定的供给
+   identity 经唯一 lesson supply resolver 重判；compiled Pack 不得回退 signed bank，只有无
+   compiled authority 的 legacy/custom Pack 才走 signed bank。forward 永远 non-promoting；review 只允许影响
    `pack:{pack_id}:rule:{rule_group}` 的同粒度概念，不得以 pack 粗粒度清除 sibling 错因。
    review 的 canonical `training_intent_id` 由服务端恢复为该 `probe_id`，忽略客户端自报 intent/mode；
    取题日使用服务端 UTC+8 日历日。
-8. 所有 read projection 必须先看同一 `retest_completion_id` 的 terminal commit。terminal 缺失时，
-   即使 item 带高置信/L2 字段也只能作为 L0；partial append 不得产生 weak/improvement/verified。
+8. 所有 read projection 必须共用 `evidence_lifecycle` 的 terminal closure，而不是只看同一
+   `retest_completion_id` 或 `completion_terminal=true`。canonical terminal 必须精确列出唯一
+   `item_event_refs`；每条被引用 item 必须匹配同一 request hash、completion、pack、mode，且题数、
+   `max_score`、`score_awarded` 与正确数可重算一致。只有 closure 引用的 item 可以进入 weak、
+   improvement、typed graph、三层学情、report、pack lifecycle、prescription outcome 或 replay；
+   同 completion 的孤儿 item 与 partial append 必须 fail-closed，不得移动复测时钟或形成 verified。
+   当前 Luban retest 只允许单选/判断的逐题二元 1 分制：item `max_score=1`、`score_awarded∈{0,1}`
+   且必须与 `is_correct` 一致；NaN/Infinity、损坏分数、加权题或部分给分不得静默进入该 closure。
+   未来支持加权题必须先升级 scoring contract，不能把容差 fallback 塞进现有 reader。
    `LUBAN_REVIEW_MODULE_ENABLED`（以及 forward 的 `LUBAN_LIGHT_PRACTICE_ENABLED`）必须在任何
    append 前 fail closed，禁止“写完 terminal 才撞 rollout flag”。
 9. GET 取题必须签发 `selection_id`，绑定 canonical user、pack、服务端 UTC+8 day、mode 与
-   variant ID 集合；POST 必须验证该 identity 后才按原签发日重建并重判。这样跨午夜/断网
+   variant ID 集合；review 额外绑定服务端解析的 `probe_id + cycle_anchor`。POST 必须验证该
+   identity 后才按原签发日重建并重判。这样跨午夜/断网
    retry 仍消费同一题组，同时客户端不能改 day、换题或跨用户复用 selection。
 10. 最近 8 天窗口只允许用于趋势/timeline。`pack_lifecycle` 与 pack review 必须读取分页后的
    全历史 `learning_evidence` 窄事件流；不得被 8 天、100/200/500 条页面窗口或 PostgREST
@@ -662,6 +681,18 @@ Overlay 必须支持：
 11. 今日进度的单位是题目作答：item event 可以计数，completion terminal 只是提交边界，
     必须带 `quality.progress_countable=false`，读侧也必须识别并排除历史 terminal。五题练习
     只增加 5 题，不能因 terminal 或 `station_completed` 变成 6。
+12. review 的并发唯一事实由 PostgreSQL RPC `claim_luban_retest_probe` 在既有
+    `learner_memory_events.dedupe_key` 唯一索引上原子 insert-or-read；claim identity 是
+    canonical JSON `[user_id, probe_id, cycle_anchor]` 的 SHA-256，不允许冒号拼接歧义，
+    不新建平行表。`semantic_request_hash = signed selection identity + normalized answers`，
+    明确排除客户端随机 `completion_id`。不同 hash 冲突；同 hash 的 durable winner completion
+    可在 claim 后 crash 时以相同 completion ID 幂等 resume；其他 completion 只能读取 winner
+    terminal，terminal 尚未 durable 时返回 retryable in-progress，绝不能偷写或把 pending 当成功。
+    同 winner completion 的 claim/item/terminal 事件 ID 必须由 dedupe key 稳定派生，保证两个
+    worker 的同语义 owner retry 不能让 terminal 引用另一组随机 item IDs、破坏 closure。
+    winner terminal 读取必须走 `read_luban_retest_completion_events` 直读 RPC 绕过 20 秒通用缓存。
+    未配置/失败的原子 claim 在任何 review item/terminal 写入前返回 unavailable；JSONL 和异步
+    outbox 不得充当 claim authority。forward 保持现有 completion 路径，不参与 probe claim。
 
 ## 单一写入职责
 

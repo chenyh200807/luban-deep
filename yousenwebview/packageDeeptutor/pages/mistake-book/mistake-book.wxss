@@ -1,4 +1,5 @@
 @import "/packageDeeptutor/theme.wxss";
+@import "/packageDeeptutor/styles/paper-ink.wxss";
 
 .mistake-book-page {
   height: 100vh;
@@ -705,3 +706,58 @@
   background: linear-gradient(90deg, #eef4ff 0%, #f8fbff 50%, #eef4ff 100%);
   background-size: 200% 100%;
 }
+
+/* ── 五模块纸墨壳：错题本归复习，信息结构不变，palette 收归 paper-ink ── */
+.mistake-book-page.paper {
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
+  color: var(--pk-t1);
+}
+.mistake-book-page.paper .mb-nav {
+  background: var(--pk-paper);
+  border-color: var(--pk-bd);
+  box-shadow: none;
+}
+.mistake-book-page.paper .mb-back-arrow,
+.mistake-book-page.paper .mb-back-text,
+.mistake-book-page.paper .ai-kicker { color: var(--pk-grn); }
+.mistake-book-page.paper .mb-nav-title,
+.mistake-book-page.paper .mb-title,
+.mistake-book-page.paper .mb-score-num,
+.mistake-book-page.paper .ai-title,
+.mistake-book-page.paper .chart-title,
+.mistake-book-page.paper .chart-label,
+.mistake-book-page.paper .mistake-title,
+.mistake-book-page.paper .empty-title { color: var(--pk-t1); }
+.mistake-book-page.paper .mb-hero,
+.mistake-book-page.paper .ai-panel,
+.mistake-book-page.paper .mb-stat,
+.mistake-book-page.paper .chart-card,
+.mistake-book-page.paper .mb-filter,
+.mistake-book-page.paper .mistake-card {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+.mistake-book-page.paper .mb-hero-desc,
+.mistake-book-page.paper .ai-summary,
+.mistake-book-page.paper .ai-bullet,
+.mistake-book-page.paper .mb-list-hint text,
+.mistake-book-page.paper .mistake-date,
+.mistake-book-page.paper .mistake-note { color: var(--pk-t2); }
+.mistake-book-page.paper .chart-track { background: var(--pk-gauge); }
+.mistake-book-page.paper .chart-fill,
+.mistake-book-page.paper .chart-fill.fill-focus,
+.mistake-book-page.paper .chart-fill.fill-calm { background: var(--pk-grn); }
+.mistake-book-page.paper .chart-fill.error { background: var(--pk-warn); }
+.mistake-book-page.paper .filter-chip,
+.mistake-book-page.paper .mistake-tags text,
+.mistake-book-page.paper .mistake-action {
+  background: var(--pk-gauge);
+  border-color: var(--pk-bd);
+  color: var(--pk-t2);
+}
+.mistake-book-page.paper .filter-chip.active { background: rgba(72, 128, 106, 0.12); border-color: var(--pk-grn); color: var(--pk-grn); }
+.mistake-book-page.paper .mistake-action.primary { background: var(--pk-ink-btn); color: var(--pk-ink-btn-t); }
+.mistake-book-page.paper .mistake-action.danger { background: transparent; border-color: var(--pk-warn); color: var(--pk-warn); }

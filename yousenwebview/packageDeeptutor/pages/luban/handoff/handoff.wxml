@@ -1,4 +1,4 @@
-<view class="luban-page {{isDark ? '' : 'light'}}">
+<view class="luban-page paper {{isDark ? '' : 'light'}} pk-paper-bg">
   <view class="lb-nav" style="padding-top: {{statusBarHeight}}px">
     <view class="lb-nav-inner">
       <view class="lb-back" bindtap="goBack">

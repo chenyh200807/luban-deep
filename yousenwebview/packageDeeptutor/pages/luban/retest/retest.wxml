@@ -174,7 +174,10 @@
               <view class="rt-review-dot"></view>
               <view class="rt-review-copy">
                 <text class="rt-review-text">{{item.correct_statement}}</text>
-                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.loss_reason}}">为什么会丢分：{{item.feedback.loss_reason}}</text>
+                <!-- 四层错项诊断(全部服务端签发字段, 缺失整行隐藏) -->
+                <text class="rt-review-detail" wx:if="{{item.selectedOptionText}}">你选了：{{item.selectedOptionText}}</text>
+                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.temptation}}">为什么它看起来像对的：{{item.feedback.temptation}}</text>
+                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.loss_reason}}">考试为什么不给分：{{item.feedback.loss_reason}}</text>
                 <text class="rt-review-fix" wx:if="{{item.feedback && item.feedback.fix}}">下次这样答：{{item.feedback.fix}}</text>
               </view>
             </view>

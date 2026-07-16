@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "X01",
   "source_pack_sha256": "173b2bf67a0ef36794281518e3511873105f84b371f22cd23c2d0661240a94ef",
   "source_bundle_sha256": "3e84bd1b7f6fc2f13a04afc05d22334d91b2471672499b25925e83591d3d95bf",
@@ -24,7 +24,9 @@
         "X01-html-practice-html-q4-362393c85661",
         "X01-html-practice-html-q15-2e5d7ee2846c"
       ],
-      "published_practice_sha256": "7856f343d65dc42957a7643be2718fe61488c41020865ae78617dc150fbab1b5"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtNGIyZDM3YTBlNDkwIiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xMDhlY2IwM2NkYjciLCJYMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWQ2MjM1NDk3OWExNyIsIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMzYyMzkzYzg1NjYxIiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMmU1ZDdlZTI4NDZjIl0sInBhY2tfaWQiOiJYMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjVlMDhlYzlhNWVmMzBhZGMzMmNlODFhZjZlN2FkNWJmODkzMzUxYzkxODk4YTEwMGRhNDA2YmRjZmFhODhlNmQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "525f8b1a0cef80a97c1a29207a1abf5d70b876f7abf0c88f15649172666862dd"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q1",
-      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "8fbc29ebf3e0892d5ab710ebf13176821894f0e126b3d86b950d761629a39808",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "8fbc29ebf3e0892d5ab710ebf13176821894f0e126b3d86b950d761629a39808",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q2",
-      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "cee13c8e230175ba649612941cbbb2eb2185009c75a202f0b28121f74ed0b080",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "cee13c8e230175ba649612941cbbb2eb2185009c75a202f0b28121f74ed0b080",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q3",
-      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "2f6621ea4377b912035e4382ebbd6e922a8a8e37446ea1b03b7d67b7e39fdc30",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "2f6621ea4377b912035e4382ebbd6e922a8a8e37446ea1b03b7d67b7e39fdc30",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,759 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q4",
-      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "312abcb3c11141c62122911674a16d494822a061af6ad662d63224de7541d89b",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "312abcb3c11141c62122911674a16d494822a061af6ad662d63224de7541d89b",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "塔吊·条件维",
+      "stem": "布置塔式起重机应考虑哪些因素？选出最完整、能得分的作答。",
+      "model_answer": "基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞。",
+      "options": [
+        {
+          "text": "考虑基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞八项因素。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "八因素齐全，尤其群塔防撞与拆除运输别漏。",
+          "option_id": "X01-html-practice-html-q5-b9876b29b5d2:option-1"
+        },
+        {
+          "text": "放在场地中间，能覆盖到主楼、吊得起最重的构件就行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「覆盖 + 吊重」像抓住重点了。",
+          "loss_reason": "漏基础/附墙/拆除运输/群塔防撞等多项因素。",
+          "fix": "八因素补齐，尤其群塔防撞/附墙位置/拆除运输。",
+          "option_id": "X01-html-practice-html-q5-b9876b29b5d2:option-2"
+        },
+        {
+          "text": "考虑地基承载力、附墙位置、楼层通道、出入口防护门、防护围栏等因素。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "因素词很专业，像塔吊的。",
+          "loss_reason": "那是施工升降机的布置因素，混搭到塔吊上了。",
+          "fix": "塔吊八因素=基础/环境/覆盖/吊重/运输堆放/附墙/拆除/群塔防撞。",
+          "option_id": "X01-html-practice-html-q5-b9876b29b5d2:option-3"
+        },
+        {
+          "text": "主要保证塔吊基础牢固、不倾覆，其余现场看着来就行。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "抓住「基础」一项。",
+          "loss_reason": "漏覆盖范围/群塔防撞等关键因素，关键词缺失。",
+          "fix": "补覆盖范围/吊重/运输堆放/附墙/拆除/群塔防撞。",
+          "option_id": "X01-html-practice-html-q5-b9876b29b5d2:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q5-b9876b29b5d2",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "40898441cc7f8c408c3d5e5e08355299e1fbe78393217cfb086b76c8af4d2134",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "40898441cc7f8c408c3d5e5e08355299e1fbe78393217cfb086b76c8af4d2134",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "混凝土泵·条件维",
+      "stem": "布置混凝土泵应考虑哪些因素？选出最完整、能得分的作答。",
+      "model_answer": "泵管输送距离、罐车停靠、立管固定牢固，泵车可流动使用。",
+      "options": [
+        {
+          "text": "考虑泵管输送距离、罐车停靠、立管固定牢固，泵车可流动使用。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三因素 + 「可流动」都写上，尤其别漏立管固定牢固。",
+          "option_id": "X01-html-practice-html-q6-d675bfc7600f:option-1"
+        },
+        {
+          "text": "把泵放在浇筑点旁边、离得近就行，方便泵送混凝土。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "「靠浇筑点」方向没错。",
+          "loss_reason": "漏罐车停靠/立管固定牢固等关键词，只答了位置。",
+          "fix": "补泵管输送距离/罐车停靠/立管固定牢固。",
+          "option_id": "X01-html-practice-html-q6-d675bfc7600f:option-2"
+        },
+        {
+          "text": "考虑地基承载力、附墙位置、楼层通道、防护门，保证泵稳固。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "因素听着都跟稳固有关。",
+          "loss_reason": "那是升降机的布置因素，张冠李戴。",
+          "fix": "泵=泵管距离/罐车停靠/立管固定/可流动。",
+          "option_id": "X01-html-practice-html-q6-d675bfc7600f:option-3"
+        },
+        {
+          "text": "泵车能开到现场随时移动使用就行，固定不固定无所谓。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记得泵车可流动。",
+          "loss_reason": "立管固定牢固是必写项，漏了要扣分。",
+          "fix": "泵车可流动之外，还要泵管距离/罐车停靠/立管固定。",
+          "option_id": "X01-html-practice-html-q6-d675bfc7600f:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q6-d675bfc7600f",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "f604d9d3b090c6e0273568266af76d12d8a333e46cedb0af91e3ae0bd8d78be4",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "f604d9d3b090c6e0273568266af76d12d8a333e46cedb0af91e3ae0bd8d78be4",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工升降机·条件维",
+      "stem": "布置施工升降机应考虑哪些条件和因素？选出最完整、能得分的作答。",
+      "model_answer": "地基承载力、平整度、排水、附墙位置、楼层平台通道、出入口防护门、防护围栏。",
+      "options": [
+        {
+          "text": "考虑地基承载力、平整度、排水、附墙位置、楼层平台通道、出入口防护门、防护围栏。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "地基类 + 附墙 + 通道 + 防护门围栏都写上，正是真题给分点。",
+          "option_id": "X01-html-practice-html-q7-a98c8c376228:option-1"
+        },
+        {
+          "text": "装在主楼旁边、能把人和料送上楼就行，其余安装时再说。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「靠主楼送人料」像答到位。",
+          "loss_reason": "漏地基承载力/附墙/楼层通道/防护门/围栏等多项。",
+          "fix": "补齐地基承载力/附墙位置/楼层通道/出入口防护门/围栏。",
+          "option_id": "X01-html-practice-html-q7-a98c8c376228:option-2"
+        },
+        {
+          "text": "考虑基础、覆盖范围、吊重、运输堆放、群塔防撞等因素。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "因素挺专业。",
+          "loss_reason": "那是塔吊八因素，混到升降机上了。",
+          "fix": "升降机=地基承载力/平整度/排水/附墙/通道/防护门/围栏。",
+          "option_id": "X01-html-practice-html-q7-a98c8c376228:option-3"
+        },
+        {
+          "text": "重点是地基要稳，把升降机架子立牢就行。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "抓住「地基」一项。",
+          "loss_reason": "漏附墙位置/楼层通道/防护门/围栏等，关键词缺。",
+          "fix": "补附墙位置/楼层平台通道/出入口防护门/防护围栏。",
+          "option_id": "X01-html-practice-html-q7-a98c8c376228:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q7-a98c8c376228",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "90dd37bb33b219801840596113907ebd49d31f79c3f405926ce21c988337f121",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "90dd37bb33b219801840596113907ebd49d31f79c3f405926ce21c988337f121",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "临设布置步骤·程序维",
+      "stem": "临时设施在施工平面上的布置步骤，按顺序选出正确作答。",
+      "model_answer": "布置仓库、堆场 → 布置加工厂 → 布置场内临时运输道路 → 布置临时房屋 → 布置临时水电管网。",
+      "options": [
+        {
+          "text": "按序：布置仓库、堆场 → 布置加工厂 → 布置场内临时运输道路 → 布置临时房屋 → 布置临时水电管网。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五步顺序不能颠倒，先仓库堆场、最后水电管网。",
+          "option_id": "X01-html-practice-html-q8-47bdfe71ab79:option-1"
+        },
+        {
+          "text": "先布置临时房屋和办公区安顿人员 → 再布置加工厂 → 最后补道路和水电管网。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得先安顿人再干活。",
+          "loss_reason": "顺序颠倒：应先仓库堆场/加工厂/道路，房屋在后。",
+          "fix": "仓库堆场→加工厂→道路→房屋→水电，不能先盖房。",
+          "option_id": "X01-html-practice-html-q8-47bdfe71ab79:option-2"
+        },
+        {
+          "text": "按危险品库距在建工程≥15m、道路宽≥4m 等规格，逐项布置到位。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记得临设规格数字。",
+          "loss_reason": "那是临设规格，不是布置步骤，答错内容。",
+          "fix": "步骤是仓库堆场→加工厂→道路→房屋→水电五步。",
+          "option_id": "X01-html-practice-html-q8-47bdfe71ab79:option-3"
+        },
+        {
+          "text": "布置加工厂和场内运输道路两项，把生产流线打通就行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住加工厂 + 道路。",
+          "loss_reason": "漏仓库堆场/临时房屋/水电管网，步骤不全。",
+          "fix": "五步齐：仓库堆场→加工厂→道路→房屋→水电。",
+          "option_id": "X01-html-practice-html-q8-47bdfe71ab79:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q8-47bdfe71ab79",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "41155ca182ff205dc92cfd97f913e2486d3473e7fef3b03acbbca586098de583",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "41155ca182ff205dc92cfd97f913e2486d3473e7fef3b03acbbca586098de583",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "临时仓库布置·程序条件维",
+      "stem": "关于施工现场临时仓库的布置，选出正确、能得分的作答。",
+      "model_answer": "普通材料库接近使用地点减少二次搬运；危险品仓库远离火源、保持安全距离特殊布置。",
+      "options": [
+        {
+          "text": "普通材料库接近使用地点、减少二次搬运；危险品仓库远离火源、保持安全距离，单独特殊布置。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "一近一远各有依据：近使用点减搬运、远火源保安全。",
+          "option_id": "X01-html-practice-html-q9-6c12477bd0a9:option-1"
+        },
+        {
+          "text": "所有仓库统一集中布置在场地一角，方便看管、防盗防丢。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "集中管理听着省事。",
+          "loss_reason": "材料库远离使用点会造成二次搬运；危险品未单独隔离。",
+          "fix": "材料库接近使用点；危险品库远离火源特殊布置。",
+          "option_id": "X01-html-practice-html-q9-6c12477bd0a9:option-2"
+        },
+        {
+          "text": "仓库越靠近大门越好，进料出料都方便，危险品也一并放门口。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得靠门进出方便。",
+          "loss_reason": "材料库应接近使用点而非大门；危险品放门口不隔火源。",
+          "fix": "材料库近使用点；危险品远离火源保持安全距离。",
+          "option_id": "X01-html-practice-html-q9-6c12477bd0a9:option-3"
+        },
+        {
+          "text": "把材料库紧贴在建工程外墙布置最省地，危险品也贴着放好拿。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "贴着建筑省地。",
+          "loss_reason": "危险品贴建筑违反远离火源/安全距离要求。",
+          "fix": "材料库近使用点；危险品必须远离火源、留安全距离。",
+          "option_id": "X01-html-practice-html-q9-6c12477bd0a9:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q9-6c12477bd0a9",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "3104b2b873b2e0779f34bb1a2f77b6199a9a5387a8bc31af3a28dfdc534fb04e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "3104b2b873b2e0779f34bb1a2f77b6199a9a5387a8bc31af3a28dfdc534fb04e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "围挡高度·条件维",
+      "stem": "关于施工现场围挡高度，选出正确、能得分的作答。",
+      "model_answer": "市区主要路段≥2.5m；一般路段≥1.8m；距路口 20m 内 0.8m 以上为通透性围挡。",
+      "options": [
+        {
+          "text": "市区主要路段围挡≥2.5m；一般路段≥1.8m；距路口 20m 内 0.8m 以上部分为通透性围挡。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三档分开写：市区 2.5、一般 1.8、路口通透，一档不漏。",
+          "option_id": "X01-html-practice-html-q10-a8e8ba221682:option-1"
+        },
+        {
+          "text": "全场围挡统一砌到 1.8m 以上即可，高度一致好施工、好验收。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "统一高度省事。",
+          "loss_reason": "未分路段：市区主路段应≥2.5m，且路口要通透。",
+          "fix": "市区≥2.5m/一般≥1.8m/路口 20m 内通透，分三档。",
+          "option_id": "X01-html-practice-html-q10-a8e8ba221682:option-2"
+        },
+        {
+          "text": "围挡越高越安全，路口更该加高到 3m 把视线完全挡住防干扰。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得越高越挡得严越好。",
+          "loss_reason": "路口应通透留视距，一堵到顶反成盲区隐患。",
+          "fix": "路口 20m 内 0.8m 以上通透，不是越高越好。",
+          "option_id": "X01-html-practice-html-q10-a8e8ba221682:option-3"
+        },
+        {
+          "text": "市区路段围挡要 2.5m 以上，做实体封闭挡好扬尘就行。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "记住 2.5m 一档。",
+          "loss_reason": "漏一般路段 1.8m 与路口通透两档，不全。",
+          "fix": "补一般路段≥1.8m、路口 20m 内通透两档。",
+          "option_id": "X01-html-practice-html-q10-a8e8ba221682:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q10-a8e8ba221682",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "cc8850bd7b4444fe2dd0cc7c72535d7ab365ad6198114117d1e083d2a2e15bd3",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "cc8850bd7b4444fe2dd0cc7c72535d7ab365ad6198114117d1e083d2a2e15bd3",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "五牌一图·记录表达维",
+      "stem": "主要出入口应设置的「五牌一图」包含哪些？选出最完整、能得分的作答。",
+      "model_answer": "工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图。",
+      "options": [
+        {
+          "text": "五牌：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌；一图：施工现场总平面图。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五牌逐块写清 + 一张总平面图，六项齐才拿满。",
+          "option_id": "X01-html-practice-html-q11-f9a359f499f6:option-1"
+        },
+        {
+          "text": "挂上工程概况牌、安全生产牌和文明施工牌这几块主要的牌子即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "挑了几块常见牌，像差不多。",
+          "loss_reason": "漏消防保卫牌/管理人员名单及监督电话牌/总平面图。",
+          "fix": "六项齐，补消防保卫/名单电话牌/总平面图。",
+          "option_id": "X01-html-practice-html-q11-f9a359f499f6:option-2"
+        },
+        {
+          "text": "在出入口设置若干安全警示标志和公示栏，把该公示的信息都贴出来。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "「公示信息」听着对。",
+          "loss_reason": "「警示标志/公示栏」是笼统替换，非五牌一图具体六项。",
+          "fix": "须写明五牌一图六项名称，不能笼统说公示栏。",
+          "option_id": "X01-html-practice-html-q11-f9a359f499f6:option-3"
+        },
+        {
+          "text": "五牌一图指五张施工图纸加一张平面图，挂在出入口供查阅。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "望文生义把「牌」当图纸。",
+          "loss_reason": "概念混淆：五牌是管理牌不是图纸。",
+          "fix": "五牌=概况/消防保卫/安全生产/文明施工/名单电话牌。",
+          "option_id": "X01-html-practice-html-q11-f9a359f499f6:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q11-f9a359f499f6",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "f6061c5bcccc89361930215209870ba315455bc7ec08d02d6c6cca6db5c53376",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "f6061c5bcccc89361930215209870ba315455bc7ec08d02d6c6cca6db5c53376",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "布置理由·后果维",
+      "stem": "施工平面布置示意图中，已识别出各区名称，还需补写布置理由。选出最能得分的作答。",
+      "model_answer": "各区补因果理由：钢筋加工区靠近材料运输/办公区设场地边缘减少干扰/塔吊居中覆盖范围广/地泵靠近浇筑点/油漆库远离火源。",
+      "options": [
+        {
+          "text": "逐区补因果：钢筋加工区靠近材料运输、办公区设于场地边缘减少干扰、塔吊居中覆盖范围广、地泵靠近浇筑点、油漆库远离火源。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "每区「名称 + 因果」，因果句才是这道题的采分点。",
+          "option_id": "X01-html-practice-html-q12-fa595f64b77a:option-1"
+        },
+        {
+          "text": "各区布置科学合理、井然有序，整体规划得当，符合施工组织要求。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "读着像总结、很顺。",
+          "loss_reason": "全是口号，没有一句因果理由，布置理由题 0 分。",
+          "fix": "每区写因果：靠材料运输/减少干扰/覆盖广/靠浇筑点/远火源。",
+          "option_id": "X01-html-practice-html-q12-fa595f64b77a:option-2"
+        },
+        {
+          "text": "标明①钢筋区②办公区③塔吊④地泵⑤油漆库各区名称和位置即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "名称位置都标了，像完成了。",
+          "loss_reason": "只识别名称，漏最值钱的「布置理由」因果句。",
+          "fix": "每区名称后补一句因果理由，才是采分点。",
+          "option_id": "X01-html-practice-html-q12-fa595f64b77a:option-3"
+        },
+        {
+          "text": "按先地下后地上、先主体后装修的顺序，说明各区施工的先后关系。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「先后顺序」听着有条理。",
+          "loss_reason": "答成施工顺序，不是空间布置理由，跑题。",
+          "fix": "写各区「为什么放这儿」的因果，不是施工先后。",
+          "option_id": "X01-html-practice-html-q12-fa595f64b77a:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q12-fa595f64b77a",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "128eadb54cf150089c43ea6debf05827179ad0b94a371514d38fab17c70daa5d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "128eadb54cf150089c43ea6debf05827179ad0b94a371514d38fab17c70daa5d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "垂直运输设备辨识·条件维",
+      "stem": "下列设备中，属于垂直运输设备的是哪一组？选出正确作答。",
+      "model_answer": "塔式起重机、施工电梯、物料提升架、混凝土泵属垂直运输设备；吊篮属高处作业设备，不是。",
+      "options": [
+        {
+          "text": "塔式起重机、施工电梯、物料提升架、混凝土泵 —— 四项均属垂直运输设备。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "记牢四项，尤其混凝土泵也算；吊篮不算。",
+          "option_id": "X01-html-practice-html-q13-189db3f7697b:option-1"
+        },
+        {
+          "text": "塔式起重机、施工电梯、物料提升架、吊篮 —— 四项均属垂直运输设备。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "吊篮能上下，像垂直运输。",
+          "loss_reason": "吊篮属高处作业设备，不是垂直运输，选错。",
+          "fix": "垂直运输不含吊篮，含混凝土泵。",
+          "option_id": "X01-html-practice-html-q13-189db3f7697b:option-2"
+        },
+        {
+          "text": "施工电梯、物料提升架、吊篮、脚手架 —— 四项均属垂直运输设备。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "都跟上下/高处有关。",
+          "loss_reason": "吊篮、脚手架都不是垂直运输设备。",
+          "fix": "垂直运输=塔机/电梯/提升架/泵。",
+          "option_id": "X01-html-practice-html-q13-189db3f7697b:option-3"
+        },
+        {
+          "text": "只有塔式起重机和施工电梯这两项属于垂直运输设备。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住最典型两个。",
+          "loss_reason": "漏物料提升架和混凝土泵，不全。",
+          "fix": "还含物料提升架、混凝土泵，共四项。",
+          "option_id": "X01-html-practice-html-q13-189db3f7697b:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q13-189db3f7697b",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "2506138fa0e6df71849f74e236c634d3da9240c2353104567f0af05108a5bfd5",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "2506138fa0e6df71849f74e236c634d3da9240c2353104567f0af05108a5bfd5",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "判断纠错·围挡",
+      "stem": "某工地全场围挡统一设为 1.8m、路口也一堵到顶。指出不妥并改正，选出最规范的作答。",
+      "model_answer": "不妥：围挡未分路段、路口不通透。正确：市区主要路段≥2.5m、一般路段≥1.8m、距路口 20m 内 0.8m 以上通透性围挡。",
+      "options": [
+        {
+          "text": "不妥：围挡未分路段且路口不通透。正确做法：市区主要路段≥2.5m、一般路段≥1.8m、路口 20m 内 0.8m 以上通透性围挡。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三段式齐：指不妥 + 理由 + 带数值分档的正确做法。",
+          "option_id": "X01-html-practice-html-q14-16a46379c8d5:option-1"
+        },
+        {
+          "text": "不妥：围挡设置不够规范合理，应进一步优化提升、加强现场管理。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「不规范/加强管理」像点出了问题。",
+          "loss_reason": "没给具体数值与分档，口号化纠错不得分。",
+          "fix": "正确做法要带市区 2.5 / 一般 1.8 / 路口通透具体档。",
+          "option_id": "X01-html-practice-html-q14-16a46379c8d5:option-2"
+        },
+        {
+          "text": "不妥：围挡太矮。正确做法：全场统一加高到 2.5m 以上，越高越挡得严。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "抓住「矮」就想加高。",
+          "loss_reason": "仍未分路段，且路口应通透而非加高，数字混淆。",
+          "fix": "分市区 2.5 / 一般 1.8 / 路口通透三档，路口不加高。",
+          "option_id": "X01-html-practice-html-q14-16a46379c8d5:option-3"
+        },
+        {
+          "text": "不妥：路口没通透。正确做法：路口 20m 内做通透围挡即可，其余不用改。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "抓住路口一处。",
+          "loss_reason": "漏改「未分路段」：市区应 2.5m，只补一处不全。",
+          "fix": "路口通透之外，还要分市区 2.5、一般 1.8。",
+          "option_id": "X01-html-practice-html-q14-16a46379c8d5:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q14-16a46379c8d5",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e613d4bc95f5ff599d56dd32c5f6f03d5328e77ce6fad52329572ab1065af6f0",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e613d4bc95f5ff599d56dd32c5f6f03d5328e77ce6fad52329572ab1065af6f0",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +1101,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q15",
-      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c1d2495d155167e8b2d635583743c5dd3e3276499a23662be40ad6b6ae595402",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c1d2495d155167e8b2d635583743c5dd3e3276499a23662be40ad6b6ae595402",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "999c85a8878f0193c133f8be44ecce88307e3e4e723e2d2282417e4fb128a416"

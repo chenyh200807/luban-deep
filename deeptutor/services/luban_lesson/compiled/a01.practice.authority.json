@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "A01",
   "source_pack_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
   "source_bundle_sha256": "d61035ef66d80d636d952dab0453f65fab225c13eed7c3b827ce38c1c83c2b15",
@@ -24,7 +24,9 @@
         "A01-html-practice-html-q4-2492e71aec61",
         "A01-html-practice-html-q16-5d16aca4c763"
       ],
-      "published_practice_sha256": "cab0f9b5ae92eddad668b85dae9def2f9423a033fd1468d0289f55b6c8748106"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMTEyMzQ0Y2YwZWMwIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lY2M5N2FhYzk1YmIiLCJBMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTFiNTUyYzRiYWU5ZCIsIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMjQ5MmU3MWFlYzYxIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNWQxNmFjYTRjNzYzIl0sInBhY2tfaWQiOiJBMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBkYjQ1NjE3OGE4MDg1M2M4NTdmNWE4NGFjYzM2NGI0YjQ2ZTJhN2M3MGQxMDhjNGUxNGI5NGZkZTFjZWRiMzYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "0b15278e758ab6df8d68074e585f3ef90346d31f802a7529d3adb1239b41edb4"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q1",
-      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c2a92003cddfab0828a7e243b533e94edebfd2b3879583af575974a0cd02bd9f",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c2a92003cddfab0828a7e243b533e94edebfd2b3879583af575974a0cd02bd9f",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q2",
-      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "df66e6f325d9039e2d941cd5de1c617bff2bf3dc3777f2955c44b74476d8be71",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "df66e6f325d9039e2d941cd5de1c617bff2bf3dc3777f2955c44b74476d8be71",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q3",
-      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5882c3ccbdff0124d46430798d0b28f8e3a16f998f3bb8e99f748456256996fa",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5882c3ccbdff0124d46430798d0b28f8e3a16f998f3bb8e99f748456256996fa",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,832 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q4",
-      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c6884213922e52b32809269983f695d6f0c5416c4bbe6b0723d5eebfea0f0864",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c6884213922e52b32809269983f695d6f0c5416c4bbe6b0723d5eebfea0f0864",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "隐蔽工程·程序维",
+      "stem": "某工程钢筋绑扎完成后准备浇筑混凝土。就隐蔽工程验收，选出正确、能得分的作答。",
+      "model_answer": "隐蔽工程应在覆盖前组织验收、留隐蔽验收记录，未经验收不得进入下道工序。",
+      "options": [
+        {
+          "text": "应在覆盖前对钢筋隐蔽工程组织验收并留隐蔽验收记录，合格后方可浇筑混凝土。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "覆盖前验 + 留记录 + 未验收不得进下道，三件齐。",
+          "option_id": "A01-html-practice-html-q5-13a21a5ccf70:option-1"
+        },
+        {
+          "text": "可先浇筑混凝土，待后续需要时再凿开混凝土检查钢筋并补做验收记录。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为随时能开挖复查、记录事后补。",
+          "loss_reason": "覆盖后物理够不着、窗口一次性，违反覆盖前验收。",
+          "fix": "必须覆盖前验收留记录，未验收不得浇筑。",
+          "option_id": "A01-html-practice-html-q5-13a21a5ccf70:option-2"
+        },
+        {
+          "text": "对钢筋组织验收合格即可浇筑，验收结论口头确认、不必留书面记录。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "验了就行，觉得记录是走形式。",
+          "loss_reason": "漏「留隐蔽验收记录」，事后无据可查。",
+          "fix": "验收 + 留文字 / 图像记录，缺一不可。",
+          "option_id": "A01-html-practice-html-q5-13a21a5ccf70:option-3"
+        },
+        {
+          "text": "钢筋由施工班组自检合格后即可直接浇筑，无需报监理组织隐蔽验收。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "图快，班组自检完就浇。",
+          "loss_reason": "跳过隐蔽工程验收节点，程序缺环。",
+          "fix": "须经隐蔽工程验收合格，方可进下道。",
+          "option_id": "A01-html-practice-html-q5-13a21a5ccf70:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q5-13a21a5ccf70",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "f2be258c30cd80010a237e362a5a9630ba29c5bd23e39af2cc8b9e2abcec38f2",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "f2be258c30cd80010a237e362a5a9630ba29c5bd23e39af2cc8b9e2abcec38f2",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "见证取样·主体维",
+      "stem": "涉及结构安全的材料需见证取样送检。选出主体、记录都正确、能得分的作答。",
+      "model_answer": "在建设/监理见证人员见证下由试验员现场取样送检，保证真实性、代表性，见证记录由见证人员制作。",
+      "options": [
+        {
+          "text": "在建设 / 监理见证人员见证下现场取样送检，保证试样真实性、代表性，见证记录由见证人员制作。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "见证主体 + 真实代表性 + 见证人员记录，三件齐。",
+          "option_id": "A01-html-practice-html-q6-1c0fb757195e:option-1"
+        },
+        {
+          "text": "由试验员在现场独立取样送检并制作见证记录，同样能保证试样真实性与代表性。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "取样是试验员干的，记录顺手也归他。",
+          "loss_reason": "取样、记录都少了见证人员这一主体，记录应由见证人员制作。",
+          "fix": "见证记录由见证人员（非试验员）制作。",
+          "option_id": "A01-html-practice-html-q6-1c0fb757195e:option-2"
+        },
+        {
+          "text": "由施工员凭材料重要程度自行决定是否见证取样送检，重要的才送、次要的免送、常规材料凭出厂合格证直接放行入场。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭「重要就送」的常识判断。",
+          "loss_reason": "该不该送靠规范见证取样清单强制，不是主观判断。",
+          "fix": "按规范见证取样清单强制送检。",
+          "option_id": "A01-html-practice-html-q6-1c0fb757195e:option-3"
+        },
+        {
+          "text": "由施工单位现场取样后直接送检即可，取样与送检环节无需见证人员在场。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为把样送到就完成了。",
+          "loss_reason": "漏「见证下取样」这一主体条件，也没提真实性代表性。",
+          "fix": "补建设 / 监理见证下取样、保证真实代表性。",
+          "option_id": "A01-html-practice-html-q6-1c0fb757195e:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q6-1c0fb757195e",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e8dc38892eef1624a5236103aadc4f477a61aa189e110ee8db0e899e3d26e82b",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e8dc38892eef1624a5236103aadc4f477a61aa189e110ee8db0e899e3d26e82b",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "实体检验·记录维",
+      "stem": "结构实体检验应包括哪些内容？选出完整、能得分的作答。",
+      "model_answer": "包括混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目。",
+      "options": [
+        {
+          "text": "混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四项齐全，后三项最易漏。",
+          "option_id": "A01-html-practice-html-q7-2b62a818eaf7:option-1"
+        },
+        {
+          "text": "混凝土强度与钢筋保护层厚度两项，即为结构实体检验的全部内容。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住最熟的前两项就当成全部。",
+          "loss_reason": "漏结构位置与尺寸偏差、合同约定项目两项。",
+          "fix": "补尺寸偏差、合同约定项目，共四项。",
+          "option_id": "A01-html-practice-html-q7-2b62a818eaf7:option-2"
+        },
+        {
+          "text": "混凝土强度、见证取样结果、隐蔽工程记录、工程观感质量四项内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "凑够四项、却把别的验收环节混进来。",
+          "loss_reason": "见证取样 / 隐蔽记录 / 观感非实体检验四内容，张冠李戴。",
+          "fix": "实体四内容=强度 / 保护层 / 尺寸偏差 / 合同约定。",
+          "option_id": "A01-html-practice-html-q7-2b62a818eaf7:option-3"
+        },
+        {
+          "text": "混凝土强度、钢筋保护层厚度、砌体强度、防水性能共四项内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数量对上四项，内容却塞了砌体、防水。",
+          "loss_reason": "砌体强度 / 防水性能不属结构实体检验四内容，归错。",
+          "fix": "第三四项是尺寸偏差与合同约定项目。",
+          "option_id": "A01-html-practice-html-q7-2b62a818eaf7:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q7-2b62a818eaf7",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b5e72565fad08a9db4ac286f52febdd32a1587546360a000946e99d731f33f20",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b5e72565fad08a9db4ac286f52febdd32a1587546360a000946e99d731f33f20",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "实体检验·主体维",
+      "stem": "结构实体检验由谁组织、谁实施？选出能得分的作答。",
+      "model_answer": "由监理单位组织、施工单位实施、监理见证，施工单位编专项方案报监理审批。",
+      "options": [
+        {
+          "text": "由监理单位组织、施工单位实施、监理单位全过程见证；施工单位编制专项方案报监理审批。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "组织在监理、实施在施工、见证在监理，方案报审批。",
+          "option_id": "A01-html-practice-html-q8-f3371f96ef61:option-1"
+        },
+        {
+          "text": "由施工单位自行组织并实施结构实体检验，监理单位负责事后见证与备案。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「谁施工谁验收」的直觉。",
+          "loss_reason": "组织主体应是监理，施工只负责实施，主体答反。",
+          "fix": "监理组织、施工实施、监理见证。",
+          "option_id": "A01-html-practice-html-q8-f3371f96ef61:option-2"
+        },
+        {
+          "text": "由建设单位组织、监理单位实施、施工单位配合，检验专项方案由监理编制审批。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得建设是甲方牵头、监理动手。",
+          "loss_reason": "组织在监理、实施在施工、方案由施工编，三处主体都错位。",
+          "fix": "监理组织、施工实施、施工编方案报监理审批。",
+          "option_id": "A01-html-practice-html-q8-f3371f96ef61:option-3"
+        },
+        {
+          "text": "由监理单位组织结构实体检验，施工单位配合取样，专项方案不作硬性要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "组织答对了就以为够了。",
+          "loss_reason": "漏施工实施主体、监理见证与专项方案报审批。",
+          "fix": "补施工实施 + 监理见证 + 专项方案报审批。",
+          "option_id": "A01-html-practice-html-q8-f3371f96ef61:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q8-f3371f96ef61",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "eda20a4fc2259f4b782025e7e810d12f9618fea172b86d3cecb7609762681418",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "eda20a4fc2259f4b782025e7e810d12f9618fea172b86d3cecb7609762681418",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "强度检测·程序维",
+      "stem": "结构实体混凝土强度检测应采用什么方法？选出顺序正确、能得分的作答。",
+      "model_answer": "优先采用同条件养护试件法；试件不足或不满足时采用回弹—取芯法。",
+      "options": [
+        {
+          "text": "优先采用同条件养护试件法；当试件缺乏或强度不满足时，再采用回弹—取芯法。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先首选同条件试件、不足才兜底回弹取芯，顺序点明。",
+          "option_id": "A01-html-practice-html-q9-fef17cb91f1c:option-1"
+        },
+        {
+          "text": "直接采用回弹法或钻芯取样法检测强度，同条件养护试件仅作辅助参考。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得回弹钻芯又快又直接。",
+          "loss_reason": "跳过同条件养护试件首选、把兜底当首选，顺序错。",
+          "fix": "先同条件养护试件，不足才回弹—取芯。",
+          "option_id": "A01-html-practice-html-q9-fef17cb91f1c:option-2"
+        },
+        {
+          "text": "同条件养护试件法与回弹—取芯法二者等效，可任选其一直接评定强度。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为两法并列等价。",
+          "loss_reason": "两法有先后、非并列，同条件试件优先。",
+          "fix": "同条件养护试件优先，回弹取芯是兜底。",
+          "option_id": "A01-html-practice-html-q9-fef17cb91f1c:option-3"
+        },
+        {
+          "text": "直接采用标准养护试件的强度评定结果判定实体强度即可，无需另做同条件试件。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "把结构实体检验和标准养护评定混了。",
+          "loss_reason": "实体强度用同条件养护试件、不是标准养护试件。",
+          "fix": "用同条件养护试件法，不足再回弹取芯。",
+          "option_id": "A01-html-practice-html-q9-fef17cb91f1c:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q9-fef17cb91f1c",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "58c28ab5b6dd50d337807e4fb78ce3d9bf3d19fcd66e3290e45288cef3ed4c69",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "58c28ab5b6dd50d337807e4fb78ce3d9bf3d19fcd66e3290e45288cef3ed4c69",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "强度合格判定·计算维",
+      "stem": "某 C35 构件钻芯，三芯样抗压代表值 28.5、31、32 MPa。写出可得分的合格判定依据与结论。",
+      "model_answer": "依据「平均值≥设计×88%=30.8、最小值≥设计×80%=28」；平均(28.5+31+32)/3=30.8 恰为临界、最小 28.5>28，临界是否合格以评分细则为准。",
+      "options": [
+        {
+          "text": "依据「平均值≥设计×88%=30.8、最小值≥设计×80%=28」；平均(28.5+31+32)/3=30.8 恰为临界、最小 28.5>28，临界判定以评分细则为准。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两阈值都套 + 代入算 + 点明临界，不擅自拍板。",
+          "option_id": "A01-html-practice-html-q10-9b2d5f186ce1:option-1"
+        },
+        {
+          "text": "依据「平均值须≥设计强度 35」判定；平均(28.5+31+32)/3=30.8＜35，故代表值不足、直接判不合格。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "直接拿平均和设计强度 35 比大小。",
+          "loss_reason": "判据错——应比设计×88% / ×80% 双阈值，不是比设计值本身。",
+          "fix": "套平均≥35×88%、最小≥35×80% 双阈值。",
+          "option_id": "A01-html-practice-html-q10-9b2d5f186ce1:option-2"
+        },
+        {
+          "text": "依据「平均值≥设计×88%=30.8」判定；平均 30.8 已达标，故构件合格，最小值不再单独设限。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "套了 88% 平均线就以为完事。",
+          "loss_reason": "漏最小值≥设计×80% 这条独立门槛，判据不全。",
+          "fix": "补最小值≥28 这条，双条件都要满足。",
+          "option_id": "A01-html-practice-html-q10-9b2d5f186ce1:option-3"
+        },
+        {
+          "text": "依据「平均值≥设计×80%=28、最小值≥设计×88%=30.8」；平均30.8>28、最小28.5<30.8，故判不合格。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "两阈值记得，却把 88% / 80% 对调了。",
+          "loss_reason": "平均对应 88%、最小对应 80%，数值配反、结论也带偏。",
+          "fix": "平均≥88%（30.8）、最小≥80%（28），别对调。",
+          "option_id": "A01-html-practice-html-q10-9b2d5f186ce1:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q10-9b2d5f186ce1",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d83f4c4a219fe1a5abc0e149ee61a44fa2f2b9c8bfc001de013ec33d01a89a6d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d83f4c4a219fe1a5abc0e149ee61a44fa2f2b9c8bfc001de013ec33d01a89a6d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "分部验收·主体维",
+      "stem": "主体结构分部工程验收由谁组织、还应有哪些人员参加？选出能得分的作答。",
+      "model_answer": "由总监理工程师（或建设单位项目负责人）组织，施工单位项目负责人、技术负责人，设计单位项目负责人，施工单位技术、质量部门负责人参加。",
+      "options": [
+        {
+          "text": "由总监理工程师（或建设单位项目负责人）组织；施工单位项目负责人、技术负责人，设计单位项目负责人，施工单位技术、质量部门负责人参加。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "组织者 + 施工/设计参加人员齐，主体分部不漏设计与技术质量负责人。",
+          "option_id": "A01-html-practice-html-q11-0de9b6aa8f32:option-1"
+        },
+        {
+          "text": "由施工单位项目负责人组织自行验收，总监理工程师、设计单位项目负责人及施工单位质量部门负责人到场旁站见证、并在验收记录上签字确认即可。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得施工方牵头验自己的活、别人陪场。",
+          "loss_reason": "应由总监理工程师 / 建设单位组织，施工不是组织者。",
+          "fix": "总监理工程师（或建设单位项目负责人）组织。",
+          "option_id": "A01-html-practice-html-q11-0de9b6aa8f32:option-2"
+        },
+        {
+          "text": "由总监理工程师组织，施工单位项目负责人与技术负责人参加即可，设计单位与质量部门可不参加。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "答了组织者和施工两人就收手。",
+          "loss_reason": "主体结构分部漏设计单位项目负责人、施工技术 / 质量部门负责人。",
+          "fix": "补设计单位 + 施工技术、质量部门负责人。",
+          "option_id": "A01-html-practice-html-q11-0de9b6aa8f32:option-3"
+        },
+        {
+          "text": "由建设单位项目负责人组织，仅监理单位总监与施工单位项目负责人两方到场参加验收。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为甲方组织、监理施工到场就行。",
+          "loss_reason": "漏设计单位项目负责人、施工技术 / 质量部门负责人。",
+          "fix": "补设计单位 + 施工技术、质量部门负责人。",
+          "option_id": "A01-html-practice-html-q11-0de9b6aa8f32:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q11-0de9b6aa8f32",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "721af1c36f178ced81b9c3700bc5480b9214c34722facbeaab76926ea696b150",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "721af1c36f178ced81b9c3700bc5480b9214c34722facbeaab76926ea696b150",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "主体子分部·记录维",
+      "stem": "主体结构分部包含哪些子分部工程？选出能得分的作答。",
+      "model_answer": "含混凝土结构、砌体结构、钢结构、钢管混凝土结构、型钢混凝土结构、铝合金结构、木结构，共七类。",
+      "options": [
+        {
+          "text": "混凝土结构、砌体结构、钢结构、钢管混凝土结构、型钢混凝土结构、铝合金结构、木结构，共七类子分部。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "七类齐全、数量不改。",
+          "option_id": "A01-html-practice-html-q12-9637d08ef60d:option-1"
+        },
+        {
+          "text": "混凝土结构、砌体结构、钢结构、型钢混凝土结构、铝合金结构、装配式结构，共六类子分部。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数量记成六、还塞了个「装配式」。",
+          "loss_reason": "子分部是七类、漏钢管混凝土、且无「装配式结构」这一子分部名。",
+          "fix": "七类，无装配式；补钢管混凝土、木结构。",
+          "option_id": "A01-html-practice-html-q12-9637d08ef60d:option-2"
+        },
+        {
+          "text": "混凝土结构、砌体结构、钢结构三类，即为主体结构的全部子分部工程。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住最常见的三类当全部。",
+          "loss_reason": "漏钢管混凝土 / 型钢混凝土 / 铝合金 / 木结构，数量不足。",
+          "fix": "补齐至七类。",
+          "option_id": "A01-html-practice-html-q12-9637d08ef60d:option-3"
+        },
+        {
+          "text": "含地基与基础、主体结构、装饰装修、屋面工程等，作为主体结构的子分部。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把分部层级错当成主体的子分部。",
+          "loss_reason": "地基基础 / 装饰装修 / 屋面是分部、非主体的子分部，层级混。",
+          "fix": "主体子分部=混凝土 / 砌体 / 钢等七类。",
+          "option_id": "A01-html-practice-html-q12-9637d08ef60d:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q12-9637d08ef60d",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "737303a58deb12bede1ae8bcf5f99c31e8ae970d9a20b680455576c0e2cd1f34",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "737303a58deb12bede1ae8bcf5f99c31e8ae970d9a20b680455576c0e2cd1f34",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "单位工程合格·记录维",
+      "stem": "单位工程质量验收合格应满足哪些条件？选出完整、能得分的作答。",
+      "model_answer": "分部全合格、质量控制资料完整、安全节能环保资料完整、主要功能抽查合格、观感质量达标，五条齐。",
+      "options": [
+        {
+          "text": "所含分部全部合格、质量控制资料完整、安全节能环保等资料完整、主要功能抽查合格、观感质量达标。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五条齐全，最易漏主要功能抽查与观感。",
+          "option_id": "A01-html-practice-html-q13-f2d95500158f:option-1"
+        },
+        {
+          "text": "所含分部全部合格、质量控制资料完整、观感质量达标三条满足，即可判单位工程合格。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "挑了三条像样的就当齐了。",
+          "loss_reason": "漏安全节能环保资料完整、主要功能抽查合格两条。",
+          "fix": "补安全节能环保资料 + 主要功能抽查，凑齐五条。",
+          "option_id": "A01-html-practice-html-q13-f2d95500158f:option-2"
+        },
+        {
+          "text": "主控项目全部合格、一般项目合格率≥80% 且偏差不超规定值、质量控制资料完整、观感质量达标，即可判单位工程验收合格。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把检验批合格标准搬到单位工程。",
+          "loss_reason": "主控 / 一般是检验批标准，单位工程看分部合格等五条。",
+          "fix": "单位工程看分部合格 + 资料 + 主要功能 + 观感五条。",
+          "option_id": "A01-html-practice-html-q13-f2d95500158f:option-3"
+        },
+        {
+          "text": "所含分部全部合格、观感质量达标两条即可，各类资料是否完整不影响验收结论。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只盯着分部和观感首尾两条。",
+          "loss_reason": "漏质控资料、安全节能环保资料、主要功能抽查三条。",
+          "fix": "补中间三条，共五条。",
+          "option_id": "A01-html-practice-html-q13-f2d95500158f:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q13-f2d95500158f",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "8fd7f06e7abc070f3911e94e1f1c2b7cacd130e145a5df74e0439416ffc37f10",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "8fd7f06e7abc070f3911e94e1f1c2b7cacd130e145a5df74e0439416ffc37f10",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "竣工验收程序·程序维",
+      "stem": "单位工程竣工验收的程序如何？选出顺序正确、能得分的作答。",
+      "model_answer": "施工自检、监理预验收、施工整改、预验收通过、提交竣工报告、建设单位组织正式验收；建设/施工/监理/设计/勘察五方参加。",
+      "options": [
+        {
+          "text": "施工单位自检合格后报监理预验收，整改通过后提交竣工验收报告，由建设单位组织勘察 / 设计 / 施工 / 监理五方正式验收。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "自检、预验收、整改、报告、建设单位组织正式验收，五方齐。",
+          "option_id": "A01-html-practice-html-q14-4ecf086ba835:option-1"
+        },
+        {
+          "text": "由建设单位先组织勘察 / 设计 / 施工 / 监理五方正式验收，发现问题后再交监理预验收、施工整改，整改合格后补交竣工验收报告。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得甲方先验、发现问题再回头改。",
+          "loss_reason": "顺序整段倒置——监理预验收、整改在正式验收之前。",
+          "fix": "先施工自检、监理预验收、整改，最后建设单位正式验收。",
+          "option_id": "A01-html-practice-html-q14-4ecf086ba835:option-2"
+        },
+        {
+          "text": "施工单位自检合格后直接提交竣工报告，由建设单位组织正式验收，监理预验收环节可省略。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "跳过中间环节图省事。",
+          "loss_reason": "漏监理预验收、整改两个前置环节。",
+          "fix": "补监理预验收、整改，通过后再正式验收。",
+          "option_id": "A01-html-practice-html-q14-4ecf086ba835:option-3"
+        },
+        {
+          "text": "施工自检、整改合格后由监理单位组织勘察 / 设计 / 建设 / 施工五方进行竣工正式验收。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "监理管现场，以为它组织正式验收。",
+          "loss_reason": "竣工正式验收由建设单位组织，监理只做预验收。",
+          "fix": "建设单位组织五方正式验收。",
+          "option_id": "A01-html-practice-html-q14-4ecf086ba835:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q14-4ecf086ba835",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "9d7cf57c97a5a3a2e4ca0581789d5cf4277d3a41e28f60878fca257d6209256a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "9d7cf57c97a5a3a2e4ca0581789d5cf4277d3a41e28f60878fca257d6209256a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "不合格处理·后果维",
+      "stem": "检验批 / 工程验收不合格，应如何处理？选出能得分的作答。",
+      "model_answer": "返工 / 返修后重新验收；资料缺委托有资质机构实体检验补证；经返修或加固后仍不满足安全或重要使用要求的，严禁验收。",
+      "options": [
+        {
+          "text": "返工 / 返修后重新验收；质控资料缺失委托有资质机构实体检验补证；经返修或加固仍不满足安全或重要使用要求的，严禁验收。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "分档处理 + 严禁验收在最末，分支答全。",
+          "option_id": "A01-html-practice-html-q15-d3641f35b02f:option-1"
+        },
+        {
+          "text": "验收不合格的一律返工返修、推倒重做后重新验收，直至各项指标全部合格为止。",
+          "is_correct": false,
+          "source_error_code": "E11",
+          "temptation": "以为不合格=失败=拆了重来。",
+          "loss_reason": "只给一个终态，漏委托检测补证、加固重评、严禁验收各档。",
+          "fix": "按返修 / 委托检测 / 加固 / 严禁验收分档处理。",
+          "option_id": "A01-html-practice-html-q15-d3641f35b02f:option-2"
+        },
+        {
+          "text": "返工返修后重新验收；质量控制资料缺失的委托有资质机构检测补证；经返修或加固后仍不满足安全或重要使用要求的，可作让步处理验收后交付使用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为加固后再不行也能让步用。",
+          "loss_reason": "仍不满足安全 / 重要使用要求应严禁验收，不得让步验收。",
+          "fix": "最末一档是严禁验收，不能让步接收。",
+          "option_id": "A01-html-practice-html-q15-d3641f35b02f:option-3"
+        },
+        {
+          "text": "对不合格部位返工返修后重新组织验收即可，资料缺失与加固评估不属验收处理范畴。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答返工一档、把其余排除在外。",
+          "loss_reason": "漏资料缺委托检测、加固重评、严禁验收各档。",
+          "fix": "补委托检测补证与「严禁验收」终档。",
+          "option_id": "A01-html-practice-html-q15-d3641f35b02f:option-4"
+        }
+      ],
+      "variant_id": "A01-html-practice-html-q15-d3641f35b02f",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q15",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b0466ceb5f6160f5746e4ee786ec5287c570fb89343f0812c569bd7ec6129e1c",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b0466ceb5f6160f5746e4ee786ec5287c570fb89343f0812c569bd7ec6129e1c",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +1174,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q16",
-      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f1fa8ae1132db5589370ebd401dd8faf459ffdc71b1c01336d1c96afa14e1110",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "ebb5f85e57ada146d111190c0800d6e501a79c492c98fe77dcce73f8eadd527e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "ebb5f85e57ada146d111190c0800d6e501a79c492c98fe77dcce73f8eadd527e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "a7d7a29cf3f14e29bd7d4b3223803fca4ca092baea968033f590ef683f3156c2"

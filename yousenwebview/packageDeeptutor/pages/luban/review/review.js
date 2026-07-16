@@ -11,8 +11,6 @@
 // 零学习证据写入（学习证据归 learner_signal / 判分链路，本页不碰）。
 var api = require("../../../utils/api");
 var auth = require("../../../utils/auth");
-var flags = require("../../../utils/flags");
-var helpers = require("../../../utils/helpers");
 var route = require("../../../utils/route");
 var runtime = require("../../../utils/runtime");
 var mistakeBookViewModel = require("../../../utils/mistake-book-view-model");
@@ -47,11 +45,7 @@ Page({
   },
 
   onShow: function () {
-    // 五 tab 壳:复习 index=1;本页第 10 版定稿=宣纸亮,壳跟页面主题
-    helpers.syncTabBar(this, 1, {
-      isDark: this.data.isDark,
-      hidden: !flags.shouldShowWorkspaceShell(),
-    });
+    // 旧 URL 只保留历史深链兼容；复习已并入学习任务，不能再占用历史 tab。
     if (this._hasShown && !this.data.loading && auth.isLoggedIn()) {
       this._loadAll();
     }

@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "B02",
   "source_pack_sha256": "5386e2fa881ff36c29700b42e04c11dff17b6b4d0c41f19d832b24e0d4f7cd39",
   "source_bundle_sha256": "dee7e76dc839a82ae9d3e1db66c8f27a6719bda9e00d76fec2de81677dbcf8ab",
@@ -24,7 +24,9 @@
         "B02-html-practice-html-q4-c6ab82fa9b4d",
         "B02-html-practice-html-q5-b4aa29d9c0a5"
       ],
-      "published_practice_sha256": "a498a8682144d596788742cfc5342dc5f913f7a8a00463209493da12ecf52f96"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjIwMDBiMTQwMzlkIiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yYmRkYWYxZTFlNmEiLCJCMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLThiZDdiYmQxMjM5NiIsIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzZhYjgyZmE5YjRkIiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNS1iNGFhMjlkOWMwYTUiXSwicGFja19pZCI6IkIwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiN2Y2OThhYmJkY2U4M2FjMjM0NzczNWQzZmYwZGI3Mzc3NzAzODExYWVhMjNhZTU2NDVkNjVjNzk0ZTAxNDc2NCIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "ddd0e1a76687b52ab8cbab757a67d1501376856dad0c511607d129805c559cca"
     },
     {
       "surface_id": "practice2.html",
@@ -46,7 +48,9 @@
         "B02-html-practice2-html-q4-3fe5ec16a7b3",
         "B02-html-practice2-html-q5-dea26e040c36"
       ],
-      "published_practice_sha256": "aed68c1279c3d738c251c780fa6382299600896171381452f569dc93ac4d4df9"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXExLTIzMGI2ZDFkM2Q5YiIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXEyLTBmZGQwNzYxZGFjZSIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXEzLWQ1Y2E4NjhjZmQ3MSIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXE0LTNmZTVlYzE2YTdiMyIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXE1LWRlYTI2ZTA0MGMzNiJdLCJwYWNrX2lkIjoiQjAyIiwicHJvamVjdGlvbl9kaWdlc3QiOiI4YjVkODNhNmRmN2UyNDY4YmVjMTNkMzM5N2QzOTNjNmM0NmJjYzQ1ZGYzZjE0MjkxNDViNzRlZWRlNDY4N2NjIiwic2NoZW1hIjoibHViYW5fcHJhY3RpY2VfcHJvamVjdGlvbl9yZWNlaXB0LnYxIiwic291cmNlX2RpZ2VzdCI6IjZjZmViZjgwNGU3ODdkN2Y2ZjQyYWI0ZWMxNzBhMzM2MzVmYzA0MWI0ZmMzN2FkMWUyZjNjNGEyYjViYzhlY2UiLCJzdXJmYWNlX2lkIjoicHJhY3RpY2UyLmh0bWwifQ",
+      "published_practice_sha256": "bb75840b356b1a7292acb220d52fe6e80ba29fb5a433609445db5245a0bf32f5"
     }
   ],
   "items": [
@@ -99,7 +103,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q1",
-      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "4224e0c7812f00732fbb3d9148cb2688e6931b4dfecf1d695eaf8482727b8978",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "4224e0c7812f00732fbb3d9148cb2688e6931b4dfecf1d695eaf8482727b8978",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -150,7 +176,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q2",
-      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b075793e0f3ef15615dbe14d64baf080f80a95c4fbc569ad67b055e036e690d3",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b075793e0f3ef15615dbe14d64baf080f80a95c4fbc569ad67b055e036e690d3",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -201,7 +249,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q3",
-      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "8877b96f14f953836d4b6dec5545e3b6c02a149085a981ff67db6cd048fc4982",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "8877b96f14f953836d4b6dec5545e3b6c02a149085a981ff67db6cd048fc4982",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -252,7 +322,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q4",
-      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6149449ba18e591999cca218e27ce49ae8c9b321003f8038539bed76305a5eeb",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6149449ba18e591999cca218e27ce49ae8c9b321003f8038539bed76305a5eeb",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -303,7 +395,832 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q5",
-      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "84a1bc7aab9c7a24be9b2d8b3f9bc8ae829c1545fb4b7c9c7ebae2bdf368a98a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "84a1bc7aab9c7a24be9b2d8b3f9bc8ae829c1545fb4b7c9c7ebae2bdf368a98a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "关键数字·记录维",
+      "stem": "关于地下连续墙导墙的构造尺寸，选出数字正确、能得分的作答。",
+      "model_answer": "导墙厚≥200mm、高≥1.2m。",
+      "options": [
+        {
+          "text": "地下连续墙导墙厚度不应小于 200mm，高度不应小于 1.2m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "厚≥200mm、高≥1.2m 两个数字带上就得分。",
+          "option_id": "B02-html-practice-html-q6-6df2f4e70967:option-1"
+        },
+        {
+          "text": "导墙厚度不应小于 100mm，高度不应小于 1.0m。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把数字都记小了。",
+          "loss_reason": "厚、高两个阈值都写错。",
+          "fix": "厚≥200mm、高≥1.2m。",
+          "option_id": "B02-html-practice-html-q6-6df2f4e70967:option-2"
+        },
+        {
+          "text": "导墙厚度不应小于 300mm，高度不应小于 0.8m。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "厚记大、高记小。",
+          "loss_reason": "两个数字都不对。",
+          "fix": "厚≥200mm、高≥1.2m。",
+          "option_id": "B02-html-practice-html-q6-6df2f4e70967:option-3"
+        },
+        {
+          "text": "导墙只要能导向成槽机械即可，尺寸按现场经验定，不必给定值。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为无量化定值。",
+          "loss_reason": "漏导墙关键数字采分。",
+          "fix": "须写厚≥200mm、高≥1.2m。",
+          "option_id": "B02-html-practice-html-q6-6df2f4e70967:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q6-6df2f4e70967",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d5a218eb25f403ce7d1237f472b3c0b9a34105a1c09e3cda3e98d2fa6e08ab51",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d5a218eb25f403ce7d1237f472b3c0b9a34105a1c09e3cda3e98d2fa6e08ab51",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "关键数字·程序维",
+      "stem": "灌注桩排桩施工，选出成桩顺序与间隔要求正确、能得分的作答。",
+      "model_answer": "间隔成桩：已浇桩与邻桩间距>4倍桩径，或间隔>36h。",
+      "options": [
+        {
+          "text": "应间隔成桩：已浇桩与相邻桩间距应大于 4 倍桩径，或间隔时间大于 36h。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": ">4倍桩径 或 >36h 两个口径写全，防串孔挤土。",
+          "option_id": "B02-html-practice-html-q7-d1cbd662dab3:option-1"
+        },
+        {
+          "text": "为加快进度应连续成桩，一根接一根依次浇筑最省时。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "图省时连着打。",
+          "loss_reason": "混凝土未凝即钻邻孔，串孔挤土。",
+          "fix": "应间隔成桩 >4倍桩径 或 >36h。",
+          "option_id": "B02-html-practice-html-q7-d1cbd662dab3:option-2"
+        },
+        {
+          "text": "间隔成桩要求相邻桩间距大于 2 倍桩径，或间隔大于 24h。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数字记小了。",
+          "loss_reason": "阈值写错（应>4D/>36h）。",
+          "fix": ">4倍桩径 或 >36h。",
+          "option_id": "B02-html-practice-html-q7-d1cbd662dab3:option-3"
+        },
+        {
+          "text": "只要相邻桩不同时浇筑即可，间距和间隔时间没有具体要求。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为无量化要求。",
+          "loss_reason": "漏>4D/>36h 量化条件。",
+          "fix": "须>4倍桩径 或 >36h。",
+          "option_id": "B02-html-practice-html-q7-d1cbd662dab3:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q7-d1cbd662dab3",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "00f4bb13ce48b91d40b8ffb5888b81a7288af829a9d145e39439022497eb1f9e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "00f4bb13ce48b91d40b8ffb5888b81a7288af829a9d145e39439022497eb1f9e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "土钉墙·程序维",
+      "stem": "关于土钉墙施工原则，选出列举正确、能得分的作答。",
+      "model_answer": "超前支护、分层分段、逐层施作、限时封闭、严禁超挖。",
+      "options": [
+        {
+          "text": "土钉墙应超前支护、分层分段、逐层施作、限时封闭、严禁超挖。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五原则齐全，一条不落。",
+          "option_id": "B02-html-practice-html-q8-49eb6c767e3a:option-1"
+        },
+        {
+          "text": "土钉墙分层开挖、及时喷锚即可，不必强调超前支护和限时封闭。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓两条丢三条。",
+          "loss_reason": "漏超前支护、限时封闭等原则。",
+          "fix": "五原则齐：超前支护/分层分段/逐层/限时封闭/严禁超挖。",
+          "option_id": "B02-html-practice-html-q8-49eb6c767e3a:option-2"
+        },
+        {
+          "text": "土钉墙可一次开挖到设计深度，再自上而下统一施作土钉。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为可一次挖到底。",
+          "loss_reason": "违反逐层施作、严禁超挖。",
+          "fix": "逐层施作、严禁超挖、限时封闭。",
+          "option_id": "B02-html-practice-html-q8-49eb6c767e3a:option-3"
+        },
+        {
+          "text": "土钉墙属于放坡开挖，无需支护原则，控制好坡度即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "混同放坡。",
+          "loss_reason": "土钉墙是支护、有五原则。",
+          "fix": "须超前支护/分层分段/逐层/限时封闭/严禁超挖。",
+          "option_id": "B02-html-practice-html-q8-49eb6c767e3a:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q8-49eb6c767e3a",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "7b6bc2a2786ac21be649e45581422ea33e9326b20c0b1f8912b7f025c14f0620",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "7b6bc2a2786ac21be649e45581422ea33e9326b20c0b1f8912b7f025c14f0620",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "土钉墙·记录维",
+      "stem": "关于土钉墙的坡比要求，选出正确、能得分的作答。",
+      "model_answer": "土钉墙坡比不宜大于 1:0.2。",
+      "options": [
+        {
+          "text": "土钉墙坡面坡比不宜大于 1:0.2。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "坡比≤1:0.2 记准这个阈值。",
+          "option_id": "B02-html-practice-html-q9-be09c4db12dc:option-1"
+        },
+        {
+          "text": "土钉墙坡比不宜大于 1:0.5，放缓一些更稳定。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为越缓越对。",
+          "loss_reason": "坡比阈值写错（应1:0.2）。",
+          "fix": "坡比不宜大于 1:0.2。",
+          "option_id": "B02-html-practice-html-q9-be09c4db12dc:option-2"
+        },
+        {
+          "text": "土钉墙坡比不宜大于 1:1，接近 45° 即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记成 1:1。",
+          "loss_reason": "阈值错。",
+          "fix": "坡比不宜大于 1:0.2。",
+          "option_id": "B02-html-practice-html-q9-be09c4db12dc:option-3"
+        },
+        {
+          "text": "土钉墙坡度按土质现场确定，无统一坡比限值。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为无定值。",
+          "loss_reason": "漏 1:0.2 采分。",
+          "fix": "坡比不宜大于 1:0.2。",
+          "option_id": "B02-html-practice-html-q9-be09c4db12dc:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q9-be09c4db12dc",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e0a28d98d07a224cd34119e5a646ec05166c353f088ce24336b872c5e3a6417c",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e0a28d98d07a224cd34119e5a646ec05166c353f088ce24336b872c5e3a6417c",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "土钉墙·判断纠错",
+      "stem": "某土钉墙基坑：一次开挖到坑底后，再自上而下施作土钉。选出诊断与改正正确、能得分的作答。",
+      "model_answer": "不妥：违反分层分段、逐层施作、限时封闭、严禁超挖；应分层开挖、逐层施作土钉并限时封闭。",
+      "options": [
+        {
+          "text": "不妥：违反分层分段、逐层施作、限时封闭、严禁超挖；应分层开挖、随挖随做土钉并限时封闭。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出主错(超挖到底)+给出逐层施作的正确做法。",
+          "option_id": "B02-html-practice-html-q10-fc7782a6ce99:option-1"
+        },
+        {
+          "text": "做法基本可行，只要土钉施作及时，一次开挖到底不影响安全。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为快就行。",
+          "loss_reason": "一次挖到底临空面塌落，违反逐层。",
+          "fix": "须分层开挖、逐层施作、严禁超挖。",
+          "option_id": "B02-html-practice-html-q10-fc7782a6ce99:option-2"
+        },
+        {
+          "text": "不妥之处仅在于土钉未及时喷浆，开挖顺序本身没有问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只抓喷浆一点。",
+          "loss_reason": "漏'一次超挖到底'这个主错。",
+          "fix": "主错是超挖到底，应分层逐层施作。",
+          "option_id": "B02-html-practice-html-q10-fc7782a6ce99:option-3"
+        },
+        {
+          "text": "应改为先做完全部土钉，再统一开挖到坑底。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把顺序反着改。",
+          "loss_reason": "土钉须随挖随做，不能先做后挖。",
+          "fix": "分层开挖、逐层施作、限时封闭。",
+          "option_id": "B02-html-practice-html-q10-fc7782a6ce99:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q10-fc7782a6ce99",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0b0b21bd2ad2cae2521ed1691a785377d0a0f2f5dbab9285a2f9dadcad63b82d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0b0b21bd2ad2cae2521ed1691a785377d0a0f2f5dbab9285a2f9dadcad63b82d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "锚杆·记录维",
+      "stem": "关于锚杆布置间距，选出数字正确、能得分的作答。",
+      "model_answer": "锚杆垂直间距≥2.0m、水平间距≥1.5m。",
+      "options": [
+        {
+          "text": "锚杆垂直间距不应小于 2.0m，水平间距不应小于 1.5m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "垂直≥2.0m、水平≥1.5m 两个数分清。",
+          "option_id": "B02-html-practice-html-q11-f17aebc1d40d:option-1"
+        },
+        {
+          "text": "锚杆垂直间距不应小于 1.5m，水平间距不应小于 1.0m。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数字都记小了。",
+          "loss_reason": "垂直、水平阈值都写错。",
+          "fix": "垂直≥2.0m、水平≥1.5m。",
+          "option_id": "B02-html-practice-html-q11-f17aebc1d40d:option-2"
+        },
+        {
+          "text": "锚杆水平间距不应小于 2.0m，垂直间距不应小于 1.5m。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "垂直、水平记反了。",
+          "loss_reason": "两个数颠倒。",
+          "fix": "垂直≥2.0m、水平≥1.5m。",
+          "option_id": "B02-html-practice-html-q11-f17aebc1d40d:option-3"
+        },
+        {
+          "text": "锚杆按现场情况布置，间距无统一下限要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为无定值。",
+          "loss_reason": "漏间距采分。",
+          "fix": "垂直≥2.0m、水平≥1.5m。",
+          "option_id": "B02-html-practice-html-q11-f17aebc1d40d:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q11-f17aebc1d40d",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "8253f1c7a12f073ce6f34efe25bc0c6b01089dbb0a2815b51da97d3637933334",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "8253f1c7a12f073ce6f34efe25bc0c6b01089dbb0a2815b51da97d3637933334",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "锚杆·条件维",
+      "stem": "关于锚杆张拉的强度条件，选出正确、能得分的作答。",
+      "model_answer": "锚固段强度≥15MPa 且达设计强度75% 方可张拉，张拉至设计值1.05~1.10倍。",
+      "options": [
+        {
+          "text": "锚固段注浆体强度达到 15MPa 且达到设计强度的 75% 后方可张拉，张拉至设计值的 1.05~1.10 倍。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "15MPa + 75% 两个门槛 + 张拉倍数一并写全。",
+          "option_id": "B02-html-practice-html-q12-42eb97c39ab7:option-1"
+        },
+        {
+          "text": "锚杆安装完成即可张拉受力，无需等待注浆体强度形成。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为装完即可拉。",
+          "loss_reason": "未达强度张拉致锚固段拔出。",
+          "fix": "须≥15MPa 且达75% 方可张拉。",
+          "option_id": "B02-html-practice-html-q12-42eb97c39ab7:option-2"
+        },
+        {
+          "text": "锚固段强度达到 10MPa 或设计强度的 50% 即可张拉。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数字记小了。",
+          "loss_reason": "阈值写错（应15MPa/75%）。",
+          "fix": "≥15MPa 且达75%。",
+          "option_id": "B02-html-practice-html-q12-42eb97c39ab7:option-3"
+        },
+        {
+          "text": "只要基坑侧壁土方开挖到位就可张拉锚杆，与强度无关。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "混淆张拉条件。",
+          "loss_reason": "张拉条件是强度而非开挖到位。",
+          "fix": "须锚固段≥15MPa 且达75%。",
+          "option_id": "B02-html-practice-html-q12-42eb97c39ab7:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q12-42eb97c39ab7",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "518279bb3cf6ce542f65427dcf5e645bc44cadb871915e6013ef15271c1bc7a9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "518279bb3cf6ce542f65427dcf5e645bc44cadb871915e6013ef15271c1bc7a9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "支护选型·周边环境",
+      "stem": "某邻近既有建筑的一级深基坑，要求控制变形、避免挤土。选出支护选型较合理、能得分的作答。",
+      "model_answer": "邻建敏感区宜选刚度大、挤土小的排桩/地连墙，并间隔成桩防挤土。",
+      "options": [
+        {
+          "text": "邻近建筑的一级深基坑宜选灌注桩排桩或地下连续墙，刚度大、变形小，并间隔成桩以避免挤土。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "扣住'一级+邻建'选低扰动刚性支护+间隔成桩。",
+          "option_id": "B02-html-practice-html-q13-f2909b2bcf9b:option-1"
+        },
+        {
+          "text": "邻建深基坑宜选土钉墙，边挖边喷、对周边影响小。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为土钉墙扰动小。",
+          "loss_reason": "一级 + 敏感区不宜土钉墙。",
+          "fix": "敏感区一级用排桩/地连墙。",
+          "option_id": "B02-html-practice-html-q13-f2909b2bcf9b:option-2"
+        },
+        {
+          "text": "邻建基坑宜选挤土的沉管灌注桩快速成桩以缩短工期。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "只图工期快。",
+          "loss_reason": "挤土桩加剧周边变形。",
+          "fix": "用低挤土排桩/地连墙、间隔成桩。",
+          "option_id": "B02-html-practice-html-q13-f2909b2bcf9b:option-3"
+        },
+        {
+          "text": "邻建与否不影响支护选型，按最低造价方案选即可。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "忽略周边环境。",
+          "loss_reason": "漏周边环境这一选型依据。",
+          "fix": "周边敏感应选低扰动排桩/地连墙。",
+          "option_id": "B02-html-practice-html-q13-f2909b2bcf9b:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q13-f2909b2bcf9b",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "dd8c4621316cf884a460af86c34a65bd1d10e5505ce89bf31d0850756740b7ef",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "dd8c4621316cf884a460af86c34a65bd1d10e5505ce89bf31d0850756740b7ef",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "专项方案·判断纠错",
+      "stem": "某基坑开挖深度 6m，专项方案仅含支护、土方开挖两部分，且未组织论证即施工。选出诊断与补正确、能得分的作答。",
+      "model_answer": "不妥：漏降水/工艺/安全/应急/监测多项；6m≥5m 属危大，须专家论证后方可施工。",
+      "options": [
+        {
+          "text": "不妥：方案漏降水、工艺、安全、应急、监测多项；且 6m≥5m 属危大，须专家论证后方可施工。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "内容缺项 + 危大漏论证两处失分都揪出。",
+          "option_id": "B02-html-practice-html-q14-e63b37cb013e:option-1"
+        },
+        {
+          "text": "方案内容齐全，仅论证程序漏了，补做专家论证即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只抓论证一处。",
+          "loss_reason": "漏'内容缺项'这处失分。",
+          "fix": "内容补五项 + 危大论证两处都要。",
+          "option_id": "B02-html-practice-html-q14-e63b37cb013e:option-2"
+        },
+        {
+          "text": "仅需补充监测一项内容，其余无问题，可继续施工。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为只缺监测。",
+          "loss_reason": "漏降水/应急等多项及论证。",
+          "fix": "补齐七项 + 专家论证。",
+          "option_id": "B02-html-practice-html-q14-e63b37cb013e:option-3"
+        },
+        {
+          "text": "6m 基坑不属危大，无需论证，补齐内容即可开工。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "误判危大门槛。",
+          "loss_reason": "6m≥5m 属危大，须论证。",
+          "fix": "≥5m 属危大须专家论证。",
+          "option_id": "B02-html-practice-html-q14-e63b37cb013e:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q14-e63b37cb013e",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d45a2a66ddaa626f8dfe19908f00f12e93b6caa117ada5ce1df069790f92a9c9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d45a2a66ddaa626f8dfe19908f00f12e93b6caa117ada5ce1df069790f92a9c9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "强度顺序·概念维",
+      "stem": "关于支护构件受力前的强度要求，选出表述正确、能得分的作答。",
+      "model_answer": "锚固段≥15MPa 且75% 方张拉；混凝土内支撑达规定强度后方可下层开挖。",
+      "options": [
+        {
+          "text": "锚固段强度≥15MPa 且达设计强度 75% 方可张拉；混凝土内支撑达到规定强度后方可进行下层土方开挖。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "锚杆张拉、支撑下挖都要等强度形成。",
+          "option_id": "B02-html-practice-html-q15-794bc704984f:option-1"
+        },
+        {
+          "text": "支撑和锚杆施工完成即可开挖下层，不必等待强度形成。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "图快抢下挖。",
+          "loss_reason": "未达强度下挖易失稳/拔出。",
+          "fix": "达强度后再张拉/下挖。",
+          "option_id": "B02-html-practice-html-q15-794bc704984f:option-2"
+        },
+        {
+          "text": "锚固段强度达到 5MPa 即可张拉，支撑浇筑后随即开挖。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数字过小。",
+          "loss_reason": "阈值错（应15MPa/75%）。",
+          "fix": "≥15MPa 且达75% 方张拉。",
+          "option_id": "B02-html-practice-html-q15-794bc704984f:option-3"
+        },
+        {
+          "text": "支护构件强度与开挖顺序无关，只要按流水段推进即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "忽略强度条件。",
+          "loss_reason": "漏强度形成这一前提。",
+          "fix": "须达强度方受力/下挖。",
+          "option_id": "B02-html-practice-html-q15-794bc704984f:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q15-794bc704984f",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q15",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "916cc168524ab894341cff92ee9e4f9170da57fcc8dc738f2d7a52dffcfc7466",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "916cc168524ab894341cff92ee9e4f9170da57fcc8dc738f2d7a52dffcfc7466",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "浅基坑选型·条件维",
+      "stem": "关于浅基坑支护选型，选出与适用条件匹配、能得分的作答。",
+      "model_answer": "浅基坑按条件选型：低水位黏性土可用型钢桩加横挡板，邻建可用挡土灌注桩。",
+      "options": [
+        {
+          "text": "浅基坑可按条件选型：低地下水位黏性土可用型钢桩加横挡板，邻近建筑时可用挡土灌注桩支护。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "按水位/土质/周边匹配轻型支护，条件对号。",
+          "option_id": "B02-html-practice-html-q16-d44894c09e7d:option-1"
+        },
+        {
+          "text": "浅基坑一律放坡开挖即可，无需任何支护形式。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为浅坑都能免支护。",
+          "loss_reason": "有条件限制，非一律放坡。",
+          "fix": "按水位/土质/周边选型钢桩横挡板等。",
+          "option_id": "B02-html-practice-html-q16-d44894c09e7d:option-2"
+        },
+        {
+          "text": "浅基坑与深基坑支护选型完全相同，都用排桩、地连墙。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "套用深坑方案。",
+          "loss_reason": "浅坑有专门的轻型支护。",
+          "fix": "浅坑用斜撑/锚拉/型钢桩横挡板等。",
+          "option_id": "B02-html-practice-html-q16-d44894c09e7d:option-3"
+        },
+        {
+          "text": "低水位黏性土浅坑应优先选用截水帷幕来挡土。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "混淆帷幕功能。",
+          "loss_reason": "帷幕是截水、不是挡土支护。",
+          "fix": "低水位黏性土用型钢桩加横挡板。",
+          "option_id": "B02-html-practice-html-q16-d44894c09e7d:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice-html-q16-d44894c09e7d",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q16",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "0fc339813f59c7e8ea55e8203179645736b6a283011429376b59217988a3d0f3",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "92aa87319ef620f8355e651876cbb15c12cd6baa2270f54a95d111f7707ba12f",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "92aa87319ef620f8355e651876cbb15c12cd6baa2270f54a95d111f7707ba12f",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -354,7 +1271,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q1",
-      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "12e0f44fb05d90726d584e7a7ccd5217d1bbf17e3ed8a37d78cd219a7a6c8daf",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "12e0f44fb05d90726d584e7a7ccd5217d1bbf17e3ed8a37d78cd219a7a6c8daf",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -405,7 +1344,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q2",
-      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "30b0bb8a188fa7a7a9975380296ad0d59c90b4dc6042a43b151f615d884a1e41",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "30b0bb8a188fa7a7a9975380296ad0d59c90b4dc6042a43b151f615d884a1e41",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -456,7 +1417,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q3",
-      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d902eb1c5d26edd1a568b06dbf16b18d184eaa46a0bffdf222cb319189ad95cb",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d902eb1c5d26edd1a568b06dbf16b18d184eaa46a0bffdf222cb319189ad95cb",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -507,7 +1490,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q4",
-      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "7c8d894b05ca8695b2bb98d2732b37c3ee6f9a7819811d9203038223e996f38e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "7c8d894b05ca8695b2bb98d2732b37c3ee6f9a7819811d9203038223e996f38e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -558,7 +1563,832 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q5",
-      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "77def0090e5897e581fdbc1d27139259d1bf57875e0cd43499220f6020fcbc06",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "77def0090e5897e581fdbc1d27139259d1bf57875e0cd43499220f6020fcbc06",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "降水选型·条件维",
+      "stem": "关于集水明排的适用条件，选出正确、能得分的作答。",
+      "model_answer": "集水明排适用于开挖深度浅（≤3m）、渗水量不大的情况。",
+      "options": [
+        {
+          "text": "集水明排适用于开挖深度浅（≤3m）、渗水量不大的情况，用排水沟、集水井排出。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明≤3m 少量渗水的适用边界。",
+          "option_id": "B02-html-practice2-html-q6-5b9b74b09fc6:option-1"
+        },
+        {
+          "text": "软土基坑只要有水就用集水明排，不必看开挖深度。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为明排万能。",
+          "loss_reason": "深>3m 或渗水大不宜明排。",
+          "fix": "明排限≤3m少量水，深用井点。",
+          "option_id": "B02-html-practice2-html-q6-5b9b74b09fc6:option-2"
+        },
+        {
+          "text": "集水明排能有效防止坑底承压水突涌。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为排水就防突涌。",
+          "loss_reason": "明排不防承压水突涌。",
+          "fix": "突涌用水平封底/钻孔减压。",
+          "option_id": "B02-html-practice2-html-q6-5b9b74b09fc6:option-3"
+        },
+        {
+          "text": "集水明排适用于大渗透砂砾层的深基坑降水。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为砂砾好排就明排。",
+          "loss_reason": "深坑大渗透应用管井。",
+          "fix": "明排限浅坑少量水。",
+          "option_id": "B02-html-practice2-html-q6-5b9b74b09fc6:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q6-5b9b74b09fc6",
+      "surface_id": "practice2.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "990b80a33f5aa39909b5cb5209cee4066b13d856abdc74a3c162d5276fe9078d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "990b80a33f5aa39909b5cb5209cee4066b13d856abdc74a3c162d5276fe9078d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "周边保护·条件维",
+      "stem": "某基坑降水可能引起周边建筑沉降。选出保护措施正确、能得分的作答。",
+      "model_answer": "截水帷幕（渗透系数宜<1×10⁻⁶）或井点回灌，维持原水位平衡防沉降。",
+      "options": [
+        {
+          "text": "周边有沉降风险时，应采取截水帷幕（渗透系数宜<1×10⁻⁶cm/s）或井点回灌，维持原水位平衡、防止周边沉降。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "截水/回灌 + 维持原水位平衡，措施到位。",
+          "option_id": "B02-html-practice2-html-q7-aa2bee2a11e7:option-1"
+        },
+        {
+          "text": "加大降水井功率、快速降水以缩短对周边的影响时间即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "以为快降就少影响。",
+          "loss_reason": "加大降水反而加深漏斗、加剧沉降；漏截水/回灌。",
+          "fix": "用截水帷幕或回灌保周边。",
+          "option_id": "B02-html-practice2-html-q7-aa2bee2a11e7:option-2"
+        },
+        {
+          "text": "周边沉降靠加固周边建筑基础解决，与降水措施无关。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把问题推给建筑加固。",
+          "loss_reason": "源头在降水，应从降水措施防治。",
+          "fix": "截水帷幕/回灌控制水位。",
+          "option_id": "B02-html-practice2-html-q7-aa2bee2a11e7:option-3"
+        },
+        {
+          "text": "设置截水帷幕即可，其渗透系数宜小于 1×10⁻³cm/s。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数量级记错。",
+          "loss_reason": "帷幕渗透系数宜<1×10⁻⁶，非10⁻³。",
+          "fix": "帷幕渗透系数宜<1×10⁻⁶cm/s。",
+          "option_id": "B02-html-practice2-html-q7-aa2bee2a11e7:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q7-aa2bee2a11e7",
+      "surface_id": "practice2.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "8e07f448e3fa99a262b6d12e71f6c61e48f1b4fe12c725242df13a769b3d399e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "8e07f448e3fa99a262b6d12e71f6c61e48f1b4fe12c725242df13a769b3d399e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "周边保护·后果维",
+      "stem": "关于井点回灌的作用，选出正确、能得分的作答。",
+      "model_answer": "回灌以等量注水维持坑外原水位、平衡有效应力，防止周边地面沉降。",
+      "options": [
+        {
+          "text": "井点回灌通过在坑外注水维持原地下水位、平衡有效应力，防止降水引起的周边地面沉降。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "维持原水位 + 防周边沉降，因果说清。",
+          "option_id": "B02-html-practice2-html-q8-003ae33e2e93:option-1"
+        },
+        {
+          "text": "回灌是为了给基坑内补水、方便坑内作业。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把回灌方向搞反。",
+          "loss_reason": "回灌注在坑外，不是坑内。",
+          "fix": "坑外回灌维持原水位防沉降。",
+          "option_id": "B02-html-practice2-html-q8-003ae33e2e93:option-2"
+        },
+        {
+          "text": "回灌的主要作用是防止坑底承压水突涌。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "和突涌防治混了。",
+          "loss_reason": "回灌不防突涌。",
+          "fix": "回灌防周边沉降；突涌另用封底减压。",
+          "option_id": "B02-html-practice2-html-q8-003ae33e2e93:option-3"
+        },
+        {
+          "text": "回灌就是把抽出的水排到河道，与周边沉降无关。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "把回灌当排水。",
+          "loss_reason": "漏'维持水位防沉降'关键。",
+          "fix": "回灌维持原水位、防周边沉降。",
+          "option_id": "B02-html-practice2-html-q8-003ae33e2e93:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q8-003ae33e2e93",
+      "surface_id": "practice2.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "829e369d394252dcbf4498ad9f9815ad34e913997fbdd7f0e275f9bbe95628d2",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "829e369d394252dcbf4498ad9f9815ad34e913997fbdd7f0e275f9bbe95628d2",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "分层开挖·记录维",
+      "stem": "关于深基坑土方开挖，选出分层要求正确、能得分的作答。",
+      "model_answer": "分层开挖每层≤3m，先撑后挖、严禁超挖，预留土层人工挖除。",
+      "options": [
+        {
+          "text": "深基坑应分层开挖，每层厚度不宜大于 3m，先撑后挖、严禁超挖，坑底预留土层人工挖除。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "每层≤3m + 先撑后挖 + 预留土人工清写全。",
+          "option_id": "B02-html-practice2-html-q9-9c928223d58e:option-1"
+        },
+        {
+          "text": "深基坑分层开挖，每层厚度不宜大于 5m 即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数字记大了。",
+          "loss_reason": "每层应≤3m。",
+          "fix": "分层每层≤3m。",
+          "option_id": "B02-html-practice2-html-q9-9c928223d58e:option-2"
+        },
+        {
+          "text": "为提高效率先挖到坑底，再自上而下统一架设支撑。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "图效率先挖后撑。",
+          "loss_reason": "违反先撑后挖、易失稳。",
+          "fix": "先撑后挖、分层开挖。",
+          "option_id": "B02-html-practice2-html-q9-9c928223d58e:option-3"
+        },
+        {
+          "text": "分层开挖即可，每层厚度和是否超挖没有硬性限制。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为无量化限制。",
+          "loss_reason": "漏≤3m 与严禁超挖。",
+          "fix": "每层≤3m、严禁超挖。",
+          "option_id": "B02-html-practice2-html-q9-9c928223d58e:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q9-9c928223d58e",
+      "surface_id": "practice2.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "28c931f9b7ff4e708f0ecb05996b8f2568aad071d8a75ed4444b316190fd9fbf",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "28c931f9b7ff4e708f0ecb05996b8f2568aad071d8a75ed4444b316190fd9fbf",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "分层开挖·后果维",
+      "stem": "关于基坑开挖与支护、降水设施的关系，选出正确、能得分的作答。",
+      "model_answer": "开挖不得损坏支护结构与降水设施，开挖与支护降水工况匹配。",
+      "options": [
+        {
+          "text": "土方开挖应与支护、降水工况匹配，不得损坏支护结构与降水设施（如井管、支撑）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "工况匹配 + 不损坏设施，采分到位。",
+          "option_id": "B02-html-practice2-html-q10-37c053c23314:option-1"
+        },
+        {
+          "text": "开挖以效率优先，碰坏个别井管可事后修补，不影响大局。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为设施可事后补。",
+          "loss_reason": "损坏降水设施致降水失效。",
+          "fix": "开挖不得损坏支护降水设施。",
+          "option_id": "B02-html-practice2-html-q10-37c053c23314:option-2"
+        },
+        {
+          "text": "降水设施与开挖无关，可先拆除降水井再开挖土方。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为降水先撤。",
+          "loss_reason": "降水须持续至基础完工。",
+          "fix": "开挖期间保护降水设施、持续降水。",
+          "option_id": "B02-html-practice2-html-q10-37c053c23314:option-3"
+        },
+        {
+          "text": "只要不碰支护墙即可，降水井管随意，无需保护。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只顾支护墙。",
+          "loss_reason": "漏保护降水设施。",
+          "fix": "支护与降水设施都不得损坏。",
+          "option_id": "B02-html-practice2-html-q10-37c053c23314:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q10-37c053c23314",
+      "surface_id": "practice2.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "bed1be0a614362d4b25940c50f830141a94242e210cada63e9beefe68694938d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "bed1be0a614362d4b25940c50f830141a94242e210cada63e9beefe68694938d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "监测·条件维",
+      "stem": "关于基坑必须监测的条件，选出正确、能得分的作答。",
+      "model_answer": "安全等级一二级 OR 深度≥5m OR 地质复杂，满足任一即须监测。",
+      "options": [
+        {
+          "text": "安全等级一、二级，或开挖深度≥5m，或地质条件复杂，满足任一条件即应进行基坑监测。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三条件 OR 关系，任一即测，写全。",
+          "option_id": "B02-html-practice2-html-q11-af49f89cbdc2:option-1"
+        },
+        {
+          "text": "只有深基坑（≥5m）才需要监测，浅基坑一律不监测。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为只看深度。",
+          "loss_reason": "一二级或地质复杂的浅坑也须监测。",
+          "fix": "三条件任一即测。",
+          "option_id": "B02-html-practice2-html-q11-af49f89cbdc2:option-2"
+        },
+        {
+          "text": "只有安全等级一级的基坑才监测，二级以下都不必。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "把门槛抬到一级。",
+          "loss_reason": "一、二级均须监测。",
+          "fix": "一二级 OR ≥5m OR 地质复杂。",
+          "option_id": "B02-html-practice2-html-q11-af49f89cbdc2:option-3"
+        },
+        {
+          "text": "是否监测由施工单位根据现场情况自行决定。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为可自行决定。",
+          "loss_reason": "触发条件是强制的。",
+          "fix": "满足任一条件强制监测。",
+          "option_id": "B02-html-practice2-html-q11-af49f89cbdc2:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q11-af49f89cbdc2",
+      "surface_id": "practice2.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6059a8f93b20da722b3ea6c87376a6fe9c14564278b9327c2b8c5366940aef5a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6059a8f93b20da722b3ea6c87376a6fe9c14564278b9327c2b8c5366940aef5a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "监测·记录维",
+      "stem": "关于基坑变形监测的对象，选出正确、能得分的作答。",
+      "model_answer": "监测对象含基坑及支护结构变形 + 周边环境变形。",
+      "options": [
+        {
+          "text": "监测对象应包括基坑及支护结构变形，以及周边建筑、管线、道路等周边环境变形。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "坑内支护 + 周边环境两类都要。",
+          "option_id": "B02-html-practice2-html-q12-2fa491dcfbf8:option-1"
+        },
+        {
+          "text": "只监测基坑本身及支护结构的变形即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为只看坑内。",
+          "loss_reason": "漏周边环境变形。",
+          "fix": "补周边环境（建筑/管线/道路）变形。",
+          "option_id": "B02-html-practice2-html-q12-2fa491dcfbf8:option-2"
+        },
+        {
+          "text": "只监测周边建筑，基坑内部不必监测。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为只护周边。",
+          "loss_reason": "漏基坑及支护结构变形。",
+          "fix": "坑内支护 + 周边环境都测。",
+          "option_id": "B02-html-practice2-html-q12-2fa491dcfbf8:option-3"
+        },
+        {
+          "text": "只需监测地下水位一项即可全面反映安全。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为水位代表全部。",
+          "loss_reason": "漏变形类监测对象。",
+          "fix": "含支护结构变形 + 周边环境变形。",
+          "option_id": "B02-html-practice2-html-q12-2fa491dcfbf8:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q12-2fa491dcfbf8",
+      "surface_id": "practice2.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "df2afb5afe5589c73252c7f1846366e8cfdef420651667a9660678a4e0a81c90",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "df2afb5afe5589c73252c7f1846366e8cfdef420651667a9660678a4e0a81c90",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "监测·主体维",
+      "stem": "关于基坑监测的实施主体，选出正确、能得分的作答。",
+      "model_answer": "基坑监测应由建设单位委托具备相应资质的第三方监测单位实施。",
+      "options": [
+        {
+          "text": "基坑监测应由建设单位委托具备相应资质的第三方监测单位实施。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "建设方委托第三方，主体认准。",
+          "option_id": "B02-html-practice2-html-q13-66f778331c34:option-1"
+        },
+        {
+          "text": "基坑监测由施工单位自行实施，谁施工谁监测最方便。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为谁干谁测。",
+          "loss_reason": "主体答反，应第三方。",
+          "fix": "建设方委托第三方实施。",
+          "option_id": "B02-html-practice2-html-q13-66f778331c34:option-2"
+        },
+        {
+          "text": "基坑监测由监理单位负责实施。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把监理当监测主体。",
+          "loss_reason": "监理是审批/见证，非监测实施主体。",
+          "fix": "建设方委托具备资质第三方。",
+          "option_id": "B02-html-practice2-html-q13-66f778331c34:option-3"
+        },
+        {
+          "text": "基坑监测由施工单位或建设单位任意一方来做即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为随便哪方都行。",
+          "loss_reason": "应由建设方委托有资质第三方。",
+          "fix": "建设方委托第三方，不含施工单位自测。",
+          "option_id": "B02-html-practice2-html-q13-66f778331c34:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q13-66f778331c34",
+      "surface_id": "practice2.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5f0752b2ee84db8a7616470fb4760a13c5d0ea0fde49273a820f25ca12664c98",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5f0752b2ee84db8a7616470fb4760a13c5d0ea0fde49273a820f25ca12664c98",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "监测·后果维",
+      "stem": "关于基坑监测报警（危险征兆），选出正确、能得分的作答。",
+      "model_answer": "位移突增/流沙管涌隆起/支撑锚杆断裂拔出/周边裂缝下陷/管线泄漏等任一即报警。",
+      "options": [
+        {
+          "text": "出现位移突增、流沙管涌隆起、支撑或锚杆断裂拔出、周边建筑开裂下陷、管线泄漏等任一情况即应报警。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "多项征兆任一即报警，列举齐。",
+          "option_id": "B02-html-practice2-html-q14-66e0585d9dd4:option-1"
+        },
+        {
+          "text": "只有基坑整体坍塌时才需要报警，一般变形不必。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为塌了才报。",
+          "loss_reason": "报警是征兆预警、非事后。",
+          "fix": "位移突增等征兆即报警。",
+          "option_id": "B02-html-practice2-html-q14-66e0585d9dd4:option-2"
+        },
+        {
+          "text": "报警只看位移一项，其余现象不作为报警依据。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "只抓位移。",
+          "loss_reason": "漏管涌/支撑断裂/管线泄漏等。",
+          "fix": "多项征兆任一即报警。",
+          "option_id": "B02-html-practice2-html-q14-66e0585d9dd4:option-3"
+        },
+        {
+          "text": "发现报警征兆后可继续施工，加强观测频次即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为观测就够。",
+          "loss_reason": "漏停工、分析、应急处置。",
+          "fix": "报警须停工、分析、应急。",
+          "option_id": "B02-html-practice2-html-q14-66e0585d9dd4:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q14-66e0585d9dd4",
+      "surface_id": "practice2.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "1c231036b139348a48c6dc15bf1925e0d57681ab12e6fed99dfbeab096efced7",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "1c231036b139348a48c6dc15bf1925e0d57681ab12e6fed99dfbeab096efced7",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "承压水突涌·条件维",
+      "stem": "某基坑下有承压水、坑底出现突涌隆起风险。选出防治措施正确、能得分的作答。",
+      "model_answer": "采取水平封底隔渗或钻孔减压（降压井），先验算突涌稳定性。",
+      "options": [
+        {
+          "text": "坑底承压水突涌应采取水平封底隔渗或钻孔减压（降压井）等措施，并先验算突涌稳定性。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "封底隔渗/钻孔减压对症，先验算稳定性。",
+          "option_id": "B02-html-practice2-html-q15-10fcd6b8b8c3:option-1"
+        },
+        {
+          "text": "加大集水明排的抽水量即可压住坑底突涌。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为多抽就压住。",
+          "loss_reason": "明排排的是上层水，不减承压水压力。",
+          "fix": "用水平封底隔渗或钻孔减压。",
+          "option_id": "B02-html-practice2-html-q15-10fcd6b8b8c3:option-2"
+        },
+        {
+          "text": "用井点回灌抬高水位就能防止坑底突涌。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把回灌当万能。",
+          "loss_reason": "回灌防周边沉降，不防突涌。",
+          "fix": "突涌用封底隔渗/钻孔减压。",
+          "option_id": "B02-html-practice2-html-q15-10fcd6b8b8c3:option-3"
+        },
+        {
+          "text": "承压水突涌靠加深支护墙解决，与降压无关。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为加深墙就行。",
+          "loss_reason": "关键在减压/隔渗，非加深墙。",
+          "fix": "水平封底隔渗或钻孔减压。",
+          "option_id": "B02-html-practice2-html-q15-10fcd6b8b8c3:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q15-10fcd6b8b8c3",
+      "surface_id": "practice2.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q15",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5cc95d9b27cee242aa2b4696bfa5900cba4ada86d5fb998c8806f8fc27fb01e6",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5cc95d9b27cee242aa2b4696bfa5900cba4ada86d5fb998c8806f8fc27fb01e6",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "降水监测·判断纠错",
+      "stem": "某砂砾层深基坑（降深8m）方案：用轻型井点降水、不设周边保护、监测由施工单位自测。选出诊断与补正确、能得分的作答。",
+      "model_answer": "三处不妥：砂砾大渗透+降深8m 应用降水管井或喷射（轻型≤6m 不够）；应补周边截水/回灌；监测应由建设方委托第三方。",
+      "options": [
+        {
+          "text": "三处不妥：砂砾大渗透且降深8m，应选降水管井或喷射井点（轻型≤6m 不够）；应补周边截水帷幕或回灌；监测应由建设方委托第三方。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "降水方法、周边保护、监测主体三处失分全揪出。",
+          "option_id": "B02-html-practice2-html-q16-97bbde766ba7:option-1"
+        },
+        {
+          "text": "仅监测主体不妥，改为第三方即可；降水方法和不设周边保护都没问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只抓监测主体一处。",
+          "loss_reason": "漏降水方法与周边保护两处。",
+          "fix": "降水改管井/喷射 + 补周边保护 + 第三方监测。",
+          "option_id": "B02-html-practice2-html-q16-97bbde766ba7:option-2"
+        },
+        {
+          "text": "仅降水方法不妥，改为多级轻型井点即可，其余无误。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "只改降水且改得不够。",
+          "loss_reason": "多级轻型也仅6~10m；漏周边与监测两处。",
+          "fix": "8m 大渗透宜管井/喷射，并补周边 + 第三方监测。",
+          "option_id": "B02-html-practice2-html-q16-97bbde766ba7:option-3"
+        },
+        {
+          "text": "方案基本合理，只需加强监测频次即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为小修即可。",
+          "loss_reason": "漏降水方法、周边保护、监测主体三处。",
+          "fix": "三处都要改：降水/周边/监测主体。",
+          "option_id": "B02-html-practice2-html-q16-97bbde766ba7:option-4"
+        }
+      ],
+      "variant_id": "B02-html-practice2-html-q16-97bbde766ba7",
+      "surface_id": "practice2.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q16",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "44345d601987507b22d86fb5cb7db085d4e7e1b072e443b767c3551f1d7e1eb9",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "3da9fee46537d48b88ba99bc443333b7d18b6a9c523809e3c6bea62613bf4dff",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "3da9fee46537d48b88ba99bc443333b7d18b6a9c523809e3c6bea62613bf4dff",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "f9522edce096cb40f77a99414e1cd4020104356ea21304652fa7bc32e5f51c37"

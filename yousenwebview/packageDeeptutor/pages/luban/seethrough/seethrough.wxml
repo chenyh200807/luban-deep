@@ -1,4 +1,4 @@
-<view class="st-page">
+<view class="st-page paper light pk-paper-bg">
   <view class="st-nav" style="padding-top: {{statusBarHeight}}px">
     <view class="st-nav-inner">
       <view class="st-back" bindtap="goBack"><text>‹ 返回</text></view>

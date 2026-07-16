@@ -32,6 +32,7 @@ from typing import Any
 from loguru import logger
 
 from deeptutor.services.learner_state.evidence_lifecycle import (
+    committed_retest_closure,
     is_canonical_luban_retest_terminal,
     is_retest_completion_terminal,
 )
@@ -210,20 +211,28 @@ def _claim_packs(claims: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return by_pack
 
 
-def _canonical_completion_packs(events: list[Any]) -> dict[str, str]:
+def _canonical_completion_packs(
+    events: list[Any],
+    closure: dict[str, tuple[str, ...]],
+) -> dict[str, str]:
     completion_packs: dict[str, str] = {}
     for event in list(events or []):
         if not is_canonical_luban_retest_terminal(event):
             continue
         payload = getattr(event, "payload_json", None) or {}
         completion_id = str(payload.get("retest_completion_id") or "").strip()
+        if completion_id not in closure:
+            continue
         pack_id = str(payload.get("pack_id") or payload.get("target_pack_id") or "").strip().upper()
         if completion_id and pack_id:
             completion_packs[completion_id] = pack_id
     return completion_packs
 
 
-def _pack_retest_facts(events: list[Any]) -> dict[str, dict[str, Any]]:
+def _pack_retest_facts(
+    events: list[Any],
+    closure: dict[str, tuple[str, ...]],
+) -> dict[str, dict[str, Any]]:
     """Project terminal-only canonical retest facts per pack.
 
     Item rows and ``station_completed`` mirrors are intentionally ignored.  The
@@ -245,6 +254,8 @@ def _pack_retest_facts(events: list[Any]) -> dict[str, dict[str, Any]]:
         if not isinstance(payload, dict) or not is_canonical_luban_retest_terminal(event):
             continue
         completion_id = str(payload.get("retest_completion_id") or "").strip()
+        if completion_id not in closure:
+            continue
         pack_id = str(payload.get("pack_id") or payload.get("target_pack_id") or "").strip().upper()
         if completion_id in seen_completions:
             continue
@@ -307,8 +318,12 @@ def project_pack_lifecycle(
     practiced_packs: dict[str, int] = {}
     unassigned: list[dict[str, Any]] = []
     all_events = list(events or [])
-    retest_by_pack = _pack_retest_facts(all_events)
-    completion_packs = _canonical_completion_packs(all_events)
+    retest_closure = committed_retest_closure(all_events)
+    committed_item_ids = {
+        event_id for refs in retest_closure.values() for event_id in refs
+    }
+    retest_by_pack = _pack_retest_facts(all_events, retest_closure)
+    completion_packs = _canonical_completion_packs(all_events, retest_closure)
 
     for event in all_events:
         payload = getattr(event, "payload_json", None) or {}
@@ -330,7 +345,12 @@ def project_pack_lifecycle(
         completion_id = str(payload.get("retest_completion_id") or "").strip()
         if completion_id:
             pack_id = completion_packs.get(completion_id, "")
-            join_path = "completion_terminal" if pack_id else "completion_terminal_missing"
+            event_id = str(getattr(event, "event_id", "") or "").strip()
+            if pack_id and event_id in committed_item_ids:
+                join_path = "completion_terminal"
+            else:
+                pack_id = ""
+                join_path = "completion_terminal_ref_missing"
         else:
             pack_id, join_path = _resolve_pack_for_practice(payload)
         if pack_id:

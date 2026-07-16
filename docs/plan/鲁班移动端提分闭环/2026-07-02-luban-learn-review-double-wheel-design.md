@@ -1,6 +1,7 @@
 # 鲁班「学习 × 复习」双轮设计 v3 — 深母题 Pack 的消费层
 
-> Status: **Proposed / 设计契约稿 v3**。本稿是「笔记系统修正 v1 → 复习系统 v2」经四源异源评审 + 三专家 root-cause 治本后的收官稿，定位为**深母题 Pack 的双轮消费层设计**：学习（路线 + 下一站 + 三档练）× 复习（间隔重复引擎 + 变体回炉 + 错因银行）。
+> Authority status（2026-07-16）：**Superseded for IA / mechanics reference-only**。间隔复测、变体回炉和错因调度仅作为机制输入；不得再据此实现独立复习模块或 Tab。当前 IA 唯一 authority 见[父级 PRD](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)：`学习 / 历史 / 问鲁班 / 学情 / 我的`。
+> Status: **Reference-only / IA superseded 2026-07-16**。
 > Date: 2026-07-02
 > 基座：[移动端提分闭环 PRD v1.3](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)（North Star 与留存主菜）· [深母题数据标准 v1.0](2026-06-16-鲁班深母题数据标准-v1.0.md)（所有权范式）· [深 pack → Nexus/KnowQL grain 分级供给规范 v2](2026-06-21-luban-l0-topic-routing-card-design.md)（数据面唯一供给）· [微课获客转化 child plan](2026-07-01-luban-microlesson-acquisition-conversion-plan.md)（免费额度状态机 / 禁货架）· [解释型动效模板引擎 v0](2026-06-17-luban-explainer-motion-template-engine-v0-principles.md)（动画红线）
 > 内容资产：`docs/原始数据/考点原料/成品/`（~40 母题 × 三件套：深 Pack + 案例题作答层样板 + jury 对抗记录）+ 动画学习卡（自解包 HTML，讲懂→写成分→问 AI，样张：安全事故等级判定与上报）

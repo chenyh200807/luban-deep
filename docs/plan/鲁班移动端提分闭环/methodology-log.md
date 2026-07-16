@@ -9,6 +9,48 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-16 · 计划评审要对照在册拍板与真实流量;两个 AI 同一工作区必须先冻结再接管
+
+**①现象**:owner 要求对 07-15 计划做对抗评审并按"现有能力先上一版"收尾。评审发现计划自身工程事实全部属实(633/17/1899 等数字可精确复现、A01 变形缝有文件级铁证),但 §6 建了一套 7 日 A/A + powered A/B 统计体制;同时工作区躺着 ~3000 行未提交改动,来源不明。
+
+**②发现路径(含走错的岔路)**:三路并行取证(代码真值/关联计划一致性/第一性原理对抗)交叉出三个 SEV-0——§6 与 owner 07-10 在册拍板"撤销 spike 统计路线改逐人回放"直接冲突且零引用;考试日历(9 月,T-60)全文缺席,与历史审计批评的"考试日历盲区"原样复发;B1 教研签名是幽灵资源而 fail-closed 设计把人力缺口自动转成永久零供给。岔路:一度以为工作区改动是遗留脏改,直到读取 Codex 会话 rollout 才确认是另一个 AI 军团按同一计划执行到半程(B3 完整/B2 半截/B5 已改),且**仍在活跃写文件**(mtime 13:42 vs 审计 13:38,红测试被它中途自愈)——任何"直接接管"都会互相覆盖。
+
+**③分析**:root cause 两条。(a) 计划作者(AI)在无流量约束的真空里优化测量严谨性,没有 join 真实基线(D1≈0-6%、2-3 新用户/天)和在册拍板——**计划纪律缺一道"对照已有预注册与拍板"的机械检查**。(b) 多 AI 共享工作区没有交接协议,"谁在写、写到哪、何时冻结"无 authority——与"并行提交者扫走未提交工作"是同一 failure shape 的 AI 版。
+
+**④修法与理由**:(a) §6 整体降级为确定性发布检查表 + 逐人回放,与 07-10 拍板对齐;考试日历倒排(8/1 送达窗)、owner 本人签发 + 机器预填锚(候选覆盖 100%,签发耗时减半)。(b) 交接协议 = owner 对源窗口下停止令 → mtime 静默核验 → 只读取证确认半截活边界(B2 服务端回路) → 按纵切窄提交落盘(commit+push 即防扫走护栏) → 再动一行代码。疑属其他在飞窗口的文件(数据盘点 260 个)宁可不提交也不隔离提交。
+
+**⑤验证与教训**:接管后六个窄提交全部推送,合流回归 835 passed + Node 106/106,B2 断链(receipt 服务端不收不回显 → 桥接 100% 死路)以 RED→GREEN 收口,顺带消灭裸 items 泄 `is_correct` 的第二题面形状。教训:一,评审计划先 grep 它引用了谁、**漏引了谁**(在册拍板/预注册/真实基线是最常被漏的);二,发现另一个 agent 的半截活,最有价值的动作不是替它写完,而是先找到"它写了但没人消费"的断链(resolve_projection_receipt 零调用方)——consumption 断链是半截活的标准指纹;三,多 AI 协作的冻结令必须由 owner 在源窗口下达,旁路 kill 进程或抢写都会制造血统事故。
+
+---
+
+## 2026-07-16 · HOLD 不是关闭路径，首批验证也不能变成 F16 特权
+
+**①现象**：上版计划识别了内容资格、H5 exact identity、多端 probe 并发和真微信/A/A 四项风险，却把它们都压成一句 `Product P0A HOLD`；同时要求先审完 633 道 candidates，才进入一个 Pack 纵切。第一次修正又把 F16 写成唯一首发主角，把“窄切片”误做成“特定 Pack 特权”。结果是判断安全，但计划仍然对单 Pack 过拟合。
+
+**②发现路径（含走错的岔路）**：红队先从全库中找到 A01/F03/G03 反例，由此提出“内容冲突不清零不发布”。这个安全结论本身没错，错的岔路是把“不安全的题不得被发出”等同为“所有题都必须先变安全”。随后又因旧父级 PRD 把 F16 当历史默认，就直接把它升格为首发概念；用户指出后回到 first principles：要验证的是留存链路能否跨内容成立，不是 F16 本身。再从 H5 bridge 的 `surface + answer_indexes`、selection digest 不绑 probe、review claim 按 completion 去重的代码路径，将另三项分别定性为通用身份缺口、幂等键缺口和验收/时间证据。第二轮再追 INDEX、旧 P0A/M0 与五模块 IA，发现旧 authority 仍会把 F16、独立复习 Tab、半写/AI 批改重新带回执行面。
+
+**③分析**：root cause 是**把仓库完整性当成发布集合完整性，又把发布样本名当成产品概念，并把不同成熟度的证据压成一个 HOLD**。一等事实应是“某个 Pack 这次允许发哪些 exact items”，唯一 authority 应是现有 pack manifest + SHA-pinned per-Pack signed artifacts 所表达的 Pack-agnostic default-deny eligible issued set；“首发 Pack 切片”只是检查视图，不能长成新的 `release_cell_id`/schema/store。633 compiled inventory 只是候选原料，F16 只是其中一个 pack_id。同理，7 日 A/A 不能在当天“修完”，但它只阻断 treatment 和产品 GO，不应阻断代码和内部 QA。
+
+**④修法与理由**：把计划改为 Pack-agnostic 首发 Pack 切片、B1–B5 关闭表和 R0–R4 release ladder。B1 从同一资格池准备 2–3 个代表性 Pack，每个只签发 5 道 anchor + 1–2 个 fact 三件套，其余默认不可选；treatment 默认 2 个，第 3 个由自然流量门决定。B2 将 H5 收权到 exact IDs + digest；B3 将 review 幂等从 completion 收权到 user + probe/cycle；B4 分为真微信验收、测量预检和不可压缩的 7 日 A/A；B5 将产品表面收权到五 Tab、学习首页唯一 CTA。父 PRD 拆为 P0A-0 Practice 留存切片与 P0A-1 半写/AI 批改深度层，旧 F16/复习 IA authority 顶部标记 superseded。禁止 Pack ID 专属分支；未入选只代表本 cohort 未轮到，不是资产降级。
+
+**⑤验证与教训**：计划反例必须同时成立：“仓库仍有 A01/F03/G03 冲突”与“另外 2–3 个 Pack issued set 全部已签发”可以并存，此时合格 Pack 内部 QA 应通过，有冲突 Pack 仍不可发。实现测试必须参数化覆盖可发/冲突/供给不足三种 Pack，且搜索不得出现 `pack_id == F16` 专属路径；文档一致性检查必须证明当前 IA 只有 `学习 / 历史 / 问鲁班 / 学情 / 我的`，旧文档不再自称执行 authority。后续任何计划发现 blocker，必须同时写明 owner、输入、产出、Pass、估算、并行关系和只阻断哪一层；不再用一句 HOLD 冒充计划，也不再用一个样板 Pack 冒充产品。
+
+---
+
+## 2026-07-15 · completion ID 不是提交证书，compiled 数量也不是内容签发
+
+**①现象**：计划写成“633 道 Practice 已释放、错后可同组换题、D+1 可精确复测”，但代码与数据出现三组反例：视频 H5 仍只传 surface/index；同 completion ID 的孤儿 item 可以在 terminal 后进入弱点和图谱；撤题清单缺失或损坏时，signed variant 会在部分读路径复活。内容侧还存在 A01/F03/G03 已知冲突进入 compiled/public Practice。
+
+**②发现路径（含走错的岔路）**：先把 generic learning home 的无-surface 路径当成视频主链已接通，逐跳追 H5 bridge→retest page→read model 后才发现视频显式带 surface，所以仍固定 public 五题。又用真实 writeback 先产生合法 terminal，再追加一个同 completion、同 request hash、但不在 `item_event_refs` 的错题；旧 synthesis 把它晋升为 confirmed weak point，证明 replay 的闭包校验没有被其他 reader 共用。最后分别比较 variant summary、selection、resolve、supply digest 与 pool meta，发现它们各自重算 active set，而 blocklist 异常默认空集。最危险的岔路是继续加一个 compiled runtime blocklist；它只能遮住已知字符串，仍没有事实级撤销。
+
+**③分析**：shared failure shape 是“相关键/派生物冒充 authority”。`completion_id` 只能关联事件，不能证明哪些 item 已提交；compiled/manifest 只证明结构和可重建，不能证明事实正确；serve-side blocklist 只影响一个 projection，不能撤销同一 source fact 的其他派生面。三个问题的共同根因不是少 if，而是缺少唯一 closure 与内容资格层。
+
+**④修法与理由**：把 retest commit authority 收到 `evidence_lifecycle.committed_retest_closure`：canonical terminal 必须精确引用 item，并重核 completion/request/pack/mode、题数和分数；synthesis、typed graph、三层学情、report、pack lifecycle、prescription outcome 和 replay 统一消费它。remote evidence reader 复用 canonical classifier，控制 claim 不再泄漏。signed variant 由一个 active resolver 同时服务摘要、选题、解析、digest 和 meta，撤题 authority 缺失/损坏全链 fail-closed。计划则把原 P0-A 改成 S0 事务基础设施，把 S1 内容资格和 S2 F16 产品纵切设为 release blockers；不在本轮脏前端上补 UI，也不假装已完成真微信链路。
+
+**⑤验证与教训**：孤儿 item 与 partial typed graph 先 RED 后转绿；remote claim 泄漏测试先准确失败后通过；撤题 authority missing/corrupt 对 summary/select/identity/meta 全部 fail-close。Claude Code 对抗再抓出 NaN/Infinity 读侧崩溃、损坏 item score 被当 0 和远端 terminal 穿透测试盲区，补成非有限/损坏分数 fail-close 与 remote closure 回归；Git 追溯确认 terminal 从首次引入就携带 request hash/item refs/逐题分数，未凭猜测添加危险 legacy fallback。教训：①关联键不等于 commit certificate；②一个 reader 有 closure 不等于全系统有 closure；③结构可判不等于内容可签发；④动态池代码可达不等于目标入口已接通；⑤less is more 要减少裁决点和产品承诺，而不是少做发布真相核验。
+
+---
+
 ## 2026-07-14 · “生成物都在”仍不可交付：用干净 checkout 反证练习 authority 闭环
 
 **①现象**：全量 37 pack / 39 surface 在当前 worktree 能跑，但独立专家按 PR diff 复核时发现，分支只包含少量 finished practice 源，其余 sidecar/public 是从别处生成后带入；另有跨账号缓存、lesson/practice 共用缓存版本、sidecar 只验结构不验自身字节三类潜伏问题。

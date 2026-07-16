@@ -1,4 +1,4 @@
-<view class="attempt-detail-page">
+<view class="attempt-detail-page paper {{isDark?'':'light'}} pk-paper-bg">
   <view class="detail-nav" style="padding-top: {{statusBarHeight}}px">
     <view class="detail-nav-inner">
       <view class="detail-back" bindtap="goBack">

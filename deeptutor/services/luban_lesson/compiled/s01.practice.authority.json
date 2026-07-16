@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "S01",
   "source_pack_sha256": "13429caa1bd32a20f6708c393980b39566a92425793a2d15e9f841689edf2b13",
   "source_bundle_sha256": "a98cfebf2795b636448099326fdfeba35779268d20caaaa54d0a07bc01d1ba6f",
@@ -24,7 +24,9 @@
         "S01-html-practice-html-q4-91c55a65672c",
         "S01-html-practice-html-q15-c84007e64ab2"
       ],
-      "published_practice_sha256": "2ec1239659be43c82d46addd1d140eb1ed342640a1aeb9a30e267b336ce14dc5"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtM2VhYWM2ODEzZjg2IiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lNmJjOWU0YWQwNDQiLCJTMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTBkODI0ZmMzYTEzZiIsIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtOTFjNTVhNjU2NzJjIiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYzg0MDA3ZTY0YWIyIl0sInBhY2tfaWQiOiJTMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImFhYjJiMjhlODM3MzgzYzdhNDY2ZTg3NDRiNzE1YTFkMDUzOGI3NmM3MTFmOWNjMzlmZDhjYWU3YzIwYTdiNzEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "a61c7a9ec3194d14431605070ab192afae9dd764db57be9c431bf751adb56a50"
     },
     {
       "surface_id": "practice2.html",
@@ -46,7 +48,9 @@
         "S01-html-practice2-html-q4-0c8177f2026b",
         "S01-html-practice2-html-q15-21defa249fa3"
       ],
-      "published_practice_sha256": "17b564a2ea4ec5b4118a12d5929aacb378daebb22bb2c6e7835233695d35e801"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExLTZlOTdiZjgyMDY0NyIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEyLTQyMTZjMDBkZTZlZCIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEzLWMyMzJmZDI0MDhhNCIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXE0LTBjODE3N2YyMDI2YiIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExNS0yMWRlZmEyNDlmYTMiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiNGNkYjM4OWI5NTBkNDA4MDU1Y2VmMDQwM2Y3NThjOWRmYThjMDAzMGJiYWY5NmFlNThhMjcwYzQ4YmM0OTExNyIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMi5odG1sIn0",
+      "published_practice_sha256": "384e88de0526de9cbc46e63d762ca0ceb50f03302c7b20ac2897b1f4ba2034f5"
     },
     {
       "surface_id": "practice3.html",
@@ -68,7 +72,9 @@
         "S01-html-practice3-html-q4-25a4df8b2864",
         "S01-html-practice3-html-q14-6441c5410af5"
       ],
-      "published_practice_sha256": "459fe4f07cac072da4a4446465fa4836223e58bc8590fa94c15cc64de5b32941"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExLTg0NWM5OGI4MGE0MCIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEyLTg0NzA1YmI5NzhiOSIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEzLTViMGQ3ZGYyYTg3NCIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXE0LTI1YTRkZjhiMjg2NCIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExNC02NDQxYzU0MTBhZjUiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiNDQyNDAxZjViODQ4NjBmMzI3ZTdkNTUwNTg2MDJlMTllYmM1MTQyMTMwYmI4NTgzOTc5Mzg0MTg5MjkyMDQyNiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMy5odG1sIn0",
+      "published_practice_sha256": "7b408d5c29c05db06e97b1f112d5a3471241f114e26bb3e6784d8f8048253d48"
     }
   ],
   "items": [
@@ -121,7 +127,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q1",
-      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "980220aa7fff5a54a5616f337f84248f55f38e5176ac97e4dc1f7e9a99a52e59",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "980220aa7fff5a54a5616f337f84248f55f38e5176ac97e4dc1f7e9a99a52e59",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -172,7 +200,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q2",
-      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "cba6c6623f2808b0b12cea3f7eb9408a47196b8d2748314ee66099152151aed8",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "cba6c6623f2808b0b12cea3f7eb9408a47196b8d2748314ee66099152151aed8",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -223,7 +273,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q3",
-      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e7cca0bf5e707a110535e7666b414fa4552a58ecbd83668a75211f07915a3ced",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e7cca0bf5e707a110535e7666b414fa4552a58ecbd83668a75211f07915a3ced",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -274,7 +346,686 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q4",
-      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "a83ad2d3ab82d6d4f980abba8e037662e62d29a1fbecfb9b6f8d826dd42fc654",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "a83ad2d3ab82d6d4f980abba8e037662e62d29a1fbecfb9b6f8d826dd42fc654",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆模强度·跨>8m",
+      "stem": "某现浇混凝土梁，计算跨度 10m，拟拆底模。同条件养护强度应达设计值的多少方可拆？",
+      "model_answer": "梁跨 10m>8m，同条件养护强度应达设计值的 100% 方可拆底模。",
+      "options": [
+        {
+          "text": "梁跨 10m>8m，同条件养护强度达设计值 100% 方可拆底模。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "跨过 8m 分界取 100%，依据清楚。",
+          "option_id": "S01-html-practice-html-q5-751ab98f9adc:option-1"
+        },
+        {
+          "text": "梁类底模统一按 75% 控制，达 75% 即可拆。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "死记「拆底模=75%」一个数。",
+          "loss_reason": "跨>8m 的梁应达 100%，一律 75% 会低估、留隐患。",
+          "fix": "跨>8m 取 100%，不是 75%。",
+          "option_id": "S01-html-practice-html-q5-751ab98f9adc:option-2"
+        },
+        {
+          "text": "只要拆模时间够、龄期到 28 天就能拆，不看强度。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "以为「够龄期」就等于「够强度」。",
+          "loss_reason": "拆模看同条件养护强度而非龄期，凭天数判错。",
+          "fix": "看同条件强度：跨>8m 达 100% 方可拆。",
+          "option_id": "S01-html-practice-html-q5-751ab98f9adc:option-3"
+        },
+        {
+          "text": "跨 10m 属大跨，须专家论证后方可拆模。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把「大跨」和「专家论证」硬扯一起。",
+          "loss_reason": "拆模强度与危大论证是两码事，混淆判定链。",
+          "fix": "拆模只看强度分档：跨>8m 取 100%。",
+          "option_id": "S01-html-practice-html-q5-751ab98f9adc:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q5-751ab98f9adc",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e99ece9390ceef3f1965d263bb43ac3ea5e3e1719ec6eafd15559a17bbcb4e50",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e99ece9390ceef3f1965d263bb43ac3ea5e3e1719ec6eafd15559a17bbcb4e50",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆模强度·悬臂",
+      "stem": "某悬臂梁（悬挑构件）拟拆底模。同条件养护强度应达设计值的多少方可拆？",
+      "model_answer": "悬臂构件不看跨度，同条件养护强度应达设计值的 100% 方可拆底模。",
+      "options": [
+        {
+          "text": "悬臂构件不论跨度，同条件养护强度达设计值 100% 方可拆底模。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明「悬臂不看跨度、直接 100%」，判档到位。",
+          "option_id": "S01-html-practice-html-q6-831e03340f4f:option-1"
+        },
+        {
+          "text": "悬臂梁跨度小，按跨≤8m 取 75% 即可拆。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "看悬挑长度小，就套梁板 75% 那档。",
+          "loss_reason": "悬臂构件是独立一档、一律 100%，不进跨度分档表。",
+          "fix": "悬臂不看跨度，直接 100%。",
+          "option_id": "S01-html-practice-html-q6-831e03340f4f:option-2"
+        },
+        {
+          "text": "悬臂构件受力小，达 50% 就能拆。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把快拆 50% 那档乱套过来。",
+          "loss_reason": "50% 是快拆体系按 2m 计的特例，悬臂须 100%。",
+          "fix": "悬臂构件应达 100%，不是 50%。",
+          "option_id": "S01-html-practice-html-q6-831e03340f4f:option-3"
+        },
+        {
+          "text": "悬臂构件先拆底模、后拆侧模，强度不限。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "顺序和强度搅一起，随口答。",
+          "loss_reason": "拆模是先侧后底，且悬臂底模须达 100%，方向和数值都错。",
+          "fix": "先侧后底，且悬臂底模须达 100%。",
+          "option_id": "S01-html-practice-html-q6-831e03340f4f:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q6-831e03340f4f",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5eef5c84a448b7b9585ae335052e1d18c9f738d584bfdebf4e4c7fbd57c5a4fc",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5eef5c84a448b7b9585ae335052e1d18c9f738d584bfdebf4e4c7fbd57c5a4fc",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆模强度·快拆",
+      "stem": "采用快拆支撑体系（立杆间距≤2m、留顶托）的楼板，倒模时同条件强度按多少控制？",
+      "model_answer": "快拆体系立杆间距≤2m、留顶托，拆模按 2m 跨计，同条件强度达 50% 即可倒模，顶托继续支承。",
+      "options": [
+        {
+          "text": "立杆间距≤2m、留顶托，按 2m 跨计，同条件强度达 50% 即可倒模，顶托继续支承。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明「立杆≤2m + 留顶托 + 按 2m 计 50%」，条件齐。",
+          "option_id": "S01-html-practice-html-q7-0274f8199043:option-1"
+        },
+        {
+          "text": "快拆体系也按 100% 控制，达 100% 才能倒模。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得越高越保险。",
+          "loss_reason": "快拆按 2m 计、达 50% 即可倒模，写 100% 丢了快拆的意义。",
+          "fix": "快拆按 2m 计，达 50% 倒模、顶托保留。",
+          "option_id": "S01-html-practice-html-q7-0274f8199043:option-2"
+        },
+        {
+          "text": "立杆间距 3m 也算快拆体系，同样按 50% 倒模。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "只记 50%，忘了立杆间距的硬条件。",
+          "loss_reason": "快拆前提是立杆间距≤2m，3m 不满足、不能按快拆判。",
+          "fix": "快拆须立杆间距≤2m，3m 不算。",
+          "option_id": "S01-html-practice-html-q7-0274f8199043:option-3"
+        },
+        {
+          "text": "快拆体系拆模时把立杆和顶托一起拆掉。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为「倒模」就是全拆光。",
+          "loss_reason": "快拆倒模只拆模板、保留立杆顶托过渡承重，全拆会失去支承。",
+          "fix": "只倒模板、保留立杆顶托继续支承。",
+          "option_id": "S01-html-practice-html-q7-0274f8199043:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q7-0274f8199043",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "21c9cb05780cc01d47b5e1fd7d3c5f041f8ee7917d4acf3b6ad4a335793f1989",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "21c9cb05780cc01d47b5e1fd7d3c5f041f8ee7917d4acf3b6ad4a335793f1989",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆模顺序",
+      "stem": "关于模板拆除顺序与后张预应力梁底模拆除时机，选出正确的作答。",
+      "model_answer": "先拆不承重侧模、后拆承重底模；后张预应力构件底模待预应力张拉完成后再拆。",
+      "options": [
+        {
+          "text": "先拆不承重的侧模、后拆承重的底模；后张预应力构件底模待张拉完成后再拆。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「先侧后底 + 后张待张拉」两句都写全。",
+          "option_id": "S01-html-practice-html-q8-ef86a1b08706:option-1"
+        },
+        {
+          "text": "先拆承重底模、后拆侧模，能尽快周转模板。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "想着底模占用久、先拆好周转。",
+          "loss_reason": "先拆承重底模，荷载无传递路径，构件会下挠开裂。",
+          "fix": "先拆不承重侧模、后拆承重底模。",
+          "option_id": "S01-html-practice-html-q8-ef86a1b08706:option-2"
+        },
+        {
+          "text": "后张预应力构件底模，浇筑达 75% 强度即可拆，不必等张拉。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "套用普通梁的 75% 强度档。",
+          "loss_reason": "后张构件张拉前梁不自承，须待张拉完成后再拆底模。",
+          "fix": "后张构件底模待张拉完成后再拆。",
+          "option_id": "S01-html-practice-html-q8-ef86a1b08706:option-3"
+        },
+        {
+          "text": "侧模、底模同时拆除，节省人工。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "图省事一起拆。",
+          "loss_reason": "承重底模应后拆，同时拆等于过早撤承重支承。",
+          "fix": "先侧后底，不同时拆。",
+          "option_id": "S01-html-practice-html-q8-ef86a1b08706:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q8-ef86a1b08706",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "f88e82b778b75ee5140f328d58b389a8714470ba114fec5e005bd741f8e4cb3a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "f88e82b778b75ee5140f328d58b389a8714470ba114fec5e005bd741f8e4cb3a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "危大·凭规范非常识",
+      "stem": "判断一个分部分项工程「是否属超过一定规模危大、须论证」，正确的判定方式是？",
+      "model_answer": "取工况数值（H、跨、荷载、线荷载）逐一对照规范阈值比大小，落到二值结论，不凭主观危险感。",
+      "options": [
+        {
+          "text": "取 H、跨度、荷载、线荷载等数值，逐一对照规范阈值比大小，落到「要/不要论证」二值结论。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明危大是「取数→比阈值→二值」的查表题。",
+          "option_id": "S01-html-practice-html-q9-9ad1013366a3:option-1"
+        },
+        {
+          "text": "看工程规模大不大、危险不危险，凭经验综合判断。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "「规模大就论证」听着很合理。",
+          "loss_reason": "用主观危险感替代规范阈值，边界题必栽。",
+          "fix": "回数值逐条比阈值，不凭感觉。",
+          "option_id": "S01-html-practice-html-q9-9ad1013366a3:option-2"
+        },
+        {
+          "text": "只要现场出过事故隐患，就一律按须论证处理。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用「出过隐患」当论证理由。",
+          "loss_reason": "是否论证由规范阈值定，与是否出隐患无关。",
+          "fix": "按 H/跨/荷载/线荷载比阈值判定。",
+          "option_id": "S01-html-practice-html-q9-9ad1013366a3:option-3"
+        },
+        {
+          "text": "数值差不多接近阈值就算达到，取整判定即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "临界值嫌麻烦，想「约等于」。",
+          "loss_reason": "阈值是硬边界，8.0m 算、跨17.9m 不算，「差不多」丢分。",
+          "fix": "按阈值精确比，不用约等于。",
+          "option_id": "S01-html-practice-html-q9-9ad1013366a3:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q9-9ad1013366a3",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "79da28429495d1c3c94b4d5374fea74eec929982471ec23cb48a8e5a23ee8896",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "79da28429495d1c3c94b4d5374fea74eec929982471ec23cb48a8e5a23ee8896",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "危大·两道门（脚手架）",
+      "stem": "落地式钢管脚手架，关于「编专项方案」与「组织专家论证」两道门槛，选出正确的作答。",
+      "model_answer": "落地脚手架搭设高度≥24m 须编专项方案；≥50m 才须组织专家论证；两道门分开记。",
+      "options": [
+        {
+          "text": "落地脚手架≥24m 编专项方案、≥50m 才组织专家论证，两道门分开。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "24m 编案、50m 论证两数值都对、分门清楚。",
+          "option_id": "S01-html-practice-html-q10-53d219ab1257:option-1"
+        },
+        {
+          "text": "落地脚手架≥24m 就要组织专家论证。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记住 24m 却把它当论证门。",
+          "loss_reason": "24m 是编案门，论证门是 50m，两门混了。",
+          "fix": "24m 编案、50m 才论证。",
+          "option_id": "S01-html-practice-html-q10-53d219ab1257:option-2"
+        },
+        {
+          "text": "落地脚手架≥50m 编专项方案、≥24m 组织专家论证。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "两个数记住了、却把高低门对调。",
+          "loss_reason": "编案门低（24m）、论证门高（50m），对调即错。",
+          "fix": "低门 24m 编案、高门 50m 论证。",
+          "option_id": "S01-html-practice-html-q10-53d219ab1257:option-3"
+        },
+        {
+          "text": "落地脚手架无论多高只需编方案，均不需论证。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得脚手架都差不多、不用论证。",
+          "loss_reason": "漏了 50m 论证门，超 50m 必须论证。",
+          "fix": "补 50m 论证门：≥50m 须组织论证。",
+          "option_id": "S01-html-practice-html-q10-53d219ab1257:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q10-53d219ab1257",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0be28d9400b707b3f3e75ee8f2db1519bcfe738bd466453c2ea7241f916a6c54",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0be28d9400b707b3f3e75ee8f2db1519bcfe738bd466453c2ea7241f916a6c54",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "模板·高>3m 搭架",
+      "stem": "现浇结构模板安装时，关于「是否需搭设脚手架作业」，正确的作答是？",
+      "model_answer": "模板安装高度超过 3.0m 时，必须搭设脚手架作业，严禁站在模板或支撑上操作。",
+      "options": [
+        {
+          "text": "模板安装高度超过 3.0m 时必须搭设脚手架作业，严禁站在模板或支撑上操作。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "3.0m 分界 + 「严禁站模板/支撑」都点到。",
+          "option_id": "S01-html-practice-html-q11-3c589227335d:option-1"
+        },
+        {
+          "text": "模板安装高度超过 5.0m 才需搭脚手架。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把危大编案门 5m 混过来。",
+          "loss_reason": "搭架门槛是 3.0m，5m 是模板支架危大编案门，数值张冠李戴。",
+          "fix": "模板安装>3.0m 即须搭架。",
+          "option_id": "S01-html-practice-html-q11-3c589227335d:option-2"
+        },
+        {
+          "text": "只要有可靠站位，任何高度都不必专门搭脚手架。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "觉得「站稳就行」灵活省事。",
+          "loss_reason": ">3.0m 必须搭架是硬规定，凭「站稳」判违规。",
+          "fix": ">3.0m 必须搭脚手架作业。",
+          "option_id": "S01-html-practice-html-q11-3c589227335d:option-3"
+        },
+        {
+          "text": "高度超过 3.0m 时可站在支撑立杆上操作以省架。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "想省搭架的工。",
+          "loss_reason": "严禁站模板/支撑上操作，站支撑既违规又危险。",
+          "fix": ">3.0m 搭架作业，严禁站支撑操作。",
+          "option_id": "S01-html-practice-html-q11-3c589227335d:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q11-3c589227335d",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "a52034c986d58902c4e855dd08bc05deda87de118e033849b5da9862d267d0c1",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "a52034c986d58902c4e855dd08bc05deda87de118e033849b5da9862d267d0c1",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "强度未达就拆·后果",
+      "stem": "跨>8m 的现浇梁在同条件强度仅 60% 时就拆除底模支撑，规范对此如何定性？",
+      "model_answer": "跨>8m 须达 100% 方可拆，60% 就拆撑属强度未达拆除，是重大事故隐患，易致梁下挠脆断坍塌。",
+      "options": [
+        {
+          "text": "跨>8m 须达 100%，60% 拆撑属「强度未达拆除」，是重大事故隐患，易致梁脆断坍塌。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "定性「重大事故隐患」+ 指出 100% 阈值，因果清楚。",
+          "option_id": "S01-html-practice-html-q13-0f16a24f375c:option-1"
+        },
+        {
+          "text": "只要拆后没立刻塌，就说明强度够、可以拆。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "「没塌就是没事」的侥幸心理。",
+          "loss_reason": "未达强度拆撑本身即重大隐患，未塌是尚未失稳、非合规。",
+          "fix": "看强度是否达标，不看「有没有立刻塌」。",
+          "option_id": "S01-html-practice-html-q13-0f16a24f375c:option-2"
+        },
+        {
+          "text": "属一般质量问题，返工补强即可，不算重大隐患。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把安全隐患降格成质量小问题。",
+          "loss_reason": "强度未达拆除是规范列明的重大事故隐患，非一般质量问题。",
+          "fix": "定性为重大事故隐患，须停止拆模。",
+          "option_id": "S01-html-practice-html-q13-0f16a24f375c:option-3"
+        },
+        {
+          "text": "达 60% 已过半，可先拆一半支撑观察。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "「过半」听着安全、想折中。",
+          "loss_reason": "跨>8m 须 100%，拆一半支撑照样承重转移失败。",
+          "fix": "跨>8m 须达 100% 才可拆，不能拆一半。",
+          "option_id": "S01-html-practice-html-q13-0f16a24f375c:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q13-0f16a24f375c",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d3e7fb9943d7509b4518c92a178ad0bd7c939de849defec8261c6d63ada3db56",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d3e7fb9943d7509b4518c92a178ad0bd7c939de849defec8261c6d63ada3db56",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆模强度·临界",
+      "stem": "两根现浇梁计算跨度分别为 8.0m 与 8.1m，拟拆底模，同条件强度分别应达多少？",
+      "model_answer": "跨 8.0m 属「≤8m」取 75%；跨 8.1m 属「>8m」取 100%；边界含 8m 于 75% 档。",
+      "options": [
+        {
+          "text": "8.0m 属跨≤8m 取 75%；8.1m 属跨>8m 取 100%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "边界 8m 归 75% 档、超一点即 100%，卡点精确。",
+          "option_id": "S01-html-practice-html-q14-7010e9dd0b25:option-1"
+        },
+        {
+          "text": "两根都超 8m 附近，统一取 100% 稳妥。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "嫌边界麻烦、一律往高取。",
+          "loss_reason": "8.0m≤8m 应取 75%，一律 100% 判错了 8.0m 这根。",
+          "fix": "8.0m 取 75%、8.1m 取 100%。",
+          "option_id": "S01-html-practice-html-q14-7010e9dd0b25:option-2"
+        },
+        {
+          "text": "两根都接近 8m，取平均按 87.5% 控制。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "想在两档间「折中」。",
+          "loss_reason": "强度分档没有折中档，须落 75% 或 100%。",
+          "fix": "落档：8.0m→75%、8.1m→100%。",
+          "option_id": "S01-html-practice-html-q14-7010e9dd0b25:option-3"
+        },
+        {
+          "text": "跨 8m 上下差不多，都按 75% 拆即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "「差不多」把 8.1m 也算进 75%。",
+          "loss_reason": "8.1m>8m 须 100%，按 75% 拆是强度未达。",
+          "fix": "8.1m>8m 须 100%，不能按 75%。",
+          "option_id": "S01-html-practice-html-q14-7010e9dd0b25:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q14-7010e9dd0b25",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6682b68d6624733955103255316d5f1a1b5855c22678767a70240a5dc92cca08",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6682b68d6624733955103255316d5f1a1b5855c22678767a70240a5dc92cca08",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -325,7 +1076,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q15",
-      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "05892b397f5d484cdb74b69010112883bb018eb071b2ad38bff2a5f00efd9ab2",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "05892b397f5d484cdb74b69010112883bb018eb071b2ad38bff2a5f00efd9ab2",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -376,7 +1149,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q1",
-      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c6d02de829170f349cf5c06a8396c2cdbe560b018a06d21133024c080df95543",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c6d02de829170f349cf5c06a8396c2cdbe560b018a06d21133024c080df95543",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -427,7 +1222,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q2",
-      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0ddf679af85f33cf9de14bb46b66da56df61f617fea802dfe7e42c8a1943a11f",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0ddf679af85f33cf9de14bb46b66da56df61f617fea802dfe7e42c8a1943a11f",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -478,7 +1295,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q3",
-      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "67e67a36486739805a375e4321e465cb2fe395dc33dfbde53b08456d9145c468",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "67e67a36486739805a375e4321e465cb2fe395dc33dfbde53b08456d9145c468",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -529,7 +1368,686 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q4",
-      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "620ba51fe1e9355ea6ed609705b1c79a470c4221fe5b77e3b8d79514eba00d7b",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "620ba51fe1e9355ea6ed609705b1c79a470c4221fe5b77e3b8d79514eba00d7b",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "连墙件·间距",
+      "stem": "关于连墙件的布置间距，选出数值齐全、能得分的作答。",
+      "model_answer": "连墙件间距水平≤3跨、竖向≤3步、竖向≤4m；转角及开口端应增设。",
+      "options": [
+        {
+          "text": "连墙件水平间距≤3跨、竖向≤3步、竖向≤4m，转角及开口端增设。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "水平3跨/竖向3步/4m 三数齐 + 增设部位。",
+          "option_id": "S01-html-practice2-html-q5-430402d8a8dd:option-1"
+        },
+        {
+          "text": "连墙件水平≤4跨、竖向≤4步即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "顺手把 3 记成 4。",
+          "loss_reason": "间距是水平≤3跨、竖向≤3步，写 4 超限。",
+          "fix": "水平≤3跨、竖向≤3步、竖向≤4m。",
+          "option_id": "S01-html-practice2-html-q5-430402d8a8dd:option-2"
+        },
+        {
+          "text": "连墙件只要每层设一道就够，间距不限。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为「每层有」就行。",
+          "loss_reason": "漏了水平3跨/竖向3步/4m 的间距硬限。",
+          "fix": "补间距：水平≤3跨、竖向≤3步、≤4m。",
+          "option_id": "S01-html-practice2-html-q5-430402d8a8dd:option-3"
+        },
+        {
+          "text": "连墙件竖向间距按 6m 控制即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把别处的 6m 混过来。",
+          "loss_reason": "连墙件竖向≤4m（且≤3步），不是 6m。",
+          "fix": "竖向≤3步且≤4m。",
+          "option_id": "S01-html-practice2-html-q5-430402d8a8dd:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q5-430402d8a8dd",
+      "surface_id": "practice2.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "f3fc9e1520b5c065bd61a38ad4f50ae6912bed990161ea1f635e2b793c2c1d3e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "f3fc9e1520b5c065bd61a38ad4f50ae6912bed990161ea1f635e2b793c2c1d3e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "连墙件·24m双排",
+      "stem": "高度 24m 以上的双排脚手架，对连墙件有何强制要求？选出能得分的作答。",
+      "model_answer": "24m 以上的双排脚手架必须采用刚性连墙件与建筑主体可靠连接，严禁使用柔性连墙件。",
+      "options": [
+        {
+          "text": "24m 以上双排架必须采用刚性连墙件与主体可靠连接，严禁柔性连墙件。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明「24m 以上双排必刚性、严禁柔性」。",
+          "option_id": "S01-html-practice2-html-q6-48b226f2067d:option-1"
+        },
+        {
+          "text": "24m 以上双排架用柔性连墙件加密即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为加密就能替代刚性。",
+          "loss_reason": "24m 以上必须刚性，加密柔性件仍受压失稳。",
+          "fix": "必须刚性连墙件，非柔性加密。",
+          "option_id": "S01-html-practice2-html-q6-48b226f2067d:option-2"
+        },
+        {
+          "text": "24m 以上双排架可不设连墙件，靠剪刀撑稳定。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为剪刀撑能替连墙件。",
+          "loss_reason": "剪刀撑管抗侧刚度、连墙件管锚固，缺连墙件=重大隐患。",
+          "fix": "必须设刚性连墙件，剪刀撑不替代。",
+          "option_id": "S01-html-practice2-html-q6-48b226f2067d:option-3"
+        },
+        {
+          "text": "24m 以上仅顶部设一道刚性连墙件即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得高处设一道就够。",
+          "loss_reason": "仍须按水平≤3跨、竖向≤3步/4m 布置，不止一道。",
+          "fix": "按间距全高布置刚性连墙件。",
+          "option_id": "S01-html-practice2-html-q6-48b226f2067d:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q6-48b226f2067d",
+      "surface_id": "practice2.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c92bae704d95800b6ce551195f5f8f48f0c3916ba5145ef71a33b5816a97bbaf",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c92bae704d95800b6ce551195f5f8f48f0c3916ba5145ef71a33b5816a97bbaf",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "连墙件·缺失定性",
+      "stem": "检查发现某高脚手架多处连墙件缺失。对该情形如何定性？选出能得分的作答。",
+      "model_answer": "连墙件缺失致防倾覆失效，属脚手架重大事故隐患，应立即停用整改、补设刚性连墙件。",
+      "options": [
+        {
+          "text": "连墙件缺失致防倾覆失效，属重大事故隐患，应停用整改、补设刚性连墙件。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "定性「重大事故隐患」+ 整改动作齐。",
+          "option_id": "S01-html-practice2-html-q7-6685c587f3bb:option-1"
+        },
+        {
+          "text": "连墙件缺几处不影响使用，补齐前可继续作业。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "觉得「缺几处」问题不大。",
+          "loss_reason": "连墙件缺失是防倾覆失效、重大隐患，不得带患作业。",
+          "fix": "重大隐患，须停用整改后再用。",
+          "option_id": "S01-html-practice2-html-q7-6685c587f3bb:option-2"
+        },
+        {
+          "text": "属一般缺陷，验收时扣分即可，不必停工。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把安全隐患降成验收扣分。",
+          "loss_reason": "连墙件缺失是重大事故隐患，非一般扣分项。",
+          "fix": "定性重大事故隐患，立即整改。",
+          "option_id": "S01-html-practice2-html-q7-6685c587f3bb:option-3"
+        },
+        {
+          "text": "用钢丝绳临时拉一下即可恢复使用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "想拿软拉件应急替代。",
+          "loss_reason": "连墙件须刚性，钢丝绳柔性不抗压、仍失稳。",
+          "fix": "补设刚性连墙件，非柔性临时拉接。",
+          "option_id": "S01-html-practice2-html-q7-6685c587f3bb:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q7-6685c587f3bb",
+      "surface_id": "practice2.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "1aa750a89dca10574a3aea42408a42ee158c8e2cfac1208be571c117a1eba743",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "1aa750a89dca10574a3aea42408a42ee158c8e2cfac1208be571c117a1eba743",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "剪刀撑·角度宽度",
+      "stem": "关于双排脚手架剪刀撑的倾角与宽度，选出能得分的作答。",
+      "model_answer": "剪刀撑倾角 45°~60°，一道剪刀撑跨 4~6 跨、宽 6~9m，24m 为分界（≤24m 局部、>24m 连续设置）。",
+      "options": [
+        {
+          "text": "剪刀撑倾角 45°~60°，一道跨 4~6 跨、宽 6~9m，24m 分界。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "角度 45~60° + 宽 6~9m + 24m 分界齐。",
+          "option_id": "S01-html-practice2-html-q8-ddc5c1a09e80:option-1"
+        },
+        {
+          "text": "剪刀撑倾角 30°~45°、宽 3~6m 即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把角度、宽度都记小了。",
+          "loss_reason": "倾角是 45~60°、宽 6~9m，数值记错。",
+          "fix": "倾角 45~60°、宽 6~9m。",
+          "option_id": "S01-html-practice2-html-q8-ddc5c1a09e80:option-2"
+        },
+        {
+          "text": "剪刀撑随便斜拉一道防晃就行，角度不限。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为剪刀撑「有就行」。",
+          "loss_reason": "剪刀撑有 45~60°、宽 6~9m 硬要求，角度过缓传力差。",
+          "fix": "倾角 45~60°、一道宽 6~9m。",
+          "option_id": "S01-html-practice2-html-q8-ddc5c1a09e80:option-3"
+        },
+        {
+          "text": "剪刀撑倾角 45~60°，但一道宽度不限、越宽越好。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "角度记对了、宽度想当然。",
+          "loss_reason": "一道剪刀撑宽 6~9m（4~6跨），非越宽越好。",
+          "fix": "一道宽 6~9m（4~6跨）。",
+          "option_id": "S01-html-practice2-html-q8-ddc5c1a09e80:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q8-ddc5c1a09e80",
+      "surface_id": "practice2.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "019987fa3bd8c508a71f28abeb19cbf8617c47b6d91238d6a3b994cffe5677f4",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "019987fa3bd8c508a71f28abeb19cbf8617c47b6d91238d6a3b994cffe5677f4",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "高宽比",
+      "stem": "支撑（模板支撑）脚手架独立架体的高宽比，规范要求不大于多少？选出能得分的作答。",
+      "model_answer": "支撑脚手架独立架体高宽比≤3.0；高宽比过大重心高、抗倾覆力矩小，易整体倾覆。",
+      "options": [
+        {
+          "text": "支撑脚手架独立架体高宽比≤3.0，过大则重心高、抗倾覆力矩小、易整体倾覆。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "阈值 3.0 + 对象「支撑架独立架体」+ 机理齐。",
+          "option_id": "S01-html-practice2-html-q9-daf74654f270:option-1"
+        },
+        {
+          "text": "支撑架独立架体高宽比≤2:1。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把移动式操作平台的 2:1 混过来。",
+          "loss_reason": "支撑脚手架高宽比≤3.0，2:1 是移动平台的值。",
+          "fix": "支撑架独立架体高宽比≤3.0。",
+          "option_id": "S01-html-practice2-html-q9-daf74654f270:option-2"
+        },
+        {
+          "text": "高宽比越大越稳，不必限制。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "直觉「高细的更稳」搞反。",
+          "loss_reason": "高宽比大重心高、抗倾覆力矩小，反而易倾覆。",
+          "fix": "高宽比≤3.0，过大易倾覆。",
+          "option_id": "S01-html-practice2-html-q9-daf74654f270:option-3"
+        },
+        {
+          "text": "高宽比≤5 即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把阈值记大了。",
+          "loss_reason": "支撑架独立架体高宽比≤3.0，5 超限。",
+          "fix": "高宽比≤3.0。",
+          "option_id": "S01-html-practice2-html-q9-daf74654f270:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q9-daf74654f270",
+      "surface_id": "practice2.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "016543621be369f848721a310187268be57ee196aee20c075946afa344360cbc",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "016543621be369f848721a310187268be57ee196aee20c075946afa344360cbc",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "可调底座/托撑",
+      "stem": "关于可调底座、可调托撑螺杆的插入与伸出长度，选出能得分的作答。",
+      "model_answer": "可调底座/托撑螺杆插入立杆的长度应≥150mm，伸出长度受限（如 φ48.3 立杆伸出≤500mm），过长偏心受压易局部压屈。",
+      "options": [
+        {
+          "text": "螺杆插入立杆长度应≥150mm，伸出长度受限（φ48.3 伸出≤500mm），过长偏心易局部压屈。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "插入≥150mm + 伸出限值 + 机理齐。",
+          "option_id": "S01-html-practice2-html-q10-beff252c72ec:option-1"
+        },
+        {
+          "text": "螺杆插入越少越好、伸出越长越方便调平。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得伸得长好调平。",
+          "loss_reason": "伸出过长=悬臂受压杆、偏心增大先局部压屈；插入须≥150mm。",
+          "fix": "插入≥150mm、伸出受限，不宜过长。",
+          "option_id": "S01-html-practice2-html-q10-beff252c72ec:option-2"
+        },
+        {
+          "text": "螺杆插入≥50mm 即可，伸出不限。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把插入值记小、忽略伸出限。",
+          "loss_reason": "插入应≥150mm，且伸出有限值，两处都错。",
+          "fix": "插入≥150mm、伸出受限（≤500mm 等）。",
+          "option_id": "S01-html-practice2-html-q10-beff252c72ec:option-3"
+        },
+        {
+          "text": "可调底座只管调平，长度无强制要求。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为底座只是垫高工具。",
+          "loss_reason": "底座/托撑螺杆有插入、伸出的构造硬限，漏则失稳。",
+          "fix": "补插入≥150mm、伸出受限。",
+          "option_id": "S01-html-practice2-html-q10-beff252c72ec:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q10-beff252c72ec",
+      "surface_id": "practice2.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c3cfa6c8c2a225081dfb6190c6ad0425614b070ee367a62d07b9cfe47195ac61",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c3cfa6c8c2a225081dfb6190c6ad0425614b070ee367a62d07b9cfe47195ac61",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆除·顺序方向",
+      "stem": "脚手架拆除作业，正确的总顺序是？选出能得分的作答。",
+      "model_answer": "拆除应自上而下、先外后内、逐层同步进行，严禁上下同时交叉作业。",
+      "options": [
+        {
+          "text": "拆除应自上而下、先外后内、逐层同步，严禁上下同时交叉作业。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "方向自上而下 + 先外后内 + 禁交叉齐。",
+          "option_id": "S01-html-practice2-html-q11-818ec55cb064:option-1"
+        },
+        {
+          "text": "拆除从下往上，先把底层拆掉腾出场地。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "把「拆」想成从底拆起。",
+          "loss_reason": "从下往上拆，上层荷载落到已削弱下层，连锁垮塌。",
+          "fix": "应自上而下、先外后内。",
+          "option_id": "S01-html-practice2-html-q11-818ec55cb064:option-2"
+        },
+        {
+          "text": "上下层同时开工、多点交叉拆最快。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "图快想多点同时拆。",
+          "loss_reason": "严禁上下同时交叉，交叉作业极易失稳伤人。",
+          "fix": "逐层同步、严禁上下交叉。",
+          "option_id": "S01-html-practice2-html-q11-818ec55cb064:option-3"
+        },
+        {
+          "text": "先拆内层、再拆外层，方向随意。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "把先外后内记反。",
+          "loss_reason": "应先外后内，且方向自上而下，不能随意。",
+          "fix": "自上而下、先外后内。",
+          "option_id": "S01-html-practice2-html-q11-818ec55cb064:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q11-818ec55cb064",
+      "surface_id": "practice2.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "3cc9de28f98dec55dcf18d317f856d728ed6111ca3699c2b40e6c4434226de3f",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "3cc9de28f98dec55dcf18d317f856d728ed6111ca3699c2b40e6c4434226de3f",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆除·连墙件随层拆",
+      "stem": "拆除脚手架时，连墙件应如何拆除？选出能得分的作答。",
+      "model_answer": "连墙件应随架体逐层同步拆除，严禁先将连墙件整层拆除；悬臂段超 2 步应加临时拉结。",
+      "options": [
+        {
+          "text": "连墙件随架体逐层同步拆除，严禁先整层拆连墙件；悬臂段超 2 步加临时拉结。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "随层拆 + 禁提前整层拆 + 悬臂加固齐。",
+          "option_id": "S01-html-practice2-html-q12-4ee51714c673:option-1"
+        },
+        {
+          "text": "先把连墙件整层拆掉，再拆架体更省事。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得先清连墙件好拆架。",
+          "loss_reason": "先整层拆连墙件，架体立即变悬臂、拆中侧倒。",
+          "fix": "随层同步拆，严禁先整层拆连墙件。",
+          "option_id": "S01-html-practice2-html-q12-4ee51714c673:option-2"
+        },
+        {
+          "text": "连墙件最后统一拆，先把杆件全拆完。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "想先拆杆件、连墙件留到最后。",
+          "loss_reason": "杆件拆了连墙件还在，受力紊乱；应随层同步。",
+          "fix": "连墙件随架体逐层同步拆。",
+          "option_id": "S01-html-practice2-html-q12-4ee51714c673:option-3"
+        },
+        {
+          "text": "连墙件拆不拆无所谓，反正要拆光。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "觉得反正都要拆。",
+          "loss_reason": "拆除时机错=拆中失稳，连墙件须随层拆。",
+          "fix": "随层同步拆、超 2 步悬臂加拉结。",
+          "option_id": "S01-html-practice2-html-q12-4ee51714c673:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q12-4ee51714c673",
+      "surface_id": "practice2.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5ed74b0a890f3c0fec46554567d076c0dee9e44f11d13ac73cf43bb65af94a86",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5ed74b0a890f3c0fec46554567d076c0dee9e44f11d13ac73cf43bb65af94a86",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "搭设·纵向水平杆",
+      "stem": "关于纵向水平杆（大横杆）的接头构造，选出数值正确、能得分的作答。",
+      "model_answer": "纵向水平杆宜设在立杆内侧；对接接头交错、错开≥500mm、距主节点≤1/3跨；搭接≥1m、用 3 个旋转扣件、端头伸出≥100mm。",
+      "options": [
+        {
+          "text": "设在立杆内侧；对接错开≥500mm、距主节点≤1/3跨；搭接≥1m、3 个扣件、端头≥100mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "内侧 + 错开500 + 搭接1m/3扣件/端100 齐。",
+          "option_id": "S01-html-practice2-html-q13-db4bb6ce063c:option-1"
+        },
+        {
+          "text": "搭接长度≥0.5m、用 2 个扣件即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把搭接和错开数值记混、扣件记少。",
+          "loss_reason": "搭接应≥1m、3 个扣件，写 0.5m/2 扣件不够。",
+          "fix": "搭接≥1m、3 个扣件、端头≥100mm。",
+          "option_id": "S01-html-practice2-html-q13-db4bb6ce063c:option-2"
+        },
+        {
+          "text": "接头集中设在同一跨内便于施工。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "图施工方便把接头集中。",
+          "loss_reason": "接头集中形成局部弱面，应交错、错开≥500mm。",
+          "fix": "接头交错、错开≥500mm、距主节点≤1/3。",
+          "option_id": "S01-html-practice2-html-q13-db4bb6ce063c:option-3"
+        },
+        {
+          "text": "纵向水平杆设在立杆外侧更牢。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得外侧受力好。",
+          "loss_reason": "纵向水平杆宜设在立杆内侧，外侧不符构造。",
+          "fix": "宜设在立杆内侧。",
+          "option_id": "S01-html-practice2-html-q13-db4bb6ce063c:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q13-db4bb6ce063c",
+      "surface_id": "practice2.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d0aab2ae0e89dc439f2395daf5d86429883bb875fefd15301efbd0795c9cf1d7",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d0aab2ae0e89dc439f2395daf5d86429883bb875fefd15301efbd0795c9cf1d7",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -580,7 +2098,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q15",
-      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "a9e5c65a854b617506228d8c14a2e29a72cc6a0d6547fd3db4accae9d451ddd6",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "a9e5c65a854b617506228d8c14a2e29a72cc6a0d6547fd3db4accae9d451ddd6",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -631,7 +2171,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q1",
-      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0d19a1aacb047fe595e984a2588154d8dbf0c5deac073716e114820f71429b24",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0d19a1aacb047fe595e984a2588154d8dbf0c5deac073716e114820f71429b24",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -682,7 +2244,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q2",
-      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "2c592f232329a4c15a1e74dccfff8721c9d207f4585857200131e3f3ad0434c9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "2c592f232329a4c15a1e74dccfff8721c9d207f4585857200131e3f3ad0434c9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -733,7 +2317,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q3",
-      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "48132408f82562660556c735b2afbea7631f25ba3c405dd32fd57e4231700b02",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "48132408f82562660556c735b2afbea7631f25ba3c405dd32fd57e4231700b02",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -784,7 +2390,613 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q4",
-      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5c8aa38e79e623d54636cc619b89f291a8b57ad956e68f958362de4468ec0fdb",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5c8aa38e79e623d54636cc619b89f291a8b57ad956e68f958362de4468ec0fdb",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "平台·悬挑式",
+      "stem": "悬挑式操作平台的构造参数，下列哪组正确？选出能得分的作答。",
+      "model_answer": "悬挑式：悬挑长度≤5m、均布荷载≤5.5kN/m²、集中荷载≤15kN、吊环≥4个。",
+      "options": [
+        {
+          "text": "悬挑≤5m、均布≤5.5kN/m²、集中≤15kN、吊环≥4。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "悬挑/均布/集中/吊环四参数齐全。",
+          "option_id": "S01-html-practice3-html-q5-5abaee280510:option-1"
+        },
+        {
+          "text": "悬挑≤10m、荷载不限、吊环≥2。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把限值放宽、吊环记少。",
+          "loss_reason": "悬挑≤5m、吊环≥4，写 10m/2 均超。",
+          "fix": "悬挑≤5m、吊环≥4。",
+          "option_id": "S01-html-practice3-html-q5-5abaee280510:option-2"
+        },
+        {
+          "text": "悬挑式面积≤10m²、高宽比≤2:1。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把移动式参数安到悬挑式。",
+          "loss_reason": "10m²/2:1 是移动式平台参数，张冠李戴。",
+          "fix": "悬挑式看悬挑5m/5.5/15kN/吊环4。",
+          "option_id": "S01-html-practice3-html-q5-5abaee280510:option-3"
+        },
+        {
+          "text": "悬挑长度看现场情况定，无硬限。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为悬挑长度灵活。",
+          "loss_reason": "悬挑≤5m 是硬限，凭现场定违规。",
+          "fix": "悬挑≤5m 是硬限值。",
+          "option_id": "S01-html-practice3-html-q5-5abaee280510:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q5-5abaee280510",
+      "surface_id": "practice3.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0b75f165dbd5df410b9fcedec651278db2627190ed72da5d598c36c40ab6c6dc",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0b75f165dbd5df410b9fcedec651278db2627190ed72da5d598c36c40ab6c6dc",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "平台·移动式",
+      "stem": "移动式操作平台的构造参数，下列哪组正确？选出能得分的作答。",
+      "model_answer": "移动式：面积≤10m²、高度≤5m、高宽比≤2:1、荷载≤1.5kN/m²。",
+      "options": [
+        {
+          "text": "面积≤10m²、高≤5m、高宽比≤2:1、荷载≤1.5kN/m²。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "面积/高/高宽比/荷载四参数齐。",
+          "option_id": "S01-html-practice3-html-q6-c4bab9a354d5:option-1"
+        },
+        {
+          "text": "面积≤10m²、高≤15m、高宽比≤3:1。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把落地式的 15m/3:1 混进来。",
+          "loss_reason": "15m/3:1 是落地式，移动式是 5m/2:1。",
+          "fix": "移动式高≤5m、高宽比≤2:1。",
+          "option_id": "S01-html-practice3-html-q6-c4bab9a354d5:option-2"
+        },
+        {
+          "text": "移动式高宽比≤3.0，同支撑脚手架。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把支撑架 3.0 安到移动平台。",
+          "loss_reason": "移动式高宽比≤2:1，3.0 是支撑脚手架的值。",
+          "fix": "移动式高宽比≤2:1，不是 3.0。",
+          "option_id": "S01-html-practice3-html-q6-c4bab9a354d5:option-3"
+        },
+        {
+          "text": "移动平台可移动，荷载面积都不限。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为能移动就不受限。",
+          "loss_reason": "移动式有面积10m²/高5m/2:1/1.5 硬限。",
+          "fix": "补面积≤10m²、高≤5m、荷载≤1.5。",
+          "option_id": "S01-html-practice3-html-q6-c4bab9a354d5:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q6-c4bab9a354d5",
+      "surface_id": "practice3.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "818e56e4e8373b98400cac63ac7a2af4d6a3a27dd33abaadc2ac2497ee32f98a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "818e56e4e8373b98400cac63ac7a2af4d6a3a27dd33abaadc2ac2497ee32f98a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "平台·落地式",
+      "stem": "落地式操作平台的构造参数，下列哪组正确？选出能得分的作答。",
+      "model_answer": "落地式：高度≤15m、高宽比≤3:1、荷载≤2.0kN/m²、连墙件间距≤4m。",
+      "options": [
+        {
+          "text": "高≤15m、高宽比≤3:1、荷载≤2.0kN/m²、连墙件≤4m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "高/高宽比/荷载/连墙件四参数齐。",
+          "option_id": "S01-html-practice3-html-q7-5cdefd694888:option-1"
+        },
+        {
+          "text": "高≤5m、高宽比≤2:1，同移动式。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把移动式参数套到落地式。",
+          "loss_reason": "落地式是 15m/3:1，5m/2:1 是移动式。",
+          "fix": "落地式高≤15m、高宽比≤3:1。",
+          "option_id": "S01-html-practice3-html-q7-5cdefd694888:option-2"
+        },
+        {
+          "text": "落地式无需连墙件。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为落地就不用拉结。",
+          "loss_reason": "落地式高>某值需连墙件、间距≤4m，漏项。",
+          "fix": "落地式连墙件间距≤4m。",
+          "option_id": "S01-html-practice3-html-q7-5cdefd694888:option-3"
+        },
+        {
+          "text": "落地式高≤24m 才需验算。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把脚手架 24m 混进来。",
+          "loss_reason": "落地式操作平台高≤15m，24m 是脚手架编案门。",
+          "fix": "落地式高≤15m。",
+          "option_id": "S01-html-practice3-html-q7-5cdefd694888:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q7-5cdefd694888",
+      "surface_id": "practice3.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "50a15508fe11151dda4a59a724f451dd69057e875409a1142c79ea4cda977395",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "50a15508fe11151dda4a59a724f451dd69057e875409a1142c79ea4cda977395",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "卸料平台·红线",
+      "stem": "悬挑式卸料平台的搁支点与拉结点应设在何处？选出能得分的作答。",
+      "model_answer": "卸料平台的搁支点与拉结点必须设在建筑主体结构上，严禁固定在作业脚手架上。",
+      "options": [
+        {
+          "text": "搁支点与拉结点必须设在建筑主体结构上，严禁固定在作业脚手架上。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「设主体、严禁挂作业架」红线写全。",
+          "option_id": "S01-html-practice3-html-q8-6aad25e0dd37:option-1"
+        },
+        {
+          "text": "旁边有脚手架，把卸料平台搁、拉在脚手架上更方便。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "图省事借用现成脚手架。",
+          "loss_reason": "作业脚手架自重已满，卸料平台一压超载失稳、连锁塌。",
+          "fix": "必须设在建筑主体结构上，严禁挂作业架。",
+          "option_id": "S01-html-practice3-html-q8-6aad25e0dd37:option-2"
+        },
+        {
+          "text": "搁支点设主体、拉结点可设脚手架。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为拉结点受力小可以挂架。",
+          "loss_reason": "搁支与拉结点都必须在主体结构，拉结点也严禁挂作业架。",
+          "fix": "搁支点、拉结点都设主体，都不挂作业架。",
+          "option_id": "S01-html-practice3-html-q8-6aad25e0dd37:option-3"
+        },
+        {
+          "text": "设在地面临时支架上即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "想另搭临时架承托。",
+          "loss_reason": "悬挑卸料平台靠主体锚固，临时地面架不可靠。",
+          "fix": "搁支/拉结点设在建筑主体结构上。",
+          "option_id": "S01-html-practice3-html-q8-6aad25e0dd37:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q8-6aad25e0dd37",
+      "surface_id": "practice3.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "ccebec8bd8a3e37d922ea094c14b7dbac4daad1df9ae509c053d5b4690416247",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "ccebec8bd8a3e37d922ea094c14b7dbac4daad1df9ae509c053d5b4690416247",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "卸料平台·连带禁令",
+      "stem": "除卸料平台外，下列哪些同样严禁固定在作业脚手架上？选出能得分的作答。",
+      "model_answer": "缆风绳、泵管、大型设备的支承件（及卸料平台）均严禁固定在作业脚手架上。",
+      "options": [
+        {
+          "text": "缆风绳、泵管、大型设备支承件均严禁固定在作业脚手架上。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "缆风绳/泵管/大设备支承件一并列全。",
+          "option_id": "S01-html-practice3-html-q9-2ced1df7148b:option-1"
+        },
+        {
+          "text": "只有卸料平台不能挂，缆风绳、泵管无所谓。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为只有卸料平台受限。",
+          "loss_reason": "缆风绳、泵管、大型设备支承件同样严禁固定在作业架上。",
+          "fix": "缆风绳、泵管、大设备支承件都严禁挂作业架。",
+          "option_id": "S01-html-practice3-html-q9-2ced1df7148b:option-2"
+        },
+        {
+          "text": "泵管固定在脚手架上便于施工，允许。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "图施工方便把泵管绑架上。",
+          "loss_reason": "泵管冲击荷载大，固定作业架上致失稳，严禁。",
+          "fix": "泵管严禁固定在作业脚手架上。",
+          "option_id": "S01-html-practice3-html-q9-2ced1df7148b:option-3"
+        },
+        {
+          "text": "缆风绳拉在脚手架上更稳。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为借架拉缆稳当。",
+          "loss_reason": "缆风绳拉力作用作业架致失稳，严禁固定其上。",
+          "fix": "缆风绳严禁固定在作业脚手架上。",
+          "option_id": "S01-html-practice3-html-q9-2ced1df7148b:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q9-2ced1df7148b",
+      "surface_id": "practice3.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "1a6879a4d1f8c28b9ea0e9d269db66f6d410c2c66c78a8251099544312488b95",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "1a6879a4d1f8c28b9ea0e9d269db66f6d410c2c66c78a8251099544312488b95",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "设备·禁用限用",
+      "stem": "关于禁用与限用脚手架/设备，下列哪项正确？选出能得分的作答。",
+      "model_answer": "禁用竹木脚手架；限用：轮扣式≤15m双排/≤8m满堂、龙门架/井架≤25m、扣件式卸料平台≤10m。",
+      "options": [
+        {
+          "text": "禁用竹木脚手架；轮扣式限15m双排/8m满堂、龙门架/井架限25m、扣件式卸料平台限10m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "禁用竹木 + 三档限高全，逐条清楚。",
+          "option_id": "S01-html-practice3-html-q10-44a4f62d74e8:option-1"
+        },
+        {
+          "text": "竹木脚手架可用，限高 15m 即可。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "以为竹木限高就能用。",
+          "loss_reason": "竹木脚手架是禁用，不是限用。",
+          "fix": "竹木脚手架禁用，不是限高使用。",
+          "option_id": "S01-html-practice3-html-q10-44a4f62d74e8:option-2"
+        },
+        {
+          "text": "轮扣式限 25m、龙门架限 15m。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把两个限高对调。",
+          "loss_reason": "轮扣式限 15m、龙门架限 25m，数值对调。",
+          "fix": "轮扣15m、龙门架/井架25m。",
+          "option_id": "S01-html-practice3-html-q10-44a4f62d74e8:option-3"
+        },
+        {
+          "text": "限用设备只要方案批了就无限高。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为批了方案就突破限高。",
+          "loss_reason": "限用设备有硬限高，方案不能突破。",
+          "fix": "按限高：轮扣15m/龙门架25m/卸料10m。",
+          "option_id": "S01-html-practice3-html-q10-44a4f62d74e8:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q10-44a4f62d74e8",
+      "surface_id": "practice3.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "71663ca3c8886463acaeedf81a9cea2a4e65006616a758e8295e4589844afedc",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "71663ca3c8886463acaeedf81a9cea2a4e65006616a758e8295e4589844afedc",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "平台·高宽比串档",
+      "stem": "下列关于「高宽比」的对象与数值对应，哪项正确？选出能得分的作答。",
+      "model_answer": "移动式操作平台高宽比≤2:1；落地式操作平台≤3:1；支撑（模板支撑）脚手架独立架体≤3.0。",
+      "options": [
+        {
+          "text": "移动式≤2:1、落地式≤3:1、支撑脚手架独立架体≤3.0。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三个高宽比各归其对象、不串。",
+          "option_id": "S01-html-practice3-html-q11-e50b75fe9680:option-1"
+        },
+        {
+          "text": "支撑脚手架高宽比≤2:1。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把移动式 2:1 安到支撑架。",
+          "loss_reason": "支撑架独立架体高宽比≤3.0，2:1 是移动式。",
+          "fix": "支撑架≤3.0，移动式才≤2:1。",
+          "option_id": "S01-html-practice3-html-q11-e50b75fe9680:option-2"
+        },
+        {
+          "text": "移动式与落地式高宽比都是≤3:1。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "两类平台高宽比记成一样。",
+          "loss_reason": "移动式≤2:1、落地式≤3:1，两者不同。",
+          "fix": "移动式≤2:1、落地式≤3:1。",
+          "option_id": "S01-html-practice3-html-q11-e50b75fe9680:option-3"
+        },
+        {
+          "text": "高宽比是一个通用值，各类都≤3.0。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "想用一个数省事。",
+          "loss_reason": "不同对象高宽比不同：2:1/3:1/3.0，不能通用。",
+          "fix": "按对象分：移动2:1/落地3:1/支撑架3.0。",
+          "option_id": "S01-html-practice3-html-q11-e50b75fe9680:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q11-e50b75fe9680",
+      "surface_id": "practice3.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "f99e74429e227f6452f632fa0669378c98a3a5f3956f797546aa09c385df5aeb",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "f99e74429e227f6452f632fa0669378c98a3a5f3956f797546aa09c385df5aeb",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "验收·8类评分表",
+      "stem": "关于脚手架安全检查评分表，下列哪项正确？选出能得分的作答。",
+      "model_answer": "脚手架检查评分表共8类（扣件式/门式/碗扣/盘扣/满堂/悬挑/附着升降/吊篮），每类分保证项目与一般项目两档。",
+      "options": [
+        {
+          "text": "共8类（扣件式/门式/碗扣/盘扣/满堂/悬挑/附着升降/吊篮），每类分保证与一般两档。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "8类 + 保证/一般两档，结构清楚。",
+          "option_id": "S01-html-practice3-html-q12-a1b89e7d4e9d:option-1"
+        },
+        {
+          "text": "只有一张通用评分表，不分类。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为一张表打天下。",
+          "loss_reason": "评分表按架型分 8 类，不通用。",
+          "fix": "按架型分 8 类评分表。",
+          "option_id": "S01-html-practice3-html-q12-a1b89e7d4e9d:option-2"
+        },
+        {
+          "text": "分保证/一般/优良三档。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "多凑一个「优良」档。",
+          "loss_reason": "只分保证项目、一般项目两档，无「优良」档。",
+          "fix": "只分保证、一般两档。",
+          "option_id": "S01-html-practice3-html-q12-a1b89e7d4e9d:option-3"
+        },
+        {
+          "text": "满堂脚手架与模板支架用同一张评分表。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "觉得都是满堂差不多。",
+          "loss_reason": "满堂脚手架与模板支架各有评分表，不可混用。",
+          "fix": "各用各的评分表，不混用。",
+          "option_id": "S01-html-practice3-html-q12-a1b89e7d4e9d:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q12-a1b89e7d4e9d",
+      "surface_id": "practice3.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "a47e4da7eb6841c0470d8846c00097e68a9d221c0a91e337e3fb38fa79c88478",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "a47e4da7eb6841c0470d8846c00097e68a9d221c0a91e337e3fb38fa79c88478",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -835,7 +3047,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q14",
-      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "a8491a892e16af24c4e07ce607899f93241ad782bbd7a9379eb55463d05902b9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "a8491a892e16af24c4e07ce607899f93241ad782bbd7a9379eb55463d05902b9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "433320cf6904ffbe1d234482ff97a36804a717bd374f14120b41c14e5c685c9d"

@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "F04",
   "source_pack_sha256": "7fc64c43b64eb10782cda1014ce062c8420075b21ca78c05a29ed2eb5e63760a",
   "source_bundle_sha256": "79062efb6da51219aafefa22f5137cb81c50536c7201c45431913dca616a1378",
@@ -24,7 +24,9 @@
         "F04-html-practice-html-q4-c3b5b6ab6b4c",
         "F04-html-practice-html-q15-1bd9bc83105c"
       ],
-      "published_practice_sha256": "4c65a198a627188204942377c4d24a8f5cc32951d0e6c930c24dee3d30b4bbbf"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtYmQwOTMwNGI3MTM3IiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00NDQwNDJmNGZhZTciLCJGMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWU3ZjZjMjNhMmZjYSIsIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzNiNWI2YWI2YjRjIiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMWJkOWJjODMxMDVjIl0sInBhY2tfaWQiOiJGMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjhiZTZjMjQ2Zjc0ZDAyYjc0YWU3MDExOTM5M2UwNjcyOWU5YWM2NmE4ZmI2NjFkZmNjOTk5NWJlZGRlYzZiODgiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "7e8198cc753ff393324ebe6b403b6fdada7b167a8bea01efc8aac8188ca9ba6a"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q1",
-      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "103f0fe710bb423d31d8d31cbde6c41f7704fd6cf689016baf26af7af08ab07d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "103f0fe710bb423d31d8d31cbde6c41f7704fd6cf689016baf26af7af08ab07d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q2",
-      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "bcd1c631c860b29c91c3aabc00c242a7def4227c3c911c5836f7e272da0340e2",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "bcd1c631c860b29c91c3aabc00c242a7def4227c3c911c5836f7e272da0340e2",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q3",
-      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "977c899acafb595d86026e540aaec7494dfa45806029fd9556ad5803fa95a060",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "977c899acafb595d86026e540aaec7494dfa45806029fd9556ad5803fa95a060",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,759 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q4",
-      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "fdcffe1f3cfaa0e295ca1caeac4000eebc9219c586790afd0fdc3b2a9a07a2df",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "fdcffe1f3cfaa0e295ca1caeac4000eebc9219c586790afd0fdc3b2a9a07a2df",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "泛水高度·案例纠错",
+      "stem": "某屋面女儿墙泛水高度做到 200mm。判别是否妥当并给正确做法。",
+      "model_answer": "泛水高度200mm不足，其他部位泛水高度应≥250mm，应加高至不小于250mm。",
+      "options": [
+        {
+          "text": "泛水高度200mm不足，其他部位泛水高度应≥250mm，应加高至不小于250mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "判不妥＋给出≥250mm，数值采分句齐。",
+          "option_id": "F04-html-practice-html-q5-dbcb8946f505:option-1"
+        },
+        {
+          "text": "泛水做法不妥，应把泛水高度提高一些、做足即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道要加高、但没写数值。",
+          "loss_reason": "漏了关键数字≥250mm，采分句不给分。",
+          "fix": "明确写『泛水高度≥250mm』。",
+          "option_id": "F04-html-practice-html-q5-dbcb8946f505:option-2"
+        },
+        {
+          "text": "泛水高度200mm偏低，应加高至≥150mm。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有个限值、记成150。",
+          "loss_reason": "数值错，应为≥250mm。",
+          "fix": "泛水高度≥250mm。",
+          "option_id": "F04-html-practice-html-q5-dbcb8946f505:option-3"
+        },
+        {
+          "text": "泛水高度200mm符合要求，无需调整。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "200看着差不多就放过。",
+          "loss_reason": "低于250限值，判为不妥。",
+          "fix": "应加高至≥250mm。",
+          "option_id": "F04-html-practice-html-q5-dbcb8946f505:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q5-dbcb8946f505",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "091c0de53a9e85924c4727711d2585796be0264f664c9392b37b8f62fd24fd87",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "091c0de53a9e85924c4727711d2585796be0264f664c9392b37b8f62fd24fd87",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "女儿墙附加层·数值维",
+      "stem": "女儿墙泛水处附加层做法，选出能得分的作答。",
+      "model_answer": "女儿墙泛水处防水层下增设附加层，平面和立面宽度均≥250mm。",
+      "options": [
+        {
+          "text": "女儿墙泛水处防水层下增设附加层，平面和立面宽度均≥250mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "增设附加层＋平立面均≥250mm，采分句齐。",
+          "option_id": "F04-html-practice-html-q6-5be8250aae2b:option-1"
+        },
+        {
+          "text": "女儿墙泛水处防水层下增设附加层即可，宽度按现场情况定。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道要加附加层、忽略宽度。",
+          "loss_reason": "漏了平立面均≥250mm的数值采分点。",
+          "fix": "平面立面宽度均≥250mm。",
+          "option_id": "F04-html-practice-html-q6-5be8250aae2b:option-2"
+        },
+        {
+          "text": "女儿墙泛水附加层平立面宽度均≥100mm。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有宽度要求、数值记小。",
+          "loss_reason": "数值错，应≥250mm。",
+          "fix": "平立面均≥250mm。",
+          "option_id": "F04-html-practice-html-q6-5be8250aae2b:option-3"
+        },
+        {
+          "text": "女儿墙泛水只需把大面卷材上翻，不必单独设附加层。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "以为上翻就够。",
+          "loss_reason": "漏了泛水处应增设附加层。",
+          "fix": "防水层下增设附加层、平立面≥250mm。",
+          "option_id": "F04-html-practice-html-q6-5be8250aae2b:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q6-5be8250aae2b",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "18f4642297e56dedc4a374d6c2175d6e5ea17af2d16d3947343d034309d2f744",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "18f4642297e56dedc4a374d6c2175d6e5ea17af2d16d3947343d034309d2f744",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "压顶排水·案例辨析",
+      "stem": "女儿墙压顶做法，选出能得分的作答。",
+      "model_answer": "女儿墙压顶向内排水、坡度≥5%，涂膜防水层直接涂刷至压顶下。",
+      "options": [
+        {
+          "text": "女儿墙压顶向内排水、坡度≥5%，涂膜防水层直接涂刷至压顶下。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "向内坡≥5%＋涂膜至压顶下，采分句齐。",
+          "option_id": "F04-html-practice-html-q7-0667c40ebb19:option-1"
+        },
+        {
+          "text": "女儿墙压顶做成水平顶面，便于施工和放置构件。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "平顶好施工。",
+          "loss_reason": "平顶积水回渗，应做向内坡≥5%。",
+          "fix": "压顶向内坡≥5%。",
+          "option_id": "F04-html-practice-html-q7-0667c40ebb19:option-2"
+        },
+        {
+          "text": "压顶向内排水，坡度≥2%即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得要坡、数值记成2%。",
+          "loss_reason": "数值错，应≥5%。",
+          "fix": "坡度≥5%。",
+          "option_id": "F04-html-practice-html-q7-0667c40ebb19:option-3"
+        },
+        {
+          "text": "压顶向内排水坡度≥5%即可，涂膜到不到压顶下无所谓。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答坡度一项。",
+          "loss_reason": "漏了『涂膜直接涂刷至压顶下』采分点。",
+          "fix": "补『涂膜直涂至压顶下』。",
+          "option_id": "F04-html-practice-html-q7-0667c40ebb19:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q7-0667c40ebb19",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e90df3694f9e0b0347aed6d9bb38b45a3335294a031cd00f25ff3b6d86066e4b",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e90df3694f9e0b0347aed6d9bb38b45a3335294a031cd00f25ff3b6d86066e4b",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "卷材收头·案例辨析",
+      "stem": "女儿墙卷材收头处理，选出能得分的作答。",
+      "model_answer": "收头用金属压条钉压固定+密封材料封严，下端做鹰嘴和滴水槽。",
+      "options": [
+        {
+          "text": "卷材收头用金属压条钉压固定，再用密封材料封严，下端做鹰嘴和滴水槽。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "压条钉压＋密封封严＋鹰嘴滴水槽，三件齐。",
+          "option_id": "F04-html-practice-html-q8-8c3e6f5e7e2a:option-1"
+        },
+        {
+          "text": "卷材收头用密封材料涂封严实即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抹层密封看着已封住。",
+          "loss_reason": "漏了金属压条钉压固定，只密封锁不住自由边。",
+          "fix": "收头须金属压条钉压＋密封封严。",
+          "option_id": "F04-html-practice-html-q8-8c3e6f5e7e2a:option-2"
+        },
+        {
+          "text": "收头把卷材多翻上去一截、压块砖头压住即可。",
+          "is_correct": false,
+          "source_error_code": "M01",
+          "temptation": "随手压块砖当固定。",
+          "loss_reason": "非规范做法，应金属压条钉压＋密封。",
+          "fix": "金属压条钉压固定＋密封封严。",
+          "option_id": "F04-html-practice-html-q8-8c3e6f5e7e2a:option-3"
+        },
+        {
+          "text": "收头用金属压条钉压固定即可，密封和滴水槽可省。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "压条钉住看着牢。",
+          "loss_reason": "漏了密封封严和鹰嘴滴水槽。",
+          "fix": "压条＋密封＋鹰嘴滴水槽三件齐。",
+          "option_id": "F04-html-practice-html-q8-8c3e6f5e7e2a:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q8-8c3e6f5e7e2a",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d6e775e4f0c6c83cf6a7aa87f43de4db3484a036359417357bedb153738e8fc3",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d6e775e4f0c6c83cf6a7aa87f43de4db3484a036359417357bedb153738e8fc3",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "檐口细部·数值维",
+      "stem": "檐口卷材防水做法，选出能得分的作答。",
+      "model_answer": "檐口800mm范围内卷材满粘，收头金属压条钉压+密封封严，下端做鹰嘴和滴水槽。",
+      "options": [
+        {
+          "text": "檐口800mm范围内卷材满粘，收头金属压条钉压+密封封严，下端做鹰嘴和滴水槽。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "800满粘＋收头压条密封＋鹰嘴滴水槽，采分句齐。",
+          "option_id": "F04-html-practice-html-q9-c3549d0e3d39:option-1"
+        },
+        {
+          "text": "檐口500mm范围内卷材满粘，其余空铺。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有个满粘范围、记成500。",
+          "loss_reason": "数值错，应为檐口800mm范围内满粘。",
+          "fix": "檐口800mm范围内满粘。",
+          "option_id": "F04-html-practice-html-q9-c3549d0e3d39:option-2"
+        },
+        {
+          "text": "檐口卷材满粘即可，收头和滴水槽按一般做法。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答满粘一项。",
+          "loss_reason": "漏了收头压条密封与鹰嘴滴水槽。",
+          "fix": "补收头压条密封＋鹰嘴滴水槽。",
+          "option_id": "F04-html-practice-html-q9-c3549d0e3d39:option-3"
+        },
+        {
+          "text": "檐口卷材整体空铺、只在最边缘点粘，防止起鼓。",
+          "is_correct": false,
+          "source_error_code": "M01",
+          "temptation": "怕起鼓想空铺。",
+          "loss_reason": "檐口800mm范围要满粘，空铺错。",
+          "fix": "檐口800mm范围内满粘。",
+          "option_id": "F04-html-practice-html-q9-c3549d0e3d39:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q9-c3549d0e3d39",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c3858ab131ec49e8a33fc90edd6ad4f8eed50c2c75f34e9dce57d05a9a2df86f",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c3858ab131ec49e8a33fc90edd6ad4f8eed50c2c75f34e9dce57d05a9a2df86f",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "水落口·数值维",
+      "stem": "水落口构造做法，选出能得分的作答。",
+      "model_answer": "水落口杯牢固固定承重结构，防水层下增设涂膜附加层，防水层伸入杯内≥50mm，周边500mm坡≥5%。",
+      "options": [
+        {
+          "text": "水落口杯牢固固定在承重结构上，防水层下增设涂膜附加层，防水层伸入杯内≥50mm，周边500mm范围坡度≥5%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "杯固定＋涂膜附加层＋伸入≥50＋周边坡≥5%，采分句齐。",
+          "option_id": "F04-html-practice-html-q10-cc0bd333f3b1:option-1"
+        },
+        {
+          "text": "水落口杯固定牢固、防水层盖到杯口即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "盖到杯口看着接上了。",
+          "loss_reason": "漏了伸入杯内≥50mm、涂膜附加层、周边坡度。",
+          "fix": "防水伸入杯内≥50mm＋涂膜附加层＋周边500坡≥5%。",
+          "option_id": "F04-html-practice-html-q10-cc0bd333f3b1:option-2"
+        },
+        {
+          "text": "防水层伸入水落口杯内≥20mm。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得伸进去、数值记成20。",
+          "loss_reason": "数值错，应≥50mm。",
+          "fix": "伸入杯内≥50mm。",
+          "option_id": "F04-html-practice-html-q10-cc0bd333f3b1:option-3"
+        },
+        {
+          "text": "水落口杯不必固定在承重结构，随防水层一起浮放即可。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "图省事浮放。",
+          "loss_reason": "杯须牢固固定在承重结构上。",
+          "fix": "水落口杯牢固固定承重结构。",
+          "option_id": "F04-html-practice-html-q10-cc0bd333f3b1:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q10-cc0bd333f3b1",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "14f595ededb59f8704c03f1406112a8f7950f10bede9320801ccbda3eb8897be",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "14f595ededb59f8704c03f1406112a8f7950f10bede9320801ccbda3eb8897be",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "综合纠错·案例",
+      "stem": "某屋面防水交底称：泛水做200mm、阴阳角做直角、女儿墙泛水不设附加层。指出错误并给正确做法（选最完整）。",
+      "model_answer": "泛水应≥250mm；阴阳角应做圆弧或45度；女儿墙泛水处应增设附加层、平立面均≥250mm。",
+      "options": [
+        {
+          "text": "泛水高度应≥250mm；阴阳角应做圆弧或45度；女儿墙泛水处应增设附加层、平立面均≥250mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处逐一纠正并给数值，综合纠错采分句齐。",
+          "option_id": "F04-html-practice-html-q11-8dde83419cf9:option-1"
+        },
+        {
+          "text": "只有泛水高度不对、应改≥250mm，其余两项没问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只抓到泛水一处。",
+          "loss_reason": "漏诊阴阳角直角、女儿墙不设附加层两处错。",
+          "fix": "三处都要纠：泛水250、阴阳角圆弧/45度、附加层平立面250。",
+          "option_id": "F04-html-practice-html-q11-8dde83419cf9:option-2"
+        },
+        {
+          "text": "三处做法都要改得规范些、做足一点。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道有问题、没给具体做法数值。",
+          "loss_reason": "没写圆弧/45度、≥250mm等采分句。",
+          "fix": "逐处给出圆弧或45度、≥250mm等具体做法。",
+          "option_id": "F04-html-practice-html-q11-8dde83419cf9:option-3"
+        },
+        {
+          "text": "泛水200、阴阳角直角都行，只有女儿墙要加附加层。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "放过了泛水和阴阳角。",
+          "loss_reason": "泛水应≥250、阴阳角应圆弧/45度，都判不妥。",
+          "fix": "三处均纠正。",
+          "option_id": "F04-html-practice-html-q11-8dde83419cf9:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q11-8dde83419cf9",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "1a110329e0137733302a51c878ba138d04a1b33c077562a8c2e704160e06c8d2",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "1a110329e0137733302a51c878ba138d04a1b33c077562a8c2e704160e06c8d2",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "本考点边界·辨析",
+      "stem": "下列哪一项属于本考点（防水细部节点）的判分要点？",
+      "model_answer": "阴阳角圆弧/附加层/收头压条/泛水250/水落口50 等节点做法与数值属本考点；大面铺贴搭接、设防道数不属。",
+      "options": [
+        {
+          "text": "阴阳角圆弧或45度、薄弱节点先做附加层、收头压条密封、泛水≥250mm等细部节点做法与数值。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "这些才是细部节点判分眼——做法＋数值。",
+          "option_id": "F04-html-practice-html-q12-0abd0d245f9d:option-1"
+        },
+        {
+          "text": "卷材大面怎么搭接、搭接宽度多少、平行还是垂直屋脊铺贴。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "同属屋面防水、容易混。",
+          "loss_reason": "大面铺贴搭接属卷材施工工艺，不是细部节点判分眼。",
+          "fix": "本考点判节点做法/数值，不判大面铺贴。",
+          "option_id": "F04-html-practice-html-q12-0abd0d245f9d:option-2"
+        },
+        {
+          "text": "屋面防水设几道、防水等级几级、抗渗等级多少。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "都带『防水』字。",
+          "loss_reason": "设防道数/等级属屋面防水构造，非细部节点。",
+          "fix": "本考点判细部节点，不判设防道数。",
+          "option_id": "F04-html-practice-html-q12-0abd0d245f9d:option-3"
+        },
+        {
+          "text": "防水卷材的化学配方、聚合物含量等材料指标。",
+          "is_correct": false,
+          "source_error_code": "M01",
+          "temptation": "以为要懂材料指标。",
+          "loss_reason": "材料化学指标非本考点判分眼。",
+          "fix": "本考点判节点构造做法与数值。",
+          "option_id": "F04-html-practice-html-q12-0abd0d245f9d:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q12-0abd0d245f9d",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "081f3e964d21c093c75c63d0d5e2aa4d610a3042106b20504516fc6286aaea14",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "081f3e964d21c093c75c63d0d5e2aa4d610a3042106b20504516fc6286aaea14",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "阴阳角基层·补全",
+      "stem": "关于阴阳角基层处理，除做圆弧/45度外，还需满足的是。",
+      "model_answer": "基层坚实、平整，无浮浆、起砂、裂缝。",
+      "options": [
+        {
+          "text": "阴阳角基层做圆弧或45度，且基层坚实、平整，无浮浆、起砂、裂缝。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "圆弧/45度＋基层坚实平整无缺陷，两句都点到。",
+          "option_id": "F04-html-practice-html-q13-872d3ba434ff:option-1"
+        },
+        {
+          "text": "阴阳角做圆弧或45度就行，基层状况不影响防水。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记圆弧一项。",
+          "loss_reason": "漏了基层坚实平整、无浮浆起砂裂缝的要求。",
+          "fix": "补基层坚实平整、无浮浆起砂裂缝。",
+          "option_id": "F04-html-practice-html-q13-872d3ba434ff:option-2"
+        },
+        {
+          "text": "基层只要不漏水、潮湿点没关系，圆弧做好即可。",
+          "is_correct": false,
+          "source_error_code": "M01",
+          "temptation": "觉得潮点无妨。",
+          "loss_reason": "基层应坚实平整无缺陷，潮湿/起砂影响粘结。",
+          "fix": "基层坚实平整、无浮浆起砂裂缝。",
+          "option_id": "F04-html-practice-html-q13-872d3ba434ff:option-3"
+        },
+        {
+          "text": "阴阳角做圆弧后，基层越松软越利于卷材贴合。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "误以为松软好贴。",
+          "loss_reason": "基层须坚实，松软起砂粘不牢。",
+          "fix": "基层坚实平整、无起砂。",
+          "option_id": "F04-html-practice-html-q13-872d3ba434ff:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q13-872d3ba434ff",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "4f5d3ec7eb5f6f2740ec43ce098a1bf7d6d08e8f11c1871c46589476835b326d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "4f5d3ec7eb5f6f2740ec43ce098a1bf7d6d08e8f11c1871c46589476835b326d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "檐沟天沟·数值维",
+      "stem": "檐沟、天沟处附加层做法，选出能得分的作答。",
+      "model_answer": "檐沟、天沟防水层下增设附加层，附加层伸入屋面宽度≥250mm。",
+      "options": [
+        {
+          "text": "檐沟、天沟防水层下增设附加层，附加层伸入屋面宽度≥250mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "增设附加层＋伸入屋面≥250mm，采分句齐。",
+          "option_id": "F04-html-practice-html-q14-3868581aaf48:option-1"
+        },
+        {
+          "text": "檐沟天沟附加层伸入屋面≥150mm。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得伸入、数值记小。",
+          "loss_reason": "数值错，应≥250mm。",
+          "fix": "伸入屋面≥250mm。",
+          "option_id": "F04-html-practice-html-q14-3868581aaf48:option-2"
+        },
+        {
+          "text": "檐沟天沟处大面卷材铺过去即可，不必单独做附加层。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为大面盖住够。",
+          "loss_reason": "漏了增设附加层。",
+          "fix": "防水层下增设附加层、伸入≥250mm。",
+          "option_id": "F04-html-practice-html-q14-3868581aaf48:option-3"
+        },
+        {
+          "text": "檐沟附加层只做在沟底、不必伸入屋面。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "以为沟底做就行。",
+          "loss_reason": "附加层要伸入屋面≥250mm。",
+          "fix": "附加层伸入屋面≥250mm。",
+          "option_id": "F04-html-practice-html-q14-3868581aaf48:option-4"
+        }
+      ],
+      "variant_id": "F04-html-practice-html-q14-3868581aaf48",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0a3dfa131a7ec2c2c09ff863389d68a7359da780ffa741b5dfca95a1b9d2e212",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0a3dfa131a7ec2c2c09ff863389d68a7359da780ffa741b5dfca95a1b9d2e212",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +1101,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q15",
-      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "56f5735b64ecc66fb3765c83c915871d8c3849b28b8194aeff494ed379695b8b",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "56f5735b64ecc66fb3765c83c915871d8c3849b28b8194aeff494ed379695b8b",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "2da7b2d6f0228ec085909a5ac6c5d82468417433164d462790933cc01e2e4e5d"

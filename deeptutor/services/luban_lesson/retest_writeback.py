@@ -7,26 +7,40 @@ import os
 from typing import Any
 
 from deeptutor.services.learner_state.evidence_lifecycle import (
+    canonical_retest_item_events,
     is_canonical_luban_retest_terminal,
 )
 from deeptutor.services.learner_state.learner_signal import record_learner_signal
-from deeptutor.services.luban_lesson.practice_html import (
-    load_compiled_practice,
-)
 from deeptutor.services.luban_lesson.read_model import (
     build_lesson_viewmodel,
-    build_retest_items,
+    resolve_retest_items,
+    retest_supply_identity,
 )
-from deeptutor.services.luban_lesson.retest_selection import verify_retest_selection
-from deeptutor.services.luban_lesson.review_due import build_review_due_projection
+from deeptutor.services.luban_lesson.retest_selection import (
+    decode_retest_selection,
+    verify_retest_selection,
+)
+from deeptutor.services.luban_lesson.review_due import (
+    build_review_due_projection,
+    resolve_due_review_probe,
+)
 
 SOURCE_FEATURE = "assessment_testset"
+CLAIM_SOURCE_FEATURE = "luban_retest_claim"
 ERROR_CODE = "unknown_error"
 _REVIEW_FLAG = "LUBAN_REVIEW_MODULE_ENABLED"
 _LIGHT_PRACTICE_FLAG = "LUBAN_LIGHT_PRACTICE_ENABLED"
 
 
 class RetestIdempotencyConflict(RuntimeError):
+    pass
+
+
+class RetestProbeClaimUnavailable(RuntimeError):
+    pass
+
+
+class RetestCompletionInProgress(RuntimeError):
     pass
 
 
@@ -95,10 +109,12 @@ class RetestWritebackService:
         *,
         learner_state_service: Any,
         review_probe_resolver: Any | None = None,
+        review_exam_date_resolver: Any | None = None,
         training_intent_validator: Any | None = None,
     ) -> None:
         self._learner_state = learner_state_service
         self._review_probe_resolver = review_probe_resolver
+        self._review_exam_date_resolver = review_exam_date_resolver
         self._training_intent_validator = training_intent_validator
 
     def complete(
@@ -128,33 +144,30 @@ class RetestWritebackService:
             normalized_day = int(day_index)
         except (TypeError, ValueError) as exc:
             raise ValueError("retest_day_index_invalid") from exc
-        normalized_probe = str(probe_id or "").strip()
-        normalized_mode = "review" if normalized_probe else requested_mode
+        client_probe = str(probe_id or "").strip()
+        client_mode = "review" if client_probe else requested_mode
         normalized_answers = _normalize_answers(answers)
         if not normalized_answers or len(normalized_answers) > 10:
             raise ValueError("retest_answer_count_invalid")
         normalized_selection = str(selection_id or "").strip()
-        if not verify_retest_selection(
-            normalized_selection,
-            user_id=normalized_user,
-            pack_id=normalized_pack,
-            day_index=normalized_day,
-            mode=normalized_mode,
-            variant_ids=[item["variant_id"] for item in normalized_answers],
-        ):
-            raise ValueError("retest_selection_invalid")
-        intent_id = normalized_probe if normalized_mode == "review" else str(training_intent_id or "").strip()
-        canonical_request = {
+        client_intent_id = client_probe if client_mode == "review" else str(training_intent_id or "").strip()
+        legacy_request = {
             "completion_id": normalized_completion,
             "pack_id": normalized_pack,
-            "mode": normalized_mode,
+            "mode": client_mode,
             "day_index": normalized_day,
             "selection_id": normalized_selection,
             "answers": normalized_answers,
-            "training_intent_id": intent_id,
-            "probe_id": normalized_probe,
+            "training_intent_id": client_intent_id,
+            "probe_id": client_probe,
         }
-        request_hash = _request_hash(canonical_request)
+        legacy_request_hash = _request_hash(legacy_request)
+        request_hash = _request_hash(
+            {
+                "selection_id": normalized_selection,
+                "answers": normalized_answers,
+            }
+        )
         existing_events = self._events_for_completion(
             user_id=normalized_user,
             completion_id=normalized_completion,
@@ -164,79 +177,100 @@ class RetestWritebackService:
             for event in existing_events
             if getattr(event, "payload_json", {}).get("completion_terminal") is True
         ]
-        if terminal_rows and not all(
-            is_canonical_luban_retest_terminal(event) for event in terminal_rows
+        if terminal_rows and (
+            len(terminal_rows) != 1
+            or not all(is_canonical_luban_retest_terminal(event) for event in terminal_rows)
         ):
             raise RetestIdempotencyConflict(normalized_completion)
         existing_terminal = terminal_rows[0] if terminal_rows else None
         if existing_terminal is not None:
-            existing_hash = str(getattr(existing_terminal, "payload_json", {}).get("request_hash") or "")
-            if existing_hash != request_hash:
+            terminal_payload = dict(getattr(existing_terminal, "payload_json", {}) or {})
+            existing_hash = str(terminal_payload.get("request_hash") or "")
+            hash_version = int(terminal_payload.get("request_hash_version") or 0)
+            expected_hash = request_hash if hash_version == 3 else legacy_request_hash
+            if existing_hash != expected_hash:
                 raise RetestIdempotencyConflict(normalized_completion)
             if not any(
                 getattr(event, "payload_json", {}).get("learning_signal_type") == "station_completed"
                 for event in existing_events
             ):
-                _require_rollout_enabled(normalized_mode)
-                lesson = build_lesson_viewmodel(normalized_pack)
+                terminal_mode = "review" if str(terminal_payload.get("practice_mode") or "") == "review" else "forward"
+                terminal_pack = str(terminal_payload.get("pack_id") or "").strip().upper()
+                terminal_probe = str(terminal_payload.get("probe_id") or "").strip()
+                terminal_intent = str(terminal_payload.get("training_intent_id") or "").strip()
+                if terminal_pack != normalized_pack:
+                    raise RetestIdempotencyConflict(normalized_completion)
+                _require_rollout_enabled(terminal_mode)
+                lesson = build_lesson_viewmodel(terminal_pack)
                 station = record_learner_signal(
                     self._learner_state,
                     user_id=normalized_user,
                     signal_type="station_completed",
-                    concept_id=normalized_pack,
-                    concept_label=str(lesson.get("title") or normalized_pack),
+                    concept_id=terminal_pack,
+                    concept_label=str(lesson.get("title") or terminal_pack),
                     completion_id=normalized_completion,
-                    practice_mode=normalized_mode,
-                    training_intent_id=intent_id,
-                    probe_id=normalized_probe,
+                    practice_mode=terminal_mode,
+                    training_intent_id=terminal_intent,
+                    probe_id=terminal_probe,
                 )
                 existing_events.append(station)
             return self._replay_result(existing_events, terminal=existing_terminal)
+
+        self._assert_request_consistency(
+            existing_events,
+            completion_id=normalized_completion,
+            request_hash=request_hash,
+        )
+        selection = decode_retest_selection(normalized_selection, user_id=normalized_user)
+        if selection is None:
+            raise ValueError("retest_selection_invalid")
+        selection_pack = str(selection.get("pack_id") or "").strip().upper()
+        normalized_mode = str(selection.get("mode") or "").strip()
+        normalized_day = int(selection.get("day_index") or 0)
+        normalized_probe = str(selection.get("probe_id") or "").strip()
+        cycle_anchor = str(selection.get("cycle_anchor") or "").strip()
+        selected_variant_ids = [str(item or "").strip() for item in list(selection.get("variant_ids") or [])]
+        if selection_pack != normalized_pack or sorted(selected_variant_ids) != [
+            item["variant_id"] for item in normalized_answers
+        ]:
+            raise ValueError("retest_selection_invalid")
+        intent_id = normalized_probe if normalized_mode == "review" else str(training_intent_id or "").strip()
+        supply = retest_supply_identity(selection_pack, mode=normalized_mode)
+        if not verify_retest_selection(
+            normalized_selection,
+            user_id=normalized_user,
+            pack_id=selection_pack,
+            day_index=normalized_day,
+            mode=normalized_mode,
+            variant_ids=[item["variant_id"] for item in normalized_answers],
+            supply_kind=supply.get("kind", ""),
+            supply_digest=supply.get("digest", ""),
+            probe_id=normalized_probe,
+            cycle_anchor=cycle_anchor,
+        ):
+            raise ValueError("retest_selection_invalid")
         _require_rollout_enabled(normalized_mode)
         if normalized_mode == "review":
-            self._require_due_probe(
+            due_probe = self._require_due_probe(
                 user_id=normalized_user,
-                pack_id=normalized_pack,
+                pack_id=selection_pack,
                 probe_id=normalized_probe,
             )
+            if str(due_probe.get("cycle_anchor") or "").strip() != cycle_anchor:
+                raise ValueError("retest_probe_cycle_mismatch")
         elif intent_id and not self._intent_matches_pack(
             user_id=normalized_user,
             training_intent_id=intent_id,
-            pack_id=normalized_pack,
+            pack_id=selection_pack,
         ):
             raise ValueError("retest_training_intent_mismatch")
 
         lesson = build_lesson_viewmodel(normalized_pack)
-        compiled_practice = (
-            load_compiled_practice(normalized_pack)
-            if normalized_mode == "forward"
-            else None
+        canonical_items = resolve_retest_items(
+            normalized_pack,
+            variant_ids=[item["variant_id"] for item in normalized_answers],
+            mode=normalized_mode,
         )
-        if compiled_practice is not None:
-            if str(compiled_practice.get("source_pack_sha256") or "") != str(
-                lesson.get("content_sha256") or ""
-            ):
-                raise ValueError("retest_compiled_practice_pack_sha_mismatch")
-            wanted_ids = {item["variant_id"] for item in normalized_answers}
-            surfaces = list(compiled_practice.get("surfaces") or [])
-            if surfaces and not any(
-                set(surface.get("variant_ids") or []) == wanted_ids
-                for surface in surfaces
-            ):
-                raise ValueError("retest_compiled_practice_surface_mismatch")
-            canonical_items = [
-                item
-                for item in compiled_practice.get("items") or []
-                if str(item.get("variant_id") or "") in wanted_ids
-            ]
-        else:
-            canonical_items = build_retest_items(
-                normalized_pack,
-                user_id=normalized_user,
-                day_index=normalized_day,
-                limit=len(normalized_answers),
-                mode=normalized_mode,
-            )
         canonical_by_id = {
             str(item.get("variant_id") or "").strip(): dict(item)
             for item in canonical_items
@@ -297,6 +331,75 @@ class RetestWritebackService:
         score_ratio = correct_count / len(scored)
         phase = "transfer_case" if normalized_mode == "forward" else "verification_probe"
         result_status = "verified" if normalized_mode == "review" and score_ratio >= 1.0 else "not_verified"
+        if normalized_mode == "review":
+            claim = self._claim_review_probe(
+                user_id=normalized_user,
+                probe_id=normalized_probe,
+                cycle_anchor=cycle_anchor,
+                completion_id=normalized_completion,
+                request_hash=request_hash,
+            )
+            claim_status = str(claim.get("status") or "")
+            winner_completion = str(claim.get("completion_id") or "").strip()
+            winner_hash = str(claim.get("request_hash") or "").strip()
+            if claim_status == "conflict" or winner_hash != request_hash:
+                raise RetestIdempotencyConflict(normalized_probe)
+            if claim_status == "replay":
+                try:
+                    winner_events = self._events_for_completion(
+                        user_id=normalized_user,
+                        completion_id=winner_completion,
+                        authoritative=True,
+                    )
+                except Exception as exc:
+                    raise RetestCompletionInProgress(winner_completion) from exc
+                winner_terminals = [
+                    event
+                    for event in winner_events
+                    if getattr(event, "payload_json", {}).get("completion_terminal") is True
+                    and is_canonical_luban_retest_terminal(event)
+                    and str(getattr(event, "payload_json", {}).get("request_hash") or "")
+                    == request_hash
+                ]
+                if not winner_terminals:
+                    raise RetestCompletionInProgress(winner_completion)
+                if len(winner_terminals) != 1:
+                    raise RetestIdempotencyConflict(winner_completion)
+                return self._replay_result(winner_events, terminal=winner_terminals[0])
+            if claim_status != "acquired" or winner_completion != normalized_completion:
+                raise RetestProbeClaimUnavailable(
+                    "retest_probe_atomic_claim_invalid_response"
+                )
+        claim = self._learner_state.append_memory_event(
+            normalized_user,
+            source_feature=CLAIM_SOURCE_FEATURE,
+            source_id=normalized_completion,
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "retest_completion_claim",
+                "retest_completion_id": normalized_completion,
+                "request_hash": request_hash,
+                "request_hash_version": 3,
+                "pack_id": normalized_pack,
+                "practice_mode": normalized_mode,
+                "day_index": normalized_day,
+                "variant_ids": [item["variant_id"] for item in normalized_answers],
+                "probe_id": normalized_probe,
+                "cycle_anchor": cycle_anchor,
+            },
+            dedupe_key=f"luban_retest_claim:{normalized_user}:{normalized_completion}",
+        )
+        if str(getattr(claim, "payload_json", {}).get("request_hash") or "") != request_hash:
+            raise RetestIdempotencyConflict(normalized_completion)
+        claimed_events = self._events_for_completion(
+            user_id=normalized_user,
+            completion_id=normalized_completion,
+        )
+        self._assert_request_consistency(
+            claimed_events,
+            completion_id=normalized_completion,
+            request_hash=request_hash,
+        )
         event_ids: list[str] = []
         public_items: list[dict[str, Any]] = []
         for item in scored:
@@ -347,11 +450,13 @@ class RetestWritebackService:
                 "assessment_type": f"luban_{normalized_mode}_variant",
                 "retest_completion_id": normalized_completion,
                 "request_hash": request_hash,
+                "request_hash_version": 3,
                 "day_index": normalized_day,
                 "practice_mode": normalized_mode,
                 "pack_id": normalized_pack,
                 "target_pack_id": normalized_pack,
                 "probe_id": normalized_probe,
+                "cycle_anchor": cycle_anchor,
                 "question_id": variant_id,
                 "source_question_id": variant_id,
                 "answer_type": "single_choice" if is_single_choice else "boolean",
@@ -467,11 +572,13 @@ class RetestWritebackService:
             "retest_completion_id": normalized_completion,
             "completion_terminal": True,
             "request_hash": request_hash,
+            "request_hash_version": 3,
             "day_index": normalized_day,
             "practice_mode": normalized_mode,
             "pack_id": normalized_pack,
             "target_pack_id": normalized_pack,
             "probe_id": normalized_probe,
+            "cycle_anchor": cycle_anchor,
             "score_awarded": float(correct_count),
             "max_score": float(len(scored)),
             "score_ratio": score_ratio,
@@ -533,10 +640,23 @@ class RetestWritebackService:
             },
         }
 
-    def _events_for_completion(self, *, user_id: str, completion_id: str) -> list[Any]:
-        reader = getattr(self._learner_state, "list_memory_events", None)
+    def _events_for_completion(
+        self,
+        *,
+        user_id: str,
+        completion_id: str,
+        authoritative: bool = False,
+    ) -> list[Any]:
+        reader_name = (
+            "list_retest_completion_events_authoritative"
+            if authoritative
+            else "list_memory_events"
+        )
+        reader = getattr(self._learner_state, reader_name, None)
         if not callable(reader):
             return []
+        if authoritative:
+            return list(reader(user_id, completion_id) or [])
         return [
             event
             for event in list(reader(user_id, limit=None) or [])
@@ -549,6 +669,62 @@ class RetestWritebackService:
             )
         ]
 
+    def _claim_review_probe(
+        self,
+        *,
+        user_id: str,
+        probe_id: str,
+        cycle_anchor: str,
+        completion_id: str,
+        request_hash: str,
+    ) -> dict[str, Any]:
+        claimer = getattr(self._learner_state, "claim_retest_probe", None)
+        if not callable(claimer):
+            raise RetestProbeClaimUnavailable(
+                "retest_probe_atomic_authority_unavailable"
+            )
+        try:
+            result = claimer(
+                user_id=user_id,
+                probe_id=probe_id,
+                cycle_anchor=cycle_anchor,
+                completion_id=completion_id,
+                request_hash=request_hash,
+            )
+        except RetestProbeClaimUnavailable:
+            raise
+        except Exception as exc:
+            raise RetestProbeClaimUnavailable(
+                "retest_probe_atomic_authority_unavailable"
+            ) from exc
+        if not isinstance(result, dict):
+            raise RetestProbeClaimUnavailable(
+                "retest_probe_atomic_claim_invalid_response"
+            )
+        return dict(result)
+
+    @staticmethod
+    def _assert_request_consistency(
+        events: list[Any], *, completion_id: str, request_hash: str
+    ) -> None:
+        bound_hashes: list[str] = []
+        for event in events:
+            payload = dict(getattr(event, "payload_json", {}) or {})
+            if getattr(event, "source_feature", "") == CLAIM_SOURCE_FEATURE:
+                bound_hashes.append(str(payload.get("request_hash") or ""))
+                continue
+            if (
+                getattr(event, "source_feature", "") == SOURCE_FEATURE
+                and payload.get("event_type") == "learning_evidence"
+                and payload.get("completion_terminal") is not True
+            ):
+                bound_hashes.append(str(payload.get("request_hash") or ""))
+        if bound_hashes and (
+            any(not item for item in bound_hashes)
+            or set(bound_hashes) != {request_hash}
+        ):
+            raise RetestIdempotencyConflict(completion_id)
+
     def _replay_result(self, events: list[Any], *, terminal: Any) -> dict[str, Any]:
         if not is_canonical_luban_retest_terminal(terminal):
             completion_id = str(
@@ -556,25 +732,20 @@ class RetestWritebackService:
             )
             raise RetestIdempotencyConflict(completion_id)
         terminal_payload = dict(getattr(terminal, "payload_json", {}) or {})
-        item_events = [
-            event
-            for event in events
-            if getattr(event, "source_feature", "") == SOURCE_FEATURE
-            and getattr(event, "payload_json", {}).get("completion_terminal") is not True
-        ]
-        item_events.sort(
-            key=lambda event: str(
-                getattr(event, "payload_json", {}).get("question_id") or ""
-            )
-        )
         correct_count = int(float(terminal_payload.get("score_awarded") or 0))
         question_count = int(float(terminal_payload.get("max_score") or 0))
+        request_hash = str(terminal_payload.get("request_hash") or "")
+        item_events = canonical_retest_item_events(events, terminal=terminal)
+        if not request_hash or item_events is None:
+            raise RetestIdempotencyConflict(
+                str(terminal_payload.get("retest_completion_id") or "")
+            )
+        item_refs = [str(getattr(event, "event_id", "") or "") for event in item_events]
         mode = str(terminal_payload.get("practice_mode") or "forward")
         station = next(
             (event for event in events if getattr(event, "payload_json", {}).get("learning_signal_type") == "station_completed"),
             None,
         )
-        item_refs = [str(getattr(event, "event_id", "") or "") for event in item_events]
         terminal_id = str(getattr(terminal, "event_id", "") or "")
         return {
             "completion_id": str(terminal_payload.get("retest_completion_id") or ""),
@@ -629,16 +800,19 @@ class RetestWritebackService:
             user_id=user_id,
             events=events,
             now_iso=datetime.now(timezone.utc).isoformat(),
+            exam_date_iso=(
+                str(self._review_exam_date_resolver(user_id) or "").strip()
+                if self._review_exam_date_resolver is not None
+                else ""
+            ),
         )
-        for item in list(projection.get("due") or []):
-            if not isinstance(item, dict):
-                continue
-            if (
-                str(item.get("pack_id") or "").strip().upper() == pack_id
-                and str(item.get("probe_id") or "").strip() == probe_id
-                and item.get("retest_available") is True
-            ):
-                return dict(item)
+        due = resolve_due_review_probe(
+            projection,
+            pack_id=pack_id,
+            probe_id=probe_id,
+        )
+        if due is not None:
+            return due
         raise ValueError("retest_probe_not_due")
 
     def _intent_matches_pack(self, *, user_id: str, training_intent_id: str, pack_id: str) -> bool:
@@ -660,6 +834,8 @@ class RetestWritebackService:
 
 __all__ = [
     "ERROR_CODE",
+    "RetestCompletionInProgress",
     "RetestIdempotencyConflict",
+    "RetestProbeClaimUnavailable",
     "RetestWritebackService",
 ]

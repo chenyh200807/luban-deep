@@ -986,6 +986,8 @@ function getLubanRetestItems(packId, limit, mode, opts) {
   if (!Number.isFinite(n) || n <= 0) n = 5;
   var m = String(mode || "review") === "forward" ? "forward" : "review";
   var practiceSurface = String((opts && opts.practiceSurface) || "").trim();
+  var projectionReceipt = String((opts && opts.projectionReceipt) || "").trim();
+  var probeId = String((opts && opts.probeId) || "").trim();
   return requestStateGet(
     "/api/v1/luban/lessons/" +
       encodeURIComponent(String(packId || "")) +
@@ -993,7 +995,9 @@ function getLubanRetestItems(packId, limit, mode, opts) {
       Math.min(Math.round(n), 10) +
       "&mode=" +
       m +
-      (practiceSurface ? "&practice_surface=" + encodeURIComponent(practiceSurface) : ""),
+      (practiceSurface ? "&practice_surface=" + encodeURIComponent(practiceSurface) : "") +
+      (projectionReceipt ? "&projection_receipt=" + encodeURIComponent(projectionReceipt) : "") +
+      (probeId ? "&probe_id=" + encodeURIComponent(probeId) : ""),
     opts,
   );
 }

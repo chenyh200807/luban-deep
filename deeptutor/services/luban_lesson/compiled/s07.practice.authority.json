@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "S07",
   "source_pack_sha256": "4f4bb9138304e1a874ad07961d268a322f3fe87be4ac04312425ec381eeb497e",
   "source_bundle_sha256": "96762dd59fe6a77745671cd318b125effe6613cd6ca6e399c1d7031def9e2914",
@@ -24,7 +24,9 @@
         "S07-html-practice-html-q4-873b4f6c56e4",
         "S07-html-practice-html-q5-23669e801abb"
       ],
-      "published_practice_sha256": "fda95c531e17efc70d59800b65fa681ed52bc3ac724994bcf478073bac646bdd"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZDQ3YzVjMThiNzI1IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01OTI5YTVkZTAwODMiLCJTMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLThjYTYzYjYxOTg5NyIsIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtODczYjRmNmM1NmU0IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xNS0yMzY2OWU4MDFhYmIiXSwicGFja19pZCI6IlMwNyIsInByb2plY3Rpb25fZGlnZXN0IjoiOGY2OGM5MmJhNGU4NGRiNzZjNzE5Nzk2NzAyODZiMTUxM2Y0MGFlNjcxY2VkZmU4NGEzNjUxNDc2YzQyOTY2MiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "2518eed0e585eb60ba2b8f4621da03db959cc1f4aafd37d3b4045b07f6671e15"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q1",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q2",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q3",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q4",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +371,540 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q5",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "计算判定链·重伤维",
+      "stem": "某脚手架坍塌致 8 人重伤，无人员死亡、无直接经济损失数据。问本事故等级及依据 —— 哪个作答最能拿分？",
+      "model_answer": "本事故属一般事故。重伤 8 人＜10 人，无死亡、无经济损失，按三阈值落一般档（＜3 死／＜10 重伤／＜1000 万）。",
+      "options": [
+        {
+          "text": "属一般事故。量三阈值：重伤 8 人＜10 人（且无死亡、无经济损失），落一般档（＜3 死/＜10 重伤/＜1000 万）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "重伤维也要代入阈值：8＜10 → 一般；判据链写全才满分。",
+          "option_id": "S07-html-practice-html-q7-79ff091c8293:option-1"
+        },
+        {
+          "text": "属较大事故，8 人重伤人数不少了。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得 8 人“挺多”，凭规模感往上判。",
+          "loss_reason": "重伤较大档是 10~50 人，8＜10 仍是一般；阈值错档。",
+          "fix": "对照重伤区间：8＜10 → 一般，不是较大。",
+          "option_id": "S07-html-practice-html-q7-79ff091c8293:option-2"
+        },
+        {
+          "text": "属较大事故，因为发生了坍塌。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把“坍塌”这个事故类型当成了等级。",
+          "loss_reason": "事故类型≠事故等级；坍塌只是类型，定级仍要量三阈值。",
+          "fix": "先定性坍塌，再定级：重伤 8＜10 → 一般。",
+          "option_id": "S07-html-practice-html-q7-79ff091c8293:option-3"
+        },
+        {
+          "text": "无法判定，因为没有死亡人数。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "以为没死人就没法定级。",
+          "loss_reason": "三指标任一有数据即可代入，重伤 8 人就能判一般，不必等死亡数。",
+          "fix": "用已有的重伤 8 人代入：＜10 → 一般。",
+          "option_id": "S07-html-practice-html-q7-79ff091c8293:option-4"
+        }
+      ],
+      "variant_id": "S07-html-practice-html-q7-79ff091c8293",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "POOL",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b5374e4249839edb355563ed2f862ba2e2d4fcaa15ec713e3eace5186f7206da",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b5374e4249839edb355563ed2f862ba2e2d4fcaa15ec713e3eace5186f7206da",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "计算判定链·取最高级·重伤主导",
+      "stem": "某事故致 2 人死亡、60 人重伤，无直接经济损失数据。问本事故等级及判定 —— 哪个作答最能拿分？",
+      "model_answer": "本事故属重大事故。三指标任一达更高级即按更高级：死 2 人＜3（一般），但重伤 60 人落重大档（50~100 人），取最高 → 重大事故，不平均、不取最低。",
+      "options": [
+        {
+          "text": "属重大事故。任一指标达更高级即按更高级：死 2 人虽落一般，但重伤 60 人落重大档（50~100），取最高 → 重大。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "多指标冲突时逐项比、取最严档：重伤 60 落重大即定重大。",
+          "option_id": "S07-html-practice-html-q8-6580f9a10675:option-1"
+        },
+        {
+          "text": "属一般事故，死亡才 2 人，＜3。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "只盯死亡一项，忽略重伤 60 人。",
+          "loss_reason": "漏做重伤维比对；重伤 60 已落重大，应取最高级。",
+          "fix": "补：重伤 60 落重大（50~100），取最高 → 重大。",
+          "option_id": "S07-html-practice-html-q8-6580f9a10675:option-2"
+        },
+        {
+          "text": "属较大事故，重伤 60 人算较大。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记住“重伤多=较大”，没对准区间。",
+          "loss_reason": "重伤较大档是 10~50，60＞50 已进重大档；阈值错档。",
+          "fix": "对照重伤区间：60 落 50~100 → 重大。",
+          "option_id": "S07-html-practice-html-q8-6580f9a10675:option-3"
+        },
+        {
+          "text": "死 2 人＋重伤 60 人，取平均按较大处理。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "指标不一致就想“折中”。",
+          "loss_reason": "定级不取平均、不取最低，只取最严档；重伤已到重大即定重大。",
+          "fix": "删“平均”，按最高的重大档定级。",
+          "option_id": "S07-html-practice-html-q8-6580f9a10675:option-4"
+        }
+      ],
+      "variant_id": "S07-html-practice-html-q8-6580f9a10675",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "POOL",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "规范适用·阈值端点",
+      "stem": "关于事故分级中“××人以上/以下”的临界数，下列理解哪个正确？",
+      "model_answer": "“以上”含本数、“以下”不含本数：死亡 30 人属特别重大（≥30）；死亡 10 人属重大（10~30，含 10）；死亡 3 人属较大（3~10，含 3）；死亡 2 人属一般（＜3）。",
+      "options": [
+        {
+          "text": "“以上”含本数、“以下”不含本数：死 30 人→特别重大，死 10 人→重大，死 3 人→较大，死 2 人→一般。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "记牢法条口径：以上/以下的“本数”归属决定临界档，写判定时点明含不含本数。",
+          "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-1"
+        },
+        {
+          "text": "死亡 30 人属重大，要 31 人以上才特别重大。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把“以上”误当作不含本数。",
+          "loss_reason": "“30 人以上”含本数，30 人即特别重大；理解反了。",
+          "fix": "改：30 人（含）→特别重大。",
+          "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-2"
+        },
+        {
+          "text": "临界数取相邻两档中间，按较低档处理更稳。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "怕判重了，往低靠“保险”。",
+          "loss_reason": "分级按法条区间硬判，无“取中间/往低靠”一说。",
+          "fix": "按法条：含本数即归高档，如 30 人→特别重大。",
+          "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-3"
+        },
+        {
+          "text": "死亡 3 人属一般，要超过 3 人才较大。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把较大下限“3 人”误当不含。",
+          "loss_reason": "较大是“3 人以上不满 10 人”，含 3 人；死 3 人已是较大。",
+          "fix": "改：死 3 人（含）→较大，不是一般。",
+          "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-4"
+        }
+      ],
+      "variant_id": "S07-html-practice-html-q9-a1fb4b7a6269",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "POOL",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "主体维·上报对象·概念混淆",
+      "stem": "有考生说“安全事故发生后应第一时间报当地建设主管部门”。就“报告对象”这一步，正确作答是？",
+      "model_answer": "现场有关人员应立即向本单位负责人报告，再由本单位逐级上报至市（设区）级人民政府住建主管部门；不是现场人员直接报政府部门。",
+      "options": [
+        {
+          "text": "现场人员立即向本单位负责人报告，再由单位逐级上报至市（设区）级人民政府住建主管部门。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "报告对象=本单位负责人→单位逐级上报，两段都要写；这是最高频陷阱。",
+          "option_id": "S07-html-practice-html-q10-520624e05653:option-1"
+        },
+        {
+          "text": "现场人员第一时间直接报当地建设主管部门。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记住了“建设主管部门”，跳过了本单位负责人。",
+          "loss_reason": "报告主体错：现场人员先报本单位负责人，由单位逐级上报，不是个人直报政府。",
+          "fix": "改：先报本单位负责人，再由单位逐级上报市级住建。",
+          "option_id": "S07-html-practice-html-q10-520624e05653:option-2"
+        },
+        {
+          "text": "现场人员立即拨打 12345 向政府热线报告。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把“报政府”具体成了政务热线。",
+          "loss_reason": "上报走法定程序（本单位负责人→逐级上报），非政务热线。",
+          "fix": "改：立即向本单位负责人报告，再逐级上报。",
+          "option_id": "S07-html-practice-html-q10-520624e05653:option-3"
+        },
+        {
+          "text": "现场人员立即向监理单位报告，由监理上报。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "受现场管理关系影响，觉得先报监理。",
+          "loss_reason": "法定第一报告对象是本单位负责人，不是监理。",
+          "fix": "改：先报本单位负责人。",
+          "option_id": "S07-html-practice-html-q10-520624e05653:option-4"
+        }
+      ],
+      "variant_id": "S07-html-practice-html-q10-520624e05653",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "POOL",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "54a189b31579c6bbdbe4328b04982807adf3979028f2d26ef864c76a3657a1e0",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "54a189b31579c6bbdbe4328b04982807adf3979028f2d26ef864c76a3657a1e0",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "后果维·处理链顺序",
+      "stem": "事故调查报告完成后，对事故责任人的处理应走什么程序？",
+      "model_answer": "由事故调查组提出处理建议 → 负责事故调查的人民政府批复 → 事故单位按批复执行；单位不得自行处理责任人。",
+      "options": [
+        {
+          "text": "调查组提出处理建议 → 负责调查的人民政府批复 → 单位按批复执行；单位不得自裁。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三段链“建议·批复·执行”顺序不能断，且点明“单位不得自裁”。",
+          "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-1"
+        },
+        {
+          "text": "事故单位根据调查情况自行决定对责任人的处理。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得自己单位的人自己处理天经地义。",
+          "loss_reason": "单位不得自裁；处理须经政府批复后执行。",
+          "fix": "改：调查组建议→政府批复→单位执行。",
+          "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-2"
+        },
+        {
+          "text": "调查组直接决定处罚，政府和单位照办即可。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为调查组权力最大、说了算。",
+          "loss_reason": "调查组只“提建议”，须经负责调查的人民政府批复，链条不能跳。",
+          "fix": "补：调查组建议→政府批复→单位执行。",
+          "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-3"
+        },
+        {
+          "text": "先由单位执行处理，再报政府备案批复。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "把顺序颠倒成“先执行后批复”。",
+          "loss_reason": "程序顺序错：必须先批复、后执行，不能先斩后奏。",
+          "fix": "改：政府批复在前，单位执行在后。",
+          "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-4"
+        }
+      ],
+      "variant_id": "S07-html-practice-html-q11-32d7b78a9aee",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "POOL",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0de55fd92c2e087182fee15a63b49ba3ce0d2d8746c377b3e80da3b0db2a6181",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0de55fd92c2e087182fee15a63b49ba3ce0d2d8746c377b3e80da3b0db2a6181",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "后果维·追责范围",
+      "stem": "追究事故责任时，除对事故直接责任人追责外，还应追究谁的责任？",
+      "model_answer": "既追究事故直接责任人的责任，也追究负有领导责任人员的领导责任；两类责任都要写，漏领导责任要扣分。",
+      "options": [
+        {
+          "text": "既追直接责任人的责任，也追负有领导责任人员的领导责任。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "“直接责任 + 领导责任”成对写；只写一类即漏采分点。",
+          "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-1"
+        },
+        {
+          "text": "只追直接责任人即可，领导没动手不担责。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得“谁干的追谁”最直接。",
+          "loss_reason": "漏“领导责任”采分点；负有领导责任的人员同样要追。",
+          "fix": "补：追究负有领导责任人员的领导责任。",
+          "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-2"
+        },
+        {
+          "text": "只对事故单位处以罚款，不追具体个人。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "把“处罚单位”当成了追责的全部。",
+          "loss_reason": "漏对直接责任人和领导责任人的追究，采分点缺两块。",
+          "fix": "补：追直接责任人 + 领导责任人员。",
+          "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-3"
+        },
+        {
+          "text": "追究监理和设计单位的连带责任即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "往参建各方“连带”上靠。",
+          "loss_reason": "追责对象是直接责任人与负领导责任的人员，非泛化的连带。",
+          "fix": "改：追直接责任人 + 负有领导责任的人员。",
+          "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-4"
+        }
+      ],
+      "variant_id": "S07-html-practice-html-q12-6f13846f7f8d",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "POOL",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5ba6fa31c4fca8a122155a836a4cb886ee96f773512c5205e67b30fe822ba976",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5ba6fa31c4fca8a122155a836a4cb886ee96f773512c5205e67b30fe822ba976",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "记录维·补报起算点",
+      "stem": "事故上报后，伤亡人数发生变化的补报期限，应从哪天起算、多少天内补报？",
+      "model_answer": "自事故发生之日起 30 日内，事故造成的伤亡人数发生变化的，应当及时补报；起算点是“事故发生之日”，不是上报之日或调查结束之日。",
+      "options": [
+        {
+          "text": "自事故发生之日起 30 日内，伤亡人数变化的应及时补报。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "锁定“事故发生之日”起算 + “30 日”期限，两个要素都要写。",
+          "option_id": "S07-html-practice-html-q13-4aac892967cc:option-1"
+        },
+        {
+          "text": "自上报之日起 30 日内，伤亡变化及时补报。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "想当然从“报出去那天”开始数。",
+          "loss_reason": "起算点错：是事故发生之日起，不是上报之日起。",
+          "fix": "改：自事故发生之日起 30 日内补报。",
+          "option_id": "S07-html-practice-html-q13-4aac892967cc:option-2"
+        },
+        {
+          "text": "自事故发生之日起 7 日内补报。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "把期限记成了别的数字（7/15 天）。",
+          "loss_reason": "关键数字错：补报期限是 30 日，不是 7 日。",
+          "fix": "改：30 日内补报。",
+          "option_id": "S07-html-practice-html-q13-4aac892967cc:option-3"
+        },
+        {
+          "text": "调查结束后统一补报，无固定期限。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "觉得等调查清楚再一次报更省事。",
+          "loss_reason": "漏“事故发生之日起 30 日”这一法定期限。",
+          "fix": "补：自事故发生之日起 30 日内及时补报。",
+          "option_id": "S07-html-practice-html-q13-4aac892967cc:option-4"
+        }
+      ],
+      "variant_id": "S07-html-practice-html-q13-4aac892967cc",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "POOL",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "72433a10153f2edb0dd4284e6e4d4dfafab7f637788f55cf66a3606c49147f98",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "72433a10153f2edb0dd4284e6e4d4dfafab7f637788f55cf66a3606c49147f98",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "f1b4a71c64a764a1a0885f2ae92b6c27cd4b8e52d03ea65478d5d21c899ccb5c"
