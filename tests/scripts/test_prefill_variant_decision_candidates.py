@@ -117,5 +117,7 @@ def test_committed_candidates_file_is_reproducible(tmp_path: Path) -> None:
 
 
 def test_pack_without_table_is_refused(tmp_path: Path) -> None:
+    # A01 有变体银行但尚未在 _PACK_TABLES 建 fact/初稿映射表——必须拒绝，
+    # 绝不产无表低质量模板（S05 与 N01 均已建表，故换 A01 验拒绝路径）。
     with pytest.raises(SystemExit):
-        _mod.build_candidates("N01", BANK_PATH.parent)
+        _mod.build_candidates("A01", BANK_PATH.parent)

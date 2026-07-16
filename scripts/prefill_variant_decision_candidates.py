@@ -263,9 +263,220 @@ _S05_DRAFTS: dict[str, Callable[[dict[str, Any]], tuple[str, str]]] = {
     "X-distance": _s05_x_distance,
 }
 
+
+# --------------------------------------------------------------------- N01 表
+# fact 映射：与 compiled MCQ（n01.practice.authority.json）完全同一命名空间。
+# A-line / B-expr / C-delay / G-logic 复用 MCQ 已签 fact_id（同 fact 互认——尤其
+# C-delay = 关键工作 TF=0 族，与 compiled 侧 `n01-fact-critical-work-zero-float`
+# 同字符串即互认）；D / E / F 三族 MCQ 侧尚未 fact 标注，本侧按 (rule_group,
+# correct_statement) 聚类起语义 slug，作为该 fact 的命名先例。
+_N01_FACTS: dict[tuple[str, str], str] = {
+    (
+        "A-line",
+        "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
+    ): "n01-fact-parallel-critical-paths",
+    (
+        "B-expr",
+        "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全",
+    ): "n01-fact-duration-along-critical-path",
+    (
+        "C-delay",
+        "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
+    ): "n01-fact-critical-work-zero-float",
+    (
+        "D-adjust",
+        "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+    ): "n01-fact-schedule-adjustment-methods",
+    (
+        "E-monitor",
+        "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+    ): "n01-fact-progress-monitoring-content",
+    (
+        "F-procedure",
+        "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
+    ): "n01-fact-network-procedure-order",
+    (
+        "G-logic",
+        "题干紧前逻辑不全应先补虚工作/调节点（2015：3—4 之间增加一个虚工作），再在正确的网络图上计算关键线路",
+    ): "n01-fact-dummy-activity-logic",
+}
+
+
+def _n01_a_line(v: dict[str, Any]) -> tuple[str, str]:
+    params = v["params"]
+    if "criterion" in params:  # 关键工作判定依据面
+        if v["expected_ok"]:
+            return (
+                "「总时差最小」这个判据平时用得少，看到正确写法反而怀疑是不是漏了什么。",
+                "关键工作的判据就是「总时差最小」（最小为 0），且必须落到本网络图的"
+                "具体工作上；本题判据与落点都对，把对判错同样丢分。",
+            )
+        return (
+            "只背下「关键工作 = 总时差最小」这句判据，容易以为写出判据就够了。",
+            "判据对但没落到本网络图的具体工作，阅卷按「未落具体工作」扣分；"
+            "答题要点是判据 +「本图哪几项工作总时差最小」都写出。",
+        )
+    # 关键线路书写面
+    total = int(params.get("lines_total") or 0)
+    listed = int(params.get("lines_listed") or 0)
+    if not v["expected_ok"] and listed < total:
+        return (
+            "两条线路一样长，写出其中一条看着「已经找到关键线路」了，"
+            "容易就此收笔。",
+            f"并列最长路径必须全部列出（本题 {total} 条只写了 {listed} 条）；"
+            "漏列一条即失分，答题要点是把并列的关键线路逐条写全。",
+        )
+    if not v["expected_ok"] and not params.get("concrete_path"):
+        return (
+            "「最长的线路就是关键线路」这句判据本身没错，容易以为写到这就算答完。",
+            "只写判据、未落到本图的具体线路（哪几个节点串成的路径），"
+            "阅卷按「未写出具体线路」扣分；要点是把线路节点逐一写出。",
+        )
+    if not v["expected_ok"] and not params.get("nodes_continuous"):
+        return (
+            "线路里的节点看着都在，容易只核对「有没有这些点」而漏核对前后连不连得上。",
+            "写出的关键线路节点跳号、前后不连续，不能构成从开始到结束的连续路径；"
+            "答题要点是节点连续无跳号地贯通全线。",
+        )
+    return (
+        "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
+        "本题关键线路落到了具体路径、节点连续无跳号，写法完整；"
+        "把对判错同样丢分，判断方向要跟着采分要素走。",
+    )
+
+
+def _n01_b_expr(v: dict[str, Any]) -> tuple[str, str]:
+    params = v["params"]
+    if v["expected_ok"]:
+        return (
+            "总工期只要一个数就够了？看到「线路 + 算式 + 单位」全写反而怀疑是否啰嗦。",
+            "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」"
+            "三件齐全；本题三件都在，把对判错同样丢分。",
+        )
+    if params.get("sum_along") == "noncritical":
+        return (
+            "算式、单位都规整，容易只核对「算得对不对」而漏看是沿哪条线路求和的。",
+            "总工期必须沿关键线路求和；本题沿非关键线路加总，路径选错则结果错，"
+            "答题要点是先定关键线路再沿它求和。",
+        )
+    return (
+        "答案直接给出一个数字，看着干净利落，容易觉得「结果对就行」。",
+        "只写数字、缺线路与算式，阅卷按「过程不全」扣分；总工期答案须"
+        "「线路 + 算式 + 单位」三件齐全，缺一件丢一分。",
+    )
+
+
+def _n01_c_delay(v: dict[str, Any]) -> tuple[str, str]:
+    params = v["params"]
+    tf = _num(params.get("tf")) if params.get("tf") is not None else None
+    delay = _num(params.get("delay")) if params.get("delay") is not None else None
+    on_critical = bool(params.get("on_critical"))
+    if on_critical:  # 关键线路上，总时差为 0
+        if v["expected_ok"]:
+            return (
+                "关键工作听起来「最重要」，反而会犹豫它延误到底算不算数。",
+                "该工作在关键线路上、总时差为 0，没有任何机动时间，一延误就顺延总工期；"
+                "本题判「影响总工期」正确，判断链要写明「TF=0 → 直接影响」。",
+            )
+        return (
+            "总觉得任何工作都能挤出点机动时间，容易顺手给关键工作也留一份缓冲。",
+            "关键线路上工作总时差为 0，没有机动时间，延误必然拖延总工期；"
+            "本题误判为「不影响」，要点是先认定 TF=0 再下「影响」的结论。",
+        )
+    # 非关键工作，delay 与 tf 比较
+    if v["expected_ok"]:
+        return (
+            f"一看到「延误」两个字就担心工期，容易忘了先和 {tf} 的总时差比一比。",
+            f"该工作是非关键工作、总时差 {tf}，延误 {delay} 未超过总时差，被机动时间"
+            "吸收，不影响总工期；判读链要写明「延误 vs 总时差」的比较再下结论。",
+        )
+    return (
+        f"「延误了就会拖工期」是最顺手的直觉，容易跳过与 {tf} 总时差的比较。",
+        f"该工作总时差 {tf}、延误 {delay} 未超总时差，本不影响总工期；"
+        "本题误判为「拖延」，要点是先比「延误 vs 总时差」再下结论，不能凭直觉。",
+    )
+
+
+def _n01_d_adjust(v: dict[str, Any]) -> tuple[str, str]:
+    method = str(v["params"].get("method") or "")
+    if v["expected_ok"]:
+        return (
+            f"进度调整方法有五类，「{method}」是否算一类容易记不牢。",
+            f"进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制"
+            f"计划/非关键工作调整/资源调整，「{method}」正是其中一类；把对判错同样丢分。",
+        )
+    return (
+        f"五类调整方法里，「{method}」名字不如「压缩关键工作」直白，容易被漏认。",
+        f"「{method}」确属进度计划调整方法五类之一；本题误判为「不属于」，"
+        "答题要点是把五类方法记全，别漏项。",
+    )
+
+
+def _n01_e_monitor(v: dict[str, Any]) -> tuple[str, str]:
+    item = str(v["params"].get("item") or "")
+    if v["expected_ok"]:
+        return (
+            f"监测内容和调整动作容易混，「{item}」到底算监测还是算调整拿不准。",
+            f"进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/"
+            f"核查逻辑关系/收集变更，「{item}」正是其中一项；把对判错同样丢分。",
+        )
+    return (
+        f"「{item}」听着像日常工作，容易觉得它不属于「监测」这个专门环节。",
+        f"「{item}」确属进度实施监测内容之一；本题误判为「不属于」，"
+        "答题要点是把监测五项内容记全，且别混入调整动作。",
+    )
+
+
+def _n01_f_procedure(v: dict[str, Any]) -> tuple[str, str]:
+    violation = v["params"].get("violation")
+    if v["expected_ok"]:
+        return (
+            "网络计划的四步顺序背着顺，真到判对错时反而担心是不是有步骤能省。",
+            "应按「绘图（含补虚工作）→ 计算时间参数 → 确定关键线路 → 编制/实施」"
+            "顺序进行；本题顺序完整正确，把对判错同样丢分。",
+        )
+    if violation == "未绘图先算参数":
+        return (
+            "现场赶时间，图还没画就想先把数算出来，看着「效率高」。",
+            "未绘图、未补全网络逻辑就套公式算时间参数，等于在错的结构上算数；"
+            "正确顺序是先绘图（含补虚工作）再算参数，顺序不可乱。",
+        )
+    return (
+        "时间参数看着繁琐，容易想跳过它直接「凭最长路径」定关键线路。",
+        "跳过「计算时间参数」就定关键线路，缺了总时差依据，结论站不住；"
+        "正确顺序是先算参数（各路径长/时差）再确定关键线路。",
+    )
+
+
+def _n01_g_logic(v: dict[str, Any]) -> tuple[str, str]:
+    if v["expected_ok"]:
+        return (
+            "题干临时加了一条紧前关系，容易想直接在原图上接着算，觉得补图太麻烦。",
+            "新增紧前逻辑（F 须 B、C 均完成）后，应先在 3—4 节点间增设虚工作补全逻辑，"
+            "再在正确的网络图上算关键线路；本题先补图再计算，做法正确。",
+        )
+    return (
+        "原图就在眼前，新增一条逻辑关系后，容易顺手在原图上直接开算。",
+        "新增紧前逻辑却未调整网络图、未补虚工作，就在旧结构上算关键线路，"
+        "结果必然错；答题要点是先补虚工作/调节点，再在正确图上计算。",
+    )
+
+
+_N01_DRAFTS: dict[str, Callable[[dict[str, Any]], tuple[str, str]]] = {
+    "A-line": _n01_a_line,
+    "B-expr": _n01_b_expr,
+    "C-delay": _n01_c_delay,
+    "D-adjust": _n01_d_adjust,
+    "E-monitor": _n01_e_monitor,
+    "F-procedure": _n01_f_procedure,
+    "G-logic": _n01_g_logic,
+}
+
+
 # 每个 pack 一张表；没有表的 pack 明确拒绝（不产低质量模板）。
 _PACK_TABLES: dict[str, tuple[dict[tuple[str, str], str], dict[str, Any]]] = {
     "S05": (_S05_FACTS, _S05_DRAFTS),
+    "N01": (_N01_FACTS, _N01_DRAFTS),
 }
 
 
