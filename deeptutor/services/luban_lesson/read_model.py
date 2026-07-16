@@ -42,6 +42,7 @@ from deeptutor.services.luban_lesson.practice_html import (
     load_compiled_practice,
     project_compiled_practice,
     resolve_compiled_practice_items,
+    resolve_projection_receipt,
 )
 
 _REPO = Path(__file__).resolve().parents[3]
@@ -561,6 +562,7 @@ def build_retest_items(
     limit: int = 5,
     mode: str = "review",
     practice_surface: str = "",
+    projection_receipt: str = "",
     manifest_path: Path | None = None,
 ) -> list[dict[str, Any]]:
     """练习题面投影——runtime 只读编译产物，绝不在线生成。
@@ -570,6 +572,11 @@ def build_retest_items(
       eligible/non-revoked 集合确定性取题；review 不再旁路读取 signed bank。
     - ``mode="forward"`` 的显式 ``practice_surface`` 保留 public HTML 同五题
       receipt bridge；未显式指定时按 user/day 换题。
+    - ``projection_receipt``（H5 静态投影收据）只对 compiled forward 生效：
+      经 ``resolve_projection_receipt`` 解析到当前同一 artifact（surface +
+      manifest 内容 sha 双锚），漂移/撤销/篡改/其余场景一律抛
+      ``PracticeHtmlInvalid("content_updated_retake")`` fail-close 要求重取，
+      绝不静默按 user/day 换题——receipt 是身份输入，资格真相仍在 artifact。
     - 仅无 compiled authority 的 legacy Pack 才沿用 signed variant 轮换。
       证据仍由 RetestWritebackService server-rescore 且 non-promoting。
 
@@ -588,6 +595,20 @@ def build_retest_items(
     """
     vm = build_lesson_viewmodel(pack_id, manifest_path=manifest_path)
     normalized_mode = str(mode or "").strip().lower()
+    receipt = str(projection_receipt or "").strip()
+    if receipt:
+        if (
+            manifest_path is not None
+            or normalized_mode != "forward"
+            or not is_compiled_practice_pack(vm["pack_id"])
+        ):
+            raise PracticeHtmlInvalid("content_updated_retake")
+        return resolve_projection_receipt(
+            vm["pack_id"],
+            receipt,
+            surface_id=str(practice_surface or "").strip(),
+            expected_pack_sha256=vm["content_sha256"],
+        )
     if manifest_path is None and is_compiled_practice_pack(vm["pack_id"]):
         try:
             compiled = project_compiled_practice(

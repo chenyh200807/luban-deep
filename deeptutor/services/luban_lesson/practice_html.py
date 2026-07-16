@@ -1051,16 +1051,31 @@ def resolve_projection_receipt(
     pack_id: str,
     receipt: str,
     *,
+    surface_id: str = "",
+    expected_pack_sha256: str = "",
     authority_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """把 H5 静态 receipt 解析到当前同一 v3 artifact；漂移一律要求重取。"""
+    """把 H5 静态 receipt 解析到当前同一 v3 artifact；漂移一律要求重取。
+
+    receipt 只是"客户所见题集"的身份输入；资格真相仍由 artifact 的
+    eligible/non-revoked 集合裁决（撤销/不合格→同形 ``content_updated_retake``，
+    绝不静默换题）。返回与 ``project_compiled_practice`` 同形的消费侧题面
+    （单选不下发答案键）。``surface_id`` / ``expected_pack_sha256`` 非空时
+    额外锚定请求 surface 与当前 manifest 内容身份。
+    """
     try:
         normalized = str(pack_id or "").strip().upper()
         decoded = decode_projection_receipt(receipt)
         if decoded["pack_id"] != normalized:
             raise PracticeHtmlInvalid("content_updated_retake")
+        expected_surface = str(surface_id or "").strip()
+        if expected_surface and decoded["surface_id"] != expected_surface:
+            raise PracticeHtmlInvalid("content_updated_retake")
         practice = load_compiled_practice(normalized, authority_path=authority_path)
         if practice is None:
+            raise PracticeHtmlInvalid("content_updated_retake")
+        expected_sha = str(expected_pack_sha256 or "").strip()
+        if expected_sha and practice["source_pack_sha256"] != expected_sha:
             raise PracticeHtmlInvalid("content_updated_retake")
         surface = next(
             (
@@ -1077,7 +1092,7 @@ def resolve_projection_receipt(
         )
         # ``surface.projection_receipt`` exact compare already re-computes the compact
         # token from current item content/source/order in ``_validate_authority``.
-        return resolved
+        return _project_practice_rows(resolved)
     except PracticeHtmlInvalid as exc:
         if str(exc) == "content_updated_retake":
             raise
@@ -1119,6 +1134,14 @@ def project_compiled_practice(
         surface_id=surface_id or "practice.html",
         selection_key=str(selection_key or ""),
     )
+    return _project_practice_rows(items)
+
+
+def _project_practice_rows(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """把 authority items 投影成消费侧题面——单选绝不下发 ``is_correct`` 答案键。
+
+    所有对外投影（换题选序与 receipt 桥接）共用本映射，避免第二份题面形状。
+    """
     return [
         {
             "answer_type": "single_choice",

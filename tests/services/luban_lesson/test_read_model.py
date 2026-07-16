@@ -750,3 +750,85 @@ def test_manifest_cache_hits_by_stat_and_invalidates_on_change(tmp_path, monkeyp
     _write_manifest(tmp_path, [_S05], ["S05"])
     assert rm.list_all_pack_ids(manifest_path=mp) == ["S05"]
     rm._MANIFEST_CACHE.clear()
+
+
+def test_retest_receipt_path_resolves_through_single_receipt_authority(monkeypatch):
+    """receipt 桥接经唯一 builder 委托 resolve_projection_receipt(带 surface+sha 双锚)。"""
+    import deeptutor.services.luban_lesson.read_model as read_model
+
+    monkeypatch.setattr(
+        read_model,
+        "build_lesson_viewmodel",
+        lambda pack_id, manifest_path=None: {
+            "pack_id": "F16",
+            "content_sha256": "1" * 64,
+            "variant_retest": {"available": False},
+        },
+    )
+    monkeypatch.setattr(read_model, "is_compiled_practice_pack", lambda pack_id: True)
+    rows = [{"variant_id": f"F16-html-q{index}"} for index in range(5)]
+    captured = {}
+
+    def _resolve(pack_id, receipt, *, surface_id="", expected_pack_sha256=""):
+        captured.update(
+            pack_id=pack_id,
+            receipt=receipt,
+            surface_id=surface_id,
+            expected_pack_sha256=expected_pack_sha256,
+        )
+        return rows
+
+    monkeypatch.setattr(read_model, "resolve_projection_receipt", _resolve)
+
+    items = read_model.build_retest_items(
+        "f16",
+        user_id="u",
+        day_index=1,
+        mode="forward",
+        practice_surface="practice.html",
+        projection_receipt="receipt-token",
+    )
+
+    assert items is rows
+    assert captured == {
+        "pack_id": "F16",
+        "receipt": "receipt-token",
+        "surface_id": "practice.html",
+        "expected_pack_sha256": "1" * 64,
+    }
+
+
+def test_retest_receipt_outside_compiled_forward_fails_closed(monkeypatch):
+    """receipt 只对 compiled forward 生效;review 模式/非编译包一律 fail-close 重取。"""
+    from deeptutor.services.luban_lesson.practice_html import PracticeHtmlInvalid
+    import deeptutor.services.luban_lesson.read_model as read_model
+
+    monkeypatch.setattr(
+        read_model,
+        "build_lesson_viewmodel",
+        lambda pack_id, manifest_path=None: {
+            "pack_id": "F16",
+            "content_sha256": "1" * 64,
+            "variant_retest": {"available": False},
+        },
+    )
+
+    monkeypatch.setattr(read_model, "is_compiled_practice_pack", lambda pack_id: True)
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        read_model.build_retest_items(
+            "F16",
+            user_id="u",
+            day_index=1,
+            mode="review",
+            projection_receipt="receipt-token",
+        )
+
+    monkeypatch.setattr(read_model, "is_compiled_practice_pack", lambda pack_id: False)
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        read_model.build_retest_items(
+            "F16",
+            user_id="u",
+            day_index=1,
+            mode="forward",
+            projection_receipt="receipt-token",
+        )

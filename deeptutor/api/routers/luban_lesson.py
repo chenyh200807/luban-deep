@@ -35,6 +35,7 @@ from deeptutor.services.luban_lesson import (
 from deeptutor.services.luban_lesson.practice_html import (
     PracticeHtmlInvalid,
     compiled_practice_pool_meta,
+    decode_projection_receipt,
     is_compiled_practice_pack,
 )
 from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
@@ -158,6 +159,7 @@ async def retest_items(
     limit: int = 5,
     mode: str = "review",
     practice_surface: str = "",
+    projection_receipt: str = "",
     probe_id: str = "",
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
@@ -165,6 +167,9 @@ async def retest_items(
     - ``mode=review``（默认，复习轮换皮复测）；
     - ``mode=forward``（学习轮课后轻练；已编译 pack 从 finished HTML 私有题池取五题）。
       completion 均由服务端重判；forward 非 promoting。
+    - ``projection_receipt``（H5 receipt bridge，仅 compiled forward）：选题严格
+      解析到客户所见题集并原样回显；与当前供给漂移（重签/撤销/篡改）→
+      409 ``content_updated_retake`` 要求整卷重取，绝不按 index 重映射。
 
     未识别的 mode 归一为 review（thin 归一，不新增第二 builder/第二端点）。
     """
@@ -203,6 +208,7 @@ async def retest_items(
         if due_probe is None:
             raise HTTPException(status_code=400, detail="retest_probe_not_due")
         cycle_anchor = str(due_probe.get("cycle_anchor") or "").strip()
+    projection_receipt = str(projection_receipt or "").strip()
     try:
         items = build_retest_items(
             pack_id,
@@ -211,8 +217,17 @@ async def retest_items(
             limit=limit,
             mode=mode,
             practice_surface=practice_surface,
+            projection_receipt=projection_receipt,
         )
-    except (LessonNotAvailable, PracticeHtmlInvalid):
+    except PracticeHtmlInvalid as exc:
+        if str(exc) == "content_updated_retake":
+            # receipt 与当前供给漂移（重签/撤销/篡改）——语义错误要求客户端
+            # 整卷重取；服务端绝不按 index 重映射或静默换题。
+            raise HTTPException(
+                status_code=409, detail={"error": "content_updated_retake"}
+            ) from exc
+        raise HTTPException(status_code=404, detail="lesson not found") from exc
+    except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
     compiled_registered = mode == "forward" and is_compiled_practice_pack(pack_id)
     if compiled_registered and not items:
@@ -226,7 +241,7 @@ async def retest_items(
     supply = retest_supply_identity(pack_id, mode=mode)
     if not supply.get("kind") or not supply.get("digest"):
         raise HTTPException(status_code=404, detail="retest supply unavailable")
-    return {
+    response = {
         "pack_id": pack_id.upper(),
         "items": items,
         "day_index": day_index,
@@ -247,6 +262,14 @@ async def retest_items(
         else retest_pool_meta(pack_id),
         "practice_source": "compiled_html" if compiled_forward else "signed_variant",
     }
+    if projection_receipt:
+        # 桥接契约：客户端要求响应 receipt 与桥接值逐字节相等（retest.js）。
+        # 只回显、不重签——builder 解析成功即证明该 token 仍锚定当前供给。
+        response["projection_receipt"] = projection_receipt
+        response["projection_digest"] = decode_projection_receipt(
+            projection_receipt
+        )["projection_digest"]
+    return response
 
 
 @router.post(

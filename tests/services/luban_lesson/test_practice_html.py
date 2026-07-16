@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import copy
 import base64
+import copy
 import hashlib
 import json
 from pathlib import Path
@@ -19,8 +19,8 @@ from deeptutor.services.luban_lesson.practice_html import (
     decode_projection_receipt,
     load_compiled_practice,
     project_compiled_practice,
-    resolve_projection_receipt,
     resolve_compiled_practice_items,
+    resolve_projection_receipt,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -111,9 +111,8 @@ def test_v3_compiler_emits_item_governance_and_defaults_to_ineligible() -> None:
     assert len(receipt["projection_digest"]) == 64
 
 
-def test_projection_receipt_resolves_only_exact_signed_non_revoked_set(
-    tmp_path: Path,
-) -> None:
+def _signed_authority_file(tmp_path: Path) -> tuple[dict[str, object], Path, str]:
+    """构建一份 supply_ready 的 N01 v3 authority 并落盘；返回 (authority, path, receipt)。"""
     compiled = _compiled_n01_surface()
     compiled["surface"]["published_practice_sha256"] = "4" * 64
     selected_ids = set(compiled["surface"]["variant_ids"])
@@ -148,8 +147,13 @@ def test_projection_receipt_resolves_only_exact_signed_non_revoked_set(
     authority["published_lesson_sha256"] = "3" * 64
     path = tmp_path / "n01.practice.authority.json"
     path.write_text(json.dumps(authority, ensure_ascii=False), encoding="utf-8")
+    return authority, path, authority["surfaces"][0]["projection_receipt"]
 
-    receipt = authority["surfaces"][0]["projection_receipt"]
+
+def test_projection_receipt_resolves_only_exact_signed_non_revoked_set(
+    tmp_path: Path,
+) -> None:
+    authority, path, receipt = _signed_authority_file(tmp_path)
     resolved = resolve_projection_receipt("N01", receipt, authority_path=path)
     assert [item["variant_id"] for item in resolved] == authority["surfaces"][0][
         "variant_ids"
@@ -172,6 +176,72 @@ def test_projection_receipt_resolves_only_exact_signed_non_revoked_set(
     path.write_text(json.dumps(stale, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
         resolve_projection_receipt("N01", receipt, authority_path=path)
+
+
+def test_projection_receipt_resolution_projects_rows_without_answer_key(
+    tmp_path: Path,
+) -> None:
+    """receipt 解析返回消费侧题面(与 project_compiled_practice 同形),绝不泄漏答案键。"""
+    authority, path, receipt = _signed_authority_file(tmp_path)
+
+    resolved = resolve_projection_receipt("N01", receipt, authority_path=path)
+
+    assert [item["variant_id"] for item in resolved] == authority["surfaces"][0][
+        "variant_ids"
+    ]
+    for row in resolved:
+        assert row["answer_type"] == "single_choice"
+        assert row["stem"] == row["surface"]
+        assert row["options"]
+        for option in row["options"]:
+            assert set(option) == {"option_id", "text"}
+        assert "is_correct" not in json.dumps(row, ensure_ascii=False)
+
+
+def test_projection_receipt_resolution_pins_surface_and_pack_content_identity(
+    tmp_path: Path,
+) -> None:
+    """surface/pack 内容身份与 receipt 不一致=供给漂移,同形 content_updated_retake。"""
+    _authority, path, receipt = _signed_authority_file(tmp_path)
+
+    # 一致时通过(surface_id + 当前 manifest content sha 双锚)。
+    resolved = resolve_projection_receipt(
+        "N01",
+        receipt,
+        surface_id="practice.html",
+        expected_pack_sha256="1" * 64,
+        authority_path=path,
+    )
+    assert len(resolved) == 5
+
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        resolve_projection_receipt(
+            "N01", receipt, surface_id="practice2.html", authority_path=path
+        )
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        resolve_projection_receipt(
+            "N01", receipt, expected_pack_sha256="9" * 64, authority_path=path
+        )
+
+
+def test_projection_receipt_forged_digest_rejected(tmp_path: Path) -> None:
+    """篡改 receipt(digest 对不上内容)→ 拒绝,不得复活任何题集。"""
+    _authority, path, receipt = _signed_authority_file(tmp_path)
+
+    forged = decode_projection_receipt(receipt)
+    forged["projection_digest"] = "f" * 64
+    forged_receipt = (
+        base64.urlsafe_b64encode(
+            json.dumps(
+                forged, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+        )
+        .decode("ascii")
+        .rstrip("=")
+    )
+
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        resolve_projection_receipt("N01", forged_receipt, authority_path=path)
 
 
 def test_five_signed_anchors_do_not_bypass_seven_question_fact_triad_gate() -> None:

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import json
 from types import SimpleNamespace
 
 from fastapi import HTTPException
@@ -9,6 +11,29 @@ import pytest
 from deeptutor.api.routers import luban_lesson as router
 from deeptutor.services.learner_state import service as learner_state_module
 from deeptutor.services.luban_lesson import retest_writeback as writeback_module
+from deeptutor.services.luban_lesson.practice_html import PracticeHtmlInvalid
+
+
+def _receipt_token(
+    variant_ids: list[str],
+    *,
+    pack_id: str = "F16",
+    surface_id: str = "practice.html",
+    projection_digest: str = "b" * 64,
+    source_digest: str = "c" * 64,
+) -> str:
+    body = {
+        "schema": "luban_practice_projection_receipt.v1",
+        "pack_id": pack_id,
+        "surface_id": surface_id,
+        "ordered_variant_ids": list(variant_ids),
+        "source_digest": source_digest,
+        "projection_digest": projection_digest,
+    }
+    raw = json.dumps(
+        body, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
 
 def test_retest_complete_is_thin_authenticated_adapter(monkeypatch) -> None:
@@ -317,6 +342,140 @@ def test_forward_compiled_html_endpoint_reports_full_pool_without_answer_key(
     assert result["pool"] == {"core_total": 16, "rule_groups_total": 6}
     assert result["selection_id"] == "signed-five"
     assert all("is_correct" not in option for item in result["items"] for option in item["options"])
+
+
+def test_forward_receipt_selection_echoes_bridged_receipt(monkeypatch) -> None:
+    """B2 桥接:合法 receipt → 选题=receipt 题集,响应回显同一 receipt。"""
+    ids = [f"F16-html-q{index}" for index in range(5)]
+    receipt = _receipt_token(ids)
+    items = [
+        {
+            "answer_type": "single_choice",
+            "variant_id": vid,
+            "rule_group": f"group-{index}",
+            "stem": f"stem-{index}",
+            "options": [{"option_id": f"{vid}:a", "text": "A"}],
+        }
+        for index, vid in enumerate(ids)
+    ]
+    captured: dict = {}
+
+    def _build(*_args, **kwargs):
+        captured["build"] = kwargs
+        return items
+
+    def _issue(**kwargs):
+        captured["selection"] = kwargs
+        return "signed-receipt"
+
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+    monkeypatch.setattr(router, "build_retest_items", _build)
+    monkeypatch.setattr(
+        router,
+        "retest_supply_identity",
+        lambda *args, **kwargs: {"kind": "compiled_html", "digest": "a" * 64},
+    )
+    monkeypatch.setattr(
+        router,
+        "compiled_practice_pool_meta",
+        lambda *args, **kwargs: {"core_total": 16, "rule_groups_total": 6},
+    )
+    monkeypatch.setattr(router, "issue_retest_selection", _issue)
+
+    result = asyncio.run(
+        router.retest_items(
+            "F16",
+            mode="forward",
+            practice_surface="practice.html",
+            projection_receipt=receipt,
+            current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+        )
+    )
+
+    # receipt 作为"客户所见题集"身份进入唯一 builder,不在路由层旁路选题。
+    assert captured["build"]["projection_receipt"] == receipt
+    assert result["projection_receipt"] == receipt
+    assert result["projection_digest"] == "b" * 64
+    assert result["practice_source"] == "compiled_html"
+    assert [item["variant_id"] for item in result["items"]] == ids
+    # selection identity 签发的题序与 receipt 完全一致(completion 重判同一集合)。
+    assert captured["selection"]["variant_ids"] == ids
+
+
+def test_forward_receipt_drift_fails_closed_as_content_updated_retake(
+    monkeypatch,
+) -> None:
+    """供给漂移(重签/撤销/篡改)→ 语义错误 content_updated_retake,绝不按 index 换题。"""
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+
+    def _build(*_args, **_kwargs):
+        raise PracticeHtmlInvalid("content_updated_retake")
+
+    monkeypatch.setattr(router, "build_retest_items", _build)
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_items(
+                "F16",
+                mode="forward",
+                practice_surface="practice.html",
+                projection_receipt=_receipt_token(
+                    [f"F16-html-q{index}" for index in range(5)]
+                ),
+                current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+            )
+        )
+
+    assert exc.value.status_code == 409
+    assert exc.value.detail == {"error": "content_updated_retake"}
+
+
+def test_forward_without_receipt_keeps_legacy_projection_shape(monkeypatch) -> None:
+    """无 receipt 的旧路径不回归:不回显 receipt 字段,builder 收到空 receipt。"""
+    items = [
+        {
+            "answer_type": "single_choice",
+            "variant_id": f"F16-html-q{index}",
+            "rule_group": f"group-{index}",
+            "stem": f"stem-{index}",
+            "options": [{"option_id": f"q{index}:a", "text": "A"}],
+        }
+        for index in range(5)
+    ]
+    captured: dict = {}
+
+    def _build(*_args, **kwargs):
+        captured["build"] = kwargs
+        return items
+
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+    monkeypatch.setattr(router, "build_retest_items", _build)
+    monkeypatch.setattr(
+        router,
+        "retest_supply_identity",
+        lambda *args, **kwargs: {"kind": "compiled_html", "digest": "a" * 64},
+    )
+    monkeypatch.setattr(
+        router,
+        "compiled_practice_pool_meta",
+        lambda *args, **kwargs: {"core_total": 16, "rule_groups_total": 6},
+    )
+    monkeypatch.setattr(router, "issue_retest_selection", lambda **kwargs: "signed-five")
+
+    result = asyncio.run(
+        router.retest_items(
+            "F16",
+            mode="forward",
+            current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+        )
+    )
+
+    assert "projection_receipt" not in result
+    assert "projection_digest" not in result
+    assert captured["build"]["projection_receipt"] == ""
 
 
 def test_registered_compiled_supply_never_falls_back_to_empty_signed_selection(
