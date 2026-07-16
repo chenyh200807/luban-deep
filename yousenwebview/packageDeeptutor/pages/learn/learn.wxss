@@ -194,25 +194,21 @@
 .lr-journey-kicker { font-size: 24rpx; font-weight: 800; color: var(--pk-t3); letter-spacing: 3rpx; }
 .lr-journey-count { font-size: 24rpx; font-weight: 800; color: var(--pk-grn); }
 .lr-journey-track { position: relative; }
-/* 轨道底线/已走线:两端对齐首尾节点心(6 等分列 → 心距边 100%/12) */
+/* 轨道底线:两端对齐首尾节点心(6 等分列 → 心距边 100%/12)。
+   红队 A1:无逐步完成证据 → 无已走线(lr-jline-fill 已删),禁跨未完成节点画进度 */
 .lr-jline { position: absolute; left: 8.33%; right: 8.33%; top: 15rpx; height: 4rpx; background: var(--pk-gauge); border-radius: 2rpx; }
-.lr-jline-fill { position: absolute; left: 8.33%; top: 15rpx; height: 4rpx; background: var(--pk-grn); border-radius: 2rpx; }
 .lr-journey-steps { position: relative; display: flex; }
 .lr-jstep { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 11rpx; }
 .lr-jnode { width: 34rpx; height: 34rpx; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
-/* done=竹青实心勾 */
-.lr-jnode--done { background: var(--pk-grn); box-shadow: 0 4rpx 11rpx rgba(72, 128, 106, 0.3); }
-.lr-jnode-check { font-size: 18rpx; font-weight: 900; color: #fff; line-height: 1; }
-/* current=墨色高亮(夜主题随 ink-btn 反转) */
+/* current=墨色高亮(夜主题随 ink-btn 反转);done 态已删——前端无完成证据,禁勾 */
 .lr-jnode--current { background: var(--pk-ink-btn); box-shadow: 0 0 0 7rpx rgba(38, 36, 31, 0.09), 0 6rpx 15rpx rgba(38, 36, 31, 0.25); }
 .lr-jnode-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--pk-ink-btn-t); }
 /* future=空心 */
 .lr-jnode--future { background: var(--pk-card); border: 3rpx solid #cbc6b4; }
-/* promise(明日验证/3 日抽查)=竹青虚环 = 系统的承诺 */
+/* promise(到期验证/后续抽查)=竹青虚环 = 系统的承诺(周期由服务端 due 裁决) */
 .lr-jnode--promise { background: rgba(72, 128, 106, 0.06); border: 3rpx dashed rgba(72, 128, 106, 0.55); }
 /* 步名 10px→20rpx:6 列空间约束,与 pk-poster__sub 同一 owner 审定例外(低于 24rpx 下限) */
 .lr-jlabel { font-size: 20rpx; letter-spacing: 0.5rpx; line-height: 1.3; text-align: center; white-space: nowrap; }
-.lr-jlabel--done { font-weight: 800; color: var(--pk-grn); }
 .lr-jlabel--current { font-weight: 800; color: var(--pk-t1); }
 .lr-jlabel--future { font-weight: 700; color: var(--pk-t3); }
 .lr-jlabel--promise { font-weight: 700; color: var(--pk-grn); }
