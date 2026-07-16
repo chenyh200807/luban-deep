@@ -616,3 +616,35 @@ def test_observer_snapshot_and_oa_payloads_match_public_schemas(tmp_path) -> Non
     oa_schema = json.loads((PROJECT_ROOT / "schemas" / "oa_run_v1.json").read_text(encoding="utf-8"))
     validate(observer_payload, observer_schema)
     validate(oa_payload, oa_schema)
+
+
+def test_observer_with_release_uses_run_local_payloads_not_foreign_latest(tmp_path) -> None:
+    store = ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane")
+    foreign_release = {"release_id": "foreign", "git_sha": "same", "ff_snapshot_hash": "foreign"}
+    for kind, run_id in (("om_runs", "foreign-om"), ("arr_runs", "foreign-arr"), ("aae_composite_runs", "foreign-aae")):
+        store.write_run(
+            kind=kind,
+            run_id=run_id,
+            release_id="foreign",
+            payload={"run_id": run_id, "release": foreign_release},
+        )
+    release = {"release_id": "candidate", "git_sha": "same", "ff_snapshot_hash": "candidate"}
+    payload = build_observer_snapshot(
+        store=store,
+        event_log=TurnEventLog(events_dir=tmp_path / "events"),
+        release=release,
+        metrics_snapshot={"release": release, "surface_events": {"coverage": []}},
+        om_payload={"run_id": "run-om", "release": release},
+        arr_payload={"run_id": "run-arr", "release": release},
+        aae_payload={"run_id": "run-aae", "release": release},
+        benchmark_payload=None,
+        conversation_db_path=tmp_path / "missing-chat.db",
+        backend_log_paths=[],
+        product_behavior_db_path=tmp_path / "missing-product.db",
+    )
+
+    assert payload["source_runs"]["om_run_id"] == "run-om"
+    assert payload["source_runs"]["arr_run_id"] == "run-arr"
+    assert payload["source_runs"]["aae_run_id"] == "run-aae"
+    assert payload["source_runs"]["benchmark_run_id"] is None
+    assert payload["source_runs"]["daily_trend_run_id"] is None
