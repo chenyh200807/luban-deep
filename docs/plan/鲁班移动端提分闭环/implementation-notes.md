@@ -9,6 +9,15 @@
 
 ## Deviations
 
+### 2026-07-16（V1 最小上线收尾 · B1-B5 四纵切落盘 + B2 服务端回路收口 · 分支 luban/practice-v1-r0)
+- **[跨 AI 交接]** Codex 军团(会话"简化复习并收敛学情模块")按 07-15 计划执行 B1/B2/B3/B5 至半程后由 owner 下停止令;Claude 主控冻结核验(mtime 静默 + 只读三方取证)后接管收尾。工作区 ~3000 行未提交改动按纵切拆为窄提交:`1e32a271`(B3 原子 probe claim + migration + 契约登记)、`7fbb0e2b`(B1 v3 资格字段 + N01/S05/X01 审核包 + exact receipt 供给)、`d2e62d46`(B5 五 Tab 收权 + receipt 桥前端)、`54e4e10c`(锚候选预填)、`1916e620`(红测试收口 + 收据四层诊断)、`aa681d42`(B2 服务端 receipt 回路)。
+- **[偏离:数据盘点文件不入库]** 指挥官原令"数据盘点 260 文件单独 commit 隔离";实际处置为**完全不动**(含 `docs/营销/`、`.codegraph/`、3 个盘点测试)——因其他 Codex 窗口仍在活跃,这批文件疑属在飞工作流,commit 半成品会制造第二次"扫走"事故。待该工作流 owner 自行收尾。
+- **[B2 断链根治 + 承重安全修复]** 真正坏掉的一等事实:H5 桥接的 `projection_receipt` 前端要求响应逐字节回显(retest.js:568-576),服务端从不接收/回显 → 桥接模式 100% 死路;`resolve_projection_receipt` 写了但零调用方(consumption 断链)。修法:receipt 作为身份输入穿过唯一 builder `build_retest_items`,路由 thin 只做 HTTP 映射;`content_updated_retake` → 409 明确语义;review 模式/非编译包/漂移一律 fail-close 不静默换题。**顺带发现并修复**:`resolve_projection_receipt` 原返回裸 authority items(options 含 `is_correct`),直接接线会把答案泄给客户端——收敛到 `_project_practice_rows` 单一投影,消灭第二题面形状。
+- **[V1 发布裁决(经三专家+指挥官对抗)]** §6 的 R2-R4 统计门(7 日 A/A、powered A/B、join≥99%)整体砍除:真实流量 2-3 新用户/天不可达 powered sample,且 owner 07-10 已拍板"撤销 spike 统计验证路线改逐人回放"——本计划 §6 与该在册拍板冲突,以拍板为准。替代=确定性发布检查表(冲突送达=0/旧 H5 错位=0/probe 唯一 claim/真微信全链 QA/埋点 forward-review 判别)+逐用户回放。当场换题确认(probe_role 零消费)、订阅消息调度器(仓库无定时器)、fact 级 D+1 均推 V2;D+1 触达走学习首页任务位(链路已存在,只差 3 flag)。
+- **[签发关键路径减半]** `scripts/prefill_practice_review_anchors.py` 机器预填 source_anchor 候选(纯标准库文本匹配,绝不签名,`machine_candidates_only` 独立文件):三包候选覆盖 100%(≥0.45 高可信 7/11/12 题),抽查 4 题全部精确命中;owner 签发从 ~3-4.5h 压至 ~2h。已知留观:三包固定 5 anchor 题 100% "正确项=最长选项"泄漏,首批记 verdict 不治本;签发后 `test_candidate_review_packets_are_complete_and_never_machine_signed` 的"全 pending"快照断言需同步改。
+- **[发布门顺序]** eligible=0 时全链硬停发无回退 → 部署本身无风险(生产 flag 需先核实全关),但**开闸必须排在"≥1 包签发 + 线上活体核验 eligible>0"之后**;404 即关 flag 零成本回退。
+- **[验证]** 合流回归 835 passed(luban_lesson+learner_state+endpoint+scripts);Node 106/106;PG 双实例并发测试真跑绿;ruff 全绿;收据页四层诊断(你选了/为什么像对的/为什么不给分/下次这样答)合同测试钉死含语气红线。未部署、未开 flag、未真机——R0 Engineering Candidate 达成,R1 真微信 QA 待部署后执行。
+
 ### 2026-07-15（Practice 计划二次红队 + terminal/revocation authority 收权）
 - **[release truth 翻案]** 633 道只能称“结构可判 compiled candidates”，不能称已完成内容签发的正式库存。当前 sidecar 缺稳定 fact/source/review verdict，原料盘点中 581 条 review-required、81 条 quarantine，且已知 A01/F03/G03 冲突可进入 compiled/public Practice。产品 P0A 保持 `HOLD`；S0 只代表本地事务基础设施完成。
 - **[入口真值]** generic learning home 无 surface 时能消费动态私有池；视频 H5 却始终回传 surface + indexes，因此仍走 public 五题，并存在缓存旧 H5 与新供应错位的 TOCTOU。计划新增 exact question IDs + projection digest、v1 re-fetch 和真微信 auth-chain 阻断门；本轮不改脏前端、不声称入口已闭环。
