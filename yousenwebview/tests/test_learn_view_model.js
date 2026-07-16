@@ -305,7 +305,8 @@ ok("server review_due next step supplies the due probe and target station", () =
   assert.strictEqual(vm.todayTask.task_state, "review_due");
   assert.strictEqual(vm.todayTask.action_kind, "retest");
   assert.strictEqual(vm.todayTask.mode, "review");
-  assert.strictEqual(vm.todayTask.cta, "用 2 分钟验证昨天的盲点");
+  // 周期由服务端 due 裁决,前端不得声称"昨天"(可能是 3 日/稳定周期抽查)
+  assert.strictEqual(vm.todayTask.cta, "用 2 分钟完成到期验证");
 });
 
 ok("frontend never creates a competing priority from pack_review", () => {
@@ -451,10 +452,12 @@ ok("poster name uses registered 简称; title keeps full text; unregistered fall
 // 10a改 · 今日任务卡三层 + 旅程轨道 + 复习卡(单一权威红线)
 // ══════════════════════════════════════════════════════════════
 
-// ── 旅程轨道:步骤集合硬编码 6 步,禁不存在的步骤(填空/半写) ──
-const JOURNEY_LABELS = ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "明日验证", "3 日抽查"];
+// ── 旅程轨道(红队 A1 收口):前端没有逐步完成证据 → 轨道=流程说明。
+//    禁 done/勾;current 只由 next_step.mode 派生(CTA 对应步,唯一诚实声称);
+//    第 5/6 步不承诺具体日程(复习周期由服务端 due 裁决,前端不写死"明日/3日")。 ──
+const JOURNEY_LABELS = ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "到期验证", "后续抽查"];
 
-ok("journey: steps are exactly the 6 canonical labels (no fabricated steps)", () => {
+ok("journey: steps are exactly the 6 canonical labels; no schedule promises in copy", () => {
   const vm = buildLearnViewModel(FULL); // learn_next
   const j = vm.todayTask.journey;
   assert.ok(j, "todayTask must carry a journey");
@@ -462,10 +465,26 @@ ok("journey: steps are exactly the 6 canonical labels (no fabricated steps)", ()
   assert.strictEqual(j.total, 6);
   j.steps.forEach((s) => {
     assert.ok(s.label.indexOf("半写") === -1 && s.label.indexOf("填空") === -1);
+    assert.ok(s.label.indexOf("明日") === -1 && s.label.indexOf("3 日") === -1,
+      "journey copy must not hardcode a review schedule the server did not sign: " + s.label);
   });
 });
 
-ok("journey learn_next → current step 1, nothing done, tail two steps promised", () => {
+ok("journey never claims done in any arm (frontend has no completion evidence)", () => {
+  const arms = [
+    { next_step: { mode: "learn_next", source_ref: "N01", reason: "r" } },
+    { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
+    { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "r" } },
+  ];
+  arms.forEach((homeDashboard) => {
+    const vm = buildLearnViewModel({ homeDashboard, report: FULL.report, lessons: FULL.lessons });
+    const j = vm.todayTask.journey;
+    assert.strictEqual(j.steps.filter((s) => s.state === "done").length, 0,
+      "next_step.mode is a prescription, never completion evidence (" + homeDashboard.next_step.mode + ")");
+  });
+});
+
+ok("journey learn_next → current step 1, tail two steps promised", () => {
   const vm = buildLearnViewModel(FULL);
   const j = vm.todayTask.journey;
   assert.strictEqual(j.currentIndex, 1);
@@ -473,12 +492,11 @@ ok("journey learn_next → current step 1, nothing done, tail two steps promised
   assert.strictEqual(j.steps[1].state, "future");
   assert.strictEqual(j.steps[2].state, "future");
   assert.strictEqual(j.steps[3].state, "future");
-  assert.strictEqual(j.steps[4].state, "promise"); // 明日验证=竹青虚环承诺
-  assert.strictEqual(j.steps[5].state, "promise"); // 3 日抽查=竹青虚环承诺
-  assert.strictEqual(j.steps.filter((s) => s.state === "done").length, 0);
+  assert.strictEqual(j.steps[4].state, "promise"); // 到期验证=竹青虚环承诺
+  assert.strictEqual(j.steps[5].state, "promise"); // 后续抽查=竹青虚环承诺
 });
 
-ok("journey practice_active (未完成 forward) → step1 done, current step 2", () => {
+ok("journey practice_active → current step 2; earlier steps stay hollow, not done", () => {
   const vm = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
     report: FULL.report,
@@ -486,7 +504,8 @@ ok("journey practice_active (未完成 forward) → step1 done, current step 2",
   });
   const j = vm.todayTask.journey;
   assert.strictEqual(j.currentIndex, 2);
-  assert.strictEqual(j.steps[0].state, "done");
+  // practice_active 只证明存在未 verified 的 training_intent,不证明动画讲懂已完成
+  assert.strictEqual(j.steps[0].state, "future");
   assert.strictEqual(j.steps[1].state, "current");
   assert.strictEqual(j.steps[2].state, "future");
   assert.strictEqual(j.steps[3].state, "future");
@@ -494,7 +513,7 @@ ok("journey practice_active (未完成 forward) → step1 done, current step 2",
   assert.strictEqual(j.steps[5].state, "promise");
 });
 
-ok("journey review_due (有 due probe) → in-station steps done, current=明日验证; 轻练确认无观测信号保守留空心", () => {
+ok("journey review_due → current=到期验证(step 5); nothing marked done, no line over hollow steps", () => {
   const vm = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "到期" } },
     report: FULL.report,
@@ -502,22 +521,57 @@ ok("journey review_due (有 due probe) → in-station steps done, current=明日
   });
   const j = vm.todayTask.journey;
   assert.strictEqual(j.currentIndex, 5);
-  assert.strictEqual(j.steps[0].state, "done");
-  assert.strictEqual(j.steps[1].state, "done");
-  assert.strictEqual(j.steps[2].state, "done");
-  assert.strictEqual(j.steps[3].state, "future"); // 轻练确认拿不准→保守不标 done
-  assert.strictEqual(j.steps[4].state, "current"); // 明日验证=当前,不再是虚环
+  assert.strictEqual(j.steps[0].state, "future");
+  assert.strictEqual(j.steps[1].state, "future");
+  assert.strictEqual(j.steps[2].state, "future");
+  assert.strictEqual(j.steps[3].state, "future");
+  assert.strictEqual(j.steps[4].state, "current"); // 到期验证=当前,不再是虚环
   assert.strictEqual(j.steps[5].state, "promise");
 });
 
-ok("journey exposes no mastery percent, only N/6 progress facts", () => {
+ok("journey draws no completion line: progressRatio/lineFillPercent removed", () => {
+  ["learn_next", "practice_active", "review_due"].forEach((mode) => {
+    const vm = buildLearnViewModel({
+      homeDashboard: { next_step: { mode, source_ref: mode === "learn_next" ? "N01" : "ref", target_pack_id: "N01" } },
+      report: FULL.report,
+      lessons: FULL.lessons,
+    });
+    const j = vm.todayTask.journey;
+    assert.strictEqual(j.progressRatio, undefined, "no progress ratio without completion evidence");
+    assert.strictEqual(j.lineFillPercent, undefined, "progress line must never cross unverified steps");
+  });
+});
+
+ok("journey exposes no mastery percent, only step-position facts", () => {
   const vm = buildLearnViewModel(FULL);
   const j = vm.todayTask.journey;
   assert.strictEqual(j.masteryPercent, undefined);
   assert.ok(j.currentIndex >= 1 && j.currentIndex <= 6);
-  assert.ok(typeof j.progressRatio === "number" && j.progressRatio >= 0 && j.progressRatio <= 1);
-  assert.ok(typeof j.lineFillPercent === "number" && j.lineFillPercent >= 0 && j.lineFillPercent <= 83.34);
   assert.ok(typeof j.ringPercent === "number" && j.ringPercent >= 0 && j.ringPercent <= 100);
+});
+
+// ── 轻练旁按钮(红队 A2 收口):到期验证优先,review_due 下不给绕开路径 ──
+ok("review_due with supply must NOT expose light practice (no bypass around due verification)", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: FULL.report,
+    lessons: FULL.lessons, // N01 供给真值为 true,但到期验证优先
+  });
+  assert.strictEqual(vm.todayTask.light_practice_available, false);
+  assert.strictEqual(vm.todayTask.light_practice_visible, false);
+});
+
+ok("light practice stays usable only in learn/forward contexts", () => {
+  const practice = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(practice.todayTask.light_practice_available, true);
+  assert.strictEqual(practice.todayTask.light_practice_visible, true);
+  const lesson = buildLearnViewModel(FULL); // learn_next
+  assert.strictEqual(lesson.todayTask.light_practice_available, true);
+  assert.strictEqual(lesson.todayTask.light_practice_visible, true);
 });
 
 // ── 主按钮短文案随任务类型;无供给时不给按钮(禁 dead click) ──
@@ -579,10 +633,62 @@ ok("review card renders only when next_step already adjudicated review_due", () 
   });
   assert.ok(vm.reviewCard);
   assert.strictEqual(vm.reviewCard.dueCount, 2);
-  assert.ok(vm.reviewCard.title.indexOf("2 个点到期") >= 0);
+  assert.ok(vm.reviewCard.title.indexOf("2 个考点到期") >= 0);
+  assert.strictEqual(vm.reviewCard.title.indexOf("昨天"), -1, "review cycle length is server-owned; no 昨天 claim");
   assert.ok(vm.reviewCard.sub.indexOf("换题验证") >= 0);
   // 任务卡此时自动是验证任务(同一权威,不是复习卡自算的)
   assert.strictEqual(vm.todayTask.task_state, "review_due");
+});
+
+// ── 红队 A3 收口:复习卡必须 exact-match 当前任务身份(pack_id+probe_id),
+//    禁跨快照身份漂移(卡显示 S05 计数,点击却路由 N01 旧 probe → dead click)。 ──
+ok("review card hidden when due snapshot has no exact task identity match", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        // 独立快照里 N01 已完成,只剩 S05 到期 → 与任务身份不匹配,必须隐藏
+        due: [{ pack_id: "S05", title: "临时用电三级配电", probe_id: "rvp_s05", retest_available: true }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null, "cross-snapshot drift must hide the card, never re-pick another due");
+});
+
+ok("review card hidden when the due entry carries a different probe identity", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_other", retest_available: true }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null);
+});
+
+ok("review card hidden when the matched due entry says retest unavailable", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01", retest_available: false }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null);
 });
 
 ok("review card hidden when due list is empty", () => {

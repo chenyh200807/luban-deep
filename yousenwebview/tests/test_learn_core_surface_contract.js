@@ -46,10 +46,23 @@ assert.strictEqual(
   "task card must expose exactly one light-practice side button",
 );
 assert(learnJs.indexOf("快练准备中") >= 0, "light practice must degrade to an honest empty-state toast");
+// 红队 A2:轻练按钮在 review_due(到期验证优先)必须隐藏,不给绕开路径;
+// 可见性由 view-model 单点裁决(light_practice_visible),页面/wxml 不重判。
+assert(
+  learnWxml.indexOf('wx:if="{{vm.todayTask.light_practice_visible}}"') >= 0,
+  "light practice button visibility must be gated by the view-model (hidden under review_due)",
+);
 // 旅程轨道:6 步硬编码于 view-model,禁不存在的步骤
 ["半写", "填空"].forEach(function (needle) {
   assert.strictEqual(learnVm.indexOf(needle), -1, "journey must not fabricate a nonexistent step: " + needle);
 });
+// 红队 A1:前端无逐步完成证据 → 禁 done 勾/进度线跨未完成节点/写死复习日程
+assert.strictEqual(learnWxml.indexOf("lr-jline-fill"), -1, "journey must not draw a progress line across unverified steps");
+assert.strictEqual(learnWxml.indexOf("lr-jnode-check"), -1, "journey must not render done checkmarks without completion evidence");
+["明日验证", "3 日抽查"].forEach(function (needle) {
+  assert.strictEqual(learnVm.indexOf(needle), -1, "journey copy must not hardcode a review schedule: " + needle);
+});
+assert.strictEqual(learnVm.indexOf("昨天的"), -1, "review copy must not claim 昨天 (cycle length is server-owned)");
 assert(
   learnWxml.indexOf("近 3 天有效作答") >= 0 &&
     learnWxml.indexOf("{{vm.stats.recent_practice || 0}} 道") >= 0,
@@ -125,12 +138,16 @@ assert.strictEqual(
   "/packageDeeptutor/pages/luban/retest/retest?pack_id=N01&mode=forward&training_intent_id=intent-9&probe_id=",
   "light practice with supply should enter the shared retest route in forward mode",
 );
+// 红队 A2:review_due 下即使残留 stale 可用旗标,页面守卫也必须拒绝
+// forward 旁路(否则可绕开到期验证并重开 fresh cycle 清掉 review streak)。
+var navBeforeReview = navigations.length;
 lightPractice({ light_practice_available: true, pack_id: "N01", task_state: "review_due" });
 assert.strictEqual(
-  navigations.pop(),
-  "/packageDeeptutor/pages/luban/retest/retest?pack_id=N01&mode=forward&training_intent_id=&probe_id=",
-  "light practice from a review task must not smuggle the probe identity into forward mode",
+  navigations.length,
+  navBeforeReview,
+  "review_due must never offer a probe-less forward bypass around due verification",
 );
+assert.strictEqual(toasts.pop(), "先完成今天的到期验证", "review_due light-practice click must explain the due-first rule");
 var navCountBefore = navigations.length;
 lightPractice({ light_practice_available: false, pack_id: "N01", task_state: "learn_next" });
 assert.strictEqual(navigations.length, navCountBefore, "no supply must mean no navigation (no dead click)");

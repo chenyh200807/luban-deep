@@ -131,37 +131,31 @@ function _posters(packs, titleIdx, recommendedId) {
   return rows;
 }
 
-// ── 站点旅程轨道(10a改):步骤集合硬编码这 6 步,禁出现不存在的步骤 ──
-// 状态派生只用现有可得信号(next_step.mode = 是否有未完成 forward / due probe),
-// 不新增后端调用;拿不准的步保守显示为空心(future),不造假。
-// promise 步(明日验证/3 日抽查)= 系统的承诺,未到点用竹青虚环。
-var JOURNEY_STEPS = ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "明日验证", "3 日抽查"];
+// ── 站点旅程轨道(红队 A1 收口):流程说明,不是进度账本 ──
+// 前端没有任何逐步完成证据(next_step.mode 是处方,不是完成观测):
+// practice_active 只证明存在未 verified 的 training_intent,不证明动画讲懂已完成;
+// review_due 只证明有 due probe,周期(次日/3 日/稳定期)由服务端 due 裁决。
+// 因此本轨道:禁 done/勾;只标 current(= CTA 对应步,唯一诚实声称)+
+// future(空心)+ promise(竹青虚环,不承诺具体日程);不画跨未完成节点的进度线。
+// 后端逐步状态 read-model 上线前,禁在前端伪造完成态。
+var JOURNEY_STEPS = ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "到期验证", "后续抽查"];
 var JOURNEY_PROMISE_FROM = 4; // steps[4], steps[5] 为承诺步
 
 function _journeyFor(taskState) {
-  // 当前步(1-based)单点裁决:
-  // learn_next → 1(动画讲懂);practice_active(有未完成 forward)→ 2(训练);
-  // review_due(有 due probe = 站内旅程已走完并进入承诺兑现)→ 5(明日验证)。
+  // 当前步(1-based)只由 next_step.mode 派生(CTA 对应步):
+  // learn_next → 1(动画讲懂);practice_active → 2(训练);review_due → 5(到期验证)。
   var current = taskState === "review_due" ? 5 : taskState === "practice_active" ? 2 : 1;
-  // done 只标有观测依据的步:due probe 只在站完成信号后签发 → 1-3(讲评随训练)可信;
-  // 轻练确认(4)无独立完成信号 → 保守留空心。
-  var doneUpTo = taskState === "review_due" ? 3 : taskState === "practice_active" ? 1 : 0;
   var steps = JOURNEY_STEPS.map(function (label, i) {
     var n = i + 1;
-    var state =
-      n <= doneUpTo ? "done" : n === current ? "current" : i >= JOURNEY_PROMISE_FROM ? "promise" : "future";
+    var state = n === current ? "current" : i >= JOURNEY_PROMISE_FROM ? "promise" : "future";
     return { label: label, state: state };
   });
   return {
     steps: steps,
     currentIndex: current,
     total: JOURNEY_STEPS.length,
-    // 轨道已走线占比(节点心到节点心共 5 段);环形进度 = 当前步/6。均为事实计数,非掌握度。
-    progressRatio: Math.round(((current - 1) / (JOURNEY_STEPS.length - 1)) * 100) / 100,
-    // 已走线宽度(相对整条 track 容器):首尾各留 100%/12 到节点心,可走满幅 = 83.34%。
-    // 预算成纯百分数,避免 wxml 内插 calc 的兼容风险(既有惯例=width: {{x}}%)。
-    lineFillPercent:
-      Math.round(((current - 1) / (JOURNEY_STEPS.length - 1)) * 83.34 * 100) / 100,
+    // 环形指示 = 当前步位置/6(位置事实,非完成度、非掌握度)。
+    // 禁 progressRatio/lineFillPercent:没有完成证据就没有可画的已走线。
     ringPercent: Math.round((current / JOURNEY_STEPS.length) * 100),
   };
 }
@@ -176,10 +170,11 @@ function _retestTask(concept, packId, reason, practiceKind, taskState) {
     // 「训练 5 题」只在 retest 池真可用时承诺(供给真值门,禁空头题量)
     title: c + (reviewDue ? " · 到期验证" : kind === "retest" ? " · 训练 5 题" : " · 课后检验"),
     reason: _str(reason),
+    // 复习周期(次日/3 日/稳定期)由服务端 due 裁决,前端不得声称"昨天/明日"
     cta: kind === "none"
       ? ""
       : reviewDue
-      ? "用 2 分钟验证昨天的盲点"
+      ? "用 2 分钟完成到期验证"
       : "完成刚学内容的 5 题检验",
     // 主按钮短文案随任务类型;无供给不给按钮(禁 dead click)
     ctaLabel: kind === "none" ? "" : reviewDue ? "开始验证" : "开始训练",
@@ -250,10 +245,16 @@ function buildCanonicalLearningTask(args) {
 
   // 任务级公共派生:旅程轨道(6 步硬编码)+ 轻练旁按钮供给真值。
   // 轻练供给唯一裁决点仍是 _practiceKindFor(禁页面层再判一次)。
+  // 红队 A2 收口:轻练只复用当前任务的 fact 语境,不是第二处方——
+  // review_due(到期验证优先)下按钮隐藏且不可用,禁 probe-less forward 旁路
+  // (否则可绕开到期验证并重开 fresh cycle 清掉 canonical review streak)。
   function _decorate(task) {
     if (!task) return task;
+    var reviewDue = task.task_state === "review_due";
     task.journey = _journeyFor(task.task_state);
-    task.light_practice_available = _practiceKindFor(packId, titleIdx) === "retest";
+    task.light_practice_visible = !reviewDue;
+    task.light_practice_available =
+      !reviewDue && _practiceKindFor(packId, titleIdx) === "retest";
     return task;
   }
 
@@ -301,15 +302,32 @@ function _buildReviewCard(report, todayTask) {
     packReview.degraded !== true &&
     _str(packReview.authority) === "revalidation_queue";
   if (!authorityKnown) return null;
-  var dueCount = _safeArr(packReview.due).length;
+  var due = _safeArr(packReview.due);
+  var dueCount = due.length;
   if (dueCount <= 0) return null;
   var task = _safeObj(todayTask);
   // next_step 没裁决为到期验证 → 不渲染(禁自算优先级);
   // 验证任务无可路由 retest 供给 → 不渲染(禁 dead click)。
   if (task.task_state !== "review_due" || task.practice_kind !== "retest") return null;
+  // 红队 A3 收口:dashboard 与 learning-report 是两个独立快照,可能跨快照漂移
+  // (卡显示 S05 计数,点击却路由 N01 旧 probe → 被后端 exact-match 拒绝)。
+  // due 里必须存在与当前任务 exact-match 的同一身份(pack_id+probe_id,且该条
+  // retest 未被标不可用);不匹配一律隐藏,禁自行改选另一条 due(那是第二处方)。
+  var taskPackId = _str(task.pack_id).toUpperCase();
+  var taskProbeId = _str(task.probe_id);
+  var identityMatched = due.some(function (d) {
+    var o = _safeObj(d);
+    return (
+      _str(o.pack_id).toUpperCase() === taskPackId &&
+      _str(o.probe_id) === taskProbeId &&
+      o.retest_available !== false
+    );
+  });
+  if (!identityMatched) return null;
   return {
     dueCount: dueCount,
-    title: "复习 · 昨天的 " + dueCount + " 个点到期",
+    // 周期由服务端 due 裁决,不声称"昨天"(可能是 3 日/稳定期抽查)
+    title: "复习 · " + dueCount + " 个考点到期",
     sub: "换题验证 · 约 2 分钟 · 通过即亮「已验证」",
     cta: "去验证",
   };

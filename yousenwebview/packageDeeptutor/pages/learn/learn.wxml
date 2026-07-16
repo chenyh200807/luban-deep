@@ -99,33 +99,33 @@
         <view class="lr-task-cta">
           <view class="pk-btn-ink lr-task-btn" wx:if="{{vm.todayTask.ctaLabel}}" bindtap="goTodayTask">{{vm.todayTask.ctaLabel}}</view>
           <!-- 轻练旁按钮:供给未接通时点击给诚实提示(learn.js 兜底),禁 dead click 假可用 -->
-          <view class="lr-task-lite" bindtap="goLightPractice">
+          <!-- 红队 A2:review_due(到期验证优先)下隐藏,不给绕开路径;可见性由 view-model 单点裁决 -->
+          <view class="lr-task-lite" wx:if="{{vm.todayTask.light_practice_visible}}" bindtap="goLightPractice">
             <text class="lr-lite-bolt">⚡</text>
             <text>轻练</text>
           </view>
         </view>
         <text class="pk-desc lr-supply-note" wx:if="{{vm.todayTask.supplyNote}}">{{vm.todayTask.supplyNote}}</text>
 
-        <!-- 旅程轨道:这一站会带你走完(6 步硬编码于 view-model,只写真实存在的步骤) -->
+        <!-- 旅程轨道(红队 A1 收口):流程说明,不是进度账本——前端无逐步完成证据,
+             禁 done 勾、禁跨未完成节点的进度线;只标 current(CTA 对应步)/空心/承诺虚环 -->
         <view class="lr-journey" wx:if="{{vm.todayTask.journey}}">
           <view class="lr-journey-head">
             <text class="lr-journey-kicker">这一站会带你走完</text>
-            <text class="lr-journey-count">{{vm.todayTask.journey.currentIndex}}/{{vm.todayTask.journey.total}} 步</text>
+            <text class="lr-journey-count">第 {{vm.todayTask.journey.currentIndex}} / {{vm.todayTask.journey.total}} 步</text>
           </view>
           <view class="lr-journey-track">
             <view class="lr-jline"></view>
-            <view class="lr-jline-fill" style="width: {{vm.todayTask.journey.lineFillPercent}}%"></view>
             <view class="lr-journey-steps">
               <view class="lr-jstep" wx:for="{{vm.todayTask.journey.steps}}" wx:key="label">
                 <view class="lr-jnode lr-jnode--{{item.state}}">
-                  <text wx:if="{{item.state === 'done'}}" class="lr-jnode-check">✓</text>
-                  <view wx:elif="{{item.state === 'current'}}" class="lr-jnode-dot"></view>
+                  <view wx:if="{{item.state === 'current'}}" class="lr-jnode-dot"></view>
                 </view>
                 <text class="lr-jlabel lr-jlabel--{{item.state}}">{{item.label}}</text>
               </view>
             </view>
           </view>
-          <text class="lr-journey-foot">后两步到点会自动出现在这里 · 你只管来</text>
+          <text class="lr-journey-foot">验证与抽查到期时会出现在这里 · 你只管来</text>
         </view>
 
         <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.todayTask.reason}}">
