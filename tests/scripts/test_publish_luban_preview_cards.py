@@ -4,6 +4,8 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -547,7 +549,6 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
     (old / "support.js").write_text("old-support", encoding="utf-8")
     (old / "audio" / "b0.mp3").write_bytes(b"old-audio")
     monkeypatch.setattr(_mod, "HOST", host)
-    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path / "reviews")
     monkeypatch.setattr(
         _mod,
         "transform_teach",
@@ -557,23 +558,9 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
     )
     monkeypatch.setattr(
         _mod,
-        "compile_practice_surface",
-        lambda *_args, **_kwargs: {
-            "surface": {"surface_id": "practice.html"},
-            "items": [{"variant_id": str(index)} for index in range(5)],
-        },
+        "_compile_practice_outputs",
+        lambda *_args, **_kwargs: ({"practice.html": "practice"}, {}),
     )
-    monkeypatch.setattr(
-        _mod,
-        "transform_practice",
-        lambda text, **_kwargs: text,
-    )
-    monkeypatch.setattr(
-        _mod,
-        "build_practice_authority",
-        lambda *_args, **_kwargs: {},
-    )
-    monkeypatch.setattr(_mod, "_pack_source_sha", lambda _pack: "0" * 64)
     station = _mod.Station(
         pack_dir="PACK",
         teach={"lesson.html": "teach.html"},
@@ -846,3 +833,102 @@ def test_variant_audit_packet_rejects_unreadable_blocklist(
     monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
     with pytest.raises(_mod.TransformError):
         _mod.write_variant_audit_packet("s05")
+
+
+# --- projection receipt 单一来源（artifact surface.projection_receipt 唯一权威）---
+
+_EMBEDDED_RECEIPT_TEST_RE = re.compile(
+    r"'&projection_receipt='\+encodeURIComponent\(\"([A-Za-z0-9_-]*)\"\)"
+)
+
+
+def _tamper_receipt(receipt: str) -> str:
+    return receipt[:-1] + ("A" if receipt[-1] != "A" else "B")
+
+
+def test_signed_decision_merge_keeps_html_receipt_byte_equal_to_artifact() -> None:
+    """N01 人审 packet 已签发：decision 合并改变 receipt，HTML 必须跟 artifact 同步。
+
+    2026-07 生产 SEV-1 根因：HTML 内嵌 receipt 在 decision 合并前计算（pending 态，
+    digest 22fe9552…），artifact receipt 在合并后重算（digest 9e270564…），
+    服务端 resolve_projection_receipt 按 artifact 校验 → 五题提交 100% 被拒。
+    """
+    station_id = "n01"
+    station = _mod.STATIONS[station_id]
+    rendered, authority = _mod._practice_only_outputs(
+        station_id, station, finished_root=_mod.FINISHED
+    )
+    surface = authority["surfaces"][0]
+
+    # 场景前提：签发（decision 合并）后 receipt 确实与 pending 期不是同一份。
+    source_text = (
+        _mod.FINISHED / station.pack_dir / station.practice["practice.html"]
+    ).read_text(encoding="utf-8")
+    pending_receipt = compile_practice_surface(
+        "N01",
+        surface_id="practice.html",
+        html=source_text,
+        source_path="tracked-n01",
+        source_html_sha256=hashlib.sha256(source_text.encode("utf-8")).hexdigest(),
+    )["surface"]["projection_receipt"]
+    assert pending_receipt != surface["projection_receipt"]
+
+    # 单一来源断言：HTML 内嵌 receipt 逐字节等于最终 artifact 的 receipt。
+    embedded = _EMBEDDED_RECEIPT_TEST_RE.findall(rendered["practice.html"])
+    assert embedded == [surface["projection_receipt"]]
+
+
+def test_compile_outputs_fail_close_when_embedded_receipt_diverges(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """守卫：HTML 嵌入若与 artifact receipt 不同步（第二次计算复活）必 fail-close。"""
+    real = _mod.transform_compiled_practice_html
+
+    def tampered(pack_id, *, surface, items, html):
+        fake = dict(surface)
+        fake["projection_receipt"] = _tamper_receipt(str(surface["projection_receipt"]))
+        return real(pack_id, surface=fake, items=items, html=html)
+
+    monkeypatch.setattr(_mod, "transform_compiled_practice_html", tampered)
+    with pytest.raises(_mod.TransformError, match="receipt"):
+        _mod._practice_only_outputs(
+            "n01", _mod.STATIONS["n01"], finished_root=_mod.FINISHED
+        )
+
+
+def test_check_fails_close_when_published_html_receipt_drifts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """守卫（--check 路径）：发布产物中 HTML 内嵌 receipt != artifact receipt 必 FAIL。"""
+    station_id = "n01"
+    host = tmp_path / "host"
+    shutil.copytree(_mod.HOST / station_id, host / station_id)
+    authority_dir = tmp_path / "authority"
+    authority_dir.mkdir()
+    authority_name = f"{station_id}.practice.authority.json"
+    shutil.copy2(_mod.AUTHORITY_HOST / authority_name, authority_dir / authority_name)
+
+    hosted = host / station_id / "practice.html"
+    text = hosted.read_text(encoding="utf-8")
+    receipt = _EMBEDDED_RECEIPT_TEST_RE.search(text).group(1)
+    hosted.write_text(text.replace(receipt, _tamper_receipt(receipt)), encoding="utf-8")
+
+    monkeypatch.setattr(_mod, "HOST", host)
+    monkeypatch.setattr(_mod, "AUTHORITY_HOST", authority_dir)
+    with pytest.raises(_mod.TransformError, match="receipt"):
+        _mod.check_practice_only(
+            station_id, _mod.STATIONS[station_id], finished_root=_mod.FINISHED
+        )
+
+
+def test_embedded_projection_receipt_requires_exactly_one_receipt() -> None:
+    with pytest.raises(_mod.TransformError, match="receipt"):
+        _mod._embedded_projection_receipt("<html></html>", context="x")
+    duplicated = (
+        "'&projection_receipt='+encodeURIComponent(\"abc\")"
+        "'&projection_receipt='+encodeURIComponent(\"def\")"
+    )
+    with pytest.raises(_mod.TransformError, match="receipt"):
+        _mod._embedded_projection_receipt(duplicated, context="x")
+    single = "'&projection_receipt='+encodeURIComponent(\"abc-DEF_123\")"
+    assert _mod._embedded_projection_receipt(single, context="x") == "abc-DEF_123"

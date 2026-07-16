@@ -1651,6 +1651,9 @@ Page({
     var canonicalLearningTask = buildCanonicalLearningTask({
       homeDashboard: snapshot && snapshot.homeDashboard,
       lessons: snapshot && snapshot.lessons,
+      // review(到期验证)供给真值在 pack_review(二轮红队 A5):
+      // forward-only 的 lessons light 旗标不得裁决 review 资格
+      report: report,
     });
     var reportHome = buildReportHomeViewModel({
       report: report,

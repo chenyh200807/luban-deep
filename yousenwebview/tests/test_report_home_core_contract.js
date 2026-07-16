@@ -29,14 +29,24 @@ var canonicalTask = learnVm.buildCanonicalLearningTask({
       mode: "review_due",
       source_ref: "probe_n01",
       target_pack_id: "N01",
-      reason: "昨天的错因到期验证",
+      reason: "错因到期验证",
     },
   },
   lessons: lessons,
+  // review 路由资格消费 canonical due 条目(retest_available === true),
+  // 不复用 forward-only 的 lessons light_practice_available 旗标。
+  report: {
+    pack_review: {
+      authority: "revalidation_queue",
+      enabled: true,
+      due: [{ pack_id: "N01", probe_id: "probe_n01", retest_available: true }],
+    },
+  },
 });
 assert.strictEqual(canonicalTask.pack_id, "N01");
 assert.strictEqual(canonicalTask.probe_id, "probe_n01");
 assert.strictEqual(canonicalTask.mode, "review");
+assert.strictEqual(canonicalTask.practice_kind, "retest");
 
 var report = {
   source_status: { learner_events: { ok: true } },
@@ -114,6 +124,10 @@ assert.strictEqual((homeBlock.match(/bindtap="goReportHomeTask"/g) || []).length
 });
 assert(reportSource.indexOf("api.getHomeDashboard") >= 0, "report must read canonical home next_step");
 assert(reportSource.indexOf("buildCanonicalLearningTask") >= 0, "report and learning must share task translation");
+assert(
+  /buildCanonicalLearningTask\(\{[\s\S]{0,500}?report:\s*report\b/.test(reportSource),
+  "report page must feed pack_review into the canonical task so review supply is not killed by the forward-only light flag",
+);
 assert(
   reportSource.indexOf("this._reportHomeOwnerId !== reportOwnerId") >= 0 &&
     reportSource.indexOf("this.setData({ reportHome: _emptyReportHome() })") >= 0,
