@@ -157,3 +157,8 @@ Communication.md
 !docs/原始数据/考点原料/成品/_*_r6_cloze_bank.v0.json
 !docs/原始数据/考点原料/成品/_question_pack_map.v0.json
 !docs/原始数据/考点原料/成品/_pack_taxonomy_registry.v0.json
+# 变体撤发 authority（read_model._variant_blocklist 唯一撤题真值）——漏反选致
+# runtime fail-closed、完整作答面停发（同型第五次；撤下的错题会在部署漂移后静默复活）
+!docs/原始数据/考点原料/成品/_variant_blocklist.json
+# 看穿库池（/seethrough{,/{pack_id}} runtime 消费）——同 F16 漏拷教训，通配白名单进镜像
+!docs/原始数据/考点原料/成品/_*_seethrough_bank.v0.json
