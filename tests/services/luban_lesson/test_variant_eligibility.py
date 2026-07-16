@@ -14,6 +14,7 @@ from deeptutor.services.luban_lesson.variant_eligibility import (
     decision_identity_sha256,
     eligible_variant_items,
     resolve_variant_supply,
+    review_signature_envelope_sha256,
     variant_content_sha256,
     variant_eligibility_summary,
 )
@@ -87,6 +88,9 @@ def _signed_decision(
             "template_leakage_checked": True,
         },
     }
+    decision["review"]["signature_envelope_sha256"] = review_signature_envelope_sha256(
+        decision
+    )
     return decision
 
 
@@ -237,6 +241,78 @@ def test_review_missing_decision_binding_fails_closed() -> None:
     assert [item["variant_id"] for item in items] == ["S05-B-send-002"]
 
 
+# ---------------------------------------- signature envelope（对抗审查二轮 B1）
+
+
+def _assert_only_second_item_eligible(bank: dict[str, object]) -> None:
+    items = eligible_variant_items(bank, blocked=set())
+    assert [item["variant_id"] for item in items] == ["S05-B-send-002"]
+
+
+def test_replacing_reviewer_after_signing_is_ineligible() -> None:
+    bank = _bank_with_ready_fact()
+    review = bank["variants"][0]["decision"]["review"]
+    review["signatures"][0]["reviewer_id"] = "impostor-reviewer"
+    _assert_only_second_item_eligible(bank)
+
+
+def test_changing_signed_at_after_signing_is_ineligible() -> None:
+    bank = _bank_with_ready_fact()
+    review = bank["variants"][0]["decision"]["review"]
+    review["signatures"][1]["signed_at"] = "2026-07-17T09:00:00Z"
+    _assert_only_second_item_eligible(bank)
+
+
+def test_appending_forged_signature_is_ineligible() -> None:
+    bank = _bank_with_ready_fact()
+    review = bank["variants"][0]["decision"]["review"]
+    review["signatures"].append(
+        {
+            "role": "scoring",
+            "reviewer_id": "forged-owner",
+            "signed_at": "2026-07-17T00:00:00Z",
+        }
+    )
+    _assert_only_second_item_eligible(bank)
+
+
+def test_reordering_signatures_is_ineligible() -> None:
+    bank = _bank_with_ready_fact()
+    review = bank["variants"][0]["decision"]["review"]
+    review["signatures"] = list(reversed(review["signatures"]))
+    _assert_only_second_item_eligible(bank)
+
+
+def test_adding_extra_field_to_signature_is_ineligible() -> None:
+    bank = _bank_with_ready_fact()
+    review = bank["variants"][0]["decision"]["review"]
+    review["signatures"][0]["scope"] = "偷偷缩小签署范围"
+    _assert_only_second_item_eligible(bank)
+
+
+def test_adding_or_editing_review_note_is_ineligible() -> None:
+    bank = _bank_with_ready_fact()
+    bank["variants"][0]["decision"]["review"]["note"] = "签后偷加的批注"
+    _assert_only_second_item_eligible(bank)
+
+
+def test_missing_signature_envelope_fails_closed() -> None:
+    bank = _bank_with_ready_fact()
+    del bank["variants"][0]["decision"]["review"]["signature_envelope_sha256"]
+    _assert_only_second_item_eligible(bank)
+
+
+def test_envelope_recompute_cannot_bless_identity_tamper() -> None:
+    """改治理字段 + 重算 envelope，但 identity/review binding 仍抓得住。"""
+    bank = _bank_with_ready_fact()
+    decision = bank["variants"][0]["decision"]
+    decision["fact_id"] = "s05-fact-hijacked"
+    decision["review"]["signature_envelope_sha256"] = (
+        review_signature_envelope_sha256(decision)
+    )
+    _assert_only_second_item_eligible(bank)
+
+
 def test_anchor_probe_role_is_reserved_for_compiled_mcq() -> None:
     variant = _variant()
     variant["decision"] = _signed_decision(variant, probe_role="anchor")
@@ -374,6 +450,73 @@ def test_review_packet_marks_governance_tampering_stale() -> None:
     review = packet["items"][0]["decision"]["review"]
     assert review["status"] == "stale"
     assert review["verdict"] == "invalid"
+
+
+def _rebless_envelope(decision: dict[str, object]) -> None:
+    """模拟攻击者把 envelope 也重算干净（测非 envelope 维度的分叉必须仍被抓）。"""
+    decision["review"]["signature_envelope_sha256"] = (
+        review_signature_envelope_sha256(decision)
+    )
+
+
+def test_review_packet_marks_reviewed_content_mismatch_stale() -> None:
+    """runtime 因 reviewed_content_sha256 失配拒绝：人审面同步失去 signed 外观。"""
+    bank = _bank_with_ready_fact()
+    decision = bank["variants"][0]["decision"]
+    decision["review"]["reviewed_content_sha256"] = "f" * 64
+    _rebless_envelope(decision)
+    packet = build_variant_review_packet(bank, blocked=set())
+    assert packet["eligible_count"] == 1
+    review = packet["items"][0]["decision"]["review"]
+    assert review["status"] == "stale"
+    assert review["verdict"] == "invalid"
+    assert review["stale_reason"]
+
+
+def test_review_packet_marks_missing_role_signature_stale() -> None:
+    bank = _bank_with_ready_fact()
+    decision = bank["variants"][0]["decision"]
+    decision["review"]["signatures"] = [
+        s for s in decision["review"]["signatures"] if s["role"] == "teaching"
+    ]
+    _rebless_envelope(decision)
+    packet = build_variant_review_packet(bank, blocked=set())
+    review = packet["items"][0]["decision"]["review"]
+    assert review["status"] == "stale"
+    assert review["verdict"] == "invalid"
+
+
+def test_review_packet_marks_false_check_stale() -> None:
+    bank = _bank_with_ready_fact()
+    decision = bank["variants"][0]["decision"]
+    decision["review"]["checks"]["diagnosis_verified"] = False
+    _rebless_envelope(decision)
+    packet = build_variant_review_packet(bank, blocked=set())
+    review = packet["items"][0]["decision"]["review"]
+    assert review["status"] == "stale"
+    assert review["verdict"] == "invalid"
+
+
+def test_review_packet_with_unreadable_blocklist_never_shows_signed() -> None:
+    """撤发 authority 不可读：runtime 全 fail-closed，人审面不得再展示 signed。"""
+    bank = _bank_with_ready_fact()
+    packet = build_variant_review_packet(bank, blocked=None)
+    assert packet["eligible_count"] == 0
+    for row in packet["items"]:
+        review = row["decision"]["review"]
+        assert review["status"] != "signed"
+        assert review["verdict"] != "approved"
+
+
+def test_review_packet_marks_blocklisted_variant_revoked_not_signed() -> None:
+    bank = _bank_with_ready_fact()
+    packet = build_variant_review_packet(bank, blocked={"S05-B-send-000"})
+    assert packet["eligible_count"] == 1
+    review = packet["items"][0]["decision"]["review"]
+    assert review["status"] == "revoked"
+    assert review["verdict"] == "revoked"
+    assert review["stale_reason"]
+    assert packet["items"][1]["decision"]["review"]["status"] == "signed"
 
 
 # ---------------------------------------------------------------- resolve (同一签发闸)

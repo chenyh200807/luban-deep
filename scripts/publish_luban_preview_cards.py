@@ -1510,12 +1510,12 @@ def write_variant_audit_packet(station_id: str) -> list[str]:
     不改 bank/blocklist（设计：docs/plan/鲁班移动端提分闭环/
     2026-07-16-variant-eligibility-design.md）。
 
-    bank 读取复用 runtime 同一签发闸 ``_load_signed_bank``（manifest sha +
-    signed 双 fail-closed，对抗审查 B3）——禁 raw 第二 loader，人审面与
-    runtime 面必须看到同一份真值。"""
+    bank 读取复用 runtime 同一 canonical 绿灯签发闸 ``_load_green_signed_bank``
+    （projection_green + manifest sha + signed 三重 fail-closed，对抗审查
+    二轮 B2/B3）——禁 raw 第二 loader、禁自行拼 manifest 旁路绿灯门；
+    撤发 authority（blocklist）不可读时同样 fail-closed，不产人审包。"""
     from deeptutor.services.luban_lesson.read_model import (
-        _load_manifest,
-        _load_signed_bank,
+        _load_green_signed_bank,
         _variant_blocklist,
     )
     from deeptutor.services.luban_lesson.variant_eligibility import (
@@ -1523,20 +1523,18 @@ def write_variant_audit_packet(station_id: str) -> list[str]:
     )
 
     pack_id = station_id.upper()
-    manifest = _load_manifest(VARIANT_BANK_DIR / "_pack_manifest.json")
-    expected_sha = ""
-    for pack in manifest.get("packs") or []:
-        if str(pack.get("pack_id") or "").strip().upper() == pack_id:
-            expected_sha = str(pack.get("content_sha256") or "")
-            break
-    bank = _load_signed_bank(pack_id, VARIANT_BANK_DIR, expected_sha)
+    bank = _load_green_signed_bank(
+        pack_id, manifest_path=VARIANT_BANK_DIR / "_pack_manifest.json"
+    )
     if bank is None:
         raise TransformError(
-            f"variant bank not signed / sha mismatch / unreadable: {pack_id}"
+            "variant bank not in projection_green / not signed / "
+            f"sha mismatch / unreadable: {pack_id}"
         )
-    packet = build_variant_review_packet(
-        bank, blocked=_variant_blocklist(VARIANT_BANK_DIR)
-    )
+    blocked = _variant_blocklist(VARIANT_BANK_DIR)
+    if blocked is None:
+        raise TransformError(f"variant blocklist unreadable: {pack_id}")
+    packet = build_variant_review_packet(bank, blocked=blocked)
     PRACTICE_REVIEW_PACKET_DIR.mkdir(parents=True, exist_ok=True)
     path = PRACTICE_REVIEW_PACKET_DIR / f"{station_id.lower()}.variant.review.json"
     path.write_text(

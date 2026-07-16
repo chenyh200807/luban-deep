@@ -17,6 +17,11 @@
   ``reviewed_decision_sha256`` 绑定该摘要，且 ``source_sha256`` 必须等于
   bank 的 ``source_pack_sha256``；签后改任一治理字段即 identity 断裂，
   fail-closed（对抗审查 B1）。
+- **签名信封**：``review.signature_envelope_sha256`` 覆盖 decision identity
+  + review 全量（signatures 的 reviewer_id/signed_at/顺序/条数/附加键、
+  note、checks、status/verdict、reviewed_*）——「替换签署人/改签署时间/
+  加伪签名/改批注」任一签后篡改即信封摘要失配，fail-closed
+  （对抗审查二轮 B1：approval authority 与 payload authority 同绑）。
 - **fail-closed**：decision 块缺失/形状错/sha 失配/probe_role 非法/blocklist
   不可读/bank 未签发——一律不 eligible，绝不半开。
 
@@ -34,8 +39,7 @@ from deeptutor.services.luban_lesson.practice_html import (
 )
 from deeptutor.services.luban_lesson.read_model import (
     _MANIFEST_PATH,
-    _load_manifest,
-    _load_signed_bank,
+    _load_green_signed_bank,
     _variant_blocklist,
 )
 
@@ -118,15 +122,44 @@ def decision_identity_sha256(decision: dict[str, Any]) -> str:
     return _canonical_sha256(payload)
 
 
-def _pending_review(content_sha256: str, identity_sha256: str) -> dict[str, Any]:
-    return {
+def review_signature_envelope_sha256(decision: dict[str, Any]) -> str:
+    """签名信封 identity：decision identity + review 全量（除信封字段自身）。
+
+    覆盖 signatures 的每一条（reviewer_id / signed_at / 顺序 / 条数 / 附加
+    键）、note、checks、status/verdict、reviewed_* ——签后增删改任何审批
+    痕迹即信封摘要失配，fail-closed。不可递归：信封字段自身不入摘要。
+    """
+    review = decision.get("review")
+    review = review if isinstance(review, dict) else {}
+    payload = {
+        "decision_identity_sha256": str(
+            decision.get("decision_identity_sha256") or ""
+        ),
+        "review": {
+            key: value
+            for key, value in review.items()
+            if key != "signature_envelope_sha256"
+        },
+    }
+    return _canonical_sha256(payload)
+
+
+def _pending_review(decision: dict[str, Any]) -> dict[str, Any]:
+    """从 decision（不含 review）派生 pending review，含双绑定 + 签名信封。"""
+    review: dict[str, Any] = {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": content_sha256,
-        "reviewed_decision_sha256": identity_sha256,
+        "reviewed_content_sha256": str(decision.get("content_sha256") or ""),
+        "reviewed_decision_sha256": str(
+            decision.get("decision_identity_sha256") or ""
+        ),
         "signatures": [],
         "checks": {name: False for name in _REVIEW_CHECKS},
     }
+    review["signature_envelope_sha256"] = review_signature_envelope_sha256(
+        dict(decision, review=review)
+    )
+    return review
 
 
 def _decision_shape_ok(decision: Any) -> bool:
@@ -148,7 +181,8 @@ def _decision_identity_error(
     """完整 identity 校验；返回失配原因（``None`` = identity 完好）。
 
     校验链（对抗审查 B1）：内容摘要 → source 必须等于 bank 的
-    ``source_pack_sha256`` → 决策治理摘要 → review 绑定决策摘要。
+    ``source_pack_sha256`` → 决策治理摘要 → review 绑定决策摘要 →
+    签名信封摘要（审批痕迹本身不可签后篡改）。
     """
     expected_content = variant_content_sha256(
         variant,
@@ -166,6 +200,10 @@ def _decision_identity_error(
         "reviewed_decision_sha256"
     ) != decision.get("decision_identity_sha256"):
         return "review 未绑定当前 decision_identity_sha256"
+    if review.get(
+        "signature_envelope_sha256"
+    ) != review_signature_envelope_sha256(decision):
+        return "signature envelope 摘要失配（签名/批注/checks 等审批痕迹签后被改）"
     return None
 
 
@@ -277,13 +315,59 @@ def variant_eligibility_summary(
     }
 
 
+def _packet_signed_appearance_failure(
+    variant: dict[str, Any],
+    decision: dict[str, Any],
+    *,
+    blocked: set[str] | None,
+    source_pack_sha256: str,
+) -> tuple[str, str] | None:
+    """已 bake decision 的人审外观裁决（对抗审查二轮 B3）。
+
+    review 自称 signed/approved 但 runtime 资格链会拒绝 →
+    返回 ``(改标状态, 原因)``；``None`` = 外观如实，可原样透出。
+    复用与 runtime **同一套**判定（identity 链 + probe_role + blocklist +
+    ``_eligible`` 完整签发谓词），不做第二套近似。
+    """
+    review = decision.get("review")
+    review = review if isinstance(review, dict) else {}
+    claims_signed = (
+        review.get("status") == "signed" or review.get("verdict") == "approved"
+    )
+    if not claims_signed:
+        return None  # pending/stale 等非 signed 外观本身即如实
+    error = _decision_identity_error(
+        variant, decision, source_pack_sha256=source_pack_sha256
+    )
+    if error is not None:
+        return ("stale", error)
+    if decision.get("probe_role") not in VARIANT_PROBE_ROLES:
+        return ("stale", "probe_role 非变体合法 role（anchor 首验归 compiled MCQ）")
+    if blocked is None:
+        return ("stale", "撤发 authority（variant blocklist）不可读，无法证明未撤发")
+    variant_id = str(variant.get("variant_id") or "").strip()
+    if variant_id in blocked:
+        return ("revoked", "已撤发（variant blocklist）")
+    item = variant_governance_item(
+        variant, blocked=blocked, source_pack_sha256=source_pack_sha256
+    )
+    if item is None or not _eligible(item):
+        return (
+            "stale",
+            "review 未满足完整签发谓词（签名角色/checks/reviewed hash 之一失配）",
+        )
+    return None
+
+
 def build_variant_review_packet(
     bank: dict[str, Any], *, blocked: set[str] | None
 ) -> dict[str, Any]:
     """人审工作包（决策卡输入）：逐条 pending，机器绝不代签；已 bake 的
-    decision 透出前先过完整 identity 校验（对抗审查 B3）——identity 失配的
-    条目只能标 ``stale/invalid`` 并给原因，绝不保留 signed 外观，防止人审
-    真值与 runtime 真值分叉。extension 变体如实入包并标记（不服务）。"""
+    decision 透出前复用**完整 runtime 资格判定**（对抗审查 B3 二轮）——
+    任何 runtime 不 eligible 却自称 signed/approved 的条目，一律改标
+    ``stale/invalid``（撤发场景标 ``revoked``）并给原因，绝不保留 signed
+    外观，防止人审真值与 runtime 真值分叉。extension 变体如实入包并标记
+    （不服务；其 decision 真值按同一 identity/谓词链核验）。"""
     rows: list[dict[str, Any]] = []
     eligible_ids = {
         item["variant_id"] for item in eligible_variant_items(bank, blocked=blocked)
@@ -309,20 +393,22 @@ def build_variant_review_packet(
                 "content_sha256": content_sha,
             }
             decision["decision_identity_sha256"] = decision_identity_sha256(decision)
-            decision["review"] = _pending_review(
-                content_sha, decision["decision_identity_sha256"]
-            )
+            decision["review"] = _pending_review(decision)
         else:
             assert isinstance(decision, dict)  # narrowed by _decision_shape_ok
-            identity_error = _decision_identity_error(
-                variant, decision, source_pack_sha256=source_pack_sha256
+            failure = _packet_signed_appearance_failure(
+                variant,
+                decision,
+                blocked=blocked,
+                source_pack_sha256=source_pack_sha256,
             )
-            if identity_error is not None:
-                # 题面/文案/治理字段签后漂移：人审面绝不显示旧 signed 外观。
+            if failure is not None:
+                status, reason = failure
+                # runtime 不 eligible：人审面绝不显示旧 signed/approved 外观。
                 review = dict(decision.get("review") or {})
-                review["status"] = "stale"
-                review["verdict"] = "invalid"
-                review["stale_reason"] = identity_error
+                review["status"] = status
+                review["verdict"] = "invalid" if status == "stale" else "revoked"
+                review["stale_reason"] = reason
                 decision = dict(decision, review=review)
         rows.append(
             {
@@ -361,33 +447,16 @@ def build_variant_review_packet(
 def resolve_variant_supply(
     pack_id: str, *, manifest_path: Path | None = None
 ) -> dict[str, Any] | None:
-    """经同一签发闸（``_load_signed_bank`` signed+sha 双 fail-closed +
-    ``_variant_blocklist``）解析一个 pack 的变体资格供给；任一闸不过 → None。
-
-    canonical 发布门（对抗审查 B2）：pack 必须在 manifest 的
-    ``projection_green`` 内——被撤回/未发布的 pack 即使 bank 仍 signed 且
-    sha 匹配，也不得越过绿灯供给变体。"""
+    """经 canonical 绿灯签发闸 ``_load_green_signed_bank``
+    （projection_green + manifest sha + signed 三重 fail-closed，
+    对抗审查二轮 B2 唯一 gateway）+ ``_variant_blocklist`` 解析一个 pack
+    的变体资格供给；任一闸不过 → None（与缺失同形，不泄漏存在性）。"""
     normalized = str(pack_id or "").strip().upper()
     if not normalized:
         return None
     path = manifest_path or _MANIFEST_PATH
-    manifest = _load_manifest(path)
-    green = {
-        str(green_id or "").strip().upper()
-        for green_id in manifest.get("projection_green") or []
-    }
-    if normalized not in green:
-        return None  # 非绿灯 pack 不供给（与 pack 缺失同形，不泄漏存在性）
-    expected_sha = ""
-    for pack in manifest.get("packs") or []:
-        if str(pack.get("pack_id") or "").strip().upper() == normalized:
-            expected_sha = str(pack.get("content_sha256") or "")
-            break
-    if not expected_sha:
-        return None
-    manifest_dir = path.parent
-    bank = _load_signed_bank(normalized, manifest_dir, expected_sha)
-    blocked = _variant_blocklist(manifest_dir)
+    bank = _load_green_signed_bank(normalized, manifest_path=path)
+    blocked = _variant_blocklist(path.parent)
     if bank is None or blocked is None:
         return None
     return {
@@ -406,6 +475,7 @@ __all__ = [
     "decision_identity_sha256",
     "eligible_variant_items",
     "resolve_variant_supply",
+    "review_signature_envelope_sha256",
     "variant_content_sha256",
     "variant_eligibility_summary",
     "variant_governance_item",

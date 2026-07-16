@@ -787,3 +787,62 @@ def test_variant_audit_packet_reuses_signing_gate_no_raw_loader(
     )
     with pytest.raises(_mod.TransformError):
         _mod.write_variant_audit_packet("s05")
+
+
+def _write_variant_audit_fixture(
+    bank_dir: Path, *, green: list[str], with_blocklist: bool = True
+) -> None:
+    bank_dir.mkdir(parents=True, exist_ok=True)
+    (bank_dir / "_pack_manifest.json").write_text(
+        json.dumps(
+            {
+                "projection_green": green,
+                "packs": [{"pack_id": "S05", "content_sha256": "a" * 64}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (bank_dir / "_S05_variant_bank.v0.json").write_text(
+        json.dumps(
+            {
+                "pack_id": "S05",
+                "status": "signed",
+                "source_pack_sha256": "a" * 64,
+                "variants": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    if with_blocklist:
+        (bank_dir / "_variant_blocklist.json").write_text(
+            json.dumps({"variants": []}), encoding="utf-8"
+        )
+
+
+def test_variant_audit_packet_requires_projection_green(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """对抗审查二轮 B2：pack 不在 projection_green（撤回/未发布）时，
+    审核包路径同样不得旁路 canonical 绿灯门。"""
+    bank_dir = tmp_path / "banks"
+    _write_variant_audit_fixture(bank_dir, green=[])
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+    # 同一 fixture 放回绿灯即可产包（证明失败确实来自绿灯门）
+    _write_variant_audit_fixture(bank_dir, green=["S05"])
+    assert _mod.write_variant_audit_packet("s05")
+
+
+def test_variant_audit_packet_rejects_unreadable_blocklist(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """对抗审查二轮 B3：撤发 authority 不可读时 writer 必须 fail-closed，
+    不得把 blocked=None 静默交给 builder 产出人审包。"""
+    bank_dir = tmp_path / "banks"
+    _write_variant_audit_fixture(bank_dir, green=["S05"], with_blocklist=False)
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
