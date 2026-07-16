@@ -15,7 +15,7 @@ function loadLearn(options) {
     "utf8",
   );
   var pageDef = null;
-  var calls = { navigateTo: [], completeFirstRun: [], completeFirstRunOptions: [], redirects: [], clearPending: 0, done: 0, syncTabBar: 0 };
+  var calls = { navigateTo: [], completeFirstRun: [], completeFirstRunOptions: [], redirects: [], clearPending: 0, done: 0, syncTabBar: 0, refreshFromServer: [] };
   var state = options.state || { state: "new", checkpoint: null, pending: null };
   var loggedIn = true;
   var sandbox = {
@@ -40,6 +40,7 @@ function loadLearn(options) {
             return Promise.resolve({ sync_status: "synced" });
           },
           errorCodeOf: function () { return "unknown_error"; },
+          getAssessmentProfile: function () { return Promise.resolve({}); },
         };
       }
       if (request === "../first-run/script-data") {
@@ -55,6 +56,10 @@ function loadLearn(options) {
           getState: function () { return state; },
           clearPendingSync: function () { calls.clearPending++; },
           markDone: function () { calls.done++; },
+          refreshFromServer: function (userId) {
+            calls.refreshFromServer.push(userId);
+            return Promise.resolve(options.serverSnapshot || state);
+          },
         };
       }
       if (request === "../../utils/helpers") {
@@ -133,6 +138,35 @@ function loadLearn(options) {
   assert.deepStrictEqual(expiredPending.calls.redirects, ["/packageDeeptutor/pages/learn/learn"]);
   assert.strictEqual(expiredPending.calls.clearPending, 0);
   assert.strictEqual(expiredPending.calls.done, 0);
+
+  // 本地 new + 服务端已完成 → learn 回读投影后把门收成 hidden。
+  var serverDone = loadLearn({
+    state: { state: "new", checkpoint: null, pending: null },
+    serverSnapshot: { state: "hidden", checkpoint: null, pending: null },
+  });
+  serverDone.page.onShow();
+  assert.strictEqual(serverDone.page.data.firstRunState, "new", "renders local snapshot synchronously first");
+  assert.deepStrictEqual(serverDone.calls.refreshFromServer, ["user-1"], "queries server once for a new local gate");
+  await flushPromises();
+  await flushPromises();
+  assert.strictEqual(serverDone.page.data.firstRunState, "hidden", "server completion collapses the gate");
+
+  // 本地 new + 服务端也未完成（真新用户）→ 维持 new，只查一次。
+  var serverNew = loadLearn({
+    state: { state: "new", checkpoint: null, pending: null },
+    serverSnapshot: { state: "new", checkpoint: null, pending: null },
+  });
+  serverNew.page.onShow();
+  await flushPromises();
+  assert.strictEqual(serverNew.page.data.firstRunState, "new", "genuine new user keeps the gate");
+  serverNew.page.onShow();
+  assert.strictEqual(serverNew.calls.refreshFromServer.length, 1, "server readback is guarded to once per page lifetime");
+
+  // 本地 hidden（有 DONE）→ 不查服务端。
+  var localHidden = loadLearn({ state: { state: "hidden", checkpoint: null, pending: null } });
+  localHidden.page.onShow();
+  await flushPromises();
+  assert.strictEqual(localHidden.calls.refreshFromServer.length, 0, "no server readback when local DONE exists");
 
   var wxml = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/learn/learn.wxml"),

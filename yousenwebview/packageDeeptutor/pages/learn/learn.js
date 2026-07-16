@@ -72,7 +72,32 @@ Page({
     const checkpoint = snapshot.checkpoint || {};
     const progress = Math.max(0, Math.min(Number(checkpoint.qIndex || 0) + 1, 4));
     this.setData({ firstRunState: snapshot.state, firstRunProgress: progress });
+    // 本地 DONE 缓存丢失（清缓存/换设备）→ 老用户被首跑门错误挡住。canonical
+    // 完成态真值在服务端 Learner State，回读一次投影并 rehydrate 本地缓存。
+    // 每个页面生命周期只查一次（本地已有 DONE 时 entry 层也会短路不打接口）。
+    if (snapshot.state === "new" && !this._firstRunServerChecked) {
+      this._firstRunServerChecked = true;
+      this._rehydrateFirstRunFromServer(userId);
+    }
     return snapshot;
+  },
+
+  // 服务端完成态回读：只把门从 new → hidden（fail-safe），绝不回退一个本地
+  // 已激活的门（resume/syncing 期间不触发本路径）。
+  _rehydrateFirstRunFromServer(userId) {
+    const that = this;
+    return firstRunEntry
+      .refreshFromServer(userId, api)
+      .then(function (snapshot) {
+        if (snapshot && snapshot.state === "hidden") {
+          that.setData({ firstRunState: "hidden", firstRunProgress: 0 });
+          if (!that.data.loading) that._load();
+        }
+        return snapshot;
+      })
+      .catch(function () {
+        return null;
+      });
   },
 
   _retryPendingFirstRun(snapshot) {
