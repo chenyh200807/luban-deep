@@ -6875,9 +6875,12 @@ class MemberConsoleService:
 
     def get_profile(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        return {
+        auth_username = str(member.get("auth_username") or "").strip()
+        external_user = get_external_auth_user(auth_username) if auth_username else None
+        profile = {
             "id": member["user_id"],
             "user_id": member["user_id"],
+            "auth_username": auth_username,
             "username": member["display_name"],
             "display_name": member["display_name"],
             "phone": member["phone"],
@@ -6897,6 +6900,10 @@ class MemberConsoleService:
             "status": member["status"],
             "expire_at": member["expire_at"],
         }
+        for field in _EXPLICIT_IDENTITY_METADATA_FIELDS:
+            if isinstance(external_user, dict) and field in external_user:
+                profile[field] = external_user[field]
+        return profile
 
     def update_profile(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         def _apply(data: dict[str, Any]) -> None:

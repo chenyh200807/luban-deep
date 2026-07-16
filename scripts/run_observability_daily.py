@@ -14,7 +14,6 @@ from datetime import datetime
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -44,9 +43,12 @@ from deeptutor.services.observability.plan_completion import build_plan_completi
 from deeptutor.services.observability.plan_completion import render_plan_completion_markdown  # noqa: E402
 from deeptutor.services.observability.readiness_matrix import build_current_release_readiness_matrix_payload  # noqa: E402
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot  # noqa: E402
+from deeptutor.services.observability.runtime_authority import evaluate_runtime_authority  # noqa: E402
+from deeptutor.services.observability.runtime_authority import release_identity_matches  # noqa: E402
 from deeptutor.services.observability.release_gate import build_release_gate_report  # noqa: E402
 from deeptutor.services.observability.run_history import build_observability_run_history_from_dir  # noqa: E402
 from deeptutor.services.observability.unified_ws_smoke import run_unified_ws_smoke  # noqa: E402
+from deeptutor.services.observability.unified_ws_smoke import verify_eval_runner_identity  # noqa: E402
 
 DEFAULT_BASE_REF = DEFAULT_CHANGE_IMPACT_BASE_REF
 DEFAULT_API_BASE_URL = "http://127.0.0.1:8001"
@@ -174,15 +176,7 @@ def _resolve_report_window(
 
 
 def _same_release(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
-    expected_release_id = str((expected or {}).get("release_id") or "").strip()
-    expected_git_sha = str((expected or {}).get("git_sha") or "").strip()
-    actual_release_id = str((actual or {}).get("release_id") or "").strip()
-    actual_git_sha = str((actual or {}).get("git_sha") or "").strip()
-    if expected_git_sha and actual_git_sha:
-        return expected_git_sha == actual_git_sha
-    if expected_release_id and actual_release_id:
-        return expected_release_id == actual_release_id
-    return False
+    return release_identity_matches(expected, actual)
 
 
 def _current_release_payload(store, kind: str, *, release: dict[str, Any]) -> dict[str, Any] | None:
@@ -198,32 +192,6 @@ def _current_release_payload(store, kind: str, *, release: dict[str, Any]) -> di
     if isinstance(latest_payload, dict) and _same_release(release, _payload_release(latest_payload)):
         return latest_payload
     return None
-
-
-def _build_testclient_metrics_snapshot() -> dict[str, Any]:
-    from fastapi.testclient import TestClient
-
-    from deeptutor.api.main import app
-    from deeptutor.api.main import get_circuit_breaker_snapshot
-    from deeptutor.api.main import get_readyz_payload
-    from deeptutor.api.main import get_release_lineage_snapshot as get_app_release_snapshot
-    from deeptutor.api.main import get_surface_event_store
-    from deeptutor.api.main import get_tracker_snapshot
-    from deeptutor.api.main import get_turn_runtime_metrics
-
-    with TestClient(app) as client:
-        client.get("/healthz").raise_for_status()
-        return {
-            "release": get_app_release_snapshot(),
-            "http": app.state.runtime_metrics.snapshot(),
-            "turn_runtime": get_turn_runtime_metrics().snapshot(),
-            "surface_events": get_surface_event_store().snapshot(),
-            "readiness": get_readyz_payload(app)[1],
-            "providers": {
-                "error_rates": get_tracker_snapshot(),
-                "circuit_breakers": get_circuit_breaker_snapshot(),
-            },
-        }
 
 
 def _load_metrics_snapshot(
@@ -252,57 +220,36 @@ def _load_metrics_snapshot(
             metrics_token=metrics_token,
             timeout=5.0,
         )
-        payload["observability_metrics_provenance"] = {
-            "source": "live_metrics_endpoint",
-            "url": f"{api_base_url.rstrip('/')}/metrics",
-            "fallback_used": False,
-            "status_code": 200,
-            "error": "",
-        }
-        return payload
-    except Exception as exc:
-        status_code = None
-        if isinstance(exc, httpx.HTTPStatusError) and exc.response is not None:
-            status_code = int(exc.response.status_code)
-        allow_auth_fallback = (
-            str(os.getenv("DEEPTUTOR_ALLOW_METRICS_TESTCLIENT_FALLBACK", "") or "").strip().lower()
-            in {"1", "true", "yes", "on"}
-        )
-        if status_code in {401, 403} and not allow_auth_fallback:
+    except httpx.HTTPStatusError as exc:
+        status_code = int(exc.response.status_code) if exc.response is not None else None
+        if status_code in {401, 403}:
             raise RuntimeError(
                 f"metrics endpoint auth blocked: GET {api_base_url.rstrip('/')}/metrics returned {status_code}; "
                 "set DEEPTUTOR_METRICS_TOKEN or pass --metrics-token"
             ) from exc
-        payload = _build_testclient_metrics_snapshot()
-        payload["observability_metrics_provenance"] = {
-            "source": "testclient_fallback",
-            "url": f"{api_base_url.rstrip('/')}/metrics",
-            "fallback_used": True,
-            "status_code": status_code,
-            "error": f"{type(exc).__name__}: {exc}",
-        }
-        return payload
+        raise
+    payload["observability_metrics_provenance"] = {
+        "source": "live_metrics_endpoint",
+        "url": f"{api_base_url.rstrip('/')}/metrics",
+        "fallback_used": False,
+        "status_code": 200,
+        "error": "",
+    }
+    return payload
 
 
 def _ensure_om_payload(
     *,
     store,
     release: dict[str, Any],
-    metrics_json: str | None,
-    metrics_token: str | None,
+    metrics_snapshot: dict[str, Any],
     api_base_url: str,
     unified_ws_smoke_timeout: float,
 ) -> dict[str, Any] | None:
-    # OM is the runtime evidence row for this daily pass. Rebuild it even when
-    # a same-release row exists so /api/v1/ws smoke reflects the current process.
+    del release
     unified_ws_smoke = _run_unified_ws_smoke_check(
         api_base_url=api_base_url,
         timeout_seconds=unified_ws_smoke_timeout,
-    )
-    metrics_snapshot = _load_metrics_snapshot(
-        api_base_url=api_base_url,
-        metrics_json=metrics_json,
-        metrics_token=metrics_token,
     )
     payload = build_om_run(
         metrics_snapshot=metrics_snapshot,
@@ -319,7 +266,25 @@ def _ensure_om_payload(
 
 
 def _run_unified_ws_smoke_check(*, api_base_url: str, timeout_seconds: float) -> dict[str, Any]:
-    auth_token = _resolve_unified_ws_smoke_token(api_base_url=api_base_url)
+    auth_token = _resolve_unified_ws_smoke_token()
+    if not auth_token:
+        return _deferred_ws_smoke("compliant eval-runner token is not configured")
+    identity = asyncio.run(
+        verify_eval_runner_identity(
+            api_base_url=api_base_url,
+            auth_token=auth_token,
+            timeout_seconds=min(timeout_seconds, 5.0),
+        )
+    )
+    if not identity.get("verified"):
+        return _deferred_ws_smoke(
+            "target runtime did not prove the token belongs to a compliant eval runner",
+            evidence=[
+                f"identity_reason={identity.get('reason')}",
+                f"identity_user_id={identity.get('user_id') or ''}",
+                f"identity_mismatched_fields={','.join(identity.get('mismatched_fields') or [])}",
+            ],
+        )
     try:
         payload = asyncio.run(
             run_unified_ws_smoke(
@@ -406,32 +371,21 @@ def _excluded_smoke_session_ids(om_payload: dict[str, Any] | None) -> set[str]:
     return excluded
 
 
-def _resolve_unified_ws_smoke_token(*, api_base_url: str) -> str:
-    explicit = str(
-        os.getenv("DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN")
-        or os.getenv("DEEPTUTOR_WS_SMOKE_TOKEN")
-        or ""
-    ).strip()
-    if explicit:
-        return explicit
+def _deferred_ws_smoke(summary: str, *, evidence: list[str] | None = None) -> dict[str, Any]:
+    return {
+        "name": "unified_ws_smoke",
+        "ok": None,
+        "status": "DEFERRED",
+        "summary": f"unified /api/v1/ws smoke deferred: {summary}",
+        "evidence": evidence or ["required_env=DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN"],
+        "session_ids": [],
+        "turn_ids": [],
+    }
 
-    parsed = urlparse(api_base_url)
-    if parsed.hostname in {"127.0.0.1", "localhost", "::1"}:
-        try:
-            from deeptutor.services.member_console import get_member_console_service
 
-            issuer = getattr(get_member_console_service(), "_issue_access_token", None)
-            if callable(issuer):
-                return str(
-                    issuer(
-                        user_id="student_demo",
-                        canonical_uid="student_demo",
-                        ttl_seconds=300,
-                    )
-                )
-        except Exception:
-            return "demo-token-student_demo"
-    return ""
+def _resolve_unified_ws_smoke_token(*, api_base_url: str | None = None) -> str:
+    del api_base_url
+    return str(os.getenv("DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN") or "").strip()
 
 
 def _ensure_benchmark_payload(
@@ -743,6 +697,20 @@ def build_daily_run_history(*, store_dir: str | Path, limit: int = 20) -> dict[s
     return build_observability_run_history_from_dir(store_dir=store_dir, limit=limit)
 
 
+def _metrics_error_provenance(*, api_base_url: str, exc: Exception) -> dict[str, Any]:
+    status_code = None
+    if isinstance(exc, httpx.HTTPStatusError) and exc.response is not None:
+        status_code = int(exc.response.status_code)
+    return {
+        "source": "live_metrics_endpoint",
+        "url": f"{api_base_url.rstrip('/')}/metrics",
+        "fallback_used": False,
+        "status_code": status_code,
+        "error": f"{type(exc).__name__}: {exc}",
+        "error_type": type(exc).__name__,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run DeepTutor daily observability control-plane spine")
     parser.add_argument("--base-ref", default=DEFAULT_BASE_REF)
@@ -767,11 +735,38 @@ def main() -> None:
         timezone=str(getattr(args, "timezone", DEFAULT_REPORT_TIMEZONE) or DEFAULT_REPORT_TIMEZONE),
     )
 
+    runtime_authority_path = output_dir / "runtime_authority_preflight.json"
+    try:
+        metrics_snapshot = _load_metrics_snapshot(
+            api_base_url=args.api_base_url,
+            metrics_json=args.metrics_json,
+            metrics_token=getattr(args, "metrics_token", None),
+        )
+    except Exception as exc:
+        runtime_authority = evaluate_runtime_authority(
+            expected_release=current_release,
+            metrics_snapshot=None,
+            metrics_error=_metrics_error_provenance(api_base_url=args.api_base_url, exc=exc),
+        )
+        _write_json(runtime_authority_path, runtime_authority)
+        raise SystemExit(
+            f"runtime_authority_blocked: live metrics unavailable; evidence={runtime_authority_path}"
+        ) from exc
+    runtime_authority = evaluate_runtime_authority(
+        expected_release=current_release,
+        metrics_snapshot=metrics_snapshot,
+    )
+    _write_json(runtime_authority_path, runtime_authority)
+    if runtime_authority["status"] != "PASS":
+        raise SystemExit(
+            f"runtime_authority_{str(runtime_authority['status']).lower()}: "
+            f"{runtime_authority['reason']}; evidence={runtime_authority_path}"
+        )
+
     om_payload = _ensure_om_payload(
         store=store,
         release=current_release,
-        metrics_json=args.metrics_json,
-        metrics_token=getattr(args, "metrics_token", None),
+        metrics_snapshot=metrics_snapshot,
         api_base_url=args.api_base_url,
         unified_ws_smoke_timeout=float(getattr(args, "unified_ws_smoke_timeout", 20.0) or 20.0),
     )
@@ -794,11 +789,14 @@ def main() -> None:
         om_payload=om_payload,
     )
 
-    metrics_snapshot = (om_payload or {}).get("metrics_snapshot") or _load_json(args.metrics_json)
     observer_payload = build_observer_snapshot(
         store=store,
         event_days=max(int(args.event_days or 1), 1),
         metrics_snapshot=metrics_snapshot,
+        surface_snapshot=metrics_snapshot.get("surface_events") if isinstance(metrics_snapshot, dict) else None,
+        om_payload=om_payload,
+        arr_payload=arr_payload,
+        aae_payload=aae_payload,
         benchmark_payload=benchmark_payload,
         release=current_release,
         report_date=str(report_window["report_date"]),

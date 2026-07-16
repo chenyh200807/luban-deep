@@ -135,14 +135,7 @@ def _ensure_report_only_om_payload(
 ) -> dict | None:
     if existing_payload is not None and _same_release_spine(release, _payload_release(existing_payload)):
         return existing_payload
-    payload = _build_report_only_om_payload(release=release)
-    get_control_plane_store().write_run(
-        kind="om_runs",
-        run_id=payload["run_id"],
-        release_id=str((payload.get("release") or {}).get("release_id") or ""),
-        payload=payload,
-    )
-    return payload
+    return _build_report_only_om_payload(release=release)
 
 
 def _ensure_report_only_plan_completion_payload(

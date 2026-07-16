@@ -54,7 +54,7 @@ def test_release_gate_report_marks_fail_and_warn_correctly(monkeypatch) -> None:
         om_payload={
             "run_id": "om-1",
             "release": dict(release),
-            "health_summary": {"ready": True},
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
             "metrics_snapshot": {"surface_events": {"coverage": []}},
         },
         arr_payload={
@@ -78,6 +78,7 @@ def test_release_gate_report_marks_fail_and_warn_correctly(monkeypatch) -> None:
             baseline_diff={"regressions": [{"case_key": "semantic-router::critical"}], "new_failures": []},
         ),
         aae_payload={
+            "release": dict(release),
             "run_id": "aae-1",
             "composite": {"value": 0.92, "coverage_ratio": 0.8},
             "scorecard": {"paid_student_satisfaction_score": {"is_proxy": True}},
@@ -240,7 +241,7 @@ def test_release_gate_report_fails_when_unified_ws_smoke_failed() -> None:
     assert "ws_main_path_unhealthy" in payload["blockers"]
 
 
-def test_release_gate_deferred_ws_smoke_does_not_claim_ws_unhealthy() -> None:
+def test_release_gate_deferred_ws_smoke_holds_release_as_unverified() -> None:
     release = {
         "release_id": "rel-1",
         "git_sha": "abc",
@@ -285,10 +286,33 @@ def test_release_gate_deferred_ws_smoke_does_not_claim_ws_unhealthy() -> None:
 
     p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
     assert p0["status"] == "FAIL"
-    assert "ws_main_path_unhealthy" not in payload["blockers"]
-    assert "ws 主链路异常" not in p0["summary"]
+    assert "ws_main_path_unverified" in payload["blockers"]
+    assert payload["final_status"] == "FAIL"
     assert "playwright_failed" in payload["blockers"]
     assert "wechat_devtools_failed" in payload["blockers"]
+
+
+def test_release_gate_marks_same_sha_foreign_manifest_as_stale() -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "production",
+        "prompt_version": "p",
+        "ff_snapshot_hash": "ff",
+        "deploy_manifest_hash": "manifest-1",
+    }
+    foreign = {**release, "deploy_manifest_hash": "manifest-foreign"}
+    assert release_gate_module._stale_input_names(
+        current_release=release,
+        om_payload={"release": foreign},
+        arr_payload=None,
+        benchmark_payload=None,
+        incident_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+        change_impact_payload=None,
+        plan_completion_payload=None,
+    ) == ["om"]
 
 
 def test_release_gate_rejects_placeholder_release_lineage(monkeypatch) -> None:
@@ -305,7 +329,7 @@ def test_release_gate_rejects_placeholder_release_lineage(monkeypatch) -> None:
                 "git_dirty": "false",
                 "deploy_manifest_hash": "unset",
             },
-            "health_summary": {"ready": True},
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
             "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
         },
         arr_payload=None,
@@ -376,6 +400,7 @@ def test_release_gate_blocks_plan_completion_failures() -> None:
                 "prompt_version": "p1",
                 "ff_snapshot_hash": "ff1",
                 "deploy_manifest_hash": "manifest1",
+                "git_dirty": "false",
             },
             "status": "FAIL",
             "summary": {"total": 2, "done": 1, "not_done": 1, "partial": 0, "unverifiable": 0},
@@ -863,6 +888,7 @@ def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy(monke
             "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
         },
         arr_payload={
+            "release": dict(release),
             "summary": {"pass_rate": 1.0},
             "baseline_diff": {"regressions": [], "new_failures": []},
             "benchmark_case_results": [{"suite": "semantic-router", "status": "PASS", "case_tier": "gate_stable"}],
@@ -876,11 +902,13 @@ def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy(monke
             summary={"pass_rate": 1.0},
         ),
         aae_payload={
+            "release": dict(release),
             "scorecard": {"paid_student_satisfaction_score": {"is_proxy": True}},
             "composite": {"value": 1.0, "coverage_ratio": 1.0},
         },
-        oa_payload={"blind_spots": [], "root_causes": []},
+        oa_payload={"release": dict(release), "blind_spots": [], "root_causes": []},
         change_impact_payload={
+            "release": dict(release),
             "run_id": "change-impact-1",
             "risk_level": "low",
             "blocking_recommendation": "canary",
@@ -895,6 +923,7 @@ def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy(monke
                 "prompt_version": "p",
                 "ff_snapshot_hash": "ff",
                 "deploy_manifest_hash": "manifest1",
+                "git_dirty": "false",
             },
             "status": "PASS",
             "summary": {"total": 1, "done": 1, "not_done": 0, "partial": 0, "unverifiable": 0},
