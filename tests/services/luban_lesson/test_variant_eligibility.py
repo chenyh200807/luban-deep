@@ -5,10 +5,13 @@ import copy
 import json
 from pathlib import Path
 
+import pytest
+
 from deeptutor.services.luban_lesson.variant_eligibility import (
     VARIANT_DECISION_SCHEMA,
     VARIANT_REVIEW_PACKET_SCHEMA,
     build_variant_review_packet,
+    decision_identity_sha256,
     eligible_variant_items,
     resolve_variant_supply,
     variant_content_sha256,
@@ -52,15 +55,18 @@ def _signed_decision(
         "temptation": temptation,
         "loss_reason": loss_reason,
         "source_anchor": "kc:1A431011_015_0016:1",
-        "source_sha256": "b" * 64,
+        # source_sha256 必须等于 bank.source_pack_sha256（B1 收紧后）
+        "source_sha256": "a" * 64,
     }
     decision["content_sha256"] = variant_content_sha256(
         variant, temptation=temptation, loss_reason=loss_reason
     )
+    decision["decision_identity_sha256"] = decision_identity_sha256(decision)
     decision["review"] = {
         "status": "signed",
         "verdict": "approved",
         "reviewed_content_sha256": decision["content_sha256"],
+        "reviewed_decision_sha256": decision["decision_identity_sha256"],
         "signatures": [
             {
                 "role": "teaching",
@@ -169,6 +175,68 @@ def test_enrichment_tampering_after_signing_is_ineligible() -> None:
     assert [item["variant_id"] for item in items] == ["S05-B-send-002"]
 
 
+# --------------------------------------------------- decision identity（对抗审查 B1）
+
+
+@pytest.mark.parametrize(
+    ("field", "tampered"),
+    [
+        ("fact_id", "s05-fact-stop-power-order"),
+        ("skeleton_id", "s05-vskel-b-send-bad"),
+        # 在两个合法 role 之间切换——role 本身合法，identity 必须仍能抓住
+        ("probe_role", "d1_probe"),
+        ("source_anchor", "kc:1A431011_014_0015:1"),
+        ("source_sha256", "c" * 64),
+    ],
+)
+def test_governance_field_tampering_after_signing_is_ineligible(
+    field: str, tampered: str
+) -> None:
+    bank = _bank_with_ready_fact()
+    decision = bank["variants"][0]["decision"]
+    assert decision[field] != tampered
+    decision[field] = tampered
+    items = eligible_variant_items(bank, blocked=set())
+    assert [item["variant_id"] for item in items] == ["S05-B-send-002"]
+
+
+def test_identity_recompute_without_review_rebind_is_ineligible() -> None:
+    """篡改治理字段并重算 identity 摘要，但 review 仍绑旧摘要 → fail-closed。"""
+    bank = _bank_with_ready_fact()
+    decision = bank["variants"][0]["decision"]
+    decision["fact_id"] = "s05-fact-hijacked"
+    decision["decision_identity_sha256"] = decision_identity_sha256(decision)
+    items = eligible_variant_items(bank, blocked=set())
+    assert [item["variant_id"] for item in items] == ["S05-B-send-002"]
+
+
+def test_source_sha_must_equal_bank_source_pack_sha() -> None:
+    """整体自洽（identity/review 全重算）但 source_sha256 != bank sha → 不 eligible。"""
+    variant = _variant()
+    decision = _signed_decision(variant)
+    decision["source_sha256"] = "c" * 64
+    decision["decision_identity_sha256"] = decision_identity_sha256(decision)
+    decision["review"]["reviewed_decision_sha256"] = decision[
+        "decision_identity_sha256"
+    ]
+    variant["decision"] = decision
+    assert eligible_variant_items(_signed_bank([variant]), blocked=set()) == []
+
+
+def test_decision_missing_identity_sha_fails_closed() -> None:
+    bank = _bank_with_ready_fact()
+    del bank["variants"][0]["decision"]["decision_identity_sha256"]
+    items = eligible_variant_items(bank, blocked=set())
+    assert [item["variant_id"] for item in items] == ["S05-B-send-002"]
+
+
+def test_review_missing_decision_binding_fails_closed() -> None:
+    bank = _bank_with_ready_fact()
+    del bank["variants"][0]["decision"]["review"]["reviewed_decision_sha256"]
+    items = eligible_variant_items(bank, blocked=set())
+    assert [item["variant_id"] for item in items] == ["S05-B-send-002"]
+
+
 def test_anchor_probe_role_is_reserved_for_compiled_mcq() -> None:
     variant = _variant()
     variant["decision"] = _signed_decision(variant, probe_role="anchor")
@@ -266,6 +334,13 @@ def test_review_packet_covers_all_variants_and_never_machine_signs() -> None:
             temptation="",
             loss_reason="",
         )
+        assert decision["decision_identity_sha256"] == decision_identity_sha256(
+            decision
+        )
+        assert (
+            decision["review"]["reviewed_decision_sha256"]
+            == decision["decision_identity_sha256"]
+        )
     assert "longest_option_checked" in packet["instructions"]["checks"]
 
 
@@ -276,6 +351,29 @@ def test_review_packet_passes_through_baked_decisions() -> None:
     decision = packet["items"][0]["decision"]
     assert decision["fact_id"] == "s05-fact-send-power-order"
     assert decision["review"]["status"] == "signed"
+
+
+def test_review_packet_marks_identity_broken_decisions_stale(  # 对抗审查 B3
+) -> None:
+    """题面签后被改：人审包绝不显示旧 signed 外观，必须标 stale+原因。"""
+    bank = _bank_with_ready_fact()
+    bank["variants"][0]["surface"] = "签后被改的题面"
+    packet = build_variant_review_packet(bank, blocked=set())
+    assert packet["eligible_count"] == 1  # runtime 面同步 fail-closed
+    stale_review = packet["items"][0]["decision"]["review"]
+    assert stale_review["status"] == "stale"
+    assert stale_review["verdict"] == "invalid"
+    assert stale_review["stale_reason"]
+    assert packet["items"][1]["decision"]["review"]["status"] == "signed"
+
+
+def test_review_packet_marks_governance_tampering_stale() -> None:
+    bank = _bank_with_ready_fact()
+    bank["variants"][0]["decision"]["fact_id"] = "s05-fact-hijacked"
+    packet = build_variant_review_packet(bank, blocked=set())
+    review = packet["items"][0]["decision"]["review"]
+    assert review["status"] == "stale"
+    assert review["verdict"] == "invalid"
 
 
 # ---------------------------------------------------------------- resolve (同一签发闸)
@@ -328,4 +426,16 @@ def test_resolve_variant_supply_rejects_sha_drift(tmp_path: Path) -> None:
 def test_resolve_variant_supply_fails_closed_without_blocklist(tmp_path: Path) -> None:
     manifest = _write_supply_files(tmp_path, _bank_with_ready_fact())
     (tmp_path / "_variant_blocklist.json").unlink()
+    assert resolve_variant_supply("S05", manifest_path=manifest) is None
+
+
+def test_resolve_variant_supply_requires_projection_green(  # 对抗审查 B2
+    tmp_path: Path,
+) -> None:
+    """pack 在 manifest.packs 且 bank signed+sha 匹配，但不在 projection_green
+    （撤回/未发布）→ 供给必须为 None，不得越过 canonical 发布门。"""
+    manifest = _write_supply_files(tmp_path, _bank_with_ready_fact())
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    data["projection_green"] = []
+    manifest.write_text(json.dumps(data), encoding="utf-8")
     assert resolve_variant_supply("S05", manifest_path=manifest) is None

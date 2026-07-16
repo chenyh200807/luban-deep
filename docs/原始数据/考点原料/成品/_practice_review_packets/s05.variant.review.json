@@ -46,10 +46,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "32310ad3d0bd56d9da6ab86ef90d92a9e4a9c5a1e6b398ac1ae8acd7ea9c5175",
+        "decision_identity_sha256": "14a10774c05aa2f3267f39d2831f12cdddd4664394c8f547b7a58d7f331798e2",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "32310ad3d0bd56d9da6ab86ef90d92a9e4a9c5a1e6b398ac1ae8acd7ea9c5175",
+          "reviewed_decision_sha256": "14a10774c05aa2f3267f39d2831f12cdddd4664394c8f547b7a58d7f331798e2",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -79,10 +81,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "633da24d24fc6d3e1e6896734c26b744902cd6310ca2a3cfaef716be6c69a339",
+        "decision_identity_sha256": "e4609f83995df3f436d82a033f22555606690667fc71f9c3731df3bfaf693b9d",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "633da24d24fc6d3e1e6896734c26b744902cd6310ca2a3cfaef716be6c69a339",
+          "reviewed_decision_sha256": "e4609f83995df3f436d82a033f22555606690667fc71f9c3731df3bfaf693b9d",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -112,10 +116,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "5e2cdc246bc8001dc58af8917e2c1af5b23492ca1c10906bac8efd49b54be870",
+        "decision_identity_sha256": "4ce6bf9542bbf3c1ee0d676a317799aed06c655f9c1b080838dd97df05a2abe6",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "5e2cdc246bc8001dc58af8917e2c1af5b23492ca1c10906bac8efd49b54be870",
+          "reviewed_decision_sha256": "4ce6bf9542bbf3c1ee0d676a317799aed06c655f9c1b080838dd97df05a2abe6",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -145,10 +151,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "afcb657538a9f0717823959db28a2fad22ee09d4e7afd2dde7d1b317401a3311",
+        "decision_identity_sha256": "764c878be7610b6869bda81f802c5cad91c3595dfbb42004d9736f605f15e47e",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "afcb657538a9f0717823959db28a2fad22ee09d4e7afd2dde7d1b317401a3311",
+          "reviewed_decision_sha256": "764c878be7610b6869bda81f802c5cad91c3595dfbb42004d9736f605f15e47e",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -178,10 +186,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "ef81328e484ade1178beb21170f8710fee4bb456632e17cc08dc05cfec3eeb29",
+        "decision_identity_sha256": "246aabb398a4e1369c5b8f2a9fc0b68dff7d6116559b0d630bf355c3f557f2ac",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "ef81328e484ade1178beb21170f8710fee4bb456632e17cc08dc05cfec3eeb29",
+          "reviewed_decision_sha256": "246aabb398a4e1369c5b8f2a9fc0b68dff7d6116559b0d630bf355c3f557f2ac",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -211,10 +221,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "78dc9e14d13bbda38779ec1a5a013852a198dc90a4f9ed2682ceedef704440b9",
+        "decision_identity_sha256": "915082c30996c87f67e95fc5323468711f446d01c6b1db91130d3f9d8325ba5a",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "78dc9e14d13bbda38779ec1a5a013852a198dc90a4f9ed2682ceedef704440b9",
+          "reviewed_decision_sha256": "915082c30996c87f67e95fc5323468711f446d01c6b1db91130d3f9d8325ba5a",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -244,10 +256,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "e9f0ce1a9f36d2674ec267415efce6ef13e5aa3a9660788b660920403375906a",
+        "decision_identity_sha256": "7a51c396af51ab27f46af4f0b1694a9654ff5b42926fe0a5b64827a68836c966",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "e9f0ce1a9f36d2674ec267415efce6ef13e5aa3a9660788b660920403375906a",
+          "reviewed_decision_sha256": "7a51c396af51ab27f46af4f0b1694a9654ff5b42926fe0a5b64827a68836c966",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -277,10 +291,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "9518ae29af5a210a64f03f2b752b4ca272146e580edc77074adedaa3f83c1475",
+        "decision_identity_sha256": "077a43c3296bc4f6cd2d6e87036939da86b440f76a39b27500a36b9641ae4108",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "9518ae29af5a210a64f03f2b752b4ca272146e580edc77074adedaa3f83c1475",
+          "reviewed_decision_sha256": "077a43c3296bc4f6cd2d6e87036939da86b440f76a39b27500a36b9641ae4108",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -310,10 +326,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "573612b24aadcc1b2f402f8a631eeea4e3a3505af888efba7c5fade0ce8f6270",
+        "decision_identity_sha256": "a83005b616856d562b455f329aef4ab4d23f612bbc77fc2ec227d498d0db11a7",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "573612b24aadcc1b2f402f8a631eeea4e3a3505af888efba7c5fade0ce8f6270",
+          "reviewed_decision_sha256": "a83005b616856d562b455f329aef4ab4d23f612bbc77fc2ec227d498d0db11a7",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -343,10 +361,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "6afad365aad2c58bab77aed5d72a3cff61667f74af93046943d8b8914ac862f4",
+        "decision_identity_sha256": "afa522d9dd6d253ee03570ae252cd0088dc0a5f2a443bdc47bfdb039ac5aa8ca",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "6afad365aad2c58bab77aed5d72a3cff61667f74af93046943d8b8914ac862f4",
+          "reviewed_decision_sha256": "afa522d9dd6d253ee03570ae252cd0088dc0a5f2a443bdc47bfdb039ac5aa8ca",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -376,10 +396,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "b20bbfc7cdd2335b0b641367773584d8fa742faa529434559f744e047cec820a",
+        "decision_identity_sha256": "cf31c3a3384bac9372cfc91515e55e46c4bd8f4092a0278fb0410c181e28b7db",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "b20bbfc7cdd2335b0b641367773584d8fa742faa529434559f744e047cec820a",
+          "reviewed_decision_sha256": "cf31c3a3384bac9372cfc91515e55e46c4bd8f4092a0278fb0410c181e28b7db",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -409,10 +431,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "15ef261ace9a72dc997adcbc19b5c44c9256c6d1f3ec88014497484fabce89c8",
+        "decision_identity_sha256": "ed7319ada1b0af611ff35ecd8b16b0ae98b96c986d499bdba961abd1d1cc095c",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "15ef261ace9a72dc997adcbc19b5c44c9256c6d1f3ec88014497484fabce89c8",
+          "reviewed_decision_sha256": "ed7319ada1b0af611ff35ecd8b16b0ae98b96c986d499bdba961abd1d1cc095c",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -442,10 +466,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "c74ff471d1fcf87e2e5e83e654f34ebd9409a7f362dca8e0eb361438538b8398",
+        "decision_identity_sha256": "0f19d07a9ffc4eb901f0bd2a015186012833df1f10bb6b56245f1a6f5ceda22d",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "c74ff471d1fcf87e2e5e83e654f34ebd9409a7f362dca8e0eb361438538b8398",
+          "reviewed_decision_sha256": "0f19d07a9ffc4eb901f0bd2a015186012833df1f10bb6b56245f1a6f5ceda22d",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -475,10 +501,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "9cacf5b80ee9430576472e3bfe3444c2d8a37d748215551dec5cc063cd43b9b0",
+        "decision_identity_sha256": "675df80e93a66d3bf2dab90c0d5505fe74bf8bee8f313063b56b8b938ac0013a",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "9cacf5b80ee9430576472e3bfe3444c2d8a37d748215551dec5cc063cd43b9b0",
+          "reviewed_decision_sha256": "675df80e93a66d3bf2dab90c0d5505fe74bf8bee8f313063b56b8b938ac0013a",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -508,10 +536,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "ee86ff139ef7e771dc3d169a927dd9141f7f0bfdad2acdf1836bc49def1b61ee",
+        "decision_identity_sha256": "f03658034b95b6c467ef80df30a98f0875f238c0dc4392ff6ace5b3ed0815d7b",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "ee86ff139ef7e771dc3d169a927dd9141f7f0bfdad2acdf1836bc49def1b61ee",
+          "reviewed_decision_sha256": "f03658034b95b6c467ef80df30a98f0875f238c0dc4392ff6ace5b3ed0815d7b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -541,10 +571,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "d698e5676d4fb7099e97f7478a72c1f85afac3887fb439f25066d8df39b9d372",
+        "decision_identity_sha256": "e41a83a2ddf4d190b783096638d1faf7e7ca137e0ae5cfb3f0d412dca5f58615",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "d698e5676d4fb7099e97f7478a72c1f85afac3887fb439f25066d8df39b9d372",
+          "reviewed_decision_sha256": "e41a83a2ddf4d190b783096638d1faf7e7ca137e0ae5cfb3f0d412dca5f58615",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -574,10 +606,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "4321160738cf47d4f4ed3c6edcc03fc879875bde60e18e4e7baf35e94ecdd295",
+        "decision_identity_sha256": "a11280fefa1e2d2eac8fab4fbde3f81bd4e3a830d292f504d547494bd8bf0f02",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "4321160738cf47d4f4ed3c6edcc03fc879875bde60e18e4e7baf35e94ecdd295",
+          "reviewed_decision_sha256": "a11280fefa1e2d2eac8fab4fbde3f81bd4e3a830d292f504d547494bd8bf0f02",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -607,10 +641,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "f860ceb06959c8bf97f3b13400bce3ff10f8b5398a823084142c4f1e6ef61259",
+        "decision_identity_sha256": "7b2cc77dbd2cfa8f231307c61c2d7fad15ac448224d83ef7b31b4e7bb34dd1bc",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "f860ceb06959c8bf97f3b13400bce3ff10f8b5398a823084142c4f1e6ef61259",
+          "reviewed_decision_sha256": "7b2cc77dbd2cfa8f231307c61c2d7fad15ac448224d83ef7b31b4e7bb34dd1bc",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -640,10 +676,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "98f9f370062647c26acdcc7791bc328accecbee52d76e9f4dfe1a98e1129acd3",
+        "decision_identity_sha256": "2734e158f79c3160490f88a2294064c28ec9bca475bd560eb78297e4a1dcc70e",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "98f9f370062647c26acdcc7791bc328accecbee52d76e9f4dfe1a98e1129acd3",
+          "reviewed_decision_sha256": "2734e158f79c3160490f88a2294064c28ec9bca475bd560eb78297e4a1dcc70e",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -673,10 +711,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "4b04e3202f41e5c309c0737f2dd8f18396778a74f23839044a4504fefaf85fde",
+        "decision_identity_sha256": "e0d3208d58e2d07a271ca881113d64d1457298705c7ea15b3e53284ce6235ad8",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "4b04e3202f41e5c309c0737f2dd8f18396778a74f23839044a4504fefaf85fde",
+          "reviewed_decision_sha256": "e0d3208d58e2d07a271ca881113d64d1457298705c7ea15b3e53284ce6235ad8",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -706,10 +746,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "0e937e5cbc27aca021bd1d2e87201b55a0898fce3b4a8c0ccf81cd176a0777da",
+        "decision_identity_sha256": "c8509eec2c7ea0cea914e322473a90471ffd65eccddb2adb3dad74b6b7ea3676",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "0e937e5cbc27aca021bd1d2e87201b55a0898fce3b4a8c0ccf81cd176a0777da",
+          "reviewed_decision_sha256": "c8509eec2c7ea0cea914e322473a90471ffd65eccddb2adb3dad74b6b7ea3676",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -739,10 +781,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "6378fdf4259ffbb9477c73627184dc417b39f68320ce8a29ebd9aecd339212b0",
+        "decision_identity_sha256": "607d8656c57be62bec1eefb48af123ddfac3da11d2a2ee309d241e8e4c3768ab",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "6378fdf4259ffbb9477c73627184dc417b39f68320ce8a29ebd9aecd339212b0",
+          "reviewed_decision_sha256": "607d8656c57be62bec1eefb48af123ddfac3da11d2a2ee309d241e8e4c3768ab",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -772,10 +816,12 @@
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "dac81cb7c02f3ff25342a45c6c412fc746c48122903b30fc7349664ac6ebd019",
+        "decision_identity_sha256": "7199f47386d581166292ceca51640ebfae27b47f347332004124421cb4204b4d",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "dac81cb7c02f3ff25342a45c6c412fc746c48122903b30fc7349664ac6ebd019",
+          "reviewed_decision_sha256": "7199f47386d581166292ceca51640ebfae27b47f347332004124421cb4204b4d",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -805,10 +851,12 @@
         "source_anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "60f4f317218537d30e536cc94ba94aeabc2725b7e14bf8027fc0f2919eec412e",
+        "decision_identity_sha256": "daff333b5c6a46946d333a1b9cf7ea723f5e65534f23410bc1986d02167c85eb",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "60f4f317218537d30e536cc94ba94aeabc2725b7e14bf8027fc0f2919eec412e",
+          "reviewed_decision_sha256": "daff333b5c6a46946d333a1b9cf7ea723f5e65534f23410bc1986d02167c85eb",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -838,10 +886,12 @@
         "source_anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "79dc69c59e6f070beb0856e76feb268db914cb0ee188f57514074aa62280289c",
+        "decision_identity_sha256": "81ac69f20f8879596532cc833b55f349c16b3ebe1b406e1cbd0a234dfe9eff61",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "79dc69c59e6f070beb0856e76feb268db914cb0ee188f57514074aa62280289c",
+          "reviewed_decision_sha256": "81ac69f20f8879596532cc833b55f349c16b3ebe1b406e1cbd0a234dfe9eff61",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -871,10 +921,12 @@
         "source_anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "6a6652fc25c34b8200b416d63d741297aa2c18854b6e2b3b4af7f040bca53934",
+        "decision_identity_sha256": "22dcac449a07355e3dca75e039746db73125ec8f0307d26d7afcbce1a9b28554",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "6a6652fc25c34b8200b416d63d741297aa2c18854b6e2b3b4af7f040bca53934",
+          "reviewed_decision_sha256": "22dcac449a07355e3dca75e039746db73125ec8f0307d26d7afcbce1a9b28554",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -904,10 +956,12 @@
         "source_anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "428b2a1bccb329f732df2538c9a00f0da89be696e7b7a24bf31f55a2deee2483",
+        "decision_identity_sha256": "b2eafaf930d0d1aa0c72850dd26197808716eb81995498e18f28971b0f421c2b",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "428b2a1bccb329f732df2538c9a00f0da89be696e7b7a24bf31f55a2deee2483",
+          "reviewed_decision_sha256": "b2eafaf930d0d1aa0c72850dd26197808716eb81995498e18f28971b0f421c2b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -937,10 +991,12 @@
         "source_anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "6686fbb9c63ccef8a82ad2e8a25b84a759493041852fd7c09aeb84b48fc3ab7d",
+        "decision_identity_sha256": "ecb7d6c57e42b71400085693f0ad7a512301dbf0015f9f3c9989618a16c285cf",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "6686fbb9c63ccef8a82ad2e8a25b84a759493041852fd7c09aeb84b48fc3ab7d",
+          "reviewed_decision_sha256": "ecb7d6c57e42b71400085693f0ad7a512301dbf0015f9f3c9989618a16c285cf",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -970,10 +1026,12 @@
         "source_anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "3f3e973055199a2ca61d74548459412e1d129cde8c8400d8227688ab4743f6e1",
+        "decision_identity_sha256": "dad151c38c6aacb360957d4373d88f11d1c6ca643d38b087a7a38df739b033d9",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "3f3e973055199a2ca61d74548459412e1d129cde8c8400d8227688ab4743f6e1",
+          "reviewed_decision_sha256": "dad151c38c6aacb360957d4373d88f11d1c6ca643d38b087a7a38df739b033d9",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1003,10 +1061,12 @@
         "source_anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "4b48ea0b93cc0883a73bce005ecdb612b8a32dbcaef708c0eeae7d677d43d13a",
+        "decision_identity_sha256": "d46719c8c2c6bdda6b68ae17b258f0014c0878c3bbd17dfd3f08c0c4b2cf41a9",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "4b48ea0b93cc0883a73bce005ecdb612b8a32dbcaef708c0eeae7d677d43d13a",
+          "reviewed_decision_sha256": "d46719c8c2c6bdda6b68ae17b258f0014c0878c3bbd17dfd3f08c0c4b2cf41a9",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1036,10 +1096,12 @@
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "b530550a065a319e377b9e7542ec8b2dedf62010650ca5e515be28d06fa66efc",
+        "decision_identity_sha256": "d3dcf02eeef5a4cf8a4aeeba184014c63c56ee109cbdd6f7bfc48d3f72cb04bb",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "b530550a065a319e377b9e7542ec8b2dedf62010650ca5e515be28d06fa66efc",
+          "reviewed_decision_sha256": "d3dcf02eeef5a4cf8a4aeeba184014c63c56ee109cbdd6f7bfc48d3f72cb04bb",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1069,10 +1131,12 @@
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "ea4efbce435265c8cffb5e92df1748cac9f3d9d7295b4a33e8e5dc06a5290e8a",
+        "decision_identity_sha256": "2f61c724f46ed81a085095ccca3e665176252139139b78f999ed92db44f5df3d",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "ea4efbce435265c8cffb5e92df1748cac9f3d9d7295b4a33e8e5dc06a5290e8a",
+          "reviewed_decision_sha256": "2f61c724f46ed81a085095ccca3e665176252139139b78f999ed92db44f5df3d",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1102,10 +1166,12 @@
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "b35a61814bab9f610a4679de75c7fbbebcfa7022d854961e2de62eda80659f1c",
+        "decision_identity_sha256": "3423df3be21730e65cff298a7531b3fbb9ee00629f19e7a1a87e14e34c3321ce",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "b35a61814bab9f610a4679de75c7fbbebcfa7022d854961e2de62eda80659f1c",
+          "reviewed_decision_sha256": "3423df3be21730e65cff298a7531b3fbb9ee00629f19e7a1a87e14e34c3321ce",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1135,10 +1201,12 @@
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "c1bda4dfd3800cae5fcc9253fec0a08f7bdfd5a2a8c769d793505125a3713417",
+        "decision_identity_sha256": "bf2d62df689eb5362072613b5ecc3d64940d8697311a05826b0a390abcf112bb",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "c1bda4dfd3800cae5fcc9253fec0a08f7bdfd5a2a8c769d793505125a3713417",
+          "reviewed_decision_sha256": "bf2d62df689eb5362072613b5ecc3d64940d8697311a05826b0a390abcf112bb",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1168,10 +1236,12 @@
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "475a23c2d83b621319652472e1bd828681e1ed973cc2311ec0fe1d092471671e",
+        "decision_identity_sha256": "112a83fd2219c76cf45fd14acf339cc43b86c4cb55ed40a2791f97e40ddbe00b",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "475a23c2d83b621319652472e1bd828681e1ed973cc2311ec0fe1d092471671e",
+          "reviewed_decision_sha256": "112a83fd2219c76cf45fd14acf339cc43b86c4cb55ed40a2791f97e40ddbe00b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1201,10 +1271,12 @@
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "2d457cfc97e0588d329291beafeca974c19308d6ff02b0a11723746258d36a09",
+        "decision_identity_sha256": "f8dcfb8728d55e3db429517f8615556aea9f5c18bcd3ecc2ac701bd4f0905539",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "2d457cfc97e0588d329291beafeca974c19308d6ff02b0a11723746258d36a09",
+          "reviewed_decision_sha256": "f8dcfb8728d55e3db429517f8615556aea9f5c18bcd3ecc2ac701bd4f0905539",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1234,10 +1306,12 @@
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "a073fbc1f4239cec579f6c024718bf4caaba4e53c0cf0a1c8811511627db19f3",
+        "decision_identity_sha256": "ca493cd9696ca05eb2e27f3b6e0c07dd833829661ef358f84d0beb5712d54d42",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "a073fbc1f4239cec579f6c024718bf4caaba4e53c0cf0a1c8811511627db19f3",
+          "reviewed_decision_sha256": "ca493cd9696ca05eb2e27f3b6e0c07dd833829661ef358f84d0beb5712d54d42",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1267,10 +1341,12 @@
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "c7a179e0d0274b2da94bf7451a55f0a28984567cd2c2bc2b4b7b8a233e296eb3",
+        "decision_identity_sha256": "4a82442ec10790ad701b1358551e4e7bb598aee35acb5e2fbe5e7cf28c7a9753",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "c7a179e0d0274b2da94bf7451a55f0a28984567cd2c2bc2b4b7b8a233e296eb3",
+          "reviewed_decision_sha256": "4a82442ec10790ad701b1358551e4e7bb598aee35acb5e2fbe5e7cf28c7a9753",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1300,10 +1376,12 @@
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "93e461dd4bfe2a41a0e3f85ebf87159f566ceec5ddf4be20acb9607feafc4879",
+        "decision_identity_sha256": "078c5de31e8b3bb158709bd1cdc73fff9b25c8118ee0de4e4227f1d4d3cbcd12",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "93e461dd4bfe2a41a0e3f85ebf87159f566ceec5ddf4be20acb9607feafc4879",
+          "reviewed_decision_sha256": "078c5de31e8b3bb158709bd1cdc73fff9b25c8118ee0de4e4227f1d4d3cbcd12",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1333,10 +1411,12 @@
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "2004ef1a78ab63f6b227f6320358e2b1cc826cac005fa33bd81decacb66b1ed3",
+        "decision_identity_sha256": "c29cbe11106b5c5b68bed3e25dc38241395d0d08549e8bbc429efcacbf281a9c",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "2004ef1a78ab63f6b227f6320358e2b1cc826cac005fa33bd81decacb66b1ed3",
+          "reviewed_decision_sha256": "c29cbe11106b5c5b68bed3e25dc38241395d0d08549e8bbc429efcacbf281a9c",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1366,10 +1446,12 @@
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "d484866ed851a4832ec91e90ef1124dd6e805b9353d33f469195f9468f1534a0",
+        "decision_identity_sha256": "5923646a7ec095169fe67de78b02cee6aa9a77ed488f72363a8f630419aef396",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "d484866ed851a4832ec91e90ef1124dd6e805b9353d33f469195f9468f1534a0",
+          "reviewed_decision_sha256": "5923646a7ec095169fe67de78b02cee6aa9a77ed488f72363a8f630419aef396",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1399,10 +1481,12 @@
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "745bb66334239941cf435ffc8ac526a990bf67d973a2c2f45e3aaa5d479bb701",
+        "decision_identity_sha256": "6fd9f25aab93793d5a268d80dd54bc845687edf13444e571e76313074544ca95",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "745bb66334239941cf435ffc8ac526a990bf67d973a2c2f45e3aaa5d479bb701",
+          "reviewed_decision_sha256": "6fd9f25aab93793d5a268d80dd54bc845687edf13444e571e76313074544ca95",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1432,10 +1516,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "ce64841ccfb3d88cc76030b693f79d6386dd9854dc96181a0731be8ef51ce9a0",
+        "decision_identity_sha256": "628d9f3cc8c849e962ddfe5df8eb152e945d8487549ee3ea71f9c2e105516d88",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "ce64841ccfb3d88cc76030b693f79d6386dd9854dc96181a0731be8ef51ce9a0",
+          "reviewed_decision_sha256": "628d9f3cc8c849e962ddfe5df8eb152e945d8487549ee3ea71f9c2e105516d88",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1465,10 +1551,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "24571b281766baf0117019741a49783cb7a4e1c78b44a87cce57f1d0bc7fd6de",
+        "decision_identity_sha256": "50ddb05e93f93cd76f922e69e6be0ae08b2880479b4b61a089cdcba24598a08c",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "24571b281766baf0117019741a49783cb7a4e1c78b44a87cce57f1d0bc7fd6de",
+          "reviewed_decision_sha256": "50ddb05e93f93cd76f922e69e6be0ae08b2880479b4b61a089cdcba24598a08c",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1498,10 +1586,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "8430323300b0bbaf97fdff70f8c4f49905ad00d5037eec06e7e745e430016a2d",
+        "decision_identity_sha256": "687c9edc2c73abaabafb3bc9e9298088052e5aa61b38170ebd3821aaa6e2b789",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "8430323300b0bbaf97fdff70f8c4f49905ad00d5037eec06e7e745e430016a2d",
+          "reviewed_decision_sha256": "687c9edc2c73abaabafb3bc9e9298088052e5aa61b38170ebd3821aaa6e2b789",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1531,10 +1621,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "eeb4d6ce35a4da67b0d037c2555fa6f6199143b48f69569d945378893684331a",
+        "decision_identity_sha256": "13c004a5494b1e9a9f09b468eb95a0139e6b9ef6c41cf76ac13a332ff481e9e9",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "eeb4d6ce35a4da67b0d037c2555fa6f6199143b48f69569d945378893684331a",
+          "reviewed_decision_sha256": "13c004a5494b1e9a9f09b468eb95a0139e6b9ef6c41cf76ac13a332ff481e9e9",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1564,10 +1656,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "ef79ca29dc3242074592bcb1220164fdce411e29a6cded66de065140b0363331",
+        "decision_identity_sha256": "bceb7002888a07f63045c63d9d177a2e94a8c21f0768033d709a7187cdb285e6",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "ef79ca29dc3242074592bcb1220164fdce411e29a6cded66de065140b0363331",
+          "reviewed_decision_sha256": "bceb7002888a07f63045c63d9d177a2e94a8c21f0768033d709a7187cdb285e6",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1597,10 +1691,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "7bc1614c3532616965f9c27f8b8c8fd966895b2509f4f1a69c113754e0bdd0e2",
+        "decision_identity_sha256": "7fd859c674a580ad62ec529f8db1256d2a5eff23e2e7a17da91aa1fef74453d0",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "7bc1614c3532616965f9c27f8b8c8fd966895b2509f4f1a69c113754e0bdd0e2",
+          "reviewed_decision_sha256": "7fd859c674a580ad62ec529f8db1256d2a5eff23e2e7a17da91aa1fef74453d0",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1630,10 +1726,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "737b8a96a024cd4cf797beef990de03789b3e82c222e26a7dd5279b055396645",
+        "decision_identity_sha256": "1ac3a90111972271707497dc5539e18ed9432664c135f1ce472c6e4eaaa8adaf",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "737b8a96a024cd4cf797beef990de03789b3e82c222e26a7dd5279b055396645",
+          "reviewed_decision_sha256": "1ac3a90111972271707497dc5539e18ed9432664c135f1ce472c6e4eaaa8adaf",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1663,10 +1761,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "8e80fa0f15c75282da2dbe7a872575ac7b44b8ef867d7322278846b2a01c5c81",
+        "decision_identity_sha256": "a1538e296ce0368230d5bbd1ee3c0b4ea2de914476466d83d94a103a7551bb5a",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "8e80fa0f15c75282da2dbe7a872575ac7b44b8ef867d7322278846b2a01c5c81",
+          "reviewed_decision_sha256": "a1538e296ce0368230d5bbd1ee3c0b4ea2de914476466d83d94a103a7551bb5a",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1696,10 +1796,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "71a71634afd83a04d9b4c7eff1fd54bfb7bd42fac99db13ec6bb46e9bab1322e",
+        "decision_identity_sha256": "59355043503b3d4a921e241603dbdb5726877ec5fc4a843fb600846058af5950",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "71a71634afd83a04d9b4c7eff1fd54bfb7bd42fac99db13ec6bb46e9bab1322e",
+          "reviewed_decision_sha256": "59355043503b3d4a921e241603dbdb5726877ec5fc4a843fb600846058af5950",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1729,10 +1831,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "f9ad4c91d4166d4632767bb8ca8ea638b810596673e2e70619635d4e670a6825",
+        "decision_identity_sha256": "57ae6c7ceaedb507a140439ed6cb60a02c574cb576f6ce4adbe60e22053f55cb",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "f9ad4c91d4166d4632767bb8ca8ea638b810596673e2e70619635d4e670a6825",
+          "reviewed_decision_sha256": "57ae6c7ceaedb507a140439ed6cb60a02c574cb576f6ce4adbe60e22053f55cb",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1762,10 +1866,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "06d93dae805d8222aee589d0c6af9782dd33cd2b3ce3d6d848547aa9ece230dc",
+        "decision_identity_sha256": "bbc00822a35b7b1c317baf46c038efaa5d6e741ff3f531aa718f03c7f2c0d461",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "06d93dae805d8222aee589d0c6af9782dd33cd2b3ce3d6d848547aa9ece230dc",
+          "reviewed_decision_sha256": "bbc00822a35b7b1c317baf46c038efaa5d6e741ff3f531aa718f03c7f2c0d461",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1795,10 +1901,12 @@
         "source_anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "eda3f45c0637037ae75705e26dabf7de42856c4fd703c4a8be29673594103a24",
+        "decision_identity_sha256": "275f4fcbab047a07e2063b9b107f49b74c39ef1c324d6baabd74c00e751f0ad0",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "eda3f45c0637037ae75705e26dabf7de42856c4fd703c4a8be29673594103a24",
+          "reviewed_decision_sha256": "275f4fcbab047a07e2063b9b107f49b74c39ef1c324d6baabd74c00e751f0ad0",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1828,10 +1936,12 @@
         "source_anchor": "{2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "4a6a48954de21a7ca86e4a69d2d1e6704e3825c7574470276300db124b4cbc2e",
+        "decision_identity_sha256": "f25cc724cccc23528b6346322294cdf7e396fa121c1ddeff819360f550fdc77b",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "4a6a48954de21a7ca86e4a69d2d1e6704e3825c7574470276300db124b4cbc2e",
+          "reviewed_decision_sha256": "f25cc724cccc23528b6346322294cdf7e396fa121c1ddeff819360f550fdc77b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1861,10 +1971,12 @@
         "source_anchor": "kc:1A431011_014_0015:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "6f25f34a7df881a182291df5c93986064a44068137cb88ee1cfebee88f089563",
+        "decision_identity_sha256": "14eed13ea46b5d1a2134ee681cf78920f3af5c8e26acb6f4ce6e4c5ee4a3eb80",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "6f25f34a7df881a182291df5c93986064a44068137cb88ee1cfebee88f089563",
+          "reviewed_decision_sha256": "14eed13ea46b5d1a2134ee681cf78920f3af5c8e26acb6f4ce6e4c5ee4a3eb80",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1894,10 +2006,12 @@
         "source_anchor": "kc:1A431011_014_0015:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "9c5695753c312a51d82b7c9604c2fafda243d38aa9c7558d155019fa07ae1379",
+        "decision_identity_sha256": "6414b70e450046e2f9e9441a9e22ae567086e0063fc8d0c5d4d076227b010233",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "9c5695753c312a51d82b7c9604c2fafda243d38aa9c7558d155019fa07ae1379",
+          "reviewed_decision_sha256": "6414b70e450046e2f9e9441a9e22ae567086e0063fc8d0c5d4d076227b010233",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1927,10 +2041,12 @@
         "source_anchor": "kc:1A431011_014_0015:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "235770f73827d4facd941f339e9cbc7090b207e8f8e13b454bee65cedf753de2",
+        "decision_identity_sha256": "0af11f4ba6e3723a3fd238e01614e5edc1ae2dece852c6cc712929f83b428a72",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "235770f73827d4facd941f339e9cbc7090b207e8f8e13b454bee65cedf753de2",
+          "reviewed_decision_sha256": "0af11f4ba6e3723a3fd238e01614e5edc1ae2dece852c6cc712929f83b428a72",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1960,10 +2076,12 @@
         "source_anchor": "kc:1A431011_014_0015:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "69ba175bf17d047f7bc35f02c8a4991cdb66f73b4c3d6d443cd0fc0c5366ba31",
+        "decision_identity_sha256": "c77e02c2f3c3c4abc2b0f8f114fbe8493266fdbd12e94451e74bf0fa7dfc825d",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "69ba175bf17d047f7bc35f02c8a4991cdb66f73b4c3d6d443cd0fc0c5366ba31",
+          "reviewed_decision_sha256": "c77e02c2f3c3c4abc2b0f8f114fbe8493266fdbd12e94451e74bf0fa7dfc825d",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1993,10 +2111,12 @@
         "source_anchor": "kc:1A431011_014_0015:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "9440c418fff11236dd2744f44dd4be2c4fa378a95ba934f58da555ebfb9763b0",
+        "decision_identity_sha256": "27f30d83f26c75c6e00e7afeb548c62ce0ceaa94a74314bebe19a5e6c7757638",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "9440c418fff11236dd2744f44dd4be2c4fa378a95ba934f58da555ebfb9763b0",
+          "reviewed_decision_sha256": "27f30d83f26c75c6e00e7afeb548c62ce0ceaa94a74314bebe19a5e6c7757638",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2026,10 +2146,12 @@
         "source_anchor": "kc:1A431011_014_0015:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "2eb6593897005e7de1ff837418598f4ea441ffb58a5985632f272e7db269c979",
+        "decision_identity_sha256": "10c9ccaa87c2048cbd158792ea864257f60adbc5e82d8572bd067dfc1f17b3c8",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "2eb6593897005e7de1ff837418598f4ea441ffb58a5985632f272e7db269c979",
+          "reviewed_decision_sha256": "10c9ccaa87c2048cbd158792ea864257f60adbc5e82d8572bd067dfc1f17b3c8",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2059,10 +2181,12 @@
         "source_anchor": "kc:1A431011_014_0015:1 + {2019,第14题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "735902f872b9a3fd33b3a8aec955ad66df4a2bb08fc70b004623f2400764cfb2",
+        "decision_identity_sha256": "d563ff2a884a5084c52bae45070ed587983e4a439329096452d2f55c806c2761",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "735902f872b9a3fd33b3a8aec955ad66df4a2bb08fc70b004623f2400764cfb2",
+          "reviewed_decision_sha256": "d563ff2a884a5084c52bae45070ed587983e4a439329096452d2f55c806c2761",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2092,10 +2216,12 @@
         "source_anchor": "kc:1A431011_014_0015:1 + {2019,第14题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "5e6f6bc4070898467b60e69dcefc51a3f33ef13356e35125f96c1a2f6a78445b",
+        "decision_identity_sha256": "444342a25f177c31a90d1af51c6843d3a1baa69614c706994d05e41d98338c94",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "5e6f6bc4070898467b60e69dcefc51a3f33ef13356e35125f96c1a2f6a78445b",
+          "reviewed_decision_sha256": "444342a25f177c31a90d1af51c6843d3a1baa69614c706994d05e41d98338c94",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2125,10 +2251,12 @@
         "source_anchor": "kc:1A431011_014_0015:1 + {2019,第14题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "977e836c333feedab879aebd044edd75f89ad2ca0c39e4d2d5e9c6a58d48d304",
+        "decision_identity_sha256": "404f540fb68211f24b3fc6e89bfb2cacd169e2333a1ffed0f9cabcbebb071483",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "977e836c333feedab879aebd044edd75f89ad2ca0c39e4d2d5e9c6a58d48d304",
+          "reviewed_decision_sha256": "404f540fb68211f24b3fc6e89bfb2cacd169e2333a1ffed0f9cabcbebb071483",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2158,10 +2286,12 @@
         "source_anchor": "kc:1A431011_014_0015:4 + {2018,第17题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "eac981e5aeec6311852cf887279eab41b21d7cf925076972609deeb8aa91e957",
+        "decision_identity_sha256": "bdbc35e9fd1102f6415f5cc083eaf710cc6b55e9465dc5bdb0276a42ff67e117",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "eac981e5aeec6311852cf887279eab41b21d7cf925076972609deeb8aa91e957",
+          "reviewed_decision_sha256": "bdbc35e9fd1102f6415f5cc083eaf710cc6b55e9465dc5bdb0276a42ff67e117",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2191,10 +2321,12 @@
         "source_anchor": "{2018,第17题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "5a30bdb5734d6b14f11aad75f9002582933c87eb55f0ff2ce113f048300e1263",
+        "decision_identity_sha256": "a06b720bb5ea5c38bf410ed6f8cb4de864f49faa15ebe83fcf0cf7304c97dbf3",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "5a30bdb5734d6b14f11aad75f9002582933c87eb55f0ff2ce113f048300e1263",
+          "reviewed_decision_sha256": "a06b720bb5ea5c38bf410ed6f8cb4de864f49faa15ebe83fcf0cf7304c97dbf3",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2224,10 +2356,12 @@
         "source_anchor": "{2018,第17题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "c932f59be65c45a1469deeb2195ae5cada197a8d3af057f69b112315b6641ef2",
+        "decision_identity_sha256": "dde65115d9d72042646ba17ca2070d5e6d927a28ae1ba07242239549f21ba701",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "c932f59be65c45a1469deeb2195ae5cada197a8d3af057f69b112315b6641ef2",
+          "reviewed_decision_sha256": "dde65115d9d72042646ba17ca2070d5e6d927a28ae1ba07242239549f21ba701",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2257,10 +2391,12 @@
         "source_anchor": "{2018,第17题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "ded737b0fff54a417428669bb1c7547c7ccdaa3426b5eaa01b014cfba536dcac",
+        "decision_identity_sha256": "13c10c40ffb8ae0fb490a454309b665976c58ea8820db6e6dbbf41abb540210e",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "ded737b0fff54a417428669bb1c7547c7ccdaa3426b5eaa01b014cfba536dcac",
+          "reviewed_decision_sha256": "13c10c40ffb8ae0fb490a454309b665976c58ea8820db6e6dbbf41abb540210e",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2290,10 +2426,12 @@
         "source_anchor": "{2023,第1题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "5a6e1e4e7035c7d99bf8cd8e2da7afa38603f62171a9c57a2b57afc32059d3fe",
+        "decision_identity_sha256": "66c82bb73eb1e5c6fde806e33b0d5be1ba20d956e370142a54f1aef121242c41",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "5a6e1e4e7035c7d99bf8cd8e2da7afa38603f62171a9c57a2b57afc32059d3fe",
+          "reviewed_decision_sha256": "66c82bb73eb1e5c6fde806e33b0d5be1ba20d956e370142a54f1aef121242c41",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2323,10 +2461,12 @@
         "source_anchor": "{2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "e16e05d99239308ed3d43c5ecf2aad457ad52568fa2985f97e465f3ec0e4e1b6",
+        "decision_identity_sha256": "a33f3c2273f5022d2537e8b5672e7c839926d58c5a94110857acf218c78c3df5",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "e16e05d99239308ed3d43c5ecf2aad457ad52568fa2985f97e465f3ec0e4e1b6",
+          "reviewed_decision_sha256": "a33f3c2273f5022d2537e8b5672e7c839926d58c5a94110857acf218c78c3df5",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2356,10 +2496,12 @@
         "source_anchor": "{2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "2c833f5c43ef5e63587ac7dda5db5729a63b2ef8192f6d4b7390ac72ee92f436",
+        "decision_identity_sha256": "f82b20339f4c17f11e7aac4c26ce6b35c2f4f71919c357e150dacd452be7bc8b",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "2c833f5c43ef5e63587ac7dda5db5729a63b2ef8192f6d4b7390ac72ee92f436",
+          "reviewed_decision_sha256": "f82b20339f4c17f11e7aac4c26ce6b35c2f4f71919c357e150dacd452be7bc8b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2389,10 +2531,12 @@
         "source_anchor": "{2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "662417673b253d624a6613de842cfa5f85699920a5e5e29896dafaf864035856",
+        "decision_identity_sha256": "0ce8b8ff594e63879606ea8347310f0be3bec513fda1fb077826d81a562c8bbc",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "662417673b253d624a6613de842cfa5f85699920a5e5e29896dafaf864035856",
+          "reviewed_decision_sha256": "0ce8b8ff594e63879606ea8347310f0be3bec513fda1fb077826d81a562c8bbc",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2422,10 +2566,12 @@
         "source_anchor": "{2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "29b500254758bc6c485a8a76aacd54d47d716c9ccbed779261f25689caf8c25f",
+        "decision_identity_sha256": "f9b89671d4456c61f6c109236635fc8229d8c99eaac0bf415d08eea5b7f2c6aa",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "29b500254758bc6c485a8a76aacd54d47d716c9ccbed779261f25689caf8c25f",
+          "reviewed_decision_sha256": "f9b89671d4456c61f6c109236635fc8229d8c99eaac0bf415d08eea5b7f2c6aa",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2455,10 +2601,12 @@
         "source_anchor": "{2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "0dd4a462fbd3dc3e79c1feaffb978794fc8b1626d4b30c2597151472b58c0bfd",
+        "decision_identity_sha256": "9a35459399e09f95d237789b4c6e211ac027d1a40cca2bd906d0a6c2ab383e4d",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "0dd4a462fbd3dc3e79c1feaffb978794fc8b1626d4b30c2597151472b58c0bfd",
+          "reviewed_decision_sha256": "9a35459399e09f95d237789b4c6e211ac027d1a40cca2bd906d0a6c2ab383e4d",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2488,10 +2636,12 @@
         "source_anchor": "{2017,第2题}",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
         "content_sha256": "a0541c6f2712db179989cd2afc9fad30d6defb3f418789b8fdfbc2b16ed52b97",
+        "decision_identity_sha256": "59ec3439fcbd0e921adb9985609c77714fcda5a805206e4ffa00ed9d71ed984e",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "a0541c6f2712db179989cd2afc9fad30d6defb3f418789b8fdfbc2b16ed52b97",
+          "reviewed_decision_sha256": "59ec3439fcbd0e921adb9985609c77714fcda5a805206e4ffa00ed9d71ed984e",
           "signatures": [],
           "checks": {
             "source_verified": false,

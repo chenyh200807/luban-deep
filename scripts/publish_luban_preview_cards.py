@@ -1508,18 +1508,32 @@ def write_practice_audit_packet(
 def write_variant_audit_packet(station_id: str) -> list[str]:
     """--kind variant：只写签发变体银行的决策卡审核包；不发布、不代签、
     不改 bank/blocklist（设计：docs/plan/鲁班移动端提分闭环/
-    2026-07-16-variant-eligibility-design.md）。"""
-    from deeptutor.services.luban_lesson.read_model import _variant_blocklist
+    2026-07-16-variant-eligibility-design.md）。
+
+    bank 读取复用 runtime 同一签发闸 ``_load_signed_bank``（manifest sha +
+    signed 双 fail-closed，对抗审查 B3）——禁 raw 第二 loader，人审面与
+    runtime 面必须看到同一份真值。"""
+    from deeptutor.services.luban_lesson.read_model import (
+        _load_manifest,
+        _load_signed_bank,
+        _variant_blocklist,
+    )
     from deeptutor.services.luban_lesson.variant_eligibility import (
         build_variant_review_packet,
     )
 
     pack_id = station_id.upper()
-    bank_path = VARIANT_BANK_DIR / f"_{pack_id}_variant_bank.v0.json"
-    try:
-        bank = json.loads(bank_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise TransformError(f"variant bank unreadable: {pack_id}") from exc
+    manifest = _load_manifest(VARIANT_BANK_DIR / "_pack_manifest.json")
+    expected_sha = ""
+    for pack in manifest.get("packs") or []:
+        if str(pack.get("pack_id") or "").strip().upper() == pack_id:
+            expected_sha = str(pack.get("content_sha256") or "")
+            break
+    bank = _load_signed_bank(pack_id, VARIANT_BANK_DIR, expected_sha)
+    if bank is None:
+        raise TransformError(
+            f"variant bank not signed / sha mismatch / unreadable: {pack_id}"
+        )
     packet = build_variant_review_packet(
         bank, blocked=_variant_blocklist(VARIANT_BANK_DIR)
     )

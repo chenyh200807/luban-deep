@@ -11,6 +11,12 @@
 - **内容 identity**：``content_sha256`` 覆盖变体内容载荷 **加 temptation /
   loss_reason 富化文案**——签后改文案即 ``reviewed_content_sha256`` 失配，
   fail-closed（与 compiled MCQ 的 options 内含富化被 content_sha256 覆盖同构）。
+- **决策 identity**：``decision_identity_sha256``（不可递归，覆盖
+  ``content_sha256 + fact_id + skeleton_id + probe_role + source_anchor +
+  source_sha256``）把治理字段一并绑进人签——review 以
+  ``reviewed_decision_sha256`` 绑定该摘要，且 ``source_sha256`` 必须等于
+  bank 的 ``source_pack_sha256``；签后改任一治理字段即 identity 断裂，
+  fail-closed（对抗审查 B1）。
 - **fail-closed**：decision 块缺失/形状错/sha 失配/probe_role 非法/blocklist
   不可读/bank 未签发——一律不 eligible，绝不半开。
 
@@ -78,6 +84,17 @@ _DECISION_STR_FIELDS = (
     "source_anchor",
     "source_sha256",
     "content_sha256",
+    "decision_identity_sha256",
+)
+
+# 决策 identity 覆盖的治理字段（不含 identity 自身与 review——不可递归）。
+_DECISION_IDENTITY_FIELDS = (
+    "content_sha256",
+    "fact_id",
+    "skeleton_id",
+    "probe_role",
+    "source_anchor",
+    "source_sha256",
 )
 
 
@@ -91,11 +108,22 @@ def variant_content_sha256(
     return _canonical_sha256(payload)
 
 
-def _pending_review(content_sha256: str) -> dict[str, Any]:
+def decision_identity_sha256(decision: dict[str, Any]) -> str:
+    """决策治理 identity：content_sha256 + fact/skeleton/probe_role/source 锚。
+
+    review 以 ``reviewed_decision_sha256`` 绑定此摘要——签后改任一治理字段
+    （把已审事实重挂到另一个 fact/role/source）即摘要失配，fail-closed。
+    """
+    payload = {key: str(decision.get(key) or "") for key in _DECISION_IDENTITY_FIELDS}
+    return _canonical_sha256(payload)
+
+
+def _pending_review(content_sha256: str, identity_sha256: str) -> dict[str, Any]:
     return {
         "status": "pending",
         "verdict": "pending",
         "reviewed_content_sha256": content_sha256,
+        "reviewed_decision_sha256": identity_sha256,
         "signatures": [],
         "checks": {name: False for name in _REVIEW_CHECKS},
     }
@@ -111,25 +139,56 @@ def _decision_shape_ok(decision: Any) -> bool:
     return isinstance(decision.get("review"), dict)
 
 
+def _decision_identity_error(
+    variant: dict[str, Any],
+    decision: dict[str, Any],
+    *,
+    source_pack_sha256: str,
+) -> str | None:
+    """完整 identity 校验；返回失配原因（``None`` = identity 完好）。
+
+    校验链（对抗审查 B1）：内容摘要 → source 必须等于 bank 的
+    ``source_pack_sha256`` → 决策治理摘要 → review 绑定决策摘要。
+    """
+    expected_content = variant_content_sha256(
+        variant,
+        temptation=str(decision.get("temptation") or ""),
+        loss_reason=str(decision.get("loss_reason") or ""),
+    )
+    if decision.get("content_sha256") != expected_content:
+        return "content_sha256 与当前变体内容/富化文案失配"
+    if decision.get("source_sha256") != source_pack_sha256:
+        return "source_sha256 与 bank.source_pack_sha256 失配"
+    if decision.get("decision_identity_sha256") != decision_identity_sha256(decision):
+        return "decision_identity_sha256 与治理字段失配（签后治理字段被改）"
+    review = decision.get("review")
+    if not isinstance(review, dict) or review.get(
+        "reviewed_decision_sha256"
+    ) != decision.get("decision_identity_sha256"):
+        return "review 未绑定当前 decision_identity_sha256"
+    return None
+
+
 def variant_governance_item(
-    variant: dict[str, Any], *, blocked: set[str]
+    variant: dict[str, Any], *, blocked: set[str], source_pack_sha256: str
 ) -> dict[str, Any] | None:
     """bank 原位 decision 块 → practice 资格门的治理形状 item。
 
-    fail-closed：decision 缺失/形状错/content_sha256 与当前变体内容失配 →
+    fail-closed：decision 缺失/形状错/content 或决策 identity 与当前变体
+    失配/source_sha256 不等于 bank 的 source_pack_sha256 →
     ``None``（与未签同形）。``revoked`` 从 blocklist **派生**（单一撤发 authority）。
     """
     decision = variant.get("decision")
     if not _decision_shape_ok(decision):
         return None
     assert isinstance(decision, dict)  # narrowed by _decision_shape_ok
-    expected_sha = variant_content_sha256(
-        variant,
-        temptation=str(decision["temptation"]),
-        loss_reason=str(decision["loss_reason"]),
-    )
-    if decision["content_sha256"] != expected_sha:
-        return None  # 签后内容/文案被改，identity 断裂
+    if (
+        _decision_identity_error(
+            variant, decision, source_pack_sha256=source_pack_sha256
+        )
+        is not None
+    ):
+        return None  # 签后内容/文案/治理字段被改，identity 断裂
     if decision["probe_role"] not in VARIANT_PROBE_ROLES:
         return None  # anchor 首验归 compiled MCQ，变体不得占位
     variant_id = str(variant.get("variant_id") or "").strip()
@@ -151,6 +210,7 @@ def variant_governance_item(
         "source_anchor": str(decision["source_anchor"]),
         "source_sha256": str(decision["source_sha256"]),
         "content_sha256": str(decision["content_sha256"]),
+        "decision_identity_sha256": str(decision["decision_identity_sha256"]),
         "review": decision["review"],
         "revoked": variant_id in blocked,
         "revocation_refs": [],
@@ -173,11 +233,14 @@ def eligible_variant_items(
     不可读，整体 fail-closed 返回空。extension 变体永不服务（既有裁决）。"""
     if blocked is None or not _bank_signed(bank):
         return []
+    source_pack_sha256 = str(bank.get("source_pack_sha256") or "")
     items: list[dict[str, Any]] = []
     for variant in bank.get("variants") or []:
         if not isinstance(variant, dict) or variant.get("extension"):
             continue
-        item = variant_governance_item(variant, blocked=blocked)
+        item = variant_governance_item(
+            variant, blocked=blocked, source_pack_sha256=source_pack_sha256
+        )
         if item is not None and _eligible(item):
             items.append(item)
     return items
@@ -218,11 +281,14 @@ def build_variant_review_packet(
     bank: dict[str, Any], *, blocked: set[str] | None
 ) -> dict[str, Any]:
     """人审工作包（决策卡输入）：逐条 pending，机器绝不代签；已 bake 的
-    decision 原样透出（复审场景）。extension 变体如实入包并标记（不服务）。"""
+    decision 透出前先过完整 identity 校验（对抗审查 B3）——identity 失配的
+    条目只能标 ``stale/invalid`` 并给原因，绝不保留 signed 外观，防止人审
+    真值与 runtime 真值分叉。extension 变体如实入包并标记（不服务）。"""
     rows: list[dict[str, Any]] = []
     eligible_ids = {
         item["variant_id"] for item in eligible_variant_items(bank, blocked=blocked)
     }
+    source_pack_sha256 = str(bank.get("source_pack_sha256") or "")
     for variant in bank.get("variants") or []:
         if not isinstance(variant, dict):
             continue
@@ -239,10 +305,25 @@ def build_variant_review_packet(
                 "temptation": "",
                 "loss_reason": "",
                 "source_anchor": str(variant.get("anchor") or ""),
-                "source_sha256": str(bank.get("source_pack_sha256") or ""),
+                "source_sha256": source_pack_sha256,
                 "content_sha256": content_sha,
-                "review": _pending_review(content_sha),
             }
+            decision["decision_identity_sha256"] = decision_identity_sha256(decision)
+            decision["review"] = _pending_review(
+                content_sha, decision["decision_identity_sha256"]
+            )
+        else:
+            assert isinstance(decision, dict)  # narrowed by _decision_shape_ok
+            identity_error = _decision_identity_error(
+                variant, decision, source_pack_sha256=source_pack_sha256
+            )
+            if identity_error is not None:
+                # 题面/文案/治理字段签后漂移：人审面绝不显示旧 signed 外观。
+                review = dict(decision.get("review") or {})
+                review["status"] = "stale"
+                review["verdict"] = "invalid"
+                review["stale_reason"] = identity_error
+                decision = dict(decision, review=review)
         rows.append(
             {
                 "variant_id": variant.get("variant_id"),
@@ -281,12 +362,22 @@ def resolve_variant_supply(
     pack_id: str, *, manifest_path: Path | None = None
 ) -> dict[str, Any] | None:
     """经同一签发闸（``_load_signed_bank`` signed+sha 双 fail-closed +
-    ``_variant_blocklist``）解析一个 pack 的变体资格供给；任一闸不过 → None。"""
+    ``_variant_blocklist``）解析一个 pack 的变体资格供给；任一闸不过 → None。
+
+    canonical 发布门（对抗审查 B2）：pack 必须在 manifest 的
+    ``projection_green`` 内——被撤回/未发布的 pack 即使 bank 仍 signed 且
+    sha 匹配，也不得越过绿灯供给变体。"""
     normalized = str(pack_id or "").strip().upper()
     if not normalized:
         return None
     path = manifest_path or _MANIFEST_PATH
     manifest = _load_manifest(path)
+    green = {
+        str(green_id or "").strip().upper()
+        for green_id in manifest.get("projection_green") or []
+    }
+    if normalized not in green:
+        return None  # 非绿灯 pack 不供给（与 pack 缺失同形，不泄漏存在性）
     expected_sha = ""
     for pack in manifest.get("packs") or []:
         if str(pack.get("pack_id") or "").strip().upper() == normalized:
@@ -312,6 +403,7 @@ __all__ = [
     "VARIANT_PROBE_ROLES",
     "VARIANT_REVIEW_PACKET_SCHEMA",
     "build_variant_review_packet",
+    "decision_identity_sha256",
     "eligible_variant_items",
     "resolve_variant_supply",
     "variant_content_sha256",

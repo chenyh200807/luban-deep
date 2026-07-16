@@ -736,3 +736,54 @@ def test_variant_audit_packet_missing_bank_fails_closed(
     monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", tmp_path / "empty")
     with pytest.raises(_mod.TransformError):
         _mod.write_variant_audit_packet("s05")
+
+
+def test_variant_audit_packet_reuses_signing_gate_no_raw_loader(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """对抗审查 B3：审核包入口必须走 manifest sha + signed 同一签发闸——
+    sha 漂移或 candidate 状态的 bank 一律 fail-closed，禁 raw 第二 loader。"""
+    bank_dir = tmp_path / "banks"
+    bank_dir.mkdir()
+    (bank_dir / "_pack_manifest.json").write_text(
+        json.dumps(
+            {
+                "projection_green": ["S05"],
+                "packs": [{"pack_id": "S05", "content_sha256": "a" * 64}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    bank_path = bank_dir / "_S05_variant_bank.v0.json"
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
+
+    # sha 漂移：bank signed 但与 manifest 登记的 pack sha 失配
+    bank_path.write_text(
+        json.dumps(
+            {
+                "pack_id": "S05",
+                "status": "signed",
+                "source_pack_sha256": "b" * 64,
+                "variants": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+
+    # candidate 状态：未签发 bank 不产人审包
+    bank_path.write_text(
+        json.dumps(
+            {
+                "pack_id": "S05",
+                "status": "candidate",
+                "source_pack_sha256": "a" * 64,
+                "variants": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
