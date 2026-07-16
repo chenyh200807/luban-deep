@@ -567,8 +567,15 @@ Overlay 必须支持：
 
 1. 组合规则只存在这一份（`learner_state/home_next_step_projection.py`）：
    `到期复（revalidation_queue 有 due probe）> 活跃练（training_intent 有
-   active intent）> 下一学（路线上第一个 未学∧绿灯签发 的站）> fallback
-   （registry 静态序第一个绿灯站 + 群体理由）`。**禁前端/各 tab 再拼一次。**
+   active intent 且 target pack 可路由）> 下一学（路线上第一个 未学∧绿灯签发
+   的站）> fallback（registry 静态序第一个绿灯站 + 群体理由）`。
+   **禁前端/各 tab 再拼一次。** 活跃练的「可路由」= caller 传入的
+   `green_lessons` read-model 行上 `绿灯 ∧ retest_available`（现有供给真值，
+   禁造第二真值；缺字段与停发同形 fail-closed）。解析不出可路由 target 的
+   practice intent **不得胜出**（2026-07-16 QA：F16/X03 停发后空 target 的
+   `practice_active` 胜出 → 前端对空 pack fail-closed → 任务卡永久隐藏、
+   learn_next 被遮蔽）——跳过落到下一优先级臂，且不静默丢：保留在
+   `skipped_intents` diagnostic（仅诊断字段，非第二处方，前端不据此路由）。
 2. 输出必须带 `mode / source_authority / source_ref / reason` 四字段——每个
    「下一步」可审计来自哪个权威。
 3. 铁律：禁写 ledger、禁生成/修改 `training_intent`、禁改 revalidation 状态。
@@ -927,7 +934,11 @@ learner_memory_events(memory_kind=learning_evidence)`；中途状态只允许保
 7. 训练方向只允许由既有 `build_learning_training_intent()` 生成，首页继续只读消费
    `home_next_step_projection`。first-run wrapper 不得按错题数另写一套正式推荐。
    question→pack 映射必须由 source-backed resolver 与当前 green+signed-retest supply 共同
-   验证；映射不写进仅绑定题面 hash 的 manifest。处方只能引用 focus item evidence，
+   验证；映射不写进仅绑定题面 hash 的 manifest。映射表为每题声明**有序候选序列**
+   （source-backed 教研映射，可扩），resolver 取第一个 supply-ready
+   （`绿灯 ∧ retest_available` read-model 真值）的候选——不硬编码任何 pack 字面
+   特权；候选全不可用时诚实返回无 pack 绑定（空 target），不臆造第二真值。
+   处方只能引用 focus item evidence，
    `training_intent_id/probe_id` 是来源身份，进入站点必须另读 `target_pack_id`。
 8. 本地 DONE 只是 UI cache。只有服务端 writeback 成功才算 canonical 完成；弱网时报告可先
    展示，但必须标为待同步，并使用同一个 `completion_id` 重试。
