@@ -5,7 +5,7 @@
   "source_bundle_sha256": "0f29e07b665daee24732f088dc920addc515aa5ff187d97ec5acd8f980173360",
   "compiled_schema_version": "luban_compiled_practice.v3",
   "candidate_count": 16,
-  "eligible_count": 7,
+  "eligible_count": 0,
   "human_gate": {
     "required_roles": [
       "teaching",
@@ -62,35 +62,23 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q1",
       "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
       "decision": {
-        "fact_id": "n01-fact-critical-work-zero-float",
-        "skeleton_id": "n01-skel-判据直接判定",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A433000_056_0085:1",
-        "source_sha256": "dd3fb5d7e9e6208c78daf5371fff39c3213342644164430c8b8095c204901f51",
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
         "review": {
-          "status": "signed",
-          "verdict": "approved",
+          "status": "pending",
+          "verdict": "pending",
           "reviewed_content_sha256": "0cff11be6f2738254619db5817f4ff2a3090ea9f3f3a1dcf822834a9a6336f15",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            }
-          ],
+          "signatures": [],
           "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "合议签发:答案两面板独立重解一致;锚为教材chunk内派生卡,散文原文语义等价背书(3b92d0f8)。工单:opt3 temptation补条件限定、opt4 fix删无图线路示例"
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
         },
         "revoked": false,
         "revocation_refs": []
@@ -144,35 +132,23 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q2",
       "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
       "decision": {
-        "fact_id": "n01-fact-parallel-critical-paths",
-        "skeleton_id": "n01-skel-线路全列作答",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2015:案例1",
-        "source_sha256": "80857e96a7b891bb46a4cf55a1da70802b1e011f9ceae82aade439ff591593f4",
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
         "review": {
-          "status": "signed",
-          "verdict": "approved",
+          "status": "pending",
+          "verdict": "pending",
           "reviewed_content_sha256": "dfc828ca736b3ec53129165230f41c6b9c4910ea6f98186d836f64a71f8667b0",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            }
-          ],
+          "signatures": [],
           "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "合议签发:11=11>8两面板重算一致;quote为空白规范化命中(零内容差异);题干'拿全分'口径唯一解成立"
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
         },
         "revoked": false,
         "revocation_refs": []
@@ -226,35 +202,23 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q3",
       "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
       "decision": {
-        "fact_id": "n01-fact-duration-along-critical-path",
-        "skeleton_id": "n01-skel-求和计算表达",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2015:案例1",
-        "source_sha256": "80857e96a7b891bb46a4cf55a1da70802b1e011f9ceae82aade439ff591593f4",
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
         "review": {
-          "status": "signed",
-          "verdict": "approved",
+          "status": "pending",
+          "verdict": "pending",
           "reviewed_content_sha256": "77eaa87134ae0be4d860968325dd53b5e10d15a334d20c6305df99d0ce3e935f",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            }
-          ],
+          "signatures": [],
           "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "合议签发:算术25=25自洽锚;工单:题干'可得分'第二批改'能拿全分'(与q2对齐,消除opt4边界模糊)"
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
         },
         "revoked": false,
         "revocation_refs": []
@@ -308,35 +272,23 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q4",
       "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
       "decision": {
-        "fact_id": "n01-fact-dummy-activity-logic",
-        "skeleton_id": "n01-skel-补虚工作程序",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2015:案例1",
-        "source_sha256": "80857e96a7b891bb46a4cf55a1da70802b1e011f9ceae82aade439ff591593f4",
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
         "review": {
-          "status": "signed",
-          "verdict": "approved",
+          "status": "pending",
+          "verdict": "pending",
           "reviewed_content_sha256": "2df42340539e52250a84e8ad73b4c4df62899a8973a223b099c604cb5c7e17b7",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            }
-          ],
+          "signatures": [],
           "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "合议签发:与2015真题情境同源(语义改写非逐字);虚工作口径2026无变"
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
         },
         "revoked": false,
         "revocation_refs": []
@@ -390,35 +342,23 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q5",
       "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
       "decision": {
-        "fact_id": "n01-fact-critical-work-zero-float",
-        "skeleton_id": "n01-skel-时差取值计算",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "exam:2018:案例分析(二)问题1-4",
-        "source_sha256": "80857e96a7b891bb46a4cf55a1da70802b1e011f9ceae82aade439ff591593f4",
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
         "review": {
-          "status": "signed",
-          "verdict": "approved",
+          "status": "pending",
+          "verdict": "pending",
           "reviewed_content_sha256": "42263b7862f67d6d4e5770931e476247fabbfb44a1b0a94581b9a29ce96ae55b",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            }
-          ],
+          "signatures": [],
           "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "合议签发:TF=0留观项经2018官答+教材双源洗白;2018电缆FF毛刺不落本题(管道安装双evidence一致);quote为跨字段拼接已标注"
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
         },
         "revoked": false,
         "revocation_refs": []
@@ -612,35 +552,23 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q8",
       "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
       "decision": {
-        "fact_id": "n01-fact-critical-work-zero-float",
-        "skeleton_id": "n01-skel-延误后果判读",
-        "probe_role": "d1_probe",
-        "source_anchor": "exam:2024:案例题（二）",
-        "source_sha256": "80857e96a7b891bb46a4cf55a1da70802b1e011f9ceae82aade439ff591593f4",
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
         "review": {
-          "status": "signed",
-          "verdict": "approved",
+          "status": "pending",
+          "verdict": "pending",
           "reviewed_content_sha256": "bfc2c89e66472bb9646fb63c49f1ad0c03eac1071c0d4e1b78cc147fa435685d",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            }
-          ],
+          "signatures": [],
           "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "合议签发:max(0,1-0)=1数学无条件成立;锚为规则级支撑(2024解析,责任/关键线路双因素已由opt3用户面文本正确拆分);工单:'顺延'措辞第二批改'计算工期增加'"
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
         },
         "revoked": false,
         "revocation_refs": []
@@ -1184,35 +1112,23 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q16",
       "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
       "decision": {
-        "fact_id": "n01-fact-parallel-critical-paths",
-        "skeleton_id": "n01-skel-诊断纠错",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2015:案例1",
-        "source_sha256": "80857e96a7b891bb46a4cf55a1da70802b1e011f9ceae82aade439ff591593f4",
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
         "review": {
-          "status": "signed",
-          "verdict": "approved",
+          "status": "pending",
+          "verdict": "pending",
           "reviewed_content_sha256": "fe584c954777e7b7c021a152eb6d128a0e54291820bbc5057bf5f7d45098c6ba",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-              "signed_at": "2026-07-16T16:05:00+08:00"
-            }
-          ],
+          "signatures": [],
           "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "合议签发带注:正确项1.50×全包最长(实测坐实)+语义指纹(重述题干),测评效度弱、教学价值(诊断规范)保留;forward=L0非晋升可容忍;工单:干扰项增肥"
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
         },
         "revoked": false,
         "revocation_refs": []

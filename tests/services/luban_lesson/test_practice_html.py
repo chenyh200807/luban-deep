@@ -326,11 +326,10 @@ def test_compiled_and_unavailable_pack_sets_are_exact() -> None:
     assert unavailable == {"E01"}
 
 
-@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
-def test_conflict_packs_remain_default_denied_until_exact_human_signatures(
+@pytest.mark.parametrize("pack_id", ["N01", "S05", "X01"])
+def test_candidate_packs_remain_default_denied_until_exact_human_signatures(
     pack_id: str,
 ) -> None:
-    """已知内容冲突包(blocklist 命中)在 S1b 裁决前必须整包默认拒发。"""
     canonical = load_compiled_practice(pack_id)
     assert canonical is not None
     assert canonical["schema_version"] == "luban_compiled_practice.v3"
@@ -340,48 +339,19 @@ def test_conflict_packs_remain_default_denied_until_exact_human_signatures(
         project_compiled_practice(pack_id, selection_key="qa_eval_candidate:2026196:forward")
 
 
-def test_every_compiled_surface_fails_closed_unless_supply_ready() -> None:
-    """数据驱动:supply_ready 的包放行且只发签发集合;其余一律 fail-close 不回退。"""
+def test_every_pending_compiled_surface_fails_closed_instead_of_falling_back() -> None:
     for pack_id in _compiled_pack_ids():
         authority = load_compiled_practice(pack_id)
         assert authority is not None
-        summary = compiled_practice_eligibility_summary(authority)
-        eligible_ids = {
-            item["variant_id"] for item in authority["items"] if item["eligible"] is True
-        }
         for surface in authority["surfaces"]:
             surface_id = surface["surface_id"]
-            if summary["supply_ready"]:
-                rows = project_compiled_practice(
+            assert surface["eligible_variant_ids"] == []
+            with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):
+                project_compiled_practice(
                     pack_id,
                     surface_id=surface_id,
                     selection_key=f"qa_eval_all_surfaces:2026196:{surface_id}",
                 )
-                assert rows, f"{pack_id}/{surface_id} supply_ready 却未发题"
-                assert {row["variant_id"] for row in rows} <= eligible_ids
-            else:
-                assert surface["eligible_variant_ids"] == []
-                with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):
-                    project_compiled_practice(
-                        pack_id,
-                        surface_id=surface_id,
-                        selection_key=f"qa_eval_all_surfaces:2026196:{surface_id}",
-                    )
-
-
-def test_n01_first_batch_signed_supply_ready_and_serves_eligible_only() -> None:
-    """首批签发终态钉死:N01 七题签发、fact 三件套齐、投影只出签发集合。"""
-    canonical = load_compiled_practice("N01")
-    assert canonical is not None
-    summary = compiled_practice_eligibility_summary(canonical)
-    assert summary["supply_ready"] is True
-    assert summary["eligible_question_count"] == 7
-    assert summary["complete_fact_ids"] == ["n01-fact-critical-work-zero-float"]
-    eligible_ids = {
-        item["variant_id"] for item in canonical["items"] if item["eligible"] is True
-    }
-    rows = project_compiled_practice("N01", selection_key="qa_eval_signed:2026196:forward")
-    assert rows and {row["variant_id"] for row in rows} <= eligible_ids
 
 
 def test_public_projection_contains_only_compiled_questions_and_server_bridge() -> None:
