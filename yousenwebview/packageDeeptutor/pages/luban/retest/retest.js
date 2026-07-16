@@ -17,31 +17,74 @@ const auth = require("../../../utils/auth");
 
 var RETEST_LIMIT = 5;
 
+// 桥接 query 解码兜底(QA 死证):compiled practice HTML 注入器把 answers/projection_receipt
+// 用 encodeURIComponent 编码进跳转 URL(practice_html.py __dtRedirectEvidence);DevTools 实测
+// wx 导航路径把 query 原样保持 percent-encoded(`answers` 以 %5B%7B%22 开头) → 裸 JSON.parse 抛错
+// → 用户看到"题目内容已更新，请返回重新完成五题"。真机 web-view JSSDK 可能自动解码一次(未知),
+// 故两种行为都必须安全。策略:先直接用,失败且仍含 '%' 才 decodeURIComponent 一层再试;有界循环
+// 兼容双重编码(%25...)。幂等:已解码输入直接成功即返回,不会二次解码;裸 % 不会出现在合法 JSON/
+// base64url token 里(variant/option id 为连字符字母数字,receipt 为 base64url),故安全。
+var BRIDGE_DECODE_MAX_HOPS = 4;
+
+// 逐层 decodeURIComponent,直到不再含 '%'、无变化、或解码抛错为止。对无 '%' 的输入是恒等。
+function decodeBridgeToken(raw) {
+  var candidate = String(raw == null ? "" : raw);
+  for (var hop = 0; hop < BRIDGE_DECODE_MAX_HOPS && candidate.indexOf("%") !== -1; hop += 1) {
+    var decoded;
+    try {
+      decoded = decodeURIComponent(candidate);
+    } catch (_error) {
+      break;
+    }
+    if (decoded === candidate) break;
+    candidate = decoded;
+  }
+  return candidate;
+}
+
+// 先直接 JSON.parse(真机可能已解码一次);失败且含 '%' 才逐层解码重试。返回 {ok, value}。
+function parseBridgeJson(raw) {
+  var candidate = String(raw == null ? "" : raw);
+  for (var hop = 0; hop <= BRIDGE_DECODE_MAX_HOPS; hop += 1) {
+    try {
+      return { ok: true, value: JSON.parse(candidate) };
+    } catch (_error) {
+      if (candidate.indexOf("%") === -1) break;
+      var decoded;
+      try {
+        decoded = decodeURIComponent(candidate);
+      } catch (_decodeError) {
+        break;
+      }
+      if (decoded === candidate) break;
+      candidate = decoded;
+    }
+  }
+  return { ok: false, value: null };
+}
+
 function parseBridgeReceipt(query, mode) {
   if (mode !== "forward" || String((query && query.presentation) || "") !== "receipt") {
     return { requested: false, projectionReceipt: "", answers: [] };
   }
-  var projectionReceipt = String((query && query.projection_receipt) || "").trim();
-  var raw = String((query && query.answers) || "").trim();
-  try {
-    var answers = JSON.parse(raw);
-    var variantIds = {};
-    if (
-      !projectionReceipt ||
-      !Array.isArray(answers) ||
-      answers.length !== RETEST_LIMIT ||
-      answers.some(function (answer) {
-        var variantId = String((answer && answer.variant_id) || "").trim();
-        var optionId = String((answer && answer.selected_option_id) || "").trim();
-        if (!variantId || !optionId || variantIds[variantId]) return true;
-        variantIds[variantId] = true;
-        return false;
-      })
-    ) return null;
-    return { requested: true, projectionReceipt: projectionReceipt, answers: answers };
-  } catch (_error) {
-    return null;
-  }
+  var projectionReceipt = decodeBridgeToken((query && query.projection_receipt) || "").trim();
+  var parsed = parseBridgeJson(String((query && query.answers) || "").trim());
+  if (!parsed.ok) return null;
+  var answers = parsed.value;
+  var variantIds = {};
+  if (
+    !projectionReceipt ||
+    !Array.isArray(answers) ||
+    answers.length !== RETEST_LIMIT ||
+    answers.some(function (answer) {
+      var variantId = String((answer && answer.variant_id) || "").trim();
+      var optionId = String((answer && answer.selected_option_id) || "").trim();
+      if (!variantId || !optionId || variantIds[variantId]) return true;
+      variantIds[variantId] = true;
+      return false;
+    })
+  ) return null;
+  return { requested: true, projectionReceipt: projectionReceipt, answers: answers };
 }
 
 // 两种取题模式共用本页（复用同一 retest 页/内核，不建第二答题页）：
