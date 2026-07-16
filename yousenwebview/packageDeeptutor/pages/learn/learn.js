@@ -291,6 +291,27 @@ Page({
     }
   },
 
+  // 轻练旁按钮:供给真值由 view-model 单点裁决(light_practice_available,
+  // 来自 lessons manifest 的 light_practice_available 旗标);页面不重判供给。
+  // 未接通时给诚实空态提示——禁 dead click 假装可用。
+  goLightPractice() {
+    var task = (this.data.vm && this.data.vm.todayTask) || {};
+    if (task.light_practice_available === true && task.pack_id) {
+      this._navTo(
+        "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
+          encodeURIComponent(String(task.pack_id)) +
+          "&mode=forward&training_intent_id=" +
+          encodeURIComponent(
+            String(task.task_state === "practice_active" ? task.training_intent_id || "" : ""),
+          ) +
+          "&probe_id=",
+      );
+      return;
+    }
+    if (typeof wx !== "undefined" && wx.showToast)
+      wx.showToast({ title: "快练准备中", icon: "none" });
+  },
+
   _navTo(url) {
     if (typeof wx !== "undefined" && wx.navigateTo) wx.navigateTo({ url: url });
   },
