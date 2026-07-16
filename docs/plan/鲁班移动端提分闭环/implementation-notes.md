@@ -9,6 +9,15 @@
 
 ## Deviations
 
+### 2026-07-16 晚(receipt SEV-1 生产修复 + 两线三轮对抗收口 + 调度纠偏)
+- **[SEV-1:receipt 双写致视频五题全量死链,owner 真机首测抓获]** 生产 H5 内嵌 receipt(digest 22fe9552…,decision 合并前渲染)≠ artifact receipt(9e270564…,签发后重算含 ordered_source_sha256)→ 服务端全量 `content_updated_retake`。根因=publish 管道 receipt 两个计算时机(`_compile_practice_outputs` 先渲 HTML 后合并 decision)。治本 PR #489:单一来源重排(decision 定稿后从 authority 渲 HTML)+ `--check` 加"HTML 内嵌 receipt == artifact receipt"fail-close 断言 + 4 红测试;全 40 包重发布仅 n01 变(恒等性证明)。部署 fc497ad4(候选分支 release/receipt-fix-20260716;deploy 脚本拒 main 直发一次,正确守门)。**验收=真 receipt 桥接路径活体**:生产 receipt → retest-items 200/5 题/逐字节回显 → complete 200/terminal 真。
+- **[QA 盲区教训]** 上线行为验收曾直连 API 未带 receipt 参数,恰好绕过真实用户必走的桥——发布检查表永久新增:**带真 receipt 的桥接路径活体测试**(owner 真机 > 一切绕行 QA,又一实证)。
+- **[A 线学习页(PR #487+#488,已合 main,1.7.17/1.7.18 已传)]** 旅程轨道+训练/轻练/复习卡落地后,Codex 红队两轮:一轮 4 项 CONFIRMED(旅程假完成态/轻练第二处方/复习卡身份漂移/刷新竞态),二轮 A1/A2 PASS、A3/A4+一处合法态误杀继续收口(严格 === true+拒空、_reviewDueEntry 单一裁决点镜像服务端 resolver、goTodayTask 补 _refreshing 守卫、review 资格不借 forward 旗标)。收口以对抗者复现形状逐字段重放反转为验收。108 Node 文件绿。
+- **[B 线变体资格框架(PR #490,三轮对抗)]** 设计=fact 人签+机器聚类候选、supply kind 保留 signed_variant、富化进 content_sha256;三轮:一轮 B1 治理字段签后可改/S05 48/75 REFUTED(模板无来源机理+判分承诺)/N01 6/43(fact 错挂);二轮 B1 签名信封未绑定/B2 绿灯旁路/B3 人审外观;三轮全部闭合(signature_envelope_sha256、_load_green_signed_bank 唯一 gateway、_packet_signed_appearance_failure 与 runtime 同谓词)。诚实边界:全套重算防御需真密码学签名,摘要方案如实声明。候选重生成 byte 确定,全 pending 零签名,签发待人闸。
+- **[owner 调度纠偏(与"降低 F16 权重"同谱系)]** owner 点破 N01 隧道风险。裁决:结构无 F16 病(零专属分支+参数化测试钉死),但杠杆错位属实——S05/X01 对抗揭示的是编译管道级共病(压缩句冒充教材 quote/计数自铸/限定词删除/83% 长度泄漏/证据 OCR 损伤)。总纲:**下一战役=编译管道修复**(N01 工单并入批处理,不再单点雕刻);S05/X01 按工单轮入 cohort-2;立每周进包节奏指标(目标 8 月中覆盖高考频 15-20 包);学情页收缩与 D+1 触达随后排队。
+- **[待办栈]** 学习页整页 10a 化(owner 定稿设计逐像素,→1.7.19;本轮只落了三模块增量,范围判断失误已认);变体消费接线(轻练/D+3,2-3 天);S05/N01 变体决策卡+委托签发;R487 学习页任务卡依赖 projection 数据,DevTools 无登录态时诚实隐藏(向 owner 解释过,非缺陷)。
+
+
 ### 2026-07-16（V1 最小上线收尾 · B1-B5 四纵切落盘 + B2 服务端回路收口 · 分支 luban/practice-v1-r0)
 - **[跨 AI 交接]** Codex 军团(会话"简化复习并收敛学情模块")按 07-15 计划执行 B1/B2/B3/B5 至半程后由 owner 下停止令;Claude 主控冻结核验(mtime 静默 + 只读三方取证)后接管收尾。工作区 ~3000 行未提交改动按纵切拆为窄提交:`1e32a271`(B3 原子 probe claim + migration + 契约登记)、`7fbb0e2b`(B1 v3 资格字段 + N01/S05/X01 审核包 + exact receipt 供给)、`d2e62d46`(B5 五 Tab 收权 + receipt 桥前端)、`54e4e10c`(锚候选预填)、`1916e620`(红测试收口 + 收据四层诊断)、`aa681d42`(B2 服务端 receipt 回路)。
 - **[偏离:数据盘点文件不入库]** 指挥官原令"数据盘点 260 文件单独 commit 隔离";实际处置为**完全不动**(含 `docs/营销/`、`.codegraph/`、3 个盘点测试)——因其他 Codex 窗口仍在活跃,这批文件疑属在飞工作流,commit 半成品会制造第二次"扫走"事故。待该工作流 owner 自行收尾。
