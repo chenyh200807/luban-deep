@@ -63,6 +63,10 @@ var retestWxml = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/pages/luban/retest/retest.wxml"),
   "utf8",
 );
+var apiSource = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/utils/api.js"),
+  "utf8",
+);
 
 assert.ok(retest.indexOf("completeLubanRetest") >= 0, "retest must use canonical completion endpoint");
 assert.strictEqual(retest.indexOf("postStationCompleted"), -1, "retest page must not be a second station writer");
@@ -81,10 +85,13 @@ assert.strictEqual(f16Practice.indexOf("服务端正在重新判定并更新你�
 assert.ok(
   f16Practice.indexOf("presentation=receipt&pack_id=") >= 0 &&
     f16Practice.indexOf("&practice_surface=") >= 0 &&
-    f16Practice.indexOf("&answer_indexes=") >= 0,
-  "finished practice must enter retest in receipt-only mode after the same five answers",
+    f16Practice.indexOf("&projection_receipt=") >= 0 &&
+    f16Practice.indexOf("&answers=") >= 0,
+  "finished practice must enter retest with exact projection and answer identities",
 );
-assert.ok(retest.indexOf("bridgeAnswerIndexes") >= 0, "receipt-only bridge must map finished HTML answers to canonical option identities");
+assert.strictEqual(f16Practice.indexOf("&answer_indexes="), -1, "H5 must not hand off positional answers");
+assert.strictEqual(retest.indexOf("bridgeAnswerIndexes"), -1, "client must not reinterpret positional answers");
+assert.ok(retest.indexOf("bridgeAnswers") >= 0, "receipt bridge must preserve exact variant and option identities");
 assert.ok(retest.indexOf("selected_option_id") >= 0, "compiled HTML MCQ must submit only selected option identity");
 assert.ok(retest.indexOf("serverCorrectCount") >= 0, "forward score must come back from server rescore");
 assert.strictEqual(handoff.indexOf("luban_retest_due_"), -1, "handoff local storage must not become due authority");
@@ -99,6 +106,9 @@ assert.strictEqual(retestWxml.indexOf("'真懂'"), -1, "the item seal must descr
 assert.ok(retestWxml.indexOf("这是本轮作答结果") >= 0, "the item feedback must remain scoped to the current answer");
 assert.strictEqual(retest.indexOf("handoff/handoff"), -1, "canonical receipt must not be re-projected through a forgeable handoff query");
 assert.ok(retest.indexOf("probe_id: this.data.probeId") >= 0, "review must preserve canonical probe identity");
+assert.ok(retest.indexOf("probeId: this.data.probeId") >= 0, "review GET must carry due probe identity");
+assert.ok(apiSource.indexOf('"&probe_id=" + encodeURIComponent(probeId)') >= 0, "API must transmit review probe identity");
+assert.strictEqual(retest.indexOf("复习页会"), -1, "terminal receipt must route follow-up through learning, not an independent review module");
 assert.ok(retest.indexOf("selection_id: this.data.selectionId") >= 0, "completion must preserve server-issued selection identity");
 assert.ok(review.indexOf("entry.probeId") >= 0, "review due entry must forward probe identity");
 assert.ok(review.indexOf("pack_review") >= 0, "review must consume the unified report pack-review slice");

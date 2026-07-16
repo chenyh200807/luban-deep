@@ -8,6 +8,8 @@ const route = require("../../utils/route");
 const flags = require("../../utils/flags");
 const auth = require("../../utils/auth");
 const reportViewModel = require("../../utils/learning-report-view-model");
+const { buildCanonicalLearningTask } = require("../../utils/learn-view-model");
+const { buildReportHomeViewModel } = require("../../utils/report-home-view-model");
 const reportCache = require("../../utils/report-cache");
 const taxonomy = require("../../utils/taxonomy");
 
@@ -1226,6 +1228,10 @@ function _reportOptionalRead(promise, timeoutMs) {
   });
 }
 
+function _emptyReportHome() {
+  return buildReportHomeViewModel({});
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -1248,6 +1254,10 @@ Page({
     masteryError: false,
     learningBrainError: false,
     learningBrainEmpty: false,
+
+    // B5 精简首页：learning-report 只提供近期证据/盲点；唯一下一步只读
+    // homeDashboard.next_step，经学习页共用翻译器生成。
+    reportHome: _emptyReportHome(),
 
     // 雷达图数据
     radarDimensions: [],
@@ -1444,7 +1454,18 @@ Page({
       hidden: !flags.shouldShowWorkspaceShell(),
       isDark: helpers.isDarkOr("light"),
     });
-    if (!auth.isLoggedIn()) {
+    var loggedIn = auth.isLoggedIn();
+    var reportOwnerId = loggedIn
+      ? String((auth.getUserId && auth.getUserId()) || "").trim()
+      : "";
+    if (this._reportHomeOwnerId !== reportOwnerId) {
+      // 页面实例可能跨登录态复用；先清空上一 owner 的可见首页投影，再读
+      // owner-scoped cache/网络，防止切号瞬间闪出上一位学员的盲点。
+      this._reportHomeOwnerId = reportOwnerId;
+      this._reportSnapshot = null;
+      this.setData({ reportHome: _emptyReportHome() });
+    }
+    if (!loggedIn) {
       this.setData({
         isGuestPreview: true,
         radarLoading: false,
@@ -1485,6 +1506,13 @@ Page({
             REPORT_UNIFIED_READ_TIMEOUT_MS,
           )
         : Promise.resolve(null);
+    const homePromise =
+      typeof api.getHomeDashboard === "function"
+        ? _reportOptionalRead(
+            api.getHomeDashboard({ suppressAuthRedirect: true }),
+            REPORT_UNIFIED_READ_TIMEOUT_MS,
+          )
+        : Promise.resolve(null);
     const report = _unwrapSnapshotItem(
       await _reportOptionalRead(api.getLearningReport(100, optionalReadOpts), REPORT_UNIFIED_READ_TIMEOUT_MS),
     );
@@ -1492,7 +1520,9 @@ Page({
       // 5xx / network failure / payload contract 断裂 → 返回 null 让 _loadReportPage 走显式 fallback
       return null;
     }
-    const lessons = api.unwrapResponse(await lessonsPromise) || null;
+    const supportingReads = await Promise.all([lessonsPromise, homePromise]);
+    const lessons = api.unwrapResponse(supportingReads[0]) || null;
+    const homeDashboard = api.unwrapResponse(supportingReads[1]) || null;
     const overview = report.overview || {};
     const mastery = report.mastery || {};
     const weakNodes = (
@@ -1507,6 +1537,7 @@ Page({
     });
     return {
       report: report,
+      homeDashboard: homeDashboard,
       degraded:
         Boolean(report.degraded) ||
         _learningReportDegradedSources(report).length > 0,
@@ -1608,6 +1639,15 @@ Page({
     var home = (snapshot && snapshot.home) || {};
     var sharedReport = reportViewModel.buildLearningReportViewModel(report);
     var sharedPageData = reportViewModel.toReportPageData(sharedReport);
+    var canonicalLearningTask = buildCanonicalLearningTask({
+      homeDashboard: snapshot && snapshot.homeDashboard,
+      lessons: snapshot && snapshot.lessons,
+    });
+    var reportHome = buildReportHomeViewModel({
+      report: report,
+      reportPageData: sharedPageData,
+      nextTask: canonicalLearningTask,
+    });
     // 掌握地图 40 格(10e 核心):pack_lifecycle × 绿灯 lessons 纯投影
     var masteryMap =
       typeof reportViewModel.buildPackMasteryMap === "function"
@@ -1615,6 +1655,7 @@ Page({
         : this.data.masteryMap;
     this.setData(
       Object.assign({}, sharedPageData, {
+        reportHome: reportHome,
         masteryMap: masteryMap,
         todayDone: overview.today_done || 0,
         dailyTarget: overview.daily_target || 0,
@@ -1803,11 +1844,34 @@ Page({
     });
   },
 
-  // 全页唯一行动键:查看诊断建议 → 深链学习页(不冒充计划写入)
-  absorbDiagnosisIntoPlan() {
+  // 学情首页唯一行动键：仅转发学习页共用的 canonical task，不从诊断卡
+  // 自行生成处方，也不把旧 learningBrain.nextAction 提升成并行 authority。
+  goReportHomeTask() {
+    var home = (this.data && this.data.reportHome) || {};
+    var task = home.nextTask || {};
+    var packId = String(task.pack_id || "").trim();
+    if (!task.cta || !packId) return;
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     helpers.vibrate("light");
     runtime.setWorkspaceBack(route.report(), "学情");
-    var url = route.lubanStations();
+    var url = "";
+    if (task.action_kind === "lesson") {
+      url = route.lubanStation(packId);
+    } else if (task.action_kind === "retest" && task.practice_kind === "retest") {
+      url =
+        "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
+        encodeURIComponent(packId) +
+        "&mode=" +
+        (task.mode === "review" ? "review" : "forward") +
+        "&training_intent_id=" +
+        encodeURIComponent(String(task.training_intent_id || "")) +
+        "&probe_id=" +
+        encodeURIComponent(String(task.probe_id || ""));
+    }
+    if (!url) return;
     wx.navigateTo({
       url: url,
       fail: function () {

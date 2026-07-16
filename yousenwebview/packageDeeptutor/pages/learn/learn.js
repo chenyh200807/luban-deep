@@ -48,7 +48,7 @@ Page({
     if (!this._requireAuth()) return;
     const firstRunSnapshot = this._syncFirstRunState();
     this._retryPendingFirstRun(firstRunSnapshot);
-    // 从站点/复习返回时刷新 canonical 投影。
+    // 从站点/任务返回时刷新 canonical 投影。
     if (!this.data.loading) this._load();
   },
 
@@ -195,8 +195,6 @@ Page({
       settle(api.getHomeDashboard(opt)),
       settle(api.getLearningReport(100, opt)),
       lessonsPromise,
-      // 看穿库总览:头牌轻练 practice_kind 供给真值之一(失败=空集保守降级)
-      settle(api.getLubanSeethroughLibrary(opt)),
     ]).then(function (res) {
       if (!auth.isLoggedIn()) {
         that._requireAuth();
@@ -205,12 +203,10 @@ Page({
       var homeDashboard = api.unwrapResponse(res[0]) || {};
       var report = api.unwrapResponse(res[1]) || {};
       var lessons = api.unwrapResponse(res[2]) || {};
-      var seethroughLibrary = api.unwrapResponse(res[3]) || {};
       var vm = buildLearnViewModel({
         homeDashboard: homeDashboard,
         report: report,
         lessons: lessons,
-        seethroughLibrary: seethroughLibrary,
       });
       that.setData({ vm: vm, loading: false, supplyError: "" });
       return vm;
@@ -261,27 +257,21 @@ Page({
     this._navTo(route.lubanTeachingPoints());
   },
 
-  // 复习到期条 → 复习页(10c 回炉屏, 归位);今日任务 → 现有 practice/chat
-  goReview() {
-    this._navTo(route.lubanReview());
-  },
-  // 今日主任务「开始 2 分钟轻练」→ 按供给真值路由(practice_kind 由 vm 单一裁决,
-  // 页面零判定):有签发看穿包 → 看穿 5 天;有 signed 变体池 → retest 正向轻练;
-  // 无供给 → 主按钮不渲染(WXML cta 空即隐藏),这里只兜底 noop。
-  goPractice() {
+  // 今日唯一任务只按 view-model 的 action_kind 转发：到期验证/课后练共用
+  // retest，推荐学习进站点；页面不重算优先级、不解释掌握状态。
+  goTodayTask() {
     var task = (this.data.vm && this.data.vm.todayTask) || {};
     var packId = encodeURIComponent(String(task.pack_id || ""));
-    if (task.practice_kind === "seethrough" && packId) {
-      this._navTo("/packageDeeptutor/pages/luban/seethrough/seethrough?pack_id=" + packId);
+    if (task.action_kind === "lesson" && packId) {
+      this._navTo(route.lubanStation(String(task.pack_id || "")));
       return;
     }
-    if (task.practice_kind === "retest" && packId) {
-      var reviewMode = !!task.probe_id;
+    if (task.action_kind === "retest" && task.practice_kind === "retest" && packId) {
       this._navTo(
         "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
           packId +
           "&mode=" +
-          (reviewMode ? "review" : "forward") +
+          (task.mode === "review" ? "review" : "forward") +
           "&training_intent_id=" +
           encodeURIComponent(String(task.training_intent_id || "")) +
           "&probe_id=" +
@@ -289,18 +279,6 @@ Page({
       );
       return;
     }
-  },
-
-  // 今日任务副 CTA「换轻练」→ 换成更广/更轻的综合摸底(与主任务不同动作):
-  // assessment 综合模式(mode=diagnostic),同样复用既有 MCQ 流,不判分。
-  goSwitchPractice() {
-    this._navTo(route.assessment({ mode: "diagnostic", source: "today_task_switch" }));
-  },
-
-  // F16 防水「5天留存闭环」雏形入口(spike 审阅):进原生 5 天体验,内容全部
-  // 投影自已签发看穿包,前端不新造。pack 暂定 F16(雏形单母题)。
-  goSeethrough() {
-    this._navTo("/packageDeeptutor/pages/luban/seethrough/seethrough?pack_id=F16");
   },
 
   _navTo(url) {

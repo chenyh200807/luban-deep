@@ -1,3 +1,5 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
 /* pages/billing/billing.wxss — 使用情况与权益 */
 
 .billing-page {
@@ -834,3 +836,51 @@
 .billing-page.light .ledger-balance,
 .billing-page.light .ledger-empty-text { color: #64748b; }
 .billing-page.light .ledger-usage { color: #dc2626; }
+
+/* ── 我的→权益：保留账本/购买信息结构，统一纸墨材质 ── */
+.billing-page.paper {
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
+  color: var(--pk-t1);
+}
+.billing-page.paper .nav-bar,
+.billing-page.paper .pay-dock { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
+.billing-page.paper .nav-kicker,
+.billing-page.paper .nav-back-arrow,
+.billing-page.paper .nav-back-label { color: var(--pk-grn); }
+.billing-page.paper .nav-title,
+.billing-page.paper .balance-num,
+.billing-page.paper .section-title,
+.billing-page.paper .pkg-name,
+.billing-page.paper .pkg-turns,
+.billing-page.paper .ledger-title,
+.billing-page.paper .pay-dock-label { color: var(--pk-t1); }
+.billing-page.paper .balance-label,
+.billing-page.paper .balance-note,
+.billing-page.paper .section-sub,
+.billing-page.paper .pkg-per,
+.billing-page.paper .pkg-desc,
+.billing-page.paper .ledger-empty-text,
+.billing-page.paper .pay-dock-meta { color: var(--pk-t2); }
+.billing-page.paper .balance-card,
+.billing-page.paper .pkg-card,
+.billing-page.paper .ledger-card {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+.billing-page.paper .usage-meter { background: var(--pk-gauge); }
+.billing-page.paper .usage-meter-fill,
+.billing-page.paper .pkg-card.sel::before,
+.billing-page.paper .pkg-check.on .pkg-check-dot { background: var(--pk-grn); }
+.billing-page.paper .pkg-card.sel,
+.billing-page.paper .pkg-check.on { border-color: var(--pk-grn); }
+.billing-page.paper .pkg-price,
+.billing-page.paper .pkg-yen { color: var(--pk-warn); }
+.billing-page.paper .pay-dock-action,
+.billing-page.paper .recharge-btn.on { background: var(--pk-ink-btn); border-color: var(--pk-ink-btn); }
+.billing-page.paper .pay-dock-yen,
+.billing-page.paper .pay-dock-price,
+.billing-page.paper .pay-dock-cta,
+.billing-page.paper .recharge-btn.on .recharge-btn-txt { color: var(--pk-ink-btn-t); }

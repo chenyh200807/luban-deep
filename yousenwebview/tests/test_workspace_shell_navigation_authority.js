@@ -33,8 +33,8 @@ function loadTabBar(selected) {
     learn: function () {
       return "/packageDeeptutor/pages/learn/learn";
     },
-    lubanReview: function () {
-      return "/packageDeeptutor/pages/luban/review/review";
+    history: function () {
+      return "/packageDeeptutor/pages/history/history";
     },
     chat: function () {
       return "/packageDeeptutor/pages/chat/chat";
@@ -99,7 +99,7 @@ function loadTabBar(selected) {
   return { component: component, calls: calls };
 }
 
-// 五 tab 壳顺序: 学习0 / 复习1 / 问鲁班2 / 学情3 / 我的4
+// 五 tab 壳顺序: 学习0 / 历史1 / 问鲁班2 / 学情3 / 我的4
 var fromChat = loadTabBar(2);
 fromChat.component.switchTab({ currentTarget: { dataset: { index: 3 } } });
 assert(
@@ -124,13 +124,15 @@ assert(
   "returning from report to chat should preserve report as chat back target",
 );
 
-// 历史页挂壳但无选中态(selected=-1):离开时无来源 tab,应清返回权威而非误设
-var fromHistory = loadTabBar(-1);
+// 历史是正式 tab：离开时必须保留历史作为返回目标。
+var fromHistory = loadTabBar(1);
 fromHistory.component.switchTab({ currentTarget: { dataset: { index: 2 } } });
 assert(
-  fromHistory.calls.setWorkspaceBack.length === 0 &&
-    fromHistory.calls.clearWorkspaceBack === 1,
-  "leaving a shell-less page (selected=-1) should clear return authority instead of faking one",
+  fromHistory.calls.setWorkspaceBack.length === 1 &&
+    fromHistory.calls.setWorkspaceBack[0].url === "/packageDeeptutor/pages/history/history" &&
+    fromHistory.calls.setWorkspaceBack[0].label === "历史" &&
+    fromHistory.calls.clearWorkspaceBack === 0,
+  "leaving history should preserve the history tab as return authority",
 );
 assert(
   fromHistory.calls.reLaunch.length === 1 &&

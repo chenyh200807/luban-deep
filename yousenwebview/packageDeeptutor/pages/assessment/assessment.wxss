@@ -1,3 +1,5 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
 /* pages/assessment/assessment.wxss — 摸底测试 */
 
 .assess-page { height: 100vh; background: #080c18; overflow: hidden; position: relative; }
@@ -112,8 +114,8 @@
 .recommend-badge {
   padding: 4rpx 10rpx;
   border-radius: 999rpx;
-  background: rgba(34,197,94,0.18);
-  color: #86efac;
+  background: var(--pk-accent-soft);
+  color: var(--pk-grn);
   font-size: 19rpx;
   font-weight: 700;
 }
@@ -123,7 +125,7 @@
   margin: -8rpx 0 24rpx;
   font-size: 23rpx;
   line-height: 1.5;
-  color: rgba(191,219,254,0.82);
+  color: var(--pk-t2);
 }
 
 .topic-catalog {
@@ -156,7 +158,7 @@
 .feature-item { display: flex; align-items: center; gap: 16rpx; padding: 14rpx 0; }
 .feature-dot {
   width: 12rpx; height: 12rpx; border-radius: 50%; flex-shrink: 0;
-  background: #3b82f6;
+  background: var(--pk-grn);
 }
 .feature-txt { font-size: 28rpx; color: rgba(255,255,255,0.65); }
 
@@ -214,7 +216,7 @@
 .q-header { display: flex; gap: 12rpx; margin-bottom: 20rpx; }
 .q-type {
   padding: 6rpx 18rpx; border-radius: 999rpx; font-size: 22rpx; font-weight: 600;
-  background: rgba(59,130,246,0.15); color: #60a5fa;
+  background: var(--pk-accent-soft); color: var(--pk-grn);
 }
 .q-diff {
   padding: 6rpx 18rpx; border-radius: 999rpx; font-size: 22rpx;
@@ -316,15 +318,16 @@
 .archetype-card {
   width: 100%; padding: 28rpx; border-radius: 20rpx; margin-bottom: 28rpx;
   background: rgba(18,24,42,0.85); border: 1rpx solid rgba(255,255,255,0.07);
-  border-left: 6rpx solid #3b82f6;
+  border-left: 6rpx solid var(--pk-grn);
   display: flex; flex-direction: column; gap: 16rpx;
 }
 .archetype-header { display: flex; align-items: center; gap: 16rpx; }
 .archetype-icon {
   width: 64rpx; height: 64rpx; border-radius: 16rpx;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: var(--pk-gauge);
 }
-.archetype-icon-txt { font-size: 30rpx; font-weight: 800; color: #fff; }
+.archetype-icon-txt { font-size: 30rpx; font-weight: 800; color: var(--pk-grn); }
 .archetype-title-col { display: flex; flex-direction: column; gap: 2rpx; }
 .archetype-label { font-size: 22rpx; color: rgba(255,255,255,0.4); }
 .archetype-name { font-size: 36rpx; font-weight: 800; color: #fff; }
@@ -332,11 +335,11 @@
 .archetype-traits { display: flex; flex-wrap: wrap; gap: 10rpx; }
 .trait-tag {
   padding: 6rpx 18rpx; border-radius: 999rpx; font-size: 22rpx; font-weight: 600;
-  color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.06); border: 1rpx solid rgba(255,255,255,0.1);
+  color: var(--pk-t2); background: var(--pk-gauge); border: 1rpx solid var(--pk-bd);
 }
 .archetype-tip {
   padding: 16rpx 20rpx; border-radius: 12rpx;
-  background: rgba(255,255,255,0.04);
+  background: var(--pk-gauge);
   display: flex; flex-direction: column; gap: 6rpx;
 }
 .tip-label { font-size: 22rpx; font-weight: 700; color: rgba(255,255,255,0.5); }
@@ -389,8 +392,8 @@
 .dr-wrong-card {
   width: 100%;
   box-sizing: border-box;
-  border: 1rpx solid rgba(103, 232, 249, 0.2);
-  box-shadow: 0 24rpx 58rpx rgba(0, 0, 0, 0.24);
+  border: 1rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
 }
 
 .dr-hero {
@@ -398,10 +401,7 @@
   overflow: hidden;
   padding: 32rpx;
   border-radius: 32rpx;
-  background:
-    radial-gradient(circle at 95% 12%, rgba(52, 211, 153, 0.18), transparent 30%),
-    radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.28), transparent 38%),
-    linear-gradient(135deg, rgba(19, 45, 98, 0.9), rgba(30, 26, 68, 0.5) 48%, rgba(11, 30, 45, 0.96));
+  background: var(--pk-card);
 }
 
 .dr-hero::before {
@@ -412,7 +412,7 @@
   top: 0;
   height: 5rpx;
   border-radius: 999rpx;
-  background: linear-gradient(90deg, #67e8f9, #77b7ff, #fbbf24, #fb7185);
+  background: var(--pk-grn);
 }
 
 .dr-hero::after {
@@ -423,8 +423,8 @@
   width: 250rpx;
   height: 250rpx;
   border-radius: 50%;
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  background: radial-gradient(circle, rgba(103, 232, 249, 0.15), transparent 64%);
+  border: 1rpx solid var(--pk-bd);
+  background: radial-gradient(circle, var(--pk-accent-soft), transparent 64%);
 }
 
 .dr-hero-top {
@@ -440,7 +440,7 @@
 
 .dr-kicker {
   display: block;
-  color: #93c5fd;
+  color: var(--pk-grn);
   font-size: 22rpx;
   font-weight: 900;
   letter-spacing: 0.04em;
@@ -471,13 +471,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background:
-    radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.12), transparent 26%),
-    conic-gradient(from 210deg, #fb7185 0deg 42deg, #fb923c 42deg 74deg, #fbbf24 74deg 106deg, rgba(103, 232, 249, 0.18) 106deg 360deg);
+  background: conic-gradient(from 210deg, var(--pk-grn) 0deg 106deg, var(--pk-gauge) 106deg 360deg);
   box-shadow:
-    0 0 0 1rpx rgba(103, 232, 249, 0.18),
-    0 0 44rpx rgba(52, 120, 246, 0.24),
-    inset 0 0 0 14rpx rgba(7, 17, 31, 0.74);
+    0 0 0 1rpx var(--pk-bd),
+    0 2rpx 12rpx var(--pk-shadow),
+    inset 0 0 0 14rpx var(--pk-card);
 }
 
 .dr-score-ring::before {
@@ -488,10 +486,8 @@
   top: 14rpx;
   bottom: 14rpx;
   border-radius: 50%;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
-  background:
-    linear-gradient(135deg, rgba(52, 120, 246, 0.24), rgba(103, 232, 249, 0.07)),
-    radial-gradient(circle at 70% 20%, rgba(251, 191, 36, 0.14), transparent 34%);
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-accent-soft);
 }
 
 .dr-score-inner {
@@ -500,7 +496,7 @@
   width: 110rpx;
   height: 110rpx;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 22%, rgba(255, 255, 255, 0.1), transparent 28%), rgba(8, 17, 31, 0.9);
+  background: var(--pk-card);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -508,7 +504,7 @@
 }
 
 .dr-score-num {
-  color: #fff;
+  color: var(--pk-grn);
   font-size: 58rpx;
   line-height: 1;
   font-weight: 950;
@@ -516,7 +512,7 @@
 
 .dr-score-label {
   margin-top: 4rpx;
-  color: rgba(226, 232, 240, 0.58);
+  color: var(--pk-t3);
   font-size: 20rpx;
   font-weight: 850;
 }
@@ -528,10 +524,10 @@
   min-height: 42rpx;
   margin-top: 12rpx;
   padding: 0 18rpx;
-  border: 1rpx solid rgba(251, 191, 36, 0.28);
+  border: 1rpx solid var(--pk-accent-border);
   border-radius: 999rpx;
-  background: rgba(251, 191, 36, 0.11);
-  color: #fde68a;
+  background: var(--pk-accent-soft);
+  color: var(--pk-grn);
   font-size: 20rpx;
   font-weight: 950;
 }
@@ -541,7 +537,7 @@
   z-index: 1;
   display: block;
   margin-top: 28rpx;
-  color: rgba(224, 234, 250, 0.82);
+  color: var(--pk-t2);
   font-size: 26rpx;
   line-height: 1.65;
   font-weight: 700;
@@ -560,14 +556,14 @@
   min-height: 116rpx;
   padding: 20rpx;
   border-radius: 20rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.055);
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
 }
 
-.dr-conclusion-cell:nth-child(1) { border-color: rgba(103, 232, 249, 0.18); background: rgba(103, 232, 249, 0.075); }
-.dr-conclusion-cell:nth-child(2) { border-color: rgba(52, 211, 153, 0.18); background: rgba(52, 211, 153, 0.075); }
-.dr-conclusion-cell:nth-child(3) { border-color: rgba(251, 191, 36, 0.2); background: rgba(251, 191, 36, 0.075); }
-.dr-conclusion-cell:nth-child(4) { border-color: rgba(167, 139, 250, 0.2); background: rgba(167, 139, 250, 0.08); }
+.dr-conclusion-cell:nth-child(1),
+.dr-conclusion-cell:nth-child(2),
+.dr-conclusion-cell:nth-child(3),
+.dr-conclusion-cell:nth-child(4) { border-color: var(--pk-bd); background: var(--pk-card); }
 
 .dr-cell-label {
   display: block;
@@ -641,9 +637,9 @@
   overflow: hidden;
   min-height: 130rpx;
   padding: 22rpx;
-  border: 1rpx solid rgba(157, 179, 216, 0.18);
+  border: 1rpx solid var(--pk-bd);
   border-radius: 22rpx;
-  background: rgba(255, 255, 255, 0.055);
+  background: var(--pk-card);
 }
 
 .dr-metric::before {
@@ -653,15 +649,15 @@
   right: 0;
   top: 0;
   height: 5rpx;
-  background: #77b7ff;
+  background: var(--pk-grn);
 }
 
-.dr-metric:nth-child(2)::before { background: #34d399; }
-.dr-metric:nth-child(3)::before { background: #fbbf24; }
+.dr-metric:nth-child(2)::before,
+.dr-metric:nth-child(3)::before { background: var(--pk-grn); }
 
 .dr-metric-value {
   display: block;
-  color: #fff;
+  color: var(--pk-grn);
   font-size: 38rpx;
   line-height: 1;
   font-weight: 950;
@@ -670,7 +666,7 @@
 .dr-metric-label {
   display: block;
   margin-top: 16rpx;
-  color: rgba(202, 215, 236, 0.58);
+  color: var(--pk-t2);
   font-size: 22rpx;
   line-height: 1.35;
   font-weight: 800;
@@ -1038,8 +1034,8 @@
   width: 58rpx;
   height: 58rpx;
   border-radius: 18rpx;
-  background: rgba(52, 120, 246, 0.16);
-  color: #bfdbfe;
+  background: var(--pk-gauge);
+  color: var(--pk-grn);
   font-size: 24rpx;
   font-weight: 950;
 }
@@ -1123,7 +1119,7 @@
 }
 
 .dr-step-time {
-  color: #a5f3fc;
+  color: var(--pk-grn);
   font-size: 22rpx;
   font-weight: 950;
   text-align: right;
@@ -1435,3 +1431,135 @@
 .assess-page.light .wrong-practice-btn text {
   color: #1d4ed8;
 }
+
+/* ── 学习二级页：摸底/批改全流程统一为纸墨工作台 ────────
+ * 保留题目、选项、语义状态和结果结构；移除旧蓝极光与蓝卡材质。 */
+.assess-page.paper {
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
+  color: var(--pk-t1);
+}
+.assess-page.paper .aurora-layer,
+.assess-page.paper .bg-horizon { display: none; }
+.assess-page.paper .nav-bar { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
+.assess-page.paper .nav-back-arrow,
+.assess-page.paper .nav-title,
+.assess-page.paper .welcome-title,
+.assess-page.paper .mode-title,
+.assess-page.paper .topic-name,
+.assess-page.paper .answer-card-title,
+.assess-page.paper .q-stem,
+.assess-page.paper .opt-text,
+.assess-page.paper .loading-txt,
+.assess-page.paper .score-num,
+.assess-page.paper .section-title,
+.assess-page.paper .archetype-name,
+.assess-page.paper .archetype-desc,
+.assess-page.paper .priority-name,
+.assess-page.paper .dr-title,
+.assess-page.paper .dr-cell-value,
+.assess-page.paper .dr-section-title,
+.assess-page.paper .dr-stem,
+.assess-page.paper .dr-choice-text,
+.assess-page.paper .dr-answer-value,
+.assess-page.paper .dr-review-title,
+.assess-page.paper .dr-review-text,
+.assess-page.paper .dr-option-text,
+.assess-page.paper .dr-step-title,
+.assess-page.paper .dr-step-desc,
+.assess-page.paper .dr-map-name { color: var(--pk-t1); }
+.assess-page.paper .nav-progress,
+.assess-page.paper .welcome-sub,
+.assess-page.paper .stat-label,
+.assess-page.paper .mode-desc,
+.assess-page.paper .topic-head-sub,
+.assess-page.paper .topic-desc,
+.assess-page.paper .topic-status,
+.assess-page.paper .feature-txt,
+.assess-page.paper .answer-card-count,
+.assess-page.paper .answer-card-hint,
+.assess-page.paper .opt-key-txt,
+.assess-page.paper .loading-sub,
+.assess-page.paper .score-label,
+.assess-page.paper .chapter-name,
+.assess-page.paper .chapter-pct,
+.assess-page.paper .archetype-label,
+.assess-page.paper .tip-label,
+.assess-page.paper .tip-text,
+.assess-page.paper .insight-label,
+.assess-page.paper .insight-desc,
+.assess-page.paper .secondary-txt,
+.assess-page.paper .dr-kicker,
+.assess-page.paper .dr-hero-desc,
+.assess-page.paper .dr-cell-label,
+.assess-page.paper .dr-metric-label,
+.assess-page.paper .dr-section-note,
+.assess-page.paper .dr-detail-status,
+.assess-page.paper .dr-answer-label { color: var(--pk-t2); }
+.assess-page.paper .hero-icon-ring,
+.assess-page.paper .stat-card,
+.assess-page.paper .mode-card,
+.assess-page.paper .topic-catalog,
+.assess-page.paper .topic-card,
+.assess-page.paper .answer-card,
+.assess-page.paper .question-card,
+.assess-page.paper .option,
+.assess-page.paper .score-ring,
+.assess-page.paper .archetype-card,
+.assess-page.paper .insight-card,
+.assess-page.paper .priority-card,
+.assess-page.paper .dr-hero,
+.assess-page.paper .dr-metric,
+.assess-page.paper .dr-section,
+.assess-page.paper .dr-card,
+.assess-page.paper .dr-wrong-card,
+.assess-page.paper .dr-choice,
+.assess-page.paper .dr-answer-box,
+.assess-page.paper .dr-detail,
+.assess-page.paper .dr-option-review,
+.assess-page.paper .dr-step,
+.assess-page.paper .dr-map-row {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+.assess-page.paper .hero-icon-txt,
+.assess-page.paper .stat-num,
+.assess-page.paper .insight-value,
+.assess-page.paper .dr-score-num,
+.assess-page.paper .dr-metric-value { color: var(--pk-grn); }
+.assess-page.paper .mode-card.selected,
+.assess-page.paper .topic-card.selected,
+.assess-page.paper .option.selected,
+.assess-page.paper .answer-chip.current { background: rgba(72, 128, 106, 0.12); border-color: var(--pk-grn); }
+.assess-page.paper .option.selected .opt-key,
+.assess-page.paper .answer-chip.current,
+.assess-page.paper .progress-fill { background: var(--pk-grn); }
+.assess-page.paper .option.selected .opt-key-txt,
+.assess-page.paper .answer-chip.current .answer-chip-txt,
+.assess-page.paper .quiz-nav-btn.submit .quiz-nav-txt { color: var(--pk-ink-btn-t); }
+.assess-page.paper .progress-bar,
+.assess-page.paper .chapter-bar-wrap,
+.assess-page.paper .dr-map-track { background: var(--pk-gauge); }
+.assess-page.paper .start-btn,
+.assess-page.paper .quiz-nav-btn.primary,
+.assess-page.paper .result-btn.primary,
+.assess-page.paper .dr-primary-btn {
+  background: var(--pk-ink-btn);
+  border-color: var(--pk-ink-btn);
+  box-shadow: 0 8rpx 20rpx var(--pk-shadow);
+}
+.assess-page.paper .start-btn-txt,
+.assess-page.paper .quiz-nav-btn.primary .quiz-nav-txt,
+.assess-page.paper .result-btn.primary .result-btn-txt,
+.assess-page.paper .dr-primary-btn text { color: var(--pk-ink-btn-t); }
+.assess-page.paper .quiz-nav-btn.submit { background: var(--pk-grn); }
+.assess-page.paper .dr-filter-btn,
+.assess-page.paper .dr-ghost-btn,
+.assess-page.paper .dr-same-type-btn,
+.assess-page.paper .dr-ai-btn { background: transparent; border-color: var(--pk-bd); }
+.assess-page.paper .dr-filter-btn text,
+.assess-page.paper .dr-ghost-btn text,
+.assess-page.paper .dr-same-type-btn text,
+.assess-page.paper .dr-ai-btn text { color: var(--pk-t2); }

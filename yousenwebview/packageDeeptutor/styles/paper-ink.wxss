@@ -17,11 +17,52 @@
   --pk-t3: #8a8574;          /* 墨字·弱 */
   --pk-red: #cf4436;         /* 朱红·品牌四处(logo/播放/红海报/问鲁班) */
   --pk-grn: #7fb99d;         /* 竹青·正向 */
+  --pk-accent-soft: rgba(127, 185, 157, 0.14);
+  --pk-accent-border: rgba(127, 185, 157, 0.28);
   --pk-gauge: #3a362c;       /* 环底 */
   --pk-warn: #c26555;        /* 赭·警示 */
   --pk-ink-btn: #f0ede1;     /* 主按钮(夜=纸色反转) */
   --pk-ink-btn-t: #26231d;   /* 主按钮文字 */
   --pk-shadow: rgba(0, 0, 0, 0.28);
+
+  /* 旧蓝版页面的兼容别名。
+   * 五模块内的存量页仍会消费 theme.wxss 的 --bg/--text/--primary token；
+   * 由 paper-ink 在页面根收权，避免每个二三级页继续维护一套 palette。 */
+  --bg-primary: var(--pk-paper);
+  --bg-secondary: var(--pk-card);
+  --bg-tertiary: var(--pk-gauge);
+  --bg-card: var(--pk-card);
+  --bg-elevated: var(--pk-card);
+  --bg-glass: transparent;
+  --bg-input: var(--pk-card);
+  --text-primary: var(--pk-t1);
+  --text-secondary: var(--pk-t2);
+  --text-tertiary: var(--pk-t2);
+  --text-muted: var(--pk-t3);
+  --border-subtle: var(--pk-bd);
+  --border-light: var(--pk-bd);
+  --border-medium: var(--pk-bd);
+  --border: var(--pk-bd);
+  --primary-50: var(--pk-card);
+  --primary-100: var(--pk-gauge);
+  --primary-200: var(--pk-bd);
+  --primary-300: var(--pk-grn);
+  --primary-400: var(--pk-grn);
+  --primary-500: var(--pk-grn);
+  --primary-600: var(--pk-grn);
+  --primary-700: var(--pk-t1);
+  --accent-gold: var(--pk-warn);
+  --accent-green: var(--pk-grn);
+  --accent-green-light: var(--pk-grn);
+  --accent-red: var(--pk-warn);
+  --accent-red-light: var(--pk-warn);
+  --accent-cyan: var(--pk-grn);
+  --accent-purple: var(--pk-t2);
+  --accent-orange: var(--pk-warn);
+  --shadow-sm: 0 2rpx 12rpx var(--pk-shadow);
+  --shadow-md: 0 4rpx 18rpx var(--pk-shadow);
+  --shadow-lg: 0 10rpx 28rpx var(--pk-shadow);
+  --shadow-glow: none;
 }
 
 /* ── 宣纸亮(10a · .light 覆盖) ────────────────────────── */
@@ -32,11 +73,13 @@
   --pk-bd: #e7e3d5;
   --pk-t1: #26241f;
   --pk-t2: #5b584e;
-  --pk-t3: #96917e;
+  --pk-t3: #6f6b5d;
   --pk-red: #cf4436;
-  --pk-grn: #48806a;
+  --pk-grn: #3e715d;
+  --pk-accent-soft: rgba(62, 113, 93, 0.12);
+  --pk-accent-border: rgba(62, 113, 93, 0.28);
   --pk-gauge: #e9e5d7;
-  --pk-warn: #c26555;
+  --pk-warn: #9b5144;        /* 亮底上仍满足正文对比度的赭色警示 */
   --pk-ink-btn: #26241f;     /* 亮=墨色主按钮 */
   --pk-ink-btn-t: #f5f3ec;
   --pk-shadow: rgba(38, 36, 31, 0.06);

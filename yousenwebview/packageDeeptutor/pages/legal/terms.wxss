@@ -1,3 +1,5 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
 .terms-page {
   min-height: 100vh;
   background:
@@ -159,3 +161,21 @@
 .terms-page.light .footer-title {
   color: #1d4ed8;
 }
+
+/* ── 我的→法务：阅读页与管理页保持同一纸张和排版层级 ── */
+.terms-page.paper {
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
+  color: var(--pk-t1);
+}
+.terms-page.paper .nav-bar { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
+.terms-page.paper .nav-back-arrow,
+.terms-page.paper .nav-back-txt,
+.terms-page.paper .hero-sub { color: var(--pk-grn); }
+.terms-page.paper .nav-title,
+.terms-page.paper .hero-title,
+.terms-page.paper .footer-title { color: var(--pk-t1); }
+.terms-page.paper .hero-desc,
+.terms-page.paper .footer-text { color: var(--pk-t2); }
+.terms-page.paper .glass-card { background: var(--pk-card); border-color: var(--pk-bd); box-shadow: 0 2rpx 12rpx var(--pk-shadow); }

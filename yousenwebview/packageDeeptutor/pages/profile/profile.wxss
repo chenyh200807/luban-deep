@@ -1,43 +1,17 @@
 @import "/packageDeeptutor/theme.wxss";
+@import "/packageDeeptutor/styles/paper-ink.wxss";
 
 /* pages/profile/profile.wxss — 我的 tab（第10轮 10f：纸墨朱竹）
- *
- * --pk-* token 为页面作用域（theme.wxss 尚无纸墨 token，不越权改共享主题）：
- * 暗 = 10f2 夜宣纸；亮 = 10f 宣纸。取值权威 = 第10轮定稿画布 10f/10f2 区块。
- * 朱红 --pk-red 只留品牌位，本页不用作大面积强调色。 */
+ * palette 唯一权威 = styles/paper-ink.wxss；本页只保留布局与组件语义。 */
 
 .profile-page {
-  /* 夜宣纸（暗，默认） */
-  --pk-bg: #1c1a15;
-  --pk-card: #26231d;
-  --pk-bd: #37332a;
-  --pk-t1: #f0ede1;
-  --pk-t2: #b7b2a2;
-  --pk-t3: #8a8574;
-  --pk-red: #cf4436;
-  --pk-grn: #7fb99d;
-  --pk-gauge: #3a362c;
-  --pk-bad: #bf5b4e;
-
   height: 100vh;
-  background-color: var(--pk-bg);
+  background-color: var(--pk-paper);
   overflow: hidden;
   color: var(--pk-t1);
 }
 
 .profile-page.light {
-  /* 宣纸（亮） */
-  --pk-bg: #f5f3ec;
-  --pk-card: #fffdf8;
-  --pk-bd: #e7e3d5;
-  --pk-t1: #26241f;
-  --pk-t2: #5b584e;
-  --pk-t3: #96917e;
-  --pk-red: #cf4436;
-  --pk-grn: #48806a;
-  --pk-gauge: #e9e5d7;
-  --pk-bad: #bf5b4e;
-
   /* 宣纸点阵纹理（10f：radial-gradient 点阵） */
   background-image: radial-gradient(rgba(38, 36, 31, 0.1) 1.4rpx, transparent 1.4rpx);
   background-size: 36rpx 36rpx;
@@ -180,7 +154,7 @@
   height: 32rpx;
   border-radius: 50%;
   background: var(--pk-t1);
-  border: 3rpx solid var(--pk-bg);
+  border: 3rpx solid var(--pk-paper);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -189,7 +163,7 @@
 .avatar-edit-icon {
   font-size: 22rpx;
   line-height: 1;
-  color: var(--pk-bg);
+  color: var(--pk-paper);
   font-weight: 700;
   margin-top: -2rpx;
 }
@@ -268,7 +242,7 @@
   font-size: 27rpx;
   font-weight: 800;
   letter-spacing: 2rpx;
-  color: var(--pk-bg);
+  color: var(--pk-paper);
 }
 
 /* ── 我的路线 ───────────────────────────────── */
@@ -337,7 +311,7 @@
   font-size: 26rpx;
   font-weight: 800;
   letter-spacing: 2rpx;
-  color: var(--pk-bg);
+  color: var(--pk-paper);
 }
 
 .route-note {
@@ -380,7 +354,7 @@
 .usage-action-txt {
   font-size: 25rpx;
   font-weight: 800;
-  color: var(--pk-bg);
+  color: var(--pk-paper);
 }
 
 .usage-summary-list {
@@ -624,7 +598,7 @@
 .logout-btn-txt {
   font-size: 27rpx;
   font-weight: 700;
-  color: var(--pk-bad);
+  color: var(--pk-warn);
 }
 
 .tail-spacer {

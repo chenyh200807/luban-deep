@@ -17,13 +17,31 @@ const auth = require("../../../utils/auth");
 
 var RETEST_LIMIT = 5;
 
-function parseBridgeAnswerIndexes(query, mode) {
-  if (mode !== "forward" || String((query && query.presentation) || "") !== "receipt") return [];
-  var raw = String((query && query.answer_indexes) || "").trim();
-  var parts = raw ? raw.split(",") : [];
-  if (parts.length !== RETEST_LIMIT || parts.some(function (part) { return !/^\d+$/.test(part); })) return null;
-  var indexes = parts.map(function (part) { return Number(part); });
-  return indexes.every(function (index) { return Number.isInteger(index) && index >= 0 && index < 10; }) ? indexes : null;
+function parseBridgeReceipt(query, mode) {
+  if (mode !== "forward" || String((query && query.presentation) || "") !== "receipt") {
+    return { requested: false, projectionReceipt: "", answers: [] };
+  }
+  var projectionReceipt = String((query && query.projection_receipt) || "").trim();
+  var raw = String((query && query.answers) || "").trim();
+  try {
+    var answers = JSON.parse(raw);
+    var variantIds = {};
+    if (
+      !projectionReceipt ||
+      !Array.isArray(answers) ||
+      answers.length !== RETEST_LIMIT ||
+      answers.some(function (answer) {
+        var variantId = String((answer && answer.variant_id) || "").trim();
+        var optionId = String((answer && answer.selected_option_id) || "").trim();
+        if (!variantId || !optionId || variantIds[variantId]) return true;
+        variantIds[variantId] = true;
+        return false;
+      })
+    ) return null;
+    return { requested: true, projectionReceipt: projectionReceipt, answers: answers };
+  } catch (_error) {
+    return null;
+  }
 }
 
 // 两种取题模式共用本页（复用同一 retest 页/内核，不建第二答题页）：
@@ -84,7 +102,10 @@ Page({
     pool: null,          // 题池元信息 {core_total, rule_groups_total}(呈现层规模感)
     practiceSource: "signed_variant",
     bridgeMode: false,
-    bridgeAnswerIndexes: [],
+    bridgeProjectionReceipt: "",
+    bridgeAnswers: [],
+    projectionReceipt: "",
+    projectionDigest: "",
     seenCount: 0,        // 本地已见变体数(收集感, storage 呈现层)
     answeredCount: 0,
     correctCount: 0,
@@ -106,7 +127,7 @@ Page({
     var packId = String((query && query.pack_id) || "").trim();
     var mode = String((query && query.mode) || "review") === "forward" ? "forward" : "review";
     var practiceSurface = String((query && query.practice_surface) || "").trim();
-    var bridgeAnswerIndexes = parseBridgeAnswerIndexes(query, mode);
+    var bridgeReceipt = parseBridgeReceipt(query, mode);
     var bridgeRequested = String((query && query.presentation) || "") === "receipt";
     var probeId = String((query && query.probe_id) || "").trim();
     var trainingIntentId = String((query && query.training_intent_id) || "").trim();
@@ -128,7 +149,8 @@ Page({
       practiceSurface: practiceSurface,
       mode: mode,
       bridgeMode: bridgeRequested,
-      bridgeAnswerIndexes: bridgeAnswerIndexes || [],
+      bridgeProjectionReceipt: bridgeReceipt ? bridgeReceipt.projectionReceipt : "",
+      bridgeAnswers: bridgeReceipt ? bridgeReceipt.answers : [],
       probeId: probeId,
       trainingIntentId: trainingIntentId,
       completionId: completionId,
@@ -144,8 +166,8 @@ Page({
       this.setData({ loading: false, errorText: "缺少站点参数，请从提分路线进入" });
       return;
     }
-    if (bridgeRequested && bridgeAnswerIndexes === null) {
-      this.setData({ loading: false, errorText: "成品练习答案传递无效，请返回重新完成五题" });
+    if (bridgeRequested && bridgeReceipt === null) {
+      this.setData({ loading: false, errorText: "题目内容已更新，请返回重新完成五题" });
       return;
     }
     this._loadItems();
@@ -205,6 +227,13 @@ Page({
     patch["items[" + index + "].correct"] = correct;
     patch["items[" + index + "].chosenOk"] = choiceOk;
     this.setData(patch);
+    var draftItems = items.slice();
+    draftItems[index] = Object.assign({}, item, {
+      answered: true,
+      correct: correct,
+      chosenOk: choiceOk,
+    });
+    this._persistDraft(draftItems);
 
     if (allAnswered) {
       // 收据数据(呈现层统计, 全部来自签发字段)
@@ -244,6 +273,12 @@ Page({
     patch["items[" + index + "].answered"] = true;
     patch["items[" + index + "].selectedOptionId"] = optionId;
     this.setData(patch);
+    var draftItems = items.slice();
+    draftItems[index] = Object.assign({}, item, {
+      answered: true,
+      selectedOptionId: optionId,
+    });
+    this._persistDraft(draftItems);
     if (allAnswered) {
       var all = items.slice();
       all[index] = Object.assign({}, item, {
@@ -252,6 +287,84 @@ Page({
       });
       this._submitCompletion(all);
     }
+  },
+
+  _draftKey() {
+    return "luban_retest_draft:" + String(this.data.packId || "") + ":" + String(this.data.mode || "review");
+  },
+
+  _readDraft() {
+    try {
+      return auth.readOwnerStorage ? auth.readOwnerStorage(this._draftKey()) : null;
+    } catch (_error) {
+      return null;
+    }
+  },
+
+  _persistDraft(items) {
+    if (!this.data.selectionId || !auth.writeOwnerStorage) return;
+    var answers = (items || this.data.items || [])
+      .filter(function (item) { return item && item.answered; })
+      .map(function (item) {
+        return {
+          variant_id: String(item.variant_id || ""),
+          selected_option_id: String(item.selectedOptionId || ""),
+          choice_ok: item.chosenOk === true,
+          answer_type: String(item.answer_type || ""),
+        };
+      });
+    try {
+      auth.writeOwnerStorage(this._draftKey(), {
+        projection_receipt: this.data.projectionReceipt,
+        projection_digest: this.data.projectionDigest,
+        selection_id: this.data.selectionId,
+        completion_id: this.data.completionId,
+        answers: answers,
+        updated_at: Date.now(),
+      });
+    } catch (_error) {}
+  },
+
+  _clearDraft() {
+    try {
+      if (auth.removeOwnerStorage) auth.removeOwnerStorage(this._draftKey());
+    } catch (_error) {}
+  },
+
+  _restoreDraft(items, selectionId, projectionReceipt, projectionDigest) {
+    var draft = this._readDraft();
+    if (
+      !draft ||
+      !selectionId ||
+      String(draft.selection_id || "") !== String(selectionId || "") ||
+      (
+        this.data.bridgeMode &&
+        (
+          !projectionReceipt ||
+          draft.projection_receipt !== projectionReceipt ||
+          String(draft.projection_digest || "") !== String(projectionDigest || "")
+        )
+      ) ||
+      !Array.isArray(draft.answers)
+    ) {
+      if (draft) this._clearDraft();
+      return { items: items, completionId: "" };
+    }
+    var byVariant = {};
+    draft.answers.forEach(function (answer) {
+      byVariant[String((answer && answer.variant_id) || "")] = answer;
+    });
+    var restored = items.map(function (item) {
+      var answer = byVariant[String(item.variant_id || "")];
+      if (!answer) return item;
+      if (item.answer_type === "single_choice") {
+        var optionId = String(answer.selected_option_id || "");
+        if (!(item.options || []).some(function (option) { return option.option_id === optionId; })) return item;
+        return Object.assign({}, item, { answered: true, selectedOptionId: optionId });
+      }
+      return Object.assign({}, item, { answered: true, chosenOk: answer.choice_ok === true });
+    });
+    return { items: restored, completionId: String(draft.completion_id || "") };
   },
 
   // 本地"已见变体"集合(收集感, 呈现层非学情): 读旧集合并入本场
@@ -379,6 +492,7 @@ Page({
           result: serverCorrectCount + "/" + that.data.total,
           practiceMode: that.data.mode,
         });
+        that._clearDraft();
         var reviewPassed = changeStatus === "verification_passed";
         that.setData({
           syncStatus: "synced",
@@ -389,8 +503,8 @@ Page({
             ? "已练过 · 待验证"
             : (reviewPassed ? "复测通过 · 已更新" : "还需巩固 · 已更新"),
           receiptNextText: that.data.mode === "forward"
-            ? "本次课后轻练不等于已经掌握；复习页会按学习记录安排后续复测。"
-            : (reviewPassed ? "这次换皮复测通过，后续仍按复习节奏安排。" : "本次薄弱点已记录，复习页会继续安排。"),
+            ? "本次课后轻练不等于已经掌握；学习页会按记录安排下一次验证。"
+            : (reviewPassed ? "这次换皮复测通过，学习页会按记录安排后续验证。" : "本次薄弱点已记录，学习页会继续安排验证。"),
           items: scoredItems,
           correctCount: serverCorrectCount,
           wrongItems: wrong,
@@ -401,6 +515,7 @@ Page({
         });
       })
       .catch(function (err) {
+        that._persistDraft(items);
         that.setData({
           syncStatus: "error",
           syncError: api.describeRequestError(err, "保存失败，请重试后再查看收据"),
@@ -413,11 +528,15 @@ Page({
     return api
       .getLubanRetestItems(this.data.packId, RETEST_LIMIT, this.data.mode, {
         practiceSurface: this.data.practiceSurface,
+        projectionReceipt: this.data.bridgeProjectionReceipt,
+        probeId: this.data.probeId,
       })
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var raw = Array.isArray(body.items) ? body.items : [];
         var practiceSource = String(body.practice_source || "signed_variant");
+        var projectionReceipt = String(body.projection_receipt || "").trim();
+        var projectionDigest = String(body.projection_digest || "").trim();
         var pool = body.pool && body.pool.core_total ? body.pool : null;
         var items = raw.map(function (item, idx) {
           return {
@@ -439,17 +558,32 @@ Page({
             feedback: null,
           };
         });
+        var selectionId = String(body.selection_id || "");
+        var restored = that._restoreDraft(
+          items, selectionId, projectionReceipt, projectionDigest
+        );
+        items = restored.items;
+        var restoredCount = items.filter(function (item) { return item.answered; }).length;
         var bridgedItems = null;
         if (that.data.bridgeMode) {
-          if (practiceSource !== "compiled_html" || that.data.bridgeAnswerIndexes.length !== items.length) {
-            throw new Error("compiled_practice_bridge_mismatch");
+          if (
+            practiceSource !== "compiled_html" ||
+            !projectionReceipt ||
+            projectionReceipt !== that.data.bridgeProjectionReceipt ||
+            that.data.bridgeAnswers.length !== items.length
+          ) {
+            throw new Error("content_updated_retake");
           }
           bridgedItems = items.map(function (item, index) {
-            var option = (item.options || [])[that.data.bridgeAnswerIndexes[index]];
-            if (!option || !option.option_id) throw new Error("compiled_practice_bridge_option_invalid");
+            var answer = that.data.bridgeAnswers[index] || {};
+            var optionId = String(answer.selected_option_id || "");
+            if (
+              String(answer.variant_id || "") !== String(item.variant_id || "") ||
+              !(item.options || []).some(function (option) { return option.option_id === optionId; })
+            ) throw new Error("content_updated_retake");
             return Object.assign({}, item, {
               answered: true,
-              selectedOptionId: String(option.option_id),
+              selectedOptionId: optionId,
             });
           });
           items = bridgedItems;
@@ -458,14 +592,17 @@ Page({
           pool: pool,
           practiceSource: practiceSource,
           dayIndex: Number(body.day_index || 0),
-          selectionId: String(body.selection_id || ""),
+          selectionId: selectionId,
+          completionId: restored.completionId || that.data.completionId,
+          projectionReceipt: projectionReceipt,
+          projectionDigest: projectionDigest,
           seenCount: that._seenCount(items),
           items: items,
           total: items.length,
-          answeredCount: bridgedItems ? bridgedItems.length : 0,
+          answeredCount: bridgedItems ? bridgedItems.length : restoredCount,
           correctCount: 0,
           done: false,
-          currentIndex: bridgedItems ? Math.max(0, bridgedItems.length - 1) : 0,
+          currentIndex: Math.max(0, (bridgedItems ? bridgedItems.length : restoredCount || 1) - 1),
           showReceipt: false,
           wrongItems: [],
           ruleGroupCount: 0,
@@ -478,12 +615,19 @@ Page({
           receiptStateText: "",
           receiptNextText: "",
         });
+        that._persistDraft(items);
         if (bridgedItems) that._submitCompletion(bridgedItems);
+        else if (restoredCount === items.length && items.length > 0) that._submitCompletion(items);
       })
       .catch(function (err) {
+        var errorCode = api.errorCodeOf ? api.errorCodeOf(err) : String((err && err.message) || "");
+        var contentUpdated = errorCode === "content_updated_retake" || String((err && err.message) || "") === "content_updated_retake";
+        if (contentUpdated) that._clearDraft();
         that.setData({
           loading: false,
-          errorText: api.describeRequestError(err, "复测题加载失败，请稍后重试"),
+          errorText: contentUpdated
+            ? "题目内容已更新，请返回重新完成五题"
+            : api.describeRequestError(err, "复测题加载失败，请稍后重试"),
         });
       });
   },

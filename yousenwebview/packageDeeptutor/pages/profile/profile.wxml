@@ -1,5 +1,5 @@
 <!-- pages/profile/profile.wxml — 我的 tab（第10轮 10f：权益透明 · 纸墨朱竹） -->
-<view class="profile-page {{isDark?'':'light'}}">
+<view class="profile-page paper {{isDark?'':'light'}} pk-paper-bg">
 
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">

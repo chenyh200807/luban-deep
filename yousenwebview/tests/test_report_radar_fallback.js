@@ -40,6 +40,10 @@ function loadReportPage(stubs) {
       if (request === "../../utils/runtime") return stubs.runtime;
       if (request === "../../utils/route") return stubs.route;
       if (request === "../../utils/flags") return stubs.flags;
+      if (request === "../../utils/learn-view-model")
+        return require(path.join(__dirname, "../packageDeeptutor/utils/learn-view-model"));
+      if (request === "../../utils/report-home-view-model")
+        return require(path.join(__dirname, "../packageDeeptutor/utils/report-home-view-model"));
       if (request === "../../utils/taxonomy") return require(path.join(__dirname, "../packageDeeptutor/utils/taxonomy"));
       return {};
     },

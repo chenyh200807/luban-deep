@@ -77,10 +77,29 @@
         <view class="pk-btn-ink lr-supply-retry" bindtap="retrySupply">重新加载</view>
       </view>
 
+      <!-- 今日唯一任务：只翻译 server next_step 的到期验证/课后练/推荐微课状态 -->
+      <view class="lr-task pk-card" wx:if="{{firstRunState === 'hidden' && !supplyError && vm.todayTask}}">
+        <view class="lr-task-head">
+          <view class="lr-task-main">
+            <text class="pk-kicker">{{vm.todayTask.task_state === 'review_due' ? '今天先验证' : (vm.todayTask.task_state === 'practice_active' ? '刚学就检验' : '今天最该学')}}</text>
+            <text class="lr-task-title">{{vm.todayTask.title}}</text>
+          </view>
+        </view>
+        <view class="lr-task-cta" wx:if="{{vm.todayTask.cta}}">
+          <view class="pk-btn-ink lr-task-btn" bindtap="goTodayTask">{{vm.todayTask.cta}}</view>
+        </view>
+        <text class="pk-desc lr-supply-note" wx:if="{{vm.todayTask.supplyNote}}">{{vm.todayTask.supplyNote}}</text>
+        <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.todayTask.reason}}">
+          <text class="lr-why-label">为什么推荐</text>
+          <text class="lr-why-chev">{{whyOpen ? '▾' : '▸'}}</text>
+        </view>
+        <text class="pk-desc lr-why-text" wx:if="{{whyOpen && vm.todayTask.reason}}">{{vm.todayTask.reason}}</text>
+      </view>
+
       <!-- 动画精讲卡:下一站 header + 宣纸舞台 + 横滑课程架 -->
       <view class="lr-lesson pk-card" wx:if="{{!supplyError}}">
         <!-- header -->
-        <view class="lr-lesson-head" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}" data-card-hosted="{{vm.nextStation.card_hosted}}">
+        <view class="lr-lesson-head" wx:if="{{vm.nextStation}}">
           <view class="lr-lesson-seal pk-seal">
             <image class="lr-lesson-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
           </view>
@@ -99,7 +118,7 @@
         </view>
 
         <!-- 宣纸舞台(播放键)· 原色宣纸,不随主题变(设计:动画卡=原色宣纸舞台) -->
-        <view class="lr-stage" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}" data-card-hosted="{{vm.nextStation.card_hosted}}">
+        <view class="lr-stage" wx:if="{{vm.nextStation}}">
           <text class="lr-stage-badge">{{vm.nextStation.card_hosted === false ? '制作中' : '旁白·开'}}</text>
           <view class="lr-stage-fs">
             <view class="lr-fs-corner"></view><view class="lr-fs-corner lr-fs-tr"></view>
@@ -160,54 +179,15 @@
         </view>
       </view>
 
-      <!-- 今日任务卡 -->
-      <view class="lr-task pk-card" wx:if="{{!supplyError && vm.todayTask}}">
-        <view class="lr-task-head">
-          <view class="lr-task-main">
-            <text class="pk-kicker">今天最该完成</text>
-            <text class="lr-task-title">{{vm.todayTask.title}}</text>
-          </view>
-          <!-- 掌握度:只投影 overall mastery；不冒充置信度或趋势 -->
-          <view class="lr-conf" wx:if="{{vm.stats.mastery_score}}">
-            <view class="lr-conf-ring" style="background: conic-gradient(var(--pk-grn) {{vm.stats.mastery_score * 3.6}}deg, var(--pk-gauge) 0deg);">
-              <view class="lr-conf-hole"><text class="lr-conf-num">{{vm.stats.mastery_score}}%</text></view>
-            </view>
-            <text class="lr-conf-label">当前掌握度</text>
-          </view>
-        </view>
-        <view class="lr-task-cta">
-          <!-- 主按钮只在有签发供给时渲染(cta 空 = 该站无货,诚实降级不给练不了的按钮) -->
-          <view class="pk-btn-ink lr-task-btn" wx:if="{{vm.todayTask.cta}}" bindtap="goPractice">{{vm.todayTask.cta}}</view>
-          <view class="pk-btn-ghost lr-task-ghost" bindtap="goSwitchPractice">换轻练</view>
-        </view>
-        <text class="pk-desc lr-supply-note" wx:if="{{vm.todayTask.supplyNote}}">{{vm.todayTask.supplyNote}}</text>
-        <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.todayTask.reason}}">
-          <text class="lr-why-label">为什么推荐</text>
-          <text class="lr-why-chev">{{whyOpen ? '▾' : '▸'}}</text>
-        </view>
-        <text class="pk-desc lr-why-text" wx:if="{{whyOpen && vm.todayTask.reason}}">{{vm.todayTask.reason}}</text>
-      </view>
-
-      <!-- 复习到期条 -->
-      <view class="lr-review pk-card" wx:if="{{!supplyError && vm.dueCount}}" bindtap="goReview">
-        <view class="lr-review-bolt"></view>
-        <text class="lr-review-txt">复习 {{vm.dueCount}} 张到期</text>
-        <text class="lr-review-go">去复习 →</text>
-      </view>
-
-      <!-- 三枚指标卡 -->
+      <!-- 两枚事实指标卡；不把推断百分比冒充掌握结论 -->
       <view class="lr-metric-row" wx:if="{{!supplyError}}">
         <view class="lr-metric pk-card">
-          <text class="pk-kicker">近 3 天练习</text>
-          <text class="lr-metric-num">{{vm.stats.recent_practice || 0}} 次</text>
+          <text class="pk-kicker">近 3 天有效作答</text>
+          <text class="lr-metric-num">{{vm.stats.recent_practice || 0}} 道</text>
         </view>
         <view class="lr-metric pk-card">
           <text class="pk-kicker">待补错因</text>
           <text class="lr-metric-num">{{vm.stats.pending_errors || 0}} 个</text>
-        </view>
-        <view class="lr-metric pk-card">
-          <text class="pk-kicker">当前掌握度</text>
-          <text class="lr-metric-num lr-metric-grn">{{vm.stats.mastery_score ? vm.stats.mastery_score + '%' : '—'}}</text>
         </view>
       </view>
 

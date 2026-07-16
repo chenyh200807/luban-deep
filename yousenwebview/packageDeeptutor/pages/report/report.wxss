@@ -254,8 +254,8 @@
 .detail-metric-row > view {
   padding: 15rpx 12rpx;
   border-radius: 12rpx;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
 }
 
 .detail-metric-num,
@@ -267,7 +267,7 @@
   font-size: 32rpx;
   line-height: 1.1;
   font-weight: 850;
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .detail-metric-label {
@@ -603,10 +603,8 @@
   display: flex;
   flex-direction: column;
   gap: 18rpx;
-  border-color: rgba(56, 189, 248, 0.22);
-  background:
-    linear-gradient(135deg, rgba(14, 116, 144, 0.22), rgba(15, 23, 42, 0.78)),
-    radial-gradient(circle at 92% 0%, rgba(52, 211, 153, 0.18), transparent 34%);
+  border-color: var(--pk-bd);
+  background: var(--pk-card);
 }
 
 .engine-panel-rail {
@@ -615,7 +613,7 @@
   top: 22rpx;
   bottom: 22rpx;
   width: 2rpx;
-  background: linear-gradient(180deg, #67e8f9, rgba(103, 232, 249, 0.08));
+  background: var(--pk-grn);
 }
 
 .engine-head {
@@ -631,7 +629,7 @@
   margin-bottom: 5rpx;
   font-size: 20rpx;
   font-weight: 800;
-  color: #67e8f9;
+  color: var(--pk-grn);
 }
 
 .engine-title {
@@ -647,12 +645,12 @@
   max-width: 236rpx;
   padding: 8rpx 12rpx;
   border-radius: 999rpx;
-  background: rgba(8, 145, 178, 0.16);
-  border: 1rpx solid rgba(103, 232, 249, 0.2);
+  background: var(--pk-gauge);
+  border: 1rpx solid var(--pk-bd);
   font-size: 19rpx;
   line-height: 1.35;
   font-weight: 800;
-  color: #a5f3fc;
+  color: var(--pk-t2);
   text-align: right;
 }
 
@@ -684,14 +682,14 @@
 }
 
 .engine-source-card.source-active {
-  border-color: rgba(103, 232, 249, 0.18);
-  background: rgba(8, 145, 178, 0.1);
+  border-color: var(--pk-accent-border);
+  background: var(--pk-accent-soft);
 }
 
 .engine-source-label {
   font-size: 20rpx;
   line-height: 1.25;
-  color: #cbd5e1;
+  color: var(--pk-t2);
 }
 
 .engine-source-value {
@@ -705,11 +703,11 @@
   font-size: 18rpx;
   line-height: 1.25;
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--pk-t3);
 }
 
 .source-active .engine-source-status {
-  color: #67e8f9;
+  color: var(--pk-grn);
 }
 
 /* ── Learning State Inference ───────────────────── */
@@ -732,7 +730,7 @@
   bottom: 18rpx;
   width: 6rpx;
   border-radius: 999rpx;
-  background: rgba(96, 165, 250, 0.7);
+  background: var(--pk-gauge);
 }
 
 .prescription-section {
@@ -768,11 +766,11 @@
 }
 
 .mistake-rail {
-  background: #fb923c;
+  background: var(--pk-warn);
 }
 
 .scoring-rail {
-  background: #818cf8;
+  background: var(--pk-grn);
 }
 
 .learning-state-section-head {
@@ -830,8 +828,8 @@
   min-height: 76rpx;
   padding: 0 18rpx;
   border-radius: 14rpx;
-  background: rgba(96, 165, 250, 0.13);
-  border: 1rpx solid rgba(96, 165, 250, 0.24);
+  background: var(--pk-gauge);
+  border: 1rpx solid var(--pk-bd);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -842,18 +840,18 @@
   font-size: 24rpx;
   line-height: 1.25;
   font-weight: 900;
-  color: #e0f2fe;
+  color: var(--pk-t1);
 }
 
 .battle-plan-action text:last-child {
   flex-shrink: 0;
   padding: 7rpx 12rpx;
   border-radius: 999rpx;
-  background: rgba(96, 165, 250, 0.18);
+  background: var(--pk-card);
   font-size: 20rpx;
   line-height: 1.2;
   font-weight: 800;
-  color: #93c5fd;
+  color: var(--pk-t2);
 }
 
 .learning-state-section-desc {
@@ -877,14 +875,14 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  background: var(--pk-gauge);
+  border: 1rpx solid var(--pk-bd);
 }
 
 .learning-state-step-text {
   font-size: 20rpx;
   font-weight: 700;
-  color: #bfdbfe;
+  color: var(--pk-t2);
 }
 
 .learning-state-cta {
@@ -909,7 +907,7 @@
 .learning-state-layer-label {
   font-size: 21rpx;
   font-weight: 800;
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .learning-state-row {
@@ -947,7 +945,7 @@
   margin-top: 3rpx;
   font-size: 21rpx;
   line-height: 1.38;
-  color: #bae6fd;
+  color: var(--pk-grn);
 }
 
 .learning-state-row-status {
@@ -2437,12 +2435,17 @@
 }
 
 .report-page.light .module-mini-stats text,
-.report-page.light .detail-metric-row > view,
 .report-page.light .training-route-step,
 .report-page.light .progress-chart-card {
   background: rgba(241, 245, 249, 0.72);
   border-color: rgba(209, 222, 244, 0.8);
   color: #475569;
+}
+
+.report-page.light .detail-metric-row > view {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  color: var(--pk-t2);
 }
 
 .report-page.light .training-route-step text {
@@ -2827,3 +2830,248 @@
 .lr-fill-observed { background: var(--pk-gauge); }
 
 .dot-observed { background: var(--pk-gauge); }
+
+/* ── 学情二/三级详情统一壳 ─────────────────────────────
+ * report.wxml 通过 reportDetailView 原地切换多个详情；旧实现仍携带蓝色
+ * glass-card/渐变。这里仅换视觉材料，所有 read-model 与深链行为保持不变。 */
+.report-page.paper.report-detail-active .nav-bar { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
+.report-page.paper.report-detail-active .nav-back-arrow,
+.report-page.paper.report-detail-active .nav-back-txt { color: var(--pk-grn); }
+.report-page.paper.report-detail-active .nav-title { color: var(--pk-t1); }
+.report-page.paper.report-detail-active .glass-card,
+.report-page.paper.report-detail-active .report-detail-hero,
+.report-page.paper.report-detail-active .training-loop-card,
+.report-page.paper.report-detail-active .training-action-card,
+.report-page.paper.report-detail-active .learning-engine-panel,
+.report-page.paper.report-detail-active .engine-source-card,
+.report-page.paper.report-detail-active .learning-state-section,
+.report-page.paper.report-detail-active .learning-state-row,
+.report-page.paper.report-detail-active .scoring-point-row,
+.report-page.paper.report-detail-active .brain-stat,
+.report-page.paper.report-detail-active .brain-review-summary,
+.report-page.paper.report-detail-active .brain-column,
+.report-page.paper.report-detail-active .attempt-card,
+.report-page.paper.report-detail-active .brain-event,
+.report-page.paper.report-detail-active .brain-chain-row,
+.report-page.paper.report-detail-active .progress-item,
+.report-page.paper.report-detail-active .battle-plan,
+.report-page.paper.report-detail-active .progress-chart-card {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+.report-page.paper.report-detail-active .detail-evidence,
+.report-page.paper.report-detail-active .detail-map,
+.report-page.paper.report-detail-active .detail-training,
+.report-page.paper.report-detail-active .detail-progress { background: var(--pk-card); }
+.report-page.paper.report-detail-active .detail-hero-kicker,
+.report-page.paper.report-detail-active .engine-kicker,
+.report-page.paper.report-detail-active .learning-state-section-tag,
+.report-page.paper.report-detail-active .brain-column-title,
+.report-page.paper.report-detail-active .brain-next-cta { color: var(--pk-grn); }
+.report-page.paper.report-detail-active .detail-hero-title,
+.report-page.paper.report-detail-active .detail-metric-num,
+.report-page.paper.report-detail-active .training-loop-title,
+.report-page.paper.report-detail-active .engine-title,
+.report-page.paper.report-detail-active .learning-state-section-title,
+.report-page.paper.report-detail-active .learning-state-section-subtitle,
+.report-page.paper.report-detail-active .learning-state-row-title,
+.report-page.paper.report-detail-active .scoring-point-name,
+.report-page.paper.report-detail-active .brain-review-title,
+.report-page.paper.report-detail-active .brain-review-headline,
+.report-page.paper.report-detail-active .brain-training-title,
+.report-page.paper.report-detail-active .attempt-title,
+.report-page.paper.report-detail-active .brain-chain-title { color: var(--pk-t1); }
+.report-page.paper.report-detail-active .detail-hero-sub,
+.report-page.paper.report-detail-active .detail-metric-label,
+.report-page.paper.report-detail-active .training-loop-desc,
+.report-page.paper.report-detail-active .engine-summary,
+.report-page.paper.report-detail-active .engine-subtitle,
+.report-page.paper.report-detail-active .learning-state-section-desc,
+.report-page.paper.report-detail-active .learning-state-row-meta,
+.report-page.paper.report-detail-active .learning-state-row-status,
+.report-page.paper.report-detail-active .brain-column-sub,
+.report-page.paper.report-detail-active .attempt-time,
+.report-page.paper.report-detail-active .attempt-answer,
+.report-page.paper.report-detail-active .attempt-explanation,
+.report-page.paper.report-detail-active .brain-footer-text { color: var(--pk-t2); }
+.report-page.paper.report-detail-active .engine-panel-rail,
+.report-page.paper.report-detail-active .prescription-rail,
+.report-page.paper.report-detail-active .scoring-rail { background: var(--pk-grn); }
+.report-page.paper.report-detail-active .prescription-meta-chip,
+.report-page.paper.report-detail-active .module-mini-stats text,
+.report-page.paper.report-detail-active .training-loop-badge { background: var(--pk-gauge); border-color: var(--pk-bd); color: var(--pk-t2); }
+.report-page.paper.report-detail-active .learning-state-cta { background: var(--pk-ink-btn); border-color: var(--pk-ink-btn); }
+.report-page.paper.report-detail-active .learning-state-cta-label { color: var(--pk-ink-btn-t); }
+.report-page.paper.report-detail-active .guest-report-card { background: var(--pk-card); border-color: var(--pk-bd); }
+.report-page.paper.report-detail-active .guest-report-kicker { color: var(--pk-grn); }
+.report-page.paper.report-detail-active .guest-report-title { color: var(--pk-t1); }
+.report-page.paper.report-detail-active .guest-report-desc { color: var(--pk-t2); }
+.report-page.paper.report-detail-active .guest-report-action { background: var(--pk-ink-btn); }
+.report-page.paper.report-detail-active .guest-report-action-txt { color: var(--pk-ink-btn-t); }
+
+/* ── 详情可读性 contract ─────────────────────────────────
+ * 二、三级页曾直接继承旧蓝版的 glass/低字号规则；不能只换外壳，
+ * 否则卡片内的证据、空态和状态标签仍会在亮底上失焦。
+ * 这一段是 reportDetailView != home 的唯一材料与排版收口点。 */
+.report-page.paper.report-detail-active .page-inner {
+  /* custom tab bar = 140rpx + safe-area；再留 48rpx 读完最后一张卡。 */
+  padding-bottom: calc(188rpx + env(safe-area-inset-bottom));
+}
+
+.report-page.paper.report-detail-active .learning-state-row,
+.report-page.paper.report-detail-active .mistake-history-card,
+.report-page.paper.report-detail-active .brain-truth-row,
+.report-page.paper.report-detail-active .brain-diagnosis-row,
+.report-page.paper.report-detail-active .brain-edge-row,
+.report-page.paper.report-detail-active .brain-training-row,
+.report-page.paper.report-detail-active .brain-chain-row,
+.report-page.paper.report-detail-active .note-asset-row,
+.report-page.paper.report-detail-active .brain-next-action {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: none;
+}
+
+.report-page.paper.report-detail-active .attempt-card {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: none;
+}
+.report-page.paper.report-detail-active .attempt-wrong {
+  border-left: 6rpx solid var(--pk-warn);
+}
+.report-page.paper.report-detail-active .attempt-correct {
+  border-left: 6rpx solid var(--pk-grn);
+}
+
+.report-page.paper.report-detail-active .learning-brain-state,
+.report-page.paper.report-detail-active .scoring-point-empty {
+  background: var(--pk-gauge);
+  border: 1rpx dashed var(--pk-bd);
+  border-radius: 14rpx;
+  color: var(--pk-t2);
+  opacity: 1;
+}
+.report-page.paper.report-detail-active .learning-brain-state {
+  padding: 20rpx;
+}
+
+.report-page.paper.report-detail-active .learning-state-row.state-warn,
+.report-page.paper.report-detail-active .chain-not-improved {
+  border-left: 6rpx solid var(--pk-warn);
+}
+.report-page.paper.report-detail-active .learning-state-row.state-good,
+.report-page.paper.report-detail-active .chain-improved,
+.report-page.paper.report-detail-active .brain-next-action {
+  border-left: 6rpx solid var(--pk-grn);
+}
+
+.report-page.paper.report-detail-active .detail-metric-row > view,
+.report-page.paper.report-detail-active .prescription-meta-chip,
+.report-page.paper.report-detail-active .learning-state-row-status,
+.report-page.paper.report-detail-active .scoring-point-badge,
+.report-page.paper.report-detail-active .attempt-result,
+.report-page.paper.report-detail-active .attempt-action,
+.report-page.paper.report-detail-active .brain-level,
+.report-page.paper.report-detail-active .brain-event,
+.report-page.paper.report-detail-active .brain-review-metric,
+.report-page.paper.report-detail-active .brain-chain-outcome,
+.report-page.paper.report-detail-active .note-asset-action,
+.report-page.paper.report-detail-active .brain-challenge-action,
+.report-page.paper.report-detail-active .brain-next-cta,
+.report-page.paper.report-detail-active .mistake-history-result,
+.report-page.paper.report-detail-active .mistake-history-cta {
+  background: var(--pk-gauge);
+  border-color: var(--pk-bd);
+  color: var(--pk-t2);
+  opacity: 1;
+}
+.report-page.paper.report-detail-active .result-wrong,
+.report-page.paper.report-detail-active .learning-state-row.state-warn .learning-state-row-status,
+.report-page.paper.report-detail-active .chain-not-improved .brain-chain-outcome,
+.report-page.paper.report-detail-active .scoring-point-miss {
+  color: var(--pk-warn);
+}
+.report-page.paper.report-detail-active .result-correct,
+.report-page.paper.report-detail-active .learning-state-row.state-good .learning-state-row-status,
+.report-page.paper.report-detail-active .chain-improved .brain-chain-outcome,
+.report-page.paper.report-detail-active .note-card-action,
+.report-page.paper.report-detail-active .note-card-action.primary,
+.report-page.paper.report-detail-active .brain-challenge-action,
+.report-page.paper.report-detail-active .brain-next-cta,
+.report-page.paper.report-detail-active .note-asset-action,
+.report-page.paper.report-detail-active .mistake-history-cta {
+  color: var(--pk-grn);
+}
+
+.report-page.paper.report-detail-active .learning-brain-state-title,
+.report-page.paper.report-detail-active .mistake-history-question,
+.report-page.paper.report-detail-active .brain-row-title,
+.report-page.paper.report-detail-active .brain-edge-type,
+.report-page.paper.report-detail-active .note-asset-title {
+  color: var(--pk-t1);
+}
+.report-page.paper.report-detail-active .learning-brain-state-desc,
+.report-page.paper.report-detail-active .learning-state-row-meta,
+.report-page.paper.report-detail-active .learning-state-row-action,
+.report-page.paper.report-detail-active .mistake-history-label,
+.report-page.paper.report-detail-active .mistake-history-value,
+.report-page.paper.report-detail-active .brain-row-meta,
+.report-page.paper.report-detail-active .brain-diagnosis-detail,
+.report-page.paper.report-detail-active .brain-action-line,
+.report-page.paper.report-detail-active .brain-training-meta,
+.report-page.paper.report-detail-active .brain-edge-path,
+.report-page.paper.report-detail-active .brain-edge-event,
+.report-page.paper.report-detail-active .brain-chain-step,
+.report-page.paper.report-detail-active .note-asset-summary,
+.report-page.paper.report-detail-active .note-asset-source {
+  color: var(--pk-t2);
+}
+.report-page.paper.report-detail-active .mistake-history-value.strong,
+.report-page.paper.report-detail-active .mistake-history-time,
+.report-page.paper.report-detail-active .attempt-time,
+.report-page.paper.report-detail-active .brain-column-title,
+.report-page.paper.report-detail-active .brain-review-title,
+.report-page.paper.report-detail-active .brain-level-text {
+  color: var(--pk-grn);
+}
+
+/* 750rpx viewport 中 24rpx 才约等于 12px；辅助信息不得再低于此阈值。 */
+.report-page.paper.report-detail-active .detail-metric-label,
+.report-page.paper.report-detail-active .engine-summary,
+.report-page.paper.report-detail-active .engine-source-label,
+.report-page.paper.report-detail-active .engine-source-status,
+.report-page.paper.report-detail-active .learning-state-section-tag,
+.report-page.paper.report-detail-active .learning-state-layer-label,
+.report-page.paper.report-detail-active .learning-state-row-meta,
+.report-page.paper.report-detail-active .learning-state-row-action,
+.report-page.paper.report-detail-active .learning-state-row-status,
+.report-page.paper.report-detail-active .scoring-point-badge,
+.report-page.paper.report-detail-active .scoring-point-miss,
+.report-page.paper.report-detail-active .mistake-history-time,
+.report-page.paper.report-detail-active .mistake-history-result,
+.report-page.paper.report-detail-active .mistake-history-label,
+.report-page.paper.report-detail-active .mistake-history-value,
+.report-page.paper.report-detail-active .mistake-history-cta,
+.report-page.paper.report-detail-active .learning-brain-state-desc,
+.report-page.paper.report-detail-active .brain-column-sub,
+.report-page.paper.report-detail-active .brain-level-text,
+.report-page.paper.report-detail-active .brain-row-meta,
+.report-page.paper.report-detail-active .brain-diagnosis-detail,
+.report-page.paper.report-detail-active .brain-action-line,
+.report-page.paper.report-detail-active .brain-challenge-action,
+.report-page.paper.report-detail-active .attempt-time,
+.report-page.paper.report-detail-active .attempt-result,
+.report-page.paper.report-detail-active .attempt-answer,
+.report-page.paper.report-detail-active .attempt-diagnosis,
+.report-page.paper.report-detail-active .attempt-explanation,
+.report-page.paper.report-detail-active .attempt-action,
+.report-page.paper.report-detail-active .brain-chain-step,
+.report-page.paper.report-detail-active .brain-chain-outcome,
+.report-page.paper.report-detail-active .brain-footer-text,
+.report-page.paper.report-detail-active .note-asset-summary,
+.report-page.paper.report-detail-active .note-asset-source,
+.report-page.paper.report-detail-active .note-asset-action {
+  font-size: 24rpx;
+}
