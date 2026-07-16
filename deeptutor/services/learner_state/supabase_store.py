@@ -518,6 +518,69 @@ class LearnerStateSupabaseSyncCoreStore:
             },
         )
 
+    def claim_retest_probe(
+        self,
+        *,
+        user_id: str,
+        probe_id: str,
+        cycle_anchor: str,
+        completion_id: str,
+        request_hash: str,
+    ) -> dict[str, Any]:
+        """Atomically insert-or-read one review probe claim in Postgres.
+
+        The RPC owns concurrency.  A normal PostgREST merge-upsert is not safe
+        here because the losing request must never overwrite the winner's hash
+        or completion identity.
+        """
+        if not self.is_configured:
+            raise RuntimeError("retest_probe_atomic_authority_unavailable")
+        response = self._client_or_create().post(
+            f"{self._base_url.rstrip('/')}/rest/v1/rpc/claim_luban_retest_probe",
+            headers=_rest_headers(self._service_key),
+            json={
+                "p_user_id": str(user_id or "").strip(),
+                "p_probe_id": str(probe_id or "").strip(),
+                "p_cycle_anchor": str(cycle_anchor or "").strip(),
+                "p_completion_id": str(completion_id or "").strip(),
+                "p_request_hash": str(request_hash or "").strip(),
+            },
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, list):
+            payload = payload[0] if payload else {}
+        if not isinstance(payload, dict) or str(payload.get("status") or "") not in {
+            "acquired",
+            "replay",
+            "conflict",
+        }:
+            raise RuntimeError("retest_probe_atomic_claim_invalid_response")
+        return dict(payload)
+
+    def read_retest_completion_events(
+        self,
+        *,
+        user_id: str,
+        completion_id: str,
+    ) -> list[dict[str, Any]]:
+        """Read one completion directly from Postgres, bypassing projection caches."""
+        if not self.is_configured:
+            raise RuntimeError("retest_completion_authoritative_read_unavailable")
+        response = self._client_or_create().post(
+            f"{self._base_url.rstrip('/')}/rest/v1/rpc/read_luban_retest_completion_events",
+            headers=_rest_headers(self._service_key),
+            json={
+                "p_user_id": str(user_id or "").strip(),
+                "p_completion_id": str(completion_id or "").strip(),
+            },
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, list):
+            raise RuntimeError("retest_completion_authoritative_read_invalid")
+        return [dict(item) for item in payload if isinstance(item, dict)]
+
     def write_progress(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
         normalized_user_id = str(user_id or "").strip()
         row = _progress_to_row(normalized_user_id, progress)

@@ -647,6 +647,7 @@ domains:
       - tests/services/test_bi_service_limits.py
       - tests/web/test_bi_member_admin_surface.py
       - tests/supabase/test_learner_state_rls_migration.py
+      - tests/supabase/test_luban_retest_probe_claim_postgres.py
       - tests/services/learner_state/test_d_class_occurrence_timeline.py
       - tests/services/learner_state/test_d_class_long_term_analytics.py
       - tests/services/notebook_card/test_service.py
@@ -683,6 +684,7 @@ domains:
       - supabase/migrations/20260415000200_bot_learner_overlay.sql
       - supabase/migrations/20260419000100_learner_state_rls.sql
       - supabase/migrations/20260531000100_learner_notebook_cards.sql
+      - supabase/migrations/20260716000100_learner_state_luban_retest_probe_claim.sql
 
   # Luban grading engine — compiled rubric, registry resolver, knowledge compiler.
   # I-5: These test files were added during M7/M32 but not registered in contract guard.

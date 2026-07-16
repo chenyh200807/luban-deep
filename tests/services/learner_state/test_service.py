@@ -1064,6 +1064,29 @@ def test_append_memory_event_dedupe_returns_existing_event_without_second_outbox
     assert len(pending_learning_events) == 1
 
 
+def test_luban_retest_dedupe_has_stable_event_identity_across_service_instances(
+    tmp_path,
+) -> None:
+    service_a = _make_service(tmp_path / "worker-a")
+    service_b = _make_service(tmp_path / "worker-b")
+    kwargs = {
+        "source_feature": "assessment_testset",
+        "source_id": "completion-1:F16-v1",
+        "memory_kind": "learning_evidence",
+        "payload_json": {
+            "event_type": "learning_evidence",
+            "retest_completion_id": "completion-1",
+            "question_id": "F16-v1",
+        },
+        "dedupe_key": "luban_retest_item:student_demo:completion-1:F16-v1",
+    }
+
+    event_a = service_a.append_memory_event("student_demo", **kwargs)
+    event_b = service_b.append_memory_event("student_demo", **kwargs)
+
+    assert event_a.event_id == event_b.event_id
+
+
 def test_learning_evidence_append_auto_synthesizes_for_enabled_cohort(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED", "1")
     core_store = _CoreStoreStub()

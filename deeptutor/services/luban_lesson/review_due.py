@@ -95,4 +95,33 @@ def build_review_due_projection(
     }
 
 
-__all__ = ["build_review_due_projection"]
+def resolve_due_review_probe(
+    projection: dict[str, Any],
+    *,
+    pack_id: str,
+    probe_id: str,
+) -> dict[str, Any] | None:
+    """Resolve one exact, currently eligible probe from the due projection.
+
+    This is deliberately a projection reader, not another scheduler: due state and
+    cycle identity remain owned by ``revalidation_queue``.  Both selection issuance
+    and completion verification use this same exact-match rule.
+    """
+    normalized_pack = str(pack_id or "").strip().upper()
+    normalized_probe = str(probe_id or "").strip()
+    if not normalized_pack or not normalized_probe:
+        return None
+    for item in list(projection.get("due") or []):
+        if not isinstance(item, dict):
+            continue
+        if (
+            str(item.get("pack_id") or "").strip().upper() == normalized_pack
+            and str(item.get("probe_id") or "").strip() == normalized_probe
+            and item.get("retest_available") is True
+            and str(item.get("cycle_anchor") or "").strip()
+        ):
+            return dict(item)
+    return None
+
+
+__all__ = ["build_review_due_projection", "resolve_due_review_probe"]

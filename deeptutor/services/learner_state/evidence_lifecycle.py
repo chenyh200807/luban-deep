@@ -71,6 +71,9 @@ def canonical_retest_item_events(
     request_hash = _clean(terminal_payload.get("request_hash"))
     pack_id = _clean(terminal_payload.get("pack_id")).upper()
     mode = _clean(terminal_payload.get("practice_mode")).lower()
+    request_hash_version = _whole_number(terminal_payload.get("request_hash_version"))
+    probe_id = _clean(terminal_payload.get("probe_id"))
+    cycle_anchor = _clean(terminal_payload.get("cycle_anchor"))
     item_refs = [_clean(item) for item in list(terminal_payload.get("item_event_refs") or [])]
     question_count = _whole_number(terminal_payload.get("max_score"))
     score_awarded = _number(terminal_payload.get("score_awarded"))
@@ -113,6 +116,14 @@ def canonical_retest_item_events(
             and _clean(payload.get("pack_id")).upper() == pack_id
             and _clean(payload.get("target_pack_id")).upper() == pack_id
             and _clean(payload.get("practice_mode")).lower() == mode
+            and (
+                request_hash_version != 3
+                or (
+                    _whole_number(payload.get("request_hash_version")) == 3
+                    and _clean(payload.get("probe_id")) == probe_id
+                    and _clean(payload.get("cycle_anchor")) == cycle_anchor
+                )
+            )
         ):
             return None
 
@@ -217,8 +228,24 @@ def is_canonical_luban_retest_terminal(event: Any) -> bool:
     expected_evidence_level = "L0_observed" if mode == "forward" else "L2_real_retest"
     allowed_authorities = {
         "forward": {"signed_variant_server_rescore", "compiled_html_server_rescore"},
-        "review": {"signed_variant_server_rescore"},
+        "review": {"signed_variant_server_rescore", "compiled_html_server_rescore"},
     }
+    request_hash = _clean(payload.get("request_hash"))
+    request_hash_version = _whole_number(payload.get("request_hash_version"))
+    v3_identity_valid = bool(
+        request_hash_version != 3
+        or (
+            len(request_hash) == 64
+            and all(character in "0123456789abcdef" for character in request_hash)
+            and (
+                mode == "forward"
+                or (
+                    _clean(payload.get("probe_id"))
+                    and _clean(payload.get("cycle_anchor"))
+                )
+            )
+        )
+    )
     return bool(
         _clean(getattr(event, "source_feature", "")) == "assessment_testset"
         and _clean(getattr(event, "memory_kind", "")) == "learning_evidence"
@@ -237,6 +264,7 @@ def is_canonical_luban_retest_terminal(event: Any) -> bool:
         and _clean(quality.get("evidence_level")) == expected_evidence_level
         and _clean(result.get("status")) in expected_statuses
         and payload.get("claim_promotion_allowed") is (mode == "review")
+        and v3_identity_valid
     )
 
 

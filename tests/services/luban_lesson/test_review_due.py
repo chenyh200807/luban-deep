@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from deeptutor.services.luban_lesson.review_due import build_review_due_projection
+from deeptutor.services.luban_lesson.review_due import (
+    build_review_due_projection,
+    resolve_due_review_probe,
+)
 
 
 def _ev(created, pack, sig="station_completed"):
@@ -132,6 +135,41 @@ def _lesson_viewed_ev(created, pack, stage="lesson"):
     return svc.event
 
 
+def test_exact_due_probe_resolution_requires_cycle_and_available_supply() -> None:
+    projection = {
+        "due": [
+            {
+                "pack_id": "F16",
+                "probe_id": "without-cycle",
+                "cycle_anchor": "",
+                "retest_available": True,
+            },
+            {
+                "pack_id": "F16",
+                "probe_id": "without-supply",
+                "cycle_anchor": "cycle-1",
+                "retest_available": False,
+            },
+            {
+                "pack_id": "F16",
+                "probe_id": "canonical",
+                "cycle_anchor": "cycle-1",
+                "retest_available": True,
+            },
+        ]
+    }
+
+    assert resolve_due_review_probe(
+        projection, pack_id="f16", probe_id="canonical"
+    ) == projection["due"][2]
+    assert resolve_due_review_probe(
+        projection, pack_id="F16", probe_id="without-cycle"
+    ) is None
+    assert resolve_due_review_probe(
+        projection, pack_id="F16", probe_id="without-supply"
+    ) is None
+
+
 def test_learned_yesterday_due_today_learned_today_not_due():
     out = build_review_due_projection(
         user_id="u1",
@@ -141,7 +179,7 @@ def test_learned_yesterday_due_today_learned_today_not_due():
         ],
         now_iso="2026-07-04T09:00:00+08:00")
     assert [d["pack_id"] for d in out["due"]] == ["F16"], "昨晚学的到期, 今早学的不到期"
-    assert out["due"][0]["retest_available"] is True, "F16 有变体池"
+    assert out["due"][0]["retest_available"] is False, "未完成 v3 人审签发时必须 fail-closed"
     assert out["learned_count"] == 2
     assert out["authority"] == "revalidation_queue"
 

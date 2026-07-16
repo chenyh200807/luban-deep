@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from threading import Lock
 from typing import Any
 
 import pytest
 
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    canonical_retest_item_events,
+)
 from deeptutor.services.learner_state.learning_report_read_model import (
     _aggregate_learning_evidence,
     _learning_evidence_events,
@@ -16,7 +20,9 @@ from deeptutor.services.learner_state.pack_lifecycle_projection import (
 from deeptutor.services.luban_lesson import retest_writeback as module
 from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
 from deeptutor.services.luban_lesson.retest_writeback import (
+    RetestCompletionInProgress,
     RetestIdempotencyConflict,
+    RetestProbeClaimUnavailable,
     RetestWritebackService,
 )
 
@@ -34,9 +40,21 @@ class _Event:
 
 
 class _LearnerState:
-    def __init__(self, *, fail_on_append_call: int = 0) -> None:
-        self.events: list[_Event] = []
-        self.by_dedupe: dict[str, _Event] = {}
+    def __init__(
+        self,
+        *,
+        fail_on_append_call: int = 0,
+        events: list[_Event] | None = None,
+        by_dedupe: dict[str, _Event] | None = None,
+        probe_claims: dict[tuple[str, str, str], dict[str, str]] | None = None,
+        probe_claim_lock: Lock | None = None,
+        claim_available: bool = True,
+    ) -> None:
+        self.events = events if events is not None else []
+        self.by_dedupe = by_dedupe if by_dedupe is not None else {}
+        self.probe_claims = probe_claims if probe_claims is not None else {}
+        self.probe_claim_lock = probe_claim_lock or Lock()
+        self.claim_available = claim_available
         self.append_calls = 0
         self.fail_on_append_call = fail_on_append_call
 
@@ -64,6 +82,49 @@ class _LearnerState:
 
     def list_memory_events(self, user_id: str, limit=None) -> list[_Event]:
         return list(self.events)
+
+    def list_retest_completion_events_authoritative(
+        self, user_id: str, completion_id: str
+    ) -> list[_Event]:
+        return [
+            event
+            for event in self.events
+            if event.payload_json.get("retest_completion_id") == completion_id
+            or event.payload_json.get("completion_id") == completion_id
+        ]
+
+    def claim_retest_probe(
+        self,
+        *,
+        user_id: str,
+        probe_id: str,
+        cycle_anchor: str,
+        completion_id: str,
+        request_hash: str,
+    ) -> dict[str, str]:
+        if not self.claim_available:
+            raise RuntimeError("retest_probe_atomic_authority_unavailable")
+        key = (user_id, probe_id, cycle_anchor)
+        with self.probe_claim_lock:
+            existing = self.probe_claims.get(key)
+            if existing is None:
+                existing = {
+                    "status": "acquired",
+                    "completion_id": completion_id,
+                    "request_hash": request_hash,
+                }
+                self.probe_claims[key] = existing
+                return dict(existing)
+            return {
+                **existing,
+                "status": (
+                    "conflict"
+                    if existing["request_hash"] != request_hash
+                    else "acquired"
+                    if existing["completion_id"] == completion_id
+                    else "replay"
+                ),
+            }
 
 
 class _NonLexicalEventIdLearnerState(_LearnerState):
@@ -143,6 +204,8 @@ def _complete(service: RetestWritebackService, **overrides: Any) -> dict[str, An
             variant_ids=[item["variant_id"] for item in payload["answers"]],
             supply_kind="signed_variant",
             supply_digest="f" * 64,
+            probe_id=str(payload.get("probe_id") or ""),
+            cycle_anchor="cycle-f16-v1" if canonical_mode == "review" else "",
         )
     return service.complete(**payload)
 
@@ -150,7 +213,10 @@ def _complete(service: RetestWritebackService, **overrides: Any) -> dict[str, An
 def _service(learner: _LearnerState) -> RetestWritebackService:
     return RetestWritebackService(
         learner_state_service=learner,
-        review_probe_resolver=lambda **_kwargs: {"due": True},
+        review_probe_resolver=lambda **_kwargs: {
+            "due": True,
+            "cycle_anchor": "cycle-f16-v1",
+        },
         training_intent_validator=lambda **_kwargs: True,
     )
 
@@ -325,6 +391,40 @@ def test_review_requires_canonical_due_probe() -> None:
 
     with pytest.raises(ValueError, match="retest_probe_not_due"):
         _complete(service, mode="review", probe_id="forged-probe")
+
+
+def test_review_due_revalidation_uses_same_member_exam_horizon(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured = {}
+
+    def _projection(**kwargs):
+        captured.update(kwargs)
+        return {
+            "due": [
+                {
+                    "pack_id": "F16",
+                    "probe_id": "probe-f16",
+                    "cycle_anchor": "cycle-f16-v1",
+                    "retest_available": True,
+                }
+            ]
+        }
+
+    monkeypatch.setattr(module, "build_review_due_projection", _projection)
+    service = RetestWritebackService(
+        learner_state_service=_LearnerState(),
+        review_exam_date_resolver=lambda _user_id: "2026-09-19",
+    )
+
+    due = service._require_due_probe(
+        user_id="qa_eval_first_run_loop",
+        pack_id="F16",
+        probe_id="probe-f16",
+    )
+
+    assert due["cycle_anchor"] == "cycle-f16-v1"
+    assert captured["exam_date_iso"] == "2026-09-19"
 
 
 def test_item_events_never_publish_completion_outcome() -> None:
@@ -547,7 +647,7 @@ def test_review_replay_succeeds_after_original_probe_is_no_longer_due() -> None:
 
     def _probe(**_kwargs):
         probe_calls.append(True)
-        return {"due": True} if len(probe_calls) == 1 else None
+        return {"due": True, "cycle_anchor": "cycle-f16-v1"} if len(probe_calls) == 1 else None
 
     service = RetestWritebackService(
         learner_state_service=learner,
@@ -615,7 +715,7 @@ def test_review_uses_probe_as_canonical_intent_and_ignores_client_intent() -> No
     assert all(event.payload_json["training_intent_id"] == "probe-f16" for event in review_events)
 
 
-def test_selection_identity_prevents_day_or_variant_tampering_before_write() -> None:
+def test_signed_selection_identity_ignores_client_day_tampering() -> None:
     learner = _LearnerState()
     service = _service(learner)
     token = issue_retest_selection(
@@ -628,10 +728,179 @@ def test_selection_identity_prevents_day_or_variant_tampering_before_write() -> 
         supply_digest="f" * 64,
     )
 
-    with pytest.raises(ValueError, match="retest_selection_invalid"):
-        _complete(service, day_index=2026193, selection_id=token)
+    result = _complete(service, day_index=2026193, selection_id=token)
+
+    terminal = next(
+        event for event in learner.events if event.payload_json.get("completion_terminal")
+    )
+    assert result["sync_status"] == "synced"
+    assert terminal.payload_json["day_index"] == 2026192
+
+
+def test_two_service_instances_close_same_probe_cycle_only_once() -> None:
+    events: list[_Event] = []
+    by_dedupe: dict[str, _Event] = {}
+    claims: dict[tuple[str, str, str], dict[str, str]] = {}
+    claim_lock = Lock()
+    learner_a = _LearnerState(
+        events=events,
+        by_dedupe=by_dedupe,
+        probe_claims=claims,
+        probe_claim_lock=claim_lock,
+    )
+    learner_b = _LearnerState(
+        events=events,
+        by_dedupe=by_dedupe,
+        probe_claims=claims,
+        probe_claim_lock=claim_lock,
+    )
+
+    winner = _complete(
+        _service(learner_a),
+        completion_id="device-a",
+        mode="review",
+        probe_id="probe-f16",
+    )
+    replay = _complete(
+        _service(learner_b),
+        completion_id="device-b",
+        mode="review",
+        probe_id="probe-f16",
+    )
+
+    terminals = [event for event in events if event.payload_json.get("completion_terminal")]
+    assert len(terminals) == 1
+    assert winner == replay
+    assert replay["completion_id"] == "device-a"
+
+
+def test_probe_replay_bypasses_stale_general_event_cache_for_winner_terminal() -> None:
+    events: list[_Event] = []
+    by_dedupe: dict[str, _Event] = {}
+    claims: dict[tuple[str, str, str], dict[str, str]] = {}
+    claim_lock = Lock()
+    learner_a = _LearnerState(
+        events=events,
+        by_dedupe=by_dedupe,
+        probe_claims=claims,
+        probe_claim_lock=claim_lock,
+    )
+    learner_b = _LearnerState(
+        events=events,
+        by_dedupe=by_dedupe,
+        probe_claims=claims,
+        probe_claim_lock=claim_lock,
+    )
+    winner = _complete(
+        _service(learner_a),
+        completion_id="device-a",
+        mode="review",
+        probe_id="probe-f16",
+    )
+    learner_b.list_memory_events = lambda *_args, **_kwargs: []  # type: ignore[method-assign]
+
+    replay = _complete(
+        _service(learner_b),
+        completion_id="device-b",
+        mode="review",
+        probe_id="probe-f16",
+    )
+
+    assert replay == winner
+    assert sum(bool(event.payload_json.get("completion_terminal")) for event in events) == 1
+
+
+def test_probe_claim_owner_can_resume_after_crash_but_other_completion_cannot_steal() -> None:
+    learner = _LearnerState(fail_on_append_call=1)
+    service = _service(learner)
+
+    with pytest.raises(RuntimeError, match="synthetic_terminal_failure"):
+        _complete(
+            service,
+            completion_id="owner-device",
+            mode="review",
+            probe_id="probe-f16",
+        )
+    assert learner.events == []
+
+    with pytest.raises(RetestCompletionInProgress, match="owner-device"):
+        _complete(
+            service,
+            completion_id="other-device",
+            mode="review",
+            probe_id="probe-f16",
+        )
+    assert learner.events == []
+
+    resumed = _complete(
+        service,
+        completion_id="owner-device",
+        mode="review",
+        probe_id="probe-f16",
+    )
+
+    assert resumed["completion_id"] == "owner-device"
+    assert sum(bool(event.payload_json.get("completion_terminal")) for event in learner.events) == 1
+
+
+def test_same_probe_cycle_with_different_answers_conflicts_before_second_write() -> None:
+    learner = _LearnerState()
+    first_service = _service(learner)
+    second_service = _service(learner)
+    _complete(
+        first_service,
+        completion_id="device-a",
+        mode="review",
+        probe_id="probe-f16",
+        answers=_answers(first=True, second=True),
+    )
+
+    with pytest.raises(RetestIdempotencyConflict):
+        _complete(
+            second_service,
+            completion_id="device-b",
+            mode="review",
+            probe_id="probe-f16",
+            answers=_answers(first=False, second=True),
+        )
+
+    assert sum(bool(event.payload_json.get("completion_terminal")) for event in learner.events) == 1
+
+
+def test_review_fails_closed_without_atomic_probe_authority_before_any_write() -> None:
+    learner = _LearnerState(claim_available=False)
+
+    with pytest.raises(RetestProbeClaimUnavailable, match="retest_probe_atomic_authority_unavailable"):
+        _complete(
+            _service(learner),
+            completion_id="review-no-authority",
+            mode="review",
+            probe_id="probe-f16",
+        )
 
     assert learner.events == []
+
+
+def test_v3_review_terminal_closure_rejects_item_from_another_probe_cycle() -> None:
+    learner = _LearnerState()
+    _complete(
+        _service(learner),
+        completion_id="cycle-bound",
+        mode="review",
+        probe_id="probe-f16",
+    )
+    terminal = next(
+        event for event in learner.events if event.payload_json.get("completion_terminal")
+    )
+    item = next(
+        event
+        for event in learner.events
+        if event.source_feature == "assessment_testset"
+        and event.payload_json.get("completion_terminal") is not True
+    )
+    item.payload_json["cycle_anchor"] = "forged-cycle"
+
+    assert canonical_retest_item_events(learner.events, terminal=terminal) is None
 
 
 def test_forward_compiled_html_mcq_is_server_rescored_and_written_as_l0(
@@ -731,7 +1000,47 @@ def test_forward_compiled_html_mcq_is_server_rescored_and_written_as_l0(
     assert progress["unique_question_count"] == len(items)
 
 
-def test_non_f16_compiled_surface_writes_five_items_and_one_canonical_terminal(
+def test_due_review_accepts_only_server_rescored_compiled_canonical_supply(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    item = {
+        "answer_type": "single_choice",
+        "variant_id": "F16-html-review-q1",
+        "rule_group": "分档·条件维",
+        "stem": "怎样分档？",
+        "model_answer": "按100mm分档。",
+        "anchor": "compiled_html:f16/practice.html#Q1",
+        "source_html_sha256": "html-sha",
+        "options": [
+            {"option_id": "q1:a", "text": "正确", "is_correct": True},
+            {"option_id": "q1:b", "text": "错误", "is_correct": False},
+        ],
+    }
+    monkeypatch.setattr(module, "resolve_retest_items", lambda *args, **kwargs: [item])
+    learner = _LearnerState()
+
+    result = _complete(
+        _service(learner),
+        completion_id="compiled-review",
+        mode="review",
+        probe_id="probe-f16",
+        answers=[
+            {
+                "variant_id": "F16-html-review-q1",
+                "selected_option_id": "q1:a",
+            }
+        ],
+    )
+
+    terminal = next(
+        event for event in learner.events if event.payload_json.get("completion_terminal")
+    )
+    assert result["learning_change"]["reason"] == "compiled_html_server_rescore"
+    assert terminal.payload_json["quality"]["evidence_level"] == "L2_real_retest"
+    assert canonical_retest_item_events(learner.events, terminal=terminal) is not None
+
+
+def test_non_f16_unreviewed_compiled_surface_fails_closed_before_write(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from deeptutor.services.luban_lesson.practice_html import (
@@ -759,26 +1068,15 @@ def test_non_f16_compiled_surface_writes_five_items_and_one_canonical_terminal(
     ]
     learner = _LearnerState()
 
-    result = _complete(
-        _service(learner),
-        pack_id="S05",
-        answers=answers,
-        training_intent_id="",
-    )
+    with pytest.raises(ValueError, match="retest_answer_set_mismatch"):
+        _complete(
+            _service(learner),
+            pack_id="S05",
+            answers=answers,
+            training_intent_id="",
+        )
 
-    evidence = [
-        event
-        for event in learner.events
-        if event.source_feature == "assessment_testset"
-    ]
-    item_events = [event for event in evidence if not event.payload_json.get("completion_terminal")]
-    terminals = [event for event in evidence if event.payload_json.get("completion_terminal")]
-    assert len(item_events) == 5
-    assert len(terminals) == 1
-    assert result["terminal_event_id"] == terminals[0].event_id
-    lifecycle = project_pack_lifecycle(events=evidence, claims=[], pack_ids=["S05"])
-    assert lifecycle["packs"]["S05"]["lifecycle_state"] == "practiced"
-    assert lifecycle["packs"]["S05"]["practice_event_count"] == 5
+    assert learner.events == []
 
 
 def test_forward_compiled_html_rejects_unknown_option_before_write(
