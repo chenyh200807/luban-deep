@@ -36,7 +36,8 @@ var CANONICAL_ANSWERS = [
   { variant_id: "F16-html-q4-d", selected_option_id: "F16-html-q4-d-opt4" },
   { variant_id: "F16-html-q5-e", selected_option_id: "F16-html-q5-e-opt1" },
 ];
-var PROJECTION_RECEIPT = "eyJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEifQ"; // base64url, no '%'
+// Fixture token: base64url of the public schema label {"schema":"luban_practice_projection_receipt.v1"} — not a credential.
+var PROJECTION_RECEIPT = "eyJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEifQ"; // pragma: allowlist secret
 var PLAIN_ANSWERS = JSON.stringify(CANONICAL_ANSWERS);
 var ENCODED_ANSWERS = encodeURIComponent(PLAIN_ANSWERS);       // DevTools death shape: %5B%7B%22...
 var DOUBLE_ENCODED_ANSWERS = encodeURIComponent(ENCODED_ANSWERS); // %255B%257B%2522...
