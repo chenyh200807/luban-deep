@@ -696,3 +696,43 @@ def test_f16_publish_copies_all_audio_and_manifest_byte_for_byte() -> None:
     assert len(source_mp3) == 11
     assert all(_sha(path) == _sha(public_audio / path.name) for path in source_mp3)
     assert _sha(source_audio / "manifest.json") == _sha(public_audio / "manifest.json")
+
+
+def test_variant_audit_packet_writes_pending_decision_cards(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    written = _mod.write_variant_audit_packet("s05")
+    packet = json.loads((tmp_path / "s05.variant.review.json").read_text("utf-8"))
+    assert written  # 相对 REPO 路径由 CLI 打印；此处只关心产物本身
+    assert packet["schema"] == "luban_variant_review_packet.v1"
+    assert packet["pack_id"] == "S05"
+    assert packet["bank_status"] == "signed"
+    assert packet["candidate_count"] == 75
+    assert packet["eligible_count"] == 0  # bank 尚无人签 decision，机器绝不代签
+    assert packet["human_gate"]["machine_must_not_sign"] is True
+    for row in packet["items"]:
+        review = row["decision"]["review"]
+        assert review["status"] == "pending"
+        assert review["signatures"] == []
+        assert not any(review["checks"].values())
+
+
+def test_variant_audit_packet_kind_is_wired_into_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    assert _mod.main(["--write-practice-audit-packet", "--kind", "variant", "s05"]) == 0
+    assert (tmp_path / "s05.variant.review.json").is_file()
+    # --kind variant 只能与审核包模式联用（不允许污染发布/检查路径）。
+    with pytest.raises(SystemExit):
+        _mod.main(["--kind", "variant", "s05"])
+
+
+def test_variant_audit_packet_missing_bank_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", tmp_path / "empty")
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
