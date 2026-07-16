@@ -701,6 +701,54 @@ def test_get_profile_persists_first_real_member(tmp_path: Path) -> None:
     assert any(member["user_id"] == "ghost_user" for member in data["members"])
 
 
+def test_get_profile_exposes_only_raw_external_auth_eval_identity(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("eval-user-id")
+
+    def _mark_eval_runner(data: dict[str, object]) -> None:
+        member = next(item for item in data["members"] if item["user_id"] == "eval-user-id")
+        member.update(
+            {
+                "auth_username": "qa_eval_observer",
+                "account_kind": "eval_runner",
+                "actor_type": "machine",
+                "created_by": "eval_runner",
+                "is_internal_test": True,
+            }
+        )
+
+    service._mutate(_mark_eval_runner)
+    monkeypatch.setattr(
+        member_service_module,
+        "get_external_auth_user",
+        lambda username: {
+            "username": username,
+            "account_kind": "eval_runner",
+            "actor_type": "machine",
+            "created_by": "eval_runner",
+            "is_internal_test": True,
+        },
+    )
+    profile = service.get_profile("eval-user-id")
+
+    assert profile["auth_username"] == "qa_eval_observer"
+    assert profile["account_kind"] == "eval_runner"
+    assert profile["actor_type"] == "machine"
+    assert profile["created_by"] == "eval_runner"
+    assert profile["is_internal_test"] is True
+
+    monkeypatch.setattr(member_service_module, "get_external_auth_user", lambda _username: {"username": "qa_eval_observer"})
+    rejected = service.get_profile("eval-user-id")
+    assert "account_kind" not in rejected
+    assert "actor_type" not in rejected
+    assert "created_by" not in rejected
+    assert "is_internal_test" not in rejected
+
+
 def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from_learner_state(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
