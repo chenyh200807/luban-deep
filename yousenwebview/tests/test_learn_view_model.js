@@ -292,7 +292,15 @@ ok("server review_due next step supplies the due probe and target station", () =
         reason: "到期复验",
       },
     },
-    report: FULL.report,
+    report: {
+      ...FULL.report,
+      // review 资格消费 canonical due 条目(A5):供给真值在 pack_review,不在 lessons 旗标
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "F16", title: "屋面防水起鼓割补", probe_id: "rvp_f16", retest_available: true }],
+      },
+    },
     lessons: {
       lessons: [
         { pack_id: "F16", title: "屋面防水起鼓割补", content_sha256: "sha_f16", retest_available: true, light_practice_available: true },
@@ -578,7 +586,14 @@ ok("light practice stays usable only in learn/forward contexts", () => {
 ok("ctaLabel: 开始验证 / 开始训练 / 继续学习 by task type; empty when no supply", () => {
   const review = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
-    report: FULL.report,
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01", retest_available: true }],
+      },
+    },
     lessons: FULL.lessons,
   });
   assert.strictEqual(review.todayTask.ctaLabel, "开始验证");
@@ -659,6 +674,41 @@ ok("review card hidden when due snapshot has no exact task identity match", () =
   assert.strictEqual(vm.reviewCard, null, "cross-snapshot drift must hide the card, never re-pick another due");
 });
 
+// 二轮红队 A3:字段缺失/空串身份都不得当成匹配(服务端 resolver 要求非空 + retest_available is True)
+ok("review card hidden when due entry omits retest_available (strict === true, no fail-open)", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        // retest_available 缺失 = 供给未知,必须保守隐藏,不得视同可用
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01" }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null);
+});
+
+ok("blank probe identities never match each other (empty-string equality is a bypass)", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "", retest_available: true }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null, "'' === '' must not count as identity match");
+  assert.strictEqual(vm.todayTask.ctaLabel, "", "blank probe is unroutable server-side; no dead-click CTA");
+});
+
 ok("review card hidden when the due entry carries a different probe identity", () => {
   const vm = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
@@ -672,6 +722,52 @@ ok("review card hidden when the due entry carries a different probe identity", (
     },
     lessons: FULL.lessons,
   });
+  assert.strictEqual(vm.reviewCard, null);
+});
+
+// ── 二轮红队 A5(合法状态误杀恢复):review 路由资格不得复用 forward-only 的
+//    lessons light_practice_available(它同时受 LUBAN_LIGHT_PRACTICE_ENABLED 限制);
+//    mode=review 的资格 = exact-matched due 条目的 canonical retest_available === true。 ──
+ok("review stays routable when light flag is off but the canonical due entry is signed", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "到期" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01", retest_available: true }],
+      },
+    },
+    lessons: {
+      lessons: [
+        // LUBAN_LIGHT_PRACTICE_ENABLED=false → lessons 侧 forward 旗标为 false,
+        // 但 review module 开着且 due 条目已签发 → 到期验证必须仍可路由
+        { pack_id: "N01", title: "网络计划关键线路", light_practice_available: false },
+      ],
+    },
+  });
+  assert.strictEqual(vm.todayTask.practice_kind, "retest");
+  assert.strictEqual(vm.todayTask.ctaLabel, "开始验证");
+  assert.strictEqual(vm.todayTask.mode, "review");
+  assert.ok(vm.reviewCard, "legit due verification must not be killed by the forward-only light flag");
+  // 轻练旁按钮(forward)仍按 A2 规则在 review_due 下隐藏
+  assert.strictEqual(vm.todayTask.light_practice_visible, false);
+});
+
+ok("review eligibility degrades honestly when pack_review authority is degraded/unknown", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: { authority: "revalidation_queue", enabled: null, degraded: true,
+        due: [{ pack_id: "N01", probe_id: "rvp_n01", retest_available: true }] },
+    },
+    lessons: FULL.lessons, // lessons 侧 forward 旗标为 true,也不得代替 canonical due 供给
+  });
+  assert.strictEqual(vm.todayTask.practice_kind, "none", "degraded authority must not borrow the forward flag");
+  assert.strictEqual(vm.todayTask.ctaLabel, "");
+  assert.ok(vm.todayTask.supplyNote.length > 0, "must explain the honest degrade");
   assert.strictEqual(vm.reviewCard, null);
 });
 
@@ -730,8 +826,8 @@ ok("review card hidden when pack_review authority is degraded/unknown", () => {
 ok("review card hidden when the review task has no routable retest supply (no dead click)", () => {
   const vm = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_a01", target_pack_id: "A01" } },
-    report: DUE_REPORT,
-    lessons: FULL.lessons, // A01 无 light_practice_available → practice_kind none
+    report: DUE_REPORT, // due 里没有 A01/rvp_a01 条目 → review 供给不可证 → none
+    lessons: FULL.lessons,
   });
   assert.strictEqual(vm.todayTask.practice_kind, "none");
   assert.strictEqual(vm.reviewCard, null);

@@ -280,7 +280,14 @@ Page({
 
   // 今日唯一任务只按 view-model 的 action_kind 转发：到期验证/课后练共用
   // retest，推荐学习进站点；页面不重算优先级、不解释掌握状态。
+  // 二轮红队 A4:主任务按钮与复习卡共用本 handler,刷新 in-flight 期间
+  // 旧 VM 的 pack/probe 身份可能已过期,与 goLightPractice 同一守卫禁点。
   goTodayTask() {
+    if (this._refreshing) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
+      return;
+    }
     var task = (this.data.vm && this.data.vm.todayTask) || {};
     var packId = encodeURIComponent(String(task.pack_id || ""));
     if (task.action_kind === "lesson" && packId) {

@@ -71,6 +71,11 @@ function loadLearn() {
                 pack_id: "N01",
                 task_state: "practice_active",
                 training_intent_id: "ti-" + tag,
+                // goTodayTask 可路由所需字段(复现二轮 A4:主任务/复习卡旧身份导航)
+                action_kind: "retest",
+                practice_kind: "retest",
+                mode: "forward",
+                probe_id: "",
               },
             };
           },
@@ -121,7 +126,9 @@ function loadLearn() {
     "stale out-of-order response must not overwrite the latest projection",
   );
 
-  // ── 2) 刷新 in-flight:轻练 CTA 禁点(不导航) ──
+  // ── 2) 刷新 in-flight:轻练 CTA 与主任务/复习卡(goTodayTask)一律禁点 ──
+  // 二轮红队 A4:旧 VM 的 review_due/probe 或 practice_active 身份在刷新窗口内
+  // 仍可被主按钮/复习卡按旧 pack/probe 导航——两个入口都必须挡在 _refreshing 后面。
   var t2 = loadLearn();
   t2.page.onLoad({});
   t2.state.lessons[0].resolve({ tag: "first", lessons: [] });
@@ -139,8 +146,14 @@ function loadLearn() {
     navBefore,
     "light practice must be blocked while a supply refresh is in flight",
   );
+  t2.page.goTodayTask();
+  assert.strictEqual(
+    t2.state.navigations.length,
+    navBefore,
+    "primary task button / review card must not navigate on a stale identity mid-refresh",
+  );
 
-  // ── 3) 刷新 settle 后恢复 ──
+  // ── 3) 刷新 settle 后两个入口都恢复 ──
   t2.state.lessons[1].resolve({ tag: "second", lessons: [] });
   t2.state.dashboards[1].resolve({});
   t2.state.reports[1].resolve({});
@@ -151,6 +164,12 @@ function loadLearn() {
     t2.state.navigations.length,
     navBefore + 1,
     "light practice must work again after the refresh settles",
+  );
+  t2.page.goTodayTask();
+  assert.strictEqual(
+    t2.state.navigations.length,
+    navBefore + 2,
+    "primary task navigation must work again after the refresh settles",
   );
 
   console.log("PASS test_learn_refresh_race.js");

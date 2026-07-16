@@ -196,11 +196,45 @@ function _retestTask(concept, packId, reason, practiceKind, taskState) {
   };
 }
 
-// 供给真值 → practice_kind 单一裁决点(禁在页面层再判一次)
+// 供给真值 → practice_kind 单一裁决点(禁在页面层再判一次)。
+// 注意作用域(二轮红队 A5):本旗标来自 lessons manifest 的
+// light_practice_available,受 LUBAN_LIGHT_PRACTICE_ENABLED 限制,是
+// forward-only 供给真值;review(到期验证)的资格另走 _reviewDueEntry。
 function _practiceKindFor(packId, titleIdx) {
   var id = _str(packId).toUpperCase();
   if (_safeObj(titleIdx[id]).retest === true) return "retest";
   return "none";
+}
+
+// ── review(mode=review)供给/身份唯一裁决点(二轮红队 A3+A5) ──
+// 镜像服务端 exact resolver 的口径(review_due.py:要求 pack/probe 非空、
+// retest_available is True,否则拒绝):
+// - pack_review authority 必须已知且未降级(fail-closed);
+// - 任务身份 pack_id/probe_id 必须非空(空串互等 = 旁路,服务端本来就拒空);
+// - due 条目必须 exact-match 且 retest_available === true(缺失/null=未知,保守拒)。
+// pack_review 缺失/降级时宁可少显示(诚实降级),不借用 forward-only 旗标造资格。
+function _reviewDueEntry(report, packId, probeId) {
+  var packReview = _safeObj(_safeObj(report).pack_review);
+  var authorityKnown =
+    packReview.enabled === true &&
+    packReview.degraded !== true &&
+    _str(packReview.authority) === "revalidation_queue";
+  if (!authorityKnown) return null;
+  var pid = _str(packId).toUpperCase();
+  var prid = _str(probeId);
+  if (!pid || !prid) return null;
+  var rows = _safeArr(packReview.due);
+  for (var i = 0; i < rows.length; i++) {
+    var o = _safeObj(rows[i]);
+    if (
+      _str(o.pack_id).toUpperCase() === pid &&
+      _str(o.probe_id) === prid &&
+      o.retest_available === true
+    ) {
+      return o;
+    }
+  }
+  return null;
 }
 
 function _lessonTask(station) {
@@ -226,7 +260,8 @@ function _lessonTask(station) {
 }
 
 // homeDashboard.next_step 是学习首页唯一任务 authority。本函数只做协议到
-// 展示动作的翻译；lessons 仅回答该任务的内容/题目供给是否已签发，不能在
+// 展示动作的翻译；lessons 仅回答该任务的内容/forward 题目供给是否已签发，
+// report.pack_review 仅回答 review(到期验证)供给是否已签发；不能在
 // next_step 缺失时自行补一个“推荐任务”。学习页与学情页必须共用本函数。
 function buildCanonicalLearningTask(args) {
   var a = _safeObj(args);
@@ -259,11 +294,15 @@ function buildCanonicalLearningTask(args) {
   }
 
   if (mode === "review_due") {
+    // 二轮红队 A5:review 资格消费 canonical due 条目(retest_available===true),
+    // 不复用 forward-only 的 lessons 旗标——light flag 关闭时到期验证仍须可路由,
+    // 反之 pack_review 降级/身份不匹配时也不得借 forward 旗标造资格。
+    var reviewSupply = _reviewDueEntry(a.report, packId, sourceRef);
     var reviewTask = _retestTask(
       pack.title || "你的薄弱点",
       packId,
       _str(nextStep.reason),
-      _practiceKindFor(packId, titleIdx),
+      reviewSupply ? "retest" : "none",
       "review_due",
     );
     reviewTask.probe_id = sourceRef;
@@ -296,34 +335,17 @@ function buildCanonicalLearningTask(args) {
 // retest 可路由)时把到期计数可视化,点击走与任务卡完全相同的路由(页面绑
 // goTodayTask,零第二套路由/优先级)。authority 不明或降级一律隐藏(fail-closed)。
 function _buildReviewCard(report, todayTask) {
-  var packReview = _safeObj(_safeObj(report).pack_review);
-  var authorityKnown =
-    packReview.enabled === true &&
-    packReview.degraded !== true &&
-    _str(packReview.authority) === "revalidation_queue";
-  if (!authorityKnown) return null;
-  var due = _safeArr(packReview.due);
-  var dueCount = due.length;
-  if (dueCount <= 0) return null;
   var task = _safeObj(todayTask);
   // next_step 没裁决为到期验证 → 不渲染(禁自算优先级);
   // 验证任务无可路由 retest 供给 → 不渲染(禁 dead click)。
   if (task.task_state !== "review_due" || task.practice_kind !== "retest") return null;
   // 红队 A3 收口:dashboard 与 learning-report 是两个独立快照,可能跨快照漂移
   // (卡显示 S05 计数,点击却路由 N01 旧 probe → 被后端 exact-match 拒绝)。
-  // due 里必须存在与当前任务 exact-match 的同一身份(pack_id+probe_id,且该条
-  // retest 未被标不可用);不匹配一律隐藏,禁自行改选另一条 due(那是第二处方)。
-  var taskPackId = _str(task.pack_id).toUpperCase();
-  var taskProbeId = _str(task.probe_id);
-  var identityMatched = due.some(function (d) {
-    var o = _safeObj(d);
-    return (
-      _str(o.pack_id).toUpperCase() === taskPackId &&
-      _str(o.probe_id) === taskProbeId &&
-      o.retest_available !== false
-    );
-  });
-  if (!identityMatched) return null;
+  // 复用 _reviewDueEntry 单一裁决点:authority 已知 + 身份非空 exact-match +
+  // retest_available === true;不匹配一律隐藏,禁自行改选另一条 due(那是第二处方)。
+  var entry = _reviewDueEntry(report, task.pack_id, task.probe_id);
+  if (!entry) return null;
+  var dueCount = _safeArr(_safeObj(_safeObj(report).pack_review).due).length;
   return {
     dueCount: dueCount,
     // 周期由服务端 due 裁决,不声称"昨天"(可能是 3 日/稳定期抽查)
@@ -427,6 +449,7 @@ function buildLearnViewModel(args) {
   var todayTask = buildCanonicalLearningTask({
     homeDashboard: a.homeDashboard,
     lessons: a.lessons,
+    report: a.report, // review 供给真值在 pack_review(A5),缺失时诚实降级
   });
 
   // ── 复习卡:到期状态视图(数据=pack_review 投影;裁决权仍在 next_step) ──
