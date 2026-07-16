@@ -542,12 +542,18 @@ def test_rag_evidence_bundle_v1_fields_pinned_match_producer() -> None:
     )
 
 
-def test_compiled_practice_v2_fields_pinned_match_producer() -> None:
-    from deeptutor.services.luban_lesson.practice_html import AUTHORITY_FIELDS
+def test_compiled_practice_v3_and_projection_receipt_fields_match_producer() -> None:
+    from deeptutor.services.luban_lesson.practice_html import (
+        AUTHORITY_FIELDS,
+        PROJECTION_RECEIPT_FIELDS,
+    )
 
-    entry = _t2_entry("luban_compiled_practice.v2")
+    entry = _t2_entry("luban_compiled_practice.v3")
     assert entry.get("needs_field_canonicalization") is False
     assert set(entry.get("canonical_fields") or []) == set(AUTHORITY_FIELDS)
+    receipt = _t2_entry("luban_practice_projection_receipt.v1")
+    assert receipt.get("needs_field_canonicalization") is False
+    assert set(receipt.get("canonical_fields") or []) == set(PROJECTION_RECEIPT_FIELDS)
 
 
 def test_pinned_t2_contracts_must_list_canonical_fields() -> None:

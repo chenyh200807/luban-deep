@@ -38,6 +38,10 @@ from deeptutor.services.luban_lesson.practice_html import (
     is_compiled_practice_pack,
 )
 from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
+from deeptutor.services.luban_lesson.review_due import (
+    build_review_due_projection,
+    resolve_due_review_probe,
+)
 from deeptutor.services.session import get_sqlite_session_store
 
 router = secure_router(tags=["luban_lesson"])
@@ -154,6 +158,7 @@ async def retest_items(
     limit: int = 5,
     mode: str = "review",
     practice_surface: str = "",
+    probe_id: str = "",
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
     """题面投影（同一 endpoint / 同一 completion authority）：
@@ -171,6 +176,33 @@ async def retest_items(
     mode = "forward" if str(mode or "").strip().lower() == "forward" else "review"
     if not _review_module_enabled() or (mode == "forward" and not _light_practice_enabled()):
         raise HTTPException(status_code=404, detail="retest not available")
+    selection_probe = ""
+    cycle_anchor = ""
+    if mode == "review":
+        selection_probe = str(probe_id or "").strip()
+        if not selection_probe:
+            raise HTTPException(status_code=400, detail="retest_probe_id_required")
+        from deeptutor.services.learner_state.service import get_learner_state_service
+
+        learner_state = get_learner_state_service()
+        events = learner_state.list_learning_evidence_events(
+            current_user.user_id,
+            limit=None,
+            since=None,
+        )
+        due_projection = build_review_due_projection(
+            user_id=current_user.user_id,
+            events=events,
+            exam_date_iso=_exam_date_for(current_user.user_id),
+        )
+        due_probe = resolve_due_review_probe(
+            due_projection,
+            pack_id=pack_id,
+            probe_id=selection_probe,
+        )
+        if due_probe is None:
+            raise HTTPException(status_code=400, detail="retest_probe_not_due")
+        cycle_anchor = str(due_probe.get("cycle_anchor") or "").strip()
     try:
         items = build_retest_items(
             pack_id,
@@ -207,6 +239,8 @@ async def retest_items(
             variant_ids=[str(item.get("variant_id") or "") for item in items],
             supply_kind=supply["kind"],
             supply_digest=supply["digest"],
+            probe_id=selection_probe,
+            cycle_anchor=cycle_anchor,
         ),
         "pool": compiled_pool
         if compiled_forward
@@ -228,13 +262,16 @@ async def retest_complete(
 ) -> dict:
     from deeptutor.services.learner_state.service import get_learner_state_service
     from deeptutor.services.luban_lesson.retest_writeback import (
+        RetestCompletionInProgress,
         RetestIdempotencyConflict,
+        RetestProbeClaimUnavailable,
         RetestWritebackService,
     )
 
     try:
         return RetestWritebackService(
-            learner_state_service=get_learner_state_service()
+            learner_state_service=get_learner_state_service(),
+            review_exam_date_resolver=_exam_date_for,
         ).complete(
             user_id=current_user.user_id,
             completion_id=body.completion_id,
@@ -248,6 +285,13 @@ async def retest_complete(
         )
     except RetestIdempotencyConflict as exc:
         raise HTTPException(status_code=409, detail="retest completion conflict") from exc
+    except RetestCompletionInProgress as exc:
+        raise HTTPException(status_code=409, detail="retest completion in progress") from exc
+    except RetestProbeClaimUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="retest probe atomic authority unavailable",
+        ) from exc
     except LessonNotAvailable as exc:
         raise HTTPException(status_code=404, detail="lesson not found") from exc
     except ValueError as exc:
@@ -290,8 +334,6 @@ async def review_due(current_user: AuthContext = Depends(get_current_user)) -> d
     if not _review_module_enabled():
         return {"due": [], "learned_count": 0, "authority": "revalidation_queue", "enabled": False}
     from deeptutor.services.learner_state.service import get_learner_state_service
-    from deeptutor.services.luban_lesson.review_due import build_review_due_projection
-
     events = get_learner_state_service().list_learning_evidence_events(
         current_user.user_id, limit=None, since=None
     )

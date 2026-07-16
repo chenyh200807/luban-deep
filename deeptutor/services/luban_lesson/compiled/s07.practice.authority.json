@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v2",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "S07",
   "source_pack_sha256": "4f4bb9138304e1a874ad07961d268a322f3fe87be4ac04312425ec381eeb497e",
   "source_bundle_sha256": "96762dd59fe6a77745671cd318b125effe6613cd6ca6e399c1d7031def9e2914",
@@ -24,7 +24,9 @@
         "S07-html-practice-html-q4-873b4f6c56e4",
         "S07-html-practice-html-q5-23669e801abb"
       ],
-      "published_practice_sha256": "fda95c531e17efc70d59800b65fa681ed52bc3ac724994bcf478073bac646bdd"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZDQ3YzVjMThiNzI1IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01OTI5YTVkZTAwODMiLCJTMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLThjYTYzYjYxOTg5NyIsIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtODczYjRmNmM1NmU0IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xNS0yMzY2OWU4MDFhYmIiXSwicGFja19pZCI6IlMwNyIsInByb2plY3Rpb25fZGlnZXN0IjoiOGY2OGM5MmJhNGU4NGRiNzZjNzE5Nzk2NzAyODZiMTUxM2Y0MGFlNjcxY2VkZmU4NGEzNjUxNDc2YzQyOTY2MiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "2518eed0e585eb60ba2b8f4621da03db959cc1f4aafd37d3b4045b07f6671e15"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q1",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q2",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q3",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q4",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +371,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q5",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -332,7 +444,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q7",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "b5374e4249839edb355563ed2f862ba2e2d4fcaa15ec713e3eace5186f7206da",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "b5374e4249839edb355563ed2f862ba2e2d4fcaa15ec713e3eace5186f7206da",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -383,7 +517,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q8",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -434,7 +590,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q9",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -485,7 +663,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q10",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "54a189b31579c6bbdbe4328b04982807adf3979028f2d26ef864c76a3657a1e0",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "54a189b31579c6bbdbe4328b04982807adf3979028f2d26ef864c76a3657a1e0",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -536,7 +736,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q11",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0de55fd92c2e087182fee15a63b49ba3ce0d2d8746c377b3e80da3b0db2a6181",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0de55fd92c2e087182fee15a63b49ba3ce0d2d8746c377b3e80da3b0db2a6181",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -587,7 +809,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q12",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5ba6fa31c4fca8a122155a836a4cb886ee96f773512c5205e67b30fe822ba976",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5ba6fa31c4fca8a122155a836a4cb886ee96f773512c5205e67b30fe822ba976",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -638,7 +882,29 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q13",
-      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "72433a10153f2edb0dd4284e6e4d4dfafab7f637788f55cf66a3606c49147f98",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "72433a10153f2edb0dd4284e6e4d4dfafab7f637788f55cf66a3606c49147f98",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "f1b4a71c64a764a1a0885f2ae92b6c27cd4b8e52d03ea65478d5d21c899ccb5c"

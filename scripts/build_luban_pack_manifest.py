@@ -37,6 +37,14 @@ import sys
 from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+from deeptutor.services.luban_lesson.practice_html import (
+    PracticeHtmlInvalid,
+    compiled_practice_eligibility_summary,
+    validate_practice_authority,
+)
+
 PACK_DIR = REPO / "docs" / "原始数据" / "考点原料" / "成品"
 CARD_HOST_DIR = REPO / "web" / "public" / "luban-preview"  # 讲懂卡托管目录(确定性扫描)
 PRACTICE_AUTHORITY_DIR = REPO / "deeptutor" / "services" / "luban_lesson" / "compiled"
@@ -102,13 +110,14 @@ def _practice_capability(pack_id: str, content_sha256: str) -> dict[str, Any]:
     try:
         authority_bytes = path.read_bytes()
         authority = json.loads(authority_bytes)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        authority = validate_practice_authority(authority, expected_pack=pack_id)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, PracticeHtmlInvalid):
         return {"status": "unavailable"}
     surfaces = authority.get("surfaces") if isinstance(authority, dict) else None
     items = authority.get("items") if isinstance(authority, dict) else None
     public = CARD_HOST_DIR / pack_id.lower()
     if (
-        authority.get("schema_version") != "luban_compiled_practice.v2"
+        authority.get("schema_version") != "luban_compiled_practice.v3"
         or authority.get("pack_id") != pack_id
         or authority.get("source_pack_sha256") != content_sha256
         or not isinstance(surfaces, list)
@@ -126,15 +135,27 @@ def _practice_capability(pack_id: str, content_sha256: str) -> dict[str, Any]:
     }
     if len(item_ids) != len(items):
         return {"status": "unavailable"}
+    eligibility = compiled_practice_eligibility_summary(authority)
     for surface in surfaces:
         hosted = public / str(surface.get("surface_id") or "")
         presentation_ids = list(surface.get("variant_ids") or [])
+        surface_eligible_ids = list(surface.get("eligible_variant_ids") or [])
         if (
             not hosted.is_file()
             or surface.get("published_practice_sha256") != _sha256(hosted)
             or len(presentation_ids) != 5
             or len(set(presentation_ids)) != 5
             or not set(presentation_ids).issubset(item_ids)
+            or surface_eligible_ids
+            != [
+                str(item.get("variant_id") or "")
+                for item in items
+                if isinstance(item, dict)
+                and item.get("surface_id") == surface.get("surface_id")
+                and item.get("eligible") is True
+                and item.get("revoked") is False
+            ]
+            or not str(surface.get("projection_receipt") or "")
         ):
             return {"status": "unavailable"}
     return {
@@ -145,6 +166,11 @@ def _practice_capability(pack_id: str, content_sha256: str) -> dict[str, Any]:
         "source_bundle_sha256": str(authority.get("source_bundle_sha256") or ""),
         "surface_count": len(surfaces),
         "question_count": len(items),
+        "eligible_question_count": eligibility["eligible_question_count"],
+        "revoked_question_count": eligibility["revoked_question_count"],
+        "complete_fact_count": eligibility["complete_fact_count"],
+        "anchors_ready": eligibility["anchors_ready"],
+        "eligibility_status": "eligible" if eligibility["supply_ready"] else "pending_review",
         "writeback_contract": "luban_retest_completion.v1",
     }
 

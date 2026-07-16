@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import ast
+import base64
 import hashlib
 import json
 from pathlib import Path
@@ -25,7 +26,8 @@ _COMPILED_DIR = _REPO / "deeptutor" / "services" / "luban_lesson" / "compiled"
 _MANIFEST_PATH = _REPO / "docs" / "原始数据" / "考点原料" / "成品" / "_pack_manifest.json"
 _JS_STRING = r"(?P<quote>[\"'])(?P<value>(?:\\.|(?!\1).)*)\1"
 PRACTICE_LIMIT = 5
-SCHEMA_VERSION = "luban_compiled_practice.v2"
+SCHEMA_VERSION = "luban_compiled_practice.v3"
+PROJECTION_RECEIPT_SCHEMA = "luban_practice_projection_receipt.v1"
 AUTHORITY_FIELDS = (
     "schema_version",
     "pack_id",
@@ -35,10 +37,213 @@ AUTHORITY_FIELDS = (
     "items",
     "published_lesson_sha256",
 )
+PROJECTION_RECEIPT_FIELDS = (
+    "schema",
+    "pack_id",
+    "surface_id",
+    "ordered_variant_ids",
+    "source_digest",
+    "projection_digest",
+)
+_REQUIRED_REVIEW_CHECKS = (
+    "source_verified",
+    "answer_verified",
+    "diagnosis_verified",
+    "longest_option_checked",
+    "template_leakage_checked",
+)
+_REQUIRED_REVIEW_ROLES = {"teaching", "scoring"}
+_PROBE_ROLES = {"anchor", "immediate_confirm", "d1_probe"}
+_ITEM_GOVERNANCE_FIELDS = {
+    "fact_id",
+    "skeleton_id",
+    "probe_role",
+    "source_anchor",
+    "source_sha256",
+    "content_sha256",
+    "review",
+    "eligible",
+    "revoked",
+    "revocation_refs",
+}
 
 
 class PracticeHtmlInvalid(ValueError):
     """成品练习无法满足可重判的固定五题合同。"""
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _canonical_sha256(value: Any) -> str:
+    return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def _item_content_payload(item: dict[str, Any]) -> dict[str, Any]:
+    """题目内容 identity；治理 verdict/资格变化不应重命名题目内容。"""
+    return {
+        key: item.get(key)
+        for key in (
+            "answer_type",
+            "variant_id",
+            "surface_id",
+            "rule_group",
+            "stem",
+            "model_answer",
+            "options",
+            "source_index",
+            "source_group",
+            "source_group_index",
+            "anchor",
+            "source_html_sha256",
+        )
+    }
+
+
+def _default_review(content_sha256: str) -> dict[str, Any]:
+    return {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": content_sha256,
+        "signatures": [],
+        "checks": {name: False for name in _REQUIRED_REVIEW_CHECKS},
+    }
+
+
+def _review_is_signed(item: dict[str, Any]) -> bool:
+    review = item.get("review")
+    if not isinstance(review, dict):
+        return False
+    checks = review.get("checks")
+    signatures = review.get("signatures")
+    roles = {
+        str(signature.get("role") or "")
+        for signature in signatures or []
+        if isinstance(signature, dict)
+        and str(signature.get("reviewer_id") or "").strip()
+        and str(signature.get("signed_at") or "").strip()
+    }
+    return bool(
+        item.get("fact_id")
+        and item.get("skeleton_id")
+        and item.get("probe_role") in _PROBE_ROLES
+        and item.get("source_anchor")
+        and re.fullmatch(r"[0-9a-f]{64}", str(item.get("source_sha256") or ""))
+        and review.get("status") == "signed"
+        and review.get("verdict") == "approved"
+        and review.get("reviewed_content_sha256") == item.get("content_sha256")
+        and isinstance(checks, dict)
+        and all(checks.get(name) is True for name in _REQUIRED_REVIEW_CHECKS)
+        and _REQUIRED_REVIEW_ROLES.issubset(roles)
+    )
+
+
+def _eligible(item: dict[str, Any]) -> bool:
+    return bool(_review_is_signed(item) and item.get("revoked") is False)
+
+
+def compiled_practice_eligibility_summary(
+    authority: dict[str, Any],
+) -> dict[str, Any]:
+    """R1 Pack slice 唯一机械 gate：五锚点 + 至少一个 7 题 fact 三件套。"""
+    items = [item for item in authority.get("items") or [] if isinstance(item, dict)]
+    eligible = [item for item in items if _eligible(item)]
+    by_id = {str(item.get("variant_id") or ""): item for item in eligible}
+    anchors_ready = bool(authority.get("surfaces")) and all(
+        len(surface.get("variant_ids") or []) == PRACTICE_LIMIT
+        and all(
+            variant_id in by_id and by_id[variant_id].get("probe_role") == "anchor"
+            for variant_id in surface.get("variant_ids") or []
+        )
+        for surface in authority.get("surfaces") or []
+        if isinstance(surface, dict)
+    )
+    facts: dict[str, list[dict[str, Any]]] = {}
+    for item in eligible:
+        facts.setdefault(str(item.get("fact_id") or ""), []).append(item)
+    complete_facts: list[str] = []
+    for fact_id, rows in facts.items():
+        by_role = {
+            role: [row for row in rows if row.get("probe_role") == role]
+            for role in _PROBE_ROLES
+        }
+        if not all(by_role.values()):
+            continue
+        if any(
+            len(
+                {
+                    str(anchor.get("skeleton_id") or ""),
+                    str(immediate.get("skeleton_id") or ""),
+                    str(d1.get("skeleton_id") or ""),
+                }
+            )
+            == 3
+            for anchor in by_role["anchor"]
+            for immediate in by_role["immediate_confirm"]
+            for d1 in by_role["d1_probe"]
+        ):
+            complete_facts.append(fact_id)
+    return {
+        "eligible_question_count": len(eligible),
+        "revoked_question_count": sum(1 for item in items if item.get("revoked") is True),
+        "complete_fact_count": len(complete_facts),
+        "complete_fact_ids": sorted(complete_facts),
+        "anchors_ready": anchors_ready,
+        "supply_ready": bool(
+            anchors_ready and len(eligible) >= 7 and complete_facts
+        ),
+    }
+
+
+def _build_projection_receipt(
+    pack_id: str, surface_id: str, items: list[dict[str, Any]]
+) -> str:
+    commitment = {
+        "schema": PROJECTION_RECEIPT_SCHEMA,
+        "pack_id": pack_id,
+        "surface_id": surface_id,
+        "ordered_variant_ids": [item["variant_id"] for item in items],
+        "ordered_content_sha256": [item["content_sha256"] for item in items],
+        "ordered_source_sha256": [item["source_sha256"] for item in items],
+    }
+    body: dict[str, Any] = {
+        "schema": PROJECTION_RECEIPT_SCHEMA,
+        "pack_id": pack_id,
+        "surface_id": surface_id,
+        "ordered_variant_ids": [item["variant_id"] for item in items],
+        "source_digest": _canonical_sha256(commitment["ordered_source_sha256"]),
+        "projection_digest": _canonical_sha256(commitment),
+    }
+    raw = _canonical_json(body).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def decode_projection_receipt(receipt: str) -> dict[str, Any]:
+    """严格解码 H5 静态投影收据；任何旧格式/漂移同形要求重新取题。"""
+    try:
+        token = str(receipt or "").strip()
+        if not token or not re.fullmatch(r"[A-Za-z0-9_-]+", token):
+            raise ValueError("not_base64url")
+        padding = "=" * (-len(token) % 4)
+        value = json.loads(base64.urlsafe_b64decode(token + padding))
+        if not isinstance(value, dict) or set(value) != set(PROJECTION_RECEIPT_FIELDS):
+            raise ValueError("shape")
+        ids = value.get("ordered_variant_ids")
+        if (
+            value.get("schema") != PROJECTION_RECEIPT_SCHEMA
+            or not re.fullmatch(r"[A-Z][A-Z0-9_-]{1,31}", str(value.get("pack_id") or ""))
+            or not re.fullmatch(r"practice(?:[2-9][0-9]*)?\.html", str(value.get("surface_id") or ""))
+            or not isinstance(ids, list)
+            or len(ids) != PRACTICE_LIMIT
+            or len(set(ids)) != PRACTICE_LIMIT
+            or not re.fullmatch(r"[0-9a-f]{64}", str(value.get("source_digest") or ""))
+            or not re.fullmatch(r"[0-9a-f]{64}", str(value.get("projection_digest") or ""))
+        ):
+            raise ValueError("identity")
+        return value
+    except Exception as exc:
+        raise PracticeHtmlInvalid("content_updated_retake") from exc
 
 
 def _balanced_spans(
@@ -324,8 +529,7 @@ def compile_practice_surface(
             {**option, "option_id": f"{variant_id}:option-{index + 1}"}
             for index, option in enumerate(canonical["options"])
         ]
-        items.append(
-            {
+        item = {
                 **canonical,
                 "options": options,
                 "variant_id": variant_id,
@@ -334,10 +538,25 @@ def compile_practice_surface(
                 "source_group": candidate["source_group"],
                 "source_group_index": candidate.get("source_group_index"),
                 "anchor": f"compiled_html:{relative_path}#Q{int(candidate['source_index']) + 1}",
+                # ``anchor/source_html_sha256`` 只说明 authoring provenance；事实
+                # 来源必须由人审决策另填，机器不能把 H5 自己冒充事实依据。
+                "source_anchor": "",
+                "source_sha256": "",
                 "source_html_sha256": source_sha,
+                "fact_id": "",
+                "skeleton_id": "",
+                "probe_role": "",
+                "revoked": False,
+                "revocation_refs": [],
             }
-        )
+        item["content_sha256"] = _canonical_sha256(_item_content_payload(item))
+        item["review"] = _default_review(item["content_sha256"])
+        item["eligible"] = False
+        items.append(item)
         variant_by_candidate[id(candidate)] = variant_id
+    by_id = {item["variant_id"]: item for item in items}
+    selected_ids = [variant_by_candidate[id(item)] for item in selected]
+    selected_items = [by_id[variant_id] for variant_id in selected_ids]
     return {
         "surface": {
             "surface_id": surface,
@@ -346,7 +565,11 @@ def compile_practice_surface(
             "format_kind": format_kind,
             "array_marker": marker,
             "presentation_order": [item["source_index"] for item in selected],
-            "variant_ids": [variant_by_candidate[id(item)] for item in selected],
+            "variant_ids": selected_ids,
+            "eligible_variant_ids": [],
+            "projection_receipt": _build_projection_receipt(
+                normalized_pack, surface, selected_items
+            ),
         },
         "items": items,
     }
@@ -358,6 +581,7 @@ def build_practice_authority(
     source_pack_sha256: str,
     source_bundle_sha256: str,
     compiled_surfaces: list[dict[str, Any]],
+    review_records: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     normalized_pack = str(pack_id or "").strip().upper()
     for value, error in (
@@ -372,6 +596,50 @@ def build_practice_authority(
         raise PracticeHtmlInvalid("practice_authority_surface_count_invalid")
     if len({item["variant_id"] for item in items}) != len(items):
         raise PracticeHtmlInvalid("practice_html_duplicate_question_identity")
+    records = review_records or {}
+    if set(records) - {str(item["variant_id"]) for item in items}:
+        raise PracticeHtmlInvalid("practice_review_unknown_variant")
+    for item in items:
+        record = records.get(str(item["variant_id"]))
+        if record is not None:
+            if not isinstance(record, dict) or set(record) - {
+                "fact_id",
+                "skeleton_id",
+                "probe_role",
+                "source_anchor",
+                "source_sha256",
+                "review",
+                "revoked",
+                "revocation_refs",
+            }:
+                raise PracticeHtmlInvalid("practice_review_record_invalid")
+            for key in (
+                "fact_id",
+                "skeleton_id",
+                "probe_role",
+                "source_anchor",
+                "source_sha256",
+                "review",
+                "revoked",
+                "revocation_refs",
+            ):
+                if key in record:
+                    item[key] = record[key]
+        item["eligible"] = _eligible(item)
+        if item.get("revoked") is True and not item.get("revocation_refs"):
+            raise PracticeHtmlInvalid("practice_review_revocation_ref_missing")
+    by_id = {str(item["variant_id"]): item for item in items}
+    for surface in surfaces:
+        surface_id = str(surface.get("surface_id") or "")
+        surface["eligible_variant_ids"] = [
+            str(item["variant_id"])
+            for item in items
+            if item.get("surface_id") == surface_id and item.get("eligible") is True
+        ]
+        selected = [by_id[variant_id] for variant_id in surface["variant_ids"]]
+        surface["projection_receipt"] = _build_projection_receipt(
+            normalized_pack, surface_id, selected
+        )
     return {
         "schema_version": SCHEMA_VERSION,
         "pack_id": normalized_pack,
@@ -428,23 +696,41 @@ def transform_compiled_practice_html(
     html = re.sub(r"\bSHOW_COUNT\s*=\s*\d+\s*;", "SHOW_COUNT = 5;", html)
     pack_js = json.dumps(str(pack_id or "").strip().upper(), ensure_ascii=False)
     surface_js = json.dumps(str(surface.get("surface_id") or ""), ensure_ascii=False)
+    projection_receipt_js = json.dumps(
+        str(surface.get("projection_receipt") or ""), ensure_ascii=False
+    )
+    evidence_items_js = json.dumps(
+        [
+            {
+                "variant_id": item["variant_id"],
+                "options": [option["option_id"] for option in item["options"]],
+            }
+            for item in items
+        ],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
     bridge = f"""
 {order_methods}  __dtEvidenceAnswers(){{
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{{}});
+    const exactItems={evidence_items_js};
     return [0,1,2,3,4].map(i=>{{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
-      return Array.isArray(permutation)&&Number.isInteger(selected)
+      const sourceIndex=Array.isArray(permutation)&&Number.isInteger(selected)
         ?Number(permutation[selected]):selected;
+      const item=exactItems[i];
+      return item&&Number.isInteger(sourceIndex)&&item.options[sourceIndex]
+        ?{{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}}:null;
     }});
   }}
   __dtRedirectEvidence(onFailure){{
     const answers=this.__dtEvidenceAnswers();
-    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent({pack_js})+'&practice_surface='+encodeURIComponent({surface_js})+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent({pack_js})+'&practice_surface='+encodeURIComponent({surface_js})+'&projection_receipt='+encodeURIComponent({projection_receipt_js})+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({{url:url,fail:onFailure}});
     return true;
   }}
@@ -512,6 +798,17 @@ def _validate_authority(value: Any, *, expected_pack: str) -> dict[str, Any]:
             if isinstance(option, dict)
         ) != 1:
             raise PracticeHtmlInvalid("practice_authority_answer_invalid")
+        if (
+            not _ITEM_GOVERNANCE_FIELDS.issubset(item)
+            or not re.fullmatch(r"[0-9a-f]{64}", str(item.get("content_sha256") or ""))
+            or item.get("content_sha256") != _canonical_sha256(_item_content_payload(item))
+            or not isinstance(item.get("review"), dict)
+            or not isinstance(item.get("revocation_refs"), list)
+            or item.get("eligible") is not _eligible(item)
+            or type(item.get("revoked")) is not bool
+            or (item.get("revoked") is True and not item.get("revocation_refs"))
+        ):
+            raise PracticeHtmlInvalid("practice_authority_item_governance_invalid")
     surface_ids = [str(surface.get("surface_id") or "") for surface in surfaces]
     surface_indexes = sorted(
         1 if surface_id == "practice.html" else int(surface_id[8:-5])
@@ -528,6 +825,23 @@ def _validate_authority(value: Any, *, expected_pack: str) -> dict[str, Any]:
     for surface in surfaces:
         surface_id = str(surface.get("surface_id") or "")
         presentation_ids = list(surface.get("variant_ids") or [])
+        eligible_ids = list(surface.get("eligible_variant_ids") or [])
+        expected_eligible_ids = [
+            item["variant_id"]
+            for item in items
+            if item.get("surface_id") == surface_id and item.get("eligible") is True
+        ]
+        item_by_id = {str(item["variant_id"]): item for item in items}
+        receipt_items = [item_by_id.get(variant_id) for variant_id in presentation_ids]
+        expected_receipt = (
+            _build_projection_receipt(
+                expected_pack,
+                surface_id,
+                [item for item in receipt_items if item is not None],
+            )
+            if len(receipt_items) == PRACTICE_LIMIT and all(receipt_items)
+            else ""
+        )
         if (
             not re.fullmatch(r"practice(?:[2-9][0-9]*)?\.html", surface_id)
             or not re.fullmatch(r"[0-9a-f]{64}", str(surface.get("source_html_sha256") or ""))
@@ -536,9 +850,16 @@ def _validate_authority(value: Any, *, expected_pack: str) -> dict[str, Any]:
             or len(set(presentation_ids)) != PRACTICE_LIMIT
             or not set(presentation_ids).issubset(set(by_surface.get(surface_id) or []))
             or len(list(surface.get("presentation_order") or [])) != PRACTICE_LIMIT
+            or eligible_ids != expected_eligible_ids
+            or surface.get("projection_receipt") != expected_receipt
         ):
             raise PracticeHtmlInvalid("practice_authority_surface_invalid")
     return value
+
+
+def validate_practice_authority(value: Any, *, expected_pack: str) -> dict[str, Any]:
+    """Build/manifest 共用的 v3 validator；避免各自复制资格形状。"""
+    return _validate_authority(value, expected_pack=expected_pack)
 
 
 def _registration(pack_id: str) -> tuple[Path, dict[str, Any]] | None:
@@ -643,15 +964,26 @@ def _surface_items(practice: dict[str, Any], surface_id: str) -> list[dict[str, 
     )
     if surface is None:
         raise PracticeHtmlInvalid("practice_authority_surface_not_found")
+    if not compiled_practice_eligibility_summary(practice)["supply_ready"]:
+        raise PracticeHtmlInvalid("practice_authority_selection_insufficient")
     by_id = {item["variant_id"]: item for item in practice["items"]}
-    return [by_id[variant_id] for variant_id in surface["variant_ids"]]
+    items = [by_id[variant_id] for variant_id in surface["variant_ids"]]
+    if any(not _eligible(item) for item in items):
+        raise PracticeHtmlInvalid("practice_authority_selection_insufficient")
+    return items
 
 
 def _surface_bank_items(practice: dict[str, Any], surface_id: str) -> list[dict[str, Any]]:
     requested = str(surface_id or "practice.html").strip()
     if not any(item.get("surface_id") == requested for item in practice["surfaces"]):
         raise PracticeHtmlInvalid("practice_authority_surface_not_found")
-    return [item for item in practice["items"] if item.get("surface_id") == requested]
+    if not compiled_practice_eligibility_summary(practice)["supply_ready"]:
+        raise PracticeHtmlInvalid("practice_authority_selection_insufficient")
+    return [
+        item
+        for item in practice["items"]
+        if item.get("surface_id") == requested and _eligible(item)
+    ]
 
 
 def _selection_rank(selection_key: str, variant_id: str) -> int:
@@ -711,17 +1043,62 @@ def resolve_compiled_practice_items(
     if practice is None:
         return None
     if variant_ids is not None:
-        wanted = [str(item or "").strip() for item in variant_ids]
-        if len(wanted) != PRACTICE_LIMIT or len(set(wanted)) != PRACTICE_LIMIT:
-            raise PracticeHtmlInvalid("practice_authority_variant_set_not_found")
-        by_id = {str(item.get("variant_id") or ""): item for item in practice["items"]}
-        selected = [by_id.get(variant_id) for variant_id in wanted]
-        if any(item is None for item in selected) or len(
-            {str(item.get("surface_id") or "") for item in selected if item}
-        ) != 1:
-            raise PracticeHtmlInvalid("practice_authority_variant_set_not_found")
-        return [item for item in selected if item]
+        return resolve_compiled_practice_items_from_authority(practice, variant_ids)
     return _surface_items(practice, surface_id or "practice.html")
+
+
+def resolve_projection_receipt(
+    pack_id: str,
+    receipt: str,
+    *,
+    authority_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """把 H5 静态 receipt 解析到当前同一 v3 artifact；漂移一律要求重取。"""
+    try:
+        normalized = str(pack_id or "").strip().upper()
+        decoded = decode_projection_receipt(receipt)
+        if decoded["pack_id"] != normalized:
+            raise PracticeHtmlInvalid("content_updated_retake")
+        practice = load_compiled_practice(normalized, authority_path=authority_path)
+        if practice is None:
+            raise PracticeHtmlInvalid("content_updated_retake")
+        surface = next(
+            (
+                item
+                for item in practice["surfaces"]
+                if item.get("surface_id") == decoded["surface_id"]
+            ),
+            None,
+        )
+        if surface is None or surface.get("projection_receipt") != receipt:
+            raise PracticeHtmlInvalid("content_updated_retake")
+        resolved = resolve_compiled_practice_items_from_authority(
+            practice, list(decoded["ordered_variant_ids"])
+        )
+        # ``surface.projection_receipt`` exact compare already re-computes the compact
+        # token from current item content/source/order in ``_validate_authority``.
+        return resolved
+    except PracticeHtmlInvalid as exc:
+        if str(exc) == "content_updated_retake":
+            raise
+        raise PracticeHtmlInvalid("content_updated_retake") from exc
+
+
+def resolve_compiled_practice_items_from_authority(
+    practice: dict[str, Any], variant_ids: list[str]
+) -> list[dict[str, Any]]:
+    if not compiled_practice_eligibility_summary(practice)["supply_ready"]:
+        raise PracticeHtmlInvalid("practice_authority_variant_set_not_found")
+    wanted = [str(item or "").strip() for item in variant_ids]
+    if len(wanted) != PRACTICE_LIMIT or len(set(wanted)) != PRACTICE_LIMIT:
+        raise PracticeHtmlInvalid("practice_authority_variant_set_not_found")
+    by_id = {str(item.get("variant_id") or ""): item for item in practice["items"]}
+    selected = [by_id.get(variant_id) for variant_id in wanted]
+    if any(item is None or not _eligible(item) for item in selected) or len(
+        {str(item.get("surface_id") or "") for item in selected if item}
+    ) != 1:
+        raise PracticeHtmlInvalid("practice_authority_variant_set_not_found")
+    return [item for item in selected if item]
 
 
 def project_compiled_practice(
@@ -754,6 +1131,11 @@ def project_compiled_practice(
                 for option in item["options"]
             ],
             "anchor": item["anchor"],
+            "fact_id": item["fact_id"],
+            "skeleton_id": item["skeleton_id"],
+            "content_sha256": item["content_sha256"],
+            "source_anchor": item["source_anchor"],
+            "source_sha256": item["source_sha256"],
             "source_html_sha256": item["source_html_sha256"],
         }
         for item in items
@@ -778,15 +1160,21 @@ def compiled_practice_pool_meta(
 __all__ = [
     "AUTHORITY_FIELDS",
     "PRACTICE_LIMIT",
+    "PROJECTION_RECEIPT_FIELDS",
+    "PROJECTION_RECEIPT_SCHEMA",
     "PracticeHtmlInvalid",
     "build_practice_authority",
     "compile_practice_surface",
+    "compiled_practice_eligibility_summary",
     "compiled_practice_pool_meta",
     "compiled_practice_bundle_sha",
     "compiled_practice_supply_digest",
+    "decode_projection_receipt",
     "is_compiled_practice_pack",
     "load_compiled_practice",
     "project_compiled_practice",
+    "resolve_projection_receipt",
     "resolve_compiled_practice_items",
     "transform_compiled_practice_html",
+    "validate_practice_authority",
 ]

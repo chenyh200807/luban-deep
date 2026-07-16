@@ -63,7 +63,7 @@ def test_custom_manifest_without_compiled_capability_cannot_guess_practice_url(
     assert vm["practice_url"] == ""
 
 
-def test_real_compiled_pack_projects_finished_practice_consumer_url(monkeypatch):
+def test_pending_compiled_pack_hides_practice_consumer_url(monkeypatch):
     monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
     vm = build_lesson_viewmodel("F16")
     authority = load_compiled_practice("F16")
@@ -72,10 +72,8 @@ def test_real_compiled_pack_projects_finished_practice_consumer_url(monkeypatch)
         "https://cdn.example.com/luban/f16/lesson.html?v="
         + authority["published_lesson_sha256"]
     )
-    assert vm["practice_url"] == (
-        "https://cdn.example.com/luban/f16/practice.html?v="
-        + authority["surfaces"][0]["published_practice_sha256"]
-    )
+    assert authority["surfaces"][0]["eligible_variant_ids"] == []
+    assert vm["practice_url"] == ""
     assert authority["published_lesson_sha256"] != authority["source_bundle_sha256"]
 
 
@@ -199,7 +197,7 @@ def test_combined_catalog_scans_each_green_pack_and_hosted_page_set_once(monkeyp
 
     assert len(lessons) == 41
     assert len(points) == 74
-    assert meta_calls == 41
+    assert meta_calls == 40  # E01 无 compiled authority，不伪造 meta 或覆盖 signed-only 路径。
     assert page_calls == 40
 
 
@@ -221,14 +219,15 @@ def test_episode_detail_selects_the_exact_published_page(monkeypatch):
         ("D14", 3, "practice.html"),
     ],
 )
-def test_episode_detail_pairs_real_practice_page_or_explicitly_reuses_first(
+def test_pending_episode_practice_surfaces_remain_hidden(
     monkeypatch, pack_id, episode_index, expected_file
 ):
     monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
 
     vm = build_lesson_viewmodel(pack_id, episode_index=episode_index)
 
-    assert f"/{pack_id.lower()}/{expected_file}?v=" in vm["practice_url"]
+    assert expected_file
+    assert vm["practice_url"] == ""
 
 
 def test_retest_items_textbook_join_same_pack_signed_cards(tmp_path):
@@ -399,6 +398,23 @@ def test_real_manifest_green_packs_all_project():
         assert vm["content_sha256"]
 
 
+@pytest.mark.parametrize("pack_id", ["N01", "S05", "X01"])
+def test_pending_v3_pack_never_advertises_light_practice_or_retest(
+    pack_id: str,
+) -> None:
+    rows = {row["pack_id"]: row for row in list_green_lessons()}
+    vm = build_lesson_viewmodel(pack_id)
+
+    assert rows[pack_id]["retest_available"] is False
+    assert vm["practice_surface"]["available"] is False
+    assert vm["variant_retest"] == {
+        "available": False,
+        "count": 0,
+        "bank_status": "compiled_v3",
+        "source_pack_sha256": vm["content_sha256"],
+    }
+
+
 def test_real_manifest_has_mandatory_variant_revocation_authority():
     import deeptutor.services.luban_lesson.read_model as read_model
 
@@ -407,64 +423,41 @@ def test_real_manifest_has_mandatory_variant_revocation_authority():
     ) is not None
 
 
-def test_f16_forward_rotates_inside_compiled_html_pool_and_explicit_surface_stays_fixed() -> None:
+@pytest.mark.parametrize("pack_id", ["N01", "S05", "X01"])
+def test_pending_candidate_pack_never_falls_back_to_signed_bank(pack_id: str) -> None:
     from deeptutor.services.luban_lesson import build_retest_items
 
-    items = build_retest_items(
-        "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026194,
-        limit=1, mode="forward",
-    )
-    repeated = build_retest_items(
-        "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026194,
-        limit=5, mode="forward",
-    )
-    next_day = build_retest_items(
-        "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026195,
-        limit=5, mode="forward",
-    )
-    public_bridge = build_retest_items(
-        "F16", user_id="qa_eval_f16_compiled_practice", day_index=2026194,
-        limit=5, mode="forward", practice_surface="practice.html",
-    )
-
-    assert items == repeated and len(items) == 5
-    assert [item["variant_id"] for item in items] != [
-        item["variant_id"] for item in next_day
-    ]
-    assert [item["rule_group"] for item in public_bridge] == [
-        "分档·条件维", "割补工序·程序维", "判断纠错·三段式",
-        "检验清单·记录维", "采分诊断·末题",
-    ]
-    assert all(item["answer_type"] == "single_choice" for item in items)
-    assert all("expected_ok" not in item for item in items)
-    assert all("is_correct" not in option for item in items for option in item["options"])
+    for mode in ("forward", "review"):
+        assert build_retest_items(
+            pack_id,
+            user_id=f"qa_eval_{pack_id.lower()}_pending",
+            day_index=2026194,
+            limit=5,
+            mode=mode,
+        ) == []
 
 
-def test_f16_completion_resolves_exact_issued_set_and_supply_identity() -> None:
+@pytest.mark.parametrize("pack_id", ["N01", "S05", "X01"])
+def test_compiled_artifact_is_same_supply_identity_for_forward_and_review(
+    pack_id: str,
+) -> None:
     from deeptutor.services.luban_lesson import (
         build_retest_items,
         resolve_retest_items,
         retest_supply_identity,
     )
 
-    issued = build_retest_items(
-        "F16",
-        user_id="qa_eval_f16_exact_selection",
+    assert build_retest_items(
+        pack_id,
+        user_id=f"qa_eval_{pack_id.lower()}_exact_selection",
         day_index=2026194,
         mode="forward",
-    )
-    wanted = [item["variant_id"] for item in reversed(issued)]
-    resolved = resolve_retest_items("F16", variant_ids=wanted, mode="forward")
-
-    assert [item["variant_id"] for item in resolved] == wanted
-    assert all(
-        sum(option.get("is_correct") is True for option in item["options"]) == 1
-        for item in resolved
-    )
-    forward = retest_supply_identity("F16", mode="forward")
-    review = retest_supply_identity("F16", mode="review")
+    ) == []
+    assert resolve_retest_items(pack_id, variant_ids=["not-eligible"], mode="review") == []
+    forward = retest_supply_identity(pack_id, mode="forward")
+    review = retest_supply_identity(pack_id, mode="review")
     assert forward["kind"] == "compiled_html" and len(forward["digest"]) == 64
-    assert review["kind"] == "signed_variant" and len(review["digest"]) == 64
+    assert review == forward
 
 
 def test_custom_manifest_without_compiled_capability_uses_its_signed_bank(

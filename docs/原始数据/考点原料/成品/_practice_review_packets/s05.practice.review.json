@@ -1,40 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "S05",
   "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
   "source_bundle_sha256": "bdc043b7e32bf32f9d79f08ffacafaf67d0b5c2ba45c0634ad233923957ba5a9",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        2,
-        3,
-        17
-      ],
-      "variant_ids": [
-        "S05-html-practice-html-q1-7a030fba2679",
-        "S05-html-practice-html-q2-f519771940de",
-        "S05-html-practice-html-q3-0f0b0a35e964",
-        "S05-html-practice-html-q4-eadc2e921fdd",
-        "S05-html-practice-html-q18-38770f84494a"
-      ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtN2EwMzBmYmEyNjc5IiwiUzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mNTE5NzcxOTQwZGUiLCJTMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLTBmMGIwYTM1ZTk2NCIsIlMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtZWFkYzJlOTIxZmRkIiwiUzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTgtMzg3NzBmODQ0OTRhIl0sInBhY2tfaWQiOiJTMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjFhZmVhZTE4YTU1MjczOGUxNDI1NDcxMzc0YWNhZGFiZjAyZTdjZjJiYjlmMzBiYzMxOGE3NzQwMzg0NGI0NmYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "8b55beb6f764741ec0aeccc2e4fa57ed1a98b70b6501ba5731c94b26bf9b7f17"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 18,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "三大系统·架构",
+      "variant_id": "S05-html-practice-html-q1-7a030fba2679",
+      "surface_id": "practice.html",
       "stem": "施工现场临时用电必须采用哪几大系统？选出最完整、能得分的作答。",
-      "model_answer": "三级配电系统 + TN-S 接零保护系统 + 二级剩余电流（漏电）动作保护系统，三者缺一不可。",
       "options": [
         {
           "text": "三级配电系统、TN-S 接零保护系统、二级剩余电流（漏电）动作保护系统，三者缺一不可。",
@@ -73,41 +56,38 @@
           "option_id": "S05-html-practice-html-q1-7a030fba2679:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q1-7a030fba2679",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "三级配电系统 + TN-S 接零保护系统 + 二级剩余电流（漏电）动作保护系统，三者缺一不可。",
+      "rule_group": "三大系统·架构",
       "content_sha256": "8fbec2a7e7b0a927cfe2d82e60b5dc6c79e1bacf9394501b81f276f7508ceedc",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "8fbec2a7e7b0a927cfe2d82e60b5dc6c79e1bacf9394501b81f276f7508ceedc",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q1",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "8fbec2a7e7b0a927cfe2d82e60b5dc6c79e1bacf9394501b81f276f7508ceedc",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "三级配电装置·架构",
+      "variant_id": "S05-html-practice-html-q2-f519771940de",
+      "surface_id": "practice.html",
       "stem": "三级配电系统由哪三级配电装置组成？选出正确的作答。",
-      "model_answer": "总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级。",
       "options": [
         {
           "text": "总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级直接接用电设备。",
@@ -146,41 +126,38 @@
           "option_id": "S05-html-practice-html-q2-f519771940de:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q2-f519771940de",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级。",
+      "rule_group": "三级配电装置·架构",
       "content_sha256": "8a1b8c44b5ee290376e9814722632eaae73e36b77018a11cfb1bf1d59b3153db",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "8a1b8c44b5ee290376e9814722632eaae73e36b77018a11cfb1bf1d59b3153db",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q2",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "8a1b8c44b5ee290376e9814722632eaae73e36b77018a11cfb1bf1d59b3153db",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "一机一闸·管理",
+      "variant_id": "S05-html-practice-html-q3-0f0b0a35e964",
+      "surface_id": "practice.html",
       "stem": "现场瓷砖切割机与砂浆搅拌机共用一个开关箱。此做法不妥，选出正确做法。",
-      "model_answer": "每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
       "options": [
         {
           "text": "每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
@@ -219,41 +196,38 @@
           "option_id": "S05-html-practice-html-q3-0f0b0a35e964:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q3-0f0b0a35e964",
-      "surface_id": "practice.html",
-      "source_index": 2,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
+      "rule_group": "一机一闸·管理",
       "content_sha256": "30fc3551edf775b7ed7b5d7f6a6fb2e80d7a7f6acc99ffdd06262a1194ffa64f",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "30fc3551edf775b7ed7b5d7f6a6fb2e80d7a7f6acc99ffdd06262a1194ffa64f",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q3",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "30fc3551edf775b7ed7b5d7f6a6fb2e80d7a7f6acc99ffdd06262a1194ffa64f",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "进线端·管理",
+      "variant_id": "S05-html-practice-html-q4-eadc2e921fdd",
+      "surface_id": "practice.html",
       "stem": "某开关箱使用插头插座与配电箱进线端连接。此做法不妥，选出正确做法。",
-      "model_answer": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应固定可靠连接。",
       "options": [
         {
           "text": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应采用固定可靠的连接方式。",
@@ -292,41 +266,38 @@
           "option_id": "S05-html-practice-html-q4-eadc2e921fdd:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q4-eadc2e921fdd",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应固定可靠连接。",
+      "rule_group": "进线端·管理",
       "content_sha256": "314c7c12cd547c261771cf8c1438ca25f91157609e7488cd6b90222f63cf03c5",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "314c7c12cd547c261771cf8c1438ca25f91157609e7488cd6b90222f63cf03c5",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q4",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "314c7c12cd547c261771cf8c1438ca25f91157609e7488cd6b90222f63cf03c5",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "动力照明分设·管理",
+      "variant_id": "S05-html-practice-html-q5-3cf1bf9e075a",
+      "surface_id": "practice.html",
       "stem": "关于动力与照明配电的设置，选出正确的作答。",
-      "model_answer": "动力配电箱与照明配电箱宜分别设置；合并设置时应分路配电；动力开关箱与照明开关箱必须分设。",
       "options": [
         {
           "text": "动力配电箱与照明配电箱宜分设；合并时须分路配电；动力开关箱与照明开关箱必须分设。",
@@ -365,41 +336,38 @@
           "option_id": "S05-html-practice-html-q5-3cf1bf9e075a:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q5-3cf1bf9e075a",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "动力配电箱与照明配电箱宜分别设置；合并设置时应分路配电；动力开关箱与照明开关箱必须分设。",
+      "rule_group": "动力照明分设·管理",
       "content_sha256": "f7b8faa0a82c6a36d9d67a436541bf0005d3afeae82ca3b31bd8862eaaa473e0",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "f7b8faa0a82c6a36d9d67a436541bf0005d3afeae82ca3b31bd8862eaaa473e0",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q5",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "f7b8faa0a82c6a36d9d67a436541bf0005d3afeae82ca3b31bd8862eaaa473e0",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "送电顺序·程序",
+      "variant_id": "S05-html-practice-html-q6-0ae0fb217a3e",
+      "surface_id": "practice.html",
       "stem": "施工现场临时用电正常送电（合闸）的顺序是？选出正确的作答。",
-      "model_answer": "送电顺序：总配电箱 → 分配电箱 → 开关箱（从大到小逐级送电）。",
       "options": [
         {
           "text": "送电顺序：总配电箱 → 分配电箱 → 开关箱，从大到小逐级合闸送电。",
@@ -438,41 +406,38 @@
           "option_id": "S05-html-practice-html-q6-0ae0fb217a3e:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q6-0ae0fb217a3e",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "送电顺序：总配电箱 → 分配电箱 → 开关箱（从大到小逐级送电）。",
+      "rule_group": "送电顺序·程序",
       "content_sha256": "537a775ac71072fc534e9950e960d23aadcbb93e5376fd3efac90c75234dc978",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "537a775ac71072fc534e9950e960d23aadcbb93e5376fd3efac90c75234dc978",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q6",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "537a775ac71072fc534e9950e960d23aadcbb93e5376fd3efac90c75234dc978",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "停电顺序·程序",
+      "variant_id": "S05-html-practice-html-q7-0489481a3d23",
+      "surface_id": "practice.html",
       "stem": "正常情况下，现场临时配电系统停电（拉闸）的顺序是？选出正确的作答。",
-      "model_answer": "停电顺序：开关箱 → 分配电箱 → 总配电箱（从末端开始，防带负荷拉闸拉弧）。",
       "options": [
         {
           "text": "停电顺序：开关箱 → 分配电箱 → 总配电箱，从末端先停、逐级向总箱，防带负荷拉弧。",
@@ -511,41 +476,38 @@
           "option_id": "S05-html-practice-html-q7-0489481a3d23:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q7-0489481a3d23",
-      "surface_id": "practice.html",
-      "source_index": 6,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "停电顺序：开关箱 → 分配电箱 → 总配电箱（从末端开始，防带负荷拉闸拉弧）。",
+      "rule_group": "停电顺序·程序",
       "content_sha256": "734647040d351083a1ba62a3786d8838c588b63d1bc0906f8c0ca2986f41de5d",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "734647040d351083a1ba62a3786d8838c588b63d1bc0906f8c0ca2986f41de5d",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q7",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "734647040d351083a1ba62a3786d8838c588b63d1bc0906f8c0ca2986f41de5d",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "安全电压·条件维",
+      "variant_id": "S05-html-practice-html-q8-28a1673bd44c",
+      "surface_id": "practice.html",
       "stem": "在金属容器（如锅炉、储罐）内作业时，照明行灯的供电电压上限应为多少？选出可得分的作答。",
-      "model_answer": "金属容器/锅炉内照明电压不得大于 12V（安全电压最低档）。",
       "options": [
         {
           "text": "金属容器、锅炉内照明电压不得大于 12V，取安全电压最低一档。",
@@ -584,41 +546,38 @@
           "option_id": "S05-html-practice-html-q8-28a1673bd44c:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q8-28a1673bd44c",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "金属容器/锅炉内照明电压不得大于 12V（安全电压最低档）。",
+      "rule_group": "安全电压·条件维",
       "content_sha256": "d6262a0c594974d26174981737cd00486d901e0ba6888c2009f427c41d18055e",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "d6262a0c594974d26174981737cd00486d901e0ba6888c2009f427c41d18055e",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q8",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "d6262a0c594974d26174981737cd00486d901e0ba6888c2009f427c41d18055e",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "安全电压分档·条件维",
+      "variant_id": "S05-html-practice-html-q9-64e2d711dabb",
+      "surface_id": "practice.html",
       "stem": "下列安全电压限值与场所的对应，哪一项完全正确？",
-      "model_answer": "潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
       "options": [
         {
           "text": "潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
@@ -657,41 +616,38 @@
           "option_id": "S05-html-practice-html-q9-64e2d711dabb:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q9-64e2d711dabb",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
+      "rule_group": "安全电压分档·条件维",
       "content_sha256": "b4d8b66c156b5326ecfaae5de9d4b98c0261480eadbdf59c3fdb36ab37229e90",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b4d8b66c156b5326ecfaae5de9d4b98c0261480eadbdf59c3fdb36ab37229e90",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q9",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b4d8b66c156b5326ecfaae5de9d4b98c0261480eadbdf59c3fdb36ab37229e90",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "手持灯具·条件维",
+      "variant_id": "S05-html-practice-html-q10-78a3ee8c26fc",
+      "surface_id": "practice.html",
       "stem": "关于手持式照明灯具（行灯）的供电要求，选出完整正确的作答。",
-      "model_answer": "手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
       "options": [
         {
           "text": "手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
@@ -730,41 +686,38 @@
           "option_id": "S05-html-practice-html-q10-78a3ee8c26fc:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q10-78a3ee8c26fc",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
+      "rule_group": "手持灯具·条件维",
       "content_sha256": "3c519389ef9362f7a9aba6989c411587de9db34b6e703cf53476a539d5ff606f",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "3c519389ef9362f7a9aba6989c411587de9db34b6e703cf53476a539d5ff606f",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q10",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "3c519389ef9362f7a9aba6989c411587de9db34b6e703cf53476a539d5ff606f",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "重大隐患·后果维",
+      "variant_id": "S05-html-practice-html-q11-d51599b6f90c",
+      "surface_id": "practice.html",
       "stem": "特殊环境（湿度大于 75%、有积水）作业未采用安全电压照明。此情形应如何定性？",
-      "model_answer": "属重大事故隐患，应立即整改为安全电压照明。",
       "options": [
         {
           "text": "属重大事故隐患，必须立即整改为安全电压（对应场所限值）照明。",
@@ -803,41 +756,38 @@
           "option_id": "S05-html-practice-html-q11-d51599b6f90c:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q11-d51599b6f90c",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "属重大事故隐患，应立即整改为安全电压照明。",
+      "rule_group": "重大隐患·后果维",
       "content_sha256": "af7e664d3afc17fb5b766bc908d02be71dec7b6df771b7a19319eec84f090c12",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "af7e664d3afc17fb5b766bc908d02be71dec7b6df771b7a19319eec84f090c12",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q11",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "af7e664d3afc17fb5b766bc908d02be71dec7b6df771b7a19319eec84f090c12",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "电缆埋地·条件维",
+      "variant_id": "S05-html-practice-html-q12-1f366c5d96dc",
+      "surface_id": "practice.html",
       "stem": "电缆直接埋地敷设时，埋设深度应满足什么要求？选出可得分的作答。",
-      "model_answer": "电缆直接埋地敷设深度不应小于 0.7m，穿越道路等处应加保护套管并设警示。",
       "options": [
         {
           "text": "电缆直接埋地敷设深度不应小于 0.7m，穿越处应加保护套管并设警示标识。",
@@ -876,41 +826,38 @@
           "option_id": "S05-html-practice-html-q12-1f366c5d96dc:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q12-1f366c5d96dc",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "电缆直接埋地敷设深度不应小于 0.7m，穿越道路等处应加保护套管并设警示。",
+      "rule_group": "电缆埋地·条件维",
       "content_sha256": "dcab1f6cf56ba79f214f30a6e1c9410229d962bd76e4b74574eb97dcc0fe992b",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "dcab1f6cf56ba79f214f30a6e1c9410229d962bd76e4b74574eb97dcc0fe992b",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q12",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "dcab1f6cf56ba79f214f30a6e1c9410229d962bd76e4b74574eb97dcc0fe992b",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "标识色·条件维",
+      "variant_id": "S05-html-practice-html-q13-3fd433be684f",
+      "surface_id": "practice.html",
       "stem": "五芯电缆中，N 线（工作零线）与 PE 线（保护零线）的标识色分别是？选出正确的作答。",
-      "model_answer": "N 线=蓝色；PE 线=黄绿双色。二者不得混用或挪作他用。",
       "options": [
         {
           "text": "N 线为蓝色，PE 线为黄绿双色，二者颜色不得混用或挪作他用。",
@@ -949,41 +896,38 @@
           "option_id": "S05-html-practice-html-q13-3fd433be684f:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q13-3fd433be684f",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "N 线=蓝色；PE 线=黄绿双色。二者不得混用或挪作他用。",
+      "rule_group": "标识色·条件维",
       "content_sha256": "242a8e81e0e6616de57ca0ee3cd2fa4184d6c846ce6af254985ddc1c2633bfcc",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "242a8e81e0e6616de57ca0ee3cd2fa4184d6c846ce6af254985ddc1c2633bfcc",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q13",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "242a8e81e0e6616de57ca0ee3cd2fa4184d6c846ce6af254985ddc1c2633bfcc",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "箱门连接·条件维",
+      "variant_id": "S05-html-practice-html-q14-5a611c806f07",
+      "surface_id": "practice.html",
       "stem": "配电箱、开关箱的金属箱门与箱体之间应采用什么连接？选出正确的作答。",
-      "model_answer": "金属箱门与箱体之间应采用软铜线（单股铜线）做电气连接（跨接）。",
       "options": [
         {
           "text": "金属箱门与箱体之间应用单股铜线做电气连接（跨接），保证箱门可靠接地。",
@@ -1022,41 +966,38 @@
           "option_id": "S05-html-practice-html-q14-5a611c806f07:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q14-5a611c806f07",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "金属箱门与箱体之间应采用软铜线（单股铜线）做电气连接（跨接）。",
+      "rule_group": "箱门连接·条件维",
       "content_sha256": "733c08f4e1615a4f8634763527eb43d47c14a3e031af2ab8b2db9d684cf81ad8",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "733c08f4e1615a4f8634763527eb43d47c14a3e031af2ab8b2db9d684cf81ad8",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q14",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "733c08f4e1615a4f8634763527eb43d47c14a3e031af2ab8b2db9d684cf81ad8",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "电工持证·主体维",
+      "variant_id": "S05-html-practice-html-q15-1d792fda5d90",
+      "surface_id": "practice.html",
       "stem": "关于电工上岗与用电设备的安装拆除，选出正确的作答。",
-      "model_answer": "电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
       "options": [
         {
           "text": "电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
@@ -1095,41 +1036,38 @@
           "option_id": "S05-html-practice-html-q15-1d792fda5d90:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q15-1d792fda5d90",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
+      "rule_group": "电工持证·主体维",
       "content_sha256": "5d73110fd2e442c5fa87ce8e1ec5b368a5309807f285788f1cfd38d18e1665d8",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "5d73110fd2e442c5fa87ce8e1ec5b368a5309807f285788f1cfd38d18e1665d8",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q15",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "5d73110fd2e442c5fa87ce8e1ec5b368a5309807f285788f1cfd38d18e1665d8",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "组织设计·主体维",
+      "variant_id": "S05-html-practice-html-q16-bdac9de7a1bc",
+      "surface_id": "practice.html",
       "stem": "某工程临时用电总容量 50kW 以上，且进入装饰装修阶段。用电文件应如何编制？选出正确的作答。",
-      "model_answer": "总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
       "options": [
         {
           "text": "总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
@@ -1168,41 +1106,38 @@
           "option_id": "S05-html-practice-html-q16-bdac9de7a1bc:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q16-bdac9de7a1bc",
-      "surface_id": "practice.html",
-      "source_index": 15,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
+      "rule_group": "组织设计·主体维",
       "content_sha256": "1514d65f3ed558dc62971a7383142ecf04b56ff3d910523f34465347fef76842",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "1514d65f3ed558dc62971a7383142ecf04b56ff3d910523f34465347fef76842",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q16",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "1514d65f3ed558dc62971a7383142ecf04b56ff3d910523f34465347fef76842",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "堆场综合·条件维",
+      "variant_id": "S05-html-practice-html-q17-b5f758614bd0",
+      "surface_id": "practice.html",
       "stem": "关于堆料场临时用电布置（综合纠错），选出各项均正确的作答。",
-      "model_answer": "开关箱与其控制的固定式配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯。",
       "options": [
         {
           "text": "开关箱与配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯照明。",
@@ -1241,41 +1176,38 @@
           "option_id": "S05-html-practice-html-q17-b5f758614bd0:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q17-b5f758614bd0",
-      "surface_id": "practice.html",
-      "source_index": 16,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q17",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "开关箱与其控制的固定式配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯。",
+      "rule_group": "堆场综合·条件维",
       "content_sha256": "5118eabb227addc34cdbcb7b19db9e45fc41dea1d170c85b45e9eff28e99cc2e",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "5118eabb227addc34cdbcb7b19db9e45fc41dea1d170c85b45e9eff28e99cc2e",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q17",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "5118eabb227addc34cdbcb7b19db9e45fc41dea1d170c85b45e9eff28e99cc2e",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "S05-html-practice-html-q18-38770f84494a",
+      "surface_id": "practice.html",
       "stem": "案例：现场做法有①装饰阶段仅按原组织设计用电、②切割机与搅拌机共用一开关箱、③开关箱用插头插座与配电箱连接。某学生只答「②共用不妥，应分开」。选出最准确的诊断与补写。",
-      "model_answer": "②改正缺判据（应写专用开关箱、严禁2台及以上含插座）；漏诊①装饰阶段应补编单项用电方案、③进线端严禁插头插座活动连接，三处都要补。",
       "options": [
         {
           "text": "②改正缺规范判据（应写专用开关箱、严禁 2 台及以上含插座）；还漏诊①装饰阶段补方案、③进线端禁插头插座，三处均须补。",
@@ -1314,36 +1246,33 @@
           "option_id": "S05-html-practice-html-q18-38770f84494a:option-4"
         }
       ],
-      "variant_id": "S05-html-practice-html-q18-38770f84494a",
-      "surface_id": "practice.html",
-      "source_index": 17,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q18",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "②改正缺判据（应写专用开关箱、严禁2台及以上含插座）；漏诊①装饰阶段应补编单项用电方案、③进线端严禁插头插座活动连接，三处都要补。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "6c5f2201049cd27cc329c2bc628b61245d15c32cc10670468cb52808392c2579",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "6c5f2201049cd27cc329c2bc628b61245d15c32cc10670468cb52808392c2579",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q18",
+      "authoring_sha256": "a8453fc715055a6368e308bc739e80588b1cb4d238c5d68d3fa2a958153603b2",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "6c5f2201049cd27cc329c2bc628b61245d15c32cc10670468cb52808392c2579",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
-  ],
-  "published_lesson_sha256": "5fb75e7cac2fe203188889edb0418d6fee896c350fea14ce459b773a4b78dd19"
+  ]
 }

@@ -15,8 +15,9 @@ def test_retest_complete_is_thin_authenticated_adapter(monkeypatch) -> None:
     captured = {}
 
     class _Service:
-        def __init__(self, *, learner_state_service):
+        def __init__(self, *, learner_state_service, review_exam_date_resolver):
             captured["learner_state"] = learner_state_service
+            captured["exam_date_resolver"] = review_exam_date_resolver
 
         def complete(self, **kwargs):
             captured.update(kwargs)
@@ -50,6 +51,61 @@ def test_retest_complete_is_thin_authenticated_adapter(monkeypatch) -> None:
         {"variant_id": "F16-v1", "choice_ok": False, "selected_option_id": ""}
     ]
     assert captured["learner_state"] is fake_state
+    assert captured["exam_date_resolver"] is router._exam_date_for
+
+
+@pytest.mark.parametrize(
+    ("error", "expected_status", "expected_detail"),
+    [
+        (
+            writeback_module.RetestCompletionInProgress("winner-completion"),
+            409,
+            "retest completion in progress",
+        ),
+        (
+            writeback_module.RetestProbeClaimUnavailable(
+                "retest_probe_atomic_authority_unavailable"
+            ),
+            503,
+            "retest probe atomic authority unavailable",
+        ),
+    ],
+)
+def test_retest_complete_maps_retryable_probe_authority_failures(
+    monkeypatch,
+    error,
+    expected_status,
+    expected_detail,
+) -> None:
+    class _Service:
+        def __init__(self, **_kwargs):
+            pass
+
+        def complete(self, **_kwargs):
+            raise error
+
+    monkeypatch.setattr(learner_state_module, "get_learner_state_service", object)
+    monkeypatch.setattr(writeback_module, "RetestWritebackService", _Service)
+    body = router.RetestCompletionRequest(
+        completion_id="completion-1",
+        selection_id="signed-selection",
+        mode="review",
+        day_index=2026192,
+        probe_id="probe-1",
+        answers=[router.RetestAnswerRequest(variant_id="F16-v1", choice_ok=False)],
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_complete(
+                "F16",
+                body,
+                current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+            )
+        )
+
+    assert exc.value.status_code == expected_status
+    assert exc.value.detail == expected_detail
 
 
 def test_retest_item_supply_is_hidden_when_rollout_is_off(monkeypatch) -> None:
@@ -65,6 +121,111 @@ def test_retest_item_supply_is_hidden_when_rollout_is_off(monkeypatch) -> None:
         )
 
     assert exc.value.status_code == 404
+
+
+def test_review_selection_requires_exact_server_due_probe(monkeypatch) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_items(
+                "F16",
+                mode="review",
+                current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+            )
+        )
+
+    assert exc.value.status_code == 400
+    assert exc.value.detail == "retest_probe_id_required"
+
+
+def test_review_selection_signs_server_derived_probe_cycle(monkeypatch) -> None:
+    captured = {}
+
+    class _LearnerState:
+        def list_learning_evidence_events(self, *_args, **_kwargs):
+            return [object()]
+
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(
+        learner_state_module,
+        "get_learner_state_service",
+        lambda: _LearnerState(),
+    )
+    monkeypatch.setattr(
+        router,
+        "build_review_due_projection",
+        lambda **_kwargs: {
+            "due": [
+                {
+                    "pack_id": "F16",
+                    "probe_id": "probe-canonical",
+                    "cycle_anchor": "cycle-canonical",
+                    "retest_available": True,
+                }
+            ]
+        },
+    )
+    monkeypatch.setattr(
+        router,
+        "build_retest_items",
+        lambda *args, **kwargs: [{"variant_id": "F16-v1"}],
+    )
+    monkeypatch.setattr(
+        router,
+        "retest_supply_identity",
+        lambda *args, **kwargs: {"kind": "signed_variant", "digest": "a" * 64},
+    )
+
+    def _issue(**kwargs):
+        captured.update(kwargs)
+        return "signed-review"
+
+    monkeypatch.setattr(router, "issue_retest_selection", _issue)
+
+    result = asyncio.run(
+        router.retest_items(
+            "F16",
+            mode="review",
+            probe_id="probe-canonical",
+            current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+        )
+    )
+
+    assert result["selection_id"] == "signed-review"
+    assert captured["probe_id"] == "probe-canonical"
+    assert captured["cycle_anchor"] == "cycle-canonical"
+
+
+def test_review_selection_rejects_stale_or_forged_probe(monkeypatch) -> None:
+    class _LearnerState:
+        def list_learning_evidence_events(self, *_args, **_kwargs):
+            return []
+
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(
+        learner_state_module,
+        "get_learner_state_service",
+        lambda: _LearnerState(),
+    )
+    monkeypatch.setattr(
+        router,
+        "build_review_due_projection",
+        lambda **_kwargs: {"due": []},
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_items(
+                "F16",
+                mode="review",
+                probe_id="probe-forged",
+                current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+            )
+        )
+
+    assert exc.value.status_code == 400
+    assert exc.value.detail == "retest_probe_not_due"
 
 
 def test_forward_item_supply_requires_light_practice_flag(monkeypatch) -> None:

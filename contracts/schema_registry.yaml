@@ -62,12 +62,12 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 215            # union across all schema-version literal forms (+compiled finished practice runtime contract)
+  full_set_count: 217            # +Practice v3 static receipt and build-time human-review packet
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 35      # tier2_canonical_contracts below (+compiled finished practice runtime contract)
-    tier3_ephemeral_artifact: 171    # covered by tier3_carve_out rule (+PGO runtime-supply verification report; lecture answer shard promoted out to T2; +M35 R4 cached AB artifact)
+    tier2_runtime_canonical: 36      # +compiled Practice static projection receipt
+    tier3_ephemeral_artifact: 172    # +build-time Practice human-review packet; runtime never reads it
   # Closure invariant (asserted by the test): T1 ∪ T2 ∪ T3 == full_set, with
   # T1, T2 disjoint and exhaustive over the non-T3 remainder; every full-set id
   # not in T1/T2 MUST match a tier3_carve_out pattern (no uncovered identifier).
@@ -436,7 +436,7 @@ schemas:
 # warning if a T2 file is touched while marked needs_field_canonicalization, to
 # nudge eventual field-level pinning. T2 grants no official-score / write authority.
 tier2_canonical_contracts:
-  - name: luban_compiled_practice.v2
+  - name: luban_compiled_practice.v3
     status: runtime_canonical
     owner: luban_lesson
     canonical_for: manifest-pinned finished HTML full single-choice pool plus five-item public projection used for server selection and canonical answer re-scoring
@@ -451,6 +451,21 @@ tier2_canonical_contracts:
       - surfaces
       - items
       - published_lesson_sha256
+
+  - name: luban_practice_projection_receipt.v1
+    status: runtime_canonical
+    owner: luban_lesson
+    canonical_for: exact ordered H5 Practice projection identity exchanged for the existing signed user selection only after current eligibility revalidation
+    module: deeptutor/services/luban_lesson/practice_html.py
+    consumed_by: deeptutor/api/routers/luban_lesson.py + yousenwebview/packageDeeptutor/pages/luban/retest/retest.js
+    needs_field_canonicalization: false
+    canonical_fields:
+      - schema
+      - pack_id
+      - surface_id
+      - ordered_variant_ids
+      - source_digest
+      - projection_digest
 
   # — first-run static diagnostic content and completion boundary —
   - name: first_run_script.v1

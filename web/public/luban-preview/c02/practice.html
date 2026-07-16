@@ -466,20 +466,24 @@ class Component extends DCLogic {
 
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    const exactItems=[{"variant_id":"C02-html-practice-html-q1-6b369fdfb3ff","options":["C02-html-practice-html-q1-6b369fdfb3ff:option-1","C02-html-practice-html-q1-6b369fdfb3ff:option-2","C02-html-practice-html-q1-6b369fdfb3ff:option-3","C02-html-practice-html-q1-6b369fdfb3ff:option-4"]},{"variant_id":"C02-html-practice-html-q2-f8b06478e7ef","options":["C02-html-practice-html-q2-f8b06478e7ef:option-1","C02-html-practice-html-q2-f8b06478e7ef:option-2","C02-html-practice-html-q2-f8b06478e7ef:option-3","C02-html-practice-html-q2-f8b06478e7ef:option-4"]},{"variant_id":"C02-html-practice-html-q3-a47e3d0bfbf1","options":["C02-html-practice-html-q3-a47e3d0bfbf1:option-1","C02-html-practice-html-q3-a47e3d0bfbf1:option-2","C02-html-practice-html-q3-a47e3d0bfbf1:option-3","C02-html-practice-html-q3-a47e3d0bfbf1:option-4"]},{"variant_id":"C02-html-practice-html-q4-41445b595c03","options":["C02-html-practice-html-q4-41445b595c03:option-1","C02-html-practice-html-q4-41445b595c03:option-2","C02-html-practice-html-q4-41445b595c03:option-3","C02-html-practice-html-q4-41445b595c03:option-4"]},{"variant_id":"C02-html-practice-html-q6-0be03602f3ff","options":["C02-html-practice-html-q6-0be03602f3ff:option-1","C02-html-practice-html-q6-0be03602f3ff:option-2","C02-html-practice-html-q6-0be03602f3ff:option-3","C02-html-practice-html-q6-0be03602f3ff:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
-      return Array.isArray(permutation)&&Number.isInteger(selected)
+      const sourceIndex=Array.isArray(permutation)&&Number.isInteger(selected)
         ?Number(permutation[selected]):selected;
+      const item=exactItems[i];
+      return item&&Number.isInteger(sourceIndex)&&item.options[sourceIndex]
+        ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
   __dtRedirectEvidence(onFailure){
     const answers=this.__dtEvidenceAnswers();
-    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C02")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNmIzNjlmZGZiM2ZmIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mOGIwNjQ3OGU3ZWYiLCJDMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWE0N2UzZDBiZmJmMSIsIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDE0NDViNTk1YzAzIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi0wYmUwMzYwMmYzZmYiXSwicGFja19pZCI6IkMwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiZTdiYWU3OGE2OTk5YmI5MTRjNjA1NzMyZTcwMGQ2MmRmOTE3OTRiNGNhM2M3ZDA0ZWY2Y2YyYjkyNTBmZmIwZSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

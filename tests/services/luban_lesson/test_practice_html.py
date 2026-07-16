@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import base64
 import hashlib
 import json
 from pathlib import Path
@@ -12,14 +13,193 @@ from deeptutor.services.luban_lesson.practice_html import (
     PracticeHtmlInvalid,
     _array_after,
     _top_level_objects,
+    build_practice_authority,
+    compile_practice_surface,
+    compiled_practice_eligibility_summary,
+    decode_projection_receipt,
     load_compiled_practice,
     project_compiled_practice,
+    resolve_projection_receipt,
     resolve_compiled_practice_items,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
 MANIFEST = ROOT / "docs" / "原始数据" / "考点原料" / "成品" / "_pack_manifest.json"
 PUBLIC = ROOT / "web" / "public" / "luban-preview"
+
+
+def _compiled_n01_surface() -> dict[str, object]:
+    source = (
+        ROOT
+        / "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html"
+    )
+    raw = source.read_text(encoding="utf-8")
+    return compile_practice_surface(
+        "N01",
+        surface_id="practice.html",
+        html=raw,
+        source_path=str(source.relative_to(ROOT)),
+        source_html_sha256=hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+    )
+
+
+def _signed_review(
+    item: dict[str, object],
+    index: int,
+    *,
+    fact_id: str = "",
+    probe_role: str = "anchor",
+) -> dict[str, object]:
+    return {
+        "fact_id": fact_id or f"N01-fact-{index + 1}",
+        "skeleton_id": f"N01-skeleton-{index + 1}",
+        "probe_role": probe_role,
+        "source_anchor": f"textbook:N01#fact-{index + 1}",
+        "source_sha256": "a" * 64,
+        "review": {
+            "status": "signed",
+            "verdict": "approved",
+            "reviewed_content_sha256": item["content_sha256"],
+            "signatures": [
+                {
+                    "role": "teaching",
+                    "reviewer_id": "teacher-reviewer",
+                    "signed_at": "2026-07-16T00:00:00Z",
+                },
+                {
+                    "role": "scoring",
+                    "reviewer_id": "scoring-owner",
+                    "signed_at": "2026-07-16T00:00:00Z",
+                },
+            ],
+            "checks": {
+                "source_verified": True,
+                "answer_verified": True,
+                "diagnosis_verified": True,
+                "longest_option_checked": True,
+                "template_leakage_checked": True,
+            },
+        },
+        "revoked": False,
+        "revocation_refs": [],
+    }
+
+
+def test_v3_compiler_emits_item_governance_and_defaults_to_ineligible() -> None:
+    compiled = _compiled_n01_surface()
+    authority = build_practice_authority(
+        "N01",
+        source_pack_sha256="1" * 64,
+        source_bundle_sha256="2" * 64,
+        compiled_surfaces=[compiled],
+    )
+
+    assert authority["schema_version"] == "luban_compiled_practice.v3"
+    assert all(item["fact_id"] == "" for item in authority["items"])
+    assert all(item["skeleton_id"] == "" for item in authority["items"])
+    assert all(item["review"]["status"] == "pending" for item in authority["items"])
+    assert all(item["eligible"] is False for item in authority["items"])
+    assert all(item["revoked"] is False for item in authority["items"])
+    assert authority["surfaces"][0]["eligible_variant_ids"] == []
+
+    receipt = decode_projection_receipt(
+        authority["surfaces"][0]["projection_receipt"]
+    )
+    assert receipt["pack_id"] == "N01"
+    assert receipt["ordered_variant_ids"] == authority["surfaces"][0]["variant_ids"]
+    assert len(receipt["source_digest"]) == 64
+    assert len(receipt["projection_digest"]) == 64
+
+
+def test_projection_receipt_resolves_only_exact_signed_non_revoked_set(
+    tmp_path: Path,
+) -> None:
+    compiled = _compiled_n01_surface()
+    compiled["surface"]["published_practice_sha256"] = "4" * 64
+    selected_ids = set(compiled["surface"]["variant_ids"])
+    reviews = {}
+    selected = [
+        (index, item)
+        for index, item in enumerate(compiled["items"])
+        if item["variant_id"] in selected_ids
+    ]
+    for selected_index, (index, item) in enumerate(selected):
+        reviews[item["variant_id"]] = _signed_review(
+            item,
+            index,
+            fact_id="N01-fact-triad" if selected_index == 0 else "",
+        )
+    extras = [
+        (index, item)
+        for index, item in enumerate(compiled["items"])
+        if item["variant_id"] not in selected_ids
+    ][:2]
+    for role, (index, item) in zip(("immediate_confirm", "d1_probe"), extras):
+        reviews[item["variant_id"]] = _signed_review(
+            item, index, fact_id="N01-fact-triad", probe_role=role
+        )
+    authority = build_practice_authority(
+        "N01",
+        source_pack_sha256="1" * 64,
+        source_bundle_sha256="2" * 64,
+        compiled_surfaces=[compiled],
+        review_records=reviews,
+    )
+    authority["published_lesson_sha256"] = "3" * 64
+    path = tmp_path / "n01.practice.authority.json"
+    path.write_text(json.dumps(authority, ensure_ascii=False), encoding="utf-8")
+
+    receipt = authority["surfaces"][0]["projection_receipt"]
+    resolved = resolve_projection_receipt("N01", receipt, authority_path=path)
+    assert [item["variant_id"] for item in resolved] == authority["surfaces"][0][
+        "variant_ids"
+    ]
+
+    reordered = decode_projection_receipt(receipt)
+    reordered["ordered_variant_ids"] = list(reversed(reordered["ordered_variant_ids"]))
+    reordered_receipt = base64.urlsafe_b64encode(
+        json.dumps(
+            reordered, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+    ).decode("ascii").rstrip("=")
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        resolve_projection_receipt("N01", reordered_receipt, authority_path=path)
+
+    stale = copy.deepcopy(authority)
+    stale["items"][0]["revoked"] = True
+    stale["items"][0]["eligible"] = False
+    stale["items"][0]["revocation_refs"] = ["content-review:N01:withdrawn"]
+    path.write_text(json.dumps(stale, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        resolve_projection_receipt("N01", receipt, authority_path=path)
+
+
+def test_five_signed_anchors_do_not_bypass_seven_question_fact_triad_gate() -> None:
+    compiled = _compiled_n01_surface()
+    selected_ids = set(compiled["surface"]["variant_ids"])
+    reviews = {
+        item["variant_id"]: _signed_review(item, index)
+        for index, item in enumerate(compiled["items"])
+        if item["variant_id"] in selected_ids
+    }
+    authority = build_practice_authority(
+        "N01",
+        source_pack_sha256="1" * 64,
+        source_bundle_sha256="2" * 64,
+        compiled_surfaces=[compiled],
+        review_records=reviews,
+    )
+
+    summary = compiled_practice_eligibility_summary(authority)
+    assert summary["eligible_question_count"] == 5
+    assert summary["anchors_ready"] is True
+    assert summary["complete_fact_count"] == 0
+    assert summary["supply_ready"] is False
+
+
+def test_projection_receipt_rejects_legacy_identity() -> None:
+    with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
+        decode_projection_receipt("1,0,1,0,1")
 
 
 def _compiled_pack_ids() -> list[str]:
@@ -76,58 +256,32 @@ def test_compiled_and_unavailable_pack_sets_are_exact() -> None:
     assert unavailable == {"E01"}
 
 
-def test_f16_projects_curated_five_without_answer_leakage() -> None:
-    canonical = load_compiled_practice("F16")
-    projected = project_compiled_practice("F16")
-    selected = resolve_compiled_practice_items("F16", surface_id="practice.html")
-
-    assert canonical is not None and projected is not None and selected is not None
-    assert len(canonical["items"]) == 6
-    assert [item["source_index"] for item in selected] == [0, 1, 2, 3, 5]
-    assert [item["rule_group"] for item in selected] == [
-        "分档·条件维",
-        "割补工序·程序维",
-        "判断纠错·三段式",
-        "检验清单·记录维",
-        "采分诊断·末题",
-    ]
-    assert all("is_correct" not in option for item in projected for option in item["options"])
-    assert all("model_answer" not in item for item in projected)
+@pytest.mark.parametrize("pack_id", ["N01", "S05", "X01"])
+def test_candidate_packs_remain_default_denied_until_exact_human_signatures(
+    pack_id: str,
+) -> None:
+    canonical = load_compiled_practice(pack_id)
+    assert canonical is not None
+    assert canonical["schema_version"] == "luban_compiled_practice.v3"
+    assert all(item["eligible"] is False for item in canonical["items"])
+    assert all(item["review"]["status"] == "pending" for item in canonical["items"])
+    with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):
+        project_compiled_practice(pack_id, selection_key="qa_eval_candidate:2026196:forward")
 
 
-def test_dynamic_projection_is_deterministic_varied_and_stays_inside_signed_surface() -> None:
-    first = project_compiled_practice("F16", selection_key="user-a:2026196:forward")
-    repeated = project_compiled_practice("F16", selection_key="user-a:2026196:forward")
-    next_day = project_compiled_practice("F16", selection_key="user-a:2026197:forward")
-
-    assert first == repeated and first is not None and next_day is not None
-    assert len(first) == len(next_day) == 5
-    assert [item["variant_id"] for item in first] != [
-        item["variant_id"] for item in next_day
-    ]
-    assert any("诊断" in item["rule_group"] for item in first)
-    assert all("is_correct" not in option for item in first for option in item["options"])
-
-
-def test_every_compiled_surface_can_issue_five_from_its_private_pool() -> None:
+def test_every_pending_compiled_surface_fails_closed_instead_of_falling_back() -> None:
     for pack_id in _compiled_pack_ids():
         authority = load_compiled_practice(pack_id)
         assert authority is not None
         for surface in authority["surfaces"]:
             surface_id = surface["surface_id"]
-            projected = project_compiled_practice(
-                pack_id,
-                surface_id=surface_id,
-                selection_key=f"qa_eval_all_surfaces:2026196:{surface_id}",
-            )
-            assert projected is not None and len(projected) == 5
-            assert len({item["variant_id"] for item in projected}) == 5
-            surface_ids = {
-                item["variant_id"]
-                for item in authority["items"]
-                if item["surface_id"] == surface_id
-            }
-            assert {item["variant_id"] for item in projected}.issubset(surface_ids)
+            assert surface["eligible_variant_ids"] == []
+            with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):
+                project_compiled_practice(
+                    pack_id,
+                    surface_id=surface_id,
+                    selection_key=f"qa_eval_all_surfaces:2026196:{surface_id}",
+                )
 
 
 def test_public_projection_contains_only_compiled_questions_and_server_bridge() -> None:
@@ -144,6 +298,9 @@ def test_public_projection_contains_only_compiled_questions_and_server_bridge() 
             assert "__dtRedirectEvidence" in html
             assert "this.optPerm(i)" in html
             assert "Number(permutation[selected])" in html
+            assert "projection_receipt=" in html
+            assert "&answers=" in html
+            assert "answer_indexes" not in html
             assert f'encodeURIComponent("{pack_id}")' in html
             assert f'encodeURIComponent("{surface["surface_id"]}")' in html
             assert "网页预览作答仅供即时反馈" in html
@@ -164,11 +321,15 @@ def test_format_adapters_and_multi_surface_resolution_are_data_driven() -> None:
         "practice2.html",
         "practice3.html",
     ]
-    second = resolve_compiled_practice_items("S01", surface_id="practice2.html")
-    assert second and [item["surface_id"] for item in second] == ["practice2.html"] * 5
-    assert resolve_compiled_practice_items(
-        "S01", variant_ids=[item["variant_id"] for item in second]
-    ) == second
+    second_ids = s01["surfaces"][1]["variant_ids"]
+    assert len(second_ids) == 5
+    assert all(
+        next(item for item in s01["items"] if item["variant_id"] == variant_id)["surface_id"]
+        == "practice2.html"
+        for variant_id in second_ids
+    )
+    with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):
+        resolve_compiled_practice_items("S01", surface_id="practice2.html")
 
 
 def test_authority_sidecar_answer_tamper_fails_closed(tmp_path: Path) -> None:
@@ -188,9 +349,6 @@ def test_authority_sidecar_rejects_practice_surface_gaps(tmp_path: Path) -> None
     assert canonical is not None
     tampered = copy.deepcopy(canonical)
     tampered["surfaces"][1]["surface_id"] = "practice3.html"
-    for item in tampered["items"]:
-        if item["surface_id"] == "practice2.html":
-            item["surface_id"] = "practice3.html"
     path = tmp_path / "practice.authority.json"
     path.write_text(json.dumps(tampered, ensure_ascii=False), encoding="utf-8")
 

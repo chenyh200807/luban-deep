@@ -102,6 +102,21 @@ def test_companion_files_found_in_parent_mining_dir() -> None:
     assert s05["has_exam_evidence"] is True
 
 
+def test_candidate_practice_eligibility_is_aggregate_only_and_pending() -> None:
+    manifest = _mod.build_manifest()
+    by_id = {pack["pack_id"]: pack for pack in manifest["packs"]}
+    for pack_id, expected_count in (("N01", 16), ("S05", 18), ("X01", 15)):
+        practice = by_id[pack_id]["practice"]
+        assert practice["status"] == "compiled"
+        assert practice["question_count"] == expected_count
+        assert practice["eligibility_status"] == "pending_review"
+        assert practice["eligible_question_count"] == 0
+        assert practice["revoked_question_count"] == 0
+        assert practice["complete_fact_count"] == 0
+        assert practice["anchors_ready"] is False
+        assert "items" not in practice, "manifest must not duplicate item eligibility authority"
+
+
 def test_published_only_from_overrides_and_green_closure() -> None:
     """published 只能来自 overrides 人工置位; 绿灯 = published∧jury_clean∧非barred 的精确闭包。"""
     manifest = _mod.build_manifest()
