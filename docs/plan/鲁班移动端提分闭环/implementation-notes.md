@@ -9,6 +9,12 @@
 
 ## Deviations
 
+### 2026-07-17 凌晨(QA 双缺陷修复上线 + 部署资产守卫)
+- **[QA 双缺陷全闭合并部署]** ①桥接编码不对称(PR #492):`parseBridgeReceipt` 加有界解码兜底(直 parse→逐层 decode≤4 跳,双编码安全),DevTools 与真机 JSSDK 双路径均可用,1.7.19 已传;②首跑空处方遮蔽任务卡(PR #493):仲裁端"practice intent 无可路由 target 不得胜出"(fail-closed 落下一臂+skipped_intents 可审计诊断)+ 处方端候选序列(q1: F16→N01,q4: X03→N01,supply-ready 过滤无字面特权),630 测试绿+真盘 e2e;契约同步 learner-state.md。两修复随 main 部署(容器 ba832122→e80a0216)。
+- **[镜像资产守卫]** 生产容器缺 `_variant_blocklist.json`(dockerignore 反选漏),撤题权威 fail-closed 挡完整作答面;排查顺手抓出同类第二漏(看穿 bank)。PR #494:补两条反选 + 守卫测试钉死"runtime 必需文件必须入镜像/build-time 审核件必须排除"边界;rebuild 部署后容器内文件确认在场(e80a0216)。
+- **[遗留工单]** member_console 学习投影 4 条 main 既有红测(独立修);存量空 target intent 生命周期收口;`luban_variant_decision.v1` 在消费接线切片升 T2 并对齐计数;D+1 活体验证待自然跨天(QA 账号 400=诚实未到期)。
+
+
 ### 2026-07-16 晚(receipt SEV-1 生产修复 + 两线三轮对抗收口 + 调度纠偏)
 - **[SEV-1:receipt 双写致视频五题全量死链,owner 真机首测抓获]** 生产 H5 内嵌 receipt(digest 22fe9552…,decision 合并前渲染)≠ artifact receipt(9e270564…,签发后重算含 ordered_source_sha256)→ 服务端全量 `content_updated_retake`。根因=publish 管道 receipt 两个计算时机(`_compile_practice_outputs` 先渲 HTML 后合并 decision)。治本 PR #489:单一来源重排(decision 定稿后从 authority 渲 HTML)+ `--check` 加"HTML 内嵌 receipt == artifact receipt"fail-close 断言 + 4 红测试;全 40 包重发布仅 n01 变(恒等性证明)。部署 fc497ad4(候选分支 release/receipt-fix-20260716;deploy 脚本拒 main 直发一次,正确守门)。**验收=真 receipt 桥接路径活体**:生产 receipt → retest-items 200/5 题/逐字节回显 → complete 200/terminal 真。
 - **[QA 盲区教训]** 上线行为验收曾直连 API 未带 receipt 参数,恰好绕过真实用户必走的桥——发布检查表永久新增:**带真 receipt 的桥接路径活体测试**(owner 真机 > 一切绕行 QA,又一实证)。
