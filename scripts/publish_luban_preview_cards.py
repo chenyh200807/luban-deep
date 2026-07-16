@@ -80,6 +80,7 @@ PRACTICE_REVIEW_PACKET_DIR = (
     REPO / "docs" / "原始数据" / "考点原料" / "成品" / "_practice_review_packets"
 )
 PRACTICE_REVIEW_PACKET_SCHEMA = "luban_practice_review_packet.v1"
+VARIANT_BANK_DIR = REPO / "docs" / "原始数据" / "考点原料" / "成品"
 FONTS_CSS = HOST / "fonts" / "fonts.css"
 JWEIXIN_JS = HOST / "vendor" / "jweixin.js"
 TUTORBOT_SHEET_RUNTIME = HOST / "vendor" / "luban-tutorbot-sheet-runtime.js"
@@ -1585,6 +1586,47 @@ def write_practice_audit_packet(
     return [str(path.relative_to(REPO))]
 
 
+def write_variant_audit_packet(station_id: str) -> list[str]:
+    """--kind variant：只写签发变体银行的决策卡审核包；不发布、不代签、
+    不改 bank/blocklist（设计：docs/plan/鲁班移动端提分闭环/
+    2026-07-16-variant-eligibility-design.md）。
+
+    bank 读取复用 runtime 同一 canonical 绿灯签发闸 ``_load_green_signed_bank``
+    （projection_green + manifest sha + signed 三重 fail-closed，对抗审查
+    二轮 B2/B3）——禁 raw 第二 loader、禁自行拼 manifest 旁路绿灯门；
+    撤发 authority（blocklist）不可读时同样 fail-closed，不产人审包。"""
+    from deeptutor.services.luban_lesson.read_model import (
+        _load_green_signed_bank,
+        _variant_blocklist,
+    )
+    from deeptutor.services.luban_lesson.variant_eligibility import (
+        build_variant_review_packet,
+    )
+
+    pack_id = station_id.upper()
+    bank = _load_green_signed_bank(
+        pack_id, manifest_path=VARIANT_BANK_DIR / "_pack_manifest.json"
+    )
+    if bank is None:
+        raise TransformError(
+            "variant bank not in projection_green / not signed / "
+            f"sha mismatch / unreadable: {pack_id}"
+        )
+    blocked = _variant_blocklist(VARIANT_BANK_DIR)
+    if blocked is None:
+        raise TransformError(f"variant blocklist unreadable: {pack_id}")
+    packet = build_variant_review_packet(bank, blocked=blocked)
+    PRACTICE_REVIEW_PACKET_DIR.mkdir(parents=True, exist_ok=True)
+    path = PRACTICE_REVIEW_PACKET_DIR / f"{station_id.lower()}.variant.review.json"
+    path.write_text(
+        json.dumps(packet, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    try:
+        return [str(path.relative_to(REPO))]
+    except ValueError:  # 测试等场景重定向 packet 目录到 REPO 外
+        return [str(path)]
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="发布注册的鲁班 finished 成品卡")
     parser.add_argument(
@@ -1608,12 +1650,21 @@ def main(argv: list[str]) -> int:
         action="store_true",
         help="只生成逐题人审工作包；不发布 runtime 产物且不代签 eligibility",
     )
+    parser.add_argument(
+        "--kind",
+        choices=("practice", "variant"),
+        default="practice",
+        help="审核包种类：practice=compiled 随堂练（默认）；variant=签发变体银行"
+        "决策卡（仅与 --write-practice-audit-packet 联用）",
+    )
     parser.add_argument("stations", nargs="*", help="可选站点 ID；缺省发布全部注册站点")
     args = parser.parse_args(argv)
     if args.check and not args.practice_only:
         parser.error("--check requires --practice-only")
     if args.write_practice_audit_packet and (args.practice_only or args.check):
         parser.error("--write-practice-audit-packet cannot combine with --practice-only/--check")
+    if args.kind != "practice" and not args.write_practice_audit_packet:
+        parser.error("--kind variant requires --write-practice-audit-packet")
     if not FONTS_CSS.is_file():
         print(f"publish: 缺共享字体 {FONTS_CSS}（先提交自托管字体子集）", file=sys.stderr)
         return 1
@@ -1637,7 +1688,9 @@ def main(argv: list[str]) -> int:
     failures: list[str] = []
     for sid in targets:
         try:
-            if args.write_practice_audit_packet:
+            if args.write_practice_audit_packet and args.kind == "variant":
+                written = write_variant_audit_packet(sid)
+            elif args.write_practice_audit_packet:
                 written = write_practice_audit_packet(
                     sid, STATIONS[sid], finished_root=finished_root
                 )
