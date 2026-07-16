@@ -409,7 +409,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [api-contract, runtime-capability, learner-grading]
+        shard: [api-contract, runtime-capability, learner-grading, artifacts-cwd]
     env:
       LANGFUSE_ENABLED: "false"
 
@@ -491,6 +491,30 @@ jobs:
                 tests/services/session \
                 tests/services/construction_grading \
                 tests/services/learner_state
+              ;;
+            artifacts-cwd)
+              cd artifacts
+              pytest -q --import-mode=importlib \
+                ../tests/tutorbot/test_r4_open_skill_no_hard_score_guard.py \
+                ../tests/core/test_generation_topic_and_subject_authority.py \
+                ../tests/scripts/test_luban_m35_release_gate_exit.py \
+                ../tests/services/member_console/test_home_dashboard_learning_projection.py::test_seed_starter_files_exist_and_are_used \
+                ../tests/services/member_console/test_home_dashboard_learning_projection.py::test_dashboard_seed_fallback_uses_subject_from_learner_snapshot \
+                ../tests/scripts/test_fetch_hermes_upstream_script.py \
+                ../tests/scripts/test_build_luban_m35_official_answer_keys.py \
+                ../tests/scripts/test_learning_report_read_model_e2e.py \
+                ../tests/scripts/test_luban_m35_artifact_coverage_audit.py \
+                ../tests/scripts/test_run_learning_synthesis.py \
+                ../tests/services/benchmark/test_exam_quality_bank.py \
+                ../tests/services/benchmark/test_answer_citation_audit.py \
+                ../tests/scripts/test_run_long_dialog_v1_retest.py \
+                ../tests/services/benchmark/test_learning_brain_personalization_eval.py \
+                ../tests/scripts/test_build_luban_m35_fastapi_case_fixture.py \
+                ../tests/scripts/test_build_luban_m35_fastapi_mcq_fixture.py \
+                ../tests/scripts/test_luban_m35_deepseek_adversarial_probe.py \
+                ../tests/scripts/test_luban_m35_label_authority.py \
+                ../tests/scripts/test_luban_m35_scoring_artifact_ab.py \
+                ../tests/scripts/test_luban_m35_three_model_blind_ab.py
               ;;
             *)
               echo "::error::Unknown smoke shard: ${{ matrix.shard }}"
