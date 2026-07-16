@@ -55,6 +55,53 @@ function getState(userId) {
   return { state: "new", checkpoint: null, pending: null };
 }
 
+// canonical 完成事实只在服务端 Learner State（投影
+// /assessment/profile → diagnostic_sources.first_run.completed）。本地 DONE_KEY
+// 只是可丢弃的 UI 缓存：老用户清缓存/换设备后本地缓存丢失，getState 会重新
+// 判定为 "new"，首跑门错误地重新出现、任务卡被挡。
+//
+// refreshFromServer 在本地无任何首跑痕迹（无 DONE / checkpoint / pending）时
+// 回读一次服务端完成投影，命中则把本地 DONE 补写回来——服务端仍是唯一
+// writer，本地只是缓存 rehydration。同步 getState 语义不变。
+//
+// fail-safe：任何缺依赖 / 未完成 / 接口失败一律维持现状（多显示一次首跑门
+// 无害，首跑写回本身幂等）。本地已有 DONE/checkpoint/pending 时直接短路，
+// 不打接口，避免每次冷启动都请求 /assessment/profile。
+function refreshFromServer(userId, api) {
+  var ownerId = String(userId || "").trim();
+  var current = getState(ownerId);
+  if (!ownerId || !api || typeof api.getAssessmentProfile !== "function") {
+    return Promise.resolve(current);
+  }
+  // 本地已有权威缓存（DONE）或进行中的首跑（resume/syncing）→ 不回读。
+  if (current.state !== "new") {
+    return Promise.resolve(current);
+  }
+  return Promise.resolve(
+    api.getAssessmentProfile({ silent: true, suppressAuthRedirect: true }),
+  )
+    .then(function (raw) {
+      var profile =
+        (typeof api.unwrapResponse === "function" ? api.unwrapResponse(raw) : raw) ||
+        raw ||
+        {};
+      var sources =
+        profile && typeof profile === "object" ? profile.diagnostic_sources : null;
+      var firstRun =
+        sources && typeof sources === "object" ? sources.first_run : null;
+      if (firstRun && firstRun.completed === true) {
+        markDone(ownerId, {
+          completion_id: firstRun.completion_id,
+          script_version: firstRun.script_version,
+        });
+      }
+      return getState(ownerId);
+    })
+    .catch(function () {
+      return getState(ownerId);
+    });
+}
+
 // opts = { isNewAccount, hasDeepLink }。
 function reLaunchAfterAuth(target, opts) {
   opts = opts || {};
@@ -69,6 +116,7 @@ module.exports = {
   reLaunchAfterAuth: reLaunchAfterAuth,
   isFirstRunDone: isFirstRunDone,
   getState: getState,
+  refreshFromServer: refreshFromServer,
   readCheckpoint: readCheckpoint,
   writeCheckpoint: writeCheckpoint,
   clearCheckpoint: clearCheckpoint,
