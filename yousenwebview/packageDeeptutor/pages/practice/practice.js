@@ -4,6 +4,7 @@ const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
 const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
+const surfaceTelemetry = require("../../utils/surface-telemetry");
 
 Page({
   data: {
@@ -69,11 +70,20 @@ Page({
   },
 
   onShow() {
+    surfaceTelemetry.trackModuleView(this, { module: "practice", section: "home" });
     this.setData({ isDark: helpers.isDark() });
     runtime.checkAuth(() => {
       this._loadProgress();
       this._loadChapters();
     });
+  },
+
+  onHide() {
+    surfaceTelemetry.trackModuleExit(this);
+  },
+
+  onUnload() {
+    surfaceTelemetry.trackModuleExit(this);
   },
 
   async _loadProgress() {

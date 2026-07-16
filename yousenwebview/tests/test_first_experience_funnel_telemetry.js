@@ -25,7 +25,6 @@ var assessment = read("pages/assessment/assessment.js");
   assertIncludes(login, '"' + eventName + '"', "login funnel");
 });
 [
-  "module_viewed",
   "chat_message_sent",
   "chat_first_answer_rendered",
   "section_viewed",
@@ -33,15 +32,17 @@ var assessment = read("pages/assessment/assessment.js");
 ].forEach(function (eventName) {
   assertIncludes(chat, '"' + eventName + '"', "chat funnel");
 });
+assertIncludes(chat, "trackModuleView", "chat module lifecycle");
+assertIncludes(chat, "trackModuleExit", "chat module lifecycle");
 [
-  "module_viewed",
   "learning_action_started",
   "learning_action_completed",
-  "module_exited",
   "event_error",
 ].forEach(function (eventName) {
   assertIncludes(assessment, '"' + eventName + '"', "assessment funnel");
 });
+assertIncludes(assessment, "trackModuleView", "assessment module lifecycle");
+assertIncludes(assessment, "trackModuleExit", "assessment module lifecycle");
 
 if (fail) {
   console.error(errors.join("\n"));

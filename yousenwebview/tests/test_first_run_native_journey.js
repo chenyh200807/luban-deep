@@ -39,6 +39,7 @@ function loadPage(options) {
     clearPending: 0,
     clearCheckpoint: 0,
     done: [],
+    telemetry: [],
   };
   var entryMock = {
     readCheckpoint: function () { return options.checkpoint || null; },
@@ -82,7 +83,13 @@ function loadPage(options) {
         return { getWindowInfo: function () { return { statusBarHeight: 44 }; } };
       }
       if (request === "../../utils/first-run-entry") return entryMock;
-      if (request === "../../utils/surface-telemetry") return { trackProductBehavior: function () {} };
+      if (request === "../../utils/surface-telemetry") {
+        return {
+          trackProductBehavior: function (eventName, payload) {
+            calls.telemetry.push({ eventName: eventName, payload: payload });
+          },
+        };
+      }
       if (request === "../../utils/subscribe-message") {
         return { requestNextDayRetestAuthorization: function () { return Promise.resolve({ status: "accepted" }); } };
       }
@@ -173,6 +180,12 @@ function loadPage(options) {
   assert.strictEqual(setup.page.data.syncStatus, "synced");
   assert.strictEqual(setup.page.data.report.rx, "今日焦点：屋面卷材起鼓");
   assert.strictEqual(setup.calls.done.length, 1);
+  var terminalEvents = setup.calls.telemetry.filter(function (event) {
+    return event.eventName === "learning_action_completed" && event.payload.result === "synced";
+  });
+  assert.strictEqual(terminalEvents.length, 1, "server-synced first run emits one terminal behavior fact");
+  assert.strictEqual(terminalEvents[0].payload.eventVersion, 2);
+  assert.strictEqual(terminalEvents[0].payload.objectId, "completion-test-0001");
 
   setup.page.onReportGo();
   assert.strictEqual(
@@ -194,6 +207,13 @@ function loadPage(options) {
   assert.strictEqual(offline.page.data.syncStatus, "pending");
   assert.strictEqual(offline.calls.pending.length, 1);
   assert.strictEqual(offline.calls.done.length, 0, "offline report must not become canonical done");
+  assert.strictEqual(
+    offline.calls.telemetry.some(function (event) {
+      return event.eventName === "learning_action_completed" && event.payload.result === "synced";
+    }),
+    false,
+    "offline report must not emit canonical completion telemetry",
+  );
 
   var pageWxml = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/first-run/first-run.wxml"),

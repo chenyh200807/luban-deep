@@ -5272,6 +5272,148 @@ def test_member_ops_overview_filters_registration_and_reads_directory_once(
     assert payload["list"]["filters"]["channel"] == "wechat_qr"
 
 
+def test_member_dashboard_projects_product_usage_overview_without_frontend_reaggregation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    now = datetime.now(timezone.utc)
+    members = [
+        {
+            "user_id": "member-1",
+            "status": "active",
+            "risk_level": "low",
+            "tier": "vip",
+            "expire_at": (now + timedelta(days=30)).isoformat(),
+            "created_at": now.isoformat(),
+            "auto_renew": False,
+        }
+    ]
+    monkeypatch.setattr(
+        service,
+        "_load_member_behavior_summaries_for_members",
+        lambda _members: {
+            "member-1": {
+                "first_run_status": "completed",
+                "first_run_evidence_status": "completed",
+                "first_run_question_count": 1,
+            }
+        },
+    )
+    monkeypatch.setattr(
+        service,
+        "_load_product_usage_overview_for_members",
+        lambda _members: {
+            "tracked_member_count": 1,
+            "module_usage": [{"module": "history", "member_count": 1}],
+            "first_run": {"eligible_member_count": 1, "completed_member_count": 1},
+        },
+    )
+
+    dashboard = service._build_member_dashboard({"audit_log": []}, members, days=30)
+
+    assert dashboard["behavior_health"]["tracked_member_count"] == 1
+    assert dashboard["behavior_health"]["module_usage"][0]["module"] == "history"
+    assert dashboard["behavior_health"]["first_run"]["completed_member_count"] == 1
+
+
+def test_first_run_dashboard_uses_canonical_marker_and_exposes_sync_anomaly() -> None:
+    service = MemberConsoleService()
+    created_at = datetime(2026, 7, 12, 12, 0, tzinfo=timezone(timedelta(hours=8))).isoformat()
+    member_defaults = {
+        "created_at": created_at,
+        "status": "active",
+        "risk_level": "low",
+        "tier": "vip",
+        "expire_at": datetime(2026, 8, 12, tzinfo=timezone.utc).isoformat(),
+        "auto_renew": False,
+    }
+    members = [
+        {**member_defaults, "user_id": "canonical-complete"},
+        {**member_defaults, "user_id": "telemetry-only"},
+    ]
+    summaries = {
+        "canonical-complete": {"first_run_evidence_status": "not_started"},
+        "telemetry-only": {"first_run_evidence_status": "completed"},
+    }
+
+    class _CanonicalReader:
+        calls: list[list[str]] = []
+
+        def read_existing_profiles(self, user_ids: list[str]) -> dict[str, dict[str, object]]:
+            self.calls.append(list(user_ids))
+            return {
+                user_id: {
+                    "learning_preferences": {
+                        "first_run": {
+                            "script_version": "first_run_script.v1@2026-07-11",
+                            "completed_at": "2026-07-12T12:30:00+08:00",
+                            "source": "explicit_first_run_v1",
+                        }
+                    }
+                }
+                for user_id in user_ids
+                if user_id == "canonical-complete"
+            }
+
+    canonical_reader = _CanonicalReader()
+    service._get_learner_state_service = lambda: canonical_reader  # type: ignore[method-assign]
+    projected = service._overlay_canonical_first_run(members, summaries)
+
+    assert projected["canonical-complete"]["first_run_status"] == "completed"
+    assert projected["canonical-complete"]["first_run_completed_at"] == "2026-07-12T12:30:00+08:00"
+    assert projected["telemetry-only"]["first_run_status"] == "sync_anomaly"
+    assert canonical_reader.calls == [["canonical-complete", "telemetry-only"]]
+
+    service._load_member_behavior_summaries_for_members = lambda _members: projected  # type: ignore[method-assign]
+    service._load_product_usage_overview_for_members = lambda _members: {  # type: ignore[method-assign]
+        "tracked_member_count": 2,
+        "module_usage": [],
+    }
+    dashboard = service._build_member_dashboard({"audit_log": []}, members, days=30)
+    first_run = dashboard["behavior_health"]["first_run"]
+    assert first_run["completed_member_count"] == 1
+    assert first_run["sync_anomaly_member_count"] == 1
+    assert first_run["completion_rate"] == 0.0
+    assert first_run["completion_rate_of_confirmed"] == 0.5
+    assert first_run["truth_coverage_rate"] == 1.0
+
+
+def test_first_run_dashboard_excludes_unavailable_truth_from_confirmed_rate() -> None:
+    service = MemberConsoleService()
+    now = datetime.now(timezone.utc)
+    member = {
+        "user_id": "unknown-truth",
+        "created_at": now.isoformat(),
+        "status": "active",
+        "risk_level": "low",
+        "tier": "vip",
+        "expire_at": (now + timedelta(days=30)).isoformat(),
+        "auto_renew": False,
+    }
+    service._load_member_behavior_summaries_for_members = lambda _members: {  # type: ignore[method-assign]
+        "unknown-truth": {
+            "first_run_status": "truth_unavailable",
+            "first_run_evidence_status": "completed",
+        }
+    }
+    service._load_product_usage_overview_for_members = lambda _members: {  # type: ignore[method-assign]
+        "tracked_member_count": 1,
+        "module_usage": [],
+    }
+
+    first_run = service._build_member_dashboard({"audit_log": []}, [member], days=30)["behavior_health"][
+        "first_run"
+    ]
+
+    assert first_run["eligible_member_count"] == 1
+    assert first_run["confirmed_member_count"] == 0
+    assert first_run["truth_unavailable_member_count"] == 1
+    assert first_run["completion_rate_of_confirmed"] == 0.0
+    assert first_run["truth_coverage_rate"] == 0.0
+
+
 def test_list_members_sorts_risk_levels_by_business_severity(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

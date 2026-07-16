@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import json
 import os
 from typing import Any
 
@@ -381,15 +382,48 @@ class LearnerStateSupabaseSyncCoreStore:
         row = self._select_one("user_profiles", {"user_id": user_id})
         if row is None:
             return None
+        return self._profile_from_row(row, fallback_user_id=user_id)
+
+    @staticmethod
+    def _profile_from_row(row: dict[str, Any], *, fallback_user_id: str = "") -> dict[str, Any]:
         attributes = dict(row.get("attributes") or {})
         profile = {
             **attributes,
-            "user_id": str(row.get("user_id") or user_id).strip(),
+            "user_id": str(row.get("user_id") or fallback_user_id).strip(),
             "summary": str(row.get("summary") or "").strip(),
             "last_updated": _nullable_text(row.get("last_updated")),
         }
         profile.setdefault("display_name", profile["user_id"])
         return profile
+
+    def read_profiles(self, user_ids: list[str]) -> dict[str, dict[str, Any]]:
+        """Read canonical profiles in bounded PostgREST batches; transport errors propagate."""
+        normalized = sorted({str(user_id or "").strip() for user_id in user_ids if str(user_id or "").strip()})
+        if not normalized:
+            return {}
+        if not self.is_configured:
+            raise RuntimeError("Supabase core store is not configured")
+        client = self._client_or_create()
+        rows: list[dict[str, Any]] = []
+        for start in range(0, len(normalized), 100):
+            batch = normalized[start : start + 100]
+            response = client.get(
+                f"{self._base_url.rstrip('/')}/rest/v1/user_profiles",
+                headers=_rest_headers(self._service_key),
+                params=_select_params(
+                    filters={
+                        "user_id": "in.(" + ",".join(json.dumps(item, ensure_ascii=False) for item in batch) + ")"
+                    },
+                    limit=len(batch),
+                ),
+            )
+            response.raise_for_status()
+            rows.extend(dict(item) for item in response.json() if isinstance(item, dict))
+        return {
+            str(row.get("user_id") or "").strip(): self._profile_from_row(row)
+            for row in rows
+            if str(row.get("user_id") or "").strip()
+        }
 
     def write_profile(self, user_id: str, profile: dict[str, Any]) -> dict[str, Any]:
         normalized_user_id = str(user_id or "").strip()

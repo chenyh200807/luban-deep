@@ -634,6 +634,9 @@ class TeamManager:
                 temperature=0.1,
                 reasoning_effort=self.reasoning_effort,
             )
+            if not response.is_complete:
+                repair_error = f"Incomplete response: {response.completion_failure_kind}."
+                continue
             payload = parse_json_from_llm(response.content or "")
             if payload is None:
                 repair_error = "Malformed JSON."
@@ -665,6 +668,8 @@ class TeamManager:
             temperature=0.1,
             reasoning_effort=self.reasoning_effort,
         )
+        if not response.is_complete:
+            return [{"title": instruction[:80], "description": instruction, "owner": None, "depends_on": []}]
         payload = parse_json_from_llm(response.content or "")
         members = {m.name for m in runtime.state.members}
         if not isinstance(payload, dict):
@@ -1059,6 +1064,10 @@ Work autonomously and coordinate through the board and mailbox."""
                     max_tokens=self.max_tokens,
                     reasoning_effort=self.reasoning_effort,
                 )
+                if not response.is_complete:
+                    raise RuntimeError(
+                        f"incomplete model response: {response.completion_failure_kind}"
+                    )
                 if response.has_tool_calls:
                     tool_calls = [{
                         "id": tc.id,

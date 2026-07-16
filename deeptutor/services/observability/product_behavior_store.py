@@ -187,6 +187,12 @@ class SQLiteProductBehaviorStore:
             "action_start_count_7d": 0,
             "event_count_7d": 0,
             "last_event_at_ms": 0,
+            "first_run_evidence_status": "not_started",
+            "first_run_question_count": 0,
+            "first_run_completion_count": 0,
+            "first_run_legacy_completion_count": 0,
+            "top_module_7d": "",
+            "module_usage_7d": [],
             "cohort": "",
             "cohort_reasons": [],
             "next_action": "观察",
@@ -209,6 +215,16 @@ class SQLiteProductBehaviorStore:
             normalized_groups[key] = normalized
             for identity in normalized:
                 identity_to_group_keys.setdefault(identity, set()).add(key)
+        ambiguous_identity_groups = {
+            identity: group_keys
+            for identity, group_keys in identity_to_group_keys.items()
+            if len(group_keys) > 1
+        }
+        identity_to_group_keys = {
+            identity: group_keys
+            for identity, group_keys in identity_to_group_keys.items()
+            if len(group_keys) == 1
+        }
 
         if not normalized_groups:
             return {}
@@ -222,18 +238,32 @@ class SQLiteProductBehaviorStore:
         with self._connect() as conn:
             rows = conn.execute(
                 f"""
-                select user_id, module, event_name, action, count(*) as count, max(occurred_at_ms) as last_event_at_ms
+                select user_id, module, event_name, event_version, action, object_type, result,
+                       count(*) as count, max(occurred_at_ms) as last_event_at_ms
                 from product_behavior_events
                 where user_id in ({placeholders}) and occurred_at_ms >= ?
-                group by user_id, module, event_name, action
+                group by user_id, module, event_name, event_version, action, object_type, result
                 """,
                 (*unique_user_ids, since),
+            ).fetchall()
+            first_run_rows = conn.execute(
+                f"""
+                select user_id, event_name, event_version, object_type, result, count(*) as count
+                from product_behavior_events
+                where user_id in ({placeholders}) and module = 'first_run'
+                group by user_id, event_name, event_version, object_type, result
+                """,
+                unique_user_ids,
             ).fetchall()
 
         counts_by_user: dict[str, dict[tuple[str, str], int]] = {key: {} for key in normalized_groups}
         action_counts_by_user: dict[str, dict[tuple[str, str], int]] = {key: {} for key in normalized_groups}
         event_counts_by_user: dict[str, int] = {key: 0 for key in normalized_groups}
         last_event_by_user: dict[str, int] = {key: 0 for key in normalized_groups}
+        first_run_by_user: dict[str, dict[str, int]] = {
+            key: {"started": 0, "questions": 0, "completed": 0, "legacy": 0}
+            for key in normalized_groups
+        }
         for row in rows:
             user_id = str(row["user_id"])
             count = int(row["count"])
@@ -251,6 +281,18 @@ class SQLiteProductBehaviorStore:
                     last_event_by_user[group_key],
                     int(row["last_event_at_ms"] or 0),
                 )
+        for row in first_run_rows:
+            count = int(row["count"])
+            for group_key in identity_to_group_keys.get(str(row["user_id"]), set()):
+                if str(row["event_name"]) == "first_run_started":
+                    first_run_by_user[group_key]["started"] += count
+                elif str(row["event_name"]) == "first_run_question_completed":
+                    first_run_by_user[group_key]["questions"] += count
+                elif str(row["event_name"]) == "learning_action_completed" and str(row["object_type"]) == "script":
+                    if str(row["result"]) == "synced" and int(row["event_version"] or 1) >= 2:
+                        first_run_by_user[group_key]["completed"] += count
+                    elif str(row["result"]) in {"go_report", "remind"}:
+                        first_run_by_user[group_key]["legacy"] += count
 
         summaries: dict[str, dict[str, Any]] = {}
         for user_id, counts in counts_by_user.items():
@@ -281,18 +323,208 @@ class SQLiteProductBehaviorStore:
                 training_count=training_count,
                 retest_count=retest_count,
             )
+            module_usage = []
+            for module in sorted({module for module, _event_name in counts} - {"login", "first_run"}):
+                view_count = counts.get((module, "module_viewed"), 0)
+                action_count_for_module = counts.get((module, "learning_action_started"), 0)
+                completion_count = counts.get((module, "learning_action_completed"), 0)
+                event_count = sum(count for (event_module, _event_name), count in counts.items() if event_module == module)
+                module_usage.append(
+                    {
+                        "module": module,
+                        "view_count": view_count,
+                        "action_count": action_count_for_module,
+                        "completion_count": completion_count,
+                        "event_count": event_count,
+                    }
+                )
+            module_usage.sort(
+                key=lambda item: (
+                    item["action_count"] + item["completion_count"],
+                    item["view_count"],
+                    item["event_count"],
+                    item["module"],
+                ),
+                reverse=True,
+            )
+            first_run = first_run_by_user[user_id]
+            first_run_status = (
+                "completed"
+                if first_run["completed"]
+                else "legacy_completion_signal"
+                if first_run["legacy"]
+                else "in_progress"
+                if first_run["started"] or first_run["questions"]
+                else "not_started"
+            )
             summaries[user_id] = {
                 "learning_report_open_count_7d": report_count,
                 "history_open_count_7d": history_count,
                 "action_start_count_7d": action_count,
                 "event_count_7d": event_counts_by_user[user_id],
                 "last_event_at_ms": last_event_by_user[user_id],
+                "first_run_evidence_status": first_run_status,
+                "first_run_question_count": first_run["questions"],
+                "first_run_completion_count": first_run["completed"],
+                "first_run_legacy_completion_count": first_run["legacy"],
+                "top_module_7d": module_usage[0]["module"] if module_usage else "",
+                "module_usage_7d": module_usage,
                 "cohort": cohort,
                 "cohort_reasons": reasons,
                 "next_action": next_action,
-                "trust_level": "B",
+                "identity_collision_count": sum(
+                    1 for group_keys in ambiguous_identity_groups.values() if user_id in group_keys
+                ),
+                "trust_level": (
+                    "C" if any(user_id in group_keys for group_keys in ambiguous_identity_groups.values()) else "B"
+                ),
             }
         return summaries
+
+    def get_product_usage_overview_for_identity_groups(
+        self,
+        identity_groups: dict[str, list[str]],
+        *,
+        days: int = 7,
+    ) -> dict[str, Any]:
+        identity_to_groups: dict[str, set[str]] = {}
+        for group_key, identities in (identity_groups or {}).items():
+            normalized_group = str(group_key or "").strip()
+            if not normalized_group:
+                continue
+            for identity in identities:
+                normalized_identity = str(identity or "").strip()
+                if normalized_identity:
+                    identity_to_groups.setdefault(normalized_identity, set()).add(normalized_group)
+        ambiguous_identity_groups = {
+            identity: group_keys
+            for identity, group_keys in identity_to_groups.items()
+            if len(group_keys) > 1
+        }
+        identity_to_groups = {
+            identity: group_keys
+            for identity, group_keys in identity_to_groups.items()
+            if len(group_keys) == 1
+        }
+
+        rows: list[sqlite3.Row] = []
+        identities = sorted(identity_to_groups)
+        since = self._since_ms(days)
+        with self._connect() as conn:
+            for start in range(0, len(identities), 500):
+                batch = identities[start : start + 500]
+                if not batch:
+                    continue
+                placeholders = ",".join("?" for _ in batch)
+                rows.extend(
+                    conn.execute(
+                        f"""
+                        select user_id, visit_id, module, event_name, event_version, object_type,
+                               result, duration_ms, visible_ms, count(*) as event_count
+                        from product_behavior_events
+                        where user_id in ({placeholders}) and occurred_at_ms >= ?
+                        group by user_id, visit_id, module, event_name, event_version,
+                                 object_type, result, duration_ms, visible_ms
+                        """,
+                        (*batch, since),
+                    ).fetchall()
+                )
+
+        tracked_members: set[str] = set()
+        first_run_members = {"started": set(), "questions": set(), "completed": set(), "legacy": set()}
+        modules: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            event_count = int(row["event_count"] or 0)
+            group_keys = identity_to_groups.get(str(row["user_id"]), set())
+            for group_key in group_keys:
+                tracked_members.add(group_key)
+                module = str(row["module"])
+                event_name = str(row["event_name"])
+                if module == "first_run":
+                    if event_name == "first_run_started":
+                        first_run_members["started"].add(group_key)
+                    elif event_name == "first_run_question_completed":
+                        first_run_members["questions"].add(group_key)
+                    elif event_name == "learning_action_completed" and str(row["object_type"]) == "script":
+                        if str(row["result"]) == "synced" and int(row["event_version"] or 1) >= 2:
+                            first_run_members["completed"].add(group_key)
+                        elif str(row["result"]) in {"go_report", "remind"}:
+                            first_run_members["legacy"].add(group_key)
+                if module in {"", "login", "first_run"}:
+                    continue
+                usage = modules.setdefault(
+                    module,
+                    {
+                        "module": module,
+                        "members": set(),
+                        "visits": set(),
+                        "view_count": 0,
+                        "action_count": 0,
+                        "completion_count": 0,
+                        "exit_count": 0,
+                        "quick_exit_count": 0,
+                    },
+                )
+                usage["members"].add(group_key)
+                visit_id = str(row["visit_id"] or "")
+                if visit_id:
+                    usage["visits"].add((group_key, visit_id))
+                if event_name == "module_viewed":
+                    usage["view_count"] += event_count
+                elif event_name == "learning_action_started":
+                    usage["action_count"] += event_count
+                elif event_name == "learning_action_completed":
+                    usage["completion_count"] += event_count
+                elif event_name == "module_exited":
+                    usage["exit_count"] += event_count
+                    dwell_ms = int(row["visible_ms"] or row["duration_ms"] or 0)
+                    if 0 < dwell_ms < 5_000:
+                        usage["quick_exit_count"] += event_count
+
+        module_usage = [
+            {
+                "module": usage["module"],
+                "member_count": len(usage["members"]),
+                "visit_count": len(usage["visits"]),
+                "view_count": usage["view_count"],
+                "action_count": usage["action_count"],
+                "completion_count": usage["completion_count"],
+                "exit_count": usage["exit_count"],
+                "quick_exit_count": usage["quick_exit_count"],
+            }
+            for usage in modules.values()
+        ]
+        module_usage.sort(key=lambda item: (item["member_count"], item["visit_count"], item["view_count"]), reverse=True)
+        started_count = len(first_run_members["started"])
+        eligible_count = len({str(key).strip() for key in identity_groups if str(key).strip()})
+        completed_count = len(first_run_members["completed"])
+        started_completion_count = len(first_run_members["completed"] & first_run_members["started"])
+        return {
+            "tracked_member_count": len(tracked_members),
+            "identity_collision_count": len(ambiguous_identity_groups),
+            "identity_collision_member_count": len(
+                {group_key for group_keys in ambiguous_identity_groups.values() for group_key in group_keys}
+            ),
+            "first_run": {
+                "started_member_count": started_count,
+                "eligible_member_count": eligible_count,
+                "not_started_member_count": max(
+                    0,
+                    eligible_count
+                    - len(
+                        first_run_members["started"]
+                        | first_run_members["questions"]
+                        | first_run_members["completed"]
+                    ),
+                ),
+                "question_member_count": len(first_run_members["questions"]),
+                "completed_member_count": completed_count,
+                "legacy_completion_member_count": len(first_run_members["legacy"] - first_run_members["completed"]),
+                "completion_rate": round(started_completion_count / started_count, 4) if started_count else 0.0,
+                "completion_rate_of_eligible": round(completed_count / eligible_count, 4) if eligible_count else 0.0,
+            },
+            "module_usage": module_usage,
+        }
 
     def get_member_behavior_summaries(self, user_ids: list[str], *, days: int = 7) -> dict[str, dict[str, Any]]:
         unique_user_ids = sorted({str(user_id) for user_id in user_ids if str(user_id)})

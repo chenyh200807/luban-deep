@@ -20,6 +20,33 @@ export interface MemberDashboard {
     action_start_count_7d: number
     event_count_7d?: number
     low_trust_count: number
+    tracked_member_count?: number
+    identity_collision_count?: number
+    identity_collision_member_count?: number
+    module_usage?: Array<{
+      module: string
+      member_count: number
+      visit_count: number
+      view_count: number
+      action_count: number
+      completion_count: number
+      exit_count: number
+      quick_exit_count: number
+    }>
+    first_run?: {
+      eligible_member_count: number
+      started_member_count: number
+      question_member_count: number
+      completed_member_count: number
+      legacy_completion_member_count: number
+      not_started_member_count: number
+      sync_anomaly_member_count: number
+      truth_unavailable_member_count: number
+      confirmed_member_count: number
+      completion_rate: number
+      completion_rate_of_confirmed: number
+      truth_coverage_rate: number
+    }
   }
 }
 
@@ -33,6 +60,23 @@ export interface MemberBehaviorSummary {
   cohort_reasons?: string[]
   next_action?: string
   trust_level: 'A' | 'B' | 'C' | string
+  first_run_status?: 'not_eligible' | 'not_started' | 'in_progress' | 'completed' | 'sync_anomaly' | 'truth_unavailable' | string
+  first_run_evidence_status?: 'not_started' | 'in_progress' | 'completed' | 'legacy_completion_signal' | string
+  first_run_completed_at?: string
+  first_run_script_version?: string
+  first_run_truth_source?: string
+  identity_collision_count?: number
+  first_run_question_count?: number
+  first_run_completion_count?: number
+  first_run_legacy_completion_count?: number
+  top_module_7d?: string
+  module_usage_7d?: Array<{
+    module: string
+    view_count: number
+    action_count: number
+    completion_count: number
+    event_count: number
+  }>
 }
 
 export interface MemberBehaviorTimelineEvent {

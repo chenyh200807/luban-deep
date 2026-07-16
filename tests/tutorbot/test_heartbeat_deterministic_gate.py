@@ -12,11 +12,10 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from types import SimpleNamespace
-
 import pytest
 
 from deeptutor.tutorbot.heartbeat import service as hb
+from deeptutor.tutorbot.providers.base import LLMResponse, ToolCallRequest
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _TEMPLATE = (_REPO_ROOT / "deeptutor" / "tutorbot" / "templates" / "HEARTBEAT.md").read_text(
@@ -37,9 +36,16 @@ class _CountingProvider:
         _ = (messages, tools)
         self.calls += 1
         self.seen_models.append(model)
-        return SimpleNamespace(
-            has_tool_calls=True,
-            tool_calls=[SimpleNamespace(arguments={"action": self._action, "tasks": self._tasks})],
+        return LLMResponse(
+            content=None,
+            finish_reason="tool_calls",
+            tool_calls=[
+                ToolCallRequest(
+                    id="heartbeat-decision",
+                    name="heartbeat_decision",
+                    arguments={"action": self._action, "tasks": self._tasks},
+                )
+            ],
         )
 
 

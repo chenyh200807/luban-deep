@@ -211,6 +211,13 @@ CI 不会对全仓库一刀切，只会盯 contract 边界。
 - 哪些改动必须补 contract surface
 - 哪些改动必须补对应测试
 
+## Product Behavior 与 Learner State 边界
+
+- `product_behavior_events` 只记录产品表面的访问、停留、行动、完成证据和失败，不得写入或替代 learner state。
+- First Run 正式完成事实只由 `FirstRunWritebackService` 写入的 `learner_state.learning_preferences.first_run` marker 决定。
+- `module=first_run,event_name=learning_action_completed,object_type=script,result=synced,event_version>=2` 只表示客户端已收到服务端成功写回结果，可用于漏斗与数据质量核对；CTA、本地 done 或题目事件不得判定正式完成。
+- 会员经营聚合必须以 canonical member identity group 去重并排除 eval/test 账号；前端不得扫描 raw ledger 自行重算同名指标。
+
 ## 禁止事项
 
 - 禁止为同一控制面并行维护两套对外 contract

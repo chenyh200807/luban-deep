@@ -12,6 +12,8 @@
 
 ## Current Execution Status
 
+- 2026-07-15 P0.5：基于 `origin/main@416c59d8` 的独立 worktree 完成 durable ACK 重试语义、微信有界本地 pending queue、First Run v2 synced terminal evidence、7 个主模块 show/hide 生命周期、真实会员 identity-group 模块聚合与会员运营 First Run 漏斗。未部署，未完成 28/28 页面矩阵与真实 WeChat package 验收。
+
 - Task 1-11 implementation, automated verification, and local visual acceptance evidence completed on 2026-06-02.
 - Commit steps in this plan were intentionally not executed in this Codex run because the user did not request commits and the worktree contains unrelated Golden/source-compiler changes.
 - Task 11 local evidence is recorded in `docs/qa/2026-06-02-product-behavior-reality-audit.md`: `/bi?tab=member-ops` desktop/mobile screenshots, Member360 behavior drawer screenshots, and API-level smoke for both `wechat_miniprogram` and `wechat_yousenwebview` behavior events.

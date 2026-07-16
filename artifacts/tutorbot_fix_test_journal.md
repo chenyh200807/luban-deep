@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-15 - 计算题答案被 token 上限截断后仍以 completed 写入历史（架构收权复审）
+
+- 问题：生产 session `unified_1784108550168_509b86ba` 的两轮施工用水计算回答都在 4096 output tokens 处中断；首轮残缺答案被当作正常 assistant 历史带入“给我最终的解题步骤”，第二轮继续重复矛盾推导并再次中断。
+- 根因：provider 已返回 `finish_reason=length`，但完成性没有共享 authority；agent loop、fast、failover、capability、timeout/exception 各自用 `has_tool_calls`、非空正文或 accumulated chunks 猜 completed。结果不仅残文可入历史，截断 tool call 还能在检查前执行，typed failure 的 chunks 还能被 capability 重新提升并派生 active object。题目内容侧另有独立不确定性：当前 RAG 仅命中相邻算例，未命中能裁定本题消防水量与选项的 exact authority；不能用硬编码选项掩盖。
+- 失败尝试 / 被否决方案：否决按该题数字或选项加 regex、把消防用水量硬写成某个值、开启通用代码执行、再加一层 LLM judge，前两者会把存疑题面固化成假知识 authority，后两者扩大执行面或新增竞争裁决者。也不把 `actual_tool_rounds=0` 直接判为故障，因为 RAG prefetch 在 agent tool loop 之前独立执行。
+- 成功修法：完成性收回 `LLMResponse` 单一 predicate，所有 TutorBot consumer 在读取正文或执行工具前统一消费；deep/repair/fast 的 error、截断、空/不可见回答均只产 typed failure。capability 遇失败不再用 chunks 补 final 或做内容派生；TurnRuntime 再剥除失败 RESULT 的 presentation/question/active-object 等字段，取消、超时和异常也不再把 accumulated partial 写成 assistant truth。统一 terminal mapper 生成不可计费中文提示，遥测保留原始 `finish_reason`。没有新增 route、题目特判、答案 mirror 或第二评分 authority。
+- 验证：新增共享 completion predicate、`length|max_tokens|unknown`、截断 tool call 零执行、deep/repair/fast 空答案、capability chunks 不提升、failure RESULT 状态副作用剥除、cancel/failed partial 不落终态、failover 反例。最终稳定回归：聚焦 completion/terminal 矩阵连续三轮各 44 passed；heartbeat/memory/subagent/provider consumers 44 passed；TutorBot guardrails 20 passed；WebSocket terminal/cancel/timeout/failure 7 passed；全 diff contract guard、contract 双拷贝、compileall 与 diff check 均通过。全量 capability 另有 22 个同步 `SimpleNamespace` fixture 无法 await 的既有失败，已对照 `origin/main` 证实非本 diff 引入；PR checks 与 same-SHA 阿里云证据由发布闭环补齐。
+- 教训：可见文本不等于完整答案；终态 authority 必须同时证明 provider 完成、业务证据足够、输出可展示。transport 层可以 veto 不完整结果，但不能替内容域发明正确答案。流式 delta 在结束原因已知前可能已到达在线 UI，终态与历史已收权，但客户端无法撤回既有 delta；若产品要求“屏幕上绝不出现半句”，需另行评估按句缓冲的延迟与体验代价。
+
 ## 2026-07-15 - 教学卡底部「问鲁班」无响应：共享 runtime 缓存键漏算 wrapper 代码
 
 - 问题：教学卡内快速问题和输入框都可操作，但点击弹层底部「问鲁班」没有 loading、workflow status、错误提示或网络请求；同一公网卡片在普通浏览器中可以正常创建 canonical turn 并进入流式输出，因此不是 TutorBot 或网络整体不可用。

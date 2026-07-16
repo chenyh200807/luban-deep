@@ -10,6 +10,7 @@ const helpers = require("../../utils/helpers");
 const route = require("../../utils/route");
 const runtime = require("../../utils/runtime");
 const flags = require("../../utils/flags");
+const surfaceTelemetry = require("../../utils/surface-telemetry");
 const { buildLearnViewModel } = require("../../utils/learn-view-model");
 
 // H2:Long Cang 只许 CDN 子集化,禁内嵌。子集托管后填此常量;
@@ -40,6 +41,7 @@ Page({
   },
 
   onShow() {
+    surfaceTelemetry.trackModuleView(this, { module: "learning", section: "home" });
     // 五 tab 壳:学习 index=0;本页第 10 版定稿=宣纸亮,壳跟页面主题
     helpers.syncTabBar(this, 0, {
       isDark: this.data.isDark,
@@ -50,6 +52,14 @@ Page({
     this._retryPendingFirstRun(firstRunSnapshot);
     // 从站点/任务返回时刷新 canonical 投影。
     if (!this.data.loading) this._load();
+  },
+
+  onHide() {
+    surfaceTelemetry.trackModuleExit(this);
+  },
+
+  onUnload() {
+    surfaceTelemetry.trackModuleExit(this);
   },
 
   _syncFirstRunState() {

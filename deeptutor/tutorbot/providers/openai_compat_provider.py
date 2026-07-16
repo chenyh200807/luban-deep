@@ -449,7 +449,7 @@ class OpenAICompatProvider(LLMProvider):
         return LLMResponse(
             content=content,
             tool_calls=tool_calls,
-            finish_reason=finish_reason or "stop",
+            finish_reason=finish_reason or "incomplete",
             usage=usage,
             reasoning_content=reasoning_content,
         )
@@ -459,7 +459,7 @@ class OpenAICompatProvider(LLMProvider):
         content_parts: list[str] = []
         reasoning_parts: list[str] = []
         tc_bufs: dict[int, dict[str, Any]] = {}
-        finish_reason = "stop"
+        finish_reason = "incomplete"
         usage: dict[str, int] = {}
 
         def _accum_tc(tc: Any, idx_hint: int) -> None:

@@ -7,6 +7,7 @@ var route = require("../../utils/route");
 var flags = require("../../utils/flags");
 var auth = require("../../utils/auth");
 var historyTombstone = require("../../utils/history-tombstone");
+var surfaceTelemetry = require("../../utils/surface-telemetry");
 
 var CACHE_KEY = "history_cache";
 var CACHE_KEY_ARCHIVED = "history_cache_archived";
@@ -431,6 +432,7 @@ Page({
   },
 
   onShow: function () {
+    surfaceTelemetry.trackModuleView(this, { module: "history", section: "home" });
     this.setData({ isDark: helpers.isDark() });
     if (!flags.ensureFeatureEnabled("history")) return;
     // 五 tab 壳：历史 index=1；内容职责仍只限对话历史与继续对话。
@@ -445,7 +447,12 @@ Page({
     this._loadWithCache();
   },
 
+  onHide: function () {
+    surfaceTelemetry.trackModuleExit(this);
+  },
+
   onUnload: function () {
+    surfaceTelemetry.trackModuleExit(this);
     if (this._searchTimer) {
       clearTimeout(this._searchTimer);
       this._searchTimer = null;

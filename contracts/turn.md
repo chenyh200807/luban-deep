@@ -173,16 +173,30 @@
      形如 `Error: {...}` / `Error calling LLM:` 打头的 200-SSE 流不进 `on_content_delta`，
      终局按 `looks_like_provider_error_content` 收敛为 typed failure；正常回答（含正文中
      出现 "Error" 字样的合法教学内容）必须 byte-identical 通过。
-   - Agent loop 对预算耗尽 / provider error / 空答案只记录
+   - `LLMResponse` 是生成完成性的唯一 authority：只有 `stop|tool_calls` 可被 consumer
+     读取正文或执行工具；`error|length|max_tokens` 及未知 finish reason 都是 non-final。
+     Agent loop、fast/repair、failover、memory/subagent/team/heartbeat 等 consumer 不得各自
+     根据“已有正文”或 `has_tool_calls` 猜 completed，完成性检查必须早于正文读取和工具执行。
+   - Agent loop 对预算耗尽 / provider error / 空答案 / provider token 上限截断只记录
      `runtime_metadata["turn_failure"]={kind, detail, ...}`（`tool_budget_exhausted` /
-     `provider_error` / `provider_timeout` / `model_empty_answer`），`final_content=None`；
+     `provider_error` / `provider_timeout` / `model_empty_answer` /
+     `model_output_truncated`），`final_content=None`；`finish_reason=length|max_tokens`
+     即使携带部分正文也不是完整终态，不得写 assistant 历史；其原始 `finish_reason` 必须进入
+     `llm_stream_telemetry` 供生产追踪。
      不得产出任何学员可见 surrogate 文本。marker 严格 per-turn：入口 pop 陈旧值，恢复出
      真实答案后必须清除。传播链 = loop → manager（只进 trace 与 session_metadata 桥，
      不进持久化 merged_metadata）→ capability result event → turn runtime。
    - **唯一 terminal mapper** = `turn_runtime.map_turn_failure_to_public_text` /
      `_safe_terminal_assistant_content`：所有终态学员可见文本（assistant message、
      `result.metadata.response` 投影、orphan 恢复补话）只能由它决定；预算耗尽→"拆小再发"、
-     provider 类→"服务暂时繁忙"、取消→取消文案、未知→通用兜底。失败文案一律不可计费。
+     provider 类→"服务暂时繁忙"、截断→"答案没有生成完整，请重新发送"、取消→取消文案、
+     未知→通用兜底。失败文案一律不可计费。
+   - Capability 收到 typed failure 后不得把已流出的 chunk 重新提升为 final response，
+     也不得从 provisional text 派生 presentation、question context、active object 或
+     next-best-action。TurnRuntime 在 RESULT 边界执行同一 fail-closed 不变量：失败 RESULT
+     必须剥除上述内容派生字段，且不得触发任何 session/question state writer。
+   - `failed|cancelled`（含 timeout / exception）永远使用 terminal mapper 文案；已聚合的
+     content delta 只是 provisional transport，不得进入 canonical assistant message。
    - **禁 completed 假绿**：带 `turn_failure` 的 turn 终态必须 `status=failed`，
      `error_code`（=failure kind）保留在 public `result.metadata`，原始错误体只进
      `turns.error`（internal），公开 turn_events 不得出现原始错误文本；public `done`

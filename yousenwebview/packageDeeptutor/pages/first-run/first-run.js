@@ -452,6 +452,15 @@ Page({
         firstRunEntry.clearPendingSync(self.userId);
         firstRunEntry.clearCheckpoint(self.userId);
         firstRunEntry.markDone(self.userId, payload);
+        telemetry.trackProductBehavior(
+          "learning_action_completed",
+          behavior("complete", {
+            objectType: "script",
+            objectId: payload.completion_id,
+            result: "synced",
+            eventVersion: 2,
+          })
+        );
         var projection = (result && result.home_projection) || {};
         var focus = projection.today_focus || {};
         var report = Object.assign({}, self.data.report || {}, {
@@ -485,19 +494,11 @@ Page({
   },
 
   onReportGo: function () {
-    telemetry.trackProductBehavior(
-      "learning_action_completed",
-      behavior("complete", { objectType: "script", result: "go_report" })
-    );
     this._finish();
   },
 
   onReportRemind: function () {
     var self = this;
-    telemetry.trackProductBehavior(
-      "learning_action_completed",
-      behavior("complete", { objectType: "script", result: "remind" })
-    );
     subscribeMessage.requestNextDayRetestAuthorization().then(function (res) {
       telemetry.trackProductBehavior(
         "subscribe_prompt_result",
