@@ -398,7 +398,7 @@ def test_real_manifest_green_packs_all_project():
         assert vm["content_sha256"]
 
 
-@pytest.mark.parametrize("pack_id", ["N01", "S05", "X01"])
+@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
 def test_pending_v3_pack_never_advertises_light_practice_or_retest(
     pack_id: str,
 ) -> None:
@@ -423,7 +423,7 @@ def test_real_manifest_has_mandatory_variant_revocation_authority():
     ) is not None
 
 
-@pytest.mark.parametrize("pack_id", ["N01", "S05", "X01"])
+@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
 def test_pending_candidate_pack_never_falls_back_to_signed_bank(pack_id: str) -> None:
     from deeptutor.services.luban_lesson import build_retest_items
 
@@ -437,7 +437,7 @@ def test_pending_candidate_pack_never_falls_back_to_signed_bank(pack_id: str) ->
         ) == []
 
 
-@pytest.mark.parametrize("pack_id", ["N01", "S05", "X01"])
+@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
 def test_compiled_artifact_is_same_supply_identity_for_forward_and_review(
     pack_id: str,
 ) -> None:
@@ -832,3 +832,13 @@ def test_retest_receipt_outside_compiled_forward_fails_closed(monkeypatch):
             mode="forward",
             projection_receipt="receipt-token",
         )
+
+
+def test_signed_first_batch_pack_advertises_retest_supply() -> None:
+    """N01 首批签发后,读模型必须点亮同一签发供给(不回退 signed bank)。"""
+    rows = {row["pack_id"]: row for row in list_green_lessons()}
+    assert rows["N01"]["retest_available"] is True
+    vm = build_lesson_viewmodel("N01")
+    assert vm["practice_surface"]["available"] is True
+    assert vm["variant_retest"]["available"] is True
+    assert vm["variant_retest"]["bank_status"] == "compiled_v3"
