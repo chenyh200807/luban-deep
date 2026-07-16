@@ -1,4 +1,29 @@
-<!-- 学习 tab · 纸墨朱竹宣纸驾驶舱(五模块第 10 轮定稿 10a 亮 / 10b 夜) -->
+<!-- 学习 tab · 纸墨朱竹宣纸驾驶舱(10a改 整页定稿:训练/轻练/复习 三层) -->
+<!-- 区块顺序 = 设计稿权威:状态卡 → 动画精讲 → 今日任务 → 复习卡 → 三指标卡 -->
+
+<!-- 距考试天数:纯展示层派生(exam_date → 天数),不进 view-model、不写学情。
+     无/非法 exam_date → -1 → 卡片显示设置引导(禁造假数);已过期 clamp 0。 -->
+<wxs module="examDays">
+function daysTo(dateStr) {
+  if (!dateStr) return -1;
+  var s = "" + dateStr;
+  var sep = s.indexOf("-") >= 0 ? "-" : "/";
+  var parts = s.split(sep);
+  if (parts.length < 3) return -1;
+  var dayRaw = parts[2].split("T")[0].split(" ")[0];
+  var y = parts[0] * 1;
+  var m = parts[1] * 1;
+  var d = dayRaw * 1;
+  if (y !== y || m !== m || d !== d || y <= 0 || m <= 0 || d <= 0) return -1;
+  var exam = getDate(y, m - 1, d);
+  var now = getDate();
+  var today = getDate(now.getFullYear(), now.getMonth(), now.getDate());
+  var days = Math.round((exam.getTime() - today.getTime()) / 86400000);
+  return days < 0 ? 0 : days;
+}
+module.exports = { daysTo: daysTo };
+</wxs>
+
 <view class="paper {{isDark ? '' : 'light'}} lr-page pk-paper-bg">
 
   <!-- 顶栏:logo 章 + 设置点(status bar 占位) -->
@@ -52,19 +77,25 @@
         <text class="lr-first-run-go">{{firstRunState === 'new' ? '开始' : (firstRunState === 'resume' ? '继续' : (firstRunState === 'blocked' ? '重试' : '保存中'))}} →</text>
       </view>
 
-      <!-- 三枚状态卡:距考 / 路线 X/40 / 今日 -->
+      <!-- 三枚状态卡(10a改):距考试环形圈 / 路线 X/41 站 / 今日 X/Y 题 -->
       <view class="lr-status-row" wx:if="{{!supplyError}}">
-        <view class="lr-status pk-card">
-          <view class="lr-gauge-sm">
-            <text class="lr-gauge-sm-num">{{vm.examDate ? '✓' : '—'}}</text>
+        <view class="lr-status pk-card lr-rise">
+          <!-- 环:墨色弧(装饰性弧长,与设计稿一致;天数数字才是事实声称) -->
+          <view class="lr-exam-ring">
+            <view class="lr-exam-ring-hole">
+              <text class="lr-exam-ring-num">{{examDays.daysTo(vm.examDate) >= 0 ? examDays.daysTo(vm.examDate) : '—'}}</text>
+            </view>
           </view>
-          <view class="lr-status-txt"><text class="pk-kicker">考试日</text><text class="lr-status-unit">{{vm.examDate || '待设置'}}</text></view>
+          <view class="lr-status-txt">
+            <text class="pk-kicker">距考试</text>
+            <text class="lr-status-unit">{{examDays.daysTo(vm.examDate) >= 0 ? '天' : '待设置'}}</text>
+          </view>
         </view>
-        <view class="lr-status pk-card lr-status-col">
+        <view class="lr-status pk-card lr-status-col lr-rise">
           <text class="pk-kicker">路线 <text class="lr-status-strong">{{vm.litCount || 0}}/{{vm.packUniverse || 40}} 站</text></text>
           <view class="pk-progress"><view class="pk-progress__fill" style="width: {{(vm.litCount ? (vm.litCount / (vm.packUniverse || 40) * 100) : 0)}}%"></view></view>
         </view>
-        <view class="lr-status pk-card lr-status-col">
+        <view class="lr-status pk-card lr-status-col lr-rise">
           <text class="pk-kicker">今日 <text class="lr-status-strong">{{vm.todayProgress.done || 0}}/{{vm.todayProgress.target || '—'}} 题</text></text>
           <view class="pk-progress"><view class="pk-progress__fill" style="width: {{vm.todayProgress.percent || 0}}%"></view></view>
         </view>
@@ -77,85 +108,8 @@
         <view class="pk-btn-ink lr-supply-retry" bindtap="retrySupply">重新加载</view>
       </view>
 
-      <!-- 今日唯一任务(10a改):三层(标题/任务名/副文案)+ 站点旅程环 + 旅程轨道。
-           只翻译 server next_step 的到期验证/课后练/推荐微课状态;禁掌握百分比。 -->
-      <view class="lr-task pk-card" wx:if="{{firstRunState === 'hidden' && !supplyError && vm.todayTask}}">
-        <view class="lr-task-head">
-          <view class="lr-task-main">
-            <text class="pk-kicker">今天最该完成</text>
-            <text class="lr-task-title">{{vm.todayTask.title}}</text>
-            <text class="pk-desc" wx:if="{{vm.todayTask.cta}}">{{vm.todayTask.cta}}</text>
-          </view>
-          <!-- 右上环:站点旅程 N/6(事实计数,不是掌握度) -->
-          <view class="lr-journey-ringbox" wx:if="{{vm.todayTask.journey}}">
-            <view class="lr-journey-ring" style="background: conic-gradient(var(--pk-grn) {{vm.todayTask.journey.ringPercent}}%, var(--pk-gauge) 0)">
-              <view class="lr-journey-ring-hole">
-                <text class="lr-journey-ring-num">{{vm.todayTask.journey.currentIndex}}<text class="lr-journey-ring-den">/{{vm.todayTask.journey.total}}</text></text>
-              </view>
-            </view>
-            <text class="lr-journey-ring-label">站点旅程</text>
-          </view>
-        </view>
-        <view class="lr-task-cta">
-          <view class="pk-btn-ink lr-task-btn" wx:if="{{vm.todayTask.ctaLabel}}" bindtap="goTodayTask">{{vm.todayTask.ctaLabel}}</view>
-          <!-- 轻练旁按钮:供给未接通时点击给诚实提示(learn.js 兜底),禁 dead click 假可用 -->
-          <!-- 红队 A2:review_due(到期验证优先)下隐藏,不给绕开路径;可见性由 view-model 单点裁决 -->
-          <view class="lr-task-lite" wx:if="{{vm.todayTask.light_practice_visible}}" bindtap="goLightPractice">
-            <text class="lr-lite-bolt">⚡</text>
-            <text>轻练</text>
-          </view>
-        </view>
-        <text class="pk-desc lr-supply-note" wx:if="{{vm.todayTask.supplyNote}}">{{vm.todayTask.supplyNote}}</text>
-
-        <!-- 旅程轨道(红队 A1 收口):流程说明,不是进度账本——前端无逐步完成证据,
-             禁 done 勾、禁跨未完成节点的进度线;只标 current(CTA 对应步)/空心/承诺虚环 -->
-        <view class="lr-journey" wx:if="{{vm.todayTask.journey}}">
-          <view class="lr-journey-head">
-            <text class="lr-journey-kicker">这一站会带你走完</text>
-            <text class="lr-journey-count">第 {{vm.todayTask.journey.currentIndex}} / {{vm.todayTask.journey.total}} 步</text>
-          </view>
-          <view class="lr-journey-track">
-            <view class="lr-jline"></view>
-            <view class="lr-journey-steps">
-              <view class="lr-jstep" wx:for="{{vm.todayTask.journey.steps}}" wx:key="label">
-                <view class="lr-jnode lr-jnode--{{item.state}}">
-                  <view wx:if="{{item.state === 'current'}}" class="lr-jnode-dot"></view>
-                </view>
-                <text class="lr-jlabel lr-jlabel--{{item.state}}">{{item.label}}</text>
-              </view>
-            </view>
-          </view>
-          <text class="lr-journey-foot">验证与抽查到期时会出现在这里 · 你只管来</text>
-        </view>
-
-        <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.todayTask.reason}}">
-          <text class="lr-why-label">为什么推荐</text>
-          <text class="lr-why-chev">{{whyOpen ? '▾' : '▸'}}</text>
-        </view>
-        <text class="pk-desc lr-why-text" wx:if="{{whyOpen && vm.todayTask.reason}}">{{vm.todayTask.reason}}</text>
-      </view>
-
-      <!-- 复习卡(到期赴约):只是 pack_review 到期状态视图;任务卡内容仍由
-           next_step 唯一裁决(有到期时任务卡自动是验证任务)。点击绑
-           goTodayTask = 与任务卡完全相同的 retest 路由,零第二任务源。 -->
-      <view
-        class="lr-rvc pk-card"
-        wx:if="{{firstRunState === 'hidden' && !supplyError && vm.reviewCard}}"
-        bindtap="goTodayTask"
-      >
-        <view class="lr-rvc-ic">
-          <text class="lr-rvc-glyph">↻</text>
-          <view class="lr-rvc-badge">{{vm.reviewCard.dueCount}}</view>
-        </view>
-        <view class="lr-rvc-main">
-          <text class="lr-rvc-title">{{vm.reviewCard.title}}</text>
-          <text class="lr-rvc-sub">{{vm.reviewCard.sub}}</text>
-        </view>
-        <view class="lr-rvc-go">{{vm.reviewCard.cta}}</view>
-      </view>
-
-      <!-- 动画精讲卡:下一站 header + 宣纸舞台 + 横滑课程架 -->
-      <view class="lr-lesson pk-card" wx:if="{{!supplyError}}">
+      <!-- 动画精讲卡:下一站 header + 宣纸舞台 + 横滑课程架(设计稿区块③) -->
+      <view class="lr-lesson pk-card lr-rise lr-rise--d1" wx:if="{{!supplyError}}">
         <!-- header -->
         <view class="lr-lesson-head" wx:if="{{vm.nextStation}}">
           <view class="lr-lesson-seal pk-seal">
@@ -193,7 +147,7 @@
         <!-- 你的路线 + 完整地图 -->
         <view class="lr-route-line">
           <text class="lr-route-lit">你的路线 · 已点亮 {{vm.litCount || 0}} / {{vm.packUniverse || 40}} 站</text>
-          <text class="lr-route-more" bindtap="openStations">查看完整地图</text>
+          <text class="lr-route-more" bindtap="openStations">查看完整地图 →</text>
         </view>
 
         <!-- 课程架:不可横滑,只展 3 站海报 + 40站尾卡(要看全部点尾卡进完整地图) -->
@@ -237,15 +191,113 @@
         </view>
       </view>
 
-      <!-- 两枚事实指标卡；不把推断百分比冒充掌握结论 -->
-      <view class="lr-metric-row" wx:if="{{!supplyError}}">
+      <!-- 今日唯一任务(10a改):三层(标题/任务名/副文案)+ 站点旅程环 + 旅程轨道。
+           只翻译 server next_step 的到期验证/课后练/推荐微课状态;禁掌握百分比。 -->
+      <view class="lr-task pk-card lr-rise lr-rise--d2" wx:if="{{firstRunState === 'hidden' && !supplyError && vm.todayTask}}">
+        <view class="lr-task-head">
+          <view class="lr-task-main">
+            <text class="pk-kicker">今天最该完成</text>
+            <text class="lr-task-title">{{vm.todayTask.title}}</text>
+            <text class="pk-desc" wx:if="{{vm.todayTask.cta}}">{{vm.todayTask.cta}}</text>
+          </view>
+          <!-- 右上环:站点旅程 N/6(事实计数,不是掌握度) -->
+          <view class="lr-journey-ringbox" wx:if="{{vm.todayTask.journey}}">
+            <view class="lr-journey-ring" style="background: conic-gradient(var(--pk-grn) {{vm.todayTask.journey.ringPercent}}%, var(--pk-gauge) 0)">
+              <view class="lr-journey-ring-hole">
+                <text class="lr-journey-ring-num">{{vm.todayTask.journey.currentIndex}}<text class="lr-journey-ring-den">/{{vm.todayTask.journey.total}}</text></text>
+              </view>
+            </view>
+            <text class="lr-journey-ring-label">站点旅程</text>
+          </view>
+        </view>
+        <view class="lr-task-cta">
+          <view class="pk-btn-ink lr-task-btn" wx:if="{{vm.todayTask.ctaLabel}}" bindtap="goTodayTask">{{vm.todayTask.ctaLabel}}</view>
+          <!-- 轻练旁按钮:供给未接通时点击给诚实提示(learn.js 兜底),禁 dead click 假可用 -->
+          <!-- 红队 A2:review_due(到期验证优先)下隐藏,不给绕开路径;可见性由 view-model 单点裁决 -->
+          <view class="lr-task-lite" wx:if="{{vm.todayTask.light_practice_visible}}" bindtap="goLightPractice">
+            <text class="lr-lite-bolt">⚡</text>
+            <text>轻练</text>
+          </view>
+        </view>
+        <text class="pk-desc lr-supply-note" wx:if="{{vm.todayTask.supplyNote}}">{{vm.todayTask.supplyNote}}</text>
+
+        <!-- 旅程轨道(红队 A1 收口):流程说明,不是进度账本——前端无逐步完成证据,
+             禁 done 勾、禁跨未完成节点的进度线;只标 current(CTA 对应步)/空心/承诺虚环 -->
+        <view class="lr-journey" wx:if="{{vm.todayTask.journey}}">
+          <view class="lr-journey-head">
+            <text class="lr-journey-kicker">这一站会带你走完</text>
+            <text class="lr-journey-count">{{vm.todayTask.journey.currentIndex}}/{{vm.todayTask.journey.total}} 步</text>
+          </view>
+          <view class="lr-journey-track">
+            <view class="lr-jline"></view>
+            <view class="lr-journey-steps">
+              <view class="lr-jstep" wx:for="{{vm.todayTask.journey.steps}}" wx:key="label">
+                <view class="lr-jnode lr-jnode--{{item.state}}">
+                  <view wx:if="{{item.state === 'current'}}" class="lr-jnode-dot"></view>
+                </view>
+                <text class="lr-jlabel lr-jlabel--{{item.state}}">{{item.label}}</text>
+              </view>
+            </view>
+          </view>
+          <text class="lr-journey-foot">验证与抽查到期时会出现在这里 · 你只管来</text>
+        </view>
+
+        <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.todayTask.reason}}">
+          <text class="lr-why-label">为什么推荐</text>
+          <text class="lr-why-chev">{{whyOpen ? '▾' : '▸'}}</text>
+        </view>
+        <text class="pk-desc lr-why-text" wx:if="{{whyOpen && vm.todayTask.reason}}">{{vm.todayTask.reason}}</text>
+      </view>
+
+      <!-- 复习卡(到期赴约):只是 pack_review 到期状态视图;任务卡内容仍由
+           next_step 唯一裁决(有到期时任务卡自动是验证任务)。点击绑
+           goTodayTask = 与任务卡完全相同的 retest 路由,零第二任务源。 -->
+      <view
+        class="lr-rvc pk-card lr-rise lr-rise--d3"
+        wx:if="{{firstRunState === 'hidden' && !supplyError && vm.reviewCard}}"
+        bindtap="goTodayTask"
+      >
+        <view class="lr-rvc-ic">
+          <text class="lr-rvc-glyph">↻</text>
+          <view class="lr-rvc-badge">{{vm.reviewCard.dueCount}}</view>
+        </view>
+        <view class="lr-rvc-main">
+          <text class="lr-rvc-title">{{vm.reviewCard.title}}</text>
+          <text class="lr-rvc-sub">{{vm.reviewCard.sub}}</text>
+        </view>
+        <view class="lr-rvc-go">{{vm.reviewCard.cta}}</view>
+      </view>
+
+      <!-- 三枚指标卡(10a改):大数字 + 底部小图形(图形为设计稿装饰纹样,非数据声称);
+           数字全部事实计数——近3天作答/待补错因/已验证考点(mastered=terminal 证据) -->
+      <view class="lr-metric-row lr-rise lr-rise--d4" wx:if="{{!supplyError}}">
         <view class="lr-metric pk-card">
-          <text class="pk-kicker">近 3 天有效作答</text>
+          <text class="pk-kicker">近 3 天练习</text>
           <text class="lr-metric-num">{{vm.stats.recent_practice || 0}} 道</text>
+          <view class="lr-metric-viz">
+            <view class="lr-viz-pill lr-viz-pill--1"></view>
+            <view class="lr-viz-pill lr-viz-pill--2"></view>
+            <view class="lr-viz-pill lr-viz-pill--3"></view>
+          </view>
         </view>
         <view class="lr-metric pk-card">
           <text class="pk-kicker">待补错因</text>
           <text class="lr-metric-num">{{vm.stats.pending_errors || 0}} 个</text>
+          <view class="lr-metric-viz lr-metric-viz--col">
+            <view class="lr-viz-row lr-viz-row--warn"></view>
+            <view class="lr-viz-row lr-viz-row--mid"></view>
+            <view class="lr-viz-row lr-viz-row--low"></view>
+          </view>
+        </view>
+        <view class="lr-metric pk-card">
+          <text class="pk-kicker">已验证考点</text>
+          <text class="lr-metric-num lr-metric-grn">{{vm.stats.verified_stations || 0}} 站</text>
+          <view class="lr-metric-viz">
+            <view class="lr-viz-bar lr-viz-bar--1"></view>
+            <view class="lr-viz-bar lr-viz-bar--2"></view>
+            <view class="lr-viz-bar lr-viz-bar--3"></view>
+            <view class="lr-viz-bar lr-viz-bar--4"></view>
+          </view>
         </view>
       </view>
 

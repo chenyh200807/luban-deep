@@ -107,6 +107,8 @@ ok("activity stats map without exposing a frontend mastery decision", () => {
   assert.strictEqual(vm.dueCount, undefined);
   assert.strictEqual(vm.stats.recent_practice, 8);
   assert.strictEqual(vm.stats.pending_errors, 3);
+  // 已验证考点=mastered 事实计数(A01 mastered;S05 practiced/ dormant 不计)
+  assert.strictEqual(vm.stats.verified_stations, 1);
   assert.strictEqual(vm.stats.mastery_score, undefined);
   assert.strictEqual(vm.examDate, "2026-09-19");
   assert.deepStrictEqual(vm.todayProgress, { done: 4, target: 10, percent: 40 });

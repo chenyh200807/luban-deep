@@ -63,10 +63,19 @@ assert.strictEqual(learnWxml.indexOf("lr-jnode-check"), -1, "journey must not re
   assert.strictEqual(learnVm.indexOf(needle), -1, "journey copy must not hardcode a review schedule: " + needle);
 });
 assert.strictEqual(learnVm.indexOf("昨天的"), -1, "review copy must not claim 昨天 (cycle length is server-owned)");
+// 10a整页改版:标签随设计稿改「近 3 天练习」,但单位必须仍是「道」(作答数)——
+// recent_three_done 是作答计数,禁用「次」冒充练习会话数(合同意图不变)。
 assert(
-  learnWxml.indexOf("近 3 天有效作答") >= 0 &&
+  learnWxml.indexOf("近 3 天练习") >= 0 &&
     learnWxml.indexOf("{{vm.stats.recent_practice || 0}} 道") >= 0,
   "recent_three_done must be labeled as answer count rather than practice sessions",
+);
+// 三指标卡③已验证考点:只许消费 view-model 的 mastered 事实计数
+// (verified_stations,terminal 证据),禁前端自算/禁掌握百分比。
+assert(
+  learnWxml.indexOf("已验证考点") >= 0 &&
+    learnWxml.indexOf("{{vm.stats.verified_stations || 0}} 站") >= 0,
+  "verified stations metric must project vm.stats.verified_stations (mastered fact count)",
 );
 
 ["goReview", "goSwitchPractice", "goSeethrough", "route.lubanReview", "getLubanSeethroughLibrary", "F16"].forEach(function (needle) {
