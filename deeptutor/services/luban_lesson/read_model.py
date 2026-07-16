@@ -251,6 +251,10 @@ def _load_signed_bank(
     """供给池签发闸（双 fail-closed，所有 bank 读取的唯一入口——含考点卡池，
     ``concept_cards.py`` 传自己的 ``filename_template`` 复用同一闸，禁分叉第二 loader）。
 
+    注意：本函数只裁决 signed + sha，不裁决发布绿灯。以 pack 为单位的
+    变体供给/审核包取数必须走 ``_load_green_signed_bank``（含
+    ``projection_green`` 门），不得直接调这里旁路绿灯（对抗审查二轮 B2）。
+
     只放行 ``status=="signed"`` 且 ``source_pack_sha256`` == manifest 该 pack
     ``content_sha256`` 的 bank；candidate 未签发、pack 正文修订后的 sha 漂移、
     文件缺失/损坏，一律返回 None（对外与 bank 缺失同形，不泄漏未签发存在性）。
@@ -284,6 +288,39 @@ def _load_signed_bank(
     if not expected_sha or str(bank.get("source_pack_sha256") or "") != expected_sha:
         return None  # pack 正文已修订（或 manifest 无 sha），旧变体失效
     return bank
+
+
+def _load_green_signed_bank(
+    pack_id: str,
+    *,
+    manifest_path: Path | None = None,
+    filename_template: str = _VARIANT_BANK_TEMPLATE,
+) -> dict[str, Any] | None:
+    """canonical 绿灯签发闸（对抗审查二轮 B2）：变体供给/审核包等一切
+    「以 pack 为单位取 bank」的入口必须走这里，禁自行拼 manifest 旁路。
+
+    三重 fail-closed：pack ∈ ``projection_green``（撤回/未发布即 None，
+    与缺失同形）→ manifest 登记 sha → ``_load_signed_bank``（signed +
+    sha 双闸）。"""
+    normalized = str(pack_id or "").strip().upper()
+    if not normalized:
+        return None
+    manifest = _load_manifest(manifest_path)
+    green = {
+        str(green_id or "").strip().upper()
+        for green_id in manifest.get("projection_green") or []
+    }
+    if normalized not in green:
+        return None
+    expected_sha = ""
+    for pack in manifest.get("packs") or []:
+        if str(pack.get("pack_id") or "").strip().upper() == normalized:
+            expected_sha = str(pack.get("content_sha256") or "")
+            break
+    if not expected_sha:
+        return None
+    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
+    return _load_signed_bank(normalized, manifest_dir, expected_sha, filename_template)
 
 
 def _variant_summary(

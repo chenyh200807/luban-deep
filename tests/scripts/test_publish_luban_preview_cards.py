@@ -685,6 +685,156 @@ def test_f16_publish_copies_all_audio_and_manifest_byte_for_byte() -> None:
     assert _sha(source_audio / "manifest.json") == _sha(public_audio / "manifest.json")
 
 
+def test_variant_audit_packet_writes_pending_decision_cards(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    written = _mod.write_variant_audit_packet("s05")
+    packet = json.loads((tmp_path / "s05.variant.review.json").read_text("utf-8"))
+    assert written  # 相对 REPO 路径由 CLI 打印；此处只关心产物本身
+    assert packet["schema"] == "luban_variant_review_packet.v1"
+    assert packet["pack_id"] == "S05"
+    assert packet["bank_status"] == "signed"
+    assert packet["candidate_count"] == 75
+    assert packet["eligible_count"] == 0  # bank 尚无人签 decision，机器绝不代签
+    assert packet["human_gate"]["machine_must_not_sign"] is True
+    for row in packet["items"]:
+        review = row["decision"]["review"]
+        assert review["status"] == "pending"
+        assert review["signatures"] == []
+        assert not any(review["checks"].values())
+
+
+def test_variant_audit_packet_kind_is_wired_into_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    assert _mod.main(["--write-practice-audit-packet", "--kind", "variant", "s05"]) == 0
+    assert (tmp_path / "s05.variant.review.json").is_file()
+    # --kind variant 只能与审核包模式联用（不允许污染发布/检查路径）。
+    with pytest.raises(SystemExit):
+        _mod.main(["--kind", "variant", "s05"])
+
+
+def test_variant_audit_packet_missing_bank_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", tmp_path / "empty")
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+
+
+def test_variant_audit_packet_reuses_signing_gate_no_raw_loader(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """对抗审查 B3：审核包入口必须走 manifest sha + signed 同一签发闸——
+    sha 漂移或 candidate 状态的 bank 一律 fail-closed，禁 raw 第二 loader。"""
+    bank_dir = tmp_path / "banks"
+    bank_dir.mkdir()
+    (bank_dir / "_pack_manifest.json").write_text(
+        json.dumps(
+            {
+                "projection_green": ["S05"],
+                "packs": [{"pack_id": "S05", "content_sha256": "a" * 64}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    bank_path = bank_dir / "_S05_variant_bank.v0.json"
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
+
+    # sha 漂移：bank signed 但与 manifest 登记的 pack sha 失配
+    bank_path.write_text(
+        json.dumps(
+            {
+                "pack_id": "S05",
+                "status": "signed",
+                "source_pack_sha256": "b" * 64,
+                "variants": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+
+    # candidate 状态：未签发 bank 不产人审包
+    bank_path.write_text(
+        json.dumps(
+            {
+                "pack_id": "S05",
+                "status": "candidate",
+                "source_pack_sha256": "a" * 64,
+                "variants": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+
+
+def _write_variant_audit_fixture(
+    bank_dir: Path, *, green: list[str], with_blocklist: bool = True
+) -> None:
+    bank_dir.mkdir(parents=True, exist_ok=True)
+    (bank_dir / "_pack_manifest.json").write_text(
+        json.dumps(
+            {
+                "projection_green": green,
+                "packs": [{"pack_id": "S05", "content_sha256": "a" * 64}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (bank_dir / "_S05_variant_bank.v0.json").write_text(
+        json.dumps(
+            {
+                "pack_id": "S05",
+                "status": "signed",
+                "source_pack_sha256": "a" * 64,
+                "variants": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    if with_blocklist:
+        (bank_dir / "_variant_blocklist.json").write_text(
+            json.dumps({"variants": []}), encoding="utf-8"
+        )
+
+
+def test_variant_audit_packet_requires_projection_green(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """对抗审查二轮 B2：pack 不在 projection_green（撤回/未发布）时，
+    审核包路径同样不得旁路 canonical 绿灯门。"""
+    bank_dir = tmp_path / "banks"
+    _write_variant_audit_fixture(bank_dir, green=[])
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+    # 同一 fixture 放回绿灯即可产包（证明失败确实来自绿灯门）
+    _write_variant_audit_fixture(bank_dir, green=["S05"])
+    assert _mod.write_variant_audit_packet("s05")
+
+
+def test_variant_audit_packet_rejects_unreadable_blocklist(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """对抗审查二轮 B3：撤发 authority 不可读时 writer 必须 fail-closed，
+    不得把 blocked=None 静默交给 builder 产出人审包。"""
+    bank_dir = tmp_path / "banks"
+    _write_variant_audit_fixture(bank_dir, green=["S05"], with_blocklist=False)
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+
+
 # --- projection receipt 单一来源（artifact surface.projection_receipt 唯一权威）---
 
 _EMBEDDED_RECEIPT_TEST_RE = re.compile(
