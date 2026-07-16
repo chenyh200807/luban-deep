@@ -3,7 +3,8 @@ import subprocess
 from pathlib import Path
 
 
-SCRIPT = "scripts/audit_luban_m35_artifact_coverage.py"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT = REPO_ROOT / "scripts/audit_luban_m35_artifact_coverage.py"
 
 
 def _write_fixture(root: Path, *, questions: list[dict], answers: list[dict]) -> None:
@@ -21,8 +22,9 @@ def _write_fixture(root: Path, *, questions: list[dict], answers: list[dict]) ->
 def _run_audit(tmp_path: Path, fixture: Path) -> dict:
     out = tmp_path / "coverage.json"
     subprocess.run(
-        ["python", SCRIPT, "--fixture", str(fixture), "--output", str(out)],
+        ["python", str(SCRIPT), "--fixture", str(fixture), "--output", str(out)],
         check=True,
+        cwd=REPO_ROOT,
     )
     return json.loads(out.read_text(encoding="utf-8"))
 
@@ -68,7 +70,7 @@ def test_missing_fastapi_case_artifacts_create_compiler_work_orders(tmp_path):
 def test_current_fastapi_case_fixture_is_no_go_until_artifacts_are_compiled(tmp_path):
     payload = _run_audit(
         tmp_path,
-        Path("tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a"),
+        REPO_ROOT / "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a",
     )
 
     assert payload["question_count"] >= 20

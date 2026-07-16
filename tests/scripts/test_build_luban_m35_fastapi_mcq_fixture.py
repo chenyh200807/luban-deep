@@ -3,7 +3,8 @@ import subprocess
 from pathlib import Path
 
 
-SCRIPT = "scripts/build_luban_m35_fastapi_mcq_fixture.py"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT = REPO_ROOT / "scripts/build_luban_m35_fastapi_mcq_fixture.py"
 
 
 def test_builds_multiselect_fixture_with_answer_variants(tmp_path):
@@ -45,7 +46,7 @@ def test_builds_multiselect_fixture_with_answer_variants(tmp_path):
     subprocess.run(
         [
             "python",
-            SCRIPT,
+            str(SCRIPT),
             "--source-dir",
             str(source_dir),
             "--output-dir",
@@ -54,6 +55,7 @@ def test_builds_multiselect_fixture_with_answer_variants(tmp_path):
             "1",
         ],
         check=True,
+        cwd=REPO_ROOT,
     )
 
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))

@@ -10,7 +10,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-_SKILL_DIR = Path("deeptutor/tutorbot/skills/construction-case-grading")
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_SKILL_DIR = _REPO_ROOT / "deeptutor/tutorbot/skills/construction-case-grading"
 
 
 def _read(rel: str) -> str:

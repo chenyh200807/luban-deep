@@ -15,8 +15,11 @@ import pytest
 from scripts import build_luban_m35_official_answer_keys as bak
 
 EXAM_ROOT = Path("/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库")
-FIXTURE_15Q = Path("tests/fixtures/luban_m35_fastapi_case_scoring_2026/manifest.json")
-FIXTURE_27SUBQ = Path("tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/manifest.json")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+FIXTURE_15Q = REPO_ROOT / "tests/fixtures/luban_m35_fastapi_case_scoring_2026/manifest.json"
+FIXTURE_27SUBQ = (
+    REPO_ROOT / "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/manifest.json"
+)
 
 requires_corpus = pytest.mark.skipif(
     not EXAM_ROOT.exists(), reason="official exam corpus not available on this machine"
@@ -98,7 +101,9 @@ def test_allocate_scores_half_point_rule_never_fudges() -> None:
 
 
 def test_builder_imports_no_network_or_llm_clients() -> None:
-    source = Path("scripts/build_luban_m35_official_answer_keys.py").read_text(encoding="utf-8")
+    source = (REPO_ROOT / "scripts/build_luban_m35_official_answer_keys.py").read_text(
+        encoding="utf-8"
+    )
     banned = ("requests", "httpx", "urllib", "aiohttp", "socket", "openai", "anthropic")
     import_lines = [
         line.strip()

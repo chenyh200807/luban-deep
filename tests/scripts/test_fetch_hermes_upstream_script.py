@@ -4,7 +4,8 @@ from pathlib import Path
 
 
 def test_fetch_script_documents_pinned_snapshot_contract() -> None:
-    script = Path("scripts/fetch_hermes_upstream.sh").read_text(encoding="utf-8")
+    repo_root = Path(__file__).resolve().parents[2]
+    script = (repo_root / "scripts/fetch_hermes_upstream.sh").read_text(encoding="utf-8")
 
     assert "HERMES_EDU_SOURCE" in script
     assert "v0.18.6" in script

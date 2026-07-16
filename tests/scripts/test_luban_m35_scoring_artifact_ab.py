@@ -1,9 +1,11 @@
 import json
 import os
 import subprocess
+from pathlib import Path
 
 
-SCRIPT = "scripts/run_luban_m35_scoring_artifact_ab.py"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT = REPO_ROOT / "scripts/run_luban_m35_scoring_artifact_ab.py"
 REQUIRED_METRICS = {
     "compiled_hit_rate",
     "wrong_path_rate",
@@ -29,7 +31,7 @@ def _run_runner(tmp_path, tier: str, fixture_limit: int = 3) -> dict:
     subprocess.run(
         [
             "python",
-            SCRIPT,
+            str(SCRIPT),
             "--output",
             str(out),
             "--fixture-limit",
@@ -38,6 +40,7 @@ def _run_runner(tmp_path, tier: str, fixture_limit: int = 3) -> dict:
             tier,
         ],
         check=True,
+        cwd=REPO_ROOT,
     )
     return json.loads(out.read_text(encoding="utf-8"))
 

@@ -11,8 +11,9 @@ from deeptutor.services.benchmark.learning_brain_personalization_eval import (
 )
 
 
-FIXTURE = Path("tests/fixtures/learning_brain_personalization_cases.json")
-GOLDEN = Path("tests/fixtures/learning_brain_golden_projection.json")
+REPO_ROOT = Path(__file__).resolve().parents[3]
+FIXTURE = REPO_ROOT / "tests/fixtures/learning_brain_personalization_cases.json"
+GOLDEN = REPO_ROOT / "tests/fixtures/learning_brain_golden_projection.json"
 
 
 def test_personalization_fixture_covers_required_case_matrix() -> None:
@@ -74,6 +75,7 @@ def test_learning_brain_personalization_eval_cli_gate_passes() -> None:
             "0.05",
         ],
         text=True,
+        cwd=REPO_ROOT,
     )
 
     assert "verdict=pass" in output

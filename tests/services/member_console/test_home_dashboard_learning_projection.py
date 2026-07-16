@@ -16,6 +16,7 @@ from deeptutor.services.member_console.service import MemberConsoleService
 
 
 _TZ = timezone(timedelta(hours=8))
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 def _canonical_home_projection_source_status(**overrides: object) -> dict[str, object]:
@@ -747,7 +748,7 @@ def test_malformed_projection_falls_back_instead_of_leaking_bad_shape() -> None:
 
 
 def test_seed_starter_files_exist_and_are_used() -> None:
-    base = Path("data/seed")
+    base = _REPO_ROOT / "data/seed"
     for subject_id in ["construction_exam_1", "construction_exam_2"]:
         seed_path = base / subject_id / "starter_prompts.json"
         payload = json.loads(seed_path.read_text(encoding="utf-8"))
@@ -1019,7 +1020,9 @@ def test_dashboard_seed_fallback_uses_subject_from_learner_snapshot(
     service._data_path = tmp_path / "member_console.json"
     service.get_profile("subject_user")
     seed_payload = json.loads(
-        Path("data/seed/construction_exam_2/starter_prompts.json").read_text(encoding="utf-8")
+        (_REPO_ROOT / "data/seed/construction_exam_2/starter_prompts.json").read_text(
+            encoding="utf-8"
+        )
     )
 
     class _FakeLearnerStateService:
