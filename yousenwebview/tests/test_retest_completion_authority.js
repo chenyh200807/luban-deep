@@ -124,4 +124,39 @@ assert.ok(errorbank.indexOf("getLubanReviewDue") >= 0, "errorbank must consume c
 assert.strictEqual(errorbank.indexOf("getLubanRetestItems"), -1, "errorbank must not infer due from supply");
 assert.ok(errorbank.indexOf('"&mode=review&probe_id="') >= 0, "errorbank must forward due probe");
 
+// ── 收据错项四层诊断(纯呈现层, 全部服务端签发字段, 缺失整行隐藏) ──
+assert.ok(
+  retestWxml.indexOf('wx:if="{{item.selectedOptionText}}">你选了：{{item.selectedOptionText}}') >= 0,
+  "receipt wrong item layer 1 must show the learner's selected option text, hidden when absent",
+);
+assert.ok(
+  retestWxml.indexOf('wx:if="{{item.feedback && item.feedback.temptation}}">为什么它看起来像对的：{{item.feedback.temptation}}') >= 0,
+  "receipt wrong item layer 2 must render server-issued temptation, hidden when absent",
+);
+assert.ok(
+  retestWxml.indexOf('wx:if="{{item.feedback && item.feedback.loss_reason}}">考试为什么不给分：{{item.feedback.loss_reason}}') >= 0,
+  "receipt wrong item layer 3 must render server-issued loss_reason, hidden when absent",
+);
+assert.ok(
+  retestWxml.indexOf('wx:if="{{item.feedback && item.feedback.fix}}">下次这样答：{{item.feedback.fix}}') >= 0,
+  "receipt wrong item layer 4 must render server-issued fix, hidden when absent",
+);
+// 顺序合同: 你选了 → 像对的 → 不给分 → 下次这样答
+(function () {
+  var l1 = retestWxml.indexOf("你选了：");
+  var l2 = retestWxml.indexOf("为什么它看起来像对的：");
+  var l3 = retestWxml.indexOf("考试为什么不给分：");
+  var l4 = retestWxml.indexOf("下次这样答：");
+  assert.ok(l1 >= 0 && l1 < l2 && l2 < l3 && l3 < l4, "receipt wrong item layers must keep the four-layer order");
+})();
+// selectedOptionText 只能是签发 options 的查找结果(前端零造词)
+assert.ok(
+  retest.indexOf("_selectedOptionText(") >= 0 && retest.indexOf("selectedOptionText: that._selectedOptionText(item)") >= 0,
+  "selected option text must be resolved from issued options by selectedOptionId, never invented client-side",
+);
+// 项目红线: 不用"看穿/识破/揭穿/露馅"类审视语气
+["看穿", "识破", "揭穿", "露馅"].forEach(function (word) {
+  assert.strictEqual(retestWxml.indexOf(word), -1, "receipt copy must not use inspecting tone: " + word);
+});
+
 console.log("PASS test_retest_completion_authority.js");

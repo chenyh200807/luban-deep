@@ -420,6 +420,20 @@ Page({
     this.goBack();
   },
 
+  // 收据错项呈现层：按 selectedOptionId 从签发 options 里取所选选项文本。
+  // 纯查找零造词；查不到（如判断题无 options）返回空串 → 对应层整行隐藏。
+  _selectedOptionText(item) {
+    var selectedId = String((item && item.selectedOptionId) || "").trim();
+    if (!selectedId) return "";
+    var options = (item && item.options) || [];
+    for (var i = 0; i < options.length; i++) {
+      if (String(options[i].option_id || "") === selectedId) {
+        return String(options[i].text || "");
+      }
+    }
+    return "";
+  },
+
   _submitCompletion(items) {
     if (this.data.syncStatus === "syncing" || this.data.syncStatus === "synced") return;
     var that = this;
@@ -482,7 +496,11 @@ Page({
         scoredItems.forEach(function (item) {
           if (item.rule_group) groups[item.rule_group] = true;
           if (item.textbook) textbookCount += 1;
-          if (item.correct === false) wrong.push(item);
+          if (item.correct === false) {
+            wrong.push(Object.assign({}, item, {
+              selectedOptionText: that._selectedOptionText(item),
+            }));
+          }
         });
         telemetry.trackProductBehavior("learning_action_completed", {
           module: "practice",

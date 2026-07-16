@@ -59,7 +59,7 @@ assert(
   "billing light usage meter should not render as a black bar",
 );
 assert(
-  mistakeWxml.indexOf('class="mistake-book-page {{isDark?') >= 0 &&
+  mistakeWxml.indexOf('class="mistake-book-page paper {{isDark?') >= 0 &&
     mistakeJs.indexOf('const helpers = require("../../utils/helpers");') >= 0 &&
     mistakeJs.indexOf("isDark: helpers.isDark()") >= 0,
   "mistake-book should bind the root light class from the shared theme authority",
