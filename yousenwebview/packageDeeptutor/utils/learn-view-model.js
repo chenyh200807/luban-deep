@@ -78,6 +78,18 @@ function _litCount(packs) {
   return n;
 }
 
+// 已验证考点计数(10a 整页改版 · 三指标卡③):只数 mastered。
+// pack_lifecycle_projection 中 mastered 只认显式正向信号 verified_concepts
+// (terminal 证据),是"已验证"的唯一诚实口径;dormant 虽曾验证但已进入
+// 会忘窗口,不计入(宁少勿虚)。纯投影计数,零前端掌握推断。
+function _verifiedCount(packs) {
+  var n = 0;
+  Object.keys(packs).forEach(function (k) {
+    if (_str(_safeObj(packs[k]).lifecycle_state) === "mastered") n += 1;
+  });
+  return n;
+}
+
 // 海报竖排书法名:单列容量 6 字(84×112 海报 / stations 210×280 实测上限),
 // 超长截断防溢出——live 绿灯站 26/28 标题 >6 字,不截会折出第二竖列压住 slot 徽标。
 // 设计稿(10a)用的是 4 字精选短名;后端无 short_title 字段(对账表已标缺口),
@@ -461,6 +473,8 @@ function buildLearnViewModel(args) {
   var stats = {
     recent_practice: _int(overview.recent_three_done),
     pending_errors: _int(overview.weak_point_count != null ? overview.weak_point_count : overview.pending_error_count),
+    // 已验证考点(mastered=显式 verified_concepts terminal 证据),事实计数非掌握度
+    verified_stations: _verifiedCount(packs),
   };
   var dailyTarget = _int(overview.daily_target || learnerSettings.daily_target);
   var todayDone = _int(overview.today_done);
