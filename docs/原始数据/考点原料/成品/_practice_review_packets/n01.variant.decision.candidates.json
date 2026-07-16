@@ -11,11 +11,11 @@
       "fact_id": "n01-fact-critical-work-zero-float",
       "rule_group": "C-delay",
       "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
-      "variant_count": 6,
-      "core_variant_count": 6,
-      "kc_anchor": "",
-      "textbook_quote": "",
-      "textbook_page": null,
+      "variant_count": 4,
+      "core_variant_count": 4,
+      "kc_anchor": "kc:1A433000_056_0085:1",
+      "textbook_quote": "（1）时差可分为总时差和自由时差两种：工作总时差，是指在不影响总工期的前提下，本工作可以利用的机动时间；工作自由时差，是指在不影响其所有紧后工作最早开始的前提下，本工作可以利用的机动时间。 （2）关键工作：是网络计划中总时差最小的工作。在双代号时标网络图上，没有波形线的工作即为关键工作。 （3）关键线路：全部由关键工作所组成的线路就是关键线路。关键线路的工期即为网络计划的计算工期。",
+      "textbook_page": 56,
       "compiled_mcq_candidates": [
         {
           "variant_id": "N01-html-practice-html-q8-2b44435fdb4a",
@@ -28,6 +28,30 @@
         {
           "variant_id": "N01-html-practice-html-q7-05f526eae084",
           "match_score": 0.3
+        }
+      ]
+    },
+    {
+      "fact_id": "n01-fact-delay-vs-total-float",
+      "rule_group": "C-delay",
+      "correct_statement": "非关键工作延误 ≤ 该工作总时差则不影响总工期，必须比较「延误 vs 总时差」后下结论",
+      "variant_count": 4,
+      "core_variant_count": 4,
+      "kc_anchor": "",
+      "textbook_quote": "",
+      "textbook_page": null,
+      "compiled_mcq_candidates": [
+        {
+          "variant_id": "N01-html-practice-html-q7-05f526eae084",
+          "match_score": 0.464
+        },
+        {
+          "variant_id": "N01-html-practice-html-q16-ec778529e37e",
+          "match_score": 0.393
+        },
+        {
+          "variant_id": "N01-html-practice-html-q15-4d146bd7e720",
+          "match_score": 0.357
         }
       ]
     },
@@ -87,11 +111,11 @@
       "fact_id": "n01-fact-parallel-critical-paths",
       "rule_group": "A-line",
       "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
-      "variant_count": 7,
-      "core_variant_count": 7,
-      "kc_anchor": "kc:1A433000_056_0085:1",
-      "textbook_quote": "（1）时差可分为总时差和自由时差两种：工作总时差，是指在不影响总工期的前提下，本工作可以利用的机动时间；工作自由时差，是指在不影响其所有紧后工作最早开始的前提下，本工作可以利用的机动时间。 （2）关键工作：是网络计划中总时差最小的工作。在双代号时标网络图上，没有波形线的工作即为关键工作。 （3）关键线路：全部由关键工作所组成的线路就是关键线路。关键线路的工期即为网络计划的计算工期。",
-      "textbook_page": 56,
+      "variant_count": 5,
+      "core_variant_count": 5,
+      "kc_anchor": "",
+      "textbook_quote": "",
+      "textbook_page": null,
       "compiled_mcq_candidates": []
     },
     {
@@ -146,14 +170,16 @@
         "skeleton_id": "n01-vskel-a-line-ok",
         "probe_role": "immediate_confirm",
         "temptation": "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
-        "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整；把对判错同样丢分，判断方向要跟着采分要素走。",
-        "source_anchor": "kc:1A433000_056_0085:1",
+        "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整；把对判错同样丢分，判断方向要跟着作答要素走。",
+        "source_anchor": "kc:1A433000_056_0085:1 + {2015,案例1} + {2020,案例二问题2}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "fe7acd5e81167277ae4e4a0d5e58d8e337be2c112c22c950a7a89af88f5a9655",
+        "content_sha256": "296fae15c56257ba5ee39eac497cc85cffc3c8c533e264321c03733892fe8bc0",
+        "decision_identity_sha256": "0d317da06a0b6552973332ad2c4938499b633ca352386286cce53e308d568a35",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "fe7acd5e81167277ae4e4a0d5e58d8e337be2c112c22c950a7a89af88f5a9655",
+          "reviewed_content_sha256": "296fae15c56257ba5ee39eac497cc85cffc3c8c533e264321c03733892fe8bc0",
+          "reviewed_decision_sha256": "0d317da06a0b6552973332ad2c4938499b633ca352386286cce53e308d568a35",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -179,14 +205,16 @@
         "skeleton_id": "n01-vskel-a-line-bad",
         "probe_role": "d1_probe",
         "temptation": "两条线路一样长，写出其中一条看着「已经找到关键线路」了，容易就此收笔。",
-        "loss_reason": "并列最长路径必须全部列出（本题 2 条只写了 1 条）；漏列一条即失分，答题要点是把并列的关键线路逐条写全。",
-        "source_anchor": "kc:1A433000_056_0085:1",
+        "loss_reason": "并列最长路径必须全部列出（本题 2 条只写了 1 条），漏列即未全部列出；答题要点是把并列的关键线路逐条写全。",
+        "source_anchor": "kc:1A433000_056_0085:1 + {2015,案例1} + {2020,案例二问题2}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "0c7b2480691c92f4b3f64ad83e20b4965bfef2cf9dc633df914b1b7b3db11ed8",
+        "content_sha256": "92645e509fb2d843cb91f3a20b4ee4ac95a63adc523ec6fe2e8a09ff8e8056fb",
+        "decision_identity_sha256": "7094f8219fc0c726d0914b46beea33d7c4a5fdfe58a4e1ce7de15281f9be7352",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "0c7b2480691c92f4b3f64ad83e20b4965bfef2cf9dc633df914b1b7b3db11ed8",
+          "reviewed_content_sha256": "92645e509fb2d843cb91f3a20b4ee4ac95a63adc523ec6fe2e8a09ff8e8056fb",
+          "reviewed_decision_sha256": "7094f8219fc0c726d0914b46beea33d7c4a5fdfe58a4e1ce7de15281f9be7352",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -212,14 +240,16 @@
         "skeleton_id": "n01-vskel-a-line-bad",
         "probe_role": "immediate_confirm",
         "temptation": "「最长的线路就是关键线路」这句判据本身没错，容易以为写到这就算答完。",
-        "loss_reason": "只写判据、未落到本图的具体线路（哪几个节点串成的路径），阅卷按「未写出具体线路」扣分；要点是把线路节点逐一写出。",
-        "source_anchor": "kc:1A433000_056_0085:1",
+        "loss_reason": "只写判据、未落到本图的具体线路（哪几个节点串成的路径），不满足「落到具体线路」的要求；要点是把线路节点逐一写出。",
+        "source_anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "05203a95a36d66599d4f9a5c1e28d5a32d556363958a239bcc4aff3f32a9b2dc",
+        "content_sha256": "b74c68e1261a1c88896aacec05744b44040578673db1c2985ce0cd6638da3498",
+        "decision_identity_sha256": "f3fae4dcde543ce949951aa0b75f2cf00865451dca584020939072df2202fd97",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "05203a95a36d66599d4f9a5c1e28d5a32d556363958a239bcc4aff3f32a9b2dc",
+          "reviewed_content_sha256": "b74c68e1261a1c88896aacec05744b44040578673db1c2985ce0cd6638da3498",
+          "reviewed_decision_sha256": "f3fae4dcde543ce949951aa0b75f2cf00865451dca584020939072df2202fd97",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -246,13 +276,15 @@
         "probe_role": "d1_probe",
         "temptation": "线路里的节点看着都在，容易只核对「有没有这些点」而漏核对前后连不连得上。",
         "loss_reason": "写出的关键线路节点跳号、前后不连续，不能构成从开始到结束的连续路径；答题要点是节点连续无跳号地贯通全线。",
-        "source_anchor": "kc:1A433000_056_0085:1",
+        "source_anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "8bea3aad0232b5ad8b81d16b6e33db93d965d1d32400c487cdfea3c355c9d763",
+        "decision_identity_sha256": "9f5d5c3d946c4c334e19dbaf38704a6f4b4b103b6f72fb66209bc5313fcfd09b",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "8bea3aad0232b5ad8b81d16b6e33db93d965d1d32400c487cdfea3c355c9d763",
+          "reviewed_decision_sha256": "9f5d5c3d946c4c334e19dbaf38704a6f4b4b103b6f72fb66209bc5313fcfd09b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -278,14 +310,16 @@
         "skeleton_id": "n01-vskel-a-line-ok",
         "probe_role": "immediate_confirm",
         "temptation": "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
-        "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整；把对判错同样丢分，判断方向要跟着采分要素走。",
-        "source_anchor": "kc:1A433000_056_0085:1",
+        "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整；把对判错同样丢分，判断方向要跟着作答要素走。",
+        "source_anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "4494546be7c2939c0e394919e2aeaa1efb9baf5ca8cef96762b574016cfbe228",
+        "content_sha256": "9843fd206dc5d00861063ff4ebe20d02cda26a674e4a9a5a3b6326d40ad8680b",
+        "decision_identity_sha256": "cb62e54ddadd91d3ff4f0c05b32d2f8e7b7c6c7d4498367ad634e005d21430c4",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "4494546be7c2939c0e394919e2aeaa1efb9baf5ca8cef96762b574016cfbe228",
+          "reviewed_content_sha256": "9843fd206dc5d00861063ff4ebe20d02cda26a674e4a9a5a3b6326d40ad8680b",
+          "reviewed_decision_sha256": "cb62e54ddadd91d3ff4f0c05b32d2f8e7b7c6c7d4498367ad634e005d21430c4",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -307,18 +341,20 @@
       "extension": false,
       "decision_candidate": {
         "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-parallel-critical-paths",
+        "fact_id": "n01-fact-critical-work-zero-float",
         "skeleton_id": "n01-vskel-a-line-ok",
-        "probe_role": "d1_probe",
+        "probe_role": "immediate_confirm",
         "temptation": "「总时差最小」这个判据平时用得少，看到正确写法反而怀疑是不是漏了什么。",
-        "loss_reason": "关键工作的判据就是「总时差最小」（最小为 0），且必须落到本网络图的具体工作上；本题判据与落点都对，把对判错同样丢分。",
+        "loss_reason": "关键工作的判据就是「总时差最小」，且必须落到本网络图的具体工作上；本题判据与落点都对，把对判错同样丢分。",
         "source_anchor": "kc:1A433000_056_0085:1",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "18a00f396f55329db7735f1c5a52b7ed6d3dafc9ede6669be8fc4408d13574ae",
+        "content_sha256": "698695c67df14819f463606a7d84fa39bdbdf46a1a8674f0276a26f0e8e806b8",
+        "decision_identity_sha256": "2d46267a77141094eb0f2d4ed197bc10f7e9050085ea0882e4f2fbc2f2aeae44",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "18a00f396f55329db7735f1c5a52b7ed6d3dafc9ede6669be8fc4408d13574ae",
+          "reviewed_content_sha256": "698695c67df14819f463606a7d84fa39bdbdf46a1a8674f0276a26f0e8e806b8",
+          "reviewed_decision_sha256": "2d46267a77141094eb0f2d4ed197bc10f7e9050085ea0882e4f2fbc2f2aeae44",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -340,18 +376,20 @@
       "extension": false,
       "decision_candidate": {
         "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-parallel-critical-paths",
+        "fact_id": "n01-fact-critical-work-zero-float",
         "skeleton_id": "n01-vskel-a-line-bad",
-        "probe_role": "immediate_confirm",
+        "probe_role": "d1_probe",
         "temptation": "只背下「关键工作 = 总时差最小」这句判据，容易以为写出判据就够了。",
-        "loss_reason": "判据对但没落到本网络图的具体工作，阅卷按「未落具体工作」扣分；答题要点是判据 +「本图哪几项工作总时差最小」都写出。",
+        "loss_reason": "判据对但没落到本网络图的具体工作，不满足「落到具体工作」的要求；答题要点是判据 +「本图哪几项工作总时差最小」都写出。",
         "source_anchor": "kc:1A433000_056_0085:1",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "f84a0a99b0ec78b219ffc05be1345c489d7d2eaa9f70c3ace9b59a8c47502432",
+        "content_sha256": "9ee0da14a5185b235701b9a677309a0054738e9b84ccbe63a7c8fa03eda4b0f5",
+        "decision_identity_sha256": "7d3051392be9a3a7ea7c2e4a919238f841ad39423a631598a9d693bec893f9c5",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "f84a0a99b0ec78b219ffc05be1345c489d7d2eaa9f70c3ace9b59a8c47502432",
+          "reviewed_content_sha256": "9ee0da14a5185b235701b9a677309a0054738e9b84ccbe63a7c8fa03eda4b0f5",
+          "reviewed_decision_sha256": "7d3051392be9a3a7ea7c2e4a919238f841ad39423a631598a9d693bec893f9c5",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -381,10 +419,12 @@
         "source_anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "7cab3cd4bf8e7a3fcd55087e0ecfd89540d9cca14d8e6b5552bc81c2be239c30",
+        "decision_identity_sha256": "8d76cdbd2449cbe43d75ad79b9c5a97fd6090ee49269edc381bbdc809456cc17",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "7cab3cd4bf8e7a3fcd55087e0ecfd89540d9cca14d8e6b5552bc81c2be239c30",
+          "reviewed_decision_sha256": "8d76cdbd2449cbe43d75ad79b9c5a97fd6090ee49269edc381bbdc809456cc17",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -414,10 +454,12 @@
         "source_anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "2c14dc8e17a366301c17f91ce459f81aade5079498b11f4525ec6ca3e38fcd69",
+        "decision_identity_sha256": "d22ce38297cb7f69f76a85a91a18c40b5b4f735828b5c21ba157f302ecf15d71",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "2c14dc8e17a366301c17f91ce459f81aade5079498b11f4525ec6ca3e38fcd69",
+          "reviewed_decision_sha256": "d22ce38297cb7f69f76a85a91a18c40b5b4f735828b5c21ba157f302ecf15d71",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -443,14 +485,16 @@
         "skeleton_id": "n01-vskel-b-expr-bad",
         "probe_role": "immediate_confirm",
         "temptation": "答案直接给出一个数字，看着干净利落，容易觉得「结果对就行」。",
-        "loss_reason": "只写数字、缺线路与算式，阅卷按「过程不全」扣分；总工期答案须「线路 + 算式 + 单位」三件齐全，缺一件丢一分。",
+        "loss_reason": "只写数字、缺线路与算式，不满足「线路 + 算式 + 单位」三件齐全的要求；答题要点是三件都写出。",
         "source_anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "e04bc2a842c285622725f9d9354d7ed3ba159e38b24cde1a0abb2ed6b2183632",
+        "content_sha256": "7164af69e79ef84ac99a096307d87502e302ff5ff4a419bc90eaeb29fafda18a",
+        "decision_identity_sha256": "767efae829e70358a2e8ae1e739963b2a1c7bc725e638421c6c861b0cd4067c1",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "e04bc2a842c285622725f9d9354d7ed3ba159e38b24cde1a0abb2ed6b2183632",
+          "reviewed_content_sha256": "7164af69e79ef84ac99a096307d87502e302ff5ff4a419bc90eaeb29fafda18a",
+          "reviewed_decision_sha256": "767efae829e70358a2e8ae1e739963b2a1c7bc725e638421c6c861b0cd4067c1",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -472,18 +516,20 @@
       "extension": false,
       "decision_candidate": {
         "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-critical-work-zero-float",
+        "fact_id": "n01-fact-delay-vs-total-float",
         "skeleton_id": "n01-vskel-c-delay-ok",
         "probe_role": "immediate_confirm",
         "temptation": "一看到「延误」两个字就担心工期，容易忘了先和 3 的总时差比一比。",
-        "loss_reason": "该工作是非关键工作、总时差 3，延误 1 未超过总时差，被机动时间吸收，不影响总工期；判读链要写明「延误 vs 总时差」的比较再下结论。",
+        "loss_reason": "该工作是非关键工作、总时差 3，延误 1 未超过总时差，不影响总工期；判读链要写明「延误 vs 总时差」的比较再下结论。",
         "source_anchor": "{2018,案例分析(二)问题1-4}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "f36ec64ebe709531414695883b9de4b0e4ba368be2f6b7807d41e61b3c498a75",
+        "content_sha256": "077ec1dad0afee7e87b977653e6c9564b2b4164d5b9bcca76575e9e3bf9b0b56",
+        "decision_identity_sha256": "3042741bbb3c82b43457dd7723eccf2ec96970f63feeedfddfe349c674c46d37",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "f36ec64ebe709531414695883b9de4b0e4ba368be2f6b7807d41e61b3c498a75",
+          "reviewed_content_sha256": "077ec1dad0afee7e87b977653e6c9564b2b4164d5b9bcca76575e9e3bf9b0b56",
+          "reviewed_decision_sha256": "3042741bbb3c82b43457dd7723eccf2ec96970f63feeedfddfe349c674c46d37",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -505,7 +551,7 @@
       "extension": false,
       "decision_candidate": {
         "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-critical-work-zero-float",
+        "fact_id": "n01-fact-delay-vs-total-float",
         "skeleton_id": "n01-vskel-c-delay-bad",
         "probe_role": "d1_probe",
         "temptation": "「延误了就会拖工期」是最顺手的直觉，容易跳过与 3 总时差的比较。",
@@ -513,10 +559,12 @@
         "source_anchor": "{2018,案例分析(二)问题1-4}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "72b222048f75fd8298428e1e696bc119b88bcdd8b2374947a8acd6d1197b070c",
+        "decision_identity_sha256": "935b52d878321307c76e1d868aa91dcc1de05f40a069a1645909c0468123a7ec",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "72b222048f75fd8298428e1e696bc119b88bcdd8b2374947a8acd6d1197b070c",
+          "reviewed_decision_sha256": "935b52d878321307c76e1d868aa91dcc1de05f40a069a1645909c0468123a7ec",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -538,18 +586,20 @@
       "extension": false,
       "decision_candidate": {
         "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-critical-work-zero-float",
+        "fact_id": "n01-fact-delay-vs-total-float",
         "skeleton_id": "n01-vskel-c-delay-ok",
         "probe_role": "immediate_confirm",
         "temptation": "一看到「延误」两个字就担心工期，容易忘了先和 3 的总时差比一比。",
-        "loss_reason": "该工作是非关键工作、总时差 3，延误 2 未超过总时差，被机动时间吸收，不影响总工期；判读链要写明「延误 vs 总时差」的比较再下结论。",
+        "loss_reason": "该工作是非关键工作、总时差 3，延误 2 未超过总时差，不影响总工期；判读链要写明「延误 vs 总时差」的比较再下结论。",
         "source_anchor": "{2020,案例二问题3}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "6426151679da5ceb8d06cfc97d02af531d55ea01acbc364e5bdd4c0f582babe7",
+        "content_sha256": "1c5f2cf956c12a151f36e13daa3b85bc99ea924ef7d107524ed0e968a0d74863",
+        "decision_identity_sha256": "9782a8e496d00311e56b69b80fcf294ffbbb171bf7dcd033aa34830cbe940122",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "6426151679da5ceb8d06cfc97d02af531d55ea01acbc364e5bdd4c0f582babe7",
+          "reviewed_content_sha256": "1c5f2cf956c12a151f36e13daa3b85bc99ea924ef7d107524ed0e968a0d74863",
+          "reviewed_decision_sha256": "9782a8e496d00311e56b69b80fcf294ffbbb171bf7dcd033aa34830cbe940122",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -571,7 +621,7 @@
       "extension": false,
       "decision_candidate": {
         "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-critical-work-zero-float",
+        "fact_id": "n01-fact-delay-vs-total-float",
         "skeleton_id": "n01-vskel-c-delay-bad",
         "probe_role": "d1_probe",
         "temptation": "「延误了就会拖工期」是最顺手的直觉，容易跳过与 3 总时差的比较。",
@@ -579,10 +629,12 @@
         "source_anchor": "{2020,案例二问题3}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "58f24ac55d8a3b6d5fdcddd7d7ec72f64a776ece86e7a6303be5caac28f673d0",
+        "decision_identity_sha256": "3e5d65efb2cf9c67e0867f711064373a1e07b67a5b2df4f9e5a3b6134bf706d1",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "58f24ac55d8a3b6d5fdcddd7d7ec72f64a776ece86e7a6303be5caac28f673d0",
+          "reviewed_decision_sha256": "3e5d65efb2cf9c67e0867f711064373a1e07b67a5b2df4f9e5a3b6134bf706d1",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -608,14 +660,16 @@
         "skeleton_id": "n01-vskel-c-delay-ok",
         "probe_role": "immediate_confirm",
         "temptation": "关键工作听起来「最重要」，反而会犹豫它延误到底算不算数。",
-        "loss_reason": "该工作在关键线路上、总时差为 0，没有任何机动时间，一延误就顺延总工期；本题判「影响总工期」正确，判断链要写明「TF=0 → 直接影响」。",
+        "loss_reason": "该工作在关键线路上、总时差为 0，延误即影响总工期；本题判「影响总工期」正确，判断链要写明「TF=0 → 影响总工期」。",
         "source_anchor": "{2018,案例分析(二)问题1-4} + kc:1A433000_056_0085:1",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "0ddf52fb1bf78dbef7e50e326919914e6181e43d7de44a9699c74b686839d1b3",
+        "content_sha256": "9b664625e75c1b1daad20fe15150cc8dc6341938b5fd431b40e2678a8c71ec80",
+        "decision_identity_sha256": "3c139e107c05cefedf55af4d09cb9791044f7ed50d1f6aafe5e16f5305d29cd4",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "0ddf52fb1bf78dbef7e50e326919914e6181e43d7de44a9699c74b686839d1b3",
+          "reviewed_content_sha256": "9b664625e75c1b1daad20fe15150cc8dc6341938b5fd431b40e2678a8c71ec80",
+          "reviewed_decision_sha256": "3c139e107c05cefedf55af4d09cb9791044f7ed50d1f6aafe5e16f5305d29cd4",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -641,14 +695,16 @@
         "skeleton_id": "n01-vskel-c-delay-bad",
         "probe_role": "d1_probe",
         "temptation": "总觉得任何工作都能挤出点机动时间，容易顺手给关键工作也留一份缓冲。",
-        "loss_reason": "关键线路上工作总时差为 0，没有机动时间，延误必然拖延总工期；本题误判为「不影响」，要点是先认定 TF=0 再下「影响」的结论。",
+        "loss_reason": "关键线路上工作总时差为 0，延误即影响总工期；本题误判为「不影响」，要点是先认定 TF=0 再下「影响」的结论。",
         "source_anchor": "{2018,案例分析(二)问题1-4} + kc:1A433000_056_0085:1",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "cbc15fedc20922d772ecbe6edb09e49c70711a9ff0dc3af7e5f8f6f4aec24e92",
+        "content_sha256": "12ea73eea7f97b15ad3536ca4b84df3e5bb8f8b0be11f1b0694cf0bfa8b06142",
+        "decision_identity_sha256": "526a075b0c63e848357430edd49f5e2bde209ba1d6b956572375591f64bbe2f9",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "cbc15fedc20922d772ecbe6edb09e49c70711a9ff0dc3af7e5f8f6f4aec24e92",
+          "reviewed_content_sha256": "12ea73eea7f97b15ad3536ca4b84df3e5bb8f8b0be11f1b0694cf0bfa8b06142",
+          "reviewed_decision_sha256": "526a075b0c63e848357430edd49f5e2bde209ba1d6b956572375591f64bbe2f9",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -678,10 +734,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "0e6160efc20da341a9b93a4ce112db3e68ab4f5131e4e28b377700dfae8d0199",
+        "decision_identity_sha256": "fcd2cd670edf6345f35110dc94284c386872a4a1ee33aeaaa19d53e715e176b0",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "0e6160efc20da341a9b93a4ce112db3e68ab4f5131e4e28b377700dfae8d0199",
+          "reviewed_decision_sha256": "fcd2cd670edf6345f35110dc94284c386872a4a1ee33aeaaa19d53e715e176b0",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -711,10 +769,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "223001417649e82640e0b6962d14086babbe30a02c7abf232e075027388a4eba",
+        "decision_identity_sha256": "0b3937bf6c85e45e6ecde96e882b58cd315bea459893a4989f2400ef2c410ff2",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "223001417649e82640e0b6962d14086babbe30a02c7abf232e075027388a4eba",
+          "reviewed_decision_sha256": "0b3937bf6c85e45e6ecde96e882b58cd315bea459893a4989f2400ef2c410ff2",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -744,10 +804,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "e90e6e2582d97a130ff9a4ba5c9236184041ff7579f7b66f357ca69593bd633b",
+        "decision_identity_sha256": "28c7387952e055c974adcdd99787216a9d6df58ceb3590577cf3f14e9bc281b9",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "e90e6e2582d97a130ff9a4ba5c9236184041ff7579f7b66f357ca69593bd633b",
+          "reviewed_decision_sha256": "28c7387952e055c974adcdd99787216a9d6df58ceb3590577cf3f14e9bc281b9",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -777,10 +839,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "ec6b6c081eae079531a4ee70ada0c363e221781797c4995416f1efa09eac1cfa",
+        "decision_identity_sha256": "b904a3cfe4a0ce6eec19112b92edc6831338a8a4d515b1c7c9e57dc2318e6359",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "ec6b6c081eae079531a4ee70ada0c363e221781797c4995416f1efa09eac1cfa",
+          "reviewed_decision_sha256": "b904a3cfe4a0ce6eec19112b92edc6831338a8a4d515b1c7c9e57dc2318e6359",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -810,10 +874,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "fa3bc93c9cab13ac783500955f92c3be2241f44eb6b81163ac4f29f7e415d600",
+        "decision_identity_sha256": "5c559822fc71039d39e2d9d0887e0241ea4a256bb4ddd06291b3845232d23560",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "fa3bc93c9cab13ac783500955f92c3be2241f44eb6b81163ac4f29f7e415d600",
+          "reviewed_decision_sha256": "5c559822fc71039d39e2d9d0887e0241ea4a256bb4ddd06291b3845232d23560",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -843,10 +909,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "858ff43366df27bf820068ea2e53112294b5b8708b7b98b864415c2ea57e8fa4",
+        "decision_identity_sha256": "e93a82a8281e0b71f085cb04b2e776b11b5dff9c90ba87aa2c90604fce515124",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "858ff43366df27bf820068ea2e53112294b5b8708b7b98b864415c2ea57e8fa4",
+          "reviewed_decision_sha256": "e93a82a8281e0b71f085cb04b2e776b11b5dff9c90ba87aa2c90604fce515124",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -876,10 +944,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "1b511c2f90ced56599b08eb6c74c26a70b504f9694b1cbac9680ed298ccff178",
+        "decision_identity_sha256": "e6d996eedd6f2171f507711360ca13dcaa2895356d0ef4e15aae7eb102be6bf1",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "1b511c2f90ced56599b08eb6c74c26a70b504f9694b1cbac9680ed298ccff178",
+          "reviewed_decision_sha256": "e6d996eedd6f2171f507711360ca13dcaa2895356d0ef4e15aae7eb102be6bf1",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -909,10 +979,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "1db198cac557366a1003644b654c37419c524a5fb82a6594136c95557f771998",
+        "decision_identity_sha256": "9ddb12408bb14763540a566f2f95ab766c49204db708287d5438f1589aa4804b",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "1db198cac557366a1003644b654c37419c524a5fb82a6594136c95557f771998",
+          "reviewed_decision_sha256": "9ddb12408bb14763540a566f2f95ab766c49204db708287d5438f1589aa4804b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -942,10 +1014,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "150b79c9ad9fedbf13fe2b256ae80a8d34c9a9c42a1b4d9e457f73f06679917a",
+        "decision_identity_sha256": "55d26db295263db9b4dfdee7414bf8c39a91565efe261a3c15877eb0b7de480f",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "150b79c9ad9fedbf13fe2b256ae80a8d34c9a9c42a1b4d9e457f73f06679917a",
+          "reviewed_decision_sha256": "55d26db295263db9b4dfdee7414bf8c39a91565efe261a3c15877eb0b7de480f",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -975,10 +1049,12 @@
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "a51c2a2f5de6dcea27cdef77fa27e0f058f006c69000b507578585c70205758a",
+        "decision_identity_sha256": "9a0b0574bc5e42824d0cb6d249a7afb042168e7e3d16130b665d8643a3f8e3f6",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "a51c2a2f5de6dcea27cdef77fa27e0f058f006c69000b507578585c70205758a",
+          "reviewed_decision_sha256": "9a0b0574bc5e42824d0cb6d249a7afb042168e7e3d16130b665d8643a3f8e3f6",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1008,10 +1084,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "40e96ab176af534f2d18e94ac483deeabb727dd3863427d84f09056f1349b24f",
+        "decision_identity_sha256": "3a6fa7eec7bb4b7e8302f8e5d04bdcc36f1e8a7391a83a51f945da915685f2fb",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "40e96ab176af534f2d18e94ac483deeabb727dd3863427d84f09056f1349b24f",
+          "reviewed_decision_sha256": "3a6fa7eec7bb4b7e8302f8e5d04bdcc36f1e8a7391a83a51f945da915685f2fb",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1041,10 +1119,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "ffac4c09213e4dfb21981d78ea53872bee856e00399e5072d84c8a09a3ccacf3",
+        "decision_identity_sha256": "e7ee4b3a56aba3894e69ceccaf2b60ea64d8d14bcf353b625b90d6eba4588a2e",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "ffac4c09213e4dfb21981d78ea53872bee856e00399e5072d84c8a09a3ccacf3",
+          "reviewed_decision_sha256": "e7ee4b3a56aba3894e69ceccaf2b60ea64d8d14bcf353b625b90d6eba4588a2e",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1074,10 +1154,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "7ab3408ed3405fb3909c1ad28e240c75f994022df7e9eafcf35dda425f9dd308",
+        "decision_identity_sha256": "ada397e04b6e6299353677d87b165736f68973edef91abc5c98628ecbee71e85",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "7ab3408ed3405fb3909c1ad28e240c75f994022df7e9eafcf35dda425f9dd308",
+          "reviewed_decision_sha256": "ada397e04b6e6299353677d87b165736f68973edef91abc5c98628ecbee71e85",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1107,10 +1189,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "b82406d6949fdba71142d0a1c3b2d7b14b737585e491add801f823b854601d51",
+        "decision_identity_sha256": "950dbb2f09de0c33ee8e31a54389ff53d81e9a0789f81d5e29a2877bd1e1229c",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "b82406d6949fdba71142d0a1c3b2d7b14b737585e491add801f823b854601d51",
+          "reviewed_decision_sha256": "950dbb2f09de0c33ee8e31a54389ff53d81e9a0789f81d5e29a2877bd1e1229c",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1140,10 +1224,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "3fe41e6123736f3fe5d00bdd44d88b49066f8c986921767fd5845fc788721e5a",
+        "decision_identity_sha256": "bca7e2aff58e94f2c70e3c1f2713fd2ad4285fc58259fdda080f7c938f33e2fd",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "3fe41e6123736f3fe5d00bdd44d88b49066f8c986921767fd5845fc788721e5a",
+          "reviewed_decision_sha256": "bca7e2aff58e94f2c70e3c1f2713fd2ad4285fc58259fdda080f7c938f33e2fd",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1173,10 +1259,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "326ab5386fc9cd6603c77a10b84734b886f5a008e353414f181c0ec91c8f4eda",
+        "decision_identity_sha256": "bb9b4147d3396108c15e574e94b32014a759a9d5ce92b9ce4fa1355dbe84abad",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "326ab5386fc9cd6603c77a10b84734b886f5a008e353414f181c0ec91c8f4eda",
+          "reviewed_decision_sha256": "bb9b4147d3396108c15e574e94b32014a759a9d5ce92b9ce4fa1355dbe84abad",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1206,10 +1294,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "5d98e9f7b64b9721a4557f2e78f5553a4df70b78494902f0569d6a21982aa907",
+        "decision_identity_sha256": "233a66af1f8578031e62c6a722037c1e7f2073930a61c5623a31707cfcb62e49",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "5d98e9f7b64b9721a4557f2e78f5553a4df70b78494902f0569d6a21982aa907",
+          "reviewed_decision_sha256": "233a66af1f8578031e62c6a722037c1e7f2073930a61c5623a31707cfcb62e49",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1239,10 +1329,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "9a3856b7eabb910e573b7af91099e25a1340a46d8bfb6752200cf867a1c333aa",
+        "decision_identity_sha256": "6173ce74d5024fed2437494b71d14ec618dcf3d133f06c943d3f547493caeb66",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "9a3856b7eabb910e573b7af91099e25a1340a46d8bfb6752200cf867a1c333aa",
+          "reviewed_decision_sha256": "6173ce74d5024fed2437494b71d14ec618dcf3d133f06c943d3f547493caeb66",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1272,10 +1364,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "478c385325f51093066b195df0c0f48d478dbff0c9b92408a495b5c22c2e1f76",
+        "decision_identity_sha256": "78602820834ebc7b555a977211d50450722c1db52f2a9e0a8d824a0d9ab88d78",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "478c385325f51093066b195df0c0f48d478dbff0c9b92408a495b5c22c2e1f76",
+          "reviewed_decision_sha256": "78602820834ebc7b555a977211d50450722c1db52f2a9e0a8d824a0d9ab88d78",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1305,10 +1399,12 @@
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "54a316c358ad70e0da4565e5e2d6e825caeab4f6c1c1f99aa26d85bdc6802b9c",
+        "decision_identity_sha256": "7584953779a45ac529eaea452ce3417f61eb8825a8230c13c5f8258b6c830e66",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "54a316c358ad70e0da4565e5e2d6e825caeab4f6c1c1f99aa26d85bdc6802b9c",
+          "reviewed_decision_sha256": "7584953779a45ac529eaea452ce3417f61eb8825a8230c13c5f8258b6c830e66",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1334,14 +1430,16 @@
         "skeleton_id": "n01-vskel-f-procedure-ok",
         "probe_role": "immediate_confirm",
         "temptation": "网络计划的四步顺序背着顺，真到判对错时反而担心是不是有步骤能省。",
-        "loss_reason": "应按「绘图（含补虚工作）→ 计算时间参数 → 确定关键线路 → 编制/实施」顺序进行；本题顺序完整正确，把对判错同样丢分。",
+        "loss_reason": "应按「绘图（含补虚工作）→ 计算时间参数 → 确定关键线路 → 编制/实施」顺序进行；本题所列环节先后顺序正确，把对判错同样丢分。",
         "source_anchor": "kc:1A433000_055_0084:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "0f3b780e0a6c4f0a19c88cc0f4aeb0298dde13e531051f522498785c05b04446",
+        "content_sha256": "376db0afec413262ceabe8e86f6cb3a4eb8fcbb40d872afe072e00921d5b03a0",
+        "decision_identity_sha256": "57cb7e13ad38f524cb5485c2a7f00bd3d369c5e6d7fb8d5d788e60d146801e09",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "0f3b780e0a6c4f0a19c88cc0f4aeb0298dde13e531051f522498785c05b04446",
+          "reviewed_content_sha256": "376db0afec413262ceabe8e86f6cb3a4eb8fcbb40d872afe072e00921d5b03a0",
+          "reviewed_decision_sha256": "57cb7e13ad38f524cb5485c2a7f00bd3d369c5e6d7fb8d5d788e60d146801e09",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1367,14 +1465,16 @@
         "skeleton_id": "n01-vskel-f-procedure-bad",
         "probe_role": "d1_probe",
         "temptation": "现场赶时间，图还没画就想先把数算出来，看着「效率高」。",
-        "loss_reason": "未绘图、未补全网络逻辑就套公式算时间参数，等于在错的结构上算数；正确顺序是先绘图（含补虚工作）再算参数，顺序不可乱。",
+        "loss_reason": "未绘图、未补全网络逻辑就先计算时间参数，不符合「先绘图（含补虚工作）再算参数」的规定顺序；顺序不可乱。",
         "source_anchor": "kc:1A433000_055_0084:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "6f254aa9e6126de387e84ce76fc5402b3551cfb22e15d4489f78eefebf71268c",
+        "content_sha256": "f29cbf697f1949197b75152b19d4db2c0596bfc8666205ca5a6cf7f7042ba8e9",
+        "decision_identity_sha256": "66477be004e9fa14ee731234be17441ab77d62a74d32e9ab92e2c4b8ac5d904a",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "6f254aa9e6126de387e84ce76fc5402b3551cfb22e15d4489f78eefebf71268c",
+          "reviewed_content_sha256": "f29cbf697f1949197b75152b19d4db2c0596bfc8666205ca5a6cf7f7042ba8e9",
+          "reviewed_decision_sha256": "66477be004e9fa14ee731234be17441ab77d62a74d32e9ab92e2c4b8ac5d904a",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1400,14 +1500,16 @@
         "skeleton_id": "n01-vskel-f-procedure-bad",
         "probe_role": "immediate_confirm",
         "temptation": "时间参数看着繁琐，容易想跳过它直接「凭最长路径」定关键线路。",
-        "loss_reason": "跳过「计算时间参数」就定关键线路，缺了总时差依据，结论站不住；正确顺序是先算参数（各路径长/时差）再确定关键线路。",
+        "loss_reason": "跳过「计算时间参数」直接确定关键线路，不符合规定顺序；正确顺序是先算参数（各路径长/时差）再确定关键线路。",
         "source_anchor": "kc:1A433000_055_0084:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "68a473faf0a3f1acdbb2ddc55c45ea3bb520a05bb74aa662d58a1dd377029411",
+        "content_sha256": "43c02bd748dda75385eb30d625294360f9925ff4e49539d120d1b66a3d9f2e96",
+        "decision_identity_sha256": "6fecb44c4a9ef81d47e70c856a97fc32fda7524f8e0fa5f3a9fb719fc99187e6",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "68a473faf0a3f1acdbb2ddc55c45ea3bb520a05bb74aa662d58a1dd377029411",
+          "reviewed_content_sha256": "43c02bd748dda75385eb30d625294360f9925ff4e49539d120d1b66a3d9f2e96",
+          "reviewed_decision_sha256": "6fecb44c4a9ef81d47e70c856a97fc32fda7524f8e0fa5f3a9fb719fc99187e6",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1437,10 +1539,12 @@
         "source_anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "0968066bc50f16fb95f2ba16d9f42192ad8543c5d0deac62e33cb387003d926a",
+        "decision_identity_sha256": "9d020f0f543db65170d6cec3290f9b8c45b6f39cd84c36ac58024aae153ec9c6",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "0968066bc50f16fb95f2ba16d9f42192ad8543c5d0deac62e33cb387003d926a",
+          "reviewed_decision_sha256": "9d020f0f543db65170d6cec3290f9b8c45b6f39cd84c36ac58024aae153ec9c6",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1466,14 +1570,16 @@
         "skeleton_id": "n01-vskel-g-logic-bad",
         "probe_role": "d1_probe",
         "temptation": "原图就在眼前，新增一条逻辑关系后，容易顺手在原图上直接开算。",
-        "loss_reason": "新增紧前逻辑却未调整网络图、未补虚工作，就在旧结构上算关键线路，结果必然错；答题要点是先补虚工作/调节点，再在正确图上计算。",
+        "loss_reason": "新增紧前逻辑却未调整网络图、未补虚工作，就在未补全逻辑的图上算关键线路，不满足「先补虚工作再计算」的要求；答题要点是先补虚工作/调节点，再在正确图上计算。",
         "source_anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "2cb846aaa25ad83a77ac14fc26334fcd623e5327ee56a7583f103b311dece418",
+        "content_sha256": "c99320120e7f51c11aec81a8fdea6b6dd141f01533bc4aa9ab951117223e27c6",
+        "decision_identity_sha256": "eeadc01f89c7fe1ef9c66d3ecc40c95f3c8f0b1e3f3455369aa0f0b2fc381309",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "2cb846aaa25ad83a77ac14fc26334fcd623e5327ee56a7583f103b311dece418",
+          "reviewed_content_sha256": "c99320120e7f51c11aec81a8fdea6b6dd141f01533bc4aa9ab951117223e27c6",
+          "reviewed_decision_sha256": "eeadc01f89c7fe1ef9c66d3ecc40c95f3c8f0b1e3f3455369aa0f0b2fc381309",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1503,10 +1609,12 @@
         "source_anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
         "content_sha256": "6b96ca8816693a66a0d7b8e282d884c382531ca36f735f89dcec86dc7cdfa9f2",
+        "decision_identity_sha256": "26f16a8167cd6d3af68349f3eb3271018308e22208f7bb4890a7d2aee465dc24",
         "review": {
           "status": "pending",
           "verdict": "pending",
           "reviewed_content_sha256": "6b96ca8816693a66a0d7b8e282d884c382531ca36f735f89dcec86dc7cdfa9f2",
+          "reviewed_decision_sha256": "26f16a8167cd6d3af68349f3eb3271018308e22208f7bb4890a7d2aee465dc24",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1532,14 +1640,16 @@
         "skeleton_id": "n01-vskel-g-logic-bad",
         "probe_role": "d1_probe",
         "temptation": "原图就在眼前，新增一条逻辑关系后，容易顺手在原图上直接开算。",
-        "loss_reason": "新增紧前逻辑却未调整网络图、未补虚工作，就在旧结构上算关键线路，结果必然错；答题要点是先补虚工作/调节点，再在正确图上计算。",
+        "loss_reason": "新增紧前逻辑却未调整网络图、未补虚工作，就在未补全逻辑的图上算关键线路，不满足「先补虚工作再计算」的要求；答题要点是先补虚工作/调节点，再在正确图上计算。",
         "source_anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "2af2b8820231adaee2fd3e24f93639199ec45266992d076de8e509ffdf1a416b",
+        "content_sha256": "7d386848e2ff82b6d398de4fe0895790f395692bf1249ff61f6755a817bfcfc6",
+        "decision_identity_sha256": "716e54d63c2cf1ad865c407571b4604ceb58dd585e500dbb7f9856195d4abfa7",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "2af2b8820231adaee2fd3e24f93639199ec45266992d076de8e509ffdf1a416b",
+          "reviewed_content_sha256": "7d386848e2ff82b6d398de4fe0895790f395692bf1249ff61f6755a817bfcfc6",
+          "reviewed_decision_sha256": "716e54d63c2cf1ad865c407571b4604ceb58dd585e500dbb7f9856195d4abfa7",
           "signatures": [],
           "checks": {
             "source_verified": false,

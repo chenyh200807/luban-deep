@@ -10,8 +10,17 @@
 - probe_role：每个 fact 内按 variant_id 排序交替 immediate_confirm / d1_probe；
 - temptation / loss_reason：按 rule_group 模板 + params 生成的初稿（机器候选，
   暖语气、禁「看穿/识破」类审视词）；
-- 佐证：同 pack 签发考点卡的教材原文（point_id 精确 join，join 不中如实留空）
+- 佐证：同 pack 签发考点卡的教材原文（point_id 精确 join，join 不中如实留空；
+  join 到的 quote 还须与 fact 主题一致——bigram 重叠核验，防 E5 类错锚）
   与 compiled MCQ 疑似同 fact 题号（CJK bigram 重叠，候选性质）。
+
+富化文案纪律（2026-07-16 对抗审查裁决，S05 75 条 48 REFUTED 后收紧）：
+  * loss_reason 只允许三类内容：教材/编译点原文支持的事实、正确表述
+    （correct_statement）、与题面的差异点；禁一切无来源机理句
+    （如「失去上级保护」「松动打火」「无法准确分断」类工程机理）；
+  * 禁判分承诺句（如「通常单独设采分点」「缺一件丢一分」——无评分统计来源）；
+  * temptation 只写心理层（为什么顺手会判错），不发明工程机理、
+    不虚构题面外事实。
 
 Hard safety guarantees（同 prefill_practice_review_anchors.py 惯例）：
   * bank 只读，绝不修改；
@@ -38,6 +47,7 @@ sys.path.insert(0, str(REPO_ROOT))
 from deeptutor.services.luban_lesson.variant_eligibility import (  # noqa: E402
     VARIANT_DECISION_SCHEMA,
     VARIANT_PROBE_ROLES,
+    decision_identity_sha256,
     variant_content_sha256,
 )
 
@@ -121,8 +131,8 @@ def _s05_b_order(v: dict[str, Any]) -> tuple[str, str]:
         )
     return (
         temptation,
-        f"{label}操作顺序应为{correct}；本题给的是「{order}」，顺序颠倒会让"
-        "下级箱在失去上级保护的状态下操作，答题要点是写明正确顺序。",
+        f"{label}操作顺序应为{correct}；本题给的是「{order}」，与正确顺序"
+        "不符即违规，答题要点是写明正确顺序。",
     )
 
 
@@ -138,8 +148,8 @@ def _s05_c_voltage(v: dict[str, Any]) -> tuple[str, str]:
         )
     return (
         f"只记得「特殊场所要用安全特低电压」，容易忽略{place}的具体限值档位。",
-        f"{place}照明电压不得大于 {limit_v}V，{surface_v}V 已超限即违规；"
-        f"案例题这里通常单独设采分点，要写明「不大于 {limit_v}V」。",
+        f"{place}照明电压不得大于 {limit_v}V；{surface_v}V 已超限即违规，"
+        f"答题要点是写明「不大于 {limit_v}V」。",
     )
 
 
@@ -147,8 +157,8 @@ def _s05_d_one_switch(v: dict[str, Any]) -> tuple[str, str]:
     if v["params"].get("plug_socket_inlet"):
         return (
             "插头插座平时最常见，放在配电箱进线端容易觉得「方便检修」。",
-            "配电箱、开关箱电源进线端严禁采用插头插座做活动连接——活动连接"
-            "易松动打火，进线端必须固定连接。",
+            "配电箱、开关箱电源进线端严禁采用插头插座做活动连接；"
+            "本题在进线端使用插头插座即违规。",
         )
     machine = str(v["params"].get("machine") or "用电设备")
     share = int(v["params"].get("share_count") or 1)
@@ -160,8 +170,8 @@ def _s05_d_one_switch(v: dict[str, Any]) -> tuple[str, str]:
         )
     return (
         f"{share} 台同类{machine}挨得近，共用一个开关箱看起来省料又省事。",
-        "严禁 2 台及以上用电设备（含插座）共用一个开关箱——「一机一闸一漏"
-        "一箱」，共用箱在故障时无法准确分断对应设备。",
+        f"每台用电设备必须有各自专用的开关箱，严禁 2 台及以上用电设备"
+        f"（含插座）共用一个开关箱；本题 {share} 台{machine}共用即违规。",
     )
 
 
@@ -194,7 +204,7 @@ def _s05_e_color(v: dict[str, Any]) -> tuple[str, str]:
     return (
         "只记得「要用蓝色和黄绿双色」，容易忽略各自对应哪根线、能不能混用。",
         f"N 线必须为蓝色、PE 线必须为黄绿双色且不得混用；本题 N 线={n_color}、"
-        f"PE 线={pe_color}，色标接错会导致检修时误判带电导体。",
+        f"PE 线={pe_color}，与规定色标不符即违规。",
     )
 
 
@@ -206,11 +216,12 @@ _S05_F_MGMT: dict[str, tuple[str, str]] = {
     ),
     "S05-F-mgmt-065": (
         "安全员天天盯现场安全，由他拆除用电设备听起来顺理成章。",
-        "用电设备的安装、维修、拆除应由电工完成，安全员不具备电工作业资格；"
+        "用电设备拆除应由电工完成；题面未证明该安全员具备电工资格，"
         "答题要点是「应由（持证）电工完成」。",
     ),
     "S05-F-mgmt-066": (
-        "现场已经编了安全用电措施，容易误以为够用，忽略 50kW 这条容量线。",
+        "题面里 60kW 只是一个不起眼的数字，容易被当成普通参数扫过，"
+        "忽略 50kW 这条容量线。",
         "总容量 50kW 及以上应编制施工用电组织设计；60kW 已达线未编制即违规，"
         "答题要点是点出容量门槛与「用电组织设计」名称。",
     ),
@@ -222,8 +233,7 @@ _S05_F_MGMT: dict[str, tuple[str, str]] = {
     ),
     "S05-F-mgmt-068": (
         "开工时已编过用电方案，容易以为一份方案管到工程收尾。",
-        "进入装饰装修阶段用电部位与负荷发生变化，应补充编制单项施工用电"
-        "方案；未补充编制即违规。",
+        "进入装饰装修阶段应补充编制单项施工用电方案；未补充编制即违规。",
     ),
 }
 
@@ -248,7 +258,7 @@ def _s05_x_distance(v: dict[str, Any]) -> tuple[str, str]:
     return (
         f"堆场空旷，把开关箱拉远一点似乎不影响使用，容易忽略 {threshold}m 上限。",
         f"开关箱与配电箱的间距不得大于 {threshold}m；{dist}m 已超限即违规，"
-        "支线过长会降低保护动作的可靠性。",
+        f"答题要点是写明「不得大于 {threshold}m」。",
     )
 
 
@@ -308,12 +318,12 @@ def _n01_a_line(v: dict[str, Any]) -> tuple[str, str]:
         if v["expected_ok"]:
             return (
                 "「总时差最小」这个判据平时用得少，看到正确写法反而怀疑是不是漏了什么。",
-                "关键工作的判据就是「总时差最小」（最小为 0），且必须落到本网络图的"
+                "关键工作的判据就是「总时差最小」，且必须落到本网络图的"
                 "具体工作上；本题判据与落点都对，把对判错同样丢分。",
             )
         return (
             "只背下「关键工作 = 总时差最小」这句判据，容易以为写出判据就够了。",
-            "判据对但没落到本网络图的具体工作，阅卷按「未落具体工作」扣分；"
+            "判据对但没落到本网络图的具体工作，不满足「落到具体工作」的要求；"
             "答题要点是判据 +「本图哪几项工作总时差最小」都写出。",
         )
     # 关键线路书写面
@@ -323,14 +333,14 @@ def _n01_a_line(v: dict[str, Any]) -> tuple[str, str]:
         return (
             "两条线路一样长，写出其中一条看着「已经找到关键线路」了，"
             "容易就此收笔。",
-            f"并列最长路径必须全部列出（本题 {total} 条只写了 {listed} 条）；"
-            "漏列一条即失分，答题要点是把并列的关键线路逐条写全。",
+            f"并列最长路径必须全部列出（本题 {total} 条只写了 {listed} 条），"
+            "漏列即未全部列出；答题要点是把并列的关键线路逐条写全。",
         )
     if not v["expected_ok"] and not params.get("concrete_path"):
         return (
             "「最长的线路就是关键线路」这句判据本身没错，容易以为写到这就算答完。",
             "只写判据、未落到本图的具体线路（哪几个节点串成的路径），"
-            "阅卷按「未写出具体线路」扣分；要点是把线路节点逐一写出。",
+            "不满足「落到具体线路」的要求；要点是把线路节点逐一写出。",
         )
     if not v["expected_ok"] and not params.get("nodes_continuous"):
         return (
@@ -341,7 +351,7 @@ def _n01_a_line(v: dict[str, Any]) -> tuple[str, str]:
     return (
         "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
         "本题关键线路落到了具体路径、节点连续无跳号，写法完整；"
-        "把对判错同样丢分，判断方向要跟着采分要素走。",
+        "把对判错同样丢分，判断方向要跟着作答要素走。",
     )
 
 
@@ -361,8 +371,8 @@ def _n01_b_expr(v: dict[str, Any]) -> tuple[str, str]:
         )
     return (
         "答案直接给出一个数字，看着干净利落，容易觉得「结果对就行」。",
-        "只写数字、缺线路与算式，阅卷按「过程不全」扣分；总工期答案须"
-        "「线路 + 算式 + 单位」三件齐全，缺一件丢一分。",
+        "只写数字、缺线路与算式，不满足「线路 + 算式 + 单位」三件齐全的"
+        "要求；答题要点是三件都写出。",
     )
 
 
@@ -375,20 +385,20 @@ def _n01_c_delay(v: dict[str, Any]) -> tuple[str, str]:
         if v["expected_ok"]:
             return (
                 "关键工作听起来「最重要」，反而会犹豫它延误到底算不算数。",
-                "该工作在关键线路上、总时差为 0，没有任何机动时间，一延误就顺延总工期；"
-                "本题判「影响总工期」正确，判断链要写明「TF=0 → 直接影响」。",
+                "该工作在关键线路上、总时差为 0，延误即影响总工期；"
+                "本题判「影响总工期」正确，判断链要写明「TF=0 → 影响总工期」。",
             )
         return (
             "总觉得任何工作都能挤出点机动时间，容易顺手给关键工作也留一份缓冲。",
-            "关键线路上工作总时差为 0，没有机动时间，延误必然拖延总工期；"
+            "关键线路上工作总时差为 0，延误即影响总工期；"
             "本题误判为「不影响」，要点是先认定 TF=0 再下「影响」的结论。",
         )
     # 非关键工作，delay 与 tf 比较
     if v["expected_ok"]:
         return (
             f"一看到「延误」两个字就担心工期，容易忘了先和 {tf} 的总时差比一比。",
-            f"该工作是非关键工作、总时差 {tf}，延误 {delay} 未超过总时差，被机动时间"
-            "吸收，不影响总工期；判读链要写明「延误 vs 总时差」的比较再下结论。",
+            f"该工作是非关键工作、总时差 {tf}，延误 {delay} 未超过总时差，"
+            "不影响总工期；判读链要写明「延误 vs 总时差」的比较再下结论。",
         )
     return (
         f"「延误了就会拖工期」是最顺手的直觉，容易跳过与 {tf} 总时差的比较。",
@@ -433,17 +443,17 @@ def _n01_f_procedure(v: dict[str, Any]) -> tuple[str, str]:
         return (
             "网络计划的四步顺序背着顺，真到判对错时反而担心是不是有步骤能省。",
             "应按「绘图（含补虚工作）→ 计算时间参数 → 确定关键线路 → 编制/实施」"
-            "顺序进行；本题顺序完整正确，把对判错同样丢分。",
+            "顺序进行；本题所列环节先后顺序正确，把对判错同样丢分。",
         )
     if violation == "未绘图先算参数":
         return (
             "现场赶时间，图还没画就想先把数算出来，看着「效率高」。",
-            "未绘图、未补全网络逻辑就套公式算时间参数，等于在错的结构上算数；"
-            "正确顺序是先绘图（含补虚工作）再算参数，顺序不可乱。",
+            "未绘图、未补全网络逻辑就先计算时间参数，不符合「先绘图（含补虚"
+            "工作）再算参数」的规定顺序；顺序不可乱。",
         )
     return (
         "时间参数看着繁琐，容易想跳过它直接「凭最长路径」定关键线路。",
-        "跳过「计算时间参数」就定关键线路，缺了总时差依据，结论站不住；"
+        "跳过「计算时间参数」直接确定关键线路，不符合规定顺序；"
         "正确顺序是先算参数（各路径长/时差）再确定关键线路。",
     )
 
@@ -457,8 +467,9 @@ def _n01_g_logic(v: dict[str, Any]) -> tuple[str, str]:
         )
     return (
         "原图就在眼前，新增一条逻辑关系后，容易顺手在原图上直接开算。",
-        "新增紧前逻辑却未调整网络图、未补虚工作，就在旧结构上算关键线路，"
-        "结果必然错；答题要点是先补虚工作/调节点，再在正确图上计算。",
+        "新增紧前逻辑却未调整网络图、未补虚工作，就在未补全逻辑的图上算"
+        "关键线路，不满足「先补虚工作再计算」的要求；答题要点是先补虚工作/"
+        "调节点，再在正确图上计算。",
     )
 
 
@@ -473,11 +484,42 @@ _N01_DRAFTS: dict[str, Callable[[dict[str, Any]], tuple[str, str]]] = {
 }
 
 
+# 逐变体 fact 改挂（2026-07-16 N01 对抗审查 6 条 REFUTED 的裁决落地）：
+# (rule_group, correct_statement) 聚类对复合 correct_statement 的 rule_group
+# 分辨率不够——同组内的不同探针面必须按已签发 MCQ 的 fact 先例改挂。
+_N01_FACT_OVERRIDES: dict[str, str] = {
+    # A-line-005/006「关键工作判据」面：已签发 q1（判据题）归
+    # n01-fact-critical-work-zero-float，不得挂并列线路 fact（名实不符）。
+    "N01-A-line-005": "n01-fact-critical-work-zero-float",
+    "N01-A-line-006": "n01-fact-critical-work-zero-float",
+    # C-delay-010..013 非关键工作「延误 vs 总时差」是另一决策边界（已签发
+    # zero-float fact 的 q1/q5/q8 均以关键工作 TF=0 为中心，同型非关键题 q7
+    # 未签入该 fact）；不得静默复用，新建独立 fact 候选等待人签命名先例。
+    "N01-C-delay-010": "n01-fact-delay-vs-total-float",
+    "N01-C-delay-011": "n01-fact-delay-vs-total-float",
+    "N01-C-delay-012": "n01-fact-delay-vs-total-float",
+    "N01-C-delay-013": "n01-fact-delay-vs-total-float",
+}
+
+# 改挂新建 fact 的元信息（facts 佐证行用；机器候选，等待人签）。
+_N01_EXTRA_FACTS: dict[str, tuple[str, str]] = {
+    "n01-fact-delay-vs-total-float": (
+        "C-delay",
+        "非关键工作延误 ≤ 该工作总时差则不影响总工期，必须比较"
+        "「延误 vs 总时差」后下结论",
+    ),
+}
+
+
 # 每个 pack 一张表；没有表的 pack 明确拒绝（不产低质量模板）。
 _PACK_TABLES: dict[str, tuple[dict[tuple[str, str], str], dict[str, Any]]] = {
     "S05": (_S05_FACTS, _S05_DRAFTS),
     "N01": (_N01_FACTS, _N01_DRAFTS),
 }
+
+# pack → (variant_id → fact_id) 改挂表；pack → (fact_id → 元信息) 新 fact 表。
+_PACK_FACT_OVERRIDES: dict[str, dict[str, str]] = {"N01": _N01_FACT_OVERRIDES}
+_PACK_EXTRA_FACTS: dict[str, dict[str, tuple[str, str]]] = {"N01": _N01_EXTRA_FACTS}
 
 
 # ----------------------------------------------------------------- 佐证 join
@@ -486,6 +528,20 @@ _PACK_TABLES: dict[str, tuple[dict[tuple[str, str], str], dict[str, Any]]] = {
 def _cjk_bigrams(text: str) -> set[str]:
     chars = _CJK_RE.findall(text)
     return {a + b for a, b in zip(chars, chars[1:])}
+
+
+# quote↔fact 主题一致性阈值（E5 类错锚防线）：实测正确 join 的重叠 ≥0.545，
+# 错锚（色标 fact 引三级配电 quote）= 0.0，0.30 干净分界。
+_QUOTE_MATCH_THRESHOLD = 0.30
+
+
+def _quote_supports(correct_statement: str, quote: str) -> bool:
+    """join 到的教材 quote 是否与 fact 主题一致（CJK bigram 重叠）。"""
+    bigrams = _cjk_bigrams(correct_statement)
+    if not bigrams or not quote:
+        return False
+    overlap = len(bigrams & _cjk_bigrams(quote)) / len(bigrams)
+    return overlap >= _QUOTE_MATCH_THRESHOLD
 
 
 def _textbook_quotes(base_dir: Path, pack_id: str) -> dict[str, dict[str, Any]]:
@@ -556,20 +612,23 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
             "（本工具拒绝无表低质量模板输出；先在 _PACK_TABLES 补表）"
         )
     fact_table, draft_table = _PACK_TABLES[pack_id]
+    fact_overrides = _PACK_FACT_OVERRIDES.get(pack_id, {})
+    extra_facts = _PACK_EXTRA_FACTS.get(pack_id, {})
     bank_path = base_dir / f"_{pack_id}_variant_bank.v0.json"
     bank = json.loads(bank_path.read_text(encoding="utf-8"))
     variants = [v for v in bank.get("variants") or [] if isinstance(v, dict)]
     quotes = _textbook_quotes(base_dir, pack_id)
     mcq_texts = _compiled_mcq_texts(pack_id)
 
-    # fact 聚类 + fact 内按 variant_id 排序交替分配 probe_role（双池非空）。
+    # fact 聚类（(rule_group, correct_statement) 表 + 逐变体改挂）+ fact 内
+    # 按 variant_id 排序交替分配 probe_role（双池非空）。
     by_fact: dict[str, list[dict[str, Any]]] = {}
     fact_of: dict[str, str] = {}
     for v in variants:
         key = (str(v.get("rule_group") or ""), str(v.get("correct_statement") or ""))
         if key not in fact_table:
             raise SystemExit(f"prefill: {pack_id} fact 表缺聚类 {key}")
-        fact_id = fact_table[key]
+        fact_id = fact_overrides.get(str(v["variant_id"]), fact_table[key])
         fact_of[str(v["variant_id"])] = fact_id
         by_fact.setdefault(fact_id, []).append(v)
     role_of: dict[str, str] = {}
@@ -578,6 +637,10 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
             role_of[str(v["variant_id"])] = VARIANT_PROBE_ROLES[
                 index % len(VARIANT_PROBE_ROLES)
             ]
+
+    def _quote_of(kc: str) -> str:
+        card = quotes.get(kc.removeprefix("kc:")) or quotes.get(kc) or {}
+        return str(card.get("quote") or "")
 
     items: list[dict[str, Any]] = []
     for v in variants:
@@ -591,6 +654,43 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
             f"{pack_id.lower()}-vskel-{rule_group.lower()}-"
             f"{'ok' if v.get('expected_ok') else 'bad'}"
         )
+        # source_anchor：kc 头能被同 pack 签发卡 quote 复核且主题一致才截取；
+        # quote 主题不一致（E5 类错锚）→ 保留完整 composite anchor
+        # （含真题部分），绝不把无关教材点当本 fact 的唯一佐证。
+        anchor = str(v.get("anchor") or "")
+        kc = _kc_anchor(anchor)
+        kc_quote = _quote_of(kc) if kc else ""
+        source_anchor = kc or anchor
+        if kc and kc_quote and not _quote_supports(
+            str(v.get("correct_statement") or ""), kc_quote
+        ):
+            source_anchor = anchor
+        decision: dict[str, Any] = {
+            "schema": VARIANT_DECISION_SCHEMA,
+            "fact_id": fact_of[variant_id],
+            "skeleton_id": skeleton_id,
+            "probe_role": role_of[variant_id],
+            "temptation": temptation,
+            "loss_reason": loss_reason,
+            "source_anchor": source_anchor,
+            "source_sha256": str(bank.get("source_pack_sha256") or ""),
+            "content_sha256": content_sha,
+        }
+        decision["decision_identity_sha256"] = decision_identity_sha256(decision)
+        decision["review"] = {
+            "status": "pending",
+            "verdict": "pending",
+            "reviewed_content_sha256": content_sha,
+            "reviewed_decision_sha256": decision["decision_identity_sha256"],
+            "signatures": [],
+            "checks": {
+                "source_verified": False,
+                "answer_verified": False,
+                "diagnosis_verified": False,
+                "longest_option_checked": False,
+                "template_leakage_checked": False,
+            },
+        }
         items.append(
             {
                 "variant_id": variant_id,
@@ -600,38 +700,17 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
                 "correct_statement": v.get("correct_statement"),
                 "anchor": v.get("anchor"),
                 "extension": bool(v.get("extension")),
-                "decision_candidate": {
-                    "schema": VARIANT_DECISION_SCHEMA,
-                    "fact_id": fact_of[variant_id],
-                    "skeleton_id": skeleton_id,
-                    "probe_role": role_of[variant_id],
-                    "temptation": temptation,
-                    "loss_reason": loss_reason,
-                    "source_anchor": _kc_anchor(str(v.get("anchor") or ""))
-                    or str(v.get("anchor") or ""),
-                    "source_sha256": str(bank.get("source_pack_sha256") or ""),
-                    "content_sha256": content_sha,
-                    "review": {
-                        "status": "pending",
-                        "verdict": "pending",
-                        "reviewed_content_sha256": content_sha,
-                        "signatures": [],
-                        "checks": {
-                            "source_verified": False,
-                            "answer_verified": False,
-                            "diagnosis_verified": False,
-                            "longest_option_checked": False,
-                            "template_leakage_checked": False,
-                        },
-                    },
-                },
+                "decision_candidate": decision,
             }
         )
 
+    fact_meta: dict[str, tuple[str, str]] = {
+        fact_id: key for key, fact_id in fact_table.items()
+    }
+    fact_meta.update(extra_facts)
     facts: list[dict[str, Any]] = []
-    for (rule_group, correct_statement), fact_id in sorted(
-        fact_table.items(), key=lambda kv: kv[1]
-    ):
+    for fact_id in sorted(fact_meta):
+        rule_group, correct_statement = fact_meta[fact_id]
         rows = by_fact.get(fact_id) or []
         kc = ""
         for v in rows:
@@ -639,6 +718,12 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
             if kc:
                 break
         card = quotes.get(kc.removeprefix("kc:")) or quotes.get(kc) or {}
+        quote = str(card.get("quote") or "")
+        page_num = card.get("page_num")
+        if quote and not _quote_supports(correct_statement, quote):
+            # E5 类错锚：kc 头 join 到的教材点与本 fact 主题不一致——
+            # 如实留空（join 不中），不把无关教材原文当本 fact 证据。
+            kc, quote, page_num = "", "", None
         facts.append(
             {
                 "fact_id": fact_id,
@@ -649,8 +734,8 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
                     1 for v in rows if not v.get("extension")
                 ),
                 "kc_anchor": kc,
-                "textbook_quote": card.get("quote", ""),
-                "textbook_page": card.get("page_num"),
+                "textbook_quote": quote,
+                "textbook_page": page_num,
                 "compiled_mcq_candidates": _mcq_candidates(
                     correct_statement, mcq_texts
                 ),
