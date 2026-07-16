@@ -1,0 +1,29 @@
+{
+  "automation_id": "daily-bug-scan",
+  "run_at": "2026-07-14T08:34:08+0800",
+  "completed_at": "2026-07-14T08:40:03+0800",
+  "cwd": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts",
+  "git_toplevel": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor",
+  "branch": "codex/old-blue-workspace-snapshot-20260710",
+  "head": "de5c000816c417ac777f38974d7e81585a6d0560",
+  "origin_main": "0308b0224b56ebd606e2e55ce9ea0e6695c6b745",
+  "last_scanned_sha": "a600236051e6a0244a45604544f87c021e6f9101",
+  "verdict": "BLOCKED",
+  "failure_signature": "env_p0_artifacts_env_missing_plus_devtools_default_launch_authority_drift",
+  "tier0_env": "ENV-P0",
+  "tests": {
+    "contract_guard": "passed",
+    "tier1_runtime": "960 passed, 5 warnings",
+    "tier1_grading_rag": "873 passed",
+    "wechat_harness_shadow": "5 passed",
+    "tier2_observability": "327 passed",
+    "yousen_package_placement": "29 assertions passed",
+    "wechat_privacy": "4 passed",
+    "yousen_index_launch_home": "failed"
+  },
+  "deferred": [
+    "observability_daily_live_payload",
+    "release_gate_report_only",
+    "real_wechat_package_page_scenario"
+  ]
+}

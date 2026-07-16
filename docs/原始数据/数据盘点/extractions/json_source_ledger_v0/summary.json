@@ -1,6 +1,6 @@
 {
   "schema": "luban_json_source_ledger_summary.v0",
-  "generated_at": "2026-06-19T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "source_root": "docs/原始数据/2026_副本",
   "json_sources": 383,
   "bucket_counts": {

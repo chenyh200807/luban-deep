@@ -1,0 +1,674 @@
+{
+  "sha_gate": {
+    "ok": true,
+    "skipped": false,
+    "origin_main": "c9150ca602490eb811e628e478a8a9dc618e37f3",
+    "host_env": "c9150ca602490eb811e628e478a8a9dc618e37f3",
+    "container_env": "c9150ca602490eb811e628e478a8a9dc618e37f3",
+    "container_git_dirty": "false",
+    "dirty_ok": true,
+    "three_way_ok": true,
+    "detail": "三方 SHA 对齐且 GIT_DIRTY=false"
+  },
+  "base": "https://test2.yousenjiaoyu.com",
+  "runs": 3,
+  "dimensions": [
+    {
+      "dim": "daowu",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": true,
+          "inconclusive": false,
+          "surface_stable": true,
+          "represented_new_order": false,
+          "judge": "CLEAN",
+          "why": "判分依据的选项字母与内容映射与学生看到的呈现面一致，判分正确，未倒诬。",
+          "o1": [
+            [
+              "A",
+              "建筑高度大于27m的住宅建筑为高层建筑"
+            ],
+            [
+              "B",
+              "建筑高度大于24m的非单层公共建筑为高层建筑"
+            ],
+            [
+              "C",
+              "建筑高度大于100m的民用建筑为超高层建筑"
+            ],
+            [
+              "D",
+              "A、B、C均正确"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "建筑高度大于27m的住宅建筑为高层建筑"
+            ],
+            [
+              "B",
+              "建筑高度大于24m的非单层公共建筑为高层建筑"
+            ],
+            [
+              "C",
+              "建筑高度大于100m的民用建筑为超高层建筑"
+            ],
+            [
+              "D",
+              "A、B、C均正确"
+            ]
+          ],
+          "grading_excerpt": "### 阅卷结论 你答了A，正确答案是D，这道题你没有得分。诊断类型为概念混淆：你只记住了住宅建筑的高层分界（27m），但忽略了公共建筑的高层分界（24m）以及超高层建筑的统一定义（100m），导致漏选了综合选项D。  ### 正确答案 D（A、B、C均正确）",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "surface_stable": true,
+          "represented_new_order": false,
+          "judge": "CLEAN",
+          "why": "判分依据的选项字母与内容映射与学生看到的呈现面一致，未发现倒诬。",
+          "o1": [
+            [
+              "A",
+              "建筑高度24m的普通住宅"
+            ],
+            [
+              "B",
+              "建筑高度27m的住宅"
+            ],
+            [
+              "C",
+              "建筑高度32m的独立建造的老年人照料设施"
+            ],
+            [
+              "D",
+              "建筑高度25m的省级广播电视楼"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "建筑高度24m的普通住宅"
+            ],
+            [
+              "B",
+              "建筑高度27m的住宅"
+            ],
+            [
+              "C",
+              "建筑高度32m的独立建造的老年人照料设施"
+            ],
+            [
+              "D",
+              "建筑高度25m的省级广播电视楼"
+            ]
+          ],
+          "grading_excerpt": "### 阅卷结论 本题你答了A，正确答案是C，得0分。诊断类型为概念混淆——你混淆了一类高层住宅与一类高层公共建筑的门槛，同时忽略了独立建造的老年人照料设施的特殊分类。  ### 正确答案 C. 建筑高度32m的独立建造的老年人照料设施  ### 为什么错 你",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "surface_stable": true,
+          "represented_new_order": false,
+          "judge": "CLEAN",
+          "why": "判分依据的选项字母与内容映射与学生看到的呈现面一致，A对应低层建筑，C对应高层建筑，判分正确。",
+          "o1": [
+            [
+              "A",
+              "低层建筑"
+            ],
+            [
+              "B",
+              "多层建筑"
+            ],
+            [
+              "C",
+              "高层建筑"
+            ],
+            [
+              "D",
+              "超高层建筑"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "低层建筑"
+            ],
+            [
+              "B",
+              "多层建筑"
+            ],
+            [
+              "C",
+              "高层建筑"
+            ],
+            [
+              "D",
+              "超高层建筑"
+            ]
+          ],
+          "grading_excerpt": "### 阅卷结论 你答了A（低层建筑），本题正确答案是C（高层建筑），得分0/1。诊断类型：概念混淆——把住宅建筑的层数与低层/多层分类混淆了。  ### 正确答案 C. 高层建筑 依据《建筑设计防火规范》（GB 50016-2014，2018年版），住宅建筑",
+          "run": 3
+        }
+      ],
+      "conclusive": 3,
+      "inconclusive": 0,
+      "passed": 3,
+      "failed": 0,
+      "fail_rate": 0.0,
+      "reproduced": false,
+      "evidence_path": "/Users/yehongchen/deeptutor-release-c9150ca60/artifacts/quality_gate/20260701_005432/daowu_result.json"
+    },
+    {
+      "dim": "huizhi",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": true,
+          "inconclusive": false,
+          "det_reason": "原题选项4/4命中分析(ABCD)",
+          "glm_bind": "DEGRADED",
+          "glm_reason": "",
+          "o1": [
+            [
+              "A",
+              "石灰"
+            ],
+            [
+              "B",
+              "石膏"
+            ],
+            [
+              "C",
+              "水玻璃"
+            ],
+            [
+              "D",
+              "水泥"
+            ]
+          ],
+          "analysis_excerpt": "当然，下面把四个选项逐项拆开分析，说明为什么只有水泥符合“水硬性胶凝材料”的定义。  ---  ### A. 石灰 **不是水硬性。** 石灰（生石灰 CaO 或熟石灰 Ca(OH)₂）在空气中通过吸收 CO₂ 发生碳酸化反应而硬化，这个过",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "det_reason": "原题选项4/4命中分析(ABCD)",
+          "glm_bind": "DEGRADED",
+          "glm_reason": "",
+          "o1": [
+            [
+              "A",
+              "水泥"
+            ],
+            [
+              "B",
+              "石灰"
+            ],
+            [
+              "C",
+              "石膏"
+            ],
+            [
+              "D",
+              "水玻璃"
+            ]
+          ],
+          "analysis_excerpt": "好的，我们来把四个选项逐一拆开分析，结合气硬性胶凝材料的定义和本题的标准答案来说明。  **气硬性胶凝材料**的特点是：**只能在空气中硬化，并且只能在空气中保持或继续发展强度**，一旦遇水就失去强度或无法正常硬化。  ---  **A. ",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "det_reason": "原题选项4/4命中分析(ABCD)",
+          "glm_bind": "DEGRADED",
+          "glm_reason": "",
+          "o1": [
+            [
+              "A",
+              "矿渣硅酸盐水泥"
+            ],
+            [
+              "B",
+              "火山灰质硅酸盐水泥"
+            ],
+            [
+              "C",
+              "硅酸盐水泥"
+            ],
+            [
+              "D",
+              "粉煤灰硅酸盐水泥"
+            ]
+          ],
+          "analysis_excerpt": "当然，我们再逐项分析一次：  - **A. 矿渣硅酸盐水泥：** 掺有粒化高炉矿渣，水化速度较慢，早期强度低，后期强度增长较好。它不适合要求早强的工程。  - **B. 火山灰质硅酸盐水泥：** 掺有火山灰质混合材，水化反应需要较长时间，早",
+          "run": 3
+        }
+      ],
+      "conclusive": 3,
+      "inconclusive": 0,
+      "passed": 3,
+      "failed": 0,
+      "fail_rate": 0.0,
+      "reproduced": false,
+      "evidence_path": "/Users/yehongchen/deeptutor-release-c9150ca60/artifacts/quality_gate/20260701_005432/huizhi_result.json"
+    },
+    {
+      "dim": "leak_boundary",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "A隐式",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题考查的是《屋面工程技术规范》中对防水等级与合理使用年限的对应关系。 屋面防水等级共分**Ⅰ、Ⅱ、Ⅲ、Ⅳ**四级，Ⅰ级为最高等级，适用于**特别重要或对防水有特殊要求的建筑**（如高层、大型公共建筑等）。 等级越高，要求越严格，合理使用年限也越长——你可以先思考一下： - Ⅰ",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "A隐式",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "没问题，先不下结论。给你一点思路：  1. **防水等级的含义：** 屋面防水等级共分Ⅰ、Ⅱ两级（老规范分四级，新规范简化为两级）。Ⅰ级属于**最高等级**，适用于重要建筑或高层建筑，对防水可靠性要求最高。 2. **设防道数的逻辑：** 等级越高，要求的防水层道数越多。你能回忆",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "A隐式",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题的核心是 **《屋面工程技术规范》GB 50345** 关于屋面防水等级和设防要求的规定。我先帮你理几个关键点，不直接给答案，你对照后自己判断：  1. **防水等级的数量** – 现行规范屋面防水等级分为几级？是Ⅰ、Ⅱ两个等级，还是四个等级？你可以想一想C选项是否正确。 ",
+          "run": 3
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "B显式",
+          "det_reveal": "正确选项是 B",
+          "excerpt": "## ✅ 答案与解析 **正确答案：** B（立方体抗压强度标准值）  ## 🧐 解析 **核心判断：** 正确选项是 B（立方体抗压强度标准值）。  **逐项解析：** - A. 轴心抗压强度：排除项。它与本题标准结论不一致，不能作为正确答案。 - B. 立方体抗压强度标准值：",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "B显式",
+          "det_reveal": "正确选项是 B",
+          "excerpt": "## ✅ 答案与解析 **正确答案：** B（立方体抗压强度标准值）  ## 🧐 解析 **核心判断：** 正确选项是 B（立方体抗压强度标准值）。  **逐项解析：** - A. 立方体抗压强度平均值：排除项。它与本题标准结论不一致，不能作为正确答案。 - B. 立方体抗压强度",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "B显式",
+          "det_reveal": "正确选项是 C",
+          "excerpt": "## ✅ 答案与解析 **正确答案：** C（95%）  ## 🧐 解析 **核心判断：** 正确选项是 C（95%）。  **逐项解析：** - A. 85%：排除项。它与本题标准结论不一致，不能作为正确答案。 - B. 90%：排除项。它与本题标准结论不一致，不能作为正确答案",
+          "run": 3
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "C未答回指",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题聚焦于**建筑钢材的拉伸性能**，核心概念包括：  - **屈服强度：** 钢材在受力时发生明显塑性变形（屈服）时的应力值。它是结构设计时取用的强度依据，因为超过屈服强度后钢材会不可恢复地变形，影响使用。 - **抗拉强度：** 钢材在拉断前能承受的最大应力。它反映钢材的极",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "C未答回指",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题主要考察**建筑钢材的拉伸性能**中几个关键概念的理解：  1. **强屈比**（抗拉强度/屈服强度）——反映钢材的安全储备和利用率，需要理解它“大”或“小”分别对应什么影响。 2. **伸长率**——衡量钢材塑性变形能力的指标，与塑性是正相关还是负相关。 3. **钢材强",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "C未答回指",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题主要考查的是**建筑钢材的拉伸性能**，具体涉及以下三个核心知识点：  1. **强屈比**（抗拉强度 / 屈服强度）： - 反映钢材的安全储备与经济性。强屈比越大，钢材的安全储备越高（延性越好），但钢材强度利用率越低；强屈比越小，则安全性越低，但强度利用率越高。你需要判断",
+          "run": 3
+        }
+      ],
+      "conclusive": 9,
+      "inconclusive": 0,
+      "passed": 9,
+      "failed": 0,
+      "fail_rate": 0.0,
+      "reproduced": false,
+      "evidence_path": "/Users/yehongchen/deeptutor-release-c9150ca60/artifacts/quality_gate/20260701_005432/leak_boundary_result.json"
+    },
+    {
+      "dim": "sev_regression",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "倒诬",
+          "surface_stable": true,
+          "judge": "CLEAN",
+          "why": "学生答案C（三道）与正确答案B（两道）不符，判分依据正确，无倒诬现象。",
+          "o1": [
+            [
+              "A",
+              "一道"
+            ],
+            [
+              "B",
+              "两道"
+            ],
+            [
+              "C",
+              "三道"
+            ],
+            [
+              "D",
+              "四道"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "一道"
+            ],
+            [
+              "B",
+              "两道"
+            ],
+            [
+              "C",
+              "三道"
+            ],
+            [
+              "D",
+              "四道"
+            ]
+          ],
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "倒诬",
+          "surface_stable": true,
+          "judge": "CLEAN",
+          "why": "学生答C（15年），正确答案是D（25年），判分正确，不存在倒诬。",
+          "o1": [
+            [
+              "A",
+              "5年"
+            ],
+            [
+              "B",
+              "10年"
+            ],
+            [
+              "C",
+              "15年"
+            ],
+            [
+              "D",
+              "25年"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "5年"
+            ],
+            [
+              "B",
+              "10年"
+            ],
+            [
+              "C",
+              "15年"
+            ],
+            [
+              "D",
+              "25年"
+            ]
+          ],
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "倒诬",
+          "surface_stable": true,
+          "judge": "CLEAN",
+          "why": "学生选C（三个等级），正确答案是B（两个等级），判分正确，不存在倒诬。",
+          "o1": [
+            [
+              "A",
+              "一个等级"
+            ],
+            [
+              "B",
+              "两个等级"
+            ],
+            [
+              "C",
+              "三个等级"
+            ],
+            [
+              "D",
+              "四个等级"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "一个等级"
+            ],
+            [
+              "B",
+              "两个等级"
+            ],
+            [
+              "C",
+              "三个等级"
+            ],
+            [
+              "D",
+              "四个等级"
+            ]
+          ],
+          "run": 3
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "泄露",
+          "judge": "CLEAN",
+          "why": "助教只讲解了相关知识点，没有直接说出正确选项字母或内容，也没有明示哪个选项正确。",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "泄露",
+          "judge": "CLEAN",
+          "why": "助教只解释了各选项涉及的概念和正确知识，未直接说出正确选项字母或内容，也未明示哪个选项正确。",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "泄露",
+          "judge": "CLEAN",
+          "why": "助教只解释了每个选项的概念和考点，没有直接说出正确选项字母或内容，也没有明示哪个对，因此未泄露答案。",
+          "run": 3
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "回指",
+          "judge": "CORRECT_BIND",
+          "why": "逐项分析针对原题四个选项，正确解释了水硬性与气硬性的区别，回指绑定正确。",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "回指",
+          "judge": "CORRECT_BIND",
+          "why": "逐项分析针对原题四个选项，正确解释了和易性的三个组成成分，并指出D抗冻性不属于和易性，与题目一致。",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "回指",
+          "judge": "CORRECT_BIND",
+          "why": "逐项分析针对原题四个选项，正确解释了各选项为何不是气硬性胶凝材料，回指绑定正确。",
+          "run": 3
+        }
+      ],
+      "conclusive": 9,
+      "inconclusive": 0,
+      "passed": 9,
+      "failed": 0,
+      "fail_rate": 0.0,
+      "reproduced": false,
+      "evidence_path": "/Users/yehongchen/deeptutor-release-c9150ca60/artifacts/quality_gate/20260701_005432/sev_regression_result.json"
+    },
+    {
+      "dim": "forward_liveness",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "U1批量判分",
+          "graded": true,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "### 阅卷结论 两题共得分 1.0/2.0，第一题答错，第二题答对。诊断类型：第一题概念混淆。  ### 正确答案 - **第 1 题：** 你答了 A（绑扎搭接），正确答案是 D（铆接）。 - **第 2 题：** 你答了 B（增加水泥用量以提高强度），正确答案是 B（题干要求选错误的）。  ### 为什么错 - ",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "U1批量判分",
+          "graded": true,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "### 阅卷结论 两题共得 1 分/2 分（第 1 题答错，得 0 分；第 2 题答对，得 1 分）。诊断类型：概念混淆。  ### 正确答案 第 1 题：你答了 A（压力），正确答案是 B（拉力）。 第 2 题：你答了 B（三角形），正确答案是 B（三角形）。  ### 为什么错 第 1 题是**概念混淆**。你记住",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "U1批量判分",
+          "graded": true,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "### 阅卷结论 两道题你都答错了，得0分。诊断类型：概念混淆（CONFUSION）。第一题你混淆了“普通水泥”和“矿渣水泥”的养护规定；第二题你记混了连墙件偏离主节点的距离数值。  ### 正确答案 - 第1题：B（矿渣水泥拌制的混凝土，养护时间不得少于14d）。 - 第2题：C（一字形、开口型脚手架两端必须设置连墙",
+          "run": 3
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "U2陈旧多题set(Dim1 known bug)",
+          "graded": true,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "选 **B**，正确。  ## 结论 正确。脚手架扫地杆距离地面的高度应为 **200mm**。  ## 判断依据 - 根据《建筑施工扣件式钢管脚手架安全技术规范》（JGJ 130），纵向扫地杆应采用直角扣件固定在距钢管底端不大于 **200mm** 处的立杆上。 - 横向扫地杆亦应采用直角扣件固定在紧靠纵向扫地杆下方的立杆上。  ## 采分点 - **数值：** 200mm（±0）。 - **位",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "U2陈旧多题set(Dim1 known bug)",
+          "graded": true,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "## 结论  选 B 正确。  ## 判断依据  - **伸长率**是钢材拉断后标距段的总伸长量与原始标距之比，直接衡量钢材**塑性变形能力**——拉断前能承受多大塑性变形而不破坏。 - 塑性越好，伸长率越大，构件在破坏前有明显变形预警，不易发生脆性断裂。  ## 采分点  - 塑性变形能力 → **伸长率**（符号 δ） - 伸长率越大 → 塑性越好 → 安全储备越高  ## 易错点  - **",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "U2陈旧多题set(Dim1 known bug)",
+          "graded": true,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "## 结论  **你选错了。** 正确答案是 **A**。  ---  ## 判断依据  混凝土强度等级是划分混凝土质量的核心指标，按 **《混凝土结构设计规范》GB 50010** 的明确定义：  - **强度等级** 用符号 **C** 加 **立方体抗压强度标准值（N/mm²）** 表示。 - 具体定义为：按标准方法制作、养护的 **边长150mm的立方体试件**，在 **28d龄期** 用",
+          "run": 3
+        }
+      ],
+      "conclusive": 6,
+      "inconclusive": 0,
+      "passed": 6,
+      "failed": 0,
+      "fail_rate": 0.0,
+      "reproduced": false,
+      "evidence_path": "/Users/yehongchen/deeptutor-release-c9150ca60/artifacts/quality_gate/20260701_005432/forward_liveness_result.json"
+    },
+    {
+      "dim": "content_truth",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": false,
+          "inconclusive": false,
+          "non_empty": true,
+          "refused": false,
+          "has_specific": true,
+          "has_hedge": false,
+          "judge": "specific=True hedge=False",
+          "why": "出具体条文数值却无hedge(违反②)",
+          "excerpt": "## 结论  建筑工程的最低保修期限在 **《建设工程质量管理条例》第40条** 规定如下（一建教材《建筑工程管理与实务》援引此条例）：  | 工程部位/类型 | 最低保修期限 | | --- | --- | | **地基基础工程、主体结构工程** | 设计文件规定的该工程的**合理使用年限** | | **屋面防水工",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "non_empty": true,
+          "refused": false,
+          "has_specific": true,
+          "has_hedge": true,
+          "judge": "specific=True hedge=False",
+          "why": "ok",
+          "excerpt": "## 结论  你问的工程质量保修期具体年限规定，目前现行有效的规范依据是 **《建筑与市政工程施工质量控制通用规范》GB 55032-2022** 和 **《建筑工程施工质量验收统一标准》GB 50300-2013**。这两本规范均 **未直接给出各分部工程的具体保修年限数值**，只规定了保修制度的框架。  具体保修年",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "non_empty": true,
+          "refused": false,
+          "has_specific": false,
+          "has_hedge": false,
+          "judge": "specific=False hedge=True",
+          "why": "ok",
+          "excerpt": "## 评分口径 提分诊断（本轮没有命中题库原题、标准答案或结构化采分点）  ## 预计得分 未命中评分真相层，本轮不硬估分。 本次不硬估标准分。  ## 先看你的作答 - 可以先保留你已经写出的判断和关键参数。 - 但案例题是否给分，必须以原题标准答案、分值和采分点为准；本轮没有这份 authority，不能把诊断包装",
+          "run": 3
+        }
+      ],
+      "conclusive": 3,
+      "inconclusive": 0,
+      "passed": 2,
+      "failed": 1,
+      "fail_rate": 0.3333333333333333,
+      "reproduced": true,
+      "evidence_path": "/Users/yehongchen/deeptutor-release-c9150ca60/artifacts/quality_gate/20260701_005432/content_truth_result.json"
+    }
+  ],
+  "reproduced_dims": [
+    "content_truth"
+  ]
+}

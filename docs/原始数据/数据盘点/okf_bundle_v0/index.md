@@ -7,7 +7,7 @@ tags:
   - "luban"
   - "okf"
   - "asset-inventory"
-timestamp: "2026-06-20T00:00:00+08:00"
+timestamp: "2026-07-16T14:54:49+08:00"
 status: "markdown_yaml_only"
 ---
 
@@ -17,10 +17,10 @@ This is the minimal OKF shape for Luban data assets: Markdown files with YAML fr
 
 ## Core Counts
 
-- Raw asset files: 1107
+- Raw asset files: 1655
 - Cleaned JSON sources: 383
 - PDF files: 95
-- Compiled asset files: 5059
+- Compiled asset files: 7133
 - Candidate cases / rubrics / scoring points: 25 / 117 / 431
 
 ## OKF Concepts

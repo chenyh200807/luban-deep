@@ -1,6 +1,6 @@
 {
   "schema": "luban_topic_okf_manifest.v0",
-  "generated_at": "2026-06-20T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "status": "topic_okf_candidate_ready",
   "authority_status": "ai_topic_navigation_only",
   "runtime_guard": {

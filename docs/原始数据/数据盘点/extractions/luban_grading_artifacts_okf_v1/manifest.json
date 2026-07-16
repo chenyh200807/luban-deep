@@ -1,6 +1,6 @@
 {
   "schema": "luban_grading_artifacts_okf_manifest.v1",
-  "generated_at": "2026-06-20T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "authority_status": "ai_project_context_only",
   "runtime_guard": {
     "release_stage": "ai_project_context_only",
@@ -25,15 +25,15 @@
     "summary": "summary.md"
   },
   "counts": {
-    "runs": 344,
-    "files": 3313,
-    "total_bytes": 342825443,
-    "manifest_like_files": 760,
+    "runs": 347,
+    "files": 3326,
+    "total_bytes": 367180283,
+    "manifest_like_files": 771,
     "by_area": {
       "artifact_workbench": 84,
       "governance_audit": 62,
       "runtime_shadow": 59,
-      "release_candidate": 51,
+      "release_candidate": 54,
       "source_alignment": 40,
       "eval_benchmark": 25,
       "learning_brain": 14,
@@ -41,13 +41,13 @@
       "skill_pack": 2
     },
     "by_risk_level": {
-      "high": 143,
+      "high": 146,
       "low": 131,
       "medium": 70
     },
     "by_extension": {
-      ".json": 2240,
-      ".md": 627,
+      ".json": 2252,
+      ".md": 628,
       ".jsonl": 295,
       ".py": 45,
       ".db": 22,

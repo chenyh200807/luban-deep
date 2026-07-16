@@ -1,0 +1,2543 @@
+{
+  "schema": "luban_mother_topic_coverage_audit.v1",
+  "authority_status": "governance_audit_only",
+  "scope": "60-slot mother-topic capability registry; not full textbook taxonomy coverage",
+  "boundaries": [
+    "exam evidence hit counts are candidate retrieval evidence, not official exam frequency",
+    "absence of an exam evidence file does not prove the capability was never examined",
+    "taxonomy refs are routing anchors, not scoring authority",
+    "this artifact does not authorize runtime supply, learner-state writes, or production release"
+  ],
+  "source_paths": {
+    "registry": "docs/原始数据/考点原料/成品/_pack_taxonomy_registry.v0.json",
+    "manifest": "docs/原始数据/考点原料/成品/_pack_manifest.json",
+    "taxonomy": "docs/原始数据/2026_副本/taxonomy/FINAL_CLEANED_TAXONOMY2026.json"
+  },
+  "source_sha256": {
+    "registry": "52a4aa1861fbfb9d093a47889d8393d22c57137eeb9548b8e26f1a996d59195a",
+    "manifest": "1de2bb8663312f746fce2c2a5b2da7cb71abb052afc689f10ec3916cd9ef3bb5",
+    "taxonomy": "26dbb542b31601d6b3255d53463d0007c0c7eaea5a24ad9c338b3742baa976c8"
+  },
+  "counts": {
+    "capability_slots": 60,
+    "existing_mother_topics": 41,
+    "missing_slots": 19,
+    "coverage_strength": {
+      "strong_direct": 23,
+      "broad_composite": 11,
+      "source_grounded_exam_unmeasured": 2,
+      "coarse_boundary": 4,
+      "source_grounded_exam_zero": 1,
+      "missing": 19
+    },
+    "worth_adding": {
+      "no": 50,
+      "conditional": 9,
+      "yes_candidate": 1
+    },
+    "recommended_action": {
+      "retain_existing": 26,
+      "refine_existing_composite": 11,
+      "refine_existing_boundary": 4,
+      "enrich_existing_instead": 5,
+      "evidence_first": 3,
+      "add_after_exam_evidence": 1,
+      "candidate_after_boundary_review": 1,
+      "hold_until_parent_boundary": 1,
+      "merge_into_planned_parent": 1,
+      "split_only_with_evidence": 4,
+      "merge_into_existing": 3
+    },
+    "shared_taxonomy_refs": 40
+  },
+  "rows": [
+    {
+      "slot": 1,
+      "capability_id": "J01",
+      "capability_title": "危大工程范围 + 专项方案 + 专家论证",
+      "primary_taxonomy_ref": "1A431030-E01",
+      "primary_taxonomy_name": "危大工程专家论证——主要内容",
+      "supporting_taxonomy_refs": [
+        "1A436000-B029",
+        "1A436000-B158"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "J01"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 94,
+      "compiled_source_units": 7,
+      "compiled_scoring_points": 24,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A431030-E01",
+        "1A436000-B029",
+        "1A436000-B158"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "已有 J01 原型;主锚点用专家论证,范围/超过一定规模作辅锚"
+    },
+    {
+      "slot": 2,
+      "capability_id": "S01",
+      "capability_title": "脚手架/高大模板支架验收",
+      "primary_taxonomy_ref": "1A436032",
+      "primary_taxonomy_name": "脚手架工程安全管理要点",
+      "supporting_taxonomy_refs": [
+        "1A436000-B005",
+        "1A413046-R03"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "S01"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": 46,
+      "compiled_scoring_points": 154,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413046-R03",
+        "1A436000-B005",
+        "1A436032"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "脚手架安全、模板支架检查、脚手架构造三类节点合并"
+    },
+    {
+      "slot": 3,
+      "capability_id": "S02",
+      "capability_title": "起重吊装安全",
+      "primary_taxonomy_ref": "1A436000-B006",
+      "primary_taxonomy_name": "“起重吊装”检查评定保证项目应包括",
+      "supporting_taxonomy_refs": [
+        "1A436000-B153",
+        "1A436000-B155"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "S02"
+      ],
+      "coverage_strength": "source_grounded_exam_unmeasured",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": 39,
+      "compiled_scoring_points": 149,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A436000-B006",
+        "1A436000-B153",
+        "1A436000-B155"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "起重吊装检查、作业安全、安装拆卸范围"
+    },
+    {
+      "slot": 4,
+      "capability_id": "C02",
+      "capability_title": "进度款/计量计价",
+      "primary_taxonomy_ref": "1A432000-C17",
+      "primary_taxonomy_name": "工程进度款的支付",
+      "supporting_taxonomy_refs": [
+        "1A432000-C19",
+        "1A432000-C24"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "C02"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 74,
+      "compiled_source_units": 52,
+      "compiled_scoring_points": 172,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A432000-C17",
+        "1A432000-C19",
+        "1A432000-C24"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "E02"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A432000-C17",
+        "1A432000-C19",
+        "1A432000-C24"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "进度款支付与计算公式"
+    },
+    {
+      "slot": 5,
+      "capability_id": "B02",
+      "capability_title": "基坑支护选型与降水/监测",
+      "primary_taxonomy_ref": "1A413022",
+      "primary_taxonomy_name": "基坑支护工程施工",
+      "supporting_taxonomy_refs": [
+        "1A413034",
+        "1A413036",
+        "1A413000-B033"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "B02"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 79,
+      "compiled_source_units": 70,
+      "compiled_scoring_points": 113,
+      "overlap_existing_mother_topics": [
+        "G01"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413000-B033",
+        "1A413022",
+        "1A413034",
+        "1A413036"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "G01",
+        "G05"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413000-B033",
+        "1A413034",
+        "1A413036"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "支护、监测、降水、报警条件组合包"
+    },
+    {
+      "slot": 6,
+      "capability_id": "Q01",
+      "capability_title": "混凝土养护与裂缝防治",
+      "primary_taxonomy_ref": "1A413040-R28",
+      "primary_taxonomy_name": "混凝土养护",
+      "supporting_taxonomy_refs": [
+        "1A413000-C10"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "Q01"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 96,
+      "compiled_source_units": 207,
+      "compiled_scoring_points": 677,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413000-C10",
+        "1A413040-R28"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "养护与温度测量,裂缝防治 source_ref 需补"
+    },
+    {
+      "slot": 7,
+      "capability_id": "A01",
+      "capability_title": "检验批/分部分项验收程序",
+      "primary_taxonomy_ref": "1A434020-B018",
+      "primary_taxonomy_name": "检验批、分项工程、分部（子分部）工程验收内容",
+      "supporting_taxonomy_refs": [
+        "1A434020-B006",
+        "1A434020-B001"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "A01"
+      ],
+      "coverage_strength": "source_grounded_exam_unmeasured",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": 75,
+      "compiled_scoring_points": 247,
+      "overlap_existing_mother_topics": [
+        "A02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A434020-B001",
+        "1A434020-B006",
+        "1A434020-B018"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "A02"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A434020-B018"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "检验批、分项、分部、主体结构验收"
+    },
+    {
+      "slot": 8,
+      "capability_id": "N01",
+      "capability_title": "双代号网络计划关键线路/总时差",
+      "primary_taxonomy_ref": "1A433000-B041",
+      "primary_taxonomy_name": "网络计划时差、关键工作与关键线路",
+      "supporting_taxonomy_refs": [
+        "1A433000-G03"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "N01"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 27,
+      "compiled_source_units": 5,
+      "compiled_scoring_points": 10,
+      "overlap_existing_mother_topics": [
+        "N02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A433000-B041",
+        "1A433000-G03"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "N02",
+        "N04"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A433000-B041"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "已有 N01 原型;关键线路/时间参数主锚"
+    },
+    {
+      "slot": 9,
+      "capability_id": "K01",
+      "capability_title": "索赔成立与工期/费用计算",
+      "primary_taxonomy_ref": "1A432000-B001",
+      "primary_taxonomy_name": "① 工期索赔计算",
+      "supporting_taxonomy_refs": [
+        "1A432000-B002",
+        "1A432000-B015",
+        "1A432000-B057"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "K01"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 55,
+      "compiled_source_units": 40,
+      "compiled_scoring_points": 129,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A432000-B001",
+        "1A432000-B002",
+        "1A432000-B015",
+        "1A432000-B057"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "K05",
+        "K06"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A432000-B001",
+        "1A432000-B002",
+        "1A432000-B015",
+        "1A432000-B057"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "工期索赔、费用索赔、发包人原因、索赔计算"
+    },
+    {
+      "slot": 10,
+      "capability_id": "Q03",
+      "capability_title": "质量通病: 蜂窝麻面/空鼓裂缝",
+      "primary_taxonomy_ref": "1A434030",
+      "primary_taxonomy_name": "工程质量通病防治",
+      "supporting_taxonomy_refs": [
+        "1A434032",
+        "1A434000-B037",
+        "1A434000-B011"
+      ],
+      "alignment_status": "coarse_review",
+      "existing_mother_topics": [
+        "Q03"
+      ],
+      "coverage_strength": "coarse_boundary",
+      "coverage_strength_score": 1,
+      "exam_evidence_hits_candidate": 50,
+      "compiled_source_units": 83,
+      "compiled_scoring_points": 267,
+      "overlap_existing_mother_topics": [
+        "C01"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A434000-B011",
+        "1A434000-B037",
+        "1A434030",
+        "1A434032"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "C01",
+        "D16"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A434000-B011",
+        "1A434000-B037"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_boundary",
+      "decision_rationale": "已有母题；先补精确 leaf/source 边界",
+      "registry_note": "通病节点存在,蜂窝麻面缺精确 leaf;不得直接 production"
+    },
+    {
+      "slot": 11,
+      "capability_id": "C04",
+      "capability_title": "模板拆除顺序与条件",
+      "primary_taxonomy_ref": "1A413040-R25",
+      "primary_taxonomy_name": "模板拆除要求",
+      "supporting_taxonomy_refs": [
+        "1A413040-R26",
+        "1A413040-R27",
+        "1A436000-B114"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "C04"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 142,
+      "compiled_source_units": 137,
+      "compiled_scoring_points": 471,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413040-R25",
+        "1A413040-R26",
+        "1A413040-R27",
+        "1A436000-B114"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "拆除要求、要点、顺序和安全控制"
+    },
+    {
+      "slot": 12,
+      "capability_id": "Q02",
+      "capability_title": "大体积混凝土温控裂缝",
+      "primary_taxonomy_ref": "1A413074",
+      "primary_taxonomy_name": "大体积混凝土施工",
+      "supporting_taxonomy_refs": [
+        "1A413033-R05",
+        "1A413033-R08",
+        "1A413033-R09"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "Q02"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 64,
+      "compiled_source_units": 31,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413033-R05",
+        "1A413033-R08",
+        "1A413033-R09",
+        "1A413074"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "大体积混凝土施工、测温与温控"
+    },
+    {
+      "slot": 13,
+      "capability_id": "C01",
+      "capability_title": "施工缝留置与处理",
+      "primary_taxonomy_ref": "1A413040-R20",
+      "primary_taxonomy_name": "施工缝和后浇带",
+      "supporting_taxonomy_refs": [
+        "1A413040-R29",
+        "1A434000-B037"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "C01"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 18,
+      "compiled_source_units": 5,
+      "compiled_scoring_points": 9,
+      "overlap_existing_mother_topics": [
+        "Q03"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413040-R20",
+        "1A413040-R29",
+        "1A434000-B037"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "Q03"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A434000-B037"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "已有 C01 原型;施工缝/后浇带和接槎通病"
+    },
+    {
+      "slot": 14,
+      "capability_id": "C05",
+      "capability_title": "钢筋连接选用",
+      "primary_taxonomy_ref": "1A413040-R44",
+      "primary_taxonomy_name": "钢筋连接",
+      "supporting_taxonomy_refs": [
+        "1A434000-B063"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "C05"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 203,
+      "compiled_source_units": 165,
+      "compiled_scoring_points": 582,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413040-R44",
+        "1A434000-B063"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "钢筋连接与质量控制"
+    },
+    {
+      "slot": 15,
+      "capability_id": "C06",
+      "capability_title": "砌体留槎与构造柱",
+      "primary_taxonomy_ref": "1A413081",
+      "primary_taxonomy_name": "砖砌体工程",
+      "supporting_taxonomy_refs": [
+        "1A413083",
+        "1A413042-R03",
+        "1A413030-G01"
+      ],
+      "alignment_status": "coarse_review",
+      "existing_mother_topics": [
+        "C06"
+      ],
+      "coverage_strength": "coarse_boundary",
+      "coverage_strength_score": 1,
+      "exam_evidence_hits_candidate": 45,
+      "compiled_source_units": 16,
+      "compiled_scoring_points": 47,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413030-G01",
+        "1A413042-R03",
+        "1A413081",
+        "1A413083"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_boundary",
+      "decision_rationale": "已有母题；先补精确 leaf/source 边界",
+      "registry_note": "留槎/构造柱缺精确 leaf;只能先锚砖砌体/填充墙/洞口留置"
+    },
+    {
+      "slot": 16,
+      "capability_id": "C07",
+      "capability_title": "钢结构连接: 焊接/高强螺栓",
+      "primary_taxonomy_ref": "1A413043",
+      "primary_taxonomy_name": "钢结构工程施工",
+      "supporting_taxonomy_refs": [
+        "1A413084",
+        "1A413040-R33",
+        "1A413040-R64",
+        "1A434000-B082"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "C07"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 69,
+      "compiled_source_units": 25,
+      "compiled_scoring_points": 57,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413040-R33",
+        "1A413040-R64",
+        "1A413043",
+        "1A413084",
+        "1A434000-B082"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "钢结构施工、构件连接、高强螺栓安装与主控"
+    },
+    {
+      "slot": 17,
+      "capability_id": "S05",
+      "capability_title": "临时用电: 三级配电两级保护",
+      "primary_taxonomy_ref": "1A431050",
+      "primary_taxonomy_name": "施工临时用电",
+      "supporting_taxonomy_refs": [
+        "1A431051",
+        "1A431052",
+        "1A431010-C03"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "S05"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 41,
+      "compiled_source_units": 6,
+      "compiled_scoring_points": 15,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A431010-C03",
+        "1A431050",
+        "1A431051",
+        "1A431052"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "临电组织设计、管理、安全技术"
+    },
+    {
+      "slot": 18,
+      "capability_id": "S06",
+      "capability_title": "高处作业/临边洞口防护",
+      "primary_taxonomy_ref": "1A436035",
+      "primary_taxonomy_name": "高处作业安全管理要点",
+      "supporting_taxonomy_refs": [
+        "1A436000-B177",
+        "1A436000-B180"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "S06"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 67,
+      "compiled_source_units": 98,
+      "compiled_scoring_points": 356,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A436000-B177",
+        "1A436000-B180",
+        "1A436035"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "高处作业基本要求和隐患"
+    },
+    {
+      "slot": 19,
+      "capability_id": "S07",
+      "capability_title": "安全事故等级判定与上报",
+      "primary_taxonomy_ref": "1A436000-B023",
+      "primary_taxonomy_name": "伤亡事故等级",
+      "supporting_taxonomy_refs": [
+        "1A436000-B066",
+        "1A436040",
+        "1A436041"
+      ],
+      "alignment_status": "coarse_review",
+      "existing_mother_topics": [
+        "S07"
+      ],
+      "coverage_strength": "coarse_boundary",
+      "coverage_strength_score": 1,
+      "exam_evidence_hits_candidate": 27,
+      "compiled_source_units": 5,
+      "compiled_scoring_points": 21,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A436000-B023",
+        "1A436000-B066",
+        "1A436040",
+        "1A436041"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_boundary",
+      "decision_rationale": "已有母题；先补精确 leaf/source 边界",
+      "registry_note": "事故等级/分类可锚,上报程序需补 source_ref"
+    },
+    {
+      "slot": 20,
+      "capability_id": "N02",
+      "capability_title": "网络计划工期优化与赶工费用",
+      "primary_taxonomy_ref": "1A433000-B042",
+      "primary_taxonomy_name": "网络计划的优化",
+      "supporting_taxonomy_refs": [
+        "1A433012",
+        "1A433000-B041"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "N02"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 32,
+      "compiled_source_units": 23,
+      "compiled_scoring_points": 71,
+      "overlap_existing_mother_topics": [
+        "N01"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A433000-B041",
+        "1A433000-B042",
+        "1A433012"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "N01",
+        "N04"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A433000-B041",
+        "1A433000-B042"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "网络计划优化及关键线路基础"
+    },
+    {
+      "slot": 21,
+      "capability_id": "D11",
+      "capability_title": "抹灰工序与质量控制",
+      "primary_taxonomy_ref": "1A434030-E01",
+      "primary_taxonomy_name": "装饰装修——抹灰工程",
+      "supporting_taxonomy_refs": [
+        "1A422000-B012"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "D11"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 68,
+      "compiled_source_units": 5,
+      "compiled_scoring_points": 10,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A422000-B012",
+        "1A434030-E01"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "抹灰工程与交接处防裂"
+    },
+    {
+      "slot": 22,
+      "capability_id": "D12",
+      "capability_title": "饰面砖/板施工质量与空鼓防治",
+      "primary_taxonomy_ref": "1A413064",
+      "primary_taxonomy_name": "墙体饰面工程施工",
+      "supporting_taxonomy_refs": [
+        "1A413130",
+        "1A434000-B054",
+        "1A434034"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "D12"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 58,
+      "compiled_source_units": 6,
+      "compiled_scoring_points": 21,
+      "overlap_existing_mother_topics": [
+        "D14"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413064",
+        "1A413130",
+        "1A434000-B054",
+        "1A434034"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "D14"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A434034"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "饰面工程、饰面砖、装饰质量通病"
+    },
+    {
+      "slot": 23,
+      "capability_id": "D13",
+      "capability_title": "幕墙防火/防雷/层间封堵构造",
+      "primary_taxonomy_ref": "1A413134",
+      "primary_taxonomy_name": "建筑幕墙防火、防雷和成品保护技术要求",
+      "supporting_taxonomy_refs": [
+        "1A413065-R10",
+        "1A413065-R11",
+        "1A413065-R12"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "D13"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 30,
+      "compiled_source_units": 5,
+      "compiled_scoring_points": 13,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413065-R10",
+        "1A413065-R11",
+        "1A413065-R12",
+        "1A413134"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "R04"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413065-R11",
+        "1A413065-R12",
+        "1A413134"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "幕墙防火、防雷、构造要求"
+    },
+    {
+      "slot": 24,
+      "capability_id": "D14",
+      "capability_title": "吊顶/门窗/地面装饰质量综合",
+      "primary_taxonomy_ref": "1A413062",
+      "primary_taxonomy_name": "吊顶工程施工",
+      "supporting_taxonomy_refs": [
+        "1A413063",
+        "1A413061-R10",
+        "1A434034"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "D14"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 75,
+      "compiled_source_units": 10,
+      "compiled_scoring_points": 31,
+      "overlap_existing_mother_topics": [
+        "D12"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413061-R10",
+        "1A413062",
+        "1A413063",
+        "1A434034"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "D12",
+        "D15",
+        "D16"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413061-R10",
+        "1A413063",
+        "1A434034"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "综合包;细拆 D15/D16 前不得混成一个评分点"
+    },
+    {
+      "slot": 25,
+      "capability_id": "G01",
+      "capability_title": "基坑开挖与降水方法选择",
+      "primary_taxonomy_ref": "1A413037",
+      "primary_taxonomy_name": "土方开挖",
+      "supporting_taxonomy_refs": [
+        "1A413036",
+        "1A413000-B081",
+        "1A413000-B071"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "G01"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 23,
+      "compiled_source_units": 8,
+      "compiled_scoring_points": 21,
+      "overlap_existing_mother_topics": [
+        "B02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413000-B071",
+        "1A413000-B081",
+        "1A413036",
+        "1A413037"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "B02"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413036"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "土方开挖、降水技术、深基坑开挖"
+    },
+    {
+      "slot": 26,
+      "capability_id": "G02",
+      "capability_title": "土方回填压实与检测",
+      "primary_taxonomy_ref": "1A413039",
+      "primary_taxonomy_name": "土方回填",
+      "supporting_taxonomy_refs": [
+        "1A413000-B020",
+        "1A436000-B043"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "G02"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 29,
+      "compiled_source_units": 5,
+      "compiled_scoring_points": 13,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413000-B020",
+        "1A413039",
+        "1A436000-B043"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "回填、填筑压实、安全措施"
+    },
+    {
+      "slot": 27,
+      "capability_id": "G03",
+      "capability_title": "桩基施工与质量问题",
+      "primary_taxonomy_ref": "1A413032",
+      "primary_taxonomy_name": "桩基础施工",
+      "supporting_taxonomy_refs": [
+        "1A413067",
+        "1A413068",
+        "1A413069"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "G03"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 42,
+      "compiled_source_units": 15,
+      "compiled_scoring_points": 35,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413032",
+        "1A413067",
+        "1A413068",
+        "1A413069"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "桩基础、预制桩、灌注桩、检测"
+    },
+    {
+      "slot": 28,
+      "capability_id": "G04",
+      "capability_title": "地基验槽与地基处理",
+      "primary_taxonomy_ref": "1A413048",
+      "primary_taxonomy_name": "天然地基验槽",
+      "supporting_taxonomy_refs": [
+        "1A413000-B041",
+        "1A413025"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "G04"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 25,
+      "compiled_source_units": 8,
+      "compiled_scoring_points": 29,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A413000-B041",
+        "1A413025",
+        "1A413048"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "天然地基验槽与基坑验槽"
+    },
+    {
+      "slot": 29,
+      "capability_id": "F16",
+      "capability_title": "屋面防水起鼓割补",
+      "primary_taxonomy_ref": "1A434000",
+      "primary_taxonomy_name": "施工质量管理",
+      "supporting_taxonomy_refs": [
+        "1A434000-B016",
+        "1A413103"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "F16"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 59,
+      "compiled_source_units": 6,
+      "compiled_scoring_points": 18,
+      "overlap_existing_mother_topics": [
+        "F02",
+        "F05"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413103",
+        "1A434000",
+        "1A434000-B016"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "F02",
+        "F05"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413103",
+        "1A434000-B016"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "已有 F16 样板;现有 JSON 粗锚 `1A434000`,需补割补 source_ref"
+    },
+    {
+      "slot": 30,
+      "capability_id": "F02",
+      "capability_title": "卷材防水施工顺序与搭接方向",
+      "primary_taxonomy_ref": "1A413103",
+      "primary_taxonomy_name": "屋面卷材防水层施工",
+      "supporting_taxonomy_refs": [
+        "1A413051-R03",
+        "1A413112",
+        "1A422000-B021"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "F02"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 55,
+      "compiled_source_units": 6,
+      "compiled_scoring_points": 15,
+      "overlap_existing_mother_topics": [
+        "F03",
+        "F16"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413051-R03",
+        "1A413103",
+        "1A413112",
+        "1A422000-B021"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "F03",
+        "F16"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413103",
+        "1A413112"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "屋面/卷材防水层施工"
+    },
+    {
+      "slot": 31,
+      "capability_id": "F03",
+      "capability_title": "防水构造层次: 屋面/地下",
+      "primary_taxonomy_ref": "1A413100",
+      "primary_taxonomy_name": "屋面防水等级和防水做法",
+      "supporting_taxonomy_refs": [
+        "1A413102",
+        "1A413050-R20",
+        "1A413050-R21",
+        "1A413112"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "F03"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 83,
+      "compiled_source_units": 9,
+      "compiled_scoring_points": 30,
+      "overlap_existing_mother_topics": [
+        "F02",
+        "F04"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413050-R20",
+        "1A413050-R21",
+        "1A413100",
+        "1A413102",
+        "1A413112"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "F02",
+        "F04"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413050-R20",
+        "1A413050-R21",
+        "1A413112"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "防水等级、基本要求、构造层次"
+    },
+    {
+      "slot": 32,
+      "capability_id": "F04",
+      "capability_title": "防水细部节点: 阴阳角/管根/女儿墙",
+      "primary_taxonomy_ref": "1A413050-R07",
+      "primary_taxonomy_name": "卷材防水层施工",
+      "supporting_taxonomy_refs": [
+        "1A413050-R20",
+        "1A413050-R21",
+        "1A413050-R23"
+      ],
+      "alignment_status": "coarse_review",
+      "existing_mother_topics": [
+        "F04"
+      ],
+      "coverage_strength": "coarse_boundary",
+      "coverage_strength_score": 1,
+      "exam_evidence_hits_candidate": 32,
+      "compiled_source_units": 8,
+      "compiled_scoring_points": 24,
+      "overlap_existing_mother_topics": [
+        "F03"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413050-R07",
+        "1A413050-R20",
+        "1A413050-R21",
+        "1A413050-R23"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "F03"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413050-R20",
+        "1A413050-R21"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_boundary",
+      "decision_rationale": "已有母题；先补精确 leaf/source 边界",
+      "registry_note": "细部节点缺专门 leaf;需 source_ref 明确节点"
+    },
+    {
+      "slot": 33,
+      "capability_id": "F05",
+      "capability_title": "渗漏治理诊断",
+      "primary_taxonomy_ref": "1A434033",
+      "primary_taxonomy_name": "屋面与防水工程质量通病防治",
+      "supporting_taxonomy_refs": [
+        "1A434000-B016",
+        "1A434000-B067"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "F05"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 20,
+      "compiled_source_units": 7,
+      "compiled_scoring_points": 13,
+      "overlap_existing_mother_topics": [
+        "F16"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A434000-B016",
+        "1A434000-B067",
+        "1A434033"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "F16"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A434000-B016"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "屋面防水通病、防水施工缝渗漏"
+    },
+    {
+      "slot": 34,
+      "capability_id": "X01",
+      "capability_title": "施工平面布置原则",
+      "primary_taxonomy_ref": "1A431040",
+      "primary_taxonomy_name": "施工平面布置",
+      "supporting_taxonomy_refs": [
+        "1A431041",
+        "1A431042"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "X01"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 36,
+      "compiled_source_units": 3,
+      "compiled_scoring_points": 11,
+      "overlap_existing_mother_topics": [
+        "X02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A431040",
+        "1A431041",
+        "1A431042"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "X02"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A431040"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "平面布置图设计和管理"
+    },
+    {
+      "slot": 35,
+      "capability_id": "X02",
+      "capability_title": "临设、道路、材料堆场布置",
+      "primary_taxonomy_ref": "1A431040",
+      "primary_taxonomy_name": "施工平面布置",
+      "supporting_taxonomy_refs": [
+        "1A437000-B011",
+        "1A437000-B026",
+        "1A438000-B060"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "X02"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 84,
+      "compiled_source_units": 6,
+      "compiled_scoring_points": 17,
+      "overlap_existing_mother_topics": [
+        "A02",
+        "X01"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A431040",
+        "1A437000-B011",
+        "1A437000-B026",
+        "1A438000-B060"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "A02",
+        "X01"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A431040",
+        "1A438000-B060"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "平面布置叠加仓库/堆场/材料进场"
+    },
+    {
+      "slot": 36,
+      "capability_id": "X03",
+      "capability_title": "文明/绿色/环保施工措施",
+      "primary_taxonomy_ref": "1A437020",
+      "primary_taxonomy_name": "绿色施工及环境保护",
+      "supporting_taxonomy_refs": [
+        "1A437021",
+        "1A437023",
+        "1A437000-B071",
+        "1A437000-B087"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "X03"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 88,
+      "compiled_source_units": 12,
+      "compiled_scoring_points": 41,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A437000-B071",
+        "1A437000-B087",
+        "1A437020",
+        "1A437021",
+        "1A437023"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "X04"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A437000-B087",
+        "1A437020",
+        "1A437021"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "文明施工、绿色施工、环保要求合并"
+    },
+    {
+      "slot": 37,
+      "capability_id": "R01",
+      "capability_title": "现场消防布置、动火、检查、验收流程",
+      "primary_taxonomy_ref": "1A437030",
+      "primary_taxonomy_name": "施工现场消防",
+      "supporting_taxonomy_refs": [
+        "1A437031",
+        "1A437032",
+        "1A437000-B060",
+        "1A437000-B061",
+        "1A422026"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "R01"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 18,
+      "compiled_source_units": 10,
+      "compiled_scoring_points": 25,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A422026",
+        "1A437000-B060",
+        "1A437000-B061",
+        "1A437030",
+        "1A437031",
+        "1A437032"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "R05"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A422026",
+        "1A437000-B061",
+        "1A437032"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "施工现场消防 + 消防审查验收规定"
+    },
+    {
+      "slot": 38,
+      "capability_id": "N03",
+      "capability_title": "流水施工参数与工期",
+      "primary_taxonomy_ref": "1A433011",
+      "primary_taxonomy_name": "流水施工计划横道图",
+      "supporting_taxonomy_refs": [
+        "1A433000-B030",
+        "1A433000-B031",
+        "1A433000-B014"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "N03"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 87,
+      "compiled_source_units": 8,
+      "compiled_scoring_points": 19,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A433000-B014",
+        "1A433000-B030",
+        "1A433000-B031",
+        "1A433011"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "流水参数、组织形式、计算"
+    },
+    {
+      "slot": 39,
+      "capability_id": "E05",
+      "capability_title": "挣值法/偏差分析",
+      "primary_taxonomy_ref": "1A435020-B010",
+      "primary_taxonomy_name": "应用挣值法控制成本",
+      "supporting_taxonomy_refs": [
+        "1A435020-B011",
+        "1A435020-B017"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "E05"
+      ],
+      "coverage_strength": "source_grounded_exam_zero",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 0,
+      "compiled_source_units": 4,
+      "compiled_scoring_points": 11,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A435020-B010",
+        "1A435020-B011",
+        "1A435020-B017"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "挣值法应用、计算、核心概念"
+    },
+    {
+      "slot": 40,
+      "capability_id": "A02",
+      "capability_title": "隐蔽工程验收 + 材料进场复验/见证取样",
+      "primary_taxonomy_ref": "1A434020-B018",
+      "primary_taxonomy_name": "检验批、分项工程、分部（子分部）工程验收内容",
+      "supporting_taxonomy_refs": [
+        "1A422000-B061",
+        "1A422000-B150",
+        "1A438000-B060"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [
+        "A02"
+      ],
+      "coverage_strength": "broad_composite",
+      "coverage_strength_score": 2,
+      "exam_evidence_hits_candidate": 77,
+      "compiled_source_units": 11,
+      "compiled_scoring_points": 37,
+      "overlap_existing_mother_topics": [
+        "A01",
+        "X02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A422000-B061",
+        "1A422000-B150",
+        "1A434020-B018",
+        "1A438000-B060"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "A01",
+        "D17",
+        "F06",
+        "X02"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A422000-B061",
+        "1A422000-B150",
+        "1A434020-B018",
+        "1A438000-B060"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "refine_existing_composite",
+      "decision_rationale": "已有组合母题；先收窄主辅能力边界",
+      "registry_note": "验收、见证取样、材料进场合并包"
+    },
+    {
+      "slot": 41,
+      "capability_id": "E01",
+      "capability_title": "工程量清单计价",
+      "primary_taxonomy_ref": "1A432000-B037",
+      "primary_taxonomy_name": "工程量清单计价方式",
+      "supporting_taxonomy_refs": [
+        "1A432000-B053"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [
+        "E01"
+      ],
+      "coverage_strength": "strong_direct",
+      "coverage_strength_score": 4,
+      "exam_evidence_hits_candidate": 39,
+      "compiled_source_units": 6,
+      "compiled_scoring_points": 18,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [
+        "1A432000-B037",
+        "1A432000-B053"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "retain_existing",
+      "decision_rationale": "已有独立母题，不新增同义包",
+      "registry_note": "清单计价方式"
+    },
+    {
+      "slot": 42,
+      "capability_id": "E02",
+      "capability_title": "预付款、起扣点、进度款细分",
+      "primary_taxonomy_ref": "1A432000-C19",
+      "primary_taxonomy_name": "工程预付款、进度款及结算款计算",
+      "supporting_taxonomy_refs": [
+        "1A432000-C20",
+        "1A432000-C17",
+        "1A432000-C24"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "C02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A432000-C17",
+        "1A432000-C19",
+        "1A432000-C24"
+      ],
+      "overlap_existing_ratio": 0.75,
+      "overlap_registry_capabilities": [
+        "C02"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A432000-C17",
+        "1A432000-C19",
+        "1A432000-C24"
+      ],
+      "missing_capability_refs": [
+        "1A432000-C20"
+      ],
+      "missing_capability_names": [
+        "工程预付款的支付"
+      ],
+      "worth_adding": "no",
+      "recommended_action": "enrich_existing_instead",
+      "decision_rationale": "与现有母题共享多数 taxonomy refs；先补现有包",
+      "registry_note": "预付款、进度款、结算款计算"
+    },
+    {
+      "slot": 43,
+      "capability_id": "E03",
+      "capability_title": "措施费、暂列金额、暂估价判断",
+      "primary_taxonomy_ref": "1A432000-C08",
+      "primary_taxonomy_name": "合同价款确定与调整",
+      "supporting_taxonomy_refs": [
+        "1A432000-C35",
+        "1A435000"
+      ],
+      "alignment_status": "coarse_review",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [],
+      "overlap_existing_ratio": 0.0,
+      "overlap_registry_capabilities": [
+        "E04",
+        "K04"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A432000-C08",
+        "1A432000-C35"
+      ],
+      "missing_capability_refs": [
+        "1A432000-C08",
+        "1A432000-C35",
+        "1A435000"
+      ],
+      "missing_capability_names": [
+        "合同价款确定与调整",
+        "调整合同价款的事项",
+        "施工成本管理"
+      ],
+      "worth_adding": "conditional",
+      "recommended_action": "evidence_first",
+      "decision_rationale": "暂列/暂估未命中精确 leaf;需计价 source_ref",
+      "registry_note": "暂列/暂估未命中精确 leaf;需计价 source_ref"
+    },
+    {
+      "slot": 44,
+      "capability_id": "E04",
+      "capability_title": "竣工结算与价款调整",
+      "primary_taxonomy_ref": "1A432000-C29",
+      "primary_taxonomy_name": "竣工结算申请与支付",
+      "supporting_taxonomy_refs": [
+        "1A432000-C30",
+        "1A432000-C08",
+        "1A432000-C35"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [],
+      "overlap_existing_ratio": 0.0,
+      "overlap_registry_capabilities": [
+        "E03",
+        "K04"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A432000-C08",
+        "1A432000-C35"
+      ],
+      "missing_capability_refs": [
+        "1A432000-C29",
+        "1A432000-C30",
+        "1A432000-C08",
+        "1A432000-C35"
+      ],
+      "missing_capability_names": [
+        "竣工结算申请与支付",
+        "竣工结算确定与调整",
+        "合同价款确定与调整",
+        "调整合同价款的事项"
+      ],
+      "worth_adding": "yes_candidate",
+      "recommended_action": "add_after_exam_evidence",
+      "decision_rationale": "存在独立竣工结算能力；先与 E03/K04 划界，再补真题与 source 证据",
+      "registry_note": "竣工结算、价款确定与调整"
+    },
+    {
+      "slot": 45,
+      "capability_id": "K03",
+      "capability_title": "工程变更与签证",
+      "primary_taxonomy_ref": "1A432000-C14",
+      "primary_taxonomy_name": "工程变更",
+      "supporting_taxonomy_refs": [
+        "1A432000-B056",
+        "1A432000-B058"
+      ],
+      "alignment_status": "coarse_review",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [],
+      "overlap_existing_ratio": 0.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [
+        "1A432000-C14",
+        "1A432000-B056",
+        "1A432000-B058"
+      ],
+      "missing_capability_names": [
+        "工程变更",
+        "索赔的管理",
+        "索赔的证据"
+      ],
+      "worth_adding": "conditional",
+      "recommended_action": "evidence_first",
+      "decision_rationale": "工程变更有节点,签证需 source_ref 补证",
+      "registry_note": "工程变更有节点,签证需 source_ref 补证"
+    },
+    {
+      "slot": 46,
+      "capability_id": "K05",
+      "capability_title": "工期顺延与费用补偿边界",
+      "primary_taxonomy_ref": "1A432000-B001",
+      "primary_taxonomy_name": "① 工期索赔计算",
+      "supporting_taxonomy_refs": [
+        "1A432000-B002",
+        "1A432000-B015",
+        "1A432000-B057"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "K01"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A432000-B001",
+        "1A432000-B002",
+        "1A432000-B015",
+        "1A432000-B057"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "K01",
+        "K06"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A432000-B001",
+        "1A432000-B002",
+        "1A432000-B015",
+        "1A432000-B057"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "no",
+      "recommended_action": "enrich_existing_instead",
+      "decision_rationale": "与现有母题共享多数 taxonomy refs；先补现有包",
+      "registry_note": "默认作为 K01/K06 的迁移包"
+    },
+    {
+      "slot": 47,
+      "capability_id": "K06",
+      "capability_title": "合同责任事件归属矩阵",
+      "primary_taxonomy_ref": "1A432000-B004",
+      "primary_taxonomy_name": "不可抗力事件的索赔",
+      "supporting_taxonomy_refs": [
+        "1A432000-B015",
+        "1A432000-B016",
+        "1A432000-C13"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "K01"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A432000-B015"
+      ],
+      "overlap_existing_ratio": 0.25,
+      "overlap_registry_capabilities": [
+        "K01",
+        "K02",
+        "K05"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A432000-B004",
+        "1A432000-B015"
+      ],
+      "missing_capability_refs": [
+        "1A432000-B004",
+        "1A432000-B016",
+        "1A432000-C13"
+      ],
+      "missing_capability_names": [
+        "不可抗力事件的索赔",
+        "发包人可提出的索赔事项",
+        "履约事件的索赔"
+      ],
+      "worth_adding": "conditional",
+      "recommended_action": "candidate_after_boundary_review",
+      "decision_rationale": "有独立能力残差，但需先证明组合边界",
+      "registry_note": "责任事件矩阵,吸收 K02"
+    },
+    {
+      "slot": 48,
+      "capability_id": "R02/R03",
+      "capability_title": "耐火等级、疏散距离、防火分区基础数值判断",
+      "primary_taxonomy_ref": "1A411020-R16",
+      "primary_taxonomy_name": "防火、防烟、疏散的要求",
+      "supporting_taxonomy_refs": [
+        "1A411020-R15",
+        "1A411020-R22"
+      ],
+      "alignment_status": "coarse_review",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [],
+      "overlap_existing_ratio": 0.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [
+        "1A411020-R16",
+        "1A411020-R15",
+        "1A411020-R22"
+      ],
+      "missing_capability_names": [
+        "防火、防烟、疏散的要求",
+        "表 1.2-1 室内疏散楼梯的最小净宽度（m）",
+        "防火门、防火窗和防火卷帘构造的基本要求"
+      ],
+      "worth_adding": "conditional",
+      "recommended_action": "evidence_first",
+      "decision_rationale": "疏散/防火构造有节点,耐火等级/防火分区缺精确 leaf",
+      "registry_note": "疏散/防火构造有节点,耐火等级/防火分区缺精确 leaf"
+    },
+    {
+      "slot": 49,
+      "capability_id": "R04",
+      "capability_title": "防火封堵与幕墙层间防火",
+      "primary_taxonomy_ref": "1A413134",
+      "primary_taxonomy_name": "建筑幕墙防火、防雷和成品保护技术要求",
+      "supporting_taxonomy_refs": [
+        "1A413065-R11",
+        "1A413065-R12",
+        "1A412010-B152"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "D13"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413065-R11",
+        "1A413065-R12",
+        "1A413134"
+      ],
+      "overlap_existing_ratio": 0.75,
+      "overlap_registry_capabilities": [
+        "D13"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413065-R11",
+        "1A413065-R12",
+        "1A413134"
+      ],
+      "missing_capability_refs": [
+        "1A412010-B152"
+      ],
+      "missing_capability_names": [
+        "防火堵料"
+      ],
+      "worth_adding": "no",
+      "recommended_action": "enrich_existing_instead",
+      "decision_rationale": "与现有母题共享多数 taxonomy refs；先补现有包",
+      "registry_note": "可与 D13 联动,封堵需补 source_ref"
+    },
+    {
+      "slot": 50,
+      "capability_id": "N04",
+      "capability_title": "时标网络计划与前锋线判断",
+      "primary_taxonomy_ref": "1A433000-G02",
+      "primary_taxonomy_name": "实际进度前锋线比较法",
+      "supporting_taxonomy_refs": [
+        "1A433000-B041",
+        "1A433000-B042"
+      ],
+      "alignment_status": "composite",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "N01",
+        "N02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A433000-B041",
+        "1A433000-B042"
+      ],
+      "overlap_existing_ratio": 0.6667,
+      "overlap_registry_capabilities": [
+        "N01",
+        "N02"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A433000-B041",
+        "1A433000-B042"
+      ],
+      "missing_capability_refs": [
+        "1A433000-G02"
+      ],
+      "missing_capability_names": [
+        "实际进度前锋线比较法"
+      ],
+      "worth_adding": "no",
+      "recommended_action": "enrich_existing_instead",
+      "decision_rationale": "与现有母题共享多数 taxonomy refs；先补现有包",
+      "registry_note": "前锋线有节点,时标网络需 source_ref"
+    },
+    {
+      "slot": 51,
+      "capability_id": "G05",
+      "capability_title": "支护结构监测报警与处置",
+      "primary_taxonomy_ref": "1A413034",
+      "primary_taxonomy_name": "基坑监测",
+      "supporting_taxonomy_refs": [
+        "1A413000-B033",
+        "1A413000-B036"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "B02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413000-B033",
+        "1A413034"
+      ],
+      "overlap_existing_ratio": 0.6667,
+      "overlap_registry_capabilities": [
+        "B02"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413000-B033",
+        "1A413034"
+      ],
+      "missing_capability_refs": [
+        "1A413000-B036"
+      ],
+      "missing_capability_names": [
+        "基坑开挖过程中的测量与监测"
+      ],
+      "worth_adding": "no",
+      "recommended_action": "enrich_existing_instead",
+      "decision_rationale": "与现有母题共享多数 taxonomy refs；先补现有包",
+      "registry_note": "基坑监测、报警条件、测量监测"
+    },
+    {
+      "slot": 52,
+      "capability_id": "K04",
+      "capability_title": "合同价款调整触发与计算边界",
+      "primary_taxonomy_ref": "1A432000-C08",
+      "primary_taxonomy_name": "合同价款确定与调整",
+      "supporting_taxonomy_refs": [
+        "1A432000-C09",
+        "1A432000-C35"
+      ],
+      "alignment_status": "direct",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [],
+      "overlap_existing_ratio": 0.0,
+      "overlap_registry_capabilities": [
+        "E03",
+        "E04"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A432000-C08",
+        "1A432000-C35"
+      ],
+      "missing_capability_refs": [
+        "1A432000-C08",
+        "1A432000-C09",
+        "1A432000-C35"
+      ],
+      "missing_capability_names": [
+        "合同价款确定与调整",
+        "合同价款计算与调整",
+        "调整合同价款的事项"
+      ],
+      "worth_adding": "conditional",
+      "recommended_action": "hold_until_parent_boundary",
+      "decision_rationale": "默认从 E04/K05 条件拆分",
+      "registry_note": "默认从 E04/K05 条件拆分"
+    },
+    {
+      "slot": 53,
+      "capability_id": "K02",
+      "capability_title": "不可抗力责任划分",
+      "primary_taxonomy_ref": "1A432000-B004",
+      "primary_taxonomy_name": "不可抗力事件的索赔",
+      "supporting_taxonomy_refs": [],
+      "alignment_status": "merged_child",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [],
+      "overlap_existing_ratio": 0.0,
+      "overlap_registry_capabilities": [
+        "K06"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A432000-B004"
+      ],
+      "missing_capability_refs": [
+        "1A432000-B004"
+      ],
+      "missing_capability_names": [
+        "不可抗力事件的索赔"
+      ],
+      "worth_adding": "no",
+      "recommended_action": "merge_into_planned_parent",
+      "decision_rationale": "默认并入 K06",
+      "registry_note": "默认并入 K06"
+    },
+    {
+      "slot": 54,
+      "capability_id": "R05",
+      "capability_title": "消防验收流程",
+      "primary_taxonomy_ref": "1A422026",
+      "primary_taxonomy_name": "建设工程消防设计审查验收有关规定",
+      "supporting_taxonomy_refs": [
+        "1A437032",
+        "1A437000-B061"
+      ],
+      "alignment_status": "conditional_split",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "R01"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A422026",
+        "1A437000-B061",
+        "1A437032"
+      ],
+      "overlap_existing_ratio": 1.0,
+      "overlap_registry_capabilities": [
+        "R01"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A422026",
+        "1A437000-B061",
+        "1A437032"
+      ],
+      "missing_capability_refs": [],
+      "missing_capability_names": [],
+      "worth_adding": "conditional",
+      "recommended_action": "split_only_with_evidence",
+      "decision_rationale": "默认并入 R01;独立需验收流程 source_ref",
+      "registry_note": "默认并入 R01;独立需验收流程 source_ref"
+    },
+    {
+      "slot": 55,
+      "capability_id": "X05",
+      "capability_title": "季节性施工措施: 雨期/冬期/高温",
+      "primary_taxonomy_ref": "1A413080",
+      "primary_taxonomy_name": "季节性施工技术",
+      "supporting_taxonomy_refs": [
+        "1A413000-C03",
+        "1A413000-C26",
+        "1A413000-C28",
+        "1A413000-C19"
+      ],
+      "alignment_status": "conditional_split",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [],
+      "shared_existing_taxonomy_refs": [],
+      "overlap_existing_ratio": 0.0,
+      "overlap_registry_capabilities": [],
+      "shared_registry_taxonomy_refs": [],
+      "missing_capability_refs": [
+        "1A413080",
+        "1A413000-C03",
+        "1A413000-C26",
+        "1A413000-C28",
+        "1A413000-C19"
+      ],
+      "missing_capability_names": [
+        "季节性施工技术",
+        "冬期施工技术",
+        "雨期施工技术",
+        "高温天气施工技术",
+        "表 3.8-1 防水工程冬期施工环境气温要求"
+      ],
+      "worth_adding": "conditional",
+      "recommended_action": "split_only_with_evidence",
+      "decision_rationale": "场景变体,默认不独立锁定",
+      "registry_note": "场景变体,默认不独立锁定"
+    },
+    {
+      "slot": 56,
+      "capability_id": "F06",
+      "capability_title": "防水材料性能与进场复验",
+      "primary_taxonomy_ref": "1A412031",
+      "primary_taxonomy_name": "建筑防水材料的特性与应用",
+      "supporting_taxonomy_refs": [
+        "1A412010-B053",
+        "1A412010-B148",
+        "1A412010-B149",
+        "1A422000-B061"
+      ],
+      "alignment_status": "merged_child",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "A02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A422000-B061"
+      ],
+      "overlap_existing_ratio": 0.2,
+      "overlap_registry_capabilities": [
+        "A02",
+        "D17"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A422000-B061"
+      ],
+      "missing_capability_refs": [
+        "1A412031",
+        "1A412010-B053",
+        "1A412010-B148",
+        "1A412010-B149"
+      ],
+      "missing_capability_names": [
+        "建筑防水材料的特性与应用",
+        "建筑防水材料的特性与应用",
+        "防水卷材",
+        "防水卷材的主要性能"
+      ],
+      "worth_adding": "no",
+      "recommended_action": "merge_into_existing",
+      "decision_rationale": "默认并入 A02,防水为场景",
+      "registry_note": "默认并入 A02,防水为场景"
+    },
+    {
+      "slot": 57,
+      "capability_id": "D17",
+      "capability_title": "装饰材料进场复验与见证取样",
+      "primary_taxonomy_ref": "1A422000-B061",
+      "primary_taxonomy_name": "应进行见证取样检验的进场材料",
+      "supporting_taxonomy_refs": [
+        "1A422000-B150",
+        "1A422000-B157",
+        "1A434020-B022"
+      ],
+      "alignment_status": "merged_child",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "A02"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A422000-B061",
+        "1A422000-B150"
+      ],
+      "overlap_existing_ratio": 0.5,
+      "overlap_registry_capabilities": [
+        "A02",
+        "D15",
+        "F06"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A422000-B061",
+        "1A422000-B150",
+        "1A422000-B157"
+      ],
+      "missing_capability_refs": [
+        "1A422000-B157",
+        "1A434020-B022"
+      ],
+      "missing_capability_names": [
+        "门窗（包括天窗）节能施工材料复验要求",
+        "装饰装修工程主要隐蔽验收项目"
+      ],
+      "worth_adding": "no",
+      "recommended_action": "merge_into_existing",
+      "decision_rationale": "默认并入 A02",
+      "registry_note": "默认并入 A02"
+    },
+    {
+      "slot": 58,
+      "capability_id": "X04",
+      "capability_title": "绿色施工措施",
+      "primary_taxonomy_ref": "1A437013",
+      "primary_taxonomy_name": "绿色施工技术应用",
+      "supporting_taxonomy_refs": [
+        "1A437020",
+        "1A437021",
+        "1A437000-B087",
+        "1A437000-B091"
+      ],
+      "alignment_status": "merged_child",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "X03"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A437000-B087",
+        "1A437020",
+        "1A437021"
+      ],
+      "overlap_existing_ratio": 0.6,
+      "overlap_registry_capabilities": [
+        "X03"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A437000-B087",
+        "1A437020",
+        "1A437021"
+      ],
+      "missing_capability_refs": [
+        "1A437013",
+        "1A437000-B091"
+      ],
+      "missing_capability_names": [
+        "绿色施工技术应用",
+        "绿色施工评价"
+      ],
+      "worth_adding": "no",
+      "recommended_action": "merge_into_existing",
+      "decision_rationale": "默认并入 X03",
+      "registry_note": "默认并入 X03"
+    },
+    {
+      "slot": 59,
+      "capability_id": "D15",
+      "capability_title": "门窗安装、防渗漏质量控制细分候选",
+      "primary_taxonomy_ref": "1A413061-R10",
+      "primary_taxonomy_name": "门窗洞口安装",
+      "supporting_taxonomy_refs": [
+        "1A422000-B156",
+        "1A422000-B157",
+        "1A434000-B066"
+      ],
+      "alignment_status": "conditional_split",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "D14"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413061-R10"
+      ],
+      "overlap_existing_ratio": 0.25,
+      "overlap_registry_capabilities": [
+        "D14",
+        "D17"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413061-R10",
+        "1A422000-B157"
+      ],
+      "missing_capability_refs": [
+        "1A422000-B156",
+        "1A422000-B157",
+        "1A434000-B066"
+      ],
+      "missing_capability_names": [
+        "门窗安装要求",
+        "门窗（包括天窗）节能施工材料复验要求",
+        "门窗节能工程常见问题治理"
+      ],
+      "worth_adding": "conditional",
+      "recommended_action": "split_only_with_evidence",
+      "decision_rationale": "从 D14 拆分需 source_ref",
+      "registry_note": "从 D14 拆分需 source_ref"
+    },
+    {
+      "slot": 60,
+      "capability_id": "D16",
+      "capability_title": "地面基层与面层质量细分候选",
+      "primary_taxonomy_ref": "1A413063",
+      "primary_taxonomy_name": "地面工程施工",
+      "supporting_taxonomy_refs": [
+        "1A413063-R02",
+        "1A413063-R03",
+        "1A434000-B011"
+      ],
+      "alignment_status": "conditional_split",
+      "existing_mother_topics": [],
+      "coverage_strength": "missing",
+      "coverage_strength_score": 0,
+      "exam_evidence_hits_candidate": null,
+      "compiled_source_units": null,
+      "compiled_scoring_points": null,
+      "overlap_existing_mother_topics": [
+        "D14",
+        "Q03"
+      ],
+      "shared_existing_taxonomy_refs": [
+        "1A413063",
+        "1A434000-B011"
+      ],
+      "overlap_existing_ratio": 0.5,
+      "overlap_registry_capabilities": [
+        "D14",
+        "Q03"
+      ],
+      "shared_registry_taxonomy_refs": [
+        "1A413063",
+        "1A434000-B011"
+      ],
+      "missing_capability_refs": [
+        "1A413063-R02",
+        "1A413063-R03"
+      ],
+      "missing_capability_names": [
+        "地面工程施工",
+        "建筑地面工程分类"
+      ],
+      "worth_adding": "conditional",
+      "recommended_action": "split_only_with_evidence",
+      "decision_rationale": "从 D14 拆分需 source_ref",
+      "registry_note": "从 D14 拆分需 source_ref"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # PDF Source Ledger v1
 
-- Generated at: `2026-06-19T00:00:00+08:00`
+- Generated at: `2026-07-16T14:54:49+08:00`
 - Authority: raw PDF evidence ledger only; not runtime supply, not official score authority.
 - PDF files: **95**
 - Candidate structured derivative refs: **39**

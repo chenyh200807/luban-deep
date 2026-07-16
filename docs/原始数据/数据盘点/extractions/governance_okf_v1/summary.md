@@ -1,38 +1,38 @@
 # Governance OKF v1
 
-- Generated at: `2026-06-20T00:00:00+08:00`
+- Generated at: `2026-07-16T14:54:49+08:00`
 - Purpose: AI project understanding only; this is not a production control plane.
-- Files indexed: **256**
-- Total bytes: **5,890,667**
+- Files indexed: **348**
+- Total bytes: **7,833,394**
 
 ## Domain Counts
 
 | Domain | Files | Bytes |
 |---|---:|---:|
-| `agent_skills` | 45 | 240,728 |
-| `contracts` | 14 | 291,134 |
+| `agent_skills` | 50 | 386,961 |
+| `contracts` | 14 | 457,570 |
 | `docs_contracts` | 2 | 11,469 |
-| `plan` | 188 | 5,308,981 |
-| `runbook` | 7 | 38,355 |
+| `plan` | 274 | 6,926,799 |
+| `runbook` | 8 | 50,595 |
 
 ## Area Counts
 
-- `governance_context`: 76
-- `contract_authority`: 37
-- `ci_quality_gate`: 31
-- `data_knowledge`: 29
-- `learner_state`: 24
-- `billing_business`: 19
-- `agent_skill`: 11
-- `release_operations`: 10
-- `wechat_frontend`: 10
+- `governance_context`: 145
+- `contract_authority`: 40
+- `ci_quality_gate`: 36
+- `data_knowledge`: 30
+- `billing_business`: 25
+- `learner_state`: 25
+- `agent_skill`: 14
+- `wechat_frontend`: 13
+- `release_operations`: 11
 - `planning_index`: 9
 
 ## Risk Counts
 
-- `low`: 98
-- `medium`: 80
-- `high`: 78
+- `low`: 166
+- `medium`: 95
+- `high`: 87
 
 ## Guardrails
 

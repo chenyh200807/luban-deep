@@ -10,7 +10,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "docs" / "原始数据" / "数据盘点" / "scripts" / "build_data_asset_brief.py"
 EXTRACTIONS_ROOT = REPO_ROOT / "docs" / "原始数据" / "数据盘点" / "extractions"
-RAW_PROFILE = EXTRACTIONS_ROOT / "2026-06-18-raw-data-current-profile.json"
+RAW_PROFILE = EXTRACTIONS_ROOT / "raw-data-current-profile.json"
 JSON_LEDGER = EXTRACTIONS_ROOT / "json_source_ledger_v0" / "manifest.json"
 OKF_SCOPE = EXTRACTIONS_ROOT / "okf_candidate_scope_v0" / "manifest.json"
 PDF_LEDGER = EXTRACTIONS_ROOT / "pdf_source_ledger_v1" / "manifest.json"

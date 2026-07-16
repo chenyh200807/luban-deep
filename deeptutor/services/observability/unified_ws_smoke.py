@@ -14,6 +14,15 @@ import websockets
 from deeptutor.services.observability.metrics_loader import metrics_headers
 
 
+_EVAL_USER_PREFIXES = ("qa_eval_", "eval_", "qa_")
+_EVAL_IDENTITY = {
+    "account_kind": "eval_runner",
+    "actor_type": "machine",
+    "created_by": "eval_runner",
+    "is_internal_test": True,
+}
+
+
 def _build_ws_url(api_base_url: str) -> str:
     parsed = urlparse(api_base_url.rstrip("/"))
     scheme = "wss" if parsed.scheme == "https" else "ws"
@@ -69,6 +78,43 @@ async def _try_load_metrics_snapshot_async(
             error=f"{exc.__class__.__name__}: {exc}",
         )
     return snapshot, _build_metrics_capture(url=url, ok=True, status_code=200)
+
+
+async def verify_eval_runner_identity(
+    *, api_base_url: str, auth_token: str, timeout_seconds: float = 5.0
+) -> dict[str, Any]:
+    token = str(auth_token or "").strip()
+    url = f"{api_base_url.rstrip('/')}/api/v1/auth/profile"
+    if not token:
+        return {"verified": False, "url": url, "reason": "missing_token", "profile": {}}
+    headers = {"Authorization": token if token.lower().startswith("bearer ") else f"Bearer {token}"}
+    try:
+        async with httpx.AsyncClient(timeout=timeout_seconds, trust_env=False) as client:
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            profile = response.json()
+    except Exception as exc:
+        return {
+            "verified": False,
+            "url": url,
+            "reason": "profile_unavailable",
+            "error": f"{type(exc).__name__}: {exc}",
+            "profile": {},
+        }
+    if not isinstance(profile, dict):
+        return {"verified": False, "url": url, "reason": "profile_not_object", "profile": {}}
+    user_id = str(profile.get("auth_username") or "").strip()
+    mismatches = [field for field, expected in _EVAL_IDENTITY.items() if profile.get(field) != expected]
+    prefix_ok = user_id.startswith(_EVAL_USER_PREFIXES)
+    return {
+        "verified": prefix_ok and not mismatches,
+        "url": url,
+        "reason": "verified" if prefix_ok and not mismatches else "identity_not_eval_runner",
+        "user_id": user_id,
+        "prefix_ok": prefix_ok,
+        "mismatched_fields": mismatches,
+        "profile": {field: profile.get(field) for field in _EVAL_IDENTITY},
+    }
 
 
 async def run_unified_ws_smoke(

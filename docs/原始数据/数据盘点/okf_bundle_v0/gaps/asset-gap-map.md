@@ -7,7 +7,7 @@ tags:
   - "luban"
   - "okf"
   - "gap-map"
-timestamp: "2026-06-20T00:00:00+08:00"
+timestamp: "2026-07-16T14:54:49+08:00"
 status: "asset_gap_map_only"
 ---
 
@@ -29,7 +29,7 @@ status: "asset_gap_map_only"
 - PP2: `runtime_published_pointer_consumer_evidence` (4 affected) - For each published pointer, run or record a true consumer read proof before calling it runtime-ready.
 - PP2: `pdf_p2_verify_provenance` (39 affected) - Backfill PDF->JSON provenance map for candidate derivatives.
 - PP2: `json_source_claim_review_gap` (383 affected) - Review source claims by bucket, prioritizing exam, standard, textbook, and taxonomy before lectures.
-- PP2: `runtime_candidate_or_blocked_pointers` (11 affected) - Review candidate/blocked pointers one by one; publish only via signed gate.
+- PP2: `runtime_candidate_or_blocked_pointers` (12 affected) - Review candidate/blocked pointers one by one; publish only via signed gate.
 
 ## Boundary
 

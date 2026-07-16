@@ -1,0 +1,1245 @@
+{
+  "generated_at": "2026-07-16T14:54:49+08:00",
+  "repo_root": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor",
+  "scope_roots": {
+    "knowledge_compiler_2026": "artifacts/knowledge_compiler/2026",
+    "luban_grading_artifacts": "artifacts/luban_grading_artifacts",
+    "runtime_supply": "deeptutor/services/construction_grading/runtime_supply",
+    "data_inventory_extractions": "docs/原始数据/数据盘点/extractions",
+    "case_family_assets": "artifacts/luban_case_family_assets"
+  },
+  "file_inventory": {
+    "knowledge_compiler_2026": {
+      "path": "artifacts/knowledge_compiler/2026",
+      "exists": true,
+      "files": 189,
+      "bytes": 50729003,
+      "extensions": {
+        ".jsonl": 50,
+        ".json": 49,
+        ".png": 38,
+        ".txt": 38,
+        ".md": 14
+      },
+      "largest_files": [
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/scoring_point_assets_by_node.json",
+          "bytes": 7323165
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/scoring_point_assets.jsonl",
+          "bytes": 6082255
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/lecture_compile_20260608/lecture_teaching_cards.jsonl",
+          "bytes": 1426351
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_46.png",
+          "bytes": 871953
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_167.png",
+          "bytes": 829086
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_249.png",
+          "bytes": 823786
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_77.png",
+          "bytes": 821101
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_97.png",
+          "bytes": 795016
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_186.png",
+          "bytes": 793597
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_170.png",
+          "bytes": 793482
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_157.png",
+          "bytes": 791561
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_352.png",
+          "bytes": 776740
+        }
+      ]
+    },
+    "luban_grading_artifacts": {
+      "path": "artifacts/luban_grading_artifacts",
+      "exists": true,
+      "files": 3327,
+      "bytes": 367181176,
+      "extensions": {
+        ".json": 2253,
+        ".md": 628,
+        ".jsonl": 295,
+        ".py": 45,
+        ".db": 22,
+        ".db-shm": 22,
+        ".db-wal": 22,
+        ".csv": 14,
+        ".log": 13,
+        ".txt": 6,
+        ".sql": 3,
+        ".yml": 3,
+        ".html": 1
+      },
+      "largest_files": [
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_source_gap_20260612/source_gap_candidates.json",
+          "bytes": 29520044
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_runtime_default_gate_chain_20260613/rerun_with_frozen_inputs/runtime_supply_regression.json",
+          "bytes": 19905604
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_v32_scoring_point_compile_20260613/runtime_token_pack_v32_scoring_points.json",
+          "bytes": 11690955
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_audit_queue_20260612/semantic_audit_queue.json",
+          "bytes": 9274067
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_field_promotion_review_materialized_20260612/field_promotion_review.json",
+          "bytes": 8400057
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_evidence_audit_record_materialized_20260612/semantic_evidence_audit_record.json",
+          "bytes": 8394862
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_evidence_audit_record_seed_20260612/semantic_evidence_audit_record.json",
+          "bytes": 7401100
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_evidence_audit_record_no_decisions_20260612/semantic_evidence_audit_record.json",
+          "bytes": 7391521
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_field_candidates_materialized_20260612/rich_leaf_field_candidates.json",
+          "bytes": 7248815
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_artifact_candidates_materialized_20260612/rich_leaf_artifact_candidates.json",
+          "bytes": 6942519
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_source_refinement_closure_20260612/runtime_token_pack_v32_lecture_enrichment_candidate.json",
+          "bytes": 6602591
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v11_coverage_expansion_20260613/runtime_token_pack_v311_quarantine_annotated.json",
+          "bytes": 6104315
+        }
+      ]
+    },
+    "runtime_supply": {
+      "path": "deeptutor/services/construction_grading/runtime_supply",
+      "exists": true,
+      "files": 59,
+      "bytes": 25328557,
+      "extensions": {
+        ".json": 50,
+        ".jsonl": 9
+      },
+      "largest_files": [
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full/kb_v5_chunks_full.json",
+          "bytes": 3701405
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge/canonical_unified_knowledge.json",
+          "bytes": 3383793
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context/rich_leaf_context_bundle.json",
+          "bytes": 2938860
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v3_objective_records_released_m31/objective_answer_key_release_candidate_m31.json",
+          "bytes": 2743126
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_concept_registry/concept_registry.json",
+          "bytes": 2608123
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_lecture_teaching_cards/lecture_teaching_cards.json",
+          "bytes": 1905313
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_standard_clauses/standard_clauses.json",
+          "bytes": 1483784
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo/case_rubric_scored_pgo.json",
+          "bytes": 1396549
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_textbook_knowledge_full/textbook_knowledge_release_candidate.json",
+          "bytes": 990943
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored/case_rubric_scored.json",
+          "bytes": 769265
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v2_objective_release_candidate/objective_answer_key_seed_release.jsonl",
+          "bytes": 502274
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_canonical_taxonomy_index/canonical_taxonomy_index.json",
+          "bytes": 427627
+        }
+      ]
+    },
+    "data_inventory_extractions": {
+      "path": "docs/原始数据/数据盘点/extractions",
+      "exists": true,
+      "files": 709,
+      "bytes": 22079429,
+      "extensions": {
+        ".json": 501,
+        ".md": 110,
+        ".jsonl": 93,
+        ".txt": 3,
+        ".png": 2
+      },
+      "largest_files": [
+        {
+          "path": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/files.jsonl",
+          "bytes": 5629377
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/luban_grading_artifacts_okf_v1/file_index.jsonl",
+          "bytes": 2680614
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0/scoring_point_index.json",
+          "bytes": 813864
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0/scoring_points.jsonl",
+          "bytes": 668353
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest_refs.jsonl",
+          "bytes": 483393
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest_snapshots/22efd040da49bdd4__frozen_full_compile_report.json",
+          "bytes": 426028
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest_snapshots/b668d97308ae7494__P40_animation_ir_batch_manifest.json",
+          "bytes": 405921
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/json_source_ledger_v0/sources.jsonl",
+          "bytes": 394074
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest_snapshots/a1e368530e606461__frozen_full_compile_report.json",
+          "bytes": 358027
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest_snapshots/dc8388ff750ad7da__frozen_full_compile_report.json",
+          "bytes": 358027
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/luban_grading_artifacts_okf_v1/artifact_runs.jsonl",
+          "bytes": 348805
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/topic_okf_v0/source_hits.jsonl",
+          "bytes": 339047
+        }
+      ]
+    },
+    "case_family_assets": {
+      "path": "artifacts/luban_case_family_assets",
+      "exists": true,
+      "files": 1908,
+      "bytes": 468199612,
+      "extensions": {
+        ".mp3": 887,
+        ".png": 331,
+        ".json": 253,
+        ".html": 218,
+        ".tsx": 47,
+        ".md": 44,
+        ".zip": 37,
+        ".js": 21,
+        ".css": 20,
+        ".py": 18,
+        ".mjs": 17,
+        "[no_ext]": 6,
+        ".mp4": 4,
+        ".svg": 3,
+        ".sh": 1,
+        ".ts": 1
+      },
+      "largest_files": [
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/N01_network_video_first.remotion.mp4",
+          "bytes": 14710637
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/原zip动画文件/S07安全事故等级判定与上报.zip",
+          "bytes": 13546831
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/S01_scaffold_template_acceptance.remotion.mp4",
+          "bytes": 10997431
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/remotion_demo/out/f16-roof-blister-repair.mp4",
+          "bytes": 3085092
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/P40_S02/P40_S02.lesson.mp3",
+          "bytes": 2721083
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/P40_S02.lesson.mp3",
+          "bytes": 2721083
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.lesson.mp3",
+          "bytes": 2721083
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/原zip动画文件/S02起重吊装安全.zip",
+          "bytes": 2701189
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/原zip动画文件/C02进度款与计量计价.zip",
+          "bytes": 2418739
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/P40_S05/P40_S05.lesson.mp3",
+          "bytes": 2400131
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/P40_S05.lesson.mp3",
+          "bytes": 2400131
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.lesson.mp3",
+          "bytes": 2400131
+        }
+      ]
+    }
+  },
+  "key_assets": {
+    "scoring_point_assets": {
+      "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602",
+      "schema_version": "luban_scoring_point_assets.v0.1",
+      "quality_gate": "pass",
+      "asset_count": 6134,
+      "chunk_count": 650,
+      "node_count": 20,
+      "seed_hit_rate": 0.812532637075718,
+      "textbook_anchor_rate_for_text_assets": 1.0,
+      "jsonl_points": 6134,
+      "by_node_top_level_count": 20,
+      "fixture_warning": "pytest-scoring-point-assets is excluded from production interpretation; it is a test fixture."
+    },
+    "lecture_compile": {
+      "path": "artifacts/knowledge_compiler/2026/lecture_compile_20260608",
+      "jsonl_counts": {
+        "lecture_teaching_cards.jsonl": 540,
+        "rubric_candidates.jsonl": 0,
+        "standard_clauses.jsonl": 0,
+        "question_capsules.jsonl": 0,
+        "question_capsule_to_questions_bank.jsonl": 0,
+        "question_capsule_unmatched.jsonl": 0,
+        "option_reasoning_backfill.jsonl": 0,
+        "taxonomy_index.jsonl": 0
+      }
+    },
+    "rich_leaf_runtime_supply": {
+      "path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context",
+      "canonical_pointer": {
+        "expected_content_hash": "cbb2f77c9f55ab365c5e23c38ec2efa963cb30fc3f9c0d04f5d0e955e60d1abb",
+        "namespace": "rich_leaf_context",
+        "published": false,
+        "quarantine_excluded_count": 0,
+        "record_count": 1466,
+        "source_pack_version": "v3.0_frozen_v1_full_compile",
+        "status": "release_candidate"
+      },
+      "bundle_records": 1466,
+      "bundle_manifest_keys": [
+        "canonical_truth_written",
+        "content_hash",
+        "llm_may_decide_correctness",
+        "namespace",
+        "official_score_allowed",
+        "published",
+        "quarantine_excluded_count",
+        "record_count",
+        "rollback_pointer",
+        "schema",
+        "signature",
+        "source_pack_schema",
+        "source_pack_unit_count",
+        "source_pack_version",
+        "status",
+        "tier"
+      ]
+    },
+    "rich_leaf_v32_scoring_points": {
+      "path": "artifacts/luban_grading_artifacts/rich_leaf_v32_scoring_point_compile_20260613/runtime_token_pack_v32_scoring_points.json",
+      "schema": "luban_rich_leaf_runtime_token_pack.v2.3",
+      "version": "v3.2_scoring_points_enriched",
+      "status": "candidate_ready_for_shadow_ab_full_accounted",
+      "summary": {
+        "evidence_leaf_count": 1612,
+        "lane_counts": {
+          "lecture_page": 4,
+          "lecture_unit_carryover": 2,
+          "textbook": 1606
+        },
+        "production_write_count": 0,
+        "unit_count": 1612,
+        "unresolved_count": 0
+      },
+      "scoring_points_summary": {
+        "m35_attachments_total": 205,
+        "m35_points_attached": 66,
+        "points_by_source": {
+          "chunk_assessment": 1567,
+          "knowledge_card": 3933,
+          "m35_artifact": 205
+        },
+        "points_total": 5705,
+        "units_total": 1612,
+        "units_with_scoring_points": 1606,
+        "units_without_scoring_points": 6
+      },
+      "runtime_token_pack_units": 1612
+    },
+    "llm_deep_compile_runner": {
+      "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_llm_deep_compile_runner_20260612/llm_deep_compile_runner_deepseek_full313_merged_candidates.json",
+      "schema": "luban_rich_leaf_llm_deep_compile_merged_candidates.v1",
+      "verdict": "PASS_LLM_DEEP_COMPILE_SHADOW_CANDIDATES",
+      "execution_mode": "merged_shadow_candidates",
+      "quality_claim_allowed": false,
+      "summary": {
+        "candidate_count": 313,
+        "completion_tokens": 212543,
+        "error_count": 0,
+        "planned_work_order_count": 313,
+        "production_write_count": 0,
+        "prompt_tokens": 504035,
+        "provider_call_count": 341,
+        "runtime_install_count": 0,
+        "success_rate": 1.0,
+        "unique_candidate_work_order_count": 313
+      },
+      "candidate_count": 313,
+      "not_exercised": [
+        "semantic_review",
+        "evidence_span_auditor",
+        "prosecutor",
+        "defense",
+        "arbiter",
+        "bucket_taxonomist",
+        "runtime_default_install",
+        "canonical_truth_write",
+        "production_db_write",
+        "release_truth_claim"
+      ]
+    },
+    "per_question_grading_object": {
+      "path": "artifacts/luban_grading_artifacts/per_question_grading_object_full_compile_20260614",
+      "summary": {
+        "schema": "luban_per_question_full_compile.v1",
+        "review_only": true,
+        "total_case_study": 218,
+        "compiled_ok": 179,
+        "quarantined": 39,
+        "clean_rate": 0.8211,
+        "quarantine_by_reason": {
+          "granularity_collapse": 1,
+          "analysis_as_answer": 9,
+          "ai_placeholder_answer": 17,
+          "null_or_zero_score": 12
+        },
+        "quarantine_by_year": {
+          "2017": 2,
+          "2018": 8,
+          "2019": 5,
+          "2020": 8,
+          "2021": 5,
+          "2022": 3,
+          "2023": 4,
+          "2024": 1,
+          "2025": 3
+        },
+        "coverage_vs_prod_bank": {
+          "prod_bank_qids": 174,
+          "compiled_objects": 179,
+          "compiled_distinct_year_unique_qids": 179,
+          "prod_covered_by_new": 154,
+          "prod_dropped_by_new": [
+            "9001",
+            "9534",
+            "EXAM_1A432000_P0014_02::E2",
+            "EXAM_1A432000_P0017_05::E0",
+            "EXAM_1A432000_P0019_01::E0",
+            "EXAM_1A432000_P0020_02::E0",
+            "EXAM_1A432000_P0023_01::E0",
+            "EXAM_1A433000_P0009_01::E0",
+            "EXAM_1A433000_P0010_02::E0",
+            "EXAM_1A433000_P0014_08::E0",
+            "EXAM_1A433000_P0018_02::E4",
+            "EXAM_1A433000_P0019_01::E0",
+            "EXAM_1A434000_P0013_01::E0",
+            "EXAM_1A434000_P0020_02::E0",
+            "EXAM_1A436000_P0015_01::E0",
+            "EXAM_1A436000_P0018_02::E0",
+            "EXAM_1A436000_P0023_01::E0",
+            "EXAM_1A436000_P0024_02::E0",
+            "EXAM_1A436000_P0025_03::E0",
+            "EXAM_1A436000_P0026_04::E0"
+          ],
+          "prod_dropped_count": 20,
+          "new_not_in_prod_count": 1
+        },
+        "point_count_stats": {
+          "total_scoring_points": 482,
+          "mean_points_per_q": 2.69
+        }
+      },
+      "object_files": 179,
+      "derived_scoring_points": 482,
+      "derived_score_null_points": 482,
+      "official_score_allowed_distribution": {
+        "False": 179
+      },
+      "per_point_score_authority_distribution": {
+        "pending_calibration_not_official": 179
+      }
+    },
+    "runtime_supply": {
+      "path": "deeptutor/services/construction_grading/runtime_supply",
+      "canonical_pointer_count": 10,
+      "published_distribution": {
+        "False": 6,
+        "True": 4
+      },
+      "canonical_pointers": [
+        {
+          "bundle": "v_canonical_unified_knowledge",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge",
+          "namespace": "canonical_unified_knowledge",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {}
+        },
+        {
+          "bundle": "v_case_rubric_scored",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored",
+          "namespace": "case_rubric_scored",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {}
+        },
+        {
+          "bundle": "v_case_rubric_scored_pgo",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo",
+          "namespace": "case_rubric_scored_pgo",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {}
+        },
+        {
+          "bundle": "v_kb_v5_chunks_full",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full",
+          "namespace": "kb_v5_chunks_full",
+          "status": "release_candidate",
+          "published": true,
+          "selected_counts": {
+            "chunk_count": 3596
+          }
+        },
+        {
+          "bundle": "v_lecture_teaching_cards",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_lecture_teaching_cards",
+          "namespace": "lecture_teaching_cards",
+          "status": "release_candidate",
+          "published": true,
+          "selected_counts": {
+            "card_count": 540
+          }
+        },
+        {
+          "bundle": "v_rich_leaf_context",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context",
+          "namespace": "rich_leaf_context",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {
+            "record_count": 1466,
+            "quarantine_excluded_count": 0
+          }
+        },
+        {
+          "bundle": "v_slice_case_rubric",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_slice_case_rubric",
+          "namespace": "case_rubric_full",
+          "status": "release_candidate",
+          "published": true,
+          "selected_counts": {
+            "signed_point_count": 18
+          }
+        },
+        {
+          "bundle": "v_standard_clauses",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_standard_clauses",
+          "namespace": "standard_clauses",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {}
+        },
+        {
+          "bundle": "v_textbook_knowledge_full",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_textbook_knowledge_full",
+          "namespace": "textbook_knowledge_full",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {
+            "signed_point_count": 1303
+          }
+        },
+        {
+          "bundle": "v_topic_waterproof",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_topic_waterproof",
+          "namespace": "topic_waterproof",
+          "status": "release_candidate",
+          "published": true,
+          "selected_counts": {
+            "node_count": 44
+          }
+        }
+      ]
+    },
+    "data_inventory_extractions": {
+      "path": "docs/原始数据/数据盘点/extractions",
+      "files": 709,
+      "jsonl_counts": {
+        "2021_jianzhu_case_rubric.jsonl": 86,
+        "2022bukao_jianzhu_case_rubric.jsonl": 111,
+        "2023_jianzhu_case_rubric.jsonl": 90,
+        "2024_jianzhu_case_rubric.jsonl": 68,
+        "2025_jianzhu_case_rubric.jsonl": 81,
+        "ALL_jianzhu_case_rubric.jsonl": 432,
+        "gap_items.jsonl": 9,
+        "runtime_pointers.jsonl": 16,
+        "files.jsonl": 7133,
+        "manifest_refs.jsonl": 623,
+        "044228b7baf86a26__open_world_qa_ledger_m26.jsonl": 6,
+        "077545e0d38dd7d9__langfuse_trace_ledger.jsonl": 134,
+        "09f8a35e82bc99d7__authority-ledger.jsonl": 32,
+        "0b5a89ab050419f8__authority-ledger.jsonl": 1,
+        "13c38700e08b43c4__minimal_authority_ledger.jsonl": 3,
+        "14020082b14c2ab7__authority-ledger.jsonl": 5,
+        "143ad59a6874990c__batch_reports.jsonl": 1,
+        "14c51facb7e7f845__delta_packet_application_ledger_m201.jsonl": 184,
+        "1726b4d1f63fc0ce__authority-ledger.jsonl": 1,
+        "1adcbf6e2a960991__authority-ledger.jsonl": 3,
+        "1c51425b1529d05b__historical_vs_open_world_decision_ledger_m27.jsonl": 6,
+        "2140a4c463d2b65c__authority-ledger.jsonl": 5,
+        "22decd7376abc90a__m26_acceptance_projection_ledger.jsonl": 64,
+        "23c2ea98c5a2de01__minimal_final5_authority_ledger.jsonl": 3,
+        "24ba9afa5b183e71__ws_submission_ledger_m24.jsonl": 40,
+        "29ec25b5f7b41c92__authority-ledger.jsonl": 10,
+        "2e68d4373347cab0__authority-ledger.jsonl": 10,
+        "309059ea85fdebed__learning_evidence_ledger_m32.jsonl": 1,
+        "30f07b94563ed521__authority-ledger.jsonl": 2,
+        "31cea749cef68eea__ws_objective_integration_ledger_m25b.jsonl": 20,
+        "3455d894fbdaaee9__authority-ledger.jsonl": 7,
+        "3911995bd165caca__llm_candidate_organization_ledger_m30.jsonl": 4,
+        "45a739b267420d55__m26_acceptance_live_ws_ledger.jsonl": 64,
+        "460501bdfd3f9f3f__ledger.jsonl": 3,
+        "460f7e8051c47bfb__authority-ledger.jsonl": 8,
+        "47733abbb777e5f7__authority-ledger.jsonl": 2,
+        "4810776771b37081__authority-ledger.jsonl": 2,
+        "4bf742c6d01fcac7__authority-ledger.jsonl": 2,
+        "5a7e4b5de5ace5dc__open_world_ws_ledger_m27.jsonl": 3,
+        "6236fafa40e28a72__candidate_delta_registry_m20.jsonl": 122,
+        "653c791ecf728d9f__soak_window_submission_ledger_m19d.jsonl": 300,
+        "6bda1e3b37666f92__compiler_feedback_ledger_m26.jsonl": 14,
+        "6c7455d3daaef259__ledger.jsonl": 2,
+        "727961f4bdd0a3a1__authority-ledger.jsonl": 6,
+        "741c86ed0364f123__minimal_final4_authority_ledger.jsonl": 3,
+        "7b59469b00e9186d__authority-ledger.jsonl": 9,
+        "8001de10b4323598__langfuse_trace_ledger.jsonl": 40,
+        "84a6f9e0b4d02111__ws_tutorbot_live_qa_ledger_m26.jsonl": 7,
+        "853b76178b59bce9__authority-ledger.jsonl": 12,
+        "896eee0015039298__minimal_final7_authority_ledger.jsonl": 3,
+        "89dae1d6a9832f21__authority-ledger.jsonl": 14,
+        "8d3dd9f5cbcf4c4f__authority-ledger.jsonl": 10,
+        "8f58ec656b276c0c__grading_event_ledger_m32.jsonl": 1,
+        "9377f6b7b6153c8d__minimal_final6_authority_ledger.jsonl": 3,
+        "96b4df4b7c3c7a87__m13r_runtime_miss_ledger_m15.jsonl": 17,
+        "9b59f7f7cdbdc586__authority-ledger.jsonl": 5,
+        "9e2763c0c1420a51__authority-ledger.jsonl": 18,
+        "a76779ad8cfaa7ea__live_ws_acceptance_ledger_m26.jsonl": 64,
+        "aad9afec8e83b19d__authority-ledger.jsonl": 2,
+        "b0eb3d907096946c__authority-ledger.jsonl": 12,
+        "b6ddc3c998b30d4a__tutorbot_live_qa_ledger.jsonl": 8,
+        "c619dd8151708762__langfuse_trace_ledger.jsonl": 40,
+        "ca9ac052172b9d74__authority-ledger.jsonl": 2,
+        "cda26b4eed35884d__minimal_after_fix_authority_ledger.jsonl": 3,
+        "db20bf93e0e2a66c__authority-ledger.jsonl": 66,
+        "dddeb945238c8e00__source_manifest.jsonl": 1,
+        "e130170b0493bf27__authority-ledger.jsonl": 5,
+        "e2d3006633230ae4__authority-ledger.jsonl": 3,
+        "e31c4e06bac458a5__beta_shadow_registry_preview.jsonl": 13,
+        "e590d7b1b23e5d83__minimal_final2_authority_ledger.jsonl": 3,
+        "eabfe56f54202c46__minimal_final_authority_ledger.jsonl": 3,
+        "edfbbfaede3c5b37__authority-ledger.jsonl": 7,
+        "ef3d680893f0dbe1__authority-ledger.jsonl": 10,
+        "f43a40bb66d662f2__minimal_final3_authority_ledger.jsonl": 3,
+        "f47df9966b304f1b__llm_candidate_organization_ledger_m30.jsonl": 3,
+        "fe0fd436859317d8__ws_submission_ledger_m24.jsonl": 40,
+        "fe2a91d42decec8b__batch_reports.jsonl": 24,
+        "ff05e02c545fcf33__authority-ledger.jsonl": 12,
+        "ff8b5e090c1f7053__authority-ledger.jsonl": 12,
+        "governance_files.jsonl": 348,
+        "sources.jsonl": 383,
+        "compiler_runs.jsonl": 14,
+        "file_index.jsonl": 3326,
+        "artifact_runs.jsonl": 347,
+        "cases.jsonl": 25,
+        "rubrics.jsonl": 117,
+        "scoring_points.jsonl": 431,
+        "case_alignment.jsonl": 25,
+        "pdf_sources.jsonl": 95,
+        "per_question_score_backfill.jsonl": 180,
+        "source_hits.jsonl": 400,
+        "topics.jsonl": 5
+      },
+      "json_files": [
+        "2026-06-18-compiled-assets-current-profile.json",
+        "2026-06-18-raw-data-current-profile.json",
+        ".asset_gap_map_generated.json",
+        "action_queues.json",
+        "gap_summary.json",
+        "manifest.json",
+        "next_actions.json",
+        "case_rubric_canonical.json",
+        ".compiled_asset_authority_map_generated.json",
+        "consumer_policy.json",
+        "group_authority.json",
+        "manifest.json",
+        ".compiled_asset_ledger_generated.json",
+        "asset_groups.json",
+        "manifest.json",
+        "014acd3d5603788f__G3_PUBLISHED_REGISTRY_PREFLIGHT.json",
+        "018a51ea51ef18c8__latency_token_cost_report.json",
+        "01b727d903f83afb__registry_v1_release_candidate.json",
+        "04974c067a64e07e__refinement_report.json",
+        "04e60ca879e51807__compiler_status_ledger_after_release_governance_packet.json",
+        "050a1ae1b805606b__learning_brain_evidence_report_m26.json",
+        "05ba77692e18ece3__PO_spotcheck_manifest.json",
+        "067283a2e63eaafa__minimal_final3_summary.json",
+        "070f2e88ec905b8b__PO_spotcheck_manifest.json",
+        "0814198476670baa__manifest.json",
+        "081b38d66fb54b11__provider_fallback_report_m24.json",
+        "08953adb00a3fbde__candidate_ledger.json",
+        "093f275c9f4abe82___ds_manifest.json",
+        "099221ecca1fd532__registry_impact_simulation_m4.json",
+        "0a527fbef320f74b__compiled_knowledge_registry_manifest_m30.json",
+        "0a6b7fe5531899e0__summary.json",
+        "0a8ca4e1c3a9636a__migration_report.json",
+        "0aca86103c448f15__S06_gcfh.card_bundle_manifest.json",
+        "0b7d8c25fcfaa365__multimodel_jury_summary.json",
+        "0c88a51c2eb37111__latency_token_cost_report.json",
+        "0d29b60e47f6712b__jury_input_manifest.json",
+        "0d8193d4c892dddd__workflow_manifest_m24.json",
+        "0f51f4820cdee391__evidence_compiler_manifest_m12a.json",
+        "100a0150febbfe71__test_verification_report.json",
+        "10d9cedf457e466a__scoring_point_compile_report.json",
+        "1201d5c4c9618ccc__coverage_report_m34.json",
+        "129bbfff7738e41e__context_consumer_ledger_m26.json",
+        "13805597e3e1a096__expanded_scope_summary.json",
+        "1393804005d918f2__manifest.json",
+        "13b845c3d9c791f8__summary.json",
+        "14161d4190c950ee__report.json",
+        "14ac99da6e038f46__m17a_vs_m17b_delta_report.json",
+        "15448c6d9c903ddc__migration_report.json",
+        "16000db8ca5ff36e__report.json",
+        "16d38b2f6e691e02__summary.json",
+        "16d4030ddc99611d__canonical_pointer.json",
+        "1787de919d122300__sample_manifest.json",
+        "184ac9ff843a8a73__manifest.json",
+        "1941a42711010716__registry_impact_simulation_m5a.json",
+        "195476733cf6f513__canonical_pointer.json",
+        "1959855ba2c39121__summary.json",
+        "19645b827da2db60__latency_token_cost_report_m19c.json",
+        "19cd7d78face7273__canonical_pointer.json",
+        "19d3889694a7f97b__FINAL_ACCEPTANCE_REPORT_grading_to_brain.json",
+        "1a79f1229ba5ca0f__mobile_learning_report_v2_api.json",
+        "1ba544beb0786572__minimal_final_summary.json",
+        "1baf7d1befba34f7__question_grading_registry.json",
+        "1c1672a033366601__compiler_status_ledger.json",
+        "1c343292a2c531b7__leaf_evidence_recompile_report.json",
+        "1c84ea7b570cf6c6__manifest.json",
+        "1db10ff51f44dd20__canonical_pointer.json",
+        "1ec2f8b6bfc3e3d8__runtime_supply_v2_manifest.json",
+        "1f12fda4d8ab1f28__safety_invariant_report_m32.json",
+        "1f9ddaccb9de1bb8__validator_attack_report_m30.json",
+        "1fc794f2833c3fc2__test_readiness_report.json",
+        "20562e9cb0f00ac3__workflow_ledger_m15.json",
+        "205e288d1d99dc5f__laundering_guard_report.json",
+        "2099628353d61cc3__migration_report.json",
+        "2126a075c77ac5f0__summary.json",
+        "215177f27cb8ba33__dynamic_workflow_manifest_b1.json",
+        "21b0fbf317b16867__benchmark_manifest_m24.json",
+        "22558fa5ad919573__m7_summary.json",
+        "22b3cdd19f071c2e__with_backfill_summary.json",
+        "22c7c5f9b571a62a__no_human_v1_5_summary.json",
+        "22d5bf47b55ac52f__safety_invariant_report_m17c.json",
+        "22efd040da49bdd4__frozen_full_compile_report.json",
+        "24f81647be9eb12c__coverage_report.json",
+        "25c0dfe11e6d6d0c__jury_live_summary.json",
+        "25c16f94417e582c__summary.json",
+        "25f9676b9a782194__beta_shadow_eval_summary_m9.json",
+        "273fbee27659aa1f__manifest.json",
+        "277472beeaa60d89__no_human_v1_5_summary.json",
+        "277f433c9050bcca__summary.json",
+        "27bff628a4357a99__mobile_learning_report_v2_api.json",
+        "27e4bfcbfaba8e2b__learning_brain_canonical_gate_manifest_m13e.json",
+        "290f02b6bb5a91b8__rebuild_run_summary.json",
+        "29d88486fab07dee__question_decision_summary.json",
+        "2a03ed39414fc565__summary.json",
+        "2a65ae9fc48f1f2c__semantic_review_shards_manifest.json",
+        "2b1303d61b74d852__compiled_knowledge_registry_manifest_m30.json",
+        "2b198882fefce8ec__rebuild_run_summary.json",
+        "2b2ca2c3e1616366__question_decision_summary.json",
+        "2e5d442da99fb90a__safety_invariant_report_m34.json",
+        "2e7740a155eb883d__registry_report.json",
+        "2e8e958754ca99ba__compiler_status_ledger_after_signed_authorization_template.json",
+        "2eced06ca835e573__card_bundle_manifest.json",
+        "303d6cd637b03a4d__registry_impact_simulation.json",
+        "30618bce0c39fcae__manifest_qwen37_plus_nothink_primary.json",
+        "310b259e4af7b668__manifest.json",
+        "3178f8ef4ea3c8bb__provider_fallback_report.json",
+        "331dceb0cc3e1e57__workflow_ledger_m17a.json",
+        "349c0d3842c10f6a__gate_summary.json",
+        "35abc548386e78e2__manifest.json",
+        "3636ff01e28c5202__stale_reference_ledger.json",
+        "3692c6770a722524__card_bundle_manifest.json",
+        "37201625fdd18ce6__formal_registry_candidate_m33.json",
+        "3a20b4fbe5d999db__reconciliation_report.json",
+        "3b9459dd0b864b44__full_factory_summary.json",
+        "3b98a9bf6dbaf34a__manifest.json",
+        "3c26cc4628eca197__registry_v1_beta_shadow_candidate.json",
+        "3c9f08e86024ecd2__workflow_ledger_m9.json",
+        "3d2f5434ff145c22__frozen_full_compile_report_v31.json",
+        "3e40cf9eecd4e66b__summary.json",
+        "3e5488b42fc1e2f1__report_live_readback.json",
+        "3e56494be11020dc__registry_v1_repair_candidate_simulation.json",
+        "3eca955e7fc795be__compiler_status_ledger_after_full_live_ab.json",
+        "3eefbeea68414856__workflow_ledger_c1.json",
+        "3f9731d7bab93cd7__formal_release_manifest_m13.json",
+        "4095e5d9a3a6f103__live_gate_report.json",
+        "411bd5726027dbb7__coverage_report.json",
+        "413e1d36d00453ef__questions_bank_live_extraction_report_m26.json",
+        "42075e99598c3401__canonical_evidence_ledger_m19b.json",
+        "43ab2db09b726c10__provider_fallback_failclosed_report_m19d.json",
+        "43b0ff7f2760a34b__semantic_review_shards_manifest.json",
+        "442a1f2fc9402ec0__summary.json",
+        "44cc8bc2dd532abd__manifest.json",
+        "44f71d4fdea1ece8__card_bundle_manifest.json",
+        "45328c2f5015c9fe__m17b_m18_manifest.json",
+        "45e48eebc87c1a73__summary.json",
+        "468eb61bd675fa4a__model_bakeoff_v2_summary.json",
+        "4760ba64c72ad6f7__registry_v1_candidate_simulation_m5.json",
+        "479212e0e2f69a64__slice_manifest.json",
+        "47c18b1beec04529__council_report.json",
+        "48895a4367671201__canonical_knowledge_manifest.json",
+        "490f80444cce70f6__publish_report.json",
+        "49c237b54a1c5737__runtime_supply_v2_manifest.json",
+        "4a385b8dff77f44a__workflow_ledger_m18d.json",
+        "4acee8fe318e93e5__mobile_learning_report_v2_api.json",
+        "4adffcbc5609f86b__staged_registry_candidate_m202.json",
+        "4af206ed10446ae0__coverage_report_m34.json",
+        "4bbec3f9bacdfd16__m20_delta_absorption_report_m30.json",
+        "4c34a68efe9a7a1d__reconciliation_report.json",
+        "4c60b9d8822a5fee__summary.json",
+        "4c851a306b989e5a__manifest.json",
+        "4cba7f8621ddf8de__rubric_quality_report.json",
+        "4ccf0c2b4539ef47___ds_manifest.json",
+        "4e4482450574aa5d__rebuild_run_summary.json",
+        "4fc146b1fca06332__summary.json",
+        "4fe184ed17e3741a__reconciliation_report.json",
+        "50a6f3cb30afc960__safety_invariant_report_m27.json",
+        "50c29764d9ee730a__m20_delta_absorption_report_m30.json",
+        "510597d342e98112__pipeline_safety_report.json",
+        "51390064c5462d08__skeleton_report.json",
+        "51cb3dbbae00e191__PO_spotcheck_manifest.json",
+        "5221121415a8e6be__gate_summary.json",
+        "5223a117fee9a5a3__po_review_summary_m5c.json",
+        "523f74118cc0f190__summary.json",
+        "5276216e782d06f2__mobile_learning_report_v2_api.json",
+        "52775c397c67e3af__frozen_full_compile_report.json",
+        "52d7a825e995ddc7__latency_token_cost_report_m17a.json",
+        "5329b8bb6e4da281__canonical_pointer.json",
+        "5347962a3f286ee3__safety_invariant_report_m26.json",
+        "53beaa9c201e81f5__safety_invariant_report_m30.json",
+        "54e163ce0de4a13a__source_acquisition_relink_report.json",
+        "561bd8cd938d52f6__waterproof_topic_manifest_m32.json",
+        "563ff96eec13085b__cost_latency_report.json",
+        "56710c1f3506c9c7__pdf_visual_spotcheck_report.json",
+        "572af7cec75920cf__summary.json",
+        "57fa8a2bf40a46b1__mobile_learning_report_v2_api.json",
+        "58e6e42935b83849__candidate_ledger.json",
+        "593f62ac100993c6__compiler_status_ledger_after_signed_authorization_template_full274.json",
+        "59e82fa55ff09a88__no_human_v1_5_summary.json",
+        "5a2f26774a10341f__workflow_ledger_m19a.json",
+        "5af15c0e7848e756__workflow_ledger_m17c.json",
+        "5b167da98e8655cb__manifest.json",
+        "5bcfed9abea3fd6a__dynamic_workflow_manifest.json",
+        "5bd72ecfa87e7d5c__canonical_pointer_m31.json",
+        "5be50852b1ad415b__report_cached.json",
+        "5bfd8f5913198182__quality_report.json",
+        "5c5e5a7e1e2b951a__live_llm_adjudication_report_m26.json",
+        "5ca63655d91ee4e5__report.json",
+        "5d0abbf6f8f0cdcd__question_authority_summary.json",
+        "5d135b4b16ebdc6e__canonical_pointer.json",
+        "5d35bea66418bd10__dynamic_workflow_manifest.json",
+        "5dca9047f243a09a__canonical_pointer_m31.json",
+        "5e48d3a5bc322a4e__adversarial_rag_and_fallback_report_m22r.json",
+        "5f4d6d5b10167bab__selected_supply_bundle_manifest_m21s.json",
+        "5f86239bd8174621__card_bundle_manifest.json",
+        "5fae1aa2fb4876f6__summary.json",
+        "602cc30729d88bea__residual_repair_manifest.json",
+        "60f22d53f63d636e__fallback_failclosed_report_m19d.json",
+        "62760ea1c769a326__m16_manifest.json",
+        "6297368812a7f84c__safety_invariant_report_m28.json",
+        "62a49162a98c6432__qa_sample_manifest_b1.json",
+        "634f6c182488cc02__run_summary.json",
+        "636059e8bacfce3f__m12_runtime_drill_manifest.json",
+        "63626364bd044efe__report-payload.json",
+        "638a0b5b11dfc386__staged_registry_signature_m202.json",
+        "644dda214c2f2e93__normalization_quality_report.json",
+        "6552fcd4ccb0672a__manifest.json",
+        "65cf7f25cbfc7b8e__manifest.json",
+        "65d50a0aabb1bd58__manifest_deepseek_v4_flash_typed_policy_primary.json",
+        "69c08f66fbd92005__report.json",
+        "69e78ff9a7d3b94b__summary.json",
+        "69e9bcb0c50b23c6__v1_alpha_gate_report.json",
+        "6a26cc3ff9ff9cb9__provider_fallback_report_m24.json",
+        "6b2643607e912ce1__summary.json",
+        "6b71c2920801d85e__coverage_report.json",
+        "6c157391766e91a6__card_bundle_manifest.json",
+        "6c2020985b4d4827__report_hermetic.json",
+        "6c69cf1570c707af__ci_test_report_m21f.json",
+        "6c6fc5992890df80__coverage_report.json",
+        "6d5b78d7cde637f8__staging_manifest_m202.json",
+        "6d845aa867aa3272__evidence_ledger_m19a.json",
+        "6dbdc6c07f46ba85__live_gate_report.json",
+        "6e0ff72995aeb6b1__summary.json",
+        "6fdf251ee735027e__internal_slice_manifest.json",
+        "70420ed6db91fcb4__runtime_supply_rebuild_report.json",
+        "7047d13318909cf1__local_langfuse_boot_report_m24.json",
+        "70ab9a611b2884ae__candidate_ledger.json",
+        "70c83d1d81705bba__candidate_patch_report.json",
+        "70fcfbdc206252ca__summary.json",
+        "715485541243c359__v1_alpha_registry_pack.json",
+        "72bbee02504a5c97__manifest.json",
+        "739001fe055b02df__multimodel_jury_summary.json",
+        "73ce5ecd0a25ab68__no_human_v1_5_summary.json",
+        "746afcc272074a80__manifest.json",
+        "750f86513c95e412__dynamic_workflow_manifest_m9.json",
+        "75178b14cb1d6b71__validator_attack_report_m30.json",
+        "761fcf7390926341__provider_fallback_failure_ledger_m19c.json",
+        "7653b6a70e34b5ad__safety_invariant_report.json",
+        "77f2f3e0edf9d541__summary.json",
+        "78041b3f3fde9383__rich_leaf_context_pointer.candidate.json",
+        "792380d54fdc8d28__registry_v1_candidate_simulation_m5.json",
+        "799b4d4a80e6b9f6___ds_manifest.json",
+        "7bbc7afddcb45f98__summary.json",
+        "7c69a876f1031d03__card_bundle_manifest.json",
+        "7ca747e9533a6b09__compiler_status_ledger_after_token_pack_gate.json",
+        "7d7e017a9dac1926__registry_v1_draft_simulation.json",
+        "7db701afc5d89c56__canonical_pointer.json",
+        "7f137964108e5aa9__adversarial_supply_loader_report_m21s.json",
+        "7f177c5933c6fca2__consensus_gold_v1_summary.json",
+        "81d5ce0f2a7c4436__learning_brain_closure_report.json",
+        "82f08b20cbf73e57__question_decision_summary.json",
+        "8308f5456acdadfc__remote_deployment_manifest_m19e.json",
+        "8310c4e11e861040__deterministic_signer_report_m20.json",
+        "8348960dedef18db__progress_report_samples.json",
+        "84147952311aba23__typed_policy_summary.json",
+        "8482542201db03b1__registry_impact_after_source_lookup.json",
+        "84a7663f9252a7eb__report.json",
+        "85f5af383239fe72__ab_quality_latency_cost_report_m26.json",
+        "863b4beb8bb68858__safety_invariant_report_m19f.json",
+        "8728aad047d99349__card_bundle_manifest.json",
+        "8780e39403f7bfe2__publish_report.json",
+        "87ba7c73de496730__manifest.json",
+        "88016e532c3f5e54__registry_v1_status.json",
+        "8991d3882bd9e3ee__answer_rubric_ab_eval_summary.json",
+        "8a4a14a833866ad8__compiler_hard_gate_compatibility_report.json",
+        "8d3b7eefbbfa9d80__m26_acceptance_oracle_summary.json",
+        "8dc0357f16f4899a__propose_summary.json",
+        "8f2a771c18aaa3cc__registry_impact_after_backfill.json",
+        "8f6a5ffe9c03c72b__summary.json",
+        "903b28922974ad1a__m17b_manifest.json",
+        "905f556e0da8f5d3__expanded_scope_summary.json",
+        "90a6b9acbe8bccdc__summary.json",
+        "924d9e8cac5dd4ae__manifest.json",
+        "94f7237e61841ad4__manifest.json",
+        "95218469a58be87c__workflow_ledger_m17b_m18.json",
+        "95545c3bb335ef86__provider_rate_limit_and_cost_report_m17c.json",
+        "9589867670aede08__m15_manifest.json",
+        "95af09f6dbcd638a__freeze_manifest.json",
+        "95d19d4a2e5c71a7__quarantine_sourcing_apply_report.json",
+        "96522bec4d625bee__postmerge_test_report_m23.json",
+        "966ba2895d67009d__question_grading_registry_v1_candidate.json",
+        "969a1ee8cfea3c9d__report.json",
+        "96d56291eb3c6400__learning_brain_consumer_live_report_m28.json",
+        "975b2ef1506fbc97__multimodel_jury_summary.json",
+        "9772817dbcd2d6bb__jury_input_manifest.json",
+        "97be05154d312c5a__test_learner_writeback_dry_run_manifest.json",
+        "97d06306cab97e58__safety_invariant_report_m26_live.json",
+        "9806826644dcde6b__manifest.json",
+        "981bc475a42735fe__safety_invariant_report_m31.json",
+        "9865b5fbddf7d077__summary.json",
+        "98e16d1fb83091e7__latency_cost_report_m24.json",
+        "9925b564cc03e7ba__teacher_review_ops_manifest_m13d.json",
+        "9975cf67b3228187__m17a_manifest.json",
+        "9a6494a2e722a79d__minimal_final4_summary.json",
+        "9afeb06d7ebc6758__canonical_lineage_ledger_m19e_r.json",
+        "9b07a036422bce39__qa_batch_sample_manifest.json",
+        "9bc6369a42ea16cd__workflow_manifest_m24.json",
+        "9c2d802a7f8cc858__registry_v1_promotion_candidate_simulation.json",
+        "9c9c3ee0befb5df3__registry_v1_beta_shadow_candidate.json",
+        "9d1d8472bd9a881b__PO_spotcheck_manifest.json",
+        "9d340e8cfaabb243__safety_invariant_report_m19c.json",
+        "9e0577590650baf6__summary.json",
+        "9e4d31065f0f6740__safety_invariant_report_m19d.json",
+        "9f048f0e295b0d08__login_summary.json",
+        "a0031f82673abfde__summary.json",
+        "a01663ed51180e5e__rubric_quality_report.json",
+        "a0724cb9956feb68__freeze_manifest.json",
+        "a12140ec615af39e__minimal_final5_summary.json",
+        "a1a6919153871d1a__db_remediation_report.json",
+        "a1e368530e606461__frozen_full_compile_report.json",
+        "a2cba8f4ab72c39c__canonical_pointer.json",
+        "a2dd75641155c268__runtime_lane_router_report_m25b.json",
+        "a3163b3cd059225f__report.json",
+        "a340bbcae6876c1c__runtime_safety_report.json",
+        "a3ba3a3da60feac9__compile_report.json",
+        "a422ee5798c6a115__multimodel_jury_summary.json",
+        "a42aeb7ec29d8a8d__rebuild_run_summary.json",
+        "a47bc1deb281b9bd__council_report.json",
+        "a5d48aae87c20249__minimal_final2_summary.json",
+        "a62ee2908569bea3__smoke_report.json",
+        "a71b3ad1f568a68e__quarantine_ledger.json",
+        "a808862087224412__report.json",
+        "a8b1cd710195693a__stage2_prep_summary.json",
+        "a8dae9fc2c8dfc9b__rebuild_run_summary.json",
+        "a8eb684c3f2a1007__evidence-summary.json",
+        "a9074056e22919e9__manifest.json",
+        "a93062ffe7d72464__append_isolation_report_m28.json",
+        "a9a568dc84f4d186__council_report.json",
+        "a9cee1a4cee0bd11__m19c_m19d_evidence_ledger_m19e.json",
+        "a9f4c9d55da51e5f__manifest.json",
+        "aaff9e21caa2ce7a__summary.json",
+        "ac8e8d64e4efb9d7__workflow_ledger_m18c.json",
+        "ad12144624304cea__summary.json",
+        "ad5ede86c4b53dc5__report.json",
+        "ad8579ee76cffae8__summary.json",
+        "addf03a72e712b31__no_human_v1_5_summary.json",
+        "ae18f5310aba493f__summary.json",
+        "aeb9be1acba463ad__summary.json",
+        "af7c677c9a9328d4__canonical_state_ledger.json",
+        "aff935bfb8fb5019__canonical_pointer.json",
+        "b10922b1053dd87a__question_grading_registry.json",
+        "b1110bc6a8893b84__minimal_after_fix_summary.json",
+        "b2bc994ed917dd76__concept_registry_rebuild_report.json",
+        "b2c4cc0d69ad4602__normalization_workflow_manifest.json",
+        "b3273341b57748e6__kbv5_live_retrieval_report_m26.json",
+        "b3e485a47ce32fe5__adversarial_safety_report_m24.json",
+        "b4470a5b468bac82__summary.json",
+        "b4b9b0002f210914__adversarial_safety_report_m24.json",
+        "b668d97308ae7494__P40_animation_ir_batch_manifest.json",
+        "b874ae814b5de76a__report.json",
+        "bad680e9d7661aaa__canonical_pointer.json",
+        "bb420ad92e881b28__summary.json",
+        "bb7ef4b5768bb3bb__runtime_supply_manifest.json",
+        "bc82da7fdc391eea__latency_cost_report.json",
+        "bd3526ab40ea536f__canonical_pointer.pre_promote.json",
+        "bde8ef155f97a679__answer_rubric_ab_eval_summary.json",
+        "be6f12d74a0ea828__rescue_summary.json",
+        "bf7c3ac58215ad00__candidate_ledger.json",
+        "bf9a4f3768351591__failclosed_and_legacy_invariant_report_m25b.json",
+        "bf9a6bb313b28f78__summary.json",
+        "bfa00f9bf00481cf__skeleton_report.json",
+        "bfdc387d81438a9d__signing_and_tamper_report_m25c.json",
+        "c01a28f6ed6a7132__coverage_report.json",
+        "c1d4d404f2446308__report.json",
+        "c1e8ce62d1e66b4f__multimodel_jury_summary.json",
+        "c2a89d4defdd6121__minimal_summary.json",
+        "c34ebfacd043767c__dynamic_workflow_manifest_m9.json",
+        "c3e64cb2bd17ec3c__ab_real_chain_qa_report_m26.json",
+        "c44da34c1ebb87de__consensus_coverage_report_485.json",
+        "c4802ac7ccb53829__PO_spotcheck_manifest.json",
+        "c4dfb494a8de4972__manifest.json",
+        "c5be2a79fc81c2bf__summary.json",
+        "c6277d15cf2074ca__manifest.json",
+        "c7de789db670ae5c__freeze_manifest.json",
+        "c834a0f1c8c43846__workflow_ledger_m17b.json",
+        "c8ef8ce12c7f5bd4__summary.json",
+        "ca213a76e05d0a36__source_acquisition_manifest_m14b.json",
+        "ca2c300441b6b5c0__manifest.json",
+        "ca50397d86ae1a87__mobile_learning_report_v2_api.json",
+        "ca80b56331cb21b1__summary.json",
+        "cba05f0c7f9e12c9__local_langfuse_boot_report_m24.json",
+        "cc43675ca272f084__with_backfill_expanded_scope_summary.json",
+        "ce9eb62c1193d22b__qa30_017_018_devtools_summary.json",
+        "ceb5e4ef339cc77c__runtime_safety_report_m17a.json",
+        "cfb58ac8b173faf5__canonical_pointer.json",
+        "cfddb43493916a94__gate_summary.json",
+        "d061aec8b995c60a__minimal_final6_summary.json",
+        "d094e4e9b88905c7__summary.json",
+        "d3b47502e93ebdec__canonical_pointer.json",
+        "d3ed0a10171d3335__canonical_manifest_pointer.json",
+        "d3f202e298dca1e3__residual_source_repair_report.json",
+        "d40f9d42681fb3eb__consensus_coverage_report.json",
+        "d4f521d1e44ad247__final_sweep_report.json",
+        "d9136047f4a6eaff__canonical_state_ledger_m21.json",
+        "d92a696ae1bc78e7__live_gate_report.json",
+        "d9a13b99fabe2a97__coverage_report.json",
+        "da236aea799b7ce5__refinement_report_r2.json",
+        "db6774bf5407161b__summary.json",
+        "dbac3de3835477f9__pipeline_safety_report.json",
+        "dc2b8d21cba67f61__compile_report.json",
+        "dc8388ff750ad7da__frozen_full_compile_report.json",
+        "dcb4b21a1aeac426__workflow_ledger_m16.json",
+        "dcec4de69f4d3aee__summary.json",
+        "dd3387d1dc6f4b35__minimal_final7_summary.json",
+        "dd6fffb1882bac09__latency_cost_report_m24.json",
+        "ddcaa0fe23fb6603__rich_leaf_context_pointer.candidate.json",
+        "dde1357a153524f2__safety_invariant_report_m30.json",
+        "de3655164e906409__source_court_summary_m5d.json",
+        "de683db7874d317f__report.json",
+        "de99fef3135f5903__summary.json",
+        "ded999e466f88f2f__canonical_pointer.json",
+        "e028a75aa7f89408__artifact_diff_summary.json",
+        "e05b969b57b1ed2c__schema_and_hash_consistency_report.json",
+        "e1426d93960cf4d5__latency_token_cost_delta_report_m201.json",
+        "e14cba955ee5d5bf__miss_classification_summary_m15.json",
+        "e1833798de220f57__internal_slice_manifest.json",
+        "e1af75c8c70cd731__rollback_and_killswitch_report_m17a.json",
+        "e1b3f6aa365364ab__coverage_expansion_apply_report.json",
+        "e23271b0e777984b__compiled_manifest.json",
+        "e2a8313c31270f65__registry_v1_beta_shadow_readiness_delta_m10.json",
+        "e2e13739159e29e8__seed_miss_summary.json",
+        "e2eae04dbc1904ba__candidate_publish_report.json",
+        "e3bc2f77cba0ee2f__benchmark_manifest_m22.json",
+        "e487033487460315__runtime_supply_v2_manifest_m25c.json",
+        "e4d133a77acfece3__canonical_pointer.json",
+        "e5383407c2d77e20__cost_latency_report_485.json",
+        "e56350219300d959__delta_candidate_summary_m22.json",
+        "e5eec20d9f086c9c__pipeline_safety_report.json",
+        "e62ce9d91690a4e3__production_boundary_report.json",
+        "e77af677e7bc6a9b__safety_invariant_report_m26_live.json",
+        "e7e0d27e5fdc1781__summary.json",
+        "e855e8eaab2b398d__tutorbot_ws_smoke_report_m28.json",
+        "e8bc81f642ff6d27__manifest.json",
+        "e955e621654b7021__report_shape.json",
+        "eaa413aac39c3e0b__summary.json",
+        "eaf8890ef07389ab__summary.json",
+        "eb323a5218600d35__latency_token_cost_report_m19d.json",
+        "ecfa040f0daf0a6c__manifest.json",
+        "ed6b82b4219f53af__live_gate_report.json",
+        "edced8bd519135f1__manifest.json",
+        "eddc461b8d525ccd__blocked_point_classification_summary.json",
+        "ef4f408fbd5c8408__no_human_v1_5_summary.json",
+        "ef813ad129f1fe5c__summary.json",
+        "f09346ce2464e9a3__manifest.json",
+        "f0fed2e564297ea7__evidence-summary.json",
+        "f13137ba95c3b727__registry_report.json",
+        "f18da2ec90882583__summary.json",
+        "f1d9df9c7d64d5ee__manifest.json",
+        "f1e41a369afbf8f4__m7_rerun_readiness_report.json",
+        "f1ea7ce3c0f9906e__canonical_evidence_ledger_m19b.json",
+        "f255755389001c5f___ds_manifest.json",
+        "f26491adba2b5b7e__consensus_gold_v1_manifest.json",
+        "f2f499cb5ffc5c31__m14e_manifest.json",
+        "f43644e0014a063e__quality_report.json",
+        "f45ebdbbb6cdaeb2__stage5_canary_gate_report.json",
+        "f47c85cfe0ed1e1d__summary.json",
+        "f4a5e4383b4ae9b7__no_human_v1_5_summary.json",
+        "f4a70ac3f72733c7__mobile_learning_report_v2_api.json",
+        "f5ffbb04694b358c__registry_release_candidate_audit_m16.json",
+        "f7f870727d401405__rebuild_run_summary.json",
+        "f8492fb4ad856feb__backfill_dryrun_report.json",
+        "f9e8dccff33687e6__batch_relink_report.json",
+        "f9f45e02b422935a__clean_checkout_test_report_m21s.json",
+        "fb770ad16550be5a__hardened_candidate_registry_preview.json",
+        "fdbb028ae0c45387__registry_impact_simulation_m3.json",
+        "fe28301325be502d__soak_manifest_m19d.json",
+        "fe36ca7ceb1383ad__jury_input_manifest.json",
+        "fe6a6ff0a8337be7__canonical_pointer.json",
+        "fefb9c90b7a7bce0__safety_invariant_report_m34.json",
+        "ffa1726af75b89f9__registry_v1_candidate_simulation_m5b.json",
+        "ffaa35cad2acf82c__registry_v1_release_candidate.json",
+        ".data_asset_brief_generated.json",
+        "asset_buckets.json",
+        "manifest.json",
+        ".governance_okf_generated.json",
+        "domain_summary.json",
+        "manifest.json",
+        ".json_source_ledger_generated.json",
+        "manifest.json",
+        "summary.json",
+        ".knowledge_compiler_okf_generated.json",
+        "manifest.json",
+        "latest_refresh_manifest.json",
+        ".luban_grading_artifacts_okf_generated.json",
+        "manifest.json",
+        ".okf_candidate_scope_generated.json",
+        "manifest.json",
+        "scoring_point_index.json",
+        ".okf_dry_consumer_generated.json",
+        "receipt.json",
+        ".okf_landing_gap_generated.json",
+        "report.json",
+        ".okf_pilot_generated.json",
+        "manifest.json",
+        "question_context_pack.json",
+        "scoring_point_index.json",
+        ".okf_source_alignment_generated.json",
+        "report.json",
+        ".pdf_source_ledger_generated.json",
+        "manifest.json",
+        "raw-data-current-profile.json",
+        ".topic_okf_generated.json",
+        "manifest.json"
+      ]
+    }
+  },
+  "interpretation_guardrail": {
+    "release_truth": "runtime_supply canonical pointers and production gates control runtime truth; artifact workbench outputs are shadow/workbench unless published and wired.",
+    "official_scoring_authority": "PGO/rubric candidates remain pending when per-point scores are null or authority is pending_calibration_not_official."
+  }
+}

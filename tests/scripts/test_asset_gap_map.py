@@ -81,14 +81,19 @@ def test_asset_gap_map_builds_actionable_gap_queues(tmp_path):
     assert manifest["counts"]["by_priority"] == {"P1": 5, "P2": 4}
 
     queues = _read_json(output_root / "action_queues.json")["queues"]
+    compiled_authority_counts = _read_json(COMPILED_AUTHORITY)["counts"]
     assert sum(row["missing_count"] for row in queues["exam_content_gap"]) == 139
     assert len(queues["json_source_claim_review_backlog"]) == 383
     assert len(queues["pdf_p1_compile_or_map"]) == 21
     assert len(queues["pdf_p2_verify_provenance"]) == 39
     assert len(queues["okf_case_level_alignment_backfill"]) == 16
-    assert len(queues["runtime_published_pointer_consumer_evidence"]) == 4
+    assert len(queues["runtime_published_pointer_consumer_evidence"]) == compiled_authority_counts[
+        "published_runtime_pointers"
+    ]
     assert len(queues["runtime_policy_conflict_live_reader"]) == 1
-    assert len(queues["runtime_blocked_or_candidate_pointer_review"]) == 11
+    assert len(queues["runtime_blocked_or_candidate_pointer_review"]) == compiled_authority_counts[
+        "blocked_or_candidate_runtime_pointers"
+    ]
     by_runtime_bundle = {row["runtime_bundle"]: row for row in queues["runtime_published_pointer_consumer_evidence"]}
     assert by_runtime_bundle["v_topic_waterproof"]["gap_kind"] == "published_pointer_payload_manifest_conflict"
     assert by_runtime_bundle["v_topic_waterproof"]["pointer_published"] is True

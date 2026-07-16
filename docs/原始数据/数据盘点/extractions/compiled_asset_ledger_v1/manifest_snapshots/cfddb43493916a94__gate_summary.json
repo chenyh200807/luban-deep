@@ -1,0 +1,651 @@
+{
+  "sha_gate": {
+    "ok": true,
+    "skipped": false,
+    "origin_main": "3acb452155d3a9322e99651ee8993cbfe15e825e",
+    "host_env": "3acb452155d3a9322e99651ee8993cbfe15e825e",
+    "container_env": "3acb452155d3a9322e99651ee8993cbfe15e825e",
+    "container_git_dirty": "false",
+    "dirty_ok": true,
+    "three_way_ok": true,
+    "detail": "三方 SHA 对齐且 GIT_DIRTY=false"
+  },
+  "base": "https://test2.yousenjiaoyu.com",
+  "runs": 3,
+  "dimensions": [
+    {
+      "dim": "daowu",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": true,
+          "inconclusive": false,
+          "surface_stable": true,
+          "represented_new_order": false,
+          "judge": "CLEAN",
+          "why": "判分依据的选项字母与内容映射与学生看到的呈现面一致，均为A对应项目经理，判分正确无误。",
+          "o1": [
+            [
+              "A",
+              "项目经理"
+            ],
+            [
+              "B",
+              "项目技术负责人"
+            ],
+            [
+              "C",
+              "建设单位项目负责人"
+            ],
+            [
+              "D",
+              "施工单位技术负责人"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "项目经理"
+            ],
+            [
+              "B",
+              "项目技术负责人"
+            ],
+            [
+              "C",
+              "建设单位项目负责人"
+            ],
+            [
+              "D",
+              "施工单位技术负责人"
+            ]
+          ],
+          "grading_excerpt": "## 📊 阅卷结论 **结果：** 正确 **你的答案：** A（项目经理） **正确答案：** A（项目经理）  ## 🧐 解析 **核心判断：** 正确选项是 A（项目经理）。  **逐项解析：** - A. 项目经理：正确且你已选中。它直接对应题干要求和",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "surface_stable": true,
+          "represented_new_order": false,
+          "judge": "CLEAN",
+          "why": "判分依据的选项字母与内容映射与学生看到的呈现面一致，均为A对应'受力较小处'，无倒诬。",
+          "o1": [
+            [
+              "A",
+              "受力较小处"
+            ],
+            [
+              "B",
+              "受力较大处"
+            ],
+            [
+              "C",
+              "弯矩最大处"
+            ],
+            [
+              "D",
+              "节点核心区"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "受力较小处"
+            ],
+            [
+              "B",
+              "受力较大处"
+            ],
+            [
+              "C",
+              "弯矩最大处"
+            ],
+            [
+              "D",
+              "节点核心区"
+            ]
+          ],
+          "grading_excerpt": "## 📊 阅卷结论 **结果：** 正确 **你的答案：** A（受力较小处） **正确答案：** A（受力较小处）  ## 🧐 解析 **核心判断：** 正确选项是 A（受力较小处）。  **逐项解析：** - A. 受力较小处：正确且你已选中。它直接对应题",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "surface_stable": true,
+          "represented_new_order": false,
+          "judge": "CLEAN",
+          "why": "判分依据的选项字母与内容映射与学生看到的呈现面一致，A对应1人，B对应2人，判分正确无误。",
+          "o1": [
+            [
+              "A",
+              "1人"
+            ],
+            [
+              "B",
+              "2人"
+            ],
+            [
+              "C",
+              "3人"
+            ],
+            [
+              "D",
+              "5人"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "1人"
+            ],
+            [
+              "B",
+              "2人"
+            ],
+            [
+              "C",
+              "3人"
+            ],
+            [
+              "D",
+              "5人"
+            ]
+          ],
+          "grading_excerpt": "### 阅卷结论 你答错了，得0分。诊断类型：**概念混淆**。你选了A（1人），正确答案是B（2人）。你混淆了“建筑工程面积1万m²以下”和“1万~5万m²”这两个不同档位的配备标准。  ### 正确答案 **B. 2人**  ### 为什么错 你的错误属于",
+          "run": 3
+        }
+      ],
+      "conclusive": 3,
+      "inconclusive": 0,
+      "passed": 3,
+      "failed": 0,
+      "fail_rate": 0.0,
+      "reproduced": false,
+      "evidence_path": "/Users/yehongchen/deeptutor-ct-deploy-3acb45215/artifacts/quality_gate/20260701_112431/daowu_result.json"
+    },
+    {
+      "dim": "huizhi",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": true,
+          "inconclusive": false,
+          "det_reason": "原题选项4/4命中分析(ABCD)",
+          "glm_bind": "DEGRADED",
+          "glm_reason": "",
+          "o1": [
+            [
+              "A",
+              "钢材的屈服强度是指钢材在弹性阶段的最大应力"
+            ],
+            [
+              "B",
+              "钢材的伸长率是衡量钢材塑性性能的指标，伸长率越大，塑性越好"
+            ],
+            [
+              "C",
+              "钢材的冲击韧性是指钢材抵抗冲击荷载的能力，其值越大，脆性越大"
+            ],
+            [
+              "D",
+              "钢材的冷弯性能是指钢材在高温下弯曲变形的能力"
+            ]
+          ],
+          "analysis_excerpt": "好的，我们逐项来分析这道题。  **A. 钢材的屈服强度是指钢材在弹性阶段的最大应力**  这个选项不正确。钢材的屈服强度，是指钢材在弹塑性阶段，开始产生明显塑性变形（应变）时的应力。弹性阶段的最大应力是**弹性极限**，它通常略低于屈服强",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "det_reason": "原题选项4/4命中分析(ABCD)",
+          "glm_bind": "DEGRADED",
+          "glm_reason": "",
+          "o1": [
+            [
+              "A",
+              "屈服强度与抗拉强度的比值"
+            ],
+            [
+              "B",
+              "抗拉强度与屈服强度的比值"
+            ],
+            [
+              "C",
+              "屈服强度与伸长率的比值"
+            ],
+            [
+              "D",
+              "抗拉强度与伸长率的比值"
+            ]
+          ],
+          "analysis_excerpt": "好的，下面逐项分析这道题的四个选项，帮你理清为什么只有A正确，其他三个错在哪里。  ---  ### A. 屈服强度与抗拉强度的比值 **✅ 正确。** 这是“屈强比”的官方定义——分子是**屈服强度**（“屈”字在前），分母是**抗拉强度",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "det_reason": "原题选项4/4命中分析(ABCD)",
+          "glm_bind": "DEGRADED",
+          "glm_reason": "",
+          "o1": [
+            [
+              "A",
+              "流动性、保水性、耐久性"
+            ],
+            [
+              "B",
+              "流动性、黏聚性、保水性"
+            ],
+            [
+              "C",
+              "流动性、抗渗性、保水性"
+            ],
+            [
+              "D",
+              "坍落度、扩展度、保水性"
+            ]
+          ],
+          "analysis_excerpt": "好的，我们针对这道题逐项分析你提到的四个选项。  **A. 流动性、保水性、耐久性**  这个选项错误。原因在于，“耐久性”是混凝土硬化后的长期性能（如抗冻、抗碳化等），不属于混凝土拌合物（即浇筑前的未凝固状态）的和易性范畴。和易性只反映拌",
+          "run": 3
+        }
+      ],
+      "conclusive": 3,
+      "inconclusive": 0,
+      "passed": 3,
+      "failed": 0,
+      "fail_rate": 0.0,
+      "reproduced": false,
+      "evidence_path": "/Users/yehongchen/deeptutor-ct-deploy-3acb45215/artifacts/quality_gate/20260701_112431/huizhi_result.json"
+    },
+    {
+      "dim": "leak_boundary",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "A隐式",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题考的是屋面坡度与卷材铺贴方向的对应关系，核心规则其实很清晰：  - 坡度**较小**时（比如小于某个值），卷材**宜平行**于屋脊铺贴，这样搭接缝顺水流方向，不易渗漏。 - 坡度**较大**时（比如大于某个值），卷材**宜垂直**于屋脊铺贴，防止卷材下滑。 - 中间有一个*",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "A隐式",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题考查的是《屋面工程技术规范》（GB 50345）中对屋面防水等级与合理使用年限的对应关系。既然你拿不准，我给你几个思路提示，你自己试着推一推：  1. **防水等级划分：** 屋面防水分为**Ⅰ级**和**Ⅱ级**，Ⅰ级是最高的防水等级，通常用于重要的、对防水要求非常严格的",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "A隐式",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "好的，这道题的核心是屋面防水等级和对应的设防道数，先别急着猜，我帮你理一理思路。  **提示要点：** 1. 屋面防水等级通常按建筑的重要性、使用功能等划分，**等级越高（数字越小越重要）**，对防水的要求也越严格。 2. 设防道数指防水层的层数，要求越严格，通常设防道数就越多。",
+          "run": 3
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "B显式",
+          "det_reveal": "正确选项是 C",
+          "excerpt": "## ✅ 答案与解析 **正确答案：** C（受力钢筋的保护层厚度不应小于其公称直径，且不应小于规定的最小厚度）  ## 🧐 解析 **核心判断：** 正确选项是 C（受力钢筋的保护层厚度不应小于其公称直径，且不应小于规定的最小厚度）。  **逐项解析：** - A. 梁、柱中箍",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "B显式",
+          "det_reveal": "正确选项是 A",
+          "excerpt": "## ✅ 答案与解析 **正确答案：** A（混凝土强度等级是按立方体抗压强度标准值确定的）  ## 🧐 解析 **核心判断：** 正确选项是 A（混凝土强度等级是按立方体抗压强度标准值确定的）。  **逐项解析：** - A. 混凝土强度等级是按立方体抗压强度标准值确定的：正确",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "B显式",
+          "det_reveal": "正确选项是 C",
+          "excerpt": "## ✅ 答案与解析 **正确答案：** C（可模性好，整体性强）  ## 🧐 解析 **核心判断：** 正确选项是 C（可模性好，整体性强）。  **逐项解析：** - A. 抗拉强度高，抗压强度低：排除项。它与本题标准结论不一致，不能作为正确答案。 - B. 耐久性差，易腐蚀",
+          "run": 3
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "C未答回指",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题主要考察**建筑用钢材拉伸性能中的几个核心概念**，包括：  - **强屈比**（抗拉强度/屈服强度）——它与安全性和钢材强度利用率的关系 - **伸长率**——反映钢材塑性变形的能力 - **屈服强度**——在结构设计中的取值依据  你可以根据这些知识点，依次分析每个选项",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "C未答回指",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题主要考察**建筑钢材拉伸性能的关键指标**，包括三个核心概念：  1. **屈服强度：** 钢材在拉伸过程中开始发生明显塑性变形时的应力值，是结构设计中确定钢材强度取值的重要依据。 2. **强屈比：** 钢材的抗拉强度与屈服强度的比值。它反映了钢材的**安全储备**：比值",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "C未答回指",
+          "det_reveal": null,
+          "ds": "CLEAN",
+          "excerpt": "这道题考察的是建筑用钢材**拉伸性能**的几个核心概念，包括：  - **强屈比：** 通常指钢材抗拉强度与屈服强度的比值（或称“屈强比”的倒数）。它反映钢材在屈服后继续承载的能力（安全储备）。比值越大，钢材从屈服到断裂的变形能力越强，**安全性**通常越高；但比值过大时，屈服强",
+          "run": 3
+        }
+      ],
+      "conclusive": 9,
+      "inconclusive": 0,
+      "passed": 9,
+      "failed": 0,
+      "fail_rate": 0.0,
+      "reproduced": false,
+      "evidence_path": "/Users/yehongchen/deeptutor-ct-deploy-3acb45215/artifacts/quality_gate/20260701_112431/leak_boundary_result.json"
+    },
+    {
+      "dim": "sev_regression",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": false,
+          "inconclusive": false,
+          "sev": "倒诬",
+          "surface_stable": true,
+          "judge": "DAOWU",
+          "why": "学生答C（20年），但正确答案是D（25年），判分正确，不存在倒诬。",
+          "o1": [
+            [
+              "A",
+              "10年"
+            ],
+            [
+              "B",
+              "15年"
+            ],
+            [
+              "C",
+              "20年"
+            ],
+            [
+              "D",
+              "25年"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "10年"
+            ],
+            [
+              "B",
+              "15年"
+            ],
+            [
+              "C",
+              "20年"
+            ],
+            [
+              "D",
+              "25年"
+            ]
+          ],
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "倒诬",
+          "surface_stable": true,
+          "judge": "CLEAN",
+          "why": "学生答案C（三道防水设防）与正确答案B（两道防水设防）不符，判分正确，无倒诬现象。",
+          "o1": [
+            [
+              "A",
+              "一道防水设防"
+            ],
+            [
+              "B",
+              "两道防水设防"
+            ],
+            [
+              "C",
+              "三道防水设防"
+            ],
+            [
+              "D",
+              "四道防水设防"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "一道防水设防"
+            ],
+            [
+              "B",
+              "两道防水设防"
+            ],
+            [
+              "C",
+              "三道防水设防"
+            ],
+            [
+              "D",
+              "四道防水设防"
+            ]
+          ],
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "倒诬",
+          "surface_stable": true,
+          "judge": "CLEAN",
+          "why": "学生答C，正确答案为D，判分正确，无倒诬现象。",
+          "o1": [
+            [
+              "A",
+              "沥青防水卷材"
+            ],
+            [
+              "B",
+              "聚氨酯防水涂料"
+            ],
+            [
+              "C",
+              "聚乙烯丙纶防水卷"
+            ],
+            [
+              "D",
+              "高聚物改性沥青防"
+            ]
+          ],
+          "o2": [
+            [
+              "A",
+              "沥青防水卷材"
+            ],
+            [
+              "B",
+              "聚氨酯防水涂料"
+            ],
+            [
+              "C",
+              "聚乙烯丙纶防水卷"
+            ],
+            [
+              "D",
+              "高聚物改性沥青防"
+            ]
+          ],
+          "run": 3
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "泄露",
+          "judge": "CLEAN",
+          "why": "助教只讲解了知识点，未直接说出正确选项字母或内容，也未明示哪个选项正确。",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "泄露",
+          "judge": "CLEAN",
+          "why": "助教只讲解了各选项涉及的概念和定义，未直接说出正确选项字母或内容，也未明示哪个选项正确。",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "泄露",
+          "judge": "CLEAN",
+          "why": "助教只解释了相关概念，未直接说出正确选项字母或内容，也未明示哪个选项正确。",
+          "run": 3
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "回指",
+          "judge": "CORRECT_BIND",
+          "why": "逐项分析针对原题选项A、B、C、D进行解释，与题目一致。",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "回指",
+          "judge": "CORRECT_BIND",
+          "why": "助教逐项分析针对原题四个选项，正确指出A为正确答案，并解释了B、C、D错误的原因，回指绑定正确。",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sev": "回指",
+          "judge": "CORRECT_BIND",
+          "why": "逐项分析针对原题四个选项逐一解释，且正确答案与题干一致，回指绑定正确。",
+          "run": 3
+        }
+      ],
+      "conclusive": 9,
+      "inconclusive": 0,
+      "passed": 8,
+      "failed": 1,
+      "fail_rate": 0.1111111111111111,
+      "reproduced": true,
+      "evidence_path": "/Users/yehongchen/deeptutor-ct-deploy-3acb45215/artifacts/quality_gate/20260701_112431/sev_regression_result.json"
+    },
+    {
+      "dim": "forward_liveness",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "U1批量判分",
+          "graded": true,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "### 阅卷结论 两道题均答错，得0/2分。第1题你选了A（50%），正确答案是B（75%）；第2题你选了B（2小时），正确答案是A（1小时）。诊断类型：概念混淆。  ### 正确答案 - **第1题：** B. 75% - **第2题：** A. 1小时  ### 为什么错 - **第1题：** 概念混淆。你把跨度≤",
+          "run": 1
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "U1批量判分",
+          "graded": true,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "### 阅卷结论 你答的2道题中，第1题答错（选了A，正确答案是C），第2题答对（选B），两题合计得分1/2分，诊断类型为部分正确（PARTIAL）。第1题的错误根源在于对砌体结构施工关键数字和顺序存在记忆偏差。  ### 正确答案 - **第1题选项：** C（砖墙的转角处和交接处应同时砌筑，严禁无可靠措施的内外墙分",
+          "run": 2
+        },
+        {
+          "pass": true,
+          "inconclusive": false,
+          "sub": "U1批量判分",
+          "graded": true,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "### 阅卷结论 两道题均答错，得0/2分。第1题是概念混淆（将底模拆除强度条件与不同跨度下的要求记混），第2题是概念混淆（把“快硬早强”当作降温措施，实际它加剧温升）。  ### 正确答案 第1题：C（75%）。第2题：C（降低混凝土入模温度）。  ### 为什么错 **第1题：** 你选了A（50%），但50%只适",
+          "run": 3
+        },
+        {
+          "pass": false,
+          "inconclusive": false,
+          "sub": "U2陈旧多题set(Dim1 known bug)",
+          "graded": false,
+          "refused": false,
+          "refusal_marker": null,
+          "excerpt": "### 第 1 题  建筑用钢材的哪种力学指标表示其抵抗拉断的能力？ - A. 屈服强度 - B. 抗拉强度 - C. 伸长率 - D. 冲击韧性  ### 第 2 题  土方回填时，对非粘性土（如砂土）宜采用的压实方法是？ - A. 碾压法 - B. 夯实法 - C. 振动压实法 - D. 以上均适用  ### 第 3 题  下列措施中，不利于控制大体积混凝土温度裂缝的是？ - A. 选用低水化",
+          "run": 1
+        },
+        {
+          "pass": null,
+          "inconclusive": true,
+          "sub": "U2陈旧多题set",
+          "why": "only_0_msgs",
+          "run": 2
+        },
+        {
+          "pass": null,
+          "inconclusive": true,
+          "sub": "U2陈旧多题set",
+          "why": "only_0_msgs",
+          "run": 3
+        }
+      ],
+      "conclusive": 4,
+      "inconclusive": 2,
+      "passed": 3,
+      "failed": 1,
+      "fail_rate": 0.25,
+      "reproduced": true,
+      "evidence_path": "/Users/yehongchen/deeptutor-ct-deploy-3acb45215/artifacts/quality_gate/20260701_112431/forward_liveness_result.json"
+    },
+    {
+      "dim": "content_truth",
+      "runs_per_unit": 3,
+      "rows": [
+        {
+          "pass": null,
+          "inconclusive": true,
+          "why": "no_assistant_msg",
+          "run": 1
+        },
+        {
+          "pass": null,
+          "inconclusive": true,
+          "why": "no_assistant_msg",
+          "run": 2
+        },
+        {
+          "pass": null,
+          "inconclusive": true,
+          "why": "no_assistant_msg",
+          "run": 3
+        }
+      ],
+      "conclusive": 0,
+      "inconclusive": 3,
+      "passed": 0,
+      "failed": 0,
+      "fail_rate": null,
+      "reproduced": false,
+      "evidence_path": "/Users/yehongchen/deeptutor-ct-deploy-3acb45215/artifacts/quality_gate/20260701_112431/content_truth_result.json"
+    }
+  ],
+  "reproduced_dims": [
+    "sev_regression",
+    "forward_liveness"
+  ]
+}

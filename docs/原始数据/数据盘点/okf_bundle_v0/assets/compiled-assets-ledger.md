@@ -7,7 +7,7 @@ tags:
   - "luban"
   - "asset"
   - "compiled_assets_ledger"
-timestamp: "2026-06-20T00:00:00+08:00"
+timestamp: "2026-07-16T14:54:49+08:00"
 status: "source_navigation"
 ---
 
@@ -19,7 +19,7 @@ status: "source_navigation"
 
 ## Counts
 
-- Count: 5059 compiled_asset_file
+- Count: 7133 compiled_asset_file
 - Readiness: `inventory_ready_not_runtime_truth`
 - Authority status: `compiled_asset_inventory_only`
 - Primary entry: `docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json`

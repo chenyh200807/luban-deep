@@ -740,6 +740,9 @@ def build_observer_snapshot(
     event_days: int = 1,
     metrics_snapshot: dict[str, Any] | None = None,
     surface_snapshot: dict[str, Any] | None = None,
+    om_payload: dict[str, Any] | None = None,
+    arr_payload: dict[str, Any] | None = None,
+    aae_payload: dict[str, Any] | None = None,
     benchmark_payload: dict[str, Any] | None = None,
     release: dict[str, Any] | None = None,
     conversation_db_path: Path | None = None,
@@ -757,14 +760,19 @@ def build_observer_snapshot(
     control_store = store or get_control_plane_store()
     turn_log = event_log or get_turn_event_log()
 
-    om_record = _safe_latest_run(control_store, "om_runs")
-    arr_record = _safe_latest_run(control_store, "arr_runs")
-    aae_record = _safe_latest_run(control_store, "aae_composite_runs")
-    benchmark_record = _safe_latest_run(control_store, "benchmark_runs", fallback=False)
-    daily_trend_record = _safe_latest_run(control_store, "daily_trends")
-    om_payload = _payload_from_record(om_record)
-    arr_payload = _payload_from_record(arr_record)
-    aae_payload = _payload_from_record(aae_record)
+    allow_latest_fallback = not bool(release)
+    om_record = _safe_latest_run(control_store, "om_runs") if allow_latest_fallback and om_payload is None else None
+    arr_record = _safe_latest_run(control_store, "arr_runs") if allow_latest_fallback and arr_payload is None else None
+    aae_record = _safe_latest_run(control_store, "aae_composite_runs") if allow_latest_fallback and aae_payload is None else None
+    benchmark_record = (
+        _safe_latest_run(control_store, "benchmark_runs", fallback=False)
+        if allow_latest_fallback and benchmark_payload is None
+        else None
+    )
+    daily_trend_record = _safe_latest_run(control_store, "daily_trends") if allow_latest_fallback else None
+    om_payload = om_payload or _payload_from_record(om_record)
+    arr_payload = arr_payload or _payload_from_record(arr_record)
+    aae_payload = aae_payload or _payload_from_record(aae_record)
     benchmark_payload = benchmark_payload or _payload_from_record(benchmark_record)
     daily_trend_payload = _payload_from_record(daily_trend_record)
     if start_ts is not None and end_ts is not None:
@@ -825,7 +833,13 @@ def build_observer_snapshot(
     )
     runtime_incidents = classify_runtime_incidents_from_backend_logs(backend_logs)
     trace_linkage = _build_trace_linkage_snapshot(canonical_turn_events)
-    surface_payload = surface_snapshot if isinstance(surface_snapshot, dict) else get_surface_event_store().snapshot()
+    metrics_surface = (metrics_snapshot or {}).get("surface_events")
+    if isinstance(surface_snapshot, dict) and isinstance(surface_snapshot.get("coverage"), list):
+        surface_payload = surface_snapshot
+    elif isinstance(metrics_surface, dict):
+        surface_payload = metrics_surface
+    else:
+        surface_payload = get_surface_event_store().snapshot() if allow_latest_fallback else {}
     surface_coverage = surface_payload.get("coverage") if isinstance(surface_payload, dict) else []
     has_quality_run = bool(arr_payload or benchmark_payload)
     has_surface_coverage = bool(surface_coverage)

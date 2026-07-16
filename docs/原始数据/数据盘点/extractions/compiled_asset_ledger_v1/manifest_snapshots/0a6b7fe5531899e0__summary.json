@@ -1,0 +1,83 @@
+{
+  "report_date": "2026-07-06",
+  "generated_at": "2026-07-07 09:25:14 CST",
+  "verdict": "DEGRADED",
+  "authority": {
+    "pwd_l": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts",
+    "pwd_p": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts",
+    "git_toplevel": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor",
+    "core_worktree": "",
+    "artifacts_env": "missing",
+    "repo_root_env": "readable"
+  },
+  "run_ids": {
+    "daily_trends": "observability-daily-1783387344",
+    "oa_runs": "oa-daily-1783387344",
+    "om_runs": "om-1783387342",
+    "observer_snapshots": "observer-snapshot-1783387342",
+    "change_impact_runs": "change-impact-1783387344",
+    "release_gate_runs": "release-gate-1783387344",
+    "benchmark_runs": "benchmark-1783387323",
+    "readiness_checks": "readiness-matrix-1783387344"
+  },
+  "workspace": {
+    "branch": "release/card-fit",
+    "head": "c5fa4fc0ebfe37ffedf241c1c7fdb261c3108753",
+    "origin_main": "64e23513024852e81719e9ee127ff97cf5a7d47a",
+    "ahead": 2,
+    "behind": 133,
+    "dirty_total": 96,
+    "dirty_counts": {
+      "modified": 59,
+      "added": 21,
+      "deleted": 1,
+      "untracked": 15
+    }
+  },
+  "release_gate": {
+    "final_status": "FAIL",
+    "recommendation": "hold",
+    "blockers": [
+      "runtime_release_dirty",
+      "playwright_evidence_missing",
+      "wechat_devtools_true_entry_pending"
+    ]
+  },
+  "observer": {
+    "coverage_ratio": 0.7273,
+    "blind_spots": [
+      "missing_surface_coverage",
+      "missing_product_behavior_evidence",
+      "missing_langfuse_trace_linkage"
+    ],
+    "langfuse_enabled": false
+  },
+  "om": {
+    "metrics_provenance_source": "live_metrics_endpoint",
+    "metrics_fallback_used": false,
+    "unified_ws_smoke_ok": true
+  },
+  "change_impact": {
+    "risk_level": "medium",
+    "risk_score": 0.55,
+    "required_readiness_checks": [
+      "contract_guard",
+      "playwright",
+      "wechat_devtools"
+    ]
+  },
+  "benchmark": {
+    "passed": 26,
+    "total": 26,
+    "pass_rate": 1.0
+  },
+  "persistence_flags": {
+    "daily_verdict_release_mismatch_recent_runs": 6,
+    "three_canonical_blind_spots_recent_release_runs": 5
+  },
+  "artifact_paths": {
+    "report": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/automation-runs/deeptutor-observability-oa-om-report/20260707T092514+0800/report.md",
+    "log": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/automation-runs/deeptutor-observability-oa-om-report/20260707T092514+0800/run_observability_daily.log",
+    "runner_output_dir": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/tmp/observability/control_plane"
+  }
+}

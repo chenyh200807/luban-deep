@@ -8,7 +8,7 @@ tags:
   - "okf"
   - "topic"
   - "quality-acceptance"
-timestamp: "2026-06-20T00:00:00+08:00"
+timestamp: "2026-07-16T14:54:49+08:00"
 status: "topic_okf_candidate"
 runtime_consumable: false
 official_score_allowed: false

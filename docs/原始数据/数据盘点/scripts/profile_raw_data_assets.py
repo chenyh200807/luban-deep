@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -13,9 +14,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = ROOT / "数据盘点" / "extractions"
-PROFILE_PATH = OUT_DIR / "2026-06-18-raw-data-current-profile.json"
-CHART_FILE_TYPES = OUT_DIR / "2026-06-18-raw-data-file-types.png"
-CHART_ASSET_BUCKETS = OUT_DIR / "2026-06-18-raw-data-asset-buckets.png"
+PROFILE_PATH = OUT_DIR / "raw-data-current-profile.json"
+CHART_FILE_TYPES = OUT_DIR / "raw-data-file-types.png"
+CHART_ASSET_BUCKETS = OUT_DIR / "raw-data-asset-buckets.png"
+CURRENT_OUTPUT_PATHS = {PROFILE_PATH, CHART_FILE_TYPES, CHART_ASSET_BUCKETS}
 
 EXCLUDED_DIRS = {".git", "__pycache__", "node_modules"}
 EXCLUDED_TOP_DIRS_FOR_RAW_ASSETS = {"数据盘点"}
@@ -35,6 +37,8 @@ def iter_files(*, include_inventory_docs: bool) -> list[Path]:
         if parts & EXCLUDED_DIRS:
             continue
         if path.name in EXCLUDED_FILES:
+            continue
+        if path in CURRENT_OUTPUT_PATHS:
             continue
         if not include_inventory_docs and path.relative_to(ROOT).parts[0] in EXCLUDED_TOP_DIRS_FOR_RAW_ASSETS:
             continue
@@ -255,13 +259,47 @@ def summarize_lectures() -> dict:
 
 
 def summarize_cards() -> dict:
-    cards_root = ROOT / "PDF" / "建筑实务11.20_副本" / "graphify-out-full-2026-textbook" / "cards-from-json-all"
-    cards = sorted(cards_root.glob("*.md")) if cards_root.exists() else []
-    manifest_paths = sorted(cards_root.parent.glob("*manifest*")) if cards_root.exists() else []
+    cards_root = ROOT / "考点原料" / "成品"
+    bank_paths = sorted(cards_root.glob("*_concept_card_bank.v0.json"))
+    bank_rows = []
+    invalid_banks = []
+    declared_count_mismatches = []
+    card_count = 0
+    for path in bank_paths:
+        try:
+            data = load_json(path)
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            invalid_banks.append({"path": rel(path), "error": str(exc)})
+            continue
+        cards = data.get("cards")
+        if not isinstance(cards, list):
+            invalid_banks.append({"path": rel(path), "error": "cards is not a list"})
+            continue
+        declared_count = data.get("card_count")
+        if declared_count != len(cards):
+            declared_count_mismatches.append(
+                {"path": rel(path), "declared": declared_count, "actual": len(cards)}
+            )
+        card_count += len(cards)
+        bank_rows.append(
+            {
+                "path": rel(path),
+                "schema_version": data.get("schema_version"),
+                "status": data.get("status"),
+                "cards": len(cards),
+            }
+        )
+    legacy_path = ROOT / "PDF" / "建筑实务11.20_副本" / "graphify-out-full-2026-textbook" / "cards-from-json-all"
     return {
-        "path": rel(cards_root) if cards_root.exists() else None,
-        "md_cards": len(cards),
-        "manifest_candidates": [rel(p) for p in manifest_paths],
+        "authority": "finished_concept_card_banks",
+        "path": rel(cards_root),
+        "bank_files": len(bank_rows),
+        "card_count": card_count,
+        "banks": bank_rows,
+        "invalid_banks": invalid_banks,
+        "declared_count_mismatches": declared_count_mismatches,
+        "legacy_path": rel(legacy_path),
+        "legacy_path_exists": legacy_path.exists(),
     }
 
 
@@ -384,7 +422,7 @@ def build_asset_buckets(profile: dict) -> list[dict]:
         {"asset": "历年真题练习", "count": exam["exercises"], "unit": "exercise"},
         {"asset": "章节练习", "count": sum(row["exercises"] for row in practice.values()), "unit": "exercise"},
         {"asset": "教材内容块", "count": textbook["v3_fixed_content_blocks"], "unit": "block"},
-        {"asset": "知识卡片", "count": cards["md_cards"], "unit": "card"},
+        {"asset": "概念卡片(成品bank)", "count": cards["card_count"], "unit": "card"},
         {"asset": "taxonomy叶节点", "count": taxonomy.get("leaf_count") or 0, "unit": "node"},
         {"asset": "规范条目节点", "count": standards["total_nodes"], "unit": "node"},
         {"asset": "讲义页JSON", "count": lectures["page_json"], "unit": "page_json"},
@@ -426,7 +464,7 @@ def render_charts(profile: dict) -> None:
             "grid.color": tokens["grid"],
             "grid.linewidth": 0.8,
             "font.family": "sans-serif",
-            "font.sans-serif": ["Aptos", "Inter", "Segoe UI", "DejaVu Sans", "Arial", "sans-serif"],
+            "font.sans-serif": ["PingFang SC", "Hiragino Sans GB", "Arial Unicode MS", "Aptos", "Inter", "Segoe UI", "DejaVu Sans", "Arial", "sans-serif"],
         },
     )
 
@@ -465,18 +503,29 @@ def render_charts(profile: dict) -> None:
     header(fig, ax, "可用资产桶规模对比", "不同桶的计量单位不同，用于看供给结构和治理优先级，不用于直接相加。")
     fig.savefig(CHART_ASSET_BUCKETS, dpi=180, bbox_inches="tight")
     plt.close(fig)
+    profile["chart_generation"] = {
+        "status": "created",
+        "files": [rel(CHART_FILE_TYPES), rel(CHART_ASSET_BUCKETS)],
+    }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--generated-at",
+        help="ISO timestamp written into the profile; defaults to current UTC time.",
+    )
+    args = parser.parse_args(argv)
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     raw_files = iter_files(include_inventory_docs=False)
     all_files = iter_files(include_inventory_docs=True)
     profile = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": args.generated_at or datetime.now(timezone.utc).isoformat(),
         "root": str(ROOT),
         "scope": {
             "raw_asset_files_exclude": sorted(EXCLUDED_DIRS | EXCLUDED_TOP_DIRS_FOR_RAW_ASSETS | EXCLUDED_FILES),
-            "note": "Primary metrics exclude generated inventory docs under 数据盘点; all_files includes them for reconciliation.",
+            "note": "Primary metrics exclude generated inventory docs under 数据盘点; all_files includes them for reconciliation except this profiler's current JSON/PNG outputs to avoid self-referential drift.",
         },
         "raw_asset_file_inventory": summarize_file_inventory(raw_files),
         "all_file_inventory": summarize_file_inventory(all_files),
@@ -504,7 +553,8 @@ def main() -> None:
         "raw_asset_files": profile["raw_asset_file_inventory"]["total_files"],
         "raw_asset_bytes": profile["raw_asset_file_inventory"]["total_bytes"],
     }, ensure_ascii=False, indent=2))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

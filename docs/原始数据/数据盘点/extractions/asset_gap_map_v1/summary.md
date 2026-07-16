@@ -1,6 +1,6 @@
 # Asset Gap Map v1
 
-- Generated at: `2026-06-19T00:00:00+08:00`
+- Generated at: `2026-07-16T14:54:49+08:00`
 - Authority: gap map only; not runtime supply, not official score authority.
 - Open gap items: **9**
 - P1 gap items: **5**
@@ -16,7 +16,7 @@
 | `okf_case_level_alignment_backfill` | 16 | OKF cases are source-aligned only at case level, not sub-question level. |
 | `runtime_published_pointer_consumer_evidence` | 4 | Published pointers need true consumer read evidence. |
 | `runtime_policy_conflict_live_reader` | 1 | Runtime reader and pointer policy disagree. |
-| `runtime_blocked_or_candidate_pointer_review` | 11 | Candidate/blocked runtime pointers cannot become defaults without signing. |
+| `runtime_blocked_or_candidate_pointer_review` | 12 | Candidate/blocked runtime pointers cannot become defaults without signing. |
 
 ## Gap Items
 
@@ -29,7 +29,7 @@
 | `runtime_policy_conflict_live_reader` | P1 | runtime_supply | 1 | single_runtime_authority, official_score_readiness_claim |
 | `json_source_claim_review_gap` | P2 | json_source | 383 | signed_source_lineage, source_laundering_prevention |
 | `pdf_p2_verify_provenance` | P2 | pdf_source | 39 | signed_source_lineage, source_laundering_prevention |
-| `runtime_candidate_or_blocked_pointers` | P2 | runtime_supply | 11 | runtime_default_claim, single_authority_runtime_supply |
+| `runtime_candidate_or_blocked_pointers` | P2 | runtime_supply | 12 | runtime_default_claim, single_authority_runtime_supply |
 | `runtime_published_pointer_consumer_evidence` | P2 | runtime_supply | 4 | runtime_readiness_claim, production_consumer_claim |
 
 ## Guardrails

@@ -1,6 +1,6 @@
 {
   "schema": "luban_okf_landing_gap_report.v0",
-  "generated_at": "2026-06-19T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "status": "source_layer_target_matched",
   "runtime_guard": {
     "release_stage": "source_layer_gap_report",

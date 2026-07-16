@@ -1,0 +1,62 @@
+{
+  "automation_id": "deeptutor-observability-oa-om-report",
+  "report_date": "2026-07-13",
+  "timezone": "Asia/Shanghai",
+  "window": {"start_ts": 1783872000, "end_ts": 1783958399},
+  "generated_at": "2026-07-14T09:28:24+08:00",
+  "verdict": "BLOCKED",
+  "runner_exit_code": 1,
+  "authority": {
+    "cwd": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts",
+    "git_toplevel": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor",
+    "branch": "codex/old-blue-workspace-snapshot-20260710",
+    "candidate_git_sha": "de5c000816c4",
+    "runtime_git_sha": "954c830c7bc5",
+    "origin_main_git_sha": "0308b0224b56",
+    "candidate_dirty": true,
+    "runtime_dirty": true,
+    "metrics_source": "live_metrics_endpoint",
+    "metrics_fallback_used": false
+  },
+  "current_run": {
+    "runtime_authority_preflight": "BLOCKED",
+    "unified_ws_smoke": "DEFERRED",
+    "ws_session_ids": [],
+    "ws_turn_ids": [],
+    "current_candidate_daily": null,
+    "current_candidate_oa": null,
+    "current_candidate_release_gate": null,
+    "current_candidate_benchmark": null,
+    "current_candidate_readiness": null
+  },
+  "latest_store_records": {
+    "daily_trends": {"run_id": "observability-daily-1783905684", "age_hours": 24.1, "report_date": "2026-07-12", "git_sha": "87599ea5a0cc", "verdict": "STALE"},
+    "oa_runs": {"run_id": "oa-daily-1783905684", "age_hours": 24.1, "git_sha": "87599ea5a0cc", "verdict": "STALE"},
+    "om_runs": {"run_id": "om-1783992205", "age_hours": 0.1, "git_sha": "954c830c7bc5", "admissible_for_candidate": false, "unified_ws_smoke": "DEFERRED"},
+    "observer_snapshots": {"run_id": "observer-snapshot-1783905682", "age_hours": 24.1, "report_date": "2026-07-12", "git_sha": "87599ea5a0cc", "coverage": "6/11"},
+    "change_impact_runs": {"run_id": "change-impact-1783905684", "age_hours": 24.1, "git_sha": "87599ea5a0cc"},
+    "release_gate_runs": {"run_id": "release-gate-1783905684", "age_hours": 24.1, "git_sha": "87599ea5a0cc", "final_status": "FAIL", "recommendation": "hold"},
+    "benchmark_runs": {"run_id": "benchmark-1783905682", "age_hours": 24.1, "git_sha": "87599ea5a0cc", "passed": 26, "total": 26},
+    "readiness_checks": {"run_id": "readiness-matrix-1783905684", "age_hours": 24.1, "git_sha": "87599ea5a0cc", "final_status": "FAIL"}
+  },
+  "frozen_day_raw_sources": {
+    "turn_event_log_file": "missing",
+    "chat_sessions": 0,
+    "chat_messages": 0,
+    "chat_turns": 0,
+    "product_behavior_events": 0,
+    "backend_log_lines": 45,
+    "backend_error_or_warning_lines": 0,
+    "backend_trace_id_lines": 0,
+    "runtime_surface_events_accepted": 7,
+    "runtime_surface_coverage_rows": 0,
+    "langfuse_trace_linkage": 0
+  },
+  "continuity": {
+    "runtime_authority_mismatch": {"first_seen": "2026-07-12", "last_seen": "2026-07-13", "consecutive_count": 2},
+    "missing_true_entry_evidence": {"first_seen": "2026-07-12", "last_seen": "2026-07-13", "consecutive_count": 2},
+    "observer_five_layer_blindspots": {"first_seen": "2026-07-12", "last_seen": "2026-07-13", "consecutive_count": 2},
+    "foreign_om_latest_advanced_on_block": {"first_seen": "2026-07-13", "last_seen": "2026-07-13", "consecutive_count": 1},
+    "observer_dailytrend_prior_wrapper": {"continuity": "UNKNOWN", "reason": "code path changed but same-SHA rerun was blocked"}
+  }
+}

@@ -5,6 +5,7 @@ import time
 from typing import Any
 
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
+from deeptutor.services.observability.runtime_authority import release_identity_matches
 from deeptutor.services.runtime_env import env_flag
 
 _PASS = "PASS"
@@ -156,18 +157,14 @@ def _is_prerelease_plan_placeholder(payload: dict[str, Any] | None) -> bool:
 
 def _payload_release(payload: dict[str, Any] | None) -> dict[str, Any]:
     release = (payload or {}).get("release")
-    return release if isinstance(release, dict) else {}
+    if isinstance(release, dict) and release:
+        return release
+    release_spine = (payload or {}).get("release_spine")
+    return release_spine if isinstance(release_spine, dict) else {}
 
 
 def _same_release_spine(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
-    expected_values = {
-        key: str(expected.get(key) or "").strip()
-        for key in _RELEASE_SPINE_KEYS
-        if str(expected.get(key) or "").strip()
-    }
-    if not expected_values:
-        return True
-    return all(str(actual.get(key) or "").strip() == value for key, value in expected_values.items())
+    return release_identity_matches(expected, actual)
 
 
 def _release_spine_label(release: dict[str, Any]) -> str:
@@ -222,8 +219,7 @@ def _stale_input_names(
         ("change_impact", change_impact_payload),
         ("plan_completion", plan_completion_payload),
     ):
-        git_sha = _payload_git_sha(payload)
-        if git_sha and git_sha != current_git_sha:
+        if payload and not release_identity_matches(current_release, _payload_release(payload)):
             stale.append(name)
     return stale
 
@@ -252,7 +248,7 @@ def build_release_gate_report(
     git_dirty_value = str(resolved_release.get("git_dirty") or "").strip().lower()
     release_dirty = git_dirty_value in {"1", "true", "yes", "on"}
     unified_ws_smoke_ok = om_health.get("unified_ws_smoke_ok")
-    ws_main_path_healthy = unified_ws_smoke_ok is not False
+    ws_main_path_healthy = unified_ws_smoke_ok is True
     orphaned_turns = int(om_health.get("orphaned_turns") or 0)
     readiness_rows = (readiness_payload or {}).get("rows") or []
     readiness_rows_by_check = {
@@ -287,14 +283,18 @@ def build_release_gate_report(
     p0_blockers = [
         *([] if om_health.get("ready") is True and release_complete else ["runtime_or_release_lineage_incomplete"]),
         *(["runtime_release_dirty"] if release_dirty else []),
-        *(["ws_main_path_unhealthy"] if ws_main_path_healthy is False else []),
+        *(
+            []
+            if ws_main_path_healthy
+            else ["ws_main_path_unhealthy" if unified_ws_smoke_ok is False else "ws_main_path_unverified"]
+        ),
         *(["turn_in_flight_without_ws_subscriber"] if orphaned_turns > 0 else []),
         *readiness_blockers,
     ]
     p0_ready = not p0_blockers
     if p0_ready:
         p0_summary = "readyz、release lineage 与 ws 主链路可用"
-    elif "ws_main_path_unhealthy" in p0_blockers:
+    elif {"ws_main_path_unhealthy", "ws_main_path_unverified"}.intersection(p0_blockers):
         p0_summary = "runtime readiness、release lineage、release readiness 或 ws 主链路异常"
     else:
         p0_summary = "runtime readiness、release lineage、dirty state 或 release readiness 不完整"

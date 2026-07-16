@@ -4,6 +4,7 @@ import asyncio
 import httpx
 
 from deeptutor.services.observability.unified_ws_smoke import run_unified_ws_smoke
+from deeptutor.services.observability.unified_ws_smoke import verify_eval_runner_identity
 
 
 class _FakeWebSocket:
@@ -37,6 +38,79 @@ class _FakeConnector:
 
     async def __aexit__(self, exc_type, exc, tb):
         return False
+
+
+class _ProfileResponse:
+    def __init__(self, payload: dict, *, status_code: int = 200) -> None:
+        self._payload = payload
+        self.status_code = status_code
+        self.request = httpx.Request("GET", "https://runtime.example/api/v1/auth/profile")
+
+    def raise_for_status(self) -> None:
+        if self.status_code >= 400:
+            raise httpx.HTTPStatusError("profile failed", request=self.request, response=httpx.Response(self.status_code, request=self.request))
+
+    def json(self) -> dict:
+        return self._payload
+
+
+class _ProfileClient:
+    response = _ProfileResponse({})
+
+    def __init__(self, **_kwargs) -> None:
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+    async def get(self, _url: str, *, headers: dict) -> _ProfileResponse:
+        assert headers["Authorization"].startswith("Bearer ")
+        return self.response
+
+
+def test_verify_eval_runner_identity_uses_target_profile_authority(monkeypatch) -> None:
+    monkeypatch.setattr("deeptutor.services.observability.unified_ws_smoke.httpx.AsyncClient", _ProfileClient)
+    _ProfileClient.response = _ProfileResponse(
+        {
+            "auth_username": "qa_eval_observer",
+            "account_kind": "eval_runner",
+            "actor_type": "machine",
+            "created_by": "eval_runner",
+            "is_internal_test": True,
+        }
+    )
+    verified = asyncio.run(
+        verify_eval_runner_identity(api_base_url="https://runtime.example", auth_token="token")
+    )
+    assert verified["verified"] is True
+
+    _ProfileClient.response = _ProfileResponse(
+        {
+            "auth_username": "student_1",
+            "account_kind": "student",
+            "actor_type": "human",
+            "created_by": "signup",
+            "is_internal_test": False,
+        }
+    )
+    rejected = asyncio.run(
+        verify_eval_runner_identity(api_base_url="https://runtime.example", auth_token="token")
+    )
+    assert rejected["verified"] is False
+    assert rejected["reason"] == "identity_not_eval_runner"
+
+
+def test_verify_eval_runner_identity_defers_on_profile_failure(monkeypatch) -> None:
+    monkeypatch.setattr("deeptutor.services.observability.unified_ws_smoke.httpx.AsyncClient", _ProfileClient)
+    _ProfileClient.response = _ProfileResponse({}, status_code=401)
+    result = asyncio.run(
+        verify_eval_runner_identity(api_base_url="https://runtime.example", auth_token="token")
+    )
+    assert result["verified"] is False
+    assert result["reason"] == "profile_unavailable"
 
 
 def test_run_unified_ws_smoke_collects_events_and_metrics(monkeypatch) -> None:

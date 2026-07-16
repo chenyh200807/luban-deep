@@ -15,7 +15,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[4]
 INVENTORY_ROOT = Path(__file__).resolve().parents[1]
 EXTRACTIONS_ROOT = INVENTORY_ROOT / "extractions"
-DEFAULT_RAW_PROFILE = EXTRACTIONS_ROOT / "2026-06-18-raw-data-current-profile.json"
+DEFAULT_RAW_PROFILE = EXTRACTIONS_ROOT / "raw-data-current-profile.json"
 DEFAULT_JSON_LEDGER = EXTRACTIONS_ROOT / "json_source_ledger_v0" / "manifest.json"
 DEFAULT_PDF_LEDGER = EXTRACTIONS_ROOT / "pdf_source_ledger_v1" / "manifest.json"
 DEFAULT_COMPILED_LEDGER = EXTRACTIONS_ROOT / "compiled_asset_ledger_v1" / "manifest.json"
@@ -642,7 +642,7 @@ def build_data_asset_brief(
                 "why": "逐个编译资产文件的路径、hash、分组和 authority 状态",
             },
             {
-                "path": "docs/原始数据/数据盘点/extractions/2026-06-18-raw-data-current-profile.json",
+                "path": "docs/原始数据/数据盘点/extractions/raw-data-current-profile.json",
                 "why": "全目录原始资产深度统计",
             },
             {
