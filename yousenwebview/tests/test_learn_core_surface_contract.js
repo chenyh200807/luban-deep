@@ -22,15 +22,34 @@ assert(
     (learnWxml.match(/bindtap="openFirstRun"/g) || []).length === 1,
   "first-run state must expose exactly one primary journey CTA",
 );
+// 10a改:复习卡是到期状态视图,点击必须复用任务卡同一 handler(goTodayTask),
+// 因此 canonical 路由入口恰好 2 处(任务卡主按钮 + 复习卡),不允许更多。
 assert.strictEqual(
   (learnWxml.match(/bindtap="goTodayTask"/g) || []).length,
-  1,
-  "normal state must expose exactly one canonical task CTA",
+  2,
+  "task button and review card must share the single canonical route handler",
 );
-assert.strictEqual(learnWxml.indexOf("goSwitchPractice"), -1, "learning home must not expose a secondary practice CTA");
-assert.strictEqual(learnWxml.indexOf("goReview"), -1, "learning home must not expose an independent review card");
-assert.strictEqual(learnWxml.indexOf("vm.dueCount"), -1, "due state must be folded into todayTask");
+assert(
+  learnWxml.indexOf("vm.reviewCard") >= 0,
+  "review card must be gated on the view-model reviewCard (next_step adjudication view)",
+);
+assert.strictEqual(learnWxml.indexOf("goSwitchPractice"), -1, "learning home must not expose a legacy switch-practice CTA");
+assert.strictEqual(learnWxml.indexOf("goReview"), -1, "review card must not own a second route handler");
+assert.strictEqual(learnWxml.indexOf("vm.dueCount"), -1, "due count must come from vm.reviewCard, never a free-floating field");
 assert.strictEqual(learnWxml.indexOf("mastery_score"), -1, "learning home must not render pseudo-precise mastery");
+assert.strictEqual(learnWxml.indexOf("已掌握"), -1, "learning home copy must never claim 已掌握");
+assert.strictEqual(learnVm.indexOf("已掌握"), -1, "view model copy must never claim 已掌握");
+// 轻练旁按钮:必须存在,且供给未接通时 learn.js 走诚实空态(禁 dead click)
+assert.strictEqual(
+  (learnWxml.match(/bindtap="goLightPractice"/g) || []).length,
+  1,
+  "task card must expose exactly one light-practice side button",
+);
+assert(learnJs.indexOf("快练准备中") >= 0, "light practice must degrade to an honest empty-state toast");
+// 旅程轨道:6 步硬编码于 view-model,禁不存在的步骤
+["半写", "填空"].forEach(function (needle) {
+  assert.strictEqual(learnVm.indexOf(needle), -1, "journey must not fabricate a nonexistent step: " + needle);
+});
 assert(
   learnWxml.indexOf("近 3 天有效作答") >= 0 &&
     learnWxml.indexOf("{{vm.stats.recent_practice || 0}} 道") >= 0,
@@ -46,6 +65,7 @@ assert(
 
 var pageDef = null;
 var navigations = [];
+var toasts = [];
 vm.runInNewContext(learnJs, {
   console: console,
   Promise: Promise,
@@ -58,7 +78,10 @@ vm.runInNewContext(learnJs, {
     if (request === "../../utils/learn-view-model") return { buildLearnViewModel: function () { return {}; } };
     return {};
   },
-  wx: { navigateTo: function (payload) { navigations.push(payload.url); } },
+  wx: {
+    navigateTo: function (payload) { navigations.push(payload.url); },
+    showToast: function (payload) { toasts.push(payload.title); },
+  },
   Page: function (definition) { pageDef = definition; },
 }, { filename: "packageDeeptutor/pages/learn/learn.js" });
 
@@ -86,5 +109,31 @@ assert.strictEqual(
   "/packageDeeptutor/pages/luban/retest/retest?pack_id=S05&mode=forward&training_intent_id=intent-1&probe_id=",
   "post-lesson task should enter the same retest route in forward mode",
 );
+
+// ── 轻练旁按钮:供给真值路由 forward;未接通→诚实 toast,零导航 ──
+function lightPractice(task) {
+  var page = {
+    data: { vm: { todayTask: task } },
+    _navTo: pageDef._navTo,
+  };
+  pageDef.goLightPractice.call(page);
+}
+
+lightPractice({ light_practice_available: true, pack_id: "N01", task_state: "practice_active", training_intent_id: "intent-9" });
+assert.strictEqual(
+  navigations.pop(),
+  "/packageDeeptutor/pages/luban/retest/retest?pack_id=N01&mode=forward&training_intent_id=intent-9&probe_id=",
+  "light practice with supply should enter the shared retest route in forward mode",
+);
+lightPractice({ light_practice_available: true, pack_id: "N01", task_state: "review_due" });
+assert.strictEqual(
+  navigations.pop(),
+  "/packageDeeptutor/pages/luban/retest/retest?pack_id=N01&mode=forward&training_intent_id=&probe_id=",
+  "light practice from a review task must not smuggle the probe identity into forward mode",
+);
+var navCountBefore = navigations.length;
+lightPractice({ light_practice_available: false, pack_id: "N01", task_state: "learn_next" });
+assert.strictEqual(navigations.length, navCountBefore, "no supply must mean no navigation (no dead click)");
+assert.strictEqual(toasts.pop(), "快练准备中", "no supply must surface the honest preparing toast");
 
 console.log("PASS test_learn_core_surface_contract.js");

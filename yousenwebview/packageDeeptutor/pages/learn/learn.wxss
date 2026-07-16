@@ -148,24 +148,91 @@
 .lr-tail-cell--gray { background: var(--pk-t3); }
 .lr-tail-cell--dash { border: 3rpx dashed var(--pk-bd); }
 
-/* ── 今日任务卡 ── */
+/* ── 今日任务卡(10a改:三层 + 站点旅程环 + 旅程轨道) ── */
 .lr-task { padding: 30rpx; display: flex; flex-direction: column; gap: 20rpx; }
-.lr-task-head { display: flex; gap: 24rpx; align-items: flex-start; }
-.lr-task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10rpx; }
+.lr-task-head { display: flex; gap: 26rpx; align-items: flex-start; }
+.lr-task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 11rpx; }
 .lr-task-title { font-size: 36rpx; font-weight: 800; line-height: 1.35; color: var(--pk-t1); }
-/* 掌握可信度圆环(conic-gradient) */
-.lr-conf { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
-.lr-conf-ring { width: 116rpx; height: 116rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.lr-conf-hole { width: 88rpx; height: 88rpx; border-radius: 50%; background: var(--pk-card); display: flex; align-items: center; justify-content: center; }
-.lr-conf-num { font-size: 28rpx; font-weight: 800; color: var(--pk-t1); }
-.lr-conf-label { font-size: 24rpx; color: var(--pk-t3); }
+/* 站点旅程环(conic-gradient):N/6 事实计数,取代旧掌握可信度环(产品红线:禁掌握百分比) */
+.lr-journey-ringbox { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
+.lr-journey-ring { width: 116rpx; height: 116rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.lr-journey-ring-hole { width: 88rpx; height: 88rpx; border-radius: 50%; background: var(--pk-card); display: flex; align-items: center; justify-content: center; }
+.lr-journey-ring-num { font-size: 26rpx; font-weight: 800; color: var(--pk-t1); }
+.lr-journey-ring-den { font-size: 20rpx; font-weight: 700; color: var(--pk-t3); }
+.lr-journey-ring-label { font-size: 24rpx; color: var(--pk-t3); }
 .lr-task-cta { display: flex; align-items: center; gap: 17rpx; }
 .lr-task-btn { flex: 1; }
-.lr-task-ghost { flex-shrink: 0; }
+/* 轻练旁按钮(10a: 46px 高/12px 圆角/13px 字/⚡ icon) */
+.lr-task-lite {
+  flex-shrink: 0;
+  min-height: 86rpx;
+  padding: 0 30rpx;
+  border-radius: 22rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: rgba(38, 36, 31, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-t2);
+}
+.lr-lite-bolt { font-size: 24rpx; line-height: 1; }
+
+/* 旅程轨道:这一站会带你走完(10a: 12px 圆角内衬/6 等分格/18px 节点) */
+.lr-journey {
+  border-radius: 22rpx;
+  background: rgba(38, 36, 31, 0.025);
+  border: 1rpx solid var(--pk-bd);
+  padding: 22rpx 24rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.lr-journey-head { display: flex; align-items: center; justify-content: space-between; }
+.lr-journey-kicker { font-size: 24rpx; font-weight: 800; color: var(--pk-t3); letter-spacing: 3rpx; }
+.lr-journey-count { font-size: 24rpx; font-weight: 800; color: var(--pk-grn); }
+.lr-journey-track { position: relative; }
+/* 轨道底线/已走线:两端对齐首尾节点心(6 等分列 → 心距边 100%/12) */
+.lr-jline { position: absolute; left: 8.33%; right: 8.33%; top: 15rpx; height: 4rpx; background: var(--pk-gauge); border-radius: 2rpx; }
+.lr-jline-fill { position: absolute; left: 8.33%; top: 15rpx; height: 4rpx; background: var(--pk-grn); border-radius: 2rpx; }
+.lr-journey-steps { position: relative; display: flex; }
+.lr-jstep { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 11rpx; }
+.lr-jnode { width: 34rpx; height: 34rpx; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+/* done=竹青实心勾 */
+.lr-jnode--done { background: var(--pk-grn); box-shadow: 0 4rpx 11rpx rgba(72, 128, 106, 0.3); }
+.lr-jnode-check { font-size: 18rpx; font-weight: 900; color: #fff; line-height: 1; }
+/* current=墨色高亮(夜主题随 ink-btn 反转) */
+.lr-jnode--current { background: var(--pk-ink-btn); box-shadow: 0 0 0 7rpx rgba(38, 36, 31, 0.09), 0 6rpx 15rpx rgba(38, 36, 31, 0.25); }
+.lr-jnode-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--pk-ink-btn-t); }
+/* future=空心 */
+.lr-jnode--future { background: var(--pk-card); border: 3rpx solid #cbc6b4; }
+/* promise(明日验证/3 日抽查)=竹青虚环 = 系统的承诺 */
+.lr-jnode--promise { background: rgba(72, 128, 106, 0.06); border: 3rpx dashed rgba(72, 128, 106, 0.55); }
+/* 步名 10px→20rpx:6 列空间约束,与 pk-poster__sub 同一 owner 审定例外(低于 24rpx 下限) */
+.lr-jlabel { font-size: 20rpx; letter-spacing: 0.5rpx; line-height: 1.3; text-align: center; white-space: nowrap; }
+.lr-jlabel--done { font-weight: 800; color: var(--pk-grn); }
+.lr-jlabel--current { font-weight: 800; color: var(--pk-t1); }
+.lr-jlabel--future { font-weight: 700; color: var(--pk-t3); }
+.lr-jlabel--promise { font-weight: 700; color: var(--pk-grn); }
+.lr-journey-foot { font-size: 24rpx; line-height: 1.6; color: var(--pk-t3); text-align: center; }
+
 .lr-why { display: flex; align-items: center; gap: 9rpx; }
 .lr-why-label { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
 .lr-why-chev { font-size: 24rpx; color: var(--pk-grn); }
 .lr-why-text { margin-top: -6rpx; }
+
+/* ── 复习卡(到期赴约,双行小卡;10a: 14px 圆角/36px 图标/竹青去验证钮) ── */
+.lr-rvc { display: flex; align-items: center; gap: 20rpx; padding: 22rpx 26rpx; border-radius: 26rpx; }
+.lr-rvc-ic { position: relative; width: 67rpx; height: 67rpx; border-radius: 19rpx; background: rgba(72, 128, 106, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.lr-rvc-glyph { font-size: 34rpx; font-weight: 700; color: var(--pk-grn); line-height: 1; }
+.lr-rvc-badge { position: absolute; top: -9rpx; right: -9rpx; min-width: 30rpx; height: 30rpx; border-radius: 15rpx; background: var(--pk-ink-btn); display: flex; align-items: center; justify-content: center; font-size: 20rpx; font-weight: 800; color: var(--pk-ink-btn-t); padding: 0 8rpx; box-sizing: border-box; }
+.lr-rvc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.lr-rvc-title { font-size: 25rpx; font-weight: 800; color: var(--pk-t1); }
+/* 副文 11.5px→22rpx:单行保排版,与设计一致(低于 24rpx 下限的既有例外口径) */
+.lr-rvc-sub { font-size: 22rpx; color: var(--pk-t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lr-rvc-go { flex-shrink: 0; padding: 17rpx 28rpx; border-radius: 21rpx; background: rgba(72, 128, 106, 0.12); font-size: 24rpx; font-weight: 800; color: var(--pk-grn); }
 
 /* ── 复习条 ── */
 .lr-review { display: flex; align-items: center; gap: 18rpx; min-height: 90rpx; padding: 0 30rpx; }

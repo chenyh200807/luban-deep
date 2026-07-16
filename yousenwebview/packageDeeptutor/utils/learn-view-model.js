@@ -131,6 +131,41 @@ function _posters(packs, titleIdx, recommendedId) {
   return rows;
 }
 
+// ── 站点旅程轨道(10a改):步骤集合硬编码这 6 步,禁出现不存在的步骤 ──
+// 状态派生只用现有可得信号(next_step.mode = 是否有未完成 forward / due probe),
+// 不新增后端调用;拿不准的步保守显示为空心(future),不造假。
+// promise 步(明日验证/3 日抽查)= 系统的承诺,未到点用竹青虚环。
+var JOURNEY_STEPS = ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "明日验证", "3 日抽查"];
+var JOURNEY_PROMISE_FROM = 4; // steps[4], steps[5] 为承诺步
+
+function _journeyFor(taskState) {
+  // 当前步(1-based)单点裁决:
+  // learn_next → 1(动画讲懂);practice_active(有未完成 forward)→ 2(训练);
+  // review_due(有 due probe = 站内旅程已走完并进入承诺兑现)→ 5(明日验证)。
+  var current = taskState === "review_due" ? 5 : taskState === "practice_active" ? 2 : 1;
+  // done 只标有观测依据的步:due probe 只在站完成信号后签发 → 1-3(讲评随训练)可信;
+  // 轻练确认(4)无独立完成信号 → 保守留空心。
+  var doneUpTo = taskState === "review_due" ? 3 : taskState === "practice_active" ? 1 : 0;
+  var steps = JOURNEY_STEPS.map(function (label, i) {
+    var n = i + 1;
+    var state =
+      n <= doneUpTo ? "done" : n === current ? "current" : i >= JOURNEY_PROMISE_FROM ? "promise" : "future";
+    return { label: label, state: state };
+  });
+  return {
+    steps: steps,
+    currentIndex: current,
+    total: JOURNEY_STEPS.length,
+    // 轨道已走线占比(节点心到节点心共 5 段);环形进度 = 当前步/6。均为事实计数,非掌握度。
+    progressRatio: Math.round(((current - 1) / (JOURNEY_STEPS.length - 1)) * 100) / 100,
+    // 已走线宽度(相对整条 track 容器):首尾各留 100%/12 到节点心,可走满幅 = 83.34%。
+    // 预算成纯百分数,避免 wxml 内插 calc 的兼容风险(既有惯例=width: {{x}}%)。
+    lineFillPercent:
+      Math.round(((current - 1) / (JOURNEY_STEPS.length - 1)) * 83.34 * 100) / 100,
+    ringPercent: Math.round((current / JOURNEY_STEPS.length) * 100),
+  };
+}
+
 // 今日任务只投影一个动作。到期验证与课后练共用 retest 内核；前端不判断
 // 掌握、不重算到期，也不把任何 Pack 专属 spike 提升成首页 authority。
 function _retestTask(concept, packId, reason, practiceKind, taskState) {
@@ -138,13 +173,16 @@ function _retestTask(concept, packId, reason, practiceKind, taskState) {
   var kind = practiceKind === "retest" ? "retest" : "none";
   var reviewDue = taskState === "review_due";
   return {
-    title: c + (reviewDue ? " · 到期验证" : " · 课后检验"),
+    // 「训练 5 题」只在 retest 池真可用时承诺(供给真值门,禁空头题量)
+    title: c + (reviewDue ? " · 到期验证" : kind === "retest" ? " · 训练 5 题" : " · 课后检验"),
     reason: _str(reason),
     cta: kind === "none"
       ? ""
       : reviewDue
       ? "用 2 分钟验证昨天的盲点"
       : "完成刚学内容的 5 题检验",
+    // 主按钮短文案随任务类型;无供给不给按钮(禁 dead click)
+    ctaLabel: kind === "none" ? "" : reviewDue ? "开始验证" : "开始训练",
     supplyNote: kind === "none"
       ? reviewDue
         ? "这次验证暂时没有安全题；学习记录仍会保留"
@@ -177,6 +215,7 @@ function _lessonTask(station) {
     title: _str(s.title) || "最需要提分的考点",
     reason: _str(s.reason) || "先学懂这一小节，再用五题确认",
     cta: available ? "学这一小节，随后做 5 题" : "",
+    ctaLabel: available ? "继续学习" : "",
     supplyNote: available ? "" : "这一节微课正在制作中",
     task_type: "microlesson",
     task_state: "learn_next",
@@ -209,6 +248,15 @@ function buildCanonicalLearningTask(args) {
   if (!packId) return null;
   var pack = _safeObj(titleIdx[packId]);
 
+  // 任务级公共派生:旅程轨道(6 步硬编码)+ 轻练旁按钮供给真值。
+  // 轻练供给唯一裁决点仍是 _practiceKindFor(禁页面层再判一次)。
+  function _decorate(task) {
+    if (!task) return task;
+    task.journey = _journeyFor(task.task_state);
+    task.light_practice_available = _practiceKindFor(packId, titleIdx) === "retest";
+    return task;
+  }
+
   if (mode === "review_due") {
     var reviewTask = _retestTask(
       pack.title || "你的薄弱点",
@@ -218,7 +266,7 @@ function buildCanonicalLearningTask(args) {
       "review_due",
     );
     reviewTask.probe_id = sourceRef;
-    return reviewTask;
+    return _decorate(reviewTask);
   }
   if (mode === "practice_active") {
     var practiceTask = _retestTask(
@@ -229,16 +277,42 @@ function buildCanonicalLearningTask(args) {
       "practice_active",
     );
     practiceTask.training_intent_id = sourceRef;
-    return practiceTask;
+    return _decorate(practiceTask);
   }
   if (mode !== "learn_next") return null;
-  return _lessonTask({
+  return _decorate(_lessonTask({
     pack_id: packId,
     title: pack.title || "即将开通",
     reason: _str(nextStep.reason),
     green: pack.green === true,
     card_hosted: pack.card_hosted,
-  });
+  }));
+}
+
+// ── 复习卡(10a改):只是到期状态视图,不是第二任务源 ──
+// 单一权威红线:任务卡内容由 home_next_step_projection 唯一裁决——有到期时
+// next_step 自动是验证任务;本卡只在该裁决已落地(todayTask=review_due 且
+// retest 可路由)时把到期计数可视化,点击走与任务卡完全相同的路由(页面绑
+// goTodayTask,零第二套路由/优先级)。authority 不明或降级一律隐藏(fail-closed)。
+function _buildReviewCard(report, todayTask) {
+  var packReview = _safeObj(_safeObj(report).pack_review);
+  var authorityKnown =
+    packReview.enabled === true &&
+    packReview.degraded !== true &&
+    _str(packReview.authority) === "revalidation_queue";
+  if (!authorityKnown) return null;
+  var dueCount = _safeArr(packReview.due).length;
+  if (dueCount <= 0) return null;
+  var task = _safeObj(todayTask);
+  // next_step 没裁决为到期验证 → 不渲染(禁自算优先级);
+  // 验证任务无可路由 retest 供给 → 不渲染(禁 dead click)。
+  if (task.task_state !== "review_due" || task.practice_kind !== "retest") return null;
+  return {
+    dueCount: dueCount,
+    title: "复习 · 昨天的 " + dueCount + " 个点到期",
+    sub: "换题验证 · 约 2 分钟 · 通过即亮「已验证」",
+    cta: "去验证",
+  };
 }
 
 /**
@@ -337,6 +411,9 @@ function buildLearnViewModel(args) {
     lessons: a.lessons,
   });
 
+  // ── 复习卡:到期状态视图(数据=pack_review 投影;裁决权仍在 next_step) ──
+  var reviewCard = _buildReviewCard(report, todayTask);
+
   // ── 行为指标只透传事实计数；首页不呈现或解释 mastery 百分比 ──
   var overview = _safeObj(report.overview);
   var learnerSettings = _safeObj(dash.learner_settings);
@@ -354,6 +431,7 @@ function buildLearnViewModel(args) {
     posters: posters,                  // [] → 课程架空态(完整地图/stations 用真实态)
     routePreview: routePreview,        // 首页 3 卡真实状态预览
     todayTask: todayTask,              // null → 隐藏今日任务卡
+    reviewCard: reviewCard,            // null → 隐藏复习卡(到期 0 / 权威不明 / 未裁决到期)
     stats: stats,
     examDate: _str(learnerSettings.exam_date),
     todayProgress: {
