@@ -64,7 +64,7 @@ def test_live_mode_missing_keys_blocks_without_secret_leak(tmp_path):
             "DASHSCOPE_API_KEY": "",
             "DEEPSEEK_API_KEY": "",
             "OPENAI_API_KEY": "",
-            "SECRET_SENTINEL": "sk-should-not-appear",
+            "SECRET_SENTINEL": "sk-should-not-appear",  # pragma: allowlist secret
         },
     )
 
@@ -88,8 +88,8 @@ def test_live_mode_local_final_adjudicator_does_not_require_openai_key(tmp_path)
         "0",
         "--local-final-adjudicator",
         env={
-            "DASHSCOPE_API_KEY": "qwen-present",
-            "DEEPSEEK_API_KEY": "deepseek-present",
+            "DASHSCOPE_API_KEY": "qwen-present",  # pragma: allowlist secret
+            "DEEPSEEK_API_KEY": "deepseek-present",  # pragma: allowlist secret
             "OPENAI_API_KEY": "",
         },
     )

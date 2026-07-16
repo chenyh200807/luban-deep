@@ -57,7 +57,7 @@ def test_live_mode_without_key_blocks_without_secret_or_network_claim(tmp_path):
         "live",
         "--max-samples",
         "1",
-        env={"DEEPSEEK_API_KEY": "", "DEEPSEEK_SECRET_SENTINEL": "sk-test-secret"},
+        env={"DEEPSEEK_API_KEY": "", "DEEPSEEK_SECRET_SENTINEL": "sk-test-secret"},  # pragma: allowlist secret
     )
 
     assert payload["mode"] == "live"

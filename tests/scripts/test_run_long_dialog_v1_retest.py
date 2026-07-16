@@ -315,7 +315,7 @@ def test_llm_preflight_rejects_placeholder_endpoint(monkeypatch: pytest.MonkeyPa
             binding="openai",
             model="gpt-worktree",
             base_url="https://example.com/v1",
-            api_key="secret-key",
+            api_key="secret-key",  # pragma: allowlist secret
         ),
     )
 
