@@ -9,10 +9,7 @@ from scripts import run_learning_report_read_model_e2e as e2e
 
 
 def test_e2e_script_bootstraps_repo_root_before_deeptutor_imports() -> None:
-    repo_root = Path(__file__).resolve().parents[2]
-    source = (repo_root / "scripts/run_learning_report_read_model_e2e.py").read_text(
-        encoding="utf-8"
-    )
+    source = (e2e.PROJECT_ROOT / "scripts/run_learning_report_read_model_e2e.py").read_text(encoding="utf-8")
 
     assert "sys.path.insert(0, str(PROJECT_ROOT))" in source
 
