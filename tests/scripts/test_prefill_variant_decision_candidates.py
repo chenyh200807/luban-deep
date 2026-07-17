@@ -337,20 +337,18 @@ def test_n01_zero_float_identity_note_present(n01_payload) -> None:
 
 
 def test_n01_procedure_fact_not_overclaiming(n01_payload) -> None:
-    """F-procedure 共享 fact 不得把「7 阶段 18 步骤」压成「四步」，也不得把
-    「补虚工作」当通用必经步骤（补虚工作证据只留在 G-logic 具体案例 fact）。"""
-    fact = next(
-        f
+    """F-procedure fact 已按 2026-07-17 增量复核终裁整体剔出本批:bank 的
+    canonical correct_statement 携带「含补虚工作」复合断言,候选层不得覆盖已签
+    bank 文本(第二真相),治本归编译管道批。本批候选中该 fact 与其条目必须缺席;
+    「补虚工作」证据只留在 G-logic 具体案例 fact。"""
+    assert not any(
+        f["fact_id"] == "n01-fact-network-procedure-order"
         for f in n01_payload["facts"]
-        if f["fact_id"] == "n01-fact-network-procedure-order"
     )
-    assert "四步" not in fact["correct_statement"]
-    assert "补虚工作" not in fact["correct_statement"]
-    for row in n01_payload["items"]:
-        if row["rule_group"] == "F-procedure":
-            loss = row["decision_candidate"]["loss_reason"]
-            assert "四步" not in loss, row["variant_id"]
-            assert "补虚工作" not in loss, row["variant_id"]
+    assert not any(
+        row["rule_group"] == "F-procedure" for row in n01_payload["items"]
+    )
+    assert len(n01_payload["items"]) == 40
     # 补虚工作证据仍在 G-logic fact（未被误删）
     glogic = next(
         f

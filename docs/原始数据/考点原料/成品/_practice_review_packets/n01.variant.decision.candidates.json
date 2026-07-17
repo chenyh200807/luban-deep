@@ -5,7 +5,7 @@
   "pack_id": "N01",
   "bank_status": "signed",
   "generated_from_bank_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-  "candidate_count": 43,
+  "candidate_count": 40,
   "facts": [
     {
       "fact_id": "n01-fact-critical-work-zero-float",
@@ -89,22 +89,6 @@
         {
           "variant_id": "N01-html-practice-html-q3-ab48a6966a1a",
           "match_score": 0.571
-        }
-      ]
-    },
-    {
-      "fact_id": "n01-fact-network-procedure-order",
-      "rule_group": "F-procedure",
-      "correct_statement": "绘图、计算时间参数（各路径长/时差）、确定关键线路、编制/实施等环节的相对先后顺序不可颠倒",
-      "variant_count": 3,
-      "core_variant_count": 3,
-      "kc_anchor": "kc:1A433000_055_0084:0",
-      "textbook_quote": "按《网络计划技术 第3部分：在项目管理中应用的一般程序》GB/T 13400.3—2009的规定，网络计划的应用程序包括7个阶段18个步骤，具体程序如下： （1）准备阶段。步骤包括：确定网络计划目标、调查研究、项目分解、工作方案设计。 （2）绘制网络图阶段。步骤包括：逻辑关系分析、网络图构图。 （3）计算参数阶段。步骤包括：计算工作持续时间和搭接时间、计算其他时间参数、确定关键线路。 （4）编制可行网络计划阶段。步骤包括：检查与修正、可行网络计划编制。 （5）确定正式网络计划阶段。步骤包括：网络计划优化、网络计划的确定。 （6）网络计划的实施与控制阶段。步骤包括：网络计划的贯彻、检查和数据采集、控制与调整。 （7）收尾阶段。步骤包括：分析、总结。",
-      "textbook_page": 55,
-      "compiled_mcq_candidates": [
-        {
-          "variant_id": "N01-html-practice-html-q14-106c516e82e7",
-          "match_score": 0.514
         }
       ]
     },
@@ -1452,114 +1436,6 @@
             "template_leakage_checked": false
           },
           "signature_envelope_sha256": "33d39b6c6d95ccda5cf0f950bd916ca84a65c8f1684ad8a3796caa6de3210536"
-        }
-      }
-    },
-    {
-      "variant_id": "N01-F-procedure-036",
-      "rule_group": "F-procedure",
-      "surface": "项目部按「绘图（含补虚工作）→ 计算时间参数 → 确定关键线路 → 编制/实施」顺序应用网络计划",
-      "expected_ok": true,
-      "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
-      "anchor": "kc:1A433000_055_0084:0 + kc:LEC_1A433000_P0018_001:0",
-      "extension": false,
-      "decision_candidate": {
-        "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-network-procedure-order",
-        "skeleton_id": "n01-vskel-f-procedure-ok",
-        "probe_role": "immediate_confirm",
-        "temptation": "网络计划各环节的先后顺序背着顺，真到判对错时反而担心是不是有步骤能省。",
-        "loss_reason": "绘图应先于计算时间参数、计算时间参数应先于确定关键线路、确定关键线路应先于编制/实施；本题所列环节的相对先后顺序正确，与规范要求一致。",
-        "source_anchor": "kc:1A433000_055_0084:0",
-        "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "28d313eb5ab00021b555a6aa453a2af23a851de22a910001a088b43362fe5bcc",
-        "decision_identity_sha256": "592bde6a0f327f5cb90bea20f7a2f049dbb377f4a659be287bb56ac2acb253fb",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "28d313eb5ab00021b555a6aa453a2af23a851de22a910001a088b43362fe5bcc",
-          "reviewed_decision_sha256": "592bde6a0f327f5cb90bea20f7a2f049dbb377f4a659be287bb56ac2acb253fb",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          },
-          "signature_envelope_sha256": "5b1c0f334209ca906ce94f1ac05a1c927b16cbf7440986aba7390f041de53fed"
-        }
-      }
-    },
-    {
-      "variant_id": "N01-F-procedure-037",
-      "rule_group": "F-procedure",
-      "surface": "项目部未绘图、未补全网络逻辑，就直接套公式计算时间参数",
-      "expected_ok": false,
-      "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
-      "anchor": "kc:1A433000_055_0084:0 + kc:LEC_1A433000_P0018_001:0",
-      "extension": false,
-      "decision_candidate": {
-        "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-network-procedure-order",
-        "skeleton_id": "n01-vskel-f-procedure-bad",
-        "probe_role": "d1_probe",
-        "temptation": "现场赶时间，图还没画就想先把数算出来，看着「效率高」。",
-        "loss_reason": "未绘图就先计算时间参数，不符合「先绘图再算参数」的相对先后顺序；绘图应先于时间参数计算。",
-        "source_anchor": "kc:1A433000_055_0084:0",
-        "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "6a25fbb6679486dc0998569e1e4970cb6a90953a69ee9945718704a5a070bf12",
-        "decision_identity_sha256": "ea251bf21f103f2b62dd1d2401e9a5684a5e5862961a55fcdeb25b4172641c37",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "6a25fbb6679486dc0998569e1e4970cb6a90953a69ee9945718704a5a070bf12",
-          "reviewed_decision_sha256": "ea251bf21f103f2b62dd1d2401e9a5684a5e5862961a55fcdeb25b4172641c37",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          },
-          "signature_envelope_sha256": "c5c47dfa23974c654331cae59c0df997da378e12635f47c91ec7a2397a93df7e"
-        }
-      }
-    },
-    {
-      "variant_id": "N01-F-procedure-038",
-      "rule_group": "F-procedure",
-      "surface": "项目部跳过「计算时间参数」阶段，直接确定关键线路",
-      "expected_ok": false,
-      "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
-      "anchor": "kc:1A433000_055_0084:0 + kc:LEC_1A433000_P0018_001:0",
-      "extension": false,
-      "decision_candidate": {
-        "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-network-procedure-order",
-        "skeleton_id": "n01-vskel-f-procedure-bad",
-        "probe_role": "immediate_confirm",
-        "temptation": "时间参数看着繁琐，容易想跳过它直接「凭最长路径」定关键线路。",
-        "loss_reason": "跳过「计算时间参数」直接确定关键线路，不符合相对先后顺序；正确顺序是先算参数（各路径长/时差）再确定关键线路。",
-        "source_anchor": "kc:1A433000_055_0084:0",
-        "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "e221458b50e5840f1fbbb07df68af7d636cd14f81503282d51047411545c77b6",
-        "decision_identity_sha256": "e36f9d333432ae8fa759785f98edb4b18c173466ad6069604b7e284b8ef3cb69",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "e221458b50e5840f1fbbb07df68af7d636cd14f81503282d51047411545c77b6",
-          "reviewed_decision_sha256": "e36f9d333432ae8fa759785f98edb4b18c173466ad6069604b7e284b8ef3cb69",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          },
-          "signature_envelope_sha256": "f47e49b2d46ad8c41ecd7cfde2eac08f210d9f8fbdb9d3a30aca562026547949"
         }
       }
     },

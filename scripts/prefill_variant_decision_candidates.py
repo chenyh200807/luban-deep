@@ -550,6 +550,13 @@ _N01_FACT_STATEMENT_OVERRIDES: dict[str, str] = {
 #     亦未检出对应原文。
 _S05_EXCLUDED_FACTS: frozenset[str] = frozenset({"s05-fact-below-50kw-measures"})
 
+#   * n01-fact-network-procedure-order(2026-07-17 增量复核终裁剔除):bank 的
+#     canonical correct_statement 本身携带「绘图(含补虚工作)→…」复合断言——
+#     「补虚工作」属 2015 具体案例(G-logic fact),泛化进通用程序句属过度断言。
+#     候选层不得覆盖已签 bank 文本(第二真相),治本=bank 级重签,归编译管道
+#     修复批;该 fact 3 条变体(F-procedure-036/037/038)暂不入批。
+_N01_EXCLUDED_FACTS: frozenset[str] = frozenset({"n01-fact-network-procedure-order"})
+
 
 # 命名先例裁决 note（2026-07-16 终轮主控终裁）：Codex 建议拆 min-total-float
 # 独立 fact，主控终裁沿用 MCQ 已签 fact_id 不改名，仅在候选文件显式声明其复合
@@ -586,7 +593,10 @@ _PACK_EXTRA_FACTS: dict[str, dict[str, tuple[str, str]]] = {"N01": _N01_EXTRA_FA
 _PACK_FACT_STATEMENT_OVERRIDES: dict[str, dict[str, str]] = {
     "N01": _N01_FACT_STATEMENT_OVERRIDES
 }
-_PACK_EXCLUDED_FACTS: dict[str, frozenset[str]] = {"S05": _S05_EXCLUDED_FACTS}
+_PACK_EXCLUDED_FACTS: dict[str, frozenset[str]] = {
+    "S05": _S05_EXCLUDED_FACTS,
+    "N01": _N01_EXCLUDED_FACTS,
+}
 _PACK_FACT_ADJUDICATION_NOTES: dict[str, dict[str, str]] = {
     "N01": _N01_FACT_ADJUDICATION_NOTES
 }
