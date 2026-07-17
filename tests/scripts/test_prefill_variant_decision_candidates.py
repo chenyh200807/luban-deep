@@ -61,12 +61,19 @@ def n01_payload() -> dict[str, object]:
     return _mod.build_candidates("N01", BANK_PATH.parent)
 
 
-def test_covers_every_bank_variant_exactly_once(s05_payload) -> None:
+# s05-fact-below-50kw-measures 无有效锚（kc/quote 双空、真题锚不支撑断言），
+# 其唯一变体 S05-F-mgmt-067 被剔除，不进本批候选（bank 仍原样保留 75 条）。
+_S05_EXCLUDED_VARIANT_IDS = {"S05-F-mgmt-067"}
+
+
+def test_covers_every_bank_variant_except_unanchored(s05_payload) -> None:
     bank = json.loads(BANK_PATH.read_text(encoding="utf-8"))
     bank_ids = [v["variant_id"] for v in bank["variants"]]
+    assert len(bank_ids) == 75  # bank 只读、原样保留
     item_ids = [row["variant_id"] for row in s05_payload["items"]]
-    assert item_ids == bank_ids
-    assert s05_payload["candidate_count"] == len(bank_ids) == 75
+    expected = [vid for vid in bank_ids if vid not in _S05_EXCLUDED_VARIANT_IDS]
+    assert item_ids == expected
+    assert s05_payload["candidate_count"] == len(expected) == 74
 
 
 def test_machine_never_signs(s05_payload) -> None:
@@ -255,6 +262,102 @@ def test_committed_candidates_file_is_reproducible(tmp_path: Path) -> None:
     ):
         regenerated = (tmp_path / name).read_text(encoding="utf-8")
         assert regenerated == committed.read_text(encoding="utf-8")
+
+
+# 判分句禁词族（2026-07-16 终轮对抗审查裁决）：loss_reason/temptation 永久
+# 剥除的判分承诺句。注：枚举禁词是止血带、非充分门（同义改写可绕过枚举）——
+# 真正的防线是「loss_reason 只含来源事实 + correct_statement + 题面差异」的
+# 富化纪律 + 人工逐条复核；本测试只堵已知病句回流。
+_FORBIDDEN_GRADING_PHRASES = (
+    "把对判错同样丢分",
+    "判断方向错了同样丢分",
+    "丢分",
+    "扣分",
+    "采分点",
+    "缺一件丢一分",
+    "阅卷按",
+)
+
+
+def test_no_grading_commitment_phrases(s05_payload, n01_payload) -> None:
+    """判分句禁词族不得出现在任一 loss_reason/temptation。"""
+    for payload in (s05_payload, n01_payload):
+        for row in payload["items"]:
+            decision = row["decision_candidate"]
+            for phrase in _FORBIDDEN_GRADING_PHRASES:
+                assert phrase not in decision["loss_reason"], (
+                    row["variant_id"],
+                    phrase,
+                )
+                assert phrase not in decision["temptation"], (
+                    row["variant_id"],
+                    phrase,
+                )
+
+
+def test_c_voltage_drops_unsourced_generalization(s05_payload) -> None:
+    """C 组「环境越危险，电压档位越低」泛化无来源（教材只列各场所具体限值），
+    模板层已剥除。"""
+    for row in s05_payload["items"]:
+        if row["rule_group"] == "C-voltage":
+            assert "环境越危险" not in row["decision_candidate"]["loss_reason"]
+
+
+def test_unanchored_fact_excluded_from_candidates(s05_payload) -> None:
+    """无有效锚 fact 不进本批候选：facts[] 与 items[] 均无它及其变体。"""
+    fact_ids = {f["fact_id"] for f in s05_payload["facts"]}
+    assert "s05-fact-below-50kw-measures" not in fact_ids
+    item_facts = {r["decision_candidate"]["fact_id"] for r in s05_payload["items"]}
+    assert "s05-fact-below-50kw-measures" not in item_facts
+    item_ids = {r["variant_id"] for r in s05_payload["items"]}
+    assert "S05-F-mgmt-067" not in item_ids
+
+
+def test_n01_zero_float_identity_note_present(n01_payload) -> None:
+    """N01 identity 之争终裁：zero-float 命名不变，候选文件显式声明复合事实，
+    005/006 名实异议逐条记 adjudicated-note（条目保留）。"""
+    fact = next(
+        f
+        for f in n01_payload["facts"]
+        if f["fact_id"] == "n01-fact-critical-work-zero-float"
+    )
+    assert "命名沿用 MCQ 签发先例" in fact.get("adjudicated_note", "")
+    notes = {
+        r["variant_id"]: r.get("adjudicated_note", "") for r in n01_payload["items"]
+    }
+    for vid in ("N01-A-line-005", "N01-A-line-006"):
+        assert "名实" in notes[vid], vid
+        # 条目保留：仍在候选、fact 仍挂 zero-float（沿用 MCQ 先例）
+        assert vid in notes
+    fact_of = {
+        r["variant_id"]: r["decision_candidate"]["fact_id"] for r in n01_payload["items"]
+    }
+    assert fact_of["N01-A-line-005"] == "n01-fact-critical-work-zero-float"
+    assert fact_of["N01-A-line-006"] == "n01-fact-critical-work-zero-float"
+
+
+def test_n01_procedure_fact_not_overclaiming(n01_payload) -> None:
+    """F-procedure 共享 fact 不得把「7 阶段 18 步骤」压成「四步」，也不得把
+    「补虚工作」当通用必经步骤（补虚工作证据只留在 G-logic 具体案例 fact）。"""
+    fact = next(
+        f
+        for f in n01_payload["facts"]
+        if f["fact_id"] == "n01-fact-network-procedure-order"
+    )
+    assert "四步" not in fact["correct_statement"]
+    assert "补虚工作" not in fact["correct_statement"]
+    for row in n01_payload["items"]:
+        if row["rule_group"] == "F-procedure":
+            loss = row["decision_candidate"]["loss_reason"]
+            assert "四步" not in loss, row["variant_id"]
+            assert "补虚工作" not in loss, row["variant_id"]
+    # 补虚工作证据仍在 G-logic fact（未被误删）
+    glogic = next(
+        f
+        for f in n01_payload["facts"]
+        if f["fact_id"] == "n01-fact-dummy-activity-logic"
+    )
+    assert "补虚工作" in glogic["correct_statement"]
 
 
 def test_pack_without_table_is_refused(tmp_path: Path) -> None:

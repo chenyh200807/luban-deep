@@ -5,7 +5,7 @@
   "pack_id": "S05",
   "bank_status": "signed",
   "generated_from_bank_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-  "candidate_count": 75,
+  "candidate_count": 74,
   "facts": [
     {
       "fact_id": "s05-fact-50kw-org-design",
@@ -26,17 +26,6 @@
           "match_score": 0.429
         }
       ]
-    },
-    {
-      "fact_id": "s05-fact-below-50kw-measures",
-      "rule_group": "F-mgmt",
-      "correct_statement": "50kW 以下编制安全用电和电气防火措施即可",
-      "variant_count": 1,
-      "core_variant_count": 1,
-      "kc_anchor": "",
-      "textbook_quote": "",
-      "textbook_page": null,
-      "compiled_mcq_candidates": []
     },
     {
       "fact_id": "s05-fact-boiler-12v",
@@ -326,16 +315,16 @@
         "skeleton_id": "s05-vskel-b-send-ok",
         "probe_role": "immediate_confirm",
         "temptation": "送电顺序与停电顺序容易互相记串，看到正确顺序反而不敢确认。",
-        "loss_reason": "送电操作顺序应为总配电箱→分配电箱→开关箱，本题顺序正确，把对判错同样丢分；记法：送电从总到开、停电从开到总，两句连着背。",
+        "loss_reason": "送电操作顺序应为总配电箱→分配电箱→开关箱，本题顺序与规范要求一致；记法：送电从总到开、停电从开到总，两句连着背。",
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "b616099416a32e00afd41ac19ca6438b6fbc74b1a0be44158694d2c275580228",
-        "decision_identity_sha256": "241c12fcdf9642189d230fdec59fe5824959799492ca6a7de40e70a57d1da996",
+        "content_sha256": "d0c770c097503577d776ea0aa470ce9a55e2b0741731e187a2405b97c00f722b",
+        "decision_identity_sha256": "ccaa9b7e9802f5adf6f22cd0b9f9f5b31cb7c9bb2e843c009b3057b0aa94f6c9",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "b616099416a32e00afd41ac19ca6438b6fbc74b1a0be44158694d2c275580228",
-          "reviewed_decision_sha256": "241c12fcdf9642189d230fdec59fe5824959799492ca6a7de40e70a57d1da996",
+          "reviewed_content_sha256": "d0c770c097503577d776ea0aa470ce9a55e2b0741731e187a2405b97c00f722b",
+          "reviewed_decision_sha256": "ccaa9b7e9802f5adf6f22cd0b9f9f5b31cb7c9bb2e843c009b3057b0aa94f6c9",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -344,7 +333,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "0bcdc25b553169a1cbad086bca46a17c7990ac061842b2bbc310852b370eadfb"
+          "signature_envelope_sha256": "77b5ce089729cae94a5d377e74f88139cbafbd36371f8eb3d925f7ba48b34df0"
         }
       }
     },
@@ -722,16 +711,16 @@
         "skeleton_id": "s05-vskel-b-stop-ok",
         "probe_role": "d1_probe",
         "temptation": "停电顺序与送电顺序容易互相记串，看到正确顺序反而不敢确认。",
-        "loss_reason": "停电操作顺序应为开关箱→分配电箱→总配电箱，本题顺序正确，把对判错同样丢分；记法：送电从总到开、停电从开到总，两句连着背。",
+        "loss_reason": "停电操作顺序应为开关箱→分配电箱→总配电箱，本题顺序与规范要求一致；记法：送电从总到开、停电从开到总，两句连着背。",
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "9268e62019508fc440309d14213a39fbd97572de1f6041b668e04193c1e9681e",
-        "decision_identity_sha256": "95d78163faa670ca0b853a6d8475ee435df3995a9b9ac33dfe0fbfaa8e09da3b",
+        "content_sha256": "0dcd1630eb0e3c3e5d9b12c74d1660a08210b45caf9fd3b1f3444274e999802f",
+        "decision_identity_sha256": "9ac5464c865090d38aa5531ac02d6f70cfd3bc79eeb25d064f3b4c32b221de26",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "9268e62019508fc440309d14213a39fbd97572de1f6041b668e04193c1e9681e",
-          "reviewed_decision_sha256": "95d78163faa670ca0b853a6d8475ee435df3995a9b9ac33dfe0fbfaa8e09da3b",
+          "reviewed_content_sha256": "0dcd1630eb0e3c3e5d9b12c74d1660a08210b45caf9fd3b1f3444274e999802f",
+          "reviewed_decision_sha256": "9ac5464c865090d38aa5531ac02d6f70cfd3bc79eeb25d064f3b4c32b221de26",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -740,7 +729,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "5da9f3bacc18358660b5b8fbc0389ba690331577d497ffb665d8190d0e205c61"
+          "signature_envelope_sha256": "491b275ceb055b878b17bab3ecbbefff015edd806cdbc0443fe4183425c8b15e"
         }
       }
     },
@@ -758,16 +747,16 @@
         "skeleton_id": "s05-vskel-b-send-ok",
         "probe_role": "immediate_confirm",
         "temptation": "送电顺序与停电顺序容易互相记串，看到正确顺序反而不敢确认。",
-        "loss_reason": "送电操作顺序应为总配电箱→分配电箱→开关箱，本题顺序正确，把对判错同样丢分；记法：送电从总到开、停电从开到总，两句连着背。",
+        "loss_reason": "送电操作顺序应为总配电箱→分配电箱→开关箱，本题顺序与规范要求一致；记法：送电从总到开、停电从开到总，两句连着背。",
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "30a5264d1167a73857928fbaddef838d07bf604e1a2921c5f1e149810620fafc",
-        "decision_identity_sha256": "593a6d97bc24f4e46b29d0200da620947c4f67c8f49112cf35e836bbf9c67418",
+        "content_sha256": "9ba77a41f9d1e2f0da6bf16973f1efbd1dcf391fa824360727250e086d8a4365",
+        "decision_identity_sha256": "4be2878682fd89b4ac1cd456757da2720255abcdcfc2e4828cf292484352a658",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "30a5264d1167a73857928fbaddef838d07bf604e1a2921c5f1e149810620fafc",
-          "reviewed_decision_sha256": "593a6d97bc24f4e46b29d0200da620947c4f67c8f49112cf35e836bbf9c67418",
+          "reviewed_content_sha256": "9ba77a41f9d1e2f0da6bf16973f1efbd1dcf391fa824360727250e086d8a4365",
+          "reviewed_decision_sha256": "4be2878682fd89b4ac1cd456757da2720255abcdcfc2e4828cf292484352a658",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -776,7 +765,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "7e0e1423403957e428c2f8f22c913c739d9ac105c6c41b741d887530d7e32a40"
+          "signature_envelope_sha256": "d19cf4f886f421a117753f6c235d82db78f7a16b81726bf79083115e167d007c"
         }
       }
     },
@@ -1154,16 +1143,16 @@
         "skeleton_id": "s05-vskel-b-stop-ok",
         "probe_role": "d1_probe",
         "temptation": "停电顺序与送电顺序容易互相记串，看到正确顺序反而不敢确认。",
-        "loss_reason": "停电操作顺序应为开关箱→分配电箱→总配电箱，本题顺序正确，把对判错同样丢分；记法：送电从总到开、停电从开到总，两句连着背。",
+        "loss_reason": "停电操作顺序应为开关箱→分配电箱→总配电箱，本题顺序与规范要求一致；记法：送电从总到开、停电从开到总，两句连着背。",
         "source_anchor": "kc:1A431011_015_0016:1",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "c5e802e53b054706416c04ee199540244eaafd468d3e2fc00fcce91403efc26e",
-        "decision_identity_sha256": "14e41714ed524273011d778c6a4c5ebf603be1226f74e45bb1e0e0fbaad5fa65",
+        "content_sha256": "539117d6da475fc108a79f9f7bf23d1e480a8c481451fc48b2da6c8ff18842c8",
+        "decision_identity_sha256": "dcbadb084adbd0e533d74ab89ef378996c5cb8f98655dfd82908985794371328",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "c5e802e53b054706416c04ee199540244eaafd468d3e2fc00fcce91403efc26e",
-          "reviewed_decision_sha256": "14e41714ed524273011d778c6a4c5ebf603be1226f74e45bb1e0e0fbaad5fa65",
+          "reviewed_content_sha256": "539117d6da475fc108a79f9f7bf23d1e480a8c481451fc48b2da6c8ff18842c8",
+          "reviewed_decision_sha256": "dcbadb084adbd0e533d74ab89ef378996c5cb8f98655dfd82908985794371328",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1172,7 +1161,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "08c222ed91b6de01fc70310ec476e672b74c223a6d9250d6686bef5de29f832b"
+          "signature_envelope_sha256": "c96ee2486753abe1c324b41f4e948677aad76ed2d3c487c6457669f39c2b58bc"
         }
       }
     },
@@ -1190,16 +1179,16 @@
         "skeleton_id": "s05-vskel-c-voltage-ok",
         "probe_role": "immediate_confirm",
         "temptation": "36V/24V/12V 三档限值容易混记，见到金属容器内用 6V 会拿不准。",
-        "loss_reason": "金属容器内照明电压限值为不大于 12V，6V 未超限，属于妥当做法；记法：环境越危险，电压档位越低。",
+        "loss_reason": "金属容器内照明电压限值为不大于 12V，6V 未超限，属于妥当做法。",
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "03cf7b1d959c062ad936a6569b783648588d1ec7dc8f445ffaa24d012aa49f9b",
-        "decision_identity_sha256": "87232d663f43149ab25a7432d8c75fb5d92bd2eddb5b74e9d25c28f1f6893e02",
+        "content_sha256": "9958dc89df60589ea9a8f1076783ababd0256d0b8b2b47e99266f39992359616",
+        "decision_identity_sha256": "7976b3cd8223a2591abcd7bb5eb493388b550222f5704f9801060914a6a896fa",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "03cf7b1d959c062ad936a6569b783648588d1ec7dc8f445ffaa24d012aa49f9b",
-          "reviewed_decision_sha256": "87232d663f43149ab25a7432d8c75fb5d92bd2eddb5b74e9d25c28f1f6893e02",
+          "reviewed_content_sha256": "9958dc89df60589ea9a8f1076783ababd0256d0b8b2b47e99266f39992359616",
+          "reviewed_decision_sha256": "7976b3cd8223a2591abcd7bb5eb493388b550222f5704f9801060914a6a896fa",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1208,7 +1197,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "4c9a82722e3a8a846880056347e7f3e309ea7a9db9b81504335dc283fe8f377a"
+          "signature_envelope_sha256": "336731b3a7af766bb2a5394e4471b529cba204846c44f28d8faee16f685010dd"
         }
       }
     },
@@ -1226,16 +1215,16 @@
         "skeleton_id": "s05-vskel-c-voltage-ok",
         "probe_role": "d1_probe",
         "temptation": "36V/24V/12V 三档限值容易混记，见到金属容器内用 12V 会拿不准。",
-        "loss_reason": "金属容器内照明电压限值为不大于 12V，12V 未超限，属于妥当做法；记法：环境越危险，电压档位越低。",
+        "loss_reason": "金属容器内照明电压限值为不大于 12V，12V 未超限，属于妥当做法。",
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "420cb77002caac1a41ad694cda16a2c5f90711042aa4acda5d8e53cc73a49bc1",
-        "decision_identity_sha256": "c891e85ae1792c1962afb8dac441f6ed0b71e5b3caf3e8dede8166625ab072a4",
+        "content_sha256": "16af075d6b106455146b7e3906d032754f2f21902bae9a1d2a88582bab95653d",
+        "decision_identity_sha256": "e5f6c6b13721541d4206afe706cb73fbb7f32de7bef4f3ffab8bbd00c3d382e5",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "420cb77002caac1a41ad694cda16a2c5f90711042aa4acda5d8e53cc73a49bc1",
-          "reviewed_decision_sha256": "c891e85ae1792c1962afb8dac441f6ed0b71e5b3caf3e8dede8166625ab072a4",
+          "reviewed_content_sha256": "16af075d6b106455146b7e3906d032754f2f21902bae9a1d2a88582bab95653d",
+          "reviewed_decision_sha256": "e5f6c6b13721541d4206afe706cb73fbb7f32de7bef4f3ffab8bbd00c3d382e5",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1244,7 +1233,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "0d2b19b91dec4cefd581aace28bdab89fdef29889612952f4c7ce782db8c3c57"
+          "signature_envelope_sha256": "bb815e5f0fe85a9a87c42dc0c95bc5e06335ba2e8c5c46548091f42325c7aad6"
         }
       }
     },
@@ -1406,16 +1395,16 @@
         "skeleton_id": "s05-vskel-c-voltage-ok",
         "probe_role": "immediate_confirm",
         "temptation": "36V/24V/12V 三档限值容易混记，见到锅炉内用 6V 会拿不准。",
-        "loss_reason": "锅炉内照明电压限值为不大于 12V，6V 未超限，属于妥当做法；记法：环境越危险，电压档位越低。",
+        "loss_reason": "锅炉内照明电压限值为不大于 12V，6V 未超限，属于妥当做法。",
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "f9fd8dd27a057a9ae49a1e0c86cde02682cd543db059536a5b787f8eb463fbc4",
-        "decision_identity_sha256": "e8ddbb79f3f71fb65bfe75da7e7276e08da493622824d91eac8cf97a3cc78ac3",
+        "content_sha256": "aa824bcc4ccb61c0012a8776b85f546f229b868cc226f770888d08aca2315884",
+        "decision_identity_sha256": "be8e7f98148218dcc741c0671add95ecda335a173e9aa3c7b965471648831a1d",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "f9fd8dd27a057a9ae49a1e0c86cde02682cd543db059536a5b787f8eb463fbc4",
-          "reviewed_decision_sha256": "e8ddbb79f3f71fb65bfe75da7e7276e08da493622824d91eac8cf97a3cc78ac3",
+          "reviewed_content_sha256": "aa824bcc4ccb61c0012a8776b85f546f229b868cc226f770888d08aca2315884",
+          "reviewed_decision_sha256": "be8e7f98148218dcc741c0671add95ecda335a173e9aa3c7b965471648831a1d",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1424,7 +1413,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "5371ec3a7b913b0874dc03ad25d568276ed7927244db2104711819f95d53c295"
+          "signature_envelope_sha256": "c40788a96c87e2bee13972e5519d4f957b578499b9e2685ec66d8458768b1d7d"
         }
       }
     },
@@ -1442,16 +1431,16 @@
         "skeleton_id": "s05-vskel-c-voltage-ok",
         "probe_role": "d1_probe",
         "temptation": "36V/24V/12V 三档限值容易混记，见到锅炉内用 12V 会拿不准。",
-        "loss_reason": "锅炉内照明电压限值为不大于 12V，12V 未超限，属于妥当做法；记法：环境越危险，电压档位越低。",
+        "loss_reason": "锅炉内照明电压限值为不大于 12V，12V 未超限，属于妥当做法。",
         "source_anchor": "kc:1A431011_015_0016:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "f5f70581e10a0b1a1f0c90562ceb0b0c314339e50e62fad3add5e4f80ca3be6a",
-        "decision_identity_sha256": "dc433add0e2866391de1136e2c1097507104e8818be9fda719b2b453d707a5de",
+        "content_sha256": "1a5095288088d690626f9b64a664526b0505e92045b799e7e8a718d6104eb982",
+        "decision_identity_sha256": "80fb861341d20c3b24d44641281f128330c94ffd86020fe884e151e3f13b0d7b",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "f5f70581e10a0b1a1f0c90562ceb0b0c314339e50e62fad3add5e4f80ca3be6a",
-          "reviewed_decision_sha256": "dc433add0e2866391de1136e2c1097507104e8818be9fda719b2b453d707a5de",
+          "reviewed_content_sha256": "1a5095288088d690626f9b64a664526b0505e92045b799e7e8a718d6104eb982",
+          "reviewed_decision_sha256": "80fb861341d20c3b24d44641281f128330c94ffd86020fe884e151e3f13b0d7b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1460,7 +1449,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "9f9b9120a550bf4e886e441f56f727dd5f342a80140da2dcfc3010b2c3a3ab3e"
+          "signature_envelope_sha256": "f5803f411c19aaf12a482d117bd7cc3055b3aaf9e8db3b893d2559709c07005c"
         }
       }
     },
@@ -1622,16 +1611,16 @@
         "skeleton_id": "s05-vskel-c-voltage-ok",
         "probe_role": "immediate_confirm",
         "temptation": "36V/24V/12V 三档限值容易混记，见到手持灯具用 6V 会拿不准。",
-        "loss_reason": "手持灯具照明电压限值为不大于 36V，6V 未超限，属于妥当做法；记法：环境越危险，电压档位越低。",
+        "loss_reason": "手持灯具照明电压限值为不大于 36V，6V 未超限，属于妥当做法。",
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "9953489dbb77dbac20055a07cf1654f6853722bcb5171155ae25b4f5f4c30056",
-        "decision_identity_sha256": "e70a486975ec77276f00f455b44eb336ef6f7257697ba71a52f40480d21958f8",
+        "content_sha256": "6fee775b6a2084ea3cca3b595c1f419c1cc72b87e7205d4d9d13199276a066f0",
+        "decision_identity_sha256": "deeef18503e2d349a43aa2f208596f591ec3baa3921dbb0a30360389cd0c0713",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "9953489dbb77dbac20055a07cf1654f6853722bcb5171155ae25b4f5f4c30056",
-          "reviewed_decision_sha256": "e70a486975ec77276f00f455b44eb336ef6f7257697ba71a52f40480d21958f8",
+          "reviewed_content_sha256": "6fee775b6a2084ea3cca3b595c1f419c1cc72b87e7205d4d9d13199276a066f0",
+          "reviewed_decision_sha256": "deeef18503e2d349a43aa2f208596f591ec3baa3921dbb0a30360389cd0c0713",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1640,7 +1629,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "08e6804a96375440f1c7bd5c44a565d368b5f64c6967d36832b8f0d95dbf9a6a"
+          "signature_envelope_sha256": "e3ec156508ed8a346f5d4272a14cc8a130de7747e6ce5be5df1b872febd0bf7d"
         }
       }
     },
@@ -1658,16 +1647,16 @@
         "skeleton_id": "s05-vskel-c-voltage-ok",
         "probe_role": "d1_probe",
         "temptation": "36V/24V/12V 三档限值容易混记，见到手持灯具用 12V 会拿不准。",
-        "loss_reason": "手持灯具照明电压限值为不大于 36V，12V 未超限，属于妥当做法；记法：环境越危险，电压档位越低。",
+        "loss_reason": "手持灯具照明电压限值为不大于 36V，12V 未超限，属于妥当做法。",
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "adcef0728710dc7eb09508eea9388de4b0738bd514af31a5ea6e49912686e0b5",
-        "decision_identity_sha256": "79edab73b81e218a6f4d35b6ea8ac853b797b4e0e5511137e6d2cbb18a7909ea",
+        "content_sha256": "1e5292927eb41155a55dfb8632738cf4d0fc9c68e457d943bf47f8e35628f315",
+        "decision_identity_sha256": "a8b2851b701cdfb526f7856aad27a5e64ff8ebd445c469913be246fabf96d02b",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "adcef0728710dc7eb09508eea9388de4b0738bd514af31a5ea6e49912686e0b5",
-          "reviewed_decision_sha256": "79edab73b81e218a6f4d35b6ea8ac853b797b4e0e5511137e6d2cbb18a7909ea",
+          "reviewed_content_sha256": "1e5292927eb41155a55dfb8632738cf4d0fc9c68e457d943bf47f8e35628f315",
+          "reviewed_decision_sha256": "a8b2851b701cdfb526f7856aad27a5e64ff8ebd445c469913be246fabf96d02b",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1676,7 +1665,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "cd4e9a77aac1c2542bf7a3e57f257e5c394d071bb3196150ceb88d8c3c1031ec"
+          "signature_envelope_sha256": "6db31d5ff03bce054408a182e82a1d7ffaefead79502a6798f53f2ed5f254717"
         }
       }
     },
@@ -1694,16 +1683,16 @@
         "skeleton_id": "s05-vskel-c-voltage-ok",
         "probe_role": "immediate_confirm",
         "temptation": "36V/24V/12V 三档限值容易混记，见到手持灯具用 24V 会拿不准。",
-        "loss_reason": "手持灯具照明电压限值为不大于 36V，24V 未超限，属于妥当做法；记法：环境越危险，电压档位越低。",
+        "loss_reason": "手持灯具照明电压限值为不大于 36V，24V 未超限，属于妥当做法。",
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "ba0dc79b8c09adcda16987ffdd4927e5cd85f55b2a86031029e74f9978e0edf0",
-        "decision_identity_sha256": "b73d7f4220e9de7e945eaba91d557202384d7b4952ce3761fbdf4c4e05417998",
+        "content_sha256": "b31efbb3a3f75ed77e9f9bf908a543e486a4956a1b713a5dc0450563f56b2292",
+        "decision_identity_sha256": "7bc4393790d5f38aeca7d694bf563724e96bee37ded0914e6bffd83fab7b6571",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "ba0dc79b8c09adcda16987ffdd4927e5cd85f55b2a86031029e74f9978e0edf0",
-          "reviewed_decision_sha256": "b73d7f4220e9de7e945eaba91d557202384d7b4952ce3761fbdf4c4e05417998",
+          "reviewed_content_sha256": "b31efbb3a3f75ed77e9f9bf908a543e486a4956a1b713a5dc0450563f56b2292",
+          "reviewed_decision_sha256": "7bc4393790d5f38aeca7d694bf563724e96bee37ded0914e6bffd83fab7b6571",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1712,7 +1701,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "1af648f809c912a1668d832e34a205a7825f80b7981b01f0cf329394bc9e10ee"
+          "signature_envelope_sha256": "f420aca63f09c25e736ad615f7fdf57d390f134532def659e1c9e717b1fc07fa"
         }
       }
     },
@@ -1730,16 +1719,16 @@
         "skeleton_id": "s05-vskel-c-voltage-ok",
         "probe_role": "d1_probe",
         "temptation": "36V/24V/12V 三档限值容易混记，见到手持灯具用 36V 会拿不准。",
-        "loss_reason": "手持灯具照明电压限值为不大于 36V，36V 未超限，属于妥当做法；记法：环境越危险，电压档位越低。",
+        "loss_reason": "手持灯具照明电压限值为不大于 36V，36V 未超限，属于妥当做法。",
         "source_anchor": "kc:1A436000_130_0209:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "12dd17a54b1e6db70123237b5be85b1ec6067a1e620a6e5e349c70cae8516488",
-        "decision_identity_sha256": "ec645f77f7e07ce371c83fa5723be5907042c292d340485232f3cff2a671d6d8",
+        "content_sha256": "7739183f0343f3bce1bd34ddbda99c9833524221655f9cadeff0e30547b5eadd",
+        "decision_identity_sha256": "f7445a51e92128c3c9e50e721980a21b8024aabbcee9bc29a54ee855933af9ad",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "12dd17a54b1e6db70123237b5be85b1ec6067a1e620a6e5e349c70cae8516488",
-          "reviewed_decision_sha256": "ec645f77f7e07ce371c83fa5723be5907042c292d340485232f3cff2a671d6d8",
+          "reviewed_content_sha256": "7739183f0343f3bce1bd34ddbda99c9833524221655f9cadeff0e30547b5eadd",
+          "reviewed_decision_sha256": "f7445a51e92128c3c9e50e721980a21b8024aabbcee9bc29a54ee855933af9ad",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1748,7 +1737,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "9f4ef033caeaea4307f073aa1e2fa9d0a646763809779a6c3619959b290a5b0a"
+          "signature_envelope_sha256": "7ca01999bdf17241eb07f932338376a2711f6c320fa03599edb67c9da8b85231"
         }
       }
     },
@@ -1838,16 +1827,16 @@
         "skeleton_id": "s05-vskel-d-one-switch-ok",
         "probe_role": "immediate_confirm",
         "temptation": "「一机一箱」太熟了，反而会怀疑单独设箱是不是多余。",
-        "loss_reason": "每台用电设备必须有各自专用的开关箱，电锯单独设箱正是规范要求；判断方向错了同样丢分。",
+        "loss_reason": "每台用电设备必须有各自专用的开关箱，电锯单独设箱正是规范要求，与规范要求一致。",
         "source_anchor": "kc:1A431011_014_0015:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "a8d3f4cb74c41010bc313cd8d69f5d4f3d0ab4ee93cb9438fb24f45f5194a617",
-        "decision_identity_sha256": "213458c17cca9c31922841ce9408dc1b450aeb039d16008e93d712a7f1bedf7c",
+        "content_sha256": "c7246a0d6b784f64bc9a03b6649c3a4b5fe12b51cf7ef2a8770d658969f48aa5",
+        "decision_identity_sha256": "175ff880d93643b21e6e9166df0897889ccff2dadb1f9d6f691910e80cc1dc4e",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "a8d3f4cb74c41010bc313cd8d69f5d4f3d0ab4ee93cb9438fb24f45f5194a617",
-          "reviewed_decision_sha256": "213458c17cca9c31922841ce9408dc1b450aeb039d16008e93d712a7f1bedf7c",
+          "reviewed_content_sha256": "c7246a0d6b784f64bc9a03b6649c3a4b5fe12b51cf7ef2a8770d658969f48aa5",
+          "reviewed_decision_sha256": "175ff880d93643b21e6e9166df0897889ccff2dadb1f9d6f691910e80cc1dc4e",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1856,7 +1845,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "0eec7f037615c113fb933a82e9251651f2da5407c1c41872de81070a9e1d722e"
+          "signature_envelope_sha256": "14c9b31702a636c2d93080ca097a6ad29dff1aace391a7f8a3dd2d687c191377"
         }
       }
     },
@@ -1946,16 +1935,16 @@
         "skeleton_id": "s05-vskel-d-one-switch-ok",
         "probe_role": "d1_probe",
         "temptation": "「一机一箱」太熟了，反而会怀疑单独设箱是不是多余。",
-        "loss_reason": "每台用电设备必须有各自专用的开关箱，钢筋切断机单独设箱正是规范要求；判断方向错了同样丢分。",
+        "loss_reason": "每台用电设备必须有各自专用的开关箱，钢筋切断机单独设箱正是规范要求，与规范要求一致。",
         "source_anchor": "kc:1A431011_014_0015:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "d0f84fc31b897ad2527f1cadde52e81352c7115e25303ced5e1e0e94e95c5bf9",
-        "decision_identity_sha256": "69e84a55f7eecf0c295a52bfa3ce98eced192bdfb69964ae3b7054eeab087cfa",
+        "content_sha256": "c38638834387c477b43fff0227b40d357567f04407a97250fe7aaa25275e108d",
+        "decision_identity_sha256": "77b763ea7a36dafcd863b555ad7d4e6862c511a301ddada739653ab3179e679a",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "d0f84fc31b897ad2527f1cadde52e81352c7115e25303ced5e1e0e94e95c5bf9",
-          "reviewed_decision_sha256": "69e84a55f7eecf0c295a52bfa3ce98eced192bdfb69964ae3b7054eeab087cfa",
+          "reviewed_content_sha256": "c38638834387c477b43fff0227b40d357567f04407a97250fe7aaa25275e108d",
+          "reviewed_decision_sha256": "77b763ea7a36dafcd863b555ad7d4e6862c511a301ddada739653ab3179e679a",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1964,7 +1953,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "508094e24b94db5ddfe576a5d1cd7ebdbc3957738504d4998a17812fd32c9042"
+          "signature_envelope_sha256": "ef76c2f8e39778c0915148216c14f27c1e025523f6ad2e2bd4e71fc565ae1716"
         }
       }
     },
@@ -2054,16 +2043,16 @@
         "skeleton_id": "s05-vskel-d-one-switch-ok",
         "probe_role": "immediate_confirm",
         "temptation": "「一机一箱」太熟了，反而会怀疑单独设箱是不是多余。",
-        "loss_reason": "每台用电设备必须有各自专用的开关箱，混凝土搅拌机单独设箱正是规范要求；判断方向错了同样丢分。",
+        "loss_reason": "每台用电设备必须有各自专用的开关箱，混凝土搅拌机单独设箱正是规范要求，与规范要求一致。",
         "source_anchor": "kc:1A431011_014_0015:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "0d5ae5c9acd6aa4ca511456e5f26419dc7e8d6102015e7e14abd81ab6ca0a22c",
-        "decision_identity_sha256": "fe8c94fe6074aa3bbf93d9d82026a7fdcc1aec9b95d490ef97dac15ec05ca38b",
+        "content_sha256": "fc0b2e82b3cf67e23d00cb904a6d8f30394ead9780a697bdc22a763225eb0b33",
+        "decision_identity_sha256": "fae34ff28c7c352acdce0852a37f7420641d3a98a434908e52422b0f922aac8e",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "0d5ae5c9acd6aa4ca511456e5f26419dc7e8d6102015e7e14abd81ab6ca0a22c",
-          "reviewed_decision_sha256": "fe8c94fe6074aa3bbf93d9d82026a7fdcc1aec9b95d490ef97dac15ec05ca38b",
+          "reviewed_content_sha256": "fc0b2e82b3cf67e23d00cb904a6d8f30394ead9780a697bdc22a763225eb0b33",
+          "reviewed_decision_sha256": "fae34ff28c7c352acdce0852a37f7420641d3a98a434908e52422b0f922aac8e",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2072,7 +2061,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "71adbc2edadab09d07753e4923246eb10ebb9eecbb83705f3babfd752e5afeae"
+          "signature_envelope_sha256": "a85292f9f0d71e10c8dfa4d1582486b16a11a7898e00af7ed56ead815754f8e9"
         }
       }
     },
@@ -2162,16 +2151,16 @@
         "skeleton_id": "s05-vskel-d-one-switch-ok",
         "probe_role": "d1_probe",
         "temptation": "「一机一箱」太熟了，反而会怀疑单独设箱是不是多余。",
-        "loss_reason": "每台用电设备必须有各自专用的开关箱，电焊机单独设箱正是规范要求；判断方向错了同样丢分。",
+        "loss_reason": "每台用电设备必须有各自专用的开关箱，电焊机单独设箱正是规范要求，与规范要求一致。",
         "source_anchor": "kc:1A431011_014_0015:2",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "7644fa77ed021438eaf694a3f8646e8dff8b56314405126e166b02d35e7e46cf",
-        "decision_identity_sha256": "f26733edb6c57fd2ffc9895af7b794276d03aff4cd7caea006a57f7b13066108",
+        "content_sha256": "6aea3f7c8a10b2e2b21818f2b8927de9031abe374d632899a62bacab8c97be7f",
+        "decision_identity_sha256": "3c5f710580323128033091d500b1b287102b9f7367d8d6035ebe66b3fda4b471",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "7644fa77ed021438eaf694a3f8646e8dff8b56314405126e166b02d35e7e46cf",
-          "reviewed_decision_sha256": "f26733edb6c57fd2ffc9895af7b794276d03aff4cd7caea006a57f7b13066108",
+          "reviewed_content_sha256": "6aea3f7c8a10b2e2b21818f2b8927de9031abe374d632899a62bacab8c97be7f",
+          "reviewed_decision_sha256": "3c5f710580323128033091d500b1b287102b9f7367d8d6035ebe66b3fda4b471",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2180,7 +2169,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "f428d1cde0438a7bbd9092b91abf9de9baeebc05b57b9f15ced001b5f7bf08b1"
+          "signature_envelope_sha256": "cf25de9ee4cb8a47ce758cf91f78ed032f52821545db4db464c85a65351b9b65"
         }
       }
     },
@@ -2414,16 +2403,16 @@
         "skeleton_id": "s05-vskel-e-bury-ok",
         "probe_role": "d1_probe",
         "temptation": "0.7m 这个数字容易与其他埋深/间距数字混记，见到 0.7m 会犹豫。",
-        "loss_reason": "电缆直接埋地敷设深度不应小于 0.7m，0.7m 已满足要求，属于妥当做法；把对判错同样丢分。",
+        "loss_reason": "电缆直接埋地敷设深度不应小于 0.7m，0.7m 已满足要求，属于妥当做法。",
         "source_anchor": "kc:1A431011_014_0015:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "ea9014dad5561def68696d7cdcf8da9c6fb1111de6f34f014757eca40b201382",
-        "decision_identity_sha256": "a60e39d25320901a4017b2cd5c26b1fa1dbf05217b65dff86c8d691b59f84d1b",
+        "content_sha256": "b2a225420ff6ed42d21626e06bca2795b1edafb4bd8e73f6823d869287263cd0",
+        "decision_identity_sha256": "0d2a74cc66484b4b595256c8cf5addd3c11faba0ebf2315a76453cd168fcfaf7",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "ea9014dad5561def68696d7cdcf8da9c6fb1111de6f34f014757eca40b201382",
-          "reviewed_decision_sha256": "a60e39d25320901a4017b2cd5c26b1fa1dbf05217b65dff86c8d691b59f84d1b",
+          "reviewed_content_sha256": "b2a225420ff6ed42d21626e06bca2795b1edafb4bd8e73f6823d869287263cd0",
+          "reviewed_decision_sha256": "0d2a74cc66484b4b595256c8cf5addd3c11faba0ebf2315a76453cd168fcfaf7",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2432,7 +2421,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "0fb77e366d5ec71fdde174ad87e87d2c8c2ecc9ca52ab6a871d5edcaf6e12cdd"
+          "signature_envelope_sha256": "0be69d950d39c03fccfda376773297be72d9f68d4e358447b6521c3c45e551b2"
         }
       }
     },
@@ -2450,16 +2439,16 @@
         "skeleton_id": "s05-vskel-e-bury-ok",
         "probe_role": "immediate_confirm",
         "temptation": "0.7m 这个数字容易与其他埋深/间距数字混记，见到 0.8m 会犹豫。",
-        "loss_reason": "电缆直接埋地敷设深度不应小于 0.7m，0.8m 已满足要求，属于妥当做法；把对判错同样丢分。",
+        "loss_reason": "电缆直接埋地敷设深度不应小于 0.7m，0.8m 已满足要求，属于妥当做法。",
         "source_anchor": "kc:1A431011_014_0015:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "a82232cb6f1c09376667e8ae40aa561e9720029f0568b4a20b14ccf80b473b37",
-        "decision_identity_sha256": "ce52d4267dd7d13f5f61868614580a264a4bc9ad9f331c81ff57ec017cd2907d",
+        "content_sha256": "f9841a7d3f42b141bb0d4a674ee02a0934ade56529d7f182bf6669624d29f952",
+        "decision_identity_sha256": "eb8d10f1652518e0a529d409318cfdfdd49a311f23e7a89b67e905aa949deac6",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "a82232cb6f1c09376667e8ae40aa561e9720029f0568b4a20b14ccf80b473b37",
-          "reviewed_decision_sha256": "ce52d4267dd7d13f5f61868614580a264a4bc9ad9f331c81ff57ec017cd2907d",
+          "reviewed_content_sha256": "f9841a7d3f42b141bb0d4a674ee02a0934ade56529d7f182bf6669624d29f952",
+          "reviewed_decision_sha256": "eb8d10f1652518e0a529d409318cfdfdd49a311f23e7a89b67e905aa949deac6",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2468,7 +2457,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "2a989b72222ba21e165f127d2b37ea89d76fe64a150b0444f621b2af7bf6c50f"
+          "signature_envelope_sha256": "44ba9bfe0c96bb3b1d3593ef19fe417ecd9e821ab5e526d311da5bf8fa100a29"
         }
       }
     },
@@ -2486,16 +2475,16 @@
         "skeleton_id": "s05-vskel-e-bury-ok",
         "probe_role": "d1_probe",
         "temptation": "0.7m 这个数字容易与其他埋深/间距数字混记，见到 1m 会犹豫。",
-        "loss_reason": "电缆直接埋地敷设深度不应小于 0.7m，1m 已满足要求，属于妥当做法；把对判错同样丢分。",
+        "loss_reason": "电缆直接埋地敷设深度不应小于 0.7m，1m 已满足要求，属于妥当做法。",
         "source_anchor": "kc:1A431011_014_0015:0",
         "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "38d255863916145c21647dbd90aa100a14ebb081a094190b46b400fcb891bea0",
-        "decision_identity_sha256": "9e76a4cf2bf22e442bbdded1f5ff994c07fed99f1ccaf62347646ec8324fa845",
+        "content_sha256": "0ad826d7e76c1258291b561d9668ef09480c3c89e1c71fce217ac03dbafc3f5f",
+        "decision_identity_sha256": "7edd63f875ad00b4aa3445aea30e91220be29700f562ed63bb422348b322d5f4",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "38d255863916145c21647dbd90aa100a14ebb081a094190b46b400fcb891bea0",
-          "reviewed_decision_sha256": "9e76a4cf2bf22e442bbdded1f5ff994c07fed99f1ccaf62347646ec8324fa845",
+          "reviewed_content_sha256": "0ad826d7e76c1258291b561d9668ef09480c3c89e1c71fce217ac03dbafc3f5f",
+          "reviewed_decision_sha256": "7edd63f875ad00b4aa3445aea30e91220be29700f562ed63bb422348b322d5f4",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -2504,7 +2493,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "c27db3a88e456ecbcc03255da034ed6884917e3e9e0ce24259e12c79c1b3074d"
+          "signature_envelope_sha256": "f84e96a3699fbe209fe8ccbc5ca331cf3a72c9779c845681d47be7097ff0f3d6"
         }
       }
     },
@@ -2721,42 +2710,6 @@
             "template_leakage_checked": false
           },
           "signature_envelope_sha256": "025338a87c3bd98756b47100f120e2b09e8b5cae7802377a8ceb1ece8710a9db"
-        }
-      }
-    },
-    {
-      "variant_id": "S05-F-mgmt-067",
-      "rule_group": "F-mgmt",
-      "surface": "现场用电总容量 40kW，编制了安全用电和电气防火措施",
-      "expected_ok": true,
-      "correct_statement": "50kW 以下编制安全用电和电气防火措施即可",
-      "anchor": "{2018,第17题}",
-      "extension": false,
-      "decision_candidate": {
-        "schema": "luban_variant_decision.v1",
-        "fact_id": "s05-fact-below-50kw-measures",
-        "skeleton_id": "s05-vskel-f-mgmt-ok",
-        "probe_role": "immediate_confirm",
-        "temptation": "题面只出现「安全用电和电气防火措施」而没出现「用电组织设计」，容易觉得少编了东西而判违规，忽略容量只有 40kW、未到 50kW 门槛。",
-        "loss_reason": "总容量 50kW 以下编制安全用电和电气防火措施即可；40kW 编制了措施已满足要求，属于妥当做法。",
-        "source_anchor": "{2018,第17题}",
-        "source_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-        "content_sha256": "72a5a6f35b1cf731cad4c12812d0f9bd0c80cccb8c55e45f5dbc00374a290122",
-        "decision_identity_sha256": "671e2209bd7e0ab4f15abd7c88f98bad04ece7d07d4fa08f34cec593fd95f8e4",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "72a5a6f35b1cf731cad4c12812d0f9bd0c80cccb8c55e45f5dbc00374a290122",
-          "reviewed_decision_sha256": "671e2209bd7e0ab4f15abd7c88f98bad04ece7d07d4fa08f34cec593fd95f8e4",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          },
-          "signature_envelope_sha256": "4da652190c7f31cb2afabc8fd8125e0651d3bca9ff4b9b7f4912fd38ae006908"
         }
       }
     },

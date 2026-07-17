@@ -14,13 +14,22 @@
   join 到的 quote 还须与 fact 主题一致——bigram 重叠核验，防 E5 类错锚）
   与 compiled MCQ 疑似同 fact 题号（CJK bigram 重叠，候选性质）。
 
-富化文案纪律（2026-07-16 对抗审查裁决，S05 75 条 48 REFUTED 后收紧）：
+富化文案纪律（2026-07-16 对抗审查裁决，S05/N01 终轮 REFUTED 后收紧）：
   * loss_reason 只允许三类内容：教材/编译点原文支持的事实、正确表述
     （correct_statement）、与题面的差异点；禁一切无来源机理句
     （如「失去上级保护」「松动打火」「无法准确分断」类工程机理）；
-  * 禁判分承诺句（如「通常单独设采分点」「缺一件丢一分」——无评分统计来源）；
+  * 禁判分承诺句（如「通常单独设采分点」「缺一件丢一分」「把对判错同样丢分」
+    「判断方向错了同样丢分」——无评分统计来源）；判断题的方向错误只用
+    「与规范要求一致/不符」表述，不提丢分；
+  * 禁无来源泛化记法（如 C 组「环境越危险，电压档位越低」——教材只列各场所
+    具体限值，未定义危险度序列）；
   * temptation 只写心理层（为什么顺手会判错），不发明工程机理、
     不虚构题面外事实。
+
+无有效锚 fact 剔除（2026-07-16 终轮裁决）：kc_anchor/textbook_quote 双空、且
+唯一真题锚经异源核验不支撑该 fact 断言者，视为「无任何有效锚」，其全部变体
+不进本批候选（bank 只读、原样保留，待补可读教材/规范原文锚后再入批）。生成器
+无法语义判定真题锚支撑度，故由对抗审查裁决在 ``_PACK_EXCLUDED_FACTS`` 登记。
 
 Hard safety guarantees（同 prefill_practice_review_anchors.py 惯例）：
   * bank 只读，绝不修改；
@@ -114,7 +123,7 @@ def _s05_b_order(v: dict[str, Any]) -> tuple[str, str]:
     if v["expected_ok"]:
         return (
             f"{label}顺序与{other}顺序容易互相记串，看到正确顺序反而不敢确认。",
-            f"{label}操作顺序应为{correct}，本题顺序正确，把对判错同样丢分；"
+            f"{label}操作顺序应为{correct}，本题顺序与规范要求一致；"
             "记法：送电从总到开、停电从开到总，两句连着背。",
         )
     other_correct = (
@@ -144,8 +153,8 @@ def _s05_c_voltage(v: dict[str, Any]) -> tuple[str, str]:
     if v["expected_ok"]:
         return (
             f"36V/24V/12V 三档限值容易混记，见到{place}用 {surface_v}V 会拿不准。",
-            f"{place}照明电压限值为不大于 {limit_v}V，{surface_v}V 未超限，属于"
-            "妥当做法；记法：环境越危险，电压档位越低。",
+            f"{place}照明电压限值为不大于 {limit_v}V，{surface_v}V 未超限，"
+            "属于妥当做法。",
         )
     return (
         f"只记得「特殊场所要用安全特低电压」，容易忽略{place}的具体限值档位。",
@@ -167,7 +176,7 @@ def _s05_d_one_switch(v: dict[str, Any]) -> tuple[str, str]:
         return (
             "「一机一箱」太熟了，反而会怀疑单独设箱是不是多余。",
             f"每台用电设备必须有各自专用的开关箱，{machine}单独设箱正是规范"
-            "要求；判断方向错了同样丢分。",
+            "要求，与规范要求一致。",
         )
     return (
         f"{share} 台同类{machine}挨得近，共用一个开关箱看起来省料又省事。",
@@ -184,7 +193,7 @@ def _s05_e_bury(v: dict[str, Any]) -> tuple[str, str]:
             f"{threshold}m 这个数字容易与其他埋深/间距数字混记，"
             f"见到 {depth}m 会犹豫。",
             f"电缆直接埋地敷设深度不应小于 {threshold}m，{depth}m 已满足要求，"
-            "属于妥当做法；把对判错同样丢分。",
+            "属于妥当做法。",
         )
     return (
         f"埋深 {depth}m 已经「埋进土里」了，容易凭感觉觉得够深。",
@@ -320,7 +329,7 @@ def _n01_a_line(v: dict[str, Any]) -> tuple[str, str]:
             return (
                 "「总时差最小」这个判据平时用得少，看到正确写法反而怀疑是不是漏了什么。",
                 "关键工作的判据就是「总时差最小」，且必须落到本网络图的"
-                "具体工作上；本题判据与落点都对，把对判错同样丢分。",
+                "具体工作上；本题判据与落点都对，与作答要求一致。",
             )
         return (
             "只背下「关键工作 = 总时差最小」这句判据，容易以为写出判据就够了。",
@@ -351,8 +360,8 @@ def _n01_a_line(v: dict[str, Any]) -> tuple[str, str]:
         )
     return (
         "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
-        "本题关键线路落到了具体路径、节点连续无跳号，写法完整；"
-        "把对判错同样丢分，判断方向要跟着作答要素走。",
+        "本题关键线路落到了具体路径、节点连续无跳号，写法完整，"
+        "与作答要素一致。",
     )
 
 
@@ -362,7 +371,7 @@ def _n01_b_expr(v: dict[str, Any]) -> tuple[str, str]:
         return (
             "总工期只要一个数就够了？看到「线路 + 算式 + 单位」全写反而怀疑是否啰嗦。",
             "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」"
-            "三件齐全；本题三件都在，把对判错同样丢分。",
+            "三件齐全；本题三件都在，与作答要求一致。",
         )
     if params.get("sum_along") == "noncritical":
         return (
@@ -414,7 +423,7 @@ def _n01_d_adjust(v: dict[str, Any]) -> tuple[str, str]:
         return (
             f"进度调整方法有五类，「{method}」是否算一类容易记不牢。",
             f"进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制"
-            f"计划/非关键工作调整/资源调整，「{method}」正是其中一类；把对判错同样丢分。",
+            f"计划/非关键工作调整/资源调整，「{method}」正是其中一类。",
         )
     return (
         f"五类调整方法里，「{method}」名字不如「压缩关键工作」直白，容易被漏认。",
@@ -429,7 +438,7 @@ def _n01_e_monitor(v: dict[str, Any]) -> tuple[str, str]:
         return (
             f"监测内容和调整动作容易混，「{item}」到底算监测还是算调整拿不准。",
             f"进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/"
-            f"核查逻辑关系/收集变更，「{item}」正是其中一项；把对判错同样丢分。",
+            f"核查逻辑关系/收集变更，「{item}」正是其中一项。",
         )
     return (
         f"「{item}」听着像日常工作，容易觉得它不属于「监测」这个专门环节。",
@@ -442,19 +451,19 @@ def _n01_f_procedure(v: dict[str, Any]) -> tuple[str, str]:
     violation = v["params"].get("violation")
     if v["expected_ok"]:
         return (
-            "网络计划的四步顺序背着顺，真到判对错时反而担心是不是有步骤能省。",
-            "应按「绘图（含补虚工作）→ 计算时间参数 → 确定关键线路 → 编制/实施」"
-            "顺序进行；本题所列环节先后顺序正确，把对判错同样丢分。",
+            "网络计划各环节的先后顺序背着顺，真到判对错时反而担心是不是有步骤能省。",
+            "绘图应先于计算时间参数、计算时间参数应先于确定关键线路、确定关键"
+            "线路应先于编制/实施；本题所列环节的相对先后顺序正确，与规范要求一致。",
         )
     if violation == "未绘图先算参数":
         return (
             "现场赶时间，图还没画就想先把数算出来，看着「效率高」。",
-            "未绘图、未补全网络逻辑就先计算时间参数，不符合「先绘图（含补虚"
-            "工作）再算参数」的规定顺序；顺序不可乱。",
+            "未绘图就先计算时间参数，不符合「先绘图再算参数」的相对先后顺序；"
+            "绘图应先于时间参数计算。",
         )
     return (
         "时间参数看着繁琐，容易想跳过它直接「凭最长路径」定关键线路。",
-        "跳过「计算时间参数」直接确定关键线路，不符合规定顺序；"
+        "跳过「计算时间参数」直接确定关键线路，不符合相对先后顺序；"
         "正确顺序是先算参数（各路径长/时差）再确定关键线路。",
     )
 
@@ -521,6 +530,46 @@ _N01_FACT_STATEMENT_OVERRIDES: dict[str, str] = {
         "关键工作按「总时差最小」判据判定并落到具体工作；"
         "延误工作在关键线路上（总时差为 0）则影响总工期"
     ),
+    # F-procedure 共享 fact 失真修正（2026-07-16 终轮对抗审查裁决）：教材原文
+    # 为「7 阶段 18 步骤」，不得压成「四步」；「补虚工作」仅在 2015 具体案例/
+    # 讲义有锚，只属 G-logic 逻辑补图 fact，不是每个网络计划的通用必经步骤。
+    # 摘要收敛为「所列环节的相对先后顺序」，只保留 bank 已支撑的相对次序断言。
+    "n01-fact-network-procedure-order": (
+        "绘图、计算时间参数（各路径长/时差）、确定关键线路、编制/实施等"
+        "环节的相对先后顺序不可颠倒"
+    ),
+}
+
+
+# 无有效锚 fact 剔除（2026-07-16 终轮对抗审查裁决）：kc_anchor/textbook_quote
+# 双空、且唯一真题锚经异源核验不支撑该 fact 的断言——视为「无任何有效锚」，
+# 全部变体不进本批候选（bank 只读、原样保留，待补可读教材/规范原文锚后再入批）。
+# 生成器无法语义判定真题锚是否支撑断言，故由对抗审查裁决在此登记。
+#   * s05-fact-below-50kw-measures：仅挂 {2018,第17题}，该题只证「50kW 及以上
+#     应编制用电组织设计」，不证「50kW 以下编制措施即可」；全库教材/讲义分片
+#     亦未检出对应原文。
+_S05_EXCLUDED_FACTS: frozenset[str] = frozenset({"s05-fact-below-50kw-measures"})
+
+
+# 命名先例裁决 note（2026-07-16 终轮主控终裁）：Codex 建议拆 min-total-float
+# 独立 fact，主控终裁沿用 MCQ 已签 fact_id 不改名，仅在候选文件显式声明其复合
+# 事实性质，并把 005/006 的名实异议逐条记录在案（条目保留）。
+_N01_FACT_ADJUDICATION_NOTES: dict[str, str] = {
+    "n01-fact-critical-work-zero-float": (
+        "本 fact 为已签复合事实（判据『总时差最小』/条件取值 TF=0/延误后果），"
+        "命名沿用 MCQ 签发先例；Codex 对 zero-float 命名的名实异议记录在案，"
+        "主控终裁保留命名与条目。"
+    ),
+}
+_N01_ITEM_ADJUDICATION_NOTES: dict[str, str] = {
+    "N01-A-line-005": (
+        "Codex 异议：本条验证「关键工作=总时差最小」判据面，挂 zero-float fact "
+        "存在「最小 vs 0」名实张力；主控终裁沿用 MCQ 签发先例保留条目。"
+    ),
+    "N01-A-line-006": (
+        "Codex 异议：本条验证「关键工作=总时差最小」判据面，挂 zero-float fact "
+        "存在「最小 vs 0」名实张力；主控终裁沿用 MCQ 签发先例保留条目。"
+    ),
 }
 
 
@@ -531,11 +580,18 @@ _PACK_TABLES: dict[str, tuple[dict[tuple[str, str], str], dict[str, Any]]] = {
 }
 
 # pack → (variant_id → fact_id) 改挂表；pack → (fact_id → 元信息) 新 fact 表；
-# pack → (fact_id → 摘要 statement 覆盖) 表。
+# pack → (fact_id → 摘要 statement 覆盖) 表；pack → 无锚剔除集；裁决 note 表。
 _PACK_FACT_OVERRIDES: dict[str, dict[str, str]] = {"N01": _N01_FACT_OVERRIDES}
 _PACK_EXTRA_FACTS: dict[str, dict[str, tuple[str, str]]] = {"N01": _N01_EXTRA_FACTS}
 _PACK_FACT_STATEMENT_OVERRIDES: dict[str, dict[str, str]] = {
     "N01": _N01_FACT_STATEMENT_OVERRIDES
+}
+_PACK_EXCLUDED_FACTS: dict[str, frozenset[str]] = {"S05": _S05_EXCLUDED_FACTS}
+_PACK_FACT_ADJUDICATION_NOTES: dict[str, dict[str, str]] = {
+    "N01": _N01_FACT_ADJUDICATION_NOTES
+}
+_PACK_ITEM_ADJUDICATION_NOTES: dict[str, dict[str, str]] = {
+    "N01": _N01_ITEM_ADJUDICATION_NOTES
 }
 
 
@@ -632,6 +688,9 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
     fact_overrides = _PACK_FACT_OVERRIDES.get(pack_id, {})
     extra_facts = _PACK_EXTRA_FACTS.get(pack_id, {})
     statement_overrides = _PACK_FACT_STATEMENT_OVERRIDES.get(pack_id, {})
+    excluded_facts = _PACK_EXCLUDED_FACTS.get(pack_id, frozenset())
+    fact_notes = _PACK_FACT_ADJUDICATION_NOTES.get(pack_id, {})
+    item_notes = _PACK_ITEM_ADJUDICATION_NOTES.get(pack_id, {})
     bank_path = base_dir / f"_{pack_id}_variant_bank.v0.json"
     bank = json.loads(bank_path.read_text(encoding="utf-8"))
     variants = [v for v in bank.get("variants") or [] if isinstance(v, dict)]
@@ -647,6 +706,9 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
         if key not in fact_table:
             raise SystemExit(f"prefill: {pack_id} fact 表缺聚类 {key}")
         fact_id = fact_overrides.get(str(v["variant_id"]), fact_table[key])
+        # 无有效锚 fact → 不产候选：跳过其全部变体（不进 fact_of/by_fact/items）。
+        if fact_id in excluded_facts:
+            continue
         fact_of[str(v["variant_id"])] = fact_id
         by_fact.setdefault(fact_id, []).append(v)
     role_of: dict[str, str] = {}
@@ -663,6 +725,8 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
     items: list[dict[str, Any]] = []
     for v in variants:
         variant_id = str(v["variant_id"])
+        if variant_id not in fact_of:  # 无有效锚 fact 的变体已被剔除
+            continue
         rule_group = str(v.get("rule_group") or "")
         temptation, loss_reason = draft_table[rule_group](v)
         content_sha = variant_content_sha256(
@@ -718,18 +782,19 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
         decision["review"]["signature_envelope_sha256"] = (
             review_signature_envelope_sha256(decision)
         )
-        items.append(
-            {
-                "variant_id": variant_id,
-                "rule_group": rule_group,
-                "surface": v.get("surface"),
-                "expected_ok": v.get("expected_ok"),
-                "correct_statement": v.get("correct_statement"),
-                "anchor": v.get("anchor"),
-                "extension": bool(v.get("extension")),
-                "decision_candidate": decision,
-            }
-        )
+        item: dict[str, Any] = {
+            "variant_id": variant_id,
+            "rule_group": rule_group,
+            "surface": v.get("surface"),
+            "expected_ok": v.get("expected_ok"),
+            "correct_statement": v.get("correct_statement"),
+            "anchor": v.get("anchor"),
+            "extension": bool(v.get("extension")),
+            "decision_candidate": decision,
+        }
+        if variant_id in item_notes:  # 逐条裁决 note（如 005/006 名实异议保留）
+            item["adjudicated_note"] = item_notes[variant_id]
+        items.append(item)
 
     fact_meta: dict[str, tuple[str, str]] = {
         fact_id: key for key, fact_id in fact_table.items()
@@ -737,6 +802,8 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
     fact_meta.update(extra_facts)
     facts: list[dict[str, Any]] = []
     for fact_id in sorted(fact_meta):
+        if fact_id in excluded_facts:  # 无有效锚 fact 不进本批候选的 facts[]
+            continue
         rule_group, correct_statement = fact_meta[fact_id]
         rows = by_fact.get(fact_id) or []
         # facts[] 元数据必须与实际挂载一致（对抗审查二轮新病 1）：
@@ -759,23 +826,20 @@ def build_candidates(pack_id: str, base_dir: Path) -> dict[str, Any]:
             # E5 类错锚：kc 头 join 到的教材点与本 fact 主题不一致——
             # 如实留空（join 不中），不把无关教材原文当本 fact 证据。
             kc, quote, page_num = "", "", None
-        facts.append(
-            {
-                "fact_id": fact_id,
-                "rule_group": rule_group,
-                "correct_statement": correct_statement,
-                "variant_count": len(rows),
-                "core_variant_count": sum(
-                    1 for v in rows if not v.get("extension")
-                ),
-                "kc_anchor": kc,
-                "textbook_quote": quote,
-                "textbook_page": page_num,
-                "compiled_mcq_candidates": _mcq_candidates(
-                    correct_statement, mcq_texts
-                ),
-            }
-        )
+        fact_entry: dict[str, Any] = {
+            "fact_id": fact_id,
+            "rule_group": rule_group,
+            "correct_statement": correct_statement,
+            "variant_count": len(rows),
+            "core_variant_count": sum(1 for v in rows if not v.get("extension")),
+            "kc_anchor": kc,
+            "textbook_quote": quote,
+            "textbook_page": page_num,
+            "compiled_mcq_candidates": _mcq_candidates(correct_statement, mcq_texts),
+        }
+        if fact_id in fact_notes:  # 命名先例/复合事实性质的显式声明
+            fact_entry["adjudicated_note"] = fact_notes[fact_id]
+        facts.append(fact_entry)
 
     return {
         "schema": CANDIDATES_SCHEMA,
