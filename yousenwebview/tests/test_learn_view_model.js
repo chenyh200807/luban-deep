@@ -349,21 +349,37 @@ ok("frontend never creates a competing priority from pack_review", () => {
   assert.strictEqual(vm.todayTask.cta, "完成刚学内容的 5 题检验");
 });
 
-// ── 兜底臂(无到期/未闭合练习)→ 推荐微课成为唯一主任务 ──
-ok("fallback arm → recommended microlesson becomes the primary task", () => {
+// ── 兜底臂(无到期/未闭合练习)→ 练习池已签发时主任务=继续练习(owner 2026-07-17 拍板) ──
+ok("learn_next with signed practice pool → practice-first task 继续练习", () => {
   const vm = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "learn_next", source_ref: "N01", reason: "下一站" } },
     report: FULL.report,
     lessons: FULL.lessons,
   });
   assert.ok(vm.todayTask);
+  assert.strictEqual(vm.todayTask.action_kind, "retest");
+  assert.strictEqual(vm.todayTask.practice_kind, "retest");
+  assert.strictEqual(vm.todayTask.mode, "forward");
+  assert.strictEqual(vm.todayTask.pack_id, "N01");
+  assert.strictEqual(vm.todayTask.ctaLabel, "继续练习");
+  assert.strictEqual(vm.todayTask.cta, "练教学视频后面的 5 题，错了当场弄懂");
+  assert.strictEqual(vm.todayTask.prompt, undefined);
+});
+
+// ── 练习池未签发的 learn_next → 仍回落推荐微课(诚实,禁空头练习按钮) ──
+ok("learn_next without signed practice pool → microlesson fallback stays", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "learn_next", source_ref: "S05", reason: "下一站" } },
+    report: FULL.report,
+    lessons: FULL.lessons, // S05 无 retest_available
+  });
+  assert.ok(vm.todayTask);
   assert.strictEqual(vm.todayTask.task_type, "microlesson");
   assert.strictEqual(vm.todayTask.task_state, "learn_next");
   assert.strictEqual(vm.todayTask.action_kind, "lesson");
   assert.strictEqual(vm.todayTask.mode, "learn");
-  assert.strictEqual(vm.todayTask.pack_id, "N01");
+  assert.strictEqual(vm.todayTask.ctaLabel, "继续学习");
   assert.strictEqual(vm.todayTask.cta, "学这一小节，随后做 5 题");
-  assert.strictEqual(vm.todayTask.prompt, undefined);
 });
 
 // ── 一等任务只走通用 retest 供给；Pack 专属看穿 spike 不再参与学习首页 ──
@@ -494,8 +510,21 @@ ok("journey never claims done in any arm (frontend has no completion evidence)",
   });
 });
 
-ok("journey learn_next → current step 1, tail two steps promised", () => {
-  const vm = buildLearnViewModel(FULL);
+ok("journey learn_next+signed pool → practice-first, current = practice step", () => {
+  const vm = buildLearnViewModel(FULL); // N01 练习池已签发 → 练习优先(owner 2026-07-17)
+  const j = vm.todayTask.journey;
+  assert.strictEqual(j.currentIndex, 2); // 练习优先 → 当前步=训练(1-based)
+  assert.strictEqual(j.steps[1].state, "current");
+  assert.strictEqual(j.steps[4].state, "promise"); // 到期验证=竹青虚环承诺
+  assert.strictEqual(j.steps[5].state, "promise"); // 后续抽查=竹青虚环承诺
+});
+
+ok("journey learn_next without pool → current step 1, tail two steps promised", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "learn_next", source_ref: "S05", reason: "r" } },
+    report: FULL.report,
+    lessons: FULL.lessons, // S05 无 retest_available → 微课任务
+  });
   const j = vm.todayTask.journey;
   assert.strictEqual(j.currentIndex, 1);
   assert.strictEqual(j.steps[0].state, "current");
@@ -599,8 +628,9 @@ ok("ctaLabel: 开始验证 / 开始训练 / 继续学习 by task type; empty whe
     lessons: FULL.lessons,
   });
   assert.strictEqual(review.todayTask.ctaLabel, "开始验证");
+  // FULL=N01 练习池已签发 → 练习优先「继续练习」(owner 2026-07-17 拍板)
   const lesson = buildLearnViewModel(FULL);
-  assert.strictEqual(lesson.todayTask.ctaLabel, "继续学习");
+  assert.strictEqual(lesson.todayTask.ctaLabel, "继续练习");
   assert.strictEqual(lesson.todayTask.light_practice_available, true); // N01 供给已接通
   // 无 retest 供给的 practice_active → ctaLabel 空(按钮隐藏)+ 诚实降级说明
   const none = buildLearnViewModel({
