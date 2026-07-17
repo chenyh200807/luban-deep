@@ -30,6 +30,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -585,17 +586,160 @@ def resolve_variant_supply(
     }
 
 
+# ---------------------------------------------------------------- 消费投影（切片一）
+# 三个纯函数（零写入）：把 resolve_variant_supply 的绿灯供给投影成消费题面 +
+# 供给 identity + 精确解析。变体供给唯一权威仍是 resolve_variant_supply（内含
+# _load_green_signed_bank 绿灯签发闸）——这三个函数不读 bank 文件、不建第二真值。
+
+# 消费题面只透出学员可见 + 判分所需字段（判断题：expected_ok 是判分锚，
+# temptation/loss_reason 是错后诊断文案）；治理 identity/review 不进消费面。
+_PROBE_ITEM_FIELDS = (
+    "variant_id",
+    "rule_group",
+    "surface",
+    "correct_statement",
+    "anchor",
+    "fact_id",
+    "skeleton_id",
+    "probe_role",
+    "temptation",
+    "loss_reason",
+)
+
+
+def _project_probe_item(item: dict[str, Any]) -> dict[str, Any]:
+    row: dict[str, Any] = {key: str(item.get(key) or "") for key in _PROBE_ITEM_FIELDS}
+    row["expected_ok"] = bool(item.get("expected_ok"))
+    return row
+
+
+def _probe_seed(user_id: str, day_index: int, key: str) -> int:
+    """确定性选序散列（复用 read_model build_retest_items 的高熵 seed 模式）——
+    同 (user, day, key) 多端幂等，绝不派生任何题面字段。"""
+    digest = hashlib.sha256(
+        f"{user_id}:{int(day_index)}:{key}".encode("utf-8")
+    ).hexdigest()
+    return int(digest[:12], 16)
+
+
+def variant_probe_supply_identity(
+    pack_id: str, *, manifest_path: Path | None = None
+) -> dict[str, str]:
+    """变体探针供给的签发 identity（消费路由的持久真值输入）。
+
+    经 ``resolve_variant_supply`` 的绿灯签发闸取当前 eligible 供给；identity 覆盖
+    {pack_id, source_pack_sha256, items}——治理字段/撤发/重签任一漂移即 digest 变，
+    selection token 随之失配（阻断过期变体池提交）。供给缺失/空 → ``{"",""}``
+    （与 ``retest_supply_identity`` 空态同形），消费点据此 fail-closed 退现行为。
+    """
+    supply = resolve_variant_supply(pack_id, manifest_path=manifest_path)
+    items = list(supply.get("items") or []) if supply else []
+    if not supply or not items:
+        return {"kind": "", "digest": ""}
+    digest = _canonical_sha256(
+        {
+            "pack_id": str(supply.get("pack_id") or ""),
+            "source_pack_sha256": str(supply.get("source_pack_sha256") or ""),
+            "items": items,
+        }
+    )
+    return {"kind": "signed_variant", "digest": digest}
+
+
+def build_variant_probe_items(
+    pack_id: str,
+    *,
+    user_id: str,
+    day_index: int,
+    probe_role: str,
+    fact_ids: list[str] | None = None,
+    limit: int = 5,
+    per_fact: int = 2,
+    manifest_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """从绿灯变体供给投影一组消费题面（判断题）。
+
+    - 供给唯一权威 = ``resolve_variant_supply``（绿灯签发闸）；缺失/空 → ``[]``。
+    - 只取指定 ``probe_role``（immediate_confirm / d1_probe）；``fact_ids`` 给定时
+      再取 fact 交集（错题当场确认场用 completion 派生的错题 facts）。
+    - 确定性选序：fact 序与 fact 内选序均由 ``sha256(user:day:key)`` 派生（多端
+      幂等）；每 fact 至多 ``per_fact`` 题，总量 ≤ ``limit``。零生成、零新供给。
+
+    fail-closed：``probe_role`` 非法（如 anchor）→ 空（anchor 首验归 compiled MCQ）。
+    """
+    if probe_role not in VARIANT_PROBE_ROLES:
+        return []
+    supply = resolve_variant_supply(pack_id, manifest_path=manifest_path)
+    if not supply:
+        return []
+    wanted_facts = (
+        {str(fact or "").strip() for fact in fact_ids if str(fact or "").strip()}
+        if fact_ids is not None
+        else None
+    )
+    per_fact = max(1, int(per_fact))
+    limit = max(1, min(int(limit), 10))
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for item in supply.get("items") or []:
+        if str(item.get("probe_role") or "") != probe_role:
+            continue
+        fact = str(item.get("fact_id") or "").strip()
+        if wanted_facts is not None and fact not in wanted_facts:
+            continue
+        grouped.setdefault(fact, []).append(item)
+    ordered_facts = sorted(
+        grouped, key=lambda fact: _probe_seed(user_id, day_index, fact)
+    )
+    picked: list[dict[str, Any]] = []
+    for fact in ordered_facts:
+        members = sorted(
+            grouped[fact],
+            key=lambda item: _probe_seed(
+                user_id, day_index, f"{fact}:{item.get('variant_id')}"
+            ),
+        )
+        picked.extend(members[:per_fact])
+    return [_project_probe_item(item) for item in picked[:limit]]
+
+
+def resolve_variant_probe_items(
+    pack_id: str, variant_ids: list[str], *, manifest_path: Path | None = None
+) -> list[dict[str, Any]] | None:
+    """completion 精确解析：按 ``variant_ids`` 取当前仍 eligible 的变体消费行。
+
+    completion 绝不重跑选题算法——只按 id 精确解析。任一 id 缺失/不再 eligible
+    （撤发、签后漂移、供给闸不过）→ ``None``（fail-closed，writeback 拒收）。
+    """
+    wanted = [str(item or "").strip() for item in variant_ids]
+    if not wanted or len(wanted) > 10 or len(set(wanted)) != len(wanted):
+        return None
+    supply = resolve_variant_supply(pack_id, manifest_path=manifest_path)
+    if not supply:
+        return None
+    by_id = {
+        str(item.get("variant_id") or "").strip(): item
+        for item in supply.get("items") or []
+    }
+    selected = [by_id.get(variant_id) for variant_id in wanted]
+    if any(item is None for item in selected):
+        return None
+    return [_project_probe_item(item) for item in selected if item is not None]
+
+
 __all__ = [
     "VARIANT_DECISION_SCHEMA",
     "VARIANT_PROBE_ROLES",
     "VARIANT_REVIEW_PACKET_SCHEMA",
+    "build_variant_probe_items",
     "build_variant_review_packet",
     "carry_variant_bank_decisions",
     "decision_identity_sha256",
     "eligible_variant_items",
+    "resolve_variant_probe_items",
     "resolve_variant_supply",
     "review_signature_envelope_sha256",
     "variant_content_sha256",
     "variant_eligibility_summary",
     "variant_governance_item",
+    "variant_probe_supply_identity",
 ]
