@@ -11,6 +11,7 @@ from deeptutor.services.luban_lesson.variant_eligibility import (
     VARIANT_DECISION_SCHEMA,
     VARIANT_REVIEW_PACKET_SCHEMA,
     build_variant_review_packet,
+    carry_variant_bank_decisions,
     decision_identity_sha256,
     eligible_variant_items,
     resolve_variant_supply,
@@ -582,3 +583,115 @@ def test_resolve_variant_supply_requires_projection_green(  # 对抗审查 B2
     data["projection_green"] = []
     manifest.write_text(json.dumps(data), encoding="utf-8")
     assert resolve_variant_supply("S05", manifest_path=manifest) is None
+
+
+# ------------------------------------------------- builder 重建保留合并（bake 前置）
+
+
+def _rebuilt_payload(bank: dict[str, object]) -> dict[str, object]:
+    """模拟 builder 重建产物：同 source、变体不带 decision、status 回 candidate。"""
+    payload = copy.deepcopy(bank)
+    payload["status"] = "candidate"
+    payload.pop("signoff", None)
+    for variant in payload["variants"]:
+        variant.pop("decision", None)
+    return payload
+
+
+def _write_bank(tmp_path: Path, bank: dict[str, object]) -> Path:
+    path = tmp_path / "_S05_variant_bank.v0.json"
+    path.write_text(
+        json.dumps(bank, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+    )
+    return path
+
+
+def test_carry_preserves_signed_decisions_by_id_and_content(tmp_path: Path) -> None:
+    """variant_id + content_sha256 双比中——已签 decision 逐字节保留合并。"""
+    bank = _bank_with_ready_fact()
+    path = _write_bank(tmp_path, bank)
+    payload = _rebuilt_payload(bank)
+    stats = carry_variant_bank_decisions(path, payload)
+    assert stats == {"preserved": 2, "stale": 0, "dropped": 0}
+    for variant, original in zip(payload["variants"], bank["variants"]):
+        assert variant["decision"] == original["decision"]
+    # 保留后的条目在 signed bank 语义下仍然 eligible（保留没有折损签名）
+    payload["status"] = "signed"
+    assert len(eligible_variant_items(payload, blocked=set())) == 2
+
+
+def test_carry_resets_content_drift_to_pending_stale(tmp_path: Path) -> None:
+    """内容漂移的条目绝不静默保留旧签名——置回 pending + stale 标记。"""
+    bank = _bank_with_ready_fact()
+    path = _write_bank(tmp_path, bank)
+    payload = _rebuilt_payload(bank)
+    payload["variants"][0]["surface"] = "重建后被修订的题面"
+    stats = carry_variant_bank_decisions(path, payload)
+    assert stats == {"preserved": 1, "stale": 1, "dropped": 0}
+    stale = payload["variants"][0]["decision"]
+    review = stale["review"]
+    assert review["status"] == "pending"
+    assert review["verdict"] == "pending"
+    assert review["signatures"] == []
+    assert not any(review["checks"].values())
+    assert "漂移" in review["stale_reason"]
+    # identity 对新内容自洽（decision 是合法 pending 候选，不是残签名）
+    assert stale["content_sha256"] == variant_content_sha256(
+        payload["variants"][0],
+        temptation=stale["temptation"],
+        loss_reason=stale["loss_reason"],
+    )
+    assert stale["decision_identity_sha256"] == decision_identity_sha256(stale)
+    assert review["signature_envelope_sha256"] == review_signature_envelope_sha256(
+        stale
+    )
+    # 漂移条目在 signed bank 语义下不再 eligible
+    payload["status"] = "signed"
+    eligible = {i["variant_id"] for i in eligible_variant_items(payload, blocked=set())}
+    assert payload["variants"][0]["variant_id"] not in eligible
+
+
+def test_carry_resets_source_pack_drift_to_stale(tmp_path: Path) -> None:
+    """pack 正文修订（source_pack_sha256 变更）——全部 decision 置 stale。"""
+    bank = _bank_with_ready_fact()
+    path = _write_bank(tmp_path, bank)
+    payload = _rebuilt_payload(bank)
+    payload["source_pack_sha256"] = "d" * 64
+    stats = carry_variant_bank_decisions(path, payload)
+    assert stats == {"preserved": 0, "stale": 2, "dropped": 0}
+    for variant in payload["variants"]:
+        assert variant["decision"]["source_sha256"] == "d" * 64
+        assert variant["decision"]["review"]["status"] == "pending"
+
+
+def test_carry_is_idempotent_across_rebuilds(tmp_path: Path) -> None:
+    """stale 置回后再重建（内容不再变）——第二轮如实保留 pending，不再翻新。"""
+    bank = _bank_with_ready_fact()
+    path = _write_bank(tmp_path, bank)
+    payload = _rebuilt_payload(bank)
+    payload["variants"][0]["surface"] = "重建后被修订的题面"
+    carry_variant_bank_decisions(path, payload)
+    _write_bank(tmp_path, payload)
+    second = _rebuilt_payload(payload)
+    second["variants"][0]["surface"] = "重建后被修订的题面"
+    stats = carry_variant_bank_decisions(path, second)
+    assert stats == {"preserved": 2, "stale": 0, "dropped": 0}
+    assert second["variants"][0]["decision"] == payload["variants"][0]["decision"]
+
+
+def test_carry_noop_without_previous_bank(tmp_path: Path) -> None:
+    payload = _rebuilt_payload(_bank_with_ready_fact())
+    stats = carry_variant_bank_decisions(tmp_path / "missing.json", payload)
+    assert stats == {"preserved": 0, "stale": 0, "dropped": 0}
+    assert all("decision" not in v for v in payload["variants"])
+
+
+def test_carry_drops_malformed_decision_blocks(tmp_path: Path) -> None:
+    """旧 decision 形状不可信——整块丢弃（绝不携带垃圾进新 bank）。"""
+    bank = _bank_with_ready_fact()
+    bank["variants"][0]["decision"] = {"schema": "wrong", "review": "not-a-dict"}
+    path = _write_bank(tmp_path, bank)
+    payload = _rebuilt_payload(bank)
+    stats = carry_variant_bank_decisions(path, payload)
+    assert stats == {"preserved": 1, "stale": 0, "dropped": 1}
+    assert "decision" not in payload["variants"][0]

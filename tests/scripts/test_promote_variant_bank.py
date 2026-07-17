@@ -271,3 +271,39 @@ def test_real_repo_antidote_gate_rerun_wiring_a01():
 def test_real_repo_cloze_gate_rerun_wiring_a01():
     """活体接线断言：cloze builder --check 可被 kind 化 gate 重跑调起且 PASS。"""
     _mod._run_builder_gate_check("A01", REPO, "cloze")
+
+
+def test_variant_bank_with_decision_blocks_promotes_untouched(tmp_path):
+    """四关校验与 bake 后的原位 decision 块共存：promote 只翻牌 status/signoff，
+    decision 块（含签名/信封摘要）逐键零触碰——签发状态与 bank signed 语义正交。"""
+    decision = {
+        "schema": "luban_variant_decision.v1",
+        "fact_id": "f16-fact-demo",
+        "skeleton_id": "f16-vskel-a-ok",
+        "probe_role": "immediate_confirm",
+        "temptation": "x",
+        "loss_reason": "y",
+        "source_anchor": "kc:demo:0",
+        "source_sha256": _PACK_SHA,
+        "content_sha256": "e" * 64,
+        "decision_identity_sha256": "f" * 64,
+        "review": {
+            "status": "signed",
+            "verdict": "approved",
+            "reviewed_content_sha256": "e" * 64,
+            "reviewed_decision_sha256": "f" * 64,
+            "signatures": [
+                {"role": "teaching", "reviewer_id": "r", "signed_at": "t"},
+                {"role": "scoring", "reviewer_id": "r", "signed_at": "t"},
+            ],
+            "checks": {"source_verified": True},
+            "signature_envelope_sha256": "a" * 64,
+        },
+    }
+    bank_path = _write_fixture(tmp_path, bank_patch={
+        "variants": [{"variant_id": "F16-A-000", "decision": decision}],
+    })
+    _promote(tmp_path)
+    bank = json.loads(bank_path.read_text(encoding="utf-8"))
+    assert bank["status"] == "signed"
+    assert bank["variants"][0]["decision"] == decision
