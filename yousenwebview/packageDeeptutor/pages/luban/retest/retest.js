@@ -122,6 +122,28 @@ var COPY = {
   },
 };
 
+// 错后当场确认会话的 facts 解析。有界解码兜底(≤4 跳,同 parseBridgeReceipt
+// 的桥接教训):wx 各端对 navigateTo query 的解码行为不一致,DevTools 活体隔离
+// 实验证实整串 encodeURIComponent 后送达仍是 %2C,split(",") 拆不开 → 0 题断链。
+// 先把整串解码到不动点再拆,兼容已解码/单次编码/双重编码三形态。
+function parseConfirmFacts(query) {
+  var raw = String((query && query.confirm_facts) || "");
+  for (var i = 0; i < 4 && raw.indexOf("%") !== -1; i += 1) {
+    try {
+      var decoded = decodeURIComponent(raw);
+      if (decoded === raw) break;
+      raw = decoded;
+    } catch (e) {
+      break;
+    }
+  }
+  return raw
+    .split(",")
+    .map(function (fact) { return fact.trim(); })
+    .filter(function (fact) { return fact; })
+    .slice(0, 5);
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -191,11 +213,7 @@ Page({
     var probeId = String((query && query.probe_id) || "").trim();
     var trainingIntentId = String((query && query.training_intent_id) || "").trim();
     // 错后当场确认会话: mode=forward&confirm_facts=f1,f2(客户端传的错题 facts, ≤5)。
-    var confirmFacts = String((query && query.confirm_facts) || "")
-      .split(",")
-      .map(function (fact) { return fact.trim(); })
-      .filter(function (fact) { return fact; })
-      .slice(0, 5);
+    var confirmFacts = parseConfirmFacts(query);
     var isConfirmSession = mode === "forward" && confirmFacts.length > 0;
     var completionId =
       "retest_" +
@@ -493,8 +511,10 @@ Page({
         url:
           "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
           encodeURIComponent(String(packId)) +
+          // 逐 fact 编码后用字面逗号连接——整串 encodeURIComponent 会把分隔逗号
+          // 变成 %2C,接收端 split(",") 拆不开(DevTools 活体隔离实验证实断链)。
           "&mode=forward&confirm_facts=" +
-          encodeURIComponent(facts.join(",")),
+          facts.map(function (f) { return encodeURIComponent(String(f)); }).join(","),
       });
     }
   },

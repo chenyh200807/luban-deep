@@ -99,4 +99,36 @@ assert.ok(
   );
 });
 
+// ── 行为级: confirm_facts 编码三形态解析(DevTools 活体死证重放)──
+// 死证: goConfirmFacts 曾整串 encodeURIComponent → query 送达 "f1%2Cf2",
+// onLoad split(",") 拆不开 → 确认会话 0 题断链(lc-04, 2026-07-17 隔离实验)。
+var vmod = require("vm");
+var harness = retest + "\n;module.exports.__parseConfirmFacts = parseConfirmFacts;\n";
+var sandbox = { module: { exports: {} }, require: function () { return {}; }, Page: function () {}, console: console };
+sandbox.exports = sandbox.module.exports;
+vmod.runInNewContext(harness, sandbox, { filename: "retest.js" });
+var parseConfirmFacts = sandbox.module.exports.__parseConfirmFacts;
+assert.strictEqual(typeof parseConfirmFacts, "function", "parseConfirmFacts must be module-scoped for behavioral test");
+var FACTS = ["n01-fact-a", "n01-fact-b", "n01-fact-c", "n01-fact-d"];
+[
+  FACTS.join(","),                                          // 已解码(真机 JSSDK 可能自动解一次)
+  encodeURIComponent(FACTS.join(",")),                      // 单次编码(DevTools 死证形态 %2C)
+  encodeURIComponent(encodeURIComponent(FACTS.join(","))),  // 双重编码(%252C)
+].forEach(function (wire, i) {
+  // vm 沙箱 realm 的 Array 原型与本 realm 不同,deepStrictEqual 会误拒 → 串比较
+  assert.strictEqual(
+    parseConfirmFacts({ confirm_facts: wire }).join("|"),
+    FACTS.join("|"),
+    "confirm_facts must survive encoding form #" + i,
+  );
+});
+assert.strictEqual(parseConfirmFacts({}).join("|"), "", "empty query → empty facts");
+assert.strictEqual(parseConfirmFacts({ confirm_facts: "a,b,c,d,e,f,g" }).length, 5, "≤5 cap holds");
+// 发送端不得再整串编码(逗号必须保持字面分隔符)
+assert.strictEqual(
+  retest.indexOf('encodeURIComponent(facts.join(","))'),
+  -1,
+  "goConfirmFacts must not whole-string-encode the comma-joined facts (breaks the receiver split)",
+);
+
 console.log("PASS test_variant_probe_consumption.js");
