@@ -414,6 +414,30 @@ def test_list_learning_evidence_events_merges_local_write_ahead_in_production(
     assert events[0].source_feature == "assessment_testset"
 
 
+def test_list_learning_evidence_events_keeps_lesson_views_for_lifecycle(
+    tmp_path,
+) -> None:
+    service = _make_service(tmp_path)
+    lesson_view = service.append_memory_event(
+        "student_demo",
+        source_feature="luban_lesson",
+        source_id="lesson_viewed:N01:lesson",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "learning_signal_type": "lesson_viewed",
+            "pack_id": "N01",
+            "watched_stage": "lesson",
+            "quality": {"progress_countable": False},
+        },
+        dedupe_key="lesson_viewed:student_demo:N01:lesson:2026-07-17",
+    )
+
+    events = service.list_learning_evidence_events("student_demo", limit=20)
+
+    assert [event.event_id for event in events] == [lesson_view.event_id]
+
+
 def test_list_learning_evidence_events_excludes_remote_control_claims(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
@@ -421,6 +445,22 @@ def test_list_learning_evidence_events_excludes_remote_control_claims(
     monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
     store = _CoreStoreStub()
     store.memory_events = [
+        {
+            "event_id": "evt_lesson_view",
+            "user_id": "student_demo",
+            "source_feature": "luban_lesson",
+            "source_id": "lesson_viewed:N01:lesson",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "learning_signal_type": "lesson_viewed",
+                "pack_id": "N01",
+                "watched_stage": "lesson",
+                "quality": {"progress_countable": False},
+            },
+            "dedupe_key": "lesson_viewed:student_demo:N01:lesson:2026-07-17",
+            "created_at": "2026-07-15T00:00:00+00:00",
+        },
         {
             "event_id": "evt_completion_claim",
             "user_id": "student_demo",
@@ -454,7 +494,10 @@ def test_list_learning_evidence_events_excludes_remote_control_claims(
 
     events = service.list_learning_evidence_events("student_demo", limit=20)
 
-    assert [event.event_id for event in events] == ["evt_item_evidence"]
+    assert [event.event_id for event in events] == [
+        "evt_lesson_view",
+        "evt_item_evidence",
+    ]
 
 
 def test_remote_canonical_terminal_survives_evidence_filter_and_closes(

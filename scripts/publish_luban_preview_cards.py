@@ -80,6 +80,7 @@ PRACTICE_REVIEW_PACKET_DIR = (
     REPO / "docs" / "原始数据" / "考点原料" / "成品" / "_practice_review_packets"
 )
 PRACTICE_REVIEW_PACKET_SCHEMA = "luban_practice_review_packet.v1"
+VARIANT_BANK_DIR = REPO / "docs" / "原始数据" / "考点原料" / "成品"
 FONTS_CSS = HOST / "fonts" / "fonts.css"
 JWEIXIN_JS = HOST / "vendor" / "jweixin.js"
 TUTORBOT_SHEET_RUNTIME = HOST / "vendor" / "luban-tutorbot-sheet-runtime.js"
@@ -1091,6 +1092,52 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+_EMBEDDED_RECEIPT_RE = re.compile(
+    r"'&projection_receipt='\+encodeURIComponent\((\"[A-Za-z0-9_-]*\")\)"
+)
+
+
+def _embedded_projection_receipt(html: str, *, context: str) -> str:
+    """公开 HTML 内嵌的唯一一枚投影收据；缺失或多枚都 fail-close。"""
+    matches = _EMBEDDED_RECEIPT_RE.findall(html)
+    if len(matches) != 1:
+        raise TransformError(
+            f"practice html embedded receipt not unique: {context} ({len(matches)})"
+        )
+    return str(json.loads(matches[0]))
+
+
+def _assert_published_receipt_alignment(
+    station_id: str, *, dst: Path, authority_path: Path
+) -> None:
+    """机械断言：发布产物中 HTML 内嵌 receipt == artifact surface.projection_receipt。
+
+    用户所见题集身份只有一个权威（artifact 的 surface.projection_receipt）。
+    2026-07 N01 全量 ``content_updated_retake`` 的根因即两者失同步。
+    """
+    try:
+        published = json.loads(authority_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise TransformError(f"practice authority unreadable: {station_id}") from exc
+    surfaces = published.get("surfaces") if isinstance(published, dict) else None
+    if not isinstance(surfaces, list) or not surfaces:
+        raise TransformError(f"practice authority surfaces missing: {station_id}")
+    for surface in surfaces:
+        surface_id = str((surface or {}).get("surface_id") or "")
+        hosted = dst / surface_id
+        if not surface_id or not hosted.is_file():
+            raise TransformError(
+                f"published practice missing: {station_id}/{surface_id}"
+            )
+        embedded = _embedded_projection_receipt(
+            hosted.read_text(encoding="utf-8"), context=f"{station_id}/{surface_id}"
+        )
+        if embedded != str(surface.get("projection_receipt") or ""):
+            raise TransformError(
+                f"published practice receipt drift: {station_id}/{surface_id}"
+            )
+
+
 def _render_pack_manifest() -> str:
     """返回由最终托管卡和 sidecar 决定的唯一 manifest 投影。"""
     return json.dumps(build_manifest(), ensure_ascii=False, indent=1, sort_keys=True) + "\n"
@@ -1279,7 +1326,7 @@ def _compile_practice_outputs(
         raise TransformError(
             f"finished practice incomplete: {src} missing {', '.join(missing)}"
         )
-    rendered_practice: dict[str, str] = {}
+    source_texts: dict[str, str] = {}
     compiled_surfaces: list[dict[str, object]] = []
     for hosted_name, src_name in st.practice.items():
         practice_source = src / src_name
@@ -1295,21 +1342,7 @@ def _compile_practice_outputs(
             source_path=logical_source,
             source_html_sha256=_sha256(practice_source),
         )
-        rendered = _strip_trailing_whitespace(
-            _rewrite_hrefs(
-                transform_practice(
-                    source_text,
-                    pack_id=pack_id,
-                    compiled_surface=compiled["surface"],
-                    items=compiled["items"],
-                ),
-                st.href_map,
-            )
-        )
-        compiled["surface"]["published_practice_sha256"] = hashlib.sha256(
-            rendered.encode("utf-8")
-        ).hexdigest()
-        rendered_practice[hosted_name] = rendered
+        source_texts[hosted_name] = source_text
         compiled_surfaces.append(compiled)
     source_pack_sha256 = _pack_source_sha(pack_id)
     source_bundle_sha256 = _practice_source_bundle_sha(src, st)
@@ -1319,6 +1352,11 @@ def _compile_practice_outputs(
         source_bundle_sha256=source_bundle_sha256,
         compiled_surfaces=compiled_surfaces,
     )
+    # 单一权威顺序：先合并人审 decision 得到最终 artifact（receipt 在
+    # build_practice_authority 内按签发后的 items 定稿），再渲染 public HTML。
+    # HTML 内嵌 receipt 逐字节取自最终 surface.projection_receipt，绝不在嵌入
+    # 时二次计算——2026-07 N01 全量 content_updated_retake 的根因就是 HTML 用了
+    # decision 合并前（pending 态）的第二份 receipt。
     authority = build_practice_authority(
         pack_id,
         source_pack_sha256=source_pack_sha256,
@@ -1326,6 +1364,40 @@ def _compile_practice_outputs(
         compiled_surfaces=compiled_surfaces,
         review_records=review_records,
     )
+    items_by_surface: dict[str, list[dict[str, object]]] = {}
+    for item in authority["items"]:
+        items_by_surface.setdefault(str(item.get("surface_id") or ""), []).append(item)
+    rendered_practice: dict[str, str] = {}
+    for surface in authority["surfaces"]:
+        surface_id = str(surface.get("surface_id") or "")
+        if surface_id not in source_texts:
+            raise TransformError(
+                f"practice authority surface unknown: {pack_id}/{surface_id}"
+            )
+        rendered = _strip_trailing_whitespace(
+            _rewrite_hrefs(
+                transform_practice(
+                    source_texts[surface_id],
+                    pack_id=pack_id,
+                    compiled_surface=surface,
+                    items=items_by_surface.get(surface_id) or [],
+                ),
+                st.href_map,
+            )
+        )
+        embedded = _embedded_projection_receipt(
+            rendered, context=f"{pack_id}/{surface_id}"
+        )
+        if embedded != str(surface.get("projection_receipt") or ""):
+            raise TransformError(
+                f"practice html receipt drift: {pack_id}/{surface_id}"
+            )
+        surface["published_practice_sha256"] = hashlib.sha256(
+            rendered.encode("utf-8")
+        ).hexdigest()
+        rendered_practice[surface_id] = rendered
+    if set(rendered_practice) != set(st.practice):
+        raise TransformError(f"practice surfaces incomplete: {pack_id}")
     return rendered_practice, authority
 
 
@@ -1446,12 +1518,17 @@ def check_practice_only(
         station_id, st, finished_root=finished_root
     )
     dst = HOST / station_id
+    authority_path = AUTHORITY_HOST / f"{station_id}.practice.authority.json"
+    # 先跑发布产物级机械断言（HTML 内嵌 receipt == artifact receipt），独立于
+    # 下面的重编字节比对，保证 receipt 失同步有专属 fail-close 信号。
+    _assert_published_receipt_alignment(
+        station_id, dst=dst, authority_path=authority_path
+    )
     for hosted_name, text in rendered.items():
         if not (dst / hosted_name).is_file() or (dst / hosted_name).read_text(
             encoding="utf-8"
         ) != text:
             raise TransformError(f"practice projection drift: {station_id}/{hosted_name}")
-    authority_path = AUTHORITY_HOST / f"{station_id}.practice.authority.json"
     expected = json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
     if not authority_path.is_file() or authority_path.read_text(encoding="utf-8") != expected:
         raise TransformError(f"practice authority drift: {station_id}")
@@ -1485,6 +1562,11 @@ def publish_practice_only(
     finally:
         if staged.exists():
             shutil.rmtree(staged)
+    _assert_published_receipt_alignment(
+        station_id,
+        dst=dst,
+        authority_path=AUTHORITY_HOST / f"{station_id}.practice.authority.json",
+    )
     return [*rendered, f"server-authority/{station_id}"]
 
 
@@ -1502,6 +1584,47 @@ def write_practice_audit_packet(
         json.dumps(packet, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     return [str(path.relative_to(REPO))]
+
+
+def write_variant_audit_packet(station_id: str) -> list[str]:
+    """--kind variant：只写签发变体银行的决策卡审核包；不发布、不代签、
+    不改 bank/blocklist（设计：docs/plan/鲁班移动端提分闭环/
+    2026-07-16-variant-eligibility-design.md）。
+
+    bank 读取复用 runtime 同一 canonical 绿灯签发闸 ``_load_green_signed_bank``
+    （projection_green + manifest sha + signed 三重 fail-closed，对抗审查
+    二轮 B2/B3）——禁 raw 第二 loader、禁自行拼 manifest 旁路绿灯门；
+    撤发 authority（blocklist）不可读时同样 fail-closed，不产人审包。"""
+    from deeptutor.services.luban_lesson.read_model import (
+        _load_green_signed_bank,
+        _variant_blocklist,
+    )
+    from deeptutor.services.luban_lesson.variant_eligibility import (
+        build_variant_review_packet,
+    )
+
+    pack_id = station_id.upper()
+    bank = _load_green_signed_bank(
+        pack_id, manifest_path=VARIANT_BANK_DIR / "_pack_manifest.json"
+    )
+    if bank is None:
+        raise TransformError(
+            "variant bank not in projection_green / not signed / "
+            f"sha mismatch / unreadable: {pack_id}"
+        )
+    blocked = _variant_blocklist(VARIANT_BANK_DIR)
+    if blocked is None:
+        raise TransformError(f"variant blocklist unreadable: {pack_id}")
+    packet = build_variant_review_packet(bank, blocked=blocked)
+    PRACTICE_REVIEW_PACKET_DIR.mkdir(parents=True, exist_ok=True)
+    path = PRACTICE_REVIEW_PACKET_DIR / f"{station_id.lower()}.variant.review.json"
+    path.write_text(
+        json.dumps(packet, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    try:
+        return [str(path.relative_to(REPO))]
+    except ValueError:  # 测试等场景重定向 packet 目录到 REPO 外
+        return [str(path)]
 
 
 def main(argv: list[str]) -> int:
@@ -1527,12 +1650,21 @@ def main(argv: list[str]) -> int:
         action="store_true",
         help="只生成逐题人审工作包；不发布 runtime 产物且不代签 eligibility",
     )
+    parser.add_argument(
+        "--kind",
+        choices=("practice", "variant"),
+        default="practice",
+        help="审核包种类：practice=compiled 随堂练（默认）；variant=签发变体银行"
+        "决策卡（仅与 --write-practice-audit-packet 联用）",
+    )
     parser.add_argument("stations", nargs="*", help="可选站点 ID；缺省发布全部注册站点")
     args = parser.parse_args(argv)
     if args.check and not args.practice_only:
         parser.error("--check requires --practice-only")
     if args.write_practice_audit_packet and (args.practice_only or args.check):
         parser.error("--write-practice-audit-packet cannot combine with --practice-only/--check")
+    if args.kind != "practice" and not args.write_practice_audit_packet:
+        parser.error("--kind variant requires --write-practice-audit-packet")
     if not FONTS_CSS.is_file():
         print(f"publish: 缺共享字体 {FONTS_CSS}（先提交自托管字体子集）", file=sys.stderr)
         return 1
@@ -1556,7 +1688,9 @@ def main(argv: list[str]) -> int:
     failures: list[str] = []
     for sid in targets:
         try:
-            if args.write_practice_audit_packet:
+            if args.write_practice_audit_packet and args.kind == "variant":
+                written = write_variant_audit_packet(sid)
+            elif args.write_practice_audit_packet:
                 written = write_practice_audit_packet(
                     sid, STATIONS[sid], finished_root=finished_root
                 )

@@ -21,6 +21,7 @@
   --pk-accent-border: rgba(127, 185, 157, 0.28);
   --pk-gauge: #3a362c;       /* 环底 */
   --pk-warn: #c26555;        /* 赭·警示 */
+  --pk-sand: #57523f;        /* 沙灰·装饰性次级条块(10a改 指标卡/尾卡格) */
   --pk-ink-btn: #f0ede1;     /* 主按钮(夜=纸色反转) */
   --pk-ink-btn-t: #26231d;   /* 主按钮文字 */
   --pk-shadow: rgba(0, 0, 0, 0.28);
@@ -80,6 +81,7 @@
   --pk-accent-border: rgba(62, 113, 93, 0.28);
   --pk-gauge: #e9e5d7;
   --pk-warn: #9b5144;        /* 亮底上仍满足正文对比度的赭色警示 */
+  --pk-sand: #c9c4b2;        /* 沙灰·装饰性次级条块(10a改 设计稿逐值) */
   --pk-ink-btn: #26241f;     /* 亮=墨色主按钮 */
   --pk-ink-btn-t: #f5f3ec;
   --pk-shadow: rgba(38, 36, 31, 0.06);

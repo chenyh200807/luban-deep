@@ -1,5 +1,10 @@
 @import "/packageDeeptutor/styles/paper-ink.wxss";
 
+/* 10a改 整页版式:数值 = 设计稿 px × 750/402 ≈ ×1.866 逐值换算。
+   例外口径(记入交付偏差表):设计稿 10–12px 辅助文字按项目 24rpx 字号下限
+   (评审要点摘要 §27)落 24rpx;既有 owner 审定例外(旅程步名 20rpx/复习卡
+   副文 22rpx/海报副标题 20rpx)维持不变。 */
+
 .lr-page {
   display: flex;
   flex-direction: column;
@@ -7,25 +12,36 @@
   font-family: -apple-system, "PingFang SC", sans-serif;
 }
 
-/* ── 顶栏 ── */
+/* ── 入场动画(设计稿 dcRise:上浮 10px + 渐显,错峰 0.05s) ── */
+.lr-rise { animation: lr-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.lr-rise--d1 { animation-delay: 0.05s; }
+.lr-rise--d2 { animation-delay: 0.1s; }
+.lr-rise--d3 { animation-delay: 0.15s; }
+.lr-rise--d4 { animation-delay: 0.2s; }
+@keyframes lr-rise {
+  from { opacity: 0; transform: translateY(19rpx); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── 顶栏(设计:seal 30px/8px 圆角,名 16px/800/0.5px 字距,gap 9px) ── */
 .lr-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-left: 40rpx;
-  padding-right: 40rpx;
+  padding-left: 37rpx;
+  padding-right: 37rpx;
   padding-bottom: 12rpx;
 }
-.lr-brand { display: flex; align-items: center; gap: 18rpx; }
+.lr-brand { display: flex; align-items: center; gap: 17rpx; }
 .lr-brand-seal { width: 56rpx; height: 56rpx; border-radius: 15rpx; }
 .lr-brand-logo { width: 34rpx; height: 34rpx; }
 .lr-brand-name { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); letter-spacing: 1rpx; }
 .lr-topbar-dots { display: flex; gap: 7rpx; padding: 10rpx 16rpx; border-radius: 999rpx; background: rgba(150, 145, 126, 0.12); }
 .lr-dot { width: 7rpx; height: 7rpx; border-radius: 50%; background: var(--pk-t1); }
 
-/* ── 滚动区 ── */
+/* ── 滚动区(设计:padding 16px 14px 0,列 gap 10px) ── */
 .lr-scroll { flex: 1; overflow: hidden; }
-.lr-inner { display: flex; flex-direction: column; gap: 20rpx; padding: 20rpx 26rpx 0; }
+.lr-inner { display: flex; flex-direction: column; gap: 19rpx; padding: 30rpx 26rpx 0; }
 
 /* ── 骨架屏(首拍数据到达前;宣纸底上呼吸微光) ── */
 .lr-skel-block {
@@ -36,7 +52,7 @@
 }
 .lr-skel-stage { height: 500rpx; }
 .lr-skel-task { height: 220rpx; }
-.lr-status-row .lr-skel-block { min-height: 118rpx; }
+.lr-status-row .lr-skel-block { min-height: 120rpx; }
 @keyframes lr-skel-breathe {
   0%, 100% { opacity: 0.55; }
   50% { opacity: 1; }
@@ -69,32 +85,54 @@
 .lr-first-run-title { font-size: 31rpx; line-height: 1.35; font-weight: 800; color: var(--pk-t1); }
 .lr-first-run-go { flex-shrink: 0; font-size: 24rpx; font-weight: 800; color: var(--pk-red); }
 
-/* ── 状态卡 ── */
+/* ── 三枚状态卡(设计:padding 12px 10px/16px 圆角/列 gap 8px) ── */
 .lr-status-row { display: flex; gap: 15rpx; }
-.lr-status { flex: 1; min-width: 0; padding: 22rpx 18rpx; display: flex; align-items: center; gap: 15rpx; }
+.lr-status { flex: 1; min-width: 0; padding: 22rpx 19rpx; display: flex; align-items: center; gap: 15rpx; }
 .lr-status-col { flex-direction: column; align-items: stretch; justify-content: space-between; gap: 13rpx; }
 .lr-status-txt { display: flex; flex-direction: column; gap: 2rpx; }
 .lr-status-unit { font-size: 24rpx; font-weight: 700; color: var(--pk-t1); }
-.lr-status-strong { font-weight: 800; color: var(--pk-t1); }
-.lr-gauge-sm { width: 74rpx; height: 74rpx; border-radius: 50%; border: 6rpx solid var(--pk-gauge); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.lr-gauge-sm-num { font-size: 24rpx; font-weight: 700; color: var(--pk-t3); }
+.lr-status-strong { font-weight: 700; color: var(--pk-t1); }
+/* 距考试环形圈(设计:40px 表/3.5px 弧宽/墨弧 70%,数字居中)。
+   弧长与设计稿一致为固定装饰(设计稿亦无分母);数字才是事实声称。 */
+.lr-exam-ring {
+  width: 66rpx;
+  height: 66rpx;
+  border-radius: 50%;
+  background: conic-gradient(var(--pk-t1) 70%, var(--pk-gauge) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lr-exam-ring-hole {
+  width: 53rpx;
+  height: 53rpx;
+  border-radius: 50%;
+  background: var(--pk-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lr-exam-ring-num { font-size: 24rpx; font-weight: 700; color: var(--pk-t1); }
 
-/* ── 动画精讲卡 ── */
+/* ── 供给失败卡 ── */
 .lr-supply-error { padding: 34rpx; display: flex; flex-direction: column; gap: 16rpx; }
 .lr-supply-error-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
 .lr-supply-retry { align-self: flex-start; margin-top: 8rpx; min-width: 180rpx; }
-.lr-lesson { overflow: hidden; padding: 0; }
+
+/* ── 动画精讲卡(设计:18px 圆角/head 13px 15px/seal 34px·9px 圆角/题 15px) ── */
+.lr-lesson { overflow: hidden; padding: 0; border-radius: 34rpx; }
 .lr-lesson-head { display: flex; align-items: center; gap: 18rpx; padding: 24rpx 28rpx; border-bottom: 1rpx solid var(--pk-bd); }
 .lr-lesson-head--empty { opacity: 0.75; }
-.lr-lesson-seal { width: 62rpx; height: 62rpx; border-radius: 16rpx; flex-shrink: 0; }
-.lr-lesson-logo { width: 38rpx; height: 38rpx; }
-.lr-lesson-headtxt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3rpx; }
-.lr-lesson-title { font-size: 30rpx; }  /* 10a: 15px */
+.lr-lesson-seal { width: 63rpx; height: 63rpx; border-radius: 17rpx; flex-shrink: 0; }
+.lr-lesson-logo { width: 37rpx; height: 37rpx; }
+.lr-lesson-headtxt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2rpx; }
+.lr-lesson-title { font-size: 28rpx; }  /* 10a: 15px */
 
-/* 宣纸舞台 · 原色宣纸(永远浅色,不随主题;设计:动画卡=原色宣纸舞台) */
+/* 宣纸舞台 · 原色宣纸(设计:196px 高/16px 点阵;永远浅色,不随主题) */
 .lr-stage {
   position: relative;
-  height: 380rpx;
+  height: 366rpx;
   border-bottom: 1rpx solid var(--pk-bd);
   display: flex;
   flex-direction: column;
@@ -102,29 +140,29 @@
   justify-content: center;
   background-color: #f4f3ec;
   background-image: radial-gradient(#e4e2d7 1.3rpx, transparent 1.3rpx);
-  background-size: 32rpx 32rpx;
+  background-size: 30rpx 30rpx;
 }
-.lr-stage-badge { position: absolute; top: 22rpx; left: 24rpx; padding: 8rpx 20rpx; border-radius: 999rpx; background: var(--pk-red); font-size: 24rpx; font-weight: 800; color: #fff; box-shadow: 0 4rpx 12rpx rgba(207,68,54,0.25); }
-/* 全屏按钮(右上,四角括号) */
-.lr-stage-fs { position: absolute; top: 22rpx; right: 24rpx; width: 44rpx; height: 44rpx; border-radius: 12rpx; background: #23282b; }
+.lr-stage-badge { position: absolute; top: 21rpx; left: 22rpx; padding: 9rpx 21rpx; border-radius: 999rpx; background: var(--pk-red); font-size: 24rpx; font-weight: 800; color: #fff; box-shadow: 0 6rpx 17rpx rgba(207, 68, 54, 0.25); }
+/* 全屏按钮(右上,四角括号;设计:26px/8px 圆角) */
+.lr-stage-fs { position: absolute; top: 21rpx; right: 22rpx; width: 49rpx; height: 49rpx; border-radius: 15rpx; background: #23282b; }
 .lr-fs-corner { position: absolute; width: 12rpx; height: 12rpx; border: 2.5rpx solid #f4f3ec; }
-.lr-fs-corner { top: 10rpx; left: 10rpx; border-right: none; border-bottom: none; }
-.lr-fs-tr { left: auto; right: 10rpx; border-left: none; border-right: 2.5rpx solid #f4f3ec; border-top: 2.5rpx solid #f4f3ec; border-bottom: none; }
-.lr-fs-bl { top: auto; bottom: 10rpx; border-top: none; border-left: 2.5rpx solid #f4f3ec; border-bottom: 2.5rpx solid #f4f3ec; border-right: none; }
-.lr-fs-br { top: auto; left: auto; bottom: 10rpx; right: 10rpx; border-top: none; border-left: none; border-right: 2.5rpx solid #f4f3ec; border-bottom: 2.5rpx solid #f4f3ec; }
-.lr-stage-cal { font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive; /* slice1 §3:cursive 兜底;serif 在 Android 落黑体 */ font-size: 64rpx; color: var(--pk-red); line-height: 1; margin-top: 20rpx; }
-.lr-stage-sub { font-size: 26rpx; /* 10a: 13px */ font-weight: 800; color: #23282b; margin-top: 14rpx; }
-.lr-stage-play { width: 88rpx; height: 88rpx; border-radius: 50%; margin-top: 22rpx; }
+.lr-fs-corner { top: 11rpx; left: 11rpx; border-right: none; border-bottom: none; }
+.lr-fs-tr { left: auto; right: 11rpx; border-left: none; border-right: 2.5rpx solid #f4f3ec; border-top: 2.5rpx solid #f4f3ec; border-bottom: none; }
+.lr-fs-bl { top: auto; bottom: 11rpx; border-top: none; border-left: 2.5rpx solid #f4f3ec; border-bottom: 2.5rpx solid #f4f3ec; border-right: none; }
+.lr-fs-br { top: auto; left: auto; bottom: 11rpx; right: 11rpx; border-top: none; border-left: none; border-right: 2.5rpx solid #f4f3ec; border-bottom: 2.5rpx solid #f4f3ec; }
+.lr-stage-cal { font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive; /* slice1 §3:cursive 兜底;serif 在 Android 落黑体 */ font-size: 60rpx; color: var(--pk-red); line-height: 1; margin-top: 26rpx; }
+.lr-stage-sub { font-size: 24rpx; /* 10a: 13px */ font-weight: 800; color: #23282b; margin-top: 13rpx; }
+.lr-stage-play { width: 86rpx; height: 86rpx; border-radius: 50%; margin-top: 22rpx; }
 .lr-play-tri { width: 0; height: 0; border-style: solid; border-width: 16rpx 0 16rpx 26rpx; border-color: transparent transparent transparent #fff; margin-left: 6rpx; }
-.lr-stage-hint { font-size: 24rpx; color: #9aa0a3; letter-spacing: 2rpx; margin-top: 16rpx; }
+.lr-stage-hint { font-size: 24rpx; color: #9aa0a3; letter-spacing: 2rpx; margin-top: 17rpx; }
 
-/* 路线线 + 课程架 */
-.lr-route-line { display: flex; align-items: center; justify-content: space-between; padding: 20rpx 28rpx 6rpx; }
+/* 路线线 + 课程架(设计:route 行 11px 15px 4px;架 gap 9px/8px 15px 14px) */
+.lr-route-line { display: flex; align-items: center; justify-content: space-between; padding: 21rpx 28rpx 7rpx; }
 .lr-route-lit { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); }
 .lr-route-more { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
 .lr-rack { width: 100%; }
 /* 不可横滑:3 卡 + 尾卡一行铺满,不溢出 */
-.lr-rack-inner { display: flex; align-items: stretch; gap: 12rpx; padding: 14rpx 24rpx 26rpx; }
+.lr-rack-inner { display: flex; align-items: stretch; gap: 17rpx; padding: 15rpx 28rpx 26rpx; }
 .lr-poster { }
 .lr-poster-slot--ink { background: var(--pk-red); color: #fff; }
 .lr-poster-slot--red { background: rgba(255, 255, 255, 0.92); color: var(--pk-red); }
@@ -138,51 +176,126 @@
 .lr-ticon--rec { width: 22rpx; height: 22rpx; border-radius: 50%; background: rgba(255, 255, 255, 0.95); color: var(--pk-red); display: flex; align-items: center; justify-content: center; font-size: 11rpx; padding-left: 1rpx; box-sizing: border-box; }
 .lr-ticon--done { color: #8fbfa8; font-size: 22rpx; font-weight: 900; }
 .lr-ticon--lock { font-size: 18rpx; }
-.lr-poster-tail { flex-shrink: 0; width: 128rpx; height: 209rpx; border-radius: 19rpx; border: 3rpx dashed var(--pk-bd); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11rpx; }
-.lr-poster-tail-txt { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); text-align: center; line-height: 1.4; }
+.lr-poster-tail { flex-shrink: 0; width: 127rpx; height: 209rpx; border-radius: 19rpx; border: 3rpx dashed var(--pk-bd); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11rpx; }
+.lr-poster-tail-txt { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); text-align: center; line-height: 1.5; }
 /* 2×2 四色格:墨/朱/灰/虚线 = 三态 + 未开通,呼应整条路线的色语言 */
 .lr-tail-grid { display: flex; flex-wrap: wrap; gap: 6rpx; width: 50rpx; }
 .lr-tail-cell { width: 22rpx; height: 22rpx; border-radius: 6rpx; box-sizing: border-box; }
 .lr-tail-cell--ink { background: var(--pk-t1); }
 .lr-tail-cell--red { background: var(--pk-red); }
-.lr-tail-cell--gray { background: var(--pk-t3); }
+.lr-tail-cell--gray { background: var(--pk-sand); }
 .lr-tail-cell--dash { border: 3rpx dashed var(--pk-bd); }
 
-/* ── 今日任务卡 ── */
-.lr-task { padding: 30rpx; display: flex; flex-direction: column; gap: 20rpx; }
-.lr-task-head { display: flex; gap: 24rpx; align-items: flex-start; }
-.lr-task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10rpx; }
-.lr-task-title { font-size: 36rpx; font-weight: 800; line-height: 1.35; color: var(--pk-t1); }
-/* 掌握可信度圆环(conic-gradient) */
-.lr-conf { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
-.lr-conf-ring { width: 116rpx; height: 116rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.lr-conf-hole { width: 88rpx; height: 88rpx; border-radius: 50%; background: var(--pk-card); display: flex; align-items: center; justify-content: center; }
-.lr-conf-num { font-size: 28rpx; font-weight: 800; color: var(--pk-t1); }
-.lr-conf-label { font-size: 24rpx; color: var(--pk-t3); }
+/* ── 今日任务卡(设计:18px 圆角/padding 16px/列 gap 11px/题 19px) ── */
+.lr-task { padding: 30rpx; border-radius: 34rpx; display: flex; flex-direction: column; gap: 20rpx; }
+.lr-task-head { display: flex; gap: 26rpx; align-items: flex-start; }
+.lr-task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 11rpx; }
+.lr-task-title { font-size: 35rpx; font-weight: 800; line-height: 1.35; color: var(--pk-t1); }
+/* 站点旅程环(conic-gradient;设计:62px 表/5px 弧宽):N/6 事实计数,
+   取代旧掌握可信度环(产品红线:禁掌握百分比) */
+.lr-journey-ringbox { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 7rpx; }
+.lr-journey-ring { width: 106rpx; height: 106rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.lr-journey-ring-hole { width: 88rpx; height: 88rpx; border-radius: 50%; background: var(--pk-card); display: flex; align-items: center; justify-content: center; }
+.lr-journey-ring-num { font-size: 26rpx; font-weight: 800; color: var(--pk-t1); }
+.lr-journey-ring-den { font-size: 20rpx; font-weight: 700; color: var(--pk-t3); }
+.lr-journey-ring-label { font-size: 24rpx; color: var(--pk-t3); }
 .lr-task-cta { display: flex; align-items: center; gap: 17rpx; }
 .lr-task-btn { flex: 1; }
-.lr-task-ghost { flex-shrink: 0; }
-.lr-why { display: flex; align-items: center; gap: 9rpx; }
+/* 轻练旁按钮(10a: 46px 高/12px 圆角/13px 字/⚡ icon) */
+.lr-task-lite {
+  flex-shrink: 0;
+  min-height: 86rpx;
+  padding: 0 30rpx;
+  border-radius: 22rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: rgba(38, 36, 31, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-t2);
+}
+.lr-lite-bolt { font-size: 24rpx; line-height: 1; }
+
+/* 旅程轨道:这一站会带你走完(设计:12px 圆角内衬/6 等分格/18px 节点) */
+.lr-journey {
+  border-radius: 22rpx;
+  background: rgba(38, 36, 31, 0.025);
+  border: 1rpx solid var(--pk-bd);
+  padding: 22rpx 24rpx 21rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.lr-journey-head { display: flex; align-items: center; justify-content: space-between; }
+.lr-journey-kicker { font-size: 24rpx; font-weight: 800; color: var(--pk-t3); letter-spacing: 3rpx; }
+.lr-journey-count { font-size: 24rpx; font-weight: 800; color: var(--pk-grn); }
+.lr-journey-track { position: relative; }
+/* 轨道底线:两端对齐首尾节点心(6 等分列 → 心距边 100%/12)。
+   红队 A1:无逐步完成证据 → 无已走线(lr-jline-fill 已删),禁跨未完成节点画进度 */
+.lr-jline { position: absolute; left: 8.33%; right: 8.33%; top: 15rpx; height: 4rpx; background: var(--pk-gauge); border-radius: 2rpx; }
+.lr-journey-steps { position: relative; display: flex; }
+.lr-jstep { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 11rpx; }
+.lr-jnode { width: 34rpx; height: 34rpx; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+/* current=墨色高亮(夜主题随 ink-btn 反转);done 态已删——前端无完成证据,禁勾 */
+.lr-jnode--current { background: var(--pk-ink-btn); box-shadow: 0 0 0 7rpx rgba(38, 36, 31, 0.09), 0 6rpx 15rpx rgba(38, 36, 31, 0.25); }
+.lr-jnode-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--pk-ink-btn-t); }
+/* future=空心 */
+.lr-jnode--future { background: var(--pk-card); border: 3rpx solid #cbc6b4; }
+/* promise(到期验证/后续抽查)=竹青虚环 = 系统的承诺(周期由服务端 due 裁决) */
+.lr-jnode--promise { background: rgba(72, 128, 106, 0.06); border: 3rpx dashed rgba(72, 128, 106, 0.55); }
+/* 步名 10px→20rpx:6 列空间约束,与 pk-poster__sub 同一 owner 审定例外(低于 24rpx 下限) */
+.lr-jlabel { font-size: 20rpx; letter-spacing: 0.5rpx; line-height: 1.3; text-align: center; white-space: nowrap; }
+.lr-jlabel--current { font-weight: 800; color: var(--pk-t1); }
+.lr-jlabel--future { font-weight: 700; color: var(--pk-t3); }
+.lr-jlabel--promise { font-weight: 700; color: var(--pk-grn); }
+.lr-journey-foot { font-size: 24rpx; line-height: 1.6; color: var(--pk-t3); text-align: center; }
+
+.lr-why { display: flex; align-items: center; gap: 9rpx; min-height: 41rpx; }
 .lr-why-label { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
 .lr-why-chev { font-size: 24rpx; color: var(--pk-grn); }
 .lr-why-text { margin-top: -6rpx; }
 
-/* ── 复习条 ── */
-.lr-review { display: flex; align-items: center; gap: 18rpx; min-height: 90rpx; padding: 0 30rpx; }
-.lr-review-bolt { width: 26rpx; height: 26rpx; border-radius: 6rpx; background: var(--pk-grn); flex-shrink: 0; }
-.lr-review-txt { flex: 1; font-size: 25rpx; font-weight: 700; color: var(--pk-t1); }
-.lr-review-go { font-size: 25rpx; font-weight: 700; color: var(--pk-grn); }
-/* F16 看穿雏形入口(spike 审阅):暖纸底+朱豆,收进 token 派生色,不再内联 hardcode */
-.lr-seethrough { background: var(--pk-warm-paper, #fff5ec); }
-.lr-seethrough-bolt { background: var(--pk-red-deep, #8a2b20); }
+/* ── 复习卡(到期赴约;设计:14px 圆角/36px 图标/竹青去验证钮) ── */
+.lr-rvc { display: flex; align-items: center; gap: 20rpx; padding: 22rpx 26rpx; border-radius: 26rpx; }
+.lr-rvc-ic { position: relative; width: 67rpx; height: 67rpx; border-radius: 19rpx; background: rgba(72, 128, 106, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.lr-rvc-glyph { font-size: 34rpx; font-weight: 700; color: var(--pk-grn); line-height: 1; }
+.lr-rvc-badge { position: absolute; top: -9rpx; right: -9rpx; min-width: 30rpx; height: 30rpx; border-radius: 15rpx; background: var(--pk-ink-btn); display: flex; align-items: center; justify-content: center; font-size: 20rpx; font-weight: 800; color: var(--pk-ink-btn-t); padding: 0 8rpx; box-sizing: border-box; }
+.lr-rvc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.lr-rvc-title { font-size: 25rpx; font-weight: 800; color: var(--pk-t1); }
+/* 副文 11.5px→22rpx:单行保排版,与设计一致(低于 24rpx 下限的既有例外口径) */
+.lr-rvc-sub { font-size: 22rpx; color: var(--pk-t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lr-rvc-go { flex-shrink: 0; padding: 17rpx 28rpx; border-radius: 21rpx; background: rgba(72, 128, 106, 0.12); font-size: 24rpx; font-weight: 800; color: var(--pk-grn); }
+
 /* 今日任务无供给降级说明(cta 空时渲染) */
 .lr-supply-note { margin-top: 14rpx; color: var(--pk-t2); }
 
-/* ── 指标卡 ── */
+/* ── 三枚指标卡(设计:88px 高/padding 12px 11px/大数字 20px + 底部小图形) ──
+   图形是设计稿固定装饰纹样(设计稿亦为固定宽高/透明度),不声称数据 */
 .lr-metric-row { display: flex; gap: 15rpx; }
-.lr-metric { flex: 1; min-width: 0; min-height: 150rpx; padding: 22rpx 20rpx; display: flex; flex-direction: column; justify-content: space-between; gap: 10rpx; }
-.lr-metric-num { font-size: 38rpx; font-weight: 800; color: var(--pk-t1); line-height: 1; }
+.lr-metric { flex: 1; min-width: 0; min-height: 164rpx; padding: 22rpx 21rpx; display: flex; flex-direction: column; justify-content: space-between; gap: 9rpx; }
+.lr-metric-num { font-size: 37rpx; font-weight: 800; color: var(--pk-t1); line-height: 1; }
 .lr-metric-grn { color: var(--pk-grn); }
+.lr-metric-viz { display: flex; gap: 7rpx; align-items: flex-end; }
+.lr-metric-viz--col { flex-direction: column; align-items: stretch; gap: 6rpx; }
+/* ①近3天练习:三粒渐长胶囊(16/20/26px 宽,竹青 .4/.65/1) */
+.lr-viz-pill { border-radius: 6rpx; background: var(--pk-grn); }
+.lr-viz-pill--1 { width: 30rpx; height: 11rpx; opacity: 0.4; }
+.lr-viz-pill--2 { width: 37rpx; height: 11rpx; opacity: 0.65; }
+.lr-viz-pill--3 { width: 49rpx; height: 17rpx; border-radius: 9rpx; opacity: 1; }
+/* ②待补错因:三行横条(78/52/34%,首行赭色警示) */
+.lr-viz-row { height: 9rpx; border-radius: 6rpx; background: var(--pk-sand); }
+.lr-viz-row--warn { width: 78%; background: var(--pk-warn); }
+.lr-viz-row--mid { width: 52%; }
+.lr-viz-row--low { width: 34%; }
+/* ③已验证考点:四根渐升柱(7px 宽,竹青 .4/.6/.8/1) */
+.lr-viz-bar { width: 13rpx; border-radius: 4rpx; background: var(--pk-grn); }
+.lr-viz-bar--1 { height: 11rpx; opacity: 0.4; }
+.lr-viz-bar--2 { height: 17rpx; opacity: 0.6; }
+.lr-viz-bar--3 { height: 22rpx; opacity: 0.8; }
+.lr-viz-bar--4 { height: 28rpx; opacity: 1; }
 
 /* 底部留白 = 壳高 140rpx + 中央问鲁班章上浮 60rpx + 呼吸(壳为 fixed 覆层;
    不留够上浮量,滚到底时最后一块内容会被上浮的章遮挡) */

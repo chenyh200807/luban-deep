@@ -72,7 +72,32 @@ Page({
     const checkpoint = snapshot.checkpoint || {};
     const progress = Math.max(0, Math.min(Number(checkpoint.qIndex || 0) + 1, 4));
     this.setData({ firstRunState: snapshot.state, firstRunProgress: progress });
+    // 本地 DONE 缓存丢失（清缓存/换设备）→ 老用户被首跑门错误挡住。canonical
+    // 完成态真值在服务端 Learner State，回读一次投影并 rehydrate 本地缓存。
+    // 每个页面生命周期只查一次（本地已有 DONE 时 entry 层也会短路不打接口）。
+    if (snapshot.state === "new" && !this._firstRunServerChecked) {
+      this._firstRunServerChecked = true;
+      this._rehydrateFirstRunFromServer(userId);
+    }
     return snapshot;
+  },
+
+  // 服务端完成态回读：只把门从 new → hidden（fail-safe），绝不回退一个本地
+  // 已激活的门（resume/syncing 期间不触发本路径）。
+  _rehydrateFirstRunFromServer(userId) {
+    const that = this;
+    return firstRunEntry
+      .refreshFromServer(userId, api)
+      .then(function (snapshot) {
+        if (snapshot && snapshot.state === "hidden") {
+          that.setData({ firstRunState: "hidden", firstRunProgress: 0 });
+          if (!that.data.loading) that._load();
+        }
+        return snapshot;
+      })
+      .catch(function () {
+        return null;
+      });
   },
 
   _retryPendingFirstRun(snapshot) {
@@ -171,6 +196,12 @@ Page({
   _load() {
     var that = this;
     if (!this._requireAuth()) return Promise.resolve(null);
+    // 红队 A4:单调 request epoch——onShow 静默刷新与下拉刷新可并发,
+    // 只有最新一代请求可 setData,乱序到达的旧响应(旧供给 true)一律丢弃;
+    // 刷新 in-flight 期间轻练 CTA 禁点(goLightPractice 检查 _refreshing)。
+    var seq = (this._loadSeq || 0) + 1;
+    this._loadSeq = seq;
+    this._refreshing = true;
     // 页面拥有 returnTo 语义；API 只清理过期 token 并返回错误，不能抢先跳默认登录。
     var opt = { silent: true, suppressAuthRedirect: true };
     var settle = function (p) {
@@ -192,6 +223,7 @@ Page({
     // 本就降级),整页数据到齐后再覆盖——不发明数据,只是分两拍投影。
     lessonsPromise.then(
       function (lessonsRes) {
+        if (seq !== that._loadSeq) return; // 乱序旧响应,丢弃
         if (that.data.vm) return; // 已有整页数据(onShow 静默刷新),不做部分回退
         var lessons = api.unwrapResponse(lessonsRes) || {};
         var fast = buildLearnViewModel({ homeDashboard: {}, report: {}, lessons: lessons });
@@ -206,6 +238,8 @@ Page({
       settle(api.getLearningReport(100, opt)),
       lessonsPromise,
     ]).then(function (res) {
+      if (seq !== that._loadSeq) return null; // 乱序旧响应,不得覆盖最新投影
+      that._refreshing = false;
       if (!auth.isLoggedIn()) {
         that._requireAuth();
         return null;
@@ -221,6 +255,8 @@ Page({
       that.setData({ vm: vm, loading: false, supplyError: "" });
       return vm;
     }).catch(function (err) {
+      if (seq !== that._loadSeq) return null;
+      that._refreshing = false;
       if (!auth.isLoggedIn()) {
         that._requireAuth();
         return null;
@@ -269,7 +305,14 @@ Page({
 
   // 今日唯一任务只按 view-model 的 action_kind 转发：到期验证/课后练共用
   // retest，推荐学习进站点；页面不重算优先级、不解释掌握状态。
+  // 二轮红队 A4:主任务按钮与复习卡共用本 handler,刷新 in-flight 期间
+  // 旧 VM 的 pack/probe 身份可能已过期,与 goLightPractice 同一守卫禁点。
   goTodayTask() {
+    if (this._refreshing) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
+      return;
+    }
     var task = (this.data.vm && this.data.vm.todayTask) || {};
     var packId = encodeURIComponent(String(task.pack_id || ""));
     if (task.action_kind === "lesson" && packId) {
@@ -289,6 +332,40 @@ Page({
       );
       return;
     }
+  },
+
+  // 轻练旁按钮:供给真值由 view-model 单点裁决(light_practice_available,
+  // 来自 lessons manifest 的 light_practice_available 旗标);页面不重判供给。
+  // 未接通时给诚实空态提示——禁 dead click 假装可用。
+  // 红队 A2/A4 收口:轻练只复用当前任务的 fact 语境,不是第二处方——
+  // review_due 下禁 probe-less forward 旁路(绕开到期验证会重开 fresh cycle);
+  // 供给刷新 in-flight 期间禁点(旧 VM 的供给旗标可能已被撤回)。
+  goLightPractice() {
+    if (this._refreshing) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
+      return;
+    }
+    var task = (this.data.vm && this.data.vm.todayTask) || {};
+    if (task.task_state === "review_due") {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "先完成今天的到期验证", icon: "none" });
+      return;
+    }
+    if (task.light_practice_available === true && task.pack_id) {
+      this._navTo(
+        "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
+          encodeURIComponent(String(task.pack_id)) +
+          "&mode=forward&training_intent_id=" +
+          encodeURIComponent(
+            String(task.task_state === "practice_active" ? task.training_intent_id || "" : ""),
+          ) +
+          "&probe_id=",
+      );
+      return;
+    }
+    if (typeof wx !== "undefined" && wx.showToast)
+      wx.showToast({ title: "快练准备中", icon: "none" });
   },
 
   _navTo(url) {

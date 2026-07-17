@@ -339,7 +339,7 @@ Page({
     var that = this;
     this._loadCloze();
     return api
-      .getLubanRetestItems(this.data.packId, GAUNTLET_LIMIT)
+      .getLubanRetestItems(this.data.packId, GAUNTLET_LIMIT, "forward")
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var vm = gauntletViewModel.buildGauntletViewModel(body);

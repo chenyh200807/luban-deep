@@ -275,5 +275,9 @@ assert.ok(pageWxml.indexOf("gt-cloze-row") >= 0, "gauntlet.wxml 须渲染挖空�
 assert.ok(pageWxml.indexOf('wx:if="{{!cloze}}"') >= 0, "降级注记只在无 cloze 供给时渲染");
 var pageJs = fs.readFileSync(path.join(__dirname, "../packageDeeptutor/pages/luban/gauntlet/gauntlet.js"), "utf8");
 assert.ok(pageJs.indexOf("getLubanCloze") >= 0, "gauntlet.js 须真消费 cloze 端点(死供给转活)");
+assert.ok(
+  pageJs.indexOf('getLubanRetestItems(this.data.packId, GAUNTLET_LIMIT, "forward")') >= 0,
+  "闯关是非销账练习面，必须显式请求 forward，不得误入需 probe_id 的 review 复测",
+);
 
 console.log("PASS test_gauntlet_view_model.js");

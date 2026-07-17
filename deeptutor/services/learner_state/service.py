@@ -26,6 +26,7 @@ from deeptutor.services.learner_state.heartbeat import (
 )
 from deeptutor.services.learner_state.heartbeat.service import _normalize_heartbeat_result_json
 from deeptutor.services.learner_state.heartbeat.store import _coerce_datetime
+from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event
 from deeptutor.services.learner_state.learning_brain_read_model import (
     extract_learning_brain_projection,
     wrap_learning_brain_projection,
@@ -55,6 +56,13 @@ _LUBAN_RETEST_STABLE_EVENT_PREFIXES = (
     "luban_retest_item:",
     "luban_retest_terminal:",
 )
+
+
+def _is_learning_read_model_event(event: Any) -> bool:
+    """Keep lifecycle-only lesson exposure without promoting it to synthesis evidence."""
+    return is_learning_evidence_event(event) or is_lesson_view_event(event)
+
+
 # Battle2 S1-T1: summary-maintainer gate counter threshold. The gate's single
 # authority is the learner_memory_events ledger plus an in-process cursor; the
 # counter branch caps staleness at N-1 substantive turns PER WORKER — the
@@ -744,7 +752,7 @@ class LearnerStateService:
         local_events = [
             event
             for event in self._list_local_memory_events(normalized)
-            if is_learning_evidence_event(event)
+            if _is_learning_read_model_event(event)
             and _iso_unknown_or_gte(event.created_at, since)
         ]
         if self._local_projection_fallback_enabled():
@@ -770,7 +778,7 @@ class LearnerStateService:
                             )
                             if isinstance(item, dict)
                         )
-                        if event is not None and is_learning_evidence_event(event)
+                        if event is not None and _is_learning_read_model_event(event)
                     )
                 except Exception:
                     if is_production_environment():

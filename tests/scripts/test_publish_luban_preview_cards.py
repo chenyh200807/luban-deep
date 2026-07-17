@@ -4,6 +4,8 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -167,18 +169,40 @@ def test_candidate_review_packets_are_complete_and_never_machine_signed(
 
     assert packet["schema"] == "luban_practice_review_packet.v1"
     assert packet["candidate_count"] == candidate_count
-    assert packet["eligible_count"] == 0
     assert packet["human_gate"] == {
         "required_roles": ["teaching", "scoring"],
         "machine_must_not_sign": True,
     }
-    assert all(row["decision"]["review"]["status"] == "pending" for row in packet["items"])
-    assert all(row["decision"]["review"]["signatures"] == [] for row in packet["items"])
-    assert all(row["decision"]["fact_id"] == "" for row in packet["items"])
-    assert all(row["decision"]["skeleton_id"] == "" for row in packet["items"])
-    assert all(row["decision"]["probe_role"] == "" for row in packet["items"])
-    assert all(row["decision"]["source_anchor"] == "" for row in packet["items"])
-    assert all(row["decision"]["source_sha256"] == "" for row in packet["items"])
+    signed_rows = 0
+    for row in packet["items"]:
+        decision = row["decision"]
+        review = decision["review"]
+        if review["status"] == "pending":
+            # 未签发题必须整块留空——机器预填只允许进独立 candidates 文件。
+            assert review["signatures"] == []
+            assert decision["fact_id"] == ""
+            assert decision["skeleton_id"] == ""
+            assert decision["probe_role"] == ""
+            assert decision["source_anchor"] == ""
+            assert decision["source_sha256"] == ""
+            continue
+        # 已签发题必须携带完整的 owner 责任链,不接受裸机器签名。
+        signed_rows += 1
+        assert review["status"] == "signed"
+        assert review["verdict"] == "approved"
+        assert review["reviewed_content_sha256"] == row["content_sha256"]
+        assert all(review["checks"][name] is True for name in review["checks"])
+        roles = {sig["role"] for sig in review["signatures"]}
+        assert roles == {"teaching", "scoring"}
+        for sig in review["signatures"]:
+            assert sig["reviewer_id"].startswith("owner")
+            assert sig["signed_at"].strip()
+        assert decision["fact_id"] and decision["skeleton_id"]
+        assert decision["probe_role"] in {"anchor", "immediate_confirm", "d1_probe"}
+        assert decision["source_anchor"]
+        assert len(decision["source_sha256"]) == 64
+        assert decision["revoked"] is False
+    assert packet["eligible_count"] == signed_rows
     assert all(row["authoring_anchor"].startswith("compiled_html:") for row in packet["items"])
     assert all(len(row["authoring_sha256"]) == 64 for row in packet["items"])
 
@@ -525,7 +549,6 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
     (old / "support.js").write_text("old-support", encoding="utf-8")
     (old / "audio" / "b0.mp3").write_bytes(b"old-audio")
     monkeypatch.setattr(_mod, "HOST", host)
-    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path / "reviews")
     monkeypatch.setattr(
         _mod,
         "transform_teach",
@@ -535,23 +558,9 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
     )
     monkeypatch.setattr(
         _mod,
-        "compile_practice_surface",
-        lambda *_args, **_kwargs: {
-            "surface": {"surface_id": "practice.html"},
-            "items": [{"variant_id": str(index)} for index in range(5)],
-        },
+        "_compile_practice_outputs",
+        lambda *_args, **_kwargs: ({"practice.html": "practice"}, {}),
     )
-    monkeypatch.setattr(
-        _mod,
-        "transform_practice",
-        lambda text, **_kwargs: text,
-    )
-    monkeypatch.setattr(
-        _mod,
-        "build_practice_authority",
-        lambda *_args, **_kwargs: {},
-    )
-    monkeypatch.setattr(_mod, "_pack_source_sha", lambda _pack: "0" * 64)
     station = _mod.Station(
         pack_dir="PACK",
         teach={"lesson.html": "teach.html"},
@@ -674,3 +683,252 @@ def test_f16_publish_copies_all_audio_and_manifest_byte_for_byte() -> None:
     assert len(source_mp3) == 11
     assert all(_sha(path) == _sha(public_audio / path.name) for path in source_mp3)
     assert _sha(source_audio / "manifest.json") == _sha(public_audio / "manifest.json")
+
+
+def test_variant_audit_packet_writes_pending_decision_cards(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    written = _mod.write_variant_audit_packet("s05")
+    packet = json.loads((tmp_path / "s05.variant.review.json").read_text("utf-8"))
+    assert written  # 相对 REPO 路径由 CLI 打印；此处只关心产物本身
+    assert packet["schema"] == "luban_variant_review_packet.v1"
+    assert packet["pack_id"] == "S05"
+    assert packet["bank_status"] == "signed"
+    assert packet["candidate_count"] == 75
+    assert packet["eligible_count"] == 0  # bank 尚无人签 decision，机器绝不代签
+    assert packet["human_gate"]["machine_must_not_sign"] is True
+    for row in packet["items"]:
+        review = row["decision"]["review"]
+        assert review["status"] == "pending"
+        assert review["signatures"] == []
+        assert not any(review["checks"].values())
+
+
+def test_variant_audit_packet_kind_is_wired_into_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    assert _mod.main(["--write-practice-audit-packet", "--kind", "variant", "s05"]) == 0
+    assert (tmp_path / "s05.variant.review.json").is_file()
+    # --kind variant 只能与审核包模式联用（不允许污染发布/检查路径）。
+    with pytest.raises(SystemExit):
+        _mod.main(["--kind", "variant", "s05"])
+
+
+def test_variant_audit_packet_missing_bank_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", tmp_path / "empty")
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+
+
+def test_variant_audit_packet_reuses_signing_gate_no_raw_loader(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """对抗审查 B3：审核包入口必须走 manifest sha + signed 同一签发闸——
+    sha 漂移或 candidate 状态的 bank 一律 fail-closed，禁 raw 第二 loader。"""
+    bank_dir = tmp_path / "banks"
+    bank_dir.mkdir()
+    (bank_dir / "_pack_manifest.json").write_text(
+        json.dumps(
+            {
+                "projection_green": ["S05"],
+                "packs": [{"pack_id": "S05", "content_sha256": "a" * 64}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    bank_path = bank_dir / "_S05_variant_bank.v0.json"
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
+
+    # sha 漂移：bank signed 但与 manifest 登记的 pack sha 失配
+    bank_path.write_text(
+        json.dumps(
+            {
+                "pack_id": "S05",
+                "status": "signed",
+                "source_pack_sha256": "b" * 64,
+                "variants": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+
+    # candidate 状态：未签发 bank 不产人审包
+    bank_path.write_text(
+        json.dumps(
+            {
+                "pack_id": "S05",
+                "status": "candidate",
+                "source_pack_sha256": "a" * 64,
+                "variants": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+
+
+def _write_variant_audit_fixture(
+    bank_dir: Path, *, green: list[str], with_blocklist: bool = True
+) -> None:
+    bank_dir.mkdir(parents=True, exist_ok=True)
+    (bank_dir / "_pack_manifest.json").write_text(
+        json.dumps(
+            {
+                "projection_green": green,
+                "packs": [{"pack_id": "S05", "content_sha256": "a" * 64}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (bank_dir / "_S05_variant_bank.v0.json").write_text(
+        json.dumps(
+            {
+                "pack_id": "S05",
+                "status": "signed",
+                "source_pack_sha256": "a" * 64,
+                "variants": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    if with_blocklist:
+        (bank_dir / "_variant_blocklist.json").write_text(
+            json.dumps({"variants": []}), encoding="utf-8"
+        )
+
+
+def test_variant_audit_packet_requires_projection_green(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """对抗审查二轮 B2：pack 不在 projection_green（撤回/未发布）时，
+    审核包路径同样不得旁路 canonical 绿灯门。"""
+    bank_dir = tmp_path / "banks"
+    _write_variant_audit_fixture(bank_dir, green=[])
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+    # 同一 fixture 放回绿灯即可产包（证明失败确实来自绿灯门）
+    _write_variant_audit_fixture(bank_dir, green=["S05"])
+    assert _mod.write_variant_audit_packet("s05")
+
+
+def test_variant_audit_packet_rejects_unreadable_blocklist(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """对抗审查二轮 B3：撤发 authority 不可读时 writer 必须 fail-closed，
+    不得把 blocked=None 静默交给 builder 产出人审包。"""
+    bank_dir = tmp_path / "banks"
+    _write_variant_audit_fixture(bank_dir, green=["S05"], with_blocklist=False)
+    monkeypatch.setattr(_mod, "PRACTICE_REVIEW_PACKET_DIR", tmp_path)
+    monkeypatch.setattr(_mod, "VARIANT_BANK_DIR", bank_dir)
+    with pytest.raises(_mod.TransformError):
+        _mod.write_variant_audit_packet("s05")
+
+
+# --- projection receipt 单一来源（artifact surface.projection_receipt 唯一权威）---
+
+_EMBEDDED_RECEIPT_TEST_RE = re.compile(
+    r"'&projection_receipt='\+encodeURIComponent\(\"([A-Za-z0-9_-]*)\"\)"
+)
+
+
+def _tamper_receipt(receipt: str) -> str:
+    return receipt[:-1] + ("A" if receipt[-1] != "A" else "B")
+
+
+def test_signed_decision_merge_keeps_html_receipt_byte_equal_to_artifact() -> None:
+    """N01 人审 packet 已签发：decision 合并改变 receipt，HTML 必须跟 artifact 同步。
+
+    2026-07 生产 SEV-1 根因：HTML 内嵌 receipt 在 decision 合并前计算（pending 态，
+    digest 22fe9552…），artifact receipt 在合并后重算（digest 9e270564…），
+    服务端 resolve_projection_receipt 按 artifact 校验 → 五题提交 100% 被拒。
+    """
+    station_id = "n01"
+    station = _mod.STATIONS[station_id]
+    rendered, authority = _mod._practice_only_outputs(
+        station_id, station, finished_root=_mod.FINISHED
+    )
+    surface = authority["surfaces"][0]
+
+    # 场景前提：签发（decision 合并）后 receipt 确实与 pending 期不是同一份。
+    source_text = (
+        _mod.FINISHED / station.pack_dir / station.practice["practice.html"]
+    ).read_text(encoding="utf-8")
+    pending_receipt = compile_practice_surface(
+        "N01",
+        surface_id="practice.html",
+        html=source_text,
+        source_path="tracked-n01",
+        source_html_sha256=hashlib.sha256(source_text.encode("utf-8")).hexdigest(),
+    )["surface"]["projection_receipt"]
+    assert pending_receipt != surface["projection_receipt"]
+
+    # 单一来源断言：HTML 内嵌 receipt 逐字节等于最终 artifact 的 receipt。
+    embedded = _EMBEDDED_RECEIPT_TEST_RE.findall(rendered["practice.html"])
+    assert embedded == [surface["projection_receipt"]]
+
+
+def test_compile_outputs_fail_close_when_embedded_receipt_diverges(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """守卫：HTML 嵌入若与 artifact receipt 不同步（第二次计算复活）必 fail-close。"""
+    real = _mod.transform_compiled_practice_html
+
+    def tampered(pack_id, *, surface, items, html):
+        fake = dict(surface)
+        fake["projection_receipt"] = _tamper_receipt(str(surface["projection_receipt"]))
+        return real(pack_id, surface=fake, items=items, html=html)
+
+    monkeypatch.setattr(_mod, "transform_compiled_practice_html", tampered)
+    with pytest.raises(_mod.TransformError, match="receipt"):
+        _mod._practice_only_outputs(
+            "n01", _mod.STATIONS["n01"], finished_root=_mod.FINISHED
+        )
+
+
+def test_check_fails_close_when_published_html_receipt_drifts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """守卫（--check 路径）：发布产物中 HTML 内嵌 receipt != artifact receipt 必 FAIL。"""
+    station_id = "n01"
+    host = tmp_path / "host"
+    shutil.copytree(_mod.HOST / station_id, host / station_id)
+    authority_dir = tmp_path / "authority"
+    authority_dir.mkdir()
+    authority_name = f"{station_id}.practice.authority.json"
+    shutil.copy2(_mod.AUTHORITY_HOST / authority_name, authority_dir / authority_name)
+
+    hosted = host / station_id / "practice.html"
+    text = hosted.read_text(encoding="utf-8")
+    receipt = _EMBEDDED_RECEIPT_TEST_RE.search(text).group(1)
+    hosted.write_text(text.replace(receipt, _tamper_receipt(receipt)), encoding="utf-8")
+
+    monkeypatch.setattr(_mod, "HOST", host)
+    monkeypatch.setattr(_mod, "AUTHORITY_HOST", authority_dir)
+    with pytest.raises(_mod.TransformError, match="receipt"):
+        _mod.check_practice_only(
+            station_id, _mod.STATIONS[station_id], finished_root=_mod.FINISHED
+        )
+
+
+def test_embedded_projection_receipt_requires_exactly_one_receipt() -> None:
+    with pytest.raises(_mod.TransformError, match="receipt"):
+        _mod._embedded_projection_receipt("<html></html>", context="x")
+    duplicated = (
+        "'&projection_receipt='+encodeURIComponent(\"abc\")"
+        "'&projection_receipt='+encodeURIComponent(\"def\")"
+    )
+    with pytest.raises(_mod.TransformError, match="receipt"):
+        _mod._embedded_projection_receipt(duplicated, context="x")
+    single = "'&projection_receipt='+encodeURIComponent(\"abc-DEF_123\")"
+    assert _mod._embedded_projection_receipt(single, context="x") == "abc-DEF_123"

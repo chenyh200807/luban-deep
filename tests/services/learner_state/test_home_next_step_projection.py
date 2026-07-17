@@ -15,10 +15,11 @@ from deeptutor.services.learner_state.home_next_step_projection import (
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 
+# 形状对齐 list_green_lessons 真实 read-model 行（retest_available=练供给真值）。
 _GREEN = [
-    {"pack_id": "A01", "title": "检验批验收程序"},
-    {"pack_id": "N01", "title": "网络计划关键线路"},
-    {"pack_id": "F16", "title": "屋面防水起鼓割补"},
+    {"pack_id": "A01", "title": "检验批验收程序", "retest_available": True},
+    {"pack_id": "N01", "title": "网络计划关键线路", "retest_available": True},
+    {"pack_id": "F16", "title": "屋面防水起鼓割补", "retest_available": True},
 ]
 _REVIEW_ITEM = {
     "probe_id": "rvp_x1",
@@ -62,7 +63,11 @@ def test_priority_review_beats_practice_beats_learn() -> None:
     assert step["target_pack_id"] == "F16"
 
 
-def test_legacy_active_intent_is_not_silently_dropped_when_target_is_missing() -> None:
+def test_intent_without_pack_binding_must_not_shadow_learn_next() -> None:
+    # QA 三层死证(2026-07-16):空 target 的 practice_active 曾在仲裁中胜出,
+    # 前端对空 packId 正确 fail-closed → 任务卡永久隐藏、learn_next 被遮蔽。
+    # 治本:解析不出可路由 target 的 intent 不得胜出——落到下一优先级臂,
+    # 且不静默丢:保留在 skipped_intents 诊断里。
     step = build_home_next_step_projection(
         revalidation_items=[],
         active_training_intents=[{"training_intent_id": "legacy-ti", "concept_label": "旧处方"}],
@@ -70,9 +75,11 @@ def test_legacy_active_intent_is_not_silently_dropped_when_target_is_missing() -
         green_lessons=_GREEN,
     )
 
-    assert step["mode"] == MODE_PRACTICE
-    assert step["source_ref"] == "legacy-ti"
-    assert step["target_pack_id"] == ""
+    assert step["mode"] == MODE_LEARN
+    assert step["target_pack_id"] == "A01"
+    skipped = step.get("skipped_intents") or []
+    assert [item["training_intent_id"] for item in skipped] == ["legacy-ti"]
+    assert skipped[0]["skip_reason"] == "intent_without_pack_binding"
 
     # 只剩学 → 第一个 未学∧绿灯。
     step = build_home_next_step_projection(
@@ -83,6 +90,60 @@ def test_legacy_active_intent_is_not_silently_dropped_when_target_is_missing() -
     )
     assert step["mode"] == MODE_LEARN
     assert step["source_ref"] == "N01"
+
+
+def test_intent_with_unroutable_pack_falls_through_to_learn_next() -> None:
+    # 生产事实:F16 绿灯但 retest 供给停发(retest_available=False)——
+    # 不可执行的 intent 不得遮蔽可执行臂;供给真值来自 read model,不造第二真值。
+    green = [
+        {"pack_id": "A01", "title": "检验批验收程序", "retest_available": True},
+        {"pack_id": "F16", "title": "屋面防水起鼓割补", "retest_available": False},
+    ]
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[
+            {"training_intent_id": "ti_stopped", "concept_label": "防水工程", "target_pack_id": "F16"},
+        ],
+        pack_lifecycle={"packs": {}},
+        green_lessons=green,
+    )
+
+    assert step["mode"] == MODE_LEARN
+    assert step["target_pack_id"] == "A01"
+    skipped = step.get("skipped_intents") or []
+    assert skipped and skipped[0]["training_intent_id"] == "ti_stopped"
+    assert skipped[0]["target_pack_id"] == "F16"
+    assert skipped[0]["skip_reason"] == "retest_supply_unavailable"
+
+    # 不在绿灯集合的 pack 同样不可路由(fail-closed 同形)。
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[
+            {"training_intent_id": "ti_ghost", "concept_label": "幽灵包", "target_pack_id": "Z99"},
+        ],
+        pack_lifecycle={"packs": {}},
+        green_lessons=green,
+    )
+    assert step["mode"] == MODE_LEARN
+    assert (step.get("skipped_intents") or [])[0]["skip_reason"] == "pack_not_green"
+
+
+def test_later_routable_intent_wins_while_earlier_skips_are_kept_as_diagnostics() -> None:
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[
+            {"training_intent_id": "ti_stopped", "concept_label": "防水工程", "target_pack_id": "X03"},
+            {"training_intent_id": "ti_ok", "concept_label": "网络计划", "target_pack_id": "N01"},
+        ],
+        pack_lifecycle={"packs": {}},
+        green_lessons=_GREEN,
+    )
+
+    assert step["mode"] == MODE_PRACTICE
+    assert step["source_ref"] == "ti_ok"
+    assert step["target_pack_id"] == "N01"
+    skipped = step.get("skipped_intents") or []
+    assert [item["training_intent_id"] for item in skipped] == ["ti_stopped"]
 
 
 def test_cold_start_fallback_is_never_blank() -> None:
