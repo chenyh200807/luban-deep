@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-07-16T14:54:49+08:00",
+  "schema": "deeptutor_data_inventory_refresh_v1",
+  "scope": "AI-only inventory and navigation projections; not runtime or official scoring authority",
+  "source_checkout": {
+    "branch": "luban/practice-v1-r0",
+    "git_head": "f39832f39dbf7670950018feb8d08df12e1caa7d",
+    "outside_inventory_dirty": true,
+    "outside_inventory_dirty_entries": 13
+  },
+  "status": "success",
+  "steps": [
+    {
+      "exit_code": 0,
+      "script": "profile_raw_data_assets.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_json_source_ledger.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_pdf_source_ledger.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_okf_source_alignment.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_okf_candidate_scope.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_okf_rubric_pilot.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_okf_dry_consumer.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_okf_landing_gap.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_compiled_asset_ledger.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_compiled_asset_authority_map.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_knowledge_compiler_okf.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_luban_grading_artifacts_okf.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_governance_okf.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_data_asset_brief.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_asset_gap_map.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_topic_okf.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "build_okf_bundle.py"
+    },
+    {
+      "exit_code": 0,
+      "script": "profile_compiled_assets.py"
+    }
+  ]
+}

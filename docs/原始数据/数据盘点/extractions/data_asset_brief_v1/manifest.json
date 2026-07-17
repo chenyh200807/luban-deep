@@ -1,6 +1,6 @@
 {
   "schema": "luban_data_asset_brief_manifest.v1",
-  "generated_at": "2026-06-19T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "authority_status": "asset_inventory_only",
   "runtime_guard": {
     "release_stage": "asset_inventory_only",
@@ -13,7 +13,7 @@
     "official_score_allowed": false
   },
   "source_paths": {
-    "raw_profile": "docs/原始数据/数据盘点/extractions/2026-06-18-raw-data-current-profile.json",
+    "raw_profile": "docs/原始数据/数据盘点/extractions/raw-data-current-profile.json",
     "json_source_ledger": "docs/原始数据/数据盘点/extractions/json_source_ledger_v0/manifest.json",
     "pdf_source_ledger": "docs/原始数据/数据盘点/extractions/pdf_source_ledger_v1/manifest.json",
     "compiled_asset_ledger": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json",
@@ -24,8 +24,8 @@
     "ai_brief": "ai_brief.md"
   },
   "totals": {
-    "raw_asset_files": 1107,
-    "raw_asset_bytes": 4746166407,
+    "raw_asset_files": 1655,
+    "raw_asset_bytes": 4765850369,
     "cleaned_json_sources": 383,
     "pdf_files": 95,
     "image_files": 615,
@@ -40,10 +40,10 @@
     "candidate_cases": 25,
     "candidate_rubrics": 117,
     "candidate_scoring_points": 431,
-    "compiled_asset_files": 5059,
-    "compiled_asset_bytes": 740257453,
-    "compiled_asset_groups": 21,
-    "compiled_manifest_refs_copied": 545
+    "compiled_asset_files": 7133,
+    "compiled_asset_bytes": 1152347822,
+    "compiled_asset_groups": 34,
+    "compiled_manifest_refs_copied": 623
   },
   "pdf_compilation_status": {
     "status": "partially_structured_not_fully_pdf_compiled",
@@ -174,7 +174,7 @@
       "why": "逐个编译资产文件的路径、hash、分组和 authority 状态"
     },
     {
-      "path": "docs/原始数据/数据盘点/extractions/2026-06-18-raw-data-current-profile.json",
+      "path": "docs/原始数据/数据盘点/extractions/raw-data-current-profile.json",
       "why": "全目录原始资产深度统计"
     },
     {
@@ -188,7 +188,7 @@
     "真题层有 555 道练习，其中案例题 218、选择题 337。",
     "章节练习有 1,033 道，适合客观题闭环和错因解释。",
     "PDF 有 95 个；逐 PDF ledger 已生成，仍需对未映射 PDF 做 chunking 或 provenance backfill。",
-    "编译资产 ledger 已收录 5,059 个 artifacts/runtime 文件，复制 545 个小型 manifest-like 快照；payload 原地保留。",
+    "编译资产 ledger 已收录 7,133 个 artifacts/runtime 文件，复制 623 个小型 manifest-like 快照；payload 原地保留。",
     "OKF-like 候选评分工件已覆盖 25 cases / 117 rubrics / 431 scoring points，但仍是 candidate-only。"
   ],
   "guardrails": [

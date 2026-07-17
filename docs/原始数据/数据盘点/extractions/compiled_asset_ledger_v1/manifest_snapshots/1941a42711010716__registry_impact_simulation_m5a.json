@@ -16,8 +16,8 @@
     "full_kb": 7
   },
   "by_policy_type": {
-    "semantic_allowed": 4,
     "list_rule": 1,
+    "semantic_allowed": 4,
     "exact_required": 2
   },
   "published_candidate": 11,

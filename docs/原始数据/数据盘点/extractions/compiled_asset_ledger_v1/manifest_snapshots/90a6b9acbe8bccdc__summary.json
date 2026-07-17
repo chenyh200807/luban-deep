@@ -1,0 +1,35 @@
+{
+  "automation_id": "daily-bug-scan",
+  "run_started_at": "2026-07-16T13:25:33+0800",
+  "run_finished_at": "2026-07-16T13:37:36+0800",
+  "verdict": "BLOCKED",
+  "failure_signature": "env_p0_artifacts_env_missing_plus_unsigned_compiled_practice_supply_plus_test_cwd_assumption",
+  "cwd": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts",
+  "git_toplevel": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor",
+  "branch": "main",
+  "head": "8ca6a804dde2c8a4d9ccfd96a061945adf359c7a",
+  "origin_main": "93fe95895c7c407d7c57107b3e6e3f023ab266c1",
+  "baseline": "de5c000816c417ac777f38974d7e81585a6d0560",
+  "baseline_status": "BASELINE-LINEAGE-GAP",
+  "dirty_tracked_files": 333,
+  "untracked_files": 92,
+  "tier0_env": "ENV-P0",
+  "results": {
+    "contract_guard": "PASS",
+    "tier1_group_1": "1050 passed, 2 test-cwd failures, 5 warnings",
+    "tier1_group_2": "872 passed, 5 test-cwd failures",
+    "dirty_domain": "218 passed, 2 business failures",
+    "postgres_atomic_claim": "1 passed",
+    "wechat_harness_shadow": "5 passed",
+    "yousen_static_matrix": "11 scripts passed",
+    "observability_tests": "325 passed",
+    "benchmark_pr_gate_core": "19/19"
+  },
+  "deferred": [
+    "live observability daily",
+    "release gate report-only",
+    "learning report E2E",
+    "real WeChat true-entry",
+    "Playwright/self-hosted smoke"
+  ]
+}

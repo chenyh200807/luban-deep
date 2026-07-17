@@ -8,7 +8,7 @@ tags:
   - "okf"
   - "grading-artifacts"
   - "ai-context-only"
-timestamp: "2026-06-20T00:00:00+08:00"
+timestamp: "2026-07-16T14:54:49+08:00"
 status: "ai_project_context_only"
 ---
 
@@ -20,17 +20,17 @@ This card helps AI understand the shape of `artifacts/luban_grading_artifacts` w
 
 ## Counts
 
-- Runs: 344
-- Files: 3313
-- Manifest-like files: 760
-- Total bytes: 342825443
+- Runs: 347
+- Files: 3326
+- Manifest-like files: 771
+- Total bytes: 367180283
 
 ## Area Split
 
 - `artifact_workbench`: 84
 - `governance_audit`: 62
 - `runtime_shadow`: 59
-- `release_candidate`: 51
+- `release_candidate`: 54
 - `source_alignment`: 40
 - `eval_benchmark`: 25
 - `learning_brain`: 14
@@ -39,7 +39,7 @@ This card helps AI understand the shape of `artifacts/luban_grading_artifacts` w
 
 ## Risk Split
 
-- `high`: 143
+- `high`: 146
 - `low`: 131
 - `medium`: 70
 
@@ -47,9 +47,12 @@ This card helps AI understand the shape of `artifacts/luban_grading_artifacts` w
 
 - `rich_leaf_frozen_v1_runtime_default_gate_chain_20260613`: area=`runtime_shadow`, files=13
 - `luban_taxonomy_runtime_supply_rebuild_20260612`: area=`runtime_shadow`, files=58
+- `rich_leaf_per_leaf_pollution_fix_candidate_v3_20260621`: area=`release_candidate`, files=5
+- `rich_leaf_per_leaf_pollution_fix_candidate_20260621`: area=`release_candidate`, files=4
 - `rich_leaf_full2026_field_promotion_review_materialized_20260612`: area=`release_candidate`, files=1
 - `rich_leaf_full2026_field_candidates_materialized_20260612`: area=`release_candidate`, files=1
 - `rich_leaf_full2026_artifact_candidates_materialized_20260612`: area=`release_candidate`, files=1
+- `rich_leaf_per_leaf_pollution_fix_candidate_v2_20260621`: area=`release_candidate`, files=4
 - `rich_leaf_full2026_candidate_patches_20260612`: area=`release_candidate`, files=1
 - `canonical_unified_knowledge_20260606`: area=`release_candidate`, files=4
 - `luban_concept_registry_adjudication_20260612`: area=`release_candidate`, files=8
@@ -62,9 +65,6 @@ This card helps AI understand the shape of `artifacts/luban_grading_artifacts` w
 - `supabase_canonical_export_20260606`: area=`release_candidate`, files=3
 - `rich_leaf_source_gap_candidates_20260611`: area=`release_candidate`, files=1
 - `knowledge_hybrid_matrix_live_ab_20260614_qwen_deepseek_6`: area=`runtime_shadow`, files=8
-- `nexus_compilation_decision_20260612_p4_ws_readback`: area=`runtime_shadow`, files=67
-- `nexus_compilation_decision_20260612_p5_real_wechat`: area=`runtime_shadow`, files=67
-- `rich_leaf_full2026_test_learner_writeback_dry_run_manifest_materialized_20260612`: area=`artifact_workbench`, files=1
 
 ## Use
 

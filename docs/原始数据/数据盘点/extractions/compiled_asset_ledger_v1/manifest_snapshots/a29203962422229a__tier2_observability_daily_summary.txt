@@ -1,0 +1,34 @@
+FILE=/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/data/runtime/observability/control_plane/daily_trends/observability-daily-1783211889.json
+{
+  "run_id": "observability-daily-1783211889",
+  "verdict": null,
+  "status": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "change_impact_risk_level": null,
+  "om_ready": null,
+  "benchmark_pass_rate": null,
+  "blockers": null,
+  "stale_inputs": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "lineage_verdict": null
+}
+FILE=/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/data/runtime/observability/control_plane/release_gate_runs/release-gate-1783211889.json
+{
+  "run_id": "release-gate-1783211889",
+  "verdict": null,
+  "status": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "change_impact_risk_level": null,
+  "om_ready": null,
+  "benchmark_pass_rate": null,
+  "blockers": null,
+  "stale_inputs": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "lineage_verdict": null
+}

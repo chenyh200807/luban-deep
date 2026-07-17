@@ -96,7 +96,7 @@
     "production_default_flag": false,
     "legacy_construction_grading_result_unchanged": true,
     "production_db_written": false,
-    "latency_ms": 0.41
+    "latency_ms": 0.38
   },
   "beta_shadow_candidate": {
     "version_id": "luban_v1_beta_shadow_candidate_m9_20260604",

@@ -1,0 +1,104 @@
+{
+  "run_id": "release-gate-1783211914",
+  "verdict": "TRUSTED",
+  "final_status": "FAIL",
+  "recommendation": "hold",
+  "git_sha": null,
+  "git_dirty": null,
+  "blockers": [
+    "runtime_release_dirty"
+  ],
+  "stale_inputs": []
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "git_sha": "fb615c3b4e6d",
+  "git_dirty": "true",
+  "blockers": null,
+  "stale_inputs": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "blockers": [
+    "runtime_release_dirty"
+  ],
+  "stale_inputs": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "blockers": [],
+  "stale_inputs": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "blockers": [],
+  "stale_inputs": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "blockers": [],
+  "stale_inputs": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "blockers": [],
+  "stale_inputs": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "blockers": [],
+  "stale_inputs": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "blockers": [],
+  "stale_inputs": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "git_sha": null,
+  "git_dirty": null,
+  "blockers": [],
+  "stale_inputs": null
+}

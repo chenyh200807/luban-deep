@@ -4,9 +4,9 @@
     {
       "id": "all_raw_files",
       "label": "全原始资产文件",
-      "count": 1107,
+      "count": 1655,
       "unit": "file",
-      "bytes": 4746166407,
+      "bytes": 4765850369,
       "primary_entry": "docs/原始数据",
       "ai_use": "快速判断资产总体规模、文件类型、容量结构",
       "readiness": "inventory_ready",
@@ -184,13 +184,13 @@
     {
       "id": "compiled_assets_ledger",
       "label": "编译资产 / artifacts 总账",
-      "count": 5059,
+      "count": 7133,
       "unit": "compiled_asset_file",
-      "bytes": 740257453,
+      "bytes": 1152347822,
       "metrics": {
-        "asset_groups": 21,
-        "manifest_like_files": 552,
-        "manifest_refs_copied": 545
+        "asset_groups": 34,
+        "manifest_like_files": 630,
+        "manifest_refs_copied": 623
       },
       "primary_entry": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json",
       "ai_use": "定位 artifacts/workbench/runtime_supply 编译产物、区分 shadow candidate 与 runtime supply",

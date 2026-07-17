@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 from collections import Counter
 from datetime import datetime, timezone
@@ -12,7 +13,7 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 OUT_DIR = REPO_ROOT / "docs" / "原始数据" / "数据盘点" / "extractions"
-OUT_PATH = OUT_DIR / "2026-06-18-compiled-assets-current-profile.json"
+OUT_PATH = OUT_DIR / "compiled-assets-current-profile.json"
 
 SCOPE_ROOTS = {
     "knowledge_compiler_2026": REPO_ROOT / "artifacts" / "knowledge_compiler" / "2026",
@@ -42,6 +43,8 @@ def iter_files(root: Path) -> list[Path]:
         if not path.is_file():
             continue
         if path.name in EXCLUDED_FILES:
+            continue
+        if path == OUT_PATH:
             continue
         if set(path.relative_to(root).parts) & EXCLUDED_PARTS:
             continue
@@ -231,10 +234,17 @@ def summarize_inventory_extractions() -> dict[str, Any]:
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--generated-at",
+        help="ISO timestamp written into the profile; defaults to current UTC time.",
+    )
+    args = parser.parse_args(argv)
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     profile = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": args.generated_at or datetime.now(timezone.utc).isoformat(),
         "repo_root": str(REPO_ROOT),
         "scope_roots": {key: rel(path) for key, path in SCOPE_ROOTS.items()},
         "file_inventory": file_inventory(),
@@ -260,7 +270,8 @@ def main() -> None:
         "runtime_published_distribution": profile["key_assets"]["runtime_supply"]["published_distribution"],
         "pgo_score_null_points": profile["key_assets"]["per_question_grading_object"]["derived_score_null_points"],
     }, ensure_ascii=False, indent=2))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

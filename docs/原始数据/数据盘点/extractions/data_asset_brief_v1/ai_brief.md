@@ -1,12 +1,12 @@
 # AI Data Asset Brief v1
 
-- Generated at: `2026-06-19T00:00:00+08:00`
+- Generated at: `2026-07-16T14:54:49+08:00`
 - Authority: asset inventory only; not runtime supply, not official scoring, not learner truth.
-- Raw asset files: **1,107** (4.42 GB)
+- Raw asset files: **1,655** (4.44 GB)
 - Cleaned JSON sources: **383**
 - PDFs: **95**
 - Images/render evidence: **615**
-- Compiled/artifact files indexed: **5,059** (705.96 MB)
+- Compiled/artifact files indexed: **7,133** (1.07 GB)
 
 ## One-Minute Takeaways
 
@@ -15,14 +15,14 @@
 - 真题层有 555 道练习，其中案例题 218、选择题 337。
 - 章节练习有 1,033 道，适合客观题闭环和错因解释。
 - PDF 有 95 个；逐 PDF ledger 已生成，仍需对未映射 PDF 做 chunking 或 provenance backfill。
-- 编译资产 ledger 已收录 5,059 个 artifacts/runtime 文件，复制 545 个小型 manifest-like 快照；payload 原地保留。
+- 编译资产 ledger 已收录 7,133 个 artifacts/runtime 文件，复制 623 个小型 manifest-like 快照；payload 原地保留。
 - OKF-like 候选评分工件已覆盖 25 cases / 117 rubrics / 431 scoring points，但仍是 candidate-only。
 
 ## Asset Buckets
 
 | 资产桶 | 数量 | 单位 | 可用状态 | AI 首入口 |
 |---|---:|---|---|---|
-| 全原始资产文件 | 1,107 | file | inventory_ready | `docs/原始数据` |
+| 全原始资产文件 | 1,655 | file | inventory_ready | `docs/原始数据` |
 | 清洗 JSON 源 | 383 | json_file | machine_readable_ledger_ready | `docs/原始数据/数据盘点/extractions/json_source_ledger_v0/sources.jsonl` |
 | 历年真题结构化 JSON | 11 | year_file | structured_high_with_case_rubric_gap | `docs/原始数据/2026_副本/题库/*/FINAL_CLEANED_EXAM_V*.json` |
 | 章节练习库 | 1,033 | exercise | structured_high_for_objective_questions | `docs/原始数据/2026_副本/题库/864考证宝典ZL + 章节千题斩SMR` |
@@ -32,7 +32,7 @@
 | 讲义 JSON | 327 | page_json | structured_medium | `docs/原始数据/2026_副本/讲义/*/page_*.json` |
 | PDF 原件库 | 95 | pdf_file | raw_evidence_needs_ocr_or_existing_json | `docs/原始数据/PDF` |
 | 渲染/图片资产 | 615 | image_file | raw_visual_evidence | `docs/原始数据/2026_副本/**/docx_render_check*` |
-| 编译资产 / artifacts 总账 | 5,059 | compiled_asset_file | inventory_ready_not_runtime_truth | `docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json` |
+| 编译资产 / artifacts 总账 | 7,133 | compiled_asset_file | inventory_ready_not_runtime_truth | `docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json` |
 | 案例题 OKF-like 候选评分工件 | 431 | candidate_scoring_point | source_layer_candidate_complete | `docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0` |
 
 ## PDF Compilation Status
@@ -51,7 +51,7 @@
 - `docs/原始数据/数据盘点/extractions/pdf_source_ledger_v1/pdf_sources.jsonl` — 逐个 PDF 的 hash、分类、结构化派生状态和下一步动作
 - `docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json` — 编译资产、artifacts、runtime_supply 的总入口和边界
 - `docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/files.jsonl` — 逐个编译资产文件的路径、hash、分组和 authority 状态
-- `docs/原始数据/数据盘点/extractions/2026-06-18-raw-data-current-profile.json` — 全目录原始资产深度统计
+- `docs/原始数据/数据盘点/extractions/raw-data-current-profile.json` — 全目录原始资产深度统计
 - `docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0/manifest.json` — 案例题候选 rubric / scoring point source-layer 范围
 
 ## Guardrails

@@ -4,11 +4,11 @@
     {
       "schema": "deeptutor_governance_domain_summary.v1",
       "domain": "agent_skills",
-      "files": 45,
-      "bytes": 240728,
+      "files": 50,
+      "bytes": 386961,
       "by_area": {
-        "governance_context": 13,
-        "agent_skill": 11,
+        "governance_context": 15,
+        "agent_skill": 14,
         "ci_quality_gate": 6,
         "data_knowledge": 3,
         "contract_authority": 3,
@@ -18,16 +18,10 @@
         "billing_business": 1
       },
       "by_risk_level": {
-        "medium": 34,
+        "medium": 39,
         "high": 11
       },
       "top_files": [
-        {
-          "path": "agent-skills/luban-diagram-microlesson/references/animation-production-director.md",
-          "title": "animation-production-director.md · 鲁班深母题动画学习卡量产导演",
-          "area": "governance_context",
-          "risk_level": "medium"
-        },
         {
           "path": "agent-skills/luban-diagram-microlesson/SKILL.md",
           "title": "鲁班图解微课 / 深母题学习闭环 (diagram_microlesson)",
@@ -35,8 +29,20 @@
           "risk_level": "medium"
         },
         {
-          "path": "agent-skills/luban-diagram-microlesson/references/teaching-animation-journey.md",
-          "title": "teaching-animation-journey.md · 教学动画 + 完整学习闭环(讲懂→闯关→看穿)",
+          "path": "agent-skills/luban-diagram-microlesson/references/animation-production-director.md",
+          "title": "animation-production-director.md · 鲁班深母题动画学习卡量产导演",
+          "area": "governance_context",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/tutorbot-student-army-eval-loop/SKILL.md",
+          "title": "TutorBot 学员军团端到端 Eval 闭环（持续维护）",
+          "area": "agent_skill",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/luban-diagram-microlesson/references/anti-patterns.md",
+          "title": "anti-patterns.md · video-first 学习卡反例库",
           "area": "governance_context",
           "risk_level": "medium"
         },
@@ -47,21 +53,21 @@
           "risk_level": "medium"
         },
         {
-          "path": "agent-skills/luban-learning-pack-factory/SKILL.md",
-          "title": "鲁班教研测一体学习包生产线",
-          "area": "learner_state",
+          "path": "agent-skills/luban-case-answer-layer/SKILL.md",
+          "title": "鲁班案例题作答层",
+          "area": "agent_skill",
           "risk_level": "medium"
         },
         {
-          "path": "agent-skills/luban-diagram-microlesson/references/anti-patterns.md",
-          "title": "anti-patterns.md · video-first 学习卡反例库",
+          "path": "agent-skills/luban-diagram-microlesson/references/teaching-animation-journey.md",
+          "title": "teaching-animation-journey.md · 教学动画 + 完整学习闭环(讲懂→闯关→看穿)",
           "area": "governance_context",
           "risk_level": "medium"
         },
         {
-          "path": "agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md",
-          "title": "DeepTutor Engineering Lifecycle Gate",
-          "area": "agent_skill",
+          "path": "agent-skills/luban-diagram-microlesson/references/workflow-review-loop.md",
+          "title": "workflow-review-loop.md · 评审包与回炉合同",
+          "area": "governance_context",
           "risk_level": "medium"
         },
         {
@@ -71,15 +77,9 @@
           "risk_level": "medium"
         },
         {
-          "path": "agent-skills/README.md",
-          "title": "DeepTutor Agent Skills",
-          "area": "governance_context",
-          "risk_level": "medium"
-        },
-        {
-          "path": "agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md",
-          "title": "WeChat TutorBot Real-Entry QA",
-          "area": "wechat_frontend",
+          "path": "agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md",
+          "title": "DeepTutor Engineering Lifecycle Gate",
+          "area": "agent_skill",
           "risk_level": "medium"
         }
       ],
@@ -98,7 +98,7 @@
       "schema": "deeptutor_governance_domain_summary.v1",
       "domain": "contracts",
       "files": 14,
-      "bytes": 291134,
+      "bytes": 457570,
       "by_area": {
         "contract_authority": 14
       },
@@ -109,12 +109,6 @@
         {
           "path": "contracts/learner-state.md",
           "title": "Learner State Contract",
-          "area": "contract_authority",
-          "risk_level": "high"
-        },
-        {
-          "path": "contracts/schema_registry.yaml",
-          "title": "schema_registry",
           "area": "contract_authority",
           "risk_level": "high"
         },
@@ -137,20 +131,26 @@
           "risk_level": "high"
         },
         {
+          "path": "contracts/schema_registry.yaml",
+          "title": "schema_registry",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
           "path": "contracts/env_registry.yaml",
           "title": "env_registry",
           "area": "contract_authority",
           "risk_level": "high"
         },
         {
-          "path": "contracts/learning-report.md",
-          "title": "Learning Report Contract",
+          "path": "contracts/rag.md",
+          "title": "RAG Contract",
           "area": "contract_authority",
           "risk_level": "high"
         },
         {
-          "path": "contracts/rag.md",
-          "title": "RAG Contract",
+          "path": "contracts/learning-report.md",
+          "title": "Learning Report Contract",
           "area": "contract_authority",
           "risk_level": "high"
         },
@@ -217,23 +217,23 @@
     {
       "schema": "deeptutor_governance_domain_summary.v1",
       "domain": "plan",
-      "files": 188,
-      "bytes": 5308981,
+      "files": 274,
+      "bytes": 6926799,
       "by_area": {
-        "governance_context": 62,
-        "data_knowledge": 26,
-        "ci_quality_gate": 23,
-        "learner_state": 20,
-        "contract_authority": 18,
-        "billing_business": 18,
+        "governance_context": 129,
+        "ci_quality_gate": 28,
+        "data_knowledge": 27,
+        "billing_business": 23,
+        "contract_authority": 21,
+        "learner_state": 21,
+        "wechat_frontend": 10,
         "planning_index": 9,
-        "wechat_frontend": 7,
-        "release_operations": 5
+        "release_operations": 6
       },
       "by_risk_level": {
-        "low": 97,
-        "high": 46,
-        "medium": 45
+        "low": 165,
+        "high": 55,
+        "medium": 54
       },
       "top_files": [
         {
@@ -249,8 +249,26 @@
           "risk_level": "low"
         },
         {
+          "path": "docs/plan/观测发布与生产上线/2026-07-11-luban-arch-audit-battle1-design-appendix.json",
+          "title": "2026-07-11-luban-arch-audit-battle1-design-appendix",
+          "area": "governance_context",
+          "risk_level": "low"
+        },
+        {
           "path": "docs/plan/附件与原型资源/artifacts/hermes-edu-skills-inventory.json",
           "title": "hermes-edu-skills-inventory",
+          "area": "governance_context",
+          "risk_level": "low"
+        },
+        {
+          "path": "docs/plan/观测发布与生产上线/battle2-paired-batch-artifacts/post_arm_results.json",
+          "title": "post_arm_results",
+          "area": "governance_context",
+          "risk_level": "low"
+        },
+        {
+          "path": "docs/plan/观测发布与生产上线/battle2-paired-batch-artifacts/pre_arm_results.json",
+          "title": "pre_arm_results",
           "area": "governance_context",
           "risk_level": "low"
         },
@@ -261,38 +279,20 @@
           "risk_level": "medium"
         },
         {
+          "path": "docs/plan/鲁班移动端提分闭环/implementation-notes.md",
+          "title": "五模块改造 · Implementation Notes（活账本）",
+          "area": "governance_context",
+          "risk_level": "low"
+        },
+        {
           "path": "docs/plan/学习脑与学员记忆/2026-05-21-luban-learning-report-world-class-optimization-plan.md",
           "title": "Luban Learning Report World-Class Optimization Implementation Plan",
           "area": "learner_state",
           "risk_level": "medium"
         },
         {
-          "path": "docs/plan/评分引擎与金标工件/2026-06-09-luban-nexus-like-scoring-artifact-engine-execution-plan.md",
-          "title": "M35 Luban Nexus-like Scoring Artifact Engine Implementation Plan",
-          "area": "governance_context",
-          "risk_level": "low"
-        },
-        {
-          "path": "docs/plan/学习脑与学员记忆/2026-05-18-deeptutor-learning-fact-retrieval-implementation-plan.md",
-          "title": "DeepTutor Learning Fact Retrieval Implementation Plan",
-          "area": "learner_state",
-          "risk_level": "medium"
-        },
-        {
-          "path": "docs/plan/题目生命周期与助教运行时/2026-05-13-luban-case-grading-error-map-implementation-plan.md",
-          "title": "Luban Case Grading Error Map Implementation Plan",
-          "area": "governance_context",
-          "risk_level": "low"
-        },
-        {
-          "path": "docs/plan/会员钱包计费与经营后台/2026-06-03-official-provider-billing-reconciliation-implementation-plan.md",
-          "title": "Official Provider Billing Reconciliation Implementation Plan",
-          "area": "contract_authority",
-          "risk_level": "high"
-        },
-        {
-          "path": "docs/plan/题目生命周期与助教运行时/2026-05-24-deeptutor-question-lifecycle-skill-authority-execution-plan.md",
-          "title": "DeepTutor Question Lifecycle Skill Authority Execution Plan",
+          "path": "docs/plan/题目生命周期与助教运行时/2026-06-26-fast-mode-orchestrator-simplification-architecture-plan.md",
+          "title": "DeepTutor 控制面单一权威收权 + Fast / Deep Mode 与 Orchestrator 简化改造计划",
           "area": "governance_context",
           "risk_level": "low"
         }
@@ -311,18 +311,19 @@
     {
       "schema": "deeptutor_governance_domain_summary.v1",
       "domain": "runbook",
-      "files": 7,
-      "bytes": 38355,
+      "files": 8,
+      "bytes": 50595,
       "by_area": {
         "release_operations": 3,
         "ci_quality_gate": 2,
         "governance_context": 1,
+        "billing_business": 1,
         "learner_state": 1
       },
       "by_risk_level": {
         "high": 5,
-        "low": 1,
-        "medium": 1
+        "medium": 2,
+        "low": 1
       },
       "top_files": [
         {
@@ -332,22 +333,28 @@
           "risk_level": "high"
         },
         {
+          "path": "docs/runbook/ci-runtime-smoke-guardrails.md",
+          "title": "CI Runtime Smoke Guardrails",
+          "area": "ci_quality_gate",
+          "risk_level": "high"
+        },
+        {
           "path": "docs/runbook/2026-05-30-billing-go-live-runbook.md",
           "title": "计费上线 Runbook（B1 校正 + flag 翻 ON）",
           "area": "release_operations",
           "risk_level": "high"
         },
         {
+          "path": "docs/runbook/2026-07-10-v-members-drop-dead-chat-columns.md",
+          "title": "v_members 摘除死表 chat_conversations 派生列 — 待执行生产变更",
+          "area": "billing_business",
+          "risk_level": "medium"
+        },
+        {
           "path": "docs/runbook/2026-05-25-pr-alpha-owner-key-backfill.md",
           "title": "PR-α Runbook — session.owner_key 回填",
           "area": "governance_context",
           "risk_level": "low"
-        },
-        {
-          "path": "docs/runbook/ci-runtime-smoke-guardrails.md",
-          "title": "CI Runtime Smoke Guardrails",
-          "area": "ci_quality_gate",
-          "risk_level": "high"
         },
         {
           "path": "docs/runbook/learning-report-flag-changes.md",

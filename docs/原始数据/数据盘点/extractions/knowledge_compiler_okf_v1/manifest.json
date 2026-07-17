@@ -1,6 +1,6 @@
 {
   "schema": "luban_knowledge_compiler_okf_manifest.v1",
-  "generated_at": "2026-06-20T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "authority_status": "knowledge_compiler_workbench_inventory_only",
   "runtime_guard": {
     "release_stage": "knowledge_compiler_okf_inventory_only",

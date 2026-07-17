@@ -5,8 +5,8 @@
       "schema": "luban_compiled_asset_group_authority.v1",
       "asset_group": "artifacts/[root_files]",
       "group_kind": "artifact_auxiliary_or_report",
-      "files": 6,
-      "bytes": 581330,
+      "files": 69,
+      "bytes": 3259651,
       "manifest_like_files": 2,
       "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
       "authority_class": "auxiliary_artifact_or_report_read_only",
@@ -109,6 +109,74 @@
     },
     {
       "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/authority_baseline",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 2,
+      "bytes": 21024,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/automation-runs",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 224,
+      "bytes": 1735258,
+      "manifest_like_files": 31,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
       "asset_group": "artifacts/bi_reconciliation_20260612",
       "group_kind": "artifact_auxiliary_or_report",
       "files": 6,
@@ -147,6 +215,74 @@
       "group_kind": "artifact_auxiliary_or_report",
       "files": 3,
       "bytes": 36350,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/cc_student_eval_p04",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 1,
+      "bytes": 4,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/fix_test_log",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 4,
+      "bytes": 16363,
       "manifest_like_files": 0,
       "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
       "authority_class": "auxiliary_artifact_or_report_read_only",
@@ -319,11 +455,45 @@
     },
     {
       "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_answer_layer_audit",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 17,
+      "bytes": 57489,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
       "asset_group": "artifacts/luban_case_family_assets",
       "group_kind": "case_family_multimedia_assets",
-      "files": 232,
-      "bytes": 85881117,
-      "manifest_like_files": 0,
+      "files": 1908,
+      "bytes": 468199612,
+      "manifest_like_files": 33,
       "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
       "authority_class": "multimedia_or_product_candidate_read_only",
       "owner_authority": "product_asset_workbench",
@@ -426,11 +596,45 @@
     },
     {
       "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_governed_gold",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 8,
+      "bytes": 1131964,
+      "manifest_like_files": 1,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
       "asset_group": "artifacts/luban_grading_artifacts",
       "group_kind": "grading_compiler_shadow_workbench",
-      "files": 3314,
-      "bytes": 342826336,
-      "manifest_like_files": 353,
+      "files": 3327,
+      "bytes": 367181176,
+      "manifest_like_files": 359,
       "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
       "authority_class": "candidate_compiler_workbench_read_only",
       "owner_authority": "compiler_or_skill_kernel_required",
@@ -641,6 +845,40 @@
     },
     {
       "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/product-research",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 7,
+      "bytes": 1193738,
+      "manifest_like_files": 1,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
       "asset_group": "artifacts/qa",
       "group_kind": "artifact_auxiliary_or_report",
       "files": 278,
@@ -665,6 +903,74 @@
         "runtime_default_without_pointer_gate"
       ],
       "use_rule": "Use as evidence for review, never as canonical source or runtime packet.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/qa_tmp",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 1,
+      "bytes": 263,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/quality_gate",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 32,
+      "bytes": 279608,
+      "manifest_like_files": 5,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
       "runtime_guard": {
         "release_stage": "compiled_asset_authority_map_only",
         "runtime_consumable": false,
@@ -713,11 +1019,147 @@
     },
     {
       "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/student_army_eval",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 4,
+      "bytes": 44799,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/student_army_tmp",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 1,
+      "bytes": 219,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/tmp",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 18,
+      "bytes": 504475,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/ui-prototypes",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 1,
+      "bytes": 48638,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
       "asset_group": "runtime_supply",
       "group_kind": "runtime_supply_mixed_published_and_candidate",
-      "files": 57,
-      "bytes": 27623686,
-      "manifest_like_files": 18,
+      "files": 59,
+      "bytes": 25328557,
+      "manifest_like_files": 19,
       "ledger_authority_status": "runtime_supply_inventory_mixed_publication_status",
       "authority_class": "runtime_supply_pointer_gated",
       "owner_authority": "runtime_supply_publisher",

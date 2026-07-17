@@ -59,7 +59,7 @@
 
 - `LearnerStateService.append_memory_event(memory_kind="learning_evidence")` 是学习证据写入、dedupe 和后续 synthesis 触发的唯一服务入口；API/router/wrapper 不得各自触发第二套长期画像刷新。
 - `dedupe_key` 命中时必须返回既有事件，不得再次写入 `MEMORY_EVENTS.jsonl`，也不得再次触发 compiled-truth synthesis；读模型可以按同一 `dedupe_key`/内容 fingerprint 折叠 local+remote replay，但不得折叠 dedupe 不同的真实复练/复测。
-- `memory_kind="learning_evidence"` 只是存储分区，不足以让一条事件成为学习证据。local/remote reader 必须共用 `evidence_lifecycle.is_learning_evidence_event`：只放行登记的 evidence source 与 `payload.event_type="learning_evidence"`（兼容 construction grading 的既有例外）。durable completion claim 等控制记录即使同居该分区，也不得进入 synthesis、报告或学情投影。
+- `memory_kind="learning_evidence"` 只是存储分区，不足以让一条事件成为学习证据。local/remote reader 必须共用 `evidence_lifecycle.is_learning_evidence_event`：只放行登记的 evidence source 与 `payload.event_type="learning_evidence"`（兼容 construction grading 的既有例外）。定向的 pack lifecycle 读模型可额外放行 `lesson_evidence.is_lesson_view_event`，但它仍不是 synthesis evidence。durable completion claim 等控制记录即使同居该分区，也不得进入 synthesis、报告或学情投影。
 - 自动 synthesis 只允许在显式开关 `LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED=1` 下运行；生产环境还必须受既有 `qa_`/`operator_` canonical cohort gate 约束。broad learner canonical truth 仍由 `canonical_truth_promotion_decision()` 决定，不能因为自动 synthesis 而默认打开。
 - `learning_evidence.payload_json.canonical_topic` 是 taxonomy resolver 对证据的只读投影。Learning report、Learning Brain 和 synthesis 消费它时，不得在 UI/router 层重新猜 topic；若该字段缺失，旧事件继续按兼容路径读取。
 - PGO shadow same-attempt evidence 只能作为 `learning_signal_type="pgo_case_rubric_shadow"` 的

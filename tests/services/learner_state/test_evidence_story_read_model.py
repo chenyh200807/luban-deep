@@ -17,6 +17,7 @@ from deeptutor.services.learner_state.scoring_point_map_read_model import (
 from deeptutor.services.learner_state.service import LearnerStateEvent
 
 _TZ = timezone(timedelta(hours=8))
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 def _iso(days_ago: float = 0) -> str:
@@ -238,7 +239,7 @@ def test_sales_summary_uses_closed_enum_without_exaggerated_claims() -> None:
 
 
 def test_no_public_endpoint_added_for_evidence_story() -> None:
-    mobile_router = Path("deeptutor/api/routers/mobile.py").read_text(encoding="utf-8")
+    mobile_router = (_REPO_ROOT / "deeptutor/api/routers/mobile.py").read_text(encoding="utf-8")
 
     assert "evidence_story" not in mobile_router
     assert "evidence-story" not in mobile_router

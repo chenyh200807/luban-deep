@@ -8,7 +8,7 @@ tags:
   - "okf"
   - "governance"
   - "ai-context-only"
-timestamp: "2026-06-20T00:00:00+08:00"
+timestamp: "2026-07-16T14:54:49+08:00"
 status: "ai_project_context_only"
 ---
 
@@ -20,35 +20,35 @@ This card helps AI find the right project governance source before changing plan
 
 ## Counts
 
-- Files: 256
-- Total bytes: 5890667
+- Files: 348
+- Total bytes: 7833394
 
 ## Domain Split
 
-- `plan`: 188
-- `agent_skills`: 45
+- `plan`: 274
+- `agent_skills`: 50
 - `contracts`: 14
-- `runbook`: 7
+- `runbook`: 8
 - `docs_contracts`: 2
 
 ## Area Split
 
-- `governance_context`: 76
-- `contract_authority`: 37
-- `ci_quality_gate`: 31
-- `data_knowledge`: 29
-- `learner_state`: 24
-- `billing_business`: 19
-- `agent_skill`: 11
-- `release_operations`: 10
-- `wechat_frontend`: 10
+- `governance_context`: 145
+- `contract_authority`: 40
+- `ci_quality_gate`: 36
+- `data_knowledge`: 30
+- `billing_business`: 25
+- `learner_state`: 25
+- `agent_skill`: 14
+- `wechat_frontend`: 13
+- `release_operations`: 11
 - `planning_index`: 9
 
 ## Risk Split
 
-- `low`: 98
-- `medium`: 80
-- `high`: 78
+- `low`: 166
+- `medium`: 95
+- `high`: 87
 
 ## Mandatory Entry Points
 

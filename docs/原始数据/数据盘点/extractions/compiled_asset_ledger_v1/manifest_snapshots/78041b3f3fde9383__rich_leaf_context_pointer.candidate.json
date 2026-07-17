@@ -1,0 +1,9 @@
+{
+ "namespace": "rich_leaf_context",
+ "status": "release_candidate",
+ "published": false,
+ "expected_content_hash": "38eaea8f0965674bd51ed3caa01dca615118a3776eb6a8878adad2b2f336d463",
+ "record_count": 1238,
+ "quarantine_excluded_count": 0,
+ "source_pack_version": "v3.0_frozen_v1_full_compile"
+}

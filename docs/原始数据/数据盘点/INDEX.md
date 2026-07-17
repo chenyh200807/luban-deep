@@ -11,10 +11,18 @@
 > 6. **结论被后续盘点推翻时,在新文档里显式订正旧结论**(留迭代痕迹,不静默改);
 > 7. **抽取/编译类盘点**:产物落 `docs/原始数据/数据盘点/extractions/`(**注意 `/artifacts/*` 被 .gitignore,仅 `luban_case_family_assets/` 白名单——抽取产物入库放 docs 下**),方法/schema/验证落本目录,二者互相引用,**以后可复用**。
 
+## 当前盘点 authority
+
+- **人读入口**: [2026-07-16 数据资产当前盘点与刷新基线](2026-07-16-数据资产当前盘点与刷新基线.md)
+- **机器入口**: `extractions/latest_refresh_manifest.json` → `extractions/raw-data-current-profile.json` / `extractions/compiled-assets-current-profile.json` → 各 ledger / authority map / OKF projection
+- **刷新命令**: `python docs/原始数据/数据盘点/scripts/refresh_data_inventory.py`
+- **历史边界**: 带日期的 `YYYY-MM-DD-*` 报告与 `2026-06-18-*-profile.json` 是历史切片;无日期 `*-current-profile.json` 才是当前 checkout 事实。当前盘点仍是 AI-only inventory/navigation，不是 runtime、official scoring 或 production release truth。
+
 ## 盘点记录
 
 | 日期 | 文档 | 一句话结论 |
 |---|---|---|
+| 2026-07-16 | [数据资产当前盘点与刷新基线](2026-07-16-数据资产当前盘点与刷新基线.md) | **18/18 确定性盘点投影已刷新**:1,655 原始资产文件 / 638 JSON 全部可解析 / 18 个成品概念卡 bank 共 241 张卡 / 383 清洗 JSON 源 / 95 PDF / 7,133 编译与候选文件 / 34 资产组;OKF 仍为 25 cases / 117 rubrics / 431 points。诚实结论是 `refresh_pass + asset_health_partial`:仍有 9 个开放缺口(P1 5 / P2 4)、12 个 candidate/blocked runtime pointer。 |
 | 2026-06-16 | [原始数据资料盘点](2026-06-16-原始数据资料盘点.md) | `docs/原始数据`(4.6G):11 年真题(337 选+218 案例)+ ZL500(403)+ 千题斩(630)+ 650 知识卡 + 规范库;真实考生作答=0;分点 rubric 在结构化 JSON≈0(**但 PDF 解析里有,见视觉核查**) |
 | 2026-06-16 | [真题考点实证频次](2026-06-16-真题考点实证频次.md) | 11 年案例题考点(方向性):混凝土 184 / 安全 119 / 进度 68 / 质量 50 / 防水 46;**防水非案例旗舰,首个案例母题应选混凝土/进度/安全** |
 | 2026-06-16 | [编译资产盘点](2026-06-16-编译资产盘点.md) | **编译引擎已建 ~80% 卡在 shadow**:RichLeaf v3.2 5705 采分点 + 313 深编译叶 + per_question 482 采分点 + 边界 gold + MAE 0.0749 判分器;缺逐点分值/真人签字/真实作答。**2026-06-18 补当前实测**:runtime supply 10 pointer 中 4 published / 6 unpublished;PGO 482/482 point score null;artifacts 厚不等于 release truth |
@@ -57,12 +65,17 @@
 | `okf_candidate_scope_v0/` | ✅ OKF full candidate scope:`manifest.json`、`cases.jsonl`、`rubrics.jsonl`、`scoring_points.jsonl`、`scoring_point_index.json`;覆盖 25 cases / 117 rubrics / 431 scoring points,**非 runtime supply / 非 official scoring authority** |
 | `okf_landing_gap_v0/` | ✅ OKF source-layer gap report:`report.json`、`report.md`;比较 canonical rubric 目标、JSON ledger 原料、OKF pilot、dry consumer、source alignment、candidate scope,输出剩余 0 cases / 0 rubrics / 0 scoring points,**非 runtime supply / 非 official scoring authority** |
 | `okf_rubric_pilot_v0/` | ✅ OKF-like 试点 compiled inspection artifacts:`manifest.json`、`question_context_pack.json`、`scoring_point_index.json`;当前仅 2021 案例一,用于验证 canonical extraction → generated review projection → compiled inspection pack 的可追溯形状,**非 official score authority / 非 runtime supply** |
-| `data_asset_brief_v1/` | ✅ AI-first 全数据资产总账:`manifest.json`、`asset_buckets.json`、`ai_brief.md`;聚合 raw profile / JSON ledger / OKF candidate scope,输出 1107 原始文件、383 JSON、95 PDF、615 图片、555 真题、1033 章节题等一页式入口,**asset_inventory_only / 非 runtime supply / 非 official scoring authority** |
+| `data_asset_brief_v1/` | ✅ AI-first 全数据资产总账:`manifest.json`、`asset_buckets.json`、`ai_brief.md`;聚合 current raw profile / JSON ledger / OKF candidate scope,当前输出 1,655 原始文件、638/638 JSON 可解析、18 个成品概念卡 bank / 241 张卡、383 清洗 JSON、95 PDF、615 图片、555 真题、1,033 章节题等一页式入口,**asset_inventory_only / 非 runtime supply / 非 official scoring authority** |
 | `pdf_source_ledger_v1/` | ✅ PDF raw evidence ledger:`manifest.json`、`pdf_sources.jsonl`、`summary.md`;95 个 PDF 全部逐文件 hash/分类/候选派生状态建账,39 个有候选结构化派生引用、56 个仍需编译或映射,**raw_pdf_evidence_ledger / 非 runtime supply / 非 official scoring authority** |
-| `compiled_asset_ledger_v1/` | ✅ 编译资产 inventory ledger:`manifest.json`、`asset_groups.json`、`files.jsonl`、`manifest_refs.jsonl`、`manifest_snapshots/`;索引 `artifacts/` 与 `runtime_supply/` 5,059 文件,复制 545 个小型 manifest-like 快照,**compiled_asset_inventory_only / 非 runtime supply / 非 official scoring authority** |
-| `compiled_asset_authority_map_v1/` | ✅ 编译资产 authority map:`manifest.json`、`group_authority.json`、`runtime_pointers.jsonl`、`consumer_policy.json`;21 group 分类,15 条真实 runtime pointer / manifest 审计,4 published+hash-gated / 11 candidate-blocked,**authority_map_only / 非 runtime install / 非 official scoring authority** |
-| `asset_gap_map_v1/` | ✅ 资产缺口地图:`manifest.json`、`gap_summary.json`、`gap_items.jsonl`、`action_queues.json`、`next_actions.json`;9 个开放缺口项(P1 5 / P2 4),含 JSON claim review、PDF compile/provenance、OKF 小问级 alignment、runtime consumer evidence 和 live-reader policy conflict,**asset_gap_map_only / 非 runtime supply / 非 official scoring authority** |
+| `compiled_asset_ledger_v1/` | ✅ 编译资产 inventory ledger:`manifest.json`、`asset_groups.json`、`files.jsonl`、`manifest_refs.jsonl`、`manifest_snapshots/`;当前索引 `artifacts/` 与 `runtime_supply/` 7,133 文件 / 34 组,复制 623 个小型 manifest-like 快照,**compiled_asset_inventory_only / 非 runtime supply / 非 official scoring authority** |
+| `compiled_asset_authority_map_v1/` | ✅ 编译资产 authority map:`manifest.json`、`group_authority.json`、`runtime_pointers.jsonl`、`consumer_policy.json`;34 group 分类,16 条 runtime pointer / manifest 审计,4 published+hash-gated / 12 candidate-blocked,`artifacts/*` 直读允许数仍为 0,**authority_map_only / 非 runtime install / 非 official scoring authority** |
+| `asset_gap_map_v1/` | ⚠️ 资产缺口地图:`manifest.json`、`gap_summary.json`、`gap_items.jsonl`、`action_queues.json`、`next_actions.json`;仍有 9 个开放缺口项(P1 5 / P2 4),含 JSON claim review、PDF compile/provenance、OKF 小问级 alignment、runtime consumer evidence 和 live-reader policy conflict,**asset_gap_map_only / 非 runtime supply / 非 official scoring authority** |
 | `topic_okf_v0/` | ✅ Topic OKF 主题导航层:`manifest.json`、`topics.jsonl`、`source_hits.jsonl`、`summary.md`;覆盖屋面防水/流水施工/网络计划/索赔/质量验收 5 个 P0 主题,并生成 `okf_bundle_v0/topics/*.md`;**ai_topic_navigation_only / 非 runtime supply / 非 official scoring authority / raw hits 不是官方考频** |
+| `raw-data-current-profile.json` / `compiled-assets-current-profile.json` | ✅ 无日期 current profile 是当前 checkout 机器事实;原始层 638/638 JSON 可解析,概念卡 current authority 为 18 个成品 bank / 241 张卡;对应 `2026-06-18-*` 文件保留为历史切片,避免历史报告与 current 争夺 authority。 |
+| `knowledge_compiler_okf_v1/` | ✅ 14 runs / 189 files 的 knowledge-compiler 工作台导航账本;10 candidate + 4 fixture,**非 runtime supply**。 |
+| `luban_grading_artifacts_okf_v1/` | ✅ 347 runs / 3,326 files 的 grading artifact 导航账本;按 area/risk 分类,**非 official scoring authority**。 |
+| `governance_okf_v1/` | ✅ 347 个 plan/runbook/contract/skill 治理文件的 AI-only 导航账本;**不是新的治理 authority**。 |
+| `latest_refresh_manifest.json` | ✅ 18 步刷新 lineage、统一时间戳、git HEAD/branch、目标外 dirty 状态与逐步 exit code;`status=success` 只代表刷新链成功,不代表 9 个资产缺口关闭。 |
 
 ## 待办盘点(下次补)
 

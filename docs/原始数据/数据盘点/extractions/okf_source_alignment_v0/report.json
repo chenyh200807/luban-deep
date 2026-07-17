@@ -1,6 +1,6 @@
 {
   "schema": "luban_okf_source_alignment_report.v0",
-  "generated_at": "2026-06-19T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "status": "case_source_alignment_ready",
   "runtime_guard": {
     "release_stage": "source_alignment",

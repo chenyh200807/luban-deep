@@ -9,7 +9,8 @@ from typing import Any
 from scripts import audit_luban_m35_label_authority as label_audit
 
 
-ROOT = Path("tests/fixtures/luban_m35_case_scoring")
+REPO_ROOT = Path(__file__).resolve().parents[3]
+ROOT = REPO_ROOT / "tests/fixtures/luban_m35_case_scoring"
 MANIFEST = ROOT / "manifest.json"
 ANSWERS = ROOT / "student_answers.jsonl"
 REQUIRED_ANSWER_FIELDS = {

@@ -1,6 +1,6 @@
 {
   "schema": "luban_okf_dry_consumer_receipt.v0",
-  "generated_at": "2026-06-19T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "status": "dry_consumed_non_runtime",
   "compiled_root": "docs/原始数据/数据盘点/extractions/okf_rubric_pilot_v0",
   "runtime_guard": {

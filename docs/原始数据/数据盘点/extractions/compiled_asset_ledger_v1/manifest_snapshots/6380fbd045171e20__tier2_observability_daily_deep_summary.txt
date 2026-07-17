@@ -1,0 +1,200 @@
+FILE=/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/data/runtime/observability/control_plane/daily_trends/observability-daily-1783211889.json
+[
+  "kind",
+  "payload",
+  "recorded_at",
+  "release_id",
+  "run_id"
+]
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": "true",
+  "git_sha": "fb615c3b4e6d",
+  "blockers": null,
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": "FAIL",
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": null,
+  "stale_inputs": null,
+  "benchmark_pass_rate": 1.0,
+  "change_impact_risk_level": "low",
+  "om_ready": true
+}
+FILE=/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/data/runtime/observability/control_plane/release_gate_runs/release-gate-1783211889.json
+[
+  "kind",
+  "payload",
+  "recorded_at",
+  "release_id",
+  "run_id"
+]
+{
+  "run_id": "release-gate-1783211889",
+  "verdict": "TRUSTED",
+  "final_status": "FAIL",
+  "recommendation": "hold",
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": [
+    "runtime_release_dirty"
+  ],
+  "stale_inputs": [],
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": "true",
+  "git_sha": "fb615c3b4e6d",
+  "blockers": null,
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": [
+    "runtime_release_dirty"
+  ],
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": [],
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": [],
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": [],
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": [],
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": [],
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": [],
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}
+{
+  "run_id": null,
+  "verdict": null,
+  "final_status": null,
+  "recommendation": null,
+  "release_gate_status": null,
+  "lineage_verdict": null,
+  "git_dirty": null,
+  "git_sha": null,
+  "blockers": [],
+  "stale_inputs": null,
+  "benchmark_pass_rate": null,
+  "change_impact_risk_level": null,
+  "om_ready": null
+}

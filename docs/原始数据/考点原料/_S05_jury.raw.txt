@@ -1,3 +1,4 @@
+# 原始 jury stdout；机器可读 sidecar 见 `成品/_S05_jury.json`。
 === 4源异源团语义审: S05_临时用电三级配电.md ===  (DeepSeek:有 Qwen:有 Codex:CLI)
 [3 源审完, 220s]
 

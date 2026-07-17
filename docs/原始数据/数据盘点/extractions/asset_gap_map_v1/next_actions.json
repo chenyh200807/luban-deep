@@ -110,7 +110,7 @@
       "order": 9,
       "gap_id": "runtime_candidate_or_blocked_pointers",
       "priority": "P2",
-      "affected_count": 11,
+      "affected_count": 12,
       "action": "Review candidate/blocked pointers one by one; publish only via signed gate.",
       "pass_criteria": "published flag, content hash, schema, signed owner decision, rollback pointer",
       "must_not_do": [

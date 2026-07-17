@@ -1,0 +1,61 @@
+slot,capability_id,capability_title,primary_taxonomy_ref,primary_taxonomy_name,existing_mother_topics,coverage_strength,exam_evidence_hits_candidate,overlap_existing_mother_topics,overlap_registry_capabilities,missing_capability_names,worth_adding,recommended_action,decision_rationale
+1,J01,危大工程范围 + 专项方案 + 专家论证,1A431030-E01,危大工程专家论证——主要内容,J01,strong_direct,94,,,,no,retain_existing,已有独立母题，不新增同义包
+2,S01,脚手架/高大模板支架验收,1A436032,脚手架工程安全管理要点,S01,broad_composite,,,,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+3,S02,起重吊装安全,1A436000-B006,“起重吊装”检查评定保证项目应包括,S02,source_grounded_exam_unmeasured,,,,,no,retain_existing,已有独立母题，不新增同义包
+4,C02,进度款/计量计价,1A432000-C17,工程进度款的支付,C02,strong_direct,74,,E02,,no,retain_existing,已有独立母题，不新增同义包
+5,B02,基坑支护选型与降水/监测,1A413022,基坑支护工程施工,B02,broad_composite,79,G01,G01；G05,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+6,Q01,混凝土养护与裂缝防治,1A413040-R28,混凝土养护,Q01,strong_direct,96,,,,no,retain_existing,已有独立母题，不新增同义包
+7,A01,检验批/分部分项验收程序,1A434020-B018,检验批、分项工程、分部（子分部）工程验收内容,A01,source_grounded_exam_unmeasured,,A02,A02,,no,retain_existing,已有独立母题，不新增同义包
+8,N01,双代号网络计划关键线路/总时差,1A433000-B041,网络计划时差、关键工作与关键线路,N01,strong_direct,27,N02,N02；N04,,no,retain_existing,已有独立母题，不新增同义包
+9,K01,索赔成立与工期/费用计算,1A432000-B001,① 工期索赔计算,K01,broad_composite,55,,K05；K06,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+10,Q03,质量通病: 蜂窝麻面/空鼓裂缝,1A434030,工程质量通病防治,Q03,coarse_boundary,50,C01,C01；D16,,no,refine_existing_boundary,已有母题；先补精确 leaf/source 边界
+11,C04,模板拆除顺序与条件,1A413040-R25,模板拆除要求,C04,strong_direct,142,,,,no,retain_existing,已有独立母题，不新增同义包
+12,Q02,大体积混凝土温控裂缝,1A413074,大体积混凝土施工,Q02,strong_direct,64,,,,no,retain_existing,已有独立母题，不新增同义包
+13,C01,施工缝留置与处理,1A413040-R20,施工缝和后浇带,C01,strong_direct,18,Q03,Q03,,no,retain_existing,已有独立母题，不新增同义包
+14,C05,钢筋连接选用,1A413040-R44,钢筋连接,C05,strong_direct,203,,,,no,retain_existing,已有独立母题，不新增同义包
+15,C06,砌体留槎与构造柱,1A413081,砖砌体工程,C06,coarse_boundary,45,,,,no,refine_existing_boundary,已有母题；先补精确 leaf/source 边界
+16,C07,钢结构连接: 焊接/高强螺栓,1A413043,钢结构工程施工,C07,strong_direct,69,,,,no,retain_existing,已有独立母题，不新增同义包
+17,S05,临时用电: 三级配电两级保护,1A431050,施工临时用电,S05,strong_direct,41,,,,no,retain_existing,已有独立母题，不新增同义包
+18,S06,高处作业/临边洞口防护,1A436035,高处作业安全管理要点,S06,strong_direct,67,,,,no,retain_existing,已有独立母题，不新增同义包
+19,S07,安全事故等级判定与上报,1A436000-B023,伤亡事故等级,S07,coarse_boundary,27,,,,no,refine_existing_boundary,已有母题；先补精确 leaf/source 边界
+20,N02,网络计划工期优化与赶工费用,1A433000-B042,网络计划的优化,N02,strong_direct,32,N01,N01；N04,,no,retain_existing,已有独立母题，不新增同义包
+21,D11,抹灰工序与质量控制,1A434030-E01,装饰装修——抹灰工程,D11,strong_direct,68,,,,no,retain_existing,已有独立母题，不新增同义包
+22,D12,饰面砖/板施工质量与空鼓防治,1A413064,墙体饰面工程施工,D12,broad_composite,58,D14,D14,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+23,D13,幕墙防火/防雷/层间封堵构造,1A413134,建筑幕墙防火、防雷和成品保护技术要求,D13,strong_direct,30,,R04,,no,retain_existing,已有独立母题，不新增同义包
+24,D14,吊顶/门窗/地面装饰质量综合,1A413062,吊顶工程施工,D14,broad_composite,75,D12,D12；D15；D16,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+25,G01,基坑开挖与降水方法选择,1A413037,土方开挖,G01,strong_direct,23,B02,B02,,no,retain_existing,已有独立母题，不新增同义包
+26,G02,土方回填压实与检测,1A413039,土方回填,G02,strong_direct,29,,,,no,retain_existing,已有独立母题，不新增同义包
+27,G03,桩基施工与质量问题,1A413032,桩基础施工,G03,strong_direct,42,,,,no,retain_existing,已有独立母题，不新增同义包
+28,G04,地基验槽与地基处理,1A413048,天然地基验槽,G04,strong_direct,25,,,,no,retain_existing,已有独立母题，不新增同义包
+29,F16,屋面防水起鼓割补,1A434000,施工质量管理,F16,broad_composite,59,F02；F05,F02；F05,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+30,F02,卷材防水施工顺序与搭接方向,1A413103,屋面卷材防水层施工,F02,strong_direct,55,F03；F16,F03；F16,,no,retain_existing,已有独立母题，不新增同义包
+31,F03,防水构造层次: 屋面/地下,1A413100,屋面防水等级和防水做法,F03,broad_composite,83,F02；F04,F02；F04,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+32,F04,防水细部节点: 阴阳角/管根/女儿墙,1A413050-R07,卷材防水层施工,F04,coarse_boundary,32,F03,F03,,no,refine_existing_boundary,已有母题；先补精确 leaf/source 边界
+33,F05,渗漏治理诊断,1A434033,屋面与防水工程质量通病防治,F05,strong_direct,20,F16,F16,,no,retain_existing,已有独立母题，不新增同义包
+34,X01,施工平面布置原则,1A431040,施工平面布置,X01,strong_direct,36,X02,X02,,no,retain_existing,已有独立母题，不新增同义包
+35,X02,临设、道路、材料堆场布置,1A431040,施工平面布置,X02,broad_composite,84,A02；X01,A02；X01,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+36,X03,文明/绿色/环保施工措施,1A437020,绿色施工及环境保护,X03,broad_composite,88,,X04,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+37,R01,现场消防布置、动火、检查、验收流程,1A437030,施工现场消防,R01,broad_composite,18,,R05,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+38,N03,流水施工参数与工期,1A433011,流水施工计划横道图,N03,strong_direct,87,,,,no,retain_existing,已有独立母题，不新增同义包
+39,E05,挣值法/偏差分析,1A435020-B010,应用挣值法控制成本,E05,source_grounded_exam_zero,0,,,,no,retain_existing,已有独立母题，不新增同义包
+40,A02,隐蔽工程验收 + 材料进场复验/见证取样,1A434020-B018,检验批、分项工程、分部（子分部）工程验收内容,A02,broad_composite,77,A01；X02,A01；D17；F06；X02,,no,refine_existing_composite,已有组合母题；先收窄主辅能力边界
+41,E01,工程量清单计价,1A432000-B037,工程量清单计价方式,E01,strong_direct,39,,,,no,retain_existing,已有独立母题，不新增同义包
+42,E02,预付款、起扣点、进度款细分,1A432000-C19,工程预付款、进度款及结算款计算,,missing,,C02,C02,工程预付款的支付,no,enrich_existing_instead,与现有母题共享多数 taxonomy refs；先补现有包
+43,E03,措施费、暂列金额、暂估价判断,1A432000-C08,合同价款确定与调整,,missing,,,E04；K04,合同价款确定与调整；调整合同价款的事项；施工成本管理,conditional,evidence_first,暂列/暂估未命中精确 leaf;需计价 source_ref
+44,E04,竣工结算与价款调整,1A432000-C29,竣工结算申请与支付,,missing,,,E03；K04,竣工结算申请与支付；竣工结算确定与调整；合同价款确定与调整；调整合同价款的事项,yes_candidate,add_after_exam_evidence,存在独立竣工结算能力；先与 E03/K04 划界，再补真题与 source 证据
+45,K03,工程变更与签证,1A432000-C14,工程变更,,missing,,,,工程变更；索赔的管理；索赔的证据,conditional,evidence_first,"工程变更有节点,签证需 source_ref 补证"
+46,K05,工期顺延与费用补偿边界,1A432000-B001,① 工期索赔计算,,missing,,K01,K01；K06,,no,enrich_existing_instead,与现有母题共享多数 taxonomy refs；先补现有包
+47,K06,合同责任事件归属矩阵,1A432000-B004,不可抗力事件的索赔,,missing,,K01,K01；K02；K05,不可抗力事件的索赔；发包人可提出的索赔事项；履约事件的索赔,conditional,candidate_after_boundary_review,有独立能力残差，但需先证明组合边界
+48,R02/R03,耐火等级、疏散距离、防火分区基础数值判断,1A411020-R16,防火、防烟、疏散的要求,,missing,,,,防火、防烟、疏散的要求；表 1.2-1 室内疏散楼梯的最小净宽度（m）；防火门、防火窗和防火卷帘构造的基本要求,conditional,evidence_first,"疏散/防火构造有节点,耐火等级/防火分区缺精确 leaf"
+49,R04,防火封堵与幕墙层间防火,1A413134,建筑幕墙防火、防雷和成品保护技术要求,,missing,,D13,D13,防火堵料,no,enrich_existing_instead,与现有母题共享多数 taxonomy refs；先补现有包
+50,N04,时标网络计划与前锋线判断,1A433000-G02,实际进度前锋线比较法,,missing,,N01；N02,N01；N02,实际进度前锋线比较法,no,enrich_existing_instead,与现有母题共享多数 taxonomy refs；先补现有包
+51,G05,支护结构监测报警与处置,1A413034,基坑监测,,missing,,B02,B02,基坑开挖过程中的测量与监测,no,enrich_existing_instead,与现有母题共享多数 taxonomy refs；先补现有包
+52,K04,合同价款调整触发与计算边界,1A432000-C08,合同价款确定与调整,,missing,,,E03；E04,合同价款确定与调整；合同价款计算与调整；调整合同价款的事项,conditional,hold_until_parent_boundary,默认从 E04/K05 条件拆分
+53,K02,不可抗力责任划分,1A432000-B004,不可抗力事件的索赔,,missing,,,K06,不可抗力事件的索赔,no,merge_into_planned_parent,默认并入 K06
+54,R05,消防验收流程,1A422026,建设工程消防设计审查验收有关规定,,missing,,R01,R01,,conditional,split_only_with_evidence,默认并入 R01;独立需验收流程 source_ref
+55,X05,季节性施工措施: 雨期/冬期/高温,1A413080,季节性施工技术,,missing,,,,季节性施工技术；冬期施工技术；雨期施工技术；高温天气施工技术；表 3.8-1 防水工程冬期施工环境气温要求,conditional,split_only_with_evidence,"场景变体,默认不独立锁定"
+56,F06,防水材料性能与进场复验,1A412031,建筑防水材料的特性与应用,,missing,,A02,A02；D17,建筑防水材料的特性与应用；建筑防水材料的特性与应用；防水卷材；防水卷材的主要性能,no,merge_into_existing,"默认并入 A02,防水为场景"
+57,D17,装饰材料进场复验与见证取样,1A422000-B061,应进行见证取样检验的进场材料,,missing,,A02,A02；D15；F06,门窗（包括天窗）节能施工材料复验要求；装饰装修工程主要隐蔽验收项目,no,merge_into_existing,默认并入 A02
+58,X04,绿色施工措施,1A437013,绿色施工技术应用,,missing,,X03,X03,绿色施工技术应用；绿色施工评价,no,merge_into_existing,默认并入 X03
+59,D15,门窗安装、防渗漏质量控制细分候选,1A413061-R10,门窗洞口安装,,missing,,D14,D14；D17,门窗安装要求；门窗（包括天窗）节能施工材料复验要求；门窗节能工程常见问题治理,conditional,split_only_with_evidence,从 D14 拆分需 source_ref
+60,D16,地面基层与面层质量细分候选,1A413063,地面工程施工,,missing,,D14；Q03,D14；Q03,地面工程施工；建筑地面工程分类,conditional,split_only_with_evidence,从 D14 拆分需 source_ref

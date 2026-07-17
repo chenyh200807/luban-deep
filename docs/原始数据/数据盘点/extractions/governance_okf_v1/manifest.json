@@ -1,6 +1,6 @@
 {
   "schema": "deeptutor_governance_okf_manifest.v1",
-  "generated_at": "2026-06-20T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "authority_status": "ai_project_context_only",
   "runtime_guard": {
     "release_stage": "ai_project_context_only",
@@ -29,36 +29,36 @@
     "summary": "summary.md"
   },
   "counts": {
-    "files": 256,
-    "total_bytes": 5890667,
+    "files": 348,
+    "total_bytes": 7833394,
     "by_domain": {
-      "plan": 188,
-      "agent_skills": 45,
+      "plan": 274,
+      "agent_skills": 50,
       "contracts": 14,
-      "runbook": 7,
+      "runbook": 8,
       "docs_contracts": 2
     },
     "by_area": {
-      "governance_context": 76,
-      "contract_authority": 37,
-      "ci_quality_gate": 31,
-      "data_knowledge": 29,
-      "learner_state": 24,
-      "billing_business": 19,
-      "agent_skill": 11,
-      "release_operations": 10,
-      "wechat_frontend": 10,
+      "governance_context": 145,
+      "contract_authority": 40,
+      "ci_quality_gate": 36,
+      "data_knowledge": 30,
+      "billing_business": 25,
+      "learner_state": 25,
+      "agent_skill": 14,
+      "wechat_frontend": 13,
+      "release_operations": 11,
       "planning_index": 9
     },
     "by_risk_level": {
-      "low": 98,
-      "medium": 80,
-      "high": 78
+      "low": 166,
+      "medium": 95,
+      "high": 87
     },
     "by_extension": {
-      ".md": 246,
+      ".md": 330,
       ".yaml": 9,
-      ".json": 1
+      ".json": 9
     }
   },
   "guardrails": [

@@ -1,0 +1,51 @@
+{
+  "schema": "luban_mother_topic_coverage_audit_manifest.v1",
+  "authority_status": "governance_audit_only",
+  "source_paths": {
+    "registry": "docs/原始数据/考点原料/成品/_pack_taxonomy_registry.v0.json",
+    "manifest": "docs/原始数据/考点原料/成品/_pack_manifest.json",
+    "taxonomy": "docs/原始数据/2026_副本/taxonomy/FINAL_CLEANED_TAXONOMY2026.json"
+  },
+  "source_sha256": {
+    "registry": "52a4aa1861fbfb9d093a47889d8393d22c57137eeb9548b8e26f1a996d59195a",
+    "manifest": "1de2bb8663312f746fce2c2a5b2da7cb71abb052afc689f10ec3916cd9ef3bb5",
+    "taxonomy": "26dbb542b31601d6b3255d53463d0007c0c7eaea5a24ad9c338b3742baa976c8"
+  },
+  "outputs": [
+    "matrix.json",
+    "matrix.csv",
+    "summary.md"
+  ],
+  "counts": {
+    "capability_slots": 60,
+    "existing_mother_topics": 41,
+    "missing_slots": 19,
+    "coverage_strength": {
+      "strong_direct": 23,
+      "broad_composite": 11,
+      "source_grounded_exam_unmeasured": 2,
+      "coarse_boundary": 4,
+      "source_grounded_exam_zero": 1,
+      "missing": 19
+    },
+    "worth_adding": {
+      "no": 50,
+      "conditional": 9,
+      "yes_candidate": 1
+    },
+    "recommended_action": {
+      "retain_existing": 26,
+      "refine_existing_composite": 11,
+      "refine_existing_boundary": 4,
+      "enrich_existing_instead": 5,
+      "evidence_first": 3,
+      "add_after_exam_evidence": 1,
+      "candidate_after_boundary_review": 1,
+      "hold_until_parent_boundary": 1,
+      "merge_into_planned_parent": 1,
+      "split_only_with_evidence": 4,
+      "merge_into_existing": 3
+    },
+    "shared_taxonomy_refs": 40
+  }
+}

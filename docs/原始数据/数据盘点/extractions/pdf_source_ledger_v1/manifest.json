@@ -1,6 +1,6 @@
 {
   "schema": "luban_pdf_source_ledger_manifest.v1",
-  "generated_at": "2026-06-19T00:00:00+08:00",
+  "generated_at": "2026-07-16T14:54:49+08:00",
   "pdf_root": "docs/原始数据/PDF",
   "authority_status": "raw_pdf_evidence_ledger",
   "runtime_guard": {

@@ -5,17 +5,37 @@
       "asset_group": "artifacts/[root_files]",
       "group_kind": "artifact_auxiliary_or_report",
       "authority_status": "artifact_workbench_or_candidate_inventory",
-      "files": 6,
-      "bytes": 581330,
+      "files": 69,
+      "bytes": 3259651,
       "extensions": {
-        ".md": 5,
-        ".pdf": 1
+        ".json": 45,
+        ".md": 20,
+        ".pdf": 1,
+        ".html": 1,
+        ".png": 1,
+        ".py": 1
       },
       "manifest_like_files": 2,
       "largest_files": [
         {
+          "path": "artifacts/luban_case_answer_layer_ui_mockup.png",
+          "bytes": 1485866
+        },
+        {
+          "path": "artifacts/today_dialogs_20260623.json",
+          "bytes": 566742
+        },
+        {
           "path": "artifacts/luban-sales-onepager.pdf",
           "bytes": 429144
+        },
+        {
+          "path": "artifacts/student_army_eval_20260625_full.json",
+          "bytes": 200543
+        },
+        {
+          "path": "artifacts/tutorbot_fix_test_journal.md",
+          "bytes": 86940
         },
         {
           "path": "artifacts/luban-marketing-round2.md",
@@ -28,14 +48,6 @@
         {
           "path": "artifacts/luban-nexus-research-report.md",
           "bytes": 23991
-        },
-        {
-          "path": "artifacts/luban-marketing-round3-website-copy.md",
-          "bytes": 23909
-        },
-        {
-          "path": "artifacts/luban-sales-onepager.md",
-          "bytes": 2163
         }
       ]
     },
@@ -109,6 +121,78 @@
       ]
     },
     {
+      "asset_group": "artifacts/authority_baseline",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 2,
+      "bytes": 21024,
+      "extensions": {
+        ".json": 2
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/authority_baseline/831a98e73/inventory.json",
+          "bytes": 19755
+        },
+        {
+          "path": "artifacts/authority_baseline/831a98e73/before_after_counts.json",
+          "bytes": 1269
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/automation-runs",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 224,
+      "bytes": 1735258,
+      "extensions": {
+        ".log": 127,
+        ".json": 36,
+        ".md": 32,
+        ".txt": 24,
+        "[no_ext]": 2,
+        ".html": 2,
+        ".list": 1
+      },
+      "manifest_like_files": 31,
+      "largest_files": [
+        {
+          "path": "artifacts/automation-runs/daily-bug-scan/20260705T083137+0800/read_plan_INDEX.txt",
+          "bytes": 156710
+        },
+        {
+          "path": "artifacts/automation-runs/daily-bug-scan/20260706T083211+0800/logs/docs_plan_INDEX.head.log",
+          "bytes": 153242
+        },
+        {
+          "path": "artifacts/automation-runs/deeptutor-observability-oa-om-report/20260708T092319+0800/tmp/observability/control_plane/arr/arr_run_lite_20260708_092346.json",
+          "bytes": 103793
+        },
+        {
+          "path": "artifacts/automation-runs/deeptutor-observability-oa-om-report/20260709T092348+0800/tmp/observability/control_plane/arr/arr_run_lite_20260709_092405.json",
+          "bytes": 103793
+        },
+        {
+          "path": "artifacts/automation-runs/daily-bug-scan/20260705T083137+0800/tier0_diff_env.txt",
+          "bytes": 72841
+        },
+        {
+          "path": "artifacts/automation-runs/deeptutor-observability-oa-om-report/20260709T092348+0800/tmp/observability/control_plane/plan_completion/plan-completion-1783560247.json",
+          "bytes": 70310
+        },
+        {
+          "path": "artifacts/automation-runs/deeptutor-observability-oa-om-report/20260708T092319+0800/tmp/observability/control_plane/plan_completion/plan-completion-1783473829.json",
+          "bytes": 62903
+        },
+        {
+          "path": "artifacts/automation-runs/deeptutor-observability-oa-om-report/2026-07-12/payloads/oa-daily-1783905684.json",
+          "bytes": 60670
+        }
+      ]
+    },
+    {
       "asset_group": "artifacts/bi_reconciliation_20260612",
       "group_kind": "artifact_auxiliary_or_report",
       "authority_status": "artifact_workbench_or_candidate_inventory",
@@ -169,6 +253,52 @@
         {
           "path": "artifacts/billing_golive/wallet_projection_rebuild.json",
           "bytes": 866
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/cc_student_eval_p04",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 1,
+      "bytes": 4,
+      "extensions": {
+        ".txt": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/cc_student_eval_p04/q.txt",
+          "bytes": 4
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/fix_test_log",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 4,
+      "bytes": 16363,
+      "extensions": {
+        ".md": 4
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/fix_test_log/2026-06-29-inline-question-set-registration.md",
+          "bytes": 6997
+        },
+        {
+          "path": "artifacts/fix_test_log/2026-07-13-observability-source-authority.md",
+          "bytes": 3567
+        },
+        {
+          "path": "artifacts/fix_test_log/2026-07-01-stale-active-set-on-new-question.md",
+          "bytes": 3079
+        },
+        {
+          "path": "artifacts/fix_test_log/2026-07-05-explicit-question-count-authority.md",
+          "bytes": 2720
         }
       ]
     },
@@ -349,30 +479,83 @@
       ]
     },
     {
-      "asset_group": "artifacts/luban_case_family_assets",
-      "group_kind": "case_family_multimedia_assets",
+      "asset_group": "artifacts/luban_answer_layer_audit",
+      "group_kind": "artifact_auxiliary_or_report",
       "authority_status": "artifact_workbench_or_candidate_inventory",
-      "files": 232,
-      "bytes": 85881117,
+      "files": 17,
+      "bytes": 57489,
       "extensions": {
-        ".png": 105,
-        ".json": 36,
-        ".html": 30,
-        ".md": 15,
-        ".mp3": 13,
-        ".py": 12,
-        ".mjs": 9,
-        ".tsx": 5,
-        ".mp4": 4,
-        ".svg": 1,
-        "[no_ext]": 1,
-        ".ts": 1
+        ".json": 17
       },
       "manifest_like_files": 0,
       "largest_files": [
         {
+          "path": "artifacts/luban_answer_layer_audit/K01_cross_model_audit.json",
+          "bytes": 5654
+        },
+        {
+          "path": "artifacts/luban_answer_layer_audit/A01.json",
+          "bytes": 4519
+        },
+        {
+          "path": "artifacts/luban_answer_layer_audit/Q01.json",
+          "bytes": 4133
+        },
+        {
+          "path": "artifacts/luban_answer_layer_audit/G03.json",
+          "bytes": 4092
+        },
+        {
+          "path": "artifacts/luban_answer_layer_audit/B02.json",
+          "bytes": 4022
+        },
+        {
+          "path": "artifacts/luban_answer_layer_audit/A02.json",
+          "bytes": 4003
+        },
+        {
+          "path": "artifacts/luban_answer_layer_audit/F03.json",
+          "bytes": 3683
+        },
+        {
+          "path": "artifacts/luban_answer_layer_audit/D12.json",
+          "bytes": 3246
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_case_family_assets",
+      "group_kind": "case_family_multimedia_assets",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 1908,
+      "bytes": 468199612,
+      "extensions": {
+        ".mp3": 887,
+        ".png": 331,
+        ".json": 253,
+        ".html": 218,
+        ".tsx": 47,
+        ".md": 44,
+        ".zip": 37,
+        ".js": 21,
+        ".css": 20,
+        ".py": 18,
+        ".mjs": 17,
+        "[no_ext]": 6,
+        ".mp4": 4,
+        ".svg": 3,
+        ".sh": 1,
+        ".ts": 1
+      },
+      "manifest_like_files": 33,
+      "largest_files": [
+        {
           "path": "artifacts/luban_case_family_assets/diagram_microlesson/N01_network_video_first.remotion.mp4",
           "bytes": 14710637
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/原zip动画文件/S07安全事故等级判定与上报.zip",
+          "bytes": 13546831
         },
         {
           "path": "artifacts/luban_case_family_assets/diagram_microlesson/S01_scaffold_template_acceptance.remotion.mp4",
@@ -383,24 +566,20 @@
           "bytes": 3085092
         },
         {
-          "path": "artifacts/luban_case_family_assets/diagram_microlesson/J01_mvp_render.lesson.mp3",
-          "bytes": 2084731
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/P40_S02/P40_S02.lesson.mp3",
+          "bytes": 2721083
         },
         {
-          "path": "artifacts/luban_case_family_assets/diagram_microlesson/remotion_demo/out/joint-workflow.mp4",
-          "bytes": 1975456
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/P40_S02.lesson.mp3",
+          "bytes": 2721083
         },
         {
-          "path": "artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.rendered.mobile.practice_feedback.png",
-          "bytes": 1660034
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.lesson.mp3",
+          "bytes": 2721083
         },
         {
-          "path": "artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.rendered.mobile.error_reveal.png",
-          "bytes": 1649999
-        },
-        {
-          "path": "artifacts/luban_case_family_assets/diagram_microlesson/J01_danger_work_expert_argumentation.dialogue.mp3",
-          "bytes": 1613614
+          "path": "artifacts/luban_case_family_assets/原zip动画文件/S02起重吊装安全.zip",
+          "bytes": 2701189
         }
       ]
     },
@@ -508,14 +687,61 @@
       ]
     },
     {
+      "asset_group": "artifacts/luban_governed_gold",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 8,
+      "bytes": 1131964,
+      "extensions": {
+        ".json": 4,
+        ".csv": 3,
+        ".md": 1
+      },
+      "manifest_like_files": 1,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_governed_gold/j01_20260705_9e0013384bc6/blind_packets.json",
+          "bytes": 837843
+        },
+        {
+          "path": "artifacts/luban_governed_gold/j01_20260705_9e0013384bc6/slice_manifest.json",
+          "bytes": 206701
+        },
+        {
+          "path": "artifacts/luban_governed_gold/j01_20260705_9e0013384bc6/ai_prelabel.json",
+          "bytes": 51009
+        },
+        {
+          "path": "artifacts/luban_governed_gold/j01_20260705_9e0013384bc6/ai_prelabel.csv",
+          "bytes": 17366
+        },
+        {
+          "path": "artifacts/luban_governed_gold/j01_20260705_9e0013384bc6/annotation_template_annotatorA.csv",
+          "bytes": 7390
+        },
+        {
+          "path": "artifacts/luban_governed_gold/j01_20260705_9e0013384bc6/annotation_template_annotatorB.csv",
+          "bytes": 7390
+        },
+        {
+          "path": "artifacts/luban_governed_gold/j01_20260705_9e0013384bc6/annotation_runbook.md",
+          "bytes": 3022
+        },
+        {
+          "path": "artifacts/luban_governed_gold/j01_20260705_9e0013384bc6/frozen_definitions.json",
+          "bytes": 1243
+        }
+      ]
+    },
+    {
       "asset_group": "artifacts/luban_grading_artifacts",
       "group_kind": "grading_compiler_shadow_workbench",
       "authority_status": "artifact_workbench_or_candidate_inventory",
-      "files": 3314,
-      "bytes": 342826336,
+      "files": 3327,
+      "bytes": 367181176,
       "extensions": {
-        ".json": 2241,
-        ".md": 627,
+        ".json": 2253,
+        ".md": 628,
         ".jsonl": 295,
         ".py": 45,
         ".db": 22,
@@ -528,7 +754,7 @@
         ".yml": 3,
         ".html": 1
       },
-      "manifest_like_files": 353,
+      "manifest_like_files": 359,
       "largest_files": [
         {
           "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_source_gap_20260612/source_gap_candidates.json",
@@ -789,6 +1015,49 @@
       ]
     },
     {
+      "asset_group": "artifacts/product-research",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 7,
+      "bytes": 1193738,
+      "extensions": {
+        ".png": 3,
+        ".html": 3,
+        ".json": 1
+      },
+      "manifest_like_files": 1,
+      "largest_files": [
+        {
+          "path": "artifacts/product-research/2026-07-10-homepage-first-experience/report.html",
+          "bytes": 564051
+        },
+        {
+          "path": "artifacts/product-research/2026-07-10-homepage-first-experience/report-runtime.html",
+          "bytes": 322414
+        },
+        {
+          "path": "artifacts/product-research/2026-07-10-homepage-first-experience/assets/real-wechat-chat-home.png",
+          "bytes": 181227
+        },
+        {
+          "path": "artifacts/product-research/2026-07-10-homepage-first-experience/assets/bi-overview.png",
+          "bytes": 69288
+        },
+        {
+          "path": "artifacts/product-research/2026-07-10-homepage-first-experience/report-shell.html",
+          "bytes": 35171
+        },
+        {
+          "path": "artifacts/product-research/2026-07-10-homepage-first-experience/assets/web-home-mirror.png",
+          "bytes": 21568
+        },
+        {
+          "path": "artifacts/product-research/2026-07-10-homepage-first-experience/report-payload.json",
+          "bytes": 19
+        }
+      ]
+    },
+    {
       "asset_group": "artifacts/qa",
       "group_kind": "artifact_auxiliary_or_report",
       "authority_status": "artifact_workbench_or_candidate_inventory",
@@ -840,6 +1109,70 @@
       ]
     },
     {
+      "asset_group": "artifacts/qa_tmp",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 1,
+      "bytes": 263,
+      "extensions": {
+        ".txt": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/qa_tmp/army2_msg_social.txt",
+          "bytes": 263
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/quality_gate",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 32,
+      "bytes": 279608,
+      "extensions": {
+        ".json": 21,
+        ".log": 9,
+        ".md": 2
+      },
+      "manifest_like_files": 5,
+      "largest_files": [
+        {
+          "path": "artifacts/quality_gate/scheduled/redeploy_leakv2_20260706_000033.log",
+          "bytes": 47236
+        },
+        {
+          "path": "artifacts/quality_gate/scheduled/redeploy_leak_20260705_141052.log",
+          "bytes": 41126
+        },
+        {
+          "path": "artifacts/quality_gate/accuracy_seal_2026-07-01_005432/gate_summary.json",
+          "bytes": 25867
+        },
+        {
+          "path": "artifacts/quality_gate/scheduled/20260704_142239/gate/gate_summary.json",
+          "bytes": 25701
+        },
+        {
+          "path": "artifacts/quality_gate/scheduled/rollback2_main_20260706_000735.log",
+          "bytes": 23474
+        },
+        {
+          "path": "artifacts/quality_gate/round2_2026-07-01/gate3_112431/gate_summary.json",
+          "bytes": 23126
+        },
+        {
+          "path": "artifacts/quality_gate/scheduled/rollback_main_20260705_170939.log",
+          "bytes": 17065
+        },
+        {
+          "path": "artifacts/quality_gate/scheduled/manual_verify_20260704_142239.log",
+          "bytes": 4983
+        }
+      ]
+    },
+    {
       "asset_group": "artifacts/security",
       "group_kind": "artifact_auxiliary_or_report",
       "authority_status": "artifact_workbench_or_candidate_inventory",
@@ -857,21 +1190,127 @@
       ]
     },
     {
+      "asset_group": "artifacts/student_army_eval",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 4,
+      "bytes": 44799,
+      "extensions": {
+        ".md": 4
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/student_army_eval/root_cause_panel_2026-07-12.md",
+          "bytes": 15599
+        },
+        {
+          "path": "artifacts/student_army_eval/student_army_eval_rerun2_2026-06-29.md",
+          "bytes": 10761
+        },
+        {
+          "path": "artifacts/student_army_eval/accuracy_seal_2026-07-01.md",
+          "bytes": 10237
+        },
+        {
+          "path": "artifacts/student_army_eval/accuracy_eval_2026-06-30.md",
+          "bytes": 8202
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/student_army_tmp",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 1,
+      "bytes": 219,
+      "extensions": {
+        ".txt": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/student_army_tmp/msg.txt",
+          "bytes": 219
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/tmp",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 18,
+      "bytes": 504475,
+      "extensions": {
+        ".json": 11,
+        ".md": 5,
+        ".html": 2
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/tmp/observability/control_plane/arr/arr_run_lite_20260712_092243.json",
+          "bytes": 103793
+        },
+        {
+          "path": "artifacts/tmp/observability/control_plane/arr/arr_run_lite_20260713_092122.json",
+          "bytes": 103793
+        },
+        {
+          "path": "artifacts/tmp/observability/control_plane/plan_completion/plan-completion-1783905684.json",
+          "bytes": 77905
+        },
+        {
+          "path": "artifacts/tmp/observability/control_plane/plan_completion/plan-completion-1783819366.json",
+          "bytes": 70211
+        },
+        {
+          "path": "artifacts/tmp/observability/control_plane/benchmark/benchmark_run_20260706_092310.json",
+          "bytes": 51144
+        },
+        {
+          "path": "artifacts/tmp/observability/control_plane/benchmark/benchmark_run_20260711_092249.json",
+          "bytes": 51144
+        },
+        {
+          "path": "artifacts/tmp/observability/control_plane/observer/raw_data_latest.json",
+          "bytes": 20372
+        },
+        {
+          "path": "artifacts/tmp/observability/control_plane/run_history_latest.json",
+          "bytes": 6374
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/ui-prototypes",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 1,
+      "bytes": 48638,
+      "extensions": {
+        ".html": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/ui-prototypes/princess-coloring-game.html",
+          "bytes": 48638
+        }
+      ]
+    },
+    {
       "asset_group": "runtime_supply",
       "group_kind": "runtime_supply_mixed_published_and_candidate",
       "authority_status": "runtime_supply_inventory_mixed_publication_status",
-      "files": 57,
-      "bytes": 27623686,
+      "files": 59,
+      "bytes": 25328557,
       "extensions": {
-        ".json": 49,
-        ".jsonl": 8
+        ".json": 50,
+        ".jsonl": 9
       },
-      "manifest_like_files": 18,
+      "manifest_like_files": 19,
       "largest_files": [
-        {
-          "path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context/rich_leaf_context_bundle.json",
-          "bytes": 5737635
-        },
         {
           "path": "deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full/kb_v5_chunks_full.json",
           "bytes": 3701405
@@ -879,6 +1318,10 @@
         {
           "path": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge/canonical_unified_knowledge.json",
           "bytes": 3383793
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context/rich_leaf_context_bundle.json",
+          "bytes": 2938860
         },
         {
           "path": "deeptutor/services/construction_grading/runtime_supply/v3_objective_records_released_m31/objective_answer_key_release_candidate_m31.json",
