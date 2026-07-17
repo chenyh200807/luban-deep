@@ -332,6 +332,21 @@ function buildCanonicalLearningTask(args) {
     return _decorate(practiceTask);
   }
   if (mode !== "learn_next") return null;
+  // owner 2026-07-17 拍板:「继续学习」改「继续练习」——学习主任务优先练
+  // 教学视频后面的练习题(retest forward,633 池);仅当该站练习池未签发时
+  // 才回落「进站看讲解」。供给真值仍由 _practiceKindFor 单点裁决,无第二处方。
+  if (_practiceKindFor(packId, titleIdx) === "retest") {
+    var learnPractice = _retestTask(
+      pack.title || "最需要提分的考点",
+      packId,
+      _str(nextStep.reason),
+      "retest",
+      "learn_next",
+    );
+    learnPractice.cta = "练教学视频后面的 5 题，错了当场弄懂";
+    learnPractice.ctaLabel = "继续练习";
+    return _decorate(learnPractice);
+  }
   return _decorate(_lessonTask({
     pack_id: packId,
     title: pack.title || "即将开通",
