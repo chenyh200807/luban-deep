@@ -268,6 +268,11 @@
 /* 副文 11.5px→22rpx:单行保排版,与设计一致(低于 24rpx 下限的既有例外口径) */
 .lr-rvc-sub { font-size: 22rpx; color: var(--pk-t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lr-rvc-go { flex-shrink: 0; padding: 17rpx 28rpx; border-radius: 21rpx; background: rgba(72, 128, 106, 0.12); font-size: 24rpx; font-weight: 800; color: var(--pk-grn); }
+/* 复习空态(无到期):诚实排期占位——配色比到期卡更弱(墨灰,不用竹青强调),
+   传达"暂无到期",复用既有 --pk-* token,不引新色;不可点(无 bindtap)。 */
+.lr-rvc-ic--empty { background: rgba(38, 36, 31, 0.05); }
+.lr-rvc-ic--empty .lr-rvc-glyph { color: var(--pk-t3); }
+.lr-rvc-go--muted { background: rgba(38, 36, 31, 0.05); color: var(--pk-t3); font-weight: 700; }
 
 /* 今日任务无供给降级说明(cta 空时渲染) */
 .lr-supply-note { margin-top: 14rpx; color: var(--pk-t2); }

@@ -313,7 +313,10 @@ Page({
         wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
       return;
     }
-    var task = (this.data.vm && this.data.vm.todayTask) || {};
+    // 任务卡渲染源 = taskCard(todayTask || browseTask 单一入口);browse 兜底卡
+    // 与真今日任务同构,主按钮路由复用同一 handler(禁第二套路由)。
+    var vmData = this.data.vm || {};
+    var task = vmData.taskCard || vmData.todayTask || {};
     var packId = encodeURIComponent(String(task.pack_id || ""));
     if (task.action_kind === "lesson" && packId) {
       this._navTo(route.lubanStation(String(task.pack_id || "")));
@@ -346,7 +349,8 @@ Page({
         wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
       return;
     }
-    var task = (this.data.vm && this.data.vm.todayTask) || {};
+    var vmData = this.data.vm || {};
+    var task = vmData.taskCard || vmData.todayTask || {};
     if (task.task_state === "review_due") {
       if (typeof wx !== "undefined" && wx.showToast)
         wx.showToast({ title: "先完成今天的到期验证", icon: "none" });
