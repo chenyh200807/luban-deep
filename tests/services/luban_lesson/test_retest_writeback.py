@@ -144,6 +144,10 @@ class _NonLexicalEventIdLearnerState(_LearnerState):
 def signed_pack(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "1")
     monkeypatch.setenv("LUBAN_LIGHT_PRACTICE_ENABLED", "1")
+    # These cases model the legacy / compiled_html dispatch (faked signed_variant
+    # supply). Pin is_compiled_practice_pack=False so the kind-aware dispatch takes
+    # the retest_supply_identity path bit-for-bit (variant-probe cases patch it True).
+    monkeypatch.setattr(module, "is_compiled_practice_pack", lambda pack_id: False)
     items = [
         {
             "variant_id": "F16-v1",
@@ -1111,3 +1115,193 @@ def test_forward_compiled_html_rejects_unknown_option_before_write(
         )
 
     assert learner.events == []
+
+
+# ---------------------------------------- signed_variant-on-compiled 变体探针消费（切片二）
+
+_PROBE_DIGEST = "ab" * 32
+
+
+def _probe_rows() -> list[dict[str, Any]]:
+    return [
+        {
+            "variant_id": "S05-A-ic-000",
+            "rule_group": "A-send",
+            "surface": "送电顺序：总配电箱→分配电箱→开关箱",
+            "expected_ok": True,
+            "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+            "anchor": "kc:s05:1",
+            "fact_id": "s05-fact-send-order",
+            "skeleton_id": "skel-a1",
+            "probe_role": "immediate_confirm",
+            "temptation": "送电与停电顺序容易记反。",
+            "loss_reason": "顺序判错阅卷零分。",
+        },
+        {
+            "variant_id": "S05-A-ic-001",
+            "rule_group": "A-send",
+            "surface": "送电顺序：总配电箱→开关箱→分配电箱",
+            "expected_ok": False,
+            "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+            "anchor": "kc:s05:1",
+            "fact_id": "s05-fact-send-order",
+            "skeleton_id": "skel-a2",
+            "probe_role": "immediate_confirm",
+            "temptation": "把开关箱提前了。",
+            "loss_reason": "违反送电总→分→开关顺序。",
+        },
+    ]
+
+
+def _pin_variant_probe(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    rows: list[dict[str, Any]] | None,
+    digest: str = _PROBE_DIGEST,
+    identity_digest: str | None = None,
+) -> None:
+    monkeypatch.setattr(module, "is_compiled_practice_pack", lambda pack_id: True)
+    monkeypatch.setattr(
+        module,
+        "variant_probe_supply_identity",
+        lambda *a, **k: {"kind": "signed_variant", "digest": identity_digest or digest},
+    )
+    monkeypatch.setattr(
+        module,
+        "resolve_variant_probe_items",
+        lambda *a, **k: (list(rows) if rows is not None else None),
+    )
+    monkeypatch.setattr(
+        module,
+        "build_lesson_viewmodel",
+        lambda pack_id: {"pack_id": pack_id, "title": "S05 送电停电顺序"},
+    )
+
+
+def _probe_answers(*, first: bool, second: bool) -> list[dict[str, Any]]:
+    return [
+        {"variant_id": "S05-A-ic-000", "choice_ok": first},
+        {"variant_id": "S05-A-ic-001", "choice_ok": second},
+    ]
+
+
+def _complete_probe(
+    service: RetestWritebackService, *, mode: str, answers: list[dict[str, Any]], **over: Any
+) -> dict[str, Any]:
+    canonical_mode = "review" if over.get("probe_id") else mode
+    token = issue_retest_selection(
+        user_id="qa_eval_first_run_loop",
+        pack_id="S05",
+        day_index=2026192,
+        mode=canonical_mode,
+        variant_ids=[a["variant_id"] for a in answers],
+        supply_kind="signed_variant",
+        supply_digest=_PROBE_DIGEST,
+        probe_id=str(over.get("probe_id") or ""),
+        cycle_anchor="cycle-s05-v1" if canonical_mode == "review" else "",
+    )
+    payload = {
+        "user_id": "qa_eval_first_run_loop",
+        "completion_id": over.get("completion_id", "probe-completion-1"),
+        "pack_id": "S05",
+        "mode": mode,
+        "day_index": 2026192,
+        "answers": answers,
+        "training_intent_id": over.get("training_intent_id", ""),
+        "probe_id": str(over.get("probe_id") or ""),
+        "selection_id": token,
+    }
+    return service.complete(**payload)
+
+
+def _probe_service(learner: _LearnerState) -> RetestWritebackService:
+    return RetestWritebackService(
+        learner_state_service=learner,
+        review_probe_resolver=lambda **_kwargs: {
+            "due": True,
+            "cycle_anchor": "cycle-s05-v1",
+        },
+        training_intent_validator=lambda **_kwargs: True,
+    )
+
+
+def test_variant_probe_forward_completes_full_chain(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _pin_variant_probe(monkeypatch, rows=_probe_rows())
+    learner = _LearnerState()
+    result = _complete_probe(
+        _probe_service(learner), mode="forward", answers=_probe_answers(first=True, second=False)
+    )
+    assert result["score"] == {"correct_count": 2, "question_count": 2}
+    assert result["learning_change"]["reason"] == "signed_variant_server_rescore"
+    # public_item 带错后诊断文案（无 fix，不造）。
+    pub = {item["variant_id"]: item for item in result["items"]}
+    assert pub["S05-A-ic-000"]["feedback"] == {
+        "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+        "temptation": "送电与停电顺序容易记反。",
+        "loss_reason": "顺序判错阅卷零分。",
+    }
+    assert "fix" not in pub["S05-A-ic-000"]["feedback"]
+    # item event 带 fact/probe_role 溯源；boolean 判分权威。
+    item_events = [
+        e
+        for e in learner.events
+        if e.source_feature == "assessment_testset"
+        and not e.payload_json.get("completion_terminal")
+    ]
+    assert all(e.payload_json["probe_role"] == "immediate_confirm" for e in item_events)
+    assert all(e.payload_json["fact_id"] == "s05-fact-send-order" for e in item_events)
+    assert all(
+        e.payload_json["quality"]["authority"] == "signed_variant_server_rescore"
+        for e in item_events
+    )
+    assert all(e.payload_json["claim_promotion_allowed"] is False for e in item_events)
+
+
+def test_variant_probe_supply_drift_rejects_before_write(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 供给 identity 漂移（digest 变）→ selection 失配 → fail-closed 不写。
+    _pin_variant_probe(monkeypatch, rows=_probe_rows(), identity_digest="cd" * 32)
+    learner = _LearnerState()
+    with pytest.raises(ValueError, match="retest_selection_invalid"):
+        _complete_probe(
+            _probe_service(learner), mode="forward", answers=_probe_answers(first=True, second=False)
+        )
+    assert learner.events == []
+
+
+def test_variant_probe_revoked_after_signing_fails_answer_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # identity 未变（token 有效）但 canonical 解析 None（撤发/不再 eligible）
+    # → answer_set_mismatch（fail-closed）。
+    _pin_variant_probe(monkeypatch, rows=None)
+    learner = _LearnerState()
+    with pytest.raises(ValueError, match="retest_answer_set_mismatch"):
+        _complete_probe(
+            _probe_service(learner), mode="forward", answers=_probe_answers(first=True, second=False)
+        )
+    assert learner.events == []
+
+
+def test_variant_probe_review_d1_promotes_l2(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rows = [dict(row, probe_role="d1_probe") for row in _probe_rows()]
+    _pin_variant_probe(monkeypatch, rows=rows)
+    learner = _LearnerState()
+    result = _complete_probe(
+        _probe_service(learner),
+        mode="review",
+        probe_id="probe-s05",
+        answers=_probe_answers(first=True, second=False),
+    )
+    terminal = next(
+        e for e in learner.events if e.payload_json.get("completion_terminal")
+    )
+    assert terminal.payload_json["quality"]["evidence_level"] == "L2_real_retest"
+    assert terminal.payload_json["prescription_result"]["status"] == "verified"
+    assert terminal.payload_json["quality"]["authority"] == "signed_variant_server_rescore"
+    assert result["learning_change"]["status"] == "verification_passed"

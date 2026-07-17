@@ -54,6 +54,10 @@ def build_review_due_projection(
         for pack_id, entry in sorted(packs.items())
         if pack_id in green and str(entry.get("last_completion_at") or "")
     ]
+    state_by_pack = {
+        str(candidate["node_id"]).strip().upper(): str(candidate.get("state") or "")
+        for candidate in candidates
+    }
     queue = build_revalidation_queue_projection(
         user_id=user_id, candidates=candidates, now_iso=now_iso, exam_date_iso=exam_date_iso
     )
@@ -73,6 +77,9 @@ def build_review_due_projection(
                 "title": green[pack_id]["title"],
                 "probe_id": str(item.get("probe_id") or ""),
                 "due_at": str(item.get("due_at") or ""),
+                # 档位状态透传（不新建调度语义）：fresh=D+1 首验(归 anchor MCQ)、
+                # weak/stable=D+3/D+7 抽查(变体探针候选)；调度真值仍归 revalidation_queue。
+                "state": state_by_pack.get(pack_id, ""),
                 "review_status": str((packs.get(pack_id) or {}).get("last_review_status") or ""),
                 "successful_review_streak": int((packs.get(pack_id) or {}).get("successful_review_streak") or 0),
                 "cycle_anchor": str((packs.get(pack_id) or {}).get("review_cycle_anchor") or ""),

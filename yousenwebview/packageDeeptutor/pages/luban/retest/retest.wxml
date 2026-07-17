@@ -184,6 +184,12 @@
           </view>
           <text class="rt-receipt-clean" wx:if="{{!wrongItems.length && total}}">本轮五题全对，已经记录；是否稳定，等下一次换皮验证。</text>
 
+          <!-- 错后当场确认(变体判断题消费点1): 有 immediate_confirm 供给的错题才亮; 纯导航零第二权威 -->
+          <view class="rt-cc-link" wx:if="{{showConfirmEntry}}" catchtap="goConfirmFacts">
+            <text class="rt-cc-link-tx">把刚才做错的 {{confirmEntryFacts.length}} 个考点 · 换身皮当场再确认</text>
+            <text class="rt-cc-link-arrow">›</text>
+          </view>
+
           <!-- 三角回路: 复测→考点卡(错了去背给分词;全对去巩固) 纯导航零第二权威 -->
           <view class="rt-cc-link" catchtap="goConceptCards">
             <text class="rt-cc-link-tx">{{wrongItems.length ? '翻这一站的考点卡 · 把给分词背上' : '翻这一站的考点卡 · 趁热再巩固'}}</text>

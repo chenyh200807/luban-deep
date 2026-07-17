@@ -343,6 +343,49 @@ def test_variantless_green_pack_marks_retest_unavailable():
     assert out["due"][0]["retest_available"] is False
 
 
+def test_due_item_carries_state_for_probe_tier_selection():
+    """due item 透传 state（fresh/weak/stable）——变体探针消费点2 据此在 D+3/D+7
+    抽查（weak/stable）换 d1_probe 变体，D+1 首验（fresh）恒走 anchor MCQ。"""
+    fresh = build_review_due_projection(
+        user_id="u1",
+        events=_completion_pair("2026-07-03T22:00:00+08:00", "F16", completion_id="cmp_f16_1"),
+        now_iso="2026-07-04T09:00:00+08:00",
+    )
+    assert fresh["due"][0]["state"] == "fresh"
+
+    verified = build_review_due_projection(
+        user_id="u1",
+        events=[
+            *_completion_pair("2026-07-01T09:00:00+08:00", "F16", completion_id="fwd"),
+            *_completion_pair(
+                "2026-07-02T09:30:00+08:00",
+                "F16",
+                completion_id="r1",
+                mode="review",
+                score_ratio=1.0,
+            ),
+        ],
+        now_iso="2026-07-05T10:00:00+08:00",
+    )
+    assert verified["due"][0]["state"] == "stable"
+
+    weak = build_review_due_projection(
+        user_id="u1",
+        events=[
+            *_completion_pair("2026-07-01T09:00:00+08:00", "F16", completion_id="fwd"),
+            *_completion_pair(
+                "2026-07-02T09:30:00+08:00",
+                "F16",
+                completion_id="r1f",
+                mode="review",
+                score_ratio=0.5,
+            ),
+        ],
+        now_iso="2026-07-05T10:00:00+08:00",
+    )
+    assert weak["due"][0]["state"] == "weak"
+
+
 def test_review_due_endpoint_flag_off_returns_empty(monkeypatch):
     """路由旗标关(默认) = fail-closed 空投影(enabled=false), 形状稳定不 404。"""
     import asyncio
