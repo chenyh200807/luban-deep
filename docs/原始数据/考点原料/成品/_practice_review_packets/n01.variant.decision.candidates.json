@@ -5,7 +5,7 @@
   "pack_id": "N01",
   "bank_status": "signed",
   "generated_from_bank_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-  "candidate_count": 43,
+  "candidate_count": 40,
   "facts": [
     {
       "fact_id": "n01-fact-critical-work-zero-float",
@@ -29,7 +29,8 @@
           "variant_id": "N01-html-practice-html-q16-ec778529e37e",
           "match_score": 0.314
         }
-      ]
+      ],
+      "adjudicated_note": "本 fact 为已签复合事实（判据『总时差最小』/条件取值 TF=0/延误后果），命名沿用 MCQ 签发先例；Codex 对 zero-float 命名的名实异议记录在案，主控终裁保留命名与条目。"
     },
     {
       "fact_id": "n01-fact-delay-vs-total-float",
@@ -88,22 +89,6 @@
         {
           "variant_id": "N01-html-practice-html-q3-ab48a6966a1a",
           "match_score": 0.571
-        }
-      ]
-    },
-    {
-      "fact_id": "n01-fact-network-procedure-order",
-      "rule_group": "F-procedure",
-      "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
-      "variant_count": 3,
-      "core_variant_count": 3,
-      "kc_anchor": "kc:1A433000_055_0084:0",
-      "textbook_quote": "按《网络计划技术 第3部分：在项目管理中应用的一般程序》GB/T 13400.3—2009的规定，网络计划的应用程序包括7个阶段18个步骤，具体程序如下： （1）准备阶段。步骤包括：确定网络计划目标、调查研究、项目分解、工作方案设计。 （2）绘制网络图阶段。步骤包括：逻辑关系分析、网络图构图。 （3）计算参数阶段。步骤包括：计算工作持续时间和搭接时间、计算其他时间参数、确定关键线路。 （4）编制可行网络计划阶段。步骤包括：检查与修正、可行网络计划编制。 （5）确定正式网络计划阶段。步骤包括：网络计划优化、网络计划的确定。 （6）网络计划的实施与控制阶段。步骤包括：网络计划的贯彻、检查和数据采集、控制与调整。 （7）收尾阶段。步骤包括：分析、总结。",
-      "textbook_page": 55,
-      "compiled_mcq_candidates": [
-        {
-          "variant_id": "N01-html-practice-html-q14-106c516e82e7",
-          "match_score": 0.553
         }
       ]
     },
@@ -170,16 +155,16 @@
         "skeleton_id": "n01-vskel-a-line-ok",
         "probe_role": "immediate_confirm",
         "temptation": "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
-        "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整；把对判错同样丢分，判断方向要跟着作答要素走。",
+        "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整，与作答要素一致。",
         "source_anchor": "{2015,案例1} + {2020,案例二问题2}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "296fae15c56257ba5ee39eac497cc85cffc3c8c533e264321c03733892fe8bc0",
-        "decision_identity_sha256": "840e56638f01151a220c86699802dc1a07ba0860cf6982f05440168f709d7c35",
+        "content_sha256": "c5354af6bc31f91aeb6a4bef2fa99f012556768fb1f784d22e4e4426d3393a60",
+        "decision_identity_sha256": "31c610067e07457fde588998c7e5048b7090963711a18eefb41a52b40d2d6b8e",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "296fae15c56257ba5ee39eac497cc85cffc3c8c533e264321c03733892fe8bc0",
-          "reviewed_decision_sha256": "840e56638f01151a220c86699802dc1a07ba0860cf6982f05440168f709d7c35",
+          "reviewed_content_sha256": "c5354af6bc31f91aeb6a4bef2fa99f012556768fb1f784d22e4e4426d3393a60",
+          "reviewed_decision_sha256": "31c610067e07457fde588998c7e5048b7090963711a18eefb41a52b40d2d6b8e",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -188,7 +173,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "f4b2656f3db458be1c45edf27dc03bac28fce024857cf4e61641a647bc7fb59a"
+          "signature_envelope_sha256": "562c1844760b0433edfa98fb8e220040725de71e943112981fbfc0eedd83dfa4"
         }
       }
     },
@@ -314,16 +299,16 @@
         "skeleton_id": "n01-vskel-a-line-ok",
         "probe_role": "immediate_confirm",
         "temptation": "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
-        "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整；把对判错同样丢分，判断方向要跟着作答要素走。",
+        "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整，与作答要素一致。",
         "source_anchor": "{2017,案例一}",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "9843fd206dc5d00861063ff4ebe20d02cda26a674e4a9a5a3b6326d40ad8680b",
-        "decision_identity_sha256": "d0b52a616a16f9af68aef6aa860365710064054250ff49c55cd4b1e18f72b073",
+        "content_sha256": "dda4f1a6f0581c3b2a2ea3cc7396a941624f6afe4fb0ff96e8a4953c54de4abc",
+        "decision_identity_sha256": "3acb5c502f6d653a414f85afe02514fd31d22218adebb2a87439f510e3982904",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "9843fd206dc5d00861063ff4ebe20d02cda26a674e4a9a5a3b6326d40ad8680b",
-          "reviewed_decision_sha256": "d0b52a616a16f9af68aef6aa860365710064054250ff49c55cd4b1e18f72b073",
+          "reviewed_content_sha256": "dda4f1a6f0581c3b2a2ea3cc7396a941624f6afe4fb0ff96e8a4953c54de4abc",
+          "reviewed_decision_sha256": "3acb5c502f6d653a414f85afe02514fd31d22218adebb2a87439f510e3982904",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -332,7 +317,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "aaa80317ea986a26213c00d00b59d4a516b6b9ebdc2d29ef189204af832ed407"
+          "signature_envelope_sha256": "a23fff0e7e9d3f380c757253fe39cb608f431b4b2d0ef0c9c3d7d4f8f4bc4b39"
         }
       }
     },
@@ -350,16 +335,16 @@
         "skeleton_id": "n01-vskel-a-line-ok",
         "probe_role": "immediate_confirm",
         "temptation": "「总时差最小」这个判据平时用得少，看到正确写法反而怀疑是不是漏了什么。",
-        "loss_reason": "关键工作的判据就是「总时差最小」，且必须落到本网络图的具体工作上；本题判据与落点都对，把对判错同样丢分。",
+        "loss_reason": "关键工作的判据就是「总时差最小」，且必须落到本网络图的具体工作上；本题判据与落点都对，与作答要求一致。",
         "source_anchor": "kc:1A433000_056_0085:1",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "698695c67df14819f463606a7d84fa39bdbdf46a1a8674f0276a26f0e8e806b8",
-        "decision_identity_sha256": "2d46267a77141094eb0f2d4ed197bc10f7e9050085ea0882e4f2fbc2f2aeae44",
+        "content_sha256": "e3bef6a8244bf519254261940ba1aecdfa5064c058d9a497c7e0de3c07370e51",
+        "decision_identity_sha256": "941ac88d979a9e6d52a9e2b56c08393a579766af817b774325419cfb57556093",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "698695c67df14819f463606a7d84fa39bdbdf46a1a8674f0276a26f0e8e806b8",
-          "reviewed_decision_sha256": "2d46267a77141094eb0f2d4ed197bc10f7e9050085ea0882e4f2fbc2f2aeae44",
+          "reviewed_content_sha256": "e3bef6a8244bf519254261940ba1aecdfa5064c058d9a497c7e0de3c07370e51",
+          "reviewed_decision_sha256": "941ac88d979a9e6d52a9e2b56c08393a579766af817b774325419cfb57556093",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -368,9 +353,10 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "7f1b621f8af96ced850b70632245a81e15018300068d4bf385e4e563aa0a9c24"
+          "signature_envelope_sha256": "bb8ea943534f4e53d18330ff9ee8972a55dfa22dd80e5e2cf04127ca1fb60c2a"
         }
-      }
+      },
+      "adjudicated_note": "Codex 异议：本条验证「关键工作=总时差最小」判据面，挂 zero-float fact 存在「最小 vs 0」名实张力；主控终裁沿用 MCQ 签发先例保留条目。"
     },
     {
       "variant_id": "N01-A-line-006",
@@ -406,7 +392,8 @@
           },
           "signature_envelope_sha256": "5ce66b62801db3ca5aff5078f74a4c1a49c5b7110eebd44bb0a0214dd33348e0"
         }
-      }
+      },
+      "adjudicated_note": "Codex 异议：本条验证「关键工作=总时差最小」判据面，挂 zero-float fact 存在「最小 vs 0」名实张力；主控终裁沿用 MCQ 签发先例保留条目。"
     },
     {
       "variant_id": "N01-B-expr-007",
@@ -422,16 +409,16 @@
         "skeleton_id": "n01-vskel-b-expr-ok",
         "probe_role": "immediate_confirm",
         "temptation": "总工期只要一个数就够了？看到「线路 + 算式 + 单位」全写反而怀疑是否啰嗦。",
-        "loss_reason": "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全；本题三件都在，把对判错同样丢分。",
+        "loss_reason": "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全；本题三件都在，与作答要求一致。",
         "source_anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "7cab3cd4bf8e7a3fcd55087e0ecfd89540d9cca14d8e6b5552bc81c2be239c30",
-        "decision_identity_sha256": "8d76cdbd2449cbe43d75ad79b9c5a97fd6090ee49269edc381bbdc809456cc17",
+        "content_sha256": "a14042234dcf21b4d747fe49abbb5a5161aeff7f2135dd4e3167847c374fb424",
+        "decision_identity_sha256": "482753c228ef65ecb7102765dadaa57aa26e4d887c1cac170862673f19c25e5f",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "7cab3cd4bf8e7a3fcd55087e0ecfd89540d9cca14d8e6b5552bc81c2be239c30",
-          "reviewed_decision_sha256": "8d76cdbd2449cbe43d75ad79b9c5a97fd6090ee49269edc381bbdc809456cc17",
+          "reviewed_content_sha256": "a14042234dcf21b4d747fe49abbb5a5161aeff7f2135dd4e3167847c374fb424",
+          "reviewed_decision_sha256": "482753c228ef65ecb7102765dadaa57aa26e4d887c1cac170862673f19c25e5f",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -440,7 +427,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "bc39a9fad461c11bbd872e7eb884de8d4f5f5101812d3fb9e76c6c00d6af6ef2"
+          "signature_envelope_sha256": "ff326c62d6aa5c809968fd5e83d8b3325719769be935f3568f4520d186d6ae04"
         }
       }
     },
@@ -746,16 +733,16 @@
         "skeleton_id": "n01-vskel-d-adjust-ok",
         "probe_role": "immediate_confirm",
         "temptation": "进度调整方法有五类，「关键工作调整」是否算一类容易记不牢。",
-        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「关键工作调整」正是其中一类；把对判错同样丢分。",
+        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「关键工作调整」正是其中一类。",
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "0e6160efc20da341a9b93a4ce112db3e68ab4f5131e4e28b377700dfae8d0199",
-        "decision_identity_sha256": "fcd2cd670edf6345f35110dc94284c386872a4a1ee33aeaaa19d53e715e176b0",
+        "content_sha256": "767f7407b433530ccbae3a3148d59685e9464e5b3e79305fcffd3bbc709b121d",
+        "decision_identity_sha256": "45a9e0d715f387b7444a9d3029952d9c718563a61a5a8a09822a856e6a890765",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "0e6160efc20da341a9b93a4ce112db3e68ab4f5131e4e28b377700dfae8d0199",
-          "reviewed_decision_sha256": "fcd2cd670edf6345f35110dc94284c386872a4a1ee33aeaaa19d53e715e176b0",
+          "reviewed_content_sha256": "767f7407b433530ccbae3a3148d59685e9464e5b3e79305fcffd3bbc709b121d",
+          "reviewed_decision_sha256": "45a9e0d715f387b7444a9d3029952d9c718563a61a5a8a09822a856e6a890765",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -764,7 +751,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "6c0f4ef9bd425bda1d9faa1fd2182b30d67a3344340092de252f9387c507bc1e"
+          "signature_envelope_sha256": "0335c2f2739a4cc26ee5e8298e480a97f004a2b3f1c01a12f35e28f5d2818ac4"
         }
       }
     },
@@ -818,16 +805,16 @@
         "skeleton_id": "n01-vskel-d-adjust-ok",
         "probe_role": "immediate_confirm",
         "temptation": "进度调整方法有五类，「逻辑关系调整」是否算一类容易记不牢。",
-        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「逻辑关系调整」正是其中一类；把对判错同样丢分。",
+        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「逻辑关系调整」正是其中一类。",
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "e90e6e2582d97a130ff9a4ba5c9236184041ff7579f7b66f357ca69593bd633b",
-        "decision_identity_sha256": "28c7387952e055c974adcdd99787216a9d6df58ceb3590577cf3f14e9bc281b9",
+        "content_sha256": "f6ff1b882afb698df3cd4958a643b14350ecd0ad3cee43f0e92fadbd0a4d3f83",
+        "decision_identity_sha256": "c4691b3003770d1d1a7ab8fa0ca7196252e7bc93236b003ebb4d5287139dcf60",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "e90e6e2582d97a130ff9a4ba5c9236184041ff7579f7b66f357ca69593bd633b",
-          "reviewed_decision_sha256": "28c7387952e055c974adcdd99787216a9d6df58ceb3590577cf3f14e9bc281b9",
+          "reviewed_content_sha256": "f6ff1b882afb698df3cd4958a643b14350ecd0ad3cee43f0e92fadbd0a4d3f83",
+          "reviewed_decision_sha256": "c4691b3003770d1d1a7ab8fa0ca7196252e7bc93236b003ebb4d5287139dcf60",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -836,7 +823,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "ae0036e561a1d90ff24551d758a5ce74bf04ba3c29d086919d9c1f84f82913fa"
+          "signature_envelope_sha256": "0b832c4fbcf8f21f98a08d4c37bcb9a65481030f5cbaef67a6c152fbdae2a188"
         }
       }
     },
@@ -890,16 +877,16 @@
         "skeleton_id": "n01-vskel-d-adjust-ok",
         "probe_role": "immediate_confirm",
         "temptation": "进度调整方法有五类，「重新编制计划」是否算一类容易记不牢。",
-        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「重新编制计划」正是其中一类；把对判错同样丢分。",
+        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「重新编制计划」正是其中一类。",
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "fa3bc93c9cab13ac783500955f92c3be2241f44eb6b81163ac4f29f7e415d600",
-        "decision_identity_sha256": "5c559822fc71039d39e2d9d0887e0241ea4a256bb4ddd06291b3845232d23560",
+        "content_sha256": "032700efa1dce314527d8dd4838d01bbc7897c764319948cbad883ac7de7b5a5",
+        "decision_identity_sha256": "e030e860651c01cecc051e0bbd903ab5c03f66c82ae7ab8e8b8ae62c5dd8a364",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "fa3bc93c9cab13ac783500955f92c3be2241f44eb6b81163ac4f29f7e415d600",
-          "reviewed_decision_sha256": "5c559822fc71039d39e2d9d0887e0241ea4a256bb4ddd06291b3845232d23560",
+          "reviewed_content_sha256": "032700efa1dce314527d8dd4838d01bbc7897c764319948cbad883ac7de7b5a5",
+          "reviewed_decision_sha256": "e030e860651c01cecc051e0bbd903ab5c03f66c82ae7ab8e8b8ae62c5dd8a364",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -908,7 +895,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "94130fad424b321330903372297ede09e5f557c6ae2b12cf9ee5a8c15814d934"
+          "signature_envelope_sha256": "8798db7315538ccd0cd1348fca3a029f1dbc2ee52d668bf19f137deddfe0fb47"
         }
       }
     },
@@ -962,16 +949,16 @@
         "skeleton_id": "n01-vskel-d-adjust-ok",
         "probe_role": "immediate_confirm",
         "temptation": "进度调整方法有五类，「非关键工作调整」是否算一类容易记不牢。",
-        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「非关键工作调整」正是其中一类；把对判错同样丢分。",
+        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「非关键工作调整」正是其中一类。",
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "1b511c2f90ced56599b08eb6c74c26a70b504f9694b1cbac9680ed298ccff178",
-        "decision_identity_sha256": "e6d996eedd6f2171f507711360ca13dcaa2895356d0ef4e15aae7eb102be6bf1",
+        "content_sha256": "338492289f5f0e4c1ddef44068ae8aeefae25333b6fd6ed5ae4ffebd14c922a3",
+        "decision_identity_sha256": "399ba8e39fc98d37f6aaad28f5b2381710daf3d7655e1d8672405bc5c322d97e",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "1b511c2f90ced56599b08eb6c74c26a70b504f9694b1cbac9680ed298ccff178",
-          "reviewed_decision_sha256": "e6d996eedd6f2171f507711360ca13dcaa2895356d0ef4e15aae7eb102be6bf1",
+          "reviewed_content_sha256": "338492289f5f0e4c1ddef44068ae8aeefae25333b6fd6ed5ae4ffebd14c922a3",
+          "reviewed_decision_sha256": "399ba8e39fc98d37f6aaad28f5b2381710daf3d7655e1d8672405bc5c322d97e",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -980,7 +967,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "630a9d1c745ed2a59ac88a661ee8561099abeca790fba718ba104715df054a3f"
+          "signature_envelope_sha256": "9c89fe7aab92dacd563b3d867fbd49752170b17655480da7599f35419b597ab3"
         }
       }
     },
@@ -1034,16 +1021,16 @@
         "skeleton_id": "n01-vskel-d-adjust-ok",
         "probe_role": "immediate_confirm",
         "temptation": "进度调整方法有五类，「资源调整」是否算一类容易记不牢。",
-        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「资源调整」正是其中一类；把对判错同样丢分。",
+        "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「资源调整」正是其中一类。",
         "source_anchor": "kc:1A433000_061_0092:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "150b79c9ad9fedbf13fe2b256ae80a8d34c9a9c42a1b4d9e457f73f06679917a",
-        "decision_identity_sha256": "55d26db295263db9b4dfdee7414bf8c39a91565efe261a3c15877eb0b7de480f",
+        "content_sha256": "f1e0c9c2f8aef0ab19f5a417603787842b90b6b1ef0edd0f1eaba7b2e310301d",
+        "decision_identity_sha256": "66ec112a8e665132f71deab39fce1074c3a5df5953bfe480ebd9b87909897f60",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "150b79c9ad9fedbf13fe2b256ae80a8d34c9a9c42a1b4d9e457f73f06679917a",
-          "reviewed_decision_sha256": "55d26db295263db9b4dfdee7414bf8c39a91565efe261a3c15877eb0b7de480f",
+          "reviewed_content_sha256": "f1e0c9c2f8aef0ab19f5a417603787842b90b6b1ef0edd0f1eaba7b2e310301d",
+          "reviewed_decision_sha256": "66ec112a8e665132f71deab39fce1074c3a5df5953bfe480ebd9b87909897f60",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1052,7 +1039,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "08635e3c940f5cab766d424f2c7119e3ba9c553d3cdea4f145986d32937a11f4"
+          "signature_envelope_sha256": "f341b77ade472bc0de784c5ad14571b74f64c3c663eea45f9ffd34c9cdcdaf14"
         }
       }
     },
@@ -1106,16 +1093,16 @@
         "skeleton_id": "n01-vskel-e-monitor-ok",
         "probe_role": "immediate_confirm",
         "temptation": "监测内容和调整动作容易混，「记录实际时间」到底算监测还是算调整拿不准。",
-        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「记录实际时间」正是其中一项；把对判错同样丢分。",
+        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「记录实际时间」正是其中一项。",
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "40e96ab176af534f2d18e94ac483deeabb727dd3863427d84f09056f1349b24f",
-        "decision_identity_sha256": "3a6fa7eec7bb4b7e8302f8e5d04bdcc36f1e8a7391a83a51f945da915685f2fb",
+        "content_sha256": "0138bf661f138c676e34c52261bd6ee37d04a0231b4be6eb97848e89788414d2",
+        "decision_identity_sha256": "ed45ea46d0b1f7d69c3f43f6ac5d63ecd4f9f882fe717a153f476f507df790f3",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "40e96ab176af534f2d18e94ac483deeabb727dd3863427d84f09056f1349b24f",
-          "reviewed_decision_sha256": "3a6fa7eec7bb4b7e8302f8e5d04bdcc36f1e8a7391a83a51f945da915685f2fb",
+          "reviewed_content_sha256": "0138bf661f138c676e34c52261bd6ee37d04a0231b4be6eb97848e89788414d2",
+          "reviewed_decision_sha256": "ed45ea46d0b1f7d69c3f43f6ac5d63ecd4f9f882fe717a153f476f507df790f3",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1124,7 +1111,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "f38f53a087c119cb39838dc6add09991d6e899601f7c878b852bca84d4184f21"
+          "signature_envelope_sha256": "4257c1db81ed33f4af8edb4e5db4f865ac5cc8ea06eb0ba3e650e23ee406467b"
         }
       }
     },
@@ -1178,16 +1165,16 @@
         "skeleton_id": "n01-vskel-e-monitor-ok",
         "probe_role": "immediate_confirm",
         "temptation": "监测内容和调整动作容易混，「观测关键线路」到底算监测还是算调整拿不准。",
-        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「观测关键线路」正是其中一项；把对判错同样丢分。",
+        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「观测关键线路」正是其中一项。",
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "7ab3408ed3405fb3909c1ad28e240c75f994022df7e9eafcf35dda425f9dd308",
-        "decision_identity_sha256": "ada397e04b6e6299353677d87b165736f68973edef91abc5c98628ecbee71e85",
+        "content_sha256": "b91df6cd4d8548e9f6346109aa72dba1a84c2bb38e1fbca97e02338aaf64dac6",
+        "decision_identity_sha256": "1400fd0c14e6f04444625e3678ed64f21848fba66c00c6d4a4fe7f338d197c11",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "7ab3408ed3405fb3909c1ad28e240c75f994022df7e9eafcf35dda425f9dd308",
-          "reviewed_decision_sha256": "ada397e04b6e6299353677d87b165736f68973edef91abc5c98628ecbee71e85",
+          "reviewed_content_sha256": "b91df6cd4d8548e9f6346109aa72dba1a84c2bb38e1fbca97e02338aaf64dac6",
+          "reviewed_decision_sha256": "1400fd0c14e6f04444625e3678ed64f21848fba66c00c6d4a4fe7f338d197c11",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1196,7 +1183,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "d46fff43df5d1705096c8c4dc3a8b9740de003798d8d967407bfab7ea0b78156"
+          "signature_envelope_sha256": "980c677d6800d36f49bda76b38a141dc5eed9d2c7417dc151bc8f2c558a24d49"
         }
       }
     },
@@ -1250,16 +1237,16 @@
         "skeleton_id": "n01-vskel-e-monitor-ok",
         "probe_role": "immediate_confirm",
         "temptation": "监测内容和调整动作容易混，「检查非关键工作」到底算监测还是算调整拿不准。",
-        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「检查非关键工作」正是其中一项；把对判错同样丢分。",
+        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「检查非关键工作」正是其中一项。",
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "3fe41e6123736f3fe5d00bdd44d88b49066f8c986921767fd5845fc788721e5a",
-        "decision_identity_sha256": "bca7e2aff58e94f2c70e3c1f2713fd2ad4285fc58259fdda080f7c938f33e2fd",
+        "content_sha256": "36982927f05c84d94ca0f1fd6fcc1be711b8e568d32f44ab3b8dd9318865df63",
+        "decision_identity_sha256": "e3a645a493fa5998bda3586dcb106c1aa0a152e03a28a794a99bad1b2b29fb46",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "3fe41e6123736f3fe5d00bdd44d88b49066f8c986921767fd5845fc788721e5a",
-          "reviewed_decision_sha256": "bca7e2aff58e94f2c70e3c1f2713fd2ad4285fc58259fdda080f7c938f33e2fd",
+          "reviewed_content_sha256": "36982927f05c84d94ca0f1fd6fcc1be711b8e568d32f44ab3b8dd9318865df63",
+          "reviewed_decision_sha256": "e3a645a493fa5998bda3586dcb106c1aa0a152e03a28a794a99bad1b2b29fb46",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1268,7 +1255,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "b67964dc84ddc41ec279c396a4cd39baddeb1f269f6c19d09ad0a6c195d4b49f"
+          "signature_envelope_sha256": "436428993a0343d83079c67a2995d003ad8d2ee8906a9d4a332f20d440765e10"
         }
       }
     },
@@ -1322,16 +1309,16 @@
         "skeleton_id": "n01-vskel-e-monitor-ok",
         "probe_role": "immediate_confirm",
         "temptation": "监测内容和调整动作容易混，「核查逻辑关系」到底算监测还是算调整拿不准。",
-        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「核查逻辑关系」正是其中一项；把对判错同样丢分。",
+        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「核查逻辑关系」正是其中一项。",
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "5d98e9f7b64b9721a4557f2e78f5553a4df70b78494902f0569d6a21982aa907",
-        "decision_identity_sha256": "233a66af1f8578031e62c6a722037c1e7f2073930a61c5623a31707cfcb62e49",
+        "content_sha256": "e84952fa300433acbe29a2c6b1f18d6298ab7d59acaca6c7fbee961d71eeca2f",
+        "decision_identity_sha256": "4a20ffadb639c6c2f5465dcce852046fc0677eaccc1f2f0e0bb9d928e232de43",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "5d98e9f7b64b9721a4557f2e78f5553a4df70b78494902f0569d6a21982aa907",
-          "reviewed_decision_sha256": "233a66af1f8578031e62c6a722037c1e7f2073930a61c5623a31707cfcb62e49",
+          "reviewed_content_sha256": "e84952fa300433acbe29a2c6b1f18d6298ab7d59acaca6c7fbee961d71eeca2f",
+          "reviewed_decision_sha256": "4a20ffadb639c6c2f5465dcce852046fc0677eaccc1f2f0e0bb9d928e232de43",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1340,7 +1327,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "f7d359a46e0f1e0f94891174a35effb8c9454f7bd1b1ecdd1fdda516d93f57e5"
+          "signature_envelope_sha256": "a94c9654e2cd03ed2618c3ac92ac498fb0ee19eef7955a0a3e3fe9267362ab34"
         }
       }
     },
@@ -1394,16 +1381,16 @@
         "skeleton_id": "n01-vskel-e-monitor-ok",
         "probe_role": "immediate_confirm",
         "temptation": "监测内容和调整动作容易混，「收集变更」到底算监测还是算调整拿不准。",
-        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「收集变更」正是其中一项；把对判错同样丢分。",
+        "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「收集变更」正是其中一项。",
         "source_anchor": "kc:1A433000_061_0091:0",
         "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "478c385325f51093066b195df0c0f48d478dbff0c9b92408a495b5c22c2e1f76",
-        "decision_identity_sha256": "78602820834ebc7b555a977211d50450722c1db52f2a9e0a8d824a0d9ab88d78",
+        "content_sha256": "c2155271945b67d9c0025901e94e935d9efc5f2ccaf87b08bb76bb46970c83fa",
+        "decision_identity_sha256": "dc6c8bf5e040ed792770236fe4ab7ee7b4d47178707a575820a467abae844b71",
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "478c385325f51093066b195df0c0f48d478dbff0c9b92408a495b5c22c2e1f76",
-          "reviewed_decision_sha256": "78602820834ebc7b555a977211d50450722c1db52f2a9e0a8d824a0d9ab88d78",
+          "reviewed_content_sha256": "c2155271945b67d9c0025901e94e935d9efc5f2ccaf87b08bb76bb46970c83fa",
+          "reviewed_decision_sha256": "dc6c8bf5e040ed792770236fe4ab7ee7b4d47178707a575820a467abae844b71",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1412,7 +1399,7 @@
             "longest_option_checked": false,
             "template_leakage_checked": false
           },
-          "signature_envelope_sha256": "e14c1a7bbe9e23cf4899af68950caed7075db32474d2169395c87b9914a15be7"
+          "signature_envelope_sha256": "91ab0b3e65622919b9824fe1265d8c336a93fe21bf82eec5804beb5545d04952"
         }
       }
     },
@@ -1449,114 +1436,6 @@
             "template_leakage_checked": false
           },
           "signature_envelope_sha256": "33d39b6c6d95ccda5cf0f950bd916ca84a65c8f1684ad8a3796caa6de3210536"
-        }
-      }
-    },
-    {
-      "variant_id": "N01-F-procedure-036",
-      "rule_group": "F-procedure",
-      "surface": "项目部按「绘图（含补虚工作）→ 计算时间参数 → 确定关键线路 → 编制/实施」顺序应用网络计划",
-      "expected_ok": true,
-      "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
-      "anchor": "kc:1A433000_055_0084:0 + kc:LEC_1A433000_P0018_001:0",
-      "extension": false,
-      "decision_candidate": {
-        "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-network-procedure-order",
-        "skeleton_id": "n01-vskel-f-procedure-ok",
-        "probe_role": "immediate_confirm",
-        "temptation": "网络计划的四步顺序背着顺，真到判对错时反而担心是不是有步骤能省。",
-        "loss_reason": "应按「绘图（含补虚工作）→ 计算时间参数 → 确定关键线路 → 编制/实施」顺序进行；本题所列环节先后顺序正确，把对判错同样丢分。",
-        "source_anchor": "kc:1A433000_055_0084:0",
-        "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "376db0afec413262ceabe8e86f6cb3a4eb8fcbb40d872afe072e00921d5b03a0",
-        "decision_identity_sha256": "57cb7e13ad38f524cb5485c2a7f00bd3d369c5e6d7fb8d5d788e60d146801e09",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "376db0afec413262ceabe8e86f6cb3a4eb8fcbb40d872afe072e00921d5b03a0",
-          "reviewed_decision_sha256": "57cb7e13ad38f524cb5485c2a7f00bd3d369c5e6d7fb8d5d788e60d146801e09",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          },
-          "signature_envelope_sha256": "66015377441ad4178f6954828952a3266bb2c12206e72ce7d68b47dcdca036d7"
-        }
-      }
-    },
-    {
-      "variant_id": "N01-F-procedure-037",
-      "rule_group": "F-procedure",
-      "surface": "项目部未绘图、未补全网络逻辑，就直接套公式计算时间参数",
-      "expected_ok": false,
-      "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
-      "anchor": "kc:1A433000_055_0084:0 + kc:LEC_1A433000_P0018_001:0",
-      "extension": false,
-      "decision_candidate": {
-        "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-network-procedure-order",
-        "skeleton_id": "n01-vskel-f-procedure-bad",
-        "probe_role": "d1_probe",
-        "temptation": "现场赶时间，图还没画就想先把数算出来，看着「效率高」。",
-        "loss_reason": "未绘图、未补全网络逻辑就先计算时间参数，不符合「先绘图（含补虚工作）再算参数」的规定顺序；顺序不可乱。",
-        "source_anchor": "kc:1A433000_055_0084:0",
-        "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "f29cbf697f1949197b75152b19d4db2c0596bfc8666205ca5a6cf7f7042ba8e9",
-        "decision_identity_sha256": "66477be004e9fa14ee731234be17441ab77d62a74d32e9ab92e2c4b8ac5d904a",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "f29cbf697f1949197b75152b19d4db2c0596bfc8666205ca5a6cf7f7042ba8e9",
-          "reviewed_decision_sha256": "66477be004e9fa14ee731234be17441ab77d62a74d32e9ab92e2c4b8ac5d904a",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          },
-          "signature_envelope_sha256": "aab8a9049da3a045c8845f174c4a8c7397e6b70847a2ca1a5ccdc9937c7ee1c1"
-        }
-      }
-    },
-    {
-      "variant_id": "N01-F-procedure-038",
-      "rule_group": "F-procedure",
-      "surface": "项目部跳过「计算时间参数」阶段，直接确定关键线路",
-      "expected_ok": false,
-      "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
-      "anchor": "kc:1A433000_055_0084:0 + kc:LEC_1A433000_P0018_001:0",
-      "extension": false,
-      "decision_candidate": {
-        "schema": "luban_variant_decision.v1",
-        "fact_id": "n01-fact-network-procedure-order",
-        "skeleton_id": "n01-vskel-f-procedure-bad",
-        "probe_role": "immediate_confirm",
-        "temptation": "时间参数看着繁琐，容易想跳过它直接「凭最长路径」定关键线路。",
-        "loss_reason": "跳过「计算时间参数」直接确定关键线路，不符合规定顺序；正确顺序是先算参数（各路径长/时差）再确定关键线路。",
-        "source_anchor": "kc:1A433000_055_0084:0",
-        "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
-        "content_sha256": "43c02bd748dda75385eb30d625294360f9925ff4e49539d120d1b66a3d9f2e96",
-        "decision_identity_sha256": "6fecb44c4a9ef81d47e70c856a97fc32fda7524f8e0fa5f3a9fb719fc99187e6",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "43c02bd748dda75385eb30d625294360f9925ff4e49539d120d1b66a3d9f2e96",
-          "reviewed_decision_sha256": "6fecb44c4a9ef81d47e70c856a97fc32fda7524f8e0fa5f3a9fb719fc99187e6",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          },
-          "signature_envelope_sha256": "05db7516a881d8b0b57ed8b197a74070784ed1210ab6b793e67ce659bfc433ea"
         }
       }
     },

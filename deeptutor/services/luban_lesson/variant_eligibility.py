@@ -29,6 +29,8 @@
 """
 from __future__ import annotations
 
+import copy
+import json
 from pathlib import Path
 import re
 from typing import Any
@@ -144,8 +146,13 @@ def review_signature_envelope_sha256(decision: dict[str, Any]) -> str:
     return _canonical_sha256(payload)
 
 
-def _pending_review(decision: dict[str, Any]) -> dict[str, Any]:
-    """从 decision（不含 review）派生 pending review，含双绑定 + 签名信封。"""
+def _pending_review(
+    decision: dict[str, Any], extra: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """从 decision（不含 review）派生 pending review，含双绑定 + 签名信封。
+
+    ``extra``（如 stale 标记）先并入再算信封——附加痕迹同样被信封覆盖。
+    """
     review: dict[str, Any] = {
         "status": "pending",
         "verdict": "pending",
@@ -156,6 +163,8 @@ def _pending_review(decision: dict[str, Any]) -> dict[str, Any]:
         "signatures": [],
         "checks": {name: False for name in _REVIEW_CHECKS},
     }
+    if extra:
+        review.update(extra)
     review["signature_envelope_sha256"] = review_signature_envelope_sha256(
         dict(decision, review=review)
     )
@@ -444,6 +453,115 @@ def build_variant_review_packet(
     }
 
 
+def _stale_pending_decision(
+    variant: dict[str, Any],
+    old_decision: dict[str, Any],
+    *,
+    source_pack_sha256: str,
+    reasons: list[str],
+) -> dict[str, Any]:
+    """内容/source 漂移后的 decision 重置：治理提案与富化文案降级为候选，
+    identity 对新内容重算自洽，review 置回 pending 并带 stale 标记——
+    绝不静默保留旧签名（旧 identity 摘要留痕供追溯）。"""
+    temptation = str(old_decision.get("temptation") or "")
+    loss_reason = str(old_decision.get("loss_reason") or "")
+    decision: dict[str, Any] = {
+        "schema": VARIANT_DECISION_SCHEMA,
+        "fact_id": str(old_decision.get("fact_id") or ""),
+        "skeleton_id": str(old_decision.get("skeleton_id") or ""),
+        "probe_role": str(old_decision.get("probe_role") or ""),
+        "temptation": temptation,
+        "loss_reason": loss_reason,
+        "source_anchor": str(old_decision.get("source_anchor") or ""),
+        "source_sha256": source_pack_sha256,
+        "content_sha256": variant_content_sha256(
+            variant, temptation=temptation, loss_reason=loss_reason
+        ),
+    }
+    decision["decision_identity_sha256"] = decision_identity_sha256(decision)
+    decision["review"] = _pending_review(
+        decision,
+        extra={
+            "stale": True,
+            "stale_reason": "；".join(reasons),
+            "stale_from_decision_identity_sha256": str(
+                old_decision.get("decision_identity_sha256") or ""
+            ),
+        },
+    )
+    return decision
+
+
+def carry_variant_bank_decisions(
+    previous_bank_path: Path | str, payload: dict[str, Any]
+) -> dict[str, int]:
+    """bank builder 重建时的 decision 保留合并（镜像 practice publisher
+    ``_load_practice_review_records`` 的 build-time 人审保留模式）。
+
+    在 ``payload``（重建产物，含 ``source_pack_sha256`` 与 ``variants``）上
+    原位补回旧 bank 的 per-item decision 块：
+
+    - **保留**：``variant_id`` 比中且旧 decision 的 ``content_sha256`` 与
+      重建变体内容 + 旧富化文案重算一致、``source_sha256`` 仍等于新
+      ``source_pack_sha256`` → 逐字节深拷贝保留（签名零折损）；
+    - **置 stale**：内容或 pack 正文漂移 → 置回 pending + stale 标记
+      （治理提案/富化文案降级为候选，identity 重算，绝不静默保留旧签名）；
+    - **丢弃**：旧 decision 形状不可信 → 整块不携带。
+
+    纯合并零写入：落盘仍由调用方（builder）完成。旧 bank 缺失/不可解析 =
+    首次构建，如实返回零统计。
+    """
+    stats = {"preserved": 0, "stale": 0, "dropped": 0}
+    try:
+        previous = json.loads(
+            Path(previous_bank_path).read_text(encoding="utf-8")
+        )
+    except (OSError, ValueError):
+        return stats
+    if not isinstance(previous, dict):
+        return stats
+    old_by_id: dict[str, dict[str, Any]] = {}
+    for old in previous.get("variants") or []:
+        if isinstance(old, dict) and "decision" in old:
+            variant_id = str(old.get("variant_id") or "").strip()
+            if variant_id:
+                old_by_id[variant_id] = old
+    source_pack_sha256 = str(payload.get("source_pack_sha256") or "")
+    for variant in payload.get("variants") or []:
+        if not isinstance(variant, dict):
+            continue
+        old = old_by_id.get(str(variant.get("variant_id") or "").strip())
+        if old is None:
+            continue
+        old_decision = old.get("decision")
+        if not _decision_shape_ok(old_decision):
+            stats["dropped"] += 1
+            continue
+        assert isinstance(old_decision, dict)  # narrowed by _decision_shape_ok
+        reasons: list[str] = []
+        expected_content = variant_content_sha256(
+            variant,
+            temptation=str(old_decision.get("temptation") or ""),
+            loss_reason=str(old_decision.get("loss_reason") or ""),
+        )
+        if old_decision.get("content_sha256") != expected_content:
+            reasons.append("变体内容/富化文案与已审 content_sha256 漂移")
+        if old_decision.get("source_sha256") != source_pack_sha256:
+            reasons.append("pack 正文修订（source_pack_sha256 变更）")
+        if reasons:
+            variant["decision"] = _stale_pending_decision(
+                variant,
+                old_decision,
+                source_pack_sha256=source_pack_sha256,
+                reasons=reasons,
+            )
+            stats["stale"] += 1
+        else:
+            variant["decision"] = copy.deepcopy(old_decision)
+            stats["preserved"] += 1
+    return stats
+
+
 def resolve_variant_supply(
     pack_id: str, *, manifest_path: Path | None = None
 ) -> dict[str, Any] | None:
@@ -472,6 +590,7 @@ __all__ = [
     "VARIANT_PROBE_ROLES",
     "VARIANT_REVIEW_PACKET_SCHEMA",
     "build_variant_review_packet",
+    "carry_variant_bank_decisions",
     "decision_identity_sha256",
     "eligible_variant_items",
     "resolve_variant_supply",
