@@ -1894,6 +1894,20 @@ Page({
     });
   },
 
+  // 10e 诊断单唯一行动键:把诊断喂回本周计划(深链学习路线站点)。
+  // d2e62d46 随 B5 精简误删,owner 2026-07-17 拍板恢复 10e 主面时一并还原。
+  absorbDiagnosisIntoPlan() {
+    helpers.vibrate("light");
+    runtime.setWorkspaceBack(route.report(), "学情");
+    var url = route.lubanStations();
+    wx.navigateTo({
+      url: url,
+      fail: function () {
+        if (wx.reLaunch) wx.reLaunch({ url: url });
+      },
+    });
+  },
+
   async _loadOverview(snapshot) {
     // unified report 命中由 _hydrateFromUnifiedReport 完整接管；snapshot 非空时直接返回。
     if (snapshot) return;
