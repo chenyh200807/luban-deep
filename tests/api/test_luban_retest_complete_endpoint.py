@@ -496,3 +496,313 @@ def test_registered_compiled_supply_never_falls_back_to_empty_signed_selection(
 
     assert exc.value.status_code == 404
     assert exc.value.detail == "compiled practice unavailable"
+
+
+# ---------------------------------------- 变体判断题消费接线（切片三：router 两消费点）
+
+_PROBE_ROWS = [
+    {
+        "variant_id": "S05-A-ic-000",
+        "rule_group": "A-send",
+        "surface": "送电顺序题面",
+        "expected_ok": True,
+        "correct_statement": "总→分→开关",
+        "anchor": "kc:s05:1",
+        "fact_id": "fact-a",
+        "skeleton_id": "skel-a1",
+        "probe_role": "immediate_confirm",
+        "temptation": "顺序易反",
+        "loss_reason": "顺序错零分",
+    }
+]
+
+
+def _review_learner(monkeypatch):
+    class _LearnerState:
+        def list_learning_evidence_events(self, *_a, **_k):
+            return [object()]
+
+    monkeypatch.setattr(
+        learner_state_module, "get_learner_state_service", lambda: _LearnerState()
+    )
+
+
+def test_confirm_facts_forward_serves_variant_probe(monkeypatch) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+    monkeypatch.setattr(router, "_variant_probe_enabled", lambda: True)
+    captured: dict = {}
+
+    def _probe(pack_id, *, user_id, day_index, probe_role, fact_ids=None, limit=5):
+        captured["probe"] = {"probe_role": probe_role, "fact_ids": fact_ids}
+        return list(_PROBE_ROWS)
+
+    monkeypatch.setattr(router, "build_variant_probe_items", _probe)
+    monkeypatch.setattr(
+        router,
+        "variant_probe_supply_identity",
+        lambda *a, **k: {"kind": "signed_variant", "digest": "a" * 64},
+    )
+
+    def _issue(**kwargs):
+        captured["selection"] = kwargs
+        return "signed-variant-sel"
+
+    monkeypatch.setattr(router, "issue_retest_selection", _issue)
+
+    def _no_compiled(*_a, **_k):
+        raise AssertionError("compiled build must not run for a confirm request")
+
+    monkeypatch.setattr(router, "build_retest_items", _no_compiled)
+
+    result = asyncio.run(
+        router.retest_items(
+            "S05",
+            mode="forward",
+            confirm_facts="fact-a,fact-b",
+            current_user=SimpleNamespace(user_id="u1"),
+        )
+    )
+
+    assert result["practice_source"] == "signed_variant"
+    assert result["variant_probe_role"] == "immediate_confirm"
+    assert [i["variant_id"] for i in result["items"]] == ["S05-A-ic-000"]
+    assert result["selection_id"] == "signed-variant-sel"
+    assert captured["probe"]["probe_role"] == "immediate_confirm"
+    assert captured["probe"]["fact_ids"] == ["fact-a", "fact-b"]
+    assert captured["selection"]["supply_kind"] == "signed_variant"
+
+
+def test_confirm_facts_flag_off_ignores_and_serves_compiled(monkeypatch) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+    monkeypatch.setattr(router, "_variant_probe_enabled", lambda: False)
+    items = [
+        {
+            "answer_type": "single_choice",
+            "variant_id": f"F16-html-q{index}",
+            "rule_group": f"group-{index}",
+            "stem": f"stem-{index}",
+            "options": [{"option_id": f"q{index}:a", "text": "A"}],
+        }
+        for index in range(5)
+    ]
+    monkeypatch.setattr(router, "build_retest_items", lambda *a, **k: items)
+    monkeypatch.setattr(
+        router,
+        "retest_supply_identity",
+        lambda *a, **k: {"kind": "compiled_html", "digest": "a" * 64},
+    )
+    monkeypatch.setattr(
+        router,
+        "compiled_practice_pool_meta",
+        lambda *a, **k: {"core_total": 16, "rule_groups_total": 6},
+    )
+    monkeypatch.setattr(router, "issue_retest_selection", lambda **k: "signed-five")
+
+    result = asyncio.run(
+        router.retest_items(
+            "F16",
+            mode="forward",
+            confirm_facts="fact-a",
+            current_user=SimpleNamespace(user_id="u1"),
+        )
+    )
+
+    assert result["practice_source"] == "compiled_html"
+    assert result["confirm_facts_ready"] == []  # 旗标关 → 入口不亮
+
+
+def test_confirm_facts_no_supply_returns_404(monkeypatch) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+    monkeypatch.setattr(router, "_variant_probe_enabled", lambda: True)
+    monkeypatch.setattr(router, "build_variant_probe_items", lambda *a, **k: [])
+    monkeypatch.setattr(router, "build_retest_items", lambda *a, **k: [])
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_items(
+                "S05",
+                mode="forward",
+                confirm_facts="fact-none",
+                current_user=SimpleNamespace(user_id="u1"),
+            )
+        )
+
+    assert exc.value.status_code == 404
+
+
+def test_compiled_forward_exposes_confirm_facts_ready(monkeypatch) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+    monkeypatch.setattr(router, "_variant_probe_enabled", lambda: True)
+    items = [
+        {
+            "answer_type": "single_choice",
+            "variant_id": f"S05-html-q{index}",
+            "rule_group": f"group-{index}",
+            "stem": f"stem-{index}",
+            "options": [{"option_id": f"q{index}:a", "text": "A"}],
+        }
+        for index in range(5)
+    ]
+    monkeypatch.setattr(router, "build_retest_items", lambda *a, **k: items)
+    monkeypatch.setattr(
+        router,
+        "retest_supply_identity",
+        lambda *a, **k: {"kind": "compiled_html", "digest": "a" * 64},
+    )
+    monkeypatch.setattr(
+        router,
+        "compiled_practice_pool_meta",
+        lambda *a, **k: {"core_total": 16, "rule_groups_total": 6},
+    )
+    monkeypatch.setattr(router, "issue_retest_selection", lambda **k: "signed-five")
+    monkeypatch.setattr(
+        router,
+        "resolve_variant_supply",
+        lambda *a, **k: {
+            "summary": {
+                "facts": {
+                    "fact-a": {"immediate_confirm": 2, "d1_probe": 1},
+                    "fact-b": {"immediate_confirm": 0, "d1_probe": 1},
+                }
+            }
+        },
+    )
+
+    result = asyncio.run(
+        router.retest_items(
+            "S05",
+            mode="forward",
+            current_user=SimpleNamespace(user_id="u1"),
+        )
+    )
+
+    assert result["practice_source"] == "compiled_html"
+    # 只含有 immediate_confirm 供给的 fact（fact-b 计数 0 被排除）。
+    assert result["confirm_facts_ready"] == ["fact-a"]
+
+
+def _due_projection(state: str):
+    return {
+        "due": [
+            {
+                "pack_id": "S05",
+                "probe_id": "probe-1",
+                "cycle_anchor": "cycle-1",
+                "retest_available": True,
+                "state": state,
+            }
+        ]
+    }
+
+
+def test_review_weak_state_serves_d1_variant(monkeypatch) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_variant_probe_enabled", lambda: True)
+    _review_learner(monkeypatch)
+    monkeypatch.setattr(
+        router, "build_review_due_projection", lambda **k: _due_projection("weak")
+    )
+    captured: dict = {}
+
+    def _probe(pack_id, *, user_id, day_index, probe_role, fact_ids=None, limit=5):
+        captured["probe_role"] = probe_role
+        return [dict(_PROBE_ROWS[0], probe_role="d1_probe", expected_ok=False)]
+
+    monkeypatch.setattr(router, "build_variant_probe_items", _probe)
+    monkeypatch.setattr(
+        router,
+        "variant_probe_supply_identity",
+        lambda *a, **k: {"kind": "signed_variant", "digest": "a" * 64},
+    )
+    monkeypatch.setattr(router, "issue_retest_selection", lambda **k: "signed-d1")
+
+    def _no_compiled(*_a, **_k):
+        raise AssertionError("compiled build must not run when variant serves review")
+
+    monkeypatch.setattr(router, "build_retest_items", _no_compiled)
+
+    result = asyncio.run(
+        router.retest_items(
+            "S05",
+            mode="review",
+            probe_id="probe-1",
+            current_user=SimpleNamespace(user_id="u1"),
+        )
+    )
+
+    assert result["practice_source"] == "signed_variant"
+    assert result["variant_probe_role"] == "d1_probe"
+    assert captured["probe_role"] == "d1_probe"
+
+
+def test_review_fresh_state_keeps_compiled_mcq(monkeypatch) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_variant_probe_enabled", lambda: True)
+    _review_learner(monkeypatch)
+    monkeypatch.setattr(
+        router, "build_review_due_projection", lambda **k: _due_projection("fresh")
+    )
+
+    def _no_variant(*_a, **_k):
+        raise AssertionError("fresh (D+1) must stay on anchor MCQ, never variant")
+
+    monkeypatch.setattr(router, "build_variant_probe_items", _no_variant)
+    monkeypatch.setattr(
+        router, "build_retest_items", lambda *a, **k: [{"variant_id": "S05-mcq-1"}]
+    )
+    monkeypatch.setattr(
+        router,
+        "retest_supply_identity",
+        lambda *a, **k: {"kind": "compiled_html", "digest": "a" * 64},
+    )
+    monkeypatch.setattr(router, "issue_retest_selection", lambda **k: "signed-mcq")
+
+    result = asyncio.run(
+        router.retest_items(
+            "S05",
+            mode="review",
+            probe_id="probe-1",
+            current_user=SimpleNamespace(user_id="u1"),
+        )
+    )
+
+    # fresh 不换变体：走 compiled MCQ builder（review 顶层 practice_source 恒
+    # signed_variant 是既有行为；变体身份由 variant_probe_role 缺省区分）。
+    assert [i["variant_id"] for i in result["items"]] == ["S05-mcq-1"]
+    assert "variant_probe_role" not in result
+
+
+def test_review_variant_empty_falls_back_to_compiled_no_blank(monkeypatch) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_variant_probe_enabled", lambda: True)
+    _review_learner(monkeypatch)
+    monkeypatch.setattr(
+        router, "build_review_due_projection", lambda **k: _due_projection("stable")
+    )
+    monkeypatch.setattr(router, "build_variant_probe_items", lambda *a, **k: [])
+    monkeypatch.setattr(
+        router, "build_retest_items", lambda *a, **k: [{"variant_id": "S05-mcq-1"}]
+    )
+    monkeypatch.setattr(
+        router,
+        "retest_supply_identity",
+        lambda *a, **k: {"kind": "compiled_html", "digest": "a" * 64},
+    )
+    monkeypatch.setattr(router, "issue_retest_selection", lambda **k: "signed-mcq")
+
+    result = asyncio.run(
+        router.retest_items(
+            "S05",
+            mode="review",
+            probe_id="probe-1",
+            current_user=SimpleNamespace(user_id="u1"),
+        )
+    )
+
+    # 变体空 → 退 compiled MCQ（绝不空窗）；无 variant_probe_role 标记。
+    assert [i["variant_id"] for i in result["items"]] == ["S05-mcq-1"]
+    assert "variant_probe_role" not in result
