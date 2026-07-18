@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 import json
+import threading
 import time
 
 import pytest
@@ -117,7 +118,78 @@ def _learning_event(
     )
 
 
+def _forward_completion_pair(
+    *,
+    pack_id: str = "F16",
+    completion_id: str = "forward-completion",
+    days_ago: int = 0,
+) -> list[LearnerStateEvent]:
+    request_hash = f"{completion_id}-request"
+    item = LearnerStateEvent(
+        event_id=f"item_{completion_id}",
+        user_id="student_demo",
+        source_feature="assessment_testset",
+        source_id=f"{completion_id}:q1",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key=f"item_{completion_id}",
+        created_at=_iso(days_ago),
+        payload_json={
+            "event_type": "learning_evidence",
+            "retest_completion_id": completion_id,
+            "request_hash": request_hash,
+            "practice_mode": "forward",
+            "pack_id": pack_id,
+            "target_pack_id": pack_id,
+            "question_id": "q1",
+            "probe_role": "anchor",
+            "is_correct": True,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "claim_promotion_allowed": False,
+        },
+    )
+    terminal = LearnerStateEvent(
+        event_id=f"terminal_{completion_id}",
+        user_id="student_demo",
+        source_feature="assessment_testset",
+        source_id=f"{completion_id}:terminal",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key=f"terminal_{completion_id}",
+        created_at=_iso(days_ago),
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "assessment_testset",
+            "assessment_type": "luban_forward_completion",
+            "retest_completion_id": completion_id,
+            "completion_terminal": True,
+            "request_hash": request_hash,
+            "practice_mode": "forward",
+            "pack_id": pack_id,
+            "target_pack_id": pack_id,
+            "score_ratio": 1.0,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "item_event_refs": [item.event_id],
+            "claim_promotion_allowed": False,
+            "prescription_result": {"status": "not_verified", "score_ratio": 1.0},
+            "quality": {
+                "authority": "compiled_html_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "medium",
+                "evidence_level": "L0_observed",
+                "progress_countable": False,
+            },
+        },
+    )
+    return [item, terminal]
+
+
 class FakeMemberService:
+    def get_profile(self, user_id: str) -> dict:
+        return {"user_id": user_id, "exam_date": ""}
+
     def get_today_progress(self, user_id: str) -> dict:
         return {"today_done": 0, "daily_target": 30, "streak_days": 0}
 
@@ -1517,68 +1589,12 @@ def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
-    terminal = LearnerStateEvent(
-        event_id="terminal_f16_forward",
-        user_id="student_demo",
-        source_feature="assessment_testset",
-        source_id="f16_forward:terminal",
-        source_bot_id=None,
-        memory_kind="learning_evidence",
-        dedupe_key="terminal_f16_forward",
-        created_at=_iso(2),
-        payload_json={
-            "event_type": "learning_evidence",
-            "evidence_source": "assessment_testset",
-            "assessment_type": "luban_forward_completion",
-            "retest_completion_id": "f16_forward",
-            "completion_terminal": True,
-            "request_hash": "f16-forward-request",
-            "practice_mode": "forward",
-            "pack_id": "F16",
-            "target_pack_id": "F16",
-            "score_ratio": 1.0,
-            "score_awarded": 1.0,
-            "max_score": 1.0,
-            "item_event_refs": ["item_f16_forward"],
-            "claim_promotion_allowed": False,
-            "prescription_result": {"status": "not_verified", "score_ratio": 1.0},
-            "quality": {
-                "authority": "compiled_html_server_rescore",
-                "writeback_eligible": True,
-                "measurement_confidence": "medium",
-                "evidence_level": "L0_observed",
-                "progress_countable": False,
-            },
-        },
-    )
-    item = LearnerStateEvent(
-        event_id="item_f16_forward",
-        user_id="student_demo",
-        source_feature="assessment_testset",
-        source_id="f16_forward:q1",
-        source_bot_id=None,
-        memory_kind="learning_evidence",
-        dedupe_key="item_f16_forward",
-        created_at=_iso(2),
-        payload_json={
-            "event_type": "learning_evidence",
-            "retest_completion_id": "f16_forward",
-            "request_hash": "f16-forward-request",
-            "practice_mode": "forward",
-            "pack_id": "F16",
-            "target_pack_id": "F16",
-            "question_id": "q1",
-            "probe_role": "anchor",
-            "is_correct": True,
-            "score_awarded": 1.0,
-            "max_score": 1.0,
-            "claim_promotion_allowed": False,
-        },
-    )
     model = build_learning_report_read_model(
         user_id="student_demo",
         member_service=FakeMemberService(),
-        learner_state_service=FakeLearnerStateService([item, terminal]),
+        learner_state_service=FakeLearnerStateService(
+            _forward_completion_pair(completion_id="f16_forward", days_ago=2)
+        ),
         event_limit=100,
     )
 
@@ -1596,6 +1612,145 @@ def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
     assert model["overview"]["due_today_count"] == 1
     assert model["overview"]["due_today_state"] == "known"
     assert model["overview"]["today_done"] == 0
+
+
+def test_member_profile_horizon_stays_core_when_legacy_home_times_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_LEARNING_REPORT_LEGACY_SOURCE_TIMEOUT_MS", "5")
+
+    class SlowLegacyHome(FakeMemberService):
+        profile_thread = ""
+
+        def get_profile(self, user_id: str) -> dict:
+            self.profile_thread = threading.current_thread().name
+            return {"user_id": user_id, "exam_date": "2026-09-19"}
+
+        def get_home_dashboard(self, user_id: str) -> dict:
+            time.sleep(0.05)
+            return {
+                **super().get_home_dashboard(user_id),
+                "learner_settings": {"exam_date": "2026-01-01"},
+            }
+
+    member = SlowLegacyHome()
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=member,
+        learner_state_service=FakeLearnerStateService(
+            _forward_completion_pair(completion_id="profile-core", days_ago=0)
+        ),
+        event_limit=100,
+    )
+
+    assert member.profile_thread == threading.current_thread().name
+    assert not member.profile_thread.startswith("learning-report-source")
+    assert model["source_status"]["member_profile"]["ok"] is True
+    assert model["source_status"]["home_dashboard"]["ok"] is False
+    assert model["pack_review"]["enabled"] is True
+    assert model["pack_review"].get("degraded") is not True
+    assert model["authority"]["review_horizon_source"] == "member_profile.exam_date"
+    steps = {
+        step["id"]: step["status"]
+        for step in model["station_journey"]["packs"]["F16"]["steps"]
+    }
+    assert steps["due_validation"] == "scheduled"
+    assert steps["followup"] == "future"
+
+
+def test_member_profile_empty_exam_date_is_known_and_beats_dashboard_mirror(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.luban_lesson import review_due as review_due_module
+
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+    captured: dict[str, str] = {}
+
+    def _projection(**kwargs):
+        captured["exam_date_iso"] = kwargs["exam_date_iso"]
+        return {"due": [], "learned_count": 1, "authority": "revalidation_queue"}
+
+    monkeypatch.setattr(review_due_module, "build_review_due_projection", _projection)
+
+    class ConflictingMirror(FakeMemberService):
+        def get_home_dashboard(self, user_id: str) -> dict:
+            return {
+                **super().get_home_dashboard(user_id),
+                "learner_settings": {"exam_date": "2026-01-01"},
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=ConflictingMirror(),
+        learner_state_service=FakeLearnerStateService([]),
+    )
+
+    assert captured["exam_date_iso"] == ""
+    assert model["source_status"]["member_profile"]["ok"] is True
+    assert "member_profile" not in model["degraded_sources"]
+    assert model["pack_review"]["enabled"] is True
+
+
+def test_member_profile_failure_degrades_review_even_when_dashboard_mirror_exists(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+
+    class FailedProfile(FakeMemberService):
+        def get_profile(self, user_id: str) -> dict:
+            raise RuntimeError("member profile unavailable")
+
+        def get_home_dashboard(self, user_id: str) -> dict:
+            return {
+                **super().get_home_dashboard(user_id),
+                "learner_settings": {"exam_date": "2026-09-19"},
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FailedProfile(),
+        learner_state_service=FakeLearnerStateService(
+            _forward_completion_pair(completion_id="profile-failed", days_ago=0)
+        ),
+    )
+
+    assert model["source_status"]["home_dashboard"]["ok"] is True
+    assert model["source_status"]["member_profile"]["ok"] is False
+    assert model["pack_review"]["enabled"] is None
+    assert model["pack_review"]["degraded"] is True
+    assert model["pack_review"]["degraded_sources"] == ["member_profile"]
+    steps = {
+        step["id"]: step["status"]
+        for step in model["station_journey"]["packs"]["F16"]["steps"]
+    }
+    assert steps["due_validation"] == "unavailable"
+    assert steps["followup"] == "unavailable"
+
+
+def test_review_flag_off_does_not_read_member_profile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
+
+    class ProfileMustNotRun(FakeMemberService):
+        def get_profile(self, user_id: str) -> dict:
+            raise AssertionError("disabled review must not read member profile")
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=ProfileMustNotRun(),
+        learner_state_service=FakeLearnerStateService([]),
+    )
+
+    assert model["pack_review"] == {
+        "due": [],
+        "learned_count": 0,
+        "authority": "revalidation_queue",
+        "enabled": False,
+    }
+    assert model["source_status"]["member_profile"]["ok"] is None
+    assert "member_profile" not in model["degraded_sources"]
 
 
 # ─────────────────────────────────────────────────────────────────────────────

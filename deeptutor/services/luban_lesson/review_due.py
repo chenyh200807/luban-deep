@@ -23,6 +23,29 @@ from deeptutor.services.luban_lesson.read_model import (
 )
 
 
+class ReviewHorizonUnavailable(RuntimeError):
+    """Canonical member-profile horizon could not be read."""
+
+
+def resolve_review_exam_date(
+    user_id: str,
+    *,
+    member_service: Any | None = None,
+) -> str:
+    """Read the review horizon from its sole authority without inventing a fallback."""
+    if member_service is None:
+        from deeptutor.services.member_console import get_member_console_service
+
+        member_service = get_member_console_service()
+    try:
+        profile = member_service.get_profile(user_id)
+    except Exception as exc:
+        raise ReviewHorizonUnavailable("member_profile_unavailable") from exc
+    if not isinstance(profile, dict):
+        raise ReviewHorizonUnavailable("member_profile_unavailable")
+    return str(profile.get("exam_date") or "").strip()
+
+
 def build_review_due_projection(
     *,
     user_id: str,
@@ -136,4 +159,9 @@ def resolve_due_review_probe(
     return None
 
 
-__all__ = ["build_review_due_projection", "resolve_due_review_probe"]
+__all__ = [
+    "ReviewHorizonUnavailable",
+    "build_review_due_projection",
+    "resolve_due_review_probe",
+    "resolve_review_exam_date",
+]

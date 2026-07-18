@@ -43,8 +43,10 @@ from deeptutor.services.luban_lesson.practice_html import (
 )
 from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
 from deeptutor.services.luban_lesson.review_due import (
+    ReviewHorizonUnavailable,
     build_review_due_projection,
     resolve_due_review_probe,
+    resolve_review_exam_date,
 )
 from deeptutor.services.luban_lesson.variant_eligibility import (
     build_variant_probe_items,
@@ -206,11 +208,17 @@ async def retest_items(
             limit=None,
             since=None,
         )
-        due_projection = build_review_due_projection(
-            user_id=current_user.user_id,
-            events=events,
-            exam_date_iso=_exam_date_for(current_user.user_id),
-        )
+        try:
+            due_projection = build_review_due_projection(
+                user_id=current_user.user_id,
+                events=events,
+                exam_date_iso=_exam_date_for(current_user.user_id),
+            )
+        except ReviewHorizonUnavailable as exc:
+            raise HTTPException(
+                status_code=503,
+                detail="review horizon member profile unavailable",
+            ) from exc
         due_probe = resolve_due_review_probe(
             due_projection,
             pack_id=pack_id,
@@ -429,6 +437,11 @@ async def retest_complete(
             status_code=503,
             detail="retest probe atomic authority unavailable",
         ) from exc
+    except ReviewHorizonUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="review horizon member profile unavailable",
+        ) from exc
     except LessonNotAvailable as exc:
         raise HTTPException(status_code=404, detail="lesson not found") from exc
     except ValueError as exc:
@@ -467,13 +480,8 @@ def _confirm_facts_ready(pack_id: str) -> list[str]:
 
 def _exam_date_for(user_id: str) -> str:
     """§6.1 地平线参数: exam_date 唯一读源 = member profile（不复制真值）。
-    读取失败/未设置 → ""（引擎按无地平线运转, 不阻塞到期投影）。"""
-    try:
-        from deeptutor.services.member_console import get_member_console_service
-
-        return str(get_member_console_service().get_profile(user_id).get("exam_date") or "").strip()
-    except Exception:
-        return ""
+    未设置是已知空值；读取失败由 domain error fail-close。"""
+    return resolve_review_exam_date(user_id)
 
 
 @router.get(
@@ -490,11 +498,17 @@ async def review_due(current_user: AuthContext = Depends(get_current_user)) -> d
     events = get_learner_state_service().list_learning_evidence_events(
         current_user.user_id, limit=None, since=None
     )
-    projection = build_review_due_projection(
-        user_id=current_user.user_id,
-        events=events,
-        exam_date_iso=_exam_date_for(current_user.user_id),
-    )
+    try:
+        projection = build_review_due_projection(
+            user_id=current_user.user_id,
+            events=events,
+            exam_date_iso=_exam_date_for(current_user.user_id),
+        )
+    except ReviewHorizonUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="review horizon member profile unavailable",
+        ) from exc
     projection["enabled"] = True
     return projection
 
