@@ -8,8 +8,9 @@ from pathlib import Path
 import pytest
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPT_PATH = REPO_ROOT / "scripts" / "run_long_dialog_v1_retest.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[2] / "scripts" / "run_long_dialog_v1_retest.py"
+)
 SPEC = importlib.util.spec_from_file_location("run_long_dialog_v1_retest", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 MODULE = importlib.util.module_from_spec(SPEC)
@@ -256,7 +257,7 @@ def test_build_turn_config_omits_eval_user_for_live_ws() -> None:
 
 
 def test_eval_gate_fixture_source_builds_stable_long_dialog_case() -> None:
-    fixture = REPO_ROOT / "tests/fixtures/long_dialog_v1_retest_source.json"
+    fixture = SCRIPT_PATH.parents[1] / "tests/fixtures/long_dialog_v1_retest_source.json"
     payload = json.loads(fixture.read_text(encoding="utf-8"))
 
     cases = MODULE._build_cases(payload)
@@ -315,7 +316,7 @@ def test_llm_preflight_rejects_placeholder_endpoint(monkeypatch: pytest.MonkeyPa
             binding="openai",
             model="gpt-worktree",
             base_url="https://example.com/v1",
-            api_key="secret-key",  # pragma: allowlist secret
+            api_key="secret-key",
         ),
     )
 

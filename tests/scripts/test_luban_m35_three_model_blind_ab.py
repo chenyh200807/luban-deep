@@ -28,7 +28,6 @@ def _run_ab(tmp_path: Path, *args: str, env: dict[str, str] | None = None) -> di
         ],
         check=True,
         env=run_env,
-        cwd=REPO,
     )
     return json.loads(out.read_text(encoding="utf-8"))
 
@@ -64,7 +63,7 @@ def test_live_mode_missing_keys_blocks_without_secret_leak(tmp_path):
             "DASHSCOPE_API_KEY": "",
             "DEEPSEEK_API_KEY": "",
             "OPENAI_API_KEY": "",
-            "SECRET_SENTINEL": "sk-should-not-appear",  # pragma: allowlist secret
+            "SECRET_SENTINEL": "sk-should-not-appear",
         },
     )
 
@@ -88,8 +87,8 @@ def test_live_mode_local_final_adjudicator_does_not_require_openai_key(tmp_path)
         "0",
         "--local-final-adjudicator",
         env={
-            "DASHSCOPE_API_KEY": "qwen-present",  # pragma: allowlist secret
-            "DEEPSEEK_API_KEY": "deepseek-present",  # pragma: allowlist secret
+            "DASHSCOPE_API_KEY": "qwen-present",
+            "DEEPSEEK_API_KEY": "deepseek-present",
             "OPENAI_API_KEY": "",
         },
     )

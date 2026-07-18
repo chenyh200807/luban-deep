@@ -9,9 +9,8 @@ from scripts.run_luban_m35_deepseek_adversarial_probe import (
 )
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = REPO_ROOT / "scripts/run_luban_m35_deepseek_adversarial_probe.py"
-FIXTURE = REPO_ROOT / "tests/fixtures/luban_m35_case_scoring"
+SCRIPT = Path(__file__).resolve().parents[2] / "scripts/run_luban_m35_deepseek_adversarial_probe.py"
+FIXTURE = Path(__file__).resolve().parents[2] / "tests/fixtures/luban_m35_case_scoring"
 
 
 def _run_probe(tmp_path: Path, *args: str, env: dict[str, str] | None = None) -> dict:
@@ -31,7 +30,6 @@ def _run_probe(tmp_path: Path, *args: str, env: dict[str, str] | None = None) ->
         ],
         check=True,
         env=run_env,
-        cwd=REPO_ROOT,
     )
     return json.loads(out.read_text(encoding="utf-8"))
 
@@ -57,7 +55,7 @@ def test_live_mode_without_key_blocks_without_secret_or_network_claim(tmp_path):
         "live",
         "--max-samples",
         "1",
-        env={"DEEPSEEK_API_KEY": "", "DEEPSEEK_SECRET_SENTINEL": "sk-test-secret"},  # pragma: allowlist secret
+        env={"DEEPSEEK_API_KEY": "", "DEEPSEEK_SECRET_SENTINEL": "sk-test-secret"},
     )
 
     assert payload["mode"] == "live"
