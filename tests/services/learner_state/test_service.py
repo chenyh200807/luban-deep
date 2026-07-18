@@ -8,9 +8,13 @@ import pytest
 
 from deeptutor.services.learner_state.evidence_lifecycle import (
     committed_retest_completion_ids,
+    is_learning_evidence_event,
 )
 from deeptutor.services.learner_state.learning_brain_read_model import (
     build_learning_brain_read_model,
+)
+from deeptutor.services.learner_state.pack_lifecycle_projection import (
+    project_pack_lifecycle,
 )
 import deeptutor.services.learner_state.service as learner_state_service_module
 from deeptutor.services.learner_state.service import (
@@ -414,6 +418,56 @@ def test_list_learning_evidence_events_merges_local_write_ahead_in_production(
     assert events[0].source_feature == "assessment_testset"
 
 
+def test_list_learning_evidence_events_includes_non_promoting_lesson_fact(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
+    service = _make_service(tmp_path, core_store=_CoreStoreStub())
+
+    lesson = service.append_memory_event(
+        "student_demo",
+        source_feature="luban_lesson",
+        source_id="lesson_viewed:C04:lesson",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "learning_signal_type": "lesson_viewed",
+            "pack_id": "C04",
+            "watched_stage": "lesson",
+            "quality": {"progress_countable": False},
+        },
+        dedupe_key="lesson_viewed:student_demo:C04:lesson:2026-07-19",
+    )
+
+    events = service.list_learning_evidence_events("student_demo", limit=20)
+
+    assert [event.event_id for event in events] == [lesson.event_id]
+    assert events[0].source_feature == "luban_lesson"
+    assert is_learning_evidence_event(events[0]) is False
+    lifecycle = project_pack_lifecycle(events=events, pack_ids=["C04"])
+    assert lifecycle["packs"]["C04"]["exposure"] == {"lesson": 1}
+
+
+@pytest.mark.parametrize("source_feature", ["rogue_source", "rich_leaf_shadow_candidate"])
+def test_local_lifecycle_reader_rejects_unregistered_rogue_source(
+    tmp_path,
+    source_feature: str,
+) -> None:
+    service = _make_service(tmp_path)
+    saved = service.append_memory_event(
+        "student_demo",
+        source_feature=source_feature,
+        source_id=f"blocked:{source_feature}",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence"},
+        dedupe_key=f"blocked:{source_feature}",
+    )
+
+    assert service.list_learning_evidence_events("student_demo", limit=20) == []
+    assert service.read_learning_evidence_event("student_demo", saved.event_id) is None
+
+
 def test_list_learning_evidence_events_excludes_remote_control_claims(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
@@ -455,6 +509,73 @@ def test_list_learning_evidence_events_excludes_remote_control_claims(
     events = service.list_learning_evidence_events("student_demo", limit=20)
 
     assert [event.event_id for event in events] == ["evt_item_evidence"]
+
+
+def test_remote_list_and_exact_readers_share_lifecycle_record_authority(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
+    store = _CoreStoreStub()
+    base = {
+        "user_id": "student_demo",
+        "memory_kind": "learning_evidence",
+        "created_at": "2026-07-19T00:00:00+00:00",
+    }
+    store.memory_events = [
+        {
+            **base,
+            "event_id": "evt_remote_rogue",
+            "source_feature": "rogue_source",
+            "source_id": "rogue",
+            "payload_json": {"event_type": "learning_evidence"},
+            "dedupe_key": "rogue",
+        },
+        {
+            **base,
+            "event_id": "evt_remote_rich_leaf_candidate",
+            "source_feature": "rich_leaf_shadow_candidate",
+            "source_id": "rich-leaf-candidate",
+            "payload_json": {"event_type": "learning_evidence"},
+            "dedupe_key": "rich-leaf-candidate",
+        },
+        {
+            **base,
+            "event_id": "evt_remote_claim",
+            "source_feature": "luban_retest_claim",
+            "source_id": "claim",
+            "payload_json": {"event_type": "retest_completion_claim"},
+            "dedupe_key": "claim",
+        },
+        {
+            **base,
+            "event_id": "evt_remote_lesson",
+            "source_feature": "luban_lesson",
+            "source_id": "lesson_viewed:C04:lesson",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "learning_signal_type": "lesson_viewed",
+                "pack_id": "C04",
+                "watched_stage": "lesson",
+                "quality": {"progress_countable": False},
+            },
+            "dedupe_key": "lesson",
+        },
+    ]
+    service = _make_service(tmp_path, core_store=store)
+
+    events = service.list_learning_evidence_events("student_demo", limit=20)
+
+    assert [event.event_id for event in events] == ["evt_remote_lesson"]
+    for event_id in (
+        "evt_remote_rogue",
+        "evt_remote_rich_leaf_candidate",
+        "evt_remote_claim",
+    ):
+        assert service.read_learning_evidence_event("student_demo", event_id) is None
+    lesson = service.read_learning_evidence_event("student_demo", "evt_remote_lesson")
+    assert lesson is not None
+    assert lesson.event_id == "evt_remote_lesson"
 
 
 def test_remote_canonical_terminal_survives_evidence_filter_and_closes(

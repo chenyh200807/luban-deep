@@ -1001,7 +1001,11 @@ def _select_surface_items(
     """
     if not selection_key:
         return _surface_items(practice, surface_id)
-    bank = _surface_bank_items(practice, surface_id)
+    bank = [
+        item
+        for item in _surface_bank_items(practice, surface_id)
+        if item.get("probe_role") == "anchor"
+    ]
     ordered = sorted(
         bank,
         key=lambda item: _selection_rank(selection_key, str(item.get("variant_id") or "")),

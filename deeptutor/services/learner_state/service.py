@@ -18,7 +18,7 @@ from deeptutor.services.learner_state.canonical_truth_policy import (
     canonical_truth_promotion_decision,
 )
 from deeptutor.services.learner_state.evidence_lifecycle import (
-    is_learning_evidence_event,
+    is_learning_evidence_record,
 )
 from deeptutor.services.learner_state.heartbeat import (
     LearnerHeartbeatJob,
@@ -744,7 +744,7 @@ class LearnerStateService:
         local_events = [
             event
             for event in self._list_local_memory_events(normalized)
-            if is_learning_evidence_event(event)
+            if is_learning_evidence_record(event)
             and _iso_unknown_or_gte(event.created_at, since)
         ]
         if self._local_projection_fallback_enabled():
@@ -770,7 +770,7 @@ class LearnerStateService:
                             )
                             if isinstance(item, dict)
                         )
-                        if event is not None and is_learning_evidence_event(event)
+                        if event is not None and is_learning_evidence_record(event)
                     )
                 except Exception:
                     if is_production_environment():
@@ -808,7 +808,7 @@ class LearnerStateService:
                         return None
                 else:
                     event = self._event_from_mapping(row, default_user_id=normalized) if isinstance(row, dict) else None
-                    if event is not None and event.memory_kind == "learning_evidence":
+                    if event is not None and is_learning_evidence_record(event):
                         self._cache_learning_evidence_event(cache_key, event)
                         return event
                     if is_production_environment():
@@ -817,7 +817,7 @@ class LearnerStateService:
         for event in self._list_local_memory_events(normalized):
             if event.event_id != normalized_event_id:
                 continue
-            if event.memory_kind != "learning_evidence":
+            if not is_learning_evidence_record(event):
                 return None
             self._cache_learning_evidence_event(cache_key, event)
             return event
