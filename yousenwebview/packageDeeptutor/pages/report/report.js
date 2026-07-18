@@ -11,10 +11,15 @@ const reportViewModel = require("../../utils/learning-report-view-model");
 const { buildCanonicalLearningTask } = require("../../utils/learn-view-model");
 const { buildReportHomeViewModel } = require("../../utils/report-home-view-model");
 const reportCache = require("../../utils/report-cache");
+// 快照组装唯一权威(生产运行时):utils/report-snapshot。缓存年龄阈值唯一权威:
+// reportCache.SNAPSHOT_MAX_AGE_MS(本地常量副本已删)。
+const reportSnapshot = require("../../utils/report-snapshot");
 const taxonomy = require("../../utils/taxonomy");
 
 const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
-const REPORT_SNAPSHOT_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
+// cached hydrate 的临时提示文案。网络失败兜底分支要用同一字符串比较后替换成
+// 真实降级文案,提成 const 避免字符串双份漂移。
+const REPORT_CACHED_REFRESHING_HINT = "正在刷新，先显示上次学情快照";
 const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";
 const ASSESSMENT_PENDING_TRAINING_ACTION_KEY =
   "deeptutor.report.pendingTrainingAction";
@@ -82,21 +87,6 @@ function _buildRadarDimensionsFromAssessment(data) {
             : "weak",
     };
   });
-}
-
-function _chapterMasteryFromRadar(dimensions) {
-  var mastery = {};
-  (Array.isArray(dimensions) ? dimensions : []).forEach(function (item) {
-    var name = _displayChapterName(
-      item && (item.name || item.label || item.key),
-    );
-    var value = Number(item && item.value);
-    mastery[name] = {
-      name: name,
-      mastery: Math.round((Number.isFinite(value) ? value : 0) * 100),
-    };
-  });
-  return mastery;
 }
 
 function _hasPositiveRadarSignal(dims) {
@@ -1143,24 +1133,6 @@ function _hasSnapshotData(value) {
   return Object.keys(value).length > 0;
 }
 
-function _isLearningReportPayload(value) {
-  var authority = value && value.authority;
-  var schemaVersion = Number(value && value.schema_version);
-  return (
-    value &&
-    typeof value === "object" &&
-    (schemaVersion === 1 || schemaVersion === 2) &&
-    authority &&
-    authority.read_model === "learning-report-read-model" &&
-    value.overview &&
-    typeof value.overview === "object" &&
-    value.freshness &&
-    typeof value.freshness === "object" &&
-    value.learning_brain &&
-    typeof value.learning_brain === "object"
-  );
-}
-
 function _snapshotValue(snapshot, key) {
   var value = snapshot && snapshot[key];
   return _hasSnapshotData(value) ? value : null;
@@ -1168,7 +1140,7 @@ function _snapshotValue(snapshot, key) {
 
 function _unwrapSnapshotItem(raw) {
   var value = api.unwrapResponse(raw);
-  return _isLearningReportPayload(value) ? value : null;
+  return reportSnapshot.isLearningReportPayload(value) ? value : null;
 }
 
 var _DEGRADED_SOURCE_LABELS = {
@@ -1191,18 +1163,6 @@ function _buildDegradedHint(sources) {
     return _DEGRADED_SOURCE_LABELS[name] || name;
   });
   return "部分数据降级：" + labels.join("、");
-}
-
-function _learningReportDegradedSources(report) {
-  var sources = Array.isArray(report && report.degraded_sources)
-    ? report.degraded_sources.slice()
-    : [];
-  if (report && report.freshness && report.freshness.window_truncated) {
-    sources.push("learning_report_window");
-  }
-  return sources.filter(function (item, index) {
-    return item && sources.indexOf(item) === index;
-  });
 }
 
 function _reportOptionalRead(promise, timeoutMs) {
@@ -1495,7 +1455,7 @@ Page({
       learningBrainError: false,
       learningBrainEmpty: false,
     });
-      this._loadReportPage();
+    this._loadReportPage();
   },
 
   onHide() {
@@ -1535,58 +1495,12 @@ Page({
     const supportingReads = await Promise.all([lessonsPromise, homePromise]);
     const lessons = api.unwrapResponse(supportingReads[0]) || null;
     const homeDashboard = api.unwrapResponse(supportingReads[1]) || null;
-    const overview = report.overview || {};
-    const mastery = report.mastery || {};
-    const weakNodes = (
-      (report.learning_brain || {}).weak_points ||
-      [] ||
-      []
-    ).map(function (item) {
-      return {
-        name: item.display_title || item.claim || item.concept_id || "薄弱点",
-        mastery: 0,
-      };
-    });
-    return {
+    // 组装收权:快照形状由唯一 builder 组装(report 已过合法性检查,必返回非 null)。
+    return reportSnapshot.buildUnifiedReportSnapshot({
       report: report,
       homeDashboard: homeDashboard,
-      degraded:
-        Boolean(report.degraded) ||
-        _learningReportDegradedSources(report).length > 0,
-      degradedSources: _learningReportDegradedSources(report),
-      sourceStatus: report.source_status || {},
-      progress: {
-        today_done: overview.today_done || 0,
-        daily_target: overview.daily_target || 0,
-        streak_days: overview.streak_days || 0,
-      },
-      home: {
-        review: { due_today: overview.due_today_count || 0 },
-        mastery: {
-          weak_nodes: weakNodes.slice(
-            0,
-            overview.weak_node_count || weakNodes.length || 0,
-          ),
-        },
-        today: { hint: overview.focus_hint || "" },
-        today_focus: { title: overview.focus_hint || "" },
-        study_plan: report.study_plan || null,
-        progress_feedback: report.progress_feedback || null,
-      },
-      assessment: {
-        level: overview.learner_level || "",
-        chapter_mastery: _chapterMasteryFromRadar(
-          report.radar_dimensions || [],
-        ),
-        diagnostic_feedback: {
-          learner_profile: { study_tip: overview.study_tip || "" },
-        },
-      },
-      mastery: mastery,
-      learningBrain: report.learning_brain || {},
-      learnerFacing: report.learner_facing || {},
       lessons: lessons,
-    };
+    });
   },
 
   async _loadReportPage() {
@@ -1597,17 +1511,21 @@ Page({
       var currentUserId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
       return !!userId && page._reportLoadGeneration === generation && currentUserId === userId;
     };
-    var cachedSnapshot = reportCache.read(userId, REPORT_SNAPSHOT_CACHE_MAX_AGE_MS);
+    // SWR:缓存命中先秒渲染(带"正在刷新"提示),随后**无条件**静默网络刷新。
+    // 不做"新鲜即跳过网络"——那会把陈旧/降级快照钉成终态,吞掉刚完成的学习动作。
+    var cachedSnapshot = reportCache.read(userId, reportCache.SNAPSHOT_MAX_AGE_MS);
     if (cachedSnapshot && isCurrentRequest(this)) {
       this._reportSnapshot = cachedSnapshot;
       this._hydrateFromUnifiedReport(cachedSnapshot, { cached: true });
       this._syncExperienceSections();
     }
+    // 写序守卫锚点:晚于 fetchStartedAt 的既有缓存不被本次结果回退覆盖。
+    var fetchStartedAt = Date.now();
     var snapshot = await this._loadReportSnapshot();
     if (!isCurrentRequest(this)) return;
     if (snapshot) {
       this._reportSnapshot = snapshot;
-      reportCache.write(userId, snapshot);
+      reportCache.writeIfFresher(userId, snapshot, fetchStartedAt);
       this._hydrateFromUnifiedReport(snapshot);
       this._syncExperienceSections();
       return;
@@ -1617,8 +1535,13 @@ Page({
         radarLoading: false,
         masteryLoading: false,
         learningBrainLoading: false,
+        // cached hydrate 设下的"正在刷新"是临时态,刷新已失败必须改口成真实
+        // 降级文案;其余非空 degradedHint(快照自身的真实降级提示)如实保留。
         degradedHint:
-          this.data.degradedHint || "网络暂时不稳，已显示上次学情快照",
+          !this.data.degradedHint ||
+          this.data.degradedHint === REPORT_CACHED_REFRESHING_HINT
+            ? "网络暂时不稳，已显示上次学情快照"
+            : this.data.degradedHint,
         degradedSources:
           this.data.degradedSources && this.data.degradedSources.length
             ? this.data.degradedSources
@@ -1695,7 +1618,7 @@ Page({
         learningBrainLoading: false,
         learningBrainError: false,
         degradedHint: opts.cached
-          ? "正在刷新，先显示上次学情快照"
+          ? REPORT_CACHED_REFRESHING_HINT
           : snapshot.degraded
             ? _buildDegradedHint(snapshot.degradedSources)
             : "",

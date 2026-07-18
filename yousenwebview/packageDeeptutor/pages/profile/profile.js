@@ -13,6 +13,14 @@ var flags = require("../../utils/flags");
 var auth = require("../../utils/auth");
 var learnViewModel = require("../../utils/learn-view-model");
 var surfaceTelemetry = require("../../utils/surface-telemetry");
+// 学情快照缓存(可丢弃 UI 加速层,canonical truth 在服务端)。try/catch 守卫:
+// 缓存层缺席时本页必须无损降级到网络路径(既有测试 harness 亦不注入此模块)。
+var reportCache = null;
+try {
+  reportCache = require("../../utils/report-cache");
+} catch (_) {
+  reportCache = null;
+}
 
 // [W5-3] Debounce timer for settings save
 var _saveTimer = null;
@@ -113,11 +121,20 @@ function _normalizeRouteCard(reportRaw, lessonsRaw) {
       ? api.unwrapResponse(lessonsRaw) || lessonsRaw
       : lessonsRaw
     : {};
-  if (!report || typeof report !== "object") return null;
+  return _routeCardFromPayloads(report, lessons);
+}
+
+/**
+ * 纯映射:unwrapped payload → routeCard。唯一一份映射逻辑——网络路径
+ * (_normalizeRouteCard unwrap 后)与快照缓存路径(snapshot.report/lessons
+ * 本就是 unwrapped payload)都汇到这里,禁止第二套映射。
+ */
+function _routeCardFromPayloads(reportPayload, lessonsPayload) {
+  if (!reportPayload || typeof reportPayload !== "object") return null;
   var vm = learnViewModel.buildLearnViewModel({
     homeDashboard: {},
-    report: report,
-    lessons: lessons || {},
+    report: reportPayload,
+    lessons: lessonsPayload || {},
   });
   var total = Number(vm.packUniverse) || 0;
   if (total <= 0) return null;
@@ -274,11 +291,26 @@ Page({
       });
   },
 
-  // 我的路线：绿灯站列表（轻）+ learning-report（重 read model，静默拉，
-  // 失败/缺字段 → routeCard=null，卡片降级为纯口径文案）
+  // 我的路线：优先复用学情统一快照(report-cache,learn/report 页网络成功后写入),
+  // 命中则先同步渲出缓存卡(秒渲染),随后**始终**静默网络刷新覆盖——
+  // 不设"新鲜即免网络"门:60s 内其他 tab 完成的学习动作没有任何后台纠正
+  // 通道,免网络会把它吞掉(对抗 review 证伪,基座的 fresh 门常量已删)。
+  // 未命中照旧静默拉 learning-report(重 read model)+lessons。
+  // 本页只读缓存、绝不写:profile 不拉 homeDashboard,三元组不全,写入会污染
+  // learn/report 页的快照消费(单一 envelope 完整性约束)。
+  // 失败/缺字段 → routeCard=null,卡片降级为纯口径文案。
   _loadRoute: function () {
     if (!auth.isLoggedIn()) return;
     var self = this;
+    var userId = String((auth.getUserId && auth.getUserId()) || "").trim();
+    var cachedCard = null;
+    if (reportCache && userId) {
+      var snapshot = reportCache.read(userId, reportCache.SNAPSHOT_MAX_AGE_MS);
+      if (snapshot) {
+        cachedCard = _routeCardFromPayloads(snapshot.report, snapshot.lessons);
+        if (cachedCard) self.setData({ routeCard: cachedCard });
+      }
+    }
     var opt = { silent: true };
     var settle = function (make) {
       return Promise.resolve()
@@ -295,7 +327,13 @@ Page({
         return api.getLubanLessons(opt);
       }),
     ]).then(function (res) {
-      self.setData({ routeCard: _normalizeRouteCard(res[0], res[1]) });
+      // 守卫:异步返回时用户已登出/切换 → 不 setData(跟随 report 页惯例)。
+      var currentUserId = String((auth.getUserId && auth.getUserId()) || "").trim();
+      if (!auth.isLoggedIn() || currentUserId !== userId) return;
+      var nextCard = _normalizeRouteCard(res[0], res[1]);
+      // 已用缓存渲出卡片时,静默刷新失败不把卡片抹回 null(保守降级)。
+      if (!nextCard && cachedCard) return;
+      self.setData({ routeCard: nextCard });
     });
   },
 

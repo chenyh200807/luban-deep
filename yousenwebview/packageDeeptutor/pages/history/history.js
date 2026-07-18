@@ -506,8 +506,9 @@ Page({
         convs.sort(function (a, b) {
           return b.ts - a.ts;
         });
-        self._applyConversationState(convs, true);
 
+        // 缓存回写无条件执行：cache key 按 archived 维度隔离，数据是该
+        // tab 的合法快照，写入让下次切换直接命中。
         var cacheKey = isArchived ? CACHE_KEY_ARCHIVED : CACHE_KEY;
         var visibleConvs = _filterDeletedConversations(convs);
         if (auth.writeOwnerStorage) auth.writeOwnerStorage(cacheKey, {
@@ -517,8 +518,19 @@ Page({
           ts: Date.now(),
         });
         self._lastFetch = Date.now();
+
+        // [FIX 2026-07-18] 串台竞态守卫：响应回来时用户可能已切走 tab
+        // （如：切归档触发静默刷新→秒回全部），此时丢弃 UI apply，
+        // 防止归档列表被盖到「全部」tab 上（反向同理）。
+        if ((self.data.tab === "archived") !== isArchived) return;
+
+        self._applyConversationState(convs, true);
       })
       .catch(function (e) {
+        // [FIX 2026-07-18] 失败分支同样做 tab 校验：归档请求失败不得把
+        // error/loading 态贴到「全部」tab（反向同理）。切 tab 路径自会
+        // 重置 loading/refreshing。
+        if ((self.data.tab === "archived") !== isArchived) return;
         if (!silent)
           self.setData({ loading: false, error: true, refreshing: false });
         else self.setData({ refreshing: false });
@@ -596,12 +608,12 @@ Page({
     this._exitEditMode();
     this.setData({
       tab: tab,
-      loading: true,
-      groups: [],
-      totalCount: 0,
+      error: false,
       emptyState: _emptyState(tab, this.data.query),
     });
-    this._fetchFromServer(false);
+    // SWR：按 archived 维度选缓存 key；有缓存秒渲染（TTL 内不发请求，
+    // 过期则先渲染再后台刷新），无缓存才 loading + 全量 fetch。
+    this._loadWithCache();
   },
 
   // ── 打开对话 ─────────────────────────────────
