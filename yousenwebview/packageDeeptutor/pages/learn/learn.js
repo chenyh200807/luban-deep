@@ -13,6 +13,22 @@ const flags = require("../../utils/flags");
 const surfaceTelemetry = require("../../utils/surface-telemetry");
 const { buildLearnViewModel } = require("../../utils/learn-view-model");
 
+// 学情快照 SWR 加速层(可选依赖):快照是「可丢弃的 UI 加速层」,canonical truth
+// 仍在服务端 read model。try/catch + 能力检查:存量学习页测试 harness 的 require
+// 白名单不含这两个模块(未知 require 直接 throw / 返回 {}),加速层缺席时必须
+// 静默降级为原无缓存路径,不得让加速层变成致命依赖。线上运行时两模块恒存在。
+var reportCache = null;
+var reportSnapshot = null;
+try { reportCache = require("../../utils/report-cache"); } catch (_) { reportCache = null; }
+try { reportSnapshot = require("../../utils/report-snapshot"); } catch (_) { reportSnapshot = null; }
+var snapshotLayerReady = Boolean(
+  reportCache &&
+    typeof reportCache.read === "function" &&
+    typeof reportCache.writeIfFresher === "function" &&
+    reportSnapshot &&
+    typeof reportSnapshot.buildUnifiedReportSnapshot === "function",
+);
+
 // H2:Long Cang 只许 CDN 子集化,禁内嵌。子集托管后填此常量;
 // 空/失败 → 降级 'Kaiti SC', serif(paper-ink.wxss font-family 已兜底)。
 const LONG_CANG_FONT_URL = "";
@@ -25,6 +41,8 @@ Page({
     loading: true,
     vm: null, // learn-view-model 输出
     whyOpen: false,
+    stationOpen: true, // 一体化站点卡折叠态(定稿 10a 头部行折叠箭头);默认展开
+    stationWhyOpen: false, // 「为什么先走这一站」折叠态
     supplyError: "",
     firstRunState: "new", // new | resume | syncing | blocked | hidden
     firstRunProgress: 0,
@@ -52,8 +70,15 @@ Page({
     if (!this._requireAuth()) return;
     const firstRunSnapshot = this._syncFirstRunState();
     this._retryPendingFirstRun(firstRunSnapshot);
-    // 从站点/任务返回时刷新 canonical 投影。
-    if (!this.data.loading) this._load();
+    // 首个 onShow 紧跟 onLoad(_load 已由 onLoad 发起),不重复触发;
+    // 后续 onShow = 从站点/练习返回(刚发生学习动作),重新加载 canonical 投影
+    // (统一策略=缓存秒渲染+始终静默刷新,无 fresh 门可绕;
+    // 并发安全由 _load 的单调 request epoch 保证)。
+    if (!this._shownOnce) {
+      this._shownOnce = true;
+    } else {
+      this._load();
+    }
   },
 
   onHide() {
@@ -125,6 +150,8 @@ Page({
         }
         firstRunEntry.markDone(userId, pending);
         that.setData({ firstRunState: "hidden", firstRunProgress: 4 });
+        // 首跑完成刚同步到服务端(学习动作落账),重新拉取 canonical 投影
+        // (_load 本就始终静默刷新)。
         that._load();
         return result;
       })
@@ -159,6 +186,7 @@ Page({
 
   onPullDownRefresh() {
     var that = this;
+    // 用户显式下拉 = 真刷新;_load 本就始终静默刷新,无 fresh 门可吞。
     this._load().then(function () {
       if (typeof wx !== "undefined" && wx.stopPullDownRefresh) wx.stopPullDownRefresh();
     });
@@ -167,6 +195,7 @@ Page({
   retrySupply() {
     if (!this._requireAuth()) return;
     this.setData({ loading: true, supplyError: "" });
+    // 错误重试 = 用户显式要求重取;_load 本就始终静默刷新。
     return this._load();
   },
 
@@ -198,12 +227,34 @@ Page({
   _load() {
     var that = this;
     if (!this._requireAuth()) return Promise.resolve(null);
+    // 写序守卫(对抗 review #8/#9):记录发起时刻与发起者身份;网络成功写缓存前
+    // 由 cache 权威层按 fetchStartedAt 裁决写序(孤儿响应=页面已销毁的在途请求,
+    // 其发起时刻早于现存快照写入时刻,在 writeIfFresher 内拒写)。
+    var fetchStartedAt = Date.now();
+    var startedUserId = String((auth.getUserId && auth.getUserId()) || "").trim();
     // 红队 A4:单调 request epoch——onShow 静默刷新与下拉刷新可并发,
     // 只有最新一代请求可 setData,乱序到达的旧响应(旧供给 true)一律丢弃;
     // 刷新 in-flight 期间轻练 CTA 禁点(goLightPractice 检查 _refreshing)。
     var seq = (this._loadSeq || 0) + 1;
     this._loadSeq = seq;
     this._refreshing = true;
+    // ── 快照秒渲染:tab redirectTo 冷启动的 3-5s 重 read model 等待期,先用
+    // 30min 内快照秒渲染整页(诚实旧投影,非发明数据;组装仍走唯一 builder)。
+    // 统一策略=缓存秒渲染+始终静默刷新——曾有的 fresh-skip 门被对抗 review
+    // 证伪删除(它会把陈旧/降级/半残快照钉成终态),hydrate 后无条件继续刷新。
+    var cached = snapshotLayerReady
+      ? reportCache.read(startedUserId, reportCache.SNAPSHOT_MAX_AGE_MS)
+      : null;
+    if (cached && !this.data.vm) {
+      var cachedVm = buildLearnViewModel({
+        // builder 把空对象 homeDashboard/lessons 归一化为 null,消费侧补 {}。
+        homeDashboard: cached.homeDashboard || {},
+        report: cached.report || {},
+        lessons: cached.lessons || {},
+      });
+      // 与下方 lessons 快通道同一门:空态投影不上屏(宁等真数据,不闪空态)。
+      if (cachedVm.hasSupply) this.setData({ vm: cachedVm, loading: false, supplyError: "" });
+    }
     // 页面拥有 returnTo 语义；API 只清理过期 token 并返回错误，不能抢先跳默认登录。
     var opt = { silent: true, suppressAuthRedirect: true };
     var settle = function (p) {
@@ -255,6 +306,23 @@ Page({
         lessons: lessons,
       });
       that.setData({ vm: vm, loading: false, supplyError: "" });
+      // 第二合法写者(与学情页共用唯一组装权威 buildUnifiedReportSnapshot):
+      // report 无效(如 unwrap 出的空对象)时 builder 返回 null 即不写,防污染。
+      // 写侧守卫(review #8/#9):re-check 当前登录者仍是发起者(用户中途切换
+      // 一律拒写),再经 writeIfFresher 按 fetchStartedAt 在 cache 权威层裁决
+      // 写序(孤儿响应拒写)。
+      if (
+        snapshotLayerReady &&
+        auth.isLoggedIn() &&
+        String((auth.getUserId && auth.getUserId()) || "").trim() === startedUserId
+      ) {
+        var snap = reportSnapshot.buildUnifiedReportSnapshot({
+          report: report,
+          homeDashboard: homeDashboard,
+          lessons: lessons,
+        });
+        if (snap) reportCache.writeIfFresher(startedUserId, snap, fetchStartedAt);
+      }
       return vm;
     }).catch(function (err) {
       if (seq !== that._loadSeq) return null;
@@ -280,6 +348,16 @@ Page({
     this.setData({ whyOpen: !this.data.whyOpen });
   },
 
+  // 一体化站点卡折叠(定稿 10a 头部行折叠箭头):纯呈现层,不触发任何加载/写入
+  toggleStation() {
+    this.setData({ stationOpen: !this.data.stationOpen });
+  },
+
+  // 「为什么先走这一站」折叠:展示 nextStation.reason(群体/证据理由,不算分)
+  toggleStationWhy() {
+    this.setData({ stationWhyOpen: !this.data.stationWhyOpen });
+  },
+
   // 下一站卡「播放」/ 课程架海报 → 进 spike 站点页(复用两幕 web-view 播放器)
   openStation(event) {
     var ds = (event && event.currentTarget && event.currentTarget.dataset) || {};
@@ -297,6 +375,11 @@ Page({
         wx.showToast({ title: "这一站微课即将开通", icon: "none" });
       return;
     }
+    // 进站预热:station onLoad 会发同一 GET(requestStateGet dedupeInFlight 并流),
+    // 把 detail 的 RTT 与页面导航并行。无状态不落缓存;失败静默,station 自有错误路径。
+    try {
+      api.getLubanLessonDetail(packId, { silent: true, suppressAuthRedirect: true }).catch(function () {});
+    } catch (_e) {}
     this._navTo("/packageDeeptutor/pages/luban/station/station?pack_id=" + encodeURIComponent(String(packId)));
   },
 
@@ -337,6 +420,26 @@ Page({
       );
       return;
     }
+  },
+
+  // 一体化站点卡舞台播放/进站学习(第10轮定稿:学习动作走站点卡舞台点击)。
+  // 目标站 = vm.nextStation(next_step 呈现仲裁的推荐学习站),不重算推荐;
+  // card_hosted===false 诚实降级 toast(禁 dead click 假可播)。
+  goLesson() {
+    if (this._refreshing) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
+      return;
+    }
+    var station = (this.data.vm && this.data.vm.nextStation) || {};
+    var packId = String(station.pack_id || "");
+    if (!packId) return;
+    if (station.card_hosted === false) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "这一站微课即将开通", icon: "none" });
+      return;
+    }
+    this._navTo(route.lubanStation(packId));
   },
 
   // 轻练旁按钮:供给真值由 view-model 单点裁决(light_practice_available,

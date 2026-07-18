@@ -144,6 +144,63 @@ def test_later_routable_intent_wins_while_earlier_skips_are_kept_as_diagnostics(
     assert [item["training_intent_id"] for item in skipped] == ["ti_stopped"]
 
 
+def test_learn_next_prefers_supply_ready_station_so_video_to_practice_completes() -> None:
+    # 推荐起点一致性(2026-07-18 A01 冲突包 owner 阻塞治本):A01 绿灯可看视频、
+    # 但练习未签发(retest_available=False)——荐为起点会「看完视频走不进练习」断链。
+    # 下一学臂必须偏好 supply_ready 站,越过 A01 荐 N01(练习就绪),被让位的 A01
+    # 入 skipped_stations 诊断(非第二处方)。
+    green = [
+        {"pack_id": "A01", "title": "检验批验收程序", "retest_available": False},
+        {"pack_id": "N01", "title": "网络计划关键线路", "retest_available": True},
+    ]
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[],
+        pack_lifecycle=_lifecycle({"A01": "unlearned", "N01": "unlearned"}),
+        green_lessons=green,
+    )
+    assert step["mode"] == MODE_LEARN
+    assert step["target_pack_id"] == "N01", "供给就绪的 N01 必须越过练习未就绪的 A01"
+    skipped = step.get("skipped_stations") or []
+    assert [row["pack_id"] for row in skipped] == ["A01"]
+    assert skipped[0]["skip_reason"] == "practice_supply_unavailable"
+
+
+def test_learn_next_falls_back_to_first_unlearned_when_no_station_supply_ready() -> None:
+    # 无一站 supply_ready 时不白屏:回退路线第一个未学站(视频本身有价值);
+    # 此时未因供给让位任何站 → 无 skipped_stations 噪声。
+    green = [
+        {"pack_id": "A01", "title": "检验批验收程序", "retest_available": False},
+        {"pack_id": "N01", "title": "网络计划关键线路", "retest_available": False},
+    ]
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[],
+        pack_lifecycle=_lifecycle({"A01": "unlearned", "N01": "unlearned"}),
+        green_lessons=green,
+    )
+    assert step["mode"] == MODE_LEARN
+    assert step["target_pack_id"] == "A01"
+    assert not step.get("skipped_stations")
+
+
+def test_fallback_arm_prefers_supply_ready_green_station() -> None:
+    # 全学完落 fallback 臂时同样偏好 supply_ready 站,保证群体首站也能走完全程。
+    green = [
+        {"pack_id": "A01", "title": "检验批验收程序", "retest_available": False},
+        {"pack_id": "N01", "title": "网络计划关键线路", "retest_available": True},
+    ]
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[],
+        pack_lifecycle=_lifecycle({"A01": "mastered", "N01": "mastered"}),
+        green_lessons=green,
+    )
+    assert step["mode"] == MODE_FALLBACK
+    assert step["target_pack_id"] == "N01"
+    assert (step.get("skipped_stations") or [])[0]["pack_id"] == "A01"
+
+
 def test_cold_start_fallback_is_never_blank() -> None:
     # 冷启动零证据：前三臂全空 → fallback 必非空（day-0 不白屏），群体理由。
     step = build_home_next_step_projection(

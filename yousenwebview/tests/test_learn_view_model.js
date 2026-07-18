@@ -478,15 +478,22 @@ ok("poster name uses registered 简称; title keeps full text; unregistered fall
 // 10a改 · 今日任务卡三层 + 旅程轨道 + 复习卡(单一权威红线)
 // ══════════════════════════════════════════════════════════════
 
-// ── 旅程轨道(红队 A1 收口):前端没有逐步完成证据 → 轨道=流程说明。
-//    禁 done/勾;current 只由 next_step.mode 派生(CTA 对应步,唯一诚实声称);
-//    第 5/6 步不承诺具体日程(复习周期由服务端 due 裁决,前端不写死"明日/3日")。 ──
+// ── 旅程轨道(红队 A1 收口 + owner 2026-07-18 排版去重):前端没有逐步完成证据 →
+//    轨道=流程说明。禁 done/勾;current 由 taskCard.task_state 派生(CTA 对应步,
+//    唯一诚实声称);第 5/6 步不承诺具体日程(复习周期由服务端 due 裁决)。
+//    归属:journey 叙述站点学习旅程 → 挂 vm.nextStation(视频学习卡),任务卡不再携带。 ──
 const JOURNEY_LABELS = ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "到期验证", "后续抽查"];
+
+ok("journey lives on nextStation (video card); task cards carry none (dedup)", () => {
+  const vm = buildLearnViewModel(FULL);
+  assert.ok(vm.nextStation.journey, "video/nextStation card must carry the journey");
+  assert.strictEqual(vm.todayTask.journey, undefined, "task card must not duplicate the journey");
+});
 
 ok("journey: steps are exactly the 6 canonical labels; no schedule promises in copy", () => {
   const vm = buildLearnViewModel(FULL); // learn_next
-  const j = vm.todayTask.journey;
-  assert.ok(j, "todayTask must carry a journey");
+  const j = vm.nextStation.journey;
+  assert.ok(j, "nextStation must carry a journey");
   assert.deepStrictEqual(j.steps.map((s) => s.label), JOURNEY_LABELS);
   assert.strictEqual(j.total, 6);
   j.steps.forEach((s) => {
@@ -504,7 +511,7 @@ ok("journey never claims done in any arm (frontend has no completion evidence)",
   ];
   arms.forEach((homeDashboard) => {
     const vm = buildLearnViewModel({ homeDashboard, report: FULL.report, lessons: FULL.lessons });
-    const j = vm.todayTask.journey;
+    const j = vm.nextStation.journey;
     assert.strictEqual(j.steps.filter((s) => s.state === "done").length, 0,
       "next_step.mode is a prescription, never completion evidence (" + homeDashboard.next_step.mode + ")");
   });
@@ -512,7 +519,7 @@ ok("journey never claims done in any arm (frontend has no completion evidence)",
 
 ok("journey learn_next+signed pool → practice-first, current = practice step", () => {
   const vm = buildLearnViewModel(FULL); // N01 练习池已签发 → 练习优先(owner 2026-07-17)
-  const j = vm.todayTask.journey;
+  const j = vm.nextStation.journey;
   assert.strictEqual(j.currentIndex, 2); // 练习优先 → 当前步=训练(1-based)
   assert.strictEqual(j.steps[1].state, "current");
   assert.strictEqual(j.steps[4].state, "promise"); // 到期验证=竹青虚环承诺
@@ -525,7 +532,7 @@ ok("journey learn_next without pool → current step 1, tail two steps promised"
     report: FULL.report,
     lessons: FULL.lessons, // S05 无 retest_available → 微课任务
   });
-  const j = vm.todayTask.journey;
+  const j = vm.nextStation.journey;
   assert.strictEqual(j.currentIndex, 1);
   assert.strictEqual(j.steps[0].state, "current");
   assert.strictEqual(j.steps[1].state, "future");
@@ -541,7 +548,7 @@ ok("journey practice_active → current step 2; earlier steps stay hollow, not d
     report: FULL.report,
     lessons: FULL.lessons,
   });
-  const j = vm.todayTask.journey;
+  const j = vm.nextStation.journey;
   assert.strictEqual(j.currentIndex, 2);
   // practice_active 只证明存在未 verified 的 training_intent,不证明动画讲懂已完成
   assert.strictEqual(j.steps[0].state, "future");
@@ -558,7 +565,7 @@ ok("journey review_due → current=到期验证(step 5); nothing marked done, no
     report: FULL.report,
     lessons: FULL.lessons,
   });
-  const j = vm.todayTask.journey;
+  const j = vm.nextStation.journey;
   assert.strictEqual(j.currentIndex, 5);
   assert.strictEqual(j.steps[0].state, "future");
   assert.strictEqual(j.steps[1].state, "future");
@@ -575,7 +582,7 @@ ok("journey draws no completion line: progressRatio/lineFillPercent removed", ()
       report: FULL.report,
       lessons: FULL.lessons,
     });
-    const j = vm.todayTask.journey;
+    const j = vm.nextStation.journey;
     assert.strictEqual(j.progressRatio, undefined, "no progress ratio without completion evidence");
     assert.strictEqual(j.lineFillPercent, undefined, "progress line must never cross unverified steps");
   });
@@ -583,7 +590,7 @@ ok("journey draws no completion line: progressRatio/lineFillPercent removed", ()
 
 ok("journey exposes no mastery percent, only step-position facts", () => {
   const vm = buildLearnViewModel(FULL);
-  const j = vm.todayTask.journey;
+  const j = vm.nextStation.journey;
   assert.strictEqual(j.masteryPercent, undefined);
   assert.ok(j.currentIndex >= 1 && j.currentIndex <= 6);
   assert.ok(typeof j.ringPercent === "number" && j.ringPercent >= 0 && j.ringPercent <= 100);
@@ -931,9 +938,11 @@ ok("browse never claims 今日任务: kicker is 从这里开始, not 今天最�
   });
 });
 
-ok("browse journey = step 1 (动画讲懂 current), no done, tail two steps promised", () => {
-  const j = buildLearnViewModel(BROWSE_RETEST).browseTask.journey;
-  assert.ok(j, "browse card must carry a journey so the 10a track renders");
+ok("browse journey on nextStation = step 1 (动画讲懂 current), no done, tail two promised", () => {
+  const vm = buildLearnViewModel(BROWSE_RETEST);
+  assert.strictEqual(vm.browseTask.journey, undefined, "browse card must not duplicate the journey");
+  const j = vm.nextStation.journey;
+  assert.ok(j, "video/nextStation card carries the journey so the track renders");
   assert.strictEqual(j.currentIndex, 1);
   assert.strictEqual(j.steps[0].state, "current");
   assert.strictEqual(j.steps.filter((s) => s.state === "done").length, 0);
