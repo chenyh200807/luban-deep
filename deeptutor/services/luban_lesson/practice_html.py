@@ -1094,7 +1094,12 @@ def resolve_projection_receipt(
         # token from current item content/source/order in ``_validate_authority``.
         return _project_practice_rows(resolved)
     except PracticeHtmlInvalid as exc:
-        if str(exc) == "content_updated_retake":
+        # 资格未就绪（供给尚未签发发布）与真收据漂移是两种不同的终态：前者是
+        # "练习题还没上线"（``practice_not_released``），后者才是"你手上的题集与
+        # 当前供给对不上，请整卷重取"（``content_updated_retake``）。两者都要
+        # 原样冒泡，绝不把"未发布"洗白成"已更新"——否则前端只能给出误导性的
+        # "题目已更新，请重做"文案，把一次教研节奏问题伪装成用户侧数据问题。
+        if str(exc) in ("content_updated_retake", "practice_not_released"):
             raise
         raise PracticeHtmlInvalid("content_updated_retake") from exc
 
@@ -1103,7 +1108,9 @@ def resolve_compiled_practice_items_from_authority(
     practice: dict[str, Any], variant_ids: list[str]
 ) -> list[dict[str, Any]]:
     if not compiled_practice_eligibility_summary(practice)["supply_ready"]:
-        raise PracticeHtmlInvalid("practice_authority_variant_set_not_found")
+        # 供给尚未签发发布 = 练习未上线（非收据漂移）。用独立错误码把这个终态
+        # 与"题集与当前供给对不上"区分开，供 receipt 路径原样冒泡给前端暖文案。
+        raise PracticeHtmlInvalid("practice_not_released")
     wanted = [str(item or "").strip() for item in variant_ids]
     if len(wanted) != PRACTICE_LIMIT or len(set(wanted)) != PRACTICE_LIMIT:
         raise PracticeHtmlInvalid("practice_authority_variant_set_not_found")

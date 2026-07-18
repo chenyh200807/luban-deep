@@ -249,6 +249,77 @@ def test_n03_uses_the_final_two_part_teaching_source() -> None:
     }
 
 
+def test_degrade_practice_entry_replaces_link_with_warm_copy_and_is_idempotent() -> None:
+    html = (
+        '<a href="practice.html" style="background:#2c8a5b;color:#fff;'
+        'cursor:pointer;">做练习</a>'
+        '<a href="practice2.html" style="flex:1;">全集做练习 →</a>'
+        '<a href="lesson2.html">下一集</a>'
+    )
+    degraded, hits = _mod._degrade_practice_entry(html)
+    assert hits == 2
+    # 练习入口不再可点，改为教研签发中的暖文案。
+    assert 'href="practice' not in degraded
+    assert '做练习' not in degraded
+    assert degraded.count(_mod.PRACTICE_GATE_COPY) == 2
+    assert 'data-luban-practice-gate="pending"' in degraded
+    assert "cursor:default" in degraded
+    # 暖基调，绝不含"看穿/识破"类挑短语气。
+    for banned in ("看穿", "识破", "揭穿", "露馅"):
+        assert banned not in _mod.PRACTICE_GATE_COPY
+    # 讲解页互链不受影响。
+    assert 'href="lesson2.html"' in degraded
+    # 幂等：降级态再跑一次不再命中。
+    again, again_hits = _mod._degrade_practice_entry(degraded)
+    assert again_hits == 0
+    assert again == degraded
+
+
+def test_hosted_reachability_gate_follows_supply_ready_for_whole_corpus() -> None:
+    """全语料闸：非 supply_ready 的注册 pack 讲解页不得留可点练习入口。
+
+    reachability 单一权威 = ``supply_ready``。此测试把发布产物层锁死，避免未来
+    有人重发某个未签发 pack 时又放出可点的"做练习"入口（用户点进去必吃
+    ``practice_not_released``）。同时校验 ``published_lesson_sha256`` 与降级后的
+    托管 ``lesson.html`` 一致（runtime / manifest sha 校验的前提）。
+    """
+    from deeptutor.services.luban_lesson.practice_html import (
+        compiled_practice_eligibility_summary,
+    )
+
+    entry_re = re.compile(r'<a\s+href="practice\d*\.html"', re.IGNORECASE)
+    checked_ready = 0
+    checked_gated = 0
+    for authority_path in sorted(
+        _mod.AUTHORITY_HOST.glob("*.practice.authority.json")
+    ):
+        sid = authority_path.name.split(".", 1)[0]
+        authority = json.loads(authority_path.read_text(encoding="utf-8"))
+        supply_ready = bool(
+            compiled_practice_eligibility_summary(authority)["supply_ready"]
+        )
+        lesson = _mod.HOST / sid / "lesson.html"
+        if not lesson.is_file():
+            continue
+        # 无论闸态，authority 记录的 lesson sha 必须与托管产物一致。
+        assert authority.get("published_lesson_sha256") == _sha(lesson), (
+            f"{sid}: published_lesson_sha256 drifted from hosted lesson.html"
+        )
+        for hosted_lesson in sorted((_mod.HOST / sid).glob("lesson*.html")):
+            html = hosted_lesson.read_text(encoding="utf-8")
+            if supply_ready:
+                continue
+            assert not entry_re.search(html), (
+                f"{sid}/{hosted_lesson.name}: non-supply_ready pack still exposes a "
+                "clickable practice entry (reachability drifted from supply_ready)"
+            )
+        if supply_ready:
+            checked_ready += 1
+        else:
+            checked_gated += 1
+    assert checked_gated, "expected at least one gated (non-supply_ready) pack"
+
+
 def test_rewrite_hrefs_handles_html_and_x_dc_script_links() -> None:
     rendered = _mod._rewrite_hrefs(
         '<a href="P40_A01.teach.down.dc.html">下集</a>'
