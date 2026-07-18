@@ -236,10 +236,10 @@ class Component extends DCLogic {
       stem:"建筑工程质量验收分哪几级？验收方向如何？选出最完整、能得分的作答。",
       model:"分检验批、分项工程、分部工程、单位工程四级，自下而上逐级累积验收，下一级合格是上一级前提。",
       opts:[
-        { t:"分检验批、分项工程、分部工程、单位工程四级，自下而上逐级累积验收，下一级合格是上一级前提。", ok:true, fix:"层级名 + 自下而上方向 + 逐级前提，三件齐。", code:"" },
         { t:"分单位工程、分部工程、分项工程、检验批四级，自上而下逐级分解验收，上一级合格是下一级前提。", ok:false, code:"E06", tempt:"名头都对，方向顺手写成从大到小。", lose:"方向与前提整体倒装——应自下而上累积，倒着验的「合格」建在没验的地基上。", fix:"检验批、分项、分部、单位，自下而上逐级验。" },
         { t:"分检验批、分项工程、分部工程、单位工程四级，自上而下验收，先定单位工程合格再核对下级。", ok:false, code:"E07", tempt:"层级顺序抄对了，验收方向想反了。", lose:"层级名对但方向错——先定上级再核下级，逻辑颠倒。", fix:"自下而上：下级全合格才验上级。" },
-        { t:"分分项工程、分部工程、单位工程三级，自下而上验收，检验批并入分项一并核定不单列。", ok:false, code:"E02", tempt:"以为检验批太小可并进分项。", lose:"漏检验批这一最小验收单元，层级少一级。", fix:"检验批必须单列，共四级。" }
+        { t:"分分项工程、分部工程、单位工程三级，自下而上验收，检验批并入分项一并核定不单列。", ok:false, code:"E02", tempt:"以为检验批太小可并进分项。", lose:"漏检验批这一最小验收单元，层级少一级。", fix:"检验批必须单列，共四级。" },
+        { t:"分检验批、分项工程、分部工程、单位工程四级，自下而上逐级累积验收，下一级合格是上一级前提。", ok:true, fix:"层级名 + 自下而上方向 + 逐级前提，三件齐。", code:"" }
       ] },
 { tag:"检验批划分·条件维", typeHint:"单选 · 选出划分依据完整的作答", fig:"divide",
       figLabel:"检验批怎么划分", figCaption:"一个分部 / 分项，切成若干检验批",
@@ -256,10 +256,10 @@ class Component extends DCLogic {
       stem:"分项工程按哪些条件划分？选出完整、能得分的作答。",
       model:"分项工程按主要工种、材料、施工工艺、设备类别划分。",
       opts:[
+        { t:"按工程量、楼层、施工段、变形缝等条件划分各分项工程。", ok:false, code:"E07", tempt:"依据串档，把检验批那套搬到分项。", lose:"工程量 / 楼层 / 施工段 / 变形缝是检验批划分依据，分项归错类。", fix:"分项按工种 / 材料 / 工艺 / 设备类别。" },
+        { t:"只按主要工种、材料两类依据划分各分项工程，工艺与设备类别不计。", ok:false, code:"E02", tempt:"记住前两类就当成全部。", lose:"漏施工工艺、设备类别两类，依据不全。", fix:"补施工工艺、设备类别，共四类。" },
         { t:"按主要工种、材料、施工工艺、设备类别划分。", ok:true, fix:"四类依据齐全，别与检验批条件混。", code:"" },
-        { t:"按工程量、楼层、施工段、变形缝等条件来划分各分项工程。", ok:false, code:"E07", tempt:"依据串档，把检验批那套搬到分项。", lose:"工程量 / 楼层 / 施工段 / 变形缝是检验批划分依据，分项归错类。", fix:"分项按工种 / 材料 / 工艺 / 设备类别。" },
-        { t:"分项工程只按主要工种和所用材料两类依据划分，工艺与设备类别不计。", ok:false, code:"E02", tempt:"记住前两类就当成全部。", lose:"漏施工工艺、设备类别两类，依据不全。", fix:"补施工工艺、设备类别，共四类。" },
-        { t:"按专业性质和工程部位来划分各分项工程，与工种材料并列。", ok:false, code:"E07", tempt:"把分部的依据错接到分项。", lose:"专业性质 / 工程部位是分部工程划分依据，层级归错。", fix:"分项按工种 / 材料 / 工艺 / 设备类别。" }
+        { t:"按专业性质、工程部位划分各分项工程，与工种材料并列。", ok:false, code:"E07", tempt:"把分部的依据错接到分项。", lose:"专业性质 / 工程部位是分部工程划分依据，层级归错。", fix:"分项按工种 / 材料 / 工艺 / 设备类别。" }
       ] },
 { tag:"合格判定·条件维", typeHint:"单选 · 选出合格标准正确的作答", fig:"twogate",
       figLabel:"检验批合格两道门", figCaption:"主控项目 vs 一般项目，判定逻辑一样吗",
@@ -522,7 +522,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"A01-html-practice-html-q1-112344cf0ec0","options":["A01-html-practice-html-q1-112344cf0ec0:option-1","A01-html-practice-html-q1-112344cf0ec0:option-2","A01-html-practice-html-q1-112344cf0ec0:option-3","A01-html-practice-html-q1-112344cf0ec0:option-4"]},{"variant_id":"A01-html-practice-html-q2-ecc97aac95bb","options":["A01-html-practice-html-q2-ecc97aac95bb:option-1","A01-html-practice-html-q2-ecc97aac95bb:option-2","A01-html-practice-html-q2-ecc97aac95bb:option-3","A01-html-practice-html-q2-ecc97aac95bb:option-4"]},{"variant_id":"A01-html-practice-html-q3-1b552c4bae9d","options":["A01-html-practice-html-q3-1b552c4bae9d:option-1","A01-html-practice-html-q3-1b552c4bae9d:option-2","A01-html-practice-html-q3-1b552c4bae9d:option-3","A01-html-practice-html-q3-1b552c4bae9d:option-4"]},{"variant_id":"A01-html-practice-html-q4-2492e71aec61","options":["A01-html-practice-html-q4-2492e71aec61:option-1","A01-html-practice-html-q4-2492e71aec61:option-2","A01-html-practice-html-q4-2492e71aec61:option-3","A01-html-practice-html-q4-2492e71aec61:option-4"]},{"variant_id":"A01-html-practice-html-q16-5d16aca4c763","options":["A01-html-practice-html-q16-5d16aca4c763:option-1","A01-html-practice-html-q16-5d16aca4c763:option-2","A01-html-practice-html-q16-5d16aca4c763:option-3","A01-html-practice-html-q16-5d16aca4c763:option-4"]}];
+    const exactItems=[{"variant_id":"A01-html-practice-html-q1-a97f6b60c08e","options":["A01-html-practice-html-q1-a97f6b60c08e:option-1","A01-html-practice-html-q1-a97f6b60c08e:option-2","A01-html-practice-html-q1-a97f6b60c08e:option-3","A01-html-practice-html-q1-a97f6b60c08e:option-4"]},{"variant_id":"A01-html-practice-html-q2-ecc97aac95bb","options":["A01-html-practice-html-q2-ecc97aac95bb:option-1","A01-html-practice-html-q2-ecc97aac95bb:option-2","A01-html-practice-html-q2-ecc97aac95bb:option-3","A01-html-practice-html-q2-ecc97aac95bb:option-4"]},{"variant_id":"A01-html-practice-html-q3-ac762242b32d","options":["A01-html-practice-html-q3-ac762242b32d:option-1","A01-html-practice-html-q3-ac762242b32d:option-2","A01-html-practice-html-q3-ac762242b32d:option-3","A01-html-practice-html-q3-ac762242b32d:option-4"]},{"variant_id":"A01-html-practice-html-q4-2492e71aec61","options":["A01-html-practice-html-q4-2492e71aec61:option-1","A01-html-practice-html-q4-2492e71aec61:option-2","A01-html-practice-html-q4-2492e71aec61:option-3","A01-html-practice-html-q4-2492e71aec61:option-4"]},{"variant_id":"A01-html-practice-html-q16-5d16aca4c763","options":["A01-html-practice-html-q16-5d16aca4c763:option-1","A01-html-practice-html-q16-5d16aca4c763:option-2","A01-html-practice-html-q16-5d16aca4c763:option-3","A01-html-practice-html-q16-5d16aca4c763:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -539,7 +539,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("A01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMTEyMzQ0Y2YwZWMwIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lY2M5N2FhYzk1YmIiLCJBMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTFiNTUyYzRiYWU5ZCIsIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMjQ5MmU3MWFlYzYxIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNWQxNmFjYTRjNzYzIl0sInBhY2tfaWQiOiJBMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBkYjQ1NjE3OGE4MDg1M2M4NTdmNWE4NGFjYzM2NGI0YjQ2ZTJhN2M3MGQxMDhjNGUxNGI5NGZkZTFjZWRiMzYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("A01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTk3ZjZiNjBjMDhlIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lY2M5N2FhYzk1YmIiLCJBMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFjNzYyMjQyYjMyZCIsIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMjQ5MmU3MWFlYzYxIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNWQxNmFjYTRjNzYzIl0sInBhY2tfaWQiOiJBMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjM4YWI1NWVkMmZhZGRjNjhlZDVhNDgxMzE5ZGRhNjgzNWQ1MDYyYzRhYjY5ODM5MTE0OTBjOGRhMmMzZDc5YTkiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "C04",
   "source_pack_sha256": "890334cf5c4a12d7a68f569af605ea5b5adb4637848ec9936521fbc292f9aed2",
-  "source_bundle_sha256": "96ec196afc9422ad8e66de9be55d25e28e695e21c4f262a74cf1d1c9b0b94042",
+  "source_bundle_sha256": "f37285e015da7d5b485bc8812f1f31dd6b55b2073e33fa4ae9710d5633aad487",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,23 +18,23 @@
         15
       ],
       "variant_ids": [
-        "C04-html-practice-html-q1-3f9696fe7b90",
-        "C04-html-practice-html-q2-57b7aba68476",
-        "C04-html-practice-html-q3-fd09f109c0de",
-        "C04-html-practice-html-q4-2f60c2911a87",
+        "C04-html-practice-html-q1-42d9eca247e1",
+        "C04-html-practice-html-q2-ec4c52a11d33",
+        "C04-html-practice-html-q3-f9c7755968bb",
+        "C04-html-practice-html-q4-7919150be099",
         "C04-html-practice-html-q16-bd3fe10391f8"
       ],
       "eligible_variant_ids": [
-        "C04-html-practice-html-q1-3f9696fe7b90",
-        "C04-html-practice-html-q2-57b7aba68476",
-        "C04-html-practice-html-q3-fd09f109c0de",
-        "C04-html-practice-html-q4-2f60c2911a87",
+        "C04-html-practice-html-q1-42d9eca247e1",
+        "C04-html-practice-html-q2-ec4c52a11d33",
+        "C04-html-practice-html-q3-f9c7755968bb",
+        "C04-html-practice-html-q4-7919150be099",
         "C04-html-practice-html-q5-0f31b7c99ac5",
         "C04-html-practice-html-q6-30a632b3e3e3",
         "C04-html-practice-html-q16-bd3fe10391f8"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtM2Y5Njk2ZmU3YjkwIiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01N2I3YWJhNjg0NzYiLCJDMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZkMDlmMTA5YzBkZSIsIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmY2MGMyOTExYTg3IiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmQzZmUxMDM5MWY4Il0sInBhY2tfaWQiOiJDMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjFmZThlYTgyZGU4OWU2NGQ2MzIxNjUzNmU3ZDNkOWVhOTYxZDVjZDkzNWFkMjJkYTEzYTJmYjJjOTViZTFmYjUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWFiZmRiZDdiN2U5OTE3ZDM5ZDc3OTc3N2NmNWJlZTMxYjY4NjExYzgyNjFmMmExYzFlODMwZGEzOGVhMWJkMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "1fa7c712b5101d9e62db0fe34066ae9058a5d904f8eaa3ae7aea48a432bee510"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDJkOWVjYTI0N2UxIiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lYzRjNTJhMTFkMzMiLCJDMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWY5Yzc3NTU5NjhiYiIsIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNzkxOTE1MGJlMDk5IiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmQzZmUxMDM5MWY4Il0sInBhY2tfaWQiOiJDMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjAwNTFkOGY1MWIzODUyNDRiMzg2MTgyMDVjYWI1Y2JiYjI4YmI3YzdhNDU4YTZhZTJlMDYxNjljMDcwZmZmZDUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWFiZmRiZDdiN2U5OTE3ZDM5ZDc3OTc3N2NmNWJlZTMxYjY4NjExYzgyNjFmMmExYzFlODMwZGEzOGVhMWJkMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "8f24ef10c89395ec870b86e48ef9360624aedef19b4a196fce2124234f5821b3"
     }
   ],
   "items": [
@@ -45,43 +45,43 @@
       "model_answer": "不承重侧模：混凝土强度保证其表面、棱角不因拆模受损即可拆除；墙体大模板常温达 1N/mm² 即可拆除。",
       "options": [
         {
+          "text": "梁、柱、墙的侧模板与底模判据一致，均须按构件类型和跨度查强度百分率表，达到对应百分率后方可拆除。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "底模那张表太出名，顺手就往侧模上套。",
+          "loss_reason": "百分率表只管承重的底模及支架；侧模不承重，判据是表面棱角。",
+          "fix": "侧模看「表面、棱角不因拆模受损」，墙体大模板 1N/mm²。",
+          "option_id": "C04-html-practice-html-q1-42d9eca247e1:option-1"
+        },
+        {
           "text": "不承重侧模只要混凝土强度保证表面、棱角不因拆模受损即可拆；墙体大模板常温达 1N/mm² 即可拆。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "侧模判据两件套：表面棱角不受损 + 大模板 1N/mm²，别沾百分率表。",
-          "option_id": "C04-html-practice-html-q1-3f9696fe7b90:option-1"
+          "option_id": "C04-html-practice-html-q1-42d9eca247e1:option-2"
         },
         {
-          "text": "侧模与底模一样，须按构件类型和跨度查强度百分率表，达到对应百分率后方可拆除。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "底模那张表太出名，顺手就往侧模上套。",
-          "loss_reason": "百分率表只管承重的底模及支架；侧模不承重，判据是表面棱角。",
-          "fix": "侧模看「表面、棱角不因拆模受损」，墙体大模板 1N/mm²。",
-          "option_id": "C04-html-practice-html-q1-3f9696fe7b90:option-2"
-        },
-        {
-          "text": "侧模拆除只要混凝土表面不粘模即可，对棱角没有要求，常温下随时可拆。",
+          "text": "侧模拆除时混凝土强度保证其表面不粘模即可，对棱角无专门要求，常温条件下即可安排拆除。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "记住了「表面」，忘了「棱角」。",
           "loss_reason": "判据是「表面、棱角」两个词都得有，漏「棱角」就漏采分词。",
           "fix": "写全「表面、棱角不因拆模受损」。",
-          "option_id": "C04-html-practice-html-q1-3f9696fe7b90:option-3"
+          "option_id": "C04-html-practice-html-q1-42d9eca247e1:option-3"
         },
         {
-          "text": "所有模板包括底模，混凝土强度达到 1N/mm² 即可拆除，这是拆模的统一强度阈值。",
+          "text": "各类模板包括承重底模在内，混凝土强度达到 1N/mm² 即可统一安排拆除，无须按构件类型分别掌握。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "1N/mm² 这个数好记，容易当万能阈值。",
           "loss_reason": "1N/mm² 只适用于墙体大模板（侧模）；底模按它拆就是重大安全事故级错误。",
           "fix": "1N/mm² 仅限墙体大模板；底模按构件×跨度查表。",
-          "option_id": "C04-html-practice-html-q1-3f9696fe7b90:option-4"
+          "option_id": "C04-html-practice-html-q1-42d9eca247e1:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q1-3f9696fe7b90",
+      "variant_id": "C04-html-practice-html-q1-42d9eca247e1",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
@@ -89,27 +89,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q1",
       "source_anchor": "kc:1A413030_099_0186:0",
       "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "c04-fact-side-form-removal",
       "skeleton_id": "c04-skel-侧模拆除条件",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "92261ac7a4384ec88faa9412144ffb1f5ec1e33127ff3bbd393ad32560490f99",
+      "content_sha256": "dfb6e3b6ef486877d00c5cd792154d582c652f0957b02a0d178fba6698c1a35b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "92261ac7a4384ec88faa9412144ffb1f5ec1e33127ff3bbd393ad32560490f99",
+        "reviewed_content_sha256": "dfb6e3b6ef486877d00c5cd792154d582c652f0957b02a0d178fba6698c1a35b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -130,43 +130,43 @@
       "model_answer": "按构件类型+跨度：板 ≤2m→50%、2~8m→75%、＞8m→100%；梁拱壳 ≤8m→75%、＞8m→100%；悬臂构件一律 100%。",
       "options": [
         {
+          "text": "不区分构件类型与跨度：板不论 ≤2m、2~8m 还是＞8m，梁拱壳不论 ≤8m 还是＞8m，连同悬臂构件在内，均达到设计强度后方可拆除。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「达到设计强度」听着最保险。",
+          "loss_reason": "漏掉构件×跨度分档——2m 内的板 50% 就能拆，全按 100% 是把表整个丢了。",
+          "fix": "写全按构件类型+跨度查表的三行档位。",
+          "option_id": "C04-html-practice-html-q2-ec4c52a11d33:option-1"
+        },
+        {
+          "text": "查表时板和梁拱壳的底模不论具体跨度大小，均统一按设计强度的 75% 掌握，只有跨度特别大的构件才需要达到 100% 后方可拆除底模。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "75% 是表里最常见的档，容易当成通用值。",
+          "loss_reason": "档值因构件与跨度而异：≤2m 板只要 50%，＞8m 就要 100%，「统一 75%」数字错。",
+          "fix": "板 50/75/100 三档、梁拱壳 75/100 两档，断点 2m、8m。",
+          "option_id": "C04-html-practice-html-q2-ec4c52a11d33:option-2"
+        },
+        {
           "text": "按构件类型加跨度查表：板 ≤2m 取 50%、2~8m 取 75%、＞8m 取 100%；梁拱壳 ≤8m 取 75%、＞8m 取 100%；悬臂构件一律 100%。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "构件三类 + 断点 2m/8m + 档值 50/75/100，全表一句写齐。",
-          "option_id": "C04-html-practice-html-q2-57b7aba68476:option-1"
+          "option_id": "C04-html-practice-html-q2-ec4c52a11d33:option-3"
         },
         {
-          "text": "底模拆除时混凝土达到设计强度即可拆除，不必区分构件类型，统一按设计强度掌握。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "「达到设计强度」听着最保险。",
-          "loss_reason": "漏掉构件×跨度分档——2m 内的板 50% 就能拆，全按 100% 是把表整个丢了。",
-          "fix": "写全按构件类型+跨度查表的三行档位。",
-          "option_id": "C04-html-practice-html-q2-57b7aba68476:option-2"
-        },
-        {
-          "text": "板和梁的底模统一按 75% 掌握，只有跨度特别大的构件才需要达到 100%。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "75% 是表里最常见的档，容易当成通用值。",
-          "loss_reason": "档值因构件与跨度而异：≤2m 板只要 50%，＞8m 就要 100%，「统一 75%」数字错。",
-          "fix": "板 50/75/100 三档、梁拱壳 75/100 两档，断点 2m、8m。",
-          "option_id": "C04-html-practice-html-q2-57b7aba68476:option-3"
-        },
-        {
-          "text": "悬臂构件的底模在混凝土强度达到设计强度的 75% 时即可拆除，与梁拱壳一致。",
+          "text": "按构件类型加跨度查表：板 ≤2m 取 50%、2~8m 取 75%、＞8m 取 100%；梁拱壳 ≤8m 取 75%、＞8m 取 100%；悬臂构件与梁拱壳一致取 75%。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "悬臂看着和梁差不多，顺手套 75%。",
           "loss_reason": "悬臂构件无支撑一侧最危险，规范要求一律 100%——2024 年真题错项原型。",
           "fix": "悬臂构件不论跨度，一律达到 100% 方可拆。",
-          "option_id": "C04-html-practice-html-q2-57b7aba68476:option-4"
+          "option_id": "C04-html-practice-html-q2-ec4c52a11d33:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q2-57b7aba68476",
+      "variant_id": "C04-html-practice-html-q2-ec4c52a11d33",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
@@ -174,27 +174,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q2",
       "source_anchor": "kc:1A413030_099_0185:0",
       "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "c04-fact-bottom-form-strength-table",
       "skeleton_id": "c04-skel-底模强度全表",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5bb9d3bfb7fdd72e344bf311acd0ffba09d501fbf1ebfe3f110c1d0d761e3641",
+      "content_sha256": "31893b1bad4afa63b30e91de6c7751fe89f2697d1141af627fcbb818c927e33c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "5bb9d3bfb7fdd72e344bf311acd0ffba09d501fbf1ebfe3f110c1d0d761e3641",
+        "reviewed_content_sha256": "31893b1bad4afa63b30e91de6c7751fe89f2697d1141af627fcbb818c927e33c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           }
         ],
         "checks": {
@@ -204,7 +204,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -215,43 +215,43 @@
       "model_answer": "6m 板落 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块代表值≥22.5 方可拆底模。",
       "options": [
         {
+          "text": "6m 板跨度已较大，应从严按 100% 掌握：30×100%=30N/mm²，混凝土达到 30N/mm² 后方可拆除底模。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "「从严总没错」的心态，直接取顶格。",
+          "loss_reason": "档位判错：6m 落 2~8m 档取 75%；100% 是＞8m 档，白白压工期还丢档位分。",
+          "fix": "6m 属 2~8m 档，30×75%=22.5N/mm²。",
+          "option_id": "C04-html-practice-html-q3-f9c7755968bb:option-1"
+        },
+        {
+          "text": "6m 板属 2~8m 档取 75%：30×75%=22.5N/mm²，以标准养护试块强度达到 22.5 为准方可拆除底模。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值 22.5 全对，试块口径看着无所谓。",
+          "loss_reason": "拆模看「同条件养护」试块——它才代表现场构件真实强度；写「标养」依据词错。",
+          "fix": "改成「同条件养护试块强度≥22.5N/mm²」。",
+          "option_id": "C04-html-practice-html-q3-f9c7755968bb:option-2"
+        },
+        {
+          "text": "6m 板未超过 8m，属小跨度档按 50% 控制：30×50%=15N/mm²，试块强度达到 15 即可拆除底模。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记混了断点，把 8m 内全当 50% 档。",
+          "loss_reason": "50% 只给 ≤2m 的板；6m 在 2~8m 档要 75%，15 就拆属过早拆除。",
+          "fix": "2~8m 档取 75%，最低 22.5N/mm²。",
+          "option_id": "C04-html-practice-html-q3-f9c7755968bb:option-3"
+        },
+        {
           "text": "6m 板属 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块强度≥22.5 方可拆底模。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "档位依据 + 算式 + 数值带单位 + 同条件养护，四件齐。",
-          "option_id": "C04-html-practice-html-q3-fd09f109c0de:option-1"
-        },
-        {
-          "text": "6m 板跨度较大从严掌握，按 100% 控制：混凝土达 30N/mm² 后方可拆除底模。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "「从严总没错」的心态，直接取顶格。",
-          "loss_reason": "档位判错：6m 落 2~8m 档取 75%；100% 是＞8m 档，白白压工期还丢档位分。",
-          "fix": "6m 属 2~8m 档，30×75%=22.5N/mm²。",
-          "option_id": "C04-html-practice-html-q3-fd09f109c0de:option-2"
-        },
-        {
-          "text": "6m 板取 75%：30×75%=22.5N/mm²，以标准养护试块强度达到 22.5 为准即可拆除。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "数值 22.5 全对，试块口径看着无所谓。",
-          "loss_reason": "拆模看「同条件养护」试块——它才代表现场构件真实强度；写「标养」依据词错。",
-          "fix": "改成「同条件养护试块强度≥22.5N/mm²」。",
-          "option_id": "C04-html-practice-html-q3-fd09f109c0de:option-3"
-        },
-        {
-          "text": "6m 板不超 8m 属小跨度，按 50% 控制：30×50%=15N/mm² 即可拆除底模。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "记混了断点，把 8m 内全当 50% 档。",
-          "loss_reason": "50% 只给 ≤2m 的板；6m 在 2~8m 档要 75%，15 就拆属过早拆除。",
-          "fix": "2~8m 档取 75%，最低 22.5N/mm²。",
-          "option_id": "C04-html-practice-html-q3-fd09f109c0de:option-4"
+          "option_id": "C04-html-practice-html-q3-f9c7755968bb:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q3-fd09f109c0de",
+      "variant_id": "C04-html-practice-html-q3-f9c7755968bb",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
@@ -259,27 +259,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q3",
       "source_anchor": "exam:2021:第9题",
       "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "c04-fact-bottom-form-strength-apply-6m",
       "skeleton_id": "c04-skel-6m板强度应用",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a5434285b32446573c10f6a925e01464e3361b7137c52684f4a2a6b63d80f8b2",
+      "content_sha256": "a36514082042e5035769577596c639d192bed20cf34d745a386d08b70b0ac4c8",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a5434285b32446573c10f6a925e01464e3361b7137c52684f4a2a6b63d80f8b2",
+        "reviewed_content_sha256": "a36514082042e5035769577596c639d192bed20cf34d745a386d08b70b0ac4c8",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           }
         ],
         "checks": {
@@ -289,7 +289,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "6m现浇板拆底模≥75%,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "6m现浇板拆底模≥75%,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -300,43 +300,43 @@
       "model_answer": "梁 8m 属「≤8m」档取 75%；只有跨度超过 8m 才取 100%。",
       "options": [
         {
+          "text": "梁跨度 8m 正处分界值，应从严掌握归入「大于 8m」档取 100%，达设计强度后方可拆除。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "边界值「从严」听着稳妥。",
+          "loss_reason": "表的口径是「＞8m 才 100%」，8m 本身仍在 ≤8m 档，从严反而档位错。",
+          "fix": "8m 取 75%；写明「超过 8m 才 100%」。",
+          "option_id": "C04-html-practice-html-q4-7919150be099:option-1"
+        },
+        {
+          "text": "梁按板的档位掌握：8m 恰落板的 2~8m 档取 75%，档位判定依据引用板的跨度分档表。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值 75% 碰对了，依据却引错行。",
+          "loss_reason": "梁拱壳只有 8m 一个断点，没有 2m 档；引「板 2~8m」是构件行张冠李戴。",
+          "fix": "写「梁拱壳 ≤8m→75%」，别引板的档。",
+          "option_id": "C04-html-practice-html-q4-7919150be099:option-2"
+        },
+        {
+          "text": "跨度 8m 的悬挑梁与普通梁一致，取 75% 即可拆除底模，悬臂与否并不影响档位取值。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "都叫梁，容易忽略悬臂特殊。",
+          "loss_reason": "悬臂构件一律 100%，与跨度无关；「悬臂 75%」是 2024 真题经典错项。",
+          "fix": "悬臂一律 100%；普通梁 8m 才是 75%。",
+          "option_id": "C04-html-practice-html-q4-7919150be099:option-3"
+        },
+        {
           "text": "梁跨度 8m 属「不超过 8m」档，取设计强度的 75%；超过 8m 才取 100%。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "边界值归属：8m 本身在 ≤8m 档内，档位分界记「超过」二字。",
-          "option_id": "C04-html-practice-html-q4-2f60c2911a87:option-1"
-        },
-        {
-          "text": "8m 是分界值应从严掌握，按「大于 8m」档取 100%，达设计强度后方可拆除。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "边界值「从严」听着稳妥。",
-          "loss_reason": "表的口径是「＞8m 才 100%」，8m 本身仍在 ≤8m 档，从严反而档位错。",
-          "fix": "8m 取 75%；写明「超过 8m 才 100%」。",
-          "option_id": "C04-html-practice-html-q4-2f60c2911a87:option-2"
-        },
-        {
-          "text": "梁按板的档位掌握：8m 落 2~8m 档取 75%，依据是板的跨度分档表。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "数值 75% 碰对了，依据却引错行。",
-          "loss_reason": "梁拱壳只有 8m 一个断点，没有 2m 档；引「板 2~8m」是构件行张冠李戴。",
-          "fix": "写「梁拱壳 ≤8m→75%」，别引板的档。",
-          "option_id": "C04-html-practice-html-q4-2f60c2911a87:option-3"
-        },
-        {
-          "text": "8m 悬挑梁与普通梁一致，取 75% 即可拆除底模，悬臂与否不影响档位。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "都叫梁，容易忽略悬臂特殊。",
-          "loss_reason": "悬臂构件一律 100%，与跨度无关；「悬臂 75%」是 2024 真题经典错项。",
-          "fix": "悬臂一律 100%；普通梁 8m 才是 75%。",
-          "option_id": "C04-html-practice-html-q4-2f60c2911a87:option-4"
+          "option_id": "C04-html-practice-html-q4-7919150be099:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q4-2f60c2911a87",
+      "variant_id": "C04-html-practice-html-q4-7919150be099",
       "surface_id": "practice.html",
       "source_index": 3,
       "source_group": "Q",
@@ -344,27 +344,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q4",
       "source_anchor": "exam:2024:第10题",
       "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "c04-fact-bottom-form-strength-threshold",
       "skeleton_id": "c04-skel-8m边界判定",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9825f95ab986a08850522c09d87f4a715d849f81d54a007db89fb687c1ea49bc",
+      "content_sha256": "a9b6ae5aa455090d8f1fda3d21b19faba72d48daf0142343a3ae12fd4bd86210",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "9825f95ab986a08850522c09d87f4a715d849f81d54a007db89fb687c1ea49bc",
+        "reviewed_content_sha256": "a9b6ae5aa455090d8f1fda3d21b19faba72d48daf0142343a3ae12fd4bd86210",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           }
         ],
         "checks": {
@@ -374,7 +374,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -429,27 +429,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q5",
       "source_anchor": "exam:2024:第10题",
       "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "c04-fact-bottom-form-strength-threshold",
       "skeleton_id": "c04-skel-多构件达标判断",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dbe1bf14ab58e0eddadd690cdd7fdd2fb5e1e1dd92f346d20766ac2a2593c49e",
+      "content_sha256": "a733fa81cd6bf48df1bade44e893e67005ce12d4cea1fc400b0a90a39a7afd07",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "dbe1bf14ab58e0eddadd690cdd7fdd2fb5e1e1dd92f346d20766ac2a2593c49e",
+        "reviewed_content_sha256": "a733fa81cd6bf48df1bade44e893e67005ce12d4cea1fc400b0a90a39a7afd07",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           }
         ],
         "checks": {
@@ -459,7 +459,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "多构件同条件强度哪项达拆模要求,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "多构件同条件强度哪项达拆模要求,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -514,27 +514,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q6",
       "source_anchor": "exam:2015:第10题",
       "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "c04-fact-bottom-form-strength-threshold",
       "skeleton_id": "c04-skel-快拆保留立杆",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e2d3e2d825c8fc4ed07ec709d8eb65af775b47ccb8e1036b5b72ed13a635e798",
+      "content_sha256": "bb308f372e6b9cdaddcc519450370bc31e3d98adb0fe69b448eddc84ff502d50",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "e2d3e2d825c8fc4ed07ec709d8eb65af775b47ccb8e1036b5b72ed13a635e798",
+        "reviewed_content_sha256": "bb308f372e6b9cdaddcc519450370bc31e3d98adb0fe69b448eddc84ff502d50",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           }
         ],
         "checks": {
@@ -544,7 +544,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "8m快拆板拆模保留立杆顶托,条件判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "8m快拆板拆模保留立杆顶托,条件判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -599,17 +599,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ea227d94645e55204d729cba807aa5614d5f4118843edc23d93431f44790a47c",
+      "content_sha256": "295a578ae03caa87e7c8fefaf6915db7f64387f69e0c20a8878e0286a2046a4c",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "ea227d94645e55204d729cba807aa5614d5f4118843edc23d93431f44790a47c",
+        "reviewed_content_sha256": "295a578ae03caa87e7c8fefaf6915db7f64387f69e0c20a8878e0286a2046a4c",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -672,17 +672,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8d826f9a08d3243c2aaee07a27cb4a777743129ee6937be4800a30ed67c9cd4e",
+      "content_sha256": "108c74a7c64884121da3ab7c8be88cfdd1154ee7c9885f34eb99113b66e935b1",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "8d826f9a08d3243c2aaee07a27cb4a777743129ee6937be4800a30ed67c9cd4e",
+        "reviewed_content_sha256": "108c74a7c64884121da3ab7c8be88cfdd1154ee7c9885f34eb99113b66e935b1",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -745,17 +745,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "51827a366d60871a94ba2d38c3c1faa656cef65f5f974a67923ebfc6755d82c3",
+      "content_sha256": "4b3fbfa33935dafa1178c4745e703260b16b12f7fa804f89f666a4134046ef50",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "51827a366d60871a94ba2d38c3c1faa656cef65f5f974a67923ebfc6755d82c3",
+        "reviewed_content_sha256": "4b3fbfa33935dafa1178c4745e703260b16b12f7fa804f89f666a4134046ef50",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -818,17 +818,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "020d18d38ab0d57361e277f8fd5f762dd858e1f80a3e2c5312dfd6c1274cc369",
+      "content_sha256": "2c0e3d411b53888cf52d1c9d659acc17e6f2b00ba13b70de93fff8a41660c2b6",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "020d18d38ab0d57361e277f8fd5f762dd858e1f80a3e2c5312dfd6c1274cc369",
+        "reviewed_content_sha256": "2c0e3d411b53888cf52d1c9d659acc17e6f2b00ba13b70de93fff8a41660c2b6",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -891,17 +891,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e1c8af7282e117d1c58c8f6c5c4244d1ffcbc56bd13d78351fe3852ad0e36f1e",
+      "content_sha256": "aefaab879a23c0c9033877637582d5a4721ad188806fdd7a4f20b070bdd6cbb1",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e1c8af7282e117d1c58c8f6c5c4244d1ffcbc56bd13d78351fe3852ad0e36f1e",
+        "reviewed_content_sha256": "aefaab879a23c0c9033877637582d5a4721ad188806fdd7a4f20b070bdd6cbb1",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -964,17 +964,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dc4a00492b496f69de28d57a29ee1e11cfbd710b80962128da02838d4c8c22a4",
+      "content_sha256": "343b69f0b41d7b54753f0e7273fa3dfd6d3aaaafc8dc73c379dcd9c806144b42",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "dc4a00492b496f69de28d57a29ee1e11cfbd710b80962128da02838d4c8c22a4",
+        "reviewed_content_sha256": "343b69f0b41d7b54753f0e7273fa3dfd6d3aaaafc8dc73c379dcd9c806144b42",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1037,17 +1037,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e5c3da52183244691367fb71cfa6a94b9b5c6c2e1acdfef78d5beb214d7995bd",
+      "content_sha256": "e7d5a717fad11f30fd5946b064480d7648007e72f3b41b7c1721725d9171f339",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e5c3da52183244691367fb71cfa6a94b9b5c6c2e1acdfef78d5beb214d7995bd",
+        "reviewed_content_sha256": "e7d5a717fad11f30fd5946b064480d7648007e72f3b41b7c1721725d9171f339",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1110,17 +1110,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8cd7d7e151ccb5f0916c6c2c53db79b41c086e6ddcee1d0de75c8e228f54d764",
+      "content_sha256": "db7af4350583d953e7069b26ecdd5243580e9024814233350b0e797740d27c55",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "8cd7d7e151ccb5f0916c6c2c53db79b41c086e6ddcee1d0de75c8e228f54d764",
+        "reviewed_content_sha256": "db7af4350583d953e7069b26ecdd5243580e9024814233350b0e797740d27c55",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1183,17 +1183,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "62a43dce4e0ff53e32cba33f96b6a20cd8ac6c757b20fb2a5fbb5ee335e8623c",
+      "content_sha256": "82fd70bd4622b4f73db6428a08089ee73baa8a9154e6c8f47df6822d2f0bad7e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "62a43dce4e0ff53e32cba33f96b6a20cd8ac6c757b20fb2a5fbb5ee335e8623c",
+        "reviewed_content_sha256": "82fd70bd4622b4f73db6428a08089ee73baa8a9154e6c8f47df6822d2f0bad7e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1256,27 +1256,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q16",
       "source_anchor": "ca:1A413030_099_0186",
       "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "c04-fact-form-removal-diagnosis",
       "skeleton_id": "c04-skel-拆模五错诊断",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b9a4d97fb1c7bc001551fd130f03c92a94328e49894ae54e59ea9853c832ef35",
+      "content_sha256": "16b99857fa63b09dba7ce67048e64f0df01374b22d5a89a8d00361e54bc3f40d",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b9a4d97fb1c7bc001551fd130f03c92a94328e49894ae54e59ea9853c832ef35",
+        "reviewed_content_sha256": "16b99857fa63b09dba7ce67048e64f0df01374b22d5a89a8d00361e54bc3f40d",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:28:02+08:00"
+            "signed_at": "2026-07-18T18:39:12+08:00"
           }
         ],
         "checks": {
@@ -1286,7 +1286,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -1341,17 +1341,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q17",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "source_html_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e685eedcc5e1bca77c8d1d9a65613285f57f39711e1fde431207725c5163d9f1",
+      "content_sha256": "262a40b1e683d24177a12700e858f8758dee33eb97ff134f9190a998eb04e652",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e685eedcc5e1bca77c8d1d9a65613285f57f39711e1fde431207725c5163d9f1",
+        "reviewed_content_sha256": "262a40b1e683d24177a12700e858f8758dee33eb97ff134f9190a998eb04e652",
         "signatures": [],
         "checks": {
           "source_verified": false,

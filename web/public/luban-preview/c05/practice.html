@@ -237,37 +237,37 @@ class Component extends DCLogic {
       stem:"钢筋连接的方法有哪几种？其中机械连接最常用的形式是什么？选出最完整、能得分的作答。",
       model:"钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以剥肋滚压直螺纹套筒连接最为常用。",
       opts:[
-        { t:"钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以剥肋滚压直螺纹套筒连接最为常用。", ok:true, fix:"三类连接写全，再点出机械连接最常用形式是剥肋滚压直螺纹套筒，缺一都丢采分句。", code:"" },
-        { t:"钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以电渣压力焊连接最为常用。", ok:false, code:"E07", tempt:"记得有电渣压力焊这个名词，顺手就填上。", lose:"电渣压力焊属焊接类，不是机械连接；机械连接最常用是剥肋滚压直螺纹套筒。", fix:"机械连接最常用是剥肋滚压直螺纹套筒连接。" },
-        { t:"钢筋连接主要就是焊接和绑扎两种，机械连接用得少可以不单列，按现场习惯选即可。", ok:false, code:"E02", tempt:"平时现场焊接、绑扎见得多，机械连接反倒少见。", lose:"漏了机械连接这一大类，采分点直接遗漏；机械连接恰恰是大直径/动力荷载首选。", fix:"三类都要列：焊接、机械连接、绑扎连接。" },
-        { t:"连接方法就看哪种最牢，直接选焊接把钢筋熔成一体，其余两种都不如焊接可靠。", ok:false, code:"E05", tempt:"觉得熔成一体最结实，凭经验选最牢的。", lose:"题问方法种类不是问哪种最牢；且焊接有热影响区、动力荷载还不宜。", fix:"先列三类方法，机械连接以剥肋滚压直螺纹套筒最常用。" }
+        { t:"钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以电渣压力焊连接形式最为常用。", ok:false, code:"E07", tempt:"记得有电渣压力焊这个名词，顺手就填上。", lose:"电渣压力焊属焊接类，不是机械连接；机械连接最常用是剥肋滚压直螺纹套筒。", fix:"机械连接最常用是剥肋滚压直螺纹套筒连接。" },
+        { t:"钢筋连接方法主要为焊接连接与绑扎连接两种；机械连接在现场应用较少，可不单独列为一类。", ok:false, code:"E02", tempt:"平时现场焊接、绑扎见得多，机械连接反倒少见。", lose:"漏了机械连接这一大类，采分点直接遗漏；机械连接恰恰是大直径/动力荷载首选。", fix:"三类都要列：焊接、机械连接、绑扎连接。" },
+        { t:"连接方法应以可靠程度为准，宜统一选用焊接使钢筋熔合为一体，其余两种方式的可靠度均不及焊接。", ok:false, code:"E05", tempt:"觉得熔成一体最结实，凭经验选最牢的。", lose:"题问方法种类不是问哪种最牢；且焊接有热影响区、动力荷载还不宜。", fix:"先列三类方法，机械连接以剥肋滚压直螺纹套筒最常用。" },
+        { t:"钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以剥肋滚压直螺纹套筒连接最为常用。", ok:true, fix:"三类连接写全，再点出机械连接最常用形式是剥肋滚压直螺纹套筒，缺一都丢采分句。", code:"" }
       ] },
 { tag:"端点·条件维", typeHint:"单选 · 依据真题口径判端点", fig:"endpoints", figLabel:"两根受力筋，能否绑扎搭接？", figCaption:"受拉 Φ28 大直径　/　受压 Φ25",
       stem:"下列纵向受力钢筋中，宜采用绑扎搭接接头的是哪一种？选出正确且能说明理由的作答。",
       model:"受压 Φ25 钢筋宜采用绑扎搭接；受拉大直径（Φ28）、桁架拉杆、行车梁受力筋不宜绑扎，应机械连接。",
       opts:[
+        { t:"受拉 Φ28 钢筋宜采用绑扎搭接，大直径钢筋搭接面积更大、混凝土握裹更充分，比受压钢筋更适合绑扎连接。", ok:false, code:"M03", tempt:"想当然以为直径大搭接面积大就更牢。", lose:"端点搞反：受拉大直径搭接区应力集中、握裹不住，不宜绑扎。", fix:"受拉 Φ28 不宜绑扎，应机械连接；受压 Φ25 才可绑扎。" },
+        { t:"行车梁受力钢筋宜采用绑扎搭接，行车梁按静载构件考虑，采用绑扎连接即能满足其受力要求。", ok:false, code:"M09", tempt:"没提取到行车梁是动力/重要受力筋这个条件。", lose:"行车梁受力筋属不宜绑扎之列，条件提取不全导致误判。", fix:"行车梁受力筋不宜绑扎；宜绑扎的是受压 Φ25。" },
         { t:"受压 Φ25 钢筋宜采用绑扎搭接；受拉 Φ28、桁架拉杆、行车梁受力筋不宜绑扎、应机械连接。", ok:true, fix:"受压中等直径可绑扎，受拉大直径/桁架/行车梁不宜绑扎，口诀拉25压28。", code:"" },
-        { t:"受拉 Φ28 钢筋宜采用绑扎搭接，直径大搭接面积也大、握裹更牢，反而比受压更适合绑扎。", ok:false, code:"M03", tempt:"想当然以为直径大搭接面积大就更牢。", lose:"端点搞反：受拉大直径搭接区应力集中、握裹不住，不宜绑扎。", fix:"受拉 Φ28 不宜绑扎，应机械连接；受压 Φ25 才可绑扎。" },
-        { t:"行车梁受力钢筋宜采用绑扎搭接，行车梁是静载构件，绑扎省工又能满足受力要求。", ok:false, code:"M09", tempt:"没提取到行车梁是动力/重要受力筋这个条件。", lose:"行车梁受力筋属不宜绑扎之列，条件提取不全导致误判。", fix:"行车梁受力筋不宜绑扎；宜绑扎的是受压 Φ25。" },
-        { t:"桁架拉杆宜采用绑扎搭接，拉杆细长、绑扎方便，只要多绑几道丝扣就能保证连接强度。", ok:false, code:"E07", tempt:"觉得拉杆细、绑扎方便，多绑几道就行。", lose:"桁架拉杆是受拉关键杆件，不宜绑扎；绑扎强度靠握裹不靠丝扣道数。", fix:"桁架拉杆不宜绑扎；宜绑扎的是受压 Φ25。" }
+        { t:"桁架拉杆宜采用绑扎搭接，拉杆截面细长、便于绑扎操作，增加绑扎丝扣道数即可保证连接强度。", ok:false, code:"E07", tempt:"觉得拉杆细、绑扎方便，多绑几道就行。", lose:"桁架拉杆是受拉关键杆件，不宜绑扎；绑扎强度靠握裹不靠丝扣道数。", fix:"桁架拉杆不宜绑扎；宜绑扎的是受压 Φ25。" }
       ] },
 { tag:"动力荷载·条件维", typeHint:"单选 · 依据真题口径选连接方式", fig:"ruler", figLabel:"直接承受动力荷载的受力筋", figCaption:"四输入 → 该往哪种连接走？",
       stem:"某吊车梁直接承受动力荷载，其 Φ20 纵向受力钢筋宜优先采用哪种连接方式？选出正确且说明理由的作答。",
       model:"宜优先采用机械连接（剥肋滚压直螺纹套筒）；直接承受动力荷载的构件纵向钢筋不宜焊接。",
       opts:[
+        { t:"宜优先采用焊接连接，焊接使钢筋熔合为一体、传力路径最为直接，足以承受吊车梁的动力荷载。", ok:false, code:"E07", tempt:"觉得熔为一体最结实、最抗动力。", lose:"焊接有热影响区，直接承受动力荷载的构件纵向钢筋不宜焊接。", fix:"动力荷载优先机械连接（直螺纹套筒），焊接不宜。" },
         { t:"宜优先采用机械连接（剥肋滚压直螺纹套筒）；直接承受动力荷载的构件纵向钢筋不宜焊接。", ok:true, fix:"动力荷载往机械连接端走，并点出焊接不宜，理由与结论都到位。", code:"" },
-        { t:"宜优先采用焊接连接，焊接把钢筋熔为一体、传力最直接，最能承受吊车梁的动力荷载。", ok:false, code:"E07", tempt:"觉得熔为一体最结实、最抗动力。", lose:"焊接有热影响区，直接承受动力荷载的构件纵向钢筋不宜焊接。", fix:"动力荷载优先机械连接（直螺纹套筒），焊接不宜。" },
-        { t:"宜优先采用绑扎搭接，Φ20 直径不大、绑扎方便，动力荷载靠混凝土握裹也能传递。", ok:false, code:"M03", tempt:"看直径 Φ20 不算大就想退到绑扎。", lose:"动力荷载不是绑扎的地界；绑扎握裹扛不住反复动力，应机械连接。", fix:"动力荷载优先机械连接（直螺纹套筒），不退绑扎。" },
-        { t:"三种连接都行，按现场哪种方便就用哪种，动力荷载对连接方式没有特别的选用要求。", ok:false, code:"M10", tempt:"图省事，以为动力荷载没啥特别讲究。", lose:"以常识替代规范：动力荷载明确导向机械连接、焊接不宜。", fix:"动力荷载优先机械连接（直螺纹套筒），焊接不宜。" }
+        { t:"宜优先采用绑扎搭接，Φ20 属中等直径、施工较为便捷，动力荷载可经混凝土握裹有效传递。", ok:false, code:"M03", tempt:"看直径 Φ20 不算大就想退到绑扎。", lose:"动力荷载不是绑扎的地界；绑扎握裹扛不住反复动力，应机械连接。", fix:"动力荷载优先机械连接（直螺纹套筒），不退绑扎。" },
+        { t:"三种连接方式均可选用，可结合现场施工条件择一确定，动力荷载对连接方式并无特殊选用要求。", ok:false, code:"M10", tempt:"图省事，以为动力荷载没啥特别讲究。", lose:"以常识替代规范：动力荷载明确导向机械连接、焊接不宜。", fix:"动力荷载优先机械连接（直螺纹套筒），焊接不宜。" }
       ] },
 { tag:"接头百分率·计算表达维", typeHint:"单选 · 关键词与数值都要对", fig:"dyn50", figLabel:"动力荷载 · 同一连接区段接头面积百分率", figCaption:"机械连接时，接头面积百分率上限？",
       stem:"直接承受动力荷载的构件采用机械连接时，同一连接区段的纵向受力钢筋接头面积百分率应如何控制？选出关键词与数值都能得分的作答。",
       model:"直接承受动力荷载、采用机械连接时，接头面积百分率不应超过50%。",
       opts:[
-        { t:"直接承受动力荷载、采用机械连接时，接头面积百分率不应超过50%。", ok:true, fix:"三要素齐：直接承受动力荷载 + 机械连接 + 不应超过50%，关键词是不应。", code:"" },
-        { t:"直接承受动力荷载、采用机械连接时，接头面积百分率不宜超过50%，尽量控制在半数以内。", ok:false, code:"M08", tempt:"数值 50% 记对了，不宜/不应没在意。", lose:"把强制性的不应弱化成建议性的不宜，关键词分被扣。", fix:"应写不应超过50%（强制），不是不宜。" },
-        { t:"直接承受动力荷载、采用机械连接时，接头面积百分率不应超过25%，动力荷载要更严。", ok:false, code:"M08", tempt:"觉得动力荷载更危险，数值想当然压到更低。", lose:"数值记错：规范是不应超过50%，不是25%。", fix:"接头面积百分率不应超过50%。" },
-        { t:"接头面积百分率不应超过50%，受拉受压、静载动力都一样，按这一个数控制即可。", ok:false, code:"M09", tempt:"记住了 50% 就一刀切套到所有情况。", lose:"漏了前提条件：受拉接头不宜>50%、受压可不受限，动力荷载机械连接才是不应超50%。", fix:"限定前提：直接承受动力荷载、机械连接，接头不应超过50%。" }
+        { t:"直接承受动力荷载、采用机械连接时，接头面积百分率不宜超过50%。", ok:false, code:"M08", tempt:"数值 50% 记对了，不宜/不应没在意。", lose:"把强制性的不应弱化成建议性的不宜，关键词分被扣。", fix:"应写不应超过50%（强制），不是不宜。" },
+        { t:"直接承受动力荷载、采用机械连接时，接头面积百分率不应超过25%。", ok:false, code:"M08", tempt:"觉得动力荷载更危险，数值想当然压到更低。", lose:"数值记错：规范是不应超过50%，不是25%。", fix:"接头面积百分率不应超过50%。" },
+        { t:"接头面积百分率不应超过50%，该限值对受拉受压、静载动力各类情况均统一适用。", ok:false, code:"M09", tempt:"记住了 50% 就一刀切套到所有情况。", lose:"漏了前提条件：受拉接头不宜>50%、受压可不受限，动力荷载机械连接才是不应超50%。", fix:"限定前提：直接承受动力荷载、机械连接，接头不应超过50%。" },
+        { t:"直接承受动力荷载、采用机械连接时，接头面积百分率不应超过50%。", ok:true, fix:"三要素齐：直接承受动力荷载 + 机械连接 + 不应超过50%，关键词是不应。", code:"" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 找准失分点并把采分句补全", fig:"sheet", figLabel:"模拟学生作答（待诊断）", figCaption:"看着答对了，采分句却没写全",
       stem:"某学生对一道动力荷载吊车梁配筋题作答：①Φ28受拉钢筋用绑扎搭接；②接头面积百分率不宜超过50%；③直尺检测直螺纹接头精度。选出最准确的诊断与补写。",
@@ -552,7 +552,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"C05-html-practice-html-q1-a8bb0089be20","options":["C05-html-practice-html-q1-a8bb0089be20:option-1","C05-html-practice-html-q1-a8bb0089be20:option-2","C05-html-practice-html-q1-a8bb0089be20:option-3","C05-html-practice-html-q1-a8bb0089be20:option-4"]},{"variant_id":"C05-html-practice-html-q2-1a3530671de1","options":["C05-html-practice-html-q2-1a3530671de1:option-1","C05-html-practice-html-q2-1a3530671de1:option-2","C05-html-practice-html-q2-1a3530671de1:option-3","C05-html-practice-html-q2-1a3530671de1:option-4"]},{"variant_id":"C05-html-practice-html-q3-53335854e455","options":["C05-html-practice-html-q3-53335854e455:option-1","C05-html-practice-html-q3-53335854e455:option-2","C05-html-practice-html-q3-53335854e455:option-3","C05-html-practice-html-q3-53335854e455:option-4"]},{"variant_id":"C05-html-practice-html-q4-ad6cb81072cf","options":["C05-html-practice-html-q4-ad6cb81072cf:option-1","C05-html-practice-html-q4-ad6cb81072cf:option-2","C05-html-practice-html-q4-ad6cb81072cf:option-3","C05-html-practice-html-q4-ad6cb81072cf:option-4"]},{"variant_id":"C05-html-practice-html-q15-c6ed1b359fba","options":["C05-html-practice-html-q15-c6ed1b359fba:option-1","C05-html-practice-html-q15-c6ed1b359fba:option-2","C05-html-practice-html-q15-c6ed1b359fba:option-3","C05-html-practice-html-q15-c6ed1b359fba:option-4"]}];
+    const exactItems=[{"variant_id":"C05-html-practice-html-q1-a5bca5899d01","options":["C05-html-practice-html-q1-a5bca5899d01:option-1","C05-html-practice-html-q1-a5bca5899d01:option-2","C05-html-practice-html-q1-a5bca5899d01:option-3","C05-html-practice-html-q1-a5bca5899d01:option-4"]},{"variant_id":"C05-html-practice-html-q2-79806c042327","options":["C05-html-practice-html-q2-79806c042327:option-1","C05-html-practice-html-q2-79806c042327:option-2","C05-html-practice-html-q2-79806c042327:option-3","C05-html-practice-html-q2-79806c042327:option-4"]},{"variant_id":"C05-html-practice-html-q3-0c2622a7c65c","options":["C05-html-practice-html-q3-0c2622a7c65c:option-1","C05-html-practice-html-q3-0c2622a7c65c:option-2","C05-html-practice-html-q3-0c2622a7c65c:option-3","C05-html-practice-html-q3-0c2622a7c65c:option-4"]},{"variant_id":"C05-html-practice-html-q4-858e499f5e74","options":["C05-html-practice-html-q4-858e499f5e74:option-1","C05-html-practice-html-q4-858e499f5e74:option-2","C05-html-practice-html-q4-858e499f5e74:option-3","C05-html-practice-html-q4-858e499f5e74:option-4"]},{"variant_id":"C05-html-practice-html-q15-c6ed1b359fba","options":["C05-html-practice-html-q15-c6ed1b359fba:option-1","C05-html-practice-html-q15-c6ed1b359fba:option-2","C05-html-practice-html-q15-c6ed1b359fba:option-3","C05-html-practice-html-q15-c6ed1b359fba:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -569,7 +569,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C05")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYThiYjAwODliZTIwIiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xYTM1MzA2NzFkZTEiLCJDMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLTUzMzM1ODU0ZTQ1NSIsIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtYWQ2Y2I4MTA3MmNmIiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYzZlZDFiMzU5ZmJhIl0sInBhY2tfaWQiOiJDMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjM1ZmYzNWVjNDhjOWY2ZmY3NTNmMmVlMzI3NTQwMDMwZmZiYjExYjE4Yzg3ODYxM2UzMGNhM2U0ZDc4MDUzNDciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMGIwOTM5MzExODg5ODNiYjlkYWY1ZTUyOTcyMGEyZTg4MWY2YzMzOTJhYjlhMzBlY2I4Mzg4OGFlNWIwYjYxYyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C05")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTViY2E1ODk5ZDAxIiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03OTgwNmMwNDIzMjciLCJDMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLTBjMjYyMmE3YzY1YyIsIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtODU4ZTQ5OWY1ZTc0IiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYzZlZDFiMzU5ZmJhIl0sInBhY2tfaWQiOiJDMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjZiZDdmNWIyNTMyZmViN2U2ODk3YmM0OTM4OGM5ZDBkMGM2YjU4ZDU4MzVjNGMwYzU3MjI0ZGEwOGZhZTM5MWEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMGIwOTM5MzExODg5ODNiYjlkYWY1ZTUyOTcyMGEyZTg4MWY2YzMzOTJhYjlhMzBlY2I4Mzg4OGFlNWIwYjYxYyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
