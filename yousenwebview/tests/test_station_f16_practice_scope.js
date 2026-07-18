@@ -37,7 +37,7 @@ function loadStation(detail) {
       if (request === "../../../utils/surface-telemetry") {
         return { trackProductBehavior: function () {} };
       }
-      if (request === "../../../utils/helpers") return {};
+      if (request === "../../../utils/helpers") return { isDarkOr: function () { return false; }, vibrate: function () {} };
       throw new Error("unexpected require: " + request);
     },
     wx: {

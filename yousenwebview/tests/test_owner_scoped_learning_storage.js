@@ -84,7 +84,7 @@ vm.runInNewContext(gauntletSource, {
       return { trackProductBehavior: function () {} };
     }
     if (request === "../../../utils/helpers") {
-      return { isDark: function () { return false; } };
+      return { isDarkOr: function () { return false; }, isDark: function () { return false; } };
     }
     if (request === "../../../utils/gauntlet-view-model") return gauntletViewModel;
     throw new Error("unexpected require: " + request);

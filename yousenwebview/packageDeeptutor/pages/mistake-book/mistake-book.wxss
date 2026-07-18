@@ -42,14 +42,14 @@
 .mb-back-arrow {
   font-size: 40rpx;
   line-height: 1;
-  color: #818cf8;
+  color: var(--pk-grn);
   font-weight: 300;
   margin-top: -4rpx;
 }
 
 .mb-back-text {
   font-size: 28rpx;
-  color: #818cf8;
+  color: var(--pk-grn);
   font-weight: 500;
 }
 
@@ -106,7 +106,7 @@
   margin-bottom: 8rpx;
   font-size: 22rpx;
   font-weight: 800;
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .mb-title {
@@ -128,7 +128,7 @@
   font-size: 68rpx;
   line-height: 1;
   font-weight: 900;
-  color: #67e8f9;
+  color: var(--pk-grn);
 }
 
 .mb-score-label {
@@ -161,8 +161,8 @@
 }
 
 .mb-stat.warn {
-  background: rgba(251, 191, 36, 0.08);
-  border-color: rgba(251, 191, 36, 0.14);
+  background: rgba(194, 101, 85, 0.08);
+  border-color: rgba(194, 101, 85, 0.14);
 }
 
 .mb-stat.good {
@@ -232,7 +232,7 @@
   height: 10rpx;
   margin-top: 12rpx;
   border-radius: 50%;
-  background: #34d399;
+  background: var(--pk-grn);
 }
 
 .chart-grid,
@@ -305,11 +305,11 @@
 .chart-fill {
   height: 100%;
   border-radius: 999rpx;
-  background: linear-gradient(90deg, #38bdf8, #34d399);
+  background: var(--pk-grn);
 }
 
 .chart-fill.error {
-  background: linear-gradient(90deg, #f59e0b, #f87171);
+  background: var(--pk-warn);
 }
 
 .chart-fill.fill-focus {
@@ -343,7 +343,7 @@
 
 .filter-chip.active {
   background: rgba(56, 189, 248, 0.16);
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .mistake-card {
@@ -351,7 +351,7 @@
 }
 
 .mistake-card.state-due {
-  border-color: rgba(251, 191, 36, 0.28);
+  border-color: rgba(194, 101, 85, 0.28);
 }
 
 .mistake-card.state-mastered {
@@ -380,17 +380,17 @@
   background: rgba(56, 189, 248, 0.12);
   font-size: 20rpx;
   font-weight: 800;
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .state-due .mistake-state {
-  background: rgba(251, 191, 36, 0.12);
-  color: #fbbf24;
+  background: rgba(194, 101, 85, 0.12);
+  color: var(--pk-warn);
 }
 
 .state-mastered .mistake-state {
   background: rgba(52, 211, 153, 0.12);
-  color: #6ee7b7;
+  color: var(--pk-grn);
 }
 
 .mistake-title {
@@ -431,7 +431,7 @@
 }
 
 .mistake-review {
-  color: rgba(125, 211, 252, 0.78);
+  color: rgba(72, 128, 106, 0.78);
 }
 
 .mistake-actions {
@@ -456,11 +456,11 @@
 
 .mistake-action.primary {
   background: rgba(56, 189, 248, 0.14);
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .mistake-action.danger {
-  color: #fca5a5;
+  color: var(--pk-warn);
 }
 
 .empty-card,
@@ -490,7 +490,7 @@
   min-height: 56rpx;
   border-radius: 14rpx;
   background: rgba(56, 189, 248, 0.14);
-  color: #7dd3fc;
+  color: var(--pk-grn);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -514,12 +514,12 @@
 .mistake-book-page.light {
   background:
     radial-gradient(circle at top right, rgba(37, 99, 235, 0.10), transparent 34%),
-    linear-gradient(180deg, #f8fafc 0%, #eef4ff 52%, #f8fbff 100%);
+    var(--pk-paper);
 }
 
 .mistake-book-page.light .mb-nav {
   background: rgba(248, 250, 255, 0.96);
-  border-bottom-color: #dbe6f5;
+  border-bottom-color: var(--pk-bd);
   box-shadow: 0 10rpx 28rpx rgba(126, 147, 185, 0.10);
 }
 
@@ -529,7 +529,7 @@
 
 .mistake-book-page.light .mb-back-arrow,
 .mistake-book-page.light .mb-back-text {
-  color: #2563eb;
+  color: var(--pk-grn);
 }
 
 .mistake-book-page.light .mb-nav-title,
@@ -538,7 +538,7 @@
 .mistake-book-page.light .chart-title,
 .mistake-book-page.light .mistake-title,
 .mistake-book-page.light .empty-title {
-  color: #0f172a;
+  color: var(--pk-t1);
 }
 
 .mistake-book-page.light .mb-hero,
@@ -548,7 +548,7 @@
 .mistake-book-page.light .empty-card,
 .mistake-book-page.light .mb-error {
   background: rgba(255, 255, 255, 0.96);
-  border-color: #dbe6f5;
+  border-color: var(--pk-bd);
   box-shadow: 0 14rpx 34rpx rgba(126, 147, 185, 0.12);
 }
 
@@ -564,11 +564,11 @@
 
 .mistake-book-page.light .mb-kicker,
 .mistake-book-page.light .ai-kicker {
-  color: #0369a1;
+  color: var(--pk-grn);
 }
 
 .mistake-book-page.light .mb-score-num {
-  color: #2563eb;
+  color: var(--pk-grn);
 }
 
 .mistake-book-page.light .mb-score-label,
@@ -578,12 +578,12 @@
 .mistake-book-page.light .mistake-note,
 .mistake-book-page.light .empty-desc,
 .mistake-book-page.light .mb-error text {
-  color: #475569;
+  color: var(--pk-t2);
 }
 
 .mistake-book-page.light .mb-stat {
-  background: #f8fbff;
-  border-color: #dbe6f5;
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
 }
 
 .mistake-book-page.light .mb-stat.warn {
@@ -597,13 +597,13 @@
 }
 
 .mistake-book-page.light .mb-stat-num {
-  color: #0f172a;
+  color: var(--pk-t1);
 }
 
 .mistake-book-page.light .mb-stat-label,
 .mistake-book-page.light .chart-count,
 .mistake-book-page.light .mistake-date {
-  color: #64748b;
+  color: var(--pk-t3);
 }
 
 .mistake-book-page.light .ai-bullet {
@@ -628,25 +628,25 @@
 }
 
 .mistake-book-page.light .chart-fill {
-  background: linear-gradient(90deg, #2563eb, #059669);
+  background: var(--pk-grn);
 }
 
 .mistake-book-page.light .chart-fill.error {
-  background: linear-gradient(90deg, #b45309, #dc2626);
+  background: linear-gradient(90deg, var(--pk-warn), var(--pk-warn));
 }
 
 .mistake-book-page.light .mb-filter {
   background: #eef4ff;
-  border-color: #dbe6f5;
+  border-color: var(--pk-bd);
 }
 
 .mistake-book-page.light .filter-chip {
-  color: #64748b;
+  color: var(--pk-t3);
 }
 
 .mistake-book-page.light .filter-chip.active {
   background: #ffffff;
-  color: #2563eb;
+  color: var(--pk-grn);
   box-shadow: 0 8rpx 18rpx rgba(126, 147, 185, 0.12);
 }
 
@@ -659,13 +659,13 @@
 }
 
 .mistake-book-page.light .mistake-state {
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--pk-accent-soft);
+  color: var(--pk-grn);
 }
 
 .mistake-book-page.light .state-due .mistake-state {
   background: #fffbeb;
-  color: #b45309;
+  color: var(--pk-warn);
 }
 
 .mistake-book-page.light .state-mastered .mistake-state {
@@ -679,7 +679,7 @@
 }
 
 .mistake-book-page.light .mistake-review {
-  color: #2563eb;
+  color: var(--pk-grn);
 }
 
 .mistake-book-page.light .mistake-action {
@@ -694,7 +694,7 @@
 
 .mistake-book-page.light .mistake-action.danger {
   background: #fef2f2;
-  color: #dc2626;
+  color: var(--pk-warn);
 }
 
 .mistake-book-page.light .mb-retry {

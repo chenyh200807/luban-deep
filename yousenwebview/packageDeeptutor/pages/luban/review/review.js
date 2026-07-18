@@ -10,6 +10,7 @@
 // - 自主检索 = 纯前端过滤已加载数据（按母题=点亮站 / 按错因=错题错因聚合）。
 // 零学习证据写入（学习证据归 learner_signal / 判分链路，本页不碰）。
 var api = require("../../../utils/api");
+var helpers = require("../../../utils/helpers");
 var auth = require("../../../utils/auth");
 var route = require("../../../utils/route");
 var runtime = require("../../../utils/runtime");
@@ -34,7 +35,7 @@ Page({
         ? wx.getSystemInfoSync()
         : {};
     var sbh = info.statusBarHeight || 0;
-    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: false });
+    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: helpers.isDarkOr("light") });
     // 受保护请求前显式判登录：未登录带 returnTo 回跳本页，
     // 避免 api.js 401 兜底 redirectToLogin() 丢目标页（登录后落回 chat）。
     if (!auth.isLoggedIn()) {

@@ -64,6 +64,7 @@ function loadLearn(options) {
       }
       if (request === "../../utils/helpers") {
         return {
+          isDarkOr: function () { return false; },
           syncTabBar: function () { calls.syncTabBar++; },
         };
       }

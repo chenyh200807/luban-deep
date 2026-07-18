@@ -14,6 +14,7 @@
 // - 卡片打开 = learning_action_started（action=start_training,
 //   object_id="<pack>:lesson"）
 const api = require("../../../utils/api");
+const helpers = require("../../../utils/helpers");
 const auth = require("../../../utils/auth");
 const route = require("../../../utils/route");
 const runtime = require("../../../utils/runtime");
@@ -52,7 +53,7 @@ Page({
     var episode = Number(query && query.episode);
     if (!Number.isFinite(episode) || episode < 1) episode = 1;
     episode = Math.floor(episode);
-    this.setData({ packId: packId, episodeIndex: episode, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
+    this.setData({ packId: packId, episodeIndex: episode, isDark: helpers.isDarkOr("light") });
     if (!packId) {
       this.setData({ loading: false, errorText: "缺少站点参数，请从提分路线进入" });
       return;

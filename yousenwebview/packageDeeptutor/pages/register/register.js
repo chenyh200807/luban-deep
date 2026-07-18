@@ -74,7 +74,7 @@ Page({
     confirmPassword: "",
     showPassword: false,
     showConfirmPassword: false,
-    isDark: true,
+    isDark: false,
     entrySource: "",
     returnTo: "",
     registerNoticeItems: REGISTER_NOTICE_ITEMS,
@@ -86,7 +86,7 @@ Page({
       this.setData({
         statusBarHeight: info.statusBarHeight || 44,
         safeBottom: sb,
-        isDark: helpers.isDark(),
+        isDark: helpers.isDarkOr("light"),
       });
     } catch (_) {}
     this._captureEntryContext(options);

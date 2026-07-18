@@ -47,25 +47,8 @@ function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
       barStyle: "width:" + percentWidth + "%",
     },
   ];
-  var packages = Array.isArray(data.packages) ? data.packages : [];
-  var topPackage = packages[0] || {};
-  if (topPackage && topPackage.points) {
-    rows.push({
-      key: "usage_record",
-      label: "使用记录",
-      detailLabel: "按使用记录",
-      remainingLabel: "按使用记录",
-      barStyle: "width:100%",
-    });
-  } else if (usageFallback) {
-    rows.push({
-      key: "usage_record",
-      label: "使用记录",
-      detailLabel: "按使用记录",
-      remainingLabel: "按使用记录",
-      barStyle: "width:100%",
-    });
-  }
+  // 「使用记录/按使用记录」伪行已删：两个分支推的是同一条零信息行，
+  // 明细入口由卡片自身的「查看详情」承担，账本在权益中心。
   return {
     freeTier: false,
     usagePrimaryLabel: percentLabel,

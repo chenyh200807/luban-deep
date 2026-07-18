@@ -14,7 +14,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 96,
-    isDark: true,
+    isDark: false,
     packId: "",
   },
 
@@ -28,7 +28,7 @@ Page({
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: statusBarHeight + 48,
-      isDark: helpers.isDark(),
+      isDark: helpers.isDarkOr("light"),
       packId: packId,
     });
     // 交接曝光（任务稿 luban_handoff_shown 的登记名）

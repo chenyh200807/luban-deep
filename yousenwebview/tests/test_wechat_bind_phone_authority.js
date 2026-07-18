@@ -54,6 +54,9 @@ function createHelpersMock() {
     isDark: function () {
       return true;
     },
+    isDarkOr: function () {
+      return false;
+    },
   };
 }
 

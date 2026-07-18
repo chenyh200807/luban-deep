@@ -1,23 +1,23 @@
 @import "/packageDeeptutor/styles/paper-ink.wxss";
 
+/* pages/legal/terms.wxss — 服务条款（纸墨朱竹单层：palette 全走 --pk-* token，
+ * 亮/暗由 paper-ink 的 .paper/.paper.light 切换，本文件不再自带第二套配色） */
+
 .terms-page {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 18% 14%, rgba(59, 130, 246, 0.22), transparent 28%),
-    radial-gradient(circle at 78% 8%, rgba(96, 165, 250, 0.16), transparent 24%),
-    linear-gradient(180deg, #091327 0%, #08101f 44%, #050912 100%);
-  color: #e5edf9;
+  color: var(--pk-t1);
+  font-family: -apple-system, "PingFang SC", sans-serif;
 }
 
+/* ── 导航（与 report/profile 同构） ─────────────────────── */
 .nav-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 10;
-  backdrop-filter: blur(18rpx);
-  background: rgba(7, 12, 24, 0.72);
-  border-bottom: 1rpx solid rgba(148, 163, 184, 0.12);
+  background: var(--pk-paper);
+  border-bottom: 1rpx solid var(--pk-bd);
 }
 
 .nav-content {
@@ -35,23 +35,26 @@
   gap: 8rpx;
 }
 
-.nav-back-arrow,
-.nav-back-txt,
-.nav-title {
-  color: #f8fbff;
+.nav-back:active {
+  opacity: 0.72;
 }
 
 .nav-back-arrow {
   font-size: 38rpx;
+  line-height: 1;
+  color: var(--pk-grn);
 }
 
 .nav-back-txt {
   font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-grn);
 }
 
 .nav-title {
   font-size: 30rpx;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--pk-t1);
 }
 
 .page-scroll {
@@ -61,55 +64,63 @@
 }
 
 .page-inner {
-  padding: 28rpx;
+  padding: 24rpx 26rpx 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
 }
 
+/* ── 卡片（沿用 legacy 类名，材质=pk-card） ─────────────── */
 .glass-card {
-  border-radius: 28rpx;
-  background: rgba(12, 19, 34, 0.74);
-  border: 1rpx solid rgba(148, 163, 184, 0.14);
-  box-shadow: 0 18rpx 48rpx rgba(0, 0, 0, 0.24);
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 30rpx;
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
 }
 
 .hero-card {
-  padding: 34rpx 30rpx;
-  margin-bottom: 20rpx;
+  padding: 32rpx 30rpx;
 }
 
 .hero-title {
   display: block;
-  font-size: 38rpx;
-  font-weight: 700;
-  color: #f8fbff;
+  font-size: 36rpx;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--pk-t1);
 }
 
 .hero-sub {
   display: block;
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: rgba(191, 219, 254, 0.78);
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  color: var(--pk-grn);
 }
 
 .hero-desc {
   display: block;
-  margin-top: 18rpx;
+  margin-top: 16rpx;
   font-size: 26rpx;
   line-height: 1.72;
-  color: rgba(226, 232, 240, 0.86);
+  color: var(--pk-t2);
 }
 
 .section-card,
 .footer-card {
-  padding: 28rpx 30rpx;
-  margin-top: 18rpx;
+  padding: 26rpx 30rpx 28rpx;
 }
 
 .section-title,
 .footer-title {
   display: block;
+  padding-left: 18rpx;
+  border-left: 6rpx solid var(--pk-grn);
   font-size: 28rpx;
-  font-weight: 700;
-  color: #dbeafe;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--pk-t1);
 }
 
 .section-paragraph,
@@ -118,64 +129,5 @@
   margin-top: 14rpx;
   font-size: 25rpx;
   line-height: 1.76;
-  color: rgba(226, 232, 240, 0.86);
+  color: var(--pk-t2);
 }
-
-.terms-page.light {
-  background:
-    radial-gradient(circle at 18% 14%, rgba(59, 130, 246, 0.14), transparent 28%),
-    radial-gradient(circle at 78% 8%, rgba(96, 165, 250, 0.12), transparent 24%),
-    linear-gradient(180deg, #eef4ff 0%, #f7f9fd 48%, #ffffff 100%);
-  color: #0f172a;
-}
-
-.terms-page.light .nav-bar {
-  background: rgba(255, 255, 255, 0.82);
-  border-bottom-color: rgba(148, 163, 184, 0.18);
-}
-
-.terms-page.light .nav-back-arrow,
-.terms-page.light .nav-back-txt,
-.terms-page.light .nav-title,
-.terms-page.light .hero-title {
-  color: #0f172a;
-}
-
-.terms-page.light .glass-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(148, 163, 184, 0.18);
-  box-shadow: 0 18rpx 44rpx rgba(15, 23, 42, 0.08);
-}
-
-.terms-page.light .hero-sub {
-  color: #2563eb;
-}
-
-.terms-page.light .hero-desc,
-.terms-page.light .section-paragraph,
-.terms-page.light .footer-text {
-  color: #475569;
-}
-
-.terms-page.light .section-title,
-.terms-page.light .footer-title {
-  color: #1d4ed8;
-}
-
-/* ── 我的→法务：阅读页与管理页保持同一纸张和排版层级 ── */
-.terms-page.paper {
-  background-color: var(--pk-paper);
-  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
-  background-size: 34rpx 34rpx;
-  color: var(--pk-t1);
-}
-.terms-page.paper .nav-bar { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
-.terms-page.paper .nav-back-arrow,
-.terms-page.paper .nav-back-txt,
-.terms-page.paper .hero-sub { color: var(--pk-grn); }
-.terms-page.paper .nav-title,
-.terms-page.paper .hero-title,
-.terms-page.paper .footer-title { color: var(--pk-t1); }
-.terms-page.paper .hero-desc,
-.terms-page.paper .footer-text { color: var(--pk-t2); }
-.terms-page.paper .glass-card { background: var(--pk-card); border-color: var(--pk-bd); box-shadow: 0 2rpx 12rpx var(--pk-shadow); }

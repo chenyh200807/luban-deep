@@ -1,5 +1,5 @@
 // test_report_layout.js — regression checks for the hosted learner-facing report page
-// (B5 精简首页：近期进展 + 1–3 个盲点 + 唯一下一步)
+// (10e 诊断单版式:第 10 轮定稿 + round11 增量①④ + IA Brief「学情=照镜子」)
 // Run: node yousenwebview/tests/test_report_layout.js
 
 var fs = require("fs");
@@ -23,10 +23,6 @@ var reportSource = fs.readFileSync(
 );
 var viewModelSource = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/utils/learning-report-view-model.js"),
-  "utf8",
-);
-var reportHomeViewModelSource = fs.readFileSync(
-  path.join(__dirname, "../packageDeeptutor/utils/report-home-view-model.js"),
   "utf8",
 );
 var attemptDetailSource = fs.readFileSync(
@@ -72,50 +68,60 @@ function countOccurrences(source, needle) {
   return source.split(needle).length - 1;
 }
 
-// home block slice：只检查精简主面，不把保留的深入页算进首页信息架构。
-var homeStart = reportWxml.indexOf("B5 精简学情首页");
+// home block slice: 10e 诊断单区(评估「照镜子」约束只看主面,不看深入页)
+var homeStart = reportWxml.indexOf("10e 诊断单");
 var homeEnd = reportWxml.indexOf("reportDetailView == 'evidence'");
 assert(
   homeStart >= 0 && homeEnd > homeStart,
-  "report home surface should be the B5 compact block before the evidence detail",
+  "report home surface should be the 10e diagnosis sheet block before the evidence detail",
 );
 var homeBlock = reportWxml.slice(homeStart, homeEnd);
 
-// ── 首页只保留三件事，旧大盘/复习/精确掌握不再占据一等位置 ─────
-assertIncludes(homeBlock, "近期进展", "home should show recent progress");
-assertIncludes(homeBlock, "1–3 个盲点", "home should show one to three blind spots");
-assertIncludes(homeBlock, "唯一下一步", "home should show one canonical next task");
-assertIncludes(homeBlock, "reportHome.recentProgress", "progress must come from the compact projection");
-assertIncludes(homeBlock, "reportHome.blindSpots", "blind spots must come from the compact projection");
-assertIncludes(homeBlock, "reportHome.nextTask", "next task must come from the compact projection");
-assertIncludes(homeBlock, "insufficient_evidence", "unknown evidence must fail closed explicitly");
-[
-  "masteryMap",
-  "riskGearLabel",
-  "overallMastery",
-  "lr-map-grid",
-  "分数账本",
-  "错因结构",
-  "openMistakeBook",
-  "absorbDiagnosisIntoPlan",
-].forEach(function (legacy) {
-  assertNotIncludes(homeBlock, legacy, "compact home must remove legacy first-class surface: " + legacy);
-});
+// ── ① 轻量诊断卡:风险档位词,非精确百分比 ─────────────────────
+assertIncludes(homeBlock, "{{riskGearLabel}}", "diagnosis card should bind the risk gear word from the read model status");
+assertIncludes(homeBlock, "综合风险", "diagnosis card should label the gear as overall risk");
+assertNotIncludes(homeBlock, "{{overallMastery}}%", "10e home surface must not show a precise mastery percentage");
+assertIncludes(homeBlock, "主要差距", "diagnosis card should lead with the main gap narrative");
+assertIncludes(homeBlock, "{{trendNarrative}}", "diagnosis/trend narrative must come from the read model directional projection");
+assertIncludes(homeBlock, "lr-diag-fold", "diagnosis card should use the collapsible fold layout");
+assertIncludes(homeBlock, 'bindtap="toggleDiagFold"', "diagnosis fold should toggle locally");
+assertIncludes(homeBlock, "完整诊断报告", "diagnosis card should keep the full-report (evidence chain) entry");
+assertIncludes(reportSource, "toggleDiagFold", "report page should implement the local fold toggle");
+assertIncludes(viewModelSource, "riskGearFromStatus", "risk gear word must be a pure translation of backend _score_status — no frontend re-scoring");
 
-// ── 首页唯一业务 CTA 复用 server next_step，不接受 report 自己排优先级 ──
-assert(
-  countOccurrences(homeBlock, 'bindtap="goReportHomeTask"') === 1,
-  "authenticated report home must expose exactly one business CTA",
+// ── ② 掌握地图:40 格全景,四态 + 蓝环第五态 ──────────────────
+assertIncludes(homeBlock, "掌握地图", "home should render the mastery map panorama");
+assertIncludes(homeBlock, "lr-map-grid", "mastery map should render the 40-cell grid");
+assertIncludes(homeBlock, 'wx:for="{{masteryMap.cells}}"', "grid cells must come from the pack_lifecycle read-model projection");
+assertIncludes(homeBlock, 'bindtap="openMasteryCell"', "each cell should deep-link back to the learn station");
+assertIncludes(reportSource, "/packageDeeptutor/pages/luban/station/station?pack_id=", "cell deep link should target the luban station page");
+assertIncludes(homeBlock, "稳了 {{masteryMap.counts.stable}}", "legend should show the stable state");
+assertIncludes(homeBlock, "再看一眼 {{masteryMap.counts.watch}}", "legend should show the watch state");
+assertIncludes(homeBlock, "待复验 {{masteryMap.counts.reverify}}", "legend should show the reverify state");
+assertIncludes(homeBlock, "未学 {{masteryMap.counts.unlearned}}", "legend should show the unlearned state (fourth state must not be folded away)");
+// 蓝环第五态:另一条轨,永带"待验证",不进掌握色阶
+assertIncludes(homeBlock, "已学·待验证 {{masteryMap.counts.blue}}", "blue-ring legend must exist and always carry 待验证");
+assertIncludes(homeBlock, "lr-map-legend-blue", "blue-ring legend must be a separate row, not mixed into the mastery ladder legend");
+assertIncludes(reportWxss, ".lr-cell--blue", "blue-ring cell style must exist");
+var blueRule = reportWxss.slice(
+  reportWxss.indexOf(".lr-cell--blue"),
+  reportWxss.indexOf(".lr-cell-bluecheck"),
 );
-assertIncludes(reportSource, "api.getHomeDashboard", "report must fetch canonical home next_step");
-assertIncludes(reportSource, "buildCanonicalLearningTask", "report and learning must share task translation");
-assertIncludes(reportSource, "buildReportHomeViewModel", "report home must use a pure compact projection");
-assertIncludes(reportHomeViewModelSource, "eventStatus.ok === true", "eligible learning evidence must be explicit");
-assertIncludes(reportHomeViewModelSource, "eventCount > 0", "zero evidence must not fabricate progress or blind spots");
-assertNotIncludes(homeBlock, "learningNextAction", "learning-brain action must not compete with home next_step");
-assertNotIncludes(homeBlock, "pack_review", "review due must arrive only through home next_step");
+assert(
+  blueRule.indexOf("--pk-grn") < 0 &&
+    blueRule.indexOf("--pk-warn") < 0 &&
+    blueRule.indexOf("--pk-red") < 0,
+  "blue-ring visual must never enter the red/yellow/green mastery ladder",
+);
+assertIncludes(blueRule, "border", "blue-ring cell should be gray base + blue outline");
+assertIncludes(homeBlock, "lr-cell-bluecheck", "blue-ring cell should carry the blue check mark");
+assertIncludes(viewModelSource, "buildPackMasteryMap", "pack lifecycle map must be a pure view-model projection");
+assertIncludes(viewModelSource, 'exposed: { key: "blue", label: "已学·待验证" }', "exposed lifecycle state must map to the blue contact track with 待验证 copy");
+// 降级不造数
+assertIncludes(homeBlock, "masteryMap.available", "map should render only when the read model provides packs");
+assertIncludes(homeBlock, "完成一次学习或作答后", "map empty state should explain instead of faking cells");
 
-// ── 保留在深入页的四态证据能力，不再挤占首页 ────────────────
+// ── 四态修正:observed 不再被折掉(radar/章节) ────────────────
 assertIncludes(reportWxml, "{{observedCount}}", "detail views should surface the fourth (observed/未学) state count");
 assertIncludes(reportSource, "observedCount", "report radar view model should count observed separately");
 assertIncludes(viewModelSource, "observedCount", "shared view model should count observed separately");
@@ -128,13 +134,42 @@ assertIncludes(reportWxml, "lr-fill-{{ch.status}}", "chapter bars should use bac
 assertNotIncludes(reportWxss, "#f87171", "mastery ladder must not use alarm red (红灯墙)");
 assertNotIncludes(reportWxss, "#fb7185", "mastery ladder must not use alarm red (红灯墙)");
 
-// ── 近期进展不画假曲线 ───────────────────────────────────────
+// ── ③ 产品宣言落位(页脚) ────────────────────────────────────
+assertIncludes(homeBlock, "我们不给你假绿——考过换皮变体才算数。", "product manifesto must land on the 10e footer verbatim");
+
+// ── ④ 四周趋势:降级为方向性描述,不画假曲线 ────────────────
+assertIncludes(homeBlock, "最近趋势", "home should keep a trend card");
 assertNotIncludes(homeBlock, "polyline", "no fake trend curve — backend has no numeric time series");
 assertNotIncludes(homeBlock, "canvas", "no chart canvas on the 10e home surface");
 assertIncludes(viewModelSource, "trend_direction", "trend narrative must derive from long_term_analytics.progression_summary");
 
-// ── 首页只读投影/深链，文案禁审视词 ─────────────────────────
-assertNotIncludes(homeBlock, "api.save", "compact home surface adds no write paths");
+// ── ⑤ 分数账本:后端无路线级聚合 → 一行轻占位 ────────────────
+assertIncludes(homeBlock, "分数账本", "score ledger placeholder should exist");
+assertIncludes(homeBlock, "即将开通", "score ledger must be an honest coming-soon line, not fabricated numbers");
+assert(
+  homeBlock.indexOf("lr-ledger-line") >= 0 &&
+    countOccurrences(homeBlock, "lr-ledger-line") <= 2,
+  "score ledger should stay a single quiet line",
+);
+
+// ── ⑥ 全页唯一行动键 ────────────────────────────────────────
+assert(
+  countOccurrences(homeBlock, "去提分路线查看诊断建议") === 1,
+  "the honest diagnosis route must be the single action key on the page",
+);
+assertIncludes(homeBlock, 'bindtap="absorbDiagnosisIntoPlan"', "action key should have a concrete handler");
+assertIncludes(reportSource, "route.lubanStations()", "action key must deep-link into the learn tab (weekly plan)");
+// 照镜子:主面不做题
+assertNotIncludes(homeBlock, "goPractice", "10e home must not offer practice CTAs (照镜子只诊断不做题)");
+assertNotIncludes(homeBlock, "去练", "10e home must not offer 去练 buttons");
+assertNotIncludes(homeBlock, "开始定向训练", "10e home must not restart the old training hero");
+// 学情页零写入:新增 10e 交互只读/深链
+assertNotIncludes(homeBlock, "api.save", "10e home surface adds no write paths");
+
+// ── ⑦ 错题本/证据链入口保留,文案禁审视词 ───────────────────
+assertIncludes(homeBlock, "错因结构", "home should keep the error-structure card");
+assertIncludes(homeBlock, 'bindtap="openMistakeBook"', "error card should deep-link to the mistake book");
+assertIncludes(reportSource, "route.mistakeBook()", "report mistake-book action should use the package route helper");
 var forbiddenWords = ["看穿", "识破", "揭穿", "露馅"];
 forbiddenWords.forEach(function (word) {
   assertNotIncludes(reportWxml, word, "report copy must not use the auditing word " + word);
@@ -142,8 +177,11 @@ forbiddenWords.forEach(function (word) {
   assertNotIncludes(viewModelSource, word, "view model copy must not use the auditing word " + word);
 });
 
-// 旧掌握地图仍只属于深入页兼容能力，不再是首页发布门。
-assertIncludes(viewModelSource, "buildPackMasteryMap", "deep report map keeps its shared pure projection");
+// ── 数据读取:复用既有 API,pack_lifecycle 全景接入 ───────────
+assertIncludes(reportSource, "api.getLubanLessons", "map deep-link metadata should reuse the existing lessons API");
+assertIncludes(reportSource, "buildPackMasteryMap", "report page should hydrate the mastery map from the shared projection");
+assertIncludes(reportSource, "openMasteryCell", "report page should implement the cell deep link");
+assertIncludes(reportSource, "这一站即将开通", "non-green stations should get an honest toast instead of a broken link");
 
 // ── 保留的深入页与证据链契约(旧断言仍然成立的部分) ─────────
 assertIncludes(reportWxml, "真实作答证据", "attempt evidence cards should stay in the evidence detail");

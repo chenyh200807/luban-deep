@@ -86,6 +86,9 @@ function loadChatPage(overrides) {
     isDark: function () {
       return true;
     },
+    isDarkOr: function () {
+      return false;
+    },
     getTimeGreeting: function () {
       return "上午好";
     },

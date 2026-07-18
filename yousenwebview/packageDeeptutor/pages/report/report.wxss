@@ -43,10 +43,10 @@
 }
 .nav-back:active { background: rgba(255,255,255,0.08); }
 .nav-back-arrow {
-  font-size: 40rpx; color: #818cf8; font-weight: 300;
+  font-size: 40rpx; color: var(--pk-grn); font-weight: 300;
   line-height: 1; margin-top: -4rpx;
 }
-.nav-back-txt { font-size: 28rpx; color: #818cf8; font-weight: 500; }
+.nav-back-txt { font-size: 28rpx; color: var(--pk-grn); font-weight: 500; }
 
 .nav-title {
   flex: 1;
@@ -83,7 +83,7 @@
 .focus-label {
   font-size: 20rpx;
   font-weight: 700;
-  color: #93c5fd;
+  color: var(--pk-grn);
 }
 
 .focus-text {
@@ -98,7 +98,7 @@
   padding: 16rpx;
   border-radius: 14rpx;
   background: rgba(6, 78, 59, 0.18);
-  border: 1rpx solid rgba(52, 211, 153, 0.22);
+  border: 1rpx solid rgba(72, 128, 106, 0.22);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -108,23 +108,21 @@
 .degraded-hint {
   padding: 14rpx 18rpx;
   border-radius: 12rpx;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1rpx solid rgba(251, 191, 36, 0.18);
+  background: rgba(194, 101, 85, 0.1);
+  border: 1rpx solid rgba(194, 101, 85, 0.18);
 }
 
 .degraded-hint-text {
   font-size: 22rpx;
   line-height: 1.45;
-  color: #fbbf24;
+  color: var(--pk-warn);
 }
 
 .guest-report-card {
   padding: 24rpx;
   border-radius: 24rpx;
-  background:
-    linear-gradient(135deg, rgba(247, 201, 107, 0.12), rgba(96, 165, 250, 0.08)),
-    rgba(255,255,255,0.04);
-  border: 1rpx solid rgba(247, 201, 107, 0.16);
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
   display: flex;
   align-items: center;
   gap: 20rpx;
@@ -137,9 +135,10 @@
 
 .guest-report-kicker {
   display: block;
-  font-size: 21rpx;
-  font-weight: 760;
-  color: rgba(247, 201, 107, 0.86);
+  font-size: 22rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--pk-grn);
 }
 
 .guest-report-title {
@@ -167,13 +166,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(248, 250, 252, 0.94);
+  background: var(--pk-ink-btn);
+}
+
+.guest-report-card .guest-report-action-txt {
+  color: var(--pk-ink-btn-t);
 }
 
 .guest-report-action-txt {
   font-size: 24rpx;
   font-weight: 820;
-  color: #0f172a;
+  color: var(--pk-t1);
 }
 
 .module-mini-stats {
@@ -229,7 +232,7 @@
 .detail-hero-kicker {
   font-size: 22rpx;
   font-weight: 800;
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .detail-hero-title {
@@ -297,7 +300,7 @@
   font-size: 52rpx;
   line-height: 1;
   font-weight: 850;
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .map-summary-bars {
@@ -341,8 +344,8 @@
 }
 
 .training-route-step.active {
-  background: rgba(52, 211, 153, 0.16);
-  border-color: rgba(52, 211, 153, 0.28);
+  background: rgba(72, 128, 106, 0.16);
+  border-color: rgba(72, 128, 106, 0.28);
 }
 
 .training-route-step text {
@@ -383,7 +386,7 @@
   font-size: 21rpx;
   line-height: 1.3;
   font-weight: 800;
-  color: #5eead4;
+  color: var(--pk-grn);
 }
 
 .training-loop-title {
@@ -391,25 +394,25 @@
   font-size: 32rpx;
   line-height: 1.25;
   font-weight: 900;
-  color: #f8fafc;
+  color: var(--pk-t1);
 }
 
 .training-loop-badge {
   flex-shrink: 0;
   padding: 9rpx 14rpx;
   border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  background: var(--pk-gauge);
+  border: 1rpx solid var(--pk-bd);
   font-size: 20rpx;
   line-height: 1.2;
   font-weight: 800;
-  color: #bfdbfe;
+  color: var(--pk-t2);
 }
 
 .training-loop-desc {
   font-size: 23rpx;
   line-height: 1.6;
-  color: rgba(226, 232, 240, 0.78);
+  color: var(--pk-t2);
 }
 
 .training-loop-meter {
@@ -422,7 +425,7 @@
   flex: 1;
   height: 3rpx;
   border-radius: 999rpx;
-  background: linear-gradient(90deg, rgba(94, 234, 212, 0.46), rgba(96, 165, 250, 0.2));
+  background: var(--pk-gauge);
 }
 
 .training-loop-dot {
@@ -432,19 +435,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  background: var(--pk-gauge);
+  border: 1rpx solid var(--pk-bd);
 }
 
 .training-loop-dot.active {
-  background: rgba(45, 212, 191, 0.16);
-  border-color: rgba(45, 212, 191, 0.28);
+  background: var(--pk-accent-soft);
+  border-color: var(--pk-accent-border);
 }
 
 .training-loop-dot text {
   font-size: 19rpx;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--pk-t2);
 }
 
 .training-loop-stats {
@@ -456,10 +459,10 @@
 .training-loop-stats text {
   padding: 7rpx 11rpx;
   border-radius: 8rpx;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--pk-gauge);
   font-size: 20rpx;
   line-height: 1.2;
-  color: rgba(255, 255, 255, 0.76);
+  color: var(--pk-t2);
 }
 
 .grading-loop-stages {
@@ -472,19 +475,19 @@
   min-width: 0;
   padding: 12rpx;
   border-radius: 8rpx;
-  background: rgba(15, 23, 42, 0.42);
-  border: 1rpx solid rgba(148, 163, 184, 0.18);
+  background: var(--pk-gauge);
+  border: 1rpx solid var(--pk-bd);
 }
 
 .grading-loop-stage.status-ready,
 .grading-loop-stage.status-verified {
-  border-color: rgba(45, 212, 191, 0.32);
-  background: rgba(20, 184, 166, 0.12);
+  border-color: var(--pk-accent-border);
+  background: var(--pk-accent-soft);
 }
 
 .grading-loop-stage.status-due {
-  border-color: rgba(251, 191, 36, 0.32);
-  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(194, 101, 85, 0.32);
+  background: rgba(194, 101, 85, 0.1);
 }
 
 .grading-loop-stage-label,
@@ -499,26 +502,31 @@
   font-size: 21rpx;
   line-height: 1.25;
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--pk-t1);
 }
 
 .grading-loop-stage-status {
   margin-top: 6rpx;
   font-size: 19rpx;
   line-height: 1.25;
-  color: rgba(226, 232, 240, 0.72);
+  color: var(--pk-t2);
+}
+
+.grading-loop-stage.status-ready .grading-loop-stage-status,
+.grading-loop-stage.status-verified .grading-loop-stage-status {
+  color: var(--pk-grn);
 }
 
 .training-action-card {
   min-height: 86rpx;
   padding: 18rpx 20rpx;
   border-radius: 14rpx;
-  background: linear-gradient(135deg, #5eead4, #60a5fa);
+  background: var(--pk-grn);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18rpx;
-  box-shadow: 0 18rpx 42rpx rgba(14, 165, 233, 0.18);
+  box-shadow: 0 18rpx 42rpx rgba(72, 128, 106, 0.18);
 }
 
 .training-action-card-pressed,
@@ -582,12 +590,12 @@
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 10rpx;
-  background: rgba(251, 191, 36, 0.7);
+  background: rgba(194, 101, 85, 0.7);
 }
 
 .progress-chart-bar.today { height: 74rpx; }
-.progress-chart-bar.recent { height: 116rpx; background: rgba(125, 211, 252, 0.78); }
-.progress-chart-bar.streak { height: 94rpx; background: rgba(52, 211, 153, 0.72); }
+.progress-chart-bar.recent { height: 116rpx; background: rgba(72, 128, 106, 0.78); }
+.progress-chart-bar.streak { height: 94rpx; background: rgba(72, 128, 106, 0.72); }
 
 .progress-chart-bar text {
   font-size: 18rpx;
@@ -736,19 +744,19 @@
 .prescription-section {
   background:
     linear-gradient(135deg, rgba(6, 95, 70, 0.32), rgba(12, 28, 38, 0.78)),
-    radial-gradient(circle at 88% 8%, rgba(52, 211, 153, 0.16), transparent 36%);
-  border-color: rgba(52, 211, 153, 0.24);
+    radial-gradient(circle at 88% 8%, rgba(72, 128, 106, 0.16), transparent 36%);
+  border-color: rgba(72, 128, 106, 0.24);
 }
 
 .prescription-rail {
-  background: #34d399;
+  background: var(--pk-grn);
 }
 
 .three-layer-state {
   background:
     linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.76)),
-    radial-gradient(circle at 8% 0%, rgba(125, 211, 252, 0.12), transparent 34%);
-  border-color: rgba(125, 211, 252, 0.18);
+    radial-gradient(circle at 8% 0%, rgba(72, 128, 106, 0.12), transparent 34%);
+  border-color: rgba(72, 128, 106, 0.18);
 }
 
 .scoring-point-map-section {
@@ -795,7 +803,7 @@
   border: 1rpx solid rgba(255, 255, 255, 0.1);
   font-size: 18rpx;
   font-weight: 700;
-  color: #c7d2fe;
+  color: var(--pk-t2);
 }
 
 .learning-state-section-subtitle {
@@ -815,12 +823,12 @@
 .prescription-meta-chip {
   padding: 7rpx 12rpx;
   border-radius: 999rpx;
-  background: rgba(52, 211, 153, 0.12);
-  border: 1rpx solid rgba(52, 211, 153, 0.18);
+  background: rgba(72, 128, 106, 0.12);
+  border: 1rpx solid rgba(72, 128, 106, 0.18);
   font-size: 19rpx;
   line-height: 1.2;
   font-weight: 800;
-  color: #a7f3d0;
+  color: var(--pk-grn);
 }
 
 .battle-plan-action {
@@ -888,14 +896,14 @@
 .learning-state-cta {
   min-height: 58rpx;
   justify-content: center;
-  border-color: rgba(52, 211, 153, 0.3);
+  border-color: rgba(72, 128, 106, 0.3);
   background: rgba(6, 95, 70, 0.24);
 }
 
 .learning-state-cta-label {
   font-size: 23rpx;
   font-weight: 800;
-  color: #6ee7b7;
+  color: var(--pk-grn);
 }
 
 .learning-state-layer {
@@ -957,28 +965,28 @@
   line-height: 1.2;
   font-weight: 800;
   text-align: center;
-  color: #cbd5e1;
+  color: var(--pk-t2);
   background: rgba(148, 163, 184, 0.12);
 }
 
 .learning-state-row.state-warn {
-  border-color: rgba(251, 191, 36, 0.18);
-  background: rgba(251, 191, 36, 0.055);
+  border-color: rgba(194, 101, 85, 0.18);
+  background: rgba(194, 101, 85, 0.055);
 }
 
 .learning-state-row.state-warn .learning-state-row-status {
-  color: #fbbf24;
-  background: rgba(251, 191, 36, 0.12);
+  color: var(--pk-warn);
+  background: rgba(194, 101, 85, 0.12);
 }
 
 .learning-state-row.state-good {
-  border-color: rgba(52, 211, 153, 0.18);
-  background: rgba(52, 211, 153, 0.055);
+  border-color: rgba(72, 128, 106, 0.18);
+  background: rgba(72, 128, 106, 0.055);
 }
 
 .learning-state-row.state-good .learning-state-row-status {
-  color: #6ee7b7;
-  background: rgba(52, 211, 153, 0.12);
+  color: var(--pk-grn);
+  background: rgba(72, 128, 106, 0.12);
 }
 
 .scoring-point-row {
@@ -995,8 +1003,8 @@
 .scoring-point-badge {
   padding: 5rpx 9rpx;
   border-radius: 9rpx;
-  background: rgba(96, 165, 250, 0.1);
-  color: #93c5fd;
+  background: rgba(72, 128, 106, 0.1);
+  color: var(--pk-grn);
   font-size: 18rpx;
   font-weight: 800;
 }
@@ -1013,7 +1021,7 @@
   grid-column: 2;
   font-size: 20rpx;
   font-weight: 800;
-  color: #fca5a5;
+  color: var(--pk-warn);
 }
 
 .scoring-point-empty {
@@ -1023,7 +1031,7 @@
   border: 1rpx dashed rgba(129, 140, 248, 0.22);
   font-size: 23rpx;
   line-height: 1.45;
-  color: #cbd5e1;
+  color: var(--pk-t2);
 }
 
 .mistake-history-card {
@@ -1050,16 +1058,16 @@
 .mistake-history-time {
   font-size: 21rpx;
   font-weight: 800;
-  color: #fdba74;
+  color: var(--pk-warn);
 }
 
 .mistake-history-result {
   padding: 5rpx 10rpx;
   border-radius: 9rpx;
-  background: rgba(248, 113, 113, 0.14);
+  background: rgba(194, 101, 85, 0.14);
   font-size: 20rpx;
   font-weight: 800;
-  color: #fca5a5;
+  color: var(--pk-warn);
 }
 
 .mistake-history-question {
@@ -1080,17 +1088,17 @@
 .mistake-history-label {
   font-size: 21rpx;
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--pk-t3);
 }
 
 .mistake-history-value {
   font-size: 22rpx;
   line-height: 1.5;
-  color: #cbd5e1;
+  color: var(--pk-t2);
 }
 
 .mistake-history-value.strong {
-  color: #fed7aa;
+  color: var(--pk-warn);
 }
 
 .mistake-history-cta {
@@ -1102,7 +1110,7 @@
   border: 1rpx solid rgba(251, 146, 60, 0.18);
   font-size: 21rpx;
   font-weight: 800;
-  color: #fdba74;
+  color: var(--pk-warn);
 }
 
 /* ── Learning Brain ─────────────────────────────── */
@@ -1150,10 +1158,10 @@
 .brain-stat {
   padding: 6rpx 12rpx;
   border-radius: 10rpx;
-  background: rgba(96, 165, 250, 0.12);
-  border: 1rpx solid rgba(96, 165, 250, 0.18);
+  background: rgba(72, 128, 106, 0.12);
+  border: 1rpx solid rgba(72, 128, 106, 0.18);
   font-size: 20rpx;
-  color: #93c5fd;
+  color: var(--pk-grn);
 }
 
 .learning-brain-loading {
@@ -1199,8 +1207,8 @@
 .brain-review-summary {
   padding: 18rpx;
   border-radius: 16rpx;
-  background: rgba(14, 165, 233, 0.08);
-  border: 1rpx solid rgba(125, 211, 252, 0.16);
+  background: rgba(72, 128, 106, 0.08);
+  border: 1rpx solid rgba(72, 128, 106, 0.16);
   display: flex;
   flex-direction: column;
   gap: 8rpx;
@@ -1209,7 +1217,7 @@
 .brain-review-title {
   font-size: 22rpx;
   font-weight: 700;
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .brain-review-headline {
@@ -1229,7 +1237,7 @@
   border-radius: 8rpx;
   background: rgba(15, 23, 42, 0.24);
   font-size: 20rpx;
-  color: #bfdbfe;
+  color: var(--pk-t2);
 }
 
 .brain-column {
@@ -1241,7 +1249,7 @@
 .brain-column-title {
   font-size: 23rpx;
   font-weight: 700;
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .brain-column-sub {
@@ -1286,25 +1294,25 @@
 .brain-level-text {
   font-size: 19rpx;
   font-weight: 700;
-  color: #cbd5e1;
+  color: var(--pk-t2);
 }
 
 .level-L1_repeated {
-  background: rgba(251, 191, 36, 0.12);
-  border-color: rgba(251, 191, 36, 0.22);
+  background: rgba(194, 101, 85, 0.12);
+  border-color: rgba(194, 101, 85, 0.22);
 }
 
 .level-L1_repeated .brain-level-text {
-  color: #fbbf24;
+  color: var(--pk-warn);
 }
 
 .level-L2_confirmed {
-  background: rgba(52, 211, 153, 0.12);
-  border-color: rgba(52, 211, 153, 0.22);
+  background: rgba(72, 128, 106, 0.12);
+  border-color: rgba(72, 128, 106, 0.22);
 }
 
 .level-L2_confirmed .brain-level-text {
-  color: #34d399;
+  color: var(--pk-grn);
 }
 
 .brain-row-main {
@@ -1339,7 +1347,7 @@
 }
 
 .brain-action-line {
-  color: #bfdbfe;
+  color: var(--pk-t2);
 }
 
 .brain-challenge-action {
@@ -1348,9 +1356,9 @@
   margin-top: 4rpx;
   padding: 8rpx 12rpx;
   border-radius: 10rpx;
-  background: rgba(14, 165, 233, 0.12);
-  border: 1rpx solid rgba(125, 211, 252, 0.2);
-  color: #7dd3fc;
+  background: rgba(72, 128, 106, 0.12);
+  border: 1rpx solid rgba(72, 128, 106, 0.2);
+  color: var(--pk-grn);
   font-size: 20rpx;
   font-weight: 800;
 }
@@ -1367,12 +1375,12 @@
 }
 
 .attempt-wrong {
-  border-color: rgba(248, 113, 113, 0.18);
-  background: rgba(248, 113, 113, 0.055);
+  border-color: rgba(194, 101, 85, 0.18);
+  background: rgba(194, 101, 85, 0.055);
 }
 
 .attempt-correct {
-  border-color: rgba(52, 211, 153, 0.18);
+  border-color: rgba(72, 128, 106, 0.18);
   background: rgba(16, 185, 129, 0.055);
 }
 
@@ -1387,7 +1395,7 @@
   display: block;
   margin-bottom: 4rpx;
   font-size: 20rpx;
-  color: #93c5fd;
+  color: var(--pk-grn);
 }
 
 .attempt-title {
@@ -1407,19 +1415,19 @@
 }
 
 .result-wrong {
-  background: rgba(248, 113, 113, 0.14);
-  color: #fca5a5;
+  background: rgba(194, 101, 85, 0.14);
+  color: var(--pk-warn);
 }
 
 .result-correct {
-  background: rgba(52, 211, 153, 0.14);
-  color: #6ee7b7;
+  background: rgba(72, 128, 106, 0.14);
+  color: var(--pk-grn);
 }
 
 .attempt-answer {
   font-size: 23rpx;
   line-height: 1.45;
-  color: #e5e7eb;
+  color: var(--pk-t2);
 }
 
 .attempt-diagnosis,
@@ -1444,11 +1452,11 @@
 .attempt-action {
   padding: 7rpx 12rpx;
   border-radius: 10rpx;
-  background: rgba(96, 165, 250, 0.12);
-  border: 1rpx solid rgba(96, 165, 250, 0.18);
+  background: rgba(72, 128, 106, 0.12);
+  border: 1rpx solid rgba(72, 128, 106, 0.18);
   font-size: 21rpx;
   font-weight: 700;
-  color: #bfdbfe;
+  color: var(--pk-t2);
 }
 
 .bookmark-action.cloud {
@@ -1463,15 +1471,15 @@
 }
 
 .note-card-action {
-  background: rgba(52, 211, 153, 0.1);
-  border-color: rgba(52, 211, 153, 0.2);
-  color: #86efac;
+  background: rgba(72, 128, 106, 0.1);
+  border-color: rgba(72, 128, 106, 0.2);
+  color: var(--pk-grn);
 }
 
 .note-card-action.primary {
-  background: rgba(14, 165, 233, 0.16);
-  border-color: rgba(125, 211, 252, 0.24);
-  color: #7dd3fc;
+  background: rgba(72, 128, 106, 0.16);
+  border-color: rgba(72, 128, 106, 0.24);
+  color: var(--pk-grn);
 }
 
 .note-asset-row {
@@ -1503,16 +1511,16 @@
 .note-asset-source {
   margin-top: 6rpx;
   font-size: 19rpx;
-  color: #a7f3d0;
+  color: var(--pk-grn);
 }
 
 .note-asset-action {
   flex-shrink: 0;
   padding: 8rpx 12rpx;
   border-radius: 10rpx;
-  background: rgba(96, 165, 250, 0.14);
+  background: rgba(72, 128, 106, 0.14);
   border: 1rpx solid rgba(147, 197, 253, 0.2);
-  color: #bfdbfe;
+  color: var(--pk-t2);
   font-size: 20rpx;
   font-weight: 800;
 }
@@ -1529,7 +1537,7 @@
   background: rgba(15, 23, 42, 0.28);
   border: 1rpx solid rgba(148, 163, 184, 0.16);
   font-size: 19rpx;
-  color: #bfdbfe;
+  color: var(--pk-t2);
 }
 
 .brain-edge-row,
@@ -1542,7 +1550,7 @@
 }
 
 .brain-next-action {
-  border-color: rgba(52, 211, 153, 0.18);
+  border-color: rgba(72, 128, 106, 0.18);
   background: rgba(6, 78, 59, 0.16);
 }
 
@@ -1551,24 +1559,24 @@
   margin-top: 6rpx;
   padding: 7rpx 12rpx;
   border-radius: 10rpx;
-  background: rgba(52, 211, 153, 0.13);
+  background: rgba(72, 128, 106, 0.13);
   font-size: 21rpx;
   font-weight: 700;
-  color: #6ee7b7;
+  color: var(--pk-grn);
 }
 
 .brain-chain-row {
-  border-color: rgba(96, 165, 250, 0.18);
+  border-color: rgba(72, 128, 106, 0.18);
   background: rgba(37, 99, 235, 0.08);
 }
 
 .chain-improved {
-  border-color: rgba(52, 211, 153, 0.24);
+  border-color: rgba(72, 128, 106, 0.24);
   background: rgba(16, 185, 129, 0.09);
 }
 
 .chain-not-improved {
-  border-color: rgba(251, 191, 36, 0.24);
+  border-color: rgba(194, 101, 85, 0.24);
   background: rgba(245, 158, 11, 0.09);
 }
 
@@ -1592,15 +1600,15 @@
   background: rgba(15, 23, 42, 0.22);
   font-size: 20rpx;
   font-weight: 700;
-  color: #bfdbfe;
+  color: var(--pk-t2);
 }
 
 .chain-improved .brain-chain-outcome {
-  color: #34d399;
+  color: var(--pk-grn);
 }
 
 .chain-not-improved .brain-chain-outcome {
-  color: #fbbf24;
+  color: var(--pk-warn);
 }
 
 .brain-edge-type {
@@ -1643,7 +1651,7 @@
   font-size: 22rpx;
   letter-spacing: 2rpx;
   text-transform: uppercase;
-  color: #60a5fa;
+  color: var(--pk-grn);
 }
 
 .section-title {
@@ -1690,8 +1698,19 @@
   gap: 16rpx;
 }
 
+/* 空态印章：与 attempt-detail 空态同构（书法字 + 竹青圈），替代 emoji 字符图标 */
 .empty-icon {
-  font-size: 64rpx;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--pk-accent-border);
+  background: var(--pk-accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive;
+  font-size: 44rpx;
+  color: var(--pk-grn);
 }
 
 .empty-title {
@@ -1722,7 +1741,7 @@
 .empty-btn-txt {
   font-size: 26rpx;
   font-weight: 600;
-  color: #818cf8;
+  color: var(--pk-grn);
 }
 
 /* ── 雷达图 Canvas ───────────────────────────────── */
@@ -1806,9 +1825,9 @@
   flex-shrink: 0;
 }
 
-.rank-strong { background: rgba(52, 211, 153, 0.15); }
-.rank-normal { background: rgba(251, 191, 36, 0.15); }
-.rank-weak   { background: rgba(248, 113, 113, 0.15); }
+.rank-strong { background: rgba(72, 128, 106, 0.15); }
+.rank-normal { background: rgba(194, 101, 85, 0.15); }
+.rank-weak   { background: rgba(194, 101, 85, 0.15); }
 
 .dim-rank-txt {
   font-size: 24rpx;
@@ -2010,18 +2029,18 @@
 }
 
 .directory-row.status-weak .directory-status {
-  color: #fecaca;
-  background: rgba(248, 113, 113, 0.16);
+  color: var(--pk-warn);
+  background: rgba(194, 101, 85, 0.16);
 }
 
 .directory-row.status-strong .directory-status {
-  color: #bbf7d0;
-  background: rgba(52, 211, 153, 0.14);
+  color: var(--pk-grn);
+  background: rgba(72, 128, 106, 0.14);
 }
 
 .directory-row.status-developing .directory-status {
-  color: #fde68a;
-  background: rgba(251, 191, 36, 0.14);
+  color: var(--pk-warn);
+  background: rgba(194, 101, 85, 0.14);
 }
 
 /* ── 科目掌握度分组 ──────────────────────────────── */
@@ -2142,7 +2161,7 @@
   font-size: 22rpx;
   letter-spacing: 2rpx;
   text-transform: uppercase;
-  color: #93c5fd;
+  color: var(--pk-grn);
 }
 
 .battle-plan-topic {
@@ -2151,7 +2170,7 @@
   font-size: 40rpx;
   line-height: 1.2;
   font-weight: 700;
-  color: #eff6ff;
+  color: var(--pk-t1);
 }
 
 .battle-plan-badge {
@@ -2165,7 +2184,7 @@
 .battle-plan-badge-text {
   font-size: 22rpx;
   font-weight: 600;
-  color: #bfdbfe;
+  color: var(--pk-t2);
 }
 
 .battle-plan-note {
@@ -2202,7 +2221,7 @@
 .battle-plan-value {
   font-size: 24rpx;
   line-height: 1.7;
-  color: #f8fafc;
+  color: var(--pk-t1);
 }
 
 /* ── 进步反馈 ───────────────────────────────────── */
@@ -2279,7 +2298,7 @@
   height: 14rpx;
   margin-top: 10rpx;
   border-radius: 999rpx;
-  background: #7dd3fc;
+  background: var(--pk-grn);
   flex-shrink: 0;
 }
 
@@ -2302,11 +2321,11 @@
 }
 
 .tone-good {
-  color: #34d399;
+  color: var(--pk-grn);
 }
 
 .tone-accent {
-  color: #7dd3fc;
+  color: var(--pk-grn);
 }
 
 .tone-warn {
@@ -2319,94 +2338,94 @@
 
 /* ── CSS 变量覆盖 ──────────────────────────── */
 .report-page.light {
-  --primary-400: #5e8cff;
-  --primary-500: #2f6bff;
-  --primary-600: #2557d8;
-  --bg-primary: linear-gradient(180deg, #f7faff 0%, #eef4ff 52%, #f8fbff 100%);
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #eef4ff;
-  --bg-card: rgba(255, 255, 255, 0.92);
-  --bg-elevated: rgba(255, 255, 255, 0.98);
-  --text-primary: #111827;
-  --text-secondary: #334155;
-  --text-tertiary: #516174;
-  --text-muted: #7b8799;
-  --border-subtle: rgba(219, 230, 245, 0.65);
-  --border-light: #dbe6f5;
-  --border-medium: #d1def4;
-  --border: #dbe6f5;
-  --shadow-sm: 0 6rpx 18rpx rgba(126, 147, 185, 0.08);
-  --shadow-md: 0 14rpx 34rpx rgba(126, 147, 185, 0.12);
+  --primary-400: var(--pk-grn);
+  --primary-500: var(--pk-grn);
+  --primary-600: var(--pk-grn);
+  --bg-primary: var(--pk-paper);
+  --bg-secondary: var(--pk-card);
+  --bg-tertiary: var(--pk-gauge);
+  --bg-card: var(--pk-card);
+  --bg-elevated: var(--pk-card);
+  --text-primary: var(--pk-t1);
+  --text-secondary: var(--pk-t2);
+  --text-tertiary: var(--pk-t2);
+  --text-muted: var(--pk-t3);
+  --border-subtle: var(--pk-bd);
+  --border-light: var(--pk-bd);
+  --border-medium: var(--pk-bd);
+  --border: var(--pk-bd);
+  --shadow-sm: 0 2rpx 12rpx var(--pk-shadow);
+  --shadow-md: 0 4rpx 18rpx var(--pk-shadow);
 }
 
 /* ── 导航栏 ────────────────────────────────── */
 .report-page.light .nav-bar {
-  background: rgba(248, 250, 255, 0.96);
-  border-color: #dbe6f5;
-  box-shadow: 0 10rpx 28rpx rgba(126, 147, 185, 0.10);
+  background: var(--pk-paper);
+  border-color: var(--pk-bd);
+  box-shadow: none;
 }
 .report-page.light .nav-back:active { background: rgba(0,0,0,0.04); }
-.report-page.light .nav-back-arrow { color: #4f46e5; }
-.report-page.light .nav-back-txt { color: #4f46e5; }
+.report-page.light .nav-back-arrow { color: var(--pk-grn); }
+.report-page.light .nav-back-txt { color: var(--pk-grn); }
 
 /* ── 进度条背景 ────────────────────────────── */
-.report-page.light .dim-bar { background: #edf2fb; }
-.report-page.light .ch-bar { background: #edf2fb; }
+.report-page.light .dim-bar { background: var(--pk-gauge); }
+.report-page.light .ch-bar { background: var(--pk-gauge); }
 .report-page.light .empty-btn {
-  background: #eef4ff;
-  border-color: #c6d8ff;
+  background: var(--pk-accent-soft);
+  border-color: var(--pk-accent-border);
 }
-.report-page.light .empty-btn-txt { color: #2f6bff; }
+.report-page.light .empty-btn-txt { color: var(--pk-grn); }
 
 .report-page.light .battle-plan {
   background:
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 32%),
-    linear-gradient(145deg, rgba(47, 107, 255, 0.10), rgba(255, 255, 255, 0.92));
+    radial-gradient(circle at top right, rgba(72, 128, 106, 0.10), transparent 32%),
+    linear-gradient(145deg, rgba(72, 128, 106, 0.10), rgba(255, 255, 255, 0.92));
 }
 
 .report-page.light .battle-plan-topic {
-  color: #0f172a;
+  color: var(--pk-t1);
 }
 
 .report-page.light .battle-plan-note {
-  color: #334155;
+  color: var(--pk-t2);
 }
 
 .report-page.light .battle-plan-badge {
-  background: rgba(47, 107, 255, 0.08);
-  border-color: rgba(47, 107, 255, 0.14);
+  background: rgba(72, 128, 106, 0.08);
+  border-color: rgba(72, 128, 106, 0.14);
 }
 
 .report-page.light .battle-plan-badge-text,
 .report-page.light .battle-plan-kicker,
 .report-page.light .battle-plan-label {
-  color: #2f6bff;
+  color: var(--pk-grn);
 }
 
 .report-page.light .battle-plan-row {
-  border-color: rgba(209, 222, 244, 0.7);
+  border-color: var(--pk-bd);
 }
 
 .report-page.light .battle-plan-value {
-  color: #0f172a;
+  color: var(--pk-t1);
 }
 
 .report-page.light .progress-item {
   background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(209, 222, 244, 0.85);
+  border-color: var(--pk-bd);
 }
 
 .report-page.light .progress-milestones {
-  border-color: rgba(209, 222, 244, 0.7);
+  border-color: var(--pk-bd);
 }
 
 .report-page.light .report-detail-hero {
-  border-color: rgba(209, 222, 244, 0.82);
-  box-shadow: 0 16rpx 38rpx rgba(47, 107, 255, 0.08);
+  border-color: var(--pk-bd);
+  box-shadow: 0 16rpx 38rpx rgba(72, 128, 106, 0.08);
 }
 
 .report-page.light .detail-evidence {
-  background: linear-gradient(145deg, rgba(14, 165, 233, 0.12), rgba(255, 255, 255, 0.94));
+  background: linear-gradient(145deg, rgba(72, 128, 106, 0.12), rgba(255, 255, 255, 0.94));
 }
 
 .report-page.light .detail-map {
@@ -2422,24 +2441,24 @@
 }
 
 .report-page.light .detail-hero-title {
-  color: #0f172a;
+  color: var(--pk-t1);
 }
 
 .report-page.light .detail-hero-sub {
-  color: #64748b;
+  color: var(--pk-t3);
 }
 
 .report-page.light .detail-metric-label,
 .report-page.light .map-summary-label {
-  color: #7b8799;
+  color: var(--pk-t3);
 }
 
 .report-page.light .module-mini-stats text,
 .report-page.light .training-route-step,
 .report-page.light .progress-chart-card {
-  background: rgba(241, 245, 249, 0.72);
-  border-color: rgba(209, 222, 244, 0.8);
-  color: #475569;
+  background: var(--pk-gauge);
+  border-color: var(--pk-bd);
+  color: var(--pk-t2);
 }
 
 .report-page.light .detail-metric-row > view {
@@ -2449,11 +2468,11 @@
 }
 
 .report-page.light .training-route-step text {
-  color: #475569;
+  color: var(--pk-t2);
 }
 
 .report-page.light .progress-chart-bar text {
-  color: #0f172a;
+  color: var(--pk-t1);
 }
 
 /* ============================================================

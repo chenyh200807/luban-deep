@@ -36,11 +36,15 @@ assert(wxml.indexOf("indexOf(") < 0, "package feedback page should not rely on W
 assert(wxml.indexOf("截图或录屏") >= 0, "package feedback page should expose screenshot/video attachments");
 assert(wxml.indexOf("自动附带的信息") >= 0, "package feedback page should explain automatic context");
 assert(wxss.indexOf(".feedback-page") >= 0, "package feedback page should define its own page shell");
-assert(wxss.indexOf("glass-card") >= 0, "package feedback page should reuse the learning-report dark glass style");
+assert(wxss.indexOf("glass-card") >= 0, "package feedback page should keep the shared card shell class");
 assert(wxss.indexOf("var(--text-primary)") < 0, "package feedback page should not depend on external text-primary tokens");
 assert(wxss.indexOf("var(--text-muted)") < 0, "package feedback page should not depend on external text-muted tokens");
-assert(wxss.indexOf(".type-title") >= 0 && wxss.indexOf("#f8fafc") >= 0, "package module titles should use explicit light text");
-assert(wxss.indexOf(".type-desc") >= 0 && wxss.indexOf("#cbd5e1") >= 0, "package module descriptions should use explicit readable muted text");
+// 视觉权威 = 五模块第10轮纸墨定稿：palette 单一来源是 paper-ink 的 --pk-* token，
+// 页面不得再自带第二套明暗配色（旧断言锁死深色玻璃版 #f8fafc/#cbd5e1，已过时）。
+assert(wxss.indexOf("paper-ink.wxss") >= 0, "package feedback page should import the paper-ink token authority");
+assert(wxss.indexOf(".type-title") >= 0 && wxss.indexOf("var(--pk-t1)") >= 0, "package module titles should use the paper-ink primary text token");
+assert(wxss.indexOf(".type-desc") >= 0 && wxss.indexOf("var(--pk-t2)") >= 0, "package module descriptions should use the paper-ink secondary text token");
+assert(wxss.indexOf("#f8fafc") < 0 && wxss.indexOf("#cbd5e1") < 0, "package feedback page should not carry legacy dark-glass palette literals");
 assert(pageSource.indexOf("submitFeedback") >= 0, "package feedback page should submit through existing api.submitFeedback authority");
 assert(pageSource.indexOf("chooseMedia") >= 0, "package feedback page should use wx.chooseMedia for attachments");
 assert(pageSource.indexOf("syncIssueOptions") >= 0, "package feedback page should keep issue option state in page data");
@@ -82,6 +86,9 @@ function loadPage(submitFeedback, uploadFeedbackAttachment) {
           },
           isDark: function () {
             return true;
+          },
+          isDarkOr: function () {
+            return false;
           },
         };
       }

@@ -1,24 +1,26 @@
 @import "/packageDeeptutor/styles/paper-ink.wxss";
 
-/* pages/billing/billing.wxss — 使用情况与权益 */
+/* pages/billing/billing.wxss — 权益中心（纸墨朱竹单层）
+ * palette 全走 --pk-* token；亮/暗由 paper-ink 的 .paper/.paper.light 切换。
+ * 有意保留的字面量：套餐营销徽标的赭黄 #c99f3d（10e 错因结构第三语义色，
+ * paper-ink 未收录 gold token，仅此两处装饰性使用）。 */
 
 .billing-page {
   height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 34%),
-    linear-gradient(180deg, #07101f 0%, #0a1324 46%, #08101d 100%);
   overflow: hidden;
+  color: var(--pk-t1);
+  font-family: -apple-system, "PingFang SC", sans-serif;
 }
 
+/* ── 导航：朱红品牌章 + 墨字 ────────────────────────────── */
 .nav-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 50;
-  background: rgba(7, 14, 28, 0.88);
-  border-bottom: 1rpx solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(18rpx);
+  background: var(--pk-paper);
+  border-bottom: 1rpx solid var(--pk-bd);
 }
 
 .nav-content {
@@ -44,9 +46,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, #0b1224, #13233d);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10rpx 22rpx rgba(0, 0, 0, 0.22);
+  background: var(--pk-red);
+  box-shadow: 0 6rpx 18rpx rgba(207, 68, 54, 0.28);
   flex-shrink: 0;
 }
 
@@ -65,14 +66,14 @@
 
 .nav-kicker {
   font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.42);
   letter-spacing: 2rpx;
+  color: var(--pk-t3);
 }
 
 .nav-title {
   font-size: 28rpx;
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 800;
+  color: var(--pk-t1);
   white-space: nowrap;
 }
 
@@ -82,24 +83,25 @@
   display: flex;
   align-items: center;
   gap: 6rpx;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
   flex-shrink: 0;
 }
 
 .nav-back-pill:active {
-  background: rgba(255, 255, 255, 0.14);
+  opacity: 0.72;
 }
 
 .nav-back-arrow {
   font-size: 28rpx;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--pk-grn);
 }
 
 .nav-back-label {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.78);
+  font-weight: 700;
+  color: var(--pk-grn);
 }
 
 .page-scroll {
@@ -110,32 +112,31 @@
 }
 
 .page-inner {
-  padding: 22rpx 24rpx 0;
+  padding: 24rpx 28rpx 132rpx;
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 20rpx;
 }
 
-.demo-banner {
-  padding: 14rpx 20rpx;
-  border-radius: 18rpx;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1rpx solid rgba(245, 158, 11, 0.18);
-}
-
-.demo-txt {
-  font-size: 22rpx;
-  color: #f3ab24;
-}
-
+/* ── 剩余权益卡 ─────────────────────────────────────────── */
 .balance-card {
-  padding: 24rpx 24rpx 20rpx;
-  border-radius: 24rpx;
-  background: rgba(13, 24, 45, 0.88);
-  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 14rpx;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  padding: 30rpx;
+  border-radius: 28rpx;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+
+.balance-copy {
+  min-width: 0;
+  flex: 1;
 }
 
 .balance-topline {
@@ -143,17 +144,14 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16rpx;
+  margin-bottom: 14rpx;
 }
 
 .balance-label {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.48);
-}
-
-.balance-note {
-  font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.34);
-  text-align: right;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  color: var(--pk-t3);
 }
 
 .balance-core {
@@ -163,22 +161,48 @@
 }
 
 .balance-num {
-  font-size: 58rpx;
+  font-size: 52rpx;
   font-weight: 800;
   line-height: 1;
-  color: #ffffff;
+  color: var(--pk-t1);
   font-variant-numeric: tabular-nums;
 }
 
-.balance-demo {
-  margin-top: 4rpx;
+.balance-gauge {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  padding: 8rpx;
+  box-sizing: border-box;
+  background: var(--pk-gauge);
+  flex-shrink: 0;
+}
+
+.balance-gauge-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.balance-gauge-num {
+  font-size: 34rpx;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--pk-grn);
+  font-variant-numeric: tabular-nums;
 }
 
 .usage-quota-list {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 18rpx;
-  margin-top: 4rpx;
 }
 
 .usage-quota-row {
@@ -198,40 +222,37 @@
   display: block;
   font-size: 24rpx;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.usage-quota-reset {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 21rpx;
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--pk-t1);
 }
 
 .usage-quota-percent {
   flex-shrink: 0;
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.68);
+  font-weight: 700;
+  color: var(--pk-t2);
+  font-variant-numeric: tabular-nums;
 }
 
 .usage-meter {
-  height: 12rpx;
+  height: 10rpx;
   border-radius: 999rpx;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--pk-gauge);
 }
 
 .usage-meter-fill {
   height: 100%;
   border-radius: 999rpx;
-  background: #ffffff;
+  background: var(--pk-grn);
+  transition: width 0.28s ease;
 }
 
+/* ── 区块标题 ───────────────────────────────────────────── */
 .section-head {
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
-  padding: 2rpx 4rpx 0;
+  gap: 6rpx;
+  padding: 0 4rpx;
 }
 
 .section-head-records {
@@ -240,42 +261,60 @@
 
 .section-title {
   display: block;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
 }
 
 .section-sub {
-  font-size: 20rpx;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: var(--pk-t2);
 }
 
+/* ── 套餐卡 ─────────────────────────────────────────────── */
 .pkg-grid {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 16rpx;
 }
 
 .pkg-card {
-  padding: 20rpx 20rpx;
-  border-radius: 20rpx;
-  background: rgba(255, 255, 255, 0.03);
-  border: 2rpx solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: var(--pk-card);
+  border: 2rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
   display: flex;
   align-items: center;
   gap: 14rpx;
+  overflow: hidden;
   transition: border-color 0.15s, background 0.15s, transform 0.15s;
 }
 
+.pkg-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 24rpx;
+  bottom: 24rpx;
+  width: 4rpx;
+  border-radius: 999rpx;
+  background: var(--pk-sand);
+}
+
 .pkg-card:active {
-  border-color: rgba(96, 165, 250, 0.38);
   transform: scale(0.995);
 }
 
 .pkg-card.sel {
-  background: rgba(20, 44, 88, 0.9);
-  border-color: #3b82f6;
+  background: var(--pk-accent-soft);
+  border-color: var(--pk-grn);
+}
+
+.pkg-card.sel::before {
+  background: var(--pk-grn);
 }
 
 .pkg-main {
@@ -303,44 +342,39 @@
 
 .pkg-name {
   font-size: 26rpx;
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 800;
+  color: var(--pk-t1);
 }
 
 .pkg-badge {
   padding: 4rpx 12rpx;
   border-radius: 999rpx;
-  background: rgba(245, 158, 11, 0.16);
-  border: 1rpx solid rgba(245, 158, 11, 0.22);
-  font-size: 18rpx;
-  font-weight: 700;
-  color: #f3ab24;
+  background: rgba(201, 159, 61, 0.14);
+  border: 1rpx solid rgba(201, 159, 61, 0.32);
+  font-size: 20rpx;
+  font-weight: 800;
+  color: #a07f2e;
 }
 
 .pkg-turns {
+  margin-top: 4rpx;
   font-size: 34rpx;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--pk-t1);
   font-variant-numeric: tabular-nums;
-}
-
-.pkg-per {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.7);
 }
 
 .pkg-desc {
   font-size: 20rpx;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.42);
+  line-height: 1.5;
+  color: var(--pk-t2);
 }
 
 .pkg-price-block {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0;
+  gap: 4rpx;
   flex-shrink: 0;
 }
 
@@ -351,24 +385,24 @@
 }
 
 .pkg-original-price {
-  font-size: 19rpx;
+  font-size: 20rpx;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.36);
+  color: var(--pk-t3);
   text-decoration: line-through;
   font-variant-numeric: tabular-nums;
 }
 
 .pkg-yen {
   font-size: 22rpx;
-  font-weight: 700;
-  color: #f3ab24;
+  font-weight: 800;
+  color: var(--pk-t1);
 }
 
 .pkg-price {
   font-size: 44rpx;
   font-weight: 800;
   line-height: 1;
-  color: #f3ab24;
+  color: var(--pk-t1);
   font-variant-numeric: tabular-nums;
 }
 
@@ -376,7 +410,7 @@
   width: 34rpx;
   height: 34rpx;
   border-radius: 50%;
-  border: 2rpx solid rgba(255, 255, 255, 0.18);
+  border: 2rpx solid var(--pk-sand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -384,8 +418,8 @@
 }
 
 .pkg-check.on {
-  border-color: rgba(96, 165, 250, 0.55);
-  background: rgba(59, 130, 246, 0.12);
+  border-color: var(--pk-grn);
+  background: var(--pk-accent-soft);
 }
 
 .pkg-check-dot {
@@ -396,316 +430,31 @@
 }
 
 .pkg-check.on .pkg-check-dot {
-  background: #60a5fa;
+  background: var(--pk-grn);
 }
 
-.recharge-btn {
-  margin-top: 2rpx;
-  padding: 24rpx 24rpx;
-  border-radius: 18rpx;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1rpx solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
-}
-
-.recharge-btn.on {
-  background: linear-gradient(135deg, #2f6bff, #2563eb);
-  border-color: rgba(96, 165, 250, 0.36);
-  box-shadow: 0 12rpx 26rpx rgba(37, 99, 235, 0.2);
-}
-
-.recharge-btn.disabled {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: none;
-}
-
-.recharge-btn:active {
-  opacity: 0.88;
-}
-
-.recharge-btn-txt {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.32);
-}
-
-.recharge-btn.on .recharge-btn-txt {
-  color: #ffffff;
-}
-
-.recharge-btn.disabled .recharge-btn-txt {
-  color: rgba(255, 255, 255, 0.48);
-}
-
-.usage-inline {
-  display: block;
-  padding: 2rpx 4rpx 0;
-  font-size: 20rpx;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.36);
-}
-
-.billing-page.light {
-  background:
-    radial-gradient(circle at top left, rgba(47, 107, 255, 0.12), transparent 32%),
-    linear-gradient(180deg, #f7faff 0%, #eef4ff 50%, #f8fbff 100%);
-}
-
-.billing-page.light .nav-bar {
-  background: rgba(248, 250, 255, 0.94);
-  border-bottom-color: #dbe6f5;
-  box-shadow: 0 10rpx 28rpx rgba(126, 147, 185, 0.1);
-}
-
-.billing-page.light .nav-kicker {
-  color: #7b8da8;
-}
-
-.billing-page.light .nav-title {
-  color: #0f172a;
-}
-
-.billing-page.light .nav-back-pill {
-  background: rgba(255, 255, 255, 0.86);
-  border-color: rgba(148, 163, 184, 0.22);
-}
-
-.billing-page.light .nav-back-arrow,
-.billing-page.light .nav-back-label {
-  color: #334155;
-}
-
-.billing-page.light .nav-logo-shell {
-  background: linear-gradient(145deg, #111827, #263248);
-  border-color: rgba(15, 23, 42, 0.12);
-  box-shadow: 0 10rpx 24rpx rgba(30, 41, 59, 0.16);
-}
-
-.billing-page.light .hero-shell {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(239, 245, 255, 0.94));
-  border-color: #d5e1fb;
-  box-shadow: 0 18rpx 42rpx rgba(126, 147, 185, 0.14);
-}
-
-.billing-page.light .hero-kicker {
-  color: #2f6bff;
-}
-
-.billing-page.light .hero-title {
-  color: #0f172a;
-}
-
-.billing-page.light .hero-sub {
-  color: #66758a;
-}
-
-.billing-page.light .demo-banner {
-  background: #fff6e6;
-  border-color: #f7cf8c;
-}
-
-.billing-page.light .demo-txt {
-  color: #b45309;
-}
-
-.billing-page.light .balance-card {
-  background: rgba(255, 255, 255, 0.94);
-  border-color: #d5e1fb;
-  box-shadow: 0 12rpx 28rpx rgba(126, 147, 185, 0.1);
-}
-
-.billing-page.light .balance-label {
-  color: #64748b;
-}
-
-.billing-page.light .balance-note {
-  color: #7b8799;
-}
-
-.billing-page.light .balance-num {
-  color: #0f172a;
-}
-
-.billing-page.light .usage-quota-title {
-  color: #1e293b;
-}
-
-.billing-page.light .usage-quota-reset {
-  color: #7b8da8;
-}
-
-.billing-page.light .usage-quota-percent {
-  color: #5f6f84;
-}
-
-.billing-page.light .usage-meter {
-  background: #e5e7eb;
-}
-
-.billing-page.light .usage-meter-fill {
-  background: linear-gradient(90deg, #2563eb, #059669);
-}
-
-.billing-page.light .section-title {
-  color: #1e293b;
-}
-
-.billing-page.light .section-sub {
-  color: #7b8da8;
-}
-
-.billing-page.light .pkg-card {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: #dbe6f5;
-  box-shadow: 0 10rpx 28rpx rgba(126, 147, 185, 0.08);
-}
-
-.billing-page.light .pkg-card.sel {
-  background: #eef4ff;
-  border-color: #2f6bff;
-}
-
-.billing-page.light .pkg-name,
-.billing-page.light .pkg-turns {
-  color: #0f172a;
-}
-
-.billing-page.light .pkg-per {
-  color: #334155;
-}
-
-.billing-page.light .pkg-desc {
-  color: #7b8da8;
-}
-
-.billing-page.light .pkg-badge {
-  background: #fff1cf;
-  border-color: #ffd995;
-  color: #a16207;
-}
-
-.billing-page.light .pkg-check {
-  border-color: #cbd5e1;
-}
-
-.billing-page.light .pkg-check.on {
-  border-color: #60a5fa;
-  background: #e8f0ff;
-}
-
-.billing-page.light .recharge-btn {
-  background: #e8efff;
-  border-color: #d4e1fa;
-}
-
-.billing-page.light .recharge-btn-txt {
-  color: #7b8da8;
-}
-
-.billing-page.light .recharge-btn.on {
-  background: linear-gradient(135deg, #2f6bff, #2563eb);
-  border-color: #2f6bff;
-}
-
-.billing-page.light .recharge-btn.on .recharge-btn-txt {
-  color: #ffffff;
-}
-
-.billing-page.light .recharge-btn.disabled {
-  background: #f1f5f9;
-  border-color: #dbe6f5;
-}
-
-.billing-page.light .recharge-btn.disabled .recharge-btn-txt {
-  color: #64748b;
-}
-
-.billing-page.light .usage-inline {
-  color: #7b8da8;
-}
-
-/* ══ Premium Billing Surface ══════════════════════════════ */
-.billing-page {
-  background: linear-gradient(180deg, #07101b 0%, #0b111d 48%, #090d15 100%);
-}
-.page-inner { padding: 24rpx 28rpx 132rpx; gap: 24rpx; }
-.balance-card {
-  position: relative;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18rpx;
-  padding: 30rpx;
-  border-radius: 28rpx;
-  background: linear-gradient(135deg, rgba(17, 27, 44, 0.98), rgba(10, 17, 29, 0.94));
-  border: 1rpx solid rgba(198, 218, 255, 0.12);
-  box-shadow: 0 24rpx 70rpx rgba(0, 0, 0, 0.28);
-}
-.balance-card::after {
-  content: "";
-  position: absolute;
-  left: 30rpx;
-  right: 30rpx;
-  bottom: 0;
-  height: 2rpx;
-  background: linear-gradient(90deg, #38bdf8, #f6c04f, #34d399);
-  opacity: 0.72;
-}
-.balance-copy { min-width: 0; flex: 1; }
-.balance-topline { margin-bottom: 16rpx; }
-.balance-label { font-size: 24rpx; color: rgba(255, 255, 255, 0.52); }
-.balance-note { color: rgba(255, 255, 255, 0.42); }
-.balance-num { font-size: 62rpx; letter-spacing: 0; }
-.balance-gauge {
-  width: 128rpx;
-  height: 128rpx;
-  border-radius: 50%;
-  padding: 8rpx;
-  background: linear-gradient(135deg, #34d399, #38bdf8);
-  flex-shrink: 0;
-}
-.balance-gauge-ring {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #0c1422;
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  padding-top: 38rpx;
-  box-sizing: border-box;
-}
-.balance-gauge-num { font-size: 34rpx; line-height: 1; font-weight: 800; color: #fff; }
-.balance-gauge-unit { font-size: 18rpx; font-weight: 700; color: rgba(255,255,255,0.62); }
-.usage-quota-list { width: 100%; margin-top: 0; }
-.usage-meter { height: 10rpx; background: rgba(255,255,255,0.12); }
-.usage-meter-fill {
-  background: linear-gradient(90deg, #34d399, #38bdf8);
-  transition: width 0.28s ease;
-}
-.section-head { padding: 0 4rpx; }
-.section-title { font-size: 30rpx; }
-.section-sub { font-size: 22rpx; }
+/* ── 使用记录账本 ───────────────────────────────────────── */
 .ledger-card {
   padding: 4rpx 24rpx;
   border-radius: 24rpx;
-  background: rgba(255,255,255,0.035);
-  border: 1rpx solid rgba(255,255,255,0.08);
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
 }
+
 .ledger-row {
   min-height: 88rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
-  border-bottom: 1rpx solid rgba(255,255,255,0.07);
+  border-bottom: 1rpx solid var(--pk-bd);
 }
-.ledger-row:last-child { border-bottom: 0; }
+
+.ledger-row:last-child {
+  border-bottom: 0;
+}
+
 .ledger-main,
 .ledger-amount {
   min-width: 0;
@@ -713,66 +462,47 @@
   flex-direction: column;
   gap: 4rpx;
 }
+
 .ledger-amount {
   align-items: flex-end;
   flex-shrink: 0;
 }
-.ledger-title,
+
+.ledger-title {
+  font-size: 25rpx;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--pk-t1);
+}
+
 .ledger-usage {
   font-size: 25rpx;
   line-height: 1.25;
   font-weight: 800;
-  color: rgba(255,255,255,0.92);
+  color: var(--pk-t1);
+  font-variant-numeric: tabular-nums;
 }
+
 .ledger-time,
 .ledger-balance {
   font-size: 21rpx;
   line-height: 1.25;
-  color: rgba(255,255,255,0.44);
+  color: var(--pk-t3);
 }
-.ledger-usage {
-  color: #fca5a5;
-  font-variant-numeric: tabular-nums;
-}
+
 .ledger-empty {
   min-height: 88rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .ledger-empty-text {
   font-size: 23rpx;
-  color: rgba(255,255,255,0.42);
+  color: var(--pk-t3);
 }
-.pkg-grid { gap: 16rpx; }
-.pkg-card {
-  position: relative;
-  padding: 24rpx;
-  border-radius: 24rpx;
-  background: rgba(255,255,255,0.035);
-  border-color: rgba(255,255,255,0.08);
-  overflow: hidden;
-}
-.pkg-card::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 24rpx;
-  bottom: 24rpx;
-  width: 4rpx;
-  border-radius: 999rpx;
-  background: rgba(255,255,255,0.16);
-}
-.pkg-card.sel {
-  background: linear-gradient(135deg, rgba(18, 46, 75, 0.95), rgba(14, 34, 58, 0.92));
-  border-color: rgba(56, 189, 248, 0.72);
-  box-shadow: 0 22rpx 60rpx rgba(8, 145, 178, 0.16);
-}
-.pkg-card.sel::before { background: linear-gradient(180deg, #38bdf8, #34d399); }
-.pkg-turns { margin-top: 4rpx; }
-.pkg-price, .pkg-yen { color: #f6c04f; }
-.pkg-check.on { border-color: rgba(52, 211, 153, 0.68); background: rgba(52, 211, 153, 0.14); }
-.pkg-check.on .pkg-check-dot { background: #34d399; }
+
+/* ── 支付 dock：墨色主按钮 ──────────────────────────────── */
 .pay-dock {
   display: flex;
   align-items: center;
@@ -780,22 +510,40 @@
   gap: 20rpx;
   padding: 18rpx 20rpx 18rpx 24rpx;
   border-radius: 24rpx;
-  background: rgba(255,255,255,0.06);
-  border: 1rpx solid rgba(255,255,255,0.1);
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
 }
-.pay-dock-copy { display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
-.pay-dock-label { font-size: 26rpx; font-weight: 800; color: #fff; }
+
+.pay-dock-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+
+.pay-dock-label {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+}
+
 .pay-dock-original {
   font-size: 20rpx;
   line-height: 1;
-  color: rgba(255,255,255,0.4);
+  color: var(--pk-t3);
   text-decoration: line-through;
   font-variant-numeric: tabular-nums;
 }
-.pay-dock-meta { font-size: 20rpx; color: rgba(255,255,255,0.46); }
+
+.pay-dock-meta {
+  font-size: 20rpx;
+  color: var(--pk-t2);
+}
+
 .pay-dock-action {
   min-width: 218rpx;
-  height: 72rpx;
+  height: 76rpx;
   padding: 0 28rpx;
   box-sizing: border-box;
   border-radius: 999rpx;
@@ -803,11 +551,18 @@
   align-items: center;
   justify-content: center;
   gap: 14rpx;
-  background: linear-gradient(135deg, #f6c04f, #f59e0b);
-  box-shadow: 0 16rpx 36rpx rgba(245, 158, 11, 0.24);
+  background: var(--pk-ink-btn);
+  box-shadow: 0 8rpx 20rpx var(--pk-shadow);
 }
-.pay-dock-action.loading { opacity: 0.72; }
-.pay-dock-action:active { transform: scale(0.985); }
+
+.pay-dock-action.loading {
+  opacity: 0.72;
+}
+
+.pay-dock-action:active {
+  transform: scale(0.985);
+}
+
 .pay-dock-price-group {
   display: flex;
   align-items: baseline;
@@ -815,72 +570,27 @@
   gap: 3rpx;
   flex-shrink: 0;
 }
-.pay-dock-yen { font-size: 21rpx; line-height: 1; font-weight: 800; color: #141414; }
-.pay-dock-price { font-size: 35rpx; line-height: 1; font-weight: 900; color: #141414; }
-.pay-dock-cta { font-size: 25rpx; line-height: 1; font-weight: 800; color: #141414; flex-shrink: 0; }
-.billing-page.light .balance-card { background: #fff; }
-.billing-page.light .balance-gauge-ring { background: #fff; }
-.billing-page.light .balance-gauge-num,
-.billing-page.light .pay-dock-label { color: #0f172a; }
-.billing-page.light .pay-dock { background: rgba(255,255,255,0.92); border-color: #dbe6f5; }
-.billing-page.light .pay-dock-meta,
-.billing-page.light .pay-dock-original,
-.billing-page.light .pkg-original-price { color: #64748b; }
-.billing-page.light .ledger-card {
-  background: #fff;
-  border-color: #dbe6f5;
-}
-.billing-page.light .ledger-row { border-bottom-color: #edf2f7; }
-.billing-page.light .ledger-title { color: #0f172a; }
-.billing-page.light .ledger-time,
-.billing-page.light .ledger-balance,
-.billing-page.light .ledger-empty-text { color: #64748b; }
-.billing-page.light .ledger-usage { color: #dc2626; }
 
-/* ── 我的→权益：保留账本/购买信息结构，统一纸墨材质 ── */
-.billing-page.paper {
-  background-color: var(--pk-paper);
-  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
-  background-size: 34rpx 34rpx;
-  color: var(--pk-t1);
+.pay-dock-yen {
+  font-size: 21rpx;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--pk-ink-btn-t);
 }
-.billing-page.paper .nav-bar,
-.billing-page.paper .pay-dock { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
-.billing-page.paper .nav-kicker,
-.billing-page.paper .nav-back-arrow,
-.billing-page.paper .nav-back-label { color: var(--pk-grn); }
-.billing-page.paper .nav-title,
-.billing-page.paper .balance-num,
-.billing-page.paper .section-title,
-.billing-page.paper .pkg-name,
-.billing-page.paper .pkg-turns,
-.billing-page.paper .ledger-title,
-.billing-page.paper .pay-dock-label { color: var(--pk-t1); }
-.billing-page.paper .balance-label,
-.billing-page.paper .balance-note,
-.billing-page.paper .section-sub,
-.billing-page.paper .pkg-per,
-.billing-page.paper .pkg-desc,
-.billing-page.paper .ledger-empty-text,
-.billing-page.paper .pay-dock-meta { color: var(--pk-t2); }
-.billing-page.paper .balance-card,
-.billing-page.paper .pkg-card,
-.billing-page.paper .ledger-card {
-  background: var(--pk-card);
-  border-color: var(--pk-bd);
-  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+
+.pay-dock-price {
+  font-size: 35rpx;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--pk-ink-btn-t);
+  font-variant-numeric: tabular-nums;
 }
-.billing-page.paper .usage-meter { background: var(--pk-gauge); }
-.billing-page.paper .usage-meter-fill,
-.billing-page.paper .pkg-card.sel::before,
-.billing-page.paper .pkg-check.on .pkg-check-dot { background: var(--pk-grn); }
-.billing-page.paper .pkg-card.sel,
-.billing-page.paper .pkg-check.on { border-color: var(--pk-grn); }
-.billing-page.paper .pkg-price,
-.billing-page.paper .pkg-yen { color: var(--pk-warn); }
-.billing-page.paper .pay-dock-action,
-.billing-page.paper .recharge-btn.on { background: var(--pk-ink-btn); border-color: var(--pk-ink-btn); }
-.billing-page.paper .pay-dock-yen,
-.billing-page.paper .pay-dock-price,
-.billing-page.paper .pay-dock-cta,
-.billing-page.paper .recharge-btn.on .recharge-btn-txt { color: var(--pk-ink-btn-t); }
+
+.pay-dock-cta {
+  font-size: 25rpx;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--pk-ink-btn-t);
+  flex-shrink: 0;
+}

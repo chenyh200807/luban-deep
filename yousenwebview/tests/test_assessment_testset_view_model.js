@@ -221,6 +221,7 @@ function loadPage(apiOverrides) {
       if (request === "../../utils/helpers") {
         return {
           getWindowInfo: function () { return { statusBarHeight: 20 }; },
+          isDarkOr: function () { return false; },
           isDark: function () { return true; },
           getAnimConfig: function () { return { enableBreathingOrbs: false }; },
           vibrate: function () {},

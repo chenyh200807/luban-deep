@@ -8,6 +8,7 @@
 // 红线:掌握前端不自算(仅本地判对错+呈现,不写掌握);错因只投影签发 error_code(E系);
 //   薄 program-progress(第几天/已完成天,本地呈现层非学情真值);学员端文案禁审视硬词。
 const api = require("../../../utils/api");
+const helpers = require("../../../utils/helpers");
 const auth = require("../../../utils/auth");
 const telemetry = require("../../../utils/surface-telemetry");
 
@@ -48,6 +49,7 @@ Page({
   },
 
   onLoad(query) {
+    this.setData({ isDark: helpers.isDarkOr("light") });
     var info = typeof wx !== "undefined" && wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     var sbh = info.statusBarHeight || 0;
     this.setData({ statusBarHeight: sbh, navHeight: sbh + 48 });
