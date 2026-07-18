@@ -405,6 +405,26 @@ Page({
     }
   },
 
+  // 视频学习卡「进站学习」/舞台播放(owner 2026-07-18 排版去重:学习动作归视频卡)。
+  // 目标站 = vm.nextStation(next_step 呈现仲裁的推荐学习站),不重算推荐;
+  // card_hosted===false 诚实降级 toast(禁 dead click 假可播)。
+  goLesson() {
+    if (this._refreshing) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
+      return;
+    }
+    var station = (this.data.vm && this.data.vm.nextStation) || {};
+    var packId = String(station.pack_id || "");
+    if (!packId) return;
+    if (station.card_hosted === false) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "这一站微课即将开通", icon: "none" });
+      return;
+    }
+    this._navTo(route.lubanStation(packId));
+  },
+
   // 轻练旁按钮:供给真值由 view-model 单点裁决(light_practice_available,
   // 来自 lessons manifest 的 light_practice_available 旗标);页面不重判供给。
   // 未接通时给诚实空态提示——禁 dead click 假装可用。

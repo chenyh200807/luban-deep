@@ -292,8 +292,11 @@ function buildCanonicalLearningTask(args) {
   if (!packId) return null;
   var pack = _safeObj(titleIdx[packId]);
 
-  // 任务级公共派生:旅程轨道(6 步硬编码)+ 轻练旁按钮供给真值。
+  // 任务级公共派生:轻练旁按钮供给真值。
   // 轻练供给唯一裁决点仍是 _practiceKindFor(禁页面层再判一次)。
+  // owner 2026-07-18 排版去重:旅程轨道不再挂在任务卡上——它叙述的是站点学习
+  // 旅程,归视频学习卡(buildLearnViewModel 挂到 nextStation.journey);current
+  // 步语义不变(CTA 对应步,由 taskCard.task_state 派生)。
   // 红队 A2 收口:轻练只复用当前任务的 fact 语境,不是第二处方——
   // review_due(到期验证优先)下按钮隐藏且不可用,禁 probe-less forward 旁路
   // (否则可绕开到期验证并重开 fresh cycle 清掉 canonical review streak)。
@@ -301,7 +304,6 @@ function buildCanonicalLearningTask(args) {
     if (!task) return task;
     var reviewDue = task.task_state === "review_due";
     task.kicker = "今天最该完成"; // 真任务卡 kicker(browse 卡另有"从这里开始"口吻)
-    task.journey = _journeyFor(task.task_state);
     task.light_practice_visible = !reviewDue;
     task.light_practice_available =
       !reviewDue && _practiceKindFor(packId, titleIdx) === "retest";
@@ -418,8 +420,7 @@ function _buildBrowseTask(nextStation, titleIdx) {
     training_intent_id: "",
     probe_id: "",
     mode: isRetest ? "forward" : "learn",
-    // 旅程 step1(动画讲懂=诚实的当前步):browse 无逐步完成证据,禁 done/进度线。
-    journey: _journeyFor("learn_next"),
+    // 旅程条已随排版去重移到视频学习卡(nextStation.journey),browse 卡不再携带。
     // 轻练旁按钮:browse 永不 review_due → 可见;可用性=供给真值(retest)单点。
     light_practice_visible: true,
     light_practice_available: isRetest,
@@ -529,6 +530,14 @@ function buildLearnViewModel(args) {
   var browseTask = !todayTask && nextStation ? _buildBrowseTask(nextStation, titleIdx) : null;
   // 任务卡渲染入口 = 真任务优先,否则 browse 兜底(单一渲染源,禁 wxml 重算)。
   var taskCard = todayTask || browseTask;
+
+  // ── 站点旅程条(owner 2026-07-18 排版去重):journey 叙述的是站点学习旅程,
+  //    挂到视频学习卡(nextStation),不再挂任务卡。current 步语义与 10a 一致:
+  //    仍由 taskCard.task_state 派生(CTA 对应步,处方非完成证据;红队 A1 约束
+  //    不变——禁 done 勾/进度线/写死复习日程)。无 taskCard 时诚实落 step1。
+  if (nextStation) {
+    nextStation.journey = _journeyFor(taskCard ? _str(taskCard.task_state) : "learn_next");
+  }
 
   // ── 复习卡:到期状态视图(数据=pack_review 投影;裁决权仍在 next_step) ──
   var reviewCard = _buildReviewCard(report, todayTask);
