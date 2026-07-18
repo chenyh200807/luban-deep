@@ -8,7 +8,8 @@ var flags = require("../utils/flags");
 function resolveIsDark() {
   try {
     var hostRuntime = require("../utils/host-runtime");
-    return hostRuntime.getTheme() !== "light";
+    // 主题单一权威:未显式选择=亮(与全包页面 isDarkOr("light") 同默认)
+    return hostRuntime.getThemeOr("light") !== "light";
   } catch (_e) {
     return true;
   }
