@@ -1224,6 +1224,11 @@ def _load_practice_review_records(
         or packet.get("pack_id") != pack_id
         or packet.get("source_pack_sha256") != source_pack_sha256
         or packet.get("source_bundle_sha256") != source_bundle_sha256
+        or packet.get("human_gate")
+        != {
+            "required_roles": ["teaching", "scoring"],
+            "machine_must_not_sign": True,
+        }
         or not isinstance(packet.get("items"), list)
     ):
         raise TransformError(f"practice review packet identity mismatch: {pack_id}")
@@ -1260,6 +1265,22 @@ def _load_practice_review_records(
             or not isinstance(decision, dict)
         ):
             raise TransformError(f"practice review packet item drift: {pack_id}/{variant_id}")
+        review = decision.get("review")
+        review = review if isinstance(review, dict) else {}
+        if review.get("status") == "signed" or review.get("verdict") == "approved":
+            signatures = review.get("signatures")
+            roles = {
+                str(signature.get("role") or "")
+                for signature in signatures or []
+                if isinstance(signature, dict)
+                and signature.get("reviewer_id") == "owner"
+                and str(signature.get("signed_at") or "").strip()
+            }
+            if roles != {"teaching", "scoring"}:
+                raise TransformError(
+                    f"practice review packet requires direct owner signatures: "
+                    f"{pack_id}/{variant_id}"
+                )
         records[variant_id] = decision
     if set(records) != set(compiled):
         raise TransformError(f"practice review packet coverage mismatch: {pack_id}")

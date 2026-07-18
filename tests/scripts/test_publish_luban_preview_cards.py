@@ -169,42 +169,103 @@ def test_candidate_review_packets_are_complete_and_never_machine_signed(
 
     assert packet["schema"] == "luban_practice_review_packet.v1"
     assert packet["candidate_count"] == candidate_count
+    assert packet["eligible_count"] == 0
     assert packet["human_gate"] == {
         "required_roles": ["teaching", "scoring"],
         "machine_must_not_sign": True,
     }
-    signed_rows = 0
     for row in packet["items"]:
         decision = row["decision"]
         review = decision["review"]
-        if review["status"] == "pending":
-            # 未签发题必须整块留空——机器预填只允许进独立 candidates 文件。
-            assert review["signatures"] == []
-            assert decision["fact_id"] == ""
-            assert decision["skeleton_id"] == ""
-            assert decision["probe_role"] == ""
-            assert decision["source_anchor"] == ""
-            assert decision["source_sha256"] == ""
-            continue
-        # 已签发题必须携带完整的 owner 责任链,不接受裸机器签名。
-        signed_rows += 1
-        assert review["status"] == "signed"
-        assert review["verdict"] == "approved"
-        assert review["reviewed_content_sha256"] == row["content_sha256"]
-        assert all(review["checks"][name] is True for name in review["checks"])
-        roles = {sig["role"] for sig in review["signatures"]}
-        assert roles == {"teaching", "scoring"}
-        for sig in review["signatures"]:
-            assert sig["reviewer_id"].startswith("owner")
-            assert sig["signed_at"].strip()
-        assert decision["fact_id"] and decision["skeleton_id"]
-        assert decision["probe_role"] in {"anchor", "immediate_confirm", "d1_probe"}
-        assert decision["source_anchor"]
-        assert len(decision["source_sha256"]) == 64
-        assert decision["revoked"] is False
-    assert packet["eligible_count"] == signed_rows
+        assert review["status"] == "pending"
+        assert review["verdict"] == "pending"
+        assert review["signatures"] == []
+        assert not any(review["checks"].values())
+        assert decision["fact_id"] == ""
+        assert decision["skeleton_id"] == ""
+        assert decision["probe_role"] == ""
+        assert decision["source_anchor"] == ""
+        assert decision["source_sha256"] == ""
     assert all(row["authoring_anchor"].startswith("compiled_html:") for row in packet["items"])
     assert all(len(row["authoring_sha256"]) == 64 for row in packet["items"])
+
+
+@pytest.mark.parametrize(
+    ("reviewer_id", "accepted"),
+    [
+        ("owner", True),
+        ("owner-delegated:claude-main-control:2026-07-16", False),
+        ("machine-reviewer", False),
+    ],
+)
+def test_practice_review_loader_requires_direct_owner_signatures(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    reviewer_id: str,
+    accepted: bool,
+) -> None:
+    packet_path = tmp_path / "n01.practice.review.json"
+    packet_path.write_text(
+        json.dumps(
+            {
+                "schema": _mod.PRACTICE_REVIEW_PACKET_SCHEMA,
+                "pack_id": "N01",
+                "source_pack_sha256": "a" * 64,
+                "source_bundle_sha256": "b" * 64,
+                "human_gate": {
+                    "required_roles": ["teaching", "scoring"],
+                    "machine_must_not_sign": True,
+                },
+                "items": [
+                    {
+                        "variant_id": "n01-v1",
+                        "content_sha256": "content",
+                        "authoring_anchor": "anchor",
+                        "authoring_sha256": "source",
+                        "decision": {
+                            "review": {
+                                "status": "signed",
+                                "verdict": "approved",
+                                "signatures": [
+                                    {
+                                        "role": role,
+                                        "reviewer_id": reviewer_id,
+                                        "signed_at": "2026-07-18T00:00:00Z",
+                                    }
+                                    for role in ("teaching", "scoring")
+                                ],
+                            }
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        _mod, "_practice_review_packet_path", lambda _pack_id: packet_path
+    )
+    kwargs = {
+        "source_pack_sha256": "a" * 64,
+        "source_bundle_sha256": "b" * 64,
+        "compiled_surfaces": [
+            {
+                "items": [
+                    {
+                        "variant_id": "n01-v1",
+                        "content_sha256": "content",
+                        "anchor": "anchor",
+                        "source_html_sha256": "source",
+                    }
+                ]
+            }
+        ],
+    }
+    if accepted:
+        assert _mod._load_practice_review_records("N01", **kwargs)
+    else:
+        with pytest.raises(_mod.TransformError, match="direct owner signatures"):
+            _mod._load_practice_review_records("N01", **kwargs)
 
 
 @pytest.mark.parametrize("station_id", ["n01", "s05", "x01"])
