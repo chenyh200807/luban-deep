@@ -336,6 +336,14 @@
 4. **修法**(产出):旁路×底座矩阵+残余优化点清单(followup flag 白拿项/memory_service 无门控双 LLM/JSONL 双次线性读/repair 全量重发/摸底直连 LLM 无观测),入档 `2026-07-12-capability-branch-fusion-audit.md`。
 5. **验证+教训**:全部论断带 file:line,不确定项显式标"未证实"。**可迁移**:回答覆盖面质疑,用当前代码证据测绘,不用战役记忆;修完一个病灶要主动扫"同病兄弟"。
 
+## 2026-07-18 五 tab 加载慢治本(学情快照 SWR 收权)
+
+1. **现象**:owner 报五大模块版小程序每个 tab 进去都慢(3-5s loading)。
+2. **发现路径**:三路并行只读审计(learn+history / chat / report+profile)+主控查壳与启动链。两个关键事实:①五 tab 切换是 `custom-tab-bar` 的 `wx.redirectTo`——每次切 tab 走 onLoad 冷启动,不是 onShow;②同一份最重的 `getLearningReport(100)`(后端 3-5s)被 learn/report/profile 三页独立裸拉,而 report-cache 缓存早已存在却只有 report 一个消费者。
+3. **分析**:shape = `unconsumed island`(report-cache 孤岛)+ `duplicate decision`(三个独立拉取点)。真病不是"缺 loading 优化",是「最近一次已知快照」这一业务事实没有单一 authority。歧路两条:(a) 初判"onShow 无节流重拉"是主因——错,redirectTo 下 tab 切换走 onLoad,onShow 重拉大多是子页返回(刚发生学习动作,业务上**应该**刷新),不能一刀切节流;(b) learn 页 posters 瘦身——被 agent 按有罪推定核查证伪(stations.js:127 是真实渲染消费者),放弃。
+4. **修法**:①快照组装收权:新建 `utils/report-snapshot.js` 唯一 builder(从 report.js 内联映射逐字提炼),report/learn 是仅有的两个合法写者,profile 只读(三元组不全禁写);②`report-cache` 收权年龄语义(`readWithMeta`+`FRESH_MAX_AGE_MS`60s/`SNAPSHOT_MAX_AGE_MS`30min 唯一阈值);③统一策略=页面进入缓存秒渲染、age<60s 跳网络、子页返回 force 刷新;④history 归档切换走既有 SWR;⑤preloadRule wifi→all;⑥删 67K 零引用孤儿 canonical-taxonomy-members.js。中途拦截一次 agent 妥协:report 页曾因只读测试约束保留"逐字等价 fallback builder"(镜像 authority),主控修 dedupe harness 映射真模块后删净。
+5. **验证+教训**:全量 116/116 node 测试 PASS(新增 5 个测试文件,含 SWR 行为/owner 隔离/builder 有效性断言)。**可迁移**:①"每页各自慢"成簇出现时先找共享缺失权威,不逐页补 loading;②缓存工具"造好没人用"=unconsumed island,接通已有件优先于新建;③节流类修法必须先分清"哪些重拉是业务正确的"(子页返回≠tab 切换),否则治标变引病。
+
 ---
 
 ## 附：本志与其他沉淀层的分工

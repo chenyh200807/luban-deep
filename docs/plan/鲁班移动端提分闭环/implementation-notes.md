@@ -9,7 +9,14 @@
 
 ## Deviations
 
-### 2026-07-17 凌晨(QA 双缺陷修复上线 + 部署资产守卫)
+### 2026-07-18（五 tab 加载慢治本:学情快照 SWR 收权 · 分支 feat/luban-miniprogram-tab-swr-perf）
+- **[战役概要]** owner 报五大模块每 tab 都慢。根因=redirectTo 切 tab 全走 onLoad 冷启动 × `getLearningReport(100)`(后端 3-5s)被 learn/report/profile 三页独立裸拉 × report-cache 缓存孤岛只有 report 一个消费者。修法=快照组装收权(`utils/report-snapshot.js` 唯一 builder,report/learn 双合法写者,profile 只读)+`report-cache.readWithMeta`+统一策略(页面进入缓存秒渲染/age<60s 跳网络/子页返回 force 刷新)+history 归档切换走既有 SWR+preloadRule wifi→all+删 67K 零引用孤儿 canonical-taxonomy-members.js。全量 116/116 node 测试 PASS,新增 5 测试文件。叙事详见 methodology-log 同日条。
+- **[偏离 1:profile 弱网保守渲染]** 陈旧缓存命中且静默刷新失败(双接口全挂)时,保留已渲出的缓存 routeCard 而非按旧行为抹回 null——严格"照旧"会让弱网用户先看到卡再闪没,判定为回归;已用测试锁定(test_profile_route_card_cache.js c2 场景)。
+- **[偏离 2:learn 空态快照不上屏]** 缓存 hydrate 沿用 lessons 快通道的 `hasSupply` 门,空态快照不上屏(防闪空态),与任务书"命中即渲染"微偏离;report 无效时 builder 返回 null 天然不写缓存。
+- **[偏离 3:report 页 fresh-skip 终态文案]** fresh-skip 用非 cached 模式 hydrate,degradedHint 如实反映快照自身降级状态,不再显示"正在刷新"横幅(否则永久残留)。
+- **[偏离 4:死代码 reader 未删]** report.js 四个零生产调用方的旧串行 reader(`_loadOverview/_loadLearningBrain/_loadRadar/_loadMastery`)因 test_report_snapshot_dedupe/radar_authority/radar_fallback 三个测试直接调用而保留;删除需连带重写这三个测试的入口方式,留作独立清理工单。同类:learn posters 瘦身经核查放弃(stations.js:127 是真实消费者)。
+- **[已拦截的妥协]** report 页曾因只读测试约束保留与共享 builder"逐字等价的 fallback"(镜像 authority)——主控修 dedupe harness 映射真 report-snapshot 模块后删净,harness 内新增 readWithMeta stub 与常量。
+- **[残余风险]** learn/profile 对 report-cache/report-snapshot 用 try/catch 可选 require(存量测试 harness 对未知 require 直接 throw 所迫),生产恒存在、缺席时降级为原网络路径;根治需统一 harness 白名单。chat 页三项(200 条消息大 setData/流式 O(n²) 重解析/表格逐单元格 rich-text)与 history 分页虚拟化为后续独立工单;后端 read model 3-5s 本体是根本税,前端缓存只遮蔽不消除。DevTools 回归见提交后记录。
 - **[QA 双缺陷全闭合并部署]** ①桥接编码不对称(PR #492):`parseBridgeReceipt` 加有界解码兜底(直 parse→逐层 decode≤4 跳,双编码安全),DevTools 与真机 JSSDK 双路径均可用,1.7.19 已传;②首跑空处方遮蔽任务卡(PR #493):仲裁端"practice intent 无可路由 target 不得胜出"(fail-closed 落下一臂+skipped_intents 可审计诊断)+ 处方端候选序列(q1: F16→N01,q4: X03→N01,supply-ready 过滤无字面特权),630 测试绿+真盘 e2e;契约同步 learner-state.md。两修复随 main 部署(容器 ba832122→e80a0216)。
 - **[镜像资产守卫]** 生产容器缺 `_variant_blocklist.json`(dockerignore 反选漏),撤题权威 fail-closed 挡完整作答面;排查顺手抓出同类第二漏(看穿 bank)。PR #494:补两条反选 + 守卫测试钉死"runtime 必需文件必须入镜像/build-time 审核件必须排除"边界;rebuild 部署后容器内文件确认在场(e80a0216)。
 - **[遗留工单]** member_console 学习投影 4 条 main 既有红测(独立修);存量空 target intent 生命周期收口;`luban_variant_decision.v1` 在消费接线切片升 T2 并对齐计数;D+1 活体验证待自然跨天(QA 账号 400=诚实未到期)。
