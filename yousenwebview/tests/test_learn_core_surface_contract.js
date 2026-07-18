@@ -80,6 +80,68 @@ assert(
 // 红队 A1:前端无逐步完成证据 → 禁 done 勾/进度线跨未完成节点/写死复习日程
 assert.strictEqual(learnWxml.indexOf("lr-jline-fill"), -1, "journey must not draw a progress line across unverified steps");
 assert.strictEqual(learnWxml.indexOf("lr-jnode-check"), -1, "journey must not render done checkmarks without completion evidence");
+
+// ── owner 2026-07-18 排版去重:站点身份全页只出现一次(练题卡标题) ──
+// 视频学习卡删除重复的「下一站·pack·站名·chip」头部行,直接以播放舞台开头,
+// 读起来是练题卡的"学习入口延伸"而非另一张重复的卡。
+var learnWxmlNoComments = learnWxml.replace(/<!--[\s\S]*?-->/g, "");
+assert.strictEqual(
+  learnWxmlNoComments.indexOf("lr-lesson-head"),
+  -1,
+  "video card must not render the duplicated station-name header row",
+);
+assert.strictEqual(
+  learnWxmlNoComments.indexOf("vm.nextStation.title"),
+  -1,
+  "station name must appear exactly once on the page (practice card title), never duplicated on the video card",
+);
+assert.strictEqual(
+  learnWxmlNoComments.indexOf("下一站"),
+  -1,
+  "video card must not re-announce 下一站 station identity",
+);
+assert.strictEqual(
+  learnWxmlNoComments.indexOf("依据近期证据推荐"),
+  -1,
+  "recommendation chip belongs to the removed duplicate header",
+);
+// 旅程条移到视频学习卡:数据源=vm.nextStation.journey;练题卡不再携带 journey。
+assert(
+  learnWxmlNoComments.indexOf("vm.nextStation.journey") >= 0 &&
+    learnWxmlNoComments.indexOf("这一站会带你走完") >= 0,
+  "station journey track must render on the video card from vm.nextStation.journey",
+);
+assert.strictEqual(
+  learnWxmlNoComments.indexOf("vm.taskCard.journey"),
+  -1,
+  "practice/task card must not bind a journey any more (moved to the video card)",
+);
+assert.strictEqual(
+  learnWxmlNoComments.indexOf("lr-journey-ringbox"),
+  -1,
+  "task card journey ring is retired with the layout dedup",
+);
+// 学习动作归视频卡:进站学习 + 舞台播放共用 goLesson;练题卡区块不得绑 goLesson。
+assert(
+  learnWxmlNoComments.indexOf('bindtap="goLesson"') >= 0 &&
+    learnWxmlNoComments.indexOf("进站学习") >= 0,
+  "video card must own the 进站学习 action via goLesson",
+);
+var practiceBlock = learnWxmlNoComments.slice(
+  learnWxmlNoComments.indexOf('class="lr-task pk-card'),
+  learnWxmlNoComments.indexOf('class="lr-lesson pk-card'),
+);
+assert(practiceBlock.length > 0, "practice card block must precede the video card");
+assert.strictEqual(
+  practiceBlock.indexOf("goLesson"),
+  -1,
+  "practice card must not own the lesson route (学习动作归视频卡)",
+);
+assert.strictEqual(
+  practiceBlock.indexOf("journey"),
+  -1,
+  "practice card markup must carry no journey remnants",
+);
 ["明日验证", "3 日抽查"].forEach(function (needle) {
   assert.strictEqual(learnVm.indexOf(needle), -1, "journey copy must not hardcode a review schedule: " + needle);
 });
@@ -106,63 +168,6 @@ assert(
   assert.strictEqual(learnVm.indexOf(needle), -1, "view model must not retain legacy decision: " + needle);
 });
 
-// ── owner 2026-07-18 两卡分离:练题卡=纯练题(禁学习语义);视频卡=学习动作+旅程条 ──
-// 先剥离注释(注释里为文档目的会提到「进站学习」等词),只对真实 markup 做块级断言。
-var learnWxmlNoComments = learnWxml.replace(/<!--[\s\S]*?-->/g, "");
-var practiceStart = learnWxmlNoComments.indexOf('class="lr-task pk-card');
-var practiceEnd = learnWxmlNoComments.indexOf('class="lr-lesson pk-card');
-assert(practiceStart >= 0 && practiceEnd > practiceStart, "practice card block must be identifiable");
-var practiceMarkup = learnWxmlNoComments.slice(practiceStart, practiceEnd);
-["进站学习", "先看讲解", "先看这一站", "继续学习"].forEach(function (needle) {
-  assert.strictEqual(
-    practiceMarkup.indexOf(needle),
-    -1,
-    "practice card must not carry any learning-mode semantics: " + needle,
-  );
-});
-assert.strictEqual(
-  practiceMarkup.indexOf("这一站会带你走完"),
-  -1,
-  "the station journey narrative must move out of the practice card",
-);
-assert.strictEqual(
-  practiceMarkup.indexOf("vm.taskCard.journey"),
-  -1,
-  "practice card must not bind a journey any more (journey lives on the video card)",
-);
-assert(
-  practiceMarkup.indexOf("vm.taskCard.redirectNote") >= 0,
-  "practice card must honestly label the redirect target station name",
-);
-
-var lessonStart = practiceEnd;
-var lessonEnd = learnWxmlNoComments.indexOf('class="lr-rvc pk-card');
-assert(lessonStart >= 0 && lessonEnd > lessonStart, "video learning card block must be identifiable");
-var lessonMarkup = learnWxmlNoComments.slice(lessonStart, lessonEnd);
-assert(
-  lessonMarkup.indexOf('bindtap="goLesson"') >= 0 && lessonMarkup.indexOf("进站学习") >= 0,
-  "video learning card must own the 进站学习 action (goLesson)",
-);
-assert(
-  lessonMarkup.indexOf("这一站会带你走完") >= 0 && lessonMarkup.indexOf("vm.nextStation.journey") >= 0,
-  "station journey narrative lives on the video card, fed by vm.nextStation.journey",
-);
-// goLesson(进站学习)只许出现在视频卡,练题卡永不承担学习路由。
-assert.strictEqual(
-  practiceMarkup.indexOf("goLesson"),
-  -1,
-  "practice card must never bind the lesson route handler",
-);
-assert(
-  (learnWxml.match(/bindtap="goLesson"/g) || []).length >= 1,
-  "video card owns the lesson route (stage tap + 进站学习 button share goLesson)",
-);
-// 供给真值单点红线:redirect 目标仍走 _practiceKindFor/_firstRetestStation(禁第二处方)
-assert(
-  learnVm.indexOf("_firstRetestStation") >= 0 && learnVm.indexOf("_practiceKindFor") >= 0,
-  "redirect target must be resolved from the single supply-truth source, no second prescription",
-);
-
 var pageDef = null;
 var navigations = [];
 var toasts = [];
@@ -187,21 +192,17 @@ vm.runInNewContext(learnJs, {
 
 function navigate(task) {
   var page = {
-    data: { vm: { taskCard: task } },
+    data: { vm: { todayTask: task } },
     _navTo: pageDef._navTo,
   };
   pageDef.goTodayTask.call(page);
   return navigations.pop();
 }
 
-// owner 2026-07-18 两卡分离:置顶练题卡永远练题——goTodayTask 只转发 retest,
-// 永不进站学习(lesson 动作已归视频卡 goLesson)。
-var navCountLesson = navigations.length;
-navigate({ action_kind: "lesson", pack_id: "N01" });
 assert.strictEqual(
-  navigations.length,
-  navCountLesson,
-  "practice card handler must never route a lesson (进站学习 belongs to the video card)",
+  navigate({ action_kind: "lesson", pack_id: "N01" }),
+  "/station?pack_id=N01",
+  "recommended learning task should enter the generic station route",
 );
 assert.strictEqual(
   navigate({ action_kind: "retest", practice_kind: "retest", pack_id: "N01", mode: "review", probe_id: "probe-1" }),
@@ -213,25 +214,6 @@ assert.strictEqual(
   "/packageDeeptutor/pages/luban/retest/retest?pack_id=S05&mode=forward&training_intent_id=intent-1&probe_id=",
   "post-lesson task should enter the same retest route in forward mode",
 );
-
-// 视频学习卡「进站学习」= goLesson,路由 vm.nextStation(与练题卡 redirect 目标解耦)。
-function enterStation(station) {
-  var page = {
-    data: { vm: { nextStation: station } },
-    _navTo: pageDef._navTo,
-  };
-  pageDef.goLesson.call(page);
-  return navigations.pop();
-}
-assert.strictEqual(
-  enterStation({ pack_id: "N01", card_hosted: true }),
-  "/station?pack_id=N01",
-  "video card 进站学习 (goLesson) enters the generic station route",
-);
-var navCountUnhosted = navigations.length;
-enterStation({ pack_id: "N01", card_hosted: false });
-assert.strictEqual(navigations.length, navCountUnhosted, "unhosted station must not navigate (honest toast instead)");
-assert.strictEqual(toasts.pop(), "这一站微课即将开通", "unhosted lesson click explains 微课即将开通");
 
 // ── 轻练旁按钮:供给真值路由 forward;未接通→诚实 toast,零导航 ──
 function lightPractice(task) {
@@ -262,5 +244,27 @@ var navCountBefore = navigations.length;
 lightPractice({ light_practice_available: false, pack_id: "N01", task_state: "learn_next" });
 assert.strictEqual(navigations.length, navCountBefore, "no supply must mean no navigation (no dead click)");
 assert.strictEqual(toasts.pop(), "快练准备中", "no supply must surface the honest preparing toast");
+
+// ── 视频学习卡 goLesson:进站学习/舞台播放 → 站点页;card_hosted=false 诚实降级 ──
+function enterStation(station) {
+  var page = {
+    data: { vm: { nextStation: station } },
+    _navTo: pageDef._navTo,
+  };
+  pageDef.goLesson.call(page);
+}
+enterStation({ pack_id: "N01", card_hosted: true });
+assert.strictEqual(
+  navigations.pop(),
+  "/station?pack_id=N01",
+  "video card 进站学习 (goLesson) must enter the generic station route",
+);
+var navCountUnhosted = navigations.length;
+enterStation({ pack_id: "N01", card_hosted: false });
+assert.strictEqual(navigations.length, navCountUnhosted, "unhosted station must not navigate (no dead click)");
+assert.strictEqual(toasts.pop(), "这一站微课即将开通", "unhosted lesson tap must explain honestly");
+var navCountNoStation = navigations.length;
+enterStation({});
+assert.strictEqual(navigations.length, navCountNoStation, "no station means no navigation");
 
 console.log("PASS test_learn_core_surface_contract.js");

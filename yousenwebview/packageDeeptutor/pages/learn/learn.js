@@ -305,22 +305,25 @@ Page({
     this._navTo(route.lubanTeachingPoints());
   },
 
-  // 置顶练题卡主按钮(owner 2026-07-18 两卡分离):永远练题,只转发 retest
-  // (到期验证 review / 集中练习 forward 共用 retest 内核);学习动作已归视频卡 goLesson。
-  // 任务卡渲染源 = taskCard(todayTask || browseTask 单一入口),复习卡也共用本 handler。
-  // 二轮红队 A4:刷新 in-flight 期间旧 VM 的 pack/probe 身份可能已过期,与
-  // goLightPractice 同一守卫禁点。
+  // 今日唯一任务只按 view-model 的 action_kind 转发：到期验证/课后练共用
+  // retest，推荐学习进站点；页面不重算优先级、不解释掌握状态。
+  // 二轮红队 A4:主任务按钮与复习卡共用本 handler,刷新 in-flight 期间
+  // 旧 VM 的 pack/probe 身份可能已过期,与 goLightPractice 同一守卫禁点。
   goTodayTask() {
     if (this._refreshing) {
       if (typeof wx !== "undefined" && wx.showToast)
         wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
       return;
     }
+    // 任务卡渲染源 = taskCard(todayTask || browseTask 单一入口);browse 兜底卡
+    // 与真今日任务同构,主按钮路由复用同一 handler(禁第二套路由)。
     var vmData = this.data.vm || {};
     var task = vmData.taskCard || vmData.todayTask || {};
     var packId = encodeURIComponent(String(task.pack_id || ""));
-    // 练题卡只走 retest(练题卡永不进站学习);供给未接通(practice_kind!==retest)
-    // 时无按钮,不会走到这里。
+    if (task.action_kind === "lesson" && packId) {
+      this._navTo(route.lubanStation(String(task.pack_id || "")));
+      return;
+    }
     if (task.action_kind === "retest" && task.practice_kind === "retest" && packId) {
       this._navTo(
         "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
@@ -336,9 +339,9 @@ Page({
     }
   },
 
-  // 视频学习卡「进站学习」(owner 2026-07-18 两卡分离):学习动作归视频卡,
-  // 进 spike 站点页(两幕 web-view 播放器);练题卡永不承担学习路由。
-  // 目标站 = vm.nextStation(呈现仲裁的推荐学习站),与练题卡的 redirect 目标解耦。
+  // 视频学习卡「进站学习」/舞台播放(owner 2026-07-18 排版去重:学习动作归视频卡)。
+  // 目标站 = vm.nextStation(next_step 呈现仲裁的推荐学习站),不重算推荐;
+  // card_hosted===false 诚实降级 toast(禁 dead click 假可播)。
   goLesson() {
     if (this._refreshing) {
       if (typeof wx !== "undefined" && wx.showToast)
