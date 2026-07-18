@@ -2932,3 +2932,22 @@
 .page.paper .paywall-secondary-txt { color: var(--pk-t2); }
 .page.paper .paywall-primary { background: var(--pk-ink-btn); }
 .page.paper .paywall-primary-txt { color: var(--pk-ink-btn-t); }
+
+/* ── 亮暗双态补漏(2026-07-18 审计) ── */
+.page.paper .nav-back-pill:active,
+.page.paper .home-entry-btn:active,
+.page.paper .row-icon-btn:active,
+.page.paper .hero-more-btn:active,
+.page.paper .ub-btn:active,
+.page.paper .fb-tag:active { background: rgba(38, 36, 31, 0.06); }
+.page.paper .recommended-prompt-text { color: var(--pk-t1); }
+.page.paper .bi { color: var(--pk-t1); }
+.page.paper .paywall-close { background: var(--pk-gauge); }
+.page.paper .workflow-step-badge-search,
+.page.paper .workflow-step-badge-plan,
+.page.paper .workflow-step-badge-analyze,
+.page.paper .workflow-step-badge-review,
+.page.paper .workflow-step-badge-compose { color: var(--pk-grn); background: var(--pk-accent-soft); }
+.page.paper .workflow-step-badge-calc { color: #a07f2e; background: rgba(201, 159, 61, 0.14); }
+.page.paper:not(.light) .workflow-step-badge-calc { color: #e2b264; }
+.page.paper .workflow-step-badge-retry { color: var(--pk-warn); background: rgba(194, 101, 85, 0.12); }

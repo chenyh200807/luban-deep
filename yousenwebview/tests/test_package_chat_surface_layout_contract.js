@@ -71,7 +71,7 @@ assert(
   "history management actions should sit below the system capsule row",
 );
 assert(
-  /\.history-page\.light \.conv-action-btn\s*\{\s*opacity:\s*1;[\s\S]*background:\s*#eef4ff;/.test(historyWxss) &&
+  /\.history-page\.light \.conv-action-btn\s*\{\s*opacity:\s*1;[\s\S]*background:\s*var\(--pk-gauge\);/.test(historyWxss) &&
     /\.history-page\.light \.archive-lid\s*\{\s*background:\s*#475569;/.test(historyWxss) &&
     /\.history-page\.light \.conv-del-icon\s*\{\s*color:\s*#475569;/.test(historyWxss),
   "package light history row archive/delete glyphs should remain visible on white cards",

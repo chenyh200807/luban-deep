@@ -68,7 +68,7 @@
   margin-bottom: 8rpx;
   animation: iconPulse 3s ease-in-out infinite;
 }
-.hero-icon-txt { font-size: 40rpx; font-weight: 800; color: #60a5fa; }
+.hero-icon-txt { font-size: 40rpx; font-weight: 800; color: var(--pk-grn); }
 @keyframes iconPulse {
   0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99,102,241,0.2); }
   50% { transform: scale(1.05); box-shadow: 0 0 40rpx 10rpx rgba(99,102,241,0.15); }
@@ -84,7 +84,7 @@
   background: rgba(255,255,255,0.04); border: 1rpx solid rgba(255,255,255,0.08);
   display: flex; flex-direction: column; align-items: center; gap: 6rpx;
 }
-.stat-num { font-size: 44rpx; font-weight: 800; color: #60a5fa; }
+.stat-num { font-size: 44rpx; font-weight: 800; color: var(--pk-grn); }
 .stat-label { font-size: 22rpx; color: rgba(255,255,255,0.4); }
 
 .mode-switch {
@@ -165,7 +165,7 @@
 /* 开始按钮 */
 .start-btn {
   padding: 28rpx; border-radius: 16rpx;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: var(--pk-grn);
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 8rpx 32rpx rgba(37,99,235,0.3);
 }
@@ -183,7 +183,7 @@
 }
 .progress-fill {
   height: 100%; border-radius: 3rpx;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  background: var(--pk-grn);
   transition: width 0.3s ease;
 }
 
@@ -204,7 +204,7 @@
   background: rgba(255,255,255,0.05); border: 1rpx solid rgba(255,255,255,0.1);
 }
 .answer-chip.answered { background: rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.38); }
-.answer-chip.current { background: #2563eb; border-color: #60a5fa; }
+.answer-chip.current { background: var(--pk-grn); border-color: var(--pk-grn); }
 .answer-chip:active { opacity: 0.82; }
 .answer-chip-txt { font-size: 24rpx; font-weight: 700; color: rgba(255,255,255,0.78); }
 .answer-chip.current .answer-chip-txt { color: #fff; }
@@ -232,14 +232,14 @@
   transition: border-color 0.15s, background 0.15s;
 }
 .option:active { border-color: rgba(59,130,246,0.4); }
-.option.selected { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+.option.selected { border-color: var(--pk-grn); background: rgba(72, 128, 106, 0.1); }
 .opt-key {
   width: 48rpx; height: 48rpx; border-radius: 12rpx; flex-shrink: 0;
   background: rgba(255,255,255,0.06);
   display: flex; align-items: center; justify-content: center;
 }
 .opt-key-txt { font-size: 26rpx; font-weight: 700; color: rgba(255,255,255,0.5); }
-.option.selected .opt-key { background: #3b82f6; }
+.option.selected .opt-key { background: var(--pk-grn); }
 .option.selected .opt-key-txt { color: #fff; }
 .opt-text { font-size: 28rpx; color: rgba(255,255,255,0.85); line-height: 1.5; }
 
@@ -250,7 +250,7 @@
   display: flex; align-items: center; justify-content: center;
 }
 .quiz-nav-btn.disabled { opacity: 0.3; }
-.quiz-nav-btn.primary { background: #2563eb; }
+.quiz-nav-btn.primary { background: var(--pk-grn); }
 .quiz-nav-btn.submit { background: #16a34a; }
 .quiz-nav-btn:active { opacity: 0.85; }
 .quiz-nav-txt { font-size: 28rpx; font-weight: 600; color: #fff; }
@@ -265,7 +265,7 @@
 .loading-spinner {
   width: 64rpx; height: 64rpx; border-radius: 50%;
   border: 4rpx solid rgba(255,255,255,0.1);
-  border-top-color: #3b82f6;
+  border-top-color: var(--pk-grn);
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -311,7 +311,7 @@
 .chapter-bar { height: 100%; border-radius: 8rpx; transition: width 0.6s ease; min-width: 4rpx; }
 .chapter-bar.green { background: linear-gradient(90deg, #22c55e, #16a34a); }
 .chapter-bar.gold { background: linear-gradient(90deg, #f59e0b, #d97706); }
-.chapter-bar.red { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.chapter-bar.red { background: var(--pk-warn); }
 .chapter-pct { font-size: 24rpx; color: rgba(255,255,255,0.5); min-width: 60rpx; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ── 学员画像卡片（核心） ─────────────── */
@@ -355,7 +355,7 @@
   display: flex; flex-direction: column; gap: 6rpx;
 }
 .insight-label { font-size: 20rpx; color: rgba(255,255,255,0.4); }
-.insight-value { font-size: 28rpx; font-weight: 700; color: #60a5fa; }
+.insight-value { font-size: 28rpx; font-weight: 700; color: var(--pk-grn); }
 .insight-desc { font-size: 22rpx; color: rgba(255,255,255,0.5); line-height: 1.5; }
 
 /* ── 优先攻克 ────────────────────────── */
@@ -370,7 +370,7 @@
   width: 36rpx; height: 36rpx; border-radius: 50%;
   background: rgba(239,68,68,0.15);
   display: flex; align-items: center; justify-content: center;
-  font-size: 22rpx; font-weight: 700; color: #f87171; flex-shrink: 0;
+  font-size: 22rpx; font-weight: 700; color: var(--pk-warn); flex-shrink: 0;
 }
 .priority-name { font-size: 26rpx; color: rgba(255,255,255,0.7); }
 
@@ -380,7 +380,7 @@
   display: flex; align-items: center; justify-content: center;
 }
 .result-btn.primary {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: var(--pk-grn);
   box-shadow: 0 8rpx 32rpx rgba(37,99,235,0.25);
 }
 .result-btn:active { opacity: 0.85; }
@@ -603,7 +603,7 @@
 }
 
 .dr-primary-btn {
-  background: linear-gradient(135deg, #2f6bff, #45c2ff 58%, #5eead4);
+  background: var(--pk-ink-btn);
   box-shadow: 0 14rpx 34rpx rgba(47, 107, 255, 0.28);
 }
 
@@ -718,7 +718,7 @@
 }
 
 .dr-filter-btn text {
-  color: #dbeafe;
+  color: var(--pk-t2);
   font-size: 23rpx;
 }
 
@@ -760,7 +760,7 @@
 
 .dr-q-num {
   background: linear-gradient(135deg, rgba(52, 120, 246, 0.26), rgba(103, 232, 249, 0.13));
-  color: #dbeafe;
+  color: var(--pk-t2);
 }
 
 .dr-status-badge {
@@ -805,7 +805,7 @@
   flex: 0 0 auto;
   border-radius: 14rpx;
   background: rgba(255, 255, 255, 0.08);
-  color: #dbeafe;
+  color: var(--pk-t2);
   font-size: 24rpx;
   font-weight: 950;
 }
@@ -1041,7 +1041,7 @@
 }
 
 .dr-issue:nth-child(2) .dr-issue-rank { background: rgba(251, 191, 36, 0.16); color: #fde68a; }
-.dr-issue:nth-child(3) .dr-issue-rank { background: rgba(167, 139, 250, 0.16); color: #ddd6fe; }
+.dr-issue:nth-child(3) .dr-issue-rank { background: var(--pk-accent-soft); color: var(--pk-grn); }
 .dr-issue:nth-child(4) .dr-issue-rank { background: rgba(103, 232, 249, 0.14); color: #a5f3fc; }
 .dr-issue:nth-child(5) .dr-issue-rank { background: rgba(251, 113, 133, 0.15); color: #fecdd3; }
 
@@ -1127,7 +1127,7 @@
 
 /* ══ Light Mode ══════════════════════════════ */
 .assess-page.light {
-  background: linear-gradient(180deg, #f7faff 0%, #eef4ff 52%, #f8fbff 100%);
+  background: var(--pk-paper);
 }
 
 /* ── 极光背景 ────────────────────────────── */
@@ -1149,10 +1149,10 @@
 
 /* ═══ 欢迎页 ═════════════════════════════ */
 .assess-page.light .hero-icon-ring {
-  background: linear-gradient(135deg, #eef2ff, #e8f0ff);
+  background: var(--pk-accent-soft);
   border-color: rgba(99,102,241,0.2);
 }
-.assess-page.light .hero-icon-txt { color: #3b82f6; }
+.assess-page.light .hero-icon-txt { color: var(--pk-grn); }
 .assess-page.light .welcome-title { color: #0f172a; }
 .assess-page.light .welcome-sub { color: #666; }
 
@@ -1161,7 +1161,7 @@
   background: rgba(255,255,255,0.9);
   border-color: #e5e5e5;
 }
-.assess-page.light .stat-num { color: #2563eb; }
+.assess-page.light .stat-num { color: var(--pk-grn); }
 .assess-page.light .stat-label { color: #666; }
 .assess-page.light .mode-card {
   background: rgba(255,255,255,0.9);
@@ -1173,7 +1173,7 @@
 }
 .assess-page.light .mode-title { color: #0f172a; }
 .assess-page.light .mode-desc { color: #64748b; }
-.assess-page.light .recommend-reason { color: #2563eb; }
+.assess-page.light .recommend-reason { color: var(--pk-grn); }
 .assess-page.light .recommend-badge { background: rgba(22, 163, 74, 0.12); color: #15803d; }
 
 /* 特性列表 */
@@ -1192,8 +1192,8 @@
   border-color: #e5e5e5;
 }
 .assess-page.light .q-type {
-  background: #eef2ff;
-  color: #2563eb;
+  background: var(--pk-accent-soft);
+  color: var(--pk-grn);
 }
 .assess-page.light .q-diff {
   background: #f5f5f5;
@@ -1208,14 +1208,14 @@
 }
 .assess-page.light .option:active { border-color: rgba(59,130,246,0.3); }
 .assess-page.light .option.selected {
-  border-color: #3b82f6;
-  background: #eef4ff;
+  border-color: var(--pk-grn);
+  background: var(--pk-accent-soft);
 }
 .assess-page.light .opt-key {
   background: #f5f5f5;
 }
 .assess-page.light .opt-key-txt { color: #666; }
-.assess-page.light .option.selected .opt-key { background: #3b82f6; }
+.assess-page.light .option.selected .opt-key { background: var(--pk-grn); }
 .assess-page.light .option.selected .opt-key-txt { color: #fff; }
 .assess-page.light .opt-text { color: #333; }
 
@@ -1225,7 +1225,7 @@
 }
 .assess-page.light .quiz-nav-btn.disabled { opacity: 0.3; }
 .assess-page.light .quiz-nav-txt { color: #333; }
-.assess-page.light .quiz-nav-btn.primary { background: #2563eb; }
+.assess-page.light .quiz-nav-btn.primary { background: var(--pk-grn); }
 .assess-page.light .quiz-nav-btn.primary .quiz-nav-txt { color: #fff; }
 .assess-page.light .quiz-nav-btn.submit { background: #16a34a; }
 .assess-page.light .quiz-nav-btn.submit .quiz-nav-txt { color: #fff; }
@@ -1233,7 +1233,7 @@
 /* ═══ 加载 ═══════════════════════════════ */
 .assess-page.light .loading-spinner {
   border-color: rgba(0,0,0,0.08);
-  border-top-color: #3b82f6;
+  border-top-color: var(--pk-grn);
 }
 .assess-page.light .loading-txt { color: #0f172a; }
 .assess-page.light .loading-sub { color: #666; }
@@ -1242,7 +1242,7 @@
 .assess-page.light .score-ring {
   background: rgba(255,255,255,0.92);
   border-color: rgba(59,130,246,0.2);
-  box-shadow: 0 0 40rpx rgba(59,130,246,0.1);
+  box-shadow: 0 0 40rpx rgba(72, 128, 106, 0.1);
 }
 .assess-page.light .score-num { color: #0f172a; }
 .assess-page.light .score-label { color: #666; }
@@ -1279,7 +1279,7 @@
   border-color: #e5e5e5;
 }
 .assess-page.light .insight-label { color: #666; }
-.assess-page.light .insight-value { color: #2563eb; }
+.assess-page.light .insight-value { color: var(--pk-grn); }
 .assess-page.light .insight-desc { color: #666; }
 
 /* 优先攻克 */
@@ -1294,7 +1294,7 @@
   background: #f5f5f5;
 }
 .assess-page.light .result-btn.primary {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: var(--pk-grn);
   box-shadow: 0 8rpx 32rpx rgba(37,99,235,0.2);
 }
 .assess-page.light .result-btn-txt { color: #fff; }
@@ -1312,8 +1312,8 @@
 }
 
 .readonly-banner {
-  border-color: rgba(59, 130, 246, 0.3);
-  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(72, 128, 106, 0.3);
+  background: rgba(72, 128, 106, 0.12);
 }
 
 .readonly-banner-txt,
@@ -1380,7 +1380,7 @@
   margin-top: 16rpx;
   padding: 0 22rpx;
   border-radius: 8rpx;
-  background: rgba(59, 130, 246, 0.18);
+  background: rgba(72, 128, 106, 0.18);
   border: 1rpx solid rgba(96, 165, 250, 0.34);
 }
 
@@ -1563,3 +1563,35 @@
 .assess-page.paper .dr-ghost-btn text,
 .assess-page.paper .dr-same-type-btn text,
 .assess-page.paper .dr-ai-btn text { color: var(--pk-t2); }
+
+/* ── 亮暗双态补漏(2026-07-18 审计:基层暗色字面量无 paper 覆盖,宣纸亮下隐形) ── */
+.assess-page.paper .nav-back:active { background: rgba(38, 36, 31, 0.06); }
+.assess-page.paper .topic-head-title { color: var(--pk-t1); }
+.assess-page.paper .topic-catalog-error,
+.assess-page.paper .answer-card-notice { color: var(--pk-warn); }
+.assess-page.paper .answer-chip { background: var(--pk-gauge); border-color: var(--pk-bd); }
+.assess-page.paper .answer-chip-txt { color: var(--pk-t2); }
+.assess-page.paper .priority-idx { color: var(--pk-t2); }
+.assess-page.paper .dr-q-num,
+.assess-page.paper .dr-detail-sub,
+.assess-page.paper .dr-issue-desc,
+.assess-page.paper .dr-issue-count { color: var(--pk-t2); }
+.assess-page.paper .dr-status-badge { color: var(--pk-grn); }
+.assess-page.paper .dr-choice-key,
+.assess-page.paper .dr-option-key { color: var(--pk-t2); background: var(--pk-gauge); }
+.assess-page.paper .dr-verdict,
+.assess-page.paper .dr-issue-title { color: var(--pk-t1); }
+.assess-page.paper .dr-detail-head,
+.assess-page.paper .dr-review-section { background: var(--pk-gauge); border-color: var(--pk-bd); }
+.assess-page.paper .dr-issue { background: var(--pk-card); border-color: var(--pk-bd); }
+.assess-page.paper .dr-chip { color: var(--pk-t2); background: var(--pk-gauge); border-color: var(--pk-bd); }
+.assess-page.paper .dr-chip.risk { color: var(--pk-warn); background: rgba(194, 101, 85, 0.1); border-color: rgba(194, 101, 85, 0.3); }
+.assess-page.paper .dr-chip.gold { color: #a07f2e; background: rgba(201, 159, 61, 0.14); border-color: rgba(201, 159, 61, 0.32); }
+.assess-page.paper:not(.light) .dr-chip.gold { color: #e2b264; }
+.assess-page.paper .dr-option-tag { color: var(--pk-t3); }
+.assess-page.paper .dr-issue-rank { background: var(--pk-gauge); color: var(--pk-t2); }
+.assess-page.paper .dr-issue:nth-child(2) .dr-issue-rank { background: rgba(201, 159, 61, 0.16); color: #a07f2e; }
+.assess-page.paper:not(.light) .dr-issue:nth-child(2) .dr-issue-rank { color: #e2b264; }
+.assess-page.paper .dr-issue:nth-child(3) .dr-issue-rank { background: var(--pk-accent-soft); color: var(--pk-grn); }
+.assess-page.paper .dr-issue:nth-child(5) .dr-issue-rank { background: rgba(194, 101, 85, 0.12); color: var(--pk-warn); }
+.assess-page.paper .dr-map-action { color: var(--pk-grn); }
