@@ -68,6 +68,7 @@ function loadShell(overrides) {
       if (request === "../utils/host-runtime") {
         return {
           getTheme: function () { return options.theme || "dark"; },
+          getThemeOr: function (fb) { return options.theme || fb || "light"; },
         };
       }
       throw new Error("unexpected require: " + request);
