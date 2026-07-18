@@ -605,9 +605,13 @@ Overlay 必须支持：
    `get_chapter_progress` 是练习页 legacy 进度列表，**不在本轮融合面内**、
    刻意不受此 flag 门控（其 mastery 字段仍读 member 静态分）。其收口
    （改读单一算子或下线该字段）登记为独立后续工单，不得在无裁决时顺手改。
-6. 输入供给禁断供（2026-07-03，Codex SEV-1 治本）：caller 组装输入时**禁止
+6. 输入供给禁断供（2026-07-03，Codex SEV-1 治本；2026-07-18 workflow 收权）：caller 组装输入时**禁止
    硬编码空供给**冒充"该权威无输出"。首页接线口径 = 活跃练从同一份
-   snapshot events 纯派生处方 outcomes（`status != "verified"` 即活跃），
+   snapshot events 纯派生处方 outcomes，并只调用
+   `prescription_outcome_read_model.requires_active_practice()`；其活跃集合为
+   `assigned/in_progress/needs_followup`。closed canonical forward terminal 必须投影为
+   workflow `completed`（原始 measurement `not_verified` 保持不变），不得再次进入
+   generic practice；`completed/not_verified/verified` 后续均交 `revalidation_queue`，
    同一份 outcomes 必须同时传入 `revalidation_queue`（已验证抑制，与
    learning-report 路径同口径）；claims 从 `read_compiled_learning_truth`
    的 `weak_points` 读取（miss 时空列表如实降级，**不**跑在线 dry-run
@@ -684,10 +688,20 @@ Overlay 必须支持：
    当前 Luban retest 只允许单选/判断的逐题二元 1 分制：item `max_score=1`、`score_awarded∈{0,1}`
    且必须与 `is_correct` 一致；NaN/Infinity、损坏分数、加权题或部分给分不得静默进入该 closure。
    未来支持加权题必须先升级 scoring contract，不能把容差 fallback 塞进现有 reader。
+   `evidence_lifecycle` 还必须从 closure item 的 `probe_role` 区分普通 forward 与
+   `immediate_confirm`；只有普通 forward 能开启新 cycle，确认题不得重置
+   `last_completion_at/review_cycle_anchor/successful_review_streak`，也不得单独把
+   prescription workflow 关闭为 completed。confirm GET 必须携带上一轮 canonical forward
+   terminal receipt；服务端复核其仍是该 pack 最新 forward 且 confirm facts 是该 closure
+   错题 facts 的非空子集后，才把 parent terminal 签入 selection `cycle_anchor`。completion
+   必须在任何 append 前按同一 evidence authority 复核 parent；旧设备迟交、篡改 parent、
+   同 fact 新 episode 覆盖或历史无 parent confirm 均不得完成现代 journey。v3
+   review 必须逐次 exact-match 当前 `cycle_anchor`，两个 reader 不得各自按时间猜 episode。
    `LUBAN_REVIEW_MODULE_ENABLED`（以及 forward 的 `LUBAN_LIGHT_PRACTICE_ENABLED`）必须在任何
    append 前 fail closed，禁止“写完 terminal 才撞 rollout flag”。
 9. GET 取题必须签发 `selection_id`，绑定 canonical user、pack、服务端 UTC+8 day、mode 与
-   variant ID 集合；review 额外绑定服务端解析的 `probe_id + cycle_anchor`。POST 必须验证该
+   variant ID 集合；review 额外绑定服务端解析的 `probe_id + cycle_anchor`；
+   immediate-confirm forward 额外绑定服务端验证的 parent-terminal `cycle_anchor`。POST 必须验证该
    identity 后才按原签发日重建并重判。这样跨午夜/断网
    retry 仍消费同一题组，同时客户端不能改 day、换题或跨用户复用 selection。
 10. 最近 8 天窗口只允许用于趋势/timeline。`pack_lifecycle` 与 pack review 必须读取分页后的

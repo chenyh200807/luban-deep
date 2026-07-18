@@ -1409,6 +1409,14 @@ def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
     assert model["pack_lifecycle"]["packs"]["F16"]["lifecycle_state"] == "practiced"
     assert [item["pack_id"] for item in model["pack_review"]["due"]] == ["F16"]
     assert model["pack_review"]["authority"] == "revalidation_queue"
+    journey = model["station_journey"]
+    assert journey["authority"] == "station_journey_projection.read_model"
+    assert journey["schema_version"] == 1
+    statuses = {
+        step["id"]: step["status"] for step in journey["packs"]["F16"]["steps"]
+    }
+    assert statuses["practice"] == "completed"
+    assert statuses["diagnosis"] == "not_applicable"
     assert model["overview"]["due_today_count"] == 1
     assert model["overview"]["due_today_state"] == "known"
     assert model["overview"]["today_done"] == 0

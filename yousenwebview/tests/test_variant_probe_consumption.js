@@ -76,6 +76,11 @@ assert.ok(
   retest.indexOf("COPY[isConfirmSession ? \"confirm\" : mode]") >= 0,
   "confirm session must select its own copy variant",
 );
+assert.ok(
+  retest.indexOf('declaredPracticeSource !== "signed_variant"') >= 0 &&
+    retest.indexOf('variantProbeRole !== "immediate_confirm"') >= 0,
+  "confirm transport must fail closed instead of rendering ordinary forward supply",
+);
 
 // ── wxml: 入口按钮 gated on showConfirmEntry, 绑 goConfirmFacts, 纯导航 catchtap ──
 assert.ok(

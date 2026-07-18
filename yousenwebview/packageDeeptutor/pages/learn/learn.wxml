@@ -96,13 +96,17 @@ module.exports = { daysTo: daysTo };
           </view>
         </view>
         <view class="lr-status pk-card lr-status-col lr-rise">
-          <text class="pk-kicker">路线 <text class="lr-status-strong">{{vm.litCount || 0}}/{{vm.packUniverse || 40}} 站</text></text>
-          <view class="pk-progress"><view class="pk-progress__fill" style="width: {{(vm.litCount ? (vm.litCount / (vm.packUniverse || 40) * 100) : 0)}}%"></view></view>
+          <text class="pk-kicker">路线 <text class="lr-status-strong">{{vm.progressAvailable ? vm.litCount : '—'}}/{{vm.packUniverse || 40}} 站</text></text>
+          <view class="pk-progress"><view class="pk-progress__fill" style="width: {{vm.progressAvailable && vm.litCount ? (vm.litCount / (vm.packUniverse || 40) * 100) : 0}}%"></view></view>
         </view>
         <view class="lr-status pk-card lr-status-col lr-rise">
-          <text class="pk-kicker">今日 <text class="lr-status-strong">{{vm.todayProgress.done || 0}}/{{vm.todayProgress.target || '—'}} 题</text></text>
-          <view class="pk-progress"><view class="pk-progress__fill" style="width: {{vm.todayProgress.percent || 0}}%"></view></view>
+          <text class="pk-kicker">今日 <text class="lr-status-strong">{{vm.progressAvailable ? vm.todayProgress.done : '—'}}/{{vm.progressAvailable && vm.todayProgress.target ? vm.todayProgress.target : '—'}} 题</text></text>
+          <view class="pk-progress"><view class="pk-progress__fill" style="width: {{vm.progressAvailable ? vm.todayProgress.percent : 0}}%"></view></view>
         </view>
+      </view>
+
+      <view class="lr-projection-note" wx:if="{{!supplyError && vm.projectionState !== 'live'}}">
+        {{vm.projectionState === 'stale' ? '正在核对最新进度，当前快照暂不可操作' : '正在核对学习记录，任务与进度暂不展示'}}
       </view>
 
       <view class="lr-supply-error pk-card" wx:if="{{supplyError}}">
@@ -166,7 +170,7 @@ module.exports = { daysTo: daysTo };
 
           <!-- ③ 你的路线 + 完整地图 -->
           <view class="lr-route-line">
-            <text class="lr-route-lit">你的路线 · 已点亮 {{vm.litCount || 0}} / {{vm.packUniverse || 40}} 站</text>
+            <text class="lr-route-lit">你的路线 · 已点亮 {{vm.progressAvailable ? vm.litCount : '—'}} / {{vm.packUniverse || 40}} 站</text>
             <text class="lr-route-more" bindtap="openStations">查看完整地图 →</text>
           </view>
 
@@ -210,13 +214,12 @@ module.exports = { daysTo: daysTo };
             </view>
           </view>
 
-          <!-- ④ 站点旅程条(红队 A1 收口):流程说明,不是进度账本——前端无逐步完成
-               证据,禁 done 勾、禁跨未完成节点的进度线;只标 current(CTA 对应步)/
-               空心/承诺虚环。数据源=vm.nextStation.journey。 -->
+          <!-- ④ 站点旅程条:唯一完成态来源是 learning-report 的服务端
+               station_journey_projection；unknown 时不猜 current，不显示伪 0/6。 -->
           <view class="lr-journey lr-journey--lesson" wx:if="{{vm.nextStation.journey}}">
             <view class="lr-journey-head">
               <text class="lr-journey-kicker">这一站会带你走完</text>
-              <text class="lr-journey-count">{{vm.nextStation.journey.currentIndex}}/{{vm.nextStation.journey.total}} 步</text>
+              <text class="lr-journey-count">{{vm.nextStation.journey.statusText}}</text>
             </view>
             <view class="lr-journey-track">
               <view class="lr-jline"></view>
@@ -226,10 +229,11 @@ module.exports = { daysTo: daysTo };
                     <view wx:if="{{item.state === 'current'}}" class="lr-jnode-dot"></view>
                   </view>
                   <text class="lr-jlabel lr-jlabel--{{item.state}}">{{item.label}}</text>
+                  <text class="lr-jnote lr-jnote--{{item.state}}" wx:if="{{item.note}}">{{item.note}}</text>
                 </view>
               </view>
             </view>
-            <text class="lr-journey-foot">验证与抽查到期时会出现在这里 · 你只管来</text>
+            <text class="lr-journey-foot">{{!vm.nextStation.journey.available ? '正在核对服务端学习记录' : (vm.nextStation.journey.journeyState === 'unavailable' ? '已完成步骤仍保留，后续排期恢复后会自动更新' : (vm.nextStation.journey.journeyState === 'completed' ? '这一站本轮闭环已经完成' : '验证与抽查到期时会出现在这里 · 你只管来'))}}</text>
           </view>
 
           <!-- ⑤ 为什么先走这一站(nextStation.reason 群体/证据理由;缺则不渲染) -->
@@ -246,7 +250,7 @@ module.exports = { daysTo: daysTo };
            (= todayTask || browseTask):有 server next_step 裁决时=真今日任务;
            day-0/首跑未完成/后端未部署时=browse 兜底卡(kicker "从这里开始",不声称
            今日任务)。定稿"掌握可信度 72%"环=前端算掌握,红线禁,不渲染(见偏差表)。 -->
-      <view class="lr-task pk-card lr-rise lr-rise--d2" wx:if="{{!supplyError && vm.taskCard}}">
+      <view class="lr-task pk-card lr-rise lr-rise--d2 lr-task--{{vm.actionsEnabled ? 'ready' : 'disabled'}}" wx:if="{{!supplyError && vm.taskCard}}">
         <view class="lr-task-head">
           <view class="lr-task-main">
             <text class="pk-kicker">{{vm.taskCard.kicker}}</text>
@@ -293,7 +297,7 @@ module.exports = { daysTo: daysTo };
 
       <!-- 复习空态(无到期):按 10a 渲染诚实排期占位,不整块消失。
            非任务源、不可点(无到期可路由)——完成练习后由服务端 due 排期。 -->
-      <view class="lr-rvc lr-rvc--empty pk-card lr-rise lr-rise--d3" wx:if="{{!supplyError && !vm.reviewCard}}">
+      <view class="lr-rvc lr-rvc--empty pk-card lr-rise lr-rise--d3" wx:if="{{!supplyError && vm.taskAuthorityAvailable && !vm.reviewCard}}">
         <view class="lr-rvc-ic lr-rvc-ic--empty">
           <text class="lr-rvc-glyph">↻</text>
         </view>
@@ -310,7 +314,7 @@ module.exports = { daysTo: daysTo };
       <view class="lr-metric-row lr-rise lr-rise--d4" wx:if="{{!supplyError}}">
         <view class="lr-metric pk-card">
           <text class="pk-kicker">近 3 天练习</text>
-          <text class="lr-metric-num">{{vm.stats.recent_practice || 0}} 道</text>
+          <text class="lr-metric-num">{{vm.progressAvailable ? vm.stats.recent_practice : '—'}}{{vm.progressAvailable ? ' 道' : ''}}</text>
           <view class="lr-metric-viz">
             <view class="lr-viz-pill lr-viz-pill--1"></view>
             <view class="lr-viz-pill lr-viz-pill--2"></view>
@@ -319,7 +323,7 @@ module.exports = { daysTo: daysTo };
         </view>
         <view class="lr-metric pk-card">
           <text class="pk-kicker">待补错因</text>
-          <text class="lr-metric-num">{{vm.stats.pending_errors || 0}} 个</text>
+          <text class="lr-metric-num">{{vm.progressAvailable ? vm.stats.pending_errors : '—'}}{{vm.progressAvailable ? ' 个' : ''}}</text>
           <view class="lr-metric-viz lr-metric-viz--col">
             <view class="lr-viz-row lr-viz-row--warn"></view>
             <view class="lr-viz-row lr-viz-row--mid"></view>
@@ -328,7 +332,7 @@ module.exports = { daysTo: daysTo };
         </view>
         <view class="lr-metric pk-card">
           <text class="pk-kicker">已验证考点</text>
-          <text class="lr-metric-num lr-metric-grn">{{vm.stats.verified_stations || 0}} 站</text>
+          <text class="lr-metric-num lr-metric-grn">{{vm.progressAvailable ? vm.stats.verified_stations : '—'}}{{vm.progressAvailable ? ' 站' : ''}}</text>
           <view class="lr-metric-viz">
             <view class="lr-viz-bar lr-viz-bar--1"></view>
             <view class="lr-viz-bar lr-viz-bar--2"></view>

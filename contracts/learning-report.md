@@ -52,6 +52,7 @@
 | `quality_signals` | `dict` | 质量指标（dedupe 后，Task 0 已实施） | stable |
 | `learning_brain` | `dict \| None` | 学习大脑 projection | stable |
 | `training_prescription` | `dict` | `training_intent` 的学员可见训练处方 projection | active |
+| `station_journey` | `dict` | v1/v2 共用的 additive 六步只读投影；nested `schema_version=1`，不改变父报告协商版本 | active |
 | `source_meta` | `dict` | 各数据源耗时与状态 | stable |
 | `error_labels` | `dict[str, str]` | 错误类型枚举映射 | stable |
 
@@ -101,6 +102,7 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
 | `home_context_source` | `home_dashboard.today_focus/recommended_prompts` |
 | `knowledge_map_source` | `taxonomy_index/textbook_directory + learning-report-read-model evidence/mastery projection` |
 | `pack_review_source` | `pack_lifecycle_projection -> revalidation_queue` |
+| `station_journey_source` | `station_journey_projection.read_model` |
 
 **v1 Retirement 计划：**
 
@@ -229,6 +231,21 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
 3. `evaluated_topics` 表示“已定位/有证据”，不得解释成“已掌握”。
 4. 教材章节覆盖率不得直接作为全局 mastery；全局 mastery 仍由 `mastery.overall_mastery` 按 evidence sufficiency 产出。
 5. 前端只能做 snake_case 到 camelCase 的展示适配，不得自行计算 `textbook_chapters` 或从题数推导 chapter status。
+
+### 3.8 Station Journey Projection
+
+- **Owner 文件**：`deeptutor/services/learner_state/station_journey_projection.py`
+- **唯一 producer**：`build_learning_report_read_model` 以内嵌 additive 字段 `station_journey` 输出；不新增 endpoint 或平行 report schema。
+- **父 schema 归属**：该字段是默认 v1 与显式 v2 的共用 additive 字段；nested `schema_version=1` 只版本化六步结构，不代表客户端协商了 learning-report v2。
+- **事实来源**：`lesson_viewed`、`evidence_lifecycle` 验证后的 retest terminal closure、`pack_review` 的 exact due item。
+- **稳定边界**：
+  - 只读、零持久化、零调度、零 CTA；`home_next_step_projection` 仍是唯一 CTA 仲裁，`revalidation_queue` 仍是唯一到期语义。
+  - `practice_mode=forward` 不足以判定新周期；closure items 全为 `probe_role=immediate_confirm` 时只能形成同周期确认事实，不得移动 `review_cycle_anchor`。
+  - `evidence_lifecycle.canonical_retest_episode_records` 是唯一 episode binding：confirm facts 必须是本轮错题 facts 的非空子集，且 confirm terminal 的签名 parent `cycle_anchor` 必须等于该 forward terminal；同 fact 的旧设备迟交不得吸附到新 episode。v3 review 的 `cycle_anchor` 必须逐次精确绑定当前 terminal。旧版无 anchor review 只在完整 legacy episode 内兼容，不能挂到 v3 episode。
+  - pack `journey_state=active|completed|unavailable`；只有 active 允许非空 `current_step_id`，且该步必须是 `current|scheduled`。排程不可用时不得把 unavailable 步骤称为“当前”。
+  - 五题全对时 diagnosis/confirm=`not_applicable`；有错但历史 `fact_id` 或当前安全供给不足时 confirm=`unavailable` 且 non-blocking，禁止按当前题库回填猜测。
+  - `completed` 只表示对应 episode 已有 canonical terminal/receipt，不表示 mastered；讲评完成只表示服务端已签发 canonical feedback，不声称用户已阅读。
+  - learner events 不可用、authority/schema/pack 不匹配时客户端必须显示 unavailable，不得用 `next_step.mode`、本地点击或缓存零值猜 1/2/5。
 
 ---
 

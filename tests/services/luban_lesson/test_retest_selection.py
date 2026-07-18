@@ -114,3 +114,39 @@ def test_review_selection_requires_probe_and_cycle_anchor() -> None:
             supply_kind="signed_variant",
             supply_digest="a" * 64,
         )
+
+
+def test_forward_confirm_selection_binds_parent_terminal_anchor() -> None:
+    token = issue_retest_selection(
+        user_id="qa_eval_selection",
+        pack_id="F16",
+        day_index=2026192,
+        mode="forward",
+        variant_ids=["F16-confirm-1"],
+        supply_kind="signed_variant",
+        supply_digest="a" * 64,
+        cycle_anchor="terminal-forward-1",
+    )
+
+    assert verify_retest_selection(
+        token,
+        user_id="qa_eval_selection",
+        pack_id="F16",
+        day_index=2026192,
+        mode="forward",
+        variant_ids=["F16-confirm-1"],
+        supply_kind="signed_variant",
+        supply_digest="a" * 64,
+        cycle_anchor="terminal-forward-1",
+    )
+    assert not verify_retest_selection(
+        token,
+        user_id="qa_eval_selection",
+        pack_id="F16",
+        day_index=2026192,
+        mode="forward",
+        variant_ids=["F16-confirm-1"],
+        supply_kind="signed_variant",
+        supply_digest="a" * 64,
+        cycle_anchor="terminal-forward-2",
+    )

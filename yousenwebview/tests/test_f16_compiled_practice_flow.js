@@ -59,6 +59,7 @@ function loadPage(options) {
         delete response.projection_receipt;
         delete response.projection_digest;
       }
+      if (options.itemResponse) response = options.itemResponse;
       return Promise.resolve(response);
     },
     completeLubanRetest: function (_packId, payload) {
@@ -96,6 +97,9 @@ function loadPage(options) {
     clearTimeout: clearTimeout,
     require: function (request) {
       if (request === "../../../utils/api") return api;
+      if (request === "../../../utils/retest-receipt") {
+        return require("../packageDeeptutor/utils/retest-receipt");
+      }
       if (request === "../../../utils/surface-telemetry") {
         return {
           trackProductBehavior: function (name, payload) {
@@ -282,6 +286,73 @@ async function answerFive(setup) {
   await answerFive(missingChange);
   assert.strictEqual(missingChange.page.data.syncStatus, "error");
   assert.strictEqual(missingChange.page.data.showReceipt, false, "receipt needs the canonical learning-change projection");
+
+  var wrongConfirmRole = loadPage();
+  wrongConfirmRole.page.onLoad({
+    pack_id: "N01",
+    mode: "forward",
+    confirm_facts: "fact-a",
+    confirm_anchor: "evt-terminal-forward",
+  });
+  await flush();
+  assert.strictEqual(wrongConfirmRole.calls.items[0].confirmAnchor, "evt-terminal-forward");
+  assert.strictEqual(wrongConfirmRole.page.data.items.length, 0,
+    "a confirm session must not render ordinary compiled-forward supply");
+  assert.ok(wrongConfirmRole.page.data.errorText.length > 0);
+  assert.strictEqual(wrongConfirmRole.calls.complete.length, 0,
+    "a transport role mismatch must fail before draft/submit");
+
+  var validConfirmItems = items("N01").map(function (item) {
+    item.probe_role = "immediate_confirm";
+    return item;
+  });
+  var invalidConfirmResponses = [
+    {
+      name: "missing practice source",
+      body: { variant_probe_role: "immediate_confirm", items: validConfirmItems },
+    },
+    {
+      name: "compiled practice source",
+      body: { practice_source: "compiled_html", variant_probe_role: "immediate_confirm", items: validConfirmItems },
+    },
+    {
+      name: "missing top-level role",
+      body: { practice_source: "signed_variant", items: validConfirmItems },
+    },
+    {
+      name: "wrong top-level role",
+      body: { practice_source: "signed_variant", variant_probe_role: "d1_probe", items: validConfirmItems },
+    },
+    {
+      name: "wrong item role",
+      body: {
+        practice_source: "signed_variant",
+        variant_probe_role: "immediate_confirm",
+        items: validConfirmItems.map(function (item, index) {
+          return Object.assign({}, item, { probe_role: index === 2 ? "d1_probe" : "immediate_confirm" });
+        }),
+      },
+    },
+    {
+      name: "empty confirm supply",
+      body: { practice_source: "signed_variant", variant_probe_role: "immediate_confirm", items: [] },
+    },
+  ];
+  for (var invalidIndex = 0; invalidIndex < invalidConfirmResponses.length; invalidIndex++) {
+    var invalidCase = invalidConfirmResponses[invalidIndex];
+    var invalidConfirm = loadPage({ itemResponse: invalidCase.body });
+    invalidConfirm.page.onLoad({
+      pack_id: "N01",
+      mode: "forward",
+      confirm_facts: "fact-a",
+      confirm_anchor: "evt-terminal-forward",
+    });
+    await flush();
+    assert.strictEqual(invalidConfirm.page.data.items.length, 0, invalidCase.name + " must not render");
+    assert.ok(invalidConfirm.page.data.errorText.length > 0, invalidCase.name + " must show an error");
+    assert.strictEqual(invalidConfirm.ownerDraft(), null, invalidCase.name + " must not write a draft");
+    assert.strictEqual(invalidConfirm.calls.complete.length, 0, invalidCase.name + " must not submit");
+  }
 
   console.log("PASS test_f16_compiled_practice_flow.js");
 })().catch(function (error) {

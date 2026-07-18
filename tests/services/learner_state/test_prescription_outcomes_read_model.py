@@ -49,6 +49,83 @@ def _event(
     )
 
 
+def _v3_completion(
+    completion_id: str,
+    *,
+    mode: str,
+    intent_id: str,
+    cycle_anchor: str = "",
+    correct: bool,
+    days_ago: int,
+) -> list[LearnerStateEvent]:
+    request_hash = ("a" if mode == "forward" else "b") * 64
+    status = "verified" if mode == "review" and correct else "not_verified"
+    item = _event(
+        event_id=f"item_{completion_id}",
+        training_intent_id=intent_id,
+        phase="transfer_case" if mode == "forward" else "verification_probe",
+        status=status,
+        score_ratio=1.0 if correct else 0.0,
+        evidence_source="assessment_testset",
+        days_ago=days_ago,
+    )
+    item.source_id = f"{completion_id}:q1"
+    item.payload_json.update(
+        {
+            "retest_completion_id": completion_id,
+            "request_hash": request_hash,
+            "request_hash_version": 3,
+            "practice_mode": mode,
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "question_id": f"q_{completion_id}",
+            "is_correct": correct,
+            "score_awarded": 1.0 if correct else 0.0,
+            "max_score": 1.0,
+            "fact_id": "fact-f16",
+            "probe_role": "anchor",
+            "probe_id": f"probe-{completion_id}" if mode == "review" else "",
+            "cycle_anchor": cycle_anchor,
+            "claim_promotion_allowed": mode == "review",
+        }
+    )
+    terminal = _event(
+        event_id=f"terminal_{completion_id}",
+        training_intent_id=intent_id,
+        phase="transfer_case" if mode == "forward" else "verification_probe",
+        status=status,
+        score_ratio=1.0 if correct else 0.0,
+        evidence_source="assessment_testset",
+        days_ago=days_ago,
+    )
+    terminal.source_id = f"{completion_id}:terminal"
+    terminal.payload_json.update(
+        {
+            "retest_completion_id": completion_id,
+            "completion_terminal": True,
+            "request_hash": request_hash,
+            "request_hash_version": 3,
+            "assessment_type": f"luban_{mode}_completion",
+            "practice_mode": mode,
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "score_awarded": 1.0 if correct else 0.0,
+            "max_score": 1.0,
+            "item_event_refs": [item.event_id],
+            "probe_id": f"probe-{completion_id}" if mode == "review" else "",
+            "cycle_anchor": cycle_anchor,
+            "claim_promotion_allowed": mode == "review",
+            "quality": {
+                "authority": "signed_variant_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "high" if mode == "review" else "medium",
+                "evidence_level": "L2_real_retest" if mode == "review" else "L0_observed",
+            },
+        }
+    )
+    return [item, terminal]
+
+
 def test_verification_probe_with_full_score_marks_verified() -> None:
     outcomes = build_prescription_outcomes_read_projection(
         events=[_event(event_id="evt_verified", score_ratio=1.0)]
@@ -243,3 +320,173 @@ def test_canonical_review_terminal_can_verify_prescription() -> None:
 
     assert outcome["status"] == "verified"
     assert outcome["next_required_action"] == "maintain"
+
+
+def test_closed_forward_terminal_completes_workflow_without_claiming_verified() -> None:
+    item = _event(
+        event_id="evt_forward_item",
+        phase="transfer_case",
+        status="not_verified",
+        score_ratio=0.5,
+        evidence_source="assessment_testset",
+    )
+    item.source_id = "forward:q1"
+    item.payload_json.update(
+        {
+            "retest_completion_id": "forward",
+            "request_hash": "f" * 64,
+            "practice_mode": "forward",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "question_id": "q1",
+            "is_correct": False,
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "claim_promotion_allowed": False,
+        }
+    )
+    terminal = _event(
+        event_id="evt_forward_terminal",
+        phase="transfer_case",
+        status="not_verified",
+        score_ratio=0.0,
+        evidence_source="assessment_testset",
+    )
+    terminal.source_feature = "assessment_testset"
+    terminal.source_id = "forward:terminal"
+    terminal.payload_json.update(
+        {
+            "event_type": "learning_evidence",
+            "evidence_source": "assessment_testset",
+            "retest_completion_id": "forward",
+            "completion_terminal": True,
+            "request_hash": "f" * 64,
+            "assessment_type": "luban_forward_completion",
+            "practice_mode": "forward",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "claim_promotion_allowed": False,
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "item_event_refs": ["evt_forward_item"],
+            "quality": {
+                "authority": "compiled_html_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "medium",
+                "evidence_level": "L0_observed",
+            },
+        }
+    )
+
+    outcome = build_prescription_outcomes_read_projection(
+        events=[item, terminal]
+    )[0]
+
+    assert outcome["status"] == "completed"
+    assert outcome["next_required_action"] == "wait_for_due_verification"
+
+
+def test_immediate_confirm_alone_cannot_close_generic_practice() -> None:
+    item = _event(
+        event_id="evt_confirm_item",
+        phase="transfer_case",
+        status="not_verified",
+        score_ratio=1.0,
+        evidence_source="assessment_testset",
+    )
+    item.source_id = "confirm:q1"
+    item.payload_json.update(
+        {
+            "retest_completion_id": "confirm",
+            "request_hash": "c" * 64,
+            "practice_mode": "forward",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "question_id": "q1",
+            "is_correct": True,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "fact_id": "fact-f16",
+            "probe_role": "immediate_confirm",
+            "claim_promotion_allowed": False,
+        }
+    )
+    terminal = _event(
+        event_id="evt_confirm_terminal",
+        phase="transfer_case",
+        status="not_verified",
+        score_ratio=1.0,
+        evidence_source="assessment_testset",
+    )
+    terminal.source_id = "confirm:terminal"
+    terminal.payload_json.update(
+        {
+            "retest_completion_id": "confirm",
+            "completion_terminal": True,
+            "request_hash": "c" * 64,
+            "assessment_type": "luban_forward_completion",
+            "practice_mode": "forward",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "claim_promotion_allowed": False,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "item_event_refs": ["evt_confirm_item"],
+            "quality": {
+                "authority": "signed_variant_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "medium",
+                "evidence_level": "L0_observed",
+            },
+        }
+    )
+
+    outcome = build_prescription_outcomes_read_projection(events=[item, terminal])[0]
+    assert outcome["status"] == "assigned"
+    assert outcome["next_required_action"] == "complete_verification_probe"
+
+
+def test_v3_review_with_wrong_global_cycle_anchor_cannot_verify_probe_intent() -> None:
+    forward = _v3_completion(
+        "forward",
+        mode="forward",
+        intent_id="intent-forward",
+        correct=False,
+        days_ago=1,
+    )
+    review = _v3_completion(
+        "review",
+        mode="review",
+        intent_id="probe-review",
+        cycle_anchor="terminal-from-another-episode",
+        correct=True,
+        days_ago=0,
+    )
+
+    by_intent = {
+        row["training_intent_id"]: row
+        for row in build_prescription_outcomes_read_projection(events=[*forward, *review])
+    }
+    assert by_intent["probe-review"]["status"] == "not_verified"
+    assert by_intent["probe-review"]["next_required_action"] == "complete_verification_probe"
+
+
+@pytest.mark.parametrize(
+    ("status", "expected"),
+    [
+        ("assigned", True),
+        ("in_progress", True),
+        ("needs_followup", True),
+        ("completed", False),
+        ("not_verified", False),
+        ("verified", False),
+    ],
+)
+def test_active_practice_predicate_only_accepts_unfinished_workflow(
+    status: str, expected: bool
+) -> None:
+    from deeptutor.services.learner_state.prescription_outcome_read_model import (
+        requires_active_practice,
+    )
+
+    assert requires_active_practice({"status": status}) is expected

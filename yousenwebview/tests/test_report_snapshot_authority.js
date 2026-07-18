@@ -142,5 +142,50 @@ var builtEmptySources = reportSnapshot.buildUnifiedReportSnapshot({
 assert.strictEqual(builtEmptySources.homeDashboard, null, "settled-to-{} dashboard normalizes to null");
 assert.strictEqual(builtEmptySources.lessons, null, "settled-to-{} lessons normalizes to null");
 
+// 学习页 live admission 必须验证三路业务体，而不是把 HTTP 200/空对象当真相。
+var validDashboard = {
+  learner_settings: {},
+  review: {},
+  mastery: {},
+  today: {},
+  next_step: {
+    mode: "learn_next",
+    source_authority: "home-next-step-projection",
+    source_ref: "pack:c04",
+    reason: "canonical next station",
+  },
+};
+var validLessons = { pack_universe: 1, lessons: [{ pack_id: "c04" }] };
+assert.strictEqual(reportSnapshot.isHomeDashboardPayload({}), false);
+assert.strictEqual(reportSnapshot.isHomeDashboardPayload(validDashboard), true);
+var validFallbackDashboard = JSON.parse(JSON.stringify(validDashboard));
+validFallbackDashboard.next_step.mode = "learn_fallback";
+validFallbackDashboard.next_step.source_authority = "pack_manifest.registry_order";
+assert.strictEqual(reportSnapshot.isHomeDashboardPayload(validFallbackDashboard), true,
+  "canonical all-learned fallback remains a valid live dashboard mode");
+assert.strictEqual(reportSnapshot.isLubanLessonsPayload({ lessons: [] }), false,
+  "missing pack_universe cannot enter the live projection");
+assert.strictEqual(reportSnapshot.isLubanLessonsPayload(validLessons), true);
+assert.strictEqual(reportSnapshot.isCompleteLearnSnapshot({
+  report: validReport,
+  homeDashboard: validDashboard,
+  lessons: validLessons,
+}), true);
+assert.strictEqual(reportSnapshot.isCompleteLearnSnapshot({
+  report: validReport,
+  homeDashboard: {},
+  lessons: validLessons,
+}), false, "partial cached triples must not hydrate the actionable learning page");
+var arrayReport = JSON.parse(JSON.stringify(validReport));
+arrayReport.overview = [];
+arrayReport.freshness = [];
+arrayReport.learning_brain = [];
+assert.strictEqual(reportSnapshot.isLearningReportPayload(arrayReport), false,
+  "array-shaped nested fields must not enter live/cache as objects");
+var stringSchemaReport = JSON.parse(JSON.stringify(validReport));
+stringSchemaReport.schema_version = "2";
+assert.strictEqual(reportSnapshot.isLearningReportPayload(stringSchemaReport), false,
+  "schema identity is an integer contract, not a coercible string");
+
 delete global.wx;
 console.log("test_report_snapshot_authority: all assertions passed");

@@ -7,19 +7,62 @@ var taxonomy = require("./taxonomy");
 
 function isLearningReportPayload(value) {
   var authority = value && value.authority;
-  var schemaVersion = Number(value && value.schema_version);
+  var schemaVersion = value && value.schema_version;
+  var isPlainObject = function (item) {
+    return !!item && typeof item === "object" && !Array.isArray(item);
+  };
+  return Boolean(
+    isPlainObject(value) &&
+      (schemaVersion === 1 || schemaVersion === 2) &&
+      isPlainObject(authority) &&
+      authority.read_model === "learning-report-read-model" &&
+      isPlainObject(value.overview) &&
+      isPlainObject(value.freshness) &&
+      isPlainObject(value.learning_brain),
+  );
+}
+
+function isHomeDashboardPayload(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  var requiredObjects = ["learner_settings", "review", "mastery", "today"];
+  if (requiredObjects.some(function (key) {
+    return !value[key] || typeof value[key] !== "object" || Array.isArray(value[key]);
+  })) return false;
+  if (value.next_step == null) return true;
+  var step = value.next_step;
+  var mode = String((step && step.mode) || "");
+  if (
+    !step ||
+    typeof step !== "object" ||
+    ["learn_next", "practice_active", "review_due", "learn_fallback"].indexOf(mode) < 0 ||
+    !String(step.source_authority || "").trim() ||
+    !String(step.source_ref || "").trim() ||
+    !("reason" in step)
+  ) return false;
+  if (
+    (mode === "practice_active" || mode === "review_due") &&
+    !String(step.target_pack_id || "").trim()
+  ) return false;
+  return true;
+}
+
+function isLubanLessonsPayload(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  if (!Array.isArray(value.lessons)) return false;
+  var universe = value.pack_universe;
+  if (!Number.isInteger(universe) || universe <= 0) return false;
+  return value.lessons.every(function (row) {
+    return row && typeof row === "object" && !!String(row.pack_id || "").trim();
+  });
+}
+
+function isCompleteLearnSnapshot(value) {
   return Boolean(
     value &&
       typeof value === "object" &&
-      (schemaVersion === 1 || schemaVersion === 2) &&
-      authority &&
-      authority.read_model === "learning-report-read-model" &&
-      value.overview &&
-      typeof value.overview === "object" &&
-      value.freshness &&
-      typeof value.freshness === "object" &&
-      value.learning_brain &&
-      typeof value.learning_brain === "object",
+      isLearningReportPayload(value.report) &&
+      isHomeDashboardPayload(value.homeDashboard) &&
+      isLubanLessonsPayload(value.lessons),
   );
 }
 
@@ -114,6 +157,9 @@ function buildUnifiedReportSnapshot(input) {
 
 module.exports = {
   isLearningReportPayload: isLearningReportPayload,
+  isHomeDashboardPayload: isHomeDashboardPayload,
+  isLubanLessonsPayload: isLubanLessonsPayload,
+  isCompleteLearnSnapshot: isCompleteLearnSnapshot,
   learningReportDegradedSources: learningReportDegradedSources,
   chapterMasteryFromRadar: chapterMasteryFromRadar,
   buildUnifiedReportSnapshot: buildUnifiedReportSnapshot,

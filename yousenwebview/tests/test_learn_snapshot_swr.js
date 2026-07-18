@@ -43,13 +43,36 @@ function validReport(userId) {
   };
 }
 
+function validDashboard(tag) {
+  return {
+    tag: tag || "dashboard",
+    learner_settings: {},
+    review: {},
+    mastery: {},
+    today: {},
+    next_step: {
+      mode: "learn_next",
+      source_authority: "home-next-step-projection",
+      source_ref: "pack:c04",
+      reason: "canonical next station",
+      target_pack_id: "c04",
+    },
+  };
+}
+
+function validLessons(tag) {
+  return {
+    tag: tag,
+    pack_universe: 1,
+    lessons: [{ pack_id: "c04" }],
+  };
+}
+
 function cachedSnapshotFixture() {
   return {
     report: validReport("u1"),
-    // builder 会把空对象 homeDashboard/lessons 归一化为 null——快照里可能
-    // 存的是 null,消费侧(learn.js hydrate)必须 || {} 兜底,这里故意放 null。
-    homeDashboard: null,
-    lessons: { tag: "cached", lessons: [] },
+    homeDashboard: validDashboard("cached"),
+    lessons: validLessons("cached"),
   };
 }
 
@@ -169,12 +192,12 @@ function requestCount(state) {
   assert.strictEqual(ta.state.reads[0].userId, "u1", "cache read must be owner-scoped to the current user");
   assert.strictEqual(ta.state.reads[0].maxAgeMs, 30 * 60 * 1000, "cache read must use SNAPSHOT_MAX_AGE_MS");
   // lessons 快通道在已有 vm 时不做部分回退(既有语义,顺带守住)
-  ta.state.lessons[0].resolve({ tag: "fastlane", lessons: [] });
+  ta.state.lessons[0].resolve(validLessons("fastlane"));
   await flush();
   assert.strictEqual(ta.page.data.vm.marker, "cached", "lessons fast lane must not partially overwrite a hydrated vm");
 
   // ── (c) hydrate 后刷新成功:写侧经真 builder 组装,writeIfFresher 带发起时刻 ──
-  ta.state.dashboards[0].resolve({ dash: 2 });
+  ta.state.dashboards[0].resolve(validDashboard("live"));
   ta.state.reports[0].resolve(validReport("u1"));
   await flush();
   await flush();
@@ -193,7 +216,7 @@ function requestCount(state) {
   var tc = loadLearn({ cache: null });
   tc.page.onLoad({});
   assert.strictEqual(tc.page.data.loading, true, "no cache → loading stays until network settles");
-  tc.state.lessons[0].resolve({ tag: "net", lessons: [] });
+  tc.state.lessons[0].resolve(validLessons("net"));
   tc.state.dashboards[0].resolve({});
   tc.state.reports[0].resolve({}); // 空对象过不了 isLearningReportPayload
   await flush();
@@ -218,8 +241,8 @@ function requestCount(state) {
   tb.page.onShow();
   await flush();
   assert.strictEqual(requestCount(tb.state), 6, "subsequent onShow must re-load (always silent refresh, no force plumbing)");
-  tb.state.lessons[1].resolve({ tag: "after-action", lessons: [] });
-  tb.state.dashboards[1].resolve({});
+  tb.state.lessons[1].resolve(validLessons("after-action"));
+  tb.state.dashboards[1].resolve(validDashboard("after-action"));
   tb.state.reports[1].resolve(validReport("u1"));
   await flush();
   await flush();
@@ -231,8 +254,8 @@ function requestCount(state) {
   td.page.onLoad({});
   assert.strictEqual(requestCount(td.state), 3, "load must always fire the three requests");
   td.state.currentUserId = "u2"; // 在途期间用户切换(孤儿响应的用户维)
-  td.state.lessons[0].resolve({ tag: "orphan", lessons: [] });
-  td.state.dashboards[0].resolve({});
+  td.state.lessons[0].resolve(validLessons("orphan"));
+  td.state.dashboards[0].resolve(validDashboard("orphan"));
   td.state.reports[0].resolve(validReport("u1"));
   await flush();
   await flush();
