@@ -39,7 +39,8 @@
         </view>
       </view>
 
-      <block wx:if="{{!isGuestPreview}}">
+      <!-- 游客也渲染完整 10e 模块结构(空态口径),兑现 guest 卡「当前只展示模块结构」
+           的承诺;唯一被登录门挡住的是行动键(游客的行动=guest 卡上的快速登录)。 -->
 
       <!-- ① 轻量诊断卡:风险档位词(非精确百分比)+ 主要差距 + 进步叙述,折叠单版式 -->
       <view class="lr-card lr-diag-card">
@@ -152,8 +153,9 @@
         </view>
       </view>
 
-      <!-- ⑥ 全页唯一行动键:把诊断喂回本周计划(深链学习页) -->
-      <view class="lr-absorb-btn" bindtap="absorbDiagnosisIntoPlan" hover-class="lr-absorb-pressed" aria-role="button">
+      <!-- ⑥ 全页唯一行动键:把诊断喂回本周计划(深链学习页);游客不展示,
+           避免未登录深链空路线(游客的行动键=guest 卡快速登录) -->
+      <view class="lr-absorb-btn" wx:if="{{!isGuestPreview}}" bindtap="absorbDiagnosisIntoPlan" hover-class="lr-absorb-pressed" aria-role="button">
         <text>去提分路线查看诊断建议</text>
       </view>
 
@@ -162,7 +164,6 @@
         <text>我们不给你假绿——考过换皮变体才算数。</text>
       </view>
 
-      </block>
       </block>
 
       <!-- Batch C Task 8: today prescription + 3-layer learning state + scoring point map -->
