@@ -303,8 +303,8 @@ def test_probe_claim_is_atomic_across_transactions_and_winner_can_resume(
         assert other_pending["request_hash"] == "b" * 64
         assert conflict["status"] == "conflict"
 
-        canonical_anchor = "550e8400e29b41d4a716446655440000"
-        hyphen_anchor = "550E8400-E29B-41D4-A716-446655440000"
+        canonical_anchor = "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa"
+        hyphen_anchor = "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA"
         legacy_cases = [
             ("probe-legacy-hyphen", hyphen_anchor, canonical_anchor),
             ("probe-legacy-compact", canonical_anchor, hyphen_anchor),

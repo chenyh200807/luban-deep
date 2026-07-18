@@ -238,12 +238,12 @@ def test_confirm_then_d1_then_followup_use_chained_canonical_terminals() -> None
     ("stored_item_id", "item_ref"),
     [
         (
-            "550e8400-e29b-41d4-a716-446655440000",
-            "550E8400E29B41D4A716446655440000",
+            "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            "AAAAAAAAAAAA4AAA8AAAAAAAAAAAAAAA",
         ),
         (
-            "550e8400e29b41d4a716446655440000",
-            "550E8400-E29B-41D4-A716-446655440000",
+            "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa",
+            "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
         ),
     ],
 )
@@ -261,13 +261,13 @@ def test_item_event_refs_bind_across_uuid_representations(
 
 def test_cycle_anchor_and_terminal_identity_bind_across_uuid_representations() -> None:
     forward = _completion("uuidforward", at="2026-07-18T09:00:00+08:00")
-    forward[1].event_id = "550e8400-e29b-41d4-a716-446655440000"
+    forward[1].event_id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
     confirm = _completion(
         "uuidconfirm",
         at="2026-07-18T09:05:00+08:00",
         correct=True,
         probe_role="immediate_confirm",
-        cycle_anchor="550E8400E29B41D4A716446655440000",
+        cycle_anchor="AAAAAAAAAAAA4AAA8AAAAAAAAAAAAAAA",
     )
 
     statuses = _statuses(_journey([*forward, *confirm]))
@@ -276,7 +276,7 @@ def test_cycle_anchor_and_terminal_identity_bind_across_uuid_representations() -
     assert validate_immediate_confirm_parent(
         forward,
         pack_id="N01",
-        parent_terminal_id="550E8400E29B41D4A716446655440000",
+        parent_terminal_id="AAAAAAAAAAAA4AAA8AAAAAAAAAAAAAAA",
         fact_ids={"fact-n01"},
     ) is True
 

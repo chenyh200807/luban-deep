@@ -676,12 +676,12 @@ def test_review_replay_succeeds_after_original_probe_is_no_longer_due() -> None:
     ("selection_anchor", "due_anchor"),
     [
         (
-            "550E8400-E29B-41D4-A716-446655440000",
-            "550e8400e29b41d4a716446655440000",
+            "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
+            "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa",
         ),
         (
-            "550E8400E29B41D4A716446655440000",
-            "550e8400-e29b-41d4-a716-446655440000",
+            "AAAAAAAAAAAA4AAA8AAAAAAAAAAAAAAA",
+            "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
         ),
     ],
 )

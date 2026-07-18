@@ -172,13 +172,13 @@ def _make_service(tmp_path, *, core_store=None):
 @pytest.mark.parametrize(
     "raw",
     [
-        "550e8400-e29b-41d4-a716-446655440000",
-        "550E8400E29B41D4A716446655440000",
-        "550E8400-E29B-41D4-A716-446655440000",
+        "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "AAAAAAAAAAAA4AAA8AAAAAAAAAAAAAAA",
+        "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
     ],
 )
 def test_canonical_event_id_unifies_uuid_forms(raw: str) -> None:
-    assert canonical_event_id(raw) == "550e8400e29b41d4a716446655440000"
+    assert canonical_event_id(raw) == "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa"
 
 
 def test_canonical_event_id_preserves_trimmed_opaque_identity() -> None:
@@ -826,7 +826,7 @@ def test_exact_local_read_matches_hyphenated_uuid_by_canonical_identity(tmp_path
     event_path.write_text(
         json.dumps(
             {
-                "event_id": "550E8400-E29B-41D4-A716-446655440000",
+                "event_id": "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
                 "user_id": "student_demo",
                 "source_feature": "construction_grading",
                 "source_id": "turn:local-uuid",
@@ -845,11 +845,11 @@ def test_exact_local_read_matches_hyphenated_uuid_by_canonical_identity(tmp_path
     )
 
     event = service.read_learning_evidence_event(
-        "student_demo", "550e8400e29b41d4a716446655440000"
+        "student_demo", "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa"
     )
 
     assert event is not None
-    assert event.event_id == "550e8400e29b41d4a716446655440000"
+    assert event.event_id == "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa"
 
 
 def test_read_learning_evidence_event_remote_first_when_configured(tmp_path) -> None:
@@ -877,7 +877,7 @@ def test_read_learning_evidence_event_remote_first_when_configured(tmp_path) -> 
 
 
 def test_exact_learning_evidence_read_uses_one_canonical_input_identity(tmp_path) -> None:
-    canonical_id = "550e8400e29b41d4a716446655440000"
+    canonical_id = "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa"
 
     class CanonicalReaderStore(_CoreStoreStub):
         def __init__(self) -> None:
@@ -887,7 +887,7 @@ def test_exact_learning_evidence_read_uses_one_canonical_input_identity(tmp_path
         def read_learning_evidence_event(self, user_id: str, event_id: str):
             self.read_ids.append(event_id)
             return {
-                "event_id": "550E8400-E29B-41D4-A716-446655440000",
+                "event_id": "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
                 "user_id": user_id,
                 "source_feature": "construction_grading",
                 "source_id": "turn:remote",
@@ -905,10 +905,10 @@ def test_exact_learning_evidence_read_uses_one_canonical_input_identity(tmp_path
     service = _make_service(tmp_path, core_store=store)
 
     first = service.read_learning_evidence_event(
-        "student_demo", "550e8400-e29b-41d4-a716-446655440000"
+        "student_demo", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
     )
     second = service.read_learning_evidence_event(
-        "student_demo", "550E8400E29B41D4A716446655440000"
+        "student_demo", "AAAAAAAAAAAA4AAA8AAAAAAAAAAAAAAA"
     )
 
     assert first == second
@@ -934,7 +934,7 @@ def test_local_remote_uuid_replicas_are_idempotent_and_reads_do_not_write(
     )
     local_path = tmp_path / "learner_state" / "student_demo" / "MEMORY_EVENTS.jsonl"
     local_row = json.loads(local_path.read_text(encoding="utf-8"))
-    local_row["event_id"] = "550e8400e29b41d4a716446655440000"
+    local_row["event_id"] = "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa"
     local_row["created_at"] = "2026-07-19T08:00:00+08:00"
     local_row["payload_json"]["numeric_round_trip"] = {
         "score": 1,
@@ -942,7 +942,7 @@ def test_local_remote_uuid_replicas_are_idempotent_and_reads_do_not_write(
     }
     local_path.write_text(json.dumps(local_row, ensure_ascii=False) + "\n", encoding="utf-8")
     remote_z = json.loads(json.dumps(local_row))
-    remote_z["event_id"] = "550E8400-E29B-41D4-A716-446655440000"
+    remote_z["event_id"] = "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA"
     remote_z["created_at"] = "2026-07-19T00:00:00Z"
     remote_z["payload_json"]["numeric_round_trip"] = {
         "score": 1.0,
@@ -958,7 +958,7 @@ def test_local_remote_uuid_replicas_are_idempotent_and_reads_do_not_write(
     second = service.list_learning_evidence_events("student_demo", limit=20)
 
     assert [event.event_id for event in first] == [
-        "550e8400e29b41d4a716446655440000"
+        "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa"
     ]
     assert second == first
     assert local_path.read_bytes() == before_bytes
@@ -1059,10 +1059,10 @@ def test_conflicting_uuid_replicas_fail_closed_and_warn(
     )
     event_path = tmp_path / "learner_state" / "student_demo" / "MEMORY_EVENTS.jsonl"
     local_row = json.loads(event_path.read_text(encoding="utf-8"))
-    local_row["event_id"] = "550e8400e29b41d4a716446655440000"
+    local_row["event_id"] = "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa"
     event_path.write_text(json.dumps(local_row, ensure_ascii=False) + "\n", encoding="utf-8")
     remote = dict(local_row)
-    remote["event_id"] = "550E8400-E29B-41D4-A716-446655440000"
+    remote["event_id"] = "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA"
     remote["payload_json"] = {"event_type": "learning_evidence", "question_id": "q-remote"}
     store.memory_events = [remote]
     monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
@@ -1088,11 +1088,11 @@ def test_claim_retest_probe_canonicalizes_cycle_anchor(tmp_path) -> None:
     assert service.claim_retest_probe(
         user_id="student_demo",
         probe_id="probe-1",
-        cycle_anchor="550E8400-E29B-41D4-A716-446655440000",
+        cycle_anchor="AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
         completion_id="completion-1",
         request_hash="request-hash",
     ) == {"status": "acquired"}
-    assert store.claim["cycle_anchor"] == "550e8400e29b41d4a716446655440000"
+    assert store.claim["cycle_anchor"] == "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa"
 
 
 def test_learner_state_synthesize_learning_truth_dry_run_does_not_enqueue(tmp_path) -> None:
