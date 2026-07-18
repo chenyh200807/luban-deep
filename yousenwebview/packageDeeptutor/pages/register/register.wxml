@@ -1,4 +1,4 @@
-<view class="scene {{isDark?'':'light'}}">
+<view class="scene paper light">
   <view class="sky-wash"></view>
   <view class="page-shell">
     <scroll-view class="body" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="padding-top:{{statusBarHeight}}px">

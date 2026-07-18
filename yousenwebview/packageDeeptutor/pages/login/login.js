@@ -959,14 +959,15 @@ Page({
       (Math.abs(orbs[0].x - orbs[2].x) + Math.abs(orbs[1].y - orbs[0].y)) /
       (sc.width * 0.9);
     var wo = Math.max(0.86, Math.min(1.04, 1.04 - sp * 0.18));
+    // 动态天光改纸墨暖调(几何/呼吸不变):暖纸光+赭金+竹青+朱红微洇,原蓝系内联会压过 wxss
     var sky =
       "background:radial-gradient(circle at " +
       (gx * 100).toFixed(1) +
       "% " +
       Math.min(34, gy * 72).toFixed(1) +
-      "%,rgba(245,249,255,0.54) 0%,rgba(164,201,255,0.34) 16%,rgba(70,128,255,0.16) 34%,transparent 62%),radial-gradient(circle at " +
+      "%,rgba(255,253,248,0.6) 0%,rgba(233,229,215,0.4) 16%,rgba(201,159,61,0.1) 34%,transparent 62%),radial-gradient(circle at " +
       Math.max(22, gx * 80).toFixed(1) +
-      "% 16%,rgba(72,128,255,0.42) 0%,rgba(72,128,255,0.14) 26%,transparent 58%),radial-gradient(circle at 86% 62%,rgba(67,124,255,0.24) 0%,rgba(67,124,255,0.1) 22%,transparent 46%),linear-gradient(180deg,rgba(27,64,158,0.12) 0%,rgba(7,12,24,0) 64%);opacity:" +
+      "% 16%,rgba(72,128,106,0.16) 0%,rgba(72,128,106,0.06) 26%,transparent 58%),radial-gradient(circle at 86% 62%,rgba(207,68,54,0.06) 0%,rgba(207,68,54,0.03) 22%,transparent 46%),linear-gradient(180deg,rgba(38,36,31,0.05) 0%,rgba(38,36,31,0) 64%);opacity:" +
       wo.toFixed(3) +
       ";";
     var lo = orbs[0];
