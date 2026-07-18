@@ -20,7 +20,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "a01.practice.authority.json",
-    "authority_sha256": "38831c6689a8988a39116f947bb9e7678d9fe9e9bc0a5ad04588e95d6de262fc",
+    "authority_sha256": "d9c290f8f4f8821d65bf3218aca75cb1da2c21e7c2d88bee02899098f37b57fd",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -56,7 +56,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "a02.practice.authority.json",
-    "authority_sha256": "c80def34ef16712ef37510bb5bd8513e6e1c93bc909b50395b52608738b58a6c",
+    "authority_sha256": "de605ad9c6b2f2303290b46acafc1dd855fb28f647676a1241945d9e0b34d883",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -92,7 +92,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "b02.practice.authority.json",
-    "authority_sha256": "f6751ca0bc36f874dbc642bdcf7dfeadd3e0218b12b0cf867d9b0ac9f2c61855",
+    "authority_sha256": "06277b6ade402ded3aa3017b864a6e1ccb7ad76d66f893ccaa667b06d6abdecb",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -128,7 +128,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "c01.practice.authority.json",
-    "authority_sha256": "82e8c08ea3f62723c062ceeff6aacd8adf617b2f2e08f00a32ba114f4c6927b5",
+    "authority_sha256": "752eb604b0f955f51b760279a4d9fad297279b9eb7cb02e0d42d3628d1069215",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -164,7 +164,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "c02.practice.authority.json",
-    "authority_sha256": "44eed511d63a6992b60c8a3b5e8b53f5874c37491ca3d3e8a6a7758d148ae000",
+    "authority_sha256": "e1f6b94ed0af5b63545264539bdff16c0f71f39faa73c33c3bc7fb4c4ec089e5",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -200,7 +200,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "c04.practice.authority.json",
-    "authority_sha256": "c055d7da7f327d1724da4fc7439aad18b43e888245f3fa005c366a7fb248ec60",
+    "authority_sha256": "9969932f8cd495fb736b0018ead1388bfbb4c5a4c0f4bc3db2fb8851fec2be1f",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -236,7 +236,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "c05.practice.authority.json",
-    "authority_sha256": "0d7173d5703d7451b5ca3a3704f173536bd67534eb69cda9c381d527e55b5a32",
+    "authority_sha256": "b683376edf529b5a6fe8f5801b9783ebd09e57e11d5f75cd2a7c218ee4a48186",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -273,7 +273,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "c06.practice.authority.json",
-    "authority_sha256": "5de834fa71590d8094df8d9b9f7901ad5ad2f56600ddda807c6449aade75ba28",
+    "authority_sha256": "12425baaedb43cfb99655428e6625fb66579ccd305d6d32b8c2d64149201f64b",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -310,7 +310,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "c07.practice.authority.json",
-    "authority_sha256": "d716f562d809e8586c4db9c280ca72cc617c6e1c48c7ef5de9715137583a8570",
+    "authority_sha256": "024cfc62bb1a69272d6b6f9744def63625b82b958b22b909ff9399168073cdf2",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -346,7 +346,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "d11.practice.authority.json",
-    "authority_sha256": "ba75a3430c6ae0bb2295431103b83695bd7923cbfd2376aaa9b86eff2af2038a",
+    "authority_sha256": "632be40b7b353f74cec8c3eb6bf3785ac0d64b4e8b6af5a673cfbb6319eb055a",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -382,7 +382,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "d12.practice.authority.json",
-    "authority_sha256": "567adeee555ad419fe0b63e34c5839a009c8a21b4755830e021201a65067c54a",
+    "authority_sha256": "d9e913013101c33c5234e89705fb9a48838ac869b195897a6ad55c3b0772f66c",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -418,7 +418,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "d13.practice.authority.json",
-    "authority_sha256": "6285f68a71468caad0d2cfbea1f5f577b03a50f565e523af77eb9decae4bc053",
+    "authority_sha256": "9638f527a9cda5a249239b9e2ddb5dff98063d38121b8341be36416ec29736fa",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -454,7 +454,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "d14.practice.authority.json",
-    "authority_sha256": "33b985f9e3fac4471fea0f2217979b6c6a6cce1577c41cd6ff03ee267f264e78",
+    "authority_sha256": "013cde79312ff6f810fe16ef1cfca0a26322f908d0d64de8ed91239f806d4c0d",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -514,7 +514,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "e05.practice.authority.json",
-    "authority_sha256": "4c26cb704ea48036fa68e820fee7ff84c1397a07dd031471247cd69d2ba2f79f",
+    "authority_sha256": "372b6ee68547fb2c66b7ee46d941ec6ecb23454d90c3181c272084c8b814dd60",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -550,7 +550,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "f02.practice.authority.json",
-    "authority_sha256": "b305ea78dc0508e219664643d76c0e25c92134b631966438ee246d8ab2fd2dad",
+    "authority_sha256": "059a44c4ac5ade4472997236938afcd383ef63a23fe22d91287aa27cd94d5115",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -586,7 +586,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "f03.practice.authority.json",
-    "authority_sha256": "1b5f7cc56e3c623315bdd3b917dbcffe0bf085e464ecbe7af348604905eebec2",
+    "authority_sha256": "5d577d0b5868a69cf2fc9ee860547f6686215834352f28ecfa7bc57bcde1cb3b",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -623,7 +623,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "f04.practice.authority.json",
-    "authority_sha256": "f601b0641efd8ea649e7f4c34467048f093e283a10b8068a7d8f11dbc6eb79c5",
+    "authority_sha256": "26622401829c9d2b82d51c2d987f92d04d875de82c22ca5965c1e5eae78f92ee",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -660,7 +660,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "f05.practice.authority.json",
-    "authority_sha256": "da28ea06974abc298cfdd42a0440320cdb6cb3f508158fa1bc361d897832bb06",
+    "authority_sha256": "cd0b32e9ecbdedd6fadf241f703699939e53a723167d29322bff18779d2b77cf",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -696,7 +696,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "f16.practice.authority.json",
-    "authority_sha256": "ae5b9133c8d90eb660b7d73a7234a9b192364332d8e744343411e41a24da3d24",
+    "authority_sha256": "4b9827e0adfe3b88e0ddbf741af66f22ac2374d7fa2175d501403bb06b08fa7c",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -732,7 +732,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "g01.practice.authority.json",
-    "authority_sha256": "aac924d868be3d7a8fe5ff7137c71db3bf8161eb9c4c486f0d585bd87ed9d413",
+    "authority_sha256": "b5f4b6e3b8d02224f289865e2943f90414affa2759bd2179d194a23358c61ae0",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -768,7 +768,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "g02.practice.authority.json",
-    "authority_sha256": "5711a897310ea313dea2a14966c54bd55dbec2000d69e6a9b679fcb04ed2c4a5",
+    "authority_sha256": "75e85bfb5caa5bf2e4f74aa66862085978f523b240841c23726e0c49a515b776",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -804,7 +804,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "g03.practice.authority.json",
-    "authority_sha256": "3903d582c71e9099db7d7a21fbf6ea518aa126d6422d54da1f0fcf29ae0cefd3",
+    "authority_sha256": "65a9904c4261f496eb350a3ef28fa6f3904aa8642635a19f0ba302af9ae6700c",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -840,7 +840,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "g04.practice.authority.json",
-    "authority_sha256": "ad8990dd42a1d8ddb9bf3c35026b6266fe55fb11d5eda15fab3f97195b4f5c49",
+    "authority_sha256": "05fa3995d6f2f7f0339be61edf90814e2a7386b6463d4c3ad082daf254b6e93c",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -876,7 +876,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "j01.practice.authority.json",
-    "authority_sha256": "91facc2f6a49458470436acee49acd095a88506cbd164991bfb9038637b415f6",
+    "authority_sha256": "246a34577a3c860c227a4a36865342c5748b848d4a5cb1dc99bfbe4db8159c28",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -912,7 +912,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "k01.practice.authority.json",
-    "authority_sha256": "f4025de1928b9da2f1e7f155ef023414b0d8a47f8df872e92db31d2d00dc92a1",
+    "authority_sha256": "02a15f89804dacb6596ef24f9b2fc97b3a0eb93f405a5c85a71d5e958ba4fa8b",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -946,12 +946,12 @@
    "needs_leaf_review": false,
    "pack_id": "N01",
    "practice": {
-    "anchors_ready": true,
+    "anchors_ready": false,
     "authority_path": "n01.practice.authority.json",
-    "authority_sha256": "45bf3491c66ae85b65599896066c7ccd65626d7150566ecb94e20fa6594d7279",
+    "authority_sha256": "de645ebbe557020d2e421a94a8f3bef8e23411645ba40d78b1846711d53cd850",
     "complete_fact_count": 1,
-    "eligibility_status": "eligible",
-    "eligible_question_count": 7,
+    "eligibility_status": "pending_review",
+    "eligible_question_count": 6,
     "question_count": 16,
     "revoked_question_count": 0,
     "source_bundle_sha256": "0f29e07b665daee24732f088dc920addc515aa5ff187d97ec5acd8f980173360",
@@ -984,7 +984,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "n02.practice.authority.json",
-    "authority_sha256": "978963a7b2a71245e4f16857400f05ae464bf316725712bccd6a8064748934a4",
+    "authority_sha256": "9b2fbaa2ace20401f2839b42cd5490d15640bdcc6ceed186717e925cabf6906b",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1020,7 +1020,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "n03.practice.authority.json",
-    "authority_sha256": "09aa75f53495988d0f1e9524ea89d893be7b4fa5ad0740c66f99e3d3e8dd72e0",
+    "authority_sha256": "5024c4d2d5bf74c222dad98c4358583359ee45c4d4b917b29d2cf911da11723d",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1056,7 +1056,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "q01.practice.authority.json",
-    "authority_sha256": "c029074370004b5e0283a54fc3632cc4341e79c8be5a65166461436c250d6541",
+    "authority_sha256": "a318cf7dabbc78e4c8b3b265df619e21525c9bf8d8f418c9c2147b1bb5233765",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1092,7 +1092,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "q02.practice.authority.json",
-    "authority_sha256": "34c837f9551e406b38859cadd9d4c6318cbbb426509d5263fcd6ccbcb50c1294",
+    "authority_sha256": "2453219f36a1450d747e5d7d7177550690e82a43563b81f833d8a2adc7a57d9d",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1129,7 +1129,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "q03.practice.authority.json",
-    "authority_sha256": "fbb8d356adedcba026ead3234157369e8e8f15f0800cc10c4447dcca58c0e431",
+    "authority_sha256": "5df45f4cc29e143810e75dc357029c8124cfd6b1494e331396177f6724911287",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1166,7 +1166,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "r01.practice.authority.json",
-    "authority_sha256": "770664a146201e0271b98f6e0fc25b30a7e57a23654bff141fe8ca075a0fe7de",
+    "authority_sha256": "9f133d2eefdb1357411b772023c8b52a003961170c1405257bf64817303ec5b6",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1202,7 +1202,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "s01.practice.authority.json",
-    "authority_sha256": "4f6017cecec08af99e1c30f2d8446bf21dc1356fe4ae75c079eb473a7f134d70",
+    "authority_sha256": "2d73f67895aebc22fa6db7f819c5ea0fc6b596d9512670d0cdece301bfec8f90",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1238,7 +1238,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "s02.practice.authority.json",
-    "authority_sha256": "5a273f17b4e53ce8e8b785aeca7d023b84dca875ce3e81acb6810e6624b174ae",
+    "authority_sha256": "1952dc98707e1bd547ebd3823f8af5261bb0b745ede4545e35de5e46c7a0b977",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1274,7 +1274,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "s05.practice.authority.json",
-    "authority_sha256": "4488e400b634eef86da74de99018aba80e685c82905c27a744e60230e54cc1cf",
+    "authority_sha256": "d73e31d5d20ad69047d97c9796b95bbcc4883d9d39f2dc484a166bae78499ff7",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1310,7 +1310,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "s06.practice.authority.json",
-    "authority_sha256": "c6cb8f4081e26627275b45461f34b544f982856ff9ab6c4def989ce7a0faa8ea",
+    "authority_sha256": "f8f06e264f0e354642213dcce4cd6cf22b86a1a24d7f212ec2ccf7362a39a388",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1347,7 +1347,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "s07.practice.authority.json",
-    "authority_sha256": "f7aa481c6ff106d290669a55538213255b60a06280fc8a609d59cb23e5f262a9",
+    "authority_sha256": "9c67090bad27f3f81e8e6c2a25a5bc9200d3e91e656edec85efe3b3a815de3b1",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1384,7 +1384,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "x01.practice.authority.json",
-    "authority_sha256": "73f3f74aa90147656da214fb284d92e96d63362643e94ceb8835a102eba77853",
+    "authority_sha256": "7e4a82884b6a51665ed135cc4a89d83e0e702a7f2d16afdc146021d3f9f13eb2",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1420,7 +1420,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "x02.practice.authority.json",
-    "authority_sha256": "3970d9e313b69dd20adb8ee20dfc6f2fca891ac6f3aa24e35665c1700b12ca94",
+    "authority_sha256": "c5265483d50ed6437a3f79f8c281c75382d57f228afb3dd013b6b28d86d014bc",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,
@@ -1456,7 +1456,7 @@
    "practice": {
     "anchors_ready": false,
     "authority_path": "x03.practice.authority.json",
-    "authority_sha256": "5ce443a0548f2f7de59508bb0a34fd8eb534eb025260e1e9cd9acbc206edc1d9",
+    "authority_sha256": "9e594f9a089d6ceb28d6c2868a46211099aa00876b683d0275d9bf5ce437bd34",
     "complete_fact_count": 0,
     "eligibility_status": "pending_review",
     "eligible_question_count": 0,

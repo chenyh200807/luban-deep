@@ -26,7 +26,7 @@
       ],
       "eligible_variant_ids": [],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzY4Y2E2MDllMDNiIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wZjIwZWRlMjU3YTAiLCJFMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEyNzc0N2ExYWFhZiIsIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDcyMjdhNGIwMTAxIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNzA2MTU5MmM0ZjM2Il0sInBhY2tfaWQiOiJFMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImIyZmU4MWRkNTRlNjVhMGQzNmMzOGZkMjViYTQyMzJmYTZmNDEyMTQ1ZmQyZTk2YWE3NTEzNDRmNTU4Mzc1ZTQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "ba0c46824ee8e00931e900da6723d0d9d29df9b05057bfd9f69a6e50091dff16"
+      "published_practice_sha256": "b3146600efc3bd8eb048cf2e5bb7622c3fab0a3003a81b2717257d370019db3d"
     }
   ],
   "items": [
@@ -87,6 +87,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          39,
+          39,
+          38,
+          36
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 1.0,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "5aedcef83d9497290d383d6ad6d5e9ff3f7580d5c19f4ba01c0a4e816b599af3",
       "review": {
         "status": "pending",
@@ -160,6 +172,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          32,
+          32,
+          32,
+          27
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 1.0,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "4c31ddc8b81e1e77da1bafcc5b2a7c852e3d0aa977a62ea55333574ac3f5b59a",
       "review": {
         "status": "pending",
@@ -233,6 +257,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          56,
+          56,
+          58,
+          51
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.966,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "1d44dbe464a2a37f0297e009e135a83318a2af5aa33039b8993adecc4e465d23",
       "review": {
         "status": "pending",
@@ -306,6 +342,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          39,
+          40,
+          46,
+          40
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.848,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "3b453492736c47fd66732a14b5438d57c925ed005e4ca595d4375f009e9d2595",
       "review": {
         "status": "pending",
@@ -379,6 +427,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          40,
+          39,
+          41,
+          42
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.952,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "3ac9638c7802639422ad6c8ab50d1df54106c6f39539e7f2f36b38b508bb107f",
       "review": {
         "status": "pending",
@@ -452,6 +512,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          53,
+          64,
+          37,
+          42
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.828,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "e29beb7e7bbad4164de5ad166dedb622b3f19d2bf4bb1ca281abc5ecb2fe6c23",
       "review": {
         "status": "pending",
@@ -525,6 +597,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          50,
+          60,
+          40,
+          34
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.833,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "3d7227b8b4391b73f4f65e9f4a532c0c50a8de756f0fd53f845d647132abed29",
       "review": {
         "status": "pending",
@@ -598,6 +682,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          40,
+          27,
+          40,
+          32
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 1.0,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "e8ef221016d29e85c96006d388ae99b66a87630494a183b5c6196c78ee338f20",
       "review": {
         "status": "pending",
@@ -671,6 +767,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          39,
+          39,
+          30,
+          31
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 1.0,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "dc5c9bc46ad6d9d47510f9f7eb64e9ed5563c78d2faa76917f0457dbae01798d",
       "review": {
         "status": "pending",
@@ -744,6 +852,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          44,
+          60,
+          33,
+          31
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.733,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "7f405c28930c22f347f73562557a4a96ca96bc0bb369d3c418157eeb3fec101e",
       "review": {
         "status": "pending",
@@ -817,6 +937,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          63,
+          42,
+          75,
+          31
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.84,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "a7e62b44df40cfcda56b2b979a101a48726b107018102a096f108fedad23f406",
       "review": {
         "status": "pending",
@@ -890,6 +1022,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          54,
+          71,
+          44,
+          29
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.761,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "a8df96877755307f5f7271518d111a386391993517d9fa521622e9ae414901de",
       "review": {
         "status": "pending",
@@ -963,6 +1107,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          48,
+          36,
+          52,
+          26
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.923,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "839762480e3ea58fc6549d7c6590294446b233cc8cbaef571439783d5c129393",
       "review": {
         "status": "pending",
@@ -1036,6 +1192,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          40,
+          46,
+          39,
+          32
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.87,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "90f8965485753392e85438dcc4a4a0d66e0e7c2af15a96f829b4e646a69bbdcf",
       "review": {
         "status": "pending",
@@ -1109,6 +1277,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          62,
+          62,
+          53,
+          51
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 1.0,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "79e6a06b64adb10309e367d74e7a87f762bdae3fdf99c4762d856752d5194ed0",
       "review": {
         "status": "pending",
@@ -1182,6 +1362,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          76,
+          81,
+          33,
+          33
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.938,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "c910a301b52f6340a7588ee34d8cb2a68b2974c7940dd0e572d5d40abc0e3e2f",
       "review": {
         "status": "pending",

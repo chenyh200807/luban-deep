@@ -30,11 +30,10 @@
         "N01-html-practice-html-q3-ab48a6966a1a",
         "N01-html-practice-html-q4-36ae4f7b8858",
         "N01-html-practice-html-q5-d47894dd70e6",
-        "N01-html-practice-html-q8-2b44435fdb4a",
-        "N01-html-practice-html-q16-ec778529e37e"
+        "N01-html-practice-html-q8-2b44435fdb4a"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtNjdjMDhlYzk2NGMyIiwiTjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1kNWRlNjU0ZGIxODIiLCJOMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFiNDhhNjk2NmExYSIsIk4wMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMzZhZTRmN2I4ODU4IiwiTjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZWM3Nzg1MjllMzdlIl0sInBhY2tfaWQiOiJOMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjllMjcwNTY0MDYxYjVkOTJlYzE4N2Y1YWVlZTI0NmJhZDUxYTY0NjNiYzdjMWM3ZjRjMWFkZjE0N2U0YTgxY2YiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNThiYWFmYWQ2NzNkZDMyMTc3NmMyMmNkMTVlODQwY2JiYjU1YTYwN2YwZmFjOGJjMDQ4MmRlNzljN2IwODcxYSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "6902c62909b55d32053fc1701ad0ce72e0aff4db16793a1256d38c595466fd30"
+      "published_practice_sha256": "6116d450928fc127f55a10061cc080f386f10d0e0309a4d3fc5e0b1b6c67340b"
     }
   ],
   "items": [
@@ -95,6 +94,18 @@
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          37,
+          35,
+          36,
+          34
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.028,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "0cff11be6f2738254619db5817f4ff2a3090ea9f3f3a1dcf822834a9a6336f15",
       "review": {
         "status": "signed",
@@ -180,6 +191,18 @@
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          34,
+          33,
+          30,
+          31
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.03,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "dfc828ca736b3ec53129165230f41c6b9c4910ea6f98186d836f64a71f8667b0",
       "review": {
         "status": "signed",
@@ -265,6 +288,18 @@
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          31,
+          30,
+          28,
+          32
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.969,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "77eaa87134ae0be4d860968325dd53b5e10d15a334d20c6305df99d0ce3e935f",
       "review": {
         "status": "signed",
@@ -350,6 +385,18 @@
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          37,
+          33,
+          31,
+          32
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.121,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "2df42340539e52250a84e8ad73b4c4df62899a8973a223b099c604cb5c7e17b7",
       "review": {
         "status": "signed",
@@ -435,6 +482,18 @@
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          32,
+          30,
+          33,
+          30
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.97,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "42263b7862f67d6d4e5770931e476247fabbfb44a1b0a94581b9a29ce96ae55b",
       "review": {
         "status": "signed",
@@ -520,6 +579,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          24,
+          8,
+          26,
+          29
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.828,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "e875babd4678292a813b687b7616b2bdbf97fcad766367215eb68b173125a524",
       "review": {
         "status": "pending",
@@ -593,6 +664,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          25,
+          28,
+          31,
+          30
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.806,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "720ff462f890ac95c25049e1160459055b2c0c0b12c9f471be65f849e893ce27",
       "review": {
         "status": "pending",
@@ -666,6 +749,18 @@
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          31,
+          34,
+          30,
+          31
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 0.912,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "bfc2c89e66472bb9646fb63c49f1ad0c03eac1071c0d4e1b78cc147fa435685d",
       "review": {
         "status": "signed",
@@ -751,6 +846,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          36,
+          29,
+          31,
+          32
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.125,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "8939aeb6d21e6917737e531221016ef0202e67817c9f68adbf2e0fa08c76dc28",
       "review": {
         "status": "pending",
@@ -824,6 +931,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          39,
+          27,
+          30,
+          28
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.3,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "42feff02b507c5baceae6b232b0aaea157d8a2bf87435ac3f3b736e31dd461d7",
       "review": {
         "status": "pending",
@@ -897,6 +1016,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          43,
+          31,
+          30,
+          29
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.387,
+        "requires_content_rewrite": true
+      },
       "content_sha256": "826dcd45a08f19594f7490d37a54515ac51dacdf03bb14ca07ef6a808ecb7da8",
       "review": {
         "status": "pending",
@@ -970,6 +1101,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          30,
+          30,
+          28,
+          30
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": false,
+        "correct_longest_distractor_ratio": 1.0,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "a6330abed47740752bf58e585fbafe63861884729aa57eb1be67e5bd6ac016d0",
       "review": {
         "status": "pending",
@@ -1043,6 +1186,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          38,
+          34,
+          30,
+          29
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.118,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "240beb4e2618c7f6ee4fbbafef31fa816c6fb475f62cbf65f3aae1adb9d06fc0",
       "review": {
         "status": "pending",
@@ -1116,6 +1271,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          39,
+          30,
+          33,
+          30
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.182,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "11f4894e1c5bf0d4e4517186714bee26dcf6ea59cbe7a096ea31d991942aba80",
       "review": {
         "status": "pending",
@@ -1189,6 +1356,18 @@
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          44,
+          38,
+          31,
+          29
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.158,
+        "requires_content_rewrite": false
+      },
       "content_sha256": "ae781bffa366759244d69c74c36ff8446dda41ef741b980f0a1254f6c45dbc44",
       "review": {
         "status": "pending",
@@ -1262,6 +1441,18 @@
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
+      "option_style_audit": {
+        "option_lengths": [
+          48,
+          30,
+          30,
+          30
+        ],
+        "correct_option_index": 0,
+        "correct_unique_longest": true,
+        "correct_longest_distractor_ratio": 1.6,
+        "requires_content_rewrite": true
+      },
       "content_sha256": "fe584c954777e7b7c021a152eb6d128a0e54291820bbc5057bf5f7d45098c6ba",
       "review": {
         "status": "signed",
@@ -1288,7 +1479,7 @@
         },
         "note": "合议签发带注:正确项1.50×全包最长(实测坐实)+语义指纹(重述题干),测评效度弱、教学价值(诊断规范)保留;forward=L0非晋升可容忍;工单:干扰项增肥"
       },
-      "eligible": true
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "47cd348fc3c10d360753904bdbf2d82331d4b03e843643edd319899fee1fc975"

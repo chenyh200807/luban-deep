@@ -18,9 +18,11 @@ from deeptutor.services.luban_lesson.practice_html import (
     compiled_practice_eligibility_summary,
     decode_projection_receipt,
     load_compiled_practice,
+    option_style_audit,
     project_compiled_practice,
     resolve_compiled_practice_items,
     resolve_projection_receipt,
+    transform_compiled_practice_html,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -85,6 +87,89 @@ def _signed_review(
     }
 
 
+def test_option_style_audit_blocks_only_material_unique_longest_tells() -> None:
+    clean = option_style_audit(
+        [
+            {"text": "按 100mm 分档分别处理", "is_correct": True},
+            {"text": "按 100mm 分档处理", "is_correct": False},
+            {"text": "按 300mm 分档处理", "is_correct": False},
+            {"text": "统一采用割补法处理", "is_correct": False},
+        ]
+    )
+    assert clean["correct_unique_longest"] is True
+    assert clean["requires_content_rewrite"] is False
+
+    biased = option_style_audit(
+        [
+            {
+                "text": "先核对阈值，再按条件选择工法并完成全过程验收记录",
+                "is_correct": True,
+            },
+            {"text": "统一按经验处理", "is_correct": False},
+            {"text": "只核对最终结果", "is_correct": False},
+            {"text": "现场调整即可", "is_correct": False},
+        ]
+    )
+    assert biased["correct_unique_longest"] is True
+    assert biased["correct_longest_distractor_ratio"] >= 1.35
+    assert biased["requires_content_rewrite"] is True
+
+
+def test_human_checkbox_cannot_sign_through_a_material_option_length_tell() -> None:
+    compiled = _compiled_n01_surface()
+    bad = next(
+        item
+        for item in compiled["items"]
+        if item["option_style_audit"]["requires_content_rewrite"] is True
+    )
+    authority = build_practice_authority(
+        "N01",
+        source_pack_sha256="1" * 64,
+        source_bundle_sha256="2" * 64,
+        compiled_surfaces=[compiled],
+        review_records={bad["variant_id"]: _signed_review(bad, 99)},
+    )
+    rejected = next(item for item in authority["items"] if item["variant_id"] == bad["variant_id"])
+    assert rejected["review"]["checks"]["longest_option_checked"] is True
+    assert rejected["eligible"] is False
+
+
+@pytest.mark.parametrize(
+    ("pack_id", "source_rel", "surface_id", "expected_mode"),
+    [
+        ("S01", "P40_S01/P40_S01.practice.up.dc.html", "practice.html", "direct_reordered"),
+        ("N01", "P40_N01/P40_N01.practice.dc.html", "practice.html", "display_index_permutation"),
+        ("F16", "P40_F16/P40_F16.practice.dc.html", "practice.html", "raw_index_permutation"),
+        ("S07", "P40_S07/P40_S07.practice.dc.html", "practice.html", "raw_index_permutation"),
+        ("A02", "P40_A02/P40_A02.practice.dc.html", "practice.html", "bank_raw_index"),
+    ],
+)
+def test_transform_uses_one_option_projection_and_source_identity_mapping(
+    pack_id: str, source_rel: str, surface_id: str, expected_mode: str
+) -> None:
+    source = ROOT / "artifacts/luban_case_family_assets/diagram_microlesson/finished" / source_rel
+    raw = source.read_text(encoding="utf-8")
+    compiled = compile_practice_surface(
+        pack_id,
+        surface_id=surface_id,
+        html=raw,
+        source_path=str(source.relative_to(ROOT)),
+        source_html_sha256=hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+    )
+    rendered = transform_compiled_practice_html(
+        pack_id,
+        surface=compiled["surface"],
+        items=compiled["items"],
+        html=raw,
+    )
+    assert f'__dtPresentationMode(){{ return "{expected_mode}"; }}' in rendered
+    assert "__dtSelectedSourceIndex(i,selected)" in rendered
+    assert "window.crypto.getRandomValues" in rendered
+    assert "Math.random" not in rendered[rendered.index("__dtRandomBelow"):]
+    if expected_mode == "direct_reordered":
+        assert "__dtAuthorComponentDidMount" in rendered
+
+
 def test_v3_compiler_emits_item_governance_and_defaults_to_ineligible() -> None:
     compiled = _compiled_n01_surface()
     authority = build_practice_authority(
@@ -114,6 +199,14 @@ def test_v3_compiler_emits_item_governance_and_defaults_to_ineligible() -> None:
 def _signed_authority_file(tmp_path: Path) -> tuple[dict[str, object], Path, str]:
     """构建一份 supply_ready 的 N01 v3 authority 并落盘；返回 (authority, path, receipt)。"""
     compiled = _compiled_n01_surface()
+    # 这是 receipt 行为的隔离样本，不复用仓库里被长度 gate 拒绝的诊断题。
+    clean = [
+        item
+        for item in compiled["items"]
+        if item["option_style_audit"]["requires_content_rewrite"] is False
+    ][:5]
+    compiled["surface"]["variant_ids"] = [item["variant_id"] for item in clean]
+    compiled["surface"]["presentation_order"] = [item["source_index"] for item in clean]
     compiled["surface"]["published_practice_sha256"] = "4" * 64
     selected_ids = set(compiled["surface"]["variant_ids"])
     reviews = {}
@@ -246,6 +339,13 @@ def test_projection_receipt_forged_digest_rejected(tmp_path: Path) -> None:
 
 def test_five_signed_anchors_do_not_bypass_seven_question_fact_triad_gate() -> None:
     compiled = _compiled_n01_surface()
+    clean = [
+        item
+        for item in compiled["items"]
+        if item["option_style_audit"]["requires_content_rewrite"] is False
+    ][:5]
+    compiled["surface"]["variant_ids"] = [item["variant_id"] for item in clean]
+    compiled["surface"]["presentation_order"] = [item["source_index"] for item in clean]
     selected_ids = set(compiled["surface"]["variant_ids"])
     reviews = {
         item["variant_id"]: _signed_review(item, index)
@@ -277,6 +377,13 @@ def _anchors_only_authority_file(
     真实抵达资格闸的场景:receipt 身份校验通过,却因供给尚未发布而退出。
     """
     compiled = _compiled_n01_surface()
+    clean = [
+        item
+        for item in compiled["items"]
+        if item["option_style_audit"]["requires_content_rewrite"] is False
+    ][:5]
+    compiled["surface"]["variant_ids"] = [item["variant_id"] for item in clean]
+    compiled["surface"]["presentation_order"] = [item["source_index"] for item in clean]
     compiled["surface"]["published_practice_sha256"] = "4" * 64
     selected_ids = set(compiled["surface"]["variant_ids"])
     reviews = {
@@ -427,7 +534,11 @@ def test_every_compiled_surface_fails_closed_unless_supply_ready() -> None:
                 assert rows, f"{pack_id}/{surface_id} supply_ready 却未发题"
                 assert {row["variant_id"] for row in rows} <= eligible_ids
             else:
-                assert surface["eligible_variant_ids"] == []
+                assert surface["eligible_variant_ids"] == [
+                    item["variant_id"]
+                    for item in authority["items"]
+                    if item.get("surface_id") == surface_id and item.get("eligible") is True
+                ]
                 with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):
                     project_compiled_practice(
                         pack_id,
@@ -436,19 +547,22 @@ def test_every_compiled_surface_fails_closed_unless_supply_ready() -> None:
                     )
 
 
-def test_n01_first_batch_signed_supply_ready_and_serves_eligible_only() -> None:
-    """首批签发终态钉死:N01 七题签发、fact 三件套齐、投影只出签发集合。"""
+def test_n01_signed_batch_is_withheld_when_a_selected_option_has_a_material_length_tell() -> None:
+    """人工 ``longest_option_checked`` 不能覆盖机器量到的 1.35x+ 明显泄漏。"""
     canonical = load_compiled_practice("N01")
     assert canonical is not None
     summary = compiled_practice_eligibility_summary(canonical)
-    assert summary["supply_ready"] is True
-    assert summary["eligible_question_count"] == 7
+    assert summary["supply_ready"] is False
+    assert summary["eligible_question_count"] == 6
     assert summary["complete_fact_ids"] == ["n01-fact-critical-work-zero-float"]
-    eligible_ids = {
-        item["variant_id"] for item in canonical["items"] if item["eligible"] is True
-    }
-    rows = project_compiled_practice("N01", selection_key="qa_eval_signed:2026196:forward")
-    assert rows and {row["variant_id"] for row in rows} <= eligible_ids
+    assert any(
+        item["option_style_audit"]["requires_content_rewrite"] is True
+        and item["review"]["status"] == "signed"
+        and item["eligible"] is False
+        for item in canonical["items"]
+    )
+    with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):
+        project_compiled_practice("N01", selection_key="qa_eval_signed:2026196:forward")
 
 
 def test_public_projection_contains_only_compiled_questions_and_server_bridge() -> None:
@@ -463,8 +577,9 @@ def test_public_projection_contains_only_compiled_questions_and_server_bridge() 
             if marker:
                 assert len(_top_level_objects(_array_after(html, marker))) == 5
             assert "__dtRedirectEvidence" in html
-            assert "this.optPerm(i)" in html
-            assert "Number(permutation[selected])" in html
+            assert "__dtPresentationMode" in html
+            assert "__dtSelectedSourceIndex(i,selected)" in html
+            assert "window.crypto.getRandomValues" in html
             assert "projection_receipt=" in html
             assert "&answers=" in html
             assert "answer_indexes" not in html
