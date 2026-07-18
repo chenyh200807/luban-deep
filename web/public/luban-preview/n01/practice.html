@@ -243,8 +243,8 @@ class Component extends DCLogic {
       stem:"双代号网络计划中，如何判定关键工作与关键线路？选出判据最完整、能得分的作答。",
       model:"关键工作是总时差最小的工作；关键线路由全部关键工作组成，其工期等于网络计划的计算工期（最长路径）。",
       opts:[
+        { t:"持续时间最长的那道工作所在的线路就是关键线路，抓住最大的那项工作即可判定。", ok:false, code:"E07", tempt:"「最长」二字看着眼熟，容易把单个工作的长短当判据。", lose:"判据错位：关键看的是路径总长/总时差，不是某道工作自己长不长。", fix:"关键工作=总时差最小；关键线路=最长路径=计算工期。" },
         { t:"关键工作是总时差最小的工作；关键线路由全部关键工作组成，工期等于计算工期。", ok:true, fix:"判据两句齐：总时差最小 + 工期=计算工期，落到哪条线路都能判。", code:"" },
-        { t:"持续时间最长的那道工作所在的线路就是关键线路，抓住最大的工作即可判定。", ok:false, code:"E07", tempt:"「最长」二字看着眼熟，容易把单个工作的长短当判据。", lose:"判据错位：关键看的是路径总长/总时差，不是某道工作自己长不长。", fix:"关键工作=总时差最小；关键线路=最长路径=计算工期。" },
         { t:"总时差为零的工作是关键工作，且一个网络图里关键线路只会有一条，找到即可。", ok:false, code:"E07", tempt:"「TF=0」这半句是对的，顺手就选了。", lose:"后半句错：并列最长路径可有两条及以上，「只有一条」是典型误区。", fix:"关键线路可能不止一条，并列最长的全部是关键线路。" },
         { t:"图中最长的线路是关键线路，据此原则判定即可，无须再写具体判据与线路。", ok:false, code:"E04", tempt:"方向对，觉得写个原则就算答了。", lose:"口号化表达：不落总时差判据、不落具体线路，阅卷无从给分。", fix:"写判据句并落到具体线路：关键线路为①→②→④→⑥（节点连续）。" }
       ] },
@@ -252,10 +252,10 @@ class Component extends DCLogic {
       stem:"某网络计划经计算：路①（①→②→④→⑥）= 11 个月，路②（①→③→④→⑥）= 11 个月，路③ = 8 个月。写出关键线路，选出能拿全分的作答。",
       model:"关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥（并列最长，工期相等，均为 11 个月）。",
       opts:[
-        { t:"关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥，并列最长、工期相等。", ok:true, fix:"并列最长全部列出、节点连续，这正是历年两条关键线路题的给分点。", code:"" },
         { t:"关键线路为 ①→②→④→⑥，共 11 个月，取其中一条最长路径作答即可。", ok:false, code:"E02", tempt:"算出 11 就急着写，一条看着已经「答上了」。", lose:"漏掉并列的另一条关键线路，漏一条丢一条的分。", fix:"补上第二条：和 ①→③→④→⑥，两条并列最长全列出。" },
         { t:"本网络计划中最长的路径即为关键线路，其总持续时间为 11 个月。", ok:false, code:"E04", tempt:"判据没错，感觉写了就有分。", lose:"没落到具体线路（节点序列），口号化表达不得分。", fix:"落到具体节点序列，且两条并列的都写。" },
-        { t:"关键线路有两条：①→④→⑥ 和 ①→③→⑥，两条工期相等均为最长。", ok:false, code:"E03", tempt:"知道要写两条，随手把节点写「顺」了。", lose:"节点跳号、线路不连续，阅卷按错线路处理。", fix:"逐节点连续写：①→②→④→⑥ 和 ①→③→④→⑥。" }
+        { t:"关键线路有两条：①→④→⑥ 和 ①→③→⑥，两条工期相等均为最长。", ok:false, code:"E03", tempt:"知道要写两条，随手把节点写「顺」了。", lose:"节点跳号、线路不连续，阅卷按错线路处理。", fix:"逐节点连续写：①→②→④→⑥ 和 ①→③→④→⑥。" },
+        { t:"关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥，并列最长、工期相等。", ok:true, fix:"并列最长全部列出、节点连续，这正是历年两条关键线路题的给分点。", code:"" }
       ] },
 { tag:"总工期·计算表达维", typeHint:"单选 · 选出可得分的总工期写法", figLabel:"关键线路与各工作持续时间", figCaption:"沿关键线路：3、4、4（个月）", fig:"twopaths",
       stem:"承上题（关键线路 ①→②→④→⑥，各工作持续 3、4、4 个月）。写总工期，选出可得分的写法。",
@@ -270,19 +270,19 @@ class Component extends DCLogic {
       stem:"题干新增：工作 F 必须等 B、C 均完成后才能开始，但原图中 F 只与 C 相接。正确的处理是？",
       model:"原图逻辑不全，应在 B 的完成节点与 F 的开始节点之间增加一个虚工作（虚箭线，只表达逻辑关系），再在调整后的图上计算关键线路。",
       opts:[
-        { t:"在 B 完成节点与 F 开始节点间增加一个虚工作表达该逻辑，再在调整后的图上计算。", ok:true, fix:"先校逻辑补虚工作、后计算，程序与画法都对。", code:"" },
         { t:"图是题目给定的依据，按原图直接计算关键线路与总工期即可，不必改动。", ok:false, code:"E08", tempt:"觉得「题给的图不会有错」，直接开算省事。", lose:"没提取题干新增的紧前关系，在错图上算，线路工期全盘错。", fix:"先补虚工作校正逻辑，再算。" },
         { t:"把工作 F 移到 B 之后串联布置，让 B 做完再做 F，即可满足新增关系。", ok:false, code:"E07", tempt:"「等 B 完成」听着像要排到 B 后面。", lose:"改串联改变了原网络逻辑（F 与 C 的关系被破坏），表达方式错。", fix:"用虚箭线补逻辑，不改动既有工作关系。" },
+        { t:"在 B 完成节点与 F 开始节点间增加一个虚工作表达该逻辑，再在调整后的图上计算。", ok:true, fix:"先校逻辑补虚工作、后计算，程序与画法都对。", code:"" },
         { t:"增加一项持续时间 1 个月的联系工作连接 B 与 F，把等待时间也算进去。", ok:false, code:"E07", tempt:"觉得「连接工作」总得占点时间才真实。", lose:"虚工作只表达逻辑、不占时间资源；加了时长会把工期算长。", fix:"补的是虚工作：持续时间为 0，仅表达逻辑。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", diag:true, figLabel:"模拟学生作答（待诊断）", figCaption:"三处作答 · 哪些能得分？", fig:"sheet",
       stem:"学生作答：①关键线路为 ①→②→⑤→⑥；②总时差是 3 和 3；③事件系甲方责任，故工期索赔成立。已知正确关键线路为 ①→②→④→⑥ 和 ①→③→④→⑥，E、G 总时差各 3 个月且延误未超时差。选出最准确的诊断与补写。",
       model:"三处都要改：①线路求错（选了 8 个月的非最长路径）且漏并列第二条；②时差数值未绑定工作名；③索赔只看责任、未比时差——延误未超时差，不影响总工期，工期索赔不成立。线路是地基，地基错后面判读连锁错。",
       opts:[
+        { t:"③的结论虽然简略但方向大体可取，①②两处只是书写不够规范，阅卷时酌情都能得到分数。", ok:false, code:"E07", tempt:"觉得「意思到了就有分」。", lose:"①是计算错误不是书写问题；③结论本身就错（应为不成立），不是简略。", fix:"逐处对照判据改写，别用「酌情」安慰自己。" },
+        { t:"三处作答中只有①关键线路需要改正，②③按学生原答保留即可，其中数值毕竟都是对的。", ok:false, code:"E02", tempt:"抓到最明显的一处就收手。", lose:"漏诊②不绑定、③错判据两处失分点。", fix:"②补工作名与单位；③补「延误未超时差、不影响总工期、不成立」。" },
         { t:"①线路选错且漏并列一条；②数值没绑定工作名；③只看责任漏比时差，结论应为不成立——三处都要补写。", ok:true, fix:"三处失分全揪出，且点明「线路是地基、地基错判读连锁错」——这就是会写答案。", code:"" },
-        { t:"③的结论虽简略但方向可取，①②只是书写不规范，酌情都能得分。", ok:false, code:"E07", tempt:"觉得「意思到了就有分」。", lose:"①是计算错误不是书写问题；③结论本身就错（应为不成立），不是简略。", fix:"逐处对照判据改写，别用「酌情」安慰自己。" },
-        { t:"只有①关键线路需要改，②③按学生原答保留即可，数值毕竟都对。", ok:false, code:"E02", tempt:"抓到最明显的一处就收手。", lose:"漏诊②不绑定、③错判据两处失分点。", fix:"②补工作名与单位；③补「延误未超时差、不影响总工期、不成立」。" },
-        { t:"①改为 ①→③→④→⑥ 一条即可；②③的写法在阅卷中通常不扣分。", ok:false, code:"E09", tempt:"改了一条像是修正了计算。", lose:"并列关键线路要两条全列，只写一条仍漏分；②③明确属扣分写法。", fix:"两条全列：①→②→④→⑥ 和 ①→③→④→⑥，②③同步补写。" }
+        { t:"①应当改为 ①→③→④→⑥ 这一条即可；②③两处的写法在阅卷中通常不会被扣分。", ok:false, code:"E09", tempt:"改了一条像是修正了计算。", lose:"并列关键线路要两条全列，只写一条仍漏分；②③明确属扣分写法。", fix:"两条全列：①→②→④→⑥ 和 ①→③→④→⑥，②③同步补写。" }
       ] }
   ];
   // ── 错因码库（ERROR_CODE_REGISTRY 注册码，勿自造）──
@@ -543,7 +543,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"N01-html-practice-html-q1-67c08ec964c2","options":["N01-html-practice-html-q1-67c08ec964c2:option-1","N01-html-practice-html-q1-67c08ec964c2:option-2","N01-html-practice-html-q1-67c08ec964c2:option-3","N01-html-practice-html-q1-67c08ec964c2:option-4"]},{"variant_id":"N01-html-practice-html-q2-d5de654db182","options":["N01-html-practice-html-q2-d5de654db182:option-1","N01-html-practice-html-q2-d5de654db182:option-2","N01-html-practice-html-q2-d5de654db182:option-3","N01-html-practice-html-q2-d5de654db182:option-4"]},{"variant_id":"N01-html-practice-html-q3-ab48a6966a1a","options":["N01-html-practice-html-q3-ab48a6966a1a:option-1","N01-html-practice-html-q3-ab48a6966a1a:option-2","N01-html-practice-html-q3-ab48a6966a1a:option-3","N01-html-practice-html-q3-ab48a6966a1a:option-4"]},{"variant_id":"N01-html-practice-html-q4-36ae4f7b8858","options":["N01-html-practice-html-q4-36ae4f7b8858:option-1","N01-html-practice-html-q4-36ae4f7b8858:option-2","N01-html-practice-html-q4-36ae4f7b8858:option-3","N01-html-practice-html-q4-36ae4f7b8858:option-4"]},{"variant_id":"N01-html-practice-html-q16-ec778529e37e","options":["N01-html-practice-html-q16-ec778529e37e:option-1","N01-html-practice-html-q16-ec778529e37e:option-2","N01-html-practice-html-q16-ec778529e37e:option-3","N01-html-practice-html-q16-ec778529e37e:option-4"]}];
+    const exactItems=[{"variant_id":"N01-html-practice-html-q1-279218eaba74","options":["N01-html-practice-html-q1-279218eaba74:option-1","N01-html-practice-html-q1-279218eaba74:option-2","N01-html-practice-html-q1-279218eaba74:option-3","N01-html-practice-html-q1-279218eaba74:option-4"]},{"variant_id":"N01-html-practice-html-q2-63817dfe8bf9","options":["N01-html-practice-html-q2-63817dfe8bf9:option-1","N01-html-practice-html-q2-63817dfe8bf9:option-2","N01-html-practice-html-q2-63817dfe8bf9:option-3","N01-html-practice-html-q2-63817dfe8bf9:option-4"]},{"variant_id":"N01-html-practice-html-q3-ab48a6966a1a","options":["N01-html-practice-html-q3-ab48a6966a1a:option-1","N01-html-practice-html-q3-ab48a6966a1a:option-2","N01-html-practice-html-q3-ab48a6966a1a:option-3","N01-html-practice-html-q3-ab48a6966a1a:option-4"]},{"variant_id":"N01-html-practice-html-q4-3be2f0735c4d","options":["N01-html-practice-html-q4-3be2f0735c4d:option-1","N01-html-practice-html-q4-3be2f0735c4d:option-2","N01-html-practice-html-q4-3be2f0735c4d:option-3","N01-html-practice-html-q4-3be2f0735c4d:option-4"]},{"variant_id":"N01-html-practice-html-q16-f0a517ec43e7","options":["N01-html-practice-html-q16-f0a517ec43e7:option-1","N01-html-practice-html-q16-f0a517ec43e7:option-2","N01-html-practice-html-q16-f0a517ec43e7:option-3","N01-html-practice-html-q16-f0a517ec43e7:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -560,7 +560,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("N01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtNjdjMDhlYzk2NGMyIiwiTjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1kNWRlNjU0ZGIxODIiLCJOMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFiNDhhNjk2NmExYSIsIk4wMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMzZhZTRmN2I4ODU4IiwiTjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZWM3Nzg1MjllMzdlIl0sInBhY2tfaWQiOiJOMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjllMjcwNTY0MDYxYjVkOTJlYzE4N2Y1YWVlZTI0NmJhZDUxYTY0NjNiYzdjMWM3ZjRjMWFkZjE0N2U0YTgxY2YiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNThiYWFmYWQ2NzNkZDMyMTc3NmMyMmNkMTVlODQwY2JiYjU1YTYwN2YwZmFjOGJjMDQ4MmRlNzljN2IwODcxYSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("N01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMjc5MjE4ZWFiYTc0IiwiTjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi02MzgxN2RmZThiZjkiLCJOMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFiNDhhNjk2NmExYSIsIk4wMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtM2JlMmYwNzM1YzRkIiwiTjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZjBhNTE3ZWM0M2U3Il0sInBhY2tfaWQiOiJOMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImE3YzhiMzljOWMxMjMwNzQ4MTE2MmUxMmNiNjFlZjlhMWVhNzI1OTU3ZjgzYWU5ZmJhYjVkMGQ3ZGYxNzIxN2MiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNThiYWFmYWQ2NzNkZDMyMTc3NmMyMmNkMTVlODQwY2JiYjU1YTYwN2YwZmFjOGJjMDQ4MmRlNzljN2IwODcxYSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

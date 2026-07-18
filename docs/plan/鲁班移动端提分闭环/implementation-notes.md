@@ -9,6 +9,25 @@
 
 ## Deviations
 
+### 2026-07-18（PR#521 CI 红 · chat 渲染器变更传导 practice 签名供应链）
+- **[意外爆炸半径]** markdown.js 被 practice 发布器打包进答题卡 runtime(publish_luban_preview_cards.py:90)——改 chat 渲染器 → runtime digest 变 → 41 包投影 fail-closed drift + S05/X01 签名包身份失配,api-contract 分片红。**前端渲染器与 practice 供应链存在隐式耦合,改 markdown.js 必须连带全量重发布**。
+- **[收敛顺序(踩出来的)]** publish 写模式在 packet 失配包上跳写 → 正确序=publish→migrate_packets --all→**再 publish**→manifest→check(exit 0)。漏第二次 publish 就永不收敛(authority drift 滚动出现)。
+- **[签名资产核验]** _variant_bank 零改动;packet 仅重钉 source_bundle_sha256;X02/X03 7 签名 rebuild-safe carry 完整穿越;S05/X01 本就 signed=0。autocrlf 字节测试红=再生成文件未入 git index 的假阳(测试走 checkout-index 往返),stage 即绿。
+- **[存疑记录]** packet 迁移工具 migrate_luban_practice_review_packets.py 是并行会话**未入库**脚本,我消费其产物(数据以入库校验器 --check 绿为准);其缩进风格与原 packet 不同造成大 diff,该脚本入库时若重刷会再churn一次。83 文件重发布随 PR#521。
+
+### 2026-07-18（问鲁班结构化讲解双保险 · owner 拍板 10d 终态 PR#521）
+- **[owner 流程]** "还是很普通,为什么不用第十版"→ 我出目标终态 HTML(手机 mock+逐块✅/🔶/⏸标注)→ owner 拍板"就按这样做"并问"输出内容能匹配吗"。
+- **[匹配三层定性]** ①已匹配:结论/易错点小节(模型现产)+引用块金句;②管道全通生成端未约定:渲染契约本就有 structured steps,缺 skill 约定;③禁止匹配:错因×3/个性化提醒=学情真数据,模型编=自铸真值红线,等后端投影。
+- **[双保险落地]** 生成端:construction-exam-tutor 加「排版语义约定」(### 第N步·标题/引用块金句/==采分关键词== 限3-5处),源+workspace 双拷贝同步(workspace gitignore 不入库),**test2 生效需随下次部署**;渲染端确定性升格:markdown.js ==mark==→朱红下划线 inline+「第N步」heading→stepLabel 字段,chat 步骤头竹青徽章行,行内代码底旧蓝→竹青;fixtures 加 structured_10d_teaching 全要素样例(devtools debugLoadMarkdownRegressionSample 一键复现)。
+- **[验证]** parse 单测+110 全绿;fixture 走生产渲染器活体截图=目标终态 HTML 逐块对齐(朱红章/步骤徽章/朱红下划线/金句卡/裸章同屏)。
+- **[余量]** 个性化投影契约草案(错因联动/三键/已带入 chip)待写给后端排期;skill 约定的真实模型遵循度待部署后live验证。
+
+### 2026-07-18（问鲁班朱红章头像行 · owner"感受不到"复盘 PR#520）
+- **[owner 两连反馈]** ①"感受不到"——定性:PR#519 当时还卡 BEHIND 未合,owner worktree 没有改动;合并+清 WeappCache+重开窗口后给出"看哪里"对照表。**教训:说"完成"前必须核对 owner 可见面已含改动**(devtools worktree SHA+缓存)。②"和原来差不多?没用第十版?"——如实答:骨架早是 10d 基础语言,缺辨识度元素;分三类(纯样式可做/等后端投影/owner 已后置),owner 拍板补第一类。
+- **[朱红章头像行]** 助手消息 60rpx 朱红章+左上小圆角气泡(8/32/32/32)贴章;气泡双层阴影;操作行/导练卡缩进 78rpx 成三级纵向层次(434e148a1)。
+- **[review 收口抓到我的真 bug]** 金句卡改造时 `.bq-line{display:none}` 把引用**正文**藏了(bq-line 是内容行非装饰线)——并行 review 提交 e5a43a6f1 修复+callout 明暗 token 化。**教训:改渲染器样式前必核类名的语义(内容节点 vs 装饰节点),display:none 高危**。
+- **[验证]** 110 全绿;活体截图朱红章+贴章气泡+裸章+真加粗同屏。
+
 ### 2026-07-18（问鲁班对话面 10d 精修 · 渲染断链接线 PR#519）
 - **[owner 指令]** 系统性优化问鲁班对话 UI/UX 含渲染模块,参考 10d,细节自裁。先派 agent 测绘 chat 三层叠罗汉结构(基座=几何/paper=配色,10d repave 契约测试在案)。
 - **[渲染模块两处真断链(数据侧早就绪,渲染层没接)]** ①列表项 rich nodes:markdown.js 616 早产出 li.nodes(加粗已解析),wxml 只画 li.raw → 用户看裸 `**` 星号,接线 rich-text+raw 保底;②callout 空体空框:小节标签(结论/易错点)content 空时仍渲染带边大卡、正文漏框外 → bare/has-body 分型,空体=裸章胶囊,有体=竹青/赭左轨软卡。活体 page.data() 死证驱动(contentLen=0/hasNodes=true)。

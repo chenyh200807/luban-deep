@@ -257,7 +257,7 @@ class Component extends DCLogic {
       model:"分项工程按主要工种、材料、施工工艺、设备类别划分。",
       opts:[
         { t:"按工程量、楼层、施工段、变形缝等条件划分各分项工程。", ok:false, code:"E07", tempt:"依据串档，把检验批那套搬到分项。", lose:"工程量 / 楼层 / 施工段 / 变形缝是检验批划分依据，分项归错类。", fix:"分项按工种 / 材料 / 工艺 / 设备类别。" },
-        { t:"只按主要工种、材料两类依据划分各分项工程，工艺与设备类别不计。", ok:false, code:"E02", tempt:"记住前两类就当成全部。", lose:"漏施工工艺、设备类别两类，依据不全。", fix:"补施工工艺、设备类别，共四类。" },
+        { t:"只按主要工种、材料两类划分，工艺与设备类别不计。", ok:false, code:"E02", tempt:"记住前两类就当成全部。", lose:"漏施工工艺、设备类别两类，依据不全。", fix:"补施工工艺、设备类别，共四类。" },
         { t:"按主要工种、材料、施工工艺、设备类别划分。", ok:true, fix:"四类依据齐全，别与检验批条件混。", code:"" },
         { t:"按专业性质、工程部位划分各分项工程，与工种材料并列。", ok:false, code:"E07", tempt:"把分部的依据错接到分项。", lose:"专业性质 / 工程部位是分部工程划分依据，层级归错。", fix:"分项按工种 / 材料 / 工艺 / 设备类别。" }
       ] },
@@ -276,9 +276,9 @@ class Component extends DCLogic {
       stem:"某学生答：① 实体检验测混凝土强度；② 由施工单位组织；③ 平均(28.5+31+32)/3=30.5＜35，不合格。选出最准确的诊断与补写。",
       model:"三处失分：实体检验漏钢筋保护层 / 尺寸偏差 / 合同约定项目；组织应为监理组织、施工实施；判定未套 88%/80% 双阈值（平均应 30.8=临界、最小 28.5>28），且平均算错为 30.5。",
       opts:[
+        { t:"结论「不合格」与参考答案一致，据此认为实体检验内容、组织主体与判定过程三处均书写无误、并无任何失分点，可按满分给分、判定结论也无需重新复核或修改。", ok:false, code:"E07", tempt:"只看末位结论，一致就以为全对。", lose:"内容漏三项、组织答反、判据没套阈值且平均算错，过程全丢分。", fix:"内容 / 组织 / 判据三处都要重写。" },
         { t:"三处失分：实体检验漏钢筋保护层 / 尺寸偏差 / 合同约定项目；组织应为监理组织、施工实施；判定未套 88%/80% 双阈值（平均应 30.8=临界、最小 28.5>28），且平均算错为 30.5。", ok:true, fix:"漏项 + 主体 + 判据三处全揪出，补齐即上答题纸。", code:"" },
-        { t:"结论「不合格」与参考答案一致，实体检验、组织主体、判定过程三处均无误，可按满分给分。", ok:false, code:"E07", tempt:"只看末位结论，一致就以为全对。", lose:"内容漏三项、组织答反、判据没套阈值且平均算错，过程全丢分。", fix:"内容 / 组织 / 判据三处都要重写。" },
-        { t:"仅组织主体一处失分（应监理组织、施工实施），实体检验内容与强度判定均正确，改这一处即可。", ok:false, code:"E02", tempt:"抓到组织错一处就以为只此一错。", lose:"漏诊实体检验三项缺失、判据未套双阈值且平均算错。", fix:"补实体四项 + 88%/80% 双阈值判定。" },
+        { t:"仅组织主体一处失分（组织应为监理、实施应为施工），实体检验四项内容与强度判定过程均书写正确无误，只需修改组织主体这一处即可，其余内容与判定均无需改动。", ok:false, code:"E02", tempt:"抓到组织错一处就以为只此一错。", lose:"漏诊实体检验三项缺失、判据未套双阈值且平均算错。", fix:"补实体四项 + 88%/80% 双阈值判定。" },
         { t:"两处失分：组织应改为监理组织、施工实施；强度判定应按平均≥设计×80%、最小≥设计×88% 重新代入计算，实体检验四项内容书写完整、无需改动。", ok:false, code:"M08", tempt:"揪出两处、却把阈值配反又漏了内容。", lose:"88%/80% 对调，且漏诊实体检验三项缺失。", fix:"平均≥88%、最小≥80%，并补实体四项。" }
       ] }
   ];
@@ -522,7 +522,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"A01-html-practice-html-q1-a97f6b60c08e","options":["A01-html-practice-html-q1-a97f6b60c08e:option-1","A01-html-practice-html-q1-a97f6b60c08e:option-2","A01-html-practice-html-q1-a97f6b60c08e:option-3","A01-html-practice-html-q1-a97f6b60c08e:option-4"]},{"variant_id":"A01-html-practice-html-q2-ecc97aac95bb","options":["A01-html-practice-html-q2-ecc97aac95bb:option-1","A01-html-practice-html-q2-ecc97aac95bb:option-2","A01-html-practice-html-q2-ecc97aac95bb:option-3","A01-html-practice-html-q2-ecc97aac95bb:option-4"]},{"variant_id":"A01-html-practice-html-q3-ac762242b32d","options":["A01-html-practice-html-q3-ac762242b32d:option-1","A01-html-practice-html-q3-ac762242b32d:option-2","A01-html-practice-html-q3-ac762242b32d:option-3","A01-html-practice-html-q3-ac762242b32d:option-4"]},{"variant_id":"A01-html-practice-html-q4-2492e71aec61","options":["A01-html-practice-html-q4-2492e71aec61:option-1","A01-html-practice-html-q4-2492e71aec61:option-2","A01-html-practice-html-q4-2492e71aec61:option-3","A01-html-practice-html-q4-2492e71aec61:option-4"]},{"variant_id":"A01-html-practice-html-q16-5d16aca4c763","options":["A01-html-practice-html-q16-5d16aca4c763:option-1","A01-html-practice-html-q16-5d16aca4c763:option-2","A01-html-practice-html-q16-5d16aca4c763:option-3","A01-html-practice-html-q16-5d16aca4c763:option-4"]}];
+    const exactItems=[{"variant_id":"A01-html-practice-html-q1-a97f6b60c08e","options":["A01-html-practice-html-q1-a97f6b60c08e:option-1","A01-html-practice-html-q1-a97f6b60c08e:option-2","A01-html-practice-html-q1-a97f6b60c08e:option-3","A01-html-practice-html-q1-a97f6b60c08e:option-4"]},{"variant_id":"A01-html-practice-html-q2-ecc97aac95bb","options":["A01-html-practice-html-q2-ecc97aac95bb:option-1","A01-html-practice-html-q2-ecc97aac95bb:option-2","A01-html-practice-html-q2-ecc97aac95bb:option-3","A01-html-practice-html-q2-ecc97aac95bb:option-4"]},{"variant_id":"A01-html-practice-html-q3-0280b26aee14","options":["A01-html-practice-html-q3-0280b26aee14:option-1","A01-html-practice-html-q3-0280b26aee14:option-2","A01-html-practice-html-q3-0280b26aee14:option-3","A01-html-practice-html-q3-0280b26aee14:option-4"]},{"variant_id":"A01-html-practice-html-q4-2492e71aec61","options":["A01-html-practice-html-q4-2492e71aec61:option-1","A01-html-practice-html-q4-2492e71aec61:option-2","A01-html-practice-html-q4-2492e71aec61:option-3","A01-html-practice-html-q4-2492e71aec61:option-4"]},{"variant_id":"A01-html-practice-html-q16-4729976dca0a","options":["A01-html-practice-html-q16-4729976dca0a:option-1","A01-html-practice-html-q16-4729976dca0a:option-2","A01-html-practice-html-q16-4729976dca0a:option-3","A01-html-practice-html-q16-4729976dca0a:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -539,7 +539,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("A01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTk3ZjZiNjBjMDhlIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lY2M5N2FhYzk1YmIiLCJBMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFjNzYyMjQyYjMyZCIsIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMjQ5MmU3MWFlYzYxIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNWQxNmFjYTRjNzYzIl0sInBhY2tfaWQiOiJBMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjM4YWI1NWVkMmZhZGRjNjhlZDVhNDgxMzE5ZGRhNjgzNWQ1MDYyYzRhYjY5ODM5MTE0OTBjOGRhMmMzZDc5YTkiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("A01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTk3ZjZiNjBjMDhlIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lY2M5N2FhYzk1YmIiLCJBMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTAyODBiMjZhZWUxNCIsIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMjQ5MmU3MWFlYzYxIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNDcyOTk3NmRjYTBhIl0sInBhY2tfaWQiOiJBMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImZjYmUxZDFkNTkxZjkxMzA3NmQ0YTljNGU0ODAyYTMwYjBiMGZiOGM2MmExZGI1MmZiYjRmYzA1ODhiYjFhNjEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

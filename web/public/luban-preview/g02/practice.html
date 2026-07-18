@@ -231,45 +231,45 @@ class Component extends DCLogic {
       model:"尽量采用同类土；不得用淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土；砂、碎石土可用。",
       opts:[
         { t:"尽量采用同类土；淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土不得用作填方。", ok:true, fix:"优选同类土 + 完整禁用四类，一句写全。", code:"" },
-        { t:"只要不是淤泥就能填，砂、碎石、黏土随取随填省成本。", ok:false, code:"E02", tempt:"以为只忌讳淤泥一种。", lose:"漏了淤泥质土/有机质>5%/含水量不符黏性土三类禁用。", fix:"禁用四类写全，并点'尽量同类土'。" },
-        { t:"填方土料越黏越密实，应优先选含水量高的黏性土回填。", ok:false, code:"E07", tempt:"以为黏土密实、含水多好压。", lose:"含水量不符压实要求的黏性土恰是禁用项，概念反了。", fix:"含水量不符要求的黏性土禁用，应选可压密的砂、碎石、同类土。" },
-        { t:"淤泥、有机质土只要掺点石灰改良，都可直接用作填方无限制。", ok:false, code:"E10", tempt:"以为掺灰改良就能随便用。", lose:"本考点口径淤泥/有机质>5%属禁用，不以'掺石灰'为由放开。", fix:"按规范禁用四类，不随意放开。" }
+        { t:"黏性土颗粒细、粘结力强，填得越黏越密实，故应优先选用含水量较高的黏性土用作填方土料。", ok:false, code:"E07", tempt:"以为黏土密实、含水多好压。", lose:"含水量不符压实要求的黏性土恰是禁用项，概念反了。", fix:"含水量不符要求的黏性土禁用，应选可压密的砂、碎石、同类土。" },
+        { t:"淤泥、淤泥质土以及有机质大于5%的土，经掺入石灰充分改良处理后，均可不受限制地直接用作填方土料。", ok:false, code:"E10", tempt:"以为掺灰改良就能随便用。", lose:"本考点口径淤泥/有机质>5%属禁用，不以'掺石灰'为由放开。", fix:"按规范禁用四类，不随意放开。" },
+        { t:"填方土料只需排除淤泥一类，其余如砂、碎石土以及各类黏性土均可直接选用，不必另作限制。", ok:false, code:"E02", tempt:"以为只忌讳淤泥一种。", lose:"漏了淤泥质土/有机质>5%/含水量不符黏性土三类禁用。", fix:"禁用四类写全，并点'尽量同类土'。" }
       ] },
 { tag:"铺填·程序维", typeHint:"单选 · 选出正确的起填与铺填方式", figLabel:"题给：基坑回填剖面", figCaption:"从哪起？怎么铺？", fig:"fillseq",
       stem:"土方回填时，填土的起填位置与铺填方式，正确的是？",
       model:"填土从场地最低处开始，由下而上整个宽度分层铺填。",
       opts:[
+        { t:"填土应从场地最高处向低处推进，一次填至设计标高后再统一压实。", ok:false, code:"E06", tempt:"觉得从高处推土顺势方便。", lose:"起填位置错、且不分层，下部压不实。", fix:"应从最低处起、由下而上分层铺。" },
+        { t:"填土从场地最低处开始铺填，厚度不必控制，压实一遍成活。", ok:false, code:"E02", tempt:"记住最低处起就以为够了。", lose:"漏了分层与厚度控制。", fix:"补'由下而上整宽分层'+按机具控厚度遍数。" },
         { t:"填土从场地最低处开始，由下而上整个宽度分层铺填。", ok:true, fix:"起填位置+由下而上+整宽分层，一句齐。", code:"" },
-        { t:"从场地最高处往低处赶，一次填到设计标高后再统一压实。", ok:false, code:"E06", tempt:"觉得从高处推土顺势方便。", lose:"起填位置错、且不分层，下部压不实。", fix:"应从最低处起、由下而上分层铺。" },
-        { t:"从最低处开始铺即可，厚度铺到多少不影响，压一遍成活。", ok:false, code:"E02", tempt:"记住最低处起就以为够了。", lose:"漏了分层与厚度控制。", fix:"补'由下而上整宽分层'+按机具控厚度遍数。" },
-        { t:"由上而下逐层挖填，边挖边填保证密实。", ok:false, code:"E07", tempt:"把开挖顺序当回填顺序。", lose:"回填是由下而上，不是由上而下。", fix:"回填应由下而上分层铺填。" }
+        { t:"填土应由上而下逐层挖填，边挖边填以保证密实。", ok:false, code:"E07", tempt:"把开挖顺序当回填顺序。", lose:"回填是由下而上，不是由上而下。", fix:"回填应由下而上分层铺填。" }
       ] },
 { tag:"铺填·程序维", typeHint:"单选 · 选出正确的对称回填作答", figLabel:"题给：基础两侧回填", figCaption:"两侧怎么回填？", fig:"fillseq",
       stem:"对基础两侧（或周边）进行回填时，正确做法是？",
       model:"相对两侧或周边应对称、均衡回填，防止结构偏压。",
       opts:[
-        { t:"相对两侧（或周边）应对称、均衡回填，避免单侧受力使结构偏移。", ok:true, fix:"点出对称均衡+防偏压。", code:"" },
-        { t:"先把一侧回填压实到顶，再回填另一侧，逐侧完成效率高。", ok:false, code:"E06", tempt:"觉得一侧干完再干一侧省事。", lose:"单侧回填致结构偏压移位。", fix:"两侧应对称、均衡同步回填。" },
-        { t:"两侧分层回填即可，是否对称无所谓，压实达标就行。", ok:false, code:"E02", tempt:"只记分层，忽略对称。", lose:"漏'对称'，单侧仍会偏压。", fix:"必须相对两侧对称均衡回填。" },
-        { t:"哪侧空间大先填哪侧，方便机械进出。", ok:false, code:"E07", tempt:"按施工便利决定顺序。", lose:"忽视结构受力对称要求。", fix:"以结构受力为准，两侧对称回填。" }
+        { t:"应先将一侧回填压实至基础顶面，再回填另一侧，逐侧完成以提高工效。", ok:false, code:"E06", tempt:"觉得一侧干完再干一侧省事。", lose:"单侧回填致结构偏压移位。", fix:"两侧应对称、均衡同步回填。" },
+        { t:"应视作业空间大小安排先后，空间较大的一侧先行回填，便于机械进出。", ok:false, code:"E07", tempt:"按施工便利决定顺序。", lose:"忽视结构受力对称要求。", fix:"以结构受力为准，两侧对称回填。" },
+        { t:"基础两侧分层回填并保证压实达标即可，不必强调两侧对称同步进行。", ok:false, code:"E02", tempt:"只记分层，忽略对称。", lose:"漏'对称'，单侧仍会偏压。", fix:"必须相对两侧对称均衡回填。" },
+        { t:"相对两侧（或周边）应对称、均衡回填，避免单侧受力使结构偏移。", ok:true, fix:"点出对称均衡+防偏压。", code:"" }
       ] },
 { tag:"虚铺·条件维", typeHint:"单选 · 选出虚铺厚度依据的正确作答", figLabel:"题给：机具与厚度尺", figCaption:"虚铺厚度按什么定？", fig:"ruler",
       stem:"每层虚铺厚度应依据什么确定？选出正确、能得分的作答。",
       model:"每层虚铺厚度应根据夯实机具确定，不按含水量。",
       opts:[
-        { t:"每层虚铺厚度应根据夯实机具（夯击能）确定，不按含水量确定。", ok:true, fix:"点明按夯实机具，且否定'按含水量'。", code:"" },
         { t:"每层虚铺厚度应根据土的含水量确定，含水量越大铺得越薄。", ok:false, code:"E07", tempt:"觉得土湿就该铺薄点，很顺手。", lose:"2016年真题经典反向陷阱——虚铺厚度按机具不按含水量。", fix:"按夯实机具定，含水量只影响压实效果。" },
-        { t:"每层虚铺厚度按经验大致铺开就行，压实达标即可，无需固定依据。", ok:false, code:"E02", tempt:"觉得凭经验铺差不多。", lose:"漏了'按夯实机具确定'这一采分依据。", fix:"必须写'按夯实机具确定'。" },
-        { t:"每层虚铺厚度统一按300mm铺，任何机具都一样。", ok:false, code:"E10", tempt:"记了个300mm就套所有机具。", lose:"厚度随机具不同，不能一刀切。", fix:"按机具查表：平碾250-300、振动压实机250-350等。" }
+        { t:"每层虚铺厚度统一按300mm控制，与所选用的压实机具类型无关。", ok:false, code:"E10", tempt:"记了个300mm就套所有机具。", lose:"厚度随机具不同，不能一刀切。", fix:"按机具查表：平碾250-300、振动压实机250-350等。" },
+        { t:"每层虚铺厚度可依施工经验灵活掌握，压实达到要求即可，无需固定的确定依据。", ok:false, code:"E02", tempt:"觉得凭经验铺差不多。", lose:"漏了'按夯实机具确定'这一采分依据。", fix:"必须写'按夯实机具确定'。" },
+        { t:"每层虚铺厚度应根据夯实机具（夯击能）确定，不按含水量确定。", ok:true, fix:"点明按夯实机具，且否定'按含水量'。", code:"" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断案例作答失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"方向对了，但采分句到位没？", fig:"sheet", diag:true,
       stem:"某学生就'振动压实机回填施工纠错'作答：②铺得太厚应薄一点；③压得太少多压几遍；④环刀取样送检没问题；①土料没看出问题。选出最准确的诊断与补写。",
       model:"②③方向对但缺数值（应250-350mm、3-4遍）；④多层环刀统一送检不妥、应标准击实法；①建筑垃圾未识别；四处都要补写。",
       opts:[
         { t:"②③方向对但缺数值（应250-350mm、3-4遍）；④多层环刀统一送检不妥、应用标准击实法；①建筑垃圾未识别——四处都要补写。", ok:true, fix:"半命中补数值 + 两处漏点全揪出，这就是'会写答案'。", code:"" },
-        { t:"作答基本正确，只是表述口语化，方向都对，可给满分。", ok:false, code:"E07", tempt:"看方向对就以为拿满分。", lose:"缺数值=半分，且漏④环刀送检与①建筑垃圾两处。", fix:"补数值 + 补④标准击实法、①清除建筑垃圾两处。" },
-        { t:"只需把'薄一点''多压几遍'改成具体数值即可，其余都对。", ok:false, code:"E03", tempt:"抓到缺数值一处。", lose:"漏诊④环刀统一送检、①建筑垃圾两处不妥。", fix:"除补数值，还要指④用标准击实法、①清除建筑垃圾。" },
-        { t:"环刀法本身违规，四处主要错在都用了环刀，改灌砂法即可。", ok:false, code:"E10", tempt:"以为错在环刀法本身。", lose:"错在多层统一送检不分层，非环刀法被禁；且漏其他失分。", fix:"④错在统一送检、应标准击实法逐层；另补数值与建筑垃圾。" }
+        { t:"该作答的问题只在②③两条：把‘薄一点’‘多压几遍’改写成具体数值即可，④环刀取样与①土料判断均无需改动。", ok:false, code:"E03", tempt:"抓到缺数值一处。", lose:"漏诊④环刀统一送检、①建筑垃圾两处不妥。", fix:"除补数值，还要指④用标准击实法、①清除建筑垃圾。" },
+        { t:"该生四条作答方向均判断正确，仅是表述略显口语化，并不影响各条得分要点，阅卷时可按满分处理，无需补写。", ok:false, code:"E07", tempt:"看方向对就以为拿满分。", lose:"缺数值=半分，且漏④环刀送检与①建筑垃圾两处。", fix:"补数值 + 补④标准击实法、①清除建筑垃圾两处。" },
+        { t:"四处失分症结相同：环刀法本身即属违规方法，凡涉及取样检测处一律改用灌砂法即可，其余三条表述不必改动。", ok:false, code:"E10", tempt:"以为错在环刀法本身。", lose:"错在多层统一送检不分层，非环刀法被禁；且漏其他失分。", fix:"④错在统一送检、应标准击实法逐层；另补数值与建筑垃圾。" }
       ] }
   ];
   codeMap={
@@ -489,7 +489,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"G02-html-practice-html-q2-613193ea6d75","options":["G02-html-practice-html-q2-613193ea6d75:option-1","G02-html-practice-html-q2-613193ea6d75:option-2","G02-html-practice-html-q2-613193ea6d75:option-3","G02-html-practice-html-q2-613193ea6d75:option-4"]},{"variant_id":"G02-html-practice-html-q3-97671409244c","options":["G02-html-practice-html-q3-97671409244c:option-1","G02-html-practice-html-q3-97671409244c:option-2","G02-html-practice-html-q3-97671409244c:option-3","G02-html-practice-html-q3-97671409244c:option-4"]},{"variant_id":"G02-html-practice-html-q4-9a0b35a1c05a","options":["G02-html-practice-html-q4-9a0b35a1c05a:option-1","G02-html-practice-html-q4-9a0b35a1c05a:option-2","G02-html-practice-html-q4-9a0b35a1c05a:option-3","G02-html-practice-html-q4-9a0b35a1c05a:option-4"]},{"variant_id":"G02-html-practice-html-q5-7d9d763971e5","options":["G02-html-practice-html-q5-7d9d763971e5:option-1","G02-html-practice-html-q5-7d9d763971e5:option-2","G02-html-practice-html-q5-7d9d763971e5:option-3","G02-html-practice-html-q5-7d9d763971e5:option-4"]},{"variant_id":"G02-html-practice-html-q16-d5e2e8aea5ac","options":["G02-html-practice-html-q16-d5e2e8aea5ac:option-1","G02-html-practice-html-q16-d5e2e8aea5ac:option-2","G02-html-practice-html-q16-d5e2e8aea5ac:option-3","G02-html-practice-html-q16-d5e2e8aea5ac:option-4"]}];
+    const exactItems=[{"variant_id":"G02-html-practice-html-q2-c18201dc6f48","options":["G02-html-practice-html-q2-c18201dc6f48:option-1","G02-html-practice-html-q2-c18201dc6f48:option-2","G02-html-practice-html-q2-c18201dc6f48:option-3","G02-html-practice-html-q2-c18201dc6f48:option-4"]},{"variant_id":"G02-html-practice-html-q3-092cc709ec3d","options":["G02-html-practice-html-q3-092cc709ec3d:option-1","G02-html-practice-html-q3-092cc709ec3d:option-2","G02-html-practice-html-q3-092cc709ec3d:option-3","G02-html-practice-html-q3-092cc709ec3d:option-4"]},{"variant_id":"G02-html-practice-html-q4-e8c12baa9ebd","options":["G02-html-practice-html-q4-e8c12baa9ebd:option-1","G02-html-practice-html-q4-e8c12baa9ebd:option-2","G02-html-practice-html-q4-e8c12baa9ebd:option-3","G02-html-practice-html-q4-e8c12baa9ebd:option-4"]},{"variant_id":"G02-html-practice-html-q5-d0716f0544c2","options":["G02-html-practice-html-q5-d0716f0544c2:option-1","G02-html-practice-html-q5-d0716f0544c2:option-2","G02-html-practice-html-q5-d0716f0544c2:option-3","G02-html-practice-html-q5-d0716f0544c2:option-4"]},{"variant_id":"G02-html-practice-html-q16-1b6787678428","options":["G02-html-practice-html-q16-1b6787678428:option-1","G02-html-practice-html-q16-1b6787678428:option-2","G02-html-practice-html-q16-1b6787678428:option-3","G02-html-practice-html-q16-1b6787678428:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -506,7 +506,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTItNjEzMTkzZWE2ZDc1IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMy05NzY3MTQwOTI0NGMiLCJHMDItaHRtbC1wcmFjdGljZS1odG1sLXE0LTlhMGIzNWExYzA1YSIsIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTUtN2Q5ZDc2Mzk3MWU1IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZDVlMmU4YWVhNWFjIl0sInBhY2tfaWQiOiJHMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImE3YTRhMzBmZjM5NTczMGY1ZTA4M2ViNzUyNDUyNTBkNDZjNDllMzk3MzM1NDRlYzY4MmJkNDZhZGU5NjViNzQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMTM2MWQyMmMzNzRmMDllODk2ZTdmYTIyYTI2YTE2MTI0NjdmZTc3YzdhOGY2NmJlNjUyMDk0ZDNkNmFmZGM1ZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTItYzE4MjAxZGM2ZjQ4IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMy0wOTJjYzcwOWVjM2QiLCJHMDItaHRtbC1wcmFjdGljZS1odG1sLXE0LWU4YzEyYmFhOWViZCIsIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTUtZDA3MTZmMDU0NGMyIiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMWI2Nzg3Njc4NDI4Il0sInBhY2tfaWQiOiJHMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjFkMDQ2MjgxZjg1ZDZiNDY2MmQ3Mjg2NDYwNWYzOTk0MGRjMWQ5Y2NiZjBhZjI4YTJhNGVkM2NhNWZhYzliMjUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMTM2MWQyMmMzNzRmMDllODk2ZTdmYTIyYTI2YTE2MTI0NjdmZTc3YzdhOGY2NmJlNjUyMDk0ZDNkNmFmZGM1ZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

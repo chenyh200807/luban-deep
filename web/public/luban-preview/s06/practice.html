@@ -230,46 +230,46 @@ class Component extends DCLogic {
       stem:"某工程楼层临边作业，坠落高度基准面 2.3m。选出判定与做法最能得分的作答。",
       model:"坠落高度基准面 2m 及以上临边作业，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
       opts:[
-        { t:"坠落高度基准面 2m 及以上，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。", ok:true, fix:"2m 触发 + 临空侧栏杆 + 封闭三件齐，换个高度也不错。", code:"" },
-        { t:"设「当心坠落」警示标志、拉警戒线提醒工人注意即可。", ok:false, code:"E04", tempt:"觉得提醒到位、看得见就安全。", lose:"警示标志是口号，没有实体隔离，临边必须设栏杆。", fix:"临空侧设防护栏杆，配密目网或工具式栏板封闭。" },
-        { t:"高处临边要注意安全，做好临边防护措施，防止人员坠落。", ok:false, code:"E03", tempt:"方向对、话也顺，像答到点了。", lose:"没写 2m 触发、没写栏杆/封闭具体措施，空泛不给分。", fix:"写「2m 及以上临空侧设栏杆并封闭」。" },
-        { t:"坠落高度不足 5m 可不设防护，2.3m 未到 5m，本处无需设栏杆。", ok:false, code:"E07", tempt:"误把 5m 当成临边触发线。", lose:"临边触发线是 2m，不是 5m，达线即须设防护。", fix:"2m 及以上就设栏杆并封闭。" }
+        { t:"高处临边作业必须重视安全，落实完善的临边防护措施，切实防止作业人员发生高处坠落事故。", ok:false, code:"E03", tempt:"方向对、话也顺，像答到点了。", lose:"没写 2m 触发、没写栏杆/封闭具体措施，空泛不给分。", fix:"写「2m 及以上临空侧设栏杆并封闭」。" },
+        { t:"坠落高度不足 5m 的临边可不设专项防护，本处 2.3m 未达到 5m，无需设置防护栏杆。", ok:false, code:"E07", tempt:"误把 5m 当成临边触发线。", lose:"临边触发线是 2m，不是 5m，达线即须设防护。", fix:"2m 及以上就设栏杆并封闭。" },
+        { t:"在临边一侧设置「当心坠落」警示标志，并沿临边拉设警戒线提醒作业人员注意，即视为防护到位。", ok:false, code:"E04", tempt:"觉得提醒到位、看得见就安全。", lose:"警示标志是口号，没有实体隔离，临边必须设栏杆。", fix:"临空侧设防护栏杆，配密目网或工具式栏板封闭。" },
+        { t:"坠落高度基准面 2m 及以上，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。", ok:true, fix:"2m 触发 + 临空侧栏杆 + 封闭三件齐，换个高度也不错。", code:"" }
       ] },
 { tag:"栏杆构造·条件维", typeHint:"单选 · 选参数完整、能拿分的作答", fig:"railnum", figLabel:"题给：临边防护栏杆构造", figCaption:"上杆·立杆间距·挡脚板·承载，哪几个是硬数字？",
       stem:"关于临边防护栏杆的构造要求，选出参数完整、能得分的作答。",
       model:"上杆离地 1.2m、立杆间距≤2m、挡脚板≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
       opts:[
         { t:"上杆离地 1.2m、立杆间距≤2m、挡脚板高≥180mm、能承受 1kN 任意方向外力、张挂密目立网。", ok:true, fix:"四个硬数字 + 密目网一次写全，正是高分密集区。", code:"" },
-        { t:"上杆离地 0.9m、立杆间距≤2m、设挡脚板即可，能挡住人就行。", ok:false, code:"E07", tempt:"把室内楼梯扶手 0.9m 套到临边栏杆上。", lose:"临边栏杆上杆是 1.2m；0.9m 是室内楼梯扶手，串章丢分。", fix:"上杆改 1.2m，其余数字补齐。" },
-        { t:"设防护栏杆，牢固可靠、高度足够，能防止人员坠落即可。", ok:false, code:"E03", tempt:"觉得「牢固够高」意思到了。", lose:"漏 1.2m / 间距 / 挡脚板 / 1kN 全部硬数字，空泛。", fix:"写 1.2m、≤2m、≥180mm、1kN。" },
-        { t:"上杆 1.2m、张挂密目立网，其余参数按现场情况灵活掌握。", ok:false, code:"E03", tempt:"记住主数字，其余想当然省了。", lose:"漏立杆间距≤2m、挡脚板≥180mm、承 1kN。", fix:"补≤2m、≥180mm、1kN。" }
+        { t:"上杆离地 1.2m 并张挂密目式安全立网，其余构造参数可结合现场工程实际情况灵活确定。", ok:false, code:"E03", tempt:"记住主数字，其余想当然省了。", lose:"漏立杆间距≤2m、挡脚板≥180mm、承 1kN。", fix:"补≤2m、≥180mm、1kN。" },
+        { t:"上杆离地 0.9m、立杆间距≤2m，并设置符合要求的挡脚板，整体安装应当牢固，能够有效阻挡作业人员坠落。", ok:false, code:"E07", tempt:"把室内楼梯扶手 0.9m 套到临边栏杆上。", lose:"临边栏杆上杆是 1.2m；0.9m 是室内楼梯扶手，串章丢分。", fix:"上杆改 1.2m，其余数字补齐。" },
+        { t:"临空一侧设置防护栏杆，要求构造牢固可靠、高度足够，整体能够可靠防止作业人员从临边坠落。", ok:false, code:"E03", tempt:"觉得「牢固够高」意思到了。", lose:"漏 1.2m / 间距 / 挡脚板 / 1kN 全部硬数字，空泛。", fix:"写 1.2m、≤2m、≥180mm、1kN。" }
       ] },
 { tag:"洞口≥500·条件维", typeHint:"单选 · 选做法完整、能拿分的作答", fig:"holeBig", figLabel:"题给：楼板竖向预留洞口 · 短边 600mm", figCaption:"人能掉下去——盖块板够吗？",
       stem:"楼板上短边 600mm 的竖向预留洞口，选出防护做法完整、能得分的作答。",
       model:"短边≥500mm 洞口临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
       opts:[
+        { t:"选用整块坚实木板将 600mm 竖向洞口盖住并保持稳固，即可认为该处防护到位。", ok:false, code:"E10", tempt:"以为洞口「盖住就行」、不分尺寸。", lose:"短边≥500 人可整个坠落，盖板兜不住，必须围栏杆封闭。", fix:"设 1.2m 栏杆并封闭、加挡脚板。" },
         { t:"短边≥500mm，临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。", ok:true, fix:"判尺寸档 + 栏杆 + 封闭 + 挡脚板齐，够大的加平网。", code:"" },
-        { t:"用一块木板把洞口盖住即可，600mm 的洞盖上就安全了。", ok:false, code:"E10", tempt:"以为洞口「盖住就行」、不分尺寸。", lose:"短边≥500 人可整个坠落，盖板兜不住，必须围栏杆封闭。", fix:"设 1.2m 栏杆并封闭、加挡脚板。" },
-        { t:"25~500mm 用承重盖板，本洞 600 也按承重盖板可靠覆盖固定。", ok:false, code:"E10", tempt:"记得盖板口径，却套错了尺寸段。", lose:"600≥500 属栏杆档；承重盖板是 25~500 档，尺寸配错措施。", fix:"≥500 设栏杆 + 封闭 + 挡脚板。" },
-        { t:"在洞口周边设警示标志、夜间加警示灯，提醒人员注意避让。", ok:false, code:"E04", tempt:"觉得警示到位就算防护。", lose:"口号化，没有实体防护，人照样会踩空坠落。", fix:"设 1.2m 栏杆并封闭、加挡脚板。" }
+        { t:"在洞口四周设置醒目警示标志，夜间加设警示灯具，提醒作业人员注意避让洞口。", ok:false, code:"E04", tempt:"觉得警示到位就算防护。", lose:"口号化，没有实体防护，人照样会踩空坠落。", fix:"设 1.2m 栏杆并封闭、加挡脚板。" },
+        { t:"参照 25~500mm 洞口的防护做法，本处 600mm 洞口同样采用承重盖板可靠覆盖并固定。", ok:false, code:"E10", tempt:"记得盖板口径，却套错了尺寸段。", lose:"600≥500 属栏杆档；承重盖板是 25~500 档，尺寸配错措施。", fix:"≥500 设栏杆 + 封闭 + 挡脚板。" }
       ] },
 { tag:"洞口25~500·条件维", typeHint:"单选 · 选做法正确、能拿分的作答", fig:"holeSmall", figLabel:"题给：楼板洞口 · 短边 300mm", figCaption:"这个尺寸段该用啥防护？",
       stem:"楼板上短边 300mm 的洞口，选出防护做法正确、能得分的作答。",
       model:"短边 25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
       opts:[
         { t:"25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。", ok:true, fix:"尺寸档 + 承重盖板 + 固定防移位，一次到位。", code:"" },
+        { t:"采用彩条布或警戒线将洞口周边围挡，提醒作业人员避免踩踏。", ok:false, code:"E04", tempt:"图省事，拿警戒线糊弄。", lose:"警戒线非承重、人踩即塌，属口号化。", fix:"用承重盖板可靠覆盖、固定牢靠。" },
         { t:"300mm 洞口也要临空侧设 1.2m 防护栏杆并封闭、加挡脚板。", ok:false, code:"E10", tempt:"以为「越严越好」，把栏杆档套到小洞口。", lose:"25~500 档用承重盖板即可，套栏杆档属规范适用错误。", fix:"用承重盖板可靠覆盖、固定牢靠。" },
-        { t:"拿彩条布或警戒线把洞口围一下，提醒工人别踩。", ok:false, code:"E04", tempt:"图省事，拿警戒线糊弄。", lose:"警戒线非承重、人踩即塌，属口号化。", fix:"用承重盖板可靠覆盖、固定牢靠。" },
-        { t:"把洞口盖上就行，用什么盖、固不固定不重要。", ok:false, code:"E03", tempt:"只记住「盖住」两个字。", lose:"漏「承重」「固定」关键词，普通板会塌或移位。", fix:"承重盖板 + 可靠固定防移位。" }
+        { t:"将洞口盖住即可，采用何种材料覆盖、是否固定均可不作要求。", ok:false, code:"E03", tempt:"只记住「盖住」两个字。", lose:"漏「承重」「固定」关键词，普通板会塌或移位。", fix:"承重盖板 + 可靠固定防移位。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", fig:"sheet", figLabel:"模拟学生作答（待诊断）", figCaption:"三处看着都答了，真踩上点了吗？",
       stem:"某学生答临边洞口防护：①临边挂警示牌提醒；②600mm 竖向洞口盖块木板；③防护栏杆高 0.9m。选出最准确的诊断与补写。",
       model:"①警示牌须改实体栏杆+密目网封闭；②竖向≥500 洞口须设 1.2m 栏杆封闭加挡脚板（25~500 才用承重盖板）；③栏杆高应 1.2m（0.9m 是室内扶手）。三处都要补写。",
       opts:[
+        { t:"三处中仅③栏杆高度需要修改，把 0.9m 改为 1.2m 即可；①临边挂警示牌提醒与②洞口盖木板均属可接受做法，保留原答即可，不必再作补写。", ok:false, code:"E07", tempt:"抓到栏杆一处就收手。", lose:"警示牌替不了栏杆、≥500 洞口须设栏杆，漏两处。", fix:"警示牌改栏杆+网、洞口设 1.2m 栏杆封闭。" },
         { t:"三处均失分：①应改实体栏杆+密目网封闭；②≥500 洞口设 1.2m 栏杆封闭加挡脚板（25~500 才用盖板）；③栏杆上杆应 1.2m（0.9m 是室内扶手）。", ok:true, fix:"三处逐条补成采分句——这就是「会写答案」。", code:"" },
-        { t:"基本正确，只是栏杆 0.9m 偏低，改成 1.0m 就达标，其余没问题。", ok:false, code:"E08", tempt:"只挑出一处、还改错了数。", lose:"漏诊警示牌口号化、洞口盖板不分尺寸；栏杆应 1.2m 非 1.0m。", fix:"三处都补，栏杆改 1.2m。" },
-        { t:"只是栏杆高度问题，把 0.9m 改 1.2m 即可，警示牌和盖木板都行。", ok:false, code:"E07", tempt:"抓到栏杆一处就收手。", lose:"警示牌替不了栏杆、≥500 洞口须设栏杆，漏两处。", fix:"警示牌改栏杆+网、洞口设 1.2m 栏杆封闭。" },
-        { t:"思路对、防护到位，加强现场管理、落实责任即可给分。", ok:false, code:"E04", tempt:"整体表扬式带过。", lose:"三处实体措施都错或缺，纯口号不得分。", fix:"实体栏杆+网、洞口按尺寸设栏杆、栏杆 1.2m 三处补写。" }
+        { t:"该学生作答思路正确、防护意识到位，三处措施方向均无问题；只需补充加强现场安全管理、逐级落实安全防护责任、安排专人巡查等表述，即可取得本题相应分数。", ok:false, code:"E04", tempt:"整体表扬式带过。", lose:"三处实体措施都错或缺，纯口号不得分。", fix:"实体栏杆+网、洞口按尺寸设栏杆、栏杆 1.2m 三处补写。" },
+        { t:"该作答基本正确：①临边挂警示牌提醒与②洞口盖木板的做法均可认可，仅③防护栏杆 0.9m 偏低，将高度调整为 1.0m 即可达标，其余两处无需补写。", ok:false, code:"E08", tempt:"只挑出一处、还改错了数。", lose:"漏诊警示牌口号化、洞口盖板不分尺寸；栏杆应 1.2m 非 1.0m。", fix:"三处都补，栏杆改 1.2m。" }
       ] }
   ];
   codeMap={
@@ -577,7 +577,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"S06-html-practice-html-q1-eefc330c48e6","options":["S06-html-practice-html-q1-eefc330c48e6:option-1","S06-html-practice-html-q1-eefc330c48e6:option-2","S06-html-practice-html-q1-eefc330c48e6:option-3","S06-html-practice-html-q1-eefc330c48e6:option-4"]},{"variant_id":"S06-html-practice-html-q2-f84743fdbc8b","options":["S06-html-practice-html-q2-f84743fdbc8b:option-1","S06-html-practice-html-q2-f84743fdbc8b:option-2","S06-html-practice-html-q2-f84743fdbc8b:option-3","S06-html-practice-html-q2-f84743fdbc8b:option-4"]},{"variant_id":"S06-html-practice-html-q3-a8a6959fcd44","options":["S06-html-practice-html-q3-a8a6959fcd44:option-1","S06-html-practice-html-q3-a8a6959fcd44:option-2","S06-html-practice-html-q3-a8a6959fcd44:option-3","S06-html-practice-html-q3-a8a6959fcd44:option-4"]},{"variant_id":"S06-html-practice-html-q4-e42d54f368cb","options":["S06-html-practice-html-q4-e42d54f368cb:option-1","S06-html-practice-html-q4-e42d54f368cb:option-2","S06-html-practice-html-q4-e42d54f368cb:option-3","S06-html-practice-html-q4-e42d54f368cb:option-4"]},{"variant_id":"S06-html-practice-html-q16-30dcd356515c","options":["S06-html-practice-html-q16-30dcd356515c:option-1","S06-html-practice-html-q16-30dcd356515c:option-2","S06-html-practice-html-q16-30dcd356515c:option-3","S06-html-practice-html-q16-30dcd356515c:option-4"]}];
+    const exactItems=[{"variant_id":"S06-html-practice-html-q1-318405b15872","options":["S06-html-practice-html-q1-318405b15872:option-1","S06-html-practice-html-q1-318405b15872:option-2","S06-html-practice-html-q1-318405b15872:option-3","S06-html-practice-html-q1-318405b15872:option-4"]},{"variant_id":"S06-html-practice-html-q2-287d474cd12a","options":["S06-html-practice-html-q2-287d474cd12a:option-1","S06-html-practice-html-q2-287d474cd12a:option-2","S06-html-practice-html-q2-287d474cd12a:option-3","S06-html-practice-html-q2-287d474cd12a:option-4"]},{"variant_id":"S06-html-practice-html-q3-2945cc122482","options":["S06-html-practice-html-q3-2945cc122482:option-1","S06-html-practice-html-q3-2945cc122482:option-2","S06-html-practice-html-q3-2945cc122482:option-3","S06-html-practice-html-q3-2945cc122482:option-4"]},{"variant_id":"S06-html-practice-html-q4-7ddf3a041b9a","options":["S06-html-practice-html-q4-7ddf3a041b9a:option-1","S06-html-practice-html-q4-7ddf3a041b9a:option-2","S06-html-practice-html-q4-7ddf3a041b9a:option-3","S06-html-practice-html-q4-7ddf3a041b9a:option-4"]},{"variant_id":"S06-html-practice-html-q16-aae1e9a002e0","options":["S06-html-practice-html-q16-aae1e9a002e0:option-1","S06-html-practice-html-q16-aae1e9a002e0:option-2","S06-html-practice-html-q16-aae1e9a002e0:option-3","S06-html-practice-html-q16-aae1e9a002e0:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -594,7 +594,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S06")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZWVmYzMzMGM0OGU2IiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mODQ3NDNmZGJjOGIiLCJTMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWE4YTY5NTlmY2Q0NCIsIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZTQyZDU0ZjM2OGNiIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMzBkY2QzNTY1MTVjIl0sInBhY2tfaWQiOiJTMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjE3OGM2Y2RiMmM1M2Y3MmM2YjQyMDUxM2EwMzI1NGRhNTAwZjgxMmM0MzBkMDg1MzNiZjllNzM3M2MxOWQwZmYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmQ4NWUxM2RjNDMzYzM1NWYzNjAxZjg4NTU0MjY1ZDYxZTM4MzZjZmU2MjkzNjI3ODFmNWIwNGY2NGYyOTczMCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S06")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzE4NDA1YjE1ODcyIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yODdkNDc0Y2QxMmEiLCJTMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLTI5NDVjYzEyMjQ4MiIsIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtN2RkZjNhMDQxYjlhIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYWFlMWU5YTAwMmUwIl0sInBhY2tfaWQiOiJTMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImMxZGExYmQwMGNiODQwMTAxNTkxMzA1NzljN2E2OTY2YzJmY2QwZTM1OTEwZjQwMGM4NGNmNTVhNzljMGMwNTEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmQ4NWUxM2RjNDMzYzM1NWYzNjAxZjg4NTU0MjY1ZDYxZTM4MzZjZmU2MjkzNjI3ODFmNWIwNGY2NGYyOTczMCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

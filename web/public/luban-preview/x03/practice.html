@@ -232,18 +232,18 @@ class Component extends DCLogic {
       model:"办公区与生活区宜分区域设置（不是「必须分开设置」）；施工区与办公生活区划分清晰并隔离防护，在建工程内严禁住人。",
       opts:[
         { t:"「办公区与生活区必须分开设置」——现场必须把办公区和生活区拆成两处独立区域，否则违规。", ok:true, fix:"规范口径是「宜分区域设置」，不是「必须分开」；这句把柔性要求写成刚性，正是要挑出的错误说法。", code:"" },
-        { t:"施工区与办公、生活区应划分清晰，并采取相应的隔离防护措施。", ok:false, code:"E07", tempt:"这句是对的，看着「像有问题」就想选，其实是标准采分句。", lose:"这是文明施工正确要求，选它就等于把对的当错的，判型方向反了。", fix:"这是正确说法，题目要选错误的那句「必须分开设置」。" },
-        { t:"在建工程内严禁住人。", ok:false, code:"E07", tempt:"太短，怀疑「是不是漏条件」。", lose:"这是明确的强制正确要求，选它即误判。", fix:"这是正确采分句，错误说法是「办公区生活区必须分开设置」。" },
-        { t:"施工现场应设置封闭围挡，做到场容场貌整洁有序、材料码放整齐。", ok:false, code:"E07", tempt:"内容多，容易觉得「哪里不严谨」。", lose:"这是文明施工六化的正确表述，选它即误判。", fix:"正确说法，错误的是「必须分开设置」那句。" }
+        { t:"施工现场的施工区与办公、生活区应划分清晰，并采取相应的隔离防护措施。", ok:false, code:"E07", tempt:"这句是对的，看着「像有问题」就想选，其实是标准采分句。", lose:"这是文明施工正确要求，选它就等于把对的当错的，判型方向反了。", fix:"这是正确说法，题目要选错误的那句「必须分开设置」。" },
+        { t:"在建工程内严禁住人，不得安排任何施工作业人员或管理人员在其中住宿。", ok:false, code:"E07", tempt:"太短，怀疑「是不是漏条件」。", lose:"这是明确的强制正确要求，选它即误判。", fix:"这是正确采分句，错误说法是「办公区生活区必须分开设置」。" },
+        { t:"施工现场应实行封闭管理、设置封闭围挡，做到场容场貌整洁有序，各类材料、构件码放整齐稳固。", ok:false, code:"E07", tempt:"内容多，容易觉得「哪里不严谨」。", lose:"这是文明施工六化的正确表述，选它即误判。", fix:"正确说法，错误的是「必须分开设置」那句。" }
       ] },
 { tag:"文明施工·六化", typeHint:"单选 · 选出最完整、能得分的文明施工措施", figLabel:"文明施工现场对象", figCaption:"围挡 / 分区 / 挂牌 · 哪个写全了", fig:"worksite",
       stem:"背景要求「写出该工程的文明施工措施」。下列作答中，最完整、能拿分的是哪一项？",
       model:"封闭管理设标准化围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。",
       opts:[
-        { t:"设标准化封闭围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。", ok:true, fix:"围挡+分区隔离+严禁住人+六化+五牌一图都落到可执行动作，采分点齐。", code:"" },
-        { t:"加强文明施工管理，搞好现场文明施工，做到文明有序、干净整洁，创建文明工地。", ok:false, code:"E04", tempt:"话说得很「全面」，读着顺，像总结陈词。", lose:"全是口号，没有一条落到围挡/分区/挂牌等可判分动作，阅卷不给分。", fix:"落到动作：标准化围挡、施工区÷生活区隔离、在建工程严禁住人、挂五牌一图。" },
-        { t:"设置围挡、材料码放整齐即可，现场干净就是文明施工的核心，其余按现场情况灵活安排。", ok:false, code:"E02", tempt:"写了围挡和码放两条，感觉「有具体措施了」。", lose:"漏了分区隔离、在建工程严禁住人、五牌一图等采分点，只答两条不全。", fix:"补分区隔离、在建工程严禁住人、五牌一图挂内侧。" },
-        { t:"配齐灭火器与消防水源、组织动火审批、做好职业病防护和食堂卫生，保障文明施工。", ok:false, code:"E07", tempt:"消防、卫生听着都属于「现场管理」，容易混进来。", lose:"消防防火属安全生产、职业卫生属安全卫生，都不是文明施工本体，串了考点。", fix:"文明施工只答围挡/分区/严禁住人/六化/五牌一图。" }
+        { t:"加强现场文明施工管理，落实文明施工责任制，做到现场文明有序、干净整洁、面貌良好，营造良好施工环境，全面创建文明工地。", ok:false, code:"E04", tempt:"话说得很「全面」，读着顺，像总结陈词。", lose:"全是口号，没有一条落到围挡/分区/挂牌等可判分动作，阅卷不给分。", fix:"落到动作：标准化围挡、施工区÷生活区隔离、在建工程严禁住人、挂五牌一图。" },
+        { t:"设置封闭围挡，并做到各类材料码放整齐、现场干净整洁，以上两项即构成完整的文明施工措施方案。", ok:false, code:"E02", tempt:"写了围挡和码放两条，感觉「有具体措施了」。", lose:"漏了分区隔离、在建工程严禁住人、五牌一图等采分点，只答两条不全。", fix:"补分区隔离、在建工程严禁住人、五牌一图挂内侧。" },
+        { t:"配齐灭火器材与消防水源、严格组织动火审批、做好职业病防护和食堂饮食卫生，以保障现场文明施工。", ok:false, code:"E07", tempt:"消防、卫生听着都属于「现场管理」，容易混进来。", lose:"消防防火属安全生产、职业卫生属安全卫生，都不是文明施工本体，串了考点。", fix:"文明施工只答围挡/分区/严禁住人/六化/五牌一图。" },
+        { t:"设标准化封闭围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。", ok:true, fix:"围挡+分区隔离+严禁住人+六化+五牌一图都落到可执行动作，采分点齐。", code:"" }
       ] },
 { tag:"围挡·规范数字", typeHint:"单选 · 选出围挡的材料与高度采分句（真题 2024 第27题型）", figLabel:"围挡标准 · 高度标尺", figCaption:"材料类型 + 高度 · 哪句可得分", fig:"fence",
       stem:"关于施工现场（生活区/通用）围挡的设置，选出材料与高度都写对、能得分的一项。",
@@ -251,26 +251,26 @@ class Component extends DCLogic {
       opts:[
         { t:"围挡采用可循环、可拆卸、标准化定型材料，高度不得低于 1.8m。", ok:true, fix:"材料三个词（可循环/可拆卸/标准化定型）+ 高度 1.8m，本源料语境的采分句。", code:"" },
         { t:"围挡按材料成分分为有机类围挡和无机类围挡两种，高度不得低于 1.8m。", ok:false, code:"M04", tempt:"「有机类/无机类」听着像专业分类，真题里也出现过这个词。", lose:"有机类/无机类是真题干扰项，围挡按可循环/可拆卸/标准化定型分，不按成分分。", fix:"材料写「可循环、可拆卸、标准化定型」，不是有机/无机类。" },
-        { t:"围挡采用标准化定型材料，高度不得低于 2.5m。", ok:false, code:"M08", tempt:"2.5m 是常听到的围挡数字，顺手就填。", lose:"2.5m 是市区主要路段场容围挡（另属 X01）；本源料语境围挡高度是不低于 1.8m，数字串档。", fix:"本题高度写「不得低于 1.8m」，2.5m 是市区主路场容的另一考点。" },
-        { t:"围挡牢固美观即可，高度按现场情况确定，能挡住施工现场不外露就行。", ok:false, code:"E10", tempt:"觉得「牢固美观、能挡住」就达到目的了。", lose:"没有材料类型、没有明确高度数值，缺规范阈值不能判分。", fix:"补齐：可循环/可拆卸/标准化定型材料 + 高度不得低于 1.8m。" }
+        { t:"围挡采用可拆卸的标准化定型材料，高度不得低于 2.5m。", ok:false, code:"M08", tempt:"2.5m 是常听到的围挡数字，顺手就填。", lose:"2.5m 是市区主要路段场容围挡（另属 X01）；本源料语境围挡高度是不低于 1.8m，数字串档。", fix:"本题高度写「不得低于 1.8m」，2.5m 是市区主路场容的另一考点。" },
+        { t:"围挡应做到牢固美观、能挡住施工现场不外露，高度可结合现场实际情况综合确定。", ok:false, code:"E10", tempt:"觉得「牢固美观、能挡住」就达到目的了。", lose:"没有材料类型、没有明确高度数值，缺规范阈值不能判分。", fix:"补齐：可循环/可拆卸/标准化定型材料 + 高度不得低于 1.8m。" }
       ] },
 { tag:"文明施工·五牌一图", typeHint:"单选 · 选出五牌一图列举完整的一项", figLabel:"主入口内侧 · 挂牌墙", figCaption:"六块牌 + 一张图 · 哪项没漏牌", fig:"plates",
       stem:"施工现场主入口内侧应挂设「五牌一图」。选出列举完整、能得分的一项。",
       model:"工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工牌、环境保护牌 + 施工总平面图，挂主入口内侧。",
       opts:[
+        { t:"工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌，再加施工总平面图，即为内容齐全的五牌一图。", ok:false, code:"E02", tempt:"名字叫「五牌」，凑够五个就以为齐了。", lose:"漏了文明施工牌、环境保护牌——恰恰是最爱漏的两块采分牌。", fix:"补文明施工牌、环境保护牌，六块牌 + 一图。" },
+        { t:"五牌一图应挂设在工地大门外侧的显眼位置，以便于过往行人和监管部门随时查看监督。", ok:false, code:"E10", tempt:"觉得「越显眼越好」，挂外面路人都能看到。", lose:"规范要求挂主入口内侧，挂外侧位置错。", fix:"五牌一图挂主入口内侧。" },
         { t:"工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工牌、环境保护牌，加施工总平面图。", ok:true, fix:"六块牌 + 一张图齐全，最爱漏的文明施工牌、环境保护牌都写上了。", code:"" },
-        { t:"工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌，加施工总平面图，共五牌一图。", ok:false, code:"E02", tempt:"名字叫「五牌」，凑够五个就以为齐了。", lose:"漏了文明施工牌、环境保护牌——恰恰是最爱漏的两块采分牌。", fix:"补文明施工牌、环境保护牌，六块牌 + 一图。" },
-        { t:"把五牌一图挂在工地大门外侧显眼处，方便过往行人和监管部门查看监督。", ok:false, code:"E10", tempt:"觉得「越显眼越好」，挂外面路人都能看到。", lose:"规范要求挂主入口内侧，挂外侧位置错。", fix:"五牌一图挂主入口内侧。" },
-        { t:"挂工程概况牌和施工总平面图即可，其余牌按建设单位要求增设，核心是概况和平面图。", ok:false, code:"E02", tempt:"觉得概况牌和总平面图「信息最全」，够用。", lose:"漏了管理名单、消防保卫、安全生产、文明施工、环境保护五块牌。", fix:"六块牌一块不能少，加施工总平面图。" }
+        { t:"挂设工程概况牌和施工总平面图两项，其余各牌根据建设单位要求另行增设，核心为概况与平面图。", ok:false, code:"E02", tempt:"觉得概况牌和总平面图「信息最全」，够用。", lose:"漏了管理名单、消防保卫、安全生产、文明施工、环境保护五块牌。", fix:"六块牌一块不能少，加施工总平面图。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断作答缺哪几组，给出正确补写（采分句输出训练）", figLabel:"模拟学生作答（待诊断）", figCaption:"写了文明+扬尘两组 · 缺什么", fig:"sheet",
       stem:"某学生就「综合环保措施」作答：①设标准化围挡、施工区与生活区隔离；②现场洒水降尘、车辆冲洗池。请诊断其失分并选出最准确的补写。",
       model:"已写文明施工、扬尘两组但扬尘漏源头覆盖；缺绿色施工组织、噪声、光污染、污水泥浆、四节、建筑垃圾多组。补写：扬尘加源头裸土覆盖篷盖；补噪声（低噪设备/隔声/封闭/工艺）、污水泥浆（封闭收集未处理不排）、四节（材水能地）、建筑垃圾（不宜高于3m/台账/再生骨料）。",
       opts:[
+        { t:"该生两条措施均已写出具体动作：①标准化围挡、施工区与生活区隔离；②现场洒水降尘、设车辆冲洗池，方向正确、条条落到可执行动作，按综合环保措施的采分口径可以直接给满分。", ok:false, code:"E02", tempt:"看到有围挡、冲洗池等具体动作，就以为采分点够了。", lose:"综合写措施要五组齐，只写文明+扬尘两组，漏噪声/污水/四节/建筑垃圾一大片。", fix:"补噪声、污水泥浆、四节、建筑垃圾等各组措施。" },
         { t:"文明与扬尘方向对但扬尘漏源头覆盖；且缺噪声、污水泥浆、四节、建筑垃圾等多组——扬尘补源头覆盖，另补噪声/污水/四节/建筑垃圾各组的可执行动作。", ok:true, fix:"既揪出扬尘缺环节，又补齐缺失的几组措施，条条落到动作，这才是会写答案。", code:"" },
-        { t:"两条措施都写了具体动作（围挡、洒水、冲洗池），方向也对，可以给满分。", ok:false, code:"E02", tempt:"看到有围挡、冲洗池等具体动作，就以为采分点够了。", lose:"综合写措施要五组齐，只写文明+扬尘两组，漏噪声/污水/四节/建筑垃圾一大片。", fix:"补噪声、污水泥浆、四节、建筑垃圾等各组措施。" },
-        { t:"只是文字不够书面，把「洒水降尘」改成「采取抑尘措施」就更规范了，其余无需补。", ok:false, code:"E04", tempt:"以为问题在措辞，改得「书面」一点就行。", lose:"改口号反而更空；真问题是缺组和扬尘缺源头环节，不是措辞。", fix:"扬尘补源头覆盖，并补噪声/污水/四节/建筑垃圾各组动作。" },
-        { t:"补一句「加强绿色施工管理、做好节能环保」把绿色和四节都概括进去即可，无需逐条写。", ok:false, code:"E04", tempt:"想用一句总括话「省事」地补上四节和绿色。", lose:"一句口号补不了采分点，四节要逐节落到材/水/能/地的具体做法。", fix:"四节逐节写：商混、循环装置、节能设备、绿化代替硬化等可执行动作。" }
+        { t:"该作答的问题只在文字表述不够书面规范，将「洒水降尘」改写为「采取抑尘措施」即可达到要求，内容层面无需再作补充。", ok:false, code:"E04", tempt:"以为问题在措辞，改得「书面」一点就行。", lose:"改口号反而更空；真问题是缺组和扬尘缺源头环节，不是措辞。", fix:"扬尘补源头覆盖，并补噪声/污水/四节/建筑垃圾各组动作。" },
+        { t:"在原作答基础上补写一句「加强绿色施工管理、做好节能环保」，即可将绿色施工与四节内容全部概括进去，无需再逐条展开补写。", ok:false, code:"E04", tempt:"想用一句总括话「省事」地补上四节和绿色。", lose:"一句口号补不了采分点，四节要逐节落到材/水/能/地的具体做法。", fix:"四节逐节写：商混、循环装置、节能设备、绿化代替硬化等可执行动作。" }
       ] }
   ];
   codeMap={
@@ -516,7 +516,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"X03-html-practice-html-q1-1ec18c6e2879","options":["X03-html-practice-html-q1-1ec18c6e2879:option-1","X03-html-practice-html-q1-1ec18c6e2879:option-2","X03-html-practice-html-q1-1ec18c6e2879:option-3","X03-html-practice-html-q1-1ec18c6e2879:option-4"]},{"variant_id":"X03-html-practice-html-q2-b496fe8fb1aa","options":["X03-html-practice-html-q2-b496fe8fb1aa:option-1","X03-html-practice-html-q2-b496fe8fb1aa:option-2","X03-html-practice-html-q2-b496fe8fb1aa:option-3","X03-html-practice-html-q2-b496fe8fb1aa:option-4"]},{"variant_id":"X03-html-practice-html-q3-9bb6264d8af5","options":["X03-html-practice-html-q3-9bb6264d8af5:option-1","X03-html-practice-html-q3-9bb6264d8af5:option-2","X03-html-practice-html-q3-9bb6264d8af5:option-3","X03-html-practice-html-q3-9bb6264d8af5:option-4"]},{"variant_id":"X03-html-practice-html-q4-6fc7530044e5","options":["X03-html-practice-html-q4-6fc7530044e5:option-1","X03-html-practice-html-q4-6fc7530044e5:option-2","X03-html-practice-html-q4-6fc7530044e5:option-3","X03-html-practice-html-q4-6fc7530044e5:option-4"]},{"variant_id":"X03-html-practice-html-q16-bbe15ebcc71a","options":["X03-html-practice-html-q16-bbe15ebcc71a:option-1","X03-html-practice-html-q16-bbe15ebcc71a:option-2","X03-html-practice-html-q16-bbe15ebcc71a:option-3","X03-html-practice-html-q16-bbe15ebcc71a:option-4"]}];
+    const exactItems=[{"variant_id":"X03-html-practice-html-q1-392b2c69dc20","options":["X03-html-practice-html-q1-392b2c69dc20:option-1","X03-html-practice-html-q1-392b2c69dc20:option-2","X03-html-practice-html-q1-392b2c69dc20:option-3","X03-html-practice-html-q1-392b2c69dc20:option-4"]},{"variant_id":"X03-html-practice-html-q2-889e43029c6d","options":["X03-html-practice-html-q2-889e43029c6d:option-1","X03-html-practice-html-q2-889e43029c6d:option-2","X03-html-practice-html-q2-889e43029c6d:option-3","X03-html-practice-html-q2-889e43029c6d:option-4"]},{"variant_id":"X03-html-practice-html-q3-5435fcbead15","options":["X03-html-practice-html-q3-5435fcbead15:option-1","X03-html-practice-html-q3-5435fcbead15:option-2","X03-html-practice-html-q3-5435fcbead15:option-3","X03-html-practice-html-q3-5435fcbead15:option-4"]},{"variant_id":"X03-html-practice-html-q4-a50ad1e7b1b6","options":["X03-html-practice-html-q4-a50ad1e7b1b6:option-1","X03-html-practice-html-q4-a50ad1e7b1b6:option-2","X03-html-practice-html-q4-a50ad1e7b1b6:option-3","X03-html-practice-html-q4-a50ad1e7b1b6:option-4"]},{"variant_id":"X03-html-practice-html-q16-3c13f34dbc94","options":["X03-html-practice-html-q16-3c13f34dbc94:option-1","X03-html-practice-html-q16-3c13f34dbc94:option-2","X03-html-practice-html-q16-3c13f34dbc94:option-3","X03-html-practice-html-q16-3c13f34dbc94:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -533,7 +533,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("X03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMWVjMThjNmUyODc5IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iNDk2ZmU4ZmIxYWEiLCJYMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTliYjYyNjRkOGFmNSIsIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNmZjNzUzMDA0NGU1IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmJlMTVlYmNjNzFhIl0sInBhY2tfaWQiOiJYMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjU3N2IzYmQ2YTcyODlhMDkzNWVjMWEyOWZhYzNiYTI1ZmJkYTM3YmU2ODQzZTc2N2IyZmY5ZmU2OWNkNjEyZGYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjVkZDBmN2ZjOTBlYjYxZGJlZmZmYjgzY2NhNzQ1Y2QzOWYzMmFkYWY5N2E5NzZjMDA3ZDNjODJkN2NjZmVmZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("X03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzkyYjJjNjlkYzIwIiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ODllNDMwMjljNmQiLCJYMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTU0MzVmY2JlYWQxNSIsIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtYTUwYWQxZTdiMWI2IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtM2MxM2YzNGRiYzk0Il0sInBhY2tfaWQiOiJYMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjcwOGM5ZDIxODg3YWI4NTg3ZmYyM2M1NmI3YjNjOTlhYWVjYzE2MjUwNGUxN2MxNjIzZTljNTAzODkyZjZiODYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjVkZDBmN2ZjOTBlYjYxZGJlZmZmYjgzY2NhNzQ1Y2QzOWYzMmFkYWY5N2E5NzZjMDA3ZDNjODJkN2NjZmVmZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

@@ -238,46 +238,46 @@ class Component extends DCLogic {
       stem:"幕墙与各层楼板间缝隙的防火封堵应满足哪些要求？选出要素最全、能得分的作答。",
       model:"缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、楼层间形成水平防火烟带；防火层用≥1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。",
       opts:[
-        { t:"缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、形成水平防火烟带，1.5mm镀锌钢板承托、防火密封胶封缝。", ok:true, fix:"五要素全：不燃材料+厚度+耐火极限+水平烟带+钢板承托与密封胶，逐条列清才不漏维。", code:"" },
-        { t:"缝隙用岩棉填塞封堵密实即可，把缝隙塞满、不透火，就满足层间防火封堵的要求了。", ok:false, code:"E02", tempt:"只记住「塞岩棉」这一件，觉得填满就完事。", lose:"漏了厚度≥100mm、水平防火烟带、钢板承托、防火密封胶整维要素。", fix:"补≥100mm、耐火极限、水平防火烟带、1.5mm镀锌钢板承托、防火密封胶。" },
-        { t:"缝隙用防火材料封堵、达到设计要求的防火效果，做法由施工单位按现场情况灵活确定。", ok:false, code:"E10", tempt:"「达到防火效果、灵活确定」听着稳妥不出错。", lose:"全是口号、无一条可判分要素，属以口号替代规范要求。", fix:"写死要素：不燃岩棉≥100mm+耐火极限+水平烟带+镀锌钢板承托+防火密封胶。" },
-        { t:"缝隙用不燃岩棉封堵≥100mm、形成水平防火烟带，承托板托住岩棉即可，密封与否影响不大。", ok:false, code:"E02", tempt:"前面写对了两条，容易以为够了。", lose:"漏防火密封胶（承托板与主体/幕墙缝隙必须密封），且承托板材料厚度没点明。", fix:"补1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。" }
+        { t:"缝隙采用岩棉、矿棉等材料填塞封堵并保证密实，将缝隙全部塞满、确认不透火，即已满足幕墙与各层楼板间防火封堵的全部要求。", ok:false, code:"E02", tempt:"只记住「塞岩棉」这一件，觉得填满就完事。", lose:"漏了厚度≥100mm、水平防火烟带、钢板承托、防火密封胶整维要素。", fix:"补≥100mm、耐火极限、水平防火烟带、1.5mm镀锌钢板承托、防火密封胶。" },
+        { t:"缝隙采用合格防火材料进行封堵，达到设计要求的防火效果，具体的封堵构造做法由施工单位结合工程现场的实际情况灵活确定并组织实施到位。", ok:false, code:"E10", tempt:"「达到防火效果、灵活确定」听着稳妥不出错。", lose:"全是口号、无一条可判分要素，属以口号替代规范要求。", fix:"写死要素：不燃岩棉≥100mm+耐火极限+水平烟带+镀锌钢板承托+防火密封胶。" },
+        { t:"缝隙采用不燃岩棉封堵且厚度≥100mm，并在楼层间形成水平防火烟带，防火层下设承托板托住岩棉，承托板缝隙可不再作密封。", ok:false, code:"E02", tempt:"前面写对了两条，容易以为够了。", lose:"漏防火密封胶（承托板与主体/幕墙缝隙必须密封），且承托板材料厚度没点明。", fix:"补1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。" },
+        { t:"缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、形成水平防火烟带，1.5mm镀锌钢板承托、防火密封胶封缝。", ok:true, fix:"五要素全：不燃材料+厚度+耐火极限+水平烟带+钢板承托与密封胶，逐条列清才不漏维。", code:"" }
       ] },
 { tag:"承托板材料·判断纠错", typeHint:"单选 · 选出指错并给正确做法最到位的作答", figLabel:"题给：防火层承托板选材", figCaption:"铝 660℃熔 vs 钢 1500℃稳", fig:"steelalu",
       stem:"某幕墙防火层承托板采用 1.5mm 铝板。指出是否妥当并写正确做法，选出最到位的作答。",
       model:"不妥。防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板(铝熔点低火中熔化使防火层垮塌)。",
       opts:[
+        { t:"不妥；应将现有铝板承托层拆除，更换为钢板承托并重新安装固定，即可满足防火构造要求。", ok:false, code:"E03", tempt:"方向对——知道铝板不行、要换钢板。", lose:"「正确做法」缺关键数值与材料——没写≥1.5mm、没写镀锌钢板。", fix:"写死「≥1.5mm镀锌钢板承托，不得铝板」，纠错才给全分。" },
         { t:"不妥；防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板（铝熔点低火中熔化）。", ok:true, fix:"指错+给正确材料与厚度+点明后果，纠错三段齐，正确做法带数值材料。", code:"" },
-        { t:"不妥；铝板不行，应该换成钢板承托，把铝板拆掉重新装上钢的承托板就符合要求了。", ok:false, code:"E03", tempt:"方向对——知道铝板不行、要换钢板。", lose:"「正确做法」缺关键数值与材料——没写≥1.5mm、没写镀锌钢板。", fix:"写死「≥1.5mm镀锌钢板承托，不得铝板」，纠错才给全分。" },
-        { t:"妥当；铝板也是金属、导热快、又轻，用作承托板托住岩棉没有问题，1.5mm 厚度也够。", ok:false, code:"E10", tempt:"「金属都耐用、又轻」是想当然的常识。", lose:"防火层承托不得用铝——铝约660℃熔化，火灾中承托垮塌、岩棉坠落，防火层失效。", fix:"必须用≥1.5mm镀锌钢板，不得铝板。" },
-        { t:"不妥；应把铝板加厚到 2mm 以上增强耐火，厚一点的铝板就能承受火灾高温托住防火层。", ok:false, code:"E07", tempt:"以为「加厚」就能解决耐火问题。", lose:"问题在材料不在厚度——铝熔点低，加多厚也会熔；混淆了材料与厚度。", fix:"换材料：用≥1.5mm镀锌钢板，不得用铝板。" }
+        { t:"妥当；铝板同为金属材料，导热快且自重较轻，用作承托板托住岩棉并无不可，1.5mm 厚度亦已达标。", ok:false, code:"E10", tempt:"「金属都耐用、又轻」是想当然的常识。", lose:"防火层承托不得用铝——铝约660℃熔化，火灾中承托垮塌、岩棉坠落，防火层失效。", fix:"必须用≥1.5mm镀锌钢板，不得铝板。" },
+        { t:"不妥；应将铝板加厚至 2mm 以上以增强耐火能力，加厚后的铝板即可在火灾高温下托住防火层。", ok:false, code:"E07", tempt:"以为「加厚」就能解决耐火问题。", lose:"问题在材料不在厚度——铝熔点低，加多厚也会熔；混淆了材料与厚度。", fix:"换材料：用≥1.5mm镀锌钢板，不得用铝板。" }
       ] },
 { tag:"承托板尺寸·数字陷阱", typeHint:"单选 · 选出数值与单位都正确的作答", figLabel:"题给：防火构造关键尺寸", figCaption:"注意 m 与 mm 别混", fig:"sizebars",
       stem:"关于幕墙防火构造承托板，下列写法数值与单位都正确、能得分的是？",
       model:"钢质承托板厚度≥1.5mm（毫米）；写成1.5m是其1000倍，幕墙构造无1.5m厚承托板。",
       opts:[
         { t:"防火层承托板应采用厚度≥1.5mm 的镀锌钢板，此处 1.5mm 是毫米，不是 1.5m。", ok:true, fix:"数值+单位都点死(1.5mm毫米)，并主动排除1.5m单位陷阱。", code:"" },
-        { t:"防火层承托板应采用厚度≥1.5m 的钢板承托，1.5 米厚的钢板足以承受火灾高温不变形。", ok:false, code:"M08", tempt:"顺手把 mm 写成 m，或以为越厚越保险。", lose:"单位错——1.5m 是 1.5mm 的 1000 倍，幕墙上没有 1.5m 厚的承托钢板。", fix:"写≥1.5mm（毫米），不是1.5m。" },
-        { t:"防火层承托板应采用厚度≥15mm 的钢板承托，够厚才托得住岩棉、火中不塌。", ok:false, code:"M08", tempt:"和防火涂料 15mm 之类的数字串了。", lose:"承托板是≥1.5mm，不是15mm；数字记错同样丢分。", fix:"承托板厚度≥1.5mm镀锌钢板。" },
-        { t:"防火层承托板只要是钢质、能托住岩棉就行，厚度不用写具体数值，注明「钢板承托」即可。", ok:false, code:"E03", tempt:"知道要钢板，觉得材料对了就够。", lose:"漏关键数值≥1.5mm，阅卷缺数值不给该分。", fix:"补厚度≥1.5mm，写「≥1.5mm镀锌钢板承托」。" }
+        { t:"防火层承托板应采用厚度≥1.5m 的钢板承托，如此厚度方能在火灾高温之下保持承托不变形。", ok:false, code:"M08", tempt:"顺手把 mm 写成 m，或以为越厚越保险。", lose:"单位错——1.5m 是 1.5mm 的 1000 倍，幕墙上没有 1.5m 厚的承托钢板。", fix:"写≥1.5mm（毫米），不是1.5m。" },
+        { t:"防火层承托板应采用厚度≥15mm 的钢板承托，足够的板厚才能托住岩棉并在火中不塌落、不变形。", ok:false, code:"M08", tempt:"和防火涂料 15mm 之类的数字串了。", lose:"承托板是≥1.5mm，不是15mm；数字记错同样丢分。", fix:"承托板厚度≥1.5mm镀锌钢板。" },
+        { t:"防火层承托板采用钢质材料并能托住岩棉即可，厚度不必写出具体数值，注明「钢板承托」即为完整。", ok:false, code:"E03", tempt:"知道要钢板，觉得材料对了就够。", lose:"漏关键数值≥1.5mm，阅卷缺数值不给该分。", fix:"补厚度≥1.5mm，写「≥1.5mm镀锌钢板承托」。" }
       ] },
 { tag:"防火分隔·条件维", typeHint:"单选 · 选出尺寸判据完整正确的作答", figLabel:"题给：上下层开口防火分隔", figCaption:"实体墙或挑檐，二选一达标", fig:"sizebars",
       stem:"上下层开口之间的防火分隔应满足什么？选出尺寸判据完整、能得分的作答。",
       model:"上下层开口间实体墙高度≥1.2m；或设防火挑檐，宽度≥1.0m且长度≥开口宽度。",
       opts:[
+        { t:"上下层开口间实体墙高度≥1.2m 即为达标，防火挑檐属可选装饰构件，不参与防火判定，可不设置。", ok:false, code:"E02", tempt:"记住了实体墙1.2m一条，以为够了。", lose:"漏了「实体墙不足时用防火挑檐≥1.0m替代」这条替代路径。", fix:"补：实体墙不足1.2m时设防火挑檐宽≥1.0m且长≥开口宽。" },
         { t:"上下层开口间应设高度≥1.2m 的实体墙；不足时设防火挑檐，宽度≥1.0m 且长度≥开口宽度。", ok:true, fix:"实体墙1.2m与挑檐1.0m二选一、挑檐还要长≥开口宽，判据全。", code:"" },
-        { t:"上下层开口之间做好防火分隔、留足安全距离、防止火焰向上蔓延到上层窗口就可以。", ok:false, code:"E10", tempt:"「留足距离、防蔓延」方向对、听着没错。", lose:"全是口号无数值——没写实体墙≥1.2m、挑檐≥1.0m。", fix:"写死实体墙≥1.2m 或挑檐≥1.0m 且长≥开口宽。" },
-        { t:"上下层开口间实体墙高度≥1.2m 即可，挑檐是可选装饰、不影响防火，达不到高度也没关系。", ok:false, code:"E02", tempt:"记住了实体墙1.2m一条，以为够了。", lose:"漏了「实体墙不足时用防火挑檐≥1.0m替代」这条替代路径。", fix:"补：实体墙不足1.2m时设防火挑檐宽≥1.0m且长≥开口宽。" },
-        { t:"上下层开口间实体墙高度≥1.0m、或防火挑檐宽度≥1.2m 且长度不限，满足其一即可。", ok:false, code:"M08", tempt:"记得有1.2和1.0俩数、随手对调了。", lose:"数值张冠李戴——实体墙是≥1.2m、挑檐是≥1.0m且长≥开口宽，反了。", fix:"实体墙≥1.2m、挑檐≥1.0m且长≥开口宽，别对调。" }
+        { t:"上下层开口之间应做好防火分隔构造，留足安全距离，防止火焰经由外窗向上蔓延至上一层开口。", ok:false, code:"E10", tempt:"「留足距离、防蔓延」方向对、听着没错。", lose:"全是口号无数值——没写实体墙≥1.2m、挑檐≥1.0m。", fix:"写死实体墙≥1.2m 或挑檐≥1.0m 且长≥开口宽。" },
+        { t:"上下层开口间实体墙高度≥1.0m，或设防火挑檐宽度≥1.2m 且长度不限，二者满足其一即为合格。", ok:false, code:"M08", tempt:"记得有1.2和1.0俩数、随手对调了。", lose:"数值张冠李戴——实体墙是≥1.2m、挑檐是≥1.0m且长≥开口宽，反了。", fix:"实体墙≥1.2m、挑檐≥1.0m且长≥开口宽，别对调。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 揪出失分并给正确补写，训练采分句输出", figLabel:"模拟学生作答（待诊断）", figCaption:"看着答了三条，能拿几分？", fig:"sheet",
       stem:"某学生答层间封堵：①缝隙塞岩棉；②承托板用铝板；③承托板缝隙没提。选出最准确的诊断与补写。",
       model:"三处都要补：①缝隙应不燃岩棉≥100mm+耐火极限+水平防火烟带；②承托板应≥1.5mm镀锌钢板不得铝板；③承托板与主体/幕墙缝隙应用防火密封胶密封。",
       opts:[
+        { t:"该作答基本可行：岩棉封堵、承托板均已具备，缝隙细小可忽略，仅将铝板更换为钢板即可得到满分。", ok:false, code:"E02", tempt:"抓到铝板一处错，以为改这一处就够。", lose:"漏诊①缺≥100mm与水平防火烟带、③缝隙未用防火密封胶，两处失分没揪出。", fix:"三处都要补：厚度/水平烟带、镀锌钢板、防火密封胶。" },
+        { t:"承托板采用铝板并无不妥且自重较轻，主要问题在于岩棉塞得不够密实，将岩棉填塞密实即为合格。", ok:false, code:"E10", tempt:"把注意力放在「塞密实」这种常识上。", lose:"方向全错——铝板必须换镀锌钢板；且漏水平烟带与防火密封胶。", fix:"承托板改≥1.5mm镀锌钢板，补≥100mm/水平烟带/防火密封胶。" },
         { t:"三处都失分：①缺≥100mm与水平烟带，②承托板应改≥1.5mm镀锌钢板不得铝板，③缝隙应用防火密封胶密封。", ok:true, fix:"逐条揪失分并补上采分句，正是「会写答案」——三句都要落纸。", code:"" },
-        { t:"基本没问题：岩棉封堵、有承托板、缝隙小可忽略，把铝板换成钢板就能拿满分。", ok:false, code:"E02", tempt:"抓到铝板一处错，以为改这一处就够。", lose:"漏诊①缺≥100mm与水平防火烟带、③缝隙未用防火密封胶，两处失分没揪出。", fix:"三处都要补：厚度/水平烟带、镀锌钢板、防火密封胶。" },
-        { t:"只是表达不规范，把「塞岩棉」写成「不燃材料封堵」就行，尺寸材料其实都对。", ok:false, code:"E03", tempt:"以为只是措辞问题、内容都对。", lose:"内容真缺——没≥100mm、没水平烟带、承托板还是错的铝板，不止措辞。", fix:"补数值(≥100mm)、水平烟带、镀锌钢板承托、防火密封胶。" },
-        { t:"承托板用铝板没错、够轻，主要问题是岩棉塞得不够密，把岩棉塞实就合格了。", ok:false, code:"E10", tempt:"把注意力放在「塞密实」这种常识上。", lose:"方向全错——铝板必须换镀锌钢板；且漏水平烟带与防火密封胶。", fix:"承托板改≥1.5mm镀锌钢板，补≥100mm/水平烟带/防火密封胶。" }
+        { t:"仅属表达不规范：将「塞岩棉」改写为「不燃材料封堵」即可得分，所涉及的尺寸与承托板材料实际上均已答对，无须再补。", ok:false, code:"E03", tempt:"以为只是措辞问题、内容都对。", lose:"内容真缺——没≥100mm、没水平烟带、承托板还是错的铝板，不止措辞。", fix:"补数值(≥100mm)、水平烟带、镀锌钢板承托、防火密封胶。" }
       ] }
   ];
   codeMap={
@@ -525,7 +525,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"D13-html-practice-html-q1-a3b5c73ae494","options":["D13-html-practice-html-q1-a3b5c73ae494:option-1","D13-html-practice-html-q1-a3b5c73ae494:option-2","D13-html-practice-html-q1-a3b5c73ae494:option-3","D13-html-practice-html-q1-a3b5c73ae494:option-4"]},{"variant_id":"D13-html-practice-html-q2-753aa408cfc1","options":["D13-html-practice-html-q2-753aa408cfc1:option-1","D13-html-practice-html-q2-753aa408cfc1:option-2","D13-html-practice-html-q2-753aa408cfc1:option-3","D13-html-practice-html-q2-753aa408cfc1:option-4"]},{"variant_id":"D13-html-practice-html-q3-9fa02e489ab8","options":["D13-html-practice-html-q3-9fa02e489ab8:option-1","D13-html-practice-html-q3-9fa02e489ab8:option-2","D13-html-practice-html-q3-9fa02e489ab8:option-3","D13-html-practice-html-q3-9fa02e489ab8:option-4"]},{"variant_id":"D13-html-practice-html-q4-b67400c5b10c","options":["D13-html-practice-html-q4-b67400c5b10c:option-1","D13-html-practice-html-q4-b67400c5b10c:option-2","D13-html-practice-html-q4-b67400c5b10c:option-3","D13-html-practice-html-q4-b67400c5b10c:option-4"]},{"variant_id":"D13-html-practice-html-q15-2ff7d0b4fec0","options":["D13-html-practice-html-q15-2ff7d0b4fec0:option-1","D13-html-practice-html-q15-2ff7d0b4fec0:option-2","D13-html-practice-html-q15-2ff7d0b4fec0:option-3","D13-html-practice-html-q15-2ff7d0b4fec0:option-4"]}];
+    const exactItems=[{"variant_id":"D13-html-practice-html-q1-f196ec9bf371","options":["D13-html-practice-html-q1-f196ec9bf371:option-1","D13-html-practice-html-q1-f196ec9bf371:option-2","D13-html-practice-html-q1-f196ec9bf371:option-3","D13-html-practice-html-q1-f196ec9bf371:option-4"]},{"variant_id":"D13-html-practice-html-q2-8731158f9009","options":["D13-html-practice-html-q2-8731158f9009:option-1","D13-html-practice-html-q2-8731158f9009:option-2","D13-html-practice-html-q2-8731158f9009:option-3","D13-html-practice-html-q2-8731158f9009:option-4"]},{"variant_id":"D13-html-practice-html-q3-fb2ecdf90653","options":["D13-html-practice-html-q3-fb2ecdf90653:option-1","D13-html-practice-html-q3-fb2ecdf90653:option-2","D13-html-practice-html-q3-fb2ecdf90653:option-3","D13-html-practice-html-q3-fb2ecdf90653:option-4"]},{"variant_id":"D13-html-practice-html-q4-2d4088f977f1","options":["D13-html-practice-html-q4-2d4088f977f1:option-1","D13-html-practice-html-q4-2d4088f977f1:option-2","D13-html-practice-html-q4-2d4088f977f1:option-3","D13-html-practice-html-q4-2d4088f977f1:option-4"]},{"variant_id":"D13-html-practice-html-q15-5ec84ba4a21d","options":["D13-html-practice-html-q15-5ec84ba4a21d:option-1","D13-html-practice-html-q15-5ec84ba4a21d:option-2","D13-html-practice-html-q15-5ec84ba4a21d:option-3","D13-html-practice-html-q15-5ec84ba4a21d:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -542,7 +542,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("D13")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTNiNWM3M2FlNDk0IiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03NTNhYTQwOGNmYzEiLCJEMTMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTlmYTAyZTQ4OWFiOCIsIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtYjY3NDAwYzViMTBjIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMmZmN2QwYjRmZWMwIl0sInBhY2tfaWQiOiJEMTMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjllYWRmOGZhNTAxZjkyMmQzZmUyOGZjYWIxNzliZmZhZmEyNjkxOTJhZDg1MGZhOTIxMjRmMmQ3MzA1ODQ5YmYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYTAyZTQzYWJjZjVlMTBlNmFkYzI1ODdhZjlhNmYxOTkxOTYzMTc0NzU1M2YwZmE5Zjg2OGRhOWUxZmRkZDkxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("D13")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjE5NmVjOWJmMzcxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04NzMxMTU4ZjkwMDkiLCJEMTMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZiMmVjZGY5MDY1MyIsIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmQ0MDg4Zjk3N2YxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtNWVjODRiYTRhMjFkIl0sInBhY2tfaWQiOiJEMTMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6Ijg5ODc2MzY2YTI2YTYzZjcwMGZmNjk1NDY0MTM1MDRlN2VlZmE0YWFmYzU3MWUxZGUyYTI2ZTg4MTA0OTdkZDciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYTAyZTQzYWJjZjVlMTBlNmFkYzI1ODdhZjlhNmYxOTkxOTYzMTc0NzU1M2YwZmE5Zjg2OGRhOWUxZmRkZDkxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

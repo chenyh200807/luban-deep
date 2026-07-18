@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "J01",
   "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
-  "source_bundle_sha256": "450b89c170a6c81d8515f6bb3ecbe40e5ac2a725aa6af5825d664d2c30ceba9b",
+  "source_bundle_sha256": "2c0b835d7812948a19a7bf6a1b491c55f0628f7b9f2733042aa0bef5ccb9aea6",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,23 +18,23 @@
         15
       ],
       "variant_ids": [
-        "J01-html-practice-html-q1-c90daf8ddfb3",
-        "J01-html-practice-html-q2-1703f826ad25",
-        "J01-html-practice-html-q3-afa772a5b009",
-        "J01-html-practice-html-q4-1a5d57147d8c",
-        "J01-html-practice-html-q16-c2a1c8df11f6"
+        "J01-html-practice-html-q1-14f4ec3e062a",
+        "J01-html-practice-html-q2-c07a303bd42b",
+        "J01-html-practice-html-q3-a0b06c9f9fab",
+        "J01-html-practice-html-q4-83b6a518c6dd",
+        "J01-html-practice-html-q16-673ec10c7375"
       ],
       "eligible_variant_ids": [
-        "J01-html-practice-html-q1-c90daf8ddfb3",
-        "J01-html-practice-html-q2-1703f826ad25",
-        "J01-html-practice-html-q3-afa772a5b009",
-        "J01-html-practice-html-q4-1a5d57147d8c",
-        "J01-html-practice-html-q6-9d8303e489f9",
-        "J01-html-practice-html-q13-de3c8f20255e",
-        "J01-html-practice-html-q16-c2a1c8df11f6"
+        "J01-html-practice-html-q1-14f4ec3e062a",
+        "J01-html-practice-html-q2-c07a303bd42b",
+        "J01-html-practice-html-q3-a0b06c9f9fab",
+        "J01-html-practice-html-q4-83b6a518c6dd",
+        "J01-html-practice-html-q6-d22bfe5b5a30",
+        "J01-html-practice-html-q13-8befeb331bae",
+        "J01-html-practice-html-q16-673ec10c7375"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYzkwZGFmOGRkZmIzIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xNzAzZjgyNmFkMjUiLCJKMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFmYTc3MmE1YjAwOSIsIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWE1ZDU3MTQ3ZDhjIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzJhMWM4ZGYxMWY2Il0sInBhY2tfaWQiOiJKMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImJkZmI0MWE4ZjljNGJjOWE4ZTllNDZkODU5MjQwNDU1NTJhYmNiZGQ3ZTUwNzU0MzFjMDcyOTFjZWI5ODMzMTciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNTRlMzZhMmVhMTliOWFlNjA5ODg5OTJkMzkzN2E2ZWFjMGQ0OWNlMjI5NGNkZjg1MDlmMzgzZDhlODAzYTQzNyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "a16ce9f8f10c892dc1ea1d71cd32aa7a62b2a3308be05d648a84c03636be9e70"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMTRmNGVjM2UwNjJhIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1jMDdhMzAzYmQ0MmIiLCJKMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwYjA2YzlmOWZhYiIsIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtODNiNmE1MThjNmRkIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNjczZWMxMGM3Mzc1Il0sInBhY2tfaWQiOiJKMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjZjN2QwZWM0MWRlMDllYmViNWMwNjIyZjQ4OTUwZmY4YTRhMTkxNmRjNjcwMDIxNTNkOWUxMThjYzBjMzdiOWMiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNTRlMzZhMmVhMTliOWFlNjA5ODg5OTJkMzkzN2E2ZWFjMGQ0OWNlMjI5NGNkZjg1MDlmMzgzZDhlODAzYTQzNyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "5a82dfd517ba82c077e491c55106ec082f8fa218706531aba2f9910294fc119c"
     }
   ],
   "items": [
@@ -45,43 +45,43 @@
       "model_answer": "开挖深度 4m（≥3m）属危险性较大的分部分项工程，应编制专项施工方案；未达 5m，尚不需专家论证。",
       "options": [
         {
+          "text": "开挖深度 4m 已超过 3m，应判为超过一定规模的危险性较大的分部分项工程，除编制专项施工方案外，还须组织专家论证后方可施工。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "看到「超过 3m」就直接联想到最严的专家论证。",
+          "loss_reason": "混档：3m 是危大线、5m 才是超规模论证线，4m 未达论证档。",
+          "fix": "4m 达危大应编方案；未达 5m，不需论证。",
+          "option_id": "J01-html-practice-html-q1-14f4ec3e062a:option-1"
+        },
+        {
+          "text": "此类深 4m 的基坑可按一般分部分项工程管理，施工中加强临边防护与变形监测即可，不必单独编制专项施工方案。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "当成一般「注意安全」的施工问题。",
+          "loss_reason": "漏掉「达危大·编专项方案」这一核心采分点。",
+          "fix": "应写「达 3m 属危大，须编制专项施工方案」。",
+          "option_id": "J01-html-practice-html-q1-14f4ec3e062a:option-2"
+        },
+        {
           "text": "基坑开挖深度 4m，达到 3m 及以上，属危险性较大的分部分项工程，应编制专项施工方案（未达 5m，暂不需专家论证）。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "阈值 3m + 「危大·编专项方案」结论 + 说明未到论证档，判档链完整。",
-          "option_id": "J01-html-practice-html-q1-c90daf8ddfb3:option-1"
+          "option_id": "J01-html-practice-html-q1-14f4ec3e062a:option-3"
         },
         {
-          "text": "基坑深度 4m 已超过 3m，属超过一定规模的危大工程，除编制专项方案外还应组织专家论证后施工。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "看到「超过 3m」就直接联想到最严的专家论证。",
-          "loss_reason": "混档：3m 是危大线、5m 才是超规模论证线，4m 未达论证档。",
-          "fix": "4m 达危大应编方案；未达 5m，不需论证。",
-          "option_id": "J01-html-practice-html-q1-c90daf8ddfb3:option-2"
-        },
-        {
-          "text": "基坑深度 4m 可按一般分部分项工程管理，施工时加强临边防护与变形监测即可，不必单独编方案。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "当成一般「注意安全」的施工问题。",
-          "loss_reason": "漏掉「达危大·编专项方案」这一核心采分点。",
-          "fix": "应写「达 3m 属危大，须编制专项施工方案」。",
-          "option_id": "J01-html-practice-html-q1-c90daf8ddfb3:option-3"
-        },
-        {
-          "text": "基坑深度 4m 未达到 5m 的起算线，尚不属于危险性较大的分部分项工程，无需编制专项施工方案。",
+          "text": "由于 4m 尚未达到 5m 的起算线，该基坑不属于危险性较大的分部分项工程，无需编制专项施工方案。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "把 5m 当成危大起算线。",
           "loss_reason": "记错阈值：危大基坑起算 3m 不是 5m，4m 已属危大。",
           "fix": "危大基坑≥3m，4m 已属危大，须编专项方案。",
-          "option_id": "J01-html-practice-html-q1-c90daf8ddfb3:option-4"
+          "option_id": "J01-html-practice-html-q1-14f4ec3e062a:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q1-c90daf8ddfb3",
+      "variant_id": "J01-html-practice-html-q1-14f4ec3e062a",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
@@ -89,27 +89,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q1",
       "source_anchor": "ca:1A436000_008_0011",
       "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "j01-fact-3m-dangerous-threshold",
       "skeleton_id": "j01-skel-4m两档判定",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5c927fd7f04b29ead2f2bf9a59f9cfc11cc4c44ca5b92bdb2ab868e63515bb14",
+      "content_sha256": "7326e170bf9f4a9130ff93fa7d2f3832824305773d2c3331ffa6462878893cad",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "5c927fd7f04b29ead2f2bf9a59f9cfc11cc4c44ca5b92bdb2ab868e63515bb14",
+        "reviewed_content_sha256": "7326e170bf9f4a9130ff93fa7d2f3832824305773d2c3331ffa6462878893cad",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "4m≥3m 属危大应编专项方案(本锚 3m 阈值 grading_keywords 直证); 未达5m不需论证系括注, 5m线另有 kc:1A436000_009_0012:0 教材原文(复合多源工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "4m≥3m 属危大应编专项方案(本锚 3m 阈值 grading_keywords 直证); 未达5m不需论证系括注, 5m线另有 kc:1A436000_009_0012:0 教材原文(复合多源工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -130,43 +130,43 @@
       "model_answer": "深基坑 6m（≥5m）属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
       "options": [
         {
+          "text": "本基坑开挖深度 6m 属危险性较大的分部分项工程，编制专项施工方案并履行完相应的审批签字手续后即可组织施工。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "答对了危大档，但停在编方案。",
+          "loss_reason": "漏了「超规模·还应专家论证」，只答半档。",
+          "fix": "6m≥5m 属超规模，除编方案外还应组织专家论证。",
+          "option_id": "J01-html-practice-html-q2-c07a303bd42b:option-1"
+        },
+        {
           "text": "深基坑开挖深度 6m，达到 5m 及以上，属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "阈值 5m + 「超规模」定性 + 「编方案 + 专家论证」两件事写全。",
-          "option_id": "J01-html-practice-html-q2-1703f826ad25:option-1"
+          "option_id": "J01-html-practice-html-q2-c07a303bd42b:option-2"
         },
         {
-          "text": "深基坑 6m 已属危险性较大的分部分项工程，编制专项施工方案并履行审批签字后即可施工。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "答对了危大档，但停在编方案。",
-          "loss_reason": "漏了「超规模·还应专家论证」，只答半档。",
-          "fix": "6m≥5m 属超规模，除编方案外还应组织专家论证。",
-          "option_id": "J01-html-practice-html-q2-1703f826ad25:option-2"
-        },
-        {
-          "text": "深基坑 6m 属超过一定规模的危大工程，应由建设单位组织召开专家论证会进行论证。",
+          "text": "该工程属超过一定规模的危大工程，应由建设单位组织召开专家论证会对专项施工方案进行论证。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "知道要论证，但组织主体张冠李戴。",
           "loss_reason": "论证会应由施工总承包单位组织，不是建设单位。",
           "fix": "超规模应由施工总承包单位组织召开专家论证会。",
-          "option_id": "J01-html-practice-html-q2-1703f826ad25:option-3"
+          "option_id": "J01-html-practice-html-q2-c07a303bd42b:option-3"
         },
         {
-          "text": "深基坑 6m 尚未超过 8m 的界限，不属于超过一定规模的危大工程，不需要组织专家论证。",
+          "text": "开挖深度 6m 尚未超过 8m 的界限，不属于超过一定规模的危大工程，不需要组织专家论证。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "把模板支撑 8m 的阈值套到深基坑上。",
           "loss_reason": "混阈值：深基坑超规模线是 5m，6m 已达。",
           "fix": "深基坑≥5m 即超规模，6m 应论证。",
-          "option_id": "J01-html-practice-html-q2-1703f826ad25:option-4"
+          "option_id": "J01-html-practice-html-q2-c07a303bd42b:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q2-1703f826ad25",
+      "variant_id": "J01-html-practice-html-q2-c07a303bd42b",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
@@ -174,27 +174,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q2",
       "source_anchor": "kc:1A436000_009_0012:0",
       "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "j01-fact-5m-super-scale-threshold",
       "skeleton_id": "j01-skel-6m超规模判定",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dc293a5d2cd0f877ee89b798292d4061838130b90ead11005f8f3514596f256c",
+      "content_sha256": "e22798b2bf957a8e838cfd8f844fea7336ecfed2f5d0a4aa15f8e97e1b9723fc",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "dc293a5d2cd0f877ee89b798292d4061838130b90ead11005f8f3514596f256c",
+        "reviewed_content_sha256": "e22798b2bf957a8e838cfd8f844fea7336ecfed2f5d0a4aa15f8e97e1b9723fc",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -204,7 +204,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "6m≥5m 属超规模危大(本锚教材原文直证); 超规模→组织专家论证后果另有 cc:1A437000_010_0013:1 逐字(复合多源工单)。干扰项(建设单位组织/8m界限)均显错。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "6m≥5m 属超规模危大(本锚教材原文直证); 超规模→组织专家论证后果另有 cc:1A437000_010_0013:1 逐字(复合多源工单)。干扰项(建设单位组织/8m界限)均显错。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -221,37 +221,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "两条线两档说清楚，纠正到位。",
-          "option_id": "J01-html-practice-html-q3-afa772a5b009:option-1"
+          "option_id": "J01-html-practice-html-q3-a0b06c9f9fab:option-1"
         },
         {
-          "text": "正确。开挖深度超过 3m 即属危大工程，凡危大工程一律都要组织专家论证后方可施工。",
+          "text": "正确。开挖深度只要超过 3m 即属危大工程，凡属危险性较大的分部分项工程，一律都应组织专家论证后方可进行施工。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "以为「危大」和「要论证」是一回事。",
           "loss_reason": "危大不等于超规模；只有超规模档才论证。",
           "fix": "3m 编方案、5m 才论证，别把两档并成一档。",
-          "option_id": "J01-html-practice-html-q3-afa772a5b009:option-2"
+          "option_id": "J01-html-practice-html-q3-a0b06c9f9fab:option-2"
         },
         {
-          "text": "错误。真正的论证起算线应当是开挖深度超过 2m，达到 2m 就必须组织专家论证。",
+          "text": "错误。真正的论证起算线应是开挖深度超过 2m，凡达到 2m 的基坑均必须组织专家论证。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "记了个更小的数当阈值。",
           "loss_reason": "阈值错且档次错，论证是 5m 档不是 2m。",
           "fix": "论证是超规模 5m 档。",
-          "option_id": "J01-html-practice-html-q3-afa772a5b009:option-3"
+          "option_id": "J01-html-practice-html-q3-a0b06c9f9fab:option-3"
         },
         {
-          "text": "这主要属于施工方案的编制与审批问题，与是否需要组织专家论证之间没有直接关系。",
+          "text": "该说法涉及的只是施工方案的编制与审批问题，与是否需要组织专家论证之间并没有直接关系。",
           "is_correct": false,
           "source_error_code": "E05",
           "temptation": "回避了「档次」这个考点。",
           "loss_reason": "答非所问，没判两条线。",
           "fix": "要点明 3m 危大、5m 超规模两档。",
-          "option_id": "J01-html-practice-html-q3-afa772a5b009:option-4"
+          "option_id": "J01-html-practice-html-q3-a0b06c9f9fab:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q3-afa772a5b009",
+      "variant_id": "J01-html-practice-html-q3-a0b06c9f9fab",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
@@ -259,27 +259,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q3",
       "source_anchor": "kc:1A436000_008_0011:0",
       "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "j01-fact-two-tier-distinction",
       "skeleton_id": "j01-skel-3m论证误区纠正",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "82a2b2f06b446481490b64c2333624b89ecadee12742f18e2614a0ddb7e81a4d",
+      "content_sha256": "372a903d12f7076f6f1ce617356bb8d68aa797a04aef41f194a23dad111ddcea",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "82a2b2f06b446481490b64c2333624b89ecadee12742f18e2614a0ddb7e81a4d",
+        "reviewed_content_sha256": "372a903d12f7076f6f1ce617356bb8d68aa797a04aef41f194a23dad111ddcea",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -289,7 +289,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "3m属危大编方案/5m才超规模需论证, 本锚 3m 标准教材原文+5m线 kc:1A436000_009_0012:0(复合多源工单)。『3~5m之间编方案不论证』表述与两档线一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "3m属危大编方案/5m才超规模需论证, 本锚 3m 标准教材原文+5m线 kc:1A436000_009_0012:0(复合多源工单)。『3~5m之间编方案不论证』表述与两档线一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -300,43 +300,43 @@
       "model_answer": "专项施工方案由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
       "options": [
         {
+          "text": "由施工单位负责编制专项方案，编制完成后报送项目监理机构与建设单位备案，即视为履行了编制程序。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "顺口写「施工单位」，感觉没错。",
+          "loss_reason": "「施工单位」含糊，阅卷要「施工总承包单位」才给主体分。",
+          "fix": "应写「施工总承包单位组织编制」。",
+          "option_id": "J01-html-practice-html-q4-83b6a518c6dd:option-1"
+        },
+        {
+          "text": "应由建设单位作为工程总负责方组织编制，编制完成后再交施工单位照此组织实施。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得建设单位是甲方、负总责。",
+          "loss_reason": "编制主体是施工总承包单位，不是建设单位。",
+          "fix": "施工总承包单位组织编制。",
+          "option_id": "J01-html-practice-html-q4-83b6a518c6dd:option-2"
+        },
+        {
           "text": "由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "精确到「施工总承包单位」，并补专业分包可编的情形，主体写全。",
-          "option_id": "J01-html-practice-html-q4-1a5d57147d8c:option-1"
+          "option_id": "J01-html-practice-html-q4-83b6a518c6dd:option-3"
         },
         {
-          "text": "由施工单位负责编制专项方案即可，编制完成后报送项目监理机构与建设单位备案就算合规。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "顺口写「施工单位」，感觉没错。",
-          "loss_reason": "「施工单位」含糊，阅卷要「施工总承包单位」才给主体分。",
-          "fix": "应写「施工总承包单位组织编制」。",
-          "option_id": "J01-html-practice-html-q4-1a5d57147d8c:option-2"
-        },
-        {
-          "text": "由建设单位作为工程总负责方组织编制专项方案，编制完成后再交施工单位照此组织实施。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "觉得建设单位是甲方、负总责。",
-          "loss_reason": "编制主体是施工总承包单位，不是建设单位。",
-          "fix": "施工总承包单位组织编制。",
-          "option_id": "J01-html-practice-html-q4-1a5d57147d8c:option-3"
-        },
-        {
-          "text": "由项目监理单位负责编制专项方案，编制完成后交施工单位组织实施并对施工现场安全负责。",
+          "text": "应当由项目监理单位负责编制专项方案，完成后交施工单位组织实施并对现场安全负责。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "把监理的「审查」误当「编制」。",
           "loss_reason": "监理是审查方不是编制方，主体错。",
           "fix": "施工总承包单位编、总监理工程师审查。",
-          "option_id": "J01-html-practice-html-q4-1a5d57147d8c:option-4"
+          "option_id": "J01-html-practice-html-q4-83b6a518c6dd:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q4-1a5d57147d8c",
+      "variant_id": "J01-html-practice-html-q4-83b6a518c6dd",
       "surface_id": "practice.html",
       "source_index": 3,
       "source_group": "Q",
@@ -344,27 +344,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q4",
       "source_anchor": "cc:1A436000_008_0011:3",
       "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "j01-fact-plan-author-responsibility",
       "skeleton_id": "j01-skel-专项方案编制主体",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "24bd939b12a0a6034da28410c7b2d424169a5344610e8061f9694ef2ddeadb74",
+      "content_sha256": "76618072880a7a27cf0a38d986d2cc1a4dc266ad44c4ba097bd24a44cd1d8a26",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "24bd939b12a0a6034da28410c7b2d424169a5344610e8061f9694ef2ddeadb74",
+        "reviewed_content_sha256": "76618072880a7a27cf0a38d986d2cc1a4dc266ad44c4ba097bd24a44cd1d8a26",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -374,7 +374,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "总承包单位组织编制=本锚教材原文(『实行施工总承包的…』); 专业工程可由专业承包单位编制=cc:...008_0011:4 逐字。工单: 题干未给总承包前提(删限定词), 但相对3显错干扰项唯一正确(承 C06 先例), 建议题干补『实行施工总承包』。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "总承包单位组织编制=本锚教材原文(『实行施工总承包的…』); 专业工程可由专业承包单位编制=cc:...008_0011:4 逐字。工单: 题干未给总承包前提(删限定词), 但相对3显错干扰项唯一正确(承 C06 先例), 建议题干补『实行施工总承包』。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -385,22 +385,13 @@
       "model_answer": "起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
       "options": [
         {
-          "text": "起重机械安装拆卸、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点出「专业承包单位」及适用的专业工程范围。",
-          "option_id": "J01-html-practice-html-q5-751cf67dae80:option-1"
-        },
-        {
           "text": "无论何种专业工程都必须一律由施工总承包单位统一编制，专业分包单位一概无权编制专项方案。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "记住「总包组织」就以为分包一概不能编。",
           "loss_reason": "专业工程可由专业承包单位编制，说「一律总包」不全。",
           "fix": "专业工程可由专业承包单位编制。",
-          "option_id": "J01-html-practice-html-q5-751cf67dae80:option-2"
+          "option_id": "J01-html-practice-html-q5-0df0b81668cb:option-1"
         },
         {
           "text": "起重机械等设备类专业工程的专项方案，可由提供设备的租赁单位结合设备参数负责编制。",
@@ -409,7 +400,7 @@
           "temptation": "起重设备联想到租赁单位。",
           "loss_reason": "编制主体是专业承包单位，不是租赁单位。",
           "fix": "专业承包单位编制。",
-          "option_id": "J01-html-practice-html-q5-751cf67dae80:option-3"
+          "option_id": "J01-html-practice-html-q5-0df0b81668cb:option-2"
         },
         {
           "text": "由专业承包单位自行编制专项方案后即可实施，无需施工总承包单位组织、也无需施工单位审核。",
@@ -418,10 +409,19 @@
           "temptation": "抓住分包可编就忽略总包。",
           "loss_reason": "总包仍要组织、施工单位仍要审核，漏了总包职责。",
           "fix": "专业承包编制，仍由总包组织、施工单位审核。",
-          "option_id": "J01-html-practice-html-q5-751cf67dae80:option-4"
+          "option_id": "J01-html-practice-html-q5-0df0b81668cb:option-3"
+        },
+        {
+          "text": "起重机械安装拆卸、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出「专业承包单位」及适用的专业工程范围。",
+          "option_id": "J01-html-practice-html-q5-0df0b81668cb:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q5-751cf67dae80",
+      "variant_id": "J01-html-practice-html-q5-0df0b81668cb",
       "surface_id": "practice.html",
       "source_index": 4,
       "source_group": "Q",
@@ -429,17 +429,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9db7d5cd697630555bf2389afec932c73efc353dc78447819da4732fdaf84c21",
+      "content_sha256": "786b9f91b8125ca5d36fb09a4aea83b1ef486277cb836407ac725eedd07ba0f1",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "9db7d5cd697630555bf2389afec932c73efc353dc78447819da4732fdaf84c21",
+        "reviewed_content_sha256": "786b9f91b8125ca5d36fb09a4aea83b1ef486277cb836407ac725eedd07ba0f1",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -458,22 +458,13 @@
       "model_answer": "专项方案应先经施工单位审核、再经总监理工程师审查，方可组织专家论证；顺序不可颠倒。",
       "options": [
         {
-          "text": "方案编制后，先经施工单位审核、再经总监理工程师审查，方可组织专家论证。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "审核·审查·论证顺序写全，主体各归各位。",
-          "option_id": "J01-html-practice-html-q6-9d8303e489f9:option-1"
-        },
-        {
           "text": "方案编制完成后即可直接组织专家论证，论证通过后便可据此进行现场施工。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "觉得编完就能上会论证。",
           "loss_reason": "漏了施工单位审核、总监审查两道前置程序。",
           "fix": "先审核、再审查，方可论证。",
-          "option_id": "J01-html-practice-html-q6-9d8303e489f9:option-2"
+          "option_id": "J01-html-practice-html-q6-d22bfe5b5a30:option-1"
         },
         {
           "text": "方案编制后先组织专家论证，论证通过后再交由总监理工程师审查确认后施工。",
@@ -482,7 +473,16 @@
           "temptation": "顺序记反，觉得先论证权威。",
           "loss_reason": "顺序颠倒：审查在论证之前，不能先论证。",
           "fix": "审核·审查·论证，论证在最后。",
-          "option_id": "J01-html-practice-html-q6-9d8303e489f9:option-3"
+          "option_id": "J01-html-practice-html-q6-d22bfe5b5a30:option-2"
+        },
+        {
+          "text": "方案编制后，先经施工单位审核、再经总监理工程师审查，方可组织专家论证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "审核·审查·论证顺序写全，主体各归各位。",
+          "option_id": "J01-html-practice-html-q6-d22bfe5b5a30:option-3"
         },
         {
           "text": "方案编制后，经建设单位审批同意即可组织专家论证，无需再经项目总监理工程师审查。",
@@ -491,10 +491,10 @@
           "temptation": "以为甲方审批就够。",
           "loss_reason": "前置是施工单位审核 + 总监审查，不是建设单位审批。",
           "fix": "施工单位审核、总监理工程师审查。",
-          "option_id": "J01-html-practice-html-q6-9d8303e489f9:option-4"
+          "option_id": "J01-html-practice-html-q6-d22bfe5b5a30:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q6-9d8303e489f9",
+      "variant_id": "J01-html-practice-html-q6-d22bfe5b5a30",
       "surface_id": "practice.html",
       "source_index": 5,
       "source_group": "Q",
@@ -502,27 +502,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q6",
       "source_anchor": "cc:1A437000_010_0013:3",
       "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "j01-fact-expert-panel-rules",
       "skeleton_id": "j01-skel-论证前程序顺序",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "bfb1c7b0459510f8f57a65b1bf828df9ac399b3a8643d77ccd57d7b5c73fae4b",
+      "content_sha256": "1eb88f97fb2d5af659470e077b4d838983b636d13ff4504aa810a5c637ac608f",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "bfb1c7b0459510f8f57a65b1bf828df9ac399b3a8643d77ccd57d7b5c73fae4b",
+        "reviewed_content_sha256": "1eb88f97fb2d5af659470e077b4d838983b636d13ff4504aa810a5c637ac608f",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -532,7 +532,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "论证前须先施工单位审核再总监理工程师审查, 教材 cc:...010_0013:3 逐字(同 primary 专家论证单句多要点)。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "论证前须先施工单位审核再总监理工程师审查, 教材 cc:...010_0013:3 逐字(同 primary 专家论证单句多要点)。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -549,37 +549,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "照抄不妥点 + 补上总监审查这一步，三段式到位。",
-          "option_id": "J01-html-practice-html-q7-fe71e2eefa5c:option-1"
+          "option_id": "J01-html-practice-html-q7-aa2da0b56b2d:option-1"
         },
         {
-          "text": "该程序没有问题，专项方案经施工单位审核通过之后，本来就可以直接组织专家论证。",
+          "text": "该项目的程序并无不妥之处：专项施工方案既已经过施工单位审核通过，本来就可以直接组织专家论证并开展施工。",
           "is_correct": false,
           "source_error_code": "E08",
           "temptation": "只看到「审核」就以为程序齐了。",
           "loss_reason": "没抓题干埋点：缺了总监理工程师审查这一步。",
           "fix": "应指出缺总监理工程师审查。",
-          "option_id": "J01-html-practice-html-q7-fe71e2eefa5c:option-2"
+          "option_id": "J01-html-practice-html-q7-aa2da0b56b2d:option-2"
         },
         {
-          "text": "不妥之处：论证前应由建设单位对方案进行审查后再论证，此处缺少了建设单位的审查环节。",
+          "text": "不妥之处：论证前缺少建设单位对专项方案的审查环节，应由建设单位审查后再组织论证。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "知道缺一步，但补错了主体。",
           "loss_reason": "审查主体是总监理工程师，不是建设单位。",
           "fix": "缺的是总监理工程师审查。",
-          "option_id": "J01-html-practice-html-q7-fe71e2eefa5c:option-3"
+          "option_id": "J01-html-practice-html-q7-aa2da0b56b2d:option-3"
         },
         {
-          "text": "不妥之处：专家论证应安排在方案编制之前先行进行，此处论证与编制的先后顺序颠倒了。",
+          "text": "不妥之处：专家论证应当安排在方案编制之前进行，此处编制与论证的先后顺序颠倒了。",
           "is_correct": false,
           "source_error_code": "E05",
           "temptation": "乱调顺序凑「不妥」。",
           "loss_reason": "论证必在编制、审核、审查之后，说编前论证错。",
           "fix": "顺序是编制·审核·审查·论证。",
-          "option_id": "J01-html-practice-html-q7-fe71e2eefa5c:option-4"
+          "option_id": "J01-html-practice-html-q7-aa2da0b56b2d:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q7-fe71e2eefa5c",
+      "variant_id": "J01-html-practice-html-q7-aa2da0b56b2d",
       "surface_id": "practice.html",
       "source_index": 6,
       "source_group": "Q",
@@ -587,17 +587,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "780f4676ddabfb9a45c4bf6f8c01c4fb0e0446314e20ede3c623ed74e8330767",
+      "content_sha256": "24acf01004a144e16cd9a2e52afeb8c93967ed3545202ab3608efb4a3225ba37",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "780f4676ddabfb9a45c4bf6f8c01c4fb0e0446314e20ede3c623ed74e8330767",
+        "reviewed_content_sha256": "24acf01004a144e16cd9a2e52afeb8c93967ed3545202ab3608efb4a3225ba37",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -616,22 +616,22 @@
       "model_answer": "本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
       "options": [
         {
-          "text": "本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点出「超规模」触发 + 「施工总承包单位组织召开」。",
-          "option_id": "J01-html-practice-html-q8-36d8192c20c9:option-1"
-        },
-        {
           "text": "本工程属超规模危大工程，专家论证会应由建设单位作为工程总负责方组织召开。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "甲方牵头开会看着合理。",
           "loss_reason": "组织召开主体是施工总承包单位，不是建设单位。",
           "fix": "施工总承包单位组织召开。",
-          "option_id": "J01-html-practice-html-q8-36d8192c20c9:option-2"
+          "option_id": "J01-html-practice-html-q8-d8074c6e9cb8:option-1"
+        },
+        {
+          "text": "本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出「超规模」触发 + 「施工总承包单位组织召开」。",
+          "option_id": "J01-html-practice-html-q8-d8074c6e9cb8:option-2"
         },
         {
           "text": "本工程属超规模危大工程，专家论证会应由项目监理单位负责牵头组织召开。",
@@ -640,7 +640,7 @@
           "temptation": "监理管现场，像是组织者。",
           "loss_reason": "监理是审查方，不组织论证会。",
           "fix": "施工总承包单位组织召开。",
-          "option_id": "J01-html-practice-html-q8-36d8192c20c9:option-3"
+          "option_id": "J01-html-practice-html-q8-d8074c6e9cb8:option-3"
         },
         {
           "text": "本工程应当及时组织有关专家对专项施工方案进行论证，确保方案安全可行。",
@@ -649,10 +649,10 @@
           "temptation": "答了论证却没写谁组织。",
           "loss_reason": "漏了组织主体这个采分点。",
           "fix": "应写「由施工总承包单位组织召开」。",
-          "option_id": "J01-html-practice-html-q8-36d8192c20c9:option-4"
+          "option_id": "J01-html-practice-html-q8-d8074c6e9cb8:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q8-36d8192c20c9",
+      "variant_id": "J01-html-practice-html-q8-d8074c6e9cb8",
       "surface_id": "practice.html",
       "source_index": 7,
       "source_group": "Q",
@@ -660,17 +660,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e47bcd864b27a7b9e7f23203091b3baede1488a7459cb41e4f8a705787528284",
+      "content_sha256": "a418f11a7a5aeaff09d7d0e5b5e8711e0e69f24b622f35e5d5139a49efd28d31",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e47bcd864b27a7b9e7f23203091b3baede1488a7459cb41e4f8a705787528284",
+        "reviewed_content_sha256": "a418f11a7a5aeaff09d7d0e5b5e8711e0e69f24b622f35e5d5139a49efd28d31",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -695,37 +695,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "八项写全，尤其验收要求、应急处置不漏。",
-          "option_id": "J01-html-practice-html-q9-443ade4fd936:option-1"
+          "option_id": "J01-html-practice-html-q9-871b73613790:option-1"
         },
         {
-          "text": "工程概况、编制依据、施工计划、施工工艺技术、施工保证措施、施工管理及人员配备。",
+          "text": "工程概况、编制依据、施工计划、施工工艺技术、施工保证措施、施工管理及人员配备，把以上六项内容逐项编写齐全即可。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "前六项顺手写完就收笔。",
           "loss_reason": "漏了⑦验收要求、⑧应急处置措施两项。",
           "fix": "补上验收要求、应急处置措施。",
-          "option_id": "J01-html-practice-html-q9-443ade4fd936:option-2"
+          "option_id": "J01-html-practice-html-q9-871b73613790:option-2"
         },
         {
-          "text": "本质上就是一份施工组织设计的主要内容，按施工组织设计的章节框架逐项编写即可。",
+          "text": "其内容本质上就是施工组织设计的主要内容，按照施工组织设计的章节框架逐项编写即可满足要求。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "把专项方案当成施工组织设计。",
           "loss_reason": "混淆文件：专项方案有其固定八项内容。",
           "fix": "按专项方案八项内容写。",
-          "option_id": "J01-html-practice-html-q9-443ade4fd936:option-3"
+          "option_id": "J01-html-practice-html-q9-871b73613790:option-3"
         },
         {
-          "text": "主要包括工程概况、施工工艺做法、安全保证措施这三大板块的内容，分块阐述即可。",
+          "text": "按工程概况、施工工艺做法、安全保证措施三大板块组织编写，分块逐一阐述即可覆盖方案要求。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "归成三大块图省事。",
           "loss_reason": "笼统三块，漏编制依据、验收、应急等采分项。",
           "fix": "按八项逐项写全。",
-          "option_id": "J01-html-practice-html-q9-443ade4fd936:option-4"
+          "option_id": "J01-html-practice-html-q9-871b73613790:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q9-443ade4fd936",
+      "variant_id": "J01-html-practice-html-q9-871b73613790",
       "surface_id": "practice.html",
       "source_index": 8,
       "source_group": "Q",
@@ -733,17 +733,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5ff7300542150e7a20754420626351c88872dd483b32bc184c390ea72fc76396",
+      "content_sha256": "47de48494e5e6f9c0edf427ce598c670ea6217d9a8f2948e9bc9cd5d17760d5e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "5ff7300542150e7a20754420626351c88872dd483b32bc184c390ea72fc76396",
+        "reviewed_content_sha256": "47de48494e5e6f9c0edf427ce598c670ea6217d9a8f2948e9bc9cd5d17760d5e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -762,43 +762,43 @@
       "model_answer": "模板支撑方案应含工程概况、技术参数、工艺流程、施工方法、检查要求，特别是计算书及相关施工图纸。",
       "options": [
         {
+          "text": "与基坑专项方案完全相同的八项内容编写齐全即可，模板支撑方案并无需要特别附加的方案项目。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为所有方案内容都一样。",
+          "loss_reason": "漏了模板支撑特有的计算书及施工图纸。",
+          "fix": "必须含计算书及相关施工图纸。",
+          "option_id": "J01-html-practice-html-q10-586c52d213c0:option-1"
+        },
+        {
+          "text": "编写工程概况、技术参数、工艺流程、施工方法、检查要求五项常规内容即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "写了五项看着挺全。",
+          "loss_reason": "恰恰漏掉最关键、最易丢分的计算书及施工图纸。",
+          "fix": "补上计算书及相关施工图纸。",
+          "option_id": "J01-html-practice-html-q10-586c52d213c0:option-2"
+        },
+        {
+          "text": "除常规内容外，还应特别附上经专家组论证通过后形成的专家论证报告及专家签字表。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把后续论证材料塞进方案内容。",
+          "loss_reason": "论证报告是论证环节产物，非方案编制内容。",
+          "fix": "方案内容应含计算书及施工图纸。",
+          "option_id": "J01-html-practice-html-q10-586c52d213c0:option-3"
+        },
+        {
           "text": "除工程概况、技术参数、工艺流程、施工方法、检查要求外，特别应包含计算书及相关施工图纸。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "点出模板支撑特有的「计算书及相关施工图纸」。",
-          "option_id": "J01-html-practice-html-q10-79b73e44b6b8:option-1"
-        },
-        {
-          "text": "与基坑专项方案完全相同的八项内容即可，模板支撑方案并没有需要特别附加的内容。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为所有方案内容都一样。",
-          "loss_reason": "漏了模板支撑特有的计算书及施工图纸。",
-          "fix": "必须含计算书及相关施工图纸。",
-          "option_id": "J01-html-practice-html-q10-79b73e44b6b8:option-2"
-        },
-        {
-          "text": "主要包括工程概况、技术参数、工艺流程、施工方法、检查要求这五项常规内容。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "写了五项看着挺全。",
-          "loss_reason": "恰恰漏掉最关键、最易丢分的计算书及施工图纸。",
-          "fix": "补上计算书及相关施工图纸。",
-          "option_id": "J01-html-practice-html-q10-79b73e44b6b8:option-3"
-        },
-        {
-          "text": "除常规内容外，还应特别包含经专家组论证通过后形成的专家论证报告及专家签字表。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把后续论证材料塞进方案内容。",
-          "loss_reason": "论证报告是论证环节产物，非方案编制内容。",
-          "fix": "方案内容应含计算书及施工图纸。",
-          "option_id": "J01-html-practice-html-q10-79b73e44b6b8:option-4"
+          "option_id": "J01-html-practice-html-q10-586c52d213c0:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q10-79b73e44b6b8",
+      "variant_id": "J01-html-practice-html-q10-586c52d213c0",
       "surface_id": "practice.html",
       "source_index": 9,
       "source_group": "Q",
@@ -806,17 +806,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "250c2788176a1d6eb9cb4f046f606bf51c92e1d083f017724e575d018fe95c72",
+      "content_sha256": "1afe8f07f4c79b23d8f5a2d7466461d3707aa049c4aefdaada9e845f864cebc7",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "250c2788176a1d6eb9cb4f046f606bf51c92e1d083f017724e575d018fe95c72",
+        "reviewed_content_sha256": "1afe8f07f4c79b23d8f5a2d7466461d3707aa049c4aefdaada9e845f864cebc7",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -835,43 +835,43 @@
       "model_answer": "深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等。",
       "options": [
         {
+          "text": "深基坑支护、土方开挖、模板工程及支撑体系这三类危大工程，均需要各自单独编制专项施工方案。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住几个大项。",
+          "loss_reason": "漏了降水、建筑幕墙安装。",
+          "fix": "补上降水、建筑幕墙安装。",
+          "option_id": "J01-html-practice-html-q11-f03f5e019ddb:option-1"
+        },
+        {
+          "text": "深基坑支护、砌筑工程、抹灰装饰工程等分项工程，均需要单独编制专项施工方案。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把普通分项工程混进来。",
+          "loss_reason": "砌筑/抹灰非危大，不需单独专项方案。",
+          "fix": "应为深基坑/降水/土方/模板支撑/幕墙等危大工程。",
+          "option_id": "J01-html-practice-html-q11-f03f5e019ddb:option-2"
+        },
+        {
+          "text": "仅深基坑支护一类工程需单独编制专项方案，其余各类工程并入施工组织设计编写即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记了最典型的一项。",
+          "loss_reason": "清单不全，漏了降水、土方、模板、幕墙。",
+          "fix": "按五类列全。",
+          "option_id": "J01-html-practice-html-q11-f03f5e019ddb:option-3"
+        },
+        {
           "text": "深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等，均需单独编制专项方案。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "五类列全，降水、幕墙不漏。",
-          "option_id": "J01-html-practice-html-q11-04eace3d0f8c:option-1"
-        },
-        {
-          "text": "深基坑支护、土方开挖、模板工程及支撑体系这几类工程，需要单独编制专项施工方案。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "记住几个大项。",
-          "loss_reason": "漏了降水、建筑幕墙安装。",
-          "fix": "补上降水、建筑幕墙安装。",
-          "option_id": "J01-html-practice-html-q11-04eace3d0f8c:option-2"
-        },
-        {
-          "text": "深基坑支护、砌筑工程、抹灰装饰工程等工程，都需要单独编制专项施工方案。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把普通分项工程混进来。",
-          "loss_reason": "砌筑/抹灰非危大，不需单独专项方案。",
-          "fix": "应为深基坑/降水/土方/模板支撑/幕墙等危大工程。",
-          "option_id": "J01-html-practice-html-q11-04eace3d0f8c:option-3"
-        },
-        {
-          "text": "只有深基坑支护这一类工程需要单独编制专项方案，其余工程并入施工组织设计即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记了最典型的一项。",
-          "loss_reason": "清单不全，漏了降水、土方、模板、幕墙。",
-          "fix": "按五类列全。",
-          "option_id": "J01-html-practice-html-q11-04eace3d0f8c:option-4"
+          "option_id": "J01-html-practice-html-q11-f03f5e019ddb:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q11-04eace3d0f8c",
+      "variant_id": "J01-html-practice-html-q11-f03f5e019ddb",
       "surface_id": "practice.html",
       "source_index": 10,
       "source_group": "Q",
@@ -879,17 +879,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9a52b5157f3dea2be01c9c7be14e6aecb74deec9a16169441e8f4dfaf8c3af47",
+      "content_sha256": "438ffe8fbac359ca2aabba977b88f25084f27180ce54ee95dbfa20f6db259fb1",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "9a52b5157f3dea2be01c9c7be14e6aecb74deec9a16169441e8f4dfaf8c3af47",
+        "reviewed_content_sha256": "438ffe8fbac359ca2aabba977b88f25084f27180ce54ee95dbfa20f6db259fb1",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -908,43 +908,43 @@
       "model_answer": "专家组成员应为 5 人以上，且与本工程无利害关系。",
       "options": [
         {
+          "text": "专家组由 5 名专家组成即符合论证的人数要求。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「5 人」脱口而出，觉得数字对了。",
+          "loss_reason": "应为「5 人以上」，写死「5 名」漏了「以上」。",
+          "fix": "应写「5 人以上」。",
+          "option_id": "J01-html-practice-html-q12-7f9d936eb02e:option-1"
+        },
+        {
           "text": "专家组成人员应为 5 人以上，且与本工程无利害关系。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "写「5 人以上」（含下限）+ 无利害关系，两点齐。",
-          "option_id": "J01-html-practice-html-q12-e94cfe94c653:option-1"
+          "option_id": "J01-html-practice-html-q12-7f9d936eb02e:option-2"
         },
         {
-          "text": "专家组由 5 名专家组成即可，人数达到 5 名就已经符合论证的人数要求。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "「5 人」脱口而出，觉得数字对了。",
-          "loss_reason": "应为「5 人以上」，写死「5 名」漏了「以上」。",
-          "fix": "应写「5 人以上」。",
-          "option_id": "J01-html-practice-html-q12-e94cfe94c653:option-2"
-        },
-        {
-          "text": "专家人数原则上越多越好，一般不少于 3 人即可满足专家论证的组织要求。",
+          "text": "专家人数一般不少于 3 人即可满足组织论证要求。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "凭印象给个下限。",
           "loss_reason": "下限记错（应 5 人以上），且漏无利害关系。",
           "fix": "5 人以上且无利害关系。",
-          "option_id": "J01-html-practice-html-q12-e94cfe94c653:option-3"
+          "option_id": "J01-html-practice-html-q12-7f9d936eb02e:option-3"
         },
         {
-          "text": "专家组成员达到 5 人以上即可，对其是否与本工程有利害关系没有硬性要求。",
+          "text": "专家组成员达 5 人以上即可，与本工程有无利害关系不作硬性要求。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "写对了人数就收笔。",
           "loss_reason": "漏了「与本工程无利害关系」这一并列采分点。",
           "fix": "补上「与本工程无利害关系」。",
-          "option_id": "J01-html-practice-html-q12-e94cfe94c653:option-4"
+          "option_id": "J01-html-practice-html-q12-7f9d936eb02e:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q12-e94cfe94c653",
+      "variant_id": "J01-html-practice-html-q12-7f9d936eb02e",
       "surface_id": "practice.html",
       "source_index": 11,
       "source_group": "Q",
@@ -952,17 +952,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "de089aacec0508a0ee910a96f982587f2f46ec5ae01c59bad26d2399640f5042",
+      "content_sha256": "61a78b25ccd3be15d59076c7d4e41e917e2d7d7aff33de5d19dd7360a18838f9",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "de089aacec0508a0ee910a96f982587f2f46ec5ae01c59bad26d2399640f5042",
+        "reviewed_content_sha256": "61a78b25ccd3be15d59076c7d4e41e917e2d7d7aff33de5d19dd7360a18838f9",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -981,43 +981,43 @@
       "model_answer": "不妥：本项目参建各方人员不得以专家身份参加，总包技术负责人属参建方、不能当专家；且专家应为 5 人以上。",
       "options": [
         {
+          "text": "组织并无不妥之处：本次的专家组已经达到 5 名专家，满足专家论证会对人数方面的要求，据此即可正常开展本基坑工程的专家论证工作。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只数人数够 5，就以为合规。",
+          "loss_reason": "漏了核心不妥：参建方人员不得当专家（回避）。",
+          "fix": "应指出参建方人员不得以专家身份参加。",
+          "option_id": "J01-html-practice-html-q13-8befeb331bae:option-1"
+        },
+        {
+          "text": "不妥之处仅在于专家人数偏少：应当把专家人数增加到 6 人以上，并按增补后的专家组重新组织专家论证。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "抓到人数感觉，却没抓回避。",
+          "loss_reason": "关键是回避而非单纯加人；参建方当专家才是问题。",
+          "fix": "核心是参建方不得当专家，须更换。",
+          "option_id": "J01-html-practice-html-q13-8befeb331bae:option-2"
+        },
+        {
           "text": "不妥：总承包单位技术负责人属本项目参建方，不得以专家身份参加论证，应更换为无利害关系的外部专家；且专家组人数应为 5 人以上。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "回避 + 5 人以上两点都点到，照抄不妥点后给正确做法。",
-          "option_id": "J01-html-practice-html-q13-de3c8f20255e:option-1"
+          "option_id": "J01-html-practice-html-q13-8befeb331bae:option-3"
         },
         {
-          "text": "没有不妥之处，专家组已达到 5 名，满足论证的人数要求，可以据此正常开展专家论证工作。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只数人数够 5，就以为合规。",
-          "loss_reason": "漏了核心不妥：参建方人员不得当专家（回避）。",
-          "fix": "应指出参建方人员不得以专家身份参加。",
-          "option_id": "J01-html-practice-html-q13-de3c8f20255e:option-2"
-        },
-        {
-          "text": "不妥之处仅在于专家人数偏少，应当把专家人数增加到 6 人以上，之后再重新组织专家论证。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "抓到人数感觉，却没抓回避。",
-          "loss_reason": "关键是回避而非单纯加人；参建方当专家才是问题。",
-          "fix": "核心是参建方不得当专家，须更换。",
-          "option_id": "J01-html-practice-html-q13-de3c8f20255e:option-3"
-        },
-        {
-          "text": "不妥之处在于：本工程的专家论证会应由建设单位组织召开，而不应由施工总承包单位组织。",
+          "text": "不妥之处在于论证会的组织主体：本工程的专家论证会应当由建设单位组织召开，而不应由施工总承包单位组织。",
           "is_correct": false,
           "source_error_code": "E08",
           "temptation": "看到「总承包」就往组织主体上想。",
           "loss_reason": "没抓题干埋点「技术负责人当专家」，组织主体本身没错。",
           "fix": "不妥在参建方人员当专家（回避）。",
-          "option_id": "J01-html-practice-html-q13-de3c8f20255e:option-4"
+          "option_id": "J01-html-practice-html-q13-8befeb331bae:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q13-de3c8f20255e",
+      "variant_id": "J01-html-practice-html-q13-8befeb331bae",
       "surface_id": "practice.html",
       "source_index": 12,
       "source_group": "Q",
@@ -1025,27 +1025,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q13",
       "source_anchor": "exam:2019:第2题",
       "source_sha256": "0aaeefccb2f6f29355590a5ed2167b7cd38ce3c405316434da07c6c600b44c19",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "j01-fact-expert-panel-rules",
       "skeleton_id": "j01-skel-论证组成不妥纠正",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "29c60ed1bcbc1c3878aa4e995053c7f4042bdd130618c4d898f31c0e35325c7b",
+      "content_sha256": "5f35fdba799d740c57632a800e955cb15d5b661382af49ef98b5701c66de29b0",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "29c60ed1bcbc1c3878aa4e995053c7f4042bdd130618c4d898f31c0e35325c7b",
+        "reviewed_content_sha256": "5f35fdba799d740c57632a800e955cb15d5b661382af49ef98b5701c66de29b0",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -1055,7 +1055,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "总承包技术负责人属参建方不得当专家+专家组5人以上, 真题 exam:2019:第2题 逐字。三联 immediate_confirm(同专家论证规则 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "总承包技术负责人属参建方不得当专家+专家组5人以上, 真题 exam:2019:第2题 逐字。三联 immediate_confirm(同专家论证规则 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -1066,43 +1066,43 @@
       "model_answer": "①方案是否完整、可行②计算书及验算依据、施工图是否符合标准规范③是否满足现场实际、确保施工安全。",
       "options": [
         {
+          "text": "①方案的经济性是否合理；②工程造价与成本投入是否节省；③能否有效降低施工总成本，这是论证的重点内容。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "觉得论证也该管省钱。",
+          "loss_reason": "经济性不是论证内容，审题偏了。",
+          "fix": "论证只看完整可行、计算书施工图、确保安全。",
+          "option_id": "J01-html-practice-html-q14-543d137d54f3:option-1"
+        },
+        {
           "text": "①方案是否完整、可行；②计算书及验算依据、施工图是否符合规范；③是否满足现场实际、能否确保施工安全。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "三项论证内容写全，不掺经济性、资质。",
-          "option_id": "J01-html-practice-html-q14-83aaacb28444:option-1"
+          "option_id": "J01-html-practice-html-q14-543d137d54f3:option-2"
         },
         {
-          "text": "重点论证专项方案在经济性与工程造价方面是否合理，能否有效节省施工成本与投入。",
-          "is_correct": false,
-          "source_error_code": "E05",
-          "temptation": "觉得论证也该管省钱。",
-          "loss_reason": "经济性不是论证内容，审题偏了。",
-          "fix": "论证只看完整可行、计算书施工图、确保安全。",
-          "option_id": "J01-html-practice-html-q14-83aaacb28444:option-2"
-        },
-        {
-          "text": "重点论证承担该工程的专业分包单位其资质等级是否合格、是否满足施工要求。",
+          "text": "重点论证承担该工程的专业分包单位资质等级是否合格、施工能力是否满足本工程要求。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "把资质审查混进论证。",
           "loss_reason": "分包资质非论证内容，概念混淆。",
           "fix": "论证内容是三项技术与安全性内容。",
-          "option_id": "J01-html-practice-html-q14-83aaacb28444:option-3"
+          "option_id": "J01-html-practice-html-q14-543d137d54f3:option-3"
         },
         {
-          "text": "主要论证专项方案是否完整、是否可行这一项内容即可，其余方面不作为论证重点。",
+          "text": "主要论证专项方案是否完整、是否可行这一项内容，其余方面不作为专家论证的重点。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "答对一项就停。",
           "loss_reason": "漏了计算书施工图、确保安全两项。",
           "fix": "补齐三项内容。",
-          "option_id": "J01-html-practice-html-q14-83aaacb28444:option-4"
+          "option_id": "J01-html-practice-html-q14-543d137d54f3:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q14-83aaacb28444",
+      "variant_id": "J01-html-practice-html-q14-543d137d54f3",
       "surface_id": "practice.html",
       "source_index": 13,
       "source_group": "Q",
@@ -1110,17 +1110,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0dd51213cd3ba592322db1bd32b172d5159d6f3b0791ec8536cbe5f61d962e64",
+      "content_sha256": "590c53205c618f23c6aaea5976f3dc54b63b92c8185a5fd4a299a1c6b2637a1e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "0dd51213cd3ba592322db1bd32b172d5159d6f3b0791ec8536cbe5f61d962e64",
+        "reviewed_content_sha256": "590c53205c618f23c6aaea5976f3dc54b63b92c8185a5fd4a299a1c6b2637a1e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1139,22 +1139,13 @@
       "model_answer": "施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证后方可执行。",
       "options": [
         {
-          "text": "施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证，通过后方可执行。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "「不得擅自修改」+「确需改须重新论证」后果维两句都写。",
-          "option_id": "J01-html-practice-html-q15-6ed7f9858fc8:option-1"
-        },
-        {
           "text": "施工过程中一律不得擅自修改已批准的专项方案，必须始终严格按照原方案组织施工。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "写了「不能改」就以为答完。",
           "loss_reason": "漏了「确需修改须重新审核/论证」后半句，后果维半分。",
           "fix": "补上「确需修改须重新论证后执行」。",
-          "option_id": "J01-html-practice-html-q15-6ed7f9858fc8:option-2"
+          "option_id": "J01-html-practice-html-q15-9cdced67d8e9:option-1"
         },
         {
           "text": "施工中如需修改方案，经项目经理审批同意后即可按修改后的方案继续组织施工。",
@@ -1163,7 +1154,7 @@
           "temptation": "觉得内部签字就能改。",
           "loss_reason": "属擅自修改，未走重新审核论证程序。",
           "fix": "确需修改须重新审核、重新论证。",
-          "option_id": "J01-html-practice-html-q15-6ed7f9858fc8:option-3"
+          "option_id": "J01-html-practice-html-q15-9cdced67d8e9:option-2"
         },
         {
           "text": "专项方案在实施前完成公示和技术交底即可，实施过程中对方案的修改没有特别限制要求。",
@@ -1172,10 +1163,19 @@
           "temptation": "答了实施前程序，避开修改问题。",
           "loss_reason": "漏了「不得擅自修改 + 须重新论证」这一核心。",
           "fix": "施工中不得擅自修改，确需改须重新论证。",
-          "option_id": "J01-html-practice-html-q15-6ed7f9858fc8:option-4"
+          "option_id": "J01-html-practice-html-q15-9cdced67d8e9:option-3"
+        },
+        {
+          "text": "施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证，通过后方可执行。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「不得擅自修改」+「确需改须重新论证」后果维两句都写。",
+          "option_id": "J01-html-practice-html-q15-9cdced67d8e9:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q15-6ed7f9858fc8",
+      "variant_id": "J01-html-practice-html-q15-9cdced67d8e9",
       "surface_id": "practice.html",
       "source_index": 14,
       "source_group": "Q",
@@ -1183,17 +1183,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "827962bed58e7d48289ef4162065f8cfe1c126263e8f087c58a4e475b85f92ed",
+      "content_sha256": "52bbadccfa96ad4cd7d6ace8f9ef95bb27e606f3ffcc4959b75b315bbbb578d3",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "827962bed58e7d48289ef4162065f8cfe1c126263e8f087c58a4e475b85f92ed",
+        "reviewed_content_sha256": "52bbadccfa96ad4cd7d6ace8f9ef95bb27e606f3ffcc4959b75b315bbbb578d3",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1218,37 +1218,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "三处失分全揪出，补写即可上答题纸——这就是「会写答案」。",
-          "option_id": "J01-html-practice-html-q16-c2a1c8df11f6:option-1"
+          "option_id": "J01-html-practice-html-q16-673ec10c7375:option-1"
         },
         {
-          "text": "学生答得基本正确，专家 5 人已符合人数要求，只需再补充说明方案应经总监理工程师审查这道程序即可。",
+          "text": "学生的作答方向基本正确：专家 5 人已符合论证的人数要求，「再仔细检查方案」也有必要，只需再补充说明专项方案应当经过总监理工程师审查这道程序，诊断即告完整。",
           "is_correct": false,
           "source_error_code": "E08",
           "temptation": "只看「5 人」和「检查」，觉得方向对。",
           "loss_reason": "没抓题干埋点：参建方技术负责人当专家（回避）才是第一失分点。",
           "fix": "应先指出参建方不得当专家、且专家 5 人以上。",
-          "option_id": "J01-html-practice-html-q16-c2a1c8df11f6:option-2"
+          "option_id": "J01-html-practice-html-q16-673ec10c7375:option-2"
         },
         {
-          "text": "本题失分只是人数写法问题，把「专家应有 5 人」改成「5 人以上」或增加到 6 人，答案就完整了。",
+          "text": "本题失分只是人数写法一处问题：把「专家应有 5 人」的表述改为「5 人以上」，或者把专家人数增加到 6 人，这份作答就已经完整，可以得到全部分数。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "抓到人数一处就以为只此一错。",
           "loss_reason": "漏诊回避（核心）+「5 人以上」表述 + 答非所问。",
           "fix": "核心是回避，且应写「5 人以上」。",
-          "option_id": "J01-html-practice-html-q16-c2a1c8df11f6:option-3"
+          "option_id": "J01-html-practice-html-q16-673ec10c7375:option-3"
         },
         {
-          "text": "本题应诊断为方案编制主体错误，深基坑支护方案不应由专业施工单位编制，改由建设单位组织编制即可。",
+          "text": "本题应诊断为方案编制主体错误：深基坑支护工程的专项方案不应由基坑支护专业施工单位编制，应改由建设单位组织编制，并按更正后的主体重新履行编制程序。",
           "is_correct": false,
           "source_error_code": "E05",
           "temptation": "往编制主体上带偏。",
           "loss_reason": "本题失分在专家组回避与人数，编制主体非本问考点。",
           "fix": "按回避 + 5 人以上诊断并补写。",
-          "option_id": "J01-html-practice-html-q16-c2a1c8df11f6:option-4"
+          "option_id": "J01-html-practice-html-q16-673ec10c7375:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q16-c2a1c8df11f6",
+      "variant_id": "J01-html-practice-html-q16-673ec10c7375",
       "surface_id": "practice.html",
       "source_index": 15,
       "source_group": "Q",
@@ -1256,27 +1256,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q16",
       "source_anchor": "exam:2019:第2题",
       "source_sha256": "0aaeefccb2f6f29355590a5ed2167b7cd38ce3c405316434da07c6c600b44c19",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "source_html_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
       "fact_id": "j01-fact-expert-panel-rules",
       "skeleton_id": "j01-skel-论证组成诊断补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "12e72db39701885a11e33aa10d658b380e99d51f0784e12e8ce628adbb24265a",
+      "content_sha256": "2d3dcd4d5d4538fc68c8091af2d7d9c3f0d906cced255a26aae90dc13e5ba1d9",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "12e72db39701885a11e33aa10d658b380e99d51f0784e12e8ce628adbb24265a",
+        "reviewed_content_sha256": "2d3dcd4d5d4538fc68c8091af2d7d9c3f0d906cced255a26aae90dc13e5ba1d9",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -1286,7 +1286,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "回避(参建方不得以专家身份参加)+5人以上, 真题 exam:2019:第2题 标准答案逐字(本题即由该真题改编)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "回避(参建方不得以专家身份参加)+5人以上, 真题 exam:2019:第2题 标准答案逐字(本题即由该真题改编)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     }

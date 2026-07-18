@@ -235,47 +235,47 @@ class Component extends DCLogic {
       stem:"屋面卷材防水施工，阴阳角基层的处理做法，选出最能得分的作答。",
       model:"阴阳角基层宜做圆弧或45度，使卷材平顺过渡、不翘空刺破；基层坚实平整无浮浆起砂裂缝。",
       opts:[
-        { t:"阴阳角基层做成圆弧或45度，使卷材平顺过渡、不翘空刺破。", ok:true, fix:"点出圆弧/45度＋卷材平顺，转角这块采分句写全。", code:"" },
         { t:"阴阳角基层做成规整的直角，卷材沿直角折压密实即可。", ok:false, code:"E10", tempt:"直角看着规整、施工顺手。", lose:"直角处卷材翘空、应力集中最先开裂，不符合『宜做圆弧或45度』。", fix:"阴阳角基层应做圆弧或45度。" },
         { t:"阴阳角处只把大面卷材多刷一遍涂料加厚，不改基层转角形状。", ok:false, code:"E02", tempt:"以为多刷加厚就够。", lose:"没解决直角翘空的几何问题，也漏了圆弧/45度做法。", fix:"先把基层阴阳角做成圆弧或45度。" },
+        { t:"阴阳角基层做成圆弧或45度，使卷材平顺过渡、不翘空刺破。", ok:true, fix:"点出圆弧/45度＋卷材平顺，转角这块采分句写全。", code:"" },
         { t:"阴阳角做成向外凸的尖角，让卷材绷紧贴合更牢。", ok:false, code:"M03", tempt:"把『处理阴阳角』误记成做尖角。", lose:"尖角同样应力集中、卷材更易破，概念反了。", fix:"应做圆弧或45度过渡，不是做尖角。" }
       ] },
 { tag:"附加层·顺序维", typeHint:"单选 · 选出做法与顺序都对的作答", figLabel:"图示：节点分层顺序", figCaption:"基层 → 附加层（先做）→ 大面卷材（后铺）", fig:"layer",
       stem:"阴阳角、管根、地漏等薄弱部位的防水做法与施工顺序，选出能得分的作答。",
       model:"阴阳角/管根/地漏等部位先做附加层、夹铺胎体增强材料，再施工大面卷材。",
       opts:[
+        { t:"先铺设完成大面卷材，再回头在阴阳角、管根、地漏等薄弱部位补做附加层与胎体增强材料。", ok:false, code:"E06", tempt:"觉得大面先铺完、回头补节点更方便。", lose:"顺序反了，应先做节点附加层再铺大面，先大面后补＝程序错。", fix:"先做节点附加层、再铺大面。" },
         { t:"在阴阳角、管根、地漏等部位先做附加层、夹铺胎体增强材料，再施工大面卷材。", ok:true, fix:"先做附加层＋夹胎体增强＋后铺大面，层序采分句齐。", code:"" },
-        { t:"先铺完大面卷材，再在阴阳角、管根等薄弱处补做附加层。", ok:false, code:"E06", tempt:"觉得大面先铺完、回头补节点更方便。", lose:"顺序反了，应先做节点附加层再铺大面，先大面后补＝程序错。", fix:"先做节点附加层、再铺大面。" },
-        { t:"阴阳角管根处把大面卷材延伸盖住即可，不单独做附加层。", ok:false, code:"E02", tempt:"以为大面盖住就够。", lose:"漏了『先做附加层、夹胎体增强材料』这一采分点。", fix:"薄弱节点先做附加层、夹铺胎体增强材料。" },
-        { t:"附加层做在大面卷材外侧最上层，起面层保护作用。", ok:false, code:"M01", tempt:"把附加层当保护面层。", lose:"附加层是节点处、大面之下的补强层，位置层序记反。", fix:"附加层先做在节点、位于大面之下。" }
+        { t:"在阴阳角、管根、地漏等部位由大面卷材直接延伸覆盖，不再单独增设附加层。", ok:false, code:"E02", tempt:"以为大面盖住就够。", lose:"漏了『先做附加层、夹胎体增强材料』这一采分点。", fix:"薄弱节点先做附加层、夹铺胎体增强材料。" },
+        { t:"附加层应设置在大面卷材外侧的最上层，作为整个防水层的面层保护使用。", ok:false, code:"M01", tempt:"把附加层当保护面层。", lose:"附加层是节点处、大面之下的补强层，位置层序记反。", fix:"附加层先做在节点、位于大面之下。" }
       ] },
 { tag:"管根套管·数值维", typeHint:"单选 · 选出做法与数值都对的作答", figLabel:"图示：穿楼板套管剖面", figCaption:"套管高出装饰面 · 高多少？", fig:"pipe",
       stem:"穿楼板管道套管处的防水做法，选出能得分的作答。",
       model:"管根密封，穿楼板套管与管道间用防水密封材料嵌填压实，套管高出装饰面≥20mm。",
       opts:[
+        { t:"管根密封，套管与管道间用防水密封材料嵌填压实，套管高出装饰面≥10mm。", ok:false, code:"M08", tempt:"记得要高出、数值记成10。", lose:"数值错，规范是套管高出装饰面≥20mm。", fix:"套管高出装饰面≥20mm。" },
         { t:"管根密封，套管与管道间用防水密封材料嵌填压实，套管高出装饰面≥20mm。", ok:true, fix:"管根密封＋嵌填压实＋高出≥20mm，三处采分句齐。", code:"" },
-        { t:"套管与管道间嵌填密封，套管高出装饰面≥10mm即可。", ok:false, code:"M08", tempt:"记得要高出、数值记成10。", lose:"数值错，规范是套管高出装饰面≥20mm。", fix:"套管高出装饰面≥20mm。" },
         { t:"套管与管道间用密封材料嵌填压实即可，管根、套管高出尺寸不必强调。", ok:false, code:"E02", tempt:"抓住嵌填一项就以为够。", lose:"漏了管根密封和套管高出装饰面≥20mm两处采分点。", fix:"补管根密封、套管高出装饰面≥20mm。" },
-        { t:"套管应低于装饰面、埋进面层里，避免外露磕碰。", ok:false, code:"M03", tempt:"怕外露磕碰想埋进面层。", lose:"方向反了，套管要高出装饰面防漫水，不是埋低。", fix:"套管应高出装饰面≥20mm。" }
+        { t:"穿楼板套管应低于装饰面、埋入面层内部，避免套管外露受到磕碰损伤。", ok:false, code:"M03", tempt:"怕外露磕碰想埋进面层。", lose:"方向反了，套管要高出装饰面防漫水，不是埋低。", fix:"套管应高出装饰面≥20mm。" }
       ] },
 { tag:"施工顺序·条件维", typeHint:"单选 · 选出顺序正确的作答", figLabel:"图示：先细部后大面", figCaption:"① 先做细部节点  ·  ② 再施工大面", fig:"order",
       stem:"屋面卷材防水施工顺序，下列说法正确的是。",
       model:"应先进行细部节点构造处理、再施工大面；门窗框/管道等部件安装完毕后再做防水。",
       opts:[
+        { t:"卷材防水应先施工大面、再处理细部节点；门窗框/管道等部件安装完毕后再做防水。", ok:false, code:"E06", tempt:"先铺大面显得进度快。", lose:"先后顺序错，应先细部后大面。", fix:"先做细部节点、再施工大面。" },
+        { t:"大面与细部节点可同时组织施工，两者不分先后次序，按各作业面条件灵活安排。", ok:false, code:"M03", tempt:"觉得都要做、无所谓先后。", lose:"规范明确先细部后大面，顺序是采分点。", fix:"必须先细部后大面。" },
         { t:"卷材防水应先施工细部节点、再施工大面；门窗框/管道等部件安装完毕后再做防水。", ok:true, fix:"先细部后大面＋部件装完再防水，顺序采分句齐。", code:"" },
-        { t:"为赶进度先铺大面卷材，节点等大面干后再回头处理。", ok:false, code:"E06", tempt:"先铺大面显得进度快。", lose:"先后顺序错，应先细部后大面。", fix:"先做细部节点、再施工大面。" },
-        { t:"大面与细部同时施工、谁快先做谁，先后无所谓。", ok:false, code:"M03", tempt:"觉得都要做、无所谓先后。", lose:"规范明确先细部后大面，顺序是采分点。", fix:"必须先细部后大面。" },
-        { t:"只要门窗框、管道装完就能防水，节点先后不用管。", ok:false, code:"E02", tempt:"只记住『部件装完再防水』。", lose:"漏了『先细部后大面』这一核心顺序采分点。", fix:"补『先做节点处理、再施工大面』。" }
+        { t:"门窗框、管道等部件安装完毕即可进行防水施工，节点与大面的先后不作要求。", ok:false, code:"E02", tempt:"只记住『部件装完再防水』。", lose:"漏了『先细部后大面』这一核心顺序采分点。", fix:"补『先做节点处理、再施工大面』。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"泛水250 · 压顶平顶 · 收头抹密封", fig:"sheet",
       sheet:["① 泛水做 250mm","② 女儿墙压顶做平顶","③ 收头抹密封材料封住"],
       stem:"学生作答女儿墙收边：①泛水做250、②压顶做平顶、③收头抹密封。诊断失分并给正确补写（选最准确）。",
       model:"泛水250正确；压顶平顶不妥、应向内坡≥5%并涂膜至压顶下；收头只密封漏压条、应金属压条钉压+密封+鹰嘴滴水槽。",
       opts:[
-        { t:"泛水250正确；压顶做平顶不妥、应向内坡≥5%并涂膜至压顶下；收头只密封漏压条、应金属压条钉压+密封+鹰嘴滴水槽。", ok:true, fix:"一对两错逐处点出并补写采分句，这就是『会写答案』。", code:"" },
-        { t:"三项都对，泛水250、压顶平顶、收头密封都符合要求，可给满分。", ok:false, code:"E10", tempt:"泛水对就以为全对。", lose:"压顶应向内坡≥5%、收头应加压条，两处失分。", fix:"压顶向内坡≥5%、收头压条+密封+滴水槽。" },
-        { t:"只有收头要补压条，泛水和压顶都没问题。", ok:false, code:"E02", tempt:"抓到收头一处。", lose:"漏诊压顶平顶应改向内坡≥5%。", fix:"压顶向内坡≥5%、涂膜至压顶下。" },
-        { t:"压顶和收头做法要再规范些、补充完整。", ok:false, code:"E03", tempt:"知道有问题、没给具体做法。", lose:"没写『向内坡≥5%』『金属压条钉压』等采分句。", fix:"给出向内坡≥5%、金属压条钉压+密封+滴水槽。" }
+        { t:"三项作答均正确：泛水做250mm、压顶做平顶、收头抹密封材料封住均符合细部构造要求，可按满分给分。", ok:false, code:"E10", tempt:"泛水对就以为全对。", lose:"压顶应向内坡≥5%、收头应加压条，两处失分。", fix:"压顶向内坡≥5%、收头压条+密封+滴水槽。" },
+        { t:"泛水250正确、压顶做平顶亦无问题；仅收头一处失分，应补金属压条钉压+密封+鹰嘴滴水槽。", ok:false, code:"E02", tempt:"抓到收头一处。", lose:"漏诊压顶平顶应改向内坡≥5%。", fix:"压顶向内坡≥5%、涂膜至压顶下。" },
+        { t:"泛水250正确；压顶与收头两处做法欠规范，应对照细部节点构造要求逐项修改、把做法补写完整。", ok:false, code:"E03", tempt:"知道有问题、没给具体做法。", lose:"没写『向内坡≥5%』『金属压条钉压』等采分句。", fix:"给出向内坡≥5%、金属压条钉压+密封+滴水槽。" },
+        { t:"泛水250正确；压顶做平顶不妥、应向内坡≥5%并涂膜至压顶下；收头只密封漏压条、应金属压条钉压+密封+鹰嘴滴水槽。", ok:true, fix:"一对两错逐处点出并补写采分句，这就是『会写答案』。", code:"" }
       ] }
   ];
   codeMap={
@@ -535,7 +535,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"F04-html-practice-html-q1-bd09304b7137","options":["F04-html-practice-html-q1-bd09304b7137:option-1","F04-html-practice-html-q1-bd09304b7137:option-2","F04-html-practice-html-q1-bd09304b7137:option-3","F04-html-practice-html-q1-bd09304b7137:option-4"]},{"variant_id":"F04-html-practice-html-q2-444042f4fae7","options":["F04-html-practice-html-q2-444042f4fae7:option-1","F04-html-practice-html-q2-444042f4fae7:option-2","F04-html-practice-html-q2-444042f4fae7:option-3","F04-html-practice-html-q2-444042f4fae7:option-4"]},{"variant_id":"F04-html-practice-html-q3-e7f6c23a2fca","options":["F04-html-practice-html-q3-e7f6c23a2fca:option-1","F04-html-practice-html-q3-e7f6c23a2fca:option-2","F04-html-practice-html-q3-e7f6c23a2fca:option-3","F04-html-practice-html-q3-e7f6c23a2fca:option-4"]},{"variant_id":"F04-html-practice-html-q4-c3b5b6ab6b4c","options":["F04-html-practice-html-q4-c3b5b6ab6b4c:option-1","F04-html-practice-html-q4-c3b5b6ab6b4c:option-2","F04-html-practice-html-q4-c3b5b6ab6b4c:option-3","F04-html-practice-html-q4-c3b5b6ab6b4c:option-4"]},{"variant_id":"F04-html-practice-html-q15-1bd9bc83105c","options":["F04-html-practice-html-q15-1bd9bc83105c:option-1","F04-html-practice-html-q15-1bd9bc83105c:option-2","F04-html-practice-html-q15-1bd9bc83105c:option-3","F04-html-practice-html-q15-1bd9bc83105c:option-4"]}];
+    const exactItems=[{"variant_id":"F04-html-practice-html-q1-c88564f5e2e1","options":["F04-html-practice-html-q1-c88564f5e2e1:option-1","F04-html-practice-html-q1-c88564f5e2e1:option-2","F04-html-practice-html-q1-c88564f5e2e1:option-3","F04-html-practice-html-q1-c88564f5e2e1:option-4"]},{"variant_id":"F04-html-practice-html-q2-31fc7780be25","options":["F04-html-practice-html-q2-31fc7780be25:option-1","F04-html-practice-html-q2-31fc7780be25:option-2","F04-html-practice-html-q2-31fc7780be25:option-3","F04-html-practice-html-q2-31fc7780be25:option-4"]},{"variant_id":"F04-html-practice-html-q3-8e446a2bb9ae","options":["F04-html-practice-html-q3-8e446a2bb9ae:option-1","F04-html-practice-html-q3-8e446a2bb9ae:option-2","F04-html-practice-html-q3-8e446a2bb9ae:option-3","F04-html-practice-html-q3-8e446a2bb9ae:option-4"]},{"variant_id":"F04-html-practice-html-q4-608318d05cde","options":["F04-html-practice-html-q4-608318d05cde:option-1","F04-html-practice-html-q4-608318d05cde:option-2","F04-html-practice-html-q4-608318d05cde:option-3","F04-html-practice-html-q4-608318d05cde:option-4"]},{"variant_id":"F04-html-practice-html-q15-dcdd1e825e59","options":["F04-html-practice-html-q15-dcdd1e825e59:option-1","F04-html-practice-html-q15-dcdd1e825e59:option-2","F04-html-practice-html-q15-dcdd1e825e59:option-3","F04-html-practice-html-q15-dcdd1e825e59:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -552,7 +552,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F04")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtYmQwOTMwNGI3MTM3IiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00NDQwNDJmNGZhZTciLCJGMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWU3ZjZjMjNhMmZjYSIsIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzNiNWI2YWI2YjRjIiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMWJkOWJjODMxMDVjIl0sInBhY2tfaWQiOiJGMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjEwZGNiNjdjNmJiNzgzMjE3YWIyMGNlY2NhNTQzOGVmYjMwM2FmNzk2NzhmOGYxN2M3MTljZjcxM2Y5MTRlYmQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZTk5MDM0MjE1Zjk2ZWZlMDMzYzNmYmJiM2Q3MjRiZWVmNjBjMWM4NmY0N2U4OTViMGFmZDlkM2FiZjYxZDYwYyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F04")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtYzg4NTY0ZjVlMmUxIiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0zMWZjNzc4MGJlMjUiLCJGMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLThlNDQ2YTJiYjlhZSIsIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjA4MzE4ZDA1Y2RlIiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZGNkZDFlODI1ZTU5Il0sInBhY2tfaWQiOiJGMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjhiNDIxMmU1MTdlMDVlZmVjN2JkYzYzOGVmOTcwOWVmZGM3NGY4ODE2OGI1MTY5ODU3MjViNTk0NWE4YTY3ZmMiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZTk5MDM0MjE1Zjk2ZWZlMDMzYzNmYmJiM2Q3MjRiZWVmNjBjMWM4NmY0N2U4OTViMGFmZDlkM2FiZjYxZDYwYyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

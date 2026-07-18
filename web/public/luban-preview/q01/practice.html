@@ -245,46 +245,46 @@ class Component extends DCLogic {
       stem:"某工程有普通硅酸盐水泥现浇柱、有抗渗要求的地下室墙、后浇带三部分。关于最短养护时间，选出完整、能得分的作答。",
       model:"普通硅酸盐水泥现浇≥7d；有抗渗要求的≥14d；后浇带养护≥14d。",
       opts:[
+        { t:"普通硅酸盐水泥现浇构件、有抗渗要求的部位与后浇带三部分统一养护不少于 7d，不再按类别分档取值。", ok:false, code:"E10", tempt:"记了个 7d 就想一刀切省事。", lose:"抗渗与后浇带必须不少于 14d，统一 7d 违反规范。", fix:"抗渗、后浇带养护≥14d，不能按 7d。" },
         { t:"普通硅酸盐水泥现浇构件养护不少于 7d；有抗渗要求的不少于 14d；后浇带养护不少于 14d。", ok:true, fix:"按类别分档：普硅 7d、抗渗/后浇带 14d，一档不落。", code:"" },
-        { t:"三部分统一养护 7d 即可，养护时间不必分类别。", ok:false, code:"E10", tempt:"记了个 7d 就想一刀切省事。", lose:"抗渗与后浇带必须不少于 14d，统一 7d 违反规范。", fix:"抗渗、后浇带养护≥14d，不能按 7d。" },
-        { t:"普硅现浇 14d、抗渗 7d、后浇带 7d。", ok:false, code:"E10", tempt:"记得有 7、14 两个数，随手一配。", lose:"7d/14d 张冠李戴，方向配反。", fix:"普硅 7d、抗渗与后浇带 14d，别对调。" },
-        { t:"只要洒水就行，养护天数不影响得分。", ok:false, code:"E02", tempt:"觉得养护是走过场。", lose:"漏了养护时长这一采分点。", fix:"写明普硅≥7d、抗渗/后浇带≥14d。" }
+        { t:"普通硅酸盐水泥现浇构件养护不少于 14d；有抗渗要求的不少于 7d；后浇带养护不少于 7d。", ok:false, code:"E10", tempt:"记得有 7、14 两个数，随手一配。", lose:"7d/14d 张冠李戴，方向配反。", fix:"普硅 7d、抗渗与后浇带 14d，别对调。" },
+        { t:"三部分均安排浇水并覆盖保湿养护，养护持续天数可视混凝土表面状况灵活掌握。", ok:false, code:"E02", tempt:"觉得养护是走过场。", lose:"漏了养护时长这一采分点。", fix:"写明普硅≥7d、抗渗/后浇带≥14d。" }
       ] },
 { tag:"大体积温控·条件维", typeHint:"单选 · 选出指标完整、能得分的作答", figLabel:"题给：大体积测温控制", figCaption:"里表温差 / 降温速率 / 温升 / 入模", fig:"temp",
       stem:"大体积混凝土底板测温控制，选出指标完整、能得分的作答。",
       model:"里表温差≤25℃；降温速率≤2.0℃/d；温升≤50℃；入模温度 5~30℃。",
       opts:[
+        { t:"里表温差不大于 20℃；降温速率不大于 3.0℃/d；温升不大于 50℃；入模温度控制在 5~30℃。", ok:false, code:"E10", tempt:"把冬期的 20℃、3℃/d 搬到了大体积。", lose:"大体积是里表≤25℃、降温≤2℃/d，数值用串。", fix:"大体积里表≤25℃、降温≤2.0℃/d。" },
+        { t:"对底板实行连续测温，发现异常及时调整保温散热措施，温差与降温速率不必给出具体数值。", ok:false, code:"E03", tempt:"知道要测温，懒得报数。", lose:"缺 25/2/50 等关键数值，口号化不得分。", fix:"补里表≤25℃、降温≤2℃/d、温升≤50℃。" },
         { t:"里表温差不大于 25℃；降温速率不大于 2.0℃/d；温升不大于 50℃；入模温度控制在 5~30℃。", ok:true, fix:"里表 25、降温 2℃/d、温升 50、入模 5~30，四个数写全。", code:"" },
-        { t:"里表温差不大于 20℃、降温速率不大于 3℃/d。", ok:false, code:"E10", tempt:"把冬期的 20℃、3℃/d 搬到了大体积。", lose:"大体积是里表≤25℃、降温≤2℃/d，数值用串。", fix:"大体积里表≤25℃、降温≤2.0℃/d。" },
-        { t:"只要连续测温、发现异常处理即可，不必给具体指标。", ok:false, code:"E03", tempt:"知道要测温，懒得报数。", lose:"缺 25/2/50 等关键数值，口号化不得分。", fix:"补里表≤25℃、降温≤2℃/d、温升≤50℃。" },
-        { t:"里表温差不大于 25℃即可，其余不用控制。", ok:false, code:"E02", tempt:"记住了最有名的 25℃。", lose:"漏降温速率、温升、入模温度多个采分点。", fix:"补降温≤2℃/d、温升≤50℃、入模 5~30℃。" }
+        { t:"里表温差控制在 25℃以内即可满足测温控制要求，降温速率、温升与入模温度不另行控制。", ok:false, code:"E02", tempt:"记住了最有名的 25℃。", lose:"漏降温速率、温升、入模温度多个采分点。", fix:"补降温≤2℃/d、温升≤50℃、入模 5~30℃。" }
       ] },
 { tag:"冬期温控·条件维", typeHint:"单选 · 选出指标正确、能得分的作答", figLabel:"题给：冬期大体积温控", figCaption:"中心-表面 / 表面-大气 / 温降 / 养护", fig:"temp",
       stem:"冬期大体积混凝土温控，选出指标正确、能得分的作答。",
       model:"中心-表面温差≤25℃；表面-大气温差≤20℃；温降梯度≤3℃/d；养护≥14d。",
       opts:[
-        { t:"中心与表面温差不大于 25℃；表面与大气温差不大于 20℃；温降梯度不大于 3℃/d；养护不少于 14d。", ok:true, fix:"25/20/3/14 四数配对写全，方向别反。", code:"" },
-        { t:"表面与大气温差不大于 25℃、中心与表面不大于 20℃。", ok:false, code:"E07", tempt:"两个温差都记得，就是配反了。", lose:"块内(中心-表面)是 25、对外界(表面-大气)是 20，方向写反。", fix:"中心-表面≤25℃、表面-大气≤20℃。" },
-        { t:"温降梯度不大于 2℃/d。", ok:false, code:"E10", tempt:"把大体积的 2℃/d 用到冬期。", lose:"冬期温降梯度是≤3℃/d，不是 2。", fix:"冬期温降梯度≤3℃/d。" },
-        { t:"冬期只要保温覆盖即可，不必控温差。", ok:false, code:"E02", tempt:"知道要保温就以为够了。", lose:"漏中心-表面 25、表面-大气 20、温降 3 等采分点。", fix:"补三项温差/温降数值与养护≥14d。" }
+        { t:"中心与表面温差不大于 20℃；表面与大气温差不大于 25℃；温降梯度不大于 3℃/d；养护不少于 14d。", ok:false, code:"E07", tempt:"两个温差都记得，就是配反了。", lose:"块内(中心-表面)是 25、对外界(表面-大气)是 20，方向写反。", fix:"中心-表面≤25℃、表面-大气≤20℃。" },
+        { t:"中心与表面温差不大于 25℃；表面与大气温差不大于 20℃；温降梯度不大于 2℃/d；养护不少于 14d。", ok:false, code:"E10", tempt:"把大体积的 2℃/d 用到冬期。", lose:"冬期温降梯度是≤3℃/d，不是 2。", fix:"冬期温降梯度≤3℃/d。" },
+        { t:"冬期温控以保温覆盖为主要手段，覆盖措施落实到位后，各项温差与温降指标不必再量化控制。", ok:false, code:"E02", tempt:"知道要保温就以为够了。", lose:"漏中心-表面 25、表面-大气 20、温降 3 等采分点。", fix:"补三项温差/温降数值与养护≥14d。" },
+        { t:"中心与表面温差不大于 25℃；表面与大气温差不大于 20℃；温降梯度不大于 3℃/d；养护不少于 14d。", ok:true, fix:"25/20/3/14 四数配对写全，方向别反。", code:"" }
       ] },
 { tag:"高温措施·程序维", typeHint:"单选 · 选出措施完整、能得分的作答", figLabel:"题给：高温防裂措施", figCaption:"早晚施工 / 喷雾 / 连续浇筑 · 别吹风", fig:"hot",
       stem:"高温环境下混凝土防裂，下列哪一组作答完整、能得分？",
       model:"安排早间/晚间施工、喷雾降温保湿、连续浇筑；不采用吹风。",
       opts:[
         { t:"安排早间或晚间施工，喷雾降温保湿，连续浇筑避免冷缝；不宜采用吹风。", ok:true, fix:"早晚施工+喷雾+连续浇筑，且点明不吹风。", code:"" },
-        { t:"用鼓风机吹风给混凝土降温，加快散热防裂。", ok:false, code:"E10", tempt:"觉得吹风能降温、跟散热挂钩。", lose:"吹风加速表面失水，是错误做法。", fix:"改喷雾保湿，不吹风。" },
-        { t:"安排在正午高温时段一次浇完。", ok:false, code:"E05", tempt:"想着一鼓作气浇完。", lose:"应避开正午高温，安排早晚施工。", fix:"避开正午，早间/晚间施工。" },
-        { t:"只要多浇水就行，其他措施不必。", ok:false, code:"E02", tempt:"以为浇水万能。", lose:"漏早晚施工、喷雾、连续浇筑等措施。", fix:"补早晚施工、喷雾、连续浇筑。" }
+        { t:"采用鼓风机对新浇混凝土表面持续吹风散热，加快表面降温以防止开裂。", ok:false, code:"E10", tempt:"觉得吹风能降温、跟散热挂钩。", lose:"吹风加速表面失水，是错误做法。", fix:"改喷雾保湿，不吹风。" },
+        { t:"将混凝土浇筑安排在正午高温时段一次性连续完成，不再分早晚组织施工。", ok:false, code:"E05", tempt:"想着一鼓作气浇完。", lose:"应避开正午高温，安排早晚施工。", fix:"避开正午，早间/晚间施工。" },
+        { t:"增加浇水次数保持混凝土表面湿润，早晚施工与喷雾降温措施不再采用。", ok:false, code:"E02", tempt:"以为浇水万能。", lose:"漏早晚施工、喷雾、连续浇筑等措施。", fix:"补早晚施工、喷雾、连续浇筑。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"三条交底 · 各错在哪？", fig:"sheet",
       stem:"某学生对一份地下室防水底板交底作答：①防水混凝土养护 7 天；②施工缝留在剪力最大处；③后浇带 10 天后封闭。选出最准确的诊断与补写。",
       model:"三处均不妥：防水养护应≥14d；施工缝不应留剪力最大处(避底板侧墙交接)；底板后浇带封闭≥28d。",
       opts:[
+        { t:"仅①不妥，防水混凝土养护应不少于 14d；②施工缝留设位置与③后浇带封闭时间的做法均符合要求，不必改动。", ok:false, code:"E02", tempt:"只抓到最显眼的养护错。", lose:"漏诊施工缝位置与后浇带封闭两处失分。", fix:"施工缝避位、封闭≥28d 两处也要纠。" },
+        { t:"三处均无不妥：①养护 7 天、②施工缝留剪力最大处、③后浇带 10 天后封闭，均符合地下防水工程施工要求。", ok:false, code:"E07", tempt:"数字看着眼熟就以为对。", lose:"7d/剪力最大处/10d 封闭全是经典错项。", fix:"三处全改：14d、避剪力最大处、封闭 28d。" },
         { t:"三处都不妥：①防水养护应不少于 14d；②施工缝不应留在剪力最大处，也不应留底板与侧墙交接处；③底板后浇带封闭不少于 28d。", ok:true, fix:"三处逐一纠正并给正确数值——这就是会写答案。", code:"" },
-        { t:"只有①养护天数偏短，②③都正确。", ok:false, code:"E02", tempt:"只抓到最显眼的养护错。", lose:"漏诊施工缝位置与后浇带封闭两处失分。", fix:"施工缝避位、封闭≥28d 两处也要纠。" },
-        { t:"三处都对，符合防水要求。", ok:false, code:"E07", tempt:"数字看着眼熟就以为对。", lose:"7d/剪力最大处/10d 封闭全是经典错项。", fix:"三处全改：14d、避剪力最大处、封闭 28d。" },
-        { t:"把养护改成 28d、施工缝改留交接处即可。", ok:false, code:"E10", tempt:"知道要改，却改错了方向。", lose:"养护是 14d(28 是封闭)，交接处恰恰是禁留处。", fix:"养护 14d、施工缝避交接处、封闭 28d。" }
+        { t:"将①养护天数改为不少于 28d，②施工缝改留在底板与侧墙交接处，完成这两处改正即可满足交底要求。", ok:false, code:"E10", tempt:"知道要改，却改错了方向。", lose:"养护是 14d(28 是封闭)，交接处恰恰是禁留处。", fix:"养护 14d、施工缝避交接处、封闭 28d。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -523,7 +523,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"Q01-html-practice-html-q1-9752d199a392","options":["Q01-html-practice-html-q1-9752d199a392:option-1","Q01-html-practice-html-q1-9752d199a392:option-2","Q01-html-practice-html-q1-9752d199a392:option-3","Q01-html-practice-html-q1-9752d199a392:option-4"]},{"variant_id":"Q01-html-practice-html-q2-4a84fcba6b1e","options":["Q01-html-practice-html-q2-4a84fcba6b1e:option-1","Q01-html-practice-html-q2-4a84fcba6b1e:option-2","Q01-html-practice-html-q2-4a84fcba6b1e:option-3","Q01-html-practice-html-q2-4a84fcba6b1e:option-4"]},{"variant_id":"Q01-html-practice-html-q3-eac52d2ed42f","options":["Q01-html-practice-html-q3-eac52d2ed42f:option-1","Q01-html-practice-html-q3-eac52d2ed42f:option-2","Q01-html-practice-html-q3-eac52d2ed42f:option-3","Q01-html-practice-html-q3-eac52d2ed42f:option-4"]},{"variant_id":"Q01-html-practice-html-q4-c8005fb201fb","options":["Q01-html-practice-html-q4-c8005fb201fb:option-1","Q01-html-practice-html-q4-c8005fb201fb:option-2","Q01-html-practice-html-q4-c8005fb201fb:option-3","Q01-html-practice-html-q4-c8005fb201fb:option-4"]},{"variant_id":"Q01-html-practice-html-q15-bdd53df442bc","options":["Q01-html-practice-html-q15-bdd53df442bc:option-1","Q01-html-practice-html-q15-bdd53df442bc:option-2","Q01-html-practice-html-q15-bdd53df442bc:option-3","Q01-html-practice-html-q15-bdd53df442bc:option-4"]}];
+    const exactItems=[{"variant_id":"Q01-html-practice-html-q1-9ebeb63182e6","options":["Q01-html-practice-html-q1-9ebeb63182e6:option-1","Q01-html-practice-html-q1-9ebeb63182e6:option-2","Q01-html-practice-html-q1-9ebeb63182e6:option-3","Q01-html-practice-html-q1-9ebeb63182e6:option-4"]},{"variant_id":"Q01-html-practice-html-q2-502a3ea1f607","options":["Q01-html-practice-html-q2-502a3ea1f607:option-1","Q01-html-practice-html-q2-502a3ea1f607:option-2","Q01-html-practice-html-q2-502a3ea1f607:option-3","Q01-html-practice-html-q2-502a3ea1f607:option-4"]},{"variant_id":"Q01-html-practice-html-q3-79c0915a36c8","options":["Q01-html-practice-html-q3-79c0915a36c8:option-1","Q01-html-practice-html-q3-79c0915a36c8:option-2","Q01-html-practice-html-q3-79c0915a36c8:option-3","Q01-html-practice-html-q3-79c0915a36c8:option-4"]},{"variant_id":"Q01-html-practice-html-q4-5bfb6bc3f80c","options":["Q01-html-practice-html-q4-5bfb6bc3f80c:option-1","Q01-html-practice-html-q4-5bfb6bc3f80c:option-2","Q01-html-practice-html-q4-5bfb6bc3f80c:option-3","Q01-html-practice-html-q4-5bfb6bc3f80c:option-4"]},{"variant_id":"Q01-html-practice-html-q15-b32c1f74b2b2","options":["Q01-html-practice-html-q15-b32c1f74b2b2:option-1","Q01-html-practice-html-q15-b32c1f74b2b2:option-2","Q01-html-practice-html-q15-b32c1f74b2b2:option-3","Q01-html-practice-html-q15-b32c1f74b2b2:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -540,7 +540,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("Q01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtOTc1MmQxOTlhMzkyIiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00YTg0ZmNiYTZiMWUiLCJRMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWVhYzUyZDJlZDQyZiIsIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzgwMDVmYjIwMWZiIiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYmRkNTNkZjQ0MmJjIl0sInBhY2tfaWQiOiJRMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImMzZjg4MjQ2MzkwNWZlMzVjOTE5NDQ2MjM2Zjk4YjhkNzhjZDIyZDFhYjEwOGQ4MDVlOThjMTVhMGUxYjZiZGQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiY2JjNzM3ZDFkNjU3ZDRhODgzMGI5MDk2OWM5OTIzZDIyNzI2NjE5OTliNWJmZWYxMmMxOTIzNmRhYWQwNjE2MyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("Q01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtOWViZWI2MzE4MmU2IiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01MDJhM2VhMWY2MDciLCJRMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTc5YzA5MTVhMzZjOCIsIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNWJmYjZiYzNmODBjIiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYjMyYzFmNzRiMmIyIl0sInBhY2tfaWQiOiJRMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImM1NmU0ZjIyNzVjMTdkYzI1YmNjYjUzMTk2YjA5NWEyODg0Zjk0MzczYjUyZmI1Mjk5MzYxOTlhOWEzYTA2NTIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiY2JjNzM3ZDFkNjU3ZDRhODgzMGI5MDk2OWM5OTIzZDIyNzI2NjE5OTliNWJmZWYxMmMxOTIzNmRhYWQwNjE2MyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

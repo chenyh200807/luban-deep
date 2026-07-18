@@ -2,7 +2,7 @@
  "schema": "luban_practice_review_packet.v1",
  "pack_id": "F04",
  "source_pack_sha256": "7fc64c43b64eb10782cda1014ce062c8420075b21ca78c05a29ed2eb5e63760a",
- "source_bundle_sha256": "79062efb6da51219aafefa22f5137cb81c50536c7201c45431913dca616a1378",
+ "source_bundle_sha256": "047e28b80e9383ceffc2152af2277a5c217bc31ebfc6e385ad9fcf43ca919d40",
  "compiled_schema_version": "luban_compiled_practice.v3",
  "candidate_count": 15,
  "eligible_count": 7,
@@ -15,19 +15,10 @@
  },
  "items": [
   {
-   "variant_id": "F04-html-practice-html-q1-bd09304b7137",
+   "variant_id": "F04-html-practice-html-q1-c88564f5e2e1",
    "surface_id": "practice.html",
    "stem": "屋面卷材防水施工，阴阳角基层的处理做法，选出最能得分的作答。",
    "options": [
-    {
-     "text": "阴阳角基层做成圆弧或45度，使卷材平顺过渡、不翘空刺破。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "点出圆弧/45度＋卷材平顺，转角这块采分句写全。",
-     "option_id": "F04-html-practice-html-q1-bd09304b7137:option-1"
-    },
     {
      "text": "阴阳角基层做成规整的直角，卷材沿直角折压密实即可。",
      "is_correct": false,
@@ -35,7 +26,7 @@
      "temptation": "直角看着规整、施工顺手。",
      "loss_reason": "直角处卷材翘空、应力集中最先开裂，不符合『宜做圆弧或45度』。",
      "fix": "阴阳角基层应做圆弧或45度。",
-     "option_id": "F04-html-practice-html-q1-bd09304b7137:option-2"
+     "option_id": "F04-html-practice-html-q1-c88564f5e2e1:option-1"
     },
     {
      "text": "阴阳角处只把大面卷材多刷一遍涂料加厚，不改基层转角形状。",
@@ -44,7 +35,16 @@
      "temptation": "以为多刷加厚就够。",
      "loss_reason": "没解决直角翘空的几何问题，也漏了圆弧/45度做法。",
      "fix": "先把基层阴阳角做成圆弧或45度。",
-     "option_id": "F04-html-practice-html-q1-bd09304b7137:option-3"
+     "option_id": "F04-html-practice-html-q1-c88564f5e2e1:option-2"
+    },
+    {
+     "text": "阴阳角基层做成圆弧或45度，使卷材平顺过渡、不翘空刺破。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点出圆弧/45度＋卷材平顺，转角这块采分句写全。",
+     "option_id": "F04-html-practice-html-q1-c88564f5e2e1:option-3"
     },
     {
      "text": "阴阳角做成向外凸的尖角，让卷材绷紧贴合更牢。",
@@ -53,14 +53,14 @@
      "temptation": "把『处理阴阳角』误记成做尖角。",
      "loss_reason": "尖角同样应力集中、卷材更易破，概念反了。",
      "fix": "应做圆弧或45度过渡，不是做尖角。",
-     "option_id": "F04-html-practice-html-q1-bd09304b7137:option-4"
+     "option_id": "F04-html-practice-html-q1-c88564f5e2e1:option-4"
     }
    ],
    "model_answer": "阴阳角基层宜做圆弧或45度，使卷材平顺过渡、不翘空刺破；基层坚实平整无浮浆起砂裂缝。",
    "rule_group": "阴阳角·条件维",
-   "content_sha256": "103f0fe710bb423d31d8d31cbde6c41f7704fd6cf689016baf26af7af08ab07d",
+   "content_sha256": "65fbdfe488e5de634a880b42982b3305c6fc2aebb9e1a0bf69d83bbd6d4a674a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q1",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "f04-fact-corner-round-or-45",
     "skeleton_id": "f04-skel-阴阳角做法选择",
@@ -70,17 +70,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "103f0fe710bb423d31d8d31cbde6c41f7704fd6cf689016baf26af7af08ab07d",
+     "reviewed_content_sha256": "65fbdfe488e5de634a880b42982b3305c6fc2aebb9e1a0bf69d83bbd6d4a674a",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -90,17 +90,26 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "阴阳角基层做圆弧或45度, 真题 exam:2015:案例2 逐字(错误之二整改)。'平顺过渡不翘空'为解释性扩写。工单: 正确项首位最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "阴阳角基层做圆弧或45度, 真题 exam:2015:案例2 逐字(错误之二整改)。'平顺过渡不翘空'为解释性扩写。工单: 正确项首位最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q2-444042f4fae7",
+   "variant_id": "F04-html-practice-html-q2-31fc7780be25",
    "surface_id": "practice.html",
    "stem": "阴阳角、管根、地漏等薄弱部位的防水做法与施工顺序，选出能得分的作答。",
    "options": [
+    {
+     "text": "先铺设完成大面卷材，再回头在阴阳角、管根、地漏等薄弱部位补做附加层与胎体增强材料。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "觉得大面先铺完、回头补节点更方便。",
+     "loss_reason": "顺序反了，应先做节点附加层再铺大面，先大面后补＝程序错。",
+     "fix": "先做节点附加层、再铺大面。",
+     "option_id": "F04-html-practice-html-q2-31fc7780be25:option-1"
+    },
     {
      "text": "在阴阳角、管根、地漏等部位先做附加层、夹铺胎体增强材料，再施工大面卷材。",
      "is_correct": true,
@@ -108,41 +117,32 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "先做附加层＋夹胎体增强＋后铺大面，层序采分句齐。",
-     "option_id": "F04-html-practice-html-q2-444042f4fae7:option-1"
+     "option_id": "F04-html-practice-html-q2-31fc7780be25:option-2"
     },
     {
-     "text": "先铺完大面卷材，再在阴阳角、管根等薄弱处补做附加层。",
-     "is_correct": false,
-     "source_error_code": "E06",
-     "temptation": "觉得大面先铺完、回头补节点更方便。",
-     "loss_reason": "顺序反了，应先做节点附加层再铺大面，先大面后补＝程序错。",
-     "fix": "先做节点附加层、再铺大面。",
-     "option_id": "F04-html-practice-html-q2-444042f4fae7:option-2"
-    },
-    {
-     "text": "阴阳角管根处把大面卷材延伸盖住即可，不单独做附加层。",
+     "text": "在阴阳角、管根、地漏等部位由大面卷材直接延伸覆盖，不再单独增设附加层。",
      "is_correct": false,
      "source_error_code": "E02",
      "temptation": "以为大面盖住就够。",
      "loss_reason": "漏了『先做附加层、夹胎体增强材料』这一采分点。",
      "fix": "薄弱节点先做附加层、夹铺胎体增强材料。",
-     "option_id": "F04-html-practice-html-q2-444042f4fae7:option-3"
+     "option_id": "F04-html-practice-html-q2-31fc7780be25:option-3"
     },
     {
-     "text": "附加层做在大面卷材外侧最上层，起面层保护作用。",
+     "text": "附加层应设置在大面卷材外侧的最上层，作为整个防水层的面层保护使用。",
      "is_correct": false,
      "source_error_code": "M01",
      "temptation": "把附加层当保护面层。",
      "loss_reason": "附加层是节点处、大面之下的补强层，位置层序记反。",
      "fix": "附加层先做在节点、位于大面之下。",
-     "option_id": "F04-html-practice-html-q2-444042f4fae7:option-4"
+     "option_id": "F04-html-practice-html-q2-31fc7780be25:option-4"
     }
    ],
    "model_answer": "阴阳角/管根/地漏等部位先做附加层、夹铺胎体增强材料，再施工大面卷材。",
    "rule_group": "附加层·顺序维",
-   "content_sha256": "bcd1c631c860b29c91c3aabc00c242a7def4227c3c911c5836f7e272da0340e2",
+   "content_sha256": "fb5c763c33e6f27238dbe62db4621369dabf1982f603636b496d65a6b3345d52",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q2",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "f04-fact-additional-layer-first",
     "skeleton_id": "f04-skel-薄弱部位附加层先行",
@@ -152,17 +152,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "bcd1c631c860b29c91c3aabc00c242a7def4227c3c911c5836f7e272da0340e2",
+     "reviewed_content_sha256": "fb5c763c33e6f27238dbe62db4621369dabf1982f603636b496d65a6b3345d52",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -172,17 +172,26 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "阴阳角/管根/地漏先做附加层夹铺胎体增强材料, 教材 kc:...134_0257:1 直引。工单: '再施工大面卷材'宜措辞为'大面防水层'。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "阴阳角/管根/地漏先做附加层夹铺胎体增强材料, 教材 kc:...134_0257:1 直引。工单: '再施工大面卷材'宜措辞为'大面防水层'。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q3-e7f6c23a2fca",
+   "variant_id": "F04-html-practice-html-q3-8e446a2bb9ae",
    "surface_id": "practice.html",
    "stem": "穿楼板管道套管处的防水做法，选出能得分的作答。",
    "options": [
+    {
+     "text": "管根密封，套管与管道间用防水密封材料嵌填压实，套管高出装饰面≥10mm。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记得要高出、数值记成10。",
+     "loss_reason": "数值错，规范是套管高出装饰面≥20mm。",
+     "fix": "套管高出装饰面≥20mm。",
+     "option_id": "F04-html-practice-html-q3-8e446a2bb9ae:option-1"
+    },
     {
      "text": "管根密封，套管与管道间用防水密封材料嵌填压实，套管高出装饰面≥20mm。",
      "is_correct": true,
@@ -190,16 +199,7 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "管根密封＋嵌填压实＋高出≥20mm，三处采分句齐。",
-     "option_id": "F04-html-practice-html-q3-e7f6c23a2fca:option-1"
-    },
-    {
-     "text": "套管与管道间嵌填密封，套管高出装饰面≥10mm即可。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "记得要高出、数值记成10。",
-     "loss_reason": "数值错，规范是套管高出装饰面≥20mm。",
-     "fix": "套管高出装饰面≥20mm。",
-     "option_id": "F04-html-practice-html-q3-e7f6c23a2fca:option-2"
+     "option_id": "F04-html-practice-html-q3-8e446a2bb9ae:option-2"
     },
     {
      "text": "套管与管道间用密封材料嵌填压实即可，管根、套管高出尺寸不必强调。",
@@ -208,23 +208,23 @@
      "temptation": "抓住嵌填一项就以为够。",
      "loss_reason": "漏了管根密封和套管高出装饰面≥20mm两处采分点。",
      "fix": "补管根密封、套管高出装饰面≥20mm。",
-     "option_id": "F04-html-practice-html-q3-e7f6c23a2fca:option-3"
+     "option_id": "F04-html-practice-html-q3-8e446a2bb9ae:option-3"
     },
     {
-     "text": "套管应低于装饰面、埋进面层里，避免外露磕碰。",
+     "text": "穿楼板套管应低于装饰面、埋入面层内部，避免套管外露受到磕碰损伤。",
      "is_correct": false,
      "source_error_code": "M03",
      "temptation": "怕外露磕碰想埋进面层。",
      "loss_reason": "方向反了，套管要高出装饰面防漫水，不是埋低。",
      "fix": "套管应高出装饰面≥20mm。",
-     "option_id": "F04-html-practice-html-q3-e7f6c23a2fca:option-4"
+     "option_id": "F04-html-practice-html-q3-8e446a2bb9ae:option-4"
     }
    ],
    "model_answer": "管根密封，穿楼板套管与管道间用防水密封材料嵌填压实，套管高出装饰面≥20mm。",
    "rule_group": "管根套管·数值维",
-   "content_sha256": "977c899acafb595d86026e540aaec7494dfa45806029fd9556ad5803fa95a060",
+   "content_sha256": "b2fde17402063d7d6051bec962666f0315343a38a1425f920e67dd2d2c3fab7e",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q3",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "f04-fact-pipe-root-seal-20mm",
     "skeleton_id": "f04-skel-管根套管密封数值",
@@ -234,17 +234,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "977c899acafb595d86026e540aaec7494dfa45806029fd9556ad5803fa95a060",
+     "reviewed_content_sha256": "b2fde17402063d7d6051bec962666f0315343a38a1425f920e67dd2d2c3fab7e",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -254,17 +254,35 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "管根密封+套管嵌填压实+套管高出装饰面≥20mm, 教材 kc:...133_0256:1 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "管根密封+套管嵌填压实+套管高出装饰面≥20mm, 教材 kc:...133_0256:1 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q4-c3b5b6ab6b4c",
+   "variant_id": "F04-html-practice-html-q4-608318d05cde",
    "surface_id": "practice.html",
    "stem": "屋面卷材防水施工顺序，下列说法正确的是。",
    "options": [
+    {
+     "text": "卷材防水应先施工大面、再处理细部节点；门窗框/管道等部件安装完毕后再做防水。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "先铺大面显得进度快。",
+     "loss_reason": "先后顺序错，应先细部后大面。",
+     "fix": "先做细部节点、再施工大面。",
+     "option_id": "F04-html-practice-html-q4-608318d05cde:option-1"
+    },
+    {
+     "text": "大面与细部节点可同时组织施工，两者不分先后次序，按各作业面条件灵活安排。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "觉得都要做、无所谓先后。",
+     "loss_reason": "规范明确先细部后大面，顺序是采分点。",
+     "fix": "必须先细部后大面。",
+     "option_id": "F04-html-practice-html-q4-608318d05cde:option-2"
+    },
     {
      "text": "卷材防水应先施工细部节点、再施工大面；门窗框/管道等部件安装完毕后再做防水。",
      "is_correct": true,
@@ -272,41 +290,23 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "先细部后大面＋部件装完再防水，顺序采分句齐。",
-     "option_id": "F04-html-practice-html-q4-c3b5b6ab6b4c:option-1"
+     "option_id": "F04-html-practice-html-q4-608318d05cde:option-3"
     },
     {
-     "text": "为赶进度先铺大面卷材，节点等大面干后再回头处理。",
-     "is_correct": false,
-     "source_error_code": "E06",
-     "temptation": "先铺大面显得进度快。",
-     "loss_reason": "先后顺序错，应先细部后大面。",
-     "fix": "先做细部节点、再施工大面。",
-     "option_id": "F04-html-practice-html-q4-c3b5b6ab6b4c:option-2"
-    },
-    {
-     "text": "大面与细部同时施工、谁快先做谁，先后无所谓。",
-     "is_correct": false,
-     "source_error_code": "M03",
-     "temptation": "觉得都要做、无所谓先后。",
-     "loss_reason": "规范明确先细部后大面，顺序是采分点。",
-     "fix": "必须先细部后大面。",
-     "option_id": "F04-html-practice-html-q4-c3b5b6ab6b4c:option-3"
-    },
-    {
-     "text": "只要门窗框、管道装完就能防水，节点先后不用管。",
+     "text": "门窗框、管道等部件安装完毕即可进行防水施工，节点与大面的先后不作要求。",
      "is_correct": false,
      "source_error_code": "E02",
      "temptation": "只记住『部件装完再防水』。",
      "loss_reason": "漏了『先细部后大面』这一核心顺序采分点。",
      "fix": "补『先做节点处理、再施工大面』。",
-     "option_id": "F04-html-practice-html-q4-c3b5b6ab6b4c:option-4"
+     "option_id": "F04-html-practice-html-q4-608318d05cde:option-4"
     }
    ],
    "model_answer": "应先进行细部节点构造处理、再施工大面；门窗框/管道等部件安装完毕后再做防水。",
    "rule_group": "施工顺序·条件维",
-   "content_sha256": "fdcffe1f3cfaa0e295ca1caeac4000eebc9219c586790afd0fdc3b2a9a07a2df",
+   "content_sha256": "923a4f9b2a279dd14fbfe80cc4f113f76e23f28f9f20adc3f04ea3e35cae0c8a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q4",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "f04-fact-node-first-then-field",
     "skeleton_id": "f04-skel-节点先行部件后防水",
@@ -316,17 +316,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "fdcffe1f3cfaa0e295ca1caeac4000eebc9219c586790afd0fdc3b2a9a07a2df",
+     "reviewed_content_sha256": "923a4f9b2a279dd14fbfe80cc4f113f76e23f28f9f20adc3f04ea3e35cae0c8a",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -336,14 +336,14 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "部件安装完毕后施工防水+先做节点处理, 教材 kc:...134_0259:1 直引。工单: 屋面题干配外墙外延锚场景跨域, 宜补同域教材锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "部件安装完毕后施工防水+先做节点处理, 教材 kc:...134_0259:1 直引。工单: 屋面题干配外墙外延锚场景跨域, 宜补同域教材锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q5-dbcb8946f505",
+   "variant_id": "F04-html-practice-html-q5-2440e6b27afc",
    "surface_id": "practice.html",
    "stem": "某屋面女儿墙泛水高度做到 200mm。判别是否妥当并给正确做法。",
    "options": [
@@ -354,41 +354,41 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "判不妥＋给出≥250mm，数值采分句齐。",
-     "option_id": "F04-html-practice-html-q5-dbcb8946f505:option-1"
+     "option_id": "F04-html-practice-html-q5-2440e6b27afc:option-1"
     },
     {
-     "text": "泛水做法不妥，应把泛水高度提高一些、做足即可。",
+     "text": "该泛水做法不妥，应将泛水高度适当加高、按构造要求做足，确保墙根收头部位不渗漏。",
      "is_correct": false,
      "source_error_code": "E03",
      "temptation": "知道要加高、但没写数值。",
      "loss_reason": "漏了关键数字≥250mm，采分句不给分。",
      "fix": "明确写『泛水高度≥250mm』。",
-     "option_id": "F04-html-practice-html-q5-dbcb8946f505:option-2"
+     "option_id": "F04-html-practice-html-q5-2440e6b27afc:option-2"
     },
     {
-     "text": "泛水高度200mm偏低，应加高至≥150mm。",
+     "text": "泛水高度200mm不足，其他部位泛水高度应≥150mm，应加高至不小于150mm。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "记得有个限值、记成150。",
      "loss_reason": "数值错，应为≥250mm。",
      "fix": "泛水高度≥250mm。",
-     "option_id": "F04-html-practice-html-q5-dbcb8946f505:option-3"
+     "option_id": "F04-html-practice-html-q5-2440e6b27afc:option-3"
     },
     {
-     "text": "泛水高度200mm符合要求，无需调整。",
+     "text": "泛水高度200mm已满足其他部位泛水构造要求，属妥当做法，无需再行加高调整。",
      "is_correct": false,
      "source_error_code": "E10",
      "temptation": "200看着差不多就放过。",
      "loss_reason": "低于250限值，判为不妥。",
      "fix": "应加高至≥250mm。",
-     "option_id": "F04-html-practice-html-q5-dbcb8946f505:option-4"
+     "option_id": "F04-html-practice-html-q5-2440e6b27afc:option-4"
     }
    ],
    "model_answer": "泛水高度200mm不足，其他部位泛水高度应≥250mm，应加高至不小于250mm。",
    "rule_group": "泛水高度·案例纠错",
-   "content_sha256": "091c0de53a9e85924c4727711d2585796be0264f664c9392b37b8f62fd24fd87",
+   "content_sha256": "ed5ccd483c78d7422a4c633c1484151b3df07b264b5e7d794ba5a4f4a0e3c757",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q5",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -398,7 +398,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "091c0de53a9e85924c4727711d2585796be0264f664c9392b37b8f62fd24fd87",
+     "reviewed_content_sha256": "ed5ccd483c78d7422a4c633c1484151b3df07b264b5e7d794ba5a4f4a0e3c757",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -413,10 +413,19 @@
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q6-5be8250aae2b",
+   "variant_id": "F04-html-practice-html-q6-c799d90e7bb1",
    "surface_id": "practice.html",
    "stem": "女儿墙泛水处附加层做法，选出能得分的作答。",
    "options": [
+    {
+     "text": "女儿墙泛水处防水层下增设附加层，平面和立面宽度按现场构造条件确定。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "知道要加附加层、忽略宽度。",
+     "loss_reason": "漏了平立面均≥250mm的数值采分点。",
+     "fix": "平面立面宽度均≥250mm。",
+     "option_id": "F04-html-practice-html-q6-c799d90e7bb1:option-1"
+    },
     {
      "text": "女儿墙泛水处防水层下增设附加层，平面和立面宽度均≥250mm。",
      "is_correct": true,
@@ -424,41 +433,32 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "增设附加层＋平立面均≥250mm，采分句齐。",
-     "option_id": "F04-html-practice-html-q6-5be8250aae2b:option-1"
+     "option_id": "F04-html-practice-html-q6-c799d90e7bb1:option-2"
     },
     {
-     "text": "女儿墙泛水处防水层下增设附加层即可，宽度按现场情况定。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "知道要加附加层、忽略宽度。",
-     "loss_reason": "漏了平立面均≥250mm的数值采分点。",
-     "fix": "平面立面宽度均≥250mm。",
-     "option_id": "F04-html-practice-html-q6-5be8250aae2b:option-2"
-    },
-    {
-     "text": "女儿墙泛水附加层平立面宽度均≥100mm。",
+     "text": "女儿墙泛水处防水层下增设附加层，平面和立面宽度均≥100mm。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "记得有宽度要求、数值记小。",
      "loss_reason": "数值错，应≥250mm。",
      "fix": "平立面均≥250mm。",
-     "option_id": "F04-html-practice-html-q6-5be8250aae2b:option-3"
+     "option_id": "F04-html-practice-html-q6-c799d90e7bb1:option-3"
     },
     {
-     "text": "女儿墙泛水只需把大面卷材上翻，不必单独设附加层。",
+     "text": "女儿墙泛水处将大面卷材直接上翻铺贴即可，不必单独增设附加层。",
      "is_correct": false,
      "source_error_code": "M03",
      "temptation": "以为上翻就够。",
      "loss_reason": "漏了泛水处应增设附加层。",
      "fix": "防水层下增设附加层、平立面≥250mm。",
-     "option_id": "F04-html-practice-html-q6-5be8250aae2b:option-4"
+     "option_id": "F04-html-practice-html-q6-c799d90e7bb1:option-4"
     }
    ],
    "model_answer": "女儿墙泛水处防水层下增设附加层，平面和立面宽度均≥250mm。",
    "rule_group": "女儿墙附加层·数值维",
-   "content_sha256": "18f4642297e56dedc4a374d6c2175d6e5ea17af2d16d3947343d034309d2f744",
+   "content_sha256": "c55406b1e73b486fc9bc949321b512947b6f4637d3a638cdb83d012ccd3e9611",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q6",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -468,7 +468,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "18f4642297e56dedc4a374d6c2175d6e5ea17af2d16d3947343d034309d2f744",
+     "reviewed_content_sha256": "c55406b1e73b486fc9bc949321b512947b6f4637d3a638cdb83d012ccd3e9611",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -483,10 +483,28 @@
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q7-0667c40ebb19",
+   "variant_id": "F04-html-practice-html-q7-c492f4e234ac",
    "surface_id": "practice.html",
    "stem": "女儿墙压顶做法，选出能得分的作答。",
    "options": [
+    {
+     "text": "女儿墙压顶做成水平顶面，便于压顶施工和上部构件的安放固定。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "平顶好施工。",
+     "loss_reason": "平顶积水回渗，应做向内坡≥5%。",
+     "fix": "压顶向内坡≥5%。",
+     "option_id": "F04-html-practice-html-q7-c492f4e234ac:option-1"
+    },
+    {
+     "text": "女儿墙压顶向内排水、坡度≥2%，涂膜防水层直接涂刷至压顶下。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记得要坡、数值记成2%。",
+     "loss_reason": "数值错，应≥5%。",
+     "fix": "坡度≥5%。",
+     "option_id": "F04-html-practice-html-q7-c492f4e234ac:option-2"
+    },
     {
      "text": "女儿墙压顶向内排水、坡度≥5%，涂膜防水层直接涂刷至压顶下。",
      "is_correct": true,
@@ -494,41 +512,23 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "向内坡≥5%＋涂膜至压顶下，采分句齐。",
-     "option_id": "F04-html-practice-html-q7-0667c40ebb19:option-1"
+     "option_id": "F04-html-practice-html-q7-c492f4e234ac:option-3"
     },
     {
-     "text": "女儿墙压顶做成水平顶面，便于施工和放置构件。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "平顶好施工。",
-     "loss_reason": "平顶积水回渗，应做向内坡≥5%。",
-     "fix": "压顶向内坡≥5%。",
-     "option_id": "F04-html-practice-html-q7-0667c40ebb19:option-2"
-    },
-    {
-     "text": "压顶向内排水，坡度≥2%即可。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "记得要坡、数值记成2%。",
-     "loss_reason": "数值错，应≥5%。",
-     "fix": "坡度≥5%。",
-     "option_id": "F04-html-practice-html-q7-0667c40ebb19:option-3"
-    },
-    {
-     "text": "压顶向内排水坡度≥5%即可，涂膜到不到压顶下无所谓。",
+     "text": "女儿墙压顶向内排水、坡度≥5%即可，涂膜防水层不必涂至压顶下。",
      "is_correct": false,
      "source_error_code": "E02",
      "temptation": "只答坡度一项。",
      "loss_reason": "漏了『涂膜直接涂刷至压顶下』采分点。",
      "fix": "补『涂膜直涂至压顶下』。",
-     "option_id": "F04-html-practice-html-q7-0667c40ebb19:option-4"
+     "option_id": "F04-html-practice-html-q7-c492f4e234ac:option-4"
     }
    ],
    "model_answer": "女儿墙压顶向内排水、坡度≥5%，涂膜防水层直接涂刷至压顶下。",
    "rule_group": "压顶排水·案例辨析",
-   "content_sha256": "e90df3694f9e0b0347aed6d9bb38b45a3335294a031cd00f25ff3b6d86066e4b",
+   "content_sha256": "ef65b926e897397f5750cbf67763a158949999a3c68a93ae7cd8172b49cbe02a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q7",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -538,7 +538,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "e90df3694f9e0b0347aed6d9bb38b45a3335294a031cd00f25ff3b6d86066e4b",
+     "reviewed_content_sha256": "ef65b926e897397f5750cbf67763a158949999a3c68a93ae7cd8172b49cbe02a",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -553,10 +553,19 @@
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q8-8c3e6f5e7e2a",
+   "variant_id": "F04-html-practice-html-q8-5fdfae256848",
    "surface_id": "practice.html",
    "stem": "女儿墙卷材收头处理，选出能得分的作答。",
    "options": [
+    {
+     "text": "卷材收头用密封材料满涂封严、压实收边，下端做好鹰嘴和滴水槽。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "抹层密封看着已封住。",
+     "loss_reason": "漏了金属压条钉压固定，只密封锁不住自由边。",
+     "fix": "收头须金属压条钉压＋密封封严。",
+     "option_id": "F04-html-practice-html-q8-5fdfae256848:option-1"
+    },
     {
      "text": "卷材收头用金属压条钉压固定，再用密封材料封严，下端做鹰嘴和滴水槽。",
      "is_correct": true,
@@ -564,41 +573,32 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "压条钉压＋密封封严＋鹰嘴滴水槽，三件齐。",
-     "option_id": "F04-html-practice-html-q8-8c3e6f5e7e2a:option-1"
+     "option_id": "F04-html-practice-html-q8-5fdfae256848:option-2"
     },
     {
-     "text": "卷材收头用密封材料涂封严实即可。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "抹层密封看着已封住。",
-     "loss_reason": "漏了金属压条钉压固定，只密封锁不住自由边。",
-     "fix": "收头须金属压条钉压＋密封封严。",
-     "option_id": "F04-html-practice-html-q8-8c3e6f5e7e2a:option-2"
-    },
-    {
-     "text": "收头把卷材多翻上去一截、压块砖头压住即可。",
+     "text": "卷材收头向上多翻一截，用砖块等重物压置固定，再用密封材料封严。",
      "is_correct": false,
      "source_error_code": "M01",
      "temptation": "随手压块砖当固定。",
      "loss_reason": "非规范做法，应金属压条钉压＋密封。",
      "fix": "金属压条钉压固定＋密封封严。",
-     "option_id": "F04-html-practice-html-q8-8c3e6f5e7e2a:option-3"
+     "option_id": "F04-html-practice-html-q8-5fdfae256848:option-3"
     },
     {
-     "text": "收头用金属压条钉压固定即可，密封和滴水槽可省。",
+     "text": "卷材收头用金属压条钉压固定即可，密封封严与鹰嘴滴水槽可以省去。",
      "is_correct": false,
      "source_error_code": "E02",
      "temptation": "压条钉住看着牢。",
      "loss_reason": "漏了密封封严和鹰嘴滴水槽。",
      "fix": "压条＋密封＋鹰嘴滴水槽三件齐。",
-     "option_id": "F04-html-practice-html-q8-8c3e6f5e7e2a:option-4"
+     "option_id": "F04-html-practice-html-q8-5fdfae256848:option-4"
     }
    ],
    "model_answer": "收头用金属压条钉压固定+密封材料封严，下端做鹰嘴和滴水槽。",
    "rule_group": "卷材收头·案例辨析",
-   "content_sha256": "d6e775e4f0c6c83cf6a7aa87f43de4db3484a036359417357bedb153738e8fc3",
+   "content_sha256": "26a1b1c08f43c91b084782c37102104348c83411130c183ce2bb17f4c8e8e58b",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q8",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -608,7 +608,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "d6e775e4f0c6c83cf6a7aa87f43de4db3484a036359417357bedb153738e8fc3",
+     "reviewed_content_sha256": "26a1b1c08f43c91b084782c37102104348c83411130c183ce2bb17f4c8e8e58b",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -623,7 +623,7 @@
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q9-c3549d0e3d39",
+   "variant_id": "F04-html-practice-html-q9-f7af6784bfcf",
    "surface_id": "practice.html",
    "stem": "檐口卷材防水做法，选出能得分的作答。",
    "options": [
@@ -634,41 +634,41 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "800满粘＋收头压条密封＋鹰嘴滴水槽，采分句齐。",
-     "option_id": "F04-html-practice-html-q9-c3549d0e3d39:option-1"
+     "option_id": "F04-html-practice-html-q9-f7af6784bfcf:option-1"
     },
     {
-     "text": "檐口500mm范围内卷材满粘，其余空铺。",
+     "text": "檐口500mm范围内卷材满粘，收头金属压条钉压+密封封严，下端做鹰嘴和滴水槽。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "记得有个满粘范围、记成500。",
      "loss_reason": "数值错，应为檐口800mm范围内满粘。",
      "fix": "檐口800mm范围内满粘。",
-     "option_id": "F04-html-practice-html-q9-c3549d0e3d39:option-2"
+     "option_id": "F04-html-practice-html-q9-f7af6784bfcf:option-2"
     },
     {
-     "text": "檐口卷材满粘即可，收头和滴水槽按一般做法。",
+     "text": "檐口800mm范围内卷材满粘即可，收头与滴水槽按屋面一般部位常规处理。",
      "is_correct": false,
      "source_error_code": "E02",
      "temptation": "只答满粘一项。",
      "loss_reason": "漏了收头压条密封与鹰嘴滴水槽。",
      "fix": "补收头压条密封＋鹰嘴滴水槽。",
-     "option_id": "F04-html-practice-html-q9-c3549d0e3d39:option-3"
+     "option_id": "F04-html-practice-html-q9-f7af6784bfcf:option-3"
     },
     {
-     "text": "檐口卷材整体空铺、只在最边缘点粘，防止起鼓。",
+     "text": "檐口部位卷材整体空铺、仅在最边缘处点粘，以防止卷材受热起鼓。",
      "is_correct": false,
      "source_error_code": "M01",
      "temptation": "怕起鼓想空铺。",
      "loss_reason": "檐口800mm范围要满粘，空铺错。",
      "fix": "檐口800mm范围内满粘。",
-     "option_id": "F04-html-practice-html-q9-c3549d0e3d39:option-4"
+     "option_id": "F04-html-practice-html-q9-f7af6784bfcf:option-4"
     }
    ],
    "model_answer": "檐口800mm范围内卷材满粘，收头金属压条钉压+密封封严，下端做鹰嘴和滴水槽。",
    "rule_group": "檐口细部·数值维",
-   "content_sha256": "c3858ab131ec49e8a33fc90edd6ad4f8eed50c2c75f34e9dce57d05a9a2df86f",
+   "content_sha256": "cc9b3305ab8fae80e3975a14841f3695f99700841a50cc230bbc2d496517998a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q9",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -678,7 +678,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "c3858ab131ec49e8a33fc90edd6ad4f8eed50c2c75f34e9dce57d05a9a2df86f",
+     "reviewed_content_sha256": "cc9b3305ab8fae80e3975a14841f3695f99700841a50cc230bbc2d496517998a",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -693,10 +693,37 @@
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q10-cc0bd333f3b1",
+   "variant_id": "F04-html-practice-html-q10-44c2290db331",
    "surface_id": "practice.html",
    "stem": "水落口构造做法，选出能得分的作答。",
    "options": [
+    {
+     "text": "水落口杯牢固固定在承重结构上，防水层直接铺贴覆盖至水落口杯口位置、沿杯口收口压实即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "盖到杯口看着接上了。",
+     "loss_reason": "漏了伸入杯内≥50mm、涂膜附加层、周边坡度。",
+     "fix": "防水伸入杯内≥50mm＋涂膜附加层＋周边500坡≥5%。",
+     "option_id": "F04-html-practice-html-q10-44c2290db331:option-1"
+    },
+    {
+     "text": "水落口杯牢固固定在承重结构上，防水层下增设涂膜附加层，防水层伸入杯内≥20mm，周边500mm范围坡度≥5%。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记得伸进去、数值记成20。",
+     "loss_reason": "数值错，应≥50mm。",
+     "fix": "伸入杯内≥50mm。",
+     "option_id": "F04-html-practice-html-q10-44c2290db331:option-2"
+    },
+    {
+     "text": "水落口杯不必与承重结构固定连接，安装时随防水层及找平层一同浮放就位，便于后期检修时整体更换。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "图省事浮放。",
+     "loss_reason": "杯须牢固固定在承重结构上。",
+     "fix": "水落口杯牢固固定承重结构。",
+     "option_id": "F04-html-practice-html-q10-44c2290db331:option-3"
+    },
     {
      "text": "水落口杯牢固固定在承重结构上，防水层下增设涂膜附加层，防水层伸入杯内≥50mm，周边500mm范围坡度≥5%。",
      "is_correct": true,
@@ -704,41 +731,14 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "杯固定＋涂膜附加层＋伸入≥50＋周边坡≥5%，采分句齐。",
-     "option_id": "F04-html-practice-html-q10-cc0bd333f3b1:option-1"
-    },
-    {
-     "text": "水落口杯固定牢固、防水层盖到杯口即可。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "盖到杯口看着接上了。",
-     "loss_reason": "漏了伸入杯内≥50mm、涂膜附加层、周边坡度。",
-     "fix": "防水伸入杯内≥50mm＋涂膜附加层＋周边500坡≥5%。",
-     "option_id": "F04-html-practice-html-q10-cc0bd333f3b1:option-2"
-    },
-    {
-     "text": "防水层伸入水落口杯内≥20mm。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "记得伸进去、数值记成20。",
-     "loss_reason": "数值错，应≥50mm。",
-     "fix": "伸入杯内≥50mm。",
-     "option_id": "F04-html-practice-html-q10-cc0bd333f3b1:option-3"
-    },
-    {
-     "text": "水落口杯不必固定在承重结构，随防水层一起浮放即可。",
-     "is_correct": false,
-     "source_error_code": "M03",
-     "temptation": "图省事浮放。",
-     "loss_reason": "杯须牢固固定在承重结构上。",
-     "fix": "水落口杯牢固固定承重结构。",
-     "option_id": "F04-html-practice-html-q10-cc0bd333f3b1:option-4"
+     "option_id": "F04-html-practice-html-q10-44c2290db331:option-4"
     }
    ],
    "model_answer": "水落口杯牢固固定承重结构，防水层下增设涂膜附加层，防水层伸入杯内≥50mm，周边500mm坡≥5%。",
    "rule_group": "水落口·数值维",
-   "content_sha256": "14f595ededb59f8704c03f1406112a8f7950f10bede9320801ccbda3eb8897be",
+   "content_sha256": "58edf5db7dfac710505dac52f3f57670df02f454a6051bb8d33c67b88747d777",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q10",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -748,7 +748,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "14f595ededb59f8704c03f1406112a8f7950f10bede9320801ccbda3eb8897be",
+     "reviewed_content_sha256": "58edf5db7dfac710505dac52f3f57670df02f454a6051bb8d33c67b88747d777",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -763,10 +763,37 @@
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q11-8dde83419cf9",
+   "variant_id": "F04-html-practice-html-q11-31e155eb7d76",
    "surface_id": "practice.html",
    "stem": "某屋面防水交底称：泛水做200mm、阴阳角做直角、女儿墙泛水不设附加层。指出错误并给正确做法（选最完整）。",
    "options": [
+    {
+     "text": "交底中仅泛水高度一处有误、应改为≥250mm；阴阳角做直角、女儿墙泛水不设附加层两项均无问题。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只抓到泛水一处。",
+     "loss_reason": "漏诊阴阳角直角、女儿墙不设附加层两处错。",
+     "fix": "三处都要纠：泛水250、阴阳角圆弧/45度、附加层平立面250。",
+     "option_id": "F04-html-practice-html-q11-31e155eb7d76:option-1"
+    },
+    {
+     "text": "泛水、阴阳角、女儿墙附加层三处做法均不妥，应按规范要求逐处改正、把细部构造做足做规范。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "知道有问题、没给具体做法数值。",
+     "loss_reason": "没写圆弧/45度、≥250mm等采分句。",
+     "fix": "逐处给出圆弧或45度、≥250mm等具体做法。",
+     "option_id": "F04-html-practice-html-q11-31e155eb7d76:option-2"
+    },
+    {
+     "text": "泛水做200mm、阴阳角基层做直角两项均可满足要求，仅女儿墙泛水处应增设附加层、平立面均≥250mm。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "放过了泛水和阴阳角。",
+     "loss_reason": "泛水应≥250、阴阳角应圆弧/45度，都判不妥。",
+     "fix": "三处均纠正。",
+     "option_id": "F04-html-practice-html-q11-31e155eb7d76:option-3"
+    },
     {
      "text": "泛水高度应≥250mm；阴阳角应做圆弧或45度；女儿墙泛水处应增设附加层、平立面均≥250mm。",
      "is_correct": true,
@@ -774,41 +801,14 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "三处逐一纠正并给数值，综合纠错采分句齐。",
-     "option_id": "F04-html-practice-html-q11-8dde83419cf9:option-1"
-    },
-    {
-     "text": "只有泛水高度不对、应改≥250mm，其余两项没问题。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "只抓到泛水一处。",
-     "loss_reason": "漏诊阴阳角直角、女儿墙不设附加层两处错。",
-     "fix": "三处都要纠：泛水250、阴阳角圆弧/45度、附加层平立面250。",
-     "option_id": "F04-html-practice-html-q11-8dde83419cf9:option-2"
-    },
-    {
-     "text": "三处做法都要改得规范些、做足一点。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "知道有问题、没给具体做法数值。",
-     "loss_reason": "没写圆弧/45度、≥250mm等采分句。",
-     "fix": "逐处给出圆弧或45度、≥250mm等具体做法。",
-     "option_id": "F04-html-practice-html-q11-8dde83419cf9:option-3"
-    },
-    {
-     "text": "泛水200、阴阳角直角都行，只有女儿墙要加附加层。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "放过了泛水和阴阳角。",
-     "loss_reason": "泛水应≥250、阴阳角应圆弧/45度，都判不妥。",
-     "fix": "三处均纠正。",
-     "option_id": "F04-html-practice-html-q11-8dde83419cf9:option-4"
+     "option_id": "F04-html-practice-html-q11-31e155eb7d76:option-4"
     }
    ],
    "model_answer": "泛水应≥250mm；阴阳角应做圆弧或45度；女儿墙泛水处应增设附加层、平立面均≥250mm。",
    "rule_group": "综合纠错·案例",
-   "content_sha256": "1a110329e0137733302a51c878ba138d04a1b33c077562a8c2e704160e06c8d2",
+   "content_sha256": "996f5031bbc11a89fb0c18aebd35cacb5f9b585cf151ca6052b387965c299619",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q11",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "f04-fact-corner-round-or-45",
     "skeleton_id": "f04-skel-泛水节点多错纠错",
@@ -818,17 +818,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "1a110329e0137733302a51c878ba138d04a1b33c077562a8c2e704160e06c8d2",
+     "reviewed_content_sha256": "996f5031bbc11a89fb0c18aebd35cacb5f9b585cf151ca6052b387965c299619",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -838,14 +838,14 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "泛水≥250/阴阳角圆弧45/女儿墙附加层平立面≥250, 真题 exam:2015:案例2 三处错误整改逐字覆盖。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 最长项。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "泛水≥250/阴阳角圆弧45/女儿墙附加层平立面≥250, 真题 exam:2015:案例2 三处错误整改逐字覆盖。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 最长项。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q12-0abd0d245f9d",
+   "variant_id": "F04-html-practice-html-q12-8705f3d3d3bf",
    "surface_id": "practice.html",
    "stem": "下列哪一项属于本考点（防水细部节点）的判分要点？",
    "options": [
@@ -856,41 +856,41 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "这些才是细部节点判分眼——做法＋数值。",
-     "option_id": "F04-html-practice-html-q12-0abd0d245f9d:option-1"
+     "option_id": "F04-html-practice-html-q12-8705f3d3d3bf:option-1"
     },
     {
-     "text": "卷材大面怎么搭接、搭接宽度多少、平行还是垂直屋脊铺贴。",
+     "text": "卷材大面的搭接方式、搭接宽度具体取值、平行屋脊还是垂直屋脊铺贴的方向选择等大面铺贴工艺要求。",
      "is_correct": false,
      "source_error_code": "M03",
      "temptation": "同属屋面防水、容易混。",
      "loss_reason": "大面铺贴搭接属卷材施工工艺，不是细部节点判分眼。",
      "fix": "本考点判节点做法/数值，不判大面铺贴。",
-     "option_id": "F04-html-practice-html-q12-0abd0d245f9d:option-2"
+     "option_id": "F04-html-practice-html-q12-8705f3d3d3bf:option-2"
     },
     {
-     "text": "屋面防水设几道、防水等级几级、抗渗等级多少。",
+     "text": "屋面防水设防道数、防水等级划分、混凝土抗渗等级取值等屋面防水构造的总体设防要求。",
      "is_correct": false,
      "source_error_code": "M03",
      "temptation": "都带『防水』字。",
      "loss_reason": "设防道数/等级属屋面防水构造，非细部节点。",
      "fix": "本考点判细部节点，不判设防道数。",
-     "option_id": "F04-html-practice-html-q12-0abd0d245f9d:option-3"
+     "option_id": "F04-html-practice-html-q12-8705f3d3d3bf:option-3"
     },
     {
-     "text": "防水卷材的化学配方、聚合物含量等材料指标。",
+     "text": "防水卷材的化学配方、聚合物含量、胎基种类等材料自身的理化性能指标要求。",
      "is_correct": false,
      "source_error_code": "M01",
      "temptation": "以为要懂材料指标。",
      "loss_reason": "材料化学指标非本考点判分眼。",
      "fix": "本考点判节点构造做法与数值。",
-     "option_id": "F04-html-practice-html-q12-0abd0d245f9d:option-4"
+     "option_id": "F04-html-practice-html-q12-8705f3d3d3bf:option-4"
     }
    ],
    "model_answer": "阴阳角圆弧/附加层/收头压条/泛水250/水落口50 等节点做法与数值属本考点；大面铺贴搭接、设防道数不属。",
    "rule_group": "本考点边界·辨析",
-   "content_sha256": "081f3e964d21c093c75c63d0d5e2aa4d610a3042106b20504516fc6286aaea14",
+   "content_sha256": "c23eadd3dd59595b2108b41eddcad3c5c020abf0b56bb616d930d8132879048a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q12",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -900,7 +900,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "081f3e964d21c093c75c63d0d5e2aa4d610a3042106b20504516fc6286aaea14",
+     "reviewed_content_sha256": "c23eadd3dd59595b2108b41eddcad3c5c020abf0b56bb616d930d8132879048a",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -915,10 +915,28 @@
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q13-872d3ba434ff",
+   "variant_id": "F04-html-practice-html-q13-c45649f0859f",
    "surface_id": "practice.html",
    "stem": "关于阴阳角基层处理，除做圆弧/45度外，还需满足的是。",
    "options": [
+    {
+     "text": "阴阳角基层做成圆弧或45度即可，基层自身的状况对防水质量并无影响。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只记圆弧一项。",
+     "loss_reason": "漏了基层坚实平整、无浮浆起砂裂缝的要求。",
+     "fix": "补基层坚实平整、无浮浆起砂裂缝。",
+     "option_id": "F04-html-practice-html-q13-c45649f0859f:option-1"
+    },
+    {
+     "text": "阴阳角基层做好圆弧后，基层存在轻微潮湿或浮浆亦不影响卷材铺贴。",
+     "is_correct": false,
+     "source_error_code": "M01",
+     "temptation": "觉得潮点无妨。",
+     "loss_reason": "基层应坚实平整无缺陷，潮湿/起砂影响粘结。",
+     "fix": "基层坚实平整、无浮浆起砂裂缝。",
+     "option_id": "F04-html-practice-html-q13-c45649f0859f:option-2"
+    },
     {
      "text": "阴阳角基层做圆弧或45度，且基层坚实、平整，无浮浆、起砂、裂缝。",
      "is_correct": true,
@@ -926,41 +944,23 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "圆弧/45度＋基层坚实平整无缺陷，两句都点到。",
-     "option_id": "F04-html-practice-html-q13-872d3ba434ff:option-1"
+     "option_id": "F04-html-practice-html-q13-c45649f0859f:option-3"
     },
     {
-     "text": "阴阳角做圆弧或45度就行，基层状况不影响防水。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "只记圆弧一项。",
-     "loss_reason": "漏了基层坚实平整、无浮浆起砂裂缝的要求。",
-     "fix": "补基层坚实平整、无浮浆起砂裂缝。",
-     "option_id": "F04-html-practice-html-q13-872d3ba434ff:option-2"
-    },
-    {
-     "text": "基层只要不漏水、潮湿点没关系，圆弧做好即可。",
-     "is_correct": false,
-     "source_error_code": "M01",
-     "temptation": "觉得潮点无妨。",
-     "loss_reason": "基层应坚实平整无缺陷，潮湿/起砂影响粘结。",
-     "fix": "基层坚实平整、无浮浆起砂裂缝。",
-     "option_id": "F04-html-practice-html-q13-872d3ba434ff:option-3"
-    },
-    {
-     "text": "阴阳角做圆弧后，基层越松软越利于卷材贴合。",
+     "text": "阴阳角基层做成圆弧或45度，且基层越松软越有利于卷材紧密贴合。",
      "is_correct": false,
      "source_error_code": "M03",
      "temptation": "误以为松软好贴。",
      "loss_reason": "基层须坚实，松软起砂粘不牢。",
      "fix": "基层坚实平整、无起砂。",
-     "option_id": "F04-html-practice-html-q13-872d3ba434ff:option-4"
+     "option_id": "F04-html-practice-html-q13-c45649f0859f:option-4"
     }
    ],
    "model_answer": "基层坚实、平整，无浮浆、起砂、裂缝。",
    "rule_group": "阴阳角基层·补全",
-   "content_sha256": "4f5d3ec7eb5f6f2740ec43ce098a1bf7d6d08e8f11c1871c46589476835b326d",
+   "content_sha256": "f053bca2a3a99d481f4ae5f03f77425823063f3236588038ac828b29fc870f26",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q13",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "f04-fact-corner-round-or-45",
     "skeleton_id": "f04-skel-基层条件补全",
@@ -970,17 +970,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "4f5d3ec7eb5f6f2740ec43ce098a1bf7d6d08e8f11c1871c46589476835b326d",
+     "reviewed_content_sha256": "f053bca2a3a99d481f4ae5f03f77425823063f3236588038ac828b29fc870f26",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -990,14 +990,14 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "基层坚实平整无浮浆起砂裂缝+阴阳角宜做圆弧, 教材 kc:...134_0257:0 直引; 45度另有真题 exam:2015:案例2 支持不冲突。三联 immediate_confirm(同阴阳角 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "基层坚实平整无浮浆起砂裂缝+阴阳角宜做圆弧, 教材 kc:...134_0257:0 直引; 45度另有真题 exam:2015:案例2 支持不冲突。三联 immediate_confirm(同阴阳角 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q14-3868581aaf48",
+   "variant_id": "F04-html-practice-html-q14-0f45c496c8de",
    "surface_id": "practice.html",
    "stem": "檐沟、天沟处附加层做法，选出能得分的作答。",
    "options": [
@@ -1008,41 +1008,41 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "增设附加层＋伸入屋面≥250mm，采分句齐。",
-     "option_id": "F04-html-practice-html-q14-3868581aaf48:option-1"
+     "option_id": "F04-html-practice-html-q14-0f45c496c8de:option-1"
     },
     {
-     "text": "檐沟天沟附加层伸入屋面≥150mm。",
+     "text": "檐沟、天沟防水层下增设附加层，附加层伸入屋面宽度≥150mm。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "记得伸入、数值记小。",
      "loss_reason": "数值错，应≥250mm。",
      "fix": "伸入屋面≥250mm。",
-     "option_id": "F04-html-practice-html-q14-3868581aaf48:option-2"
+     "option_id": "F04-html-practice-html-q14-0f45c496c8de:option-2"
     },
     {
-     "text": "檐沟天沟处大面卷材铺过去即可，不必单独做附加层。",
+     "text": "檐沟、天沟处由大面卷材直接铺贴过沟即可，不必单独增设附加层。",
      "is_correct": false,
      "source_error_code": "E02",
      "temptation": "以为大面盖住够。",
      "loss_reason": "漏了增设附加层。",
      "fix": "防水层下增设附加层、伸入≥250mm。",
-     "option_id": "F04-html-practice-html-q14-3868581aaf48:option-3"
+     "option_id": "F04-html-practice-html-q14-0f45c496c8de:option-3"
     },
     {
-     "text": "檐沟附加层只做在沟底、不必伸入屋面。",
+     "text": "檐沟、天沟附加层仅设置在沟底范围内，不必向屋面方向伸入铺设。",
      "is_correct": false,
      "source_error_code": "M03",
      "temptation": "以为沟底做就行。",
      "loss_reason": "附加层要伸入屋面≥250mm。",
      "fix": "附加层伸入屋面≥250mm。",
-     "option_id": "F04-html-practice-html-q14-3868581aaf48:option-4"
+     "option_id": "F04-html-practice-html-q14-0f45c496c8de:option-4"
     }
    ],
    "model_answer": "檐沟、天沟防水层下增设附加层，附加层伸入屋面宽度≥250mm。",
    "rule_group": "檐沟天沟·数值维",
-   "content_sha256": "0a3dfa131a7ec2c2c09ff863389d68a7359da780ffa741b5dfca95a1b9d2e212",
+   "content_sha256": "4215a4c96ae9bfc9decb29f143eabfd4ea6b721117c767a143c4ed1e7d40a203",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q14",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1052,7 +1052,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "0a3dfa131a7ec2c2c09ff863389d68a7359da780ffa741b5dfca95a1b9d2e212",
+     "reviewed_content_sha256": "4215a4c96ae9bfc9decb29f143eabfd4ea6b721117c767a143c4ed1e7d40a203",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1067,10 +1067,37 @@
    }
   },
   {
-   "variant_id": "F04-html-practice-html-q15-1bd9bc83105c",
+   "variant_id": "F04-html-practice-html-q15-dcdd1e825e59",
    "surface_id": "practice.html",
    "stem": "学生作答女儿墙收边：①泛水做250、②压顶做平顶、③收头抹密封。诊断失分并给正确补写（选最准确）。",
    "options": [
+    {
+     "text": "三项作答均正确：泛水做250mm、压顶做平顶、收头抹密封材料封住均符合细部构造要求，可按满分给分。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "泛水对就以为全对。",
+     "loss_reason": "压顶应向内坡≥5%、收头应加压条，两处失分。",
+     "fix": "压顶向内坡≥5%、收头压条+密封+滴水槽。",
+     "option_id": "F04-html-practice-html-q15-dcdd1e825e59:option-1"
+    },
+    {
+     "text": "泛水250正确、压顶做平顶亦无问题；仅收头一处失分，应补金属压条钉压+密封+鹰嘴滴水槽。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "抓到收头一处。",
+     "loss_reason": "漏诊压顶平顶应改向内坡≥5%。",
+     "fix": "压顶向内坡≥5%、涂膜至压顶下。",
+     "option_id": "F04-html-practice-html-q15-dcdd1e825e59:option-2"
+    },
+    {
+     "text": "泛水250正确；压顶与收头两处做法欠规范，应对照细部节点构造要求逐项修改、把做法补写完整。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "知道有问题、没给具体做法。",
+     "loss_reason": "没写『向内坡≥5%』『金属压条钉压』等采分句。",
+     "fix": "给出向内坡≥5%、金属压条钉压+密封+滴水槽。",
+     "option_id": "F04-html-practice-html-q15-dcdd1e825e59:option-3"
+    },
     {
      "text": "泛水250正确；压顶做平顶不妥、应向内坡≥5%并涂膜至压顶下；收头只密封漏压条、应金属压条钉压+密封+鹰嘴滴水槽。",
      "is_correct": true,
@@ -1078,41 +1105,14 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "一对两错逐处点出并补写采分句，这就是『会写答案』。",
-     "option_id": "F04-html-practice-html-q15-1bd9bc83105c:option-1"
-    },
-    {
-     "text": "三项都对，泛水250、压顶平顶、收头密封都符合要求，可给满分。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "泛水对就以为全对。",
-     "loss_reason": "压顶应向内坡≥5%、收头应加压条，两处失分。",
-     "fix": "压顶向内坡≥5%、收头压条+密封+滴水槽。",
-     "option_id": "F04-html-practice-html-q15-1bd9bc83105c:option-2"
-    },
-    {
-     "text": "只有收头要补压条，泛水和压顶都没问题。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "抓到收头一处。",
-     "loss_reason": "漏诊压顶平顶应改向内坡≥5%。",
-     "fix": "压顶向内坡≥5%、涂膜至压顶下。",
-     "option_id": "F04-html-practice-html-q15-1bd9bc83105c:option-3"
-    },
-    {
-     "text": "压顶和收头做法要再规范些、补充完整。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "知道有问题、没给具体做法。",
-     "loss_reason": "没写『向内坡≥5%』『金属压条钉压』等采分句。",
-     "fix": "给出向内坡≥5%、金属压条钉压+密封+滴水槽。",
-     "option_id": "F04-html-practice-html-q15-1bd9bc83105c:option-4"
+     "option_id": "F04-html-practice-html-q15-dcdd1e825e59:option-4"
     }
    ],
    "model_answer": "泛水250正确；压顶平顶不妥、应向内坡≥5%并涂膜至压顶下；收头只密封漏压条、应金属压条钉压+密封+鹰嘴滴水槽。",
    "rule_group": "采分诊断·末题",
-   "content_sha256": "56f5735b64ecc66fb3765c83c915871d8c3849b28b8194aeff494ed379695b8b",
+   "content_sha256": "cc15638fc35f12930858fb7c5e52319ad8a3b9be150b312d63bfdca833f892dc",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q15",
-   "authoring_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
+   "authoring_sha256": "172e029e72cce3524a04fb607b9a9b343e1ba41c4c71fd577fd2f8179589223d",
    "decision": {
     "fact_id": "f04-fact-parapet-coping-flashing",
     "skeleton_id": "f04-skel-女儿墙压顶收头综合诊断",
@@ -1122,17 +1122,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "56f5735b64ecc66fb3765c83c915871d8c3849b28b8194aeff494ed379695b8b",
+     "reviewed_content_sha256": "cc15638fc35f12930858fb7c5e52319ad8a3b9be150b312d63bfdca833f892dc",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -1142,7 +1142,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "压顶向内坡≥5%/涂膜至压顶下/收头金属压条+密封+鹰嘴滴水槽/泛水250, 教材卡 ca:...042_0066(5%,鹰嘴,滴水槽,金属压条,密封)复合支持+真题 exam:2015:案例2 佐证。工单: 鹰嘴滴水槽并入收头对象粘连(多源)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "压顶向内坡≥5%/涂膜至压顶下/收头金属压条+密封+鹰嘴滴水槽/泛水250, 教材卡 ca:...042_0066(5%,鹰嘴,滴水槽,金属压条,密封)复合支持+真题 exam:2015:案例2 佐证。工单: 鹰嘴滴水槽并入收头对象粘连(多源)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []

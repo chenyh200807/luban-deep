@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "C06",
   "source_pack_sha256": "2e443ed86a102ae893115810ea1640438ab097461ff251419e690286102fd935",
-  "source_bundle_sha256": "4ab780e7e670ee4a4d7e612066e676695ff67a66dea3504a3e8c1aec602be19c",
+  "source_bundle_sha256": "a78a7b0b06cef45af70f08352542bad2f7e0ba9b27d98c9fbc23d032b6b36f8f",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,24 +18,24 @@
         15
       ],
       "variant_ids": [
-        "C06-html-practice-html-q1-059b37587342",
-        "C06-html-practice-html-q2-c943f4f66e88",
-        "C06-html-practice-html-q3-f2a1a2da34e2",
-        "C06-html-practice-html-q4-ff391baa6a20",
-        "C06-html-practice-html-q16-d0b8b0f4eb46"
+        "C06-html-practice-html-q1-70cb991e6e11",
+        "C06-html-practice-html-q2-8852f4bfc13d",
+        "C06-html-practice-html-q3-a0c105bea82f",
+        "C06-html-practice-html-q4-9392bb287fc2",
+        "C06-html-practice-html-q16-0f022e9e1016"
       ],
       "eligible_variant_ids": [
-        "C06-html-practice-html-q1-059b37587342",
-        "C06-html-practice-html-q2-c943f4f66e88",
-        "C06-html-practice-html-q3-f2a1a2da34e2",
-        "C06-html-practice-html-q4-ff391baa6a20",
-        "C06-html-practice-html-q7-2480b254a219",
-        "C06-html-practice-html-q8-4c39e7a33228",
-        "C06-html-practice-html-q9-d2b7b60599c6",
-        "C06-html-practice-html-q16-d0b8b0f4eb46"
+        "C06-html-practice-html-q1-70cb991e6e11",
+        "C06-html-practice-html-q2-8852f4bfc13d",
+        "C06-html-practice-html-q3-a0c105bea82f",
+        "C06-html-practice-html-q4-9392bb287fc2",
+        "C06-html-practice-html-q7-9c9fd7cc2114",
+        "C06-html-practice-html-q8-376c80e70ec2",
+        "C06-html-practice-html-q9-6f46b593092d",
+        "C06-html-practice-html-q16-0f022e9e1016"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMDU5YjM3NTg3MzQyIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1jOTQzZjRmNjZlODgiLCJDMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWYyYTFhMmRhMzRlMiIsIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZmYzOTFiYWE2YTIwIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZDBiOGIwZjRlYjQ2Il0sInBhY2tfaWQiOiJDMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImJmN2FlODQyNGNiNDlhNzdjNDA1MTkwMjc0OWYxMWNmMTg4YzdlMGJkZDA0ZDM5ZWE5NjhmNGVhMTljMmIwZTQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZGY1YWM3MzAzOTE0YjEyZGNhMzg5ZTBmYjU1YTZkMmY3MzgzMjc5Y2NlZjk5N2E5YjNkZTU2MDRjMTA1ODg4MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "1c9199693c581cedb804f61c0765b7b2b5a24b6f5cc21939b6c7e81bc40bff19"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzBjYjk5MWU2ZTExIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ODUyZjRiZmMxM2QiLCJDMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwYzEwNWJlYTgyZiIsIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtOTM5MmJiMjg3ZmMyIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMGYwMjJlOWUxMDE2Il0sInBhY2tfaWQiOiJDMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBkODczZGI1NDcyYTNiMzE3OTU3MTU1ZDA0MmNjNTFjNWUzNGY0MmM4Njk3NTRlYzM3Y2U3ZjE4Njk1ODAyNTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZGY1YWM3MzAzOTE0YjEyZGNhMzg5ZTBmYjU1YTZkMmY3MzgzMjc5Y2NlZjk5N2E5YjNkZTU2MDRjMTA1ODg4MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "59a7c64ea36b8756bb0e528a5d75d0fbea4e44b34856591878d0123b59834cfc"
     }
   ],
   "items": [
@@ -52,37 +52,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "点明‘8度及以上必留斜槎、不得直槎’，条件与做法齐，是采分句。",
-          "option_id": "C06-html-practice-html-q1-059b37587342:option-1"
+          "option_id": "C06-html-practice-html-q1-70cb991e6e11:option-1"
         },
         {
-          "text": "8 度地区图省事留直槎，只要把接口清理干净、后砌时对齐即可。",
+          "text": "8 度地区临时间断处可留直槎，将接口清理干净、后砌时对齐即可。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "觉得清理干净就不影响咬合。",
           "loss_reason": "抗震 8 度及以上禁留直槎，留直槎即判不妥。",
           "fix": "应留斜槎，不得留直槎。",
-          "option_id": "C06-html-practice-html-q1-059b37587342:option-2"
+          "option_id": "C06-html-practice-html-q1-70cb991e6e11:option-2"
         },
         {
-          "text": "8 度地区可留直槎，只要沿墙加设拉结筋补强就满足抗震要求。",
+          "text": "沿墙加设拉结筋补强后，8 度地区亦可留直槎并满足抗震要求。",
           "is_correct": false,
           "source_error_code": "E11",
           "temptation": "把‘非抗震直槎加拉结筋’迁移到抗震区。",
           "loss_reason": "加拉结筋是非抗震直槎的做法，8 度及以上必须斜槎，拉结筋替代不了。",
           "fix": "8 度及以上必留斜槎。",
-          "option_id": "C06-html-practice-html-q1-059b37587342:option-3"
+          "option_id": "C06-html-practice-html-q1-70cb991e6e11:option-3"
         },
         {
-          "text": "只要留斜槎就行，斜槎留多长无所谓，能接上即算合格。",
+          "text": "临时间断处留出斜槎即可，斜槎长度不作具体尺寸要求。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "以为留了斜槎就够。",
           "loss_reason": "斜槎有尺寸要求，普通砖水平投影须≥高 2/3，不写尺寸丢分。",
           "fix": "留斜槎且普通砖水平投影≥高 2/3。",
-          "option_id": "C06-html-practice-html-q1-059b37587342:option-4"
+          "option_id": "C06-html-practice-html-q1-70cb991e6e11:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q1-059b37587342",
+      "variant_id": "C06-html-practice-html-q1-70cb991e6e11",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
@@ -90,27 +90,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q1",
       "source_anchor": "kc:1A413030_107_0210:1",
       "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "c06-fact-incline-toothing-seismic",
       "skeleton_id": "c06-skel-8度及以上留斜槎",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7de0b9c6c108dcff085aa479ecfa60394c957674ec2e79ddc381a4306772276f",
+      "content_sha256": "fbab62145d9076a990b91ca635e8e4c7dacb94b34d5620b6046c488fa60148eb",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7de0b9c6c108dcff085aa479ecfa60394c957674ec2e79ddc381a4306772276f",
+        "reviewed_content_sha256": "fbab62145d9076a990b91ca635e8e4c7dacb94b34d5620b6046c488fa60148eb",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -120,7 +120,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "抗震8度及以上临时间断处应留斜槎不得留直槎, 教材 kc:...107_0210:1 直引。工单: 正确项恒首位 template artifact。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "抗震8度及以上临时间断处应留斜槎不得留直槎, 教材 kc:...107_0210:1 直引。工单: 正确项恒首位 template artifact。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -137,7 +137,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "普通砖认准 2/3，写清‘水平投影≥高 2/3’即得分。",
-          "option_id": "C06-html-practice-html-q2-c943f4f66e88:option-1"
+          "option_id": "C06-html-practice-html-q2-8852f4bfc13d:option-1"
         },
         {
           "text": "普通砖斜槎的水平投影长度不应小于斜槎高度的 1/2。",
@@ -146,16 +146,16 @@
           "temptation": "把多孔砖 1/2 用到了普通砖上。",
           "loss_reason": "普通砖是 2/3、多孔砖才 1/2，两个数字混淆。",
           "fix": "普通砖水平投影≥高 2/3。",
-          "option_id": "C06-html-practice-html-q2-c943f4f66e88:option-2"
+          "option_id": "C06-html-practice-html-q2-8852f4bfc13d:option-2"
         },
         {
-          "text": "普通砖留斜槎坡度自然、能接上就行，不必量具体长度。",
+          "text": "留斜槎时按砌筑操作顺势放坡即可，不必核对具体投影长度。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "觉得凭手感留即可。",
           "loss_reason": "缺‘≥2/3 高’关键数值，采分句不成立。",
           "fix": "补‘水平投影≥高 2/3’。",
-          "option_id": "C06-html-practice-html-q2-c943f4f66e88:option-3"
+          "option_id": "C06-html-practice-html-q2-8852f4bfc13d:option-3"
         },
         {
           "text": "普通砖斜槎高度不应大于 1.2m 即为合格。",
@@ -164,10 +164,10 @@
           "temptation": "把空心砖斜槎高 1.2m 套到普通砖。",
           "loss_reason": "1.2m 是空心砖斜槎高度限值，不是普通砖的投影比。",
           "fix": "普通砖看水平投影≥高 2/3。",
-          "option_id": "C06-html-practice-html-q2-c943f4f66e88:option-4"
+          "option_id": "C06-html-practice-html-q2-8852f4bfc13d:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q2-c943f4f66e88",
+      "variant_id": "C06-html-practice-html-q2-8852f4bfc13d",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
@@ -175,27 +175,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q2",
       "source_anchor": "kc:1A413030_107_0210:1",
       "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "c06-fact-solid-brick-incline-projection",
       "skeleton_id": "c06-skel-普通砖斜槎投影2-3",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "4e3fcf2e69a419b210dba7ef8238478acc0f0fda6738546fbd814371f6d8e22f",
+      "content_sha256": "ad41e1430ee4bc4067c56fec48fdb92e7f582f7ad38d64582430c7828b8302a5",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "4e3fcf2e69a419b210dba7ef8238478acc0f0fda6738546fbd814371f6d8e22f",
+        "reviewed_content_sha256": "ad41e1430ee4bc4067c56fec48fdb92e7f582f7ad38d64582430c7828b8302a5",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -205,7 +205,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "普通砖斜槎水平投影长度≥高度2/3, 教材 kc:...107_0210:1 直引。工单: template artifact。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "普通砖斜槎水平投影长度≥高度2/3, 教材 kc:...107_0210:1 直引。工单: template artifact。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -216,22 +216,13 @@
       "model_answer": "多孔砖斜槎的长高比不应小于 1/2。",
       "options": [
         {
-          "text": "多孔砖斜槎的长高比不应小于 1/2。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "多孔砖认准 1/2，写‘长高比≥1/2’即得分。",
-          "option_id": "C06-html-practice-html-q3-f2a1a2da34e2:option-1"
-        },
-        {
-          "text": "多孔砖斜槎的水平投影长度不应小于高度的 2/3。",
+          "text": "多孔砖斜槎的水平投影不应小于高度的 2/3。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "把普通砖 2/3 用到了多孔砖。",
           "loss_reason": "多孔砖是长高比≥1/2，普通砖才 2/3，数字混淆。",
           "fix": "多孔砖长高比≥1/2。",
-          "option_id": "C06-html-practice-html-q3-f2a1a2da34e2:option-2"
+          "option_id": "C06-html-practice-html-q3-a0c105bea82f:option-1"
         },
         {
           "text": "多孔砖不能留斜槎，只能同时砌筑或留直槎。",
@@ -240,19 +231,28 @@
           "temptation": "以为多孔砖不许斜槎。",
           "loss_reason": "多孔砖同样可留斜槎，只是比值取 1/2。",
           "fix": "多孔砖可留斜槎，长高比≥1/2。",
-          "option_id": "C06-html-practice-html-q3-f2a1a2da34e2:option-3"
+          "option_id": "C06-html-practice-html-q3-a0c105bea82f:option-2"
         },
         {
-          "text": "多孔砖留斜槎即可，长高比多少不影响验收。",
+          "text": "留斜槎即可满足要求，长高比取值不影响验收。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "以为留了就行。",
           "loss_reason": "缺‘长高比≥1/2’关键数值。",
           "fix": "补‘长高比≥1/2’。",
-          "option_id": "C06-html-practice-html-q3-f2a1a2da34e2:option-4"
+          "option_id": "C06-html-practice-html-q3-a0c105bea82f:option-3"
+        },
+        {
+          "text": "多孔砖斜槎的长高比不应小于 1/2。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "多孔砖认准 1/2，写‘长高比≥1/2’即得分。",
+          "option_id": "C06-html-practice-html-q3-a0c105bea82f:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q3-f2a1a2da34e2",
+      "variant_id": "C06-html-practice-html-q3-a0c105bea82f",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
@@ -260,27 +260,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q3",
       "source_anchor": "kc:1A413030_107_0210:1",
       "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "c06-fact-porous-brick-incline-ratio",
       "skeleton_id": "c06-skel-多孔砖长高比1-2",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3ff653d537e66380095837920b0d86d05b355eac0bb0c84ac13eafcc47a260e7",
+      "content_sha256": "e23f50a6022703e4f8195c4f43401d9ddc7ccf42de5d7deded0cd08f72680849",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "3ff653d537e66380095837920b0d86d05b355eac0bb0c84ac13eafcc47a260e7",
+        "reviewed_content_sha256": "e23f50a6022703e4f8195c4f43401d9ddc7ccf42de5d7deded0cd08f72680849",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -290,7 +290,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "多孔砖斜槎长高比≥1/2, 教材 kc:...107_0210:1 逐字直引。Codex 判 FATAL 系原候选锚错位到 :0(灰缝)+按 GB50203 全文越权; 已修 prefill per-采分点去重召回正确锚 :1, 答案本身教材正确。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "多孔砖斜槎长高比≥1/2, 教材 kc:...107_0210:1 逐字直引。Codex 判 FATAL 系原候选锚错位到 :0(灰缝)+按 GB50203 全文越权; 已修 prefill per-采分点去重召回正确锚 :1, 答案本身教材正确。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -301,22 +301,13 @@
       "model_answer": "非抗震区可留直槎，但应沿墙加设拉结钢筋。",
       "options": [
         {
-          "text": "非抗震设防地区可留直槎，但应沿墙加设拉结钢筋。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "‘可直槎’要连着‘加拉结筋’一起写，两句才满分。",
-          "option_id": "C06-html-practice-html-q4-ff391baa6a20:option-1"
-        },
-        {
-          "text": "非抗震区可以直接留直槎，把接口清理干净即可，无需其他处理。",
+          "text": "非抗震区可留直槎，将接口清理干净即可，无需其他处理措施。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "以为非抗震区就随便留。",
           "loss_reason": "漏了‘加设拉结筋’，采分点遗漏。",
           "fix": "留直槎须沿墙加设拉结钢筋。",
-          "option_id": "C06-html-practice-html-q4-ff391baa6a20:option-2"
+          "option_id": "C06-html-practice-html-q4-9392bb287fc2:option-1"
         },
         {
           "text": "无论是否抗震，一律不得留直槎，只能留斜槎。",
@@ -325,19 +316,28 @@
           "temptation": "把抗震区规则扩大化。",
           "loss_reason": "非抗震区允许留直槎(加拉结筋)，一律禁止是规范适用错误。",
           "fix": "非抗震区可留直槎，但须加拉结筋。",
-          "option_id": "C06-html-practice-html-q4-ff391baa6a20:option-3"
+          "option_id": "C06-html-practice-html-q4-9392bb287fc2:option-2"
         },
         {
-          "text": "非抗震留直槎加拉结筋，抗震 8 度区同样加拉结筋即可留直槎。",
+          "text": "非抗震留直槎加拉结筋，8 度区同样加拉结筋后即可留直槎。",
           "is_correct": false,
           "source_error_code": "E11",
           "temptation": "把做法迁移到抗震区。",
           "loss_reason": "8 度及以上必留斜槎，拉结筋替代不了。",
           "fix": "8 度及以上必斜槎，不能靠拉结筋留直槎。",
-          "option_id": "C06-html-practice-html-q4-ff391baa6a20:option-4"
+          "option_id": "C06-html-practice-html-q4-9392bb287fc2:option-3"
+        },
+        {
+          "text": "非抗震设防地区可留直槎，但应沿墙加设拉结钢筋。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "‘可直槎’要连着‘加拉结筋’一起写，两句才满分。",
+          "option_id": "C06-html-practice-html-q4-9392bb287fc2:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q4-ff391baa6a20",
+      "variant_id": "C06-html-practice-html-q4-9392bb287fc2",
       "surface_id": "practice.html",
       "source_index": 3,
       "source_group": "Q",
@@ -345,27 +345,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q4",
       "source_anchor": "kc:1A413030_107_0210:1",
       "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "c06-fact-straight-toothing-nonseismic",
       "skeleton_id": "c06-skel-非抗震留直槎加拉结筋",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3ed6c39308703e6ecf31515ee0ee39ec2e26e67f1352df835573fd2e5e03b51b",
+      "content_sha256": "a9ca7f5ca336d43042b06f8660c3592c20452049dfe92b88d49ed416fa032f18",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "3ed6c39308703e6ecf31515ee0ee39ec2e26e67f1352df835573fd2e5e03b51b",
+        "reviewed_content_sha256": "a9ca7f5ca336d43042b06f8660c3592c20452049dfe92b88d49ed416fa032f18",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -375,7 +375,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "非抗震区可留直槎但应加拉结筋, 教材 kc:...107_0210:1 原文=‘非抗震区可留直槎，但需加拉结筋’逐字忠实。Codex 依 GB50203 ‘除转角处外/凸槎’判 FATAL 属外部权威越权(失效#3), 本包教材即此口径, 且作为单选该选项相对3个错误干扰项(无需处理/一律不得直槎/8度也可直槎)是唯一正确选择=工单非 fatal。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "非抗震区可留直槎但应加拉结筋, 教材 kc:...107_0210:1 原文=‘非抗震区可留直槎，但需加拉结筋’逐字忠实。Codex 依 GB50203 ‘除转角处外/凸槎’判 FATAL 属外部权威越权(失效#3), 本包教材即此口径, 且作为单选该选项相对3个错误干扰项(无需处理/一律不得直槎/8度也可直槎)是唯一正确选择=工单非 fatal。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -386,43 +386,43 @@
       "model_answer": "转角和交接处应同时砌筑，不能同时砌时留斜槎，不得留直槎。",
       "options": [
         {
-          "text": "转角和交接处应同时砌筑，不能同时砌筑时应留斜槎，不得留直槎。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "首选同时砌筑(错缝咬成一体)、退而求其次留斜槎，层次齐。",
-          "option_id": "C06-html-practice-html-q5-709dd117003d:option-1"
-        },
-        {
           "text": "转角和交接处可分开砌筑，先砌一面墙、后砌另一面，接头对齐即可。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "觉得分开砌方便、对齐就行。",
           "loss_reason": "分砌形成上下贯通竖缝、成薄弱面，应同时砌筑。",
           "fix": "转角交接处应同时砌筑。",
-          "option_id": "C06-html-practice-html-q5-709dd117003d:option-2"
+          "option_id": "C06-html-practice-html-q5-adfcc9a1da89:option-1"
         },
         {
-          "text": "转角处同时砌筑即可，交接处怎么砌无所谓。",
+          "text": "转角和交接处应同时砌筑，不能同时砌筑时应留斜槎，不得留直槎。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "首选同时砌筑(错缝咬成一体)、退而求其次留斜槎，层次齐。",
+          "option_id": "C06-html-practice-html-q5-adfcc9a1da89:option-2"
+        },
+        {
+          "text": "仅转角处需同时砌筑，内外墙交接处可按先后顺序分段砌筑。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只记住转角。",
           "loss_reason": "内外墙交接处同样要求同时砌筑，采分点遗漏。",
           "fix": "转角与交接处都应同时砌筑。",
-          "option_id": "C06-html-practice-html-q5-709dd117003d:option-3"
+          "option_id": "C06-html-practice-html-q5-adfcc9a1da89:option-3"
         },
         {
-          "text": "转角处留直槎，直槎高度不超过 300mm 即可。",
+          "text": "转角处可留直槎，直槎高度不超过 300mm 即可。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "拿 300mm 凑数。",
           "loss_reason": "300mm 是马牙槎沿高，不是留槎判据；概念与数字都错。",
           "fix": "应同时砌筑或留斜槎，不留直槎。",
-          "option_id": "C06-html-practice-html-q5-709dd117003d:option-4"
+          "option_id": "C06-html-practice-html-q5-adfcc9a1da89:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q5-709dd117003d",
+      "variant_id": "C06-html-practice-html-q5-adfcc9a1da89",
       "surface_id": "practice.html",
       "source_index": 4,
       "source_group": "Q",
@@ -430,17 +430,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8ca3d84f1e4ef054c69a5ee576ada7490a9a9e7801ffe4a00737cc2c51216b2a",
+      "content_sha256": "ab6cf2afbacccdfe84b236352e573396f339c782c5b73b76fd7a8454517d1654",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "8ca3d84f1e4ef054c69a5ee576ada7490a9a9e7801ffe4a00737cc2c51216b2a",
+        "reviewed_content_sha256": "ab6cf2afbacccdfe84b236352e573396f339c782c5b73b76fd7a8454517d1654",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -465,7 +465,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "记住空心砖斜槎高不宜大于 1.2m。",
-          "option_id": "C06-html-practice-html-q6-29b7b907e57e:option-1"
+          "option_id": "C06-html-practice-html-q6-c15b9cac9a05:option-1"
         },
         {
           "text": "应留斜槎，斜槎高度不宜大于 2.0m。",
@@ -474,7 +474,7 @@
           "temptation": "对数值印象模糊。",
           "loss_reason": "限值是 1.2m，不是 2.0m。",
           "fix": "斜槎高度不宜大于 1.2m。",
-          "option_id": "C06-html-practice-html-q6-29b7b907e57e:option-2"
+          "option_id": "C06-html-practice-html-q6-c15b9cac9a05:option-2"
         },
         {
           "text": "直接留直槎、加拉结筋即可，不必留斜槎。",
@@ -483,19 +483,19 @@
           "temptation": "套用非抗震直槎做法。",
           "loss_reason": "空心砖交接不能同时砌时应留斜槎。",
           "fix": "应留斜槎(高度≤1.2m)。",
-          "option_id": "C06-html-practice-html-q6-29b7b907e57e:option-3"
+          "option_id": "C06-html-practice-html-q6-c15b9cac9a05:option-3"
         },
         {
-          "text": "留斜槎即可，高度不限。",
+          "text": "留出斜槎即可，斜槎高度可不作具体限值控制。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "以为留了斜槎就够。",
           "loss_reason": "缺高度‘不宜大于 1.2m’的限值。",
           "fix": "补‘斜槎高度不宜大于 1.2m’。",
-          "option_id": "C06-html-practice-html-q6-29b7b907e57e:option-4"
+          "option_id": "C06-html-practice-html-q6-c15b9cac9a05:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q6-29b7b907e57e",
+      "variant_id": "C06-html-practice-html-q6-c15b9cac9a05",
       "surface_id": "practice.html",
       "source_index": 5,
       "source_group": "Q",
@@ -503,17 +503,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "727d66ddbeda2ae4d0e1be0d92c20153c476abc9c0852adf34d6121ea91478b1",
+      "content_sha256": "b75231c30a5e3750adb2e3590762c7525b38275a1830e81702cb9bcaf94cb844",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "727d66ddbeda2ae4d0e1be0d92c20153c476abc9c0852adf34d6121ea91478b1",
+        "reviewed_content_sha256": "b75231c30a5e3750adb2e3590762c7525b38275a1830e81702cb9bcaf94cb844",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -532,31 +532,31 @@
       "model_answer": "从每层柱脚开始，应先退后进。",
       "options": [
         {
-          "text": "从每层柱脚开始，马牙槎应先退后进。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "柱脚先退让出凹槽，浇柱后齿槽咬死；方向固定为先退后进。",
-          "option_id": "C06-html-practice-html-q7-2480b254a219:option-1"
-        },
-        {
           "text": "从每层柱脚开始，马牙槎应先进后退。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "顺口且是常见误记(真题陷阱)。",
           "loss_reason": "方向反了，柱脚咬合不足；应先退后进。",
           "fix": "从柱脚先退后进。",
-          "option_id": "C06-html-practice-html-q7-2480b254a219:option-2"
+          "option_id": "C06-html-practice-html-q7-9c9fd7cc2114:option-1"
         },
         {
-          "text": "先退后进、先进后退都行，只要凹凸均匀即可。",
+          "text": "从每层柱脚开始，马牙槎应先退后进。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "柱脚先退让出凹槽，浇柱后齿槽咬死；方向固定为先退后进。",
+          "option_id": "C06-html-practice-html-q7-9c9fd7cc2114:option-2"
+        },
+        {
+          "text": "进退方向可任选，砌筑时保证凹凸均匀即可。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "以为方向随意。",
           "loss_reason": "方向固定为先退后进，不能二选一。",
           "fix": "必须先退后进。",
-          "option_id": "C06-html-practice-html-q7-2480b254a219:option-3"
+          "option_id": "C06-html-practice-html-q7-9c9fd7cc2114:option-3"
         },
         {
           "text": "砌成马牙槎即可，进退方向不影响咬合效果。",
@@ -565,10 +565,10 @@
           "temptation": "以为砌出齿即可。",
           "loss_reason": "进退方向是采分点，漏答丢分。",
           "fix": "应写明先退后进。",
-          "option_id": "C06-html-practice-html-q7-2480b254a219:option-4"
+          "option_id": "C06-html-practice-html-q7-9c9fd7cc2114:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q7-2480b254a219",
+      "variant_id": "C06-html-practice-html-q7-9c9fd7cc2114",
       "surface_id": "practice.html",
       "source_index": 6,
       "source_group": "Q",
@@ -576,27 +576,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q7",
       "source_anchor": "exam:2015:第12题",
       "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "c06-fact-gouzao-column-toothing",
       "skeleton_id": "c06-skel-马牙槎先退后进",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8d34a65950751b19cdb4008bfeed8d0ad27b8076b2cf3699b855259093b3622e",
+      "content_sha256": "ad9cd6012956bd3f78d380cca45dc17a5dbf63f7e4b35083b1e8df5439ca7355",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8d34a65950751b19cdb4008bfeed8d0ad27b8076b2cf3699b855259093b3622e",
+        "reviewed_content_sha256": "ad9cd6012956bd3f78d380cca45dc17a5dbf63f7e4b35083b1e8df5439ca7355",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -606,7 +606,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "构造柱马牙槎每层柱脚先退后进, 真题 exam:2015:第12题 逐字支持。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "构造柱马牙槎每层柱脚先退后进, 真题 exam:2015:第12题 逐字支持。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -617,22 +617,13 @@
       "model_answer": "每个马牙槎沿高≤300mm、凹凸60mm，沿墙高每500mm设拉结钢筋。",
       "options": [
         {
-          "text": "每个马牙槎沿高不超过 300mm、凹凸 60mm，沿墙高每 500mm 设拉结钢筋。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "300、60、500 三个数与拉结筋一起写全才满分。",
-          "option_id": "C06-html-practice-html-q8-4c39e7a33228:option-1"
-        },
-        {
-          "text": "先退后进砌成马牙槎即可，尺寸和拉结筋按现场情况定。",
+          "text": "马牙槎按先退后进砌成即可，槎口的进退尺寸与拉结钢筋的规格、间距可结合现场实际情况确定。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只答了方向。",
           "loss_reason": "漏尺寸与拉结筋，采分点遗漏。",
           "fix": "补≤300mm/凹凸60mm/每500mm拉结筋。",
-          "option_id": "C06-html-practice-html-q8-4c39e7a33228:option-2"
+          "option_id": "C06-html-practice-html-q8-376c80e70ec2:option-1"
         },
         {
           "text": "每个马牙槎沿高不超过 500mm，沿墙高每 300mm 设拉结钢筋。",
@@ -641,19 +632,28 @@
           "temptation": "把 300 与 500 记反。",
           "loss_reason": "沿高应≤300mm、拉结筋每500mm，数字对调。",
           "fix": "沿高≤300mm、每500mm拉结筋。",
-          "option_id": "C06-html-practice-html-q8-4c39e7a33228:option-3"
+          "option_id": "C06-html-practice-html-q8-376c80e70ec2:option-2"
         },
         {
-          "text": "沿墙高每 500mm 设拉结钢筋即可，其余不必。",
+          "text": "每个马牙槎沿高不超过 300mm、凹凸 60mm，沿墙高每 500mm 设拉结钢筋。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "300、60、500 三个数与拉结筋一起写全才满分。",
+          "option_id": "C06-html-practice-html-q8-376c80e70ec2:option-3"
+        },
+        {
+          "text": "沿墙高每 500mm 设置拉结钢筋即为满足要求，其余尺寸不必另行控制。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "抓住 500 一项。",
           "loss_reason": "漏≤300mm、凹凸60mm。",
           "fix": "补≤300mm、凹凸60mm。",
-          "option_id": "C06-html-practice-html-q8-4c39e7a33228:option-4"
+          "option_id": "C06-html-practice-html-q8-376c80e70ec2:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q8-4c39e7a33228",
+      "variant_id": "C06-html-practice-html-q8-376c80e70ec2",
       "surface_id": "practice.html",
       "source_index": 7,
       "source_group": "Q",
@@ -661,27 +661,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q8",
       "source_anchor": "kc:1A413030_107_0210:2",
       "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "c06-fact-gouzao-column-toothing",
       "skeleton_id": "c06-skel-马牙槎尺寸拉结筋",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "320cc23292cfa28309c62fc1ded09805dbad864e449a735bb4222dbe92c68d98",
+      "content_sha256": "ed3aa2d51c17e44f7cf66bf8c6ec78b28d5d66be22c9b47c297a79b9564cd40b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "320cc23292cfa28309c62fc1ded09805dbad864e449a735bb4222dbe92c68d98",
+        "reviewed_content_sha256": "ed3aa2d51c17e44f7cf66bf8c6ec78b28d5d66be22c9b47c297a79b9564cd40b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -691,7 +691,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "马牙槎沿高≤300mm/凹凸60mm/沿墙高每500mm设拉结钢筋, 教材 kc:...107_0210:2 直引。三联 immediate_confirm(同构造柱 fact)。工单: 模态词硬化(不宜超→≤)不改考试核心事实。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "马牙槎沿高≤300mm/凹凸60mm/沿墙高每500mm设拉结钢筋, 教材 kc:...107_0210:2 直引。三联 immediate_confirm(同构造柱 fact)。工单: 模态词硬化(不宜超→≤)不改考试核心事实。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -702,43 +702,43 @@
       "model_answer": "先绑构造柱钢筋，再砌砖墙(马牙槎)，最后浇柱混凝土——先砌墙后浇柱。",
       "options": [
         {
+          "text": "先支模浇筑构造柱混凝土，待柱达到规定强度后再砌两侧砖墙。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为先浇柱更快。",
+          "loss_reason": "先浇柱后砌墙，墙与柱无法咬合、马牙槎作废。",
+          "fix": "应先砌墙后浇柱。",
+          "option_id": "C06-html-practice-html-q9-6f46b593092d:option-1"
+        },
+        {
           "text": "先绑构造柱钢筋，再砌砖墙(马牙槎)，最后浇筑构造柱混凝土。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "先砌墙后浇柱，混凝土灌进齿槽咬成一体；顺序即采分点。",
-          "option_id": "C06-html-practice-html-q9-d2b7b60599c6:option-1"
+          "option_id": "C06-html-practice-html-q9-6f46b593092d:option-2"
         },
         {
-          "text": "先支模浇筑构造柱混凝土，再砌两侧砖墙。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "以为先浇柱更快。",
-          "loss_reason": "先浇柱后砌墙，墙与柱无法咬合、马牙槎作废。",
-          "fix": "应先砌墙后浇柱。",
-          "option_id": "C06-html-practice-html-q9-d2b7b60599c6:option-2"
-        },
-        {
-          "text": "先砌砖墙，再绑构造柱钢筋，最后浇筑混凝土。",
+          "text": "先砌筑砖墙，随后绑扎构造柱钢筋，最后浇筑构造柱混凝土。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "觉得墙砌完再放钢筋也行。",
           "loss_reason": "钢筋应先绑，先砌墙后绑钢筋顺序错。",
           "fix": "先绑钢筋→砌墙→浇柱。",
-          "option_id": "C06-html-practice-html-q9-d2b7b60599c6:option-3"
+          "option_id": "C06-html-practice-html-q9-6f46b593092d:option-3"
         },
         {
-          "text": "先砌墙后浇柱，钢筋在浇筑前随时绑扎均可。",
+          "text": "先砌墙后浇柱，构造柱钢筋在浇筑混凝土之前任意时点绑扎均可。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "以为绑筋时机随意。",
           "loss_reason": "钢筋须在砌墙前先绑，顺序固定。",
           "fix": "顺序固定：先绑钢筋→砌墙→浇柱。",
-          "option_id": "C06-html-practice-html-q9-d2b7b60599c6:option-4"
+          "option_id": "C06-html-practice-html-q9-6f46b593092d:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q9-d2b7b60599c6",
+      "variant_id": "C06-html-practice-html-q9-6f46b593092d",
       "surface_id": "practice.html",
       "source_index": 8,
       "source_group": "Q",
@@ -746,27 +746,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q9",
       "source_anchor": "exam:2020:第11题",
       "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "c06-fact-gouzao-column-toothing",
       "skeleton_id": "c06-skel-构造柱施工顺序",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "02e2da3b93ceb648f5da751a9cc649a51271711feb217ed3891cd25be958dcb5",
+      "content_sha256": "5c4fe8529ce320800301ecc716c448cdfc9499310f57e55088ceb175da0fc860",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "02e2da3b93ceb648f5da751a9cc649a51271711feb217ed3891cd25be958dcb5",
+        "reviewed_content_sha256": "5c4fe8529ce320800301ecc716c448cdfc9499310f57e55088ceb175da0fc860",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -776,7 +776,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "构造柱与墙体施工顺序=先绑钢筋→砌墙(马牙槎)→浇柱混凝土, 真题 exam:2020:第11题 直引。三联 d1_probe(同构造柱 fact, 第3独立 skeleton)。工单: 正确项偏长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "构造柱与墙体施工顺序=先绑钢筋→砌墙(马牙槎)→浇柱混凝土, 真题 exam:2020:第11题 直引。三联 d1_probe(同构造柱 fact, 第3独立 skeleton)。工单: 正确项偏长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -787,22 +787,13 @@
       "model_answer": "砖柱不得采用包心砌法砌筑，应整体咬砌。",
       "options": [
         {
-          "text": "砖柱不得采用包心砌法砌筑，应整体咬砌成整体。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "‘砖柱不得包心砌法’是明确采分句。",
-          "option_id": "C06-html-practice-html-q10-a00eb0bc5d64:option-1"
-        },
-        {
           "text": "砖柱可用包心砌法，四周砌整砖、中间填碎砖以省工。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "觉得省工无碍。",
           "loss_reason": "包心砌法整体性差、明令禁止。",
           "fix": "砖柱不得采用包心砌法。",
-          "option_id": "C06-html-practice-html-q10-a00eb0bc5d64:option-2"
+          "option_id": "C06-html-practice-html-q10-72d17a63480d:option-1"
         },
         {
           "text": "砖柱与构造柱一样，要砌马牙槎、每500mm留拉结筋。",
@@ -811,19 +802,28 @@
           "temptation": "把砖柱当构造柱。",
           "loss_reason": "砖柱非构造柱，不砌马牙槎，此为概念混淆。",
           "fix": "砖柱不得包心砌法，与构造柱要求不同。",
-          "option_id": "C06-html-practice-html-q10-a00eb0bc5d64:option-3"
+          "option_id": "C06-html-practice-html-q10-72d17a63480d:option-2"
         },
         {
-          "text": "砖柱砌筑无特殊要求，按普通墙体砌法即可。",
+          "text": "按普通墙体的砌法砌筑砖柱即可，无其他特殊要求。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "以为无要求。",
           "loss_reason": "漏‘不得包心砌法’关键点。",
           "fix": "补‘砖柱不得采用包心砌法’。",
-          "option_id": "C06-html-practice-html-q10-a00eb0bc5d64:option-4"
+          "option_id": "C06-html-practice-html-q10-72d17a63480d:option-3"
+        },
+        {
+          "text": "砖柱不得采用包心砌法砌筑，应整体咬砌成整体。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "‘砖柱不得包心砌法’是明确采分句。",
+          "option_id": "C06-html-practice-html-q10-72d17a63480d:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q10-a00eb0bc5d64",
+      "variant_id": "C06-html-practice-html-q10-72d17a63480d",
       "surface_id": "practice.html",
       "source_index": 9,
       "source_group": "Q",
@@ -831,17 +831,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8b9330ddd711f6f7904667b5afdbdf8c838b0457333a5331ae14d35a08ec9324",
+      "content_sha256": "3b9b9b9f667d510fbe943b77135c228a5392621cb898de0e5b206d9b5c4e5f88",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "8b9330ddd711f6f7904667b5afdbdf8c838b0457333a5331ae14d35a08ec9324",
+        "reviewed_content_sha256": "3b9b9b9f667d510fbe943b77135c228a5392621cb898de0e5b206d9b5c4e5f88",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -860,43 +860,43 @@
       "model_answer": "化学植筋须做实体检测；连接构造须经设计同意方可改变；严禁任意剔凿。",
       "options": [
         {
+          "text": "施工中可根据现场实际情况自行调整拉结筋的间距和连接做法，不必报设计单位同意。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得现场灵活方便。",
+          "loss_reason": "改变连接构造须经设计同意，不能自行改。",
+          "fix": "连接构造改变须经设计同意。",
+          "option_id": "C06-html-practice-html-q11-e7b67e14abcc:option-1"
+        },
+        {
+          "text": "拉结筋预埋或植筋完成即视为满足要求，化学植筋不必再做实体检测。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为植了就行。",
+          "loss_reason": "化学植筋须做实体检测，采分点遗漏。",
+          "fix": "化学植筋须做实体检测。",
+          "option_id": "C06-html-practice-html-q11-e7b67e14abcc:option-2"
+        },
+        {
+          "text": "墙体上敷设管线时可随时剔凿开槽，完工后用砂浆将槽补平即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得补平就没事。",
+          "loss_reason": "严禁任意剔凿，损伤墙体整体性。",
+          "fix": "严禁任意剔凿。",
+          "option_id": "C06-html-practice-html-q11-e7b67e14abcc:option-3"
+        },
+        {
           "text": "拉结筋若为化学植筋应做实体检测；连接构造须经设计同意方可改变；严禁任意剔凿。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "植筋检测 + 改构造经设计 + 严禁剔凿，三句齐。",
-          "option_id": "C06-html-practice-html-q11-bcd8e09ef9ed:option-1"
-        },
-        {
-          "text": "施工中可按现场情况自行调整拉结筋间距和连接做法，无需报设计。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得现场灵活方便。",
-          "loss_reason": "改变连接构造须经设计同意，不能自行改。",
-          "fix": "连接构造改变须经设计同意。",
-          "option_id": "C06-html-practice-html-q11-bcd8e09ef9ed:option-2"
-        },
-        {
-          "text": "埋好或植好拉结筋即可，化学植筋不必做检测。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为植了就行。",
-          "loss_reason": "化学植筋须做实体检测，采分点遗漏。",
-          "fix": "化学植筋须做实体检测。",
-          "option_id": "C06-html-practice-html-q11-bcd8e09ef9ed:option-3"
-        },
-        {
-          "text": "墙上走管线可随时剔凿开槽，事后用砂浆补平即可。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得补平就没事。",
-          "loss_reason": "严禁任意剔凿，损伤墙体整体性。",
-          "fix": "严禁任意剔凿。",
-          "option_id": "C06-html-practice-html-q11-bcd8e09ef9ed:option-4"
+          "option_id": "C06-html-practice-html-q11-e7b67e14abcc:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q11-bcd8e09ef9ed",
+      "variant_id": "C06-html-practice-html-q11-e7b67e14abcc",
       "surface_id": "practice.html",
       "source_index": 10,
       "source_group": "Q",
@@ -904,17 +904,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ef34d0180853fcfab1c4d3263fe976de83382ffcea46ecffab824f0c29b65a94",
+      "content_sha256": "ee78ec3e313e622ac25037e63e23175b01b44282d5b04569faa3f21115adcf8a",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "ef34d0180853fcfab1c4d3263fe976de83382ffcea46ecffab824f0c29b65a94",
+        "reviewed_content_sha256": "ee78ec3e313e622ac25037e63e23175b01b44282d5b04569faa3f21115adcf8a",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -933,43 +933,43 @@
       "model_answer": "龄期≥28d；单排孔搭接≥块长1/2；竖向灰缝饱满度≥90%。",
       "options": [
         {
+          "text": "砌块进场后自然养护龄期达到 21d 即可上墙砌筑；单排孔砌块的搭接长度不应小于块长的 1/3。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数值印象模糊。",
+          "loss_reason": "龄期应≥28d、搭接应≥1/2，两处数字都小了。",
+          "fix": "龄期≥28d、搭接≥1/2块长。",
+          "option_id": "C06-html-practice-html-q12-b308365138b7:option-1"
+        },
+        {
+          "text": "砌块上下皮错缝搭砌即为合格，搭接长度、进场龄期与灰缝饱满度不必逐项控制。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为错缝就行。",
+          "loss_reason": "漏龄期与搭接关键数值。",
+          "fix": "补龄期≥28d、搭接≥1/2、饱满度≥90%。",
+          "option_id": "C06-html-practice-html-q12-b308365138b7:option-2"
+        },
+        {
           "text": "砌块龄期不小于 28d；单排孔搭接长度不小于块长 1/2；竖向灰缝砂浆饱满度不小于 90%。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "28d、1/2、90% 三个数一起写全。",
-          "option_id": "C06-html-practice-html-q12-2fd2caf96fac:option-1"
+          "option_id": "C06-html-practice-html-q12-b308365138b7:option-3"
         },
         {
-          "text": "砌块龄期 21d 即可上墙；单排孔搭接长度不小于块长 1/3。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数值印象模糊。",
-          "loss_reason": "龄期应≥28d、搭接应≥1/2，两处数字都小了。",
-          "fix": "龄期≥28d、搭接≥1/2块长。",
-          "option_id": "C06-html-practice-html-q12-2fd2caf96fac:option-2"
-        },
-        {
-          "text": "上下皮错缝搭砌即可，搭接长度和龄期不必控制。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为错缝就行。",
-          "loss_reason": "漏龄期与搭接关键数值。",
-          "fix": "补龄期≥28d、搭接≥1/2、饱满度≥90%。",
-          "option_id": "C06-html-practice-html-q12-2fd2caf96fac:option-3"
-        },
-        {
-          "text": "竖向灰缝砂浆饱满度不小于 80% 即可。",
+          "text": "填充墙砌筑时，竖向灰缝的砂浆饱满度满足不小于 80% 的要求即可判定合格。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "把墙水平缝 80% 用到竖缝。",
           "loss_reason": "竖向灰缝饱满度要求≥90%，80% 是水平缝口径。",
           "fix": "竖向灰缝饱满度≥90%。",
-          "option_id": "C06-html-practice-html-q12-2fd2caf96fac:option-4"
+          "option_id": "C06-html-practice-html-q12-b308365138b7:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q12-2fd2caf96fac",
+      "variant_id": "C06-html-practice-html-q12-b308365138b7",
       "surface_id": "practice.html",
       "source_index": 11,
       "source_group": "Q",
@@ -977,17 +977,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "20f800348c2d2d328abeb1eefe17e083ac05752a08a62129f79231ddc1d8086c",
+      "content_sha256": "b93d79e772dc02804aaed25c7a875f3cce86b1ee4b33a65a7b4d6baa1b2358eb",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "20f800348c2d2d328abeb1eefe17e083ac05752a08a62129f79231ddc1d8086c",
+        "reviewed_content_sha256": "b93d79e772dc02804aaed25c7a875f3cce86b1ee4b33a65a7b4d6baa1b2358eb",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1006,43 +1006,43 @@
       "model_answer": "顶部最后3皮砖，应待下部墙砌完至少14d后再斜砌顶紧。",
       "options": [
         {
+          "text": "顶部最后 3 皮砖，应待下部墙体砌筑完成 7d 后再行斜砌顶紧，即可满足要求。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "对天数印象模糊。",
+          "loss_reason": "应至少 14d，7d 沉降未稳。",
+          "fix": "应待下部砌完至少 14d。",
+          "option_id": "C06-html-practice-html-q13-c27ef9191e58:option-1"
+        },
+        {
+          "text": "下部墙体砌完后应立即将顶部砖斜砌顶紧，一次连续砌筑成活。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得一次做完省事。",
+          "loss_reason": "须待下部沉降稳定，立即顶砌会挤裂。",
+          "fix": "应待 14d 后再顶砌。",
+          "option_id": "C06-html-practice-html-q13-c27ef9191e58:option-2"
+        },
+        {
           "text": "填充墙顶部最后 3 皮砖，应待下部墙体砌完至少 14d 后再斜砌顶紧。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "待 14d 沉降稳、再斜砌顶紧，时机与做法齐。",
-          "option_id": "C06-html-practice-html-q13-57e0d724bc35:option-1"
+          "option_id": "C06-html-practice-html-q13-c27ef9191e58:option-3"
         },
         {
-          "text": "顶部最后 3 皮砖应待下部砌完 7d 后即可顶砌。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "对天数印象模糊。",
-          "loss_reason": "应至少 14d，7d 沉降未稳。",
-          "fix": "应待下部砌完至少 14d。",
-          "option_id": "C06-html-practice-html-q13-57e0d724bc35:option-2"
-        },
-        {
-          "text": "下部墙砌完后立即将顶部砖斜砌顶紧，一次成活最省事。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "觉得一次做完省事。",
-          "loss_reason": "须待下部沉降稳定，立即顶砌会挤裂。",
-          "fix": "应待 14d 后再顶砌。",
-          "option_id": "C06-html-practice-html-q13-57e0d724bc35:option-3"
-        },
-        {
-          "text": "顶部直接用整砖平砌顶到梁底即可。",
+          "text": "最后几皮砖采用整砖平砌，直接顶砌至梁(板)的底面即可。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "以为平砌顶到即可。",
           "loss_reason": "应斜砌顶紧且待 14d，漏做法与时机。",
           "fix": "待14d后斜砌顶紧。",
-          "option_id": "C06-html-practice-html-q13-57e0d724bc35:option-4"
+          "option_id": "C06-html-practice-html-q13-c27ef9191e58:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q13-57e0d724bc35",
+      "variant_id": "C06-html-practice-html-q13-c27ef9191e58",
       "surface_id": "practice.html",
       "source_index": 12,
       "source_group": "Q",
@@ -1050,17 +1050,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "605f9f70176285f9d6edfc46b20002ba2aef657a3205920ee85494d3bf1712b3",
+      "content_sha256": "672b61f454fd7d59e4892b36bcf44c998d2f1db826cbb596076fd0f26ee90b4e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "605f9f70176285f9d6edfc46b20002ba2aef657a3205920ee85494d3bf1712b3",
+        "reviewed_content_sha256": "672b61f454fd7d59e4892b36bcf44c998d2f1db826cbb596076fd0f26ee90b4e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1079,43 +1079,43 @@
       "model_answer": "净宽≤1m；距交接面≥500mm；预埋拉结筋；上设过梁或挑砖封口。",
       "options": [
         {
+          "text": "洞口净宽不应大于 1.2m；侧边距墙体交接面不应小于 400mm，并按要求设置过梁封口与拉结筋。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数值差一点、易顺手。",
+          "loss_reason": "净宽应≤1m、距交接面应≥500mm，两处数值都错(真题指错点)。",
+          "fix": "净宽≤1m、距交接面≥500mm。",
+          "option_id": "C06-html-practice-html-q14-44328085df27:option-1"
+        },
+        {
+          "text": "洞口只需将净宽控制在不大于 1m 的范围内，留设位置与洞顶封口可不作专门要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住净宽。",
+          "loss_reason": "漏距交接面≥500mm、封口、拉结筋。",
+          "fix": "补距交接面≥500mm、过梁封口、拉结筋。",
+          "option_id": "C06-html-practice-html-q14-44328085df27:option-2"
+        },
+        {
           "text": "洞口净宽不应大于 1m；侧边距交接面不应小于 500mm；并预埋拉结筋、上设过梁或挑砖封口。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "净宽、距交接面、封口、拉结筋四项齐。",
-          "option_id": "C06-html-practice-html-q14-8f09ea2ca634:option-1"
+          "option_id": "C06-html-practice-html-q14-44328085df27:option-3"
         },
         {
-          "text": "洞口净宽不应大于 1.2m；侧边距交接面不应小于 400mm。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数值差一点、易顺手。",
-          "loss_reason": "净宽应≤1m、距交接面应≥500mm，两处数值都错(真题指错点)。",
-          "fix": "净宽≤1m、距交接面≥500mm。",
-          "option_id": "C06-html-practice-html-q14-8f09ea2ca634:option-2"
-        },
-        {
-          "text": "控制净宽不大于 1m 即可，开在哪个位置无所谓。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记住净宽。",
-          "loss_reason": "漏距交接面≥500mm、封口、拉结筋。",
-          "fix": "补距交接面≥500mm、过梁封口、拉结筋。",
-          "option_id": "C06-html-practice-html-q14-8f09ea2ca634:option-3"
-        },
-        {
-          "text": "临时洞口宜开在墙体交接处，便于两面施工。",
+          "text": "临时施工洞口宜留设在内外墙的交接部位，以便两侧墙体同时组织砌筑施工作业。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "觉得开在交接处方便。",
           "loss_reason": "交接处最薄弱，洞口应远离≥500mm。",
           "fix": "距交接面≥500mm，不得开在交接处。",
-          "option_id": "C06-html-practice-html-q14-8f09ea2ca634:option-4"
+          "option_id": "C06-html-practice-html-q14-44328085df27:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q14-8f09ea2ca634",
+      "variant_id": "C06-html-practice-html-q14-44328085df27",
       "surface_id": "practice.html",
       "source_index": 13,
       "source_group": "Q",
@@ -1123,17 +1123,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3d0d5375929a066956522121b27dbc3a328381d485f741da4c64654eb0ac5a87",
+      "content_sha256": "9116d78ab096f8b46bc8639802988b478f3ae2682813b025245dfab297954091",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "3d0d5375929a066956522121b27dbc3a328381d485f741da4c64654eb0ac5a87",
+        "reviewed_content_sha256": "9116d78ab096f8b46bc8639802988b478f3ae2682813b025245dfab297954091",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1158,37 +1158,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "方向、尺寸、顺序三处失分全揪出并补全采分句。",
-          "option_id": "C06-html-practice-html-q15-321eb3ad0978:option-1"
+          "option_id": "C06-html-practice-html-q15-adc2627d1e58:option-1"
         },
         {
-          "text": "仅顺序写反，把③改成先砌墙后浇柱即可，①②都正确。",
+          "text": "仅第③处顺序有误，改为先砌墙后浇柱(先绑钢筋→砌墙→浇柱)即可；①的马牙槎方向与②的尺寸间距均正确。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "只看出顺序一处。",
           "loss_reason": "①先进后退错、②沿高 500 错，漏诊两处。",
           "fix": "三处都要改：方向、沿高、顺序。",
-          "option_id": "C06-html-practice-html-q15-321eb3ad0978:option-2"
+          "option_id": "C06-html-practice-html-q15-adc2627d1e58:option-2"
         },
         {
-          "text": "只是尺寸小问题，把沿高改成 300mm 即可，方向和顺序无碍。",
+          "text": "仅②的尺寸记错，把沿高改为不超过 300mm(每 500mm 设拉结筋)即可；①的方向与③的顺序均符合要求。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "抓住尺寸一处。",
           "loss_reason": "方向(先进后退)与顺序(先浇柱)均为采分点，漏诊。",
           "fix": "方向改先退后进、顺序改先砌墙后浇柱。",
-          "option_id": "C06-html-practice-html-q15-321eb3ad0978:option-3"
+          "option_id": "C06-html-practice-html-q15-adc2627d1e58:option-3"
         },
         {
-          "text": "作答基本正确，补一句‘砖柱不得包心砌法’即可满分。",
+          "text": "考生三处作答基本正确，只需在末尾补写一句‘砖柱不得包心砌法’即可拿到满分，无需再作其他修改。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "以为补一句就行。",
           "loss_reason": "三处硬错未纠，属方向性误判。",
           "fix": "先纠方向/尺寸/顺序三处硬错。",
-          "option_id": "C06-html-practice-html-q15-321eb3ad0978:option-4"
+          "option_id": "C06-html-practice-html-q15-adc2627d1e58:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q15-321eb3ad0978",
+      "variant_id": "C06-html-practice-html-q15-adc2627d1e58",
       "surface_id": "practice.html",
       "source_index": 14,
       "source_group": "Q",
@@ -1196,17 +1196,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b1b5768376ca9874c3b4efb5a7b6be76d97afdfb7b4ee19b804e2e0af0db0fc1",
+      "content_sha256": "f20f9b1f7908d5d65651c825d1a551f4bce669510c5ba749af81dd1f961fb1a6",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "b1b5768376ca9874c3b4efb5a7b6be76d97afdfb7b4ee19b804e2e0af0db0fc1",
+        "reviewed_content_sha256": "f20f9b1f7908d5d65651c825d1a551f4bce669510c5ba749af81dd1f961fb1a6",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1225,43 +1225,43 @@
       "model_answer": "净宽应≤1m；距交接面应≥500mm；上设过梁或挑砖封口；并预埋拉结筋。",
       "options": [
         {
+          "text": "在原句之后补写‘洞口尺寸要再小一点、注意位置’等定性说明即可覆盖采分，不必给出具体数值。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为定性说明就够。",
+          "loss_reason": "没给具体数值和位置，采分句不成立。",
+          "fix": "写≤1m、距交接面≥500mm等具体值。",
+          "option_id": "C06-html-practice-html-q16-0f022e9e1016:option-1"
+        },
+        {
           "text": "净宽不应大于 1m(1.2m 改为≤1m)；侧边距交接面不应小于 500mm；上设过梁或挑砖封口；并预埋拉结筋。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "给出具体数值+位置+封口+拉结筋，才是完整采分句。",
-          "option_id": "C06-html-practice-html-q16-d0b8b0f4eb46:option-1"
+          "option_id": "C06-html-practice-html-q16-0f022e9e1016:option-2"
         },
         {
-          "text": "补一句‘洞口尺寸要再小一点、注意位置’即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为定性说明就够。",
-          "loss_reason": "没给具体数值和位置，采分句不成立。",
-          "fix": "写≤1m、距交接面≥500mm等具体值。",
-          "option_id": "C06-html-practice-html-q16-d0b8b0f4eb46:option-2"
-        },
-        {
-          "text": "写‘净宽≤1m’一句即可，其余不必展开。",
+          "text": "在作答中补写‘净宽≤1m’一句即为完整采分句，距交接面、封口与拉结筋等内容不必展开。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "抓住净宽一项。",
           "loss_reason": "漏距交接面、封口、拉结筋。",
           "fix": "补距交接面≥500mm、过梁封口、拉结筋。",
-          "option_id": "C06-html-practice-html-q16-d0b8b0f4eb46:option-3"
+          "option_id": "C06-html-practice-html-q16-0f022e9e1016:option-3"
         },
         {
-          "text": "净宽≤1m、距交接面≥300mm，并预埋拉结筋。",
+          "text": "补写：洞口净宽不应大于 1m；侧边距交接面不应小于 300mm；并在洞口两侧预埋拉结筋。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "距离数值记小了。",
           "loss_reason": "距交接面应≥500mm，不是 300mm。",
           "fix": "距交接面≥500mm。",
-          "option_id": "C06-html-practice-html-q16-d0b8b0f4eb46:option-4"
+          "option_id": "C06-html-practice-html-q16-0f022e9e1016:option-4"
         }
       ],
-      "variant_id": "C06-html-practice-html-q16-d0b8b0f4eb46",
+      "variant_id": "C06-html-practice-html-q16-0f022e9e1016",
       "surface_id": "practice.html",
       "source_index": 15,
       "source_group": "Q",
@@ -1269,27 +1269,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q16",
       "source_anchor": "kc:1A413030_106_0208:0",
       "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c",
-      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
       "fact_id": "c06-fact-temp-opening-scoring",
       "skeleton_id": "c06-skel-临时洞口采分句补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "945331942cec235b80e6d63e51ccc8b20e803640ee6de178d84a1ed8530c4763",
+      "content_sha256": "2c890fafddcaeb73c40f315adcb2b5a55acff267068dabb42cc5886b5d7c8abc",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "945331942cec235b80e6d63e51ccc8b20e803640ee6de178d84a1ed8530c4763",
+        "reviewed_content_sha256": "2c890fafddcaeb73c40f315adcb2b5a55acff267068dabb42cc5886b5d7c8abc",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -1299,7 +1299,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "临时洞口净宽≤1m/侧距≥500mm/过梁或挑砖封口/预埋拉结筋, 教材 kc:...106_0208:0 直引。工单: 遗漏9度须会同设计等条件性枚举(不使现有采分句变错), 正确项偏长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "临时洞口净宽≤1m/侧距≥500mm/过梁或挑砖封口/预埋拉结筋, 教材 kc:...106_0208:0 直引。工单: 遗漏9度须会同设计等条件性枚举(不使现有采分句变错), 正确项偏长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     }
