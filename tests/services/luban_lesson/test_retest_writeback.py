@@ -25,6 +25,7 @@ from deeptutor.services.luban_lesson.retest_writeback import (
     RetestProbeClaimUnavailable,
     RetestWritebackService,
 )
+from deeptutor.services.luban_lesson.review_due import ReviewHorizonUnavailable
 
 
 @dataclass
@@ -429,6 +430,54 @@ def test_review_due_revalidation_uses_same_member_exam_horizon(
 
     assert due["cycle_anchor"] == "cycle-f16-v1"
     assert captured["exam_date_iso"] == "2026-09-19"
+
+
+def test_review_due_revalidation_propagates_member_profile_failure() -> None:
+    def _unavailable(_user_id: str) -> str:
+        raise ReviewHorizonUnavailable("member_profile_unavailable")
+
+    service = RetestWritebackService(
+        learner_state_service=_LearnerState(),
+        review_exam_date_resolver=_unavailable,
+    )
+
+    with pytest.raises(ReviewHorizonUnavailable, match="member_profile_unavailable"):
+        service._require_due_probe(
+            user_id="qa_eval_first_run_loop",
+            pack_id="F16",
+            probe_id="probe-f16",
+        )
+
+
+def test_review_due_revalidation_requires_member_profile_resolver() -> None:
+    service = RetestWritebackService(learner_state_service=_LearnerState())
+
+    with pytest.raises(ReviewHorizonUnavailable, match="member_profile_resolver_required"):
+        service._require_due_probe(
+            user_id="qa_eval_first_run_loop",
+            pack_id="F16",
+            probe_id="probe-f16",
+        )
+
+
+def test_forward_completion_never_reads_review_exam_horizon() -> None:
+    calls = 0
+
+    def _must_not_run(_user_id: str) -> str:
+        nonlocal calls
+        calls += 1
+        raise ReviewHorizonUnavailable("member_profile_unavailable")
+
+    result = _complete(
+        RetestWritebackService(
+            learner_state_service=_LearnerState(),
+            review_exam_date_resolver=_must_not_run,
+            training_intent_validator=lambda **_kwargs: True,
+        )
+    )
+
+    assert result["mode"] == "forward"
+    assert calls == 0
 
 
 def test_item_events_never_publish_completion_outcome() -> None:

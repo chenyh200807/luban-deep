@@ -24,6 +24,7 @@ from deeptutor.services.luban_lesson.retest_selection import (
     verify_retest_selection,
 )
 from deeptutor.services.luban_lesson.review_due import (
+    ReviewHorizonUnavailable,
     build_review_due_projection,
     resolve_due_review_probe,
 )
@@ -894,16 +895,14 @@ class RetestWritebackService:
             if due:
                 return dict(due)
             raise ValueError("retest_probe_not_due")
+        if self._review_exam_date_resolver is None:
+            raise ReviewHorizonUnavailable("member_profile_resolver_required")
         events = list(self._learner_state.list_memory_events(user_id, limit=None) or [])
         projection = build_review_due_projection(
             user_id=user_id,
             events=events,
             now_iso=datetime.now(timezone.utc).isoformat(),
-            exam_date_iso=(
-                str(self._review_exam_date_resolver(user_id) or "").strip()
-                if self._review_exam_date_resolver is not None
-                else ""
-            ),
+            exam_date_iso=str(self._review_exam_date_resolver(user_id) or "").strip(),
         )
         due = resolve_due_review_probe(
             projection,

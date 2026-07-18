@@ -3,9 +3,13 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
+
 from deeptutor.services.luban_lesson.review_due import (
+    ReviewHorizonUnavailable,
     build_review_due_projection,
     resolve_due_review_probe,
+    resolve_review_exam_date,
 )
 
 
@@ -398,6 +402,30 @@ def test_review_due_endpoint_flag_off_returns_empty(monkeypatch):
     assert out == {"due": [], "learned_count": 0, "authority": "revalidation_queue", "enabled": False}
 
 
+def test_review_exam_date_distinguishes_known_empty_from_profile_failure() -> None:
+    class _KnownEmpty:
+        def get_profile(self, user_id: str) -> dict:
+            return {"user_id": user_id, "exam_date": ""}
+
+    class _Unavailable:
+        def get_profile(self, user_id: str) -> dict:
+            raise RuntimeError("profile backend offline")
+
+    assert resolve_review_exam_date("u1", member_service=_KnownEmpty()) == ""
+    with pytest.raises(ReviewHorizonUnavailable, match="member_profile_unavailable"):
+        resolve_review_exam_date("u1", member_service=_Unavailable())
+
+
+@pytest.mark.parametrize("profile", [None, [], "", 0])
+def test_review_exam_date_rejects_non_object_profile(profile: object) -> None:
+    class _InvalidProfile:
+        def get_profile(self, user_id: str) -> object:
+            return profile
+
+    with pytest.raises(ReviewHorizonUnavailable, match="member_profile_unavailable"):
+        resolve_review_exam_date("u1", member_service=_InvalidProfile())
+
+
 def test_review_due_endpoint_flag_on_threads_exam_date(monkeypatch):
     """旗标开: 事件读自 learner_state service, exam_date 读自 member profile 并
     透传进投影(§6.1 地平线参数)。"""
@@ -421,3 +449,29 @@ def test_review_due_endpoint_flag_on_threads_exam_date(monkeypatch):
     assert out["enabled"] is True
     assert out["authority"] == "revalidation_queue"
     assert [d["pack_id"] for d in out["due"]] == ["F16"]
+
+
+def test_review_due_endpoint_maps_member_profile_failure_to_503(monkeypatch):
+    import asyncio
+
+    from fastapi import HTTPException
+
+    from deeptutor.api.routers import luban_lesson as router_module
+    import deeptutor.services.learner_state.service as ls_service
+
+    class _FakeService:
+        def list_learning_evidence_events(self, user_id, limit=None, since=None):
+            return []
+
+    def _unavailable(_user_id: str) -> str:
+        raise ReviewHorizonUnavailable("member_profile_unavailable")
+
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+    monkeypatch.setattr(ls_service, "get_learner_state_service", lambda: _FakeService())
+    monkeypatch.setattr(router_module, "_exam_date_for", _unavailable)
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(router_module.review_due(current_user=SimpleNamespace(user_id="u1")))
+
+    assert exc.value.status_code == 503
+    assert exc.value.detail == "review horizon member profile unavailable"

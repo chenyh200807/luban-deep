@@ -163,19 +163,23 @@ def _build_station_journey_from(
         }
 
 
+def _review_module_enabled() -> bool:
+    return str(os.getenv("LUBAN_REVIEW_MODULE_ENABLED", "") or "").strip().lower() in {
+        "1", "true", "yes", "on"
+    }
+
+
 def _build_pack_review_from(
     *,
+    enabled: bool,
     user_id: str,
     events: list[Any],
-    home_dashboard: dict[str, Any],
+    exam_date: str,
     events_available: bool = True,
-    settings_available: bool = True,
+    profile_available: bool = True,
     pack_lifecycle: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Cross-module pack review slice over the existing scheduler authority."""
-    enabled = str(os.getenv("LUBAN_REVIEW_MODULE_ENABLED", "") or "").strip().lower() in {
-        "1", "true", "yes", "on"
-    }
     if not enabled:
         return {
             "due": [],
@@ -183,7 +187,7 @@ def _build_pack_review_from(
             "authority": "revalidation_queue",
             "enabled": False,
         }
-    if not events_available or not settings_available:
+    if not events_available or not profile_available:
         return {
             "due": [],
             "learned_count": 0,
@@ -194,7 +198,7 @@ def _build_pack_review_from(
                 name
                 for name, available in (
                     ("learner_events", events_available),
-                    ("learner_settings", settings_available),
+                    ("member_profile", profile_available),
                 )
                 if not available
             ],
@@ -202,11 +206,10 @@ def _build_pack_review_from(
     try:
         from deeptutor.services.luban_lesson.review_due import build_review_due_projection
 
-        settings = _safe_dict(home_dashboard.get("learner_settings"))
         projection = build_review_due_projection(
             user_id=user_id,
             events=events,
-            exam_date_iso=str(settings.get("exam_date") or ""),
+            exam_date_iso=str(exam_date or "").strip(),
             pack_lifecycle=pack_lifecycle,
         )
         projection["enabled"] = True
@@ -264,6 +267,7 @@ _DEICTIC_TOPIC_LABELS = {
     "当前知识点",
 }
 _SOURCE_NAMES = (
+    "member_profile",
     "today_progress",
     "home_dashboard",
     "assessment_profile",
@@ -325,6 +329,32 @@ def build_learning_report_read_model(
 
     source_status: dict[str, dict[str, Any]] = {name: _idle_status() for name in _SOURCE_NAMES}
 
+    from deeptutor.services.luban_lesson.review_due import resolve_review_exam_date
+
+    review_enabled = _review_module_enabled()
+    review_exam_date = ""
+    if review_enabled:
+        review_exam_date, _ = _call_source(
+            source_status,
+            "member_profile",
+            lambda: resolve_review_exam_date(
+                normalized_user,
+                member_service=member_service,
+            ),
+            default="",
+        )
+    raw_events, _ = _call_source(
+        source_status,
+        "learner_events",
+        lambda: _list_learning_evidence_events(
+            learner_state_service,
+            normalized_user,
+            limit=None,
+            since="",
+        ),
+        default=[],
+    )
+
     legacy_sources = _call_sources_parallel(
         source_status,
         {
@@ -339,18 +369,6 @@ def build_learning_report_read_model(
     home_dashboard = legacy_sources.get("home_dashboard")
     assessment_profile = legacy_sources.get("assessment_profile")
     mastery_dashboard = legacy_sources.get("mastery_dashboard")
-    raw_events, _ = _call_source(
-        source_status,
-        "learner_events",
-        lambda: _list_learning_evidence_events(
-            learner_state_service,
-            normalized_user,
-            limit=None,
-            since="",
-        ),
-        default=[],
-    )
-
     legacy_today = _safe_dict(legacy_today)
     home_dashboard = _safe_dict(home_dashboard)
     assessment_profile = _safe_dict(assessment_profile)
@@ -397,11 +415,12 @@ def build_learning_report_read_model(
         episode_records=episode_records,
     )
     pack_review = _build_pack_review_from(
+        enabled=review_enabled,
         user_id=normalized_user,
         events=all_events,
-        home_dashboard=home_dashboard,
+        exam_date=str(review_exam_date or ""),
         events_available=source_status["learner_events"].get("ok") is True,
-        settings_available=source_status["home_dashboard"].get("ok") is True,
+        profile_available=source_status["member_profile"].get("ok") is True,
         pack_lifecycle=pack_lifecycle,
     )
     station_journey = _build_station_journey_from(
@@ -550,6 +569,7 @@ def build_learning_report_read_model(
             "note_assets_source": "learner_notebook_cards",
             "today_tasks_source": "learning-report-read-model.note_assets",
             "pack_review_source": "pack_lifecycle_projection -> revalidation_queue",
+            "review_horizon_source": "member_profile.exam_date",
             "station_journey_source": "station_journey_projection.read_model",
             "deprecated_page_sources": list(_DEPRECATED_PAGE_SOURCES),
         },

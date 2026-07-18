@@ -658,7 +658,9 @@ Overlay 必须支持：
    切换归后续阶段）。canonical review 成功后按 `mastery_estimator.DECAY_PROFILES`
    的既有 schedule 索引推进（code_application 早期为 3/7/14，仍受 14 天 cap）；失败
    重置 success streak 并回 weak cadence。该 v1 是确定性规则调度，不得冒充 FSRS。
-   `exam_date` 唯一读源 = member profile，读侧透传、不复制。
+   `exam_date` 唯一读源 = member profile，读侧透传、不复制。profile 成功且日期为空是合法的
+   “未设置”；profile 读取异常是 horizon unknown，必须 fail-closed，不得伪装成空日期或回退
+   `home_dashboard.learner_settings` / learner profile 镜像。
 4. pack 级到期投影 `luban_lesson/review_due.py`（GET `/api/v1/luban/review-due`）
    只消费 `pack_lifecycle_projection` 的 terminal facts、做粒度桥接与绿灯 join，零调度
    逻辑（禁第二调度器）；`probe_id` 必须包含当前 cycle anchor，避免旧 verified outcome
@@ -676,6 +678,8 @@ Overlay 必须支持：
    self-describing `selection_id v3`，缺 probe、非当前 due、无 cycle 或无可发供给均 fail-closed。
    GET 签发与 completion 复核必须向同一 revalidation projection 透传 member profile 的
    `exam_date` 地平线，不能一边压缩 cadence、一边按无地平线重算 due。
+   member profile 不可用时，review-due、review selection 与 review completion 统一返回
+   retryable HTTP 503；API wrapper 只映射该 domain failure，不得自造日期 fallback。
    completion 只解码并信任签名内的 pack/day/mode/exact variants/probe/cycle；客户端自报
    mode/day/probe 不得选择执行 authority。客户端只传选择，服务端按 selection 绑定的供给
    identity 经唯一 lesson supply resolver 重判；compiled Pack 不得回退 signed bank，只有无

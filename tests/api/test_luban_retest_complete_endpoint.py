@@ -12,6 +12,7 @@ from deeptutor.api.routers import luban_lesson as router
 from deeptutor.services.learner_state import service as learner_state_module
 from deeptutor.services.luban_lesson import retest_writeback as writeback_module
 from deeptutor.services.luban_lesson.practice_html import PracticeHtmlInvalid
+from deeptutor.services.luban_lesson.review_due import ReviewHorizonUnavailable
 
 
 def _receipt_token(
@@ -93,6 +94,11 @@ def test_retest_complete_is_thin_authenticated_adapter(monkeypatch) -> None:
             ),
             503,
             "retest probe atomic authority unavailable",
+        ),
+        (
+            ReviewHorizonUnavailable("member_profile_unavailable"),
+            503,
+            "review horizon member profile unavailable",
         ),
     ],
 )
@@ -251,6 +257,36 @@ def test_review_selection_rejects_stale_or_forged_probe(monkeypatch) -> None:
 
     assert exc.value.status_code == 400
     assert exc.value.detail == "retest_probe_not_due"
+
+
+def test_review_selection_maps_member_profile_failure_to_503(monkeypatch) -> None:
+    class _LearnerState:
+        def list_learning_evidence_events(self, *_args, **_kwargs):
+            return []
+
+    def _unavailable(_user_id: str) -> str:
+        raise ReviewHorizonUnavailable("member_profile_unavailable")
+
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(
+        learner_state_module,
+        "get_learner_state_service",
+        lambda: _LearnerState(),
+    )
+    monkeypatch.setattr(router, "_exam_date_for", _unavailable)
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_items(
+                "F16",
+                mode="review",
+                probe_id="probe-current",
+                current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+            )
+        )
+
+    assert exc.value.status_code == 503
+    assert exc.value.detail == "review horizon member profile unavailable"
 
 
 def test_forward_item_supply_requires_light_practice_flag(monkeypatch) -> None:

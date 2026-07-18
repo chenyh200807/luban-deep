@@ -247,6 +247,13 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
   - `completed` 只表示对应 episode 已有 canonical terminal/receipt，不表示 mastered；讲评完成只表示服务端已签发 canonical feedback，不声称用户已阅读。
   - learner events 不可用、authority/schema/pack 不匹配时客户端必须显示 unavailable，不得用 `next_step.mode`、本地点击或缓存零值猜 1/2/5。
 
+### 3.9 Review Horizon Authority
+
+- `source_status.member_profile` 是 `pack_review` 的同步 core source，直接读取 member profile，不进入 legacy dashboard executor/timeout。
+- `authority.review_horizon_source` 固定为 `member_profile.exam_date`；`home_dashboard.learner_settings` 仅为兼容镜像，不得参与排程。
+- profile 成功且 `exam_date=""` 表示已知未设置，仍可按无考期地平线排程。
+- profile 读取异常则 `pack_review.enabled=null`、`degraded_sources` 包含 `member_profile`，后两步必须 unavailable，禁止回退 dashboard 镜像。
+
 ---
 
 ## 4. Conversation Evidence 封闭枚举

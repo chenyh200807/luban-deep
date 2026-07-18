@@ -117,6 +117,9 @@ def learning_evidence_event(
 
 
 class FakeMemberService:
+    def get_profile(self, user_id: str) -> dict:
+        return {"user_id": user_id, "exam_date": ""}
+
     def get_today_progress(self, user_id: str) -> dict:
         return {"today_done": 0, "daily_target": 30, "streak_days": 0}
 
