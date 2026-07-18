@@ -1,48 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "C01",
   "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
   "source_bundle_sha256": "d5ae48ec488c6de9b21eee2362cefa529525db7146f2e6f9ef84761fd9eb665c",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        2,
-        3,
-        14
-      ],
-      "variant_ids": [
-        "C01-html-practice-html-q1-acc6b596f503",
-        "C01-html-practice-html-q2-ef00f8f4d305",
-        "C01-html-practice-html-q3-1e65c200f4eb",
-        "C01-html-practice-html-q4-cab9423f74d4",
-        "C01-html-practice-html-q15-897464688b02"
-      ],
-      "eligible_variant_ids": [
-        "C01-html-practice-html-q1-acc6b596f503",
-        "C01-html-practice-html-q2-ef00f8f4d305",
-        "C01-html-practice-html-q3-1e65c200f4eb",
-        "C01-html-practice-html-q4-cab9423f74d4",
-        "C01-html-practice-html-q11-181529315ae5",
-        "C01-html-practice-html-q13-41249b14bfc5",
-        "C01-html-practice-html-q15-897464688b02"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYWNjNmI1OTZmNTAzIiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lZjAwZjhmNGQzMDUiLCJDMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTFlNjVjMjAwZjRlYiIsIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtY2FiOTQyM2Y3NGQ0IiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtODk3NDY0Njg4YjAyIl0sInBhY2tfaWQiOiJDMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjIxNWYzZTdlNzhlYjQwNDJmZDUyMTIwZjI5NTlkZjA4NGM1MzA2Mjg5MmRiNWQxOTdlOGI5MzVmMWQ2N2Q2ZWEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjRkNjE3MjhjMDI5Y2NkNjNiMGQ1ZTE3OTYwYzc3Yzg1MDcxODFiYTk0MDkxMWIyMTI2Y2UwYjZjZTY3ZTVkYSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "85868cefef15a74b5a35562a610d409c235bc8f76fed3abd80276f445a454f39"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 15,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "施工缝·位置",
+      "variant_id": "C01-html-practice-html-q1-acc6b596f503",
+      "surface_id": "practice.html",
       "stem": "施工缝的留置位置，选出各构件都对、能得分的作答。",
-      "model_answer": "柱留基础/楼板/梁顶面；单向板平行短边任意位置；有主次梁楼板留次梁跨中1/3；墙留门洞口过梁跨中1/3或纵横交接处；楼梯梯段端部1/3；双向板按设计确定。",
       "options": [
         {
           "text": "柱在梁板顶面、单向板平行短边任意位置、有主次梁楼板留次梁跨中1/3、墙留洞口过梁跨中1/3或交接处、楼梯端部1/3、双向板按设计确定。",
@@ -81,53 +56,50 @@
           "option_id": "C01-html-practice-html-q1-acc6b596f503:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q1-acc6b596f503",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q1",
-      "source_anchor": "exam:2021:第8题",
-      "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "c01-fact-joint-location-by-member",
-      "skeleton_id": "c01-skel-构件留置位置枚举",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "柱留基础/楼板/梁顶面；单向板平行短边任意位置；有主次梁楼板留次梁跨中1/3；墙留门洞口过梁跨中1/3或纵横交接处；楼梯梯段端部1/3；双向板按设计确定。",
+      "rule_group": "施工缝·位置",
       "content_sha256": "251b6de402b76a6522839960c98b9fef47e697186dda3b52ac26a50934f85112",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "251b6de402b76a6522839960c98b9fef47e697186dda3b52ac26a50934f85112",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q1",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "c01-fact-joint-location-by-member",
+        "skeleton_id": "c01-skel-构件留置位置枚举",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2021:第8题",
+        "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "251b6de402b76a6522839960c98b9fef47e697186dda3b52ac26a50934f85112",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "施工缝各构件留置位置,锚2021真题(ACDE)。工单:柱位置可补全基础顶面等教材范围(现仅梁板顶面,非错但不穷尽)。"
         },
-        "note": "施工缝各构件留置位置,锚2021真题(ACDE)。工单:柱位置可补全基础顶面等教材范围(现仅梁板顶面,非错但不穷尽)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "施工缝·受力位置",
+      "variant_id": "C01-html-practice-html-q2-ef00f8f4d305",
+      "surface_id": "practice.html",
       "stem": "关于施工缝留在受剪力较小还是较大处，选出正确、能得分的表述。",
-      "model_answer": "施工缝宜留在受剪力较小、便于施工的部位；必要时经设计单位确认。",
       "options": [
         {
           "text": "施工缝宜留在受剪力较小、便于施工的部位，必要时经设计单位确认。",
@@ -166,53 +138,50 @@
           "option_id": "C01-html-practice-html-q2-ef00f8f4d305:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q2-ef00f8f4d305",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q2",
-      "source_anchor": "ca:1A413030_103_0196",
-      "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "c01-fact-joint-shear-position",
-      "skeleton_id": "c01-skel-受剪力较小判据",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "施工缝宜留在受剪力较小、便于施工的部位；必要时经设计单位确认。",
+      "rule_group": "施工缝·受力位置",
       "content_sha256": "25e5d2d7595127042b2400822c1a3c2acf6292f8ee07e3539e9ec6a6f5c25ae0",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "25e5d2d7595127042b2400822c1a3c2acf6292f8ee07e3539e9ec6a6f5c25ae0",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q2",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "c01-fact-joint-shear-position",
+        "skeleton_id": "c01-skel-受剪力较小判据",
+        "probe_role": "anchor",
+        "source_anchor": "ca:1A413030_103_0196",
+        "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "25e5d2d7595127042b2400822c1a3c2acf6292f8ee07e3539e9ec6a6f5c25ae0",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "受剪力较小+必要时设计确认,教材primary scoring card(grading_keywords 含受剪力较小/设计单位确认)。工单:distractor 措辞'被剪力撕开'可改精确表述。"
         },
-        "note": "受剪力较小+必要时设计确认,教材primary scoring card(grading_keywords 含受剪力较小/设计单位确认)。工单:distractor 措辞'被剪力撕开'可改精确表述。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "施工缝·时机",
+      "variant_id": "C01-html-practice-html-q3-1e65c200f4eb",
+      "surface_id": "practice.html",
       "stem": "关于施工缝的留设时机，选出能得分的作答。",
-      "model_answer": "浇筑宜连续；必须间歇时尽量缩短，并在前层混凝土初凝前浇完次层，否则留置施工缝。",
       "options": [
         {
           "text": "浇筑宜连续；必须间歇时尽量缩短，并在前层混凝土初凝前浇完次层，否则留置施工缝。",
@@ -251,53 +220,50 @@
           "option_id": "C01-html-practice-html-q3-1e65c200f4eb:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q3-1e65c200f4eb",
-      "surface_id": "practice.html",
-      "source_index": 2,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q3",
-      "source_anchor": "cc:1A413030_103_0196:3",
-      "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "c01-fact-joint-continuity-timing",
-      "skeleton_id": "c01-skel-初凝前浇次层",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "浇筑宜连续；必须间歇时尽量缩短，并在前层混凝土初凝前浇完次层，否则留置施工缝。",
+      "rule_group": "施工缝·时机",
       "content_sha256": "92818b12ead551095f760b45ef427dd26b62d30cd4a59fb34c18da1d982fa0f7",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "92818b12ead551095f760b45ef427dd26b62d30cd4a59fb34c18da1d982fa0f7",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q3",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "c01-fact-joint-continuity-timing",
+        "skeleton_id": "c01-skel-初凝前浇次层",
+        "probe_role": "anchor",
+        "source_anchor": "cc:1A413030_103_0196:3",
+        "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "92818b12ead551095f760b45ef427dd26b62d30cd4a59fb34c18da1d982fa0f7",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "初凝前浇次层否则留缝,教材直引。工单:distractor'成通缝'为冷缝口语,可规范化。"
         },
-        "note": "初凝前浇次层否则留缝,教材直引。工单:distractor'成通缝'为冷缝口语,可规范化。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "施工缝·数值",
+      "variant_id": "C01-html-practice-html-q4-cab9423f74d4",
+      "surface_id": "practice.html",
       "stem": "柱、墙水平施工缝距结构上表面的距离，选出数值正确的作答。",
-      "model_answer": "柱水平施工缝距结构上表面0~100mm；墙0~300mm；均留在梁板顶面等受剪力较小处。",
       "options": [
         {
           "text": "柱水平施工缝距结构上表面0~100mm，墙0~300mm，都留在梁板顶面等受剪力较小处。",
@@ -336,53 +302,50 @@
           "option_id": "C01-html-practice-html-q4-cab9423f74d4:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q4-cab9423f74d4",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q4",
-      "source_anchor": "kc:1A413030_103_0196:0",
-      "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "c01-fact-joint-horizontal-distance",
-      "skeleton_id": "c01-skel-水平缝数值0-100-0-300",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "柱水平施工缝距结构上表面0~100mm；墙0~300mm；均留在梁板顶面等受剪力较小处。",
+      "rule_group": "施工缝·数值",
       "content_sha256": "7d1a79635ac4d077d0109968c7bf17b72ff2c5c4359f4890b9d9fdcfeb5bb6eb",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "7d1a79635ac4d077d0109968c7bf17b72ff2c5c4359f4890b9d9fdcfeb5bb6eb",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q4",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "c01-fact-joint-horizontal-distance",
+        "skeleton_id": "c01-skel-水平缝数值0-100-0-300",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_103_0196:0",
+        "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "7d1a79635ac4d077d0109968c7bf17b72ff2c5c4359f4890b9d9fdcfeb5bb6eb",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "柱0~100mm/墙0~300mm,教材数值直引,清洁锚。"
         },
-        "note": "柱0~100mm/墙0~300mm,教材数值直引,清洁锚。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "施工缝·次梁1/3",
+      "variant_id": "C01-html-practice-html-q5-5ecb69769696",
+      "surface_id": "practice.html",
       "stem": "有主次梁的楼板，施工缝应留在哪里？选出正确、能得分的作答。",
-      "model_answer": "施工缝留在次梁跨中1/3范围内（受剪力较小段）。",
       "options": [
         {
           "text": "施工缝留在次梁跨中1/3范围内，该段受剪力较小、便于施工。",
@@ -421,41 +384,38 @@
           "option_id": "C01-html-practice-html-q5-5ecb69769696:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q5-5ecb69769696",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "施工缝留在次梁跨中1/3范围内（受剪力较小段）。",
+      "rule_group": "施工缝·次梁1/3",
       "content_sha256": "1d84cf7f8c197ee0caf6446d25158261852103934afc5da8bcf5eb3a024548ec",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "1d84cf7f8c197ee0caf6446d25158261852103934afc5da8bcf5eb3a024548ec",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q5",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "1d84cf7f8c197ee0caf6446d25158261852103934afc5da8bcf5eb3a024548ec",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "施工缝·处理工序",
+      "variant_id": "C01-html-practice-html-q6-b89d5a8ce30f",
+      "surface_id": "practice.html",
       "stem": "施工缝处理后再浇筑的工序，选出顺序和关键词都对、能得分的作答。",
-      "model_answer": "已浇混凝土强度达1.2N/mm²→凿毛处理→清理松动石子和浮浆→铺30mm厚水泥砂浆→浇筑振捣养护。",
       "options": [
         {
           "text": "已浇强度达1.2N/mm²→凿毛→清理松动石子和浮浆→铺30mm水泥砂浆→浇筑振捣养护。",
@@ -494,41 +454,38 @@
           "option_id": "C01-html-practice-html-q6-b89d5a8ce30f:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q6-b89d5a8ce30f",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "已浇混凝土强度达1.2N/mm²→凿毛处理→清理松动石子和浮浆→铺30mm厚水泥砂浆→浇筑振捣养护。",
+      "rule_group": "施工缝·处理工序",
       "content_sha256": "4d3ceb9ff1df2447450ccc4e0e19c12ba5f581d7a733660e620cc6d19ff74bc5",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "4d3ceb9ff1df2447450ccc4e0e19c12ba5f581d7a733660e620cc6d19ff74bc5",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q6",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "4d3ceb9ff1df2447450ccc4e0e19c12ba5f581d7a733660e620cc6d19ff74bc5",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "防水混凝土·养护",
+      "variant_id": "C01-html-practice-html-q8-66d34c05639c",
+      "surface_id": "practice.html",
       "stem": "防水混凝土的养护时间要求，选出正确、能得分的作答。",
-      "model_answer": "防水混凝土养护时间不少于14d。",
       "options": [
         {
           "text": "防水混凝土养护时间不少于14d，保持湿润养护。",
@@ -567,41 +524,38 @@
           "option_id": "C01-html-practice-html-q8-66d34c05639c:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q8-66d34c05639c",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "防水混凝土养护时间不少于14d。",
+      "rule_group": "防水混凝土·养护",
       "content_sha256": "936c7cc9627b12cb3f99825519e8af7efbf672a3c3cda75e14caa8d38f680a13",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "936c7cc9627b12cb3f99825519e8af7efbf672a3c3cda75e14caa8d38f680a13",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q8",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "936c7cc9627b12cb3f99825519e8af7efbf672a3c3cda75e14caa8d38f680a13",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "接槎·后果",
+      "variant_id": "C01-html-practice-html-q9-16bd09afecef",
+      "surface_id": "practice.html",
       "stem": "施工缝、接槎部位若不清理干净就浇筑，会导致什么？选出正确作答。",
-      "model_answer": "施工缝/接槎未清理干净→新旧混凝土粘结不良→接槎明显、易渗漏；故须清理松动石子浮浆并凿毛。",
       "options": [
         {
           "text": "接槎未清理干净→新旧混凝土粘结不良→接槎明显、易渗漏，故须清理浮浆并凿毛。",
@@ -640,41 +594,38 @@
           "option_id": "C01-html-practice-html-q9-16bd09afecef:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q9-16bd09afecef",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "施工缝/接槎未清理干净→新旧混凝土粘结不良→接槎明显、易渗漏；故须清理松动石子浮浆并凿毛。",
+      "rule_group": "接槎·后果",
       "content_sha256": "50f4af7afb69f90eb270849fea17f0282e81a9a44e0aeb89700b5987b14bd4be",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "50f4af7afb69f90eb270849fea17f0282e81a9a44e0aeb89700b5987b14bd4be",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q9",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "50f4af7afb69f90eb270849fea17f0282e81a9a44e0aeb89700b5987b14bd4be",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "后浇带·材料",
+      "variant_id": "C01-html-practice-html-q10-a29d3be91ddf",
+      "surface_id": "practice.html",
       "stem": "后浇带浇筑应选用什么混凝土？选出正确、能得分的作答。",
-      "model_answer": "采用微膨胀混凝土，靠膨胀建立预压应力、补偿两侧收缩，防止后浇带被拉裂。",
       "options": [
         {
           "text": "采用微膨胀混凝土，靠膨胀建立预压应力补偿收缩，抵消两侧收缩拉力。",
@@ -713,41 +664,38 @@
           "option_id": "C01-html-practice-html-q10-a29d3be91ddf:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q10-a29d3be91ddf",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "采用微膨胀混凝土，靠膨胀建立预压应力、补偿两侧收缩，防止后浇带被拉裂。",
+      "rule_group": "后浇带·材料",
       "content_sha256": "4039e0b3e08e28a79b8bca576812c7d2841c4908e5a96e9ab22bf343deec3d43",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "4039e0b3e08e28a79b8bca576812c7d2841c4908e5a96e9ab22bf343deec3d43",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q10",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "4039e0b3e08e28a79b8bca576812c7d2841c4908e5a96e9ab22bf343deec3d43",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "后浇带·强度等级",
+      "variant_id": "C01-html-practice-html-q11-181529315ae5",
+      "surface_id": "practice.html",
       "stem": "后浇带混凝土的强度等级要求，选出正确、能得分的作答。",
-      "model_answer": "后浇带混凝土强度等级应比原结构提高一级（如C30→C35）。",
       "options": [
         {
           "text": "后浇带混凝土强度等级应比原结构提高一级，如原结构C30则后浇带用C35。",
@@ -786,53 +734,50 @@
           "option_id": "C01-html-practice-html-q11-181529315ae5:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q11-181529315ae5",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q11",
-      "source_anchor": "exam:2018:案例分析(三)问题3",
-      "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "c01-fact-post-cast-strip",
-      "skeleton_id": "c01-skel-后浇带强度等级",
-      "probe_role": "d1_probe",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "后浇带混凝土强度等级应比原结构提高一级（如C30→C35）。",
+      "rule_group": "后浇带·强度等级",
       "content_sha256": "f8b58c8fb89318b6e2f52d210ae2aa079578e0fe07bc3623788b11747c40246e",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "f8b58c8fb89318b6e2f52d210ae2aa079578e0fe07bc3623788b11747c40246e",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q11",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "c01-fact-post-cast-strip",
+        "skeleton_id": "c01-skel-后浇带强度等级",
+        "probe_role": "d1_probe",
+        "source_anchor": "exam:2018:案例分析(三)问题3",
+        "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "f8b58c8fb89318b6e2f52d210ae2aa079578e0fe07bc3623788b11747c40246e",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "后浇带强度比原结构提高一级(C30→C35),真题答案含'强度等级比原结构强度提高一级';教材kc:...:1亦言'强度提高一级'。工单:distractor'内聚支撑'措辞可改'补偿收缩'。"
         },
-        "note": "后浇带强度比原结构提高一级(C30→C35),真题答案含'强度等级比原结构强度提高一级';教材kc:...:1亦言'强度提高一级'。工单:distractor'内聚支撑'措辞可改'补偿收缩'。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "后浇带·封闭时间",
+      "variant_id": "C01-html-practice-html-q12-dd4a33b3812b",
+      "surface_id": "practice.html",
       "stem": "基础底板后浇带应在什么时候封闭？选出正确、能得分的作答。",
-      "model_answer": "基础底板后浇带应在两侧主体完成初期收缩后，至少28d后再封闭。",
       "options": [
         {
           "text": "基础底板后浇带应至少28d后再封闭，待两侧主体完成初期收缩。",
@@ -871,41 +816,38 @@
           "option_id": "C01-html-practice-html-q12-dd4a33b3812b:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q12-dd4a33b3812b",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "基础底板后浇带应在两侧主体完成初期收缩后，至少28d后再封闭。",
+      "rule_group": "后浇带·封闭时间",
       "content_sha256": "a65254a406974368507d37707a704237634be1b2287c6cce8bc6a809af63544f",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "a65254a406974368507d37707a704237634be1b2287c6cce8bc6a809af63544f",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q12",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "a65254a406974368507d37707a704237634be1b2287c6cce8bc6a809af63544f",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "后浇带·技术措施",
+      "variant_id": "C01-html-practice-html-q13-41249b14bfc5",
+      "surface_id": "practice.html",
       "stem": "写出后浇带混凝土施工的主要技术措施，选出最完整、能得分的作答。",
-      "model_answer": "整理钢筋→冲洗松动部分→微膨胀混凝土→强度比原结构提高一级→≥14d湿润养护→接缝按施工缝处理。",
       "options": [
         {
           "text": "整理钢筋、冲洗松动部分、微膨胀混凝土、强度提高一级、≥14d湿润养护、接缝按施工缝处理。",
@@ -944,53 +886,50 @@
           "option_id": "C01-html-practice-html-q13-41249b14bfc5:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q13-41249b14bfc5",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q13",
-      "source_anchor": "exam:2018:案例分析(三)问题3",
-      "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "c01-fact-post-cast-strip",
-      "skeleton_id": "c01-skel-后浇带技术措施",
-      "probe_role": "immediate_confirm",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "整理钢筋→冲洗松动部分→微膨胀混凝土→强度比原结构提高一级→≥14d湿润养护→接缝按施工缝处理。",
+      "rule_group": "后浇带·技术措施",
       "content_sha256": "09c488ddd5feb49d019e1b1e02dcdb557e74ad85f03a703003b9ad6e15e4048d",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "09c488ddd5feb49d019e1b1e02dcdb557e74ad85f03a703003b9ad6e15e4048d",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q13",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "c01-fact-post-cast-strip",
+        "skeleton_id": "c01-skel-后浇带技术措施",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2018:案例分析(三)问题3",
+        "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "09c488ddd5feb49d019e1b1e02dcdb557e74ad85f03a703003b9ad6e15e4048d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "后浇带技术措施(整理钢筋/冲洗/微膨胀/提高一级/≥14d养护/按缝处理),锚2018真题标准答案(列整理钢筋/冲洗/微膨胀/提高一级/14d)。工单:'接缝按施工缝处理'一项provenance在教材kc:...:1侧。"
         },
-        "note": "后浇带技术措施(整理钢筋/冲洗/微膨胀/提高一级/≥14d养护/按缝处理),锚2018真题标准答案(列整理钢筋/冲洗/微膨胀/提高一级/14d)。工单:'接缝按施工缝处理'一项provenance在教材kc:...:1侧。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "后浇带·指错（模板/钢丝网）",
+      "variant_id": "C01-html-practice-html-q14-2f040e518766",
+      "surface_id": "practice.html",
       "stem": "某后浇带专项方案：「模板独立支设、剔除模板用钢丝网」。选出指错并写出正确做法、能得分的作答。",
-      "model_answer": "模板独立支设不妥，应与主体结构同步支撑；钢丝网不应剔除，应保留防漏浆。",
       "options": [
         {
           "text": "模板独立支设不妥，应与主体结构同步支撑；钢丝网应保留防漏浆，不应剔除。",
@@ -1029,41 +968,38 @@
           "option_id": "C01-html-practice-html-q14-2f040e518766:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q14-2f040e518766",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "模板独立支设不妥，应与主体结构同步支撑；钢丝网不应剔除，应保留防漏浆。",
+      "rule_group": "后浇带·指错（模板/钢丝网）",
       "content_sha256": "7fe2f710e944b890b89ab7e1ff70812c960158064577b19033bcee3295132050",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "7fe2f710e944b890b89ab7e1ff70812c960158064577b19033bcee3295132050",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q14",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "7fe2f710e944b890b89ab7e1ff70812c960158064577b19033bcee3295132050",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "C01-html-practice-html-q15-897464688b02",
+      "surface_id": "practice.html",
       "stem": "某学生答后浇带措施：「用与原结构同强度的混凝土填、10天后封闭、好好养护」。选出最准确的诊断与补写。",
-      "model_answer": "三处失分：应用微膨胀混凝土(非同强度)、底板≥28d后封闭(非10d)、养护应写≥14d并补强度提高一级/整理钢筋冲洗/接缝按施工缝处理。",
       "options": [
         {
           "text": "三处都要改：应用微膨胀混凝土、底板≥28d后封闭、养护写≥14d并补提高一级/整钢筋冲洗/按缝处理。",
@@ -1102,53 +1038,50 @@
           "option_id": "C01-html-practice-html-q15-897464688b02:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q15-897464688b02",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q15",
-      "source_anchor": "kc:1A413030_103_0196:1",
-      "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "c01-fact-post-cast-strip",
-      "skeleton_id": "c01-skel-后浇带诊断补写",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "三处失分：应用微膨胀混凝土(非同强度)、底板≥28d后封闭(非10d)、养护应写≥14d并补强度提高一级/整理钢筋冲洗/接缝按施工缝处理。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "ee4ea7f673b8f8cc74ff20edcb02110f36824b55589c42c34088c250d607d14b",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "ee4ea7f673b8f8cc74ff20edcb02110f36824b55589c42c34088c250d607d14b",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q15",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "c01-fact-post-cast-strip",
+        "skeleton_id": "c01-skel-后浇带诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_103_0196:1",
+        "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "ee4ea7f673b8f8cc74ff20edcb02110f36824b55589c42c34088c250d607d14b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:45:57+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:45:57+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "后浇带诊断:微膨胀/提高一级/≥14d/28d封闭。教材chunk直言'后浇带使用微膨胀混凝土'(非'可采用'),答案模态与教材一致;28d封闭为基础底板真题锚(exam:2018)补充。"
         },
-        "note": "后浇带诊断:微膨胀/提高一级/≥14d/28d封闭。教材chunk直言'后浇带使用微膨胀混凝土'(非'可采用'),答案模态与教材一致;28d封闭为基础底板真题锚(exam:2018)补充。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "概念·后浇带vs普通缝",
+      "variant_id": "C01-html-practice-html-q16-b53b81b63fc4",
+      "surface_id": "practice.html",
       "stem": "后浇带与普通施工缝在处理上的区别，选出正确、能得分的作答。",
-      "model_answer": "后浇带需微膨胀混凝土、强度提高一级、底板≥28d封闭、≥14d养护；普通施工缝按达1.2N/mm²→凿毛→清理→30mm砂浆→浇筑处理。",
       "options": [
         {
           "text": "后浇带需微膨胀混凝土、提高一级、≥28d封闭；普通施工缝按达强度→凿毛→清理→砂浆→浇筑处理。",
@@ -1187,36 +1120,42 @@
           "option_id": "C01-html-practice-html-q16-b53b81b63fc4:option-4"
         }
       ],
-      "variant_id": "C01-html-practice-html-q16-b53b81b63fc4",
-      "surface_id": "practice.html",
-      "source_index": 15,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "后浇带需微膨胀混凝土、强度提高一级、底板≥28d封闭、≥14d养护；普通施工缝按达1.2N/mm²→凿毛→清理→30mm砂浆→浇筑处理。",
+      "rule_group": "概念·后浇带vs普通缝",
       "content_sha256": "979b1282bee2fe71f892649f6d5e3f83530ab818f74c7090d40feed23ce6940b",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "979b1282bee2fe71f892649f6d5e3f83530ab818f74c7090d40feed23ce6940b",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q16",
+      "authoring_sha256": "9a0a80795d1013cf2b9ee6b99a8e5663ade12f553ec6cc98d5dc699560726532",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "979b1282bee2fe71f892649f6d5e3f83530ab818f74c7090d40feed23ce6940b",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
   ],
-  "published_lesson_sha256": "6c2bc438e4dffc9ca59db1f202ff653cbd9d89eed7c4da0cbf461928ef67df3f"
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (c01.codex.out, rejected 7/7 max-strict); main-control adjudicated每条against _C01_compiled_source.json textbook chunks: 答案全部教材正确、引文均真实可溯、无破坏答案的限定词删失;Codex 的 fabrication 标记经核为方向正确的教学简化(通缝=冷缝/补偿收缩/受剪撕开),非假机理;残留为措辞工单,按 N01 先例(approved+note工单)签发。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }
