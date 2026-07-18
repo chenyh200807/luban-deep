@@ -141,7 +141,9 @@
 }
 
 .avatar-char {
-  font-size: 44rpx;
+  /* 10f 版式：头像首字用书法体（与 pk-poster/empty-seal 同一字体链） */
+  font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive;
+  font-size: 48rpx;
   color: var(--pk-grn);
   font-weight: 700;
 }

@@ -33,7 +33,34 @@
       </view>
 
       <view class="detail-error" wx:if="{{errorText}}">{{errorText}}</view>
-      <view class="detail-loading" wx:if="{{loading}}">正在读取当时的作答与解析...</view>
+
+      <!-- 加载骨架：卡片轮廓与正文行 -->
+      <view class="detail-skel" wx:if="{{loading}}">
+        <view class="skel-card">
+          <view class="skel-line skel-kicker"></view>
+          <view class="skel-line"></view>
+          <view class="skel-line skel-short"></view>
+        </view>
+        <view class="skel-card">
+          <view class="skel-line skel-kicker"></view>
+          <view class="skel-line"></view>
+          <view class="skel-line"></view>
+          <view class="skel-line skel-short"></view>
+        </view>
+        <text class="detail-loading-note">正在读取当时的作答与解析…</text>
+      </view>
+
+      <!-- 空态：没有任何可复盘证据时不再留白 -->
+      <view class="detail-empty" wx:if="{{!loading && isEmpty}}">
+        <view class="empty-seal">
+          <text class="empty-seal-txt">复</text>
+        </view>
+        <text class="empty-title">这条作答还没有可复盘的细节</text>
+        <text class="empty-desc">完成一次可批改的练习后，当时的作答、错因和系统讲解会沉淀到这里。</text>
+        <view class="empty-cta" bindtap="goBack" hover-class="empty-cta-pressed" aria-role="button" aria-label="返回学情">
+          <text class="empty-cta-txt">返回学情</text>
+        </view>
+      </view>
 
       <view class="explanation-section" wx:if="{{detail.explanationSections && detail.explanationSections.length}}">
         <text class="section-kicker">系统当时怎么讲清楚的</text>

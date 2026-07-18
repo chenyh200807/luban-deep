@@ -88,8 +88,11 @@ def test_progression_summary_counts_active_weak_and_recurrent() -> None:
 
 
 def test_progression_summary_trend_direction_is_valid_value() -> None:
+    # 零证据(无 weak_points)→ 空方向:不宣称"在减少/稳定",由前端 fail-closed
+    # 落"完成更多练习后再看"。有证据时方向必须是三值之一。
+    analytics = _build_long_term_analytics({"weak_points": []})
+    assert analytics["progression_summary"]["trend_direction"] == ""
     for brain in [
-        {"weak_points": []},
         {"weak_points": [_wp("x", "e", [_occ("a", "2026-06-01T00:00:00")])]},
         {"weak_points": [_wp("x", "e", [_occ("a", "2026-06-01T00:00:00"),
                                           _occ("b", "2026-06-03T00:00:00")])]},
@@ -106,7 +109,17 @@ def test_empty_learning_brain_produces_empty_analytics() -> None:
     assert analytics["recurrent_errors"] == []
     assert analytics["progression_summary"]["active_weak_count"] == 0
     assert analytics["progression_summary"]["recurrent_error_count"] == 0
+    # 空脑=零证据:方向为空(原断言 improving 是"没有记录也算在进步"的洗白契约)
+    assert analytics["progression_summary"]["trend_direction"] == ""
+
+
+def test_weak_points_without_recurrence_report_improving() -> None:
+    """有薄弱点但没有一个反复出现 → 方向确实是 improving(有证据支撑的宣称)。"""
+    brain = {"weak_points": [_wp("x", "e", [_occ("a", "2026-06-01T00:00:00")])]}
+    analytics = _build_long_term_analytics(brain)
     assert analytics["progression_summary"]["trend_direction"] == "improving"
+    assert analytics["progression_summary"]["active_weak_count"] == 1
+    assert analytics["progression_summary"]["recurrent_error_count"] == 0
 
 
 # ── D2-D: top-level report exposes long_term_analytics key ───────────────────

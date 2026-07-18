@@ -1,20 +1,25 @@
 @import "/packageDeeptutor/styles/paper-ink.wxss";
 
+/* pages/attempt-detail/attempt-detail.wxss — 学情证据链三级页（纸墨朱竹单层）
+ * 字号阶梯统一：20(装饰) / 22(注) / 24(辅) / 26(正文) / 28(强调正文) / 32(节标) / 40(页题)
+ * palette 全走 --pk-* token；亮/暗由 paper-ink 切换。 */
+
 .attempt-detail-page {
   height: 100vh;
   overflow: hidden;
-  background: #050910;
-  color: #f8fafc;
+  color: var(--pk-t1);
+  font-family: -apple-system, "PingFang SC", sans-serif;
 }
 
+/* ── 导航 ───────────────────────────────────────────────── */
 .detail-nav {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 20;
-  background: rgba(5, 9, 16, 0.94);
-  border-bottom: 1rpx solid rgba(148, 163, 184, 0.14);
+  background: var(--pk-paper);
+  border-bottom: 1rpx solid var(--pk-bd);
 }
 
 .detail-nav-inner {
@@ -33,22 +38,26 @@
   padding: 10rpx 10rpx 10rpx 0;
 }
 
+.detail-back:active {
+  opacity: 0.72;
+}
+
 .detail-back-arrow {
   font-size: 44rpx;
   line-height: 1;
-  color: #93c5fd;
+  color: var(--pk-grn);
 }
 
 .detail-back-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 700;
-  color: #93c5fd;
+  color: var(--pk-grn);
 }
 
 .detail-nav-title {
   font-size: 32rpx;
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--pk-t1);
 }
 
 .detail-scroll {
@@ -59,59 +68,71 @@
 }
 
 .detail-inner {
-  padding: 26rpx 30rpx 48rpx;
+  padding: 24rpx 26rpx 48rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
 }
 
+/* ── 头卡：结论 chip + 标题 ─────────────────────────────── */
 .detail-hero {
-  padding: 24rpx 0 18rpx;
+  padding: 28rpx 28rpx 24rpx;
+  border-radius: 30rpx;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
 }
 
 .detail-result {
   display: inline-flex;
-  margin-bottom: 16rpx;
-  padding: 8rpx 14rpx;
-  border-radius: 10rpx;
+  margin-bottom: 14rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
   font-size: 22rpx;
   font-weight: 800;
+  letter-spacing: 1rpx;
+}
+
+.result-good {
+  color: var(--pk-grn);
+  background: var(--pk-accent-soft);
 }
 
 .result-bad,
 .result-danger {
-  color: #fecaca;
-  background: rgba(248, 113, 113, 0.16);
-}
-
-.result-good {
-  color: #bbf7d0;
-  background: rgba(34, 197, 94, 0.16);
+  color: var(--pk-warn);
+  background: rgba(194, 101, 85, 0.12);
 }
 
 .detail-title {
   display: block;
-  font-size: 42rpx;
-  line-height: 1.22;
-  font-weight: 900;
-  color: #f8fafc;
+  font-size: 40rpx;
+  line-height: 1.25;
+  font-weight: 800;
+  color: var(--pk-t1);
 }
 
 .detail-subtitle {
   display: block;
-  margin-top: 16rpx;
+  margin-top: 12rpx;
   font-size: 24rpx;
-  color: #94a3b8;
+  color: var(--pk-t3);
 }
 
+/* ── 摘要卡：知识点 / 作答 / 错因 ───────────────────────── */
 .detail-summary {
-  margin: 16rpx 0 28rpx;
-  border-top: 1rpx solid rgba(148, 163, 184, 0.16);
-  border-bottom: 1rpx solid rgba(148, 163, 184, 0.16);
+  padding: 6rpx 28rpx;
+  border-radius: 30rpx;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
 }
 
 .summary-row {
   display: flex;
   gap: 18rpx;
-  padding: 18rpx 0;
-  border-bottom: 1rpx solid rgba(148, 163, 184, 0.1);
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid var(--pk-bd);
 }
 
 .summary-row:last-child {
@@ -121,59 +142,188 @@
 .summary-label {
   width: 96rpx;
   flex: none;
+  padding-top: 2rpx;
   font-size: 22rpx;
-  color: #64748b;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  color: var(--pk-t3);
 }
 
 .summary-value {
   flex: 1;
   font-size: 26rpx;
-  line-height: 1.45;
-  color: #e2e8f0;
+  line-height: 1.55;
+  color: var(--pk-t1);
 }
 
-.detail-error,
-.detail-loading {
-  margin-bottom: 20rpx;
+.detail-error {
+  padding: 18rpx 24rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(194, 101, 85, 0.32);
+  background: rgba(194, 101, 85, 0.1);
   font-size: 24rpx;
   line-height: 1.5;
-  color: #cbd5e1;
+  color: var(--pk-warn);
 }
 
+/* ── 加载骨架 ───────────────────────────────────────────── */
+.detail-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.skel-card {
+  padding: 26rpx 28rpx;
+  border-radius: 30rpx;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.skel-line {
+  height: 26rpx;
+  border-radius: 13rpx;
+  background: var(--pk-gauge);
+  animation: pkSkelPulse 1.4s ease-in-out infinite;
+}
+
+.skel-kicker {
+  width: 32%;
+  height: 20rpx;
+}
+
+.skel-short {
+  width: 58%;
+}
+
+@keyframes pkSkelPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.detail-loading-note {
+  padding: 4rpx 8rpx 0;
+  font-size: 22rpx;
+  color: var(--pk-t3);
+  text-align: center;
+}
+
+/* ── 空态 ───────────────────────────────────────────────── */
+.detail-empty {
+  margin-top: 24rpx;
+  padding: 56rpx 40rpx 48rpx;
+  border-radius: 30rpx;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.empty-seal {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--pk-accent-border);
+  background: var(--pk-accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6rpx;
+}
+
+.empty-seal-txt {
+  font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive;
+  font-size: 44rpx;
+  color: var(--pk-grn);
+}
+
+.empty-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+  text-align: center;
+}
+
+.empty-desc {
+  font-size: 24rpx;
+  line-height: 1.65;
+  color: var(--pk-t2);
+  text-align: center;
+}
+
+.empty-cta {
+  margin-top: 14rpx;
+  min-height: 76rpx;
+  padding: 0 44rpx;
+  border-radius: 20rpx;
+  background: var(--pk-ink-btn);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx var(--pk-shadow);
+}
+
+.empty-cta-pressed {
+  opacity: 0.82;
+}
+
+.empty-cta-txt {
+  font-size: 26rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--pk-ink-btn-t);
+}
+
+/* ── 讲解区 ─────────────────────────────────────────────── */
 .section-kicker {
   display: block;
-  margin: 8rpx 0 18rpx;
-  font-size: 22rpx;
+  margin: 8rpx 4rpx 0;
+  font-size: 24rpx;
   font-weight: 800;
-  color: #7dd3fc;
+  letter-spacing: 3rpx;
+  color: var(--pk-t3);
 }
 
 .explanation-section {
-  margin: 26rpx 0 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
 .explanation-card {
-  margin-bottom: 16rpx;
-  padding: 22rpx 24rpx;
-  border: 1rpx solid rgba(125, 211, 252, 0.18);
-  border-radius: 18rpx;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(8, 47, 73, 0.52));
+  margin-top: 16rpx;
+  padding: 24rpx 26rpx;
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 26rpx;
+  background: var(--pk-card);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
 }
 
 .explanation-label {
   display: block;
-  margin-bottom: 10rpx;
-  font-size: 23rpx;
-  font-weight: 900;
-  color: #7dd3fc;
+  margin-bottom: 12rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+  color: var(--pk-grn);
 }
 
 .explanation-content {
   display: block;
   white-space: pre-wrap;
-  font-size: 28rpx;
-  line-height: 1.68;
-  color: #f1f5f9;
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: var(--pk-t1);
 }
 
 .explanation-blocks {
@@ -184,9 +334,9 @@
 
 .explanation-rich-text {
   display: block;
-  font-size: 28rpx;
-  line-height: 1.68;
-  color: #f1f5f9;
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: var(--pk-t1);
 }
 
 .explanation-list {
@@ -204,18 +354,19 @@
 .explanation-list-bullet {
   flex: none;
   width: 34rpx;
-  font-size: 26rpx;
-  line-height: 1.68;
-  color: #7dd3fc;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--pk-grn);
 }
 
 .explanation-list-text {
   flex: 1;
-  font-size: 28rpx;
-  line-height: 1.68;
-  color: #f1f5f9;
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: var(--pk-t1);
 }
 
+/* ── 表格 ───────────────────────────────────────────────── */
 .explanation-table-wrap {
   margin: 4rpx 0 2rpx;
 }
@@ -230,14 +381,15 @@
   display: table;
   width: 100%;
   min-width: 100%;
-  border: 1rpx solid rgba(125, 211, 252, 0.22);
+  border: 1rpx solid var(--pk-bd);
   border-radius: 12rpx;
   overflow: hidden;
+  background: var(--pk-card);
 }
 
 .md-thead {
   display: table-row;
-  background: rgba(125, 211, 252, 0.12);
+  background: var(--pk-gauge);
 }
 
 .md-th,
@@ -246,14 +398,14 @@
   padding: 14rpx 16rpx;
   white-space: normal;
   word-break: break-word;
-  border-right: 1rpx solid rgba(125, 211, 252, 0.12);
-  border-bottom: 1rpx solid rgba(125, 211, 252, 0.1);
+  border-right: 1rpx solid var(--pk-bd);
+  border-bottom: 1rpx solid var(--pk-bd);
 }
 
 .md-th {
-  font-size: 23rpx;
+  font-size: 22rpx;
   font-weight: 800;
-  color: #dbeafe;
+  color: var(--pk-t1);
 }
 
 .md-tr {
@@ -261,25 +413,25 @@
 }
 
 .md-td {
-  font-size: 25rpx;
+  font-size: 24rpx;
   line-height: 1.55;
-  color: #e2e8f0;
+  color: var(--pk-t2);
 }
 
 .md-table-card {
   margin-top: 12rpx;
-  padding: 18rpx 20rpx;
-  border-radius: 16rpx;
-  border: 1rpx solid rgba(125, 211, 252, 0.18);
-  background: rgba(15, 23, 42, 0.62);
+  padding: 18rpx 22rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
 }
 
 .md-table-card-title {
   display: block;
   margin-bottom: 12rpx;
-  font-size: 23rpx;
+  font-size: 22rpx;
   font-weight: 800;
-  color: #bfdbfe;
+  color: var(--pk-grn);
 }
 
 .md-table-card-row {
@@ -287,75 +439,40 @@
   align-items: flex-start;
   gap: 18rpx;
   padding: 10rpx 0;
-  border-top: 1rpx solid rgba(148, 163, 184, 0.12);
+  border-top: 1rpx solid var(--pk-bd);
 }
 
 .md-table-card-key {
   flex: 0 0 160rpx;
-  font-size: 23rpx;
-  line-height: 1.45;
-  color: #93c5fd;
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: var(--pk-t3);
 }
 
 .md-table-card-val {
   flex: 1;
-  font-size: 25rpx;
+  font-size: 24rpx;
   line-height: 1.55;
-  color: #f1f5f9;
+  color: var(--pk-t1);
 }
 
+/* ── 下一步训练 ─────────────────────────────────────────── */
 .detail-next {
-  margin-top: 30rpx;
-  padding-top: 24rpx;
-  border-top: 1rpx solid rgba(148, 163, 184, 0.14);
+  margin-top: 12rpx;
+  padding: 24rpx 28rpx;
+  border-radius: 26rpx;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+
+.detail-next .section-kicker {
+  margin: 0 0 10rpx;
 }
 
 .next-text {
   display: block;
-  font-size: 28rpx;
-  line-height: 1.6;
-  color: #e2e8f0;
-}
-
-/* ── 学情证据链三级页：沿用同一张宣纸诊断单 ── */
-.attempt-detail-page.paper {
-  background-color: var(--pk-paper);
-  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
-  background-size: 34rpx 34rpx;
+  font-size: 26rpx;
+  line-height: 1.65;
   color: var(--pk-t1);
 }
-.attempt-detail-page.paper .detail-nav {
-  background: var(--pk-paper);
-  border-color: var(--pk-bd);
-  box-shadow: none;
-}
-.attempt-detail-page.paper .detail-back-arrow,
-.attempt-detail-page.paper .detail-back-text,
-.attempt-detail-page.paper .section-kicker,
-.attempt-detail-page.paper .explanation-label { color: var(--pk-grn); }
-.attempt-detail-page.paper .detail-nav-title,
-.attempt-detail-page.paper .detail-title,
-.attempt-detail-page.paper .summary-value,
-.attempt-detail-page.paper .explanation-content,
-.attempt-detail-page.paper .explanation-rich-text,
-.attempt-detail-page.paper .explanation-list-text,
-.attempt-detail-page.paper .next-text { color: var(--pk-t1); }
-.attempt-detail-page.paper .detail-subtitle,
-.attempt-detail-page.paper .summary-label,
-.attempt-detail-page.paper .detail-loading { color: var(--pk-t3); }
-.attempt-detail-page.paper .detail-hero,
-.attempt-detail-page.paper .detail-summary,
-.attempt-detail-page.paper .explanation-card,
-.attempt-detail-page.paper .md-table,
-.attempt-detail-page.paper .md-table-card,
-.attempt-detail-page.paper .detail-next {
-  background: var(--pk-card);
-  border-color: var(--pk-bd);
-  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
-}
-.attempt-detail-page.paper .summary-row,
-.attempt-detail-page.paper .md-th,
-.attempt-detail-page.paper .md-td,
-.attempt-detail-page.paper .md-table-card-row { border-color: var(--pk-bd); }
-.attempt-detail-page.paper .result-good { background: rgba(72, 128, 106, 0.12); color: var(--pk-grn); }
-.attempt-detail-page.paper .result-danger { background: rgba(194, 101, 85, 0.12); color: var(--pk-warn); }

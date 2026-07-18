@@ -87,12 +87,10 @@
           </view>
           <text class="usage-free-note">已生成的复习内容不计费，永久可回炉</text>
         </view>
+        <!-- 会员档：标题已是「剩余 N%」，摘要行不再复读同一数字；
+             带进度条的完整明细在底部抽屉（openUsageDetail）。 -->
         <block wx:elif="{{usageRows.length}}">
           <view class="usage-summary-list">
-            <view class="usage-summary-row" wx:for="{{usageRows}}" wx:key="key">
-              <text class="usage-summary-label">{{item.label}}</text>
-              <text class="usage-summary-detail">{{item.detailLabel}}</text>
-            </view>
             <view class="usage-more-row">
               <text class="usage-more-text">查看详情</text>
               <text class="usage-more-arrow">›</text>
