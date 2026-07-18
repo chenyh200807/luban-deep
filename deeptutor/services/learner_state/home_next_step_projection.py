@@ -9,8 +9,10 @@
   2) 活跃练: training_intent 有 active intent
      且 target pack 可路由（绿灯 ∧ retest_available 供给真值）
      →「练：你漏的采分点，换个题面」
-  3) 下一学: 路线上第一个 未学∧绿灯签发 的站    →「学：下一站 XX」
-  4) fallback: registry 静态序第一个绿灯站（群体理由，day-0 不白屏）
+  3) 下一学: 路线上第一个 未学∧绿灯 的站，**优先 retest_available 供给真值**
+     的站（保证「视频→练习」全程可走完）→「学：下一站 XX」
+  4) fallback: registry 静态序第一个绿灯站，**同样优先 retest_available** 的站
+     （群体理由，day-0 不白屏）
 ```
 
 不可执行的 intent 不得在权威内遮蔽可执行臂（2026-07-16 QA 死证：F16/X03
@@ -19,6 +21,14 @@
 下一优先级臂；被跳过的 intent 不静默丢——保留在 ``skipped_intents``
 diagnostic 里（仅诊断，非第二处方）。供给真值 = caller 传入的
 ``green_lessons`` read-model 行（``retest_available``），本模块不造第二真值。
+
+**推荐起点一致性（2026-07-18，A01 冲突包 owner 阻塞事件治本）**：下一学/
+fallback 两臂「推荐一个起点」时，必须偏好 ``retest_available``（= compiled
+practice ``supply_ready`` 单一真值，与活跃练臂同源）的站——否则会像 A01 那样
+「绿灯可看视频、练习却未签发」被荐为起点，用户看完视频走不进练习（断链）。
+偏好规则复用同一供给真值，不设第二处方：未学站里优先第一个 supply_ready 的，
+无一 supply_ready 时**仍回退到路线第一个未学站**（视频本身有价值，好过白屏），
+被供给原因跳过的站保留在 ``skipped_stations`` diagnostic（仅诊断，非路由处方）。
 
 铁律（§3）：纯函数、零副作用——禁写 ledger、禁生成/修改 training_intent、
 禁改 revalidation 状态、禁前端/各 tab 再拼一次。它不产出任何「该练什么」
@@ -75,10 +85,20 @@ def build_home_next_step_projection(
 
     # 被跳过的不可执行 practice intent（诊断保留，不静默丢）。
     skipped_intents: list[dict[str, Any]] = []
+    # 被「供给未就绪」原因让位的推荐起点站（诊断保留，非第二处方）。
+    skipped_stations: list[dict[str, Any]] = []
+
+    def _supply_ready(pack_id: str) -> bool:
+        """站的练习是否已签发可走完全程 = green read-model 的 retest_available
+        （compiled practice supply_ready 单一真值，与活跃练臂同源，不造第二真值）。"""
+        row = green_by_id.get(_text(pack_id).upper())
+        return bool(row and row.get("retest_available"))
 
     def _with_diagnostics(step: dict[str, Any]) -> dict[str, Any]:
         if skipped_intents:
             step["skipped_intents"] = list(skipped_intents)
+        if skipped_stations:
+            step["skipped_stations"] = list(skipped_stations)
         return step
 
     for item in list(revalidation_items or []):
@@ -149,21 +169,51 @@ def build_home_next_step_projection(
     # §4-2 前置过滤：未学前置 A 时不把后继 B 排到 A 前（学序=registry+前置边，
     # 规则归 construction_learning_graph 教研 authority；不设前置锁，可跳站不变）。
     ordered_ids = order_packs_with_prerequisites(ordered_ids, unlearned_pack_ids=unlearned)
-    for pack_id in ordered_ids:
-        if pack_id in unlearned:
-            title = titles.get(pack_id) or pack_id
-            return _with_diagnostics(
-                {
-                    "mode": MODE_LEARN,
-                    "source_authority": "pack_lifecycle_projection",
-                    "source_ref": pack_id,
-                    "target_pack_id": pack_id,
-                    "reason": f"下一站：{title}",
-                }
-            )
+    unlearned_ordered = [pack_id for pack_id in ordered_ids if pack_id in unlearned]
+    # 推荐起点一致性：未学站里优先「练习已签发（supply_ready）」的站，保证荐出
+    # 的起点能走完「视频→练习」全程（A01 型冲突包=绿灯可看视频、练习未签发 →
+    # 若荐为起点会断链）。无一 supply_ready 时回退路线第一个未学站（视频仍有价值，
+    # 好过白屏）。被供给让位的站入 skipped_stations 诊断（非第二处方）。
+    learn_pick = next(
+        (pack_id for pack_id in unlearned_ordered if _supply_ready(pack_id)),
+        unlearned_ordered[0] if unlearned_ordered else None,
+    )
+    if learn_pick is not None:
+        for pack_id in unlearned_ordered:
+            if pack_id == learn_pick:
+                break
+            if not _supply_ready(pack_id):
+                skipped_stations.append(
+                    {"pack_id": pack_id, "skip_reason": "practice_supply_unavailable"}
+                )
+        title = titles.get(learn_pick) or learn_pick
+        return _with_diagnostics(
+            {
+                "mode": MODE_LEARN,
+                "source_authority": "pack_lifecycle_projection",
+                "source_ref": learn_pick,
+                "target_pack_id": learn_pick,
+                "reason": f"下一站：{title}",
+            }
+        )
 
     if green:
-        first = green[0]
+        # fallback 同样优先 supply_ready 的绿灯站，保证冷启动/全学完后荐出的
+        # 起点也能走完全程；无一 supply_ready 时回退 registry 第一个绿灯站。
+        first = next(
+            (item for item in green if _supply_ready(_text(item.get("pack_id")))),
+            green[0],
+        )
+        for item in green:
+            if item is first:
+                break
+            if not _supply_ready(_text(item.get("pack_id"))):
+                skipped_stations.append(
+                    {
+                        "pack_id": _text(item.get("pack_id")),
+                        "skip_reason": "practice_supply_unavailable",
+                    }
+                )
         title = _text(first.get("title")) or _text(first.get("pack_id"))
         return _with_diagnostics(
             {

@@ -120,14 +120,23 @@
 .lr-supply-error-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
 .lr-supply-retry { align-self: flex-start; margin-top: 8rpx; min-width: 180rpx; }
 
-/* ── 动画精讲卡(设计:18px 圆角/head 13px 15px/seal 34px·9px 圆角/题 15px) ── */
+/* ── 一体化站点卡(第10轮定稿 10a·收回两卡拆分:头部行+舞台+路线+旅程+为什么先走
+     全在同一张卡;卡 padding:0,各内行自带横向内衬) ── */
 .lr-lesson { overflow: hidden; padding: 0; border-radius: 34rpx; }
+/* ① 头部行(可折叠):logo 红章 + 下一站/站名 + chip + 折叠箭头(设计:seal 34px/9px 圆角) */
 .lr-lesson-head { display: flex; align-items: center; gap: 18rpx; padding: 24rpx 28rpx; border-bottom: 1rpx solid var(--pk-bd); }
 .lr-lesson-head--empty { opacity: 0.75; }
 .lr-lesson-seal { width: 63rpx; height: 63rpx; border-radius: 17rpx; flex-shrink: 0; }
 .lr-lesson-logo { width: 37rpx; height: 37rpx; }
 .lr-lesson-headtxt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2rpx; }
 .lr-lesson-title { font-size: 28rpx; }  /* 10a: 15px */
+.lr-lesson-chip { flex-shrink: 0; }
+.lr-lesson-chev { flex-shrink: 0; font-size: 24rpx; color: var(--pk-t3); line-height: 1; padding-left: 4rpx; }
+/* 站点旅程条内嵌本卡(卡 padding:0),用横向 margin 对齐其余行 */
+.lr-journey--lesson { margin: 18rpx 28rpx 0; }
+/* ⑤ 为什么先走这一站(卡 padding:0 → 自带横向内衬对齐旅程条) */
+.lr-why--station { padding: 16rpx 28rpx 0; }
+.lr-why-text--station { padding: 0 28rpx 4rpx; }
 
 /* 宣纸舞台 · 原色宣纸(设计:196px 高/16px 点阵;永远浅色,不随主题) */
 .lr-stage {
@@ -191,14 +200,7 @@
 .lr-task-head { display: flex; gap: 26rpx; align-items: flex-start; }
 .lr-task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 11rpx; }
 .lr-task-title { font-size: 35rpx; font-weight: 800; line-height: 1.35; color: var(--pk-t1); }
-/* 站点旅程环(conic-gradient;设计:62px 表/5px 弧宽):N/6 事实计数,
-   取代旧掌握可信度环(产品红线:禁掌握百分比) */
-.lr-journey-ringbox { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 7rpx; }
-.lr-journey-ring { width: 106rpx; height: 106rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.lr-journey-ring-hole { width: 88rpx; height: 88rpx; border-radius: 50%; background: var(--pk-card); display: flex; align-items: center; justify-content: center; }
-.lr-journey-ring-num { font-size: 26rpx; font-weight: 800; color: var(--pk-t1); }
-.lr-journey-ring-den { font-size: 20rpx; font-weight: 700; color: var(--pk-t3); }
-.lr-journey-ring-label { font-size: 24rpx; color: var(--pk-t3); }
+/* (站点旅程环已随排版去重下线:站点旅程叙事移到视频学习卡的旅程条) */
 .lr-task-cta { display: flex; align-items: center; gap: 17rpx; }
 .lr-task-btn { flex: 1; }
 /* 轻练旁按钮(10a: 46px 高/12px 圆角/13px 字/⚡ icon) */

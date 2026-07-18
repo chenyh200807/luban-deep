@@ -170,6 +170,12 @@ Page({
       if (typeof wx !== "undefined" && wx.showToast) wx.showToast({ title: "视频正在部署，请稍后再试", icon: "none" });
       return;
     }
+    // 进站预热:station onLoad 会发同一 GET(requestStateGet dedupeInFlight 并流),
+    // 把 detail 的 RTT 与页面导航并行。无状态不落缓存(本页章程:不缓存 episode 名单),
+    // 失败静默,station 自有 fail-closed 错误路径。
+    try {
+      api.getLubanLessonDetail(packId, { episode: index, silent: true, suppressAuthRedirect: true }).catch(function () {});
+    } catch (_e) {}
     if (typeof wx !== "undefined" && wx.navigateTo) {
       wx.navigateTo({ url: route.lubanStation(packId, index) });
     }

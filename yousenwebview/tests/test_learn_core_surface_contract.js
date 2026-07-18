@@ -80,6 +80,79 @@ assert(
 // 红队 A1:前端无逐步完成证据 → 禁 done 勾/进度线跨未完成节点/写死复习日程
 assert.strictEqual(learnWxml.indexOf("lr-jline-fill"), -1, "journey must not draw a progress line across unverified steps");
 assert.strictEqual(learnWxml.indexOf("lr-jnode-check"), -1, "journey must not render done checkmarks without completion evidence");
+
+// ── owner 2026-07-18 对齐第10轮定稿 10a:收回 #512/#514 两卡拆分 ──
+// 站点身份与学习旅程回到同一张「一体化站点卡」(lr-lesson):头部行(下一站·pack +
+// 站名 + chip + 折叠箭头) + 舞台 + 路线/课程架 + 旅程条 + 为什么先走这一站。
+// 今日任务卡(lr-task)是专门练题模块,排在站点卡"下方"。
+var learnWxmlNoComments = learnWxml.replace(/<!--[\s\S]*?-->/g, "");
+// 一体化站点卡必须重新拥有头部行与站点身份(定稿 ①头部行)。
+assert(
+  learnWxmlNoComments.indexOf("lr-lesson-head") >= 0,
+  "integrated station card must render the header row (下一站 · pack + 站名 + chip)",
+);
+assert(
+  learnWxmlNoComments.indexOf("vm.nextStation.title") >= 0,
+  "station name must appear in the integrated station card header (per 10th-final 10a)",
+);
+assert(
+  learnWxmlNoComments.indexOf("下一站") >= 0,
+  "integrated station card must announce 下一站 station identity",
+);
+// 头部行折叠箭头(定稿 ①):整卡可折叠,handler=toggleStation,状态=stationOpen。
+assert(
+  learnWxml.indexOf('bindtap="toggleStation"') >= 0 &&
+    learnWxml.indexOf("stationOpen") >= 0 &&
+    learnJs.indexOf("toggleStation") >= 0,
+  "station card header must be collapsible via toggleStation/stationOpen",
+);
+// 旅程条在站点卡:数据源=vm.nextStation.journey;任务卡不再携带 journey。
+assert(
+  learnWxmlNoComments.indexOf("vm.nextStation.journey") >= 0 &&
+    learnWxmlNoComments.indexOf("这一站会带你走完") >= 0,
+  "station journey track must render on the integrated station card from vm.nextStation.journey",
+);
+assert.strictEqual(
+  learnWxmlNoComments.indexOf("vm.taskCard.journey"),
+  -1,
+  "practice/task card must not bind a journey (it lives on the station card)",
+);
+assert.strictEqual(
+  learnWxmlNoComments.indexOf("lr-journey-ringbox"),
+  -1,
+  "task card journey ring stays retired (前端不算掌握)",
+);
+// 定稿站点卡无独立「进站学习」按钮:播放/进站走舞台点击(goLesson)。
+assert(
+  learnWxmlNoComments.indexOf('bindtap="goLesson"') >= 0,
+  "station card stage must own the 进站学习 action via goLesson (tap the stage)",
+);
+assert.strictEqual(
+  learnWxmlNoComments.indexOf("lr-lesson-btn"),
+  -1,
+  "站点卡不得保留独立「进站学习」按钮(定稿播放走舞台点击)",
+);
+// 顺序:一体化站点卡在前,今日任务卡在后(定稿 10a)。
+var lessonIdx = learnWxmlNoComments.indexOf('class="lr-lesson pk-card');
+var taskIdx = learnWxmlNoComments.indexOf('class="lr-task pk-card');
+assert(lessonIdx >= 0 && taskIdx >= 0, "both integrated station card and task card must render");
+assert(lessonIdx < taskIdx, "integrated station card must precede the task card (10th-final order)");
+// 今日任务卡区块(lr-task → 复习卡)不得拥有 goLesson/journey(学习旅程归站点卡)。
+var taskBlock = learnWxmlNoComments.slice(
+  taskIdx,
+  learnWxmlNoComments.indexOf('class="lr-rvc pk-card'),
+);
+assert(taskBlock.length > 0, "task card block must be delimited before the review card");
+assert.strictEqual(
+  taskBlock.indexOf("goLesson"),
+  -1,
+  "task card must not own the lesson route (学习动作归站点卡舞台)",
+);
+assert.strictEqual(
+  taskBlock.indexOf("journey"),
+  -1,
+  "task card markup must carry no journey remnants",
+);
 ["明日验证", "3 日抽查"].forEach(function (needle) {
   assert.strictEqual(learnVm.indexOf(needle), -1, "journey copy must not hardcode a review schedule: " + needle);
 });
@@ -182,5 +255,27 @@ var navCountBefore = navigations.length;
 lightPractice({ light_practice_available: false, pack_id: "N01", task_state: "learn_next" });
 assert.strictEqual(navigations.length, navCountBefore, "no supply must mean no navigation (no dead click)");
 assert.strictEqual(toasts.pop(), "快练准备中", "no supply must surface the honest preparing toast");
+
+// ── 视频学习卡 goLesson:进站学习/舞台播放 → 站点页;card_hosted=false 诚实降级 ──
+function enterStation(station) {
+  var page = {
+    data: { vm: { nextStation: station } },
+    _navTo: pageDef._navTo,
+  };
+  pageDef.goLesson.call(page);
+}
+enterStation({ pack_id: "N01", card_hosted: true });
+assert.strictEqual(
+  navigations.pop(),
+  "/station?pack_id=N01",
+  "video card 进站学习 (goLesson) must enter the generic station route",
+);
+var navCountUnhosted = navigations.length;
+enterStation({ pack_id: "N01", card_hosted: false });
+assert.strictEqual(navigations.length, navCountUnhosted, "unhosted station must not navigate (no dead click)");
+assert.strictEqual(toasts.pop(), "这一站微课即将开通", "unhosted lesson tap must explain honestly");
+var navCountNoStation = navigations.length;
+enterStation({});
+assert.strictEqual(navigations.length, navCountNoStation, "no station means no navigation");
 
 console.log("PASS test_learn_core_surface_contract.js");

@@ -576,6 +576,15 @@ Overlay 必须支持：
    `practice_active` 胜出 → 前端对空 pack fail-closed → 任务卡永久隐藏、
    learn_next 被遮蔽）——跳过落到下一优先级臂，且不静默丢：保留在
    `skipped_intents` diagnostic（仅诊断字段，非第二处方，前端不据此路由）。
+   **推荐起点一致性（2026-07-18，A01 冲突包 owner 阻塞治本）**：下一学、
+   fallback 两臂在「推荐一个起点」时**必须偏好 `retest_available` 的站**
+   （= compiled practice `supply_ready` 单一真值，与活跃练臂同源，禁造第二处方）。
+   否则 A01 型冲突包（绿灯可看视频、练习未签发）会被荐为起点，用户看完视频走
+   不进练习 → 断链（正是 owner 被 A01 阻塞的现象）。规则：未学站里优先第一个
+   supply_ready 的；无一 supply_ready 时**仍回退路线第一个未学站**（视频有价值，
+   好过白屏，day-0 不变）；被供给让位的站保留在 `skipped_stations` diagnostic
+   （仅诊断，非第二处方，前端不据此路由）。学序（registry+前置边）仍是排序权威，
+   本条只在同为未学的候选里按供给真值择优，不改学序 authority、不设前置锁。
 2. 输出必须带 `mode / source_authority / source_ref / reason` 四字段——每个
    「下一步」可审计来自哪个权威。
 3. 铁律：禁写 ledger、禁生成/修改 `training_intent`、禁改 revalidation 状态。

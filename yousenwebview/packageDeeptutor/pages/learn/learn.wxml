@@ -1,8 +1,9 @@
-<!-- 学习 tab · 纸墨朱竹宣纸驾驶舱(10a改 整页定稿:训练/轻练/复习 三层) -->
-<!-- 区块顺序(owner 2026-07-18 练题优先重排):首跑门卡 → 状态卡 → 练题卡
-     → 动画精讲(视频学习卡) → 复习卡 → 三指标卡。练题卡上移至视频卡上方=
-     动作分层(先给"专门练题目"的入口,视频学习退居其后);纯呈现层重排,
-     路由/供给裁决/journey 语义零改动。 -->
+<!-- 学习 tab · 纸墨朱竹宣纸驾驶舱(第10轮定稿 10a 整页) -->
+<!-- 区块顺序(owner 2026-07-18 对齐第10轮定稿·收回 #512/#514 两卡拆分):
+     首跑门卡 → 状态卡 → 一体化站点卡(头部行+舞台+路线+旅程+为什么先走)
+     → 今日任务卡(集中练习/换轻练) → 复习卡 → 三指标卡。
+     站点身份与学习旅程回到同一张卡(定稿 10a);练习属站内流程与专门任务卡。
+     纯呈现层重排/合并,路由/供给裁决/journey 语义零改动。 -->
 
 <!-- 距考试天数:纯展示层派生(exam_date → 天数),不进 view-model、不写学情。
      无/非法 exam_date → -1 → 卡片显示设置引导(禁造假数);已过期 clamp 0。 -->
@@ -80,7 +81,7 @@ module.exports = { daysTo: daysTo };
         <text class="lr-first-run-go">{{firstRunState === 'new' ? '开始' : (firstRunState === 'resume' ? '继续' : (firstRunState === 'blocked' ? '重试' : '保存中'))}} →</text>
       </view>
 
-      <!-- 三枚状态卡(10a改):距考试环形圈 / 路线 X/41 站 / 今日 X/Y 题 -->
+      <!-- 三枚状态卡(10a):距考试环形圈 / 路线 X/40 站 / 今日 X/Y 题 -->
       <view class="lr-status-row" wx:if="{{!supplyError}}">
         <view class="lr-status pk-card lr-rise">
           <!-- 环:墨色弧(装饰性弧长,与设计稿一致;天数数字才是事实声称) -->
@@ -111,28 +112,146 @@ module.exports = { daysTo: daysTo };
         <view class="pk-btn-ink lr-supply-retry" bindtap="retrySupply">重新加载</view>
       </view>
 
-      <!-- 练题卡(练题优先置顶):三层(标题/任务名/副文案)+ 站点旅程环 + 旅程轨道。
-           这就是"专门练题目的模块"——已签发站主按钮=「集中练习」(retest forward),
-           未签发站回落「进站学习」;⚡轻练旁按钮/站点旅程环/旅程轨道都在此卡。
-           唯一渲染源 = vm.taskCard(= todayTask || browseTask):有 server next_step
-           裁决时=真今日任务;day-0/首跑未完成/后端未部署时=browse 兜底卡(kicker
-           "从这里开始",不声称今日任务)。任何状态下页面都长成 10a 定稿,不塌成 hero。
-           首跑门卡仍在其上方=第一视觉;禁掌握百分比。 -->
-      <view class="lr-task pk-card lr-rise lr-rise--d1" wx:if="{{!supplyError && vm.taskCard}}">
+      <!-- 一体化站点卡(第10轮定稿 10a·收回 #512/#514 两卡拆分):owner 拍板站点身份
+           与学习旅程回到同一张卡。结构 = ①头部行(下一站·pack + 站名 + 匹配你的薄弱
+           chip + 折叠箭头,整卡可折叠) → ②宣纸播放舞台(点击=进站学习 goLesson)
+           → ③你的路线 + 41 站课程架 → ④这一站会带你走完 六步旅程条 → ⑤为什么先走这一站。
+           红线:nextStation/journey 由 view-model 单点派生,wxml 不重算供给;journey
+           禁 done 勾/进度线;card_hosted===false 诚实降级不造站(定稿"6 幕/时长"等
+           后端无字段一律不造数,见交付偏差表)。 -->
+      <view class="lr-lesson pk-card lr-rise lr-rise--d1" wx:if="{{!supplyError}}">
+        <!-- ① 头部行(可折叠):站点身份全页在此出现一次。线名字段后端缺 → 只显
+             pack_id(记 Deviation);chip 仅 evidenceBacked 才声称"匹配你的薄弱"。 -->
+        <view class="lr-lesson-head" wx:if="{{vm.nextStation}}" bindtap="toggleStation">
+          <view class="lr-lesson-seal pk-seal">
+            <image class="lr-lesson-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
+          </view>
+          <view class="lr-lesson-headtxt">
+            <text class="pk-kicker">下一站 · {{vm.nextStation.pack_id}}</text>
+            <text class="pk-title lr-lesson-title">{{vm.nextStation.title}}</text>
+          </view>
+          <text class="pk-chip pk-chip--grn lr-lesson-chip">{{vm.nextStation.card_hosted === false ? '微课即将开通' : (vm.nextStation.evidenceBacked ? '匹配你的薄弱' : '推荐起点')}}</text>
+          <text class="lr-lesson-chev">{{stationOpen ? '▾' : '▸'}}</text>
+        </view>
+        <!-- 头部空态(后端未部署/无供给):诚实占位,不造站 -->
+        <view class="lr-lesson-head lr-lesson-head--empty" wx:else>
+          <view class="lr-lesson-headtxt">
+            <text class="pk-kicker">下一站</text>
+            <text class="pk-title lr-lesson-title">微课即将上线</text>
+          </view>
+        </view>
+
+        <!-- 折叠体:②舞台 ③路线+课程架 ④旅程条 ⑤为什么先走这一站 -->
+        <view wx:if="{{stationOpen}}">
+          <!-- ② 宣纸舞台(播放键)· 原色宣纸,不随主题变。点击=进站学习(goLesson);
+               card_hosted===false 时降级不可播,舞台自身诚实占位(禁 dead click)。 -->
+          <view class="lr-stage" wx:if="{{vm.nextStation}}" bindtap="goLesson">
+            <text class="lr-stage-badge">{{vm.nextStation.card_hosted === false ? '制作中' : '旁白·开'}}</text>
+            <view class="lr-stage-fs">
+              <view class="lr-fs-corner"></view><view class="lr-fs-corner lr-fs-tr"></view>
+              <view class="lr-fs-corner lr-fs-bl"></view><view class="lr-fs-corner lr-fs-br"></view>
+            </view>
+            <text class="lr-stage-cal">{{vm.nextStation.card_hosted === false ? '微课即将开通' : '鲁班智考'}}</text>
+            <text class="lr-stage-sub">{{vm.nextStation.card_hosted === false ? '该站内容已进入路线，动画精讲正在制作' : '动画精讲 · 讲懂这一站'}}</text>
+            <view class="lr-stage-play pk-seal" wx:if="{{vm.nextStation.card_hosted !== false}}">
+              <view class="lr-play-tri"></view>
+            </view>
+            <text class="lr-stage-hint">{{vm.nextStation.card_hosted === false ? '敬请期待' : '点击播放 · 讲懂 → 闯关'}}</text>
+          </view>
+          <!-- 舞台空态(后端未部署/无供给):诚实占位,不造站 -->
+          <view class="lr-stage" wx:else>
+            <text class="lr-stage-cal">鲁班智考</text>
+            <text class="lr-stage-sub">微课即将上线</text>
+          </view>
+
+          <!-- ③ 你的路线 + 完整地图 -->
+          <view class="lr-route-line">
+            <text class="lr-route-lit">你的路线 · 已点亮 {{vm.litCount || 0}} / {{vm.packUniverse || 40}} 站</text>
+            <text class="lr-route-more" bindtap="openStations">查看完整地图 →</text>
+          </view>
+
+          <!-- 课程架:不可横滑,只展 3 站海报 + 40站尾卡(要看全部点尾卡进完整地图) -->
+          <view class="lr-rack" wx:if="{{vm.routePreview.length}}">
+            <view class="lr-rack-inner">
+              <view
+                wx:for="{{vm.routePreview}}"
+                wx:key="pack_id"
+                class="pk-poster pk-poster--{{item.state}} lr-poster"
+                bindtap="openStation"
+                data-pack-id="{{item.pack_id}}"
+                data-green="{{item.green}}"
+                data-card-hosted="{{item.card_hosted}}"
+              >
+                <text class="pk-poster__name">{{item.name}}</text>
+                <view class="pk-poster__slot lr-poster-slot--{{item.state}}">{{item.slot}}</view>
+                <view class="pk-poster__foot">
+                  <view class="lr-tagline">
+                    <text wx:if="{{item.recommended}}" class="lr-ticon lr-ticon--rec">▶</text>
+                    <text wx:elif="{{item.state === 'ink'}}" class="lr-ticon lr-ticon--done">✓</text>
+                    <text wx:elif="{{item.locked}}" class="lr-ticon lr-ticon--lock">🔒</text>
+                    <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.card_hosted === false ? '微课即将开通' : (item.recommended ? '推荐起点' : (item.state === 'ink' ? '已练过' : (item.locked ? '尚未开放' : '尚未学习')))}}</text>
+                  </view>
+                  <!-- 副标题:考点卡首卡 front 真源;无卡的站留空(fail-closed,不造词) -->
+                  <text wx:if="{{item.subtitle}}" class="pk-poster__sub">{{item.subtitle}}</text>
+                </view>
+                <view class="pk-poster__bar"></view>
+              </view>
+              <!-- 尾卡:2×2 四色格(墨/朱/灰/虚线)+ 完整路线 -->
+              <view class="lr-poster-tail" bindtap="openStations">
+                <view class="lr-tail-grid">
+                  <view class="lr-tail-cell lr-tail-cell--ink"></view>
+                  <view class="lr-tail-cell lr-tail-cell--red"></view>
+                  <view class="lr-tail-cell lr-tail-cell--gray"></view>
+                  <view class="lr-tail-cell lr-tail-cell--dash"></view>
+                </view>
+                <text class="lr-poster-tail-txt">完整路线</text>
+                <text class="lr-poster-tail-txt">{{vm.packUniverse || 40}} 站</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- ④ 站点旅程条(红队 A1 收口):流程说明,不是进度账本——前端无逐步完成
+               证据,禁 done 勾、禁跨未完成节点的进度线;只标 current(CTA 对应步)/
+               空心/承诺虚环。数据源=vm.nextStation.journey。 -->
+          <view class="lr-journey lr-journey--lesson" wx:if="{{vm.nextStation.journey}}">
+            <view class="lr-journey-head">
+              <text class="lr-journey-kicker">这一站会带你走完</text>
+              <text class="lr-journey-count">{{vm.nextStation.journey.currentIndex}}/{{vm.nextStation.journey.total}} 步</text>
+            </view>
+            <view class="lr-journey-track">
+              <view class="lr-jline"></view>
+              <view class="lr-journey-steps">
+                <view class="lr-jstep" wx:for="{{vm.nextStation.journey.steps}}" wx:key="label">
+                  <view class="lr-jnode lr-jnode--{{item.state}}">
+                    <view wx:if="{{item.state === 'current'}}" class="lr-jnode-dot"></view>
+                  </view>
+                  <text class="lr-jlabel lr-jlabel--{{item.state}}">{{item.label}}</text>
+                </view>
+              </view>
+            </view>
+            <text class="lr-journey-foot">验证与抽查到期时会出现在这里 · 你只管来</text>
+          </view>
+
+          <!-- ⑤ 为什么先走这一站(nextStation.reason 群体/证据理由;缺则不渲染) -->
+          <view class="lr-why lr-why--station" bindtap="toggleStationWhy" wx:if="{{vm.nextStation.reason}}">
+            <text class="lr-why-label">为什么先走这一站</text>
+            <text class="lr-why-chev">{{stationWhyOpen ? '▾' : '▸'}}</text>
+          </view>
+          <text class="pk-desc lr-why-text lr-why-text--station" wx:if="{{stationWhyOpen && vm.nextStation.reason}}">{{vm.nextStation.reason}}</text>
+        </view>
+      </view>
+
+      <!-- 今日任务卡(站点卡下方·专门练题模块,第10轮定稿):今天最该完成 → 任务名 →
+           集中练习(主按钮)+ 换轻练(旁按钮)→ 为什么推荐。唯一渲染源 = vm.taskCard
+           (= todayTask || browseTask):有 server next_step 裁决时=真今日任务;
+           day-0/首跑未完成/后端未部署时=browse 兜底卡(kicker "从这里开始",不声称
+           今日任务)。定稿"掌握可信度 72%"环=前端算掌握,红线禁,不渲染(见偏差表)。 -->
+      <view class="lr-task pk-card lr-rise lr-rise--d2" wx:if="{{!supplyError && vm.taskCard}}">
         <view class="lr-task-head">
           <view class="lr-task-main">
             <text class="pk-kicker">{{vm.taskCard.kicker}}</text>
             <text class="lr-task-title">{{vm.taskCard.title}}</text>
             <text class="pk-desc" wx:if="{{vm.taskCard.cta}}">{{vm.taskCard.cta}}</text>
-          </view>
-          <!-- 右上环:站点旅程 N/6(事实计数,不是掌握度) -->
-          <view class="lr-journey-ringbox" wx:if="{{vm.taskCard.journey}}">
-            <view class="lr-journey-ring" style="background: conic-gradient(var(--pk-grn) {{vm.taskCard.journey.ringPercent}}%, var(--pk-gauge) 0)">
-              <view class="lr-journey-ring-hole">
-                <text class="lr-journey-ring-num">{{vm.taskCard.journey.currentIndex}}<text class="lr-journey-ring-den">/{{vm.taskCard.journey.total}}</text></text>
-              </view>
-            </view>
-            <text class="lr-journey-ring-label">站点旅程</text>
           </view>
         </view>
         <view class="lr-task-cta">
@@ -141,120 +260,16 @@ module.exports = { daysTo: daysTo };
           <!-- 红队 A2:review_due(到期验证优先)下隐藏,不给绕开路径;可见性由 view-model 单点裁决 -->
           <view class="lr-task-lite" wx:if="{{vm.taskCard.light_practice_visible}}" bindtap="goLightPractice">
             <text class="lr-lite-bolt">⚡</text>
-            <text>轻练</text>
+            <text>换轻练</text>
           </view>
         </view>
         <text class="pk-desc lr-supply-note" wx:if="{{vm.taskCard.supplyNote}}">{{vm.taskCard.supplyNote}}</text>
-
-        <!-- 旅程轨道(红队 A1 收口):流程说明,不是进度账本——前端无逐步完成证据,
-             禁 done 勾、禁跨未完成节点的进度线;只标 current(CTA 对应步)/空心/承诺虚环 -->
-        <view class="lr-journey" wx:if="{{vm.taskCard.journey}}">
-          <view class="lr-journey-head">
-            <text class="lr-journey-kicker">这一站会带你走完</text>
-            <text class="lr-journey-count">{{vm.taskCard.journey.currentIndex}}/{{vm.taskCard.journey.total}} 步</text>
-          </view>
-          <view class="lr-journey-track">
-            <view class="lr-jline"></view>
-            <view class="lr-journey-steps">
-              <view class="lr-jstep" wx:for="{{vm.taskCard.journey.steps}}" wx:key="label">
-                <view class="lr-jnode lr-jnode--{{item.state}}">
-                  <view wx:if="{{item.state === 'current'}}" class="lr-jnode-dot"></view>
-                </view>
-                <text class="lr-jlabel lr-jlabel--{{item.state}}">{{item.label}}</text>
-              </view>
-            </view>
-          </view>
-          <text class="lr-journey-foot">验证与抽查到期时会出现在这里 · 你只管来</text>
-        </view>
 
         <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.taskCard.reason}}">
           <text class="lr-why-label">为什么推荐</text>
           <text class="lr-why-chev">{{whyOpen ? '▾' : '▸'}}</text>
         </view>
         <text class="pk-desc lr-why-text" wx:if="{{whyOpen && vm.taskCard.reason}}">{{vm.taskCard.reason}}</text>
-      </view>
-
-      <!-- 动画精讲卡(视频学习卡·练题卡下方):下一站 header + 宣纸舞台 + 横滑课程架(设计稿区块③) -->
-      <view class="lr-lesson pk-card lr-rise lr-rise--d2" wx:if="{{!supplyError}}">
-        <!-- header -->
-        <view class="lr-lesson-head" wx:if="{{vm.nextStation}}">
-          <view class="lr-lesson-seal pk-seal">
-            <image class="lr-lesson-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
-          </view>
-          <view class="lr-lesson-headtxt">
-            <text class="pk-kicker">下一站 · {{vm.nextStation.pack_id}}</text>
-            <text class="pk-title lr-lesson-title">{{vm.nextStation.title}}</text>
-          </view>
-          <text class="pk-chip pk-chip--grn">{{vm.nextStation.card_hosted === false ? '微课即将开通' : (vm.nextStation.evidenceBacked ? '依据近期证据推荐' : '推荐起点')}}</text>
-        </view>
-        <!-- header 空态(后端未部署/无供给) -->
-        <view class="lr-lesson-head lr-lesson-head--empty" wx:else>
-          <view class="lr-lesson-headtxt">
-            <text class="pk-kicker">下一站</text>
-            <text class="pk-title lr-lesson-title">微课即将上线</text>
-          </view>
-        </view>
-
-        <!-- 宣纸舞台(播放键)· 原色宣纸,不随主题变(设计:动画卡=原色宣纸舞台) -->
-        <view class="lr-stage" wx:if="{{vm.nextStation}}">
-          <text class="lr-stage-badge">{{vm.nextStation.card_hosted === false ? '制作中' : '旁白·开'}}</text>
-          <view class="lr-stage-fs">
-            <view class="lr-fs-corner"></view><view class="lr-fs-corner lr-fs-tr"></view>
-            <view class="lr-fs-corner lr-fs-bl"></view><view class="lr-fs-corner lr-fs-br"></view>
-          </view>
-          <text class="lr-stage-cal">{{vm.nextStation.card_hosted === false ? '微课即将开通' : '鲁班智考'}}</text>
-          <text class="lr-stage-sub">{{vm.nextStation.card_hosted === false ? '该站内容已进入路线，动画精讲正在制作' : '动画精讲 · 讲懂这一站'}}</text>
-          <view class="lr-stage-play pk-seal" wx:if="{{vm.nextStation.card_hosted !== false}}">
-            <view class="lr-play-tri"></view>
-          </view>
-          <text class="lr-stage-hint">{{vm.nextStation.card_hosted === false ? '敬请期待' : '点击播放 · 讲懂 → 闯关'}}</text>
-        </view>
-
-        <!-- 你的路线 + 完整地图 -->
-        <view class="lr-route-line">
-          <text class="lr-route-lit">你的路线 · 已点亮 {{vm.litCount || 0}} / {{vm.packUniverse || 40}} 站</text>
-          <text class="lr-route-more" bindtap="openStations">查看完整地图 →</text>
-        </view>
-
-        <!-- 课程架:不可横滑,只展 3 站海报 + 40站尾卡(要看全部点尾卡进完整地图) -->
-        <view class="lr-rack" wx:if="{{vm.routePreview.length}}">
-          <view class="lr-rack-inner">
-            <view
-              wx:for="{{vm.routePreview}}"
-              wx:key="pack_id"
-              class="pk-poster pk-poster--{{item.state}} lr-poster"
-              bindtap="openStation"
-              data-pack-id="{{item.pack_id}}"
-              data-green="{{item.green}}"
-              data-card-hosted="{{item.card_hosted}}"
-            >
-              <text class="pk-poster__name">{{item.name}}</text>
-              <view class="pk-poster__slot lr-poster-slot--{{item.state}}">{{item.slot}}</view>
-              <view class="pk-poster__foot">
-                <view class="lr-tagline">
-                  <text wx:if="{{item.recommended}}" class="lr-ticon lr-ticon--rec">▶</text>
-                  <text wx:elif="{{item.state === 'ink'}}" class="lr-ticon lr-ticon--done">✓</text>
-                  <text wx:elif="{{item.locked}}" class="lr-ticon lr-ticon--lock">🔒</text>
-                  <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.card_hosted === false ? '微课即将开通' : (item.recommended ? '推荐起点' : (item.state === 'ink' ? '已练过' : (item.locked ? '尚未开放' : '尚未学习')))}}</text>
-                </view>
-                <!-- 副标题:考点卡首卡 front 真源;无卡的站留空(fail-closed,不造词) -->
-                <text wx:if="{{item.subtitle}}" class="pk-poster__sub">{{item.subtitle}}</text>
-              </view>
-              <view class="pk-poster__bar"></view>
-            </view>
-            <!-- 尾卡:2×2 四色格(墨/朱/灰/虚线)+ 完整路线 -->
-            <view class="lr-poster-tail" bindtap="openStations">
-              <view class="lr-tail-grid">
-                <view class="lr-tail-cell lr-tail-cell--ink"></view>
-                <view class="lr-tail-cell lr-tail-cell--red"></view>
-                <view class="lr-tail-cell lr-tail-cell--gray"></view>
-                <view class="lr-tail-cell lr-tail-cell--dash"></view>
-              </view>
-              <text class="lr-poster-tail-txt">完整路线</text>
-              <text class="lr-poster-tail-txt">{{vm.packUniverse || 40}} 站</text>
-            </view>
-          </view>
-        </view>
       </view>
 
       <!-- 复习卡(到期赴约):只是 pack_review 到期状态视图;任务卡内容仍由
@@ -276,7 +291,7 @@ module.exports = { daysTo: daysTo };
         <view class="lr-rvc-go">{{vm.reviewCard.cta}}</view>
       </view>
 
-      <!-- 复习空态(无到期):按 10a改 渲染诚实排期占位,不整块消失。
+      <!-- 复习空态(无到期):按 10a 渲染诚实排期占位,不整块消失。
            非任务源、不可点(无到期可路由)——完成练习后由服务端 due 排期。 -->
       <view class="lr-rvc lr-rvc--empty pk-card lr-rise lr-rise--d3" wx:if="{{!supplyError && !vm.reviewCard}}">
         <view class="lr-rvc-ic lr-rvc-ic--empty">
@@ -289,8 +304,9 @@ module.exports = { daysTo: daysTo };
         <view class="lr-rvc-go lr-rvc-go--muted">待排期</view>
       </view>
 
-      <!-- 三枚指标卡(10a改):大数字 + 底部小图形(图形为设计稿装饰纹样,非数据声称);
-           数字全部事实计数——近3天作答/待补错因/已验证考点(mastered=terminal 证据) -->
+      <!-- 三枚指标卡(10a):大数字 + 底部小图形(图形为设计稿装饰纹样,非数据声称);
+           数字全部事实计数——近3天作答/待补错因/已验证考点(mastered=terminal 证据)。
+           定稿③"掌握趋势 ↗72%"=前端算掌握,红线禁 → 改"已验证考点 X 站"(见偏差表)。 -->
       <view class="lr-metric-row lr-rise lr-rise--d4" wx:if="{{!supplyError}}">
         <view class="lr-metric pk-card">
           <text class="pk-kicker">近 3 天练习</text>
