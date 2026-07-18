@@ -201,3 +201,34 @@ def test_luban_retest_probe_claim_reuses_ledger_and_is_service_role_only() -> No
         assert f"revoke all on function {function_signature} from anon" in sql
         assert f"revoke all on function {function_signature} from authenticated" in sql
         assert f"grant execute on function {function_signature} to service_role" in sql
+
+
+def test_retest_probe_canonical_identity_migration_recovers_legacy_winner() -> None:
+    migration_path = (
+        Path(__file__).resolve().parents[2]
+        / "supabase"
+        / "migrations"
+        / "20260718000100_learner_state_retest_probe_canonical_identity.sql"
+    )
+    sql = migration_path.read_text(encoding="utf-8").lower()
+
+    assert "create table" not in sql
+    assert "create or replace function public.canonical_luban_cycle_anchor" in sql
+    assert "replace(lower(v_value::uuid::text), '-', '')" in sql
+    assert "create or replace function public.claim_luban_retest_probe" in sql
+    assert "event.source_feature = 'luban_retest_claim'" in sql
+    assert "event.memory_kind = 'retest_control_claim'" in sql
+    assert "event.payload_json->>'event_type' = 'retest_probe_claim'" in sql
+    assert "public.canonical_luban_cycle_anchor(" in sql
+    assert "order by event.created_at asc, event.event_id asc" in sql
+    assert "raise warning 'multiple equivalent retest probe claim winners" in sql
+    assert "'cycle_anchor', v_cycle_anchor" in sql
+    assert "on conflict (dedupe_key) do nothing" in sql
+    for function_signature in (
+        "public.canonical_luban_cycle_anchor(text)",
+        "public.claim_luban_retest_probe(text, text, text, text, text)",
+    ):
+        assert f"revoke all on function {function_signature} from public" in sql
+        assert f"revoke all on function {function_signature} from anon" in sql
+        assert f"revoke all on function {function_signature} from authenticated" in sql
+        assert f"grant execute on function {function_signature} to service_role" in sql

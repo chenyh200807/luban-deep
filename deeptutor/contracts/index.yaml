@@ -687,6 +687,7 @@ domains:
       - supabase/migrations/20260419000100_learner_state_rls.sql
       - supabase/migrations/20260531000100_learner_notebook_cards.sql
       - supabase/migrations/20260716000100_learner_state_luban_retest_probe_claim.sql
+      - supabase/migrations/20260718000100_learner_state_retest_probe_canonical_identity.sql
 
   # Luban grading engine — compiled rubric, registry resolver, knowledge compiler.
   # I-5: These test files were added during M7/M32 but not registered in contract guard.

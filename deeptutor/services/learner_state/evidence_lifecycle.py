@@ -4,6 +4,8 @@ from dataclasses import dataclass
 import math
 from typing import Any, Iterable
 
+from deeptutor.services.learner_state.event_identity import canonical_event_id
+
 PRACTICE_EVIDENCE_SOURCE_FEATURES = frozenset(
     {"construction_grading", "assessment_testset"}
 )
@@ -109,8 +111,11 @@ def _canonical_retest_item_events_from_index(
     mode = _clean(terminal_payload.get("practice_mode")).lower()
     request_hash_version = _whole_number(terminal_payload.get("request_hash_version"))
     probe_id = _clean(terminal_payload.get("probe_id"))
-    cycle_anchor = _clean(terminal_payload.get("cycle_anchor"))
-    item_refs = [_clean(item) for item in list(terminal_payload.get("item_event_refs") or [])]
+    cycle_anchor = canonical_event_id(terminal_payload.get("cycle_anchor"))
+    item_refs = [
+        canonical_event_id(item)
+        for item in list(terminal_payload.get("item_event_refs") or [])
+    ]
     question_count = _whole_number(terminal_payload.get("max_score"))
     score_awarded = _number(terminal_payload.get("score_awarded"))
     if (
@@ -148,7 +153,7 @@ def _canonical_retest_item_events_from_index(
                 or (
                     _whole_number(payload.get("request_hash_version")) == 3
                     and _clean(payload.get("probe_id")) == probe_id
-                    and _clean(payload.get("cycle_anchor")) == cycle_anchor
+                    and canonical_event_id(payload.get("cycle_anchor")) == cycle_anchor
                 )
             )
         ):
@@ -211,7 +216,7 @@ def committed_retest_closure(events: Iterable[Any]) -> dict[str, tuple[str, ...]
             closure.pop(completion_id, None)
             continue
         closure[completion_id] = tuple(
-            _clean(getattr(event, "event_id", "")) for event in item_events
+            canonical_event_id(getattr(event, "event_id", "")) for event in item_events
         )
     for completion_id in invalid_completions:
         closure.pop(completion_id, None)
@@ -293,7 +298,7 @@ def _canonical_retest_role_from_items(*, terminal: Any, items: Iterable[Any]) ->
     ]
     if not raw_roles:
         return ""
-    cycle_anchor = _clean(payload.get("cycle_anchor"))
+    cycle_anchor = canonical_event_id(payload.get("cycle_anchor"))
     if any(not role for role in raw_roles):
         return ""
     roles = set(raw_roles)
@@ -327,9 +332,9 @@ def canonical_retest_episode_records(
     event_list = list(events or [])
     closure = committed_retest_closure(event_list)
     by_event_id = {
-        _clean(getattr(event, "event_id", "")): event
+        canonical_event_id(getattr(event, "event_id", "")): event
         for event in event_list
-        if _clean(getattr(event, "event_id", ""))
+        if canonical_event_id(getattr(event, "event_id", ""))
     }
     ordered_terminals = sorted(
         (
@@ -345,7 +350,7 @@ def canonical_retest_episode_records(
         ),
         key=lambda event: (
             _clean(getattr(event, "created_at", "")),
-            _clean(getattr(event, "event_id", "")),
+            canonical_event_id(getattr(event, "event_id", "")),
         ),
     )
     state_by_pack: dict[str, dict[str, Any]] = {}
@@ -356,7 +361,7 @@ def canonical_retest_episode_records(
         items = tuple(by_event_id[item_id] for item_id in closure[completion_id])
         pack_id = _clean(payload.get("pack_id")).upper()
         role = _canonical_retest_role_from_items(terminal=terminal, items=items)
-        terminal_id = _clean(getattr(terminal, "event_id", "")) or completion_id
+        terminal_id = canonical_event_id(getattr(terminal, "event_id", "")) or completion_id
         version = _whole_number(payload.get("request_hash_version"))
         state = state_by_pack.get(pack_id)
         episode_id = ""
@@ -385,7 +390,7 @@ def canonical_retest_episode_records(
                 for item in items
             }
             confirm_facts.discard("")
-            parent_anchor = _clean(payload.get("cycle_anchor"))
+            parent_anchor = canonical_event_id(payload.get("cycle_anchor"))
             if (
                 state is not None
                 and parent_anchor == str(state.get("episode_id") or "")
@@ -395,7 +400,7 @@ def canonical_retest_episode_records(
                 episode_id = str(state["episode_id"])
                 binding = EPISODE_BINDING_EXACT
         elif role == RETEST_ROLE_REVIEW:
-            cycle_anchor = _clean(payload.get("cycle_anchor"))
+            cycle_anchor = canonical_event_id(payload.get("cycle_anchor"))
             if version == 3:
                 if state is not None and cycle_anchor == str(state["current_anchor"]):
                     episode_id = str(state["episode_id"])
@@ -438,7 +443,7 @@ def validate_immediate_confirm_parent(
     parent and whether every requested fact was actually wrong in that closure.
     """
     normalized_pack = _clean(pack_id).upper()
-    normalized_parent = _clean(parent_terminal_id)
+    normalized_parent = canonical_event_id(parent_terminal_id)
     requested_facts = {_clean(fact_id) for fact_id in fact_ids}
     requested_facts.discard("")
     if not normalized_pack or not normalized_parent or not requested_facts:
@@ -453,7 +458,7 @@ def validate_immediate_confirm_parent(
     if not forward_records:
         return False
     parent = forward_records[-1]
-    parent_id = _clean(getattr(parent.terminal, "event_id", ""))
+    parent_id = canonical_event_id(getattr(parent.terminal, "event_id", ""))
     if parent_id != normalized_parent:
         return False
     wrong_facts = {
@@ -499,7 +504,7 @@ def is_canonical_luban_retest_terminal(event: Any) -> bool:
                 mode == "forward"
                 or (
                     _clean(payload.get("probe_id"))
-                    and _clean(payload.get("cycle_anchor"))
+                    and canonical_event_id(payload.get("cycle_anchor"))
                 )
             )
         )
@@ -536,9 +541,10 @@ def event_promotion_allowed(
         return False
     completion_id = _clean(payload.get("retest_completion_id"))
     if completion_id and payload.get("completion_terminal") is not True:
-        return _clean(getattr(event, "event_id", "")) in set(
-            committed_retest_item_ids or set()
-        )
+        return canonical_event_id(getattr(event, "event_id", "")) in {
+            canonical_event_id(item_id)
+            for item_id in set(committed_retest_item_ids or set())
+        }
     return True
 
 
@@ -569,7 +575,7 @@ def _event_index(events: Iterable[Any]) -> tuple[dict[str, Any], set[str]]:
     by_event_id: dict[str, Any] = {}
     duplicate_event_ids: set[str] = set()
     for event in events:
-        event_id = _clean(getattr(event, "event_id", ""))
+        event_id = canonical_event_id(getattr(event, "event_id", ""))
         if not event_id:
             continue
         if event_id in by_event_id:

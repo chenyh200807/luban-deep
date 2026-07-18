@@ -6,6 +6,7 @@ import json
 import os
 from typing import Any
 
+from deeptutor.services.learner_state.event_identity import canonical_event_id
 from deeptutor.services.learner_state.evidence_lifecycle import (
     canonical_retest_item_events,
     is_canonical_luban_retest_terminal,
@@ -276,7 +277,9 @@ class RetestWritebackService:
                 pack_id=selection_pack,
                 probe_id=normalized_probe,
             )
-            if str(due_probe.get("cycle_anchor") or "").strip() != cycle_anchor:
+            if canonical_event_id(due_probe.get("cycle_anchor")) != canonical_event_id(
+                cycle_anchor
+            ):
                 raise ValueError("retest_probe_cycle_mismatch")
         elif intent_id and not self._intent_matches_pack(
             user_id=normalized_user,
