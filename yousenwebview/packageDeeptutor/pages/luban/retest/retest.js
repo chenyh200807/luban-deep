@@ -773,11 +773,16 @@ Page({
       .catch(function (err) {
         var errorCode = api.errorCodeOf ? api.errorCodeOf(err) : String((err && err.message) || "");
         var contentUpdated = errorCode === "content_updated_retake" || String((err && err.message) || "") === "content_updated_retake";
+        // 练习供给尚未签发发布 != 收据漂移: 前者给暖文案"先看讲解打底", 不清草稿,
+        // 也不催用户"重做已更新的题"(那是把教研节奏问题误伤成用户侧数据问题).
+        var notReleased = errorCode === "practice_not_released";
         if (contentUpdated) that._clearDraft();
         that.setData({
           loading: false,
           errorText: contentUpdated
             ? "题目内容已更新，请返回重新完成五题"
+            : notReleased
+            ? "这一站的练习还在教研签发中，先看讲解打底"
             : api.describeRequestError(err, "复测题加载失败，请稍后重试"),
         });
       });
