@@ -1,6 +1,15 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+/* login.wxss — 登录首屏(纸墨朱竹单层)
+ * 原 Zentra 深蓝版的入场编排/视差 orb/布局几何全保留,只换材质:
+ * 宣纸底+点阵 / 墨字 / 朱红品牌章+书法点睛 / 墨色主按钮 / 竹青链接。
+ * 单主题=宣纸亮(root 挂 paper light),登录场景不随夜间反转。 */
+
 .scene {
   height: 100vh;
-  background: linear-gradient(180deg, #10214c 0%, #0b1635 38%, #070d1d 72%, #04070e 100%);
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
   position: relative;
   overflow: hidden;
 }
@@ -15,6 +24,7 @@
   overflow: hidden;
 }
 
+/* 天光:宣纸上的暖调洇染(替代深蓝冷光) */
 .sky-wash {
   position: fixed;
   inset: -8% -10% auto -10%;
@@ -22,36 +32,36 @@
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.74) 0%, rgba(208, 226, 255, 0.42) 18%, rgba(122, 170, 255, 0.16) 40%, transparent 66%),
-    radial-gradient(circle at 72% 58%, rgba(201, 223, 255, 0.82) 0%, rgba(157, 194, 255, 0.28) 18%, rgba(90, 142, 255, 0.10) 38%, transparent 60%),
-    radial-gradient(circle at 90% 16%, rgba(55, 101, 225, 0.22) 0%, transparent 40%);
+    radial-gradient(circle at 18% 10%, rgba(255, 253, 248, 0.9) 0%, rgba(201, 159, 61, 0.07) 34%, transparent 62%),
+    radial-gradient(circle at 72% 58%, rgba(72, 128, 106, 0.08) 0%, transparent 52%),
+    radial-gradient(circle at 90% 16%, rgba(207, 68, 54, 0.05) 0%, transparent 40%);
 }
 
+/* 视差 orb:js 惯性驱动的柔光,降为纸面淡彩 */
 .orb {
   position: fixed;
   pointer-events: none;
   z-index: 0;
   border-radius: 50%;
-  mix-blend-mode: screen;
   transform: translate(-50%, -50%);
 }
 
 .o1 {
   width: 860rpx;
   height: 860rpx;
-  background: radial-gradient(circle, rgba(255,255,255,0.90) 0%, rgba(232,241,255,0.56) 20%, rgba(119,162,255,0.14) 48%, transparent 72%);
+  background: radial-gradient(circle, rgba(255, 253, 248, 0.85) 0%, rgba(233, 229, 215, 0.5) 24%, transparent 66%);
 }
 
 .o2 {
   width: 760rpx;
   height: 760rpx;
-  background: radial-gradient(circle, rgba(203,225,255,0.34) 0%, rgba(93,143,255,0.12) 36%, transparent 68%);
+  background: radial-gradient(circle, rgba(72, 128, 106, 0.08) 0%, transparent 60%);
 }
 
 .o3 {
   width: 720rpx;
   height: 720rpx;
-  background: radial-gradient(circle, rgba(70,120,240,0.12) 0%, transparent 66%);
+  background: radial-gradient(circle, rgba(201, 159, 61, 0.07) 0%, transparent 60%);
 }
 
 .body {
@@ -85,10 +95,10 @@
   margin-bottom: 14rpx;
   font-size: 20rpx;
   line-height: 1;
-  font-weight: 580;
+  font-weight: 700;
   letter-spacing: 3.2rpx;
   text-transform: uppercase;
-  color: rgba(226, 232, 240, 0.44);
+  color: var(--pk-t3);
   white-space: nowrap;
 }
 
@@ -96,19 +106,25 @@
   display: flex;
   align-items: center;
   gap: 14rpx;
-  opacity: 0.96;
 }
 
+/* 白 logo 落朱红章上(与权益中心导航章同构) */
 .brand-mark {
   height: 44rpx;
+  width: 60rpx;
+  padding: 8rpx;
+  box-sizing: content-box;
   display: block;
+  background: var(--pk-red);
+  border-radius: 14rpx;
+  box-shadow: 0 6rpx 18rpx rgba(207, 68, 54, 0.28);
 }
 
 .brand-name {
   font-size: 54rpx;
   line-height: 1;
-  font-weight: 760;
-  color: rgba(255, 255, 255, 0.98);
+  font-weight: 800;
+  color: var(--pk-t1);
   letter-spacing: 0.4rpx;
   white-space: nowrap;
 }
@@ -120,7 +136,7 @@
 
 .hero-line {
   display: block;
-  font-weight: 780;
+  font-weight: 800;
   letter-spacing: -1.4rpx;
 }
 
@@ -134,22 +150,25 @@
 .hero-line-main-inline {
   font-size: 68rpx;
   line-height: 1;
-  color: #ffffff;
+  color: var(--pk-t1);
 }
 
+/* 点睛词:书法体朱红(动画卡「鲁班智考」同一品牌书法资产语言) */
 .hero-line-accent-inline {
-  font-size: 68rpx;
+  font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive;
+  font-size: 72rpx;
   line-height: 1;
-  color: #4d97ff;
-  font-style: italic;
+  letter-spacing: 2rpx;
+  color: var(--pk-red);
 }
+
 .hero-desc {
   display: block;
   margin-top: 20rpx;
   max-width: 100%;
   font-size: 22rpx;
-  line-height: 1.44;
-  color: rgba(226, 232, 240, 0.56);
+  line-height: 1.5;
+  color: var(--pk-t2);
 }
 
 .hero-desc-sub {
@@ -170,15 +189,16 @@
 .pager-dot-active {
   width: 36rpx;
   height: 8rpx;
-  background: #4d97ff;
+  background: var(--pk-t1);
 }
 
 .pager-dot-idle {
   width: 8rpx;
   height: 8rpx;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--pk-sand);
 }
 
+/* 行动区:底部宣纸渐变承托 */
 .action-panel {
   position: absolute;
   left: 0;
@@ -188,10 +208,10 @@
   padding: 32rpx 18rpx 0;
   background: linear-gradient(
     180deg,
-    rgba(4, 7, 14, 0) 0%,
-    rgba(4, 7, 14, 0.54) 18%,
-    rgba(4, 7, 14, 0.88) 46%,
-    rgba(4, 7, 14, 0.98) 100%
+    rgba(245, 243, 236, 0) 0%,
+    rgba(245, 243, 236, 0.62) 18%,
+    rgba(245, 243, 236, 0.92) 46%,
+    rgba(245, 243, 236, 0.99) 100%
   );
   box-sizing: border-box;
   display: flex;
@@ -203,8 +223,8 @@
 .err {
   margin-bottom: 20rpx;
   padding: 14rpx 22rpx;
-  background: rgba(127, 29, 29, 0.28);
-  border: 1rpx solid rgba(239, 68, 68, 0.18);
+  background: rgba(194, 101, 85, 0.1);
+  border: 1rpx solid rgba(194, 101, 85, 0.3);
   border-radius: 16rpx;
 }
 
@@ -212,23 +232,17 @@
   display: block;
   text-align: center;
   font-size: 24rpx;
-  color: #fda4af;
+  color: var(--pk-warn);
 }
 
+/* 主按钮:墨色(10a 定稿) */
 .btn-wechat-stack {
   position: relative;
   width: 100%;
   padding: 0;
   border-radius: 32rpx;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 18%, rgba(255, 255, 255, 0.16) 100%),
-    linear-gradient(135deg, #6fc0ff 0%, #3a8eff 48%, #1f6dff 100%);
-  border: 1rpx solid rgba(255, 255, 255, 0.24);
-  box-shadow:
-    0 24rpx 54rpx rgba(37, 99, 235, 0.30),
-    0 8rpx 24rpx rgba(58, 142, 255, 0.16),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.34),
-    inset 0 -12rpx 24rpx rgba(10, 38, 118, 0.18);
+  background: var(--pk-ink-btn);
+  box-shadow: 0 12rpx 28rpx rgba(38, 36, 31, 0.24);
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -264,9 +278,9 @@
 
 .btn-wechat-primary-txt {
   font-size: 33rpx;
-  font-weight: 820;
-  color: #ffffff;
-  letter-spacing: 1.2rpx;
+  font-weight: 800;
+  color: var(--pk-ink-btn-t);
+  letter-spacing: 2rpx;
 }
 
 .guest-entry {
@@ -280,8 +294,8 @@
   justify-content: center;
   gap: 8rpx;
   border-radius: 999rpx;
-  border: 1rpx solid rgba(226, 232, 240, 0.12);
-  background: rgba(226, 232, 240, 0.07);
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
   box-sizing: border-box;
 }
 
@@ -292,14 +306,14 @@
 
 .guest-entry-txt {
   font-size: 24rpx;
-  font-weight: 680;
-  color: rgba(226, 232, 240, 0.86);
+  font-weight: 700;
+  color: var(--pk-t2);
 }
 
 .guest-entry-arrow {
   font-size: 28rpx;
   line-height: 1;
-  color: rgba(247, 201, 107, 0.86);
+  color: var(--pk-grn);
 }
 
 .link-row {
@@ -316,8 +330,8 @@
   display: inline-block;
   font-size: 23rpx;
   line-height: 1.2;
-  color: rgba(226, 232, 240, 0.72);
-  font-weight: 560;
+  color: var(--pk-grn);
+  font-weight: 700;
   text-align: center;
   background: transparent;
   padding: 0;
@@ -330,10 +344,10 @@
 .link-sep {
   font-size: 22rpx;
   line-height: 1;
-  color: rgba(226, 232, 240, 0.24);
+  color: var(--pk-sand);
 }
 
-/* —— 先体验导学：色浪出场转场（与 onboarding wave-overlay 同渐变语言）—— */
+/* —— 先体验导学:色浪出场转场(改为宣纸→竹青暖浪) —— */
 .guest-wave {
   position: fixed;
   left: 0;
@@ -343,7 +357,7 @@
   z-index: 90;
   pointer-events: none;
   transform: translateY(104%);
-  background: linear-gradient(0deg, #cfeaff 0%, #5aa8f5 32%, #1c3f93 68%, #0b1635 100%);
+  background: linear-gradient(0deg, #fffdf8 0%, #f0ede1 36%, #cfd9cd 68%, #7fa392 100%);
 }
 
 .guest-wave.play {
@@ -356,11 +370,10 @@
   }
 }
 
-
 /* ============================================================
-   电影感入场编排（与 onboarding 深夜蓝黑设计系统同语言）
-   节奏: kicker 划入(80ms) → 品牌行(200ms) → 标题逐字升起(340ms+)
-        → 「智能备考导师」点金(1.5s) → 文案(1.75s) → 行动区(1.15s+)
+   电影感入场编排(节奏不变,只换了纸墨材质)
+   节奏: kicker 划入(80ms) → 品牌行(200ms) → 标题升起(340ms)
+        → 书法点睛 → 文案(1.75s) → 行动区(1.15s+)
    ============================================================ */
 
 .login-aurora-gold {
@@ -371,7 +384,7 @@
   right: -360rpx;
   pointer-events: none;
   opacity: 0.5;
-  background: radial-gradient(circle, rgba(56, 182, 255, 0.16) 0%, rgba(56, 182, 255, 0.05) 36%, transparent 62%);
+  background: radial-gradient(circle, rgba(201, 159, 61, 0.12) 0%, rgba(201, 159, 61, 0.04) 36%, transparent 62%);
   animation: loginGoldDrift 22s ease-in-out infinite alternate;
 }
 
@@ -379,6 +392,7 @@
   to { transform: translate3d(-120rpx, -70rpx, 0) scale(1.1); }
 }
 
+/* 纸纹颗粒:沿用噪点贴图,宣纸上颗粒感更弱 */
 .login-grain {
   position: fixed;
   left: 0;
@@ -386,12 +400,12 @@
   top: 0;
   bottom: 0;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.035;
   background-image: url("data:image/png;base64,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");
   background-size: 110rpx 110rpx;
 }
 
-/* —— 一次性入场编排 —— */
+/* —— 一次性入场编排(原节奏保留) —— */
 .hero-kicker {
   animation: loginKickIn 620ms ease 80ms both;
 }
@@ -501,17 +515,17 @@
   height: 28rpx;
   flex: 0 0 28rpx;
   border-radius: 6rpx;
-  border: 2rpx solid rgba(226, 232, 240, 0.46);
+  border: 2rpx solid var(--pk-sand);
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  background: rgba(15, 23, 42, 0.24);
+  background: var(--pk-card);
 }
 
 .privacy-checkbox.checked {
-  border-color: rgba(103, 183, 255, 0.92);
-  background: #4198ff;
+  border-color: var(--pk-grn);
+  background: var(--pk-grn);
 }
 
 .privacy-checkmark {
@@ -525,11 +539,11 @@
 .privacy-link {
   font-size: 22rpx;
   line-height: 1.35;
-  color: rgba(226, 232, 240, 0.68);
+  color: var(--pk-t3);
   white-space: normal;
 }
 
 .privacy-link {
-  color: #8fc7ff;
-  font-weight: 620;
+  color: var(--pk-grn);
+  font-weight: 700;
 }

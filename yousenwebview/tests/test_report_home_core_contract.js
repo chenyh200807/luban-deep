@@ -103,25 +103,26 @@ assert(
   ) >= 0,
   "the user-owned paper/ink root class must be preserved byte-for-byte",
 );
-var homeStart = reportWxml.indexOf("B5 精简学情首页");
+// 主面契约 = 10e 诊断单(owner 2026-07-17 拍板从 B5 三件事恢复;
+// 详尽版式断言在 test_report_layout.js,此处只锁「主面确实是 10e」的骨架)。
+var homeStart = reportWxml.indexOf("10e 诊断单");
 var homeEnd = reportWxml.indexOf("reportDetailView == 'evidence'");
 var homeBlock = reportWxml.slice(homeStart, homeEnd);
 assert(homeStart >= 0 && homeEnd > homeStart);
-assert(homeBlock.indexOf("近期进展") >= 0);
-assert(homeBlock.indexOf("1–3 个盲点") >= 0);
-assert(homeBlock.indexOf("唯一下一步") >= 0);
-assert(homeBlock.indexOf("insufficient_evidence") >= 0);
-assert.strictEqual((homeBlock.match(/bindtap="goReportHomeTask"/g) || []).length, 1);
-[
-  "masteryMap",
-  "riskGearLabel",
-  "overallMastery",
-  "openMistakeBook",
-  "absorbDiagnosisIntoPlan",
-  "goPractice",
-].forEach(function (legacy) {
-  assert.strictEqual(homeBlock.indexOf(legacy), -1, "home must not retain first-class legacy surface: " + legacy);
-});
+assert(homeBlock.indexOf("学情 · 诊断单") >= 0);
+assert(homeBlock.indexOf("掌握地图") >= 0);
+assert(homeBlock.indexOf("riskGearLabel") >= 0, "diagnosis card must project the risk gear read model");
+assert(homeBlock.indexOf("masteryMap.cells") >= 0, "mastery map must project the 40-cell read model");
+assert.strictEqual(
+  (homeBlock.match(/bindtap="absorbDiagnosisIntoPlan"/g) || []).length,
+  1,
+  "10e home keeps exactly one business CTA (diagnosis → route)",
+);
+assert.strictEqual(
+  (homeBlock.match(/bindtap="goReportHomeTask"/g) || []).length,
+  0,
+  "B5 compact task CTA must not coexist with the 10e action key",
+);
 assert(reportSource.indexOf("api.getHomeDashboard") >= 0, "report must read canonical home next_step");
 assert(reportSource.indexOf("buildCanonicalLearningTask") >= 0, "report and learning must share task translation");
 assert(
