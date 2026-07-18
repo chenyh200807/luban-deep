@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "X03",
   "source_pack_sha256": "6da4f10de5f46af7abdb5f1665d3a6db44e1cc6f870000a5c9e70fcc620769e1",
-  "source_bundle_sha256": "38d38ebf847217afb9c769f92dc8db80f38e10882dda3ebd5461072e72c194e7",
+  "source_bundle_sha256": "070c61d804bf2b68414de2479d5f647096b18a599e77a57d206c63dbe5bb66a4",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,23 +18,23 @@
         15
       ],
       "variant_ids": [
-        "X03-html-practice-html-q1-1ec18c6e2879",
-        "X03-html-practice-html-q2-b496fe8fb1aa",
-        "X03-html-practice-html-q3-9bb6264d8af5",
-        "X03-html-practice-html-q4-6fc7530044e5",
-        "X03-html-practice-html-q16-bbe15ebcc71a"
+        "X03-html-practice-html-q1-392b2c69dc20",
+        "X03-html-practice-html-q2-889e43029c6d",
+        "X03-html-practice-html-q3-5435fcbead15",
+        "X03-html-practice-html-q4-a50ad1e7b1b6",
+        "X03-html-practice-html-q16-3c13f34dbc94"
       ],
       "eligible_variant_ids": [
-        "X03-html-practice-html-q1-1ec18c6e2879",
-        "X03-html-practice-html-q2-b496fe8fb1aa",
-        "X03-html-practice-html-q3-9bb6264d8af5",
-        "X03-html-practice-html-q4-6fc7530044e5",
-        "X03-html-practice-html-q14-e6276e8c6094",
-        "X03-html-practice-html-q15-130d497b6a54",
-        "X03-html-practice-html-q16-bbe15ebcc71a"
+        "X03-html-practice-html-q1-392b2c69dc20",
+        "X03-html-practice-html-q2-889e43029c6d",
+        "X03-html-practice-html-q3-5435fcbead15",
+        "X03-html-practice-html-q4-a50ad1e7b1b6",
+        "X03-html-practice-html-q14-1c0363621efa",
+        "X03-html-practice-html-q15-adb9aff306e7",
+        "X03-html-practice-html-q16-3c13f34dbc94"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMWVjMThjNmUyODc5IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iNDk2ZmU4ZmIxYWEiLCJYMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTliYjYyNjRkOGFmNSIsIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNmZjNzUzMDA0NGU1IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmJlMTVlYmNjNzFhIl0sInBhY2tfaWQiOiJYMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjU3N2IzYmQ2YTcyODlhMDkzNWVjMWEyOWZhYzNiYTI1ZmJkYTM3YmU2ODQzZTc2N2IyZmY5ZmU2OWNkNjEyZGYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjVkZDBmN2ZjOTBlYjYxZGJlZmZmYjgzY2NhNzQ1Y2QzOWYzMmFkYWY5N2E5NzZjMDA3ZDNjODJkN2NjZmVmZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "758ce17555858215a4aee9efdc9e520cd247688a3ef422845bc8072179da0239"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzkyYjJjNjlkYzIwIiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ODllNDMwMjljNmQiLCJYMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTU0MzVmY2JlYWQxNSIsIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtYTUwYWQxZTdiMWI2IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtM2MxM2YzNGRiYzk0Il0sInBhY2tfaWQiOiJYMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjcwOGM5ZDIxODg3YWI4NTg3ZmYyM2M1NmI3YjNjOTlhYWVjYzE2MjUwNGUxN2MxNjIzZTljNTAzODkyZjZiODYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjVkZDBmN2ZjOTBlYjYxZGJlZmZmYjgzY2NhNzQ1Y2QzOWYzMmFkYWY5N2E5NzZjMDA3ZDNjODJkN2NjZmVmZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "31360ffd2d3fcceb2d91cfd6a5b1abed88832e7b0501384412654cb5683d0069"
     }
   ],
   "items": [
@@ -51,37 +51,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "规范口径是「宜分区域设置」，不是「必须分开」；这句把柔性要求写成刚性，正是要挑出的错误说法。",
-          "option_id": "X03-html-practice-html-q1-1ec18c6e2879:option-1"
+          "option_id": "X03-html-practice-html-q1-392b2c69dc20:option-1"
         },
         {
-          "text": "施工区与办公、生活区应划分清晰，并采取相应的隔离防护措施。",
+          "text": "施工现场的施工区与办公、生活区应划分清晰，并采取相应的隔离防护措施。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "这句是对的，看着「像有问题」就想选，其实是标准采分句。",
           "loss_reason": "这是文明施工正确要求，选它就等于把对的当错的，判型方向反了。",
           "fix": "这是正确说法，题目要选错误的那句「必须分开设置」。",
-          "option_id": "X03-html-practice-html-q1-1ec18c6e2879:option-2"
+          "option_id": "X03-html-practice-html-q1-392b2c69dc20:option-2"
         },
         {
-          "text": "在建工程内严禁住人。",
+          "text": "在建工程内严禁住人，不得安排任何施工作业人员或管理人员在其中住宿。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "太短，怀疑「是不是漏条件」。",
           "loss_reason": "这是明确的强制正确要求，选它即误判。",
           "fix": "这是正确采分句，错误说法是「办公区生活区必须分开设置」。",
-          "option_id": "X03-html-practice-html-q1-1ec18c6e2879:option-3"
+          "option_id": "X03-html-practice-html-q1-392b2c69dc20:option-3"
         },
         {
-          "text": "施工现场应设置封闭围挡，做到场容场貌整洁有序、材料码放整齐。",
+          "text": "施工现场应实行封闭管理、设置封闭围挡，做到场容场貌整洁有序，各类材料、构件码放整齐稳固。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "内容多，容易觉得「哪里不严谨」。",
           "loss_reason": "这是文明施工六化的正确表述，选它即误判。",
           "fix": "正确说法，错误的是「必须分开设置」那句。",
-          "option_id": "X03-html-practice-html-q1-1ec18c6e2879:option-4"
+          "option_id": "X03-html-practice-html-q1-392b2c69dc20:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q1-1ec18c6e2879",
+      "variant_id": "X03-html-practice-html-q1-392b2c69dc20",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
@@ -89,27 +89,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q1",
       "source_anchor": "kc:1A437000_143_0229:1",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "x03-fact-site-zoning-rules",
       "skeleton_id": "x03-skel-文明施工错误项辨析",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "105f4d3d45de419b0834ad5a439ab4c500be53b52eb60ac12cce1c7e61eb1224",
+      "content_sha256": "33fa23c7a5cba527a6f4838fc2143f52aca15c9bffe054d52825c20efe77935d",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "105f4d3d45de419b0834ad5a439ab4c500be53b52eb60ac12cce1c7e61eb1224",
+        "reviewed_content_sha256": "33fa23c7a5cba527a6f4838fc2143f52aca15c9bffe054d52825c20efe77935d",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "选错误项: 三真项教材逐字(本锚: 施工区与办公生活区划分清晰隔离+在建严禁住人); 错误项『办公生活必须分开否则违规』教材无此强制规定(外延句『应相对隔离』印证)。工单: 辨析印证句属 X01 邻接 territory。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "选错误项: 三真项教材逐字(本锚: 施工区与办公生活区划分清晰隔离+在建严禁住人); 错误项『办公生活必须分开否则违规』教材无此强制规定(外延句『应相对隔离』印证)。工单: 辨析印证句属 X01 邻接 territory。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -130,43 +130,43 @@
       "model_answer": "封闭管理设标准化围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。",
       "options": [
         {
+          "text": "加强现场文明施工管理，落实文明施工责任制，做到现场文明有序、干净整洁、面貌良好，营造良好施工环境，全面创建文明工地。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "话说得很「全面」，读着顺，像总结陈词。",
+          "loss_reason": "全是口号，没有一条落到围挡/分区/挂牌等可判分动作，阅卷不给分。",
+          "fix": "落到动作：标准化围挡、施工区÷生活区隔离、在建工程严禁住人、挂五牌一图。",
+          "option_id": "X03-html-practice-html-q2-889e43029c6d:option-1"
+        },
+        {
+          "text": "设置封闭围挡，并做到各类材料码放整齐、现场干净整洁，以上两项即构成完整的文明施工措施方案。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "写了围挡和码放两条，感觉「有具体措施了」。",
+          "loss_reason": "漏了分区隔离、在建工程严禁住人、五牌一图等采分点，只答两条不全。",
+          "fix": "补分区隔离、在建工程严禁住人、五牌一图挂内侧。",
+          "option_id": "X03-html-practice-html-q2-889e43029c6d:option-2"
+        },
+        {
+          "text": "配齐灭火器材与消防水源、严格组织动火审批、做好职业病防护和食堂饮食卫生，以保障现场文明施工。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "消防、卫生听着都属于「现场管理」，容易混进来。",
+          "loss_reason": "消防防火属安全生产、职业卫生属安全卫生，都不是文明施工本体，串了考点。",
+          "fix": "文明施工只答围挡/分区/严禁住人/六化/五牌一图。",
+          "option_id": "X03-html-practice-html-q2-889e43029c6d:option-3"
+        },
+        {
           "text": "设标准化封闭围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "围挡+分区隔离+严禁住人+六化+五牌一图都落到可执行动作，采分点齐。",
-          "option_id": "X03-html-practice-html-q2-b496fe8fb1aa:option-1"
-        },
-        {
-          "text": "加强文明施工管理，搞好现场文明施工，做到文明有序、干净整洁，创建文明工地。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "话说得很「全面」，读着顺，像总结陈词。",
-          "loss_reason": "全是口号，没有一条落到围挡/分区/挂牌等可判分动作，阅卷不给分。",
-          "fix": "落到动作：标准化围挡、施工区÷生活区隔离、在建工程严禁住人、挂五牌一图。",
-          "option_id": "X03-html-practice-html-q2-b496fe8fb1aa:option-2"
-        },
-        {
-          "text": "设置围挡、材料码放整齐即可，现场干净就是文明施工的核心，其余按现场情况灵活安排。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "写了围挡和码放两条，感觉「有具体措施了」。",
-          "loss_reason": "漏了分区隔离、在建工程严禁住人、五牌一图等采分点，只答两条不全。",
-          "fix": "补分区隔离、在建工程严禁住人、五牌一图挂内侧。",
-          "option_id": "X03-html-practice-html-q2-b496fe8fb1aa:option-3"
-        },
-        {
-          "text": "配齐灭火器与消防水源、组织动火审批、做好职业病防护和食堂卫生，保障文明施工。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "消防、卫生听着都属于「现场管理」，容易混进来。",
-          "loss_reason": "消防防火属安全生产、职业卫生属安全卫生，都不是文明施工本体，串了考点。",
-          "fix": "文明施工只答围挡/分区/严禁住人/六化/五牌一图。",
-          "option_id": "X03-html-practice-html-q2-b496fe8fb1aa:option-4"
+          "option_id": "X03-html-practice-html-q2-889e43029c6d:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q2-b496fe8fb1aa",
+      "variant_id": "X03-html-practice-html-q2-889e43029c6d",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
@@ -174,27 +174,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q2",
       "source_anchor": "kc:1A437000_143_0229:1",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "x03-fact-civilized-six-standards",
       "skeleton_id": "x03-skel-文明施工要求成组",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5fd921686246c708767c0e1724bb425b5ef4de4fae903aadfda5840853b19350",
+      "content_sha256": "07913e35217ba9d2e60f0a73f8685475e5eb46514766542d03fd24a5b04f6c37",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "5fd921686246c708767c0e1724bb425b5ef4de4fae903aadfda5840853b19350",
+        "reviewed_content_sha256": "07913e35217ba9d2e60f0a73f8685475e5eb46514766542d03fd24a5b04f6c37",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -204,7 +204,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "六化+分区隔离+严禁住人, 教材 kc:...143_0229:1 直引。工单: 五牌一图/主入口内侧可补真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "六化+分区隔离+严禁住人, 教材 kc:...143_0229:1 直引。工单: 五牌一图/主入口内侧可补真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -221,7 +221,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "材料三个词（可循环/可拆卸/标准化定型）+ 高度 1.8m，本源料语境的采分句。",
-          "option_id": "X03-html-practice-html-q3-9bb6264d8af5:option-1"
+          "option_id": "X03-html-practice-html-q3-5435fcbead15:option-1"
         },
         {
           "text": "围挡按材料成分分为有机类围挡和无机类围挡两种，高度不得低于 1.8m。",
@@ -230,28 +230,28 @@
           "temptation": "「有机类/无机类」听着像专业分类，真题里也出现过这个词。",
           "loss_reason": "有机类/无机类是真题干扰项，围挡按可循环/可拆卸/标准化定型分，不按成分分。",
           "fix": "材料写「可循环、可拆卸、标准化定型」，不是有机/无机类。",
-          "option_id": "X03-html-practice-html-q3-9bb6264d8af5:option-2"
+          "option_id": "X03-html-practice-html-q3-5435fcbead15:option-2"
         },
         {
-          "text": "围挡采用标准化定型材料，高度不得低于 2.5m。",
+          "text": "围挡采用可拆卸的标准化定型材料，高度不得低于 2.5m。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "2.5m 是常听到的围挡数字，顺手就填。",
           "loss_reason": "2.5m 是市区主要路段场容围挡（另属 X01）；本源料语境围挡高度是不低于 1.8m，数字串档。",
           "fix": "本题高度写「不得低于 1.8m」，2.5m 是市区主路场容的另一考点。",
-          "option_id": "X03-html-practice-html-q3-9bb6264d8af5:option-3"
+          "option_id": "X03-html-practice-html-q3-5435fcbead15:option-3"
         },
         {
-          "text": "围挡牢固美观即可，高度按现场情况确定，能挡住施工现场不外露就行。",
+          "text": "围挡应做到牢固美观、能挡住施工现场不外露，高度可结合现场实际情况综合确定。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "觉得「牢固美观、能挡住」就达到目的了。",
           "loss_reason": "没有材料类型、没有明确高度数值，缺规范阈值不能判分。",
           "fix": "补齐：可循环/可拆卸/标准化定型材料 + 高度不得低于 1.8m。",
-          "option_id": "X03-html-practice-html-q3-9bb6264d8af5:option-4"
+          "option_id": "X03-html-practice-html-q3-5435fcbead15:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q3-9bb6264d8af5",
+      "variant_id": "X03-html-practice-html-q3-5435fcbead15",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
@@ -259,27 +259,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q3",
       "source_anchor": "kc:1A437000_141_0225:0",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "x03-fact-enclosure-standards",
       "skeleton_id": "x03-skel-围挡材料高度",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "4001b85787afa37dfc599e19369a47d5c92aa1c221bc2417424916b367c55426",
+      "content_sha256": "20bdc65ef46e71b1a7b71ba506c730ceb76f2c59c565b6772c70b87b17bbdf11",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "4001b85787afa37dfc599e19369a47d5c92aa1c221bc2417424916b367c55426",
+        "reviewed_content_sha256": "20bdc65ef46e71b1a7b71ba506c730ceb76f2c59c565b6772c70b87b17bbdf11",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -289,7 +289,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "围挡可循环/可拆卸/标准化定型材料且≥1.8m, 教材 kc:...141_0225:0 逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "围挡可循环/可拆卸/标准化定型材料且≥1.8m, 教材 kc:...141_0225:0 逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -300,43 +300,43 @@
       "model_answer": "工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工牌、环境保护牌 + 施工总平面图，挂主入口内侧。",
       "options": [
         {
+          "text": "工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌，再加施工总平面图，即为内容齐全的五牌一图。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "名字叫「五牌」，凑够五个就以为齐了。",
+          "loss_reason": "漏了文明施工牌、环境保护牌——恰恰是最爱漏的两块采分牌。",
+          "fix": "补文明施工牌、环境保护牌，六块牌 + 一图。",
+          "option_id": "X03-html-practice-html-q4-a50ad1e7b1b6:option-1"
+        },
+        {
+          "text": "五牌一图应挂设在工地大门外侧的显眼位置，以便于过往行人和监管部门随时查看监督。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「越显眼越好」，挂外面路人都能看到。",
+          "loss_reason": "规范要求挂主入口内侧，挂外侧位置错。",
+          "fix": "五牌一图挂主入口内侧。",
+          "option_id": "X03-html-practice-html-q4-a50ad1e7b1b6:option-2"
+        },
+        {
           "text": "工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工牌、环境保护牌，加施工总平面图。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "六块牌 + 一张图齐全，最爱漏的文明施工牌、环境保护牌都写上了。",
-          "option_id": "X03-html-practice-html-q4-6fc7530044e5:option-1"
+          "option_id": "X03-html-practice-html-q4-a50ad1e7b1b6:option-3"
         },
         {
-          "text": "工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌，加施工总平面图，共五牌一图。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "名字叫「五牌」，凑够五个就以为齐了。",
-          "loss_reason": "漏了文明施工牌、环境保护牌——恰恰是最爱漏的两块采分牌。",
-          "fix": "补文明施工牌、环境保护牌，六块牌 + 一图。",
-          "option_id": "X03-html-practice-html-q4-6fc7530044e5:option-2"
-        },
-        {
-          "text": "把五牌一图挂在工地大门外侧显眼处，方便过往行人和监管部门查看监督。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得「越显眼越好」，挂外面路人都能看到。",
-          "loss_reason": "规范要求挂主入口内侧，挂外侧位置错。",
-          "fix": "五牌一图挂主入口内侧。",
-          "option_id": "X03-html-practice-html-q4-6fc7530044e5:option-3"
-        },
-        {
-          "text": "挂工程概况牌和施工总平面图即可，其余牌按建设单位要求增设，核心是概况和平面图。",
+          "text": "挂设工程概况牌和施工总平面图两项，其余各牌根据建设单位要求另行增设，核心为概况与平面图。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "觉得概况牌和总平面图「信息最全」，够用。",
           "loss_reason": "漏了管理名单、消防保卫、安全生产、文明施工、环境保护五块牌。",
           "fix": "六块牌一块不能少，加施工总平面图。",
-          "option_id": "X03-html-practice-html-q4-6fc7530044e5:option-4"
+          "option_id": "X03-html-practice-html-q4-a50ad1e7b1b6:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q4-6fc7530044e5",
+      "variant_id": "X03-html-practice-html-q4-a50ad1e7b1b6",
       "surface_id": "practice.html",
       "source_index": 3,
       "source_group": "Q",
@@ -344,27 +344,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q4",
       "source_anchor": "exam:2017:案例三",
       "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "x03-fact-five-boards-one-map",
       "skeleton_id": "x03-skel-五牌一图位置纠错",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a3b994e7c30e3ac789b8b7488da31ec69be38fa16bc903ad0b63e5b9521b379d",
+      "content_sha256": "94173bec70b5f79c830a8813bfce693e501bec718f13521b0de7ce89b9a5ab61",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a3b994e7c30e3ac789b8b7488da31ec69be38fa16bc903ad0b63e5b9521b379d",
+        "reviewed_content_sha256": "94173bec70b5f79c830a8813bfce693e501bec718f13521b0de7ce89b9a5ab61",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -374,7 +374,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "五牌一图应布置主入口内侧(围墙外侧不妥), 真题 exam:2017:案例三 背景+整改逐字。工单: 牌数口径按真题原句收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "五牌一图应布置主入口内侧(围墙外侧不妥), 真题 exam:2017:案例三 背景+整改逐字。工单: 牌数口径按真题原句收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -385,22 +385,22 @@
       "model_answer": "属于「节地与施工用地保护」（节地）——省的是地、保护施工用地，不是省材料。",
       "options": [
         {
+          "text": "属于节材——用绿化代替了场地硬化，省下了硬化所需的混凝土等材料，是节约材料的做法。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "硬化要用混凝土，绿化省了它，直觉觉得是省材料=节材。",
+          "loss_reason": "归类混淆：这里省的是「地」不是「料」，绿化代替硬化归节地不归节材。",
+          "fix": "绿化代替硬化=节地，不是节材。",
+          "option_id": "X03-html-practice-html-q6-bab2eefe747c:option-1"
+        },
+        {
           "text": "属于节地（节地与施工用地保护）——绿化代替硬化省的是场地，保护施工用地。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "绿化代替硬化=省地=节地，真题 2017 第16题答案。",
-          "option_id": "X03-html-practice-html-q6-58d599496816:option-1"
-        },
-        {
-          "text": "属于节材——用绿化代替硬化，省下了硬化要用的混凝土等材料，是节约材料。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "硬化要用混凝土，绿化省了它，直觉觉得是省材料=节材。",
-          "loss_reason": "归类混淆：这里省的是「地」不是「料」，绿化代替硬化归节地不归节材。",
-          "fix": "绿化代替硬化=节地，不是节材。",
-          "option_id": "X03-html-practice-html-q6-58d599496816:option-2"
+          "option_id": "X03-html-practice-html-q6-bab2eefe747c:option-2"
         },
         {
           "text": "属于节能——绿化能降温、减少地表反射，省下了施工现场的用能。",
@@ -409,7 +409,7 @@
           "temptation": "绿化降温联想到「省能」。",
           "loss_reason": "绿化代替硬化的判分点是保护施工用地，属节地，不是节能。",
           "fix": "归节地（施工用地保护），不是节能。",
-          "option_id": "X03-html-practice-html-q6-58d599496816:option-3"
+          "option_id": "X03-html-practice-html-q6-bab2eefe747c:option-3"
         },
         {
           "text": "属于节水——绿地能蓄水、涵养水分，减少现场用水，是节水措施。",
@@ -418,10 +418,10 @@
           "temptation": "绿地蓄水联想到「省水」。",
           "loss_reason": "判分点是省地、保护用地，属节地，不按蓄水归节水。",
           "fix": "归节地，不是节水。",
-          "option_id": "X03-html-practice-html-q6-58d599496816:option-4"
+          "option_id": "X03-html-practice-html-q6-bab2eefe747c:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q6-58d599496816",
+      "variant_id": "X03-html-practice-html-q6-bab2eefe747c",
       "surface_id": "practice.html",
       "source_index": 5,
       "source_group": "Q",
@@ -429,17 +429,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ea37e67ee8c4f90a430e214fc4041825d4ae6a52b5b548a72676b0ceddb578ca",
+      "content_sha256": "bb78ddbf3907961e980e68c4834e9b4b276819d07456cdfba8a1d03b9e7f171b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "ea37e67ee8c4f90a430e214fc4041825d4ae6a52b5b548a72676b0ceddb578ca",
+        "reviewed_content_sha256": "bb78ddbf3907961e980e68c4834e9b4b276819d07456cdfba8a1d03b9e7f171b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -464,37 +464,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "循环装置 + 抽水 50 万 m³ 回灌，两个可判分的采分动作。",
-          "option_id": "X03-html-practice-html-q7-e6cd16886f24:option-1"
+          "option_id": "X03-html-practice-html-q7-7fa6c80481cc:option-1"
         },
         {
-          "text": "加强节约用水管理，节约用水、杜绝浪费，提高全员节水意识。",
+          "text": "加强施工现场节约用水管理，做到节约用水、杜绝浪费，切实提高全员节水意识。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "「节约用水」是节水最顺口的说法。",
           "loss_reason": "纯口号，没有循环装置、回灌等可执行动作，不给分。",
           "fix": "落到动作：设循环装置、抽水大于 50 万 m³ 回灌。",
-          "option_id": "X03-html-practice-html-q7-e6cd16886f24:option-2"
+          "option_id": "X03-html-practice-html-q7-7fa6c80481cc:option-2"
         },
         {
-          "text": "施工用水优先用自来水，用完直接排入市政管网，保证现场用水通畅。",
+          "text": "施工用水优先选用市政自来水，使用后直接排入市政污水管网，以保证现场用水、排水的顺畅。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "觉得「用完就排」现场省事。",
           "loss_reason": "直接排放不是节水，节水要循环利用、回灌，方向反了。",
           "fix": "设循环装置反复用；大量抽水须回灌地下水。",
-          "option_id": "X03-html-practice-html-q7-e6cd16886f24:option-3"
+          "option_id": "X03-html-practice-html-q7-7fa6c80481cc:option-3"
         },
         {
-          "text": "现场设沉淀池对废水简单沉淀，能省一点是一点，其余按经验安排。",
+          "text": "现场设置沉淀池，对施工废水进行简单沉淀处理，以此作为主要的节水措施。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "提了沉淀池，感觉「有措施」。",
           "loss_reason": "漏了循环装置和抽水回灌两个核心采分点，只提沉淀不全。",
           "fix": "补循环装置反复利用、抽水大于 50 万 m³ 回灌地下水。",
-          "option_id": "X03-html-practice-html-q7-e6cd16886f24:option-4"
+          "option_id": "X03-html-practice-html-q7-7fa6c80481cc:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q7-e6cd16886f24",
+      "variant_id": "X03-html-practice-html-q7-7fa6c80481cc",
       "surface_id": "practice.html",
       "source_index": 6,
       "source_group": "Q",
@@ -502,17 +502,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "eba0a3b1761167b226e8629a06ffe4784bf85ccb780fa75c3c596e5b44ed872d",
+      "content_sha256": "8583b0252f68d8503a7427ffe7b71465e0bbdcc4be7c52d16e89aa3cd306bd8b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "eba0a3b1761167b226e8629a06ffe4784bf85ccb780fa75c3c596e5b44ed872d",
+        "reviewed_content_sha256": "8583b0252f68d8503a7427ffe7b71465e0bbdcc4be7c52d16e89aa3cd306bd8b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -531,43 +531,43 @@
       "model_answer": "四节的节能指施工现场用能：优先节能设备、临时照明按最低照度、优先用太阳能地热等可再生能源；不同于建筑节能工程（墙体门窗保温验收）。",
       "options": [
         {
+          "text": "节能是指做好墙体保温、门窗气密性和外墙外保温层施工，并按建筑节能工程标准验收合格。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「节能」两个字和建筑节能工程完全一样，最容易混。",
+          "loss_reason": "墙体门窗保温是建筑节能工程（围护结构验收），不是四节现场用能，同字不同考。",
+          "fix": "四节·节能写现场用能：节能设备/最低照度/可再生能源。",
+          "option_id": "X03-html-practice-html-q8-d2d7a4bad7b1:option-1"
+        },
+        {
+          "text": "加强施工现场用电管理，做到节约用电、人走灯灭，努力提高全员节能意识。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「节约用电」顺口，像在答节能。",
+          "loss_reason": "口号，没有节能设备/照度/可再生能源等可判分动作。",
+          "fix": "落到动作：节能设备、临时照明最低照度、太阳能地热。",
+          "option_id": "X03-html-practice-html-q8-d2d7a4bad7b1:option-2"
+        },
+        {
           "text": "优先选用节能施工设备，临时照明按最低照度设计，优先利用太阳能、地热等可再生能源。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "三条都是施工现场用能的可执行动作，正是四节·节能采分句。",
-          "option_id": "X03-html-practice-html-q8-d80d47179e19:option-1"
+          "option_id": "X03-html-practice-html-q8-d2d7a4bad7b1:option-3"
         },
         {
-          "text": "节能就是做好墙体保温、门窗气密性和外墙保温层，按建筑节能工程标准验收合格。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「节能」两个字和建筑节能工程完全一样，最容易混。",
-          "loss_reason": "墙体门窗保温是建筑节能工程（围护结构验收），不是四节现场用能，同字不同考。",
-          "fix": "四节·节能写现场用能：节能设备/最低照度/可再生能源。",
-          "option_id": "X03-html-practice-html-q8-d80d47179e19:option-2"
-        },
-        {
-          "text": "加强用电管理、节约用电、随手关灯，提高现场节能意识即可。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "「节约用电」顺口，像在答节能。",
-          "loss_reason": "口号，没有节能设备/照度/可再生能源等可判分动作。",
-          "fix": "落到动作：节能设备、临时照明最低照度、太阳能地热。",
-          "option_id": "X03-html-practice-html-q8-d80d47179e19:option-3"
-        },
-        {
-          "text": "临时照明尽量用大功率灯具照得更亮，保证夜间施工安全就是节能的核心。",
+          "text": "临时照明应选用大功率灯具、提高现场照度，保障夜间施工安全即是节能的核心。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "觉得「照得亮=安全」优先。",
           "loss_reason": "临时照明应按最低照度设计，用大功率照更亮与节能背道而驰。",
           "fix": "临时照明按最低照度设计，优先可再生能源。",
-          "option_id": "X03-html-practice-html-q8-d80d47179e19:option-4"
+          "option_id": "X03-html-practice-html-q8-d2d7a4bad7b1:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q8-d80d47179e19",
+      "variant_id": "X03-html-practice-html-q8-d2d7a4bad7b1",
       "surface_id": "practice.html",
       "source_index": 7,
       "source_group": "Q",
@@ -575,17 +575,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ac8dff1d9e41218921d13b4488d8520ac1c30bb42590c43fff25a928b0519e29",
+      "content_sha256": "7cede91efb97db9dffd4fbc2485f35ac0215b97dee8c3f58bb16469ff192fb65",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "ac8dff1d9e41218921d13b4488d8520ac1c30bb42590c43fff25a928b0519e29",
+        "reviewed_content_sha256": "7cede91efb97db9dffd4fbc2485f35ac0215b97dee8c3f58bb16469ff192fb65",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -604,22 +604,13 @@
       "model_answer": "按基本规定 → 指标 → 要素 → 批次 → 阶段 → 单位工程的顺序评价。",
       "options": [
         {
-          "text": "基本规定 → 指标 → 要素 → 批次 → 阶段 → 单位工程。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "从基本规定逐层到单位工程，层级顺序完整，是评价流程采分句。",
-          "option_id": "X03-html-practice-html-q9-346958028b96:option-1"
-        },
-        {
-          "text": "单位工程 → 阶段 → 批次 → 要素 → 指标 → 基本规定，从整体倒推到规定。",
+          "text": "单位工程 → 阶段 → 批次 → 要素 → 指标 → 基本规定。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "倒着排看着也「有逻辑」，像从大到小。",
           "loss_reason": "顺序颠倒，评价是从基本规定逐层展开到单位工程，不是倒推。",
           "fix": "正序：基本规定→指标→要素→批次→阶段→单位工程。",
-          "option_id": "X03-html-practice-html-q9-346958028b96:option-2"
+          "option_id": "X03-html-practice-html-q9-ebe949983f8c:option-1"
         },
         {
           "text": "基本规定 → 要素 → 阶段 → 单位工程，中间的指标和批次可省略。",
@@ -628,19 +619,28 @@
           "temptation": "觉得指标、批次是「细节」，可以略过。",
           "loss_reason": "漏了指标、批次两个中间层级，顺序不完整。",
           "fix": "六层都要写，别漏指标和批次。",
-          "option_id": "X03-html-practice-html-q9-346958028b96:option-3"
+          "option_id": "X03-html-practice-html-q9-ebe949983f8c:option-2"
         },
         {
-          "text": "绿色施工不必按固定顺序评价，按项目实际灵活组织即可。",
+          "text": "绿色施工评价不设固定的层级顺序，可结合项目实际灵活组织。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "想省去记顺序，答「灵活组织」。",
           "loss_reason": "评价有固定层级顺序，答「灵活」等于没答，拿不到顺序分。",
           "fix": "写明基本规定→指标→要素→批次→阶段→单位工程。",
-          "option_id": "X03-html-practice-html-q9-346958028b96:option-4"
+          "option_id": "X03-html-practice-html-q9-ebe949983f8c:option-3"
+        },
+        {
+          "text": "基本规定 → 指标 → 要素 → 批次 → 阶段 → 单位工程。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "从基本规定逐层到单位工程，层级顺序完整，是评价流程采分句。",
+          "option_id": "X03-html-practice-html-q9-ebe949983f8c:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q9-346958028b96",
+      "variant_id": "X03-html-practice-html-q9-ebe949983f8c",
       "surface_id": "practice.html",
       "source_index": 8,
       "source_group": "Q",
@@ -648,17 +648,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "712886df762e24bddb13787524c9fb116920b56f91e2616a77247a2a15945754",
+      "content_sha256": "602509fad108fbbf996259fd968cb0c9ed6722ac1c99f93a1f090ad3a3b6c1c0",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "712886df762e24bddb13787524c9fb116920b56f91e2616a77247a2a15945754",
+        "reviewed_content_sha256": "602509fad108fbbf996259fd968cb0c9ed6722ac1c99f93a1f090ad3a3b6c1c0",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -677,43 +677,43 @@
       "model_answer": "源头裸土覆盖固化或绿化、物料篷盖；路径自动喷淋 + 雾炮除尘；出口设冲洗池沉淀池、车辆冲洗后出场。",
       "options": [
         {
+          "text": "施工现场应定时洒水降尘，保持路面和作业面经常湿润，切实减少扬尘飞扬。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「洒水降尘」是扬尘最先想到的措施。",
+          "loss_reason": "只写洒水漏了源头覆盖和出口车辆冲洗，三步缺两步，不全。",
+          "fix": "补源头裸土覆盖/篷盖、出口冲洗池车辆冲洗。",
+          "option_id": "X03-html-practice-html-q10-89ab4b0c45e8:option-1"
+        },
+        {
+          "text": "加强施工现场扬尘管控工作，控制各环节扬尘，做到不起尘、不污染周边环境。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「控制扬尘」听着已经把要求说到位了。",
+          "loss_reason": "纯口号，没有覆盖/喷淋/冲洗等可执行动作，不给分。",
+          "fix": "落到动作：源头覆盖→喷淋雾炮→出口冲洗。",
+          "option_id": "X03-html-practice-html-q10-89ab4b0c45e8:option-2"
+        },
+        {
           "text": "源头裸土覆盖固化或绿化、物料篷盖；路径自动喷淋加雾炮除尘；出口设冲洗池、车辆冲洗后出场。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "源头 + 路径 + 出口三步齐，立体防尘的采分句。",
-          "option_id": "X03-html-practice-html-q10-2cd479081298:option-1"
+          "option_id": "X03-html-practice-html-q10-89ab4b0c45e8:option-3"
         },
         {
-          "text": "现场定时洒水降尘，保持地面湿润，减少扬尘飞扬。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "「洒水降尘」是扬尘最先想到的措施。",
-          "loss_reason": "只写洒水漏了源头覆盖和出口车辆冲洗，三步缺两步，不全。",
-          "fix": "补源头裸土覆盖/篷盖、出口冲洗池车辆冲洗。",
-          "option_id": "X03-html-practice-html-q10-2cd479081298:option-2"
-        },
-        {
-          "text": "加强扬尘管控，控制现场扬尘，做到不起尘、不污染周边环境。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "「控制扬尘」听着已经把要求说到位了。",
-          "loss_reason": "纯口号，没有覆盖/喷淋/冲洗等可执行动作，不给分。",
-          "fix": "落到动作：源头覆盖→喷淋雾炮→出口冲洗。",
-          "option_id": "X03-html-practice-html-q10-2cd479081298:option-3"
-        },
-        {
-          "text": "在工地出入口设车辆冲洗池，车辆冲洗干净再出场，即可控制扬尘。",
+          "text": "在工地出入口设置车辆冲洗池和配套沉淀池，所有运输车辆经冲洗干净后方可出场，以此控制现场扬尘。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "抓住「车辆冲洗」这一具体动作，觉得够了。",
           "loss_reason": "只写出口冲洗，漏了源头覆盖和路径喷淋雾炮。",
           "fix": "补源头裸土覆盖固化、路径自动喷淋加雾炮。",
-          "option_id": "X03-html-practice-html-q10-2cd479081298:option-4"
+          "option_id": "X03-html-practice-html-q10-89ab4b0c45e8:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q10-2cd479081298",
+      "variant_id": "X03-html-practice-html-q10-89ab4b0c45e8",
       "surface_id": "practice.html",
       "source_index": 9,
       "source_group": "Q",
@@ -721,17 +721,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "fc70439b57a4cf2e1e8744717cf6b0cc0449703e521300399cdb7e0c5535f839",
+      "content_sha256": "c5589dd2c0586d63b3311f1ad9613b775e860178635482b02e6985b5c90bdc56",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "fc70439b57a4cf2e1e8744717cf6b0cc0449703e521300399cdb7e0c5535f839",
+        "reviewed_content_sha256": "c5589dd2c0586d63b3311f1ad9613b775e860178635482b02e6985b5c90bdc56",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -750,43 +750,43 @@
       "model_answer": "选用低噪声设备（源强）；设隔声屏、隔声罩（传播）；封闭木工加工房；优化施工工艺减少噪声。",
       "options": [
         {
+          "text": "合理安排施工作业时间、减少噪声扰民，最大限度降低施工噪声对周边环境的影响。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「减少噪声扰民」听着是在答噪声控制。",
+          "loss_reason": "口号，没有设备/隔声/封闭/工艺等可判分措施。",
+          "fix": "落到动作：低噪声设备、隔声屏罩、封闭木工房、优化工艺。",
+          "option_id": "X03-html-practice-html-q11-dbe2999e7964:option-1"
+        },
+        {
           "text": "选用低噪声设备；设隔声屏、隔声罩；封闭木工加工房；优化施工工艺降低噪声。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "低噪设备→隔声屏罩→封闭木工房→优化工艺，按源强到受体四步齐。",
-          "option_id": "X03-html-practice-html-q11-60521b3ad397:option-1"
+          "option_id": "X03-html-practice-html-q11-dbe2999e7964:option-2"
         },
         {
-          "text": "合理安排施工时间、减少噪声扰民，尽量降低施工噪声对周边的影响。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "「减少噪声扰民」听着是在答噪声控制。",
-          "loss_reason": "口号，没有设备/隔声/封闭/工艺等可判分措施。",
-          "fix": "落到动作：低噪声设备、隔声屏罩、封闭木工房、优化工艺。",
-          "option_id": "X03-html-practice-html-q11-60521b3ad397:option-2"
-        },
-        {
-          "text": "给施工设备加隔声罩，把噪声挡住就行，其余按现场情况安排。",
+          "text": "为主要施工设备加设隔声罩，将噪声阻隔在设备附近，作为噪声控制的主要措施。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "抓住「隔声罩」一个具体措施，觉得点到了。",
           "loss_reason": "只写传播环节的隔声，漏了低噪声设备（源头）、封闭木工房、优化工艺。",
           "fix": "补低噪声设备、封闭木工房、优化工艺，四步齐。",
-          "option_id": "X03-html-practice-html-q11-60521b3ad397:option-3"
+          "option_id": "X03-html-practice-html-q11-dbe2999e7964:option-3"
         },
         {
-          "text": "夜间禁止一切施工作业，白天正常干，就能从根本上解决噪声问题。",
+          "text": "夜间禁止安排一切施工作业，白天照常组织施工，从根本上解决噪声扰民问题。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "觉得「夜间不干」最省事、最彻底。",
           "loss_reason": "夜间施工需办许可证而非一律禁止，且白天噪声仍需设备/隔声等措施控制。",
           "fix": "噪声按低噪设备/隔声屏罩/封闭木工房/优化工艺控制。",
-          "option_id": "X03-html-practice-html-q11-60521b3ad397:option-4"
+          "option_id": "X03-html-practice-html-q11-dbe2999e7964:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q11-60521b3ad397",
+      "variant_id": "X03-html-practice-html-q11-dbe2999e7964",
       "surface_id": "practice.html",
       "source_index": 10,
       "source_group": "Q",
@@ -794,17 +794,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "985cf7af659e8e8b1b1d245f751edecc8118d33c26f417bdf9709b7bb10e4d12",
+      "content_sha256": "66b15a3d9b26b9360d8901cd69c80655af2c8706c360745352ff374c4aa0c41c",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "985cf7af659e8e8b1b1d245f751edecc8118d33c26f417bdf9709b7bb10e4d12",
+        "reviewed_content_sha256": "66b15a3d9b26b9360d8901cd69c80655af2c8706c360745352ff374c4aa0c41c",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -823,43 +823,43 @@
       "model_answer": "办理夜间施工许可证并公告周边居民；照明灯加灯罩使透光集中；电焊作业采取遮挡防止弧光外泄。",
       "options": [
         {
+          "text": "施工中注意控制夜间光污染，尽量不影响周边居民正常休息，做到文明施工。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「注意光污染」像已经答到点上。",
+          "loss_reason": "口号，没有许可证、灯罩、电焊遮挡等具体动作。",
+          "fix": "落到动作：办许可证公告居民、灯加灯罩、电焊遮挡。",
+          "option_id": "X03-html-practice-html-q12-f346e1ec99de:option-1"
+        },
+        {
+          "text": "夜间施工时将现场照明灯具全部开到最亮，以方便作业人员夜间操作，保证施工进度和作业安全。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「灯越亮越安全」。",
+          "loss_reason": "照明应加灯罩使透光集中控制光污染，开到最亮恰恰制造光污染。",
+          "fix": "灯加灯罩透光集中，并办许可证、电焊遮挡。",
+          "option_id": "X03-html-practice-html-q12-f346e1ec99de:option-2"
+        },
+        {
+          "text": "提前将夜间施工安排告知周边居民，即视为措施到位；光污染在现场施工中难以完全避免。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住「公告居民」一条。",
+          "loss_reason": "漏了办许可证、灯加灯罩、电焊遮挡，措施不全。",
+          "fix": "补办夜间施工许可证、灯加灯罩、电焊遮挡防弧光。",
+          "option_id": "X03-html-practice-html-q12-f346e1ec99de:option-3"
+        },
+        {
           "text": "办夜间施工许可证并公告周边居民；照明灯加灯罩使透光集中；电焊作业遮挡防止弧光外泄。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "许可 + 灯罩 + 电焊遮挡三条都是可判分动作，光污染采分句。",
-          "option_id": "X03-html-practice-html-q12-bb0e04e2f314:option-1"
-        },
-        {
-          "text": "注意夜间光污染，尽量不影响周边居民休息，做到文明施工。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "「注意光污染」像已经答到点上。",
-          "loss_reason": "口号，没有许可证、灯罩、电焊遮挡等具体动作。",
-          "fix": "落到动作：办许可证公告居民、灯加灯罩、电焊遮挡。",
-          "option_id": "X03-html-practice-html-q12-bb0e04e2f314:option-2"
-        },
-        {
-          "text": "夜间施工把照明灯开到最亮，方便作业，保证进度和安全。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得「灯越亮越安全」。",
-          "loss_reason": "照明应加灯罩使透光集中控制光污染，开到最亮恰恰制造光污染。",
-          "fix": "灯加灯罩透光集中，并办许可证、电焊遮挡。",
-          "option_id": "X03-html-practice-html-q12-bb0e04e2f314:option-3"
-        },
-        {
-          "text": "提前跟居民打个招呼就行，光污染现场很难避免，作业为主。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记住「公告居民」一条。",
-          "loss_reason": "漏了办许可证、灯加灯罩、电焊遮挡，措施不全。",
-          "fix": "补办夜间施工许可证、灯加灯罩、电焊遮挡防弧光。",
-          "option_id": "X03-html-practice-html-q12-bb0e04e2f314:option-4"
+          "option_id": "X03-html-practice-html-q12-f346e1ec99de:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q12-bb0e04e2f314",
+      "variant_id": "X03-html-practice-html-q12-f346e1ec99de",
       "surface_id": "practice.html",
       "source_index": 11,
       "source_group": "Q",
@@ -867,17 +867,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6225c6fd8920e7ce044863c9a7aa9c5de3bda21c5c52f272d47595463d5a53f5",
+      "content_sha256": "9009bf1fe054c784fa89be1e548846d4db4c67e09796eee452be867d59b4278f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6225c6fd8920e7ce044863c9a7aa9c5de3bda21c5c52f272d47595463d5a53f5",
+        "reviewed_content_sha256": "9009bf1fe054c784fa89be1e548846d4db4c67e09796eee452be867d59b4278f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -896,43 +896,43 @@
       "model_answer": "工程泥浆经泥浆池或封闭容器收集，未经处理不得随意排放；污水排放应申领临时排水许可证，由市政管理部门发证。",
       "options": [
         {
+          "text": "工程泥浆在现场沉淀池内经过充分沉淀处理后，可以就地排入市政雨水管网或者施工现场附近的自然水体。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「沉淀过了」就达标可以排。",
+          "loss_reason": "泥浆未经处理不得随意排放，沉淀不等于处理达标，就地排放违规。",
+          "fix": "泥浆封闭收集，未处理不得随意排放。",
+          "option_id": "X03-html-practice-html-q13-ebd6bd5a44e3:option-1"
+        },
+        {
+          "text": "施工污水排放的临时排水许可证，由建设行政主管部门（即住建部门）负责审批发证。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "施工的事，习惯性想到建设/住建部门。",
+          "loss_reason": "临时排水（污水排放）许可证由市政管理部门发证，发证部门答错。",
+          "fix": "污水排放临时排水许可证由市政管理部门发证。",
+          "option_id": "X03-html-practice-html-q13-ebd6bd5a44e3:option-2"
+        },
+        {
           "text": "工程泥浆经泥浆池封闭收集、未处理不得随意排放；污水排放申领临时排水许可证，由市政管理部门发证。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "泥浆封闭收集不乱排 + 许可市政发证，两个采分点齐。",
-          "option_id": "X03-html-practice-html-q13-3b432e4f169d:option-1"
+          "option_id": "X03-html-practice-html-q13-ebd6bd5a44e3:option-3"
         },
         {
-          "text": "泥浆在现场沉淀池沉淀后，就地排入市政雨水管或附近水体，简单省事。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得「沉淀过了」就达标可以排。",
-          "loss_reason": "泥浆未经处理不得随意排放，沉淀不等于处理达标，就地排放违规。",
-          "fix": "泥浆封闭收集，未处理不得随意排放。",
-          "option_id": "X03-html-practice-html-q13-3b432e4f169d:option-2"
-        },
-        {
-          "text": "污水排放许可证由建设行政主管部门（住建部门）审批发证。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "施工的事，习惯性想到建设/住建部门。",
-          "loss_reason": "临时排水（污水排放）许可证由市政管理部门发证，发证部门答错。",
-          "fix": "污水排放临时排水许可证由市政管理部门发证。",
-          "option_id": "X03-html-practice-html-q13-3b432e4f169d:option-3"
-        },
-        {
-          "text": "做好污水处理、达标排放即可，泥浆晾干后当普通渣土外运，不必单独收集。",
+          "text": "做好污水处理并达标排放，工程泥浆晾干后即可作为普通渣土外运，无需单独收集处理。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "觉得「晾干当渣土」方便处理。",
           "loss_reason": "泥浆须经泥浆池/封闭容器收集、未处理不得排放，不能简单晾干外运。",
           "fix": "泥浆封闭容器收集、未处理不排；补雨水回收利用。",
-          "option_id": "X03-html-practice-html-q13-3b432e4f169d:option-4"
+          "option_id": "X03-html-practice-html-q13-ebd6bd5a44e3:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q13-3b432e4f169d",
+      "variant_id": "X03-html-practice-html-q13-ebd6bd5a44e3",
       "surface_id": "practice.html",
       "source_index": 12,
       "source_group": "Q",
@@ -940,17 +940,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9751ddb90ed0c9b1d68d0a0e1e2bfeeb9a56028557a39d0a7c0a0d85f6ff1113",
+      "content_sha256": "641a9eb69dfa052822926b2e370b863ac7731b2d5a2ccf4f86f2c542a3d7e9b1",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "9751ddb90ed0c9b1d68d0a0e1e2bfeeb9a56028557a39d0a7c0a0d85f6ff1113",
+        "reviewed_content_sha256": "641a9eb69dfa052822926b2e370b863ac7731b2d5a2ccf4f86f2c542a3d7e9b1",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -969,43 +969,43 @@
       "model_answer": "堆放不宜高于 3m、超 3m 须做堆体和地基稳定性验算；分类计量、建台账，未分类不得运出场；分类收集→级配回填/就地粉碎→再生骨料。",
       "options": [
         {
+          "text": "建筑垃圾产生后应及时清运出场，统一运送至政府指定的消纳场集中处理，做到日产日清、随产随运，保持施工现场整洁有序。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「及时清运」现场就干净了。",
+          "loss_reason": "未分类不得运出场；只清运不分类、不做资源化违规且漏采分点。",
+          "fix": "先分类计量建台账，未分类不得运出，再资源化利用。",
+          "option_id": "X03-html-practice-html-q14-1c0363621efa:option-1"
+        },
+        {
+          "text": "做好建筑垃圾分类管理工作，从源头减少垃圾产生，坚持绿色环保，全面实现垃圾减量化目标。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「分类、减量化」都是听着对的绿色词。",
+          "loss_reason": "口号化，没有限高验算、台账、资源化路径等可判分动作。",
+          "fix": "落到动作：不宜高于 3m、建台账、级配回填/再生骨料。",
+          "option_id": "X03-html-practice-html-q14-1c0363621efa:option-2"
+        },
+        {
+          "text": "建筑垃圾在场内分类堆放整齐，堆放高度以及是否建立台账，可结合现场实际情况自行确定。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "提了「分类堆放」，感觉有措施了。",
+          "loss_reason": "漏了不宜高于 3m（超 3m 验算）、建台账、资源化路径。",
+          "fix": "补堆放不宜高于 3m、分类计量建台账、资源化再生骨料。",
+          "option_id": "X03-html-practice-html-q14-1c0363621efa:option-3"
+        },
+        {
           "text": "堆放不宜高于 3m、超 3m 须做稳定性验算；分类计量建台账、未分类不得运出场；就地粉碎级配回填做再生骨料。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "限高验算 + 分类台账 + 资源化路径三条齐，建筑垃圾采分句。",
-          "option_id": "X03-html-practice-html-q14-e6276e8c6094:option-1"
-        },
-        {
-          "text": "建筑垃圾及时清运出场，运到消纳场统一处理，保持现场整洁，能运多少运多少。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得「及时清运」现场就干净了。",
-          "loss_reason": "未分类不得运出场；只清运不分类、不做资源化违规且漏采分点。",
-          "fix": "先分类计量建台账，未分类不得运出，再资源化利用。",
-          "option_id": "X03-html-practice-html-q14-e6276e8c6094:option-2"
-        },
-        {
-          "text": "做好建筑垃圾分类，减少垃圾产生，绿色环保，实现垃圾减量化目标。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "「分类、减量化」都是听着对的绿色词。",
-          "loss_reason": "口号化，没有限高验算、台账、资源化路径等可判分动作。",
-          "fix": "落到动作：不宜高于 3m、建台账、级配回填/再生骨料。",
-          "option_id": "X03-html-practice-html-q14-e6276e8c6094:option-3"
-        },
-        {
-          "text": "建筑垃圾分类堆放整齐即可，堆多高、要不要台账按现场情况灵活掌握。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "提了「分类堆放」，感觉有措施了。",
-          "loss_reason": "漏了不宜高于 3m（超 3m 验算）、建台账、资源化路径。",
-          "fix": "补堆放不宜高于 3m、分类计量建台账、资源化再生骨料。",
-          "option_id": "X03-html-practice-html-q14-e6276e8c6094:option-4"
+          "option_id": "X03-html-practice-html-q14-1c0363621efa:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q14-e6276e8c6094",
+      "variant_id": "X03-html-practice-html-q14-1c0363621efa",
       "surface_id": "practice.html",
       "source_index": 13,
       "source_group": "Q",
@@ -1013,27 +1013,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q14",
       "source_anchor": "kc:1A437000_013_0019:0",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "x03-fact-waste-management-resourceization",
       "skeleton_id": "x03-skel-垃圾堆高计量再利用",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "64a6650abc8a6092e5eb89f0a0b8cff096265b2faa3bbb5525f76e395debd135",
+      "content_sha256": "ce39e85cd79000b5ef93162ae3cdadc63fc4add349fd9d17a845c02d44799d18",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "64a6650abc8a6092e5eb89f0a0b8cff096265b2faa3bbb5525f76e395debd135",
+        "reviewed_content_sha256": "ce39e85cd79000b5ef93162ae3cdadc63fc4add349fd9d17a845c02d44799d18",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -1043,7 +1043,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "堆放≤3m/超限稳定性验算/分类计量台账/再生利用, 教材 kc:...013_0019 判分眼直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "堆放≤3m/超限稳定性验算/分类计量台账/再生利用, 教材 kc:...013_0019 判分眼直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -1054,43 +1054,43 @@
       "model_answer": "①文明施工（围挡分区五牌）②绿色施工组织（体系方案影像）③环境保护（扬尘/噪声/光/污水泥浆）④四节（材水能地）⑤建筑垃圾资源化——五组齐、每条落到可执行动作。",
       "options": [
         {
+          "text": "重点写好文明施工措施：设置标准化围挡、施工区与办公生活区隔离、在建工程严禁住人、材料码放整齐、主入口内侧挂五牌一图，做到现场文明有序。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "文明施工写得很细，容易以为「详细=完整」。",
+          "loss_reason": "只答文明施工一组，漏了四节、扬尘、噪声、污水、固废，采分点大面积遗漏。",
+          "fix": "补绿色施工组织、四类污染控制、四节、建筑垃圾五组。",
+          "option_id": "X03-html-practice-html-q15-adb9aff306e7:option-1"
+        },
+        {
           "text": "文明施工（围挡分区五牌）+ 绿色施工组织 + 环境保护（扬尘噪声光污水）+ 四节 + 建筑垃圾资源化，五组齐、每条落到动作。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "文明/组织/污染/四节/固废五组齐、条条可执行，综合写措施满分作答。",
-          "option_id": "X03-html-practice-html-q15-130d497b6a54:option-1"
+          "option_id": "X03-html-practice-html-q15-adb9aff306e7:option-2"
         },
         {
-          "text": "重点写好文明施工措施：标准化围挡、施工区与生活区隔离、材料码放整齐、五牌一图，做到现场文明有序。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "文明施工写得很细，容易以为「详细=完整」。",
-          "loss_reason": "只答文明施工一组，漏了四节、扬尘、噪声、污水、固废，采分点大面积遗漏。",
-          "fix": "补绿色施工组织、四类污染控制、四节、建筑垃圾五组。",
-          "option_id": "X03-html-practice-html-q15-130d497b6a54:option-2"
-        },
-        {
-          "text": "加强文明施工、搞好绿色施工、做好环境保护，全面落实各项绿色建造要求，创建绿色工地。",
+          "text": "加强现场文明施工、搞好绿色施工管理、做好环境保护工作，全面落实各项绿色建造要求，努力创建绿色施工示范工地。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "三句把「文明/绿色/环保」都点到了，像覆盖全面。",
           "loss_reason": "全是口号，五组措施一条可执行动作都没有，near-miss 0 分。",
           "fix": "每组落到动作：围挡分区、扬尘三件套、四节、垃圾资源化…",
-          "option_id": "X03-html-practice-html-q15-130d497b6a54:option-3"
+          "option_id": "X03-html-practice-html-q15-adb9aff306e7:option-3"
         },
         {
-          "text": "写文明施工、扬尘控制、噪声控制三组即可，四节和建筑垃圾属于另外的题不用写进来。",
+          "text": "作答覆盖文明施工、扬尘控制、噪声控制三组措施即已完整，四节与建筑垃圾属于其他考点，不必写入本题答案。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "觉得「污染控制」就是环保措施的全部。",
           "loss_reason": "漏了绿色施工组织、四节、建筑垃圾三组，综合写措施要五组齐。",
           "fix": "补绿色施工组织、四节、建筑垃圾资源化。",
-          "option_id": "X03-html-practice-html-q15-130d497b6a54:option-4"
+          "option_id": "X03-html-practice-html-q15-adb9aff306e7:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q15-130d497b6a54",
+      "variant_id": "X03-html-practice-html-q15-adb9aff306e7",
       "surface_id": "practice.html",
       "source_index": 14,
       "source_group": "Q",
@@ -1098,27 +1098,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q15",
       "source_anchor": "ca:1A437000_149_0294",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "x03-fact-waste-management-resourceization",
       "skeleton_id": "x03-skel-建筑垃圾五组完整性",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "187bc72af9f3b827b11def70e67d6b3f8452b3bfca790f6562e2220e08e47909",
+      "content_sha256": "dd4b0c533f88c86333c3a68a9a2fc6aabe76d78d6cc2114de8f7fdba3da2b821",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "187bc72af9f3b827b11def70e67d6b3f8452b3bfca790f6562e2220e08e47909",
+        "reviewed_content_sha256": "dd4b0c533f88c86333c3a68a9a2fc6aabe76d78d6cc2114de8f7fdba3da2b821",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -1128,7 +1128,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "资源化核心子事实+污染控制子事实各有锚(建筑垃圾=kc:013_0019/噪声=本锚), 五组齐复合 provenance 待补(工单)。相对判据唯一。三联 immediate_confirm(同建筑垃圾 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "资源化核心子事实+污染控制子事实各有锚(建筑垃圾=kc:013_0019/噪声=本锚), 五组齐复合 provenance 待补(工单)。相对判据唯一。三联 immediate_confirm(同建筑垃圾 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -1139,43 +1139,43 @@
       "model_answer": "已写文明施工、扬尘两组但扬尘漏源头覆盖；缺绿色施工组织、噪声、光污染、污水泥浆、四节、建筑垃圾多组。补写：扬尘加源头裸土覆盖篷盖；补噪声（低噪设备/隔声/封闭/工艺）、污水泥浆（封闭收集未处理不排）、四节（材水能地）、建筑垃圾（不宜高于3m/台账/再生骨料）。",
       "options": [
         {
+          "text": "该生两条措施均已写出具体动作：①标准化围挡、施工区与生活区隔离；②现场洒水降尘、设车辆冲洗池，方向正确、条条落到可执行动作，按综合环保措施的采分口径可以直接给满分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "看到有围挡、冲洗池等具体动作，就以为采分点够了。",
+          "loss_reason": "综合写措施要五组齐，只写文明+扬尘两组，漏噪声/污水/四节/建筑垃圾一大片。",
+          "fix": "补噪声、污水泥浆、四节、建筑垃圾等各组措施。",
+          "option_id": "X03-html-practice-html-q16-3c13f34dbc94:option-1"
+        },
+        {
           "text": "文明与扬尘方向对但扬尘漏源头覆盖；且缺噪声、污水泥浆、四节、建筑垃圾等多组——扬尘补源头覆盖，另补噪声/污水/四节/建筑垃圾各组的可执行动作。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "既揪出扬尘缺环节，又补齐缺失的几组措施，条条落到动作，这才是会写答案。",
-          "option_id": "X03-html-practice-html-q16-bbe15ebcc71a:option-1"
+          "option_id": "X03-html-practice-html-q16-3c13f34dbc94:option-2"
         },
         {
-          "text": "两条措施都写了具体动作（围挡、洒水、冲洗池），方向也对，可以给满分。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "看到有围挡、冲洗池等具体动作，就以为采分点够了。",
-          "loss_reason": "综合写措施要五组齐，只写文明+扬尘两组，漏噪声/污水/四节/建筑垃圾一大片。",
-          "fix": "补噪声、污水泥浆、四节、建筑垃圾等各组措施。",
-          "option_id": "X03-html-practice-html-q16-bbe15ebcc71a:option-2"
-        },
-        {
-          "text": "只是文字不够书面，把「洒水降尘」改成「采取抑尘措施」就更规范了，其余无需补。",
+          "text": "该作答的问题只在文字表述不够书面规范，将「洒水降尘」改写为「采取抑尘措施」即可达到要求，内容层面无需再作补充。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "以为问题在措辞，改得「书面」一点就行。",
           "loss_reason": "改口号反而更空；真问题是缺组和扬尘缺源头环节，不是措辞。",
           "fix": "扬尘补源头覆盖，并补噪声/污水/四节/建筑垃圾各组动作。",
-          "option_id": "X03-html-practice-html-q16-bbe15ebcc71a:option-3"
+          "option_id": "X03-html-practice-html-q16-3c13f34dbc94:option-3"
         },
         {
-          "text": "补一句「加强绿色施工管理、做好节能环保」把绿色和四节都概括进去即可，无需逐条写。",
+          "text": "在原作答基础上补写一句「加强绿色施工管理、做好节能环保」，即可将绿色施工与四节内容全部概括进去，无需再逐条展开补写。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "想用一句总括话「省事」地补上四节和绿色。",
           "loss_reason": "一句口号补不了采分点，四节要逐节落到材/水/能/地的具体做法。",
           "fix": "四节逐节写：商混、循环装置、节能设备、绿化代替硬化等可执行动作。",
-          "option_id": "X03-html-practice-html-q16-bbe15ebcc71a:option-4"
+          "option_id": "X03-html-practice-html-q16-3c13f34dbc94:option-4"
         }
       ],
-      "variant_id": "X03-html-practice-html-q16-bbe15ebcc71a",
+      "variant_id": "X03-html-practice-html-q16-3c13f34dbc94",
       "surface_id": "practice.html",
       "source_index": 15,
       "source_group": "Q",
@@ -1183,27 +1183,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q16",
       "source_anchor": "kc:1A437000_013_0019:4",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
       "fact_id": "x03-fact-waste-management-resourceization",
       "skeleton_id": "x03-skel-绿色施工缺口诊断",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "71bbac5604764466ffc51c5bb5d615857984110ee7f2f32a86419db1c42f1147",
+      "content_sha256": "af2dcae30c8c3379e8bce17bf5c3d32c5c6944075966b066a8d0dab529835d09",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "71bbac5604764466ffc51c5bb5d615857984110ee7f2f32a86419db1c42f1147",
+        "reviewed_content_sha256": "af2dcae30c8c3379e8bce17bf5c3d32c5c6944075966b066a8d0dab529835d09",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -1213,7 +1213,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "泥浆/建筑垃圾补写子事实=本锚(分类计量台账)直引; 扬尘/噪声等复合诊断多源(kc:141_0225/149_0294)=复合多源工单。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "泥浆/建筑垃圾补写子事实=本锚(分类计量台账)直引; 扬尘/噪声等复合诊断多源(kc:141_0225/149_0294)=复合多源工单。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     }

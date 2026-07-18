@@ -248,41 +248,41 @@ class Component extends DCLogic {
       stem:"抗震设防烈度 8 度地区，砖墙砌筑临时间断处应如何留槎？选出最完整、能得分的作答。", model:"抗震设防 8 度及以上，临时间断处应留斜槎，不得留直槎。",
       opts:[
         { t:"抗震设防 8 度及以上，临时间断处应留斜槎，不得留直槎。", ok:true, fix:"点明‘8度及以上必留斜槎、不得直槎’，条件与做法齐，是采分句。", code:"" },
-        { t:"8 度地区图省事留直槎，只要把接口清理干净、后砌时对齐即可。", ok:false, code:"E10", tempt:"觉得清理干净就不影响咬合。", lose:"抗震 8 度及以上禁留直槎，留直槎即判不妥。", fix:"应留斜槎，不得留直槎。" },
-        { t:"8 度地区可留直槎，只要沿墙加设拉结筋补强就满足抗震要求。", ok:false, code:"E11", tempt:"把‘非抗震直槎加拉结筋’迁移到抗震区。", lose:"加拉结筋是非抗震直槎的做法，8 度及以上必须斜槎，拉结筋替代不了。", fix:"8 度及以上必留斜槎。" },
-        { t:"只要留斜槎就行，斜槎留多长无所谓，能接上即算合格。", ok:false, code:"M08", tempt:"以为留了斜槎就够。", lose:"斜槎有尺寸要求，普通砖水平投影须≥高 2/3，不写尺寸丢分。", fix:"留斜槎且普通砖水平投影≥高 2/3。" }
+        { t:"8 度地区临时间断处可留直槎，将接口清理干净、后砌时对齐即可。", ok:false, code:"E10", tempt:"觉得清理干净就不影响咬合。", lose:"抗震 8 度及以上禁留直槎，留直槎即判不妥。", fix:"应留斜槎，不得留直槎。" },
+        { t:"沿墙加设拉结筋补强后，8 度地区亦可留直槎并满足抗震要求。", ok:false, code:"E11", tempt:"把‘非抗震直槎加拉结筋’迁移到抗震区。", lose:"加拉结筋是非抗震直槎的做法，8 度及以上必须斜槎，拉结筋替代不了。", fix:"8 度及以上必留斜槎。" },
+        { t:"临时间断处留出斜槎即可，斜槎长度不作具体尺寸要求。", ok:false, code:"M08", tempt:"以为留了斜槎就够。", lose:"斜槎有尺寸要求，普通砖水平投影须≥高 2/3，不写尺寸丢分。", fix:"留斜槎且普通砖水平投影≥高 2/3。" }
       ] },
 { tag:"斜槎尺寸·记忆维", typeHint:"单选 · 选出数值正确的作答", figLabel:"题给：普通实心砖留斜槎", figCaption:"普通砖斜槎长度看哪个比值？", fig:"ratio",
       stem:"普通实心砖砌体留斜槎，斜槎长度应满足什么要求？", model:"普通砖斜槎水平投影长度不应小于斜槎高度的 2/3。",
       opts:[
         { t:"普通砖斜槎的水平投影长度不应小于斜槎高度的 2/3。", ok:true, fix:"普通砖认准 2/3，写清‘水平投影≥高 2/3’即得分。", code:"" },
         { t:"普通砖斜槎的水平投影长度不应小于斜槎高度的 1/2。", ok:false, code:"M08", tempt:"把多孔砖 1/2 用到了普通砖上。", lose:"普通砖是 2/3、多孔砖才 1/2，两个数字混淆。", fix:"普通砖水平投影≥高 2/3。" },
-        { t:"普通砖留斜槎坡度自然、能接上就行，不必量具体长度。", ok:false, code:"E03", tempt:"觉得凭手感留即可。", lose:"缺‘≥2/3 高’关键数值，采分句不成立。", fix:"补‘水平投影≥高 2/3’。" },
+        { t:"留斜槎时按砌筑操作顺势放坡即可，不必核对具体投影长度。", ok:false, code:"E03", tempt:"觉得凭手感留即可。", lose:"缺‘≥2/3 高’关键数值，采分句不成立。", fix:"补‘水平投影≥高 2/3’。" },
         { t:"普通砖斜槎高度不应大于 1.2m 即为合格。", ok:false, code:"E07", tempt:"把空心砖斜槎高 1.2m 套到普通砖。", lose:"1.2m 是空心砖斜槎高度限值，不是普通砖的投影比。", fix:"普通砖看水平投影≥高 2/3。" }
       ] },
 { tag:"斜槎尺寸·记忆维", typeHint:"单选 · 选出数值正确的作答", figLabel:"题给：多孔砖留斜槎", figCaption:"多孔砖斜槎看哪个比值？", fig:"ratio",
       stem:"多孔砖砌体留斜槎，斜槎应满足什么要求？", model:"多孔砖斜槎的长高比不应小于 1/2。",
       opts:[
-        { t:"多孔砖斜槎的长高比不应小于 1/2。", ok:true, fix:"多孔砖认准 1/2，写‘长高比≥1/2’即得分。", code:"" },
-        { t:"多孔砖斜槎的水平投影长度不应小于高度的 2/3。", ok:false, code:"M08", tempt:"把普通砖 2/3 用到了多孔砖。", lose:"多孔砖是长高比≥1/2，普通砖才 2/3，数字混淆。", fix:"多孔砖长高比≥1/2。" },
+        { t:"多孔砖斜槎的水平投影不应小于高度的 2/3。", ok:false, code:"M08", tempt:"把普通砖 2/3 用到了多孔砖。", lose:"多孔砖是长高比≥1/2，普通砖才 2/3，数字混淆。", fix:"多孔砖长高比≥1/2。" },
         { t:"多孔砖不能留斜槎，只能同时砌筑或留直槎。", ok:false, code:"E10", tempt:"以为多孔砖不许斜槎。", lose:"多孔砖同样可留斜槎，只是比值取 1/2。", fix:"多孔砖可留斜槎，长高比≥1/2。" },
-        { t:"多孔砖留斜槎即可，长高比多少不影响验收。", ok:false, code:"E03", tempt:"以为留了就行。", lose:"缺‘长高比≥1/2’关键数值。", fix:"补‘长高比≥1/2’。" }
+        { t:"留斜槎即可满足要求，长高比取值不影响验收。", ok:false, code:"E03", tempt:"以为留了就行。", lose:"缺‘长高比≥1/2’关键数值。", fix:"补‘长高比≥1/2’。" },
+        { t:"多孔砖斜槎的长高比不应小于 1/2。", ok:true, fix:"多孔砖认准 1/2，写‘长高比≥1/2’即得分。", code:"" }
       ] },
 { tag:"留槎形式·条件维", typeHint:"单选 · 选出最完整的作答", figLabel:"题给：非抗震区、不能同时砌", figCaption:"非抗震留直槎还要做什么？", fig:"zhixie",
       stem:"非抗震设防地区，砖墙临时间断处不能留斜槎时可否留直槎？如何处理？", model:"非抗震区可留直槎，但应沿墙加设拉结钢筋。",
       opts:[
-        { t:"非抗震设防地区可留直槎，但应沿墙加设拉结钢筋。", ok:true, fix:"‘可直槎’要连着‘加拉结筋’一起写，两句才满分。", code:"" },
-        { t:"非抗震区可以直接留直槎，把接口清理干净即可，无需其他处理。", ok:false, code:"E02", tempt:"以为非抗震区就随便留。", lose:"漏了‘加设拉结筋’，采分点遗漏。", fix:"留直槎须沿墙加设拉结钢筋。" },
+        { t:"非抗震区可留直槎，将接口清理干净即可，无需其他处理措施。", ok:false, code:"E02", tempt:"以为非抗震区就随便留。", lose:"漏了‘加设拉结筋’，采分点遗漏。", fix:"留直槎须沿墙加设拉结钢筋。" },
         { t:"无论是否抗震，一律不得留直槎，只能留斜槎。", ok:false, code:"E10", tempt:"把抗震区规则扩大化。", lose:"非抗震区允许留直槎(加拉结筋)，一律禁止是规范适用错误。", fix:"非抗震区可留直槎，但须加拉结筋。" },
-        { t:"非抗震留直槎加拉结筋，抗震 8 度区同样加拉结筋即可留直槎。", ok:false, code:"E11", tempt:"把做法迁移到抗震区。", lose:"8 度及以上必留斜槎，拉结筋替代不了。", fix:"8 度及以上必斜槎，不能靠拉结筋留直槎。" }
+        { t:"非抗震留直槎加拉结筋，8 度区同样加拉结筋后即可留直槎。", ok:false, code:"E11", tempt:"把做法迁移到抗震区。", lose:"8 度及以上必留斜槎，拉结筋替代不了。", fix:"8 度及以上必斜槎，不能靠拉结筋留直槎。" },
+        { t:"非抗震设防地区可留直槎，但应沿墙加设拉结钢筋。", ok:true, fix:"‘可直槎’要连着‘加拉结筋’一起写，两句才满分。", code:"" }
       ] },
 { tag:"采分诊断·采分句输出", typeHint:"单选 · 把作答补成完整采分句", figLabel:"临时洞口案例（补写采分句）", figCaption:"只写‘净宽1.2m不妥’够不够？", fig:"sheet",
       stem:"临时洞口案例，考生只写‘洞口净宽 1.2m 不妥、应改小’。要拿全采分，应如何补写完整采分句？", model:"净宽应≤1m；距交接面应≥500mm；上设过梁或挑砖封口；并预埋拉结筋。",
       opts:[
+        { t:"在原句之后补写‘洞口尺寸要再小一点、注意位置’等定性说明即可覆盖采分，不必给出具体数值。", ok:false, code:"E02", tempt:"以为定性说明就够。", lose:"没给具体数值和位置，采分句不成立。", fix:"写≤1m、距交接面≥500mm等具体值。" },
         { t:"净宽不应大于 1m(1.2m 改为≤1m)；侧边距交接面不应小于 500mm；上设过梁或挑砖封口；并预埋拉结筋。", ok:true, fix:"给出具体数值+位置+封口+拉结筋，才是完整采分句。", code:"" },
-        { t:"补一句‘洞口尺寸要再小一点、注意位置’即可。", ok:false, code:"E02", tempt:"以为定性说明就够。", lose:"没给具体数值和位置，采分句不成立。", fix:"写≤1m、距交接面≥500mm等具体值。" },
-        { t:"写‘净宽≤1m’一句即可，其余不必展开。", ok:false, code:"E03", tempt:"抓住净宽一项。", lose:"漏距交接面、封口、拉结筋。", fix:"补距交接面≥500mm、过梁封口、拉结筋。" },
-        { t:"净宽≤1m、距交接面≥300mm，并预埋拉结筋。", ok:false, code:"M08", tempt:"距离数值记小了。", lose:"距交接面应≥500mm，不是 300mm。", fix:"距交接面≥500mm。" }
+        { t:"在作答中补写‘净宽≤1m’一句即为完整采分句，距交接面、封口与拉结筋等内容不必展开。", ok:false, code:"E03", tempt:"抓住净宽一项。", lose:"漏距交接面、封口、拉结筋。", fix:"补距交接面≥500mm、过梁封口、拉结筋。" },
+        { t:"补写：洞口净宽不应大于 1m；侧边距交接面不应小于 300mm；并在洞口两侧预埋拉结筋。", ok:false, code:"M08", tempt:"距离数值记小了。", lose:"距交接面应≥500mm，不是 300mm。", fix:"距交接面≥500mm。" }
       ] }
   ];
   codeMap={
@@ -518,7 +518,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"C06-html-practice-html-q1-059b37587342","options":["C06-html-practice-html-q1-059b37587342:option-1","C06-html-practice-html-q1-059b37587342:option-2","C06-html-practice-html-q1-059b37587342:option-3","C06-html-practice-html-q1-059b37587342:option-4"]},{"variant_id":"C06-html-practice-html-q2-c943f4f66e88","options":["C06-html-practice-html-q2-c943f4f66e88:option-1","C06-html-practice-html-q2-c943f4f66e88:option-2","C06-html-practice-html-q2-c943f4f66e88:option-3","C06-html-practice-html-q2-c943f4f66e88:option-4"]},{"variant_id":"C06-html-practice-html-q3-f2a1a2da34e2","options":["C06-html-practice-html-q3-f2a1a2da34e2:option-1","C06-html-practice-html-q3-f2a1a2da34e2:option-2","C06-html-practice-html-q3-f2a1a2da34e2:option-3","C06-html-practice-html-q3-f2a1a2da34e2:option-4"]},{"variant_id":"C06-html-practice-html-q4-ff391baa6a20","options":["C06-html-practice-html-q4-ff391baa6a20:option-1","C06-html-practice-html-q4-ff391baa6a20:option-2","C06-html-practice-html-q4-ff391baa6a20:option-3","C06-html-practice-html-q4-ff391baa6a20:option-4"]},{"variant_id":"C06-html-practice-html-q16-d0b8b0f4eb46","options":["C06-html-practice-html-q16-d0b8b0f4eb46:option-1","C06-html-practice-html-q16-d0b8b0f4eb46:option-2","C06-html-practice-html-q16-d0b8b0f4eb46:option-3","C06-html-practice-html-q16-d0b8b0f4eb46:option-4"]}];
+    const exactItems=[{"variant_id":"C06-html-practice-html-q1-70cb991e6e11","options":["C06-html-practice-html-q1-70cb991e6e11:option-1","C06-html-practice-html-q1-70cb991e6e11:option-2","C06-html-practice-html-q1-70cb991e6e11:option-3","C06-html-practice-html-q1-70cb991e6e11:option-4"]},{"variant_id":"C06-html-practice-html-q2-8852f4bfc13d","options":["C06-html-practice-html-q2-8852f4bfc13d:option-1","C06-html-practice-html-q2-8852f4bfc13d:option-2","C06-html-practice-html-q2-8852f4bfc13d:option-3","C06-html-practice-html-q2-8852f4bfc13d:option-4"]},{"variant_id":"C06-html-practice-html-q3-a0c105bea82f","options":["C06-html-practice-html-q3-a0c105bea82f:option-1","C06-html-practice-html-q3-a0c105bea82f:option-2","C06-html-practice-html-q3-a0c105bea82f:option-3","C06-html-practice-html-q3-a0c105bea82f:option-4"]},{"variant_id":"C06-html-practice-html-q4-9392bb287fc2","options":["C06-html-practice-html-q4-9392bb287fc2:option-1","C06-html-practice-html-q4-9392bb287fc2:option-2","C06-html-practice-html-q4-9392bb287fc2:option-3","C06-html-practice-html-q4-9392bb287fc2:option-4"]},{"variant_id":"C06-html-practice-html-q16-0f022e9e1016","options":["C06-html-practice-html-q16-0f022e9e1016:option-1","C06-html-practice-html-q16-0f022e9e1016:option-2","C06-html-practice-html-q16-0f022e9e1016:option-3","C06-html-practice-html-q16-0f022e9e1016:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -535,7 +535,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C06")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMDU5YjM3NTg3MzQyIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1jOTQzZjRmNjZlODgiLCJDMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWYyYTFhMmRhMzRlMiIsIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZmYzOTFiYWE2YTIwIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZDBiOGIwZjRlYjQ2Il0sInBhY2tfaWQiOiJDMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImJmN2FlODQyNGNiNDlhNzdjNDA1MTkwMjc0OWYxMWNmMTg4YzdlMGJkZDA0ZDM5ZWE5NjhmNGVhMTljMmIwZTQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZGY1YWM3MzAzOTE0YjEyZGNhMzg5ZTBmYjU1YTZkMmY3MzgzMjc5Y2NlZjk5N2E5YjNkZTU2MDRjMTA1ODg4MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C06")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzBjYjk5MWU2ZTExIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ODUyZjRiZmMxM2QiLCJDMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwYzEwNWJlYTgyZiIsIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtOTM5MmJiMjg3ZmMyIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMGYwMjJlOWUxMDE2Il0sInBhY2tfaWQiOiJDMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBkODczZGI1NDcyYTNiMzE3OTU3MTU1ZDA0MmNjNTFjNWUzNGY0MmM4Njk3NTRlYzM3Y2U3ZjE4Njk1ODAyNTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZGY1YWM3MzAzOTE0YjEyZGNhMzg5ZTBmYjU1YTZkMmY3MzgzMjc5Y2NlZjk5N2E5YjNkZTU2MDRjMTA1ODg4MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

@@ -2,7 +2,7 @@
  "schema": "luban_practice_review_packet.v1",
  "pack_id": "D13",
  "source_pack_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
- "source_bundle_sha256": "e4299c8bd9fc1ac5fe44ee55532f5ff9f17539ea71782920c2b7c1245455ae37",
+ "source_bundle_sha256": "41e73ca22568346d7bc3bf3a82913fd0fbaab0534489c1f78c6c60b299bf2c33",
  "compiled_schema_version": "luban_compiled_practice.v3",
  "candidate_count": 15,
  "eligible_count": 7,
@@ -15,10 +15,37 @@
  },
  "items": [
   {
-   "variant_id": "D13-html-practice-html-q1-a3b5c73ae494",
+   "variant_id": "D13-html-practice-html-q1-f196ec9bf371",
    "surface_id": "practice.html",
    "stem": "幕墙与各层楼板间缝隙的防火封堵应满足哪些要求？选出要素最全、能得分的作答。",
    "options": [
+    {
+     "text": "缝隙采用岩棉、矿棉等材料填塞封堵并保证密实，将缝隙全部塞满、确认不透火，即已满足幕墙与各层楼板间防火封堵的全部要求。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只记住「塞岩棉」这一件，觉得填满就完事。",
+     "loss_reason": "漏了厚度≥100mm、水平防火烟带、钢板承托、防火密封胶整维要素。",
+     "fix": "补≥100mm、耐火极限、水平防火烟带、1.5mm镀锌钢板承托、防火密封胶。",
+     "option_id": "D13-html-practice-html-q1-f196ec9bf371:option-1"
+    },
+    {
+     "text": "缝隙采用合格防火材料进行封堵，达到设计要求的防火效果，具体的封堵构造做法由施工单位结合工程现场的实际情况灵活确定并组织实施到位。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "「达到防火效果、灵活确定」听着稳妥不出错。",
+     "loss_reason": "全是口号、无一条可判分要素，属以口号替代规范要求。",
+     "fix": "写死要素：不燃岩棉≥100mm+耐火极限+水平烟带+镀锌钢板承托+防火密封胶。",
+     "option_id": "D13-html-practice-html-q1-f196ec9bf371:option-2"
+    },
+    {
+     "text": "缝隙采用不燃岩棉封堵且厚度≥100mm，并在楼层间形成水平防火烟带，防火层下设承托板托住岩棉，承托板缝隙可不再作密封。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "前面写对了两条，容易以为够了。",
+     "loss_reason": "漏防火密封胶（承托板与主体/幕墙缝隙必须密封），且承托板材料厚度没点明。",
+     "fix": "补1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。",
+     "option_id": "D13-html-practice-html-q1-f196ec9bf371:option-3"
+    },
     {
      "text": "缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、形成水平防火烟带，1.5mm镀锌钢板承托、防火密封胶封缝。",
      "is_correct": true,
@@ -26,41 +53,14 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "五要素全：不燃材料+厚度+耐火极限+水平烟带+钢板承托与密封胶，逐条列清才不漏维。",
-     "option_id": "D13-html-practice-html-q1-a3b5c73ae494:option-1"
-    },
-    {
-     "text": "缝隙用岩棉填塞封堵密实即可，把缝隙塞满、不透火，就满足层间防火封堵的要求了。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "只记住「塞岩棉」这一件，觉得填满就完事。",
-     "loss_reason": "漏了厚度≥100mm、水平防火烟带、钢板承托、防火密封胶整维要素。",
-     "fix": "补≥100mm、耐火极限、水平防火烟带、1.5mm镀锌钢板承托、防火密封胶。",
-     "option_id": "D13-html-practice-html-q1-a3b5c73ae494:option-2"
-    },
-    {
-     "text": "缝隙用防火材料封堵、达到设计要求的防火效果，做法由施工单位按现场情况灵活确定。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "「达到防火效果、灵活确定」听着稳妥不出错。",
-     "loss_reason": "全是口号、无一条可判分要素，属以口号替代规范要求。",
-     "fix": "写死要素：不燃岩棉≥100mm+耐火极限+水平烟带+镀锌钢板承托+防火密封胶。",
-     "option_id": "D13-html-practice-html-q1-a3b5c73ae494:option-3"
-    },
-    {
-     "text": "缝隙用不燃岩棉封堵≥100mm、形成水平防火烟带，承托板托住岩棉即可，密封与否影响不大。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "前面写对了两条，容易以为够了。",
-     "loss_reason": "漏防火密封胶（承托板与主体/幕墙缝隙必须密封），且承托板材料厚度没点明。",
-     "fix": "补1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。",
-     "option_id": "D13-html-practice-html-q1-a3b5c73ae494:option-4"
+     "option_id": "D13-html-practice-html-q1-f196ec9bf371:option-4"
     }
    ],
    "model_answer": "缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、楼层间形成水平防火烟带；防火层用≥1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。",
    "rule_group": "层间封堵·内容清单",
-   "content_sha256": "d84ca28687a44353767b97b73b23705607bad4d43db219d14e29d22a8f446f26",
+   "content_sha256": "b44e6970492d209ba709f2d58864536dade546979d2a078718991774f568a3ca",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q1",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "d13-fact-interfloor-firestop",
     "skeleton_id": "d13-skel-封堵要素全枚举",
@@ -70,17 +70,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "d84ca28687a44353767b97b73b23705607bad4d43db219d14e29d22a8f446f26",
+     "reviewed_content_sha256": "b44e6970492d209ba709f2d58864536dade546979d2a078718991774f568a3ca",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -90,17 +90,26 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "幕墙与楼板间缝隙用不燃材料封堵厚度≥100mm+水平防火烟带+镀锌钢板承托+防火密封胶, 真题 exam:2015:案例2 支持。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "幕墙与楼板间缝隙用不燃材料封堵厚度≥100mm+水平防火烟带+镀锌钢板承托+防火密封胶, 真题 exam:2015:案例2 支持。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q2-753aa408cfc1",
+   "variant_id": "D13-html-practice-html-q2-8731158f9009",
    "surface_id": "practice.html",
    "stem": "某幕墙防火层承托板采用 1.5mm 铝板。指出是否妥当并写正确做法，选出最到位的作答。",
    "options": [
+    {
+     "text": "不妥；应将现有铝板承托层拆除，更换为钢板承托并重新安装固定，即可满足防火构造要求。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "方向对——知道铝板不行、要换钢板。",
+     "loss_reason": "「正确做法」缺关键数值与材料——没写≥1.5mm、没写镀锌钢板。",
+     "fix": "写死「≥1.5mm镀锌钢板承托，不得铝板」，纠错才给全分。",
+     "option_id": "D13-html-practice-html-q2-8731158f9009:option-1"
+    },
     {
      "text": "不妥；防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板（铝熔点低火中熔化）。",
      "is_correct": true,
@@ -108,41 +117,32 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "指错+给正确材料与厚度+点明后果，纠错三段齐，正确做法带数值材料。",
-     "option_id": "D13-html-practice-html-q2-753aa408cfc1:option-1"
+     "option_id": "D13-html-practice-html-q2-8731158f9009:option-2"
     },
     {
-     "text": "不妥；铝板不行，应该换成钢板承托，把铝板拆掉重新装上钢的承托板就符合要求了。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "方向对——知道铝板不行、要换钢板。",
-     "loss_reason": "「正确做法」缺关键数值与材料——没写≥1.5mm、没写镀锌钢板。",
-     "fix": "写死「≥1.5mm镀锌钢板承托，不得铝板」，纠错才给全分。",
-     "option_id": "D13-html-practice-html-q2-753aa408cfc1:option-2"
-    },
-    {
-     "text": "妥当；铝板也是金属、导热快、又轻，用作承托板托住岩棉没有问题，1.5mm 厚度也够。",
+     "text": "妥当；铝板同为金属材料，导热快且自重较轻，用作承托板托住岩棉并无不可，1.5mm 厚度亦已达标。",
      "is_correct": false,
      "source_error_code": "E10",
      "temptation": "「金属都耐用、又轻」是想当然的常识。",
      "loss_reason": "防火层承托不得用铝——铝约660℃熔化，火灾中承托垮塌、岩棉坠落，防火层失效。",
      "fix": "必须用≥1.5mm镀锌钢板，不得铝板。",
-     "option_id": "D13-html-practice-html-q2-753aa408cfc1:option-3"
+     "option_id": "D13-html-practice-html-q2-8731158f9009:option-3"
     },
     {
-     "text": "不妥；应把铝板加厚到 2mm 以上增强耐火，厚一点的铝板就能承受火灾高温托住防火层。",
+     "text": "不妥；应将铝板加厚至 2mm 以上以增强耐火能力，加厚后的铝板即可在火灾高温下托住防火层。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "以为「加厚」就能解决耐火问题。",
      "loss_reason": "问题在材料不在厚度——铝熔点低，加多厚也会熔；混淆了材料与厚度。",
      "fix": "换材料：用≥1.5mm镀锌钢板，不得用铝板。",
-     "option_id": "D13-html-practice-html-q2-753aa408cfc1:option-4"
+     "option_id": "D13-html-practice-html-q2-8731158f9009:option-4"
     }
    ],
    "model_answer": "不妥。防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板(铝熔点低火中熔化使防火层垮塌)。",
    "rule_group": "承托板材料·判断纠错",
-   "content_sha256": "2f23bbe5252a08127b9d213cb7a945fc76a9c94476b00fa68041df05e2a6f0d7",
+   "content_sha256": "cf7eac123f7b8d4cd8fffda0e8f2171ff8e518ad3d3143b80397f8c76f99f825",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q2",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "d13-fact-support-plate-material",
     "skeleton_id": "d13-skel-承托板镀锌钢板不得铝板",
@@ -152,17 +152,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "2f23bbe5252a08127b9d213cb7a945fc76a9c94476b00fa68041df05e2a6f0d7",
+     "reviewed_content_sha256": "cf7eac123f7b8d4cd8fffda0e8f2171ff8e518ad3d3143b80397f8c76f99f825",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -172,14 +172,14 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "防火层承托板应≥1.5mm镀锌钢板, 不得用铝板(铝熔点低), 真题直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "防火层承托板应≥1.5mm镀锌钢板, 不得用铝板(铝熔点低), 真题直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q3-9fa02e489ab8",
+   "variant_id": "D13-html-practice-html-q3-fb2ecdf90653",
    "surface_id": "practice.html",
    "stem": "关于幕墙防火构造承托板，下列写法数值与单位都正确、能得分的是？",
    "options": [
@@ -190,41 +190,41 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "数值+单位都点死(1.5mm毫米)，并主动排除1.5m单位陷阱。",
-     "option_id": "D13-html-practice-html-q3-9fa02e489ab8:option-1"
+     "option_id": "D13-html-practice-html-q3-fb2ecdf90653:option-1"
     },
     {
-     "text": "防火层承托板应采用厚度≥1.5m 的钢板承托，1.5 米厚的钢板足以承受火灾高温不变形。",
+     "text": "防火层承托板应采用厚度≥1.5m 的钢板承托，如此厚度方能在火灾高温之下保持承托不变形。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "顺手把 mm 写成 m，或以为越厚越保险。",
      "loss_reason": "单位错——1.5m 是 1.5mm 的 1000 倍，幕墙上没有 1.5m 厚的承托钢板。",
      "fix": "写≥1.5mm（毫米），不是1.5m。",
-     "option_id": "D13-html-practice-html-q3-9fa02e489ab8:option-2"
+     "option_id": "D13-html-practice-html-q3-fb2ecdf90653:option-2"
     },
     {
-     "text": "防火层承托板应采用厚度≥15mm 的钢板承托，够厚才托得住岩棉、火中不塌。",
+     "text": "防火层承托板应采用厚度≥15mm 的钢板承托，足够的板厚才能托住岩棉并在火中不塌落、不变形。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "和防火涂料 15mm 之类的数字串了。",
      "loss_reason": "承托板是≥1.5mm，不是15mm；数字记错同样丢分。",
      "fix": "承托板厚度≥1.5mm镀锌钢板。",
-     "option_id": "D13-html-practice-html-q3-9fa02e489ab8:option-3"
+     "option_id": "D13-html-practice-html-q3-fb2ecdf90653:option-3"
     },
     {
-     "text": "防火层承托板只要是钢质、能托住岩棉就行，厚度不用写具体数值，注明「钢板承托」即可。",
+     "text": "防火层承托板采用钢质材料并能托住岩棉即可，厚度不必写出具体数值，注明「钢板承托」即为完整。",
      "is_correct": false,
      "source_error_code": "E03",
      "temptation": "知道要钢板，觉得材料对了就够。",
      "loss_reason": "漏关键数值≥1.5mm，阅卷缺数值不给该分。",
      "fix": "补厚度≥1.5mm，写「≥1.5mm镀锌钢板承托」。",
-     "option_id": "D13-html-practice-html-q3-9fa02e489ab8:option-4"
+     "option_id": "D13-html-practice-html-q3-fb2ecdf90653:option-4"
     }
    ],
    "model_answer": "钢质承托板厚度≥1.5mm（毫米）；写成1.5m是其1000倍，幕墙构造无1.5m厚承托板。",
    "rule_group": "承托板尺寸·数字陷阱",
-   "content_sha256": "2b1cdd526c07ea91c1f07cb128c2991565326152d521b5fd36ef2f2b8e06f339",
+   "content_sha256": "7ce7202d289bdf0467d835dac584dd93020766e9e1f88c0ed538330c2b1e67a5",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q3",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "d13-fact-support-plate-thickness-unit",
     "skeleton_id": "d13-skel-1.5mm单位辨析",
@@ -234,17 +234,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "2b1cdd526c07ea91c1f07cb128c2991565326152d521b5fd36ef2f2b8e06f339",
+     "reviewed_content_sha256": "7ce7202d289bdf0467d835dac584dd93020766e9e1f88c0ed538330c2b1e67a5",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -254,17 +254,26 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "承托板厚度1.5mm(毫米非米)镀锌钢板, 单位辨析题, 真题支持。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "承托板厚度1.5mm(毫米非米)镀锌钢板, 单位辨析题, 真题支持。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q4-b67400c5b10c",
+   "variant_id": "D13-html-practice-html-q4-2d4088f977f1",
    "surface_id": "practice.html",
    "stem": "上下层开口之间的防火分隔应满足什么？选出尺寸判据完整、能得分的作答。",
    "options": [
+    {
+     "text": "上下层开口间实体墙高度≥1.2m 即为达标，防火挑檐属可选装饰构件，不参与防火判定，可不设置。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "记住了实体墙1.2m一条，以为够了。",
+     "loss_reason": "漏了「实体墙不足时用防火挑檐≥1.0m替代」这条替代路径。",
+     "fix": "补：实体墙不足1.2m时设防火挑檐宽≥1.0m且长≥开口宽。",
+     "option_id": "D13-html-practice-html-q4-2d4088f977f1:option-1"
+    },
     {
      "text": "上下层开口间应设高度≥1.2m 的实体墙；不足时设防火挑檐，宽度≥1.0m 且长度≥开口宽度。",
      "is_correct": true,
@@ -272,41 +281,32 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "实体墙1.2m与挑檐1.0m二选一、挑檐还要长≥开口宽，判据全。",
-     "option_id": "D13-html-practice-html-q4-b67400c5b10c:option-1"
+     "option_id": "D13-html-practice-html-q4-2d4088f977f1:option-2"
     },
     {
-     "text": "上下层开口之间做好防火分隔、留足安全距离、防止火焰向上蔓延到上层窗口就可以。",
+     "text": "上下层开口之间应做好防火分隔构造，留足安全距离，防止火焰经由外窗向上蔓延至上一层开口。",
      "is_correct": false,
      "source_error_code": "E10",
      "temptation": "「留足距离、防蔓延」方向对、听着没错。",
      "loss_reason": "全是口号无数值——没写实体墙≥1.2m、挑檐≥1.0m。",
      "fix": "写死实体墙≥1.2m 或挑檐≥1.0m 且长≥开口宽。",
-     "option_id": "D13-html-practice-html-q4-b67400c5b10c:option-2"
+     "option_id": "D13-html-practice-html-q4-2d4088f977f1:option-3"
     },
     {
-     "text": "上下层开口间实体墙高度≥1.2m 即可，挑檐是可选装饰、不影响防火，达不到高度也没关系。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "记住了实体墙1.2m一条，以为够了。",
-     "loss_reason": "漏了「实体墙不足时用防火挑檐≥1.0m替代」这条替代路径。",
-     "fix": "补：实体墙不足1.2m时设防火挑檐宽≥1.0m且长≥开口宽。",
-     "option_id": "D13-html-practice-html-q4-b67400c5b10c:option-3"
-    },
-    {
-     "text": "上下层开口间实体墙高度≥1.0m、或防火挑檐宽度≥1.2m 且长度不限，满足其一即可。",
+     "text": "上下层开口间实体墙高度≥1.0m，或设防火挑檐宽度≥1.2m 且长度不限，二者满足其一即为合格。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "记得有1.2和1.0俩数、随手对调了。",
      "loss_reason": "数值张冠李戴——实体墙是≥1.2m、挑檐是≥1.0m且长≥开口宽，反了。",
      "fix": "实体墙≥1.2m、挑檐≥1.0m且长≥开口宽，别对调。",
-     "option_id": "D13-html-practice-html-q4-b67400c5b10c:option-4"
+     "option_id": "D13-html-practice-html-q4-2d4088f977f1:option-4"
     }
    ],
    "model_answer": "上下层开口间实体墙高度≥1.2m；或设防火挑檐，宽度≥1.0m且长度≥开口宽度。",
    "rule_group": "防火分隔·条件维",
-   "content_sha256": "3f1bfb05918d7e3383d6f7d1ad3aff42dacec24fddb6f8a9145206d2f656941b",
+   "content_sha256": "c9e4aef92634efb11a43a887fb2bf436160f77fc61acab41f2f850c4f2eebfa7",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q4",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "d13-fact-opening-vertical-separation",
     "skeleton_id": "d13-skel-上下层开口实体墙挑檐",
@@ -316,17 +316,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "3f1bfb05918d7e3383d6f7d1ad3aff42dacec24fddb6f8a9145206d2f656941b",
+     "reviewed_content_sha256": "c9e4aef92634efb11a43a887fb2bf436160f77fc61acab41f2f850c4f2eebfa7",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -336,17 +336,26 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "上下层开口间设≥1.2m实体墙, 不足时防火挑檐宽≥1.0m且长≥开口宽, 教材 kc:...148_0286:0 直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "上下层开口间设≥1.2m实体墙, 不足时防火挑檐宽≥1.0m且长≥开口宽, 教材 kc:...148_0286:0 直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q5-29b95dba321c",
+   "variant_id": "D13-html-practice-html-q5-d02aebd6f3a8",
    "surface_id": "practice.html",
    "stem": "「200mm」和「100mm」分别指幕墙防火的哪个部位尺寸？选出对应正确的作答。",
    "options": [
+    {
+     "text": "200mm 与 100mm 是同一道缝隙封堵的两个允许取值，设计时可在两者之间任选其一执行。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为是同一个尺寸的不同说法。",
+     "loss_reason": "两者是不同部位不同尺寸，不能混为一个可选值。",
+     "fix": "空腔上下沿填塞≥200mm、楼板缝隙封堵≥100mm，分部位。",
+     "option_id": "D13-html-practice-html-q5-d02aebd6f3a8:option-1"
+    },
     {
      "text": "200mm 是窗槛墙空腔上下沿矿物棉填塞高度；100mm 是楼板缝隙封堵岩棉/矿棉厚度。",
      "is_correct": true,
@@ -354,41 +363,32 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "两个尺寸落到各自部位——空腔200、楼板缝100，部位对应清楚。",
-     "option_id": "D13-html-practice-html-q5-29b95dba321c:option-1"
+     "option_id": "D13-html-practice-html-q5-d02aebd6f3a8:option-2"
     },
     {
-     "text": "200mm 是楼板缝隙封堵厚度；100mm 是窗槛墙空腔填塞高度，两个尺寸的部位是这样对应的。",
+     "text": "200mm 是幕墙与楼板缝隙封堵的岩棉厚度；100mm 是窗槛墙空腔上下沿填塞高度，两部位如此对应。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "知道有200和100俩数，部位却对反了。",
      "loss_reason": "部位张冠李戴——空腔填塞是200mm、楼板缝隙封堵是100mm，说反了。",
      "fix": "空腔填塞≥200mm、楼板缝隙封堵≥100mm，别对调。",
-     "option_id": "D13-html-practice-html-q5-29b95dba321c:option-2"
+     "option_id": "D13-html-practice-html-q5-d02aebd6f3a8:option-3"
     },
     {
-     "text": "200mm 和 100mm 是同一道缝隙的两种做法，取哪个都行、按现场厚度方便施工来定。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "以为是同一个尺寸的不同说法。",
-     "loss_reason": "两者是不同部位不同尺寸，不能混为一个可选值。",
-     "fix": "空腔上下沿填塞≥200mm、楼板缝隙封堵≥100mm，分部位。",
-     "option_id": "D13-html-practice-html-q5-29b95dba321c:option-3"
-    },
-    {
-     "text": "200mm 是防火挑檐的宽度、100mm 是承托板的厚度，都是防火构造里的尺寸要求。",
+     "text": "200mm 是防火挑檐的宽度要求、100mm 是承托板的厚度要求，均属幕墙防火构造尺寸。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "把尺寸随手安到别的构造上。",
      "loss_reason": "挑檐是≥1.0m、承托板是≥1.5mm，与200/100无关，概念全串。",
      "fix": "200mm=空腔填塞、100mm=楼板缝封堵；挑檐≥1.0m、承托板≥1.5mm另算。",
-     "option_id": "D13-html-practice-html-q5-29b95dba321c:option-4"
+     "option_id": "D13-html-practice-html-q5-d02aebd6f3a8:option-4"
     }
    ],
    "model_answer": "200mm是窗槛墙空腔上下沿矿物棉填塞高度；100mm是幕墙与楼板缝隙封堵岩棉/矿棉厚度，部位不同不可混。",
    "rule_group": "部位区分·条件维",
-   "content_sha256": "ca8e3697418ca37da407666b57336efd467e70b4c8d44a25ce8802d3d5245172",
+   "content_sha256": "c28528e96c7fdd495167a1adeca22be837eab2990b3fc53753327d9dd5b248fd",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q5",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -398,7 +398,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "ca8e3697418ca37da407666b57336efd467e70b4c8d44a25ce8802d3d5245172",
+     "reviewed_content_sha256": "c28528e96c7fdd495167a1adeca22be837eab2990b3fc53753327d9dd5b248fd",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -413,10 +413,28 @@
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q6-0282e40dcdae",
+   "variant_id": "D13-html-practice-html-q6-9c3f639116ef",
    "surface_id": "practice.html",
    "stem": "关于幕墙玻璃单元与防火分区的关系，下列正确、能得分的是？",
    "options": [
+    {
+     "text": "玻璃幕墙整片连续方显美观，同一玻璃单元可以跨越两个防火分区，只需玻璃自身具备耐火性能。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "觉得幕墙连续整片、玻璃耐火就没事。",
+     "loss_reason": "同一玻璃单元跨两个防火分区，火会沿幕墙串区，违反不跨分区要求。",
+     "fix": "同一玻璃单元不应跨越两个防火分区。",
+     "option_id": "D13-html-practice-html-q6-9c3f639116ef:option-1"
+    },
+    {
+     "text": "玻璃单元可否跨越防火分区应看层高而定，层高小于限值时允许跨越两个分区。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "编了个「看层高」的条件、显得专业。",
+     "loss_reason": "没有这种条件——规定就是同一玻璃单元不跨两个防火分区，无层高例外。",
+     "fix": "任何情况下同一玻璃单元都不应跨越两个防火分区。",
+     "option_id": "D13-html-practice-html-q6-9c3f639116ef:option-2"
+    },
     {
      "text": "同一幕墙玻璃单元不应跨越两个防火分区，否则火灾会沿幕墙在分区间蔓延、分区失效。",
      "is_correct": true,
@@ -424,41 +442,23 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "结论+后果都点到——不跨分区、跨了会串区，判据清楚。",
-     "option_id": "D13-html-practice-html-q6-0282e40dcdae:option-1"
+     "option_id": "D13-html-practice-html-q6-9c3f639116ef:option-3"
     },
     {
-     "text": "玻璃幕墙整片连续美观，同一玻璃单元可以跨越两个防火分区，只要玻璃本身耐火就行。",
-     "is_correct": false,
-     "source_error_code": "M03",
-     "temptation": "觉得幕墙连续整片、玻璃耐火就没事。",
-     "loss_reason": "同一玻璃单元跨两个防火分区，火会沿幕墙串区，违反不跨分区要求。",
-     "fix": "同一玻璃单元不应跨越两个防火分区。",
-     "option_id": "D13-html-practice-html-q6-0282e40dcdae:option-2"
-    },
-    {
-     "text": "玻璃单元能不能跨防火分区看层高，层高小于一定值时跨越两个分区是允许的。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "编了个「看层高」的条件、显得专业。",
-     "loss_reason": "没有这种条件——规定就是同一玻璃单元不跨两个防火分区，无层高例外。",
-     "fix": "任何情况下同一玻璃单元都不应跨越两个防火分区。",
-     "option_id": "D13-html-practice-html-q6-0282e40dcdae:option-3"
-    },
-    {
-     "text": "只要在玻璃单元跨分区处加一道密封胶，就能允许一块玻璃单元横跨两个防火分区。",
+     "text": "在玻璃单元跨越分区处加设一道密封胶，即可允许该单元横跨两个防火分区。",
      "is_correct": false,
      "source_error_code": "M03",
      "temptation": "以为「加密封胶」能补救跨分区。",
      "loss_reason": "密封胶解决不了跨区问题，本质仍是同一单元跨了两个分区。",
      "fix": "同一玻璃单元不应跨越两个防火分区，不能靠加胶补救。",
-     "option_id": "D13-html-practice-html-q6-0282e40dcdae:option-4"
+     "option_id": "D13-html-practice-html-q6-9c3f639116ef:option-4"
     }
    ],
    "model_answer": "同一幕墙玻璃单元不应跨越两个防火分区，否则火灾会沿幕墙串区、防火分区失效。",
    "rule_group": "防火分区·后果维",
-   "content_sha256": "7c73c5aed0e345e53cc2bac5b5567161356d8dd34e24e4daf02bb0962a29f61c",
+   "content_sha256": "0881555a71a77f852d70ebf40811526ed0213ea9de1d87313e60f8585da7d44d",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q6",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -468,7 +468,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "7c73c5aed0e345e53cc2bac5b5567161356d8dd34e24e4daf02bb0962a29f61c",
+     "reviewed_content_sha256": "0881555a71a77f852d70ebf40811526ed0213ea9de1d87313e60f8585da7d44d",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -483,10 +483,28 @@
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q7-3cb18e9f15d4",
+   "variant_id": "D13-html-practice-html-q7-9851ec162e2f",
    "surface_id": "practice.html",
    "stem": "某做法：防火层用1.5mm镀锌钢板承托、托住岩棉，承托板与主体结构间的缝隙未作处理。漏了什么？选出最准确的作答。",
    "options": [
+    {
+     "text": "漏了将承托钢板加厚至 2mm，以加厚后的钢板压紧缝隙即可挡住火焰，无须另用密封胶。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为加厚钢板能替代密封。",
+     "loss_reason": "缝隙密封与钢板厚度是两件事，混淆了；缝隙必须用防火密封胶。",
+     "fix": "承托板缝隙用防火密封胶密封，厚度另按≥1.5mm。",
+     "option_id": "D13-html-practice-html-q7-9851ec162e2f:option-1"
+    },
+    {
+     "text": "漏了在该缝隙处再填塞一层岩棉，将缝隙以岩棉填塞密实即可完成封堵。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得再塞点岩棉也能封。",
+     "loss_reason": "仍漏「防火密封胶密封承托板缝隙」这一采分点。",
+     "fix": "缝隙必须用防火密封胶密封，不是再塞岩棉。",
+     "option_id": "D13-html-practice-html-q7-9851ec162e2f:option-2"
+    },
     {
      "text": "漏了防火密封胶：承托板与主体结构、幕墙结构之间的缝隙应采用防火密封胶密封。",
      "is_correct": true,
@@ -494,41 +512,23 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "点出漏项并给正确做法——承托板缝隙用防火密封胶密封。",
-     "option_id": "D13-html-practice-html-q7-3cb18e9f15d4:option-1"
+     "option_id": "D13-html-practice-html-q7-9851ec162e2f:option-3"
     },
     {
-     "text": "没漏什么：承托板用镀锌钢板、厚度也够了，缝隙那点空隙不影响防火，不处理也行。",
+     "text": "并无遗漏：镀锌钢板与厚度均已达标，该缝隙对防火影响甚微，可不作处理。",
      "is_correct": false,
      "source_error_code": "E02",
      "temptation": "钢板厚度都对了，容易以为齐活。",
      "loss_reason": "漏识别承托板缝隙未密封——缝隙不封会留过火通道，属采分点遗漏。",
      "fix": "补：承托板与主体/幕墙缝隙应用防火密封胶密封。",
-     "option_id": "D13-html-practice-html-q7-3cb18e9f15d4:option-2"
-    },
-    {
-     "text": "漏了把承托钢板加厚到2mm，缝隙靠加厚钢板压紧就能挡住火，不必另用密封胶。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "以为加厚钢板能替代密封。",
-     "loss_reason": "缝隙密封与钢板厚度是两件事，混淆了；缝隙必须用防火密封胶。",
-     "fix": "承托板缝隙用防火密封胶密封，厚度另按≥1.5mm。",
-     "option_id": "D13-html-practice-html-q7-3cb18e9f15d4:option-3"
-    },
-    {
-     "text": "漏了在缝隙处再塞一层岩棉，只要把缝隙塞满岩棉就够，密封胶可用可不用。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "觉得再塞点岩棉也能封。",
-     "loss_reason": "仍漏「防火密封胶密封承托板缝隙」这一采分点。",
-     "fix": "缝隙必须用防火密封胶密封，不是再塞岩棉。",
-     "option_id": "D13-html-practice-html-q7-3cb18e9f15d4:option-4"
+     "option_id": "D13-html-practice-html-q7-9851ec162e2f:option-4"
     }
    ],
    "model_answer": "承托板与主体结构、幕墙结构之间的缝隙应采用防火密封胶密封，缝隙未处理会留下过火通道。",
    "rule_group": "密封胶·采分点遗漏",
-   "content_sha256": "725c2108fe16580657cca0814da10111025a430414a4bffda7930f7e17968736",
+   "content_sha256": "b663ea6999b1e4a18a34661e853afc7006370eb96ceecdc3a877d990ce982d82",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q7",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "d13-fact-interfloor-firestop",
     "skeleton_id": "d13-skel-承托板缝隙防火密封胶",
@@ -538,17 +538,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "725c2108fe16580657cca0814da10111025a430414a4bffda7930f7e17968736",
+     "reviewed_content_sha256": "b663ea6999b1e4a18a34661e853afc7006370eb96ceecdc3a877d990ce982d82",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -558,14 +558,14 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "承托板与主体/幕墙结构间缝隙应用防火密封胶密封, 真题支持。三联 immediate_confirm(同层间封堵 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "承托板与主体/幕墙结构间缝隙应用防火密封胶密封, 真题支持。三联 immediate_confirm(同层间封堵 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q8-601cc4b8b67e",
+   "variant_id": "D13-html-practice-html-q8-765a4e3803b3",
    "surface_id": "practice.html",
    "stem": "层间缝隙用不燃材料封堵≥100mm 后，为在楼层间起到隔离作用，还应写出什么关键要求？",
    "options": [
@@ -576,41 +576,41 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "点名「水平防火烟带+耐火极限」这两个隔离功能关键词。",
-     "option_id": "D13-html-practice-html-q8-601cc4b8b67e:option-1"
+     "option_id": "D13-html-practice-html-q8-765a4e3803b3:option-1"
     },
     {
-     "text": "把缝隙封严实、封到不漏烟就行，封堵做密实自然就起到楼层间的隔离作用了。",
+     "text": "将缝隙封严实、达到不漏烟的程度，封堵密实自然起到楼层间的隔离作用。",
      "is_correct": false,
      "source_error_code": "E03",
      "temptation": "「封严实不漏烟」像是把功能说到了。",
      "loss_reason": "缺「水平防火烟带」这个关键词，阅卷按缺关键词处理。",
      "fix": "写「楼层间形成水平防火烟带」并满足耐火极限。",
-     "option_id": "D13-html-practice-html-q8-601cc4b8b67e:option-2"
+     "option_id": "D13-html-practice-html-q8-765a4e3803b3:option-2"
     },
     {
-     "text": "应在楼层间形成垂直防火隔断带，沿幕墙竖向把上下贯通的空腔隔开。",
+     "text": "应在楼层间形成垂直防火隔断带，沿幕墙竖向将上下贯通的空腔逐段隔开。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "「竖向隔断」听着也像防火。",
      "loss_reason": "层间封堵形成的是「水平」防火烟带(逐层截断)，不是竖向；方向说反。",
      "fix": "是「水平防火烟带」，在楼层间水平方向形成。",
-     "option_id": "D13-html-practice-html-q8-601cc4b8b67e:option-3"
+     "option_id": "D13-html-practice-html-q8-765a4e3803b3:option-3"
     },
     {
-     "text": "封堵后刷一道防火涂料就能满足隔离，涂料达到耐火等级即可，不必强调烟带。",
+     "text": "封堵完成后再加刷一道防火涂料以满足隔离要求，涂料达到耐火等级即可，无须强调烟带。",
      "is_correct": false,
      "source_error_code": "M10",
      "temptation": "用「刷防火涂料」这种常识替代。",
      "loss_reason": "层间封堵靠不燃材料+水平烟带，不是靠涂料；用常识替代规范要求。",
      "fix": "应形成水平防火烟带并满足耐火极限，非刷涂料。",
-     "option_id": "D13-html-practice-html-q8-601cc4b8b67e:option-4"
+     "option_id": "D13-html-practice-html-q8-765a4e3803b3:option-4"
     }
    ],
    "model_answer": "应在楼层间形成水平防火烟带，并满足设计的耐火极限要求。",
    "rule_group": "水平烟带·关键词缺失",
-   "content_sha256": "a8d9b81832d5bd1435e0e10c42cb3c682bc1f9b29445e438f5c03ac380507e9d",
+   "content_sha256": "b36345362d4f92ddf907c5c7c46c0ff83cab5f94ee69232fa67517c96bbea9b0",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q8",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "d13-fact-interfloor-firestop",
     "skeleton_id": "d13-skel-水平防火烟带耐火极限",
@@ -620,17 +620,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "a8d9b81832d5bd1435e0e10c42cb3c682bc1f9b29445e438f5c03ac380507e9d",
+     "reviewed_content_sha256": "b36345362d4f92ddf907c5c7c46c0ff83cab5f94ee69232fa67517c96bbea9b0",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -640,17 +640,44 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "层间封堵应形成水平防火烟带并满足耐火极限, 逐层截断, 真题支持。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "层间封堵应形成水平防火烟带并满足耐火极限, 逐层截断, 真题支持。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q9-35dff56d82a2",
+   "variant_id": "D13-html-practice-html-q9-3ad62d731773",
    "surface_id": "practice.html",
    "stem": "幕墙金属框架的防雷连接总要求是什么？选出能得分的作答。",
    "options": [
+    {
+     "text": "幕墙金属框架单独设置一组接地极自行接地即可，无须与主体的防雷体系相连。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为「自己接地」也能泄流。",
+     "loss_reason": "漏了「与主体结构防雷体系可靠连接」这一核心采分点。",
+     "fix": "金属框架必须与主体结构防雷体系可靠连接。",
+     "option_id": "D13-html-practice-html-q9-3ad62d731773:option-1"
+    },
+    {
+     "text": "幕墙金属框架只需涂刷防锈防腐涂层、保持不生锈，导电即有保障，防雷连接环节可省。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "把防腐和防雷连接混为一谈。",
+     "loss_reason": "防腐≠防雷；框架仍须与主体防雷体系可靠连接，连接不可省。",
+     "fix": "框架与主体防雷体系可靠连接，防腐是另一回事。",
+     "option_id": "D13-html-practice-html-q9-3ad62d731773:option-2"
+    },
+    {
+     "text": "幕墙玻璃属绝缘材料，整幅幕墙不导电、不会引雷，金属框架无须与主体防雷连接。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "只看玻璃绝缘、忽略金属框架。",
+     "loss_reason": "金属框架是导体、是引雷体，必须与主体防雷体系可靠连接。",
+     "fix": "金属框架应与主体结构防雷体系可靠连接。",
+     "option_id": "D13-html-practice-html-q9-3ad62d731773:option-3"
+    },
     {
      "text": "幕墙金属框架应与主体结构的防雷体系可靠连接，雷电流经框架、主体连续泄放入地。",
      "is_correct": true,
@@ -658,41 +685,14 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "点名「与主体结构防雷体系可靠连接」，是防雷总纲采分句。",
-     "option_id": "D13-html-practice-html-q9-35dff56d82a2:option-1"
-    },
-    {
-     "text": "幕墙金属框架单独做一组接地极接地就行，自成一套、不用跟主体的防雷体系连。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "以为「自己接地」也能泄流。",
-     "loss_reason": "漏了「与主体结构防雷体系可靠连接」这一核心采分点。",
-     "fix": "金属框架必须与主体结构防雷体系可靠连接。",
-     "option_id": "D13-html-practice-html-q9-35dff56d82a2:option-2"
-    },
-    {
-     "text": "幕墙金属框架只要刷了防锈防腐涂层、不生锈，导电就没问题，防雷连接可省。",
-     "is_correct": false,
-     "source_error_code": "M03",
-     "temptation": "把防腐和防雷连接混为一谈。",
-     "loss_reason": "防腐≠防雷；框架仍须与主体防雷体系可靠连接，连接不可省。",
-     "fix": "框架与主体防雷体系可靠连接，防腐是另一回事。",
-     "option_id": "D13-html-practice-html-q9-35dff56d82a2:option-3"
-    },
-    {
-     "text": "幕墙玻璃是绝缘的，整幅幕墙不导电、不会引雷，金属框架不必与主体防雷连接。",
-     "is_correct": false,
-     "source_error_code": "M03",
-     "temptation": "只看玻璃绝缘、忽略金属框架。",
-     "loss_reason": "金属框架是导体、是引雷体，必须与主体防雷体系可靠连接。",
-     "fix": "金属框架应与主体结构防雷体系可靠连接。",
-     "option_id": "D13-html-practice-html-q9-35dff56d82a2:option-4"
+     "option_id": "D13-html-practice-html-q9-3ad62d731773:option-4"
     }
    ],
    "model_answer": "幕墙金属框架应与主体结构防雷体系可靠连接，使雷电流经框架、主体泄放入地。",
    "rule_group": "防雷·框架连主体",
-   "content_sha256": "55a230efb60069f3ee66589c01375c2b1977445c7875a16b2f43e63837da4896",
+   "content_sha256": "b134dd41de9b2ea6c3cf865ba5ce71febd867deaaae63215eb87b7c72a135ff7",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q9",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -702,7 +702,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "55a230efb60069f3ee66589c01375c2b1977445c7875a16b2f43e63837da4896",
+     "reviewed_content_sha256": "b134dd41de9b2ea6c3cf865ba5ce71febd867deaaae63215eb87b7c72a135ff7",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -717,10 +717,37 @@
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q10-f04f4a515ba5",
+   "variant_id": "D13-html-practice-html-q10-b24a91fde64a",
    "surface_id": "practice.html",
    "stem": "铝合金立柱有伸缩缝，防雷上如何保证上下柱电气连通？选出能得分的作答。",
    "options": [
+    {
+     "text": "用一根柔性导线将整栋楼的立柱自顶至底一次性连通即可，无须按每 10m 范围分段设置。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "知道要柔性导线，把「10m」漏了。",
+     "loss_reason": "缺「每10m范围内一根」的距离关键词，阅卷缺数不给全分。",
+     "fix": "写「每10m范围内宜一根柔性导线连通上下柱」。",
+     "option_id": "D13-html-practice-html-q10-b24a91fde64a:option-1"
+    },
+    {
+     "text": "立柱逐根竖向安装、上下彼此紧贴即为电气连通，无须另行敷设连接导线。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得立柱挨着装就电气连通。",
+     "loss_reason": "伸缩缝处断路会跳火，必须用柔性导线跨缝连通，漏了这一采分点。",
+     "fix": "立柱每10m一根柔性导线连通上下柱。",
+     "option_id": "D13-html-practice-html-q10-b24a91fde64a:option-2"
+    },
+    {
+     "text": "立柱间以硬质钢筋焊死连通最为牢靠，连接越刚越好，柔性导线偏软导电欠佳。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得「越硬越牢」更导电。",
+     "loss_reason": "伸缩缝要伸缩，硬连会被拉断；此处用柔性导线正是为随缝伸缩。",
+     "fix": "用柔性导线跨伸缩缝连通，每10m一根。",
+     "option_id": "D13-html-practice-html-q10-b24a91fde64a:option-3"
+    },
     {
      "text": "铝合金立柱每 10m 范围内宜用一根柔性导线连通上下柱，跨过伸缩缝保证电气连续。",
      "is_correct": true,
@@ -728,41 +755,14 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "点名「10m一根柔性导线连通上下柱」，跨缝连通采分句。",
-     "option_id": "D13-html-practice-html-q10-f04f4a515ba5:option-1"
-    },
-    {
-     "text": "立柱一根接一根竖着装、彼此挨着就是通的，不用另接导线，通段自然连通。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "觉得立柱挨着装就电气连通。",
-     "loss_reason": "伸缩缝处断路会跳火，必须用柔性导线跨缝连通，漏了这一采分点。",
-     "fix": "立柱每10m一根柔性导线连通上下柱。",
-     "option_id": "D13-html-practice-html-q10-f04f4a515ba5:option-2"
-    },
-    {
-     "text": "用一根柔性导线把整栋楼从顶到底的立柱一次连通即可，不用管每 10m 这个范围。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "知道要柔性导线，把「10m」漏了。",
-     "loss_reason": "缺「每10m范围内一根」的距离关键词，阅卷缺数不给全分。",
-     "fix": "写「每10m范围内宜一根柔性导线连通上下柱」。",
-     "option_id": "D13-html-practice-html-q10-f04f4a515ba5:option-3"
-    },
-    {
-     "text": "立柱间用硬钢筋焊死连通最牢靠，越刚越好，柔性导线太软反而不导电。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "觉得「越硬越牢」更导电。",
-     "loss_reason": "伸缩缝要伸缩，硬连会被拉断；此处用柔性导线正是为随缝伸缩。",
-     "fix": "用柔性导线跨伸缩缝连通，每10m一根。",
-     "option_id": "D13-html-practice-html-q10-f04f4a515ba5:option-4"
+     "option_id": "D13-html-practice-html-q10-b24a91fde64a:option-4"
     }
    ],
    "model_answer": "铝合金立柱每10m范围内宜用一根柔性导线连通上下柱，跨过伸缩缝保证电气连续。",
    "rule_group": "立柱柔性导线·条件维",
-   "content_sha256": "c0f542f371f91d77fba32cc877f82d31989ff0539e33f04b8681b6c887b776e5",
+   "content_sha256": "9e70984c347179f5d132bf24bb2cd9c5bf961f16b1b4b46a035d3f8fc53772a6",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q10",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -772,7 +772,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "c0f542f371f91d77fba32cc877f82d31989ff0539e33f04b8681b6c887b776e5",
+     "reviewed_content_sha256": "9e70984c347179f5d132bf24bb2cd9c5bf961f16b1b4b46a035d3f8fc53772a6",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -787,7 +787,7 @@
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q11-ab8eec74c58b",
+   "variant_id": "D13-html-practice-html-q11-a38f96505935",
    "surface_id": "practice.html",
    "stem": "有均压环楼层，预埋件与均压环如何连接？选出能得分的作答。",
    "options": [
@@ -798,41 +798,41 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "「焊接连通+每三层」两点都写到，程序采分句完整。",
-     "option_id": "D13-html-practice-html-q11-ab8eec74c58b:option-1"
+     "option_id": "D13-html-practice-html-q11-a38f96505935:option-1"
     },
     {
-     "text": "预埋件与均压环用螺栓拧紧连接即可，能连上就行，是否焊接、隔几层无所谓。",
+     "text": "预埋件与均压环以螺栓拧紧固定，连上就行，无须焊接，也无须区分层数。",
      "is_correct": false,
      "source_error_code": "E02",
      "temptation": "以为拧上螺栓「连上就行」。",
      "loss_reason": "漏了「焊接连通」和「每三层」两点——不是螺栓随意连。",
      "fix": "预埋件与均压环焊接连通、每三层接一道。",
-     "option_id": "D13-html-practice-html-q11-ab8eec74c58b:option-2"
+     "option_id": "D13-html-practice-html-q11-a38f96505935:option-2"
     },
     {
-     "text": "预埋件与均压环焊接连通，每一层都要与均压环焊接连接一道，一层都不能少。",
+     "text": "预埋件与均压环焊接连通，且每一层均应与均压环焊接连接一道，逐层设置、一层不缺。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "知道要每隔几层、把「三层」记成「每层」。",
      "loss_reason": "数记错——一般每三层与均压环连接，不是每一层。",
      "fix": "一般每三层与均压环连接一道。",
-     "option_id": "D13-html-practice-html-q11-ab8eec74c58b:option-3"
+     "option_id": "D13-html-practice-html-q11-a38f96505935:option-3"
     },
     {
-     "text": "预埋件只要埋进混凝土里就自然与均压环连通了，混凝土导电、不必再焊。",
+     "text": "预埋件埋入混凝土内即与均压环自然连通，混凝土可导电，无须再行焊接。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "以为埋进混凝土就算连通。",
      "loss_reason": "混凝土不是可靠电气通路；预埋件必须用圆钢/扁钢与均压环焊接连通。",
      "fix": "预埋件圆钢/扁钢与均压环焊接连通。",
-     "option_id": "D13-html-practice-html-q11-ab8eec74c58b:option-4"
+     "option_id": "D13-html-practice-html-q11-a38f96505935:option-4"
     }
    ],
    "model_answer": "预埋件用圆钢/扁钢与均压环焊接连通；避雷接地一般每三层与均压环连接。",
    "rule_group": "均压环·程序维",
-   "content_sha256": "a5ab700284e6b7e2d22de5dc7f244b5331e880f5a308c78acccc00a8f82788e4",
+   "content_sha256": "f25bedcd3d2e045c374388697f05683e4593343debc6d2651e1bbc0f50864cde",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q11",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -842,7 +842,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "a5ab700284e6b7e2d22de5dc7f244b5331e880f5a308c78acccc00a8f82788e4",
+     "reviewed_content_sha256": "f25bedcd3d2e045c374388697f05683e4593343debc6d2651e1bbc0f50864cde",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -857,7 +857,7 @@
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q12-1627902f1c4b",
+   "variant_id": "D13-html-practice-html-q12-d53d3a2222a9",
    "surface_id": "practice.html",
    "stem": "在有镀膜层的构件上做防雷连接，应特别注意什么？选出能得分的作答。",
    "options": [
@@ -868,41 +868,41 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "点名「除去镀膜层」这一采分点，说明镀膜绝缘会断路。",
-     "option_id": "D13-html-practice-html-q12-1627902f1c4b:option-1"
+     "option_id": "D13-html-practice-html-q12-d53d3a2222a9:option-1"
     },
     {
-     "text": "有镀膜层保护得更好、更耐用，防雷连接时保留镀膜层直接压接就行，不必破坏。",
+     "text": "镀膜层对构件保护性更好、更耐用，防雷连接时保留镀膜层直接压接即可。",
      "is_correct": false,
      "source_error_code": "M07",
      "temptation": "觉得「保留镀膜=保护构件」。",
      "loss_reason": "镀膜绝缘，留着电流过不去、防雷连接失效，必须除去镀膜层。",
      "fix": "防雷连接处应除去镀膜层。",
-     "option_id": "D13-html-practice-html-q12-1627902f1c4b:option-2"
+     "option_id": "D13-html-practice-html-q12-d53d3a2222a9:option-2"
     },
     {
-     "text": "有镀膜的构件连接前刷一层导电膏盖在镀膜上就能导电，不用把镀膜层除掉。",
+     "text": "有镀膜的构件连接之前，在镀膜表面涂覆一层导电膏即可实现电气导通，无须再将镀膜层除去。",
      "is_correct": false,
      "source_error_code": "M03",
      "temptation": "以为「导电膏」能盖过绝缘膜。",
      "loss_reason": "膜仍在、仍绝缘；规范要求是除去镀膜层而非另涂导电膏。",
      "fix": "应除去镀膜层，让金属见金属。",
-     "option_id": "D13-html-practice-html-q12-1627902f1c4b:option-3"
+     "option_id": "D13-html-practice-html-q12-d53d3a2222a9:option-3"
     },
     {
-     "text": "镀膜只在表面、不影响内部导电，防雷连接照常做即可，镀不镀膜都一样连。",
+     "text": "镀膜仅存在于构件表面、不影响内部导电，防雷连接照常实施即可。",
      "is_correct": false,
      "source_error_code": "M07",
      "temptation": "以为表面镀膜不影响导电。",
      "loss_reason": "连接靠的正是表面接触，镀膜绝缘会断路，必须除膜。",
      "fix": "连接处除去镀膜层再连接。",
-     "option_id": "D13-html-practice-html-q12-1627902f1c4b:option-4"
+     "option_id": "D13-html-practice-html-q12-d53d3a2222a9:option-4"
     }
    ],
    "model_answer": "有镀膜的构件上进行防雷连接应除去其镀膜层，让金属直接接触，保证电气连通。",
    "rule_group": "除镀膜·采分点遗漏",
-   "content_sha256": "69f85b6c3e71711b7377b12ff44414679b5aeac0b1e777d96dde13bd248012a9",
+   "content_sha256": "ef1f1efe575624ec8dcfadf627be87bc8cf6728f74bdca864a6ab912946086c6",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q12",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -912,7 +912,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "69f85b6c3e71711b7377b12ff44414679b5aeac0b1e777d96dde13bd248012a9",
+     "reviewed_content_sha256": "ef1f1efe575624ec8dcfadf627be87bc8cf6728f74bdca864a6ab912946086c6",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -927,10 +927,37 @@
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q13-9c6de8e15544",
+   "variant_id": "D13-html-practice-html-q13-0e7b79cdf924",
    "surface_id": "practice.html",
    "stem": "关于幕墙防雷构造连接的验收，下列正确、能得分的是？",
    "options": [
+    {
+     "text": "防雷连接属内部构造、外部看不见，不影响外观，无须进行隐蔽工程验收。",
+     "is_correct": false,
+     "source_error_code": "M07",
+     "temptation": "「看不见、不影响外观」听着有理。",
+     "loss_reason": "正因连接会被遮蔽，才必须在覆盖前做隐蔽验收，说不必验收即错。",
+     "fix": "防雷构造连接必须做隐蔽工程验收。",
+     "option_id": "D13-html-practice-html-q13-0e7b79cdf924:option-1"
+    },
+    {
+     "text": "防雷连接最后统一做一次外观检查，确认导线接头齐全，即可代替隐蔽验收。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "用「外观检查」替代隐蔽验收。",
+     "loss_reason": "外观检查不等于隐蔽验收；防雷连接被覆盖前必须做隐蔽工程验收。",
+     "fix": "必须做隐蔽工程验收，非外观检查即可。",
+     "option_id": "D13-html-practice-html-q13-0e7b79cdf924:option-2"
+    },
+    {
+     "text": "防雷连接是否验收由施工单位自行决定，工期紧张时可先行覆盖、事后补验收记录。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "图工期、觉得可以「事后补」。",
+     "loss_reason": "隐蔽工程必须在覆盖前验收，事后补记录不合规。",
+     "fix": "覆盖前必须完成隐蔽工程验收。",
+     "option_id": "D13-html-practice-html-q13-0e7b79cdf924:option-3"
+    },
     {
      "text": "防雷构造连接必须进行隐蔽工程验收，在被后续构造遮蔽前完成验收并留记录。",
      "is_correct": true,
@@ -938,41 +965,14 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "点明「必须做隐蔽工程验收」，说明为何（覆盖前查验）。",
-     "option_id": "D13-html-practice-html-q13-9c6de8e15544:option-1"
-    },
-    {
-     "text": "防雷连接是内部构造、看不见，不影响外观，不必进行隐蔽工程验收，装完即可。",
-     "is_correct": false,
-     "source_error_code": "M07",
-     "temptation": "「看不见、不影响外观」听着有理。",
-     "loss_reason": "正因连接会被遮蔽，才必须在覆盖前做隐蔽验收，说不必验收即错。",
-     "fix": "防雷构造连接必须做隐蔽工程验收。",
-     "option_id": "D13-html-practice-html-q13-9c6de8e15544:option-2"
-    },
-    {
-     "text": "防雷连接只需最后做一次外观检查，看导线接头齐全就行，隐蔽验收可以省略。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "用「外观检查」替代隐蔽验收。",
-     "loss_reason": "外观检查不等于隐蔽验收；防雷连接被覆盖前必须做隐蔽工程验收。",
-     "fix": "必须做隐蔽工程验收，非外观检查即可。",
-     "option_id": "D13-html-practice-html-q13-9c6de8e15544:option-3"
-    },
-    {
-     "text": "防雷连接是否验收由施工单位自行决定，工期紧时可先覆盖、事后补验收记录。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "图工期、觉得可以「事后补」。",
-     "loss_reason": "隐蔽工程必须在覆盖前验收，事后补记录不合规。",
-     "fix": "覆盖前必须完成隐蔽工程验收。",
-     "option_id": "D13-html-practice-html-q13-9c6de8e15544:option-4"
+     "option_id": "D13-html-practice-html-q13-0e7b79cdf924:option-4"
     }
    ],
    "model_answer": "防雷构造连接必须进行隐蔽工程验收（连接后被遮蔽，须在覆盖前验收记录）。",
    "rule_group": "隐蔽验收·规范适用",
-   "content_sha256": "66ef5fa78187ccbbfa17f6fe9a7aa4be9f4c247ec7843e18f803e29668b1b8ce",
+   "content_sha256": "362a9459ebf94c16cffe2d380a1eab72a3b46905fdf041635a486c7a1ce74171",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q13",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -982,7 +982,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "66ef5fa78187ccbbfa17f6fe9a7aa4be9f4c247ec7843e18f803e29668b1b8ce",
+     "reviewed_content_sha256": "362a9459ebf94c16cffe2d380a1eab72a3b46905fdf041635a486c7a1ce74171",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -997,10 +997,19 @@
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q14-0981c1e057eb",
+   "variant_id": "D13-html-practice-html-q14-ed0610bbec6e",
    "surface_id": "practice.html",
    "stem": "关于有机（可塑性）防火堵料的特性，下列正确、能得分的是？",
    "options": [
+    {
+     "text": "有机防火堵料遇火不发生变化、始终保持原状，依靠自身不燃特性隔断火焰。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "以为「防火=遇火不变」。",
+     "loss_reason": "有机堵料遇火恰恰发泡膨胀去封堵孔洞，不是「不变化」。",
+     "fix": "有机堵料遇火发泡膨胀、可重复使用。",
+     "option_id": "D13-html-practice-html-q14-ed0610bbec6e:option-1"
+    },
     {
      "text": "有机防火堵料可塑性好、遇火发泡膨胀、水密气密，且可重复使用，适合常换电缆的场合。",
      "is_correct": true,
@@ -1008,41 +1017,32 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "四特性齐、且点明「可重复使用」，适用场合也对。",
-     "option_id": "D13-html-practice-html-q14-0981c1e057eb:option-1"
+     "option_id": "D13-html-practice-html-q14-ed0610bbec6e:option-2"
     },
     {
-     "text": "有机防火堵料遇火发泡膨胀、密封性好，但一经安装就固化定型、不能重复使用。",
+     "text": "有机防火堵料遇火发泡膨胀、密封性好，但安装后即固化定型、不能重复使用。",
      "is_correct": false,
      "source_error_code": "M03",
      "temptation": "把有机堵料当成固化型、以为不能再用。",
      "loss_reason": "有机(可塑性)堵料恰恰可重复使用，「不能重复使用」说反了。",
      "fix": "有机防火堵料可重复使用，适合常更换电缆/管道处。",
-     "option_id": "D13-html-practice-html-q14-0981c1e057eb:option-2"
+     "option_id": "D13-html-practice-html-q14-ed0610bbec6e:option-3"
     },
     {
-     "text": "有机防火堵料遇火不发生变化、始终保持原状，靠自身不燃隔断火焰。",
-     "is_correct": false,
-     "source_error_code": "M10",
-     "temptation": "以为「防火=遇火不变」。",
-     "loss_reason": "有机堵料遇火恰恰发泡膨胀去封堵孔洞，不是「不变化」。",
-     "fix": "有机堵料遇火发泡膨胀、可重复使用。",
-     "option_id": "D13-html-practice-html-q14-0981c1e057eb:option-3"
-    },
-    {
-     "text": "防火堵料就选防火涂料，涂层厚度达到耐火等级即可，堵料特性按涂料的来记。",
+     "text": "防火堵料可直接选用防火涂料替代，涂层厚度达到耐火等级即可，堵料特性按涂料特性记忆。",
      "is_correct": false,
      "source_error_code": "M10",
      "temptation": "把堵料和防火涂料混着记。",
      "loss_reason": "堵料与涂料是两种材料，用涂料常识替代堵料特性属答非所问。",
      "fix": "有机堵料特性：可塑、遇火发泡、水密气密、可重复使用。",
-     "option_id": "D13-html-practice-html-q14-0981c1e057eb:option-4"
+     "option_id": "D13-html-practice-html-q14-ed0610bbec6e:option-4"
     }
    ],
    "model_answer": "有机防火堵料可塑性好、遇火发泡膨胀、水密气密、可重复使用，适合需经常更换电缆/管道的场合。",
    "rule_group": "封堵选材·概念辨析",
-   "content_sha256": "2c60d39fae1dd63bbf5b9a25599dda68a41fb4915e20c3fdcbae8dc6981f8188",
+   "content_sha256": "114249b0d152bd3e25543d5543a526cbf5eaadd7d53100efdd019cf09b8c8ca0",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q14",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1052,7 +1052,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "2c60d39fae1dd63bbf5b9a25599dda68a41fb4915e20c3fdcbae8dc6981f8188",
+     "reviewed_content_sha256": "114249b0d152bd3e25543d5543a526cbf5eaadd7d53100efdd019cf09b8c8ca0",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1067,10 +1067,28 @@
    }
   },
   {
-   "variant_id": "D13-html-practice-html-q15-2ff7d0b4fec0",
+   "variant_id": "D13-html-practice-html-q15-5ec84ba4a21d",
    "surface_id": "practice.html",
    "stem": "某学生答层间封堵：①缝隙塞岩棉；②承托板用铝板；③承托板缝隙没提。选出最准确的诊断与补写。",
    "options": [
+    {
+     "text": "该作答基本可行：岩棉封堵、承托板均已具备，缝隙细小可忽略，仅将铝板更换为钢板即可得到满分。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "抓到铝板一处错，以为改这一处就够。",
+     "loss_reason": "漏诊①缺≥100mm与水平防火烟带、③缝隙未用防火密封胶，两处失分没揪出。",
+     "fix": "三处都要补：厚度/水平烟带、镀锌钢板、防火密封胶。",
+     "option_id": "D13-html-practice-html-q15-5ec84ba4a21d:option-1"
+    },
+    {
+     "text": "承托板采用铝板并无不妥且自重较轻，主要问题在于岩棉塞得不够密实，将岩棉填塞密实即为合格。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "把注意力放在「塞密实」这种常识上。",
+     "loss_reason": "方向全错——铝板必须换镀锌钢板；且漏水平烟带与防火密封胶。",
+     "fix": "承托板改≥1.5mm镀锌钢板，补≥100mm/水平烟带/防火密封胶。",
+     "option_id": "D13-html-practice-html-q15-5ec84ba4a21d:option-2"
+    },
     {
      "text": "三处都失分：①缺≥100mm与水平烟带，②承托板应改≥1.5mm镀锌钢板不得铝板，③缝隙应用防火密封胶密封。",
      "is_correct": true,
@@ -1078,41 +1096,23 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "逐条揪失分并补上采分句，正是「会写答案」——三句都要落纸。",
-     "option_id": "D13-html-practice-html-q15-2ff7d0b4fec0:option-1"
+     "option_id": "D13-html-practice-html-q15-5ec84ba4a21d:option-3"
     },
     {
-     "text": "基本没问题：岩棉封堵、有承托板、缝隙小可忽略，把铝板换成钢板就能拿满分。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "抓到铝板一处错，以为改这一处就够。",
-     "loss_reason": "漏诊①缺≥100mm与水平防火烟带、③缝隙未用防火密封胶，两处失分没揪出。",
-     "fix": "三处都要补：厚度/水平烟带、镀锌钢板、防火密封胶。",
-     "option_id": "D13-html-practice-html-q15-2ff7d0b4fec0:option-2"
-    },
-    {
-     "text": "只是表达不规范，把「塞岩棉」写成「不燃材料封堵」就行，尺寸材料其实都对。",
+     "text": "仅属表达不规范：将「塞岩棉」改写为「不燃材料封堵」即可得分，所涉及的尺寸与承托板材料实际上均已答对，无须再补。",
      "is_correct": false,
      "source_error_code": "E03",
      "temptation": "以为只是措辞问题、内容都对。",
      "loss_reason": "内容真缺——没≥100mm、没水平烟带、承托板还是错的铝板，不止措辞。",
      "fix": "补数值(≥100mm)、水平烟带、镀锌钢板承托、防火密封胶。",
-     "option_id": "D13-html-practice-html-q15-2ff7d0b4fec0:option-3"
-    },
-    {
-     "text": "承托板用铝板没错、够轻，主要问题是岩棉塞得不够密，把岩棉塞实就合格了。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "把注意力放在「塞密实」这种常识上。",
-     "loss_reason": "方向全错——铝板必须换镀锌钢板；且漏水平烟带与防火密封胶。",
-     "fix": "承托板改≥1.5mm镀锌钢板，补≥100mm/水平烟带/防火密封胶。",
-     "option_id": "D13-html-practice-html-q15-2ff7d0b4fec0:option-4"
+     "option_id": "D13-html-practice-html-q15-5ec84ba4a21d:option-4"
     }
    ],
    "model_answer": "三处都要补：①缝隙应不燃岩棉≥100mm+耐火极限+水平防火烟带；②承托板应≥1.5mm镀锌钢板不得铝板；③承托板与主体/幕墙缝隙应用防火密封胶密封。",
    "rule_group": "采分诊断·末题",
-   "content_sha256": "d4ba03e6a413f222d6c92173697d88c1aa7fa9b666098a1050cef046da12ee75",
+   "content_sha256": "b2c3b913db6d36ff38c2d4cf82a6887c8eefe3a9bd3feb807e769281083e0de0",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q15",
-   "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+   "authoring_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
    "decision": {
     "fact_id": "d13-fact-interfloor-firestop-diagnosis",
     "skeleton_id": "d13-skel-层间封堵诊断补写",
@@ -1122,17 +1122,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "d4ba03e6a413f222d6c92173697d88c1aa7fa9b666098a1050cef046da12ee75",
+     "reviewed_content_sha256": "b2c3b913db6d36ff38c2d4cf82a6887c8eefe3a9bd3feb807e769281083e0de0",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -1142,7 +1142,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "诊断: ①缺≥100mm与水平烟带 ②承托板应改镀锌钢板 ③缝隙应用防火密封胶, 三处均正确, 真题综合。工单: longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "诊断: ①缺≥100mm与水平烟带 ②承托板应改镀锌钢板 ③缝隙应用防火密封胶, 三处均正确, 真题综合。工单: longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []

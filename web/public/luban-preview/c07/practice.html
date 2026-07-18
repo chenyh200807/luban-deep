@@ -236,46 +236,46 @@ class Component extends DCLogic {
       stem:"钢结构构件的连接方法包括哪几类？选出列全、能得分的作答。",
       model:"钢结构连接方法包括：焊接、普通螺栓连接、高强度螺栓连接、铆接。",
       opts:[
-        { t:"钢结构连接方法包括焊接、普通螺栓连接、高强度螺栓连接、铆接四类。", ok:true, fix:"四类列全、不多不漏，正是定性采分点。", code:"" },
-        { t:"钢结构连接方法主要就是焊接和高强度螺栓连接两大类。", ok:false, code:"E02", tempt:"工程上焊接和高强螺栓最常用，容易只答这两类。", lose:"漏了普通螺栓连接和铆接，采分点列不全。", fix:"补齐为焊接、普通螺栓连接、高强度螺栓连接、铆接四类。" },
-        { t:"连接方法包括焊接、螺栓连接、铆接和栓钉焊四类。", ok:false, code:"E07", tempt:"栓钉焊听着像一种连接方式，顺手就写上。", lose:"栓钉焊是焊接接头类型，不是并列的连接方法，属分类混淆。", fix:"连接方法是焊接/普通螺栓/高强螺栓/铆接；栓钉焊归焊接接头。" },
-        { t:"连接方法包括焊接、吊装、制孔、防腐四类。", ok:false, code:"E07", tempt:"把施工过程当成了连接方法。", lose:"吊装/制孔/防腐是加工安装工序，不是连接方法。", fix:"连接方法只有焊接、普通螺栓、高强螺栓、铆接四类。" }
+        { t:"焊接连接与高强度螺栓连接是钢结构仅有的两大类连接方法。", ok:false, code:"E02", tempt:"工程上焊接和高强螺栓最常用，容易只答这两类。", lose:"漏了普通螺栓连接和铆接，采分点列不全。", fix:"补齐为焊接、普通螺栓连接、高强度螺栓连接、铆接四类。" },
+        { t:"构件之间的连接方法包括焊接、螺栓连接、铆接以及栓钉焊连接共四类。", ok:false, code:"E07", tempt:"栓钉焊听着像一种连接方式，顺手就写上。", lose:"栓钉焊是焊接接头类型，不是并列的连接方法，属分类混淆。", fix:"连接方法是焊接/普通螺栓/高强螺栓/铆接；栓钉焊归焊接接头。" },
+        { t:"连接方法包括焊接、构件吊装、现场制孔与防腐涂装四类。", ok:false, code:"E07", tempt:"把施工过程当成了连接方法。", lose:"吊装/制孔/防腐是加工安装工序，不是连接方法。", fix:"连接方法只有焊接、普通螺栓、高强螺栓、铆接四类。" },
+        { t:"钢结构连接方法包括焊接、普通螺栓连接、高强度螺栓连接、铆接四类。", ok:true, fix:"四类列全、不多不漏，正是定性采分点。", code:"" }
       ] },
 { tag:"焊接接头·分类", typeHint:"单选 · 选出接头类型列全的作答", figLabel:"焊接接头类型", figCaption:"共七类", fig:"joints",
       stem:"钢结构焊接接头的类型包括哪些？选出列全、能得分的作答。",
       model:"全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。",
       opts:[
+        { t:"焊接接头类型为对接焊缝与角焊缝两类，其余形式均可归入此两类。", ok:false, code:"E02", tempt:"平时最常见对接、角焊缝，容易只答这两种。", lose:"塞焊/槽焊/电渣焊/栓钉焊等未列，采分点大面积遗漏。", fix:"补齐全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。" },
+        { t:"焊接、普通螺栓连接、高强度螺栓连接、铆接、角焊缝五类。", ok:false, code:"E07", tempt:"把连接方法和焊接接头混在一起写。", lose:"前四个是连接方法不是焊接接头，问的是接头类型。", fix:"接头类型只列焊接内部的七类，别掺连接方法。" },
         { t:"全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。", ok:true, fix:"七类枚举齐全，分类采分点拿满。", code:"" },
-        { t:"就是对接焊缝和角焊缝两类，其余按现场情况定。", ok:false, code:"E02", tempt:"平时最常见对接、角焊缝，容易只答这两种。", lose:"塞焊/槽焊/电渣焊/栓钉焊等未列，采分点大面积遗漏。", fix:"补齐全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。" },
-        { t:"焊接、普通螺栓、高强螺栓、铆接、角焊缝五类。", ok:false, code:"E07", tempt:"把连接方法和焊接接头混在一起写。", lose:"前四个是连接方法不是焊接接头，问的是接头类型。", fix:"接头类型只列焊接内部的七类，别掺连接方法。" },
         { t:"全熔透、部分熔透、角焊缝、搭接焊、点焊、铆焊六类。", ok:false, code:"E01", tempt:"编了几个听着像的名词凑数。", lose:"搭接焊/点焊/铆焊不是教材列出的接头类型，属知识点缺失。", fix:"按教材七类：全熔透/部分熔透/角焊缝/塞焊/槽焊/电渣焊/栓钉焊。" }
       ] },
 { tag:"焊接环境·条件维", typeHint:"单选 · 选出数值正确、能得分的作答", figLabel:"焊接作业环境阈值", figCaption:"温度 · 湿度 · 风速（两种焊分别）", fig:"env",
       stem:"钢结构焊接作业环境应满足哪些条件？选出数值正确、能得分的作答。",
       model:"温度≥−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s，低温须加热防护。",
       opts:[
-        { t:"温度不低于−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s。", ok:true, fix:"四个阈值都对、两种焊风速分开写，条件维拿满。", code:"" },
         { t:"温度不低于−10℃、相对湿度≤90%、手工电弧焊风速≤2m/s、气体保护焊风速≤8m/s。", ok:false, code:"M08", tempt:"记得有 8 和 2，却把两种焊对应的风速写反了。", lose:"风速 8/2 张冠李戴：气体保护焊怕吹散保护气应≤2，手工电弧焊≤8。", fix:"手工电弧焊≤8m/s、气体保护焊≤2m/s，别写反。" },
-        { t:"温度不低于0℃、相对湿度≤80%、风速不限，技术过硬就能焊。", ok:false, code:"M08", tempt:"凭常识觉得 0℃、80% 差不多。", lose:"温度阈值应−10℃、湿度应90%，且风速有限值，数值全错。", fix:"温度≥−10℃、湿度≤90%、手工≤8/气保≤2m/s。" },
-        { t:"只要现场环境适宜、避开雨雪大风即可施焊，具体数值按经验掌握。", ok:false, code:"M10", tempt:"用「环境适宜」这种常识话术代替规范。", lose:"没有可判分的数值，属用常识替代规范。", fix:"必须写出−10℃/90%/8m/s/2m/s 四个规范阈值。" }
+        { t:"温度不低于−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s。", ok:true, fix:"四个阈值都对、两种焊风速分开写，条件维拿满。", code:"" },
+        { t:"温度不低于0℃、相对湿度≤80%，风速无明确限值，可按一般作业环境要求控制施焊。", ok:false, code:"M08", tempt:"凭常识觉得 0℃、80% 差不多。", lose:"温度阈值应−10℃、湿度应90%，且风速有限值，数值全错。", fix:"温度≥−10℃、湿度≤90%、手工≤8/气保≤2m/s。" },
+        { t:"现场环境适宜、避开雨雪与大风天气即可施焊，各项具体数值按作业经验掌握。", ok:false, code:"M10", tempt:"用「环境适宜」这种常识话术代替规范。", lose:"没有可判分的数值，属用常识替代规范。", fix:"必须写出−10℃/90%/8m/s/2m/s 四个规范阈值。" }
       ] },
 { tag:"焊接缺陷·后果维", typeHint:"单选 · 选出固体夹渣主因正确的作答", figLabel:"三种缺陷各自成因", figCaption:"固体夹渣的主要成因是？", fig:"defect",
       stem:"某焊缝检测发现固体夹渣缺陷，其主要成因是下列哪项？选出正确、能得分的作答。",
       model:"固体夹渣主因是焊接电流太小（及焊接速度太快、熔渣密度太大、多层焊熔渣未清除）。",
       opts:[
         { t:"焊接电流太小（熔池温度不够、熔渣来不及上浮），及速度太快、熔渣未清除。", ok:true, fix:"抓住主因「电流太小」，与气孔/裂纹成因分开，后果维拿分。", code:"" },
-        { t:"焊前未预热、层间温度过低，导致熔渣夹在焊缝里形成固体夹渣。", ok:false, code:"M03", tempt:"预热听着和焊接质量有关，顺手套上。", lose:"预热不足对应的是裂纹缺陷，不是固体夹渣，成因张冠李戴。", fix:"固体夹渣主因是焊接电流太小，不是没预热。" },
-        { t:"焊后冷却太快、内应力集中，把熔渣挤在焊缝里造成夹渣。", ok:false, code:"E07", tempt:"冷却快听着像会出问题。", lose:"冷却快对应裂纹，不是夹渣，缺陷成因混淆。", fix:"夹渣主因是电流太小；冷却快归裂纹。" },
-        { t:"作业环境相对湿度太大，水汽混入熔池形成固体夹渣。", ok:false, code:"M03", tempt:"湿度大确实是焊接大忌。", lose:"湿度大对应的是气孔，不是固体夹渣，成因归错。", fix:"夹渣主因是电流太小；湿度大归气孔。" }
+        { t:"焊前未按要求预热、层间温度控制过低，使熔渣滞留于焊缝内部形成固体夹渣。", ok:false, code:"M03", tempt:"预热听着和焊接质量有关，顺手套上。", lose:"预热不足对应的是裂纹缺陷，不是固体夹渣，成因张冠李戴。", fix:"固体夹渣主因是焊接电流太小，不是没预热。" },
+        { t:"焊后冷却速度太快、焊缝内应力集中，将熔渣封闭在焊缝内部造成固体夹渣。", ok:false, code:"E07", tempt:"冷却快听着像会出问题。", lose:"冷却快对应裂纹，不是夹渣，缺陷成因混淆。", fix:"夹渣主因是电流太小；冷却快归裂纹。" },
+        { t:"作业环境相对湿度太大，水汽混入熔池后残留在焊缝中形成固体夹渣。", ok:false, code:"M03", tempt:"湿度大确实是焊接大忌。", lose:"湿度大对应的是气孔，不是固体夹渣，成因归错。", fix:"夹渣主因是电流太小；湿度大归气孔。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 揪出全部失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"哪处对、哪处错，一次说清", fig:"sheet",
       stem:"某学生作答：①用高强螺栓兼作安装螺栓临时固定；②孔不对位用气割扩孔；③摩擦面用记号笔做定位；④终拧完一周后检查；⑤焊缝夹渣是焊前没预热造成的。选出最准确的诊断与补写。",
       model:"五处全错：①不得兼作，应另设安装螺栓≥2个≥1/3孔；②禁气割，应机械扩孔≤1.2D；③摩擦面不得作标记；④应终拧后1~48h内检查；⑤夹渣主因是焊接电流太小，非没预热。",
       opts:[
+        { t:"只有第⑤条夹渣成因写错，应更正为焊接电流太小；①②③④四条施工做法均符合规范要求，维持原作答即可，无须逐条改动。", ok:false, code:"E07", tempt:"只盯住了成因那句，觉得施工步骤没毛病。", lose:"兼作、气割、摩擦面标记、终拧时间四处施工也全违规，漏诊四处。", fix:"五处都要改，不止成因一处。" },
         { t:"五处都不对：应另设安装螺栓≥2个≥1/3孔、机械扩孔≤1.2D禁气割、摩擦面不得作标记、终拧后1~48h内检查、夹渣主因是电流太小。", ok:true, fix:"五处失分全揪出并逐条给正确采分句——这就是「会写答案」。", code:"" },
-        { t:"只有第⑤条夹渣成因写错，前四条施工做法都合规，改成因即可。", ok:false, code:"E07", tempt:"只盯住了成因那句，觉得施工步骤没毛病。", lose:"兼作、气割、摩擦面标记、终拧时间四处施工也全违规，漏诊四处。", fix:"五处都要改，不止成因一处。" },
-        { t:"主要问题是第②条气割扩孔，改用机械扩孔即可，其余基本没问题。", ok:false, code:"E02", tempt:"抓到气割最扎眼的一处就收手。", lose:"兼作、摩擦面标记、终拧时间、夹渣成因四处失分被漏诊。", fix:"五处逐条改：兼作/气割/标记/终拧时间/夹渣成因。" },
-        { t:"把第⑤条夹渣成因纠成「湿度太大」，其余四条按现场惯例即可。", ok:false, code:"M03", tempt:"知道成因写错了，却纠成了另一个错答案。", lose:"湿度大是气孔成因不是夹渣，且前四条违规未纠，诊断方向错。", fix:"夹渣主因是电流太小；前四条也须逐条纠正。" }
+        { t:"主要失分点是第②条气割扩孔，应改用机械方法扩孔；其余各条属现场常见做法，虽有瑕疵但不构成失分，维持原作答即可。", ok:false, code:"E02", tempt:"抓到气割最扎眼的一处就收手。", lose:"兼作、摩擦面标记、终拧时间、夹渣成因四处失分被漏诊。", fix:"五处逐条改：兼作/气割/标记/终拧时间/夹渣成因。" },
+        { t:"第⑤条夹渣成因应更正为作业环境「湿度太大」，水汽混入熔池所致；其余四条按现场惯例执行即可，无须逐条改写。", ok:false, code:"M03", tempt:"知道成因写错了，却纠成了另一个错答案。", lose:"湿度大是气孔成因不是夹渣，且前四条违规未纠，诊断方向错。", fix:"夹渣主因是电流太小；前四条也须逐条纠正。" }
       ] }
   ];
   codeMap={
@@ -503,7 +503,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"C07-html-practice-html-q1-1dbc01dbdcec","options":["C07-html-practice-html-q1-1dbc01dbdcec:option-1","C07-html-practice-html-q1-1dbc01dbdcec:option-2","C07-html-practice-html-q1-1dbc01dbdcec:option-3","C07-html-practice-html-q1-1dbc01dbdcec:option-4"]},{"variant_id":"C07-html-practice-html-q2-b4a3fc6a4689","options":["C07-html-practice-html-q2-b4a3fc6a4689:option-1","C07-html-practice-html-q2-b4a3fc6a4689:option-2","C07-html-practice-html-q2-b4a3fc6a4689:option-3","C07-html-practice-html-q2-b4a3fc6a4689:option-4"]},{"variant_id":"C07-html-practice-html-q3-5c99057d90f9","options":["C07-html-practice-html-q3-5c99057d90f9:option-1","C07-html-practice-html-q3-5c99057d90f9:option-2","C07-html-practice-html-q3-5c99057d90f9:option-3","C07-html-practice-html-q3-5c99057d90f9:option-4"]},{"variant_id":"C07-html-practice-html-q4-3ff4600ca2e6","options":["C07-html-practice-html-q4-3ff4600ca2e6:option-1","C07-html-practice-html-q4-3ff4600ca2e6:option-2","C07-html-practice-html-q4-3ff4600ca2e6:option-3","C07-html-practice-html-q4-3ff4600ca2e6:option-4"]},{"variant_id":"C07-html-practice-html-q15-e2594578228f","options":["C07-html-practice-html-q15-e2594578228f:option-1","C07-html-practice-html-q15-e2594578228f:option-2","C07-html-practice-html-q15-e2594578228f:option-3","C07-html-practice-html-q15-e2594578228f:option-4"]}];
+    const exactItems=[{"variant_id":"C07-html-practice-html-q1-5087be890dbf","options":["C07-html-practice-html-q1-5087be890dbf:option-1","C07-html-practice-html-q1-5087be890dbf:option-2","C07-html-practice-html-q1-5087be890dbf:option-3","C07-html-practice-html-q1-5087be890dbf:option-4"]},{"variant_id":"C07-html-practice-html-q2-e8c4030b2dda","options":["C07-html-practice-html-q2-e8c4030b2dda:option-1","C07-html-practice-html-q2-e8c4030b2dda:option-2","C07-html-practice-html-q2-e8c4030b2dda:option-3","C07-html-practice-html-q2-e8c4030b2dda:option-4"]},{"variant_id":"C07-html-practice-html-q3-d529d2d4f577","options":["C07-html-practice-html-q3-d529d2d4f577:option-1","C07-html-practice-html-q3-d529d2d4f577:option-2","C07-html-practice-html-q3-d529d2d4f577:option-3","C07-html-practice-html-q3-d529d2d4f577:option-4"]},{"variant_id":"C07-html-practice-html-q4-eefb08b9c0d6","options":["C07-html-practice-html-q4-eefb08b9c0d6:option-1","C07-html-practice-html-q4-eefb08b9c0d6:option-2","C07-html-practice-html-q4-eefb08b9c0d6:option-3","C07-html-practice-html-q4-eefb08b9c0d6:option-4"]},{"variant_id":"C07-html-practice-html-q15-e6b53089649f","options":["C07-html-practice-html-q15-e6b53089649f:option-1","C07-html-practice-html-q15-e6b53089649f:option-2","C07-html-practice-html-q15-e6b53089649f:option-3","C07-html-practice-html-q15-e6b53089649f:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -520,7 +520,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C07")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMWRiYzAxZGJkY2VjIiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iNGEzZmM2YTQ2ODkiLCJDMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLTVjOTkwNTdkOTBmOSIsIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtM2ZmNDYwMGNhMmU2IiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZTI1OTQ1NzgyMjhmIl0sInBhY2tfaWQiOiJDMDciLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImQ3ZjZlMTgyNjUzYmNjZTVlZjA4YTc3MWFlYWEyMjhmOGMxMTk5YTgwNGI2NjA5ODQ0ZDcyZjk4YmYyNDU4YTIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNzlkN2VjMWRmNWEzMGQ4MDFjNjNhN2Y4ZTk2NGY0NWFhZGUxNDVjMDM1OWZkMDA1OWFiN2ZjZWE5OTIxMDdjMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C07")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtNTA4N2JlODkwZGJmIiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lOGM0MDMwYjJkZGEiLCJDMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLWQ1MjlkMmQ0ZjU3NyIsIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtZWVmYjA4YjljMGQ2IiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZTZiNTMwODk2NDlmIl0sInBhY2tfaWQiOiJDMDciLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjY5NmZkNThkNzA0NDNjMDQ3NDI5MjgyMWU0NzNmMjY4NTgzMGI1NGIyMTZhMmYwYmIxNWNiYjEzYzZlMTNkNDYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNzlkN2VjMWRmNWEzMGQ4MDFjNjNhN2Y4ZTk2NGY0NWFhZGUxNDVjMDM1OWZkMDA1OWFiN2ZjZWE5OTIxMDdjMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

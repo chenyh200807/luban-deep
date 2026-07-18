@@ -2,7 +2,7 @@
  "schema": "luban_practice_review_packet.v1",
  "pack_id": "N01",
  "source_pack_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
- "source_bundle_sha256": "0f29e07b665daee24732f088dc920addc515aa5ff187d97ec5acd8f980173360",
+ "source_bundle_sha256": "0c62205d17ba9bb1a2345eae31c70b7527ee421aa454ba700cfff0831efed961",
  "compiled_schema_version": "luban_compiled_practice.v3",
  "candidate_count": 16,
  "eligible_count": 7,
@@ -15,10 +15,19 @@
  },
  "items": [
   {
-   "variant_id": "N01-html-practice-html-q1-67c08ec964c2",
+   "variant_id": "N01-html-practice-html-q1-279218eaba74",
    "surface_id": "practice.html",
    "stem": "双代号网络计划中，如何判定关键工作与关键线路？选出判据最完整、能得分的作答。",
    "options": [
+    {
+     "text": "持续时间最长的那道工作所在的线路就是关键线路，抓住最大的那项工作即可判定。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「最长」二字看着眼熟，容易把单个工作的长短当判据。",
+     "loss_reason": "判据错位：关键看的是路径总长/总时差，不是某道工作自己长不长。",
+     "fix": "关键工作=总时差最小；关键线路=最长路径=计算工期。",
+     "option_id": "N01-html-practice-html-q1-279218eaba74:option-1"
+    },
     {
      "text": "关键工作是总时差最小的工作；关键线路由全部关键工作组成，工期等于计算工期。",
      "is_correct": true,
@@ -26,16 +35,7 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "判据两句齐：总时差最小 + 工期=计算工期，落到哪条线路都能判。",
-     "option_id": "N01-html-practice-html-q1-67c08ec964c2:option-1"
-    },
-    {
-     "text": "持续时间最长的那道工作所在的线路就是关键线路，抓住最大的工作即可判定。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "「最长」二字看着眼熟，容易把单个工作的长短当判据。",
-     "loss_reason": "判据错位：关键看的是路径总长/总时差，不是某道工作自己长不长。",
-     "fix": "关键工作=总时差最小；关键线路=最长路径=计算工期。",
-     "option_id": "N01-html-practice-html-q1-67c08ec964c2:option-2"
+     "option_id": "N01-html-practice-html-q1-279218eaba74:option-2"
     },
     {
      "text": "总时差为零的工作是关键工作，且一个网络图里关键线路只会有一条，找到即可。",
@@ -44,7 +44,7 @@
      "temptation": "「TF=0」这半句是对的，顺手就选了。",
      "loss_reason": "后半句错：并列最长路径可有两条及以上，「只有一条」是典型误区。",
      "fix": "关键线路可能不止一条，并列最长的全部是关键线路。",
-     "option_id": "N01-html-practice-html-q1-67c08ec964c2:option-3"
+     "option_id": "N01-html-practice-html-q1-279218eaba74:option-3"
     },
     {
      "text": "图中最长的线路是关键线路，据此原则判定即可，无须再写具体判据与线路。",
@@ -53,14 +53,14 @@
      "temptation": "方向对，觉得写个原则就算答了。",
      "loss_reason": "口号化表达：不落总时差判据、不落具体线路，阅卷无从给分。",
      "fix": "写判据句并落到具体线路：关键线路为①→②→④→⑥（节点连续）。",
-     "option_id": "N01-html-practice-html-q1-67c08ec964c2:option-4"
+     "option_id": "N01-html-practice-html-q1-279218eaba74:option-4"
     }
    ],
    "model_answer": "关键工作是总时差最小的工作；关键线路由全部关键工作组成，其工期等于网络计划的计算工期（最长路径）。",
    "rule_group": "判据·条件维",
-   "content_sha256": "0cff11be6f2738254619db5817f4ff2a3090ea9f3f3a1dcf822834a9a6336f15",
+   "content_sha256": "81e4af4807694af8178407b89fdd6a6099ed27e7d64640a1e479a48f8c38738b",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q1",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "n01-fact-critical-work-zero-float",
     "skeleton_id": "n01-skel-判据直接判定",
@@ -70,17 +70,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "0cff11be6f2738254619db5817f4ff2a3090ea9f3f3a1dcf822834a9a6336f15",
+     "reviewed_content_sha256": "81e4af4807694af8178407b89fdd6a6099ed27e7d64640a1e479a48f8c38738b",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -90,26 +90,17 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "合议签发:答案两面板独立重解一致;锚为教材chunk内派生卡,散文原文语义等价背书(3b92d0f8)。工单:opt3 temptation补条件限定、opt4 fix删无图线路示例 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "合议签发:答案两面板独立重解一致;锚为教材chunk内派生卡,散文原文语义等价背书(3b92d0f8)。工单:opt3 temptation补条件限定、opt4 fix删无图线路示例 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q2-d5de654db182",
+   "variant_id": "N01-html-practice-html-q2-63817dfe8bf9",
    "surface_id": "practice.html",
    "stem": "某网络计划经计算：路①（①→②→④→⑥）= 11 个月，路②（①→③→④→⑥）= 11 个月，路③ = 8 个月。写出关键线路，选出能拿全分的作答。",
    "options": [
-    {
-     "text": "关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥，并列最长、工期相等。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "并列最长全部列出、节点连续，这正是历年两条关键线路题的给分点。",
-     "option_id": "N01-html-practice-html-q2-d5de654db182:option-1"
-    },
     {
      "text": "关键线路为 ①→②→④→⑥，共 11 个月，取其中一条最长路径作答即可。",
      "is_correct": false,
@@ -117,7 +108,7 @@
      "temptation": "算出 11 就急着写，一条看着已经「答上了」。",
      "loss_reason": "漏掉并列的另一条关键线路，漏一条丢一条的分。",
      "fix": "补上第二条：和 ①→③→④→⑥，两条并列最长全列出。",
-     "option_id": "N01-html-practice-html-q2-d5de654db182:option-2"
+     "option_id": "N01-html-practice-html-q2-63817dfe8bf9:option-1"
     },
     {
      "text": "本网络计划中最长的路径即为关键线路，其总持续时间为 11 个月。",
@@ -126,7 +117,7 @@
      "temptation": "判据没错，感觉写了就有分。",
      "loss_reason": "没落到具体线路（节点序列），口号化表达不得分。",
      "fix": "落到具体节点序列，且两条并列的都写。",
-     "option_id": "N01-html-practice-html-q2-d5de654db182:option-3"
+     "option_id": "N01-html-practice-html-q2-63817dfe8bf9:option-2"
     },
     {
      "text": "关键线路有两条：①→④→⑥ 和 ①→③→⑥，两条工期相等均为最长。",
@@ -135,14 +126,23 @@
      "temptation": "知道要写两条，随手把节点写「顺」了。",
      "loss_reason": "节点跳号、线路不连续，阅卷按错线路处理。",
      "fix": "逐节点连续写：①→②→④→⑥ 和 ①→③→④→⑥。",
-     "option_id": "N01-html-practice-html-q2-d5de654db182:option-4"
+     "option_id": "N01-html-practice-html-q2-63817dfe8bf9:option-3"
+    },
+    {
+     "text": "关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥，并列最长、工期相等。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "并列最长全部列出、节点连续，这正是历年两条关键线路题的给分点。",
+     "option_id": "N01-html-practice-html-q2-63817dfe8bf9:option-4"
     }
    ],
    "model_answer": "关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥（并列最长，工期相等，均为 11 个月）。",
    "rule_group": "全列·记录维",
-   "content_sha256": "dfc828ca736b3ec53129165230f41c6b9c4910ea6f98186d836f64a71f8667b0",
+   "content_sha256": "5ba66db421d181c3ddd3add20cfd2a8ea2f05a4be7b80132e76bc2e0597d332b",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q2",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "n01-fact-parallel-critical-paths",
     "skeleton_id": "n01-skel-线路全列作答",
@@ -152,17 +152,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "dfc828ca736b3ec53129165230f41c6b9c4910ea6f98186d836f64a71f8667b0",
+     "reviewed_content_sha256": "5ba66db421d181c3ddd3add20cfd2a8ea2f05a4be7b80132e76bc2e0597d332b",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -172,7 +172,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "合议签发:11=11>8两面板重算一致;quote为空白规范化命中(零内容差异);题干'拿全分'口径唯一解成立 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "合议签发:11=11>8两面板重算一致;quote为空白规范化命中(零内容差异);题干'拿全分'口径唯一解成立 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -222,9 +222,9 @@
    ],
    "model_answer": "总工期 T =（沿关键线路）3+4+4 = 11 个月；线路、算式、单位三件齐。",
    "rule_group": "总工期·计算表达维",
-   "content_sha256": "77eaa87134ae0be4d860968325dd53b5e10d15a334d20c6305df99d0ce3e935f",
+   "content_sha256": "f0cfef03fbc4f742a57c9d13fccf4e2c9e84665059b02add6fa0688dddd0385a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q3",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "n01-fact-duration-along-critical-path",
     "skeleton_id": "n01-skel-求和计算表达",
@@ -234,17 +234,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "77eaa87134ae0be4d860968325dd53b5e10d15a334d20c6305df99d0ce3e935f",
+     "reviewed_content_sha256": "f0cfef03fbc4f742a57c9d13fccf4e2c9e84665059b02add6fa0688dddd0385a",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -254,26 +254,17 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "合议签发:算术25=25自洽锚;工单:题干'可得分'第二批改'能拿全分'(与q2对齐,消除opt4边界模糊) | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "合议签发:算术25=25自洽锚;工单:题干'可得分'第二批改'能拿全分'(与q2对齐,消除opt4边界模糊) | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q4-36ae4f7b8858",
+   "variant_id": "N01-html-practice-html-q4-3be2f0735c4d",
    "surface_id": "practice.html",
    "stem": "题干新增：工作 F 必须等 B、C 均完成后才能开始，但原图中 F 只与 C 相接。正确的处理是？",
    "options": [
-    {
-     "text": "在 B 完成节点与 F 开始节点间增加一个虚工作表达该逻辑，再在调整后的图上计算。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "先校逻辑补虚工作、后计算，程序与画法都对。",
-     "option_id": "N01-html-practice-html-q4-36ae4f7b8858:option-1"
-    },
     {
      "text": "图是题目给定的依据，按原图直接计算关键线路与总工期即可，不必改动。",
      "is_correct": false,
@@ -281,7 +272,7 @@
      "temptation": "觉得「题给的图不会有错」，直接开算省事。",
      "loss_reason": "没提取题干新增的紧前关系，在错图上算，线路工期全盘错。",
      "fix": "先补虚工作校正逻辑，再算。",
-     "option_id": "N01-html-practice-html-q4-36ae4f7b8858:option-2"
+     "option_id": "N01-html-practice-html-q4-3be2f0735c4d:option-1"
     },
     {
      "text": "把工作 F 移到 B 之后串联布置，让 B 做完再做 F，即可满足新增关系。",
@@ -290,7 +281,16 @@
      "temptation": "「等 B 完成」听着像要排到 B 后面。",
      "loss_reason": "改串联改变了原网络逻辑（F 与 C 的关系被破坏），表达方式错。",
      "fix": "用虚箭线补逻辑，不改动既有工作关系。",
-     "option_id": "N01-html-practice-html-q4-36ae4f7b8858:option-3"
+     "option_id": "N01-html-practice-html-q4-3be2f0735c4d:option-2"
+    },
+    {
+     "text": "在 B 完成节点与 F 开始节点间增加一个虚工作表达该逻辑，再在调整后的图上计算。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "先校逻辑补虚工作、后计算，程序与画法都对。",
+     "option_id": "N01-html-practice-html-q4-3be2f0735c4d:option-3"
     },
     {
      "text": "增加一项持续时间 1 个月的联系工作连接 B 与 F，把等待时间也算进去。",
@@ -299,14 +299,14 @@
      "temptation": "觉得「连接工作」总得占点时间才真实。",
      "loss_reason": "虚工作只表达逻辑、不占时间资源；加了时长会把工期算长。",
      "fix": "补的是虚工作：持续时间为 0，仅表达逻辑。",
-     "option_id": "N01-html-practice-html-q4-36ae4f7b8858:option-4"
+     "option_id": "N01-html-practice-html-q4-3be2f0735c4d:option-4"
     }
    ],
    "model_answer": "原图逻辑不全，应在 B 的完成节点与 F 的开始节点之间增加一个虚工作（虚箭线，只表达逻辑关系），再在调整后的图上计算关键线路。",
    "rule_group": "虚工作·程序维",
-   "content_sha256": "2df42340539e52250a84e8ad73b4c4df62899a8973a223b099c604cb5c7e17b7",
+   "content_sha256": "73962bbadb21c1e3d605650c38f180a38935ab8e1497943709d59adbe61a447b",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q4",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "n01-fact-dummy-activity-logic",
     "skeleton_id": "n01-skel-补虚工作程序",
@@ -316,17 +316,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "2df42340539e52250a84e8ad73b4c4df62899a8973a223b099c604cb5c7e17b7",
+     "reviewed_content_sha256": "73962bbadb21c1e3d605650c38f180a38935ab8e1497943709d59adbe61a447b",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -336,26 +336,17 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "合议签发:与2015真题情境同源(语义改写非逐字);虚工作口径2026无变 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "合议签发:与2015真题情境同源(语义改写非逐字);虚工作口径2026无变 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q5-d47894dd70e6",
+   "variant_id": "N01-html-practice-html-q5-cdf1c9b59fce",
    "surface_id": "practice.html",
    "stem": "某工作位于关键线路上（计划工期等于计算工期）。其总时差与自由时差各是多少？选出能得分的表述。",
    "options": [
-    {
-     "text": "该工作为关键工作，总时差为 0，自由时差也为 0，两者均无机动时间。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "关键工作 TF=0 且 FF=0，两个都写、都标零，数值绑定到该工作。",
-     "option_id": "N01-html-practice-html-q5-d47894dd70e6:option-1"
-    },
     {
      "text": "该工作总时差为 0，但自由时差一般大于 0，可用于调剂紧后工作。",
      "is_correct": false,
@@ -363,7 +354,7 @@
      "temptation": "觉得两个时差总得有一个能松动。",
      "loss_reason": "FF≤TF，总时差为 0 时自由时差必为 0，概念混淆。",
      "fix": "关键工作 TF=0 且 FF=0。",
-     "option_id": "N01-html-practice-html-q5-d47894dd70e6:option-2"
+     "option_id": "N01-html-practice-html-q5-cdf1c9b59fce:option-1"
     },
     {
      "text": "关键线路上的工作也有少量时差储备，具体数值需按 LS−ES 另行计算。",
@@ -372,7 +363,7 @@
      "temptation": "「都要算一算」显得严谨。",
      "loss_reason": "关键工作的判定特征就是无机动（TF 最小、计划=计算工期时为 0），说「有储备」判据错。",
      "fix": "直接写：关键工作 TF=0、FF=0。",
-     "option_id": "N01-html-practice-html-q5-d47894dd70e6:option-3"
+     "option_id": "N01-html-practice-html-q5-cdf1c9b59fce:option-2"
     },
     {
      "text": "该工作总时差等于总工期减去其持续时间，自由时差取其一半估算。",
@@ -381,14 +372,23 @@
      "temptation": "看着像个公式，容易蒙。",
      "loss_reason": "公式编造：TF=LS−ES=LF−EF，不是总工期减持续时间，更没有「取一半」。",
      "fix": "按 TF=LS−ES 计算；关键工作为 0。",
-     "option_id": "N01-html-practice-html-q5-d47894dd70e6:option-4"
+     "option_id": "N01-html-practice-html-q5-cdf1c9b59fce:option-3"
+    },
+    {
+     "text": "该工作为关键工作，总时差为 0，自由时差也为 0，两者均无机动时间。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "关键工作 TF=0 且 FF=0，两个都写、都标零，数值绑定到该工作。",
+     "option_id": "N01-html-practice-html-q5-cdf1c9b59fce:option-4"
     }
    ],
    "model_answer": "该工作为关键工作，总时差 TF=0，自由时差 FF=0（关键工作两者均为零）。",
    "rule_group": "时差·计算表达维",
-   "content_sha256": "42263b7862f67d6d4e5770931e476247fabbfb44a1b0a94581b9a29ce96ae55b",
+   "content_sha256": "91180c0d4d7fe3a9f1a6fc79302399d70453ae65f8a7ef3b0d95d5ddb4310646",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q5",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "n01-fact-critical-work-zero-float",
     "skeleton_id": "n01-skel-时差取值计算",
@@ -398,17 +398,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "42263b7862f67d6d4e5770931e476247fabbfb44a1b0a94581b9a29ce96ae55b",
+     "reviewed_content_sha256": "91180c0d4d7fe3a9f1a6fc79302399d70453ae65f8a7ef3b0d95d5ddb4310646",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -418,34 +418,25 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "合议签发:TF=0留观项经2018官答+教材双源洗白;2018电缆FF毛刺不落本题(管道安装双evidence一致);quote为跨字段拼接已标注 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "合议签发:TF=0留观项经2018官答+教材双源洗白;2018电缆FF毛刺不落本题(管道安装双evidence一致);quote为跨字段拼接已标注 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q6-98f51a3b4097",
+   "variant_id": "N01-html-practice-html-q6-55142c5ee2f3",
    "surface_id": "practice.html",
    "stem": "问「工作 E、工作 G 的总时差各为多少」。已算得均为 3 个月。选出阅卷能给分的写法。",
    "options": [
     {
-     "text": "工作 E 的总时差为 3 个月，工作 G 的总时差为 3 个月。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "数值逐一绑定到工作名并带单位，阅卷可判对应关系。",
-     "option_id": "N01-html-practice-html-q6-98f51a3b4097:option-1"
-    },
-    {
-     "text": "总时差是 3 和 3。",
+     "text": "经逐项计算，两项工作的总时差数值分别是 3 和 3。",
      "is_correct": false,
      "source_error_code": "E03",
      "temptation": "数都对，写起来最快。",
      "loss_reason": "数值不绑定工作、不带单位，阅卷无法确认哪个是谁的。",
      "fix": "写成「工作 E 的总时差为 3 个月；工作 G 的总时差为 3 个月」。",
-     "option_id": "N01-html-practice-html-q6-98f51a3b4097:option-2"
+     "option_id": "N01-html-practice-html-q6-55142c5ee2f3:option-1"
     },
     {
      "text": "工作 E 的自由时差为 3 个月，工作 G 的自由时差为 3 个月。",
@@ -454,7 +445,7 @@
      "temptation": "就差俩字，顺手写混。",
      "loss_reason": "问的是总时差、答成自由时差，概念错答非所问。",
      "fix": "审清问的是 TF 还是 FF，按问作答。",
-     "option_id": "N01-html-practice-html-q6-98f51a3b4097:option-3"
+     "option_id": "N01-html-practice-html-q6-55142c5ee2f3:option-2"
     },
     {
      "text": "工作 E 的总时差为 3 个月，工作 G 与 E 情况差不多，不必重复写。",
@@ -463,14 +454,23 @@
      "temptation": "两个数一样，觉得写一个就代表了。",
      "loss_reason": "漏答 G：每个被问到的工作都要单独给出数值。",
      "fix": "逐个作答：G 的总时差也写明为 3 个月。",
-     "option_id": "N01-html-practice-html-q6-98f51a3b4097:option-4"
+     "option_id": "N01-html-practice-html-q6-55142c5ee2f3:option-3"
+    },
+    {
+     "text": "工作 E 的总时差为 3 个月，工作 G 的总时差为 3 个月。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "数值逐一绑定到工作名并带单位，阅卷可判对应关系。",
+     "option_id": "N01-html-practice-html-q6-55142c5ee2f3:option-4"
     }
    ],
    "model_answer": "工作 E 的总时差为 3 个月；工作 G 的总时差为 3 个月（数值分别绑定到具体工作，带单位）。",
    "rule_group": "时差绑定·记录维",
-   "content_sha256": "e875babd4678292a813b687b7616b2bdbf97fcad766367215eb68b173125a524",
+   "content_sha256": "a405997bd8b3cfe29eb638a81ab3de474bfc0d947de52ee94c2ecbd90b35df34",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q6",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -480,7 +480,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "e875babd4678292a813b687b7616b2bdbf97fcad766367215eb68b173125a524",
+     "reviewed_content_sha256": "a405997bd8b3cfe29eb638a81ab3de474bfc0d947de52ee94c2ecbd90b35df34",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -495,19 +495,10 @@
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q7-05f526eae084",
+   "variant_id": "N01-html-practice-html-q7-3d96163316fb",
    "surface_id": "practice.html",
    "stem": "非关键工作 E 总时差 3 个月，因设计变更延误 2 个月。对总工期有何影响？选出判读链完整的作答。",
    "options": [
-    {
-     "text": "延误 2 个月未超过 E 的总时差 3 个月，故不影响总工期。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "显式比较「延误 vs 总时差」再下结论，判读链完整。",
-     "option_id": "N01-html-practice-html-q7-05f526eae084:option-1"
-    },
     {
      "text": "E 发生了 2 个月延误，工期必然受影响，总工期应顺延 2 个月。",
      "is_correct": false,
@@ -515,7 +506,7 @@
      "temptation": "「延误了还能不影响？」直觉不放心。",
      "loss_reason": "非关键工作延误在时差内被机动时间吸收，当成必影响是概念混淆。",
      "fix": "比较：2 ≤ 3，未超时差，不影响总工期。",
-     "option_id": "N01-html-practice-html-q7-05f526eae084:option-2"
+     "option_id": "N01-html-practice-html-q7-3d96163316fb:option-1"
     },
     {
      "text": "设计变更属甲方原因，因此该延误对总工期的影响由甲方承担并顺延。",
@@ -524,7 +515,16 @@
      "temptation": "看见「设计变更」就先归责任，跳过了计算。",
      "loss_reason": "影不影响总工期是时差问题，不是责任问题；不比时差直接下结论。",
      "fix": "先比时差：2 ≤ 3 不影响总工期，责任归属另行判。",
-     "option_id": "N01-html-practice-html-q7-05f526eae084:option-3"
+     "option_id": "N01-html-practice-html-q7-3d96163316fb:option-2"
+    },
+    {
+     "text": "延误 2 个月未超过 E 的总时差 3 个月，故不影响总工期。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "显式比较「延误 vs 总时差」再下结论，判读链完整。",
+     "option_id": "N01-html-practice-html-q7-3d96163316fb:option-3"
     },
     {
      "text": "延误 2 个月吃掉部分时差，总工期相应顺延 1 个月（3−2=1）。",
@@ -533,14 +533,14 @@
      "temptation": "算式看着头头是道。",
      "loss_reason": "计算逻辑错：时差没吃光就完全不影响，不存在「顺延剩余差值」。",
      "fix": "未超时差即不影响；只有超出部分才顺延。",
-     "option_id": "N01-html-practice-html-q7-05f526eae084:option-4"
+     "option_id": "N01-html-practice-html-q7-3d96163316fb:option-4"
     }
    ],
    "model_answer": "延误 2 个月未超过其总时差 3 个月，故不影响总工期（总工期不变）。",
    "rule_group": "延误判读·条件维",
-   "content_sha256": "720ff462f890ac95c25049e1160459055b2c0c0b12c9f471be65f849e893ce27",
+   "content_sha256": "92d091992401d3c2952c885f4003cdf06825c3b7c715aa18fd6e9b27d8d8cd03",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q7",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -550,7 +550,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "720ff462f890ac95c25049e1160459055b2c0c0b12c9f471be65f849e893ce27",
+     "reviewed_content_sha256": "92d091992401d3c2952c885f4003cdf06825c3b7c715aa18fd6e9b27d8d8cd03",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -565,7 +565,7 @@
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q8-2b44435fdb4a",
+   "variant_id": "N01-html-practice-html-q8-ceb720d709d6",
    "surface_id": "practice.html",
    "stem": "关键工作 F（TF=0）因故延误 1 个月。对总工期有何影响？选出判读正确的作答。",
    "options": [
@@ -576,16 +576,16 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "点明「在关键线路 / TF=0」这一判据，再给顺延量，两步齐。",
-     "option_id": "N01-html-practice-html-q8-2b44435fdb4a:option-1"
+     "option_id": "N01-html-practice-html-q8-ceb720d709d6:option-1"
     },
     {
-     "text": "延误只有 1 个月、时间不长，可用其他工作的时差调剂吸收，不影响总工期。",
+     "text": "延误只有 1 个月、时间并不长，可用其他工作的时差调剂吸收，不影响总工期。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "「才 1 个月」感觉总有办法消化。",
      "loss_reason": "时差是各工作自己的，关键工作 TF=0 没有可吸收空间，别的工作时差救不了它。",
      "fix": "关键工作延误多少、总工期顺延多少。",
-     "option_id": "N01-html-practice-html-q8-2b44435fdb4a:option-2"
+     "option_id": "N01-html-practice-html-q8-ceb720d709d6:option-2"
     },
     {
      "text": "总工期是否受影响需先查明延误责任方，属承包人责任则不予顺延。",
@@ -594,7 +594,7 @@
      "temptation": "想起「责任归属」，用错了地方。",
      "loss_reason": "影不影响总工期是网络计算问题；责任只影响索赔成立与否，不改变顺延事实。",
      "fix": "先判：在关键线路上 → 总工期顺延 1 个月。",
-     "option_id": "N01-html-practice-html-q8-2b44435fdb4a:option-3"
+     "option_id": "N01-html-practice-html-q8-ceb720d709d6:option-3"
     },
     {
      "text": "F 延误后总工期会受影响，应加强进度管理、合理组织施工予以弥补。",
@@ -603,14 +603,14 @@
      "temptation": "结论方向对，补一句管理话觉得稳妥。",
      "loss_reason": "口号化表达：没有顺延量、没有判据，不可判分。",
      "fix": "落数值：总时差 0，延误 1 个月，总工期顺延 1 个月。",
-     "option_id": "N01-html-practice-html-q8-2b44435fdb4a:option-4"
+     "option_id": "N01-html-practice-html-q8-ceb720d709d6:option-4"
     }
    ],
    "model_answer": "F 位于关键线路上、总时差为 0，延误 1 个月直接影响总工期，总工期顺延 1 个月。",
    "rule_group": "关键延误·条件维",
-   "content_sha256": "bfc2c89e66472bb9646fb63c49f1ad0c03eac1071c0d4e1b78cc147fa435685d",
+   "content_sha256": "2d8665835b5ecc3cbca5bf791427059e56723a360f4a41c5206bb5b318d05627",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q8",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "n01-fact-critical-work-zero-float",
     "skeleton_id": "n01-skel-延误后果判读",
@@ -620,17 +620,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "bfc2c89e66472bb9646fb63c49f1ad0c03eac1071c0d4e1b78cc147fa435685d",
+     "reviewed_content_sha256": "2d8665835b5ecc3cbca5bf791427059e56723a360f4a41c5206bb5b318d05627",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -640,34 +640,25 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "合议签发:max(0,1-0)=1数学无条件成立;锚为规则级支撑(2024解析,责任/关键线路双因素已由opt3用户面文本正确拆分);工单:'顺延'措辞第二批改'计算工期增加' | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "合议签发:max(0,1-0)=1数学无条件成立;锚为规则级支撑(2024解析,责任/关键线路双因素已由opt3用户面文本正确拆分);工单:'顺延'措辞第二批改'计算工期增加' | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q9-b39740082ba8",
+   "variant_id": "N01-html-practice-html-q9-b8a502b44ddb",
    "surface_id": "practice.html",
    "stem": "甲供材料延迟（甲方责任）致工作 E 延误 1 个月，E 总时差 3 个月。承包人提出工期索赔，是否成立？选出判读完整的作答。",
    "options": [
     {
-     "text": "属甲方责任，但延误 1 个月未超总时差 3 个月、不影响总工期，工期索赔不成立。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "责任 + 时差两步都写，结论跟着时差走——责任方≠自动成立。",
-     "option_id": "N01-html-practice-html-q9-b39740082ba8:option-1"
-    },
-    {
-     "text": "甲供材料延迟属甲方责任，非承包人原因造成，故工期索赔成立。",
+     "text": "甲供材料延迟属于甲方的责任，并非承包人原因所造成，故承包人的工期索赔主张应予成立。",
      "is_correct": false,
      "source_error_code": "E05",
      "temptation": "责任明明白白是甲方的，感觉稳成立。",
      "loss_reason": "只看责任方下结论，漏了时差比较：不影响总工期就没有工期可索。",
      "fix": "补第二步：延误 1 ≤ 总时差 3，不影响总工期，工期索赔不成立。",
-     "option_id": "N01-html-practice-html-q9-b39740082ba8:option-2"
+     "option_id": "N01-html-practice-html-q9-b8a502b44ddb:option-1"
     },
     {
      "text": "延误未超时差不影响总工期，因此该事件的工期与费用索赔均不成立。",
@@ -676,7 +667,16 @@
      "temptation": "「不成立」顺手一竿子打死。",
      "loss_reason": "工期与费用要分开判：费用损失系甲方责任造成，可另行索赔。",
      "fix": "工期索赔不成立；费用索赔可另行提出。",
-     "option_id": "N01-html-practice-html-q9-b39740082ba8:option-3"
+     "option_id": "N01-html-practice-html-q9-b8a502b44ddb:option-2"
+    },
+    {
+     "text": "属甲方责任，但延误 1 个月未超总时差 3 个月、不影响总工期，工期索赔不成立。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "责任 + 时差两步都写，结论跟着时差走——责任方≠自动成立。",
+     "option_id": "N01-html-practice-html-q9-b8a502b44ddb:option-3"
     },
     {
      "text": "工期索赔不成立，因为承包人应在投标时已充分考虑此类材料供应风险。",
@@ -685,14 +685,14 @@
      "temptation": "结论碰巧对，理由看着也「专业」。",
      "loss_reason": "理由链错：本题判据是「未超总时差、不影响总工期」，不是风险分担条款。",
      "fix": "理由写「延误 1 个月未超总时差 3 个月，不影响总工期」。",
-     "option_id": "N01-html-practice-html-q9-b39740082ba8:option-4"
+     "option_id": "N01-html-practice-html-q9-b8a502b44ddb:option-4"
     }
    ],
    "model_answer": "①责任：甲供材料延迟属甲方责任；②时差：延误 1 个月未超总时差 3 个月，不影响总工期。故工期索赔不成立（费用索赔可另行提出）。",
    "rule_group": "索赔两步·后果维",
-   "content_sha256": "8939aeb6d21e6917737e531221016ef0202e67817c9f68adbf2e0fa08c76dc28",
+   "content_sha256": "cce7adf371a98ad1ac8cce1dafed910b4872e486c56995bd581bc0261e132c51",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q9",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -702,7 +702,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "8939aeb6d21e6917737e531221016ef0202e67817c9f68adbf2e0fa08c76dc28",
+     "reviewed_content_sha256": "cce7adf371a98ad1ac8cce1dafed910b4872e486c56995bd581bc0261e132c51",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -717,10 +717,19 @@
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q10-ff9bc5a4f502",
+   "variant_id": "N01-html-practice-html-q10-61e4315464fd",
    "surface_id": "practice.html",
    "stem": "承上题（甲方责任、延误 1 个月未超总时差 3 个月，承包人发生了窝工费用）。工期索赔与费用索赔的结论组合是？",
    "options": [
+    {
+     "text": "本次延误既然系甲方责任所造成，则工期索赔与费用索赔两项主张均应当予以认定成立。",
+     "is_correct": false,
+     "source_error_code": "E05",
+     "temptation": "责任在甲方，感觉「都该赔」。",
+     "loss_reason": "工期索赔以影响总工期为前提，未超时差就不成立，不随责任自动成立。",
+     "fix": "工期不成立；费用按责任与损失另行判。",
+     "option_id": "N01-html-practice-html-q10-61e4315464fd:option-1"
+    },
     {
      "text": "工期索赔不成立（未超时差、不影响总工期）；费用索赔可另行成立（甲方责任致损）。",
      "is_correct": true,
@@ -728,16 +737,7 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "两个章分开盖：工期看时差，费用看责任与实际损失。",
-     "option_id": "N01-html-practice-html-q10-ff9bc5a4f502:option-1"
-    },
-    {
-     "text": "既然是甲方责任造成的延误，工期索赔与费用索赔均应成立。",
-     "is_correct": false,
-     "source_error_code": "E05",
-     "temptation": "责任在甲方，感觉「都该赔」。",
-     "loss_reason": "工期索赔以影响总工期为前提，未超时差就不成立，不随责任自动成立。",
-     "fix": "工期不成立；费用按责任与损失另行判。",
-     "option_id": "N01-html-practice-html-q10-ff9bc5a4f502:option-2"
+     "option_id": "N01-html-practice-html-q10-61e4315464fd:option-2"
     },
     {
      "text": "延误未影响总工期，说明未受实质损失，工期与费用索赔均不成立。",
@@ -746,23 +746,23 @@
      "temptation": "「没影响工期=没损失」听着顺。",
      "loss_reason": "混淆两类索赔：窝工费用是真实损失，与总工期是否顺延无关。",
      "fix": "费用索赔可另行提出，与工期结论分开写。",
-     "option_id": "N01-html-practice-html-q10-ff9bc5a4f502:option-3"
+     "option_id": "N01-html-practice-html-q10-61e4315464fd:option-3"
     },
     {
-     "text": "可先提出工期索赔占住程序，再视协商情况转为费用索赔处理。",
+     "text": "可先行提出工期索赔以占住程序，再视协商情况将其转为费用索赔处理。",
      "is_correct": false,
      "source_error_code": "E11",
      "temptation": "觉得「先占程序」是实务技巧。",
      "loss_reason": "判读题要按判据下结论，不存在「先占后转」；理由链与判据无关。",
      "fix": "按判据分别写：工期不成立、费用可另行索赔。",
-     "option_id": "N01-html-practice-html-q10-ff9bc5a4f502:option-4"
+     "option_id": "N01-html-practice-html-q10-61e4315464fd:option-4"
     }
    ],
    "model_answer": "工期索赔不成立（不影响总工期）；费用索赔可成立（窝工损失系甲方责任造成），两项分开判、分开写。",
    "rule_group": "工期费用分判·后果维",
-   "content_sha256": "42feff02b507c5baceae6b232b0aaea157d8a2bf87435ac3f3b736e31dd461d7",
+   "content_sha256": "9c282544421bd12e317521209c1c201f4e6daeff1d2ea383d8e5027bc3fb04f3",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q10",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -772,7 +772,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "42feff02b507c5baceae6b232b0aaea157d8a2bf87435ac3f3b736e31dd461d7",
+     "reviewed_content_sha256": "9c282544421bd12e317521209c1c201f4e6daeff1d2ea383d8e5027bc3fb04f3",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -787,7 +787,7 @@
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q11-a29b2fc36f5c",
+   "variant_id": "N01-html-practice-html-q11-fb2ad08c5f71",
    "surface_id": "practice.html",
    "stem": "进度检查发现总工期将拖后，需调整进度计划。调整方法有哪些、重点是什么？选出完整的作答。",
    "options": [
@@ -798,41 +798,41 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "五法一个不落，且点明救总工期优先压关键工作。",
-     "option_id": "N01-html-practice-html-q11-a29b2fc36f5c:option-1"
+     "option_id": "N01-html-practice-html-q11-fb2ad08c5f71:option-1"
     },
     {
-     "text": "组织工人加班抢工、增加施工人数和机械投入，把拖后的时间赶回来。",
+     "text": "组织作业工人加班加点抢工，同时增加施工人数与机械设备投入，尽快把已经拖后的计划时间赶回来。",
      "is_correct": false,
      "source_error_code": "E04",
      "temptation": "现场最常听的就是「加人加班」。",
      "loss_reason": "口号化：没回到方法集，也没落到关键线路，不可判分。",
      "fix": "按方法集作答，首选关键工作调整。",
-     "option_id": "N01-html-practice-html-q11-a29b2fc36f5c:option-2"
+     "option_id": "N01-html-practice-html-q11-fb2ad08c5f71:option-2"
     },
     {
-     "text": "优先压缩总时差较大的非关键工作，因为它们机动多、压缩余地大。",
+     "text": "优先压缩总时差较大的非关键工作，因为这类工作机动时间多、压缩的余地更大。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "「余地大好压缩」听着挺有道理。",
      "loss_reason": "压非关键工作不缩短最长路径，总工期一天不少，方向性错误。",
      "fix": "救总工期要压关键线路上的关键工作。",
-     "option_id": "N01-html-practice-html-q11-a29b2fc36f5c:option-3"
+     "option_id": "N01-html-practice-html-q11-fb2ad08c5f71:option-3"
     },
     {
-     "text": "调整方法主要是关键工作调整和资源调整两种，视情况选用其一。",
+     "text": "进度计划的调整方法主要是关键工作调整和资源调整两种，视具体情况选用其一即可。",
      "is_correct": false,
      "source_error_code": "E02",
      "temptation": "记住了俩最顺口的。",
      "loss_reason": "漏了逻辑关系调整、重新编制、非关键工作调整三法，清单不全。",
      "fix": "五种方法逐项列全再点重点。",
-     "option_id": "N01-html-practice-html-q11-a29b2fc36f5c:option-4"
+     "option_id": "N01-html-practice-html-q11-fb2ad08c5f71:option-4"
     }
    ],
    "model_answer": "调整方法：①关键工作调整（救总工期的重点）②逻辑关系调整③重新编制计划④非关键工作调整⑤资源调整；缩短工期通常优先调整关键线路上的关键工作。",
    "rule_group": "调整五法·程序维",
-   "content_sha256": "826dcd45a08f19594f7490d37a54515ac51dacdf03bb14ca07ef6a808ecb7da8",
+   "content_sha256": "c3fda640cc6bc118e14032ec52bdb878c47c65d9ffd7828731174ddef3983168",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q11",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -842,7 +842,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "826dcd45a08f19594f7490d37a54515ac51dacdf03bb14ca07ef6a808ecb7da8",
+     "reviewed_content_sha256": "c3fda640cc6bc118e14032ec52bdb878c47c65d9ffd7828731174ddef3983168",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -900,9 +900,9 @@
    ],
    "model_answer": "应压缩关键线路上的关键工作 F：总工期由最长路径决定，压缩非关键工作 E 不改变最长路径长度，总工期不变。",
    "rule_group": "压缩对象·条件维",
-   "content_sha256": "a6330abed47740752bf58e585fbafe63861884729aa57eb1be67e5bd6ac016d0",
+   "content_sha256": "6d111249868cc628c9903c417552aaa0d77374b9e1cf7ed5a85ae7e43796a247",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q12",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -912,7 +912,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "a6330abed47740752bf58e585fbafe63861884729aa57eb1be67e5bd6ac016d0",
+     "reviewed_content_sha256": "6d111249868cc628c9903c417552aaa0d77374b9e1cf7ed5a85ae7e43796a247",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -927,10 +927,19 @@
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q13-8a899b693465",
+   "variant_id": "N01-html-practice-html-q13-be181bc02b2f",
    "surface_id": "practice.html",
    "stem": "网络计划实施中进行进度监测，监测内容包括哪些？选出完整、不混入调整动作的作答。",
    "options": [
+    {
+     "text": "记录各项工作的实际时间、观测关键线路情况，并及时压缩滞后的关键工作赶回进度。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「发现了就赶紧压」看着积极。",
+     "loss_reason": "「压缩关键工作」属进度调整不属监测，两阶段动作混淆。",
+     "fix": "监测只盯与记；压缩属调整方法。",
+     "option_id": "N01-html-practice-html-q13-be181bc02b2f:option-1"
+    },
     {
      "text": "记录实际时间、观测关键线路、检查非关键工作时差、核查逻辑关系、收集变更信息。",
      "is_correct": true,
@@ -938,16 +947,7 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "五项齐全且都属「监测」——盯与记，不含调整动作。",
-     "option_id": "N01-html-practice-html-q13-8a899b693465:option-1"
-    },
-    {
-     "text": "记录各工作实际时间、观测关键线路，并及时压缩滞后的关键工作赶回进度。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "「发现了就赶紧压」看着积极。",
-     "loss_reason": "「压缩关键工作」属进度调整不属监测，两阶段动作混淆。",
-     "fix": "监测只盯与记；压缩属调整方法。",
-     "option_id": "N01-html-practice-html-q13-8a899b693465:option-2"
+     "option_id": "N01-html-practice-html-q13-be181bc02b2f:option-2"
     },
     {
      "text": "进度监测主要是记录各工作的实际开始和完成时间，做好台账即可。",
@@ -956,7 +956,7 @@
      "temptation": "记录最直观，觉得记全时间就够。",
      "loss_reason": "漏观测关键线路、查非关键时差、核逻辑、收变更四项，清单缺项。",
      "fix": "五项内容逐项列全。",
-     "option_id": "N01-html-practice-html-q13-8a899b693465:option-3"
+     "option_id": "N01-html-practice-html-q13-be181bc02b2f:option-3"
     },
     {
      "text": "监测的重点是资源供应和成本支出情况，据此判断进度是否正常。",
@@ -965,14 +965,14 @@
      "temptation": "资源成本也重要，容易搅进来。",
      "loss_reason": "资源/成本属其他管理内容，不是进度监测五项，属选项陷阱。",
      "fix": "按五项监测内容作答，重点观测关键线路。",
-     "option_id": "N01-html-practice-html-q13-8a899b693465:option-4"
+     "option_id": "N01-html-practice-html-q13-be181bc02b2f:option-4"
     }
    ],
    "model_answer": "监测内容：记录各工作实际开始/完成时间、观测关键线路上的工作、检查非关键工作时差利用情况、核查逻辑关系变化、收集变更信息。",
    "rule_group": "监测内容·记录维",
-   "content_sha256": "240beb4e2618c7f6ee4fbbafef31fa816c6fb475f62cbf65f3aae1adb9d06fc0",
+   "content_sha256": "6c64b4d7365a92e03a6adc7772c3957ba8f68e8c9a9f220606c0c15943331f2d",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q13",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -982,7 +982,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "240beb4e2618c7f6ee4fbbafef31fa816c6fb475f62cbf65f3aae1adb9d06fc0",
+     "reviewed_content_sha256": "6c64b4d7365a92e03a6adc7772c3957ba8f68e8c9a9f220606c0c15943331f2d",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -997,10 +997,19 @@
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q14-106c516e82e7",
+   "variant_id": "N01-html-practice-html-q14-2ffa476f5b29",
    "surface_id": "practice.html",
    "stem": "运用双代号网络计划解题/编制时，正确的步骤顺序是？选出正确作答。",
    "options": [
+    {
+     "text": "先在网络图上凭目测圈定出关键线路，随后再倒推计算各项工作的时间参数进行验证核对。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "图一眼看着哪条长，就想先圈再验。",
+     "loss_reason": "跳过计算直接定线路，程序顺序错；目测在并列最长时必漏。",
+     "fix": "先算各路径长/时差，再据「总时差最小」定关键线路。",
+     "option_id": "N01-html-practice-html-q14-2ffa476f5b29:option-1"
+    },
     {
      "text": "绘图并校正逻辑（含补虚工作），再计算时间参数，据以确定关键线路，最后编制实施。",
      "is_correct": true,
@@ -1008,16 +1017,7 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "绘图、算参数、定线路、编制实施，四步顺序正确。",
-     "option_id": "N01-html-practice-html-q14-106c516e82e7:option-1"
-    },
-    {
-     "text": "先在图上目测圈定关键线路，再倒推计算各工作时间参数进行验证。",
-     "is_correct": false,
-     "source_error_code": "E06",
-     "temptation": "图一眼看着哪条长，就想先圈再验。",
-     "loss_reason": "跳过计算直接定线路，程序顺序错；目测在并列最长时必漏。",
-     "fix": "先算各路径长/时差，再据「总时差最小」定关键线路。",
-     "option_id": "N01-html-practice-html-q14-106c516e82e7:option-2"
+     "option_id": "N01-html-practice-html-q14-2ffa476f5b29:option-2"
     },
     {
      "text": "题给图纸即为最终依据，直接代入公式计算时间参数即可，逻辑无须校核。",
@@ -1026,7 +1026,7 @@
      "temptation": "想直奔计算，省掉「读题校图」。",
      "loss_reason": "未绘图/未补全逻辑就套公式，题干新增关系没进图，算了也白算。",
      "fix": "第一步先校逻辑（含补虚工作），再算参数。",
-     "option_id": "N01-html-practice-html-q14-106c516e82e7:option-3"
+     "option_id": "N01-html-practice-html-q14-2ffa476f5b29:option-3"
     },
     {
      "text": "算出各工作时间参数后即可直接作答总工期，无须再确定关键线路。",
@@ -1035,14 +1035,14 @@
      "temptation": "参数都齐了，觉得「答案已经有了」。",
      "loss_reason": "漏「确定关键线路」这步，答不出线路采分点。",
      "fix": "据参数确定并写出关键线路，再给总工期。",
-     "option_id": "N01-html-practice-html-q14-106c516e82e7:option-4"
+     "option_id": "N01-html-practice-html-q14-2ffa476f5b29:option-4"
     }
    ],
    "model_answer": "先绘图并校正逻辑（含补虚工作），再计算时间参数，据参数确定关键线路，最后编制并实施控制——顺序不可颠倒。",
    "rule_group": "程序顺序·程序维",
-   "content_sha256": "11f4894e1c5bf0d4e4517186714bee26dcf6ea59cbe7a096ea31d991942aba80",
+   "content_sha256": "c14103aa04c98b8af02528f2762744177778702987a4bf81429abfd213d72fb0",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q14",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1052,7 +1052,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "11f4894e1c5bf0d4e4517186714bee26dcf6ea59cbe7a096ea31d991942aba80",
+     "reviewed_content_sha256": "c14103aa04c98b8af02528f2762744177778702987a4bf81429abfd213d72fb0",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1067,19 +1067,10 @@
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q15-4d146bd7e720",
+   "variant_id": "N01-html-practice-html-q15-2d541acdfcf0",
    "surface_id": "practice.html",
    "stem": "总时差与自由时差有何区别与关系？选出概念完整正确的作答。",
    "options": [
-    {
-     "text": "总时差是不影响总工期的机动时间；自由时差是不影响紧后工作最早开始的机动时间，FF≤TF。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "两个定义 + FF≤TF 的关系都写到，概念题满分句。",
-     "option_id": "N01-html-practice-html-q15-4d146bd7e720:option-1"
-    },
     {
      "text": "总时差是不影响紧后工作最早开始的机动时间；自由时差是不影响总工期的机动时间。",
      "is_correct": false,
@@ -1087,32 +1078,41 @@
      "temptation": "两句都眼熟，就是位置对调了。",
      "loss_reason": "定义互换：TF 对总工期、FF 对紧后工作，写反全错。",
      "fix": "TF 管总工期、FF 管紧后工作，别对调。",
-     "option_id": "N01-html-practice-html-q15-4d146bd7e720:option-2"
+     "option_id": "N01-html-practice-html-q15-2d541acdfcf0:option-1"
     },
     {
-     "text": "自由时差可以大于总时差，因为它只受紧后一道工作约束、限制更少。",
+     "text": "自由时差可以大于总时差，因为它只受紧后一道工作的约束、所受限制相对更少。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "「约束少=更自由」听着合逻辑。",
      "loss_reason": "FF 是 TF 的子集空间，恒有 FF≤TF，「可以大于」概念错。",
      "fix": "写明 FF≤TF。",
-     "option_id": "N01-html-practice-html-q15-4d146bd7e720:option-3"
+     "option_id": "N01-html-practice-html-q15-2d541acdfcf0:option-2"
     },
     {
-     "text": "只要工作不在关键线路上，其自由时差一定大于零，可放心利用。",
+     "text": "只要某项工作不在关键线路上，其自由时差就一定大于零，可以放心加以利用。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "非关键=有富余，顺推到 FF 也大于零。",
      "loss_reason": "非关键工作 TF>0 但 FF 可能为 0（紧后工作紧贴着开始），一定大于零不成立。",
      "fix": "非关键工作 TF>0；FF 介于 0 与 TF 之间，需单独计算。",
-     "option_id": "N01-html-practice-html-q15-4d146bd7e720:option-4"
+     "option_id": "N01-html-practice-html-q15-2d541acdfcf0:option-3"
+    },
+    {
+     "text": "总时差是不影响总工期的机动时间；自由时差是不影响紧后工作最早开始的机动时间，FF≤TF。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "两个定义 + FF≤TF 的关系都写到，概念题满分句。",
+     "option_id": "N01-html-practice-html-q15-2d541acdfcf0:option-4"
     }
    ],
    "model_answer": "总时差 TF 是不影响总工期的机动时间；自由时差 FF 是不影响紧后工作最早开始的机动时间；FF≤TF；关键工作两者均为 0。",
    "rule_group": "TF与FF·条件维",
-   "content_sha256": "ae781bffa366759244d69c74c36ff8446dda41ef741b980f0a1254f6c45dbc44",
+   "content_sha256": "7973e05e0a54de9837d684e284760b1a331ceda50b5338058cd904d505afe835",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q15",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1122,7 +1122,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "ae781bffa366759244d69c74c36ff8446dda41ef741b980f0a1254f6c45dbc44",
+     "reviewed_content_sha256": "7973e05e0a54de9837d684e284760b1a331ceda50b5338058cd904d505afe835",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1137,10 +1137,28 @@
    }
   },
   {
-   "variant_id": "N01-html-practice-html-q16-ec778529e37e",
+   "variant_id": "N01-html-practice-html-q16-f0a517ec43e7",
    "surface_id": "practice.html",
    "stem": "学生作答：①关键线路为 ①→②→⑤→⑥；②总时差是 3 和 3；③事件系甲方责任，故工期索赔成立。已知正确关键线路为 ①→②→④→⑥ 和 ①→③→④→⑥，E、G 总时差各 3 个月且延误未超时差。选出最准确的诊断与补写。",
    "options": [
+    {
+     "text": "③的结论虽然简略但方向大体可取，①②两处只是书写不够规范，阅卷时酌情都能得到分数。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得「意思到了就有分」。",
+     "loss_reason": "①是计算错误不是书写问题；③结论本身就错（应为不成立），不是简略。",
+     "fix": "逐处对照判据改写，别用「酌情」安慰自己。",
+     "option_id": "N01-html-practice-html-q16-f0a517ec43e7:option-1"
+    },
+    {
+     "text": "三处作答中只有①关键线路需要改正，②③按学生原答保留即可，其中数值毕竟都是对的。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "抓到最明显的一处就收手。",
+     "loss_reason": "漏诊②不绑定、③错判据两处失分点。",
+     "fix": "②补工作名与单位；③补「延误未超时差、不影响总工期、不成立」。",
+     "option_id": "N01-html-practice-html-q16-f0a517ec43e7:option-2"
+    },
     {
      "text": "①线路选错且漏并列一条；②数值没绑定工作名；③只看责任漏比时差，结论应为不成立——三处都要补写。",
      "is_correct": true,
@@ -1148,41 +1166,23 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "三处失分全揪出，且点明「线路是地基、地基错判读连锁错」——这就是会写答案。",
-     "option_id": "N01-html-practice-html-q16-ec778529e37e:option-1"
+     "option_id": "N01-html-practice-html-q16-f0a517ec43e7:option-3"
     },
     {
-     "text": "③的结论虽简略但方向可取，①②只是书写不规范，酌情都能得分。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "觉得「意思到了就有分」。",
-     "loss_reason": "①是计算错误不是书写问题；③结论本身就错（应为不成立），不是简略。",
-     "fix": "逐处对照判据改写，别用「酌情」安慰自己。",
-     "option_id": "N01-html-practice-html-q16-ec778529e37e:option-2"
-    },
-    {
-     "text": "只有①关键线路需要改，②③按学生原答保留即可，数值毕竟都对。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "抓到最明显的一处就收手。",
-     "loss_reason": "漏诊②不绑定、③错判据两处失分点。",
-     "fix": "②补工作名与单位；③补「延误未超时差、不影响总工期、不成立」。",
-     "option_id": "N01-html-practice-html-q16-ec778529e37e:option-3"
-    },
-    {
-     "text": "①改为 ①→③→④→⑥ 一条即可；②③的写法在阅卷中通常不扣分。",
+     "text": "①应当改为 ①→③→④→⑥ 这一条即可；②③两处的写法在阅卷中通常不会被扣分。",
      "is_correct": false,
      "source_error_code": "E09",
      "temptation": "改了一条像是修正了计算。",
      "loss_reason": "并列关键线路要两条全列，只写一条仍漏分；②③明确属扣分写法。",
      "fix": "两条全列：①→②→④→⑥ 和 ①→③→④→⑥，②③同步补写。",
-     "option_id": "N01-html-practice-html-q16-ec778529e37e:option-4"
+     "option_id": "N01-html-practice-html-q16-f0a517ec43e7:option-4"
     }
    ],
    "model_answer": "三处都要改：①线路求错（选了 8 个月的非最长路径）且漏并列第二条；②时差数值未绑定工作名；③索赔只看责任、未比时差——延误未超时差，不影响总工期，工期索赔不成立。线路是地基，地基错后面判读连锁错。",
    "rule_group": "采分诊断·末题",
-   "content_sha256": "fe584c954777e7b7c021a152eb6d128a0e54291820bbc5057bf5f7d45098c6ba",
+   "content_sha256": "1f9c6365a45ebdffcd6f827ee276d246ae51c6fa9a33eccbbfd4f256b0128869",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N01/P40_N01.practice.dc.html#Q16",
-   "authoring_sha256": "50eb4b55067cef9694bdb8109047d4b6572c7ac129834a526e13ca6addc87c66",
+   "authoring_sha256": "4f9930a5ad21b0aec75cd784ce4446ff18f0586d460b1fb17ddc1524f790c228",
    "decision": {
     "fact_id": "n01-fact-parallel-critical-paths",
     "skeleton_id": "n01-skel-诊断纠错",
@@ -1192,17 +1192,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "fe584c954777e7b7c021a152eb6d128a0e54291820bbc5057bf5f7d45098c6ba",
+     "reviewed_content_sha256": "1f9c6365a45ebdffcd6f827ee276d246ae51c6fa9a33eccbbfd4f256b0128869",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-16",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -1212,7 +1212,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "合议签发带注:正确项1.50×全包最长(实测坐实)+语义指纹(重述题干),测评效度弱、教学价值(诊断规范)保留;forward=L0非晋升可容忍;工单:干扰项增肥 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "合议签发带注:正确项1.50×全包最长(实测坐实)+语义指纹(重述题干),测评效度弱、教学价值(诊断规范)保留;forward=L0非晋升可容忍;工单:干扰项增肥 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []

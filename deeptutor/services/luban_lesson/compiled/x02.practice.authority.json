@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "X02",
   "source_pack_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
-  "source_bundle_sha256": "a38e55c013125f8881d796cc2c816dbaa39b8e8bbfc5f718efc436df26486fe0",
+  "source_bundle_sha256": "ccb4cf18b89ebe96682785c8318dc46431c6fc93cf7707f4a1104015faa46b30",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,23 +18,23 @@
         15
       ],
       "variant_ids": [
-        "X02-html-practice-html-q1-d0d23e6eb29d",
-        "X02-html-practice-html-q2-acfd97194c1f",
-        "X02-html-practice-html-q3-959eccf4e18d",
-        "X02-html-practice-html-q4-89f738210457",
-        "X02-html-practice-html-q16-18d949db7562"
+        "X02-html-practice-html-q1-4765650dcfb6",
+        "X02-html-practice-html-q2-df3106abed00",
+        "X02-html-practice-html-q3-1e4f14923f24",
+        "X02-html-practice-html-q4-63363d393016",
+        "X02-html-practice-html-q16-ca55a055cd18"
       ],
       "eligible_variant_ids": [
-        "X02-html-practice-html-q1-d0d23e6eb29d",
-        "X02-html-practice-html-q2-acfd97194c1f",
-        "X02-html-practice-html-q3-959eccf4e18d",
-        "X02-html-practice-html-q4-89f738210457",
-        "X02-html-practice-html-q5-e9ee6cd8eb1b",
-        "X02-html-practice-html-q15-2a68a3a2fd01",
-        "X02-html-practice-html-q16-18d949db7562"
+        "X02-html-practice-html-q1-4765650dcfb6",
+        "X02-html-practice-html-q2-df3106abed00",
+        "X02-html-practice-html-q3-1e4f14923f24",
+        "X02-html-practice-html-q4-63363d393016",
+        "X02-html-practice-html-q5-4feffc058cc0",
+        "X02-html-practice-html-q15-8c6e89ca573e",
+        "X02-html-practice-html-q16-ca55a055cd18"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZDBkMjNlNmViMjlkIiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1hY2ZkOTcxOTRjMWYiLCJYMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTk1OWVjY2Y0ZTE4ZCIsIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtODlmNzM4MjEwNDU3IiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMThkOTQ5ZGI3NTYyIl0sInBhY2tfaWQiOiJYMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBlMDRjMTc5YTlkNDYzMTI0M2IwODg5YzIxZmVmNDBhNzY4YzRkZjliNWMwN2QzYjM0N2I5OTFhYjgxNDkwM2IiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYmM3MmM1ZDM4NzZjODMwYTliZDlkYTdlNWY3ODhkYTY3MzJhOWEzYTEzZDAwMDliMTk1OTA5OGI1YWM3N2U5OCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "752ab9930e90f9032ba9cd13e1c46d3af992aa56f514b77330a1139c18564fe5"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDc2NTY1MGRjZmI2IiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1kZjMxMDZhYmVkMDAiLCJYMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTFlNGYxNDkyM2YyNCIsIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjMzNjNkMzkzMDE2IiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtY2E1NWEwNTVjZDE4Il0sInBhY2tfaWQiOiJYMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjgyYTAzMGYzYWQwZTZiM2JhZDk4YTk0MDYzYTAxZWQxYmM1NjA3NDBlODU5MmZmYjY4NWQwODE3ZTJlMjUyMTQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYmM3MmM1ZDM4NzZjODMwYTliZDlkYTdlNWY3ODhkYTY3MzJhOWEzYTEzZDAwMDliMTk1OTA5OGI1YWM3N2U5OCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "934496d7b50bd547b47327a1307597557b442cad1d5b8365b20b7558ac331cae"
     }
   ],
   "items": [
@@ -45,43 +45,43 @@
       "model_answer": "不妥：危险品仓库贴在建工程。正确做法：危险品仓库应远离现场，距在建工程≥15m；临时仓库则接近使用地点。",
       "options": [
         {
+          "text": "不妥：危险品仓库的位置设置不符合要求。正确做法：结合现场平面统筹考虑、合理布置仓库位置，并加强消防管理，确保储存安全。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "'合理布置、加强管理'听着面面俱到，最顺手。",
+          "loss_reason": "整句无任何规格数字，属口号化表达，阅卷不给分。",
+          "fix": "必须落到数字：危险品仓库距在建工程≥15m。",
+          "option_id": "X02-html-practice-html-q1-4765650dcfb6:option-1"
+        },
+        {
+          "text": "不妥：危险品仓库距在建工程过远，材料领用运输均不便利。正确做法：仓库应接近使用地点布置，尽量靠近在建工程以方便存取。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把'临时仓库接近使用地点'的原则套到了危险品仓库上。",
+          "loss_reason": "两类仓库记反了——接近使用地点是普通临时仓库，危险品仓库反要远离≥15m。",
+          "fix": "危险品仓库距在建≥15m，只有临时仓库才接近使用地点。",
+          "option_id": "X02-html-practice-html-q1-4765650dcfb6:option-2"
+        },
+        {
+          "text": "不妥：危险品仓库设于场外距离偏远处。正确做法：将危险品移入在建工程首层集中临时存放，取用最方便，也便于专人看管。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得放楼里既近又有人看管。",
+          "loss_reason": "危险品进在建工程更危险，违反远离现场、距在建≥15m的规范。",
+          "fix": "危险品仓库远离现场、距在建工程≥15m。",
+          "option_id": "X02-html-practice-html-q1-4765650dcfb6:option-3"
+        },
+        {
           "text": "不妥：危险品仓库贴在建工程。正确做法：危险品仓库远离现场、距在建工程≥15m（临时仓库才接近使用地点）。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "指出不妥+给出15m正确数值+区分两类仓库布置原则，三件齐。",
-          "option_id": "X02-html-practice-html-q1-d0d23e6eb29d:option-1"
-        },
-        {
-          "text": "不妥：危险品仓库位置不合理。正确做法：应合理布置、加强消防管理，确保安全。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "'合理布置、加强管理'听着面面俱到，最顺手。",
-          "loss_reason": "整句无任何规格数字，属口号化表达，阅卷不给分。",
-          "fix": "必须落到数字：危险品仓库距在建工程≥15m。",
-          "option_id": "X02-html-practice-html-q1-d0d23e6eb29d:option-2"
-        },
-        {
-          "text": "不妥：危险品仓库离得太远取料不便。正确做法：应尽量靠近在建工程、方便取用。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把'临时仓库接近使用地点'的原则套到了危险品仓库上。",
-          "loss_reason": "两类仓库记反了——接近使用地点是普通临时仓库，危险品仓库反要远离≥15m。",
-          "fix": "危险品仓库距在建≥15m，只有临时仓库才接近使用地点。",
-          "option_id": "X02-html-practice-html-q1-d0d23e6eb29d:option-3"
-        },
-        {
-          "text": "不妥：危险品仓库应搬进在建工程首层临时存放，取用最方便、也好看管。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得放楼里既近又有人看管。",
-          "loss_reason": "危险品进在建工程更危险，违反远离现场、距在建≥15m的规范。",
-          "fix": "危险品仓库远离现场、距在建工程≥15m。",
-          "option_id": "X02-html-practice-html-q1-d0d23e6eb29d:option-4"
+          "option_id": "X02-html-practice-html-q1-4765650dcfb6:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q1-d0d23e6eb29d",
+      "variant_id": "X02-html-practice-html-q1-4765650dcfb6",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
@@ -89,27 +89,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q1",
       "source_anchor": "kc:1A431011_012_0013:0",
       "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "x02-fact-warehouse-siting",
       "skeleton_id": "x02-skel-仓库选址两类判别",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ccee09fb4abd9d20a68ec8c119374b8a5237b09563a0cee8b6e9c629f4c0a877",
+      "content_sha256": "f02d93a2f5098eec0a47c41f79346c3436c8f41bb2c168b435e949deffc2c032",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "ccee09fb4abd9d20a68ec8c119374b8a5237b09563a0cee8b6e9c629f4c0a877",
+        "reviewed_content_sha256": "f02d93a2f5098eec0a47c41f79346c3436c8f41bb2c168b435e949deffc2c032",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "普通仓库接近使用点/危险品仓库远离现场距在建≥15m, 教材 kc:...012_0013:0 直引。工单: 普通仓库原则略绝对化。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "普通仓库接近使用点/危险品仓库远离现场距在建≥15m, 教材 kc:...012_0013:0 直引。工单: 普通仓库原则略绝对化。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -130,43 +130,43 @@
       "model_answer": "主干道单行≥4m、双行≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。",
       "options": [
         {
+          "text": "临时道路应保证消防车顺利通行，做到路面平整坚实、排水通畅，宽度按现场运输与消防需要合理确定，并保持环形贯通。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "通用套话，像什么题都能写。",
+          "loss_reason": "无任一可判分的宽度数字，整个条件维空缺。",
+          "fix": "逐项列：单行4/双行6/消防4/木材场6/回车场12×12/转弯15。",
+          "option_id": "X02-html-practice-html-q2-df3106abed00:option-1"
+        },
+        {
           "text": "单行≥4m、双行≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "六项规格逐条带数字列全，正是内容清单题的给分点。",
-          "option_id": "X02-html-practice-html-q2-acfd97194c1f:option-1"
+          "option_id": "X02-html-practice-html-q2-df3106abed00:option-2"
         },
         {
-          "text": "道路应满足消防车通行要求，路面平整、排水通畅、宽度合理即可。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "通用套话，像什么题都能写。",
-          "loss_reason": "无任一可判分的宽度数字，整个条件维空缺。",
-          "fix": "逐项列：单行4/双行6/消防4/木材场6/回车场12×12/转弯15。",
-          "option_id": "X02-html-practice-html-q2-acfd97194c1f:option-2"
-        },
-        {
-          "text": "所有临时道路一律按消防车道≥4m 布置，统一4m就能保证消防通行。",
+          "text": "现场各类临时道路统一按消防车道标准≥4m 布置：单行道4m、双行道4m、木材场通道4m，即可满足消防通行要求。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "记住了'消防车道4m'，就当成一个数通用。",
           "loss_reason": "木材场通道要6m、双行道要6m，一律4m会漏项且错档。",
           "fix": "分场合：消防车道4m、木材场通道6m、双行6m、单行4m。",
-          "option_id": "X02-html-practice-html-q2-acfd97194c1f:option-3"
+          "option_id": "X02-html-practice-html-q2-df3106abed00:option-3"
         },
         {
-          "text": "主干道单行≥4m、双行≥6m 两条即可，回车场和转弯半径现场灵活定。",
+          "text": "主干道单行≥4m、双行≥6m 两项掌握即可，回车场尺寸与转弯半径由施工组织设计结合现场运输条件另行确定。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "记住了主干道两个数就以为够了。",
           "loss_reason": "漏了消防车道、木材场通道、回车场12×12、转弯半径15m等采分点。",
           "fix": "补消防车道4m、木材场6m、回车场12×12、转弯半径15m。",
-          "option_id": "X02-html-practice-html-q2-acfd97194c1f:option-4"
+          "option_id": "X02-html-practice-html-q2-df3106abed00:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q2-acfd97194c1f",
+      "variant_id": "X02-html-practice-html-q2-df3106abed00",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
@@ -174,27 +174,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q2",
       "source_anchor": "kc:1A431011_012_0013:1",
       "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "x02-fact-road-width-system",
       "skeleton_id": "x02-skel-道路宽度体系枚举",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3c206f4d9e1ea7b044c657a4086436b2bc9591203cc6f8ea796a393562e3a468",
+      "content_sha256": "7d4639a202f554a074e9145ca22e1d157797e3cb297088629f32ced1bf27d92e",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "3c206f4d9e1ea7b044c657a4086436b2bc9591203cc6f8ea796a393562e3a468",
+        "reviewed_content_sha256": "7d4639a202f554a074e9145ca22e1d157797e3cb297088629f32ced1bf27d92e",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -204,7 +204,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "单行4m/双行6m/消防4m/木材场6m/回车场12×12/载重转弯15m, 教材 kc:...012_0013:1 逐项直引。工单: '不宜小于'简化为硬阈值。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "单行4m/双行6m/消防4m/木材场6m/回车场12×12/载重转弯15m, 教材 kc:...012_0013:1 逐项直引。工单: '不宜小于'简化为硬阈值。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -215,43 +215,43 @@
       "model_answer": "不妥：木材场通道4m。正确做法：木材场通道≥6m（消防车道≥4m，但不能用消防车道4m套木材场）。",
       "options": [
         {
+          "text": "妥当：现场消防车道的规范要求即为≥4m，木材场内运输通道按4m 布置已经达标，不需要再作调整。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "两处都叫'通道'，容易当成一个标准。",
+          "loss_reason": "混淆了消防车道(4m)与木材场通道(6m)两档，判断方向就错了。",
+          "fix": "木材场通道≥6m，与消防车道4m不是一档。",
+          "option_id": "X02-html-practice-html-q3-1e4f14923f24:option-1"
+        },
+        {
           "text": "不妥：木材场通道4m。正确做法：木材场通道≥6m；消防车道≥4m 是另一档，不能拿4m套木材场。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "点出错档、给6m正确值、并说明与消防车道4m的区别。",
-          "option_id": "X02-html-practice-html-q3-959eccf4e18d:option-1"
+          "option_id": "X02-html-practice-html-q3-1e4f14923f24:option-2"
         },
         {
-          "text": "妥当：消防车道就是≥4m，木材场通道4m 已达标，无需修改。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "两处都叫'通道'，容易当成一个标准。",
-          "loss_reason": "混淆了消防车道(4m)与木材场通道(6m)两档，判断方向就错了。",
-          "fix": "木材场通道≥6m，与消防车道4m不是一档。",
-          "option_id": "X02-html-practice-html-q3-959eccf4e18d:option-2"
-        },
-        {
-          "text": "不妥：木材场通道太窄。正确做法：适当加宽通道，保证车辆通行顺畅。",
+          "text": "不妥：木材场内运输通道宽度偏小。正确做法：结合运输车辆情况适当加宽通道，保证材料运输与消防通行顺畅。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "知道要改，但只写'加宽'省了数字。",
           "loss_reason": "改正未给'≥6m'关键数值，判断纠错缺数字只给半分。",
           "fix": "正确做法必带数值：木材场通道≥6m。",
-          "option_id": "X02-html-practice-html-q3-959eccf4e18d:option-3"
+          "option_id": "X02-html-practice-html-q3-1e4f14923f24:option-3"
         },
         {
-          "text": "不妥：木材场通道4m。正确做法：应按≥8m布置，木材易燃要留足消防距离。",
+          "text": "不妥：木材场通道4m 不满足要求。正确做法：木材易燃、火灾荷载大，场内通道应按≥8m布置，留足扑救距离。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "觉得木材易燃就往大了写更保险。",
           "loss_reason": "数字写错——木材场通道规范是≥6m，不是8m。",
           "fix": "木材场通道≥6m，不是8m。",
-          "option_id": "X02-html-practice-html-q3-959eccf4e18d:option-4"
+          "option_id": "X02-html-practice-html-q3-1e4f14923f24:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q3-959eccf4e18d",
+      "variant_id": "X02-html-practice-html-q3-1e4f14923f24",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
@@ -259,27 +259,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q3",
       "source_anchor": "kc:1A431011_012_0013:1",
       "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "x02-fact-timber-vs-fire-lane",
       "skeleton_id": "x02-skel-木材场通道错档改正",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "330f297e8867f8bb5210cd4f3ac13b9faa14aa51219cea56c37e94e50f44cbd2",
+      "content_sha256": "a9da72262abd0e228c8e2cff11d0afce1617df73743bc31f623951e90592af0f",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "330f297e8867f8bb5210cd4f3ac13b9faa14aa51219cea56c37e94e50f44cbd2",
+        "reviewed_content_sha256": "a9da72262abd0e228c8e2cff11d0afce1617df73743bc31f623951e90592af0f",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -289,7 +289,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "木材场通道≥6m 与消防车道≥4m 分档, 教材 kc:...012_0013:1 直引, 4m 错档判断正确。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "木材场通道≥6m 与消防车道≥4m 分档, 教材 kc:...012_0013:1 直引, 4m 错档判断正确。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -306,37 +306,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "逐项找不妥+给出16人/0.9m正确数值，直命真题{2020第1题}给分点。",
-          "option_id": "X02-html-practice-html-q4-89f738210457:option-1"
+          "option_id": "X02-html-practice-html-q4-63363d393016:option-1"
         },
         {
-          "text": "不妥：宿舍住的人太多、通道太窄。正确做法：适当减少住宿人数、加宽通道。",
+          "text": "不妥：宿舍住宿人数偏多、内部通道偏窄。正确做法：适当减少每间住宿人数，并相应加宽室内通道。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "方向找对了，'适当减少/加宽'写着也顺。",
           "loss_reason": "改正未给≤16人、≥0.9m 正确数值，缺关键数字只给半分。",
           "fix": "每间≤16人、通道≥0.9m，正确做法必带数字。",
-          "option_id": "X02-html-practice-html-q4-89f738210457:option-2"
+          "option_id": "X02-html-practice-html-q4-63363d393016:option-2"
         },
         {
-          "text": "不妥：只有住18人不妥。正确做法：每间≤16人；通道0.8m 尚可、无需调整。",
+          "text": "不妥：仅住18人一项不符合要求。正确做法：每间宿舍调整为≤16人；通道0.8m 达标，无需调整。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "抓到住18人一项就以为改完了。",
           "loss_reason": "漏改通道0.8m（应≥0.9m），采分点遗漏。",
           "fix": "补一句：通道0.8m→通道宽度≥0.9m。",
-          "option_id": "X02-html-practice-html-q4-89f738210457:option-3"
+          "option_id": "X02-html-practice-html-q4-63363d393016:option-3"
         },
         {
-          "text": "不妥：住18人、通道0.8m。正确做法：每间≤20人、通道≥0.8m 即符合要求。",
+          "text": "不妥：住18人、通道0.8m。正确做法：每间人数控制在≤20人、通道保持≥0.8m 即符合规范要求。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "记了个大概数，20人、0.8m 看着差不多。",
           "loss_reason": "数字全错——每间≤16人、通道≥0.9m。",
           "fix": "每间≤16人、通道≥0.9m，不是20人/0.8m。",
-          "option_id": "X02-html-practice-html-q4-89f738210457:option-4"
+          "option_id": "X02-html-practice-html-q4-63363d393016:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q4-89f738210457",
+      "variant_id": "X02-html-practice-html-q4-63363d393016",
       "surface_id": "practice.html",
       "source_index": 3,
       "source_group": "Q",
@@ -344,27 +344,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q4",
       "source_anchor": "exam:2020:第1题",
       "source_sha256": "453ddbbcd8c06d0c89e14fe27f05af8ecb9e8f52768c4170f2555046d62084fb",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "x02-fact-dorm-capacity-aisle",
       "skeleton_id": "x02-skel-宿舍人数通道纠错",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7fff6a36f1cca9adcf0adb099944ad971bd5fe94de738998403515daf2a9d2c3",
+      "content_sha256": "677232c27f66575c2cd3eeeafbc8ef26b896ab505f077af595aeca2db2ee36bd",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7fff6a36f1cca9adcf0adb099944ad971bd5fe94de738998403515daf2a9d2c3",
+        "reviewed_content_sha256": "677232c27f66575c2cd3eeeafbc8ef26b896ab505f077af595aeca2db2ee36bd",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -374,7 +374,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "18人→每间≤16人/0.8m→通道≥0.9m, 真题 exam:2020 解析逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "18人→每间≤16人/0.8m→通道≥0.9m, 真题 exam:2020 解析逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -385,43 +385,43 @@
       "model_answer": "不妥：易燃仓库设上风向、通道5m。正确做法：应设下风向、水源充足处；消防通道≥6m；距明火≥30m、危险品间距≥10m。",
       "options": [
         {
+          "text": "妥当：易燃仓库设上风向通风好，可燃气体不易积聚，消防通道宽5m 也能满足扑救需要，维持现状即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "'上风向通风好'听着有道理。",
+          "loss_reason": "方向正好判反——易燃仓库应设下风向，一起火烟火才吹离作业区；这是真题核心0分错项。",
+          "fix": "易燃材料仓库应设下风向、水源充足处。",
+          "option_id": "X02-html-practice-html-q5-4feffc058cc0:option-1"
+        },
+        {
+          "text": "不妥：易燃仓库的位置与通道设置不合理。正确做法：按现场消防要求对仓库位置合理设置，并加强消防管理。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "不敢判方向，写句安全套话保底。",
+          "loss_reason": "无方向、无数字，口号化表达不给分。",
+          "fix": "点明：下风向、消防通道≥6m、距明火≥30m。",
+          "option_id": "X02-html-practice-html-q5-4feffc058cc0:option-2"
+        },
+        {
           "text": "不妥：易燃仓库设上风向、通道5m。正确做法：设下风向、水源充足处；消防通道≥6m；距明火≥30m。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "改对方向(下风向)+补通道6m/明火30m，直命真题{2015第30题}。",
-          "option_id": "X02-html-practice-html-q5-e9ee6cd8eb1b:option-1"
+          "option_id": "X02-html-practice-html-q5-4feffc058cc0:option-3"
         },
         {
-          "text": "妥当：设上风向通风好、不容易积聚可燃气体，通道5m 也够用，无需修改。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "'上风向通风好'听着有道理。",
-          "loss_reason": "方向正好判反——易燃仓库应设下风向，一起火烟火才吹离作业区；这是真题核心0分错项。",
-          "fix": "易燃材料仓库应设下风向、水源充足处。",
-          "option_id": "X02-html-practice-html-q5-e9ee6cd8eb1b:option-2"
-        },
-        {
-          "text": "不妥：易燃仓库位置和通道不合理。正确做法：按消防要求合理设置、加强管理。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "不敢判方向，写句安全套话保底。",
-          "loss_reason": "无方向、无数字，口号化表达不给分。",
-          "fix": "点明：下风向、消防通道≥6m、距明火≥30m。",
-          "option_id": "X02-html-practice-html-q5-e9ee6cd8eb1b:option-3"
-        },
-        {
-          "text": "不妥：只有通道5m 窄了。正确做法：通道加到≥6m 即可，上风向布置没问题。",
+          "text": "不妥：仅消防通道宽5m 一项偏窄。正确做法：将通道加宽至≥6m；仓库设于上风方向的布置本身并无问题。",
           "is_correct": false,
           "source_error_code": "M10",
           "temptation": "只盯着通道宽度，忽略了方向。",
           "loss_reason": "漏判最关键的方向错(上风向应改下风向)，只改通道拿不到核心分。",
           "fix": "先改方向：设下风向；再补通道≥6m。",
-          "option_id": "X02-html-practice-html-q5-e9ee6cd8eb1b:option-4"
+          "option_id": "X02-html-practice-html-q5-4feffc058cc0:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q5-e9ee6cd8eb1b",
+      "variant_id": "X02-html-practice-html-q5-4feffc058cc0",
       "surface_id": "practice.html",
       "source_index": 4,
       "source_group": "Q",
@@ -429,27 +429,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q5",
       "source_anchor": "kc:1A437000_146_0235:0",
       "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "x02-fact-flammable-warehouse-fire-layout",
       "skeleton_id": "x02-skel-易燃仓库场景改错",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a8137b1b858cd349d86ca796b6e01b0cc8e90540babd31e8bb0ab44f15b79e5c",
+      "content_sha256": "d08c74297d7057711737b60b55afea5bb7becba2d5337371090e2cc1f12e1720",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a8137b1b858cd349d86ca796b6e01b0cc8e90540babd31e8bb0ab44f15b79e5c",
+        "reviewed_content_sha256": "d08c74297d7057711737b60b55afea5bb7becba2d5337371090e2cc1f12e1720",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -459,7 +459,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "露天易燃仓库下风向/水源/6m通道/30m明火距, 教材 kc:...146_0235:0 直引。三联 immediate_confirm(同易燃仓库 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "露天易燃仓库下风向/水源/6m通道/30m明火距, 教材 kc:...146_0235:0 直引。三联 immediate_confirm(同易燃仓库 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -470,43 +470,43 @@
       "model_answer": "每500m²设防火墙；可燃材料库单间≤30m²；易燃易爆品库单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
       "options": [
         {
+          "text": "每500m²设一道防火墙；可燃材料库单间面积≤20m²；易燃易爆品库单间面积≤30m²；房门净宽≥0.8m；任一点至疏散门≤10m。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "两个面积都记得，就是分不清哪个库配哪个数。",
+          "loss_reason": "可燃30、易燃易爆20 记反了——越危险的间面积越小。",
+          "fix": "可燃库≤30m²、易燃易爆库≤20m²（越危险越小）。",
+          "option_id": "X02-html-practice-html-q6-0e75b3416d25:option-1"
+        },
+        {
           "text": "每500m²设防火墙；可燃材料库单间≤30m²；易燃易爆品库单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "防火墙+可燃30+易燃20+房门0.8+疏散10 逐项带数字列全。",
-          "option_id": "X02-html-practice-html-q6-8a32c1db9f36:option-1"
+          "option_id": "X02-html-practice-html-q6-0e75b3416d25:option-2"
         },
         {
-          "text": "每500m²设防火墙；可燃材料库单间≤20m²；易燃易爆品库单间≤30m²；房门≥0.8m。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "两个面积都记得，就是分不清哪个库配哪个数。",
-          "loss_reason": "可燃30、易燃易爆20 记反了——越危险的间面积越小。",
-          "fix": "可燃库≤30m²、易燃易爆库≤20m²（越危险越小）。",
-          "option_id": "X02-html-practice-html-q6-8a32c1db9f36:option-2"
-        },
-        {
-          "text": "仓库分区面积越大越好，便于集中堆放和管理，配好灭火器即可，不必设防火墙。",
+          "text": "库房分区面积宜适当放大，便于材料集中堆放和统一管理；库内按要求配好灭火器后，可不再单独设置防火墙分隔。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "觉得大间好管理、灭火器补上就行。",
           "loss_reason": "漏防火墙、错解分区目的——分区是把单区可燃物压小防蔓延。",
           "fix": "每500m²防火墙、可燃≤30m²、易燃易爆≤20m²。",
-          "option_id": "X02-html-practice-html-q6-8a32c1db9f36:option-3"
+          "option_id": "X02-html-practice-html-q6-0e75b3416d25:option-3"
         },
         {
-          "text": "每500m²设防火墙、可燃库≤30m²、易燃易爆≤20m² 即可，房门和疏散距离按现场定。",
+          "text": "每500m²设防火墙、可燃材料库单间≤30m²、易燃易爆品库单间≤20m²，三项掌握即可，房门宽度与疏散距离按现场实际确定。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "记住了面积三项就以为齐了。",
           "loss_reason": "漏房门净宽≥0.8m、任一点到疏散门≤10m 两项采分点。",
           "fix": "补房门净宽≥0.8m、任一点到疏散门≤10m。",
-          "option_id": "X02-html-practice-html-q6-8a32c1db9f36:option-4"
+          "option_id": "X02-html-practice-html-q6-0e75b3416d25:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q6-8a32c1db9f36",
+      "variant_id": "X02-html-practice-html-q6-0e75b3416d25",
       "surface_id": "practice.html",
       "source_index": 5,
       "source_group": "Q",
@@ -514,17 +514,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "74521b6251ea39f892a66c40d7bc137d69289283d0102703e98e13f5d72ebeaa",
+      "content_sha256": "0391aeb136ea33fe73da6c410348237dc11c99cb103addeb434910468f45003f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "74521b6251ea39f892a66c40d7bc137d69289283d0102703e98e13f5d72ebeaa",
+        "reviewed_content_sha256": "0391aeb136ea33fe73da6c410348237dc11c99cb103addeb434910468f45003f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -543,43 +543,43 @@
       "model_answer": "架空电力线与堆垛≥电杆高度×1.5；照明灯具距堆垛≥1m；开关箱/接线盒距堆垛≥1.5m；严禁使用碘钨灯。",
       "options": [
         {
+          "text": "电气线路、照明灯具均应与堆垛保持安全距离，并加强线路绝缘检查与日常巡查，防止发生电气火灾事故。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "'保持安全距离'像标准表述。",
+          "loss_reason": "无任一数值、漏碘钨灯禁令，口号化不给分。",
+          "fix": "架空线≥杆高×1.5、灯具≥1m、开关箱≥1.5m、禁碘钨灯。",
+          "option_id": "X02-html-practice-html-q7-4faf48ab078c:option-1"
+        },
+        {
+          "text": "架空电力线与堆垛≥电杆高×1.5；照明灯具距堆垛≥1m；开关箱≥1.5m；夜间照明可采用碘钨灯提高作业面亮度。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "间距都对，顺手加了句'碘钨灯提亮'。",
+          "loss_reason": "碘钨灯温度极高、严禁在易燃堆垛区使用，加这句反而错。",
+          "fix": "严禁使用碘钨灯，其余间距保留。",
+          "option_id": "X02-html-practice-html-q7-4faf48ab078c:option-2"
+        },
+        {
           "text": "架空电力线与堆垛≥电杆高×1.5；照明灯具距堆垛≥1m；开关箱/接线盒≥1.5m；严禁使用碘钨灯。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "三条间距带数字+'严禁碘钨灯'一句不漏，正是给分点。",
-          "option_id": "X02-html-practice-html-q7-636b6a704988:option-1"
+          "option_id": "X02-html-practice-html-q7-4faf48ab078c:option-3"
         },
         {
-          "text": "电气线路和灯具与堆垛保持安全距离、加强绝缘检查，防止电气火灾即可。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "'保持安全距离'像标准表述。",
-          "loss_reason": "无任一数值、漏碘钨灯禁令，口号化不给分。",
-          "fix": "架空线≥杆高×1.5、灯具≥1m、开关箱≥1.5m、禁碘钨灯。",
-          "option_id": "X02-html-practice-html-q7-636b6a704988:option-2"
-        },
-        {
-          "text": "架空线≥杆高×1.5、灯具≥1m、开关箱≥1.5m，照明可用碘钨灯提高亮度。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "间距都对，顺手加了句'碘钨灯提亮'。",
-          "loss_reason": "碘钨灯温度极高、严禁在易燃堆垛区使用，加这句反而错。",
-          "fix": "严禁使用碘钨灯，其余间距保留。",
-          "option_id": "X02-html-practice-html-q7-636b6a704988:option-3"
-        },
-        {
-          "text": "照明灯具距堆垛≥1m、开关箱≥1.5m 即可，架空线在高处不用管间距。",
+          "text": "照明灯具距堆垛≥1m、开关箱及接线盒≥1.5m；架空电力线架设于高处，可不再控制其与堆垛的水平间距。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "觉得架空线在高空没风险。",
           "loss_reason": "漏了架空线≥电杆高×1.5 这条采分点。",
           "fix": "补架空电力线与堆垛≥电杆高度×1.5。",
-          "option_id": "X02-html-practice-html-q7-636b6a704988:option-4"
+          "option_id": "X02-html-practice-html-q7-4faf48ab078c:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q7-636b6a704988",
+      "variant_id": "X02-html-practice-html-q7-4faf48ab078c",
       "surface_id": "practice.html",
       "source_index": 6,
       "source_group": "Q",
@@ -587,17 +587,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "be711dc23a9aa14f92ec7cf54819591e8f934cdc8f33df813104265180e03b66",
+      "content_sha256": "a2bb9c8e14037a11f0d55f153da73e791ac23cef725f396ee7696cb20abd4f26",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "be711dc23a9aa14f92ec7cf54819591e8f934cdc8f33df813104265180e03b66",
+        "reviewed_content_sha256": "a2bb9c8e14037a11f0d55f153da73e791ac23cef725f396ee7696cb20abd4f26",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -622,37 +622,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "两种配置率+超大场地三件套都列全，配置率精确。",
-          "option_id": "X02-html-practice-html-q8-c64a60aaa7a5:option-1"
+          "option_id": "X02-html-practice-html-q8-04fb2ce8c62d:option-1"
         },
         {
-          "text": "各临时设施都按每100㎡配2只10L灭火器统一配置，简单好记也够用。",
+          "text": "各类临时设施统一按每100㎡配备2只10L灭火器执行：办公用房、木料间、油漆间均按同一配置率配置即可。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "记住了'100㎡2只'，想一个率通用。",
           "loss_reason": "木料间/油漆间危险，要每25㎡1只（更密），一律100㎡会配不够。",
           "fix": "木料间、油漆间每25㎡1只；临建每100㎡2只。",
-          "option_id": "X02-html-practice-html-q8-c64a60aaa7a5:option-2"
+          "option_id": "X02-html-practice-html-q8-04fb2ce8c62d:option-2"
         },
         {
-          "text": "现场配足灭火器、放在明显易取处、定期检查即可，数量按面积大小酌情增减。",
+          "text": "现场应配足灭火器，设置在明显、易取的位置并定期检查维护，数量按建筑面积与危险程度酌情增减。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "'配足、易取、定期检查'像规范用语。",
           "loss_reason": "无配置率数字，口号化表达不给分。",
           "fix": "临建每100㎡2只10L、木料间每25㎡1只。",
-          "option_id": "X02-html-practice-html-q8-c64a60aaa7a5:option-3"
+          "option_id": "X02-html-practice-html-q8-04fb2ce8c62d:option-3"
         },
         {
-          "text": "临建每100㎡2只10L、木料间每25㎡1只即可，场地再大也按这两个率配。",
+          "text": "临建每100㎡配2只10L、木料间及油漆间每25㎡配1只；场地面积再大，也仍按这两个配置率执行即可。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "两个配置率都对，以为齐了。",
           "loss_reason": "漏了场地超1200㎡设太平桶、积水池、黄砂池这一采分点。",
           "fix": "补：超1200㎡设太平桶、积水池、黄砂池。",
-          "option_id": "X02-html-practice-html-q8-c64a60aaa7a5:option-4"
+          "option_id": "X02-html-practice-html-q8-04fb2ce8c62d:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q8-c64a60aaa7a5",
+      "variant_id": "X02-html-practice-html-q8-04fb2ce8c62d",
       "surface_id": "practice.html",
       "source_index": 7,
       "source_group": "Q",
@@ -660,17 +660,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "bbda34e1428320cdcf47b1ff2e6375036b2dc37b6fd60b9a94cc6e5949676e0e",
+      "content_sha256": "28c9d6f1ec21c9abef58c5d4eceadbea4eaf1618c9faf021a6e821a7eef35f38",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "bbda34e1428320cdcf47b1ff2e6375036b2dc37b6fd60b9a94cc6e5949676e0e",
+        "reviewed_content_sha256": "28c9d6f1ec21c9abef58c5d4eceadbea4eaf1618c9faf021a6e821a7eef35f38",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -689,43 +689,43 @@
       "model_answer": "进场须凭证、数量、规格、外观验收；挂牌标识；建立收料台账。",
       "options": [
         {
+          "text": "材料进场经验收合格后即可投入使用，以确保工程质量满足设计要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "'验收合格后使用'是最常见的顺口写法。",
+          "loss_reason": "漏了凭证/数量规格/外观三要素、挂牌标识、收料台账等采分点。",
+          "fix": "补凭证/数量/规格/外观验收+挂牌标识+收料台账。",
+          "option_id": "X02-html-practice-html-q9-b89e18631bcb:option-1"
+        },
+        {
+          "text": "材料进场时核对质量证明文件等凭证齐全即可，外观与数量可在使用中核对。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得有质保书就万事大吉。",
+          "loss_reason": "漏数量、规格、外观验收和挂牌、台账，验收要素残缺。",
+          "fix": "凭证只是其一，还要数量/规格/外观验收+挂牌+台账。",
+          "option_id": "X02-html-practice-html-q9-b89e18631bcb:option-2"
+        },
+        {
           "text": "材料进场须进行凭证、数量、规格、外观验收；挂牌标识；建立收料台账。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "验收三要素+挂牌+台账三块齐全，正是给分点。",
-          "option_id": "X02-html-practice-html-q9-1cec61174459:option-1"
+          "option_id": "X02-html-practice-html-q9-b89e18631bcb:option-3"
         },
         {
-          "text": "材料进场验收合格后即可投入使用，确保质量满足要求。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "'验收合格后使用'是最常见的顺口写法。",
-          "loss_reason": "漏了凭证/数量规格/外观三要素、挂牌标识、收料台账等采分点。",
-          "fix": "补凭证/数量/规格/外观验收+挂牌标识+收料台账。",
-          "option_id": "X02-html-practice-html-q9-1cec61174459:option-2"
-        },
-        {
-          "text": "材料进场只需核对凭证（质量证明文件）齐全即可，外观和数量现场差不多就行。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得有质保书就万事大吉。",
-          "loss_reason": "漏数量、规格、外观验收和挂牌、台账，验收要素残缺。",
-          "fix": "凭证只是其一，还要数量/规格/外观验收+挂牌+台账。",
-          "option_id": "X02-html-practice-html-q9-1cec61174459:option-3"
-        },
-        {
-          "text": "材料进场后先堆放到位、边用边查，发现问题再复检处理，节省进场时间。",
+          "text": "材料进场后先行堆放到位、边使用边检查，发现问题再作复检处理，缩短进场时间。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "想着先用起来、有问题再说，省事。",
           "loss_reason": "未验先用违反进场验收要求，缺挂牌、台账书面环节。",
           "fix": "必须先验收（凭证/数量/规格/外观）+挂牌+台账再使用。",
-          "option_id": "X02-html-practice-html-q9-1cec61174459:option-4"
+          "option_id": "X02-html-practice-html-q9-b89e18631bcb:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q9-1cec61174459",
+      "variant_id": "X02-html-practice-html-q9-b89e18631bcb",
       "surface_id": "practice.html",
       "source_index": 8,
       "source_group": "Q",
@@ -733,17 +733,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c697625430af66b51bd06e5f2cf32f514d2c40ffccec59f6b23931d244d6c03c",
+      "content_sha256": "2beca30846faae3d664ce84ab694488a2dee58f615197702ed077ddd0bbb941a",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "c697625430af66b51bd06e5f2cf32f514d2c40ffccec59f6b23931d244d6c03c",
+        "reviewed_content_sha256": "2beca30846faae3d664ce84ab694488a2dee58f615197702ed077ddd0bbb941a",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -762,43 +762,43 @@
       "model_answer": "不妥：码放2.2m、露天无下垫上盖。正确做法：料具码放高度≤1.5m；库外材料应下垫上盖。",
       "options": [
         {
+          "text": "不妥：钢管码放偏高且无遮盖。正确做法：适当降低堆放高度，并在堆垛上方增设防雨遮盖措施，防止锈蚀。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对，'适当降低'写着省事。",
+          "loss_reason": "未给≤1.5m 数值、漏'下垫'，缺关键数字与要素。",
+          "fix": "码放高度≤1.5m；库外材料下垫上盖（下垫也要）。",
+          "option_id": "X02-html-practice-html-q10-ab08d03fdd82:option-1"
+        },
+        {
           "text": "不妥：码放2.2m、露天无遮盖。正确做法：料具码放高度≤1.5m；库外材料应下垫上盖（下垫防潮、上盖防雨）。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "限高≤1.5m+下垫上盖两项都带出来，判断纠错完整。",
-          "option_id": "X02-html-practice-html-q10-21f280779765:option-1"
+          "option_id": "X02-html-practice-html-q10-ab08d03fdd82:option-2"
         },
         {
-          "text": "不妥：钢管堆太高、没盖。正确做法：适当降低堆放高度、加个防雨盖。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "方向对，'适当降低'写着省事。",
-          "loss_reason": "未给≤1.5m 数值、漏'下垫'，缺关键数字与要素。",
-          "fix": "码放高度≤1.5m；库外材料下垫上盖（下垫也要）。",
-          "option_id": "X02-html-practice-html-q10-21f280779765:option-2"
-        },
-        {
-          "text": "不妥：只是没遮盖。正确做法：加防雨遮盖即可，码放2.2m 高度没问题。",
+          "text": "不妥：仅露天堆放无遮盖一项不符合要求。正确做法：在堆垛上方增设防雨遮盖；码放高度2.2m 属正常范围，无需再作调整。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只看到没盖，忽略了超高。",
           "loss_reason": "漏改码放高度（2.2m>1.5m），采分点遗漏。",
           "fix": "补：料具码放高度≤1.5m。",
-          "option_id": "X02-html-practice-html-q10-21f280779765:option-3"
+          "option_id": "X02-html-practice-html-q10-ab08d03fdd82:option-3"
         },
         {
-          "text": "不妥：码放2.2m。正确做法：码放高度≤2m 即可，露天堆放地面平整就行。",
+          "text": "不妥：钢管码放高度2.2m 超限。正确做法：将码放高度控制在≤2m，露天堆放场地保持平整坚实即可。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "知道要限高，但数字记成了2m。",
           "loss_reason": "限高数字错(应≤1.5m)、且漏下垫上盖。",
           "fix": "码放≤1.5m、库外下垫上盖。",
-          "option_id": "X02-html-practice-html-q10-21f280779765:option-4"
+          "option_id": "X02-html-practice-html-q10-ab08d03fdd82:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q10-21f280779765",
+      "variant_id": "X02-html-practice-html-q10-ab08d03fdd82",
       "surface_id": "practice.html",
       "source_index": 9,
       "source_group": "Q",
@@ -806,17 +806,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "69121e92121d9947b6135637f8156dd6cbdda75e9214a3347a67933867d5d69c",
+      "content_sha256": "2ec50543d74797301b2d85ae5b180061ef9ce27c69dcd5373cf6773d7fed473c",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "69121e92121d9947b6135637f8156dd6cbdda75e9214a3347a67933867d5d69c",
+        "reviewed_content_sha256": "2ec50543d74797301b2d85ae5b180061ef9ce27c69dcd5373cf6773d7fed473c",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -835,43 +835,43 @@
       "model_answer": "不合格材料按流程退场：申请→审批→通知→见证退场→记录确认→报告提交；不得直接或降级使用。",
       "options": [
         {
+          "text": "不合格材料可以降级使用，改用于次要部位或非承重部位，既减少了材料浪费，又节约了工程成本。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "想着降级用不浪费，看着'合理利用'。",
+          "loss_reason": "不合格材料严禁直接或降级使用，属违规处置。",
+          "fix": "不合格材料按流程退场，不得降级使用。",
+          "option_id": "X02-html-practice-html-q11-a9a31ad49cd5:option-1"
+        },
+        {
+          "text": "由现场通知供应商将不合格材料直接运离现场，并登记退货数量即可，处置流程可相应从简。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得拉走登记就完了，省去中间环节。",
+          "loss_reason": "漏'申请→审批'与'见证退场、报告提交'，流程环节缺失。",
+          "fix": "补全：申请→审批→通知→见证退场→记录确认→报告提交。",
+          "option_id": "X02-html-practice-html-q11-a9a31ad49cd5:option-2"
+        },
+        {
+          "text": "将不合格材料先行隔离堆放并悬挂待检标识牌，待复检合格后再决定是否投入使用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把'待检'和'不合格'混为一谈。",
+          "loss_reason": "已判不合格不能等复检再用，应退场；隔离待检是未检状态的做法。",
+          "fix": "验收不合格即按退场流程处置、见证退场。",
+          "option_id": "X02-html-practice-html-q11-a9a31ad49cd5:option-3"
+        },
+        {
           "text": "按退场流程处置：申请→审批→通知→见证退场→记录确认→报告提交，不得直接或降级使用。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "六步流程顺序完整+点出'见证退场'不可省+禁降级用。",
-          "option_id": "X02-html-practice-html-q11-3607ac516ee3:option-1"
-        },
-        {
-          "text": "不合格材料可降级用于次要部位或非承重部位，避免浪费、节约成本。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "想着降级用不浪费，看着'合理利用'。",
-          "loss_reason": "不合格材料严禁直接或降级使用，属违规处置。",
-          "fix": "不合格材料按流程退场，不得降级使用。",
-          "option_id": "X02-html-practice-html-q11-3607ac516ee3:option-2"
-        },
-        {
-          "text": "通知供应商把不合格材料拉走就行，现场登记一下数量即可，流程从简。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "觉得拉走登记就完了，省去中间环节。",
-          "loss_reason": "漏'申请→审批'与'见证退场、报告提交'，流程环节缺失。",
-          "fix": "补全：申请→审批→通知→见证退场→记录确认→报告提交。",
-          "option_id": "X02-html-practice-html-q11-3607ac516ee3:option-3"
-        },
-        {
-          "text": "不合格材料先隔离堆放、挂待检牌，等复检合格再决定是否使用。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "把'待检'和'不合格'混为一谈。",
-          "loss_reason": "已判不合格不能等复检再用，应退场；隔离待检是未检状态的做法。",
-          "fix": "验收不合格即按退场流程处置、见证退场。",
-          "option_id": "X02-html-practice-html-q11-3607ac516ee3:option-4"
+          "option_id": "X02-html-practice-html-q11-a9a31ad49cd5:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q11-3607ac516ee3",
+      "variant_id": "X02-html-practice-html-q11-a9a31ad49cd5",
       "surface_id": "practice.html",
       "source_index": 10,
       "source_group": "Q",
@@ -879,17 +879,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e47eff1bef5f8d0ea48880eb37989b67bf6e66e7ecfd8bd442415f787da63ba0",
+      "content_sha256": "ab41b83fced9143f11c6dc6289d24ddac08f870b8f501d4bef6f38f15b39c2a6",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e47eff1bef5f8d0ea48880eb37989b67bf6e66e7ecfd8bd442415f787da63ba0",
+        "reviewed_content_sha256": "ab41b83fced9143f11c6dc6289d24ddac08f870b8f501d4bef6f38f15b39c2a6",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -908,43 +908,43 @@
       "model_answer": "工具式定型化临设：标准化箱式房、定型化临边洞口防护、加工棚、构件化PVC围墙、装配式马道、可重复使用临时道路板。",
       "options": [
         {
+          "text": "现浇混凝土围墙、砖砌临时道路、现场支模浇筑的加工棚，构造牢固耐用，均属工具式定型化临时设施。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得'牢固耐用'就是定型化。",
+          "loss_reason": "现浇/砖砌是一次性做法，不能拆挪复用，不属工具式定型化。",
+          "fix": "工具式定型化指能拆装复用：箱式房/PVC围墙/道路板等。",
+          "option_id": "X02-html-practice-html-q12-ce3818072836:option-1"
+        },
+        {
+          "text": "施工期间临时使用的房屋、围墙、道路，无论采用何种做法建造，均属于工具式定型化临时设施范围。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把'临时'等同于'工具式定型化'。",
+          "loss_reason": "临时不等于定型化，关键看是否标准化、可拆装反复使用。",
+          "fix": "看是否可拆装复用：箱式房/加工棚/PVC围墙/道路板才算。",
+          "option_id": "X02-html-practice-html-q12-ce3818072836:option-2"
+        },
+        {
           "text": "标准化箱式房、加工棚、构件化PVC围墙、装配式马道、可重复使用临时道路板（能拆能挪、反复使用）。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "都是可拆装、反复使用的定型化产品，分类准确。",
-          "option_id": "X02-html-practice-html-q12-71f66b8d19ce:option-1"
+          "option_id": "X02-html-practice-html-q12-ce3818072836:option-3"
         },
         {
-          "text": "现浇混凝土围墙、砖砌临时道路、现场支模的加工棚，牢固耐用属定型化临设。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得'牢固耐用'就是定型化。",
-          "loss_reason": "现浇/砖砌是一次性做法，不能拆挪复用，不属工具式定型化。",
-          "fix": "工具式定型化指能拆装复用：箱式房/PVC围墙/道路板等。",
-          "option_id": "X02-html-practice-html-q12-71f66b8d19ce:option-2"
-        },
-        {
-          "text": "只要是临时用的房子、围墙、道路都算工具式定型化临设，不分做法。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把'临时'等同于'工具式定型化'。",
-          "loss_reason": "临时不等于定型化，关键看是否标准化、可拆装反复使用。",
-          "fix": "看是否可拆装复用：箱式房/加工棚/PVC围墙/道路板才算。",
-          "option_id": "X02-html-practice-html-q12-71f66b8d19ce:option-3"
-        },
-        {
-          "text": "标准化箱式房、加工棚都算；但可重复使用道路板是路面材料、不算临设。",
+          "text": "标准化箱式房、加工棚、构件化PVC围墙、装配式马道均属其中；可重复使用临时道路板属路面材料，不属临时设施。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "觉得道路板属'路面'不属'设施'。",
           "loss_reason": "可重复使用临时道路板正是典型工具式定型化临设，漏了它。",
           "fix": "可重复使用临时道路板也属工具式定型化临设。",
-          "option_id": "X02-html-practice-html-q12-71f66b8d19ce:option-4"
+          "option_id": "X02-html-practice-html-q12-ce3818072836:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q12-71f66b8d19ce",
+      "variant_id": "X02-html-practice-html-q12-ce3818072836",
       "surface_id": "practice.html",
       "source_index": 11,
       "source_group": "Q",
@@ -952,17 +952,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "bfdb244ed53fe17c7d384493e1b5e7aaf34c215976e16cc32a2e043513425298",
+      "content_sha256": "58b79e2f44f14da789ac906aa62c68328b0342f6179444384364877fd14df9d3",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "bfdb244ed53fe17c7d384493e1b5e7aaf34c215976e16cc32a2e043513425298",
+        "reviewed_content_sha256": "58b79e2f44f14da789ac906aa62c68328b0342f6179444384364877fd14df9d3",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -987,37 +987,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "两类仓库布置原则各就各位，危险品带出15m数值。",
-          "option_id": "X02-html-practice-html-q13-863a2ef0026d:option-1"
+          "option_id": "X02-html-practice-html-q13-4a6443000825:option-1"
         },
         {
-          "text": "两类仓库都应远离现场布置，越远越安全，统一距在建工程≥15m。",
+          "text": "两类仓库均应远离现场布置，距离越远越安全，统一按距在建工程≥15m 掌握。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "觉得仓库都远点更安全、好记。",
           "loss_reason": "普通临时仓库应接近使用地点方便取料，不是越远越好。",
           "fix": "临时仓库接近使用地点；只有危险品仓库远离≥15m。",
-          "option_id": "X02-html-practice-html-q13-863a2ef0026d:option-2"
+          "option_id": "X02-html-practice-html-q13-4a6443000825:option-2"
         },
         {
-          "text": "两类仓库都应接近使用地点、方便取用，危险品也就近放好看管。",
+          "text": "两类仓库均应接近使用地点布置，便于取用；危险品仓库亦应就近设置，便于看管。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "觉得都近点取用方便、好管理。",
           "loss_reason": "危险品仓库必须远离现场、距在建≥15m，就近违规。",
           "fix": "危险品仓库远离现场≥15m，只有临时仓库才接近使用点。",
-          "option_id": "X02-html-practice-html-q13-863a2ef0026d:option-3"
+          "option_id": "X02-html-practice-html-q13-4a6443000825:option-3"
         },
         {
-          "text": "临时仓库接近使用地点；危险品仓库也接近作业面、方便随用随取。",
+          "text": "临时仓库接近使用地点；危险品仓库同样靠近作业面布置，以便材料随用随取。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "前半句对，顺势把危险品也写成接近。",
           "loss_reason": "危险品仓库应远离现场、距在建≥15m，与临时仓库相反。",
           "fix": "危险品仓库远离现场、距在建工程≥15m。",
-          "option_id": "X02-html-practice-html-q13-863a2ef0026d:option-4"
+          "option_id": "X02-html-practice-html-q13-4a6443000825:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q13-863a2ef0026d",
+      "variant_id": "X02-html-practice-html-q13-4a6443000825",
       "surface_id": "practice.html",
       "source_index": 12,
       "source_group": "Q",
@@ -1025,17 +1025,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0d013ccad52722c17eb143743c9ea00f4d6974a71d139a5ac561d611765f1f43",
+      "content_sha256": "0e352f0a3101266be9f06e866b07665de60cd8f6c1df4ac7bef276d3a1b4ee9a",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "0d013ccad52722c17eb143743c9ea00f4d6974a71d139a5ac561d611765f1f43",
+        "reviewed_content_sha256": "0e352f0a3101266be9f06e866b07665de60cd8f6c1df4ac7bef276d3a1b4ee9a",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1060,37 +1060,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "回车场12×12+转弯半径15m 两个数都到位。",
-          "option_id": "X02-html-practice-html-q14-b7dd5118e780:option-1"
+          "option_id": "X02-html-practice-html-q14-1ed3470a413e:option-1"
         },
         {
-          "text": "回车场留够空间让车掉头、道路转弯处适当放大即可，保证通行顺畅。",
+          "text": "回车场留够空间供车辆调头使用，道路转弯处适当放大，保证消防车通行顺畅即可。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "'留够空间''适当放大'像描述。",
           "loss_reason": "无12m×12m、15m 数字，口号化不给分。",
           "fix": "回车场12m×12m；转弯半径≥15m。",
-          "option_id": "X02-html-practice-html-q14-b7dd5118e780:option-2"
+          "option_id": "X02-html-practice-html-q14-1ed3470a413e:option-2"
         },
         {
-          "text": "回车场不小于6m×6m、转弯半径≥6m，能容小型车辆掉头即可。",
+          "text": "回车场不小于6m×6m、载重车转弯半径≥6m，满足车辆调头需要即可。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "凭印象往小了估，觉得车能转就行。",
           "loss_reason": "数字全错——回车场12×12、转弯半径15m 是为消防大车定的。",
           "fix": "回车场12m×12m、转弯半径≥15m。",
-          "option_id": "X02-html-practice-html-q14-b7dd5118e780:option-3"
+          "option_id": "X02-html-practice-html-q14-1ed3470a413e:option-3"
         },
         {
-          "text": "只要转弯半径≥15m 就行，有足够转弯半径就不必单独设回车场。",
+          "text": "道路转弯半径达到≥15m 后，车辆即可原路进出，不必单独设置回车场。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "记住转弯半径，觉得能转就不用回车场。",
           "loss_reason": "漏了回车场12m×12m 这个独立采分点。",
           "fix": "补：回车场不小于12m×12m。",
-          "option_id": "X02-html-practice-html-q14-b7dd5118e780:option-4"
+          "option_id": "X02-html-practice-html-q14-1ed3470a413e:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q14-b7dd5118e780",
+      "variant_id": "X02-html-practice-html-q14-1ed3470a413e",
       "surface_id": "practice.html",
       "source_index": 13,
       "source_group": "Q",
@@ -1098,17 +1098,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "73707d6f1aaef16140ad0018897412480a3e7ecc27fba2d4cfe6748efe6ee096",
+      "content_sha256": "2e8de31e5a3ca29a7df53bafe11accf7f64708bbaad6d3a1e2f3e00320dfba7f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "73707d6f1aaef16140ad0018897412480a3e7ecc27fba2d4cfe6748efe6ee096",
+        "reviewed_content_sha256": "2e8de31e5a3ca29a7df53bafe11accf7f64708bbaad6d3a1e2f3e00320dfba7f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1127,43 +1127,43 @@
       "model_answer": "仓库：临时接近使用点、危险品距在建≥15m、易燃库下风向距明火≥30m；道路：单4双6消防4木材6回车12×12转弯15；消防分区：500墙可燃30易燃20疏散10；材料：验收挂牌台账、码放≤1.5m下垫上盖、不合格退场。",
       "options": [
         {
+          "text": "现场平面应合理规划、统一布局：各类临时设施安排得当、临时道路畅通有序、材料堆场布置合理；同时加强现场消防安全管理与材料保管管理，落实各项管理制度，做到文明施工、安全有序，满足施工生产与消防安全的总体要求。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "'合理规划''安排得当'像总纲，最好写。",
+          "loss_reason": "通篇无规格数字、无分组，口号化表达不给分。",
+          "fix": "按对象分组列数字：仓库15m/道路4·6/分区500·30·20/材料1.5m。",
+          "option_id": "X02-html-practice-html-q15-8c6e89ca573e:option-1"
+        },
+        {
+          "text": "道路与宿舍两组规格掌握到位即可：临时道路主干道单行≥4m、双行≥6m，路面平整坚实、排水通畅；宿舍每间≤16人、床铺不超过2层、通道宽度符合要求；其余仓库、堆场等内容由现场按施工组织设计灵活安排。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "挑了自己记得牢的两块写。",
+          "loss_reason": "漏了仓库间距、易燃库方向、消防分区、电气、灭火器、材料保管多组采分点。",
+          "fix": "补齐仓库/易燃库/消防分区/材料保管各组规格。",
+          "option_id": "X02-html-practice-html-q15-8c6e89ca573e:option-2"
+        },
+        {
+          "text": "布置重点在构件堆场：场地应平整坚实、排水良好，堆场靠近起重机械作业半径以方便构件起吊装卸，并按型号规格分区码放、设置标识牌；其余临时设施、道路与材料保管等内容按施工组织设计执行即可。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "把相邻的钢构件堆场条件当成了本题主答案。",
+          "loss_reason": "跑偏到相邻知识，未回到临设/道路/堆场规格数值主线。",
+          "fix": "主答案回到临设/道路规格：仓库15m/道路4·6/分区/材料。",
+          "option_id": "X02-html-practice-html-q15-8c6e89ca573e:option-3"
+        },
+        {
           "text": "仓库(临时近用点/危险品距在建≥15m/易燃库下风向≥30m)、道路(单4双6消防4木材6/回车12×12/转弯15)、消防分区(500墙/可燃30/易燃20/疏散10)、材料(验收挂牌台账/码放≤1.5m下垫上盖/不合格退场)。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "按对象分四组、每组落数字，正是列要求题满分结构。",
-          "option_id": "X02-html-practice-html-q15-2a68a3a2fd01:option-1"
-        },
-        {
-          "text": "应合理规划平面布置、临设道路材料堆场安排得当、加强现场消防和材料管理。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "'合理规划''安排得当'像总纲，最好写。",
-          "loss_reason": "通篇无规格数字、无分组，口号化表达不给分。",
-          "fix": "按对象分组列数字：仓库15m/道路4·6/分区500·30·20/材料1.5m。",
-          "option_id": "X02-html-practice-html-q15-2a68a3a2fd01:option-2"
-        },
-        {
-          "text": "主要把临时道路修好(单4双6)、宿舍住好(≤16人)两块管住，其余现场灵活安排。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "挑了自己记得牢的两块写。",
-          "loss_reason": "漏了仓库间距、易燃库方向、消防分区、电气、灭火器、材料保管多组采分点。",
-          "fix": "补齐仓库/易燃库/消防分区/材料保管各组规格。",
-          "option_id": "X02-html-practice-html-q15-2a68a3a2fd01:option-3"
-        },
-        {
-          "text": "重点是把构件堆场场地平整坚实、排水良好、方便起吊，其余按施组设计执行。",
-          "is_correct": false,
-          "source_error_code": "E05",
-          "temptation": "把相邻的钢构件堆场条件当成了本题主答案。",
-          "loss_reason": "跑偏到相邻知识，未回到临设/道路/堆场规格数值主线。",
-          "fix": "主答案回到临设/道路规格：仓库15m/道路4·6/分区/材料。",
-          "option_id": "X02-html-practice-html-q15-2a68a3a2fd01:option-4"
+          "option_id": "X02-html-practice-html-q15-8c6e89ca573e:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q15-2a68a3a2fd01",
+      "variant_id": "X02-html-practice-html-q15-8c6e89ca573e",
       "surface_id": "practice.html",
       "source_index": 14,
       "source_group": "Q",
@@ -1171,27 +1171,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q15",
       "source_anchor": "kc:1A437000_146_0235:0",
       "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "x02-fact-flammable-warehouse-fire-layout",
       "skeleton_id": "x02-skel-临设消防分组综合",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f57ef2d87be60937838a3cc81b858160561ddaa2d826e51122798ea96c75ec83",
+      "content_sha256": "7a9ed8f75683d01ebf16326d3cfd8eed50340f84aee0fbad840f72457a767cba",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "f57ef2d87be60937838a3cc81b858160561ddaa2d826e51122798ea96c75ec83",
+        "reviewed_content_sha256": "7a9ed8f75683d01ebf16326d3cfd8eed50340f84aee0fbad840f72457a767cba",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -1201,7 +1201,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "四组对象综合, 本锚支持易燃仓库核心组; 道路/防火分区/材料管理另有 kc:012_0013/147_0236 等源(复合多源工单, 待补齐 provenance)。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "四组对象综合, 本锚支持易燃仓库核心组; 道路/防火分区/材料管理另有 kc:012_0013/147_0236 等源(复合多源工单, 待补齐 provenance)。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -1212,43 +1212,43 @@
       "model_answer": "失分：方向未点'下风向'、间距无数字、漏消防通道。补写：设下风向、水源充足；消防通道≥6m；距明火≥30m；危险品间距≥10m。",
       "options": [
         {
+          "text": "作答基本到位：'通风好、远离火源、配灭火器'已把布置要点大体覆盖。补写时再补一句'注意防火'以加强表述，即为完整、能得分的作答。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "觉得意思都说到了，再加句防火更全。",
+          "loss_reason": "整段无一个规格数字、方向也没点，属口号化零分写法，'注意防火'仍是口号。",
+          "fix": "补下风向、消防通道≥6m、距明火≥30m、危险品间距≥10m。",
+          "option_id": "X02-html-practice-html-q16-ca55a055cd18:option-1"
+        },
+        {
+          "text": "失分只在方向一处未写明，其余表述均正确。补写一句'设在上风方向通风好'，作答即告完整，可以拿到本题的分数。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "知道要补方向，却补成了上风向。",
+          "loss_reason": "方向补反——易燃仓库应设下风向，补上风向照样0分。",
+          "fix": "补'设下风向'，不是上风向；再加通道6m/明火30m。",
+          "option_id": "X02-html-practice-html-q16-ca55a055cd18:option-2"
+        },
+        {
+          "text": "诊断为灭火器配置率未写清：补'每100㎡2只10L'即可补齐采分点，方向与间距表述不属于本题的主要采分内容。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住灭火器一处补，觉得就差这个。",
+          "loss_reason": "漏了最关键的下风向方向和消防通道6m/明火30m 间距采分点。",
+          "fix": "先补下风向、消防通道≥6m、距明火≥30m，方向间距才是本题眼。",
+          "option_id": "X02-html-practice-html-q16-ca55a055cd18:option-3"
+        },
+        {
           "text": "失分在只写'通风好/远离火源'口号、无方向无数字。补写：设下风向、水源充足；消防通道≥6m；距明火≥30m；危险品间距≥10m。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "揪出口号化+漏数字，补成下风向/6m/30m/10m 四句可拿分采分句。",
-          "option_id": "X02-html-practice-html-q16-18d949db7562:option-1"
-        },
-        {
-          "text": "作答基本到位，'通风好、远离火源、配灭火器'已覆盖要点，补一句'注意防火'即可。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "觉得意思都说到了，再加句防火更全。",
-          "loss_reason": "整段无一个规格数字、方向也没点，属口号化零分写法，'注意防火'仍是口号。",
-          "fix": "补下风向、消防通道≥6m、距明火≥30m、危险品间距≥10m。",
-          "option_id": "X02-html-practice-html-q16-18d949db7562:option-2"
-        },
-        {
-          "text": "只差方向没写，补一句'设在上风方向通风好'就完整了，其余都对。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "知道要补方向，却补成了上风向。",
-          "loss_reason": "方向补反——易燃仓库应设下风向，补上风向照样0分。",
-          "fix": "补'设下风向'，不是上风向；再加通道6m/明火30m。",
-          "option_id": "X02-html-practice-html-q16-18d949db7562:option-3"
-        },
-        {
-          "text": "主要是灭火器没说清，补'每100㎡2只10L'就够了，方向和间距无所谓。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "抓住灭火器一处补，觉得就差这个。",
-          "loss_reason": "漏了最关键的下风向方向和消防通道6m/明火30m 间距采分点。",
-          "fix": "先补下风向、消防通道≥6m、距明火≥30m，方向间距才是本题眼。",
-          "option_id": "X02-html-practice-html-q16-18d949db7562:option-4"
+          "option_id": "X02-html-practice-html-q16-ca55a055cd18:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q16-18d949db7562",
+      "variant_id": "X02-html-practice-html-q16-ca55a055cd18",
       "surface_id": "practice.html",
       "source_index": 15,
       "source_group": "Q",
@@ -1256,27 +1256,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q16",
       "source_anchor": "kc:1A437000_146_0235:0",
       "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "source_html_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
       "fact_id": "x02-fact-flammable-warehouse-fire-layout",
       "skeleton_id": "x02-skel-易燃仓库诊断补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "42ee1e61bd6ef4a03664f5bc91737b182a20c858de25dc57f133316b0e8e1cb2",
+      "content_sha256": "2db87fc98826d2b239e672c0d1bbb3cc00c17ccef9172e56458f54d54fbb723c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "42ee1e61bd6ef4a03664f5bc91737b182a20c858de25dc57f133316b0e8e1cb2",
+        "reviewed_content_sha256": "2db87fc98826d2b239e672c0d1bbb3cc00c17ccef9172e56458f54d54fbb723c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T18:39:12+08:00"
+            "signed_at": "2026-07-18T19:31:39+08:00"
           }
         ],
         "checks": {
@@ -1286,7 +1286,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "下风向/水源充足/消防通道≥6m/距明火≥30m/危险品间距≥10m, 教材 kc:...146_0235:0 逐项直引。三联 anchor。工单: 关系对象宜写全。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "下风向/水源充足/消防通道≥6m/距明火≥30m/危险品间距≥10m, 教材 kc:...146_0235:0 逐项直引。三联 anchor。工单: 关系对象宜写全。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     }

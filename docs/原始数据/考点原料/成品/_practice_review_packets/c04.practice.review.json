@@ -2,7 +2,7 @@
  "schema": "luban_practice_review_packet.v1",
  "pack_id": "C04",
  "source_pack_sha256": "890334cf5c4a12d7a68f569af605ea5b5adb4637848ec9936521fbc292f9aed2",
- "source_bundle_sha256": "f37285e015da7d5b485bc8812f1f31dd6b55b2073e33fa4ae9710d5633aad487",
+ "source_bundle_sha256": "d76b234e29ebdcf401e0520ad4f0d37293856c2f7c83d136bac99e8cf3c91792",
  "compiled_schema_version": "luban_compiled_practice.v3",
  "candidate_count": 17,
  "eligible_count": 7,
@@ -58,9 +58,9 @@
    ],
    "model_answer": "不承重侧模：混凝土强度保证其表面、棱角不因拆模受损即可拆除；墙体大模板常温达 1N/mm² 即可拆除。",
    "rule_group": "侧模判据·条件维",
-   "content_sha256": "dfb6e3b6ef486877d00c5cd792154d582c652f0957b02a0d178fba6698c1a35b",
+   "content_sha256": "803d9d9e0cff918f7d7fa53f54d9363821b9da590d0cf4cbc76705e3acf8ecc2",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q1",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "c04-fact-side-form-removal",
     "skeleton_id": "c04-skel-侧模拆除条件",
@@ -70,17 +70,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "dfb6e3b6ef486877d00c5cd792154d582c652f0957b02a0d178fba6698c1a35b",
+     "reviewed_content_sha256": "803d9d9e0cff918f7d7fa53f54d9363821b9da590d0cf4cbc76705e3acf8ecc2",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -90,7 +90,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -140,9 +140,9 @@
    ],
    "model_answer": "按构件类型+跨度：板 ≤2m→50%、2~8m→75%、＞8m→100%；梁拱壳 ≤8m→75%、＞8m→100%；悬臂构件一律 100%。",
    "rule_group": "底模强度表·条件维",
-   "content_sha256": "31893b1bad4afa63b30e91de6c7751fe89f2697d1141af627fcbb818c927e33c",
+   "content_sha256": "ef4857b5dd63e9234d753deea8458bacea0054e82524cda2870b21f9053ae823",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q2",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "c04-fact-bottom-form-strength-table",
     "skeleton_id": "c04-skel-底模强度全表",
@@ -152,17 +152,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "31893b1bad4afa63b30e91de6c7751fe89f2697d1141af627fcbb818c927e33c",
+     "reviewed_content_sha256": "ef4857b5dd63e9234d753deea8458bacea0054e82524cda2870b21f9053ae823",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -172,7 +172,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -222,9 +222,9 @@
    ],
    "model_answer": "6m 板落 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块代表值≥22.5 方可拆底模。",
    "rule_group": "强度换算·计算表达维",
-   "content_sha256": "a36514082042e5035769577596c639d192bed20cf34d745a386d08b70b0ac4c8",
+   "content_sha256": "e29e5919f9545f89f289622a0245226eb6f36cb7e46ab8f7daceeeb727368ca3",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q3",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "c04-fact-bottom-form-strength-apply-6m",
     "skeleton_id": "c04-skel-6m板强度应用",
@@ -234,17 +234,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "a36514082042e5035769577596c639d192bed20cf34d745a386d08b70b0ac4c8",
+     "reviewed_content_sha256": "e29e5919f9545f89f289622a0245226eb6f36cb7e46ab8f7daceeeb727368ca3",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -254,7 +254,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "6m现浇板拆底模≥75%,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "6m现浇板拆底模≥75%,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -304,9 +304,9 @@
    ],
    "model_answer": "梁 8m 属「≤8m」档取 75%；只有跨度超过 8m 才取 100%。",
    "rule_group": "边界辨析·条件维",
-   "content_sha256": "a9b6ae5aa455090d8f1fda3d21b19faba72d48daf0142343a3ae12fd4bd86210",
+   "content_sha256": "685642b7ce08cdc65cf948668ef3ecd49a6707bff6b0d58bbdfc6f908715457a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q4",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "c04-fact-bottom-form-strength-threshold",
     "skeleton_id": "c04-skel-8m边界判定",
@@ -316,17 +316,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "a9b6ae5aa455090d8f1fda3d21b19faba72d48daf0142343a3ae12fd4bd86210",
+     "reviewed_content_sha256": "685642b7ce08cdc65cf948668ef3ecd49a6707bff6b0d58bbdfc6f908715457a",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -336,7 +336,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -386,9 +386,9 @@
    ],
    "model_answer": "逐项查表：8m 拱 ≤8m 档取 75%，达 75% 即满足；3m 板需 75%（40% 不够）；10m 梁需 100%（75% 不够）；悬臂梁需 100%（75% 不够）。",
    "rule_group": "全表辨析·条件维",
-   "content_sha256": "a733fa81cd6bf48df1bade44e893e67005ce12d4cea1fc400b0a90a39a7afd07",
+   "content_sha256": "0e39b095cf8238ee55c1aa57e4e0867d62b13a114a8b5f13ca0b82882f6becb8",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q5",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "c04-fact-bottom-form-strength-threshold",
     "skeleton_id": "c04-skel-多构件达标判断",
@@ -398,17 +398,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "a733fa81cd6bf48df1bade44e893e67005ce12d4cea1fc400b0a90a39a7afd07",
+     "reviewed_content_sha256": "0e39b095cf8238ee55c1aa57e4e0867d62b13a114a8b5f13ca0b82882f6becb8",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -418,14 +418,14 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "多构件同条件强度哪项达拆模要求,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "多构件同条件强度哪项达拆模要求,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q6-30a632b3e3e3",
+   "variant_id": "C04-html-practice-html-q6-2f57a323a8d4",
    "surface_id": "practice.html",
    "stem": "8m 跨现浇楼板 C30，采用快拆支架体系，立杆间距 2m，拆模时保留立杆并顶托支承楼板。拆模最低强度是多少？写出可得分的判定链。",
    "options": [
@@ -436,25 +436,25 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "先判快拆切跨成立，再取 50%、代入算出 15，判定链完整。",
-     "option_id": "C04-html-practice-html-q6-30a632b3e3e3:option-1"
+     "option_id": "C04-html-practice-html-q6-2f57a323a8d4:option-1"
     },
     {
-     "text": "楼板跨度 8m 超过 8m 档界限，按 100% 控制：混凝土达 30MPa 后方可拆模。",
+     "text": "楼板跨度 8m 已达档位界限，应按 100% 控制：混凝土达 30MPa 后方可拆模，快拆条件不改变该取值。",
      "is_correct": false,
      "source_error_code": "M10",
      "temptation": "盯着「8m 大跨」，没理会快拆条件。",
      "loss_reason": "题干明给保留立杆顶托、立杆 2m——快拆切跨成立，按原跨取值是用常识替代规范。",
      "fix": "快拆成立按等效 2m 取 50%→15MPa。",
-     "option_id": "C04-html-practice-html-q6-30a632b3e3e3:option-2"
+     "option_id": "C04-html-practice-html-q6-2f57a323a8d4:option-2"
     },
     {
-     "text": "8m 楼板落 2~8m 档取 75%：30×75%=22.5MPa 后方可拆模。",
+     "text": "8m 楼板按原跨度落 2~8m 档取 75%：30×75%=22.5MPa，试块强度达 22.5MPa 后方可拆模。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "顺手把 8m 塞进 2~8m 档。",
      "loss_reason": "档位与快拆两处都错：8m 板不走 75%，且快拆成立后应按 2m 档 50%。",
      "fix": "快拆等效 2m → 50% → 15MPa。",
-     "option_id": "C04-html-practice-html-q6-30a632b3e3e3:option-3"
+     "option_id": "C04-html-practice-html-q6-2f57a323a8d4:option-3"
     },
     {
      "text": "快拆体系按 2m 跨度计算取 50%，混凝土达 15MPa 即可把模板连同立杆一次性全部拆除。",
@@ -463,14 +463,14 @@
      "temptation": "数值 15 全对，就差条件那半句。",
      "loss_reason": "「按 2m 算」的前提正是保留立杆顶托——连立杆一起全拆，前提就没了，条件提取不完整。",
      "fix": "写明「拆模时保留立杆并顶托支承楼板」，只拆模不拆撑。",
-     "option_id": "C04-html-practice-html-q6-30a632b3e3e3:option-4"
+     "option_id": "C04-html-practice-html-q6-2f57a323a8d4:option-4"
     }
    ],
    "model_answer": "快拆保留立杆顶托、立杆≤2m → 按等效 2m 小跨取 50% → 30×50%=15MPa，试块≥15 方可拆。",
    "rule_group": "快拆判定链·计算表达维",
-   "content_sha256": "bb308f372e6b9cdaddcc519450370bc31e3d98adb0fe69b448eddc84ff502d50",
+   "content_sha256": "4d359200035f4aec9d74db1ae1fc87ea57f15d59e6c8751def75f7cec04a61b6",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q6",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "c04-fact-bottom-form-strength-threshold",
     "skeleton_id": "c04-skel-快拆保留立杆",
@@ -480,17 +480,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "bb308f372e6b9cdaddcc519450370bc31e3d98adb0fe69b448eddc84ff502d50",
+     "reviewed_content_sha256": "4d359200035f4aec9d74db1ae1fc87ea57f15d59e6c8751def75f7cec04a61b6",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -500,17 +500,26 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "8m快拆板拆模保留立杆顶托,条件判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "8m快拆板拆模保留立杆顶托,条件判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q7-f2123ca6fc06",
+   "variant_id": "C04-html-practice-html-q7-3ffbbfe53889",
    "surface_id": "practice.html",
    "stem": "某工程采用快拆支架体系（按 50% 拆模），现场拆模时把立杆连同顶托一次性全部拆除。判断该做法并改正。",
    "options": [
+    {
+     "text": "妥当。模板已按 50% 强度要求拆除，立杆与顶托作为周转材料应及时拆除退场，加快材料周转使用。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "「周转材料早退场」是现场常识。",
+     "loss_reason": "50% 的前提就是立杆顶托还在；用施工常识替代规范条文。",
+     "fix": "保留立杆并顶托支承楼板，方可维持 50% 取值。",
+     "option_id": "C04-html-practice-html-q7-3ffbbfe53889:option-1"
+    },
     {
      "text": "不妥。快拆拆模时应保留立杆并顶托支承楼板、立杆间距不大于 2m；立杆全拆则须按原跨度档判强度。",
      "is_correct": true,
@@ -518,41 +527,32 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "三段式：判不妥 + 引「保留立杆顶托」条文 + 点明全拆的后果。",
-     "option_id": "C04-html-practice-html-q7-f2123ca6fc06:option-1"
+     "option_id": "C04-html-practice-html-q7-3ffbbfe53889:option-2"
     },
     {
-     "text": "妥当。模板已按 50% 强度要求拆除，立杆作为周转材料应及时拆除退场，加快周转。",
-     "is_correct": false,
-     "source_error_code": "M10",
-     "temptation": "「周转材料早退场」是现场常识。",
-     "loss_reason": "50% 的前提就是立杆顶托还在；用施工常识替代规范条文。",
-     "fix": "保留立杆并顶托支承楼板，方可维持 50% 取值。",
-     "option_id": "C04-html-practice-html-q7-f2123ca6fc06:option-2"
-    },
-    {
-     "text": "不妥。快拆体系立杆间距不应大于 3m，本工程立杆布置过密，应加大间距后再拆。",
+     "text": "不妥。快拆体系的立杆间距不应大于 3m，本工程立杆布置过密，应先加大立杆间距后再行拆除。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "结论「不妥」碰对了，数字却记错。",
      "loss_reason": "规范是立杆间距不应大于 2m，不是 3m；纠错题理由错照样丢分。",
      "fix": "立杆间距≤2m + 保留立杆顶托。",
-     "option_id": "C04-html-practice-html-q7-f2123ca6fc06:option-3"
+     "option_id": "C04-html-practice-html-q7-3ffbbfe53889:option-3"
     },
     {
-     "text": "不妥。拆除应严格按照专项施工方案执行，方案怎么写就怎么拆，确保程序合规。",
+     "text": "不妥。拆除作业应严格按照经审批的专项施工方案组织实施，全过程确保拆除程序合规即可。",
      "is_correct": false,
      "source_error_code": "E04",
      "temptation": "「按方案拆」万能句看着稳。",
      "loss_reason": "口号化空表达，没给出任何可判分的规范条件。",
      "fix": "写具体：保留立杆并顶托支承楼板、立杆≤2m。",
-     "option_id": "C04-html-practice-html-q7-f2123ca6fc06:option-4"
+     "option_id": "C04-html-practice-html-q7-3ffbbfe53889:option-4"
     }
    ],
    "model_answer": "不妥。快拆体系拆模时应保留立杆并顶托支承楼板，立杆间距不应大于 2m；立杆全拆则等效小跨不成立，强度须按原跨度档判定。",
    "rule_group": "快拆纠错·条件维",
-   "content_sha256": "295a578ae03caa87e7c8fefaf6915db7f64387f69e0c20a8878e0286a2046a4c",
+   "content_sha256": "33ff91744b02f2904ede6d4a033f000ba4491a1dd51e3cf460d0f41f066a7dde",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q7",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -562,7 +562,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "295a578ae03caa87e7c8fefaf6915db7f64387f69e0c20a8878e0286a2046a4c",
+     "reviewed_content_sha256": "33ff91744b02f2904ede6d4a033f000ba4491a1dd51e3cf460d0f41f066a7dde",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -577,19 +577,10 @@
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q8-c68c8fecf91c",
+   "variant_id": "C04-html-practice-html-q8-2b14a42136a2",
    "surface_id": "practice.html",
    "stem": "模板拆除顺序的原则怎么写才完整、能得分？",
    "options": [
-    {
-     "text": "按「后支先拆、先支后拆；先拆非承重部分、后拆承重部分」的顺序进行拆除。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "两组成对句一句不落，这就是顺序门槛的满分句。",
-     "option_id": "C04-html-practice-html-q8-c68c8fecf91c:option-1"
-    },
     {
      "text": "按「先支先拆、后支后拆；先拆承重部分、后拆非承重部分」的顺序进行拆除。",
      "is_correct": false,
@@ -597,7 +588,7 @@
      "temptation": "「先来先走」符合直觉排队逻辑。",
      "loss_reason": "整句写反：先支的杆是根基要最后拆，承重部分必须后拆，反着写是 0 分句。",
      "fix": "后支先拆、先支后拆；非承重先拆、承重后拆。",
-     "option_id": "C04-html-practice-html-q8-c68c8fecf91c:option-2"
+     "option_id": "C04-html-practice-html-q8-2b14a42136a2:option-1"
     },
     {
      "text": "模板拆除顺序按专项施工方案确定，自上而下逐层拆除即可，无固定口诀。",
@@ -606,7 +597,16 @@
      "temptation": "「按方案、自上而下」看着四平八稳。",
      "loss_reason": "口号化空表达，没写出可判分的成对句，阅卷给不了顺序分。",
      "fix": "写出成对句：后支先拆、先支后拆；非承重先、承重后。",
-     "option_id": "C04-html-practice-html-q8-c68c8fecf91c:option-3"
+     "option_id": "C04-html-practice-html-q8-2b14a42136a2:option-2"
+    },
+    {
+     "text": "按「后支先拆、先支后拆；先拆非承重部分、后拆承重部分」的顺序进行拆除。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "两组成对句一句不落，这就是顺序门槛的满分句。",
+     "option_id": "C04-html-practice-html-q8-2b14a42136a2:option-3"
     },
     {
      "text": "按「后支先拆、先支后拆」的顺序拆除模板，把支设先后关系交代清楚即可。",
@@ -615,14 +615,14 @@
      "temptation": "记住了前半句，觉得意思到了。",
      "loss_reason": "成对句缺了「先拆非承重、后拆承重」半句，采分点漏一半。",
      "fix": "补上「先拆非承重部分、后拆承重部分」。",
-     "option_id": "C04-html-practice-html-q8-c68c8fecf91c:option-4"
+     "option_id": "C04-html-practice-html-q8-2b14a42136a2:option-4"
     }
    ],
    "model_answer": "后支先拆、先支后拆；先拆除非承重部分、后拆除承重部分（成对句写全）。",
    "rule_group": "拆除顺序·程序维",
-   "content_sha256": "108c74a7c64884121da3ab7c8be88cfdd1154ee7c9885f34eb99113b66e935b1",
+   "content_sha256": "a0448dccf2369f962e25ab59bc74c1a4fee4f7fbf39392dfc921c31aa51bee0a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q8",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -632,7 +632,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "108c74a7c64884121da3ab7c8be88cfdd1154ee7c9885f34eb99113b66e935b1",
+     "reviewed_content_sha256": "a0448dccf2369f962e25ab59bc74c1a4fee4f7fbf39392dfc921c31aa51bee0a",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -647,27 +647,18 @@
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q9-d4ccff294645",
+   "variant_id": "C04-html-practice-html-q9-8e78bc057706",
    "surface_id": "practice.html",
    "stem": "某现场拆模时，先将梁底承重支架和底模拆除，最后拆除梁侧模。判断该做法并改正。",
    "options": [
     {
-     "text": "不妥。违反「先拆非承重、后拆承重」原则——应先拆不承重侧模，承重底模及支架最后拆除。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "判不妥 + 引成对句 + 给正确顺序，三段齐。",
-     "option_id": "C04-html-practice-html-q9-d4ccff294645:option-1"
-    },
-    {
-     "text": "妥当。承重支架受力最大，先拆除可尽早释放荷载，降低支架系统的安全风险。",
+     "text": "妥当。承重支架承受的荷载最大，先行拆除可尽早释放荷载，有效降低支架系统整体的安全风险。",
      "is_correct": false,
      "source_error_code": "M10",
      "temptation": "「先卸大荷载」听着像力学常识。",
      "loss_reason": "恰恰相反：承重体系是最后防线，先拆等于抽掉拐杖，属违章拆除。",
      "fix": "承重部分必须后拆，侧模等非承重先拆。",
-     "option_id": "C04-html-practice-html-q9-d4ccff294645:option-2"
+     "option_id": "C04-html-practice-html-q9-8e78bc057706:option-1"
     },
     {
      "text": "不妥。应从跨中向两端对称拆除承重支架，再拆侧模，保证受力均衡不偏载。",
@@ -676,7 +667,7 @@
      "temptation": "「对称拆、防偏载」看着很专业。",
      "loss_reason": "引错了规范：本考点的顺序判据是成对句，不是对称拆除；且仍把承重排在非承重前。",
      "fix": "按「先拆非承重、后拆承重」改正顺序。",
-     "option_id": "C04-html-practice-html-q9-d4ccff294645:option-3"
+     "option_id": "C04-html-practice-html-q9-8e78bc057706:option-2"
     },
     {
      "text": "不妥。该拆除顺序不符合要求，应严格按照经审批的模板专项方案顺序执行拆除。",
@@ -685,14 +676,23 @@
      "temptation": "判断对了，理由想省事。",
      "loss_reason": "没写出成对句，改正内容空心化，只能拿判断分。",
      "fix": "补成对句：后支先拆、先支后拆；非承重先、承重后。",
-     "option_id": "C04-html-practice-html-q9-d4ccff294645:option-4"
+     "option_id": "C04-html-practice-html-q9-8e78bc057706:option-3"
+    },
+    {
+     "text": "不妥。违反「先拆非承重、后拆承重」原则——应先拆不承重侧模，承重底模及支架最后拆除。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "判不妥 + 引成对句 + 给正确顺序，三段齐。",
+     "option_id": "C04-html-practice-html-q9-8e78bc057706:option-4"
     }
    ],
    "model_answer": "不妥。违反「后支先拆、先支后拆；先拆非承重、后拆承重」——应先拆不承重的侧模，承重底模及支架最后拆。",
    "rule_group": "顺序纠错·程序维",
-   "content_sha256": "4b3fbfa33935dafa1178c4745e703260b16b12f7fa804f89f666a4134046ef50",
+   "content_sha256": "cd32da6b089053c38bf5aa4a8f84ab604f0e7ffcfafdce99a2c87e0534a0337d",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q9",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -702,7 +702,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "4b3fbfa33935dafa1178c4745e703260b16b12f7fa804f89f666a4134046ef50",
+     "reviewed_content_sha256": "cd32da6b089053c38bf5aa4a8f84ab604f0e7ffcfafdce99a2c87e0534a0337d",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -717,7 +717,7 @@
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q10-b28be6000d66",
+   "variant_id": "C04-html-practice-html-q10-cc8cd2310b2d",
    "surface_id": "practice.html",
    "stem": "模板拆除前应履行什么程序？怎么写才完整、能得分？",
    "options": [
@@ -728,16 +728,16 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "三步链：填申请 → 试块达标 → 技术负责人批准，主体与程序都齐。",
-     "option_id": "C04-html-practice-html-q10-b28be6000d66:option-1"
+     "option_id": "C04-html-practice-html-q10-cc8cd2310b2d:option-1"
     },
     {
-     "text": "由现场生产经理向监理工程师口头申请，监理同意后即可组织拆除模板。",
+     "text": "由现场生产经理向监理工程师口头提出拆模申请，监理工程师同意后即可组织拆除模板。",
      "is_correct": false,
      "source_error_code": "E06",
      "temptation": "现场确实常见「跟监理打声招呼」。",
      "loss_reason": "程序三处错：须书面填申请、批准主体是技术负责人、还得试块达标——2016 真题原坑。",
      "fix": "填拆模申请 + 试块达标 + 技术负责人批准。",
-     "option_id": "C04-html-practice-html-q10-b28be6000d66:option-2"
+     "option_id": "C04-html-practice-html-q10-cc8cd2310b2d:option-2"
     },
     {
      "text": "同条件养护试块强度达到规定要求后即可直接拆除模板，无须再履行审批手续。",
@@ -746,7 +746,7 @@
      "temptation": "「强度是硬指标，达标即拆」很符合直觉。",
      "loss_reason": "漏掉填申请和技术负责人批准两个程序采分点，强度只是门槛之一。",
      "fix": "补「填拆模申请、经技术负责人批准」。",
-     "option_id": "C04-html-practice-html-q10-b28be6000d66:option-3"
+     "option_id": "C04-html-practice-html-q10-cc8cd2310b2d:option-3"
     },
     {
      "text": "填写拆模申请并经项目经理批准后即可拆除，试块强度作为拆后备查资料留存。",
@@ -755,14 +755,14 @@
      "temptation": "项目经理是现场最大的官，批准像他的活。",
      "loss_reason": "批准主体错（应为技术负责人），且试块达标是拆前前提不是拆后备查。",
      "fix": "技术负责人批准，且试块达标在前。",
-     "option_id": "C04-html-practice-html-q10-b28be6000d66:option-4"
+     "option_id": "C04-html-practice-html-q10-cc8cd2310b2d:option-4"
     }
    ],
    "model_answer": "拆模前须填拆模申请，同条件养护试块强度达到规定要求时，由技术负责人批准后方可拆除。",
    "rule_group": "拆模程序·主体+程序维",
-   "content_sha256": "2c0e3d411b53888cf52d1c9d659acc17e6f2b00ba13b70de93fff8a41660c2b6",
+   "content_sha256": "807c3d7ce45b59e0e3081b4c4fc0f3cf2dc9179c29fa27f8c19c600190655867",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q10",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -772,7 +772,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "2c0e3d411b53888cf52d1c9d659acc17e6f2b00ba13b70de93fff8a41660c2b6",
+     "reviewed_content_sha256": "807c3d7ce45b59e0e3081b4c4fc0f3cf2dc9179c29fa27f8c19c600190655867",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -787,27 +787,18 @@
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q11-613dbebeb7fa",
+   "variant_id": "C04-html-practice-html-q11-9b697dcf9983",
    "surface_id": "practice.html",
    "stem": "拆模申请填好、同条件试块也达标了。批准拆模的主体是谁？选出主体定位正确的作答。",
    "options": [
     {
-     "text": "由技术负责人批准——生产经理、项目经理或监理同意都不能替代技术负责人的批准。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "主体句 + 排除易混主体，主体定位题这样写最稳。",
-     "option_id": "C04-html-practice-html-q11-613dbebeb7fa:option-1"
-    },
-    {
-     "text": "由监理工程师批准——拆模属质量控制关键环节，监理签认后施工单位方可实施。",
+     "text": "由监理工程师批准——模板拆除属质量控制的关键环节，经监理签认后施工单位方可实施。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "平时啥都要报监理，惯性迁移。",
      "loss_reason": "监理可以监督，但拆模批准主体是施工单位技术负责人，主体错位。",
      "fix": "写「经技术负责人批准」。",
-     "option_id": "C04-html-practice-html-q11-613dbebeb7fa:option-2"
+     "option_id": "C04-html-practice-html-q11-9b697dcf9983:option-1"
     },
     {
      "text": "由现场生产经理批准——拆模属生产组织事项，由分管生产的负责人决定即可。",
@@ -816,7 +807,16 @@
      "temptation": "拆模看着就是个生产安排。",
      "loss_reason": "生产经理正是 2016 真题里的错误主体；拆模是技术判断，归技术负责人。",
      "fix": "批准主体改为技术负责人。",
-     "option_id": "C04-html-practice-html-q11-613dbebeb7fa:option-3"
+     "option_id": "C04-html-practice-html-q11-9b697dcf9983:option-2"
+    },
+    {
+     "text": "由技术负责人批准——生产经理、项目经理或监理同意都不能替代技术负责人的批准。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "主体句 + 排除易混主体，主体定位题这样写最稳。",
+     "option_id": "C04-html-practice-html-q11-9b697dcf9983:option-3"
     },
     {
      "text": "由建设单位代表批准——模板拆除影响结构安全，应由建设方最终把关确认。",
@@ -825,14 +825,14 @@
      "temptation": "「甲方拍板」听着最有权威。",
      "loss_reason": "建设单位不承担施工技术批准职责，主体张冠李戴。",
      "fix": "施工单位技术负责人批准。",
-     "option_id": "C04-html-practice-html-q11-613dbebeb7fa:option-4"
+     "option_id": "C04-html-practice-html-q11-9b697dcf9983:option-4"
     }
    ],
    "model_answer": "拆模批准主体是（项目）技术负责人，不是生产经理、项目经理，也不是监理工程师。",
    "rule_group": "批准主体·主体维",
-   "content_sha256": "aefaab879a23c0c9033877637582d5a4721ad188806fdd7a4f20b070bdd6cbb1",
+   "content_sha256": "62964eccc2b9a66c054d419c52e1eef64654159f6932e4c3f8698956b3aeec76",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q11",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -842,7 +842,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "aefaab879a23c0c9033877637582d5a4721ad188806fdd7a4f20b070bdd6cbb1",
+     "reviewed_content_sha256": "62964eccc2b9a66c054d419c52e1eef64654159f6932e4c3f8698956b3aeec76",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -857,19 +857,10 @@
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q12-e98be625c74a",
+   "variant_id": "C04-html-practice-html-q12-d1448a6fdfbb",
    "surface_id": "practice.html",
    "stem": "模板拆除作业时的安全控制要点怎么写才完整、能得分？",
    "options": [
-    {
-     "text": "下方不得有人、设警戒线；模板向下传递上下呼应；楼板底模不得无控制大片塌落。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "警戒线 + 禁人 + 上下呼应 + 禁大片塌落，四个可判分动作全齐。",
-     "option_id": "C04-html-practice-html-q12-e98be625c74a:option-1"
-    },
     {
      "text": "拆模作业要提高安全意识、注意安全文明施工，作业人员规范佩戴安全帽即可。",
      "is_correct": false,
@@ -877,7 +868,16 @@
      "temptation": "「注意安全」怎么写都不算错。",
      "loss_reason": "口号化表达，没有一个可判分的具体动作，阅卷一分给不出。",
      "fix": "写具体动作：设警戒线、下方禁人、上下呼应、禁大片塌落。",
-     "option_id": "C04-html-practice-html-q12-e98be625c74a:option-2"
+     "option_id": "C04-html-practice-html-q12-d1448a6fdfbb:option-1"
+    },
+    {
+     "text": "下方不得有人、设警戒线；模板向下传递上下呼应；楼板底模不得无控制大片塌落。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "警戒线 + 禁人 + 上下呼应 + 禁大片塌落，四个可判分动作全齐。",
+     "option_id": "C04-html-practice-html-q12-d1448a6fdfbb:option-2"
     },
     {
      "text": "楼板底模面积大，可整片松开让其大片自然塌落，再统一清运，效率高又减少高处作业。",
@@ -886,7 +886,7 @@
      "temptation": "「少爬高、快清运」像是安全优化。",
      "loss_reason": "规范明令楼板底模不得采取无控制大片塌落的方法，这是禁止性条款。",
      "fix": "底模应有控制地拆除，禁大片塌落。",
-     "option_id": "C04-html-practice-html-q12-e98be625c74a:option-3"
+     "option_id": "C04-html-practice-html-q12-d1448a6fdfbb:option-3"
     },
     {
      "text": "拆模区域设置警戒线即可满足要求，线内作业人员照常通行，无须其他专门措施。",
@@ -895,14 +895,14 @@
      "temptation": "设了警戒线，感觉安全到位了。",
      "loss_reason": "漏「下方禁人」「上下呼应」「禁大片塌落」——警戒线只是四条之一。",
      "fix": "补齐下方禁人、上下呼应、禁大片塌落。",
-     "option_id": "C04-html-practice-html-q12-e98be625c74a:option-4"
+     "option_id": "C04-html-practice-html-q12-d1448a6fdfbb:option-4"
     }
    ],
    "model_answer": "拆模时下方不得有人、设警戒线；模板向下传递须上下呼应、协调一致；楼板底模不得采取无控制大片塌落的拆除方法。",
    "rule_group": "作业安全·后果维",
-   "content_sha256": "343b69f0b41d7b54753f0e7273fa3dfd6d3aaaafc8dc73c379dcd9c806144b42",
+   "content_sha256": "53b58b9032d92700e55e68a85bff6f7a04ce3d0da44c03e41583864fb6acc82f",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q12",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -912,7 +912,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "343b69f0b41d7b54753f0e7273fa3dfd6d3aaaafc8dc73c379dcd9c806144b42",
+     "reviewed_content_sha256": "53b58b9032d92700e55e68a85bff6f7a04ce3d0da44c03e41583864fb6acc82f",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -927,7 +927,7 @@
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q13-0def06881ec4",
+   "variant_id": "C04-html-practice-html-q13-280ed0f7c3b5",
    "surface_id": "practice.html",
    "stem": "后张法预应力混凝土梁的底模拆除，应满足哪些条件？选出写全的作答。",
    "options": [
@@ -938,16 +938,16 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "预应力四条件逐项编号写全，缺一条丢一条的分。",
-     "option_id": "C04-html-practice-html-q13-0def06881ec4:option-1"
+     "option_id": "C04-html-practice-html-q13-280ed0f7c3b5:option-1"
     },
     {
-     "text": "同条件养护试件强度达到设计要求后即可拆除底模，预应力构件与普通构件一致掌握。",
+     "text": "同条件养护试件强度达到设计要求后即可直接拆除底模，预应力构件与普通构件按完全相同的强度条件掌握。",
      "is_correct": false,
      "source_error_code": "M09",
      "temptation": "「试件达标」是普通构件的肌肉记忆。",
      "loss_reason": "预应力底模必须张拉后才能拆——试件达标≠可拆，这正是 2016 真题的核心坑。",
      "fix": "补「张拉后拆」＋批准＋灌浆≥C30。",
-     "option_id": "C04-html-practice-html-q13-0def06881ec4:option-2"
+     "option_id": "C04-html-practice-html-q13-280ed0f7c3b5:option-2"
     },
     {
      "text": "预应力底模须在张拉完成且同条件试件达标后拆除，报监理工程师同意即可实施。",
@@ -956,23 +956,23 @@
      "temptation": "记住了张拉这条大的，后面想收尾。",
      "loss_reason": "漏「技术负责人批准」和「灌浆≥C30」两条，且批准主体写错。",
      "fix": "补「技术负责人批准 + 灌浆强度≥C30」。",
-     "option_id": "C04-html-practice-html-q13-0def06881ec4:option-3"
+     "option_id": "C04-html-practice-html-q13-280ed0f7c3b5:option-3"
     },
     {
-     "text": "为避免张拉时底模约束梁体变形，应在预应力张拉之前先行拆除底模及支架。",
+     "text": "为避免张拉时底模约束梁体的自由变形，应在预应力张拉之前先行拆除底模及支架。",
      "is_correct": false,
      "source_error_code": "E10",
      "temptation": "「张拉要自由变形」听着有物理道理。",
      "loss_reason": "张拉前梁体不能自承重，先拆底模等于让没上筋的梁裸奔，规范适用完全颠倒。",
      "fix": "底模必须在张拉之后拆除。",
-     "option_id": "C04-html-practice-html-q13-0def06881ec4:option-4"
+     "option_id": "C04-html-practice-html-q13-280ed0f7c3b5:option-4"
     }
    ],
    "model_answer": "①预应力张拉后方可拆除底模；②混凝土强度符合同条件养护试件要求；③经技术负责人批准；④有孔道灌浆的，灌浆强度不应低于 C30。",
    "rule_group": "预应力条件·条件维",
-   "content_sha256": "e7d5a717fad11f30fd5946b064480d7648007e72f3b41b7c1721725d9171f339",
+   "content_sha256": "303b562239bfd6fbb39870b3c0ed0747033debb8e948a9c8f8ad572107658510",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q13",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -982,7 +982,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "e7d5a717fad11f30fd5946b064480d7648007e72f3b41b7c1721725d9171f339",
+     "reviewed_content_sha256": "303b562239bfd6fbb39870b3c0ed0747033debb8e948a9c8f8ad572107658510",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -997,7 +997,7 @@
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q14-df0f3507700f",
+   "variant_id": "C04-html-practice-html-q14-9f16628a4fc2",
    "surface_id": "practice.html",
    "stem": "某地下室顶板设后张法预应力梁。同条件试件达标后，生产经理向监理口头申请拆模，监理同意后将顶板模板及支架全部拆除。判断并写出应满足的前置条件。",
    "options": [
@@ -1008,16 +1008,16 @@
      "temptation": "",
      "loss_reason": "",
      "fix": "判断 + 四前置条件枚举，与真题标准答案逐条对齐。",
-     "option_id": "C04-html-practice-html-q14-df0f3507700f:option-1"
+     "option_id": "C04-html-practice-html-q14-9f16628a4fc2:option-1"
     },
     {
-     "text": "正确。同条件试件强度已达到设计要求，说明结构已具备强度条件，拆除无碍。",
+     "text": "正确。同条件试件强度已达到设计要求，说明顶板结构已具备足够的强度条件，拆除顶板模板及支架无碍。",
      "is_correct": false,
      "source_error_code": "E05",
      "temptation": "抓住「试件达标」这一条就下结论。",
      "loss_reason": "审题只看了一个条件：漏判张拉未做、口头申请、主体错三处不妥。",
      "fix": "先判不正确，再逐条补四前置条件。",
-     "option_id": "C04-html-practice-html-q14-df0f3507700f:option-2"
+     "option_id": "C04-html-practice-html-q14-9f16628a4fc2:option-2"
     },
     {
      "text": "不正确。问题在于口头申请不规范，改为书面申请并经监理签认后即可全部拆除。",
@@ -1026,23 +1026,23 @@
      "temptation": "抓到「口头申请」一处错，以为就这一处。",
      "loss_reason": "漏诊「未张拉就拆」这个最重的坑，批准主体也仍写错。",
      "fix": "张拉后拆 + 技术负责人批准 + 灌浆≥C30 都要补。",
-     "option_id": "C04-html-practice-html-q14-df0f3507700f:option-3"
+     "option_id": "C04-html-practice-html-q14-9f16628a4fc2:option-3"
     },
     {
-     "text": "不正确。顶板模板可以先拆，但支架应保留到预应力张拉完成后再拆除。",
+     "text": "不正确。顶板模板部分可以先行拆除，但支架应保留至预应力张拉完成之后方可拆除。",
      "is_correct": false,
      "source_error_code": "E10",
      "temptation": "看着像快拆的「拆模不拆撑」思路。",
      "loss_reason": "预应力底模（含模板）整体须张拉后拆，不是只留支架；把快拆逻辑错搬到预应力。",
      "fix": "底模及支架均须张拉后、按四条件拆除。",
-     "option_id": "C04-html-practice-html-q14-df0f3507700f:option-4"
+     "option_id": "C04-html-practice-html-q14-9f16628a4fc2:option-4"
     }
    ],
    "model_answer": "不正确。前置条件四条：①张拉后拆底模；②同条件试件强度达标；③填拆模申请、经技术负责人批准；④有孔道灌浆的灌浆强度≥C30。",
    "rule_group": "预应力纠错·程序维",
-   "content_sha256": "db7af4350583d953e7069b26ecdd5243580e9024814233350b0e797740d27c55",
+   "content_sha256": "cfeba5b9ef3edbd91b2513dd75f4d58ee89bfc9761dc0c7e52096616b34f6021",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q14",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1052,7 +1052,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "db7af4350583d953e7069b26ecdd5243580e9024814233350b0e797740d27c55",
+     "reviewed_content_sha256": "cfeba5b9ef3edbd91b2513dd75f4d58ee89bfc9761dc0c7e52096616b34f6021",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1067,19 +1067,10 @@
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q15-d09997019a40",
+   "variant_id": "C04-html-practice-html-q15-bcbe6c953a3c",
    "surface_id": "practice.html",
    "stem": "某现场规定：「同条件试块强度达标后，各部位模板即可安排拆除。」判断该规定并改正。",
    "options": [
-    {
-     "text": "不妥。拆模须同时满足强度、顺序、程序与作业安全四道门槛，试块达标只是其中一环。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "用「四门槛」框架判题，把强度之外的三道门都点到。",
-     "option_id": "C04-html-practice-html-q15-d09997019a40:option-1"
-    },
     {
      "text": "妥当。试块强度是拆模的核心指标，达标说明混凝土已硬化，具备拆除条件。",
      "is_correct": false,
@@ -1087,7 +1078,7 @@
      "temptation": "强度确实是最硬的指标。",
      "loss_reason": "把单一条件当充分条件：顺序、程序、安全三道门全被跳过。",
      "fix": "补顺序成对句、程序三步、作业安全要求。",
-     "option_id": "C04-html-practice-html-q15-d09997019a40:option-2"
+     "option_id": "C04-html-practice-html-q15-bcbe6c953a3c:option-1"
     },
     {
      "text": "不妥。还应补充拆除顺序要求：后支先拆、先支后拆，非承重先拆、承重后拆。",
@@ -1096,7 +1087,16 @@
      "temptation": "想起了顺序门槛，补得也对。",
      "loss_reason": "只补了一道门：程序（申请+技术负责人批准）和作业安全仍然漏。",
      "fix": "四道门都写：强度、顺序、程序、安全。",
-     "option_id": "C04-html-practice-html-q15-d09997019a40:option-3"
+     "option_id": "C04-html-practice-html-q15-bcbe6c953a3c:option-2"
+    },
+    {
+     "text": "不妥。拆模须同时满足强度、顺序、程序与作业安全四道门槛，试块达标只是其中一环。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "用「四门槛」框架判题，把强度之外的三道门都点到。",
+     "option_id": "C04-html-practice-html-q15-bcbe6c953a3c:option-3"
     },
     {
      "text": "不妥。试块达标后还须报监理工程师同意，监理签认后各部位即可同时拆除。",
@@ -1105,14 +1105,14 @@
      "temptation": "报监理像是那道缺的程序。",
      "loss_reason": "批准主体错（技术负责人），「同时拆除」还违反顺序门槛。",
      "fix": "技术负责人批准 + 按成对句顺序分批拆。",
-     "option_id": "C04-html-practice-html-q15-d09997019a40:option-4"
+     "option_id": "C04-html-practice-html-q15-bcbe6c953a3c:option-4"
     }
    ],
    "model_answer": "不妥。合法拆模须同时满足强度（按构件×跨度查表）、顺序（成对句）、程序（申请+试块+技术负责人批准）与作业安全四道门槛，试块达标仅是强度门槛的一部分。",
    "rule_group": "综合判断·条件维",
-   "content_sha256": "82fd70bd4622b4f73db6428a08089ee73baa8a9154e6c8f47df6822d2f0bad7e",
+   "content_sha256": "d32dfa2f3aafd51ae0c437984b92288393ab210b0d21a61173426139ad50ed19",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q15",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1122,7 +1122,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "82fd70bd4622b4f73db6428a08089ee73baa8a9154e6c8f47df6822d2f0bad7e",
+     "reviewed_content_sha256": "d32dfa2f3aafd51ae0c437984b92288393ab210b0d21a61173426139ad50ed19",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1137,19 +1137,10 @@
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q16-bd3fe10391f8",
+   "variant_id": "C04-html-practice-html-q16-9e7403065dc9",
    "surface_id": "practice.html",
    "stem": "某学生作答拆模条件题：①所有模板达 1N/mm² 即可拆；②顺序按施工方案执行；③经监理同意后拆除。选出最准确的诊断与补写。",
    "options": [
-    {
-     "text": "三处都失分：1N/mm² 仅限墙体大模板，底模须查表；顺序须写成对句；程序须技术负责人批准。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "逐句诊断、逐句补写——把三句空话换成三句采分句，这就是会写答案。",
-     "option_id": "C04-html-practice-html-q16-bd3fe10391f8:option-1"
-    },
     {
      "text": "作答基本正确：三句话覆盖了强度、顺序、程序三个方面，结构完整可以给分。",
      "is_correct": false,
@@ -1157,16 +1148,25 @@
      "temptation": "三句话确实每句沾了一个门槛。",
      "loss_reason": "沾边≠采分：数值张冠李戴、顺序口号化、主体错位，三句全是失分句。",
      "fix": "逐句替换为查表句、成对句、三步程序句。",
-     "option_id": "C04-html-practice-html-q16-bd3fe10391f8:option-2"
+     "option_id": "C04-html-practice-html-q16-9e7403065dc9:option-1"
     },
     {
-     "text": "只有第①句有问题，把 1N/mm² 改为「达到设计强度的 75%」即可，②③无须修改。",
+     "text": "三处都失分：1N/mm² 仅限墙体大模板，底模须查表；顺序须写成对句；程序须技术负责人批准。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "逐句诊断、逐句补写——把三句空话换成三句采分句，这就是会写答案。",
+     "option_id": "C04-html-practice-html-q16-9e7403065dc9:option-2"
+    },
+    {
+     "text": "只有第①句存在问题，把 1N/mm² 统一改为「达到设计强度的 75%」即可得分，第②③句无须修改。",
      "is_correct": false,
      "source_error_code": "M08",
      "temptation": "抓到 1N/mm² 眼熟的错，想一改了之。",
      "loss_reason": "「统一 75%」还是数字错（应按构件×跨度分档），且②口号化、③主体错都没诊出来。",
      "fix": "①按构件×跨度查表；②补成对句；③技术负责人批准。",
-     "option_id": "C04-html-practice-html-q16-bd3fe10391f8:option-3"
+     "option_id": "C04-html-practice-html-q16-9e7403065dc9:option-3"
     },
     {
      "text": "第③句主体错应改为技术负责人，第①②句表述虽简略但方向正确，不影响得分。",
@@ -1175,14 +1175,14 @@
      "temptation": "诊出了主体错，觉得其余「意思到了」。",
      "loss_reason": "漏诊①的通用阈值错误和②的口号化——阅卷不给「方向分」，只认采分词。",
      "fix": "三句都要重写：查表句 + 成对句 + 程序句。",
-     "option_id": "C04-html-practice-html-q16-bd3fe10391f8:option-4"
+     "option_id": "C04-html-practice-html-q16-9e7403065dc9:option-4"
     }
    ],
    "model_answer": "三处全失分：①1N/mm² 仅限墙体大模板侧模，底模须按构件×跨度查表；②顺序须写成对句「后支先拆、先支后拆；非承重先、承重后」；③程序须填申请+试块达标+技术负责人批准。",
    "rule_group": "采分诊断·末题",
-   "content_sha256": "16b99857fa63b09dba7ce67048e64f0df01374b22d5a89a8d00361e54bc3f40d",
+   "content_sha256": "e736ca6a8022cbaf3498eac3c1529f63cd047964468264cec1ce7cd559f1f8eb",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q16",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "c04-fact-form-removal-diagnosis",
     "skeleton_id": "c04-skel-拆模五错诊断",
@@ -1192,17 +1192,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "16b99857fa63b09dba7ce67048e64f0df01374b22d5a89a8d00361e54bc3f40d",
+     "reviewed_content_sha256": "e736ca6a8022cbaf3498eac3c1529f63cd047964468264cec1ce7cd559f1f8eb",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T18:39:12+08:00"
+       "signed_at": "2026-07-18T19:31:39+08:00"
       }
      ],
      "checks": {
@@ -1212,43 +1212,34 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
     },
     "revoked": false,
     "revocation_refs": []
    }
   },
   {
-   "variant_id": "C04-html-practice-html-q17-c25503c0f053",
+   "variant_id": "C04-html-practice-html-q17-6663aca3d45f",
    "surface_id": "practice.html",
    "stem": "某墙体采用大模板施工，常温下混凝土强度已达 1.2N/mm²，现场却要求等强度达设计值 75% 后才拆墙模。判断该要求并改正。",
    "options": [
     {
-     "text": "不当。墙体大模板属不承重侧模，常温达 1N/mm² 即可拆；75% 是底模的档位，不适用于侧模。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "点明构件归类（侧模）→ 引对应判据（1N/mm²）→ 指出档位表用错对象。",
-     "option_id": "C04-html-practice-html-q17-c25503c0f053:option-1"
-    },
-    {
-     "text": "妥当。从严控制拆模强度总是安全的，等 75% 再拆墙模没有任何问题。",
+     "text": "妥当。从严控制拆模强度总是更为安全的做法，等强度达到 75% 后再拆墙模没有任何问题。",
      "is_correct": false,
      "source_error_code": "E07",
      "temptation": "「从严无错」是最顺手的和稀泥。",
      "loss_reason": "考的是判据归属：侧模用底模判据就是概念混淆，从严不能掩盖判据错。",
      "fix": "侧模按 1N/mm²/棱角判据，不套百分率表。",
-     "option_id": "C04-html-practice-html-q17-c25503c0f053:option-2"
+     "option_id": "C04-html-practice-html-q17-6663aca3d45f:option-1"
     },
     {
-     "text": "不当。墙模拆除与强度无关，模板周转需要时即可拆除，1.2N/mm² 的数据无意义。",
+     "text": "不当。墙模拆除与混凝土强度无关，模板周转需要时即可安排拆除，1.2N/mm² 的实测数据并无意义。",
      "is_correct": false,
      "source_error_code": "E10",
      "temptation": "既然不用查表，干脆觉得强度不设限。",
      "loss_reason": "侧模仍有强度门槛（保证表面棱角不受损、大模板 1N/mm²），说「无关」违反条文。",
      "fix": "写「常温达 1N/mm² 即可拆」并保表面棱角。",
-     "option_id": "C04-html-practice-html-q17-c25503c0f053:option-3"
+     "option_id": "C04-html-practice-html-q17-6663aca3d45f:option-2"
     },
     {
      "text": "不当。墙体大模板常温达 2.5N/mm² 方可拆除，1.2N/mm² 尚未达到要求。",
@@ -1257,14 +1248,23 @@
      "temptation": "方向判对了，阈值数字记岔了。",
      "loss_reason": "规范值是 1N/mm²，1.2 已满足；编数字比不写更危险。",
      "fix": "阈值写 1N/mm²，本例已可拆。",
-     "option_id": "C04-html-practice-html-q17-c25503c0f053:option-4"
+     "option_id": "C04-html-practice-html-q17-6663aca3d45f:option-3"
+    },
+    {
+     "text": "不当。墙体大模板属不承重侧模，常温达 1N/mm² 即可拆；75% 是底模的档位，不适用于侧模。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点明构件归类（侧模）→ 引对应判据（1N/mm²）→ 指出档位表用错对象。",
+     "option_id": "C04-html-practice-html-q17-6663aca3d45f:option-4"
     }
    ],
    "model_answer": "要求不当。墙体大模板属不承重侧模，常温达 1N/mm² 即可拆除；75% 百分率表适用于承重底模及支架，套用到侧模属判据混淆。",
    "rule_group": "侧底混淆·条件维",
-   "content_sha256": "262a40b1e683d24177a12700e858f8758dee33eb97ff134f9190a998eb04e652",
+   "content_sha256": "6779cc11f230b2456d560486fbef25071c55b0cd3e32dfd1811aa04e8863c1c1",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q17",
-   "authoring_sha256": "a2fa934e18c189654184c3de7d3d9e4e6af2ac6f53eb4b58af9c1932bce0d7a0",
+   "authoring_sha256": "d9a21f1f664fa1f1eb9e53c9331e7915107fc3fa775d7f17967edcf5dbdcfccf",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1274,7 +1274,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "262a40b1e683d24177a12700e858f8758dee33eb97ff134f9190a998eb04e652",
+     "reviewed_content_sha256": "6779cc11f230b2456d560486fbef25071c55b0cd3e32dfd1811aa04e8863c1c1",
      "signatures": [],
      "checks": {
       "source_verified": false,

@@ -249,7 +249,7 @@ class Component extends DCLogic {
       stem:"某工程屋面防水设计。关于屋面防水的分级与设防道数，选出正确、能得分的作答。",
       model:"屋面防水分一、二、三级共三级；一级不少于3道(卷材≥1道)、二级不少于2道(卷材≥1道)、三级不少于1道。",
       opts:[
-        { t:"屋面防水与地下工程采用相同分级，同样分一、二、三、四级共四级，并按四级分别对应各级设防道数。", ok:false, code:"E07", tempt:"屋面地下都叫防水，顺手记成同一套分级。", lose:"屋面是三级、地下才四级，分级数记混，等级一错道数全跟着错。", fix:"屋面防水分三级；四级是地下工程防水等级。" },
+        { t:"屋面防水与地下工程采用相同分级，同样分一、二、三、四级共四级，并按四级分别对应各级的设防道数配置。", ok:false, code:"E07", tempt:"屋面地下都叫防水，顺手记成同一套分级。", lose:"屋面是三级、地下才四级，分级数记混，等级一错道数全跟着错。", fix:"屋面防水分三级；四级是地下工程防水等级。" },
         { t:"屋面防水分一、二、三级共三级；一级不少于3道(其中卷材≥1道)、二级不少于2道、三级不少于1道。", ok:true, fix:"分级数写「三级」并把各级道数配套点出，一句到位。", code:"" },
         { t:"屋面防水虽分为三级，但各级具体设防道数无须逐一记忆，只要答出分级即算完整。", ok:false, code:"E02", tempt:"记住「三级」就以为够了，懒得背道数。", lose:"漏了各级设防道数这组采分点，只答分级不给全分。", fix:"补写一级≥3道(卷材≥1道)、二级≥2道、三级≥1道。" },
         { t:"屋面防水分三级，其中一级不少于2道、二级不少于1道，卷材与涂料任选、不作配套要求。", ok:false, code:"E03", tempt:"分级对，道数凭印象往小了写。", lose:"一级道数写少、且漏了「卷材≥1道」这个关键配套，数字错位。", fix:"一级≥3道且卷材≥1道、二级≥2道、三级≥1道。" }
@@ -258,7 +258,7 @@ class Component extends DCLogic {
       stem:"某屋面防水等级为一级。关于其设防道数，选出完整、能得分的作答。",
       model:"屋面一级防水设防不少于3道，其中卷材防水层不少于1道；多道设防、一道破了后道兜底。",
       opts:[
-        { t:"屋面一级防水做1道高性能卷材即可，材料性能足够时单道便能顶住，不必叠加多道。", ok:false, code:"E02", tempt:"觉得材料够好、一道省事又省钱。", lose:"一级要求≥3道，只写1道漏采分；单道被打穿水就进结构。", fix:"一级≥3道(卷材≥1道)，多道设防才容错。" },
+        { t:"屋面一级防水做1道高性能卷材即可，材料性能足够时单道便能顶住、无须再叠加多道设防。", ok:false, code:"E02", tempt:"觉得材料够好、一道省事又省钱。", lose:"一级要求≥3道，只写1道漏采分；单道被打穿水就进结构。", fix:"一级≥3道(卷材≥1道)，多道设防才容错。" },
         { t:"屋面一级防水不少于3道，三道如何搭配不限，涂料涂膜叠三层也可视为达标。", ok:false, code:"E03", tempt:"记住「3道」就以为齐了。", lose:"漏了「其中卷材≥1道」这一硬性配套，三道全涂膜不达标。", fix:"3道里必须至少1道是卷材防水层。" },
         { t:"屋面一级与地下一级要求一致，需防水混凝土1道加外设防水层2道共3道。", ok:false, code:"E07", tempt:"都是「一级≥3道」，把地下的做法套到屋面。", lose:"防水混凝土+外设是地下的构成，屋面不用结构自防水这套。", fix:"屋面一级=≥3道(卷材≥1道)；防水混凝土应选是地下的。" },
         { t:"屋面一级防水设防不少于3道，其中卷材防水层不少于1道，多道叠加、一道破了还有后手。", ok:true, fix:"道数+「卷材≥1道」配套+多道容错，采分句写全。", code:"" }
@@ -268,7 +268,7 @@ class Component extends DCLogic {
       model:"屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位设附加层。",
       opts:[
         { t:"屋面防水以排为主、以防为辅；设计工作年限不少于20年；天沟、泛水等部位加设附加层。", ok:false, code:"E07", tempt:"觉得屋面靠排水、「以排为主」顺口。", lose:"原则写反了，屋面是「以防为主、以排为辅」，方针错要扣。", fix:"是以防为主、以排为辅，别把主辅颠倒。" },
-        { t:"屋面防水以防为主、以排为辅；设计工作年限不少于20年；各部位构造做法相同、无须分别处理。", ok:false, code:"E02", tempt:"原则年限都对，就漏了细部。", lose:"漏了天沟/檐沟/变形缝/泛水设附加层这组采分点。", fix:"补写泛水等薄弱部位加设附加层。" },
+        { t:"屋面防水以防为主、以排为辅；设计工作年限不少于20年；各薄弱部位构造做法相同、无须分别区别处理。", ok:false, code:"E02", tempt:"原则年限都对，就漏了细部。", lose:"漏了天沟/檐沟/变形缝/泛水设附加层这组采分点。", fix:"补写泛水等薄弱部位加设附加层。" },
         { t:"屋面防水以防为主、以排为辅；设计工作年限不少于10年；天沟、泛水等部位加设附加层。", ok:false, code:"E03", tempt:"原则附加层都对，年限凭印象写10年。", lose:"年限数字写小，屋面防水设计工作年限应≥20年。", fix:"设计工作年限不少于20年，不是10年。" },
         { t:"屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位加设附加层。", ok:true, fix:"排水原则+年限+附加层三件齐，采分句到位。", code:"" }
       ] },
@@ -285,10 +285,10 @@ class Component extends DCLogic {
       stem:"某学生答室内防水翻起高度：①淋浴区墙面翻起1800mm；②盥洗用水处未写；③其他泛水部位250mm。选出最准确的诊断与采分句补写。",
       model:"淋浴区应≥2000mm(写1800偏低)、盥洗用水处漏写应补≥1200mm、其他泛水≥250mm正确；补写三档：淋浴≥2000、盥洗≥1200、其他≥250mm，迎水面设防潮/防水。",
       opts:[
+        { t:"三档中其他泛水250mm正确、淋浴1800mm亦在合理范围，仅需将盥洗用水处补写为1200mm。", ok:false, code:"E03", tempt:"只抓到漏写那档，放过了写小的淋浴。", lose:"淋浴区应≥2000mm，1800偏低仍要扣，不能只补盥洗。", fix:"淋浴改≥2000、盥洗补≥1200、其他≥250mm。" },
+        { t:"淋浴区翻起1800mm即可视为达标、盥洗用水处直接并入其他泛水250mm一并归档处理、无须再单独单列出1200mm一档。", ok:false, code:"E07", tempt:"把盥洗并进「其他泛水」少记一档。", lose:"盥洗用水处是单独一档≥1200mm，并进250mm整档记错。", fix:"盥洗用水处单列≥1200mm，别并入250mm。" },
         { t:"淋浴写1800偏低应改≥2000mm、盥洗漏写应补≥1200mm、其他250mm正确；三档补齐并注明迎水面设防潮/防水。", ok:true, fix:"逐档诊断+补写完整采分句，这就是「会写答案」。", code:"" },
-        { t:"三档里其他泛水250mm对、淋浴1800mm也在合理范围，只把盥洗补上1200mm即可。", ok:false, code:"E03", tempt:"只抓到漏写那档，放过了写小的淋浴。", lose:"淋浴区应≥2000mm，1800偏低仍要扣，不能只补盥洗。", fix:"淋浴改≥2000、盥洗补≥1200、其他≥250mm。" },
-        { t:"淋浴区翻起1800mm达标、盥洗按其他泛水250mm处理即可、无需单列1200mm一档。", ok:false, code:"E07", tempt:"把盥洗并进「其他泛水」少记一档。", lose:"盥洗用水处是单独一档≥1200mm，并进250mm整档记错。", fix:"盥洗用水处单列≥1200mm，别并入250mm。" },
-        { t:"三档高度都写小了，淋浴应≥2500、盥洗应≥1500、其他应≥300mm，全部上调。", ok:false, code:"E03", tempt:"知道要改大，凭感觉把三档都往上抬。", lose:"标准是2000/1200/250mm，随意上调成2500/1500/300数字全错。", fix:"淋浴≥2000、盥洗≥1200、其他≥250mm。" }
+        { t:"三档高度均偏小，淋浴应≥2500mm、盥洗应≥1500mm、其他应≥300mm，需全部上调。", ok:false, code:"E03", tempt:"知道要改大，凭感觉把三档都往上抬。", lose:"标准是2000/1200/250mm，随意上调成2500/1500/300数字全错。", fix:"淋浴≥2000、盥洗≥1200、其他≥250mm。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -515,7 +515,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"F03-html-practice-html-q1-f462cac471c8","options":["F03-html-practice-html-q1-f462cac471c8:option-1","F03-html-practice-html-q1-f462cac471c8:option-2","F03-html-practice-html-q1-f462cac471c8:option-3","F03-html-practice-html-q1-f462cac471c8:option-4"]},{"variant_id":"F03-html-practice-html-q2-ef9f1a4d6622","options":["F03-html-practice-html-q2-ef9f1a4d6622:option-1","F03-html-practice-html-q2-ef9f1a4d6622:option-2","F03-html-practice-html-q2-ef9f1a4d6622:option-3","F03-html-practice-html-q2-ef9f1a4d6622:option-4"]},{"variant_id":"F03-html-practice-html-q3-45464ecc00a5","options":["F03-html-practice-html-q3-45464ecc00a5:option-1","F03-html-practice-html-q3-45464ecc00a5:option-2","F03-html-practice-html-q3-45464ecc00a5:option-3","F03-html-practice-html-q3-45464ecc00a5:option-4"]},{"variant_id":"F03-html-practice-html-q4-5436a7f644e1","options":["F03-html-practice-html-q4-5436a7f644e1:option-1","F03-html-practice-html-q4-5436a7f644e1:option-2","F03-html-practice-html-q4-5436a7f644e1:option-3","F03-html-practice-html-q4-5436a7f644e1:option-4"]},{"variant_id":"F03-html-practice-html-q15-fb7660e7484a","options":["F03-html-practice-html-q15-fb7660e7484a:option-1","F03-html-practice-html-q15-fb7660e7484a:option-2","F03-html-practice-html-q15-fb7660e7484a:option-3","F03-html-practice-html-q15-fb7660e7484a:option-4"]}];
+    const exactItems=[{"variant_id":"F03-html-practice-html-q1-a1e8c37d3095","options":["F03-html-practice-html-q1-a1e8c37d3095:option-1","F03-html-practice-html-q1-a1e8c37d3095:option-2","F03-html-practice-html-q1-a1e8c37d3095:option-3","F03-html-practice-html-q1-a1e8c37d3095:option-4"]},{"variant_id":"F03-html-practice-html-q2-79c629fb1226","options":["F03-html-practice-html-q2-79c629fb1226:option-1","F03-html-practice-html-q2-79c629fb1226:option-2","F03-html-practice-html-q2-79c629fb1226:option-3","F03-html-practice-html-q2-79c629fb1226:option-4"]},{"variant_id":"F03-html-practice-html-q3-3ad2bfdbadc0","options":["F03-html-practice-html-q3-3ad2bfdbadc0:option-1","F03-html-practice-html-q3-3ad2bfdbadc0:option-2","F03-html-practice-html-q3-3ad2bfdbadc0:option-3","F03-html-practice-html-q3-3ad2bfdbadc0:option-4"]},{"variant_id":"F03-html-practice-html-q4-5436a7f644e1","options":["F03-html-practice-html-q4-5436a7f644e1:option-1","F03-html-practice-html-q4-5436a7f644e1:option-2","F03-html-practice-html-q4-5436a7f644e1:option-3","F03-html-practice-html-q4-5436a7f644e1:option-4"]},{"variant_id":"F03-html-practice-html-q15-add11dbc2a8d","options":["F03-html-practice-html-q15-add11dbc2a8d:option-1","F03-html-practice-html-q15-add11dbc2a8d:option-2","F03-html-practice-html-q15-add11dbc2a8d:option-3","F03-html-practice-html-q15-add11dbc2a8d:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -532,7 +532,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjQ2MmNhYzQ3MWM4IiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lZjlmMWE0ZDY2MjIiLCJGMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQ1NDY0ZWNjMDBhNSIsIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNTQzNmE3ZjY0NGUxIiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZmI3NjYwZTc0ODRhIl0sInBhY2tfaWQiOiJGMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6Ijg0NGRmMTBhMDJmZmI5ZjBhZjMyZDQxOWE0ZWY4OWUyYjYyOTI0MmQ1MDgwMDc3NWM5OGJlZGYzODJhM2Q5MzAiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTFlOGMzN2QzMDk1IiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03OWM2MjlmYjEyMjYiLCJGMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTNhZDJiZmRiYWRjMCIsIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNTQzNmE3ZjY0NGUxIiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYWRkMTFkYmMyYThkIl0sInBhY2tfaWQiOiJGMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjZmNGEwYmUyOWU4YjNjNjM5ZjFkMjY0NDhlZDE3NDFhYjkwNDJlNzZhNjhhNjgyZGRhOTliNzdlNDMwODUwN2YiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

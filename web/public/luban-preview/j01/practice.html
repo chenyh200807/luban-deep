@@ -239,46 +239,46 @@ class Component extends DCLogic {
       stem:"某工程基坑开挖深度 4m。就危大工程判定，选出最完整、能得分的作答。",
       model:"开挖深度 4m（≥3m）属危险性较大的分部分项工程，应编制专项施工方案；未达 5m，尚不需专家论证。",
       opts:[
+        { t:"开挖深度 4m 已超过 3m，应判为超过一定规模的危险性较大的分部分项工程，除编制专项施工方案外，还须组织专家论证后方可施工。", ok:false, code:"E10", tempt:"看到「超过 3m」就直接联想到最严的专家论证。", lose:"混档：3m 是危大线、5m 才是超规模论证线，4m 未达论证档。", fix:"4m 达危大应编方案；未达 5m，不需论证。" },
+        { t:"此类深 4m 的基坑可按一般分部分项工程管理，施工中加强临边防护与变形监测即可，不必单独编制专项施工方案。", ok:false, code:"E02", tempt:"当成一般「注意安全」的施工问题。", lose:"漏掉「达危大·编专项方案」这一核心采分点。", fix:"应写「达 3m 属危大，须编制专项施工方案」。" },
         { t:"基坑开挖深度 4m，达到 3m 及以上，属危险性较大的分部分项工程，应编制专项施工方案（未达 5m，暂不需专家论证）。", ok:true, fix:"阈值 3m + 「危大·编专项方案」结论 + 说明未到论证档，判档链完整。", code:"" },
-        { t:"基坑深度 4m 已超过 3m，属超过一定规模的危大工程，除编制专项方案外还应组织专家论证后施工。", ok:false, code:"E10", tempt:"看到「超过 3m」就直接联想到最严的专家论证。", lose:"混档：3m 是危大线、5m 才是超规模论证线，4m 未达论证档。", fix:"4m 达危大应编方案；未达 5m，不需论证。" },
-        { t:"基坑深度 4m 可按一般分部分项工程管理，施工时加强临边防护与变形监测即可，不必单独编方案。", ok:false, code:"E02", tempt:"当成一般「注意安全」的施工问题。", lose:"漏掉「达危大·编专项方案」这一核心采分点。", fix:"应写「达 3m 属危大，须编制专项施工方案」。" },
-        { t:"基坑深度 4m 未达到 5m 的起算线，尚不属于危险性较大的分部分项工程，无需编制专项施工方案。", ok:false, code:"M08", tempt:"把 5m 当成危大起算线。", lose:"记错阈值：危大基坑起算 3m 不是 5m，4m 已属危大。", fix:"危大基坑≥3m，4m 已属危大，须编专项方案。" }
+        { t:"由于 4m 尚未达到 5m 的起算线，该基坑不属于危险性较大的分部分项工程，无需编制专项施工方案。", ok:false, code:"M08", tempt:"把 5m 当成危大起算线。", lose:"记错阈值：危大基坑起算 3m 不是 5m，4m 已属危大。", fix:"危大基坑≥3m，4m 已属危大，须编专项方案。" }
       ] },
 { tag:"判档·条件维", typeHint:"单选 · 选出最完整、能得分的作答", fig:"depth", dep:6, figLabel:"题给：深基坑开挖深度", figCaption:"深基坑开挖深度 6m · 判档？",
       stem:"某深基坑开挖深度 6m。就危大工程判定，选出最完整、能得分的作答。",
       model:"深基坑 6m（≥5m）属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
       opts:[
+        { t:"本基坑开挖深度 6m 属危险性较大的分部分项工程，编制专项施工方案并履行完相应的审批签字手续后即可组织施工。", ok:false, code:"E02", tempt:"答对了危大档，但停在编方案。", lose:"漏了「超规模·还应专家论证」，只答半档。", fix:"6m≥5m 属超规模，除编方案外还应组织专家论证。" },
         { t:"深基坑开挖深度 6m，达到 5m 及以上，属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。", ok:true, fix:"阈值 5m + 「超规模」定性 + 「编方案 + 专家论证」两件事写全。", code:"" },
-        { t:"深基坑 6m 已属危险性较大的分部分项工程，编制专项施工方案并履行审批签字后即可施工。", ok:false, code:"E02", tempt:"答对了危大档，但停在编方案。", lose:"漏了「超规模·还应专家论证」，只答半档。", fix:"6m≥5m 属超规模，除编方案外还应组织专家论证。" },
-        { t:"深基坑 6m 属超过一定规模的危大工程，应由建设单位组织召开专家论证会进行论证。", ok:false, code:"E07", tempt:"知道要论证，但组织主体张冠李戴。", lose:"论证会应由施工总承包单位组织，不是建设单位。", fix:"超规模应由施工总承包单位组织召开专家论证会。" },
-        { t:"深基坑 6m 尚未超过 8m 的界限，不属于超过一定规模的危大工程，不需要组织专家论证。", ok:false, code:"M08", tempt:"把模板支撑 8m 的阈值套到深基坑上。", lose:"混阈值：深基坑超规模线是 5m，6m 已达。", fix:"深基坑≥5m 即超规模，6m 应论证。" }
+        { t:"该工程属超过一定规模的危大工程，应由建设单位组织召开专家论证会对专项施工方案进行论证。", ok:false, code:"E07", tempt:"知道要论证，但组织主体张冠李戴。", lose:"论证会应由施工总承包单位组织，不是建设单位。", fix:"超规模应由施工总承包单位组织召开专家论证会。" },
+        { t:"开挖深度 6m 尚未超过 8m 的界限，不属于超过一定规模的危大工程，不需要组织专家论证。", ok:false, code:"M08", tempt:"把模板支撑 8m 的阈值套到深基坑上。", lose:"混阈值：深基坑超规模线是 5m，6m 已达。", fix:"深基坑≥5m 即超规模，6m 应论证。" }
       ] },
 { tag:"混档辨析·条件维", typeHint:"单选 · 选出最准确的判断与纠正", fig:"depth", figLabel:"题给：判断对错", figCaption:"「基坑一过 3m 就要专家论证」对吗？",
       stem:"有人说：「基坑只要开挖深度超过 3m，就必须组织专家论证。」选出最准确的判断与纠正。",
       model:"说法错误。3m 是危大线（编专项方案），5m 才是超规模线（专家论证）；3～5m 之间只需编方案、不需论证。",
       opts:[
         { t:"错误。开挖深度达 3m 属危大、应编专项方案；达 5m 才属超规模、才需专家论证。3～5m 之间编方案不论证。", ok:true, fix:"两条线两档说清楚，纠正到位。", code:"" },
-        { t:"正确。开挖深度超过 3m 即属危大工程，凡危大工程一律都要组织专家论证后方可施工。", ok:false, code:"E10", tempt:"以为「危大」和「要论证」是一回事。", lose:"危大不等于超规模；只有超规模档才论证。", fix:"3m 编方案、5m 才论证，别把两档并成一档。" },
-        { t:"错误。真正的论证起算线应当是开挖深度超过 2m，达到 2m 就必须组织专家论证。", ok:false, code:"E07", tempt:"记了个更小的数当阈值。", lose:"阈值错且档次错，论证是 5m 档不是 2m。", fix:"论证是超规模 5m 档。" },
-        { t:"这主要属于施工方案的编制与审批问题，与是否需要组织专家论证之间没有直接关系。", ok:false, code:"E05", tempt:"回避了「档次」这个考点。", lose:"答非所问，没判两条线。", fix:"要点明 3m 危大、5m 超规模两档。" }
+        { t:"正确。开挖深度只要超过 3m 即属危大工程，凡属危险性较大的分部分项工程，一律都应组织专家论证后方可进行施工。", ok:false, code:"E10", tempt:"以为「危大」和「要论证」是一回事。", lose:"危大不等于超规模；只有超规模档才论证。", fix:"3m 编方案、5m 才论证，别把两档并成一档。" },
+        { t:"错误。真正的论证起算线应是开挖深度超过 2m，凡达到 2m 的基坑均必须组织专家论证。", ok:false, code:"E07", tempt:"记了个更小的数当阈值。", lose:"阈值错且档次错，论证是 5m 档不是 2m。", fix:"论证是超规模 5m 档。" },
+        { t:"该说法涉及的只是施工方案的编制与审批问题，与是否需要组织专家论证之间并没有直接关系。", ok:false, code:"E05", tempt:"回避了「档次」这个考点。", lose:"答非所问，没判两条线。", fix:"要点明 3m 危大、5m 超规模两档。" }
       ] },
 { tag:"编制主体·主体维", typeHint:"单选 · 选出能得分的作答", fig:"subject", figLabel:"题给：谁来组织编制专项方案", figCaption:"总承包 / 监理 / 建设 · 谁编？",
       stem:"某超规模危大工程需编制专项施工方案。该方案应由谁组织编制？选出能得分的作答。",
       model:"专项施工方案由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
       opts:[
+        { t:"由施工单位负责编制专项方案，编制完成后报送项目监理机构与建设单位备案，即视为履行了编制程序。", ok:false, code:"E06", tempt:"顺口写「施工单位」，感觉没错。", lose:"「施工单位」含糊，阅卷要「施工总承包单位」才给主体分。", fix:"应写「施工总承包单位组织编制」。" },
+        { t:"应由建设单位作为工程总负责方组织编制，编制完成后再交施工单位照此组织实施。", ok:false, code:"E06", tempt:"觉得建设单位是甲方、负总责。", lose:"编制主体是施工总承包单位，不是建设单位。", fix:"施工总承包单位组织编制。" },
         { t:"由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。", ok:true, fix:"精确到「施工总承包单位」，并补专业分包可编的情形，主体写全。", code:"" },
-        { t:"由施工单位负责编制专项方案即可，编制完成后报送项目监理机构与建设单位备案就算合规。", ok:false, code:"E06", tempt:"顺口写「施工单位」，感觉没错。", lose:"「施工单位」含糊，阅卷要「施工总承包单位」才给主体分。", fix:"应写「施工总承包单位组织编制」。" },
-        { t:"由建设单位作为工程总负责方组织编制专项方案，编制完成后再交施工单位照此组织实施。", ok:false, code:"E06", tempt:"觉得建设单位是甲方、负总责。", lose:"编制主体是施工总承包单位，不是建设单位。", fix:"施工总承包单位组织编制。" },
-        { t:"由项目监理单位负责编制专项方案，编制完成后交施工单位组织实施并对施工现场安全负责。", ok:false, code:"E06", tempt:"把监理的「审查」误当「编制」。", lose:"监理是审查方不是编制方，主体错。", fix:"施工总承包单位编、总监理工程师审查。" }
+        { t:"应当由项目监理单位负责编制专项方案，完成后交施工单位组织实施并对现场安全负责。", ok:false, code:"E06", tempt:"把监理的「审查」误当「编制」。", lose:"监理是审查方不是编制方，主体错。", fix:"施工总承包单位编、总监理工程师审查。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 数值可能蒙对，诊断失分并给正确补写", fig:"sheet", figLabel:"真题 · 模拟学生作答（待诊断）", figCaption:"记得「专家 5 人」，但漏了要害",
       stem:"真题背景：基坑深 7.6m，基坑支护专业施工单位编制方案并履行审批签字后，组织「包括总承包单位技术负责人在内的 5 名专家」论证。学生答：「论证不妥。专家应有 5 人，够了。让施工单位再仔细检查方案。」选出最准确的诊断与补写。",
       model:"漏点：①未指出参建方人员（总包技术负责人）不得当专家（回避）②「5 人够了」应为「5 人以上」③「再检查方案」答非所问。补写：不妥在组织含总承包单位技术负责人在内的 5 名专家论证；专家应为 5 人以上，且本项目参建各方人员不得以专家身份参加。",
       opts:[
         { t:"漏了核心不妥：总包技术负责人属参建方、不得当专家（回避）；「5 人够了」应为「5 人以上」；「再检查方案」答非所问。补写：专家应为 5 人以上，且参建各方人员不得以专家身份参加论证。", ok:true, fix:"三处失分全揪出，补写即可上答题纸——这就是「会写答案」。", code:"" },
-        { t:"学生答得基本正确，专家 5 人已符合人数要求，只需再补充说明方案应经总监理工程师审查这道程序即可。", ok:false, code:"E08", tempt:"只看「5 人」和「检查」，觉得方向对。", lose:"没抓题干埋点：参建方技术负责人当专家（回避）才是第一失分点。", fix:"应先指出参建方不得当专家、且专家 5 人以上。" },
-        { t:"本题失分只是人数写法问题，把「专家应有 5 人」改成「5 人以上」或增加到 6 人，答案就完整了。", ok:false, code:"E10", tempt:"抓到人数一处就以为只此一错。", lose:"漏诊回避（核心）+「5 人以上」表述 + 答非所问。", fix:"核心是回避，且应写「5 人以上」。" },
-        { t:"本题应诊断为方案编制主体错误，深基坑支护方案不应由专业施工单位编制，改由建设单位组织编制即可。", ok:false, code:"E05", tempt:"往编制主体上带偏。", lose:"本题失分在专家组回避与人数，编制主体非本问考点。", fix:"按回避 + 5 人以上诊断并补写。" }
+        { t:"学生的作答方向基本正确：专家 5 人已符合论证的人数要求，「再仔细检查方案」也有必要，只需再补充说明专项方案应当经过总监理工程师审查这道程序，诊断即告完整。", ok:false, code:"E08", tempt:"只看「5 人」和「检查」，觉得方向对。", lose:"没抓题干埋点：参建方技术负责人当专家（回避）才是第一失分点。", fix:"应先指出参建方不得当专家、且专家 5 人以上。" },
+        { t:"本题失分只是人数写法一处问题：把「专家应有 5 人」的表述改为「5 人以上」，或者把专家人数增加到 6 人，这份作答就已经完整，可以得到全部分数。", ok:false, code:"E10", tempt:"抓到人数一处就以为只此一错。", lose:"漏诊回避（核心）+「5 人以上」表述 + 答非所问。", fix:"核心是回避，且应写「5 人以上」。" },
+        { t:"本题应诊断为方案编制主体错误：深基坑支护工程的专项方案不应由基坑支护专业施工单位编制，应改由建设单位组织编制，并按更正后的主体重新履行编制程序。", ok:false, code:"E05", tempt:"往编制主体上带偏。", lose:"本题失分在专家组回避与人数，编制主体非本问考点。", fix:"按回避 + 5 人以上诊断并补写。" }
       ] }
   ];
   codeMap={
@@ -499,7 +499,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"J01-html-practice-html-q1-c90daf8ddfb3","options":["J01-html-practice-html-q1-c90daf8ddfb3:option-1","J01-html-practice-html-q1-c90daf8ddfb3:option-2","J01-html-practice-html-q1-c90daf8ddfb3:option-3","J01-html-practice-html-q1-c90daf8ddfb3:option-4"]},{"variant_id":"J01-html-practice-html-q2-1703f826ad25","options":["J01-html-practice-html-q2-1703f826ad25:option-1","J01-html-practice-html-q2-1703f826ad25:option-2","J01-html-practice-html-q2-1703f826ad25:option-3","J01-html-practice-html-q2-1703f826ad25:option-4"]},{"variant_id":"J01-html-practice-html-q3-afa772a5b009","options":["J01-html-practice-html-q3-afa772a5b009:option-1","J01-html-practice-html-q3-afa772a5b009:option-2","J01-html-practice-html-q3-afa772a5b009:option-3","J01-html-practice-html-q3-afa772a5b009:option-4"]},{"variant_id":"J01-html-practice-html-q4-1a5d57147d8c","options":["J01-html-practice-html-q4-1a5d57147d8c:option-1","J01-html-practice-html-q4-1a5d57147d8c:option-2","J01-html-practice-html-q4-1a5d57147d8c:option-3","J01-html-practice-html-q4-1a5d57147d8c:option-4"]},{"variant_id":"J01-html-practice-html-q16-c2a1c8df11f6","options":["J01-html-practice-html-q16-c2a1c8df11f6:option-1","J01-html-practice-html-q16-c2a1c8df11f6:option-2","J01-html-practice-html-q16-c2a1c8df11f6:option-3","J01-html-practice-html-q16-c2a1c8df11f6:option-4"]}];
+    const exactItems=[{"variant_id":"J01-html-practice-html-q1-14f4ec3e062a","options":["J01-html-practice-html-q1-14f4ec3e062a:option-1","J01-html-practice-html-q1-14f4ec3e062a:option-2","J01-html-practice-html-q1-14f4ec3e062a:option-3","J01-html-practice-html-q1-14f4ec3e062a:option-4"]},{"variant_id":"J01-html-practice-html-q2-c07a303bd42b","options":["J01-html-practice-html-q2-c07a303bd42b:option-1","J01-html-practice-html-q2-c07a303bd42b:option-2","J01-html-practice-html-q2-c07a303bd42b:option-3","J01-html-practice-html-q2-c07a303bd42b:option-4"]},{"variant_id":"J01-html-practice-html-q3-a0b06c9f9fab","options":["J01-html-practice-html-q3-a0b06c9f9fab:option-1","J01-html-practice-html-q3-a0b06c9f9fab:option-2","J01-html-practice-html-q3-a0b06c9f9fab:option-3","J01-html-practice-html-q3-a0b06c9f9fab:option-4"]},{"variant_id":"J01-html-practice-html-q4-83b6a518c6dd","options":["J01-html-practice-html-q4-83b6a518c6dd:option-1","J01-html-practice-html-q4-83b6a518c6dd:option-2","J01-html-practice-html-q4-83b6a518c6dd:option-3","J01-html-practice-html-q4-83b6a518c6dd:option-4"]},{"variant_id":"J01-html-practice-html-q16-673ec10c7375","options":["J01-html-practice-html-q16-673ec10c7375:option-1","J01-html-practice-html-q16-673ec10c7375:option-2","J01-html-practice-html-q16-673ec10c7375:option-3","J01-html-practice-html-q16-673ec10c7375:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -516,7 +516,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("J01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYzkwZGFmOGRkZmIzIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xNzAzZjgyNmFkMjUiLCJKMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFmYTc3MmE1YjAwOSIsIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWE1ZDU3MTQ3ZDhjIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzJhMWM4ZGYxMWY2Il0sInBhY2tfaWQiOiJKMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImJkZmI0MWE4ZjljNGJjOWE4ZTllNDZkODU5MjQwNDU1NTJhYmNiZGQ3ZTUwNzU0MzFjMDcyOTFjZWI5ODMzMTciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNTRlMzZhMmVhMTliOWFlNjA5ODg5OTJkMzkzN2E2ZWFjMGQ0OWNlMjI5NGNkZjg1MDlmMzgzZDhlODAzYTQzNyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("J01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMTRmNGVjM2UwNjJhIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1jMDdhMzAzYmQ0MmIiLCJKMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwYjA2YzlmOWZhYiIsIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtODNiNmE1MThjNmRkIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNjczZWMxMGM3Mzc1Il0sInBhY2tfaWQiOiJKMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjZjN2QwZWM0MWRlMDllYmViNWMwNjIyZjQ4OTUwZmY4YTRhMTkxNmRjNjcwMDIxNTNkOWUxMThjYzBjMzdiOWMiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNTRlMzZhMmVhMTliOWFlNjA5ODg5OTJkMzkzN2E2ZWFjMGQ0OWNlMjI5NGNkZjg1MDlmMzgzZDhlODAzYTQzNyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
