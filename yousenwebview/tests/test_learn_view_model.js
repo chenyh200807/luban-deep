@@ -65,6 +65,26 @@ const FULL = {
       enabled: true,
       due: [],
     },
+    station_journey: {
+      authority: "station_journey_projection.read_model",
+      schema_version: 1,
+      degraded: false,
+      packs: {
+        N01: {
+          pack_id: "N01",
+          journey_state: "active",
+          current_step_id: "practice",
+          steps: [
+            { id: "lesson", status: "completed", evidence_refs: ["lesson_n01"], blocking: false },
+            { id: "practice", status: "current", evidence_refs: [], blocking: true },
+            { id: "diagnosis", status: "upcoming", evidence_refs: [], blocking: false },
+            { id: "immediate_confirm", status: "upcoming", evidence_refs: [], blocking: false },
+            { id: "due_validation", status: "upcoming", evidence_refs: [], blocking: false },
+            { id: "followup", status: "future", evidence_refs: [], blocking: false },
+          ],
+        },
+      },
+    },
     overview: { recent_three_done: 8, weak_point_count: 3, today_done: 4, daily_target: 10 },
     mastery: { overall_mastery: { score: 72 } },
   },
@@ -478,10 +498,7 @@ ok("poster name uses registered 简称; title keeps full text; unregistered fall
 // 10a改 · 今日任务卡三层 + 旅程轨道 + 复习卡(单一权威红线)
 // ══════════════════════════════════════════════════════════════
 
-// ── 旅程轨道(红队 A1 收口 + owner 2026-07-18 排版去重):前端没有逐步完成证据 →
-//    轨道=流程说明。禁 done/勾;current 由 taskCard.task_state 派生(CTA 对应步,
-//    唯一诚实声称);第 5/6 步不承诺具体日程(复习周期由服务端 due 裁决)。
-//    归属:journey 叙述站点学习旅程 → 挂 vm.nextStation(视频学习卡),任务卡不再携带。 ──
+// ── 旅程轨道:只读 station_journey_projection；next_step 只决定 CTA，不能猜阶段。 ──
 const JOURNEY_LABELS = ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "到期验证", "后续抽查"];
 
 ok("journey lives on nextStation (video card); task cards carry none (dedup)", () => {
@@ -503,76 +520,119 @@ ok("journey: steps are exactly the 6 canonical labels; no schedule promises in c
   });
 });
 
-ok("journey never claims done in any arm (frontend has no completion evidence)", () => {
+ok("next_step modes never invent journey progress when server projection is absent", () => {
   const arms = [
     { next_step: { mode: "learn_next", source_ref: "N01", reason: "r" } },
     { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
     { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "r" } },
   ];
   arms.forEach((homeDashboard) => {
-    const vm = buildLearnViewModel({ homeDashboard, report: FULL.report, lessons: FULL.lessons });
+    const report = Object.assign({}, FULL.report);
+    delete report.station_journey;
+    const vm = buildLearnViewModel({ homeDashboard, report, lessons: FULL.lessons });
     const j = vm.nextStation.journey;
+    assert.strictEqual(j.available, false);
+    assert.strictEqual(j.currentIndex, 0);
+    assert.strictEqual(j.currentStepId, "");
+    assert.strictEqual(j.statusText, "进度暂不可用 · 下拉重试");
     assert.strictEqual(j.steps.filter((s) => s.state === "done").length, 0,
       "next_step.mode is a prescription, never completion evidence (" + homeDashboard.next_step.mode + ")");
+    assert.strictEqual(j.steps.filter((s) => s.state === "current").length, 0);
   });
 });
 
-ok("journey learn_next+signed pool → practice-first, current = practice step", () => {
-  const vm = buildLearnViewModel(FULL); // N01 练习池已签发 → 练习优先(owner 2026-07-17)
+ok("valid exact-pack server journey maps completed/current states", () => {
+  const vm = buildLearnViewModel(FULL);
   const j = vm.nextStation.journey;
-  assert.strictEqual(j.currentIndex, 2); // 练习优先 → 当前步=训练(1-based)
-  assert.strictEqual(j.steps[1].state, "current");
-  assert.strictEqual(j.steps[4].state, "promise"); // 到期验证=竹青虚环承诺
-  assert.strictEqual(j.steps[5].state, "promise"); // 后续抽查=竹青虚环承诺
-});
-
-ok("journey learn_next without pool → current step 1, tail two steps promised", () => {
-  const vm = buildLearnViewModel({
-    homeDashboard: { next_step: { mode: "learn_next", source_ref: "S05", reason: "r" } },
-    report: FULL.report,
-    lessons: FULL.lessons, // S05 无 retest_available → 微课任务
-  });
-  const j = vm.nextStation.journey;
-  assert.strictEqual(j.currentIndex, 1);
-  assert.strictEqual(j.steps[0].state, "current");
-  assert.strictEqual(j.steps[1].state, "future");
-  assert.strictEqual(j.steps[2].state, "future");
-  assert.strictEqual(j.steps[3].state, "future");
-  assert.strictEqual(j.steps[4].state, "promise"); // 到期验证=竹青虚环承诺
-  assert.strictEqual(j.steps[5].state, "promise"); // 后续抽查=竹青虚环承诺
-});
-
-ok("journey practice_active → current step 2; earlier steps stay hollow, not done", () => {
-  const vm = buildLearnViewModel({
-    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
-    report: FULL.report,
-    lessons: FULL.lessons,
-  });
-  const j = vm.nextStation.journey;
+  assert.strictEqual(j.available, true);
+  assert.strictEqual(j.currentStepId, "practice");
   assert.strictEqual(j.currentIndex, 2);
-  // practice_active 只证明存在未 verified 的 training_intent,不证明动画讲懂已完成
-  assert.strictEqual(j.steps[0].state, "future");
+  assert.strictEqual(j.steps[0].state, "done");
   assert.strictEqual(j.steps[1].state, "current");
-  assert.strictEqual(j.steps[2].state, "future");
-  assert.strictEqual(j.steps[3].state, "future");
-  assert.strictEqual(j.steps[4].state, "promise");
-  assert.strictEqual(j.steps[5].state, "promise");
 });
 
-ok("journey review_due → current=到期验证(step 5); nothing marked done, no line over hollow steps", () => {
-  const vm = buildLearnViewModel({
-    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "到期" } },
-    report: FULL.report,
+ok("journey keeps not-needed distinct from unavailable", () => {
+  const report = JSON.parse(JSON.stringify(FULL.report));
+  report.station_journey.packs.N01.steps[2].status = "not_applicable";
+  report.station_journey.packs.N01.steps[3].status = "unavailable";
+  const j = buildLearnViewModel({
+    homeDashboard: FULL.homeDashboard,
+    report,
     lessons: FULL.lessons,
+  }).nextStation.journey;
+  assert.strictEqual(j.steps[2].state, "not-needed");
+  assert.strictEqual(j.steps[2].note, "无需");
+  assert.strictEqual(j.steps[3].state, "unavailable");
+  assert.strictEqual(j.steps[3].note, "暂不可用");
+});
+
+ok("completed and unavailable journeys do not fabricate a current step", () => {
+  [
+    { state: "completed", statusText: "本轮六步已完成", index: 6 },
+    { state: "unavailable", statusText: "后续排期暂不可用", index: 0 },
+  ].forEach((scenario) => {
+    const report = JSON.parse(JSON.stringify(FULL.report));
+    const pack = report.station_journey.packs.N01;
+    pack.journey_state = scenario.state;
+    pack.current_step_id = "";
+    if (scenario.state === "completed") {
+      pack.steps = pack.steps.map((step) => Object.assign({}, step, {
+        status: step.id === "diagnosis" || step.id === "immediate_confirm"
+          ? "not_applicable"
+          : "completed",
+      }));
+    } else {
+      pack.steps = pack.steps.map((step) => Object.assign({}, step, {
+        status: step.id === "lesson" || step.id === "practice"
+          ? "completed"
+          : step.id === "diagnosis" || step.id === "immediate_confirm"
+          ? "not_applicable"
+          : "unavailable",
+      }));
+    }
+    const journey = buildLearnViewModel({
+      homeDashboard: FULL.homeDashboard,
+      report,
+      lessons: FULL.lessons,
+    }).nextStation.journey;
+    assert.strictEqual(journey.available, true);
+    assert.strictEqual(journey.currentStepId, "");
+    assert.strictEqual(journey.currentIndex, scenario.index);
+    assert.strictEqual(journey.statusText, scenario.statusText);
   });
-  const j = vm.nextStation.journey;
-  assert.strictEqual(j.currentIndex, 5);
-  assert.strictEqual(j.steps[0].state, "future");
-  assert.strictEqual(j.steps[1].state, "future");
-  assert.strictEqual(j.steps[2].state, "future");
-  assert.strictEqual(j.steps[3].state, "future");
-  assert.strictEqual(j.steps[4].state, "current"); // 到期验证=当前,不再是虚环
-  assert.strictEqual(j.steps[5].state, "promise");
+});
+
+ok("journey rejects contradictory completed and duplicate-current shapes", () => {
+  const completedLie = JSON.parse(JSON.stringify(FULL.report));
+  completedLie.station_journey.packs.N01.journey_state = "completed";
+  completedLie.station_journey.packs.N01.current_step_id = "";
+  assert.strictEqual(buildLearnViewModel({
+    homeDashboard: FULL.homeDashboard,
+    report: completedLie,
+    lessons: FULL.lessons,
+  }).nextStation.journey.available, false);
+
+  const duplicateCurrent = JSON.parse(JSON.stringify(FULL.report));
+  duplicateCurrent.station_journey.packs.N01.steps[3].status = "current";
+  assert.strictEqual(buildLearnViewModel({
+    homeDashboard: FULL.homeDashboard,
+    report: duplicateCurrent,
+    lessons: FULL.lessons,
+  }).nextStation.journey.available, false);
+});
+
+ok("journey authority/schema/pack mismatch each fails closed", () => {
+  [
+    { authority: "wrong" },
+    { schema_version: 2 },
+    { packs: { N01: Object.assign({}, FULL.report.station_journey.packs.N01, { pack_id: "A01" }) } },
+  ].forEach((patch) => {
+    const journey = Object.assign({}, FULL.report.station_journey, patch);
+    const report = Object.assign({}, FULL.report, { station_journey: journey });
+    const vm = buildLearnViewModel({ homeDashboard: FULL.homeDashboard, report, lessons: FULL.lessons });
+    assert.strictEqual(vm.nextStation.journey.available, false);
+    assert.strictEqual(vm.nextStation.journey.currentIndex, 0);
+  });
 });
 
 ok("journey draws no completion line: progressRatio/lineFillPercent removed", () => {
@@ -593,7 +653,7 @@ ok("journey exposes no mastery percent, only step-position facts", () => {
   const j = vm.nextStation.journey;
   assert.strictEqual(j.masteryPercent, undefined);
   assert.ok(j.currentIndex >= 1 && j.currentIndex <= 6);
-  assert.ok(typeof j.ringPercent === "number" && j.ringPercent >= 0 && j.ringPercent <= 100);
+  assert.strictEqual(j.ringPercent, undefined);
 });
 
 // ── 轻练旁按钮(红队 A2 收口):到期验证优先,review_due 下不给绕开路径 ──
@@ -938,16 +998,15 @@ ok("browse never claims 今日任务: kicker is 从这里开始, not 今天最�
   });
 });
 
-ok("browse journey on nextStation = step 1 (动画讲懂 current), no done, tail two promised", () => {
+ok("browse without server journey shows unknown and never guesses step 1", () => {
   const vm = buildLearnViewModel(BROWSE_RETEST);
   assert.strictEqual(vm.browseTask.journey, undefined, "browse card must not duplicate the journey");
   const j = vm.nextStation.journey;
-  assert.ok(j, "video/nextStation card carries the journey so the track renders");
-  assert.strictEqual(j.currentIndex, 1);
-  assert.strictEqual(j.steps[0].state, "current");
+  assert.ok(j, "video/nextStation card carries an honest unavailable journey");
+  assert.strictEqual(j.available, false);
+  assert.strictEqual(j.currentIndex, 0);
+  assert.strictEqual(j.steps[0].state, "future");
   assert.strictEqual(j.steps.filter((s) => s.state === "done").length, 0);
-  assert.strictEqual(j.steps[4].state, "promise");
-  assert.strictEqual(j.steps[5].state, "promise");
 });
 
 ok("browse light practice reuses _practiceKindFor: visible always, available iff retest", () => {

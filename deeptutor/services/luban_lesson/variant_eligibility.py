@@ -646,6 +646,23 @@ def variant_probe_supply_identity(
     return {"kind": "signed_variant", "digest": digest}
 
 
+def variant_probe_fact_ids(
+    pack_id: str, *, probe_role: str, manifest_path: Path | None = None
+) -> frozenset[str]:
+    """Return facts with currently eligible supply for one registered role."""
+    if probe_role not in VARIANT_PROBE_ROLES:
+        return frozenset()
+    supply = resolve_variant_supply(pack_id, manifest_path=manifest_path)
+    if not supply:
+        return frozenset()
+    return frozenset(
+        str(item.get("fact_id") or "").strip()
+        for item in list(supply.get("items") or [])
+        if str(item.get("probe_role") or "").strip() == probe_role
+        and str(item.get("fact_id") or "").strip()
+    )
+
+
 def build_variant_probe_items(
     pack_id: str,
     *,
@@ -736,6 +753,7 @@ __all__ = [
     "decision_identity_sha256",
     "eligible_variant_items",
     "resolve_variant_probe_items",
+    "variant_probe_fact_ids",
     "resolve_variant_supply",
     "review_signature_envelope_sha256",
     "variant_content_sha256",

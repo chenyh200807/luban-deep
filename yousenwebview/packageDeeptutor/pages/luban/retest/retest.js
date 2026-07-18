@@ -14,6 +14,7 @@ const telemetry = require("../../../utils/surface-telemetry");
 const helpers = require("../../../utils/helpers");
 const route = require("../../../utils/route");
 const auth = require("../../../utils/auth");
+const { validateCompletionReceipt } = require("../../../utils/retest-receipt");
 
 var RETEST_LIMIT = 5;
 
@@ -194,6 +195,7 @@ Page({
     // 错后当场确认(变体判断题消费点1)——纯导航态, 零第二权威
     isConfirmSession: false,   // 本次已是 confirm 会话(禁再套娃)
     confirmFacts: [],          // confirm 会话传入的错题 facts(URL query)
+    confirmAnchor: "",         // 服务端 canonical forward terminal；只作签发输入，服务端复核
     confirmFactsReady: [],     // 服务端 confirm_facts_ready(有 immediate_confirm 供给的 fact)
     confirmEntryFacts: [],     // 收据里可当场确认的错题 facts(与 ready 交集)
     showConfirmEntry: false,   // 收据是否亮「错题当场确认」入口
@@ -215,6 +217,7 @@ Page({
     // 错后当场确认会话: mode=forward&confirm_facts=f1,f2(客户端传的错题 facts, ≤5)。
     var confirmFacts = parseConfirmFacts(query);
     var isConfirmSession = mode === "forward" && confirmFacts.length > 0;
+    var confirmAnchor = String((query && query.confirm_anchor) || "").trim();
     var completionId =
       "retest_" +
       String(packId || "unknown") +
@@ -234,6 +237,7 @@ Page({
       mode: mode,
       isConfirmSession: isConfirmSession,
       confirmFacts: confirmFacts,
+      confirmAnchor: confirmAnchor,
       bridgeMode: bridgeRequested,
       bridgeProjectionReceipt: bridgeReceipt ? bridgeReceipt.projectionReceipt : "",
       bridgeAnswers: bridgeReceipt ? bridgeReceipt.answers : [],
@@ -505,7 +509,8 @@ Page({
   goConfirmFacts: function () {
     var packId = this.data.packId || "";
     var facts = (this.data.confirmEntryFacts || []).slice(0, 5);
-    if (!packId || !facts.length) return;
+    var parentTerminal = String(this.data.terminalEventId || "").trim();
+    if (!packId || !facts.length || !parentTerminal) return;
     if (typeof wx !== "undefined" && wx.navigateTo) {
       wx.navigateTo({
         url:
@@ -514,7 +519,9 @@ Page({
           // 逐 fact 编码后用字面逗号连接——整串 encodeURIComponent 会把分隔逗号
           // 变成 %2C,接收端 split(",") 拆不开(DevTools 活体隔离实验证实断链)。
           "&mode=forward&confirm_facts=" +
-          facts.map(function (f) { return encodeURIComponent(String(f)); }).join(","),
+          facts.map(function (f) { return encodeURIComponent(String(f)); }).join(",") +
+          "&confirm_anchor=" +
+          encodeURIComponent(parentTerminal),
       });
     }
   },
@@ -570,12 +577,13 @@ Page({
           ? changeStatus === "practice_recorded"
           : changeStatus === "verification_passed" || changeStatus === "verification_failed";
         if (!expectedChange) throw new Error("canonical learning change missing");
-        var serverResults = {};
-        (body.items || []).forEach(function (result) {
-          serverResults[String(result.variant_id || "")] = result;
-        });
+        // terminal id/change 状态不足以证明逐题回执完整。exact validator 要求
+        // 本次提交的每个 variant 恰有一个 boolean 结果，且聚合分数完全一致；
+        // 缺项/重复/陌生题/类型漂移一律留在 error，可重试且不清 draft。
+        var receipt = validateCompletionReceipt(items, body);
+        var serverResults = receipt.resultsById;
         var scoredItems = items.map(function (item) {
-          var result = serverResults[item.variant_id] || {};
+          var result = serverResults[item.variant_id];
           var next = Object.assign({}, item, {
             correct: result.is_correct === true,
             correct_statement: String(result.correct_statement || item.correct_statement || ""),
@@ -593,8 +601,7 @@ Page({
           }
           return next;
         });
-        var score = body.score || {};
-        var serverCorrectCount = Number(score.correct_count || 0);
+        var serverCorrectCount = receipt.correctCount;
         var groups = {};
         var textbookCount = 0;
         var wrong = [];
@@ -673,11 +680,27 @@ Page({
         projectionReceipt: this.data.bridgeProjectionReceipt,
         probeId: this.data.probeId,
         confirmFacts: this.data.confirmFacts,
+        confirmAnchor: this.data.confirmAnchor,
       })
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var raw = Array.isArray(body.items) ? body.items : [];
-        var practiceSource = String(body.practice_source || "signed_variant");
+        var declaredPracticeSource = String(body.practice_source || "");
+        var practiceSource = declaredPracticeSource || "signed_variant";
+        var variantProbeRole = String(body.variant_probe_role || "");
+        if (
+          that.data.isConfirmSession &&
+          (
+            declaredPracticeSource !== "signed_variant" ||
+            variantProbeRole !== "immediate_confirm" ||
+            !raw.length ||
+            raw.some(function (item) {
+              return String((item && item.probe_role) || "") !== "immediate_confirm";
+            })
+          )
+        ) {
+          throw new Error("retest_confirm_authority_invalid");
+        }
         var confirmFactsReady = Array.isArray(body.confirm_facts_ready)
           ? body.confirm_facts_ready.map(function (fact) { return String(fact || ""); })
           : [];

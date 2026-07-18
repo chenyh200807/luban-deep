@@ -7178,7 +7178,7 @@ class MemberConsoleService:
         本方法只组装输入并委托，不做任何规则判断（禁在 member_console 再拼）。
         三条输入全部真实接线（Codex SEV-1 治本，禁硬编码空供给）：
         - 活跃练 = 同一份 snapshot events 纯派生的处方 outcomes（零新增 IO），
-          status != verified 即活跃；同一份 outcomes 同时喂 queue 做已验证抑制
+          只接受 outcome authority 判定的未完成 workflow；同一份 outcomes 同时喂 queue 做已验证抑制
           （与 report 路径 learning_report_read_model 同口径，防已验证 probe 复活）。
         - claims = read_compiled_learning_truth 的 weak_points（照 report 先例；
           生产 = 1 次 Supabase 读，miss 返回空如实降级，不跑 dry-run 合成——
@@ -7193,6 +7193,7 @@ class MemberConsoleService:
             )
             from deeptutor.services.learner_state.prescription_outcome_read_model import (
                 build_prescription_outcomes_read_projection,
+                requires_active_practice,
             )
             from deeptutor.services.luban_lesson import list_green_lessons
 
@@ -7204,7 +7205,7 @@ class MemberConsoleService:
                 outcome
                 for outcome in outcomes
                 if str(outcome.get("training_intent_id") or "").strip()
-                and outcome.get("status") != "verified"
+                and requires_active_practice(outcome)
             ]
             try:
                 compiled = learner_state_service.read_compiled_learning_truth(learner_user_id)

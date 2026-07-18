@@ -8,6 +8,29 @@ function flushPromises() {
   return new Promise(function (resolve) { setTimeout(resolve, 0); });
 }
 
+function validDashboard(nextStep) {
+  var payload = {
+    learner_settings: { exam_date: "", daily_target: 5 },
+    review: { overdue: 0, due_today: 0 },
+    mastery: { weak_nodes: [] },
+    today: { hint: "" },
+  };
+  if (nextStep) payload.next_step = nextStep;
+  return payload;
+}
+
+function validReport(todayDone) {
+  return {
+    schema_version: 1,
+    authority: { read_model: "learning-report-read-model" },
+    overview: { today_done: todayDone || 0, daily_target: 5 },
+    freshness: { event_count: 0, window_truncated: false },
+    learning_brain: { weak_points: [] },
+    pack_lifecycle: { packs: {} },
+    pack_review: { enabled: true, degraded: false, due: [] },
+  };
+}
+
 function loadLearn(options) {
   options = options || {};
   var source = fs.readFileSync(
@@ -15,7 +38,7 @@ function loadLearn(options) {
     "utf8",
   );
   var pageDef = null;
-  var calls = { redirects: [], lessons: 0, lessonOpts: null };
+  var calls = { redirects: [], lessons: 0, lessonOpts: null, buildArgs: [], cacheWrites: [] };
   var loggedIn = options.loggedIn !== false;
   var lessons = options.lessons || Promise.resolve({
     lessons: [{ pack_id: "A01", title: "检验批验收程序", card_hosted: true }],
@@ -42,9 +65,11 @@ function loadLearn(options) {
               loggedIn = false;
               return Promise.reject(new Error("AUTH_EXPIRED"));
             }
-            return Promise.reject(new Error("dashboard unavailable"));
+            return options.dashboard || Promise.reject(new Error("dashboard unavailable"));
           },
-          getLearningReport: function () { return Promise.reject(new Error("report unavailable")); },
+          getLearningReport: function () {
+            return options.report || Promise.reject(new Error("report unavailable"));
+          },
           getLubanSeethroughLibrary: function () { return Promise.resolve({}); },
           unwrapResponse: function (value) { return value; },
           describeRequestError: function (_error, fallback) { return fallback; },
@@ -72,22 +97,29 @@ function loadLearn(options) {
         return {
           learn: function () { return "/packageDeeptutor/pages/learn/learn"; },
           resolve: function (value) { return "/packageDeeptutor/" + value; },
+          lubanStation: function (packId) { return "/station?pack_id=" + packId; },
         };
       }
       if (request === "../../utils/learn-view-model") {
+        var realLearnVm = require("../packageDeeptutor/utils/learn-view-model");
         return {
           buildLearnViewModel: function (args) {
-            var rows = (args.lessons && args.lessons.lessons) || [];
-            return {
-              hasSupply: rows.length > 0,
-              nextStation: rows.length ? rows[0] : null,
-              posters: rows,
-              routePreview: rows,
-              stats: {},
-              todayProgress: {},
-            };
+            calls.buildArgs.push(args);
+            return realLearnVm.buildLearnViewModel(args);
           },
         };
+      }
+      if (request === "../../utils/report-cache") {
+        return {
+          SNAPSHOT_MAX_AGE_MS: 1800000,
+          read: function () { return options.cached || null; },
+          writeIfFresher: function (userId, snapshot, startedAt) {
+            calls.cacheWrites.push({ userId: userId, snapshot: snapshot, startedAt: startedAt });
+          },
+        };
+      }
+      if (request === "../../utils/report-snapshot") {
+        return require("../packageDeeptutor/utils/report-snapshot");
       }
       if (request === "../../utils/surface-telemetry") {
         return { trackModuleView: function () {}, trackModuleExit: function () {} };
@@ -149,7 +181,86 @@ function loadLearn(options) {
   await flushPromises();
   assert.strictEqual(partial.page.data.supplyError, "");
   assert.strictEqual(partial.page.data.vm.nextStation.pack_id, "A01");
+  assert.strictEqual(partial.page.data.vm.taskCard, null, "partial reads must not invent a task CTA");
+  assert.strictEqual(partial.page.data.vm.actionsEnabled, false);
+  assert.strictEqual(partial.page.data.vm.progressAvailable, false);
+  assert.strictEqual(partial.page.data.vm.projectionState, "partial");
+  assert.strictEqual(partial.calls.cacheWrites.length, 0, "partial snapshots must never enter cache");
   assert.strictEqual(partial.page.data.loading, false);
+
+  var live = loadLearn({
+    dashboard: Promise.resolve(validDashboard({
+      mode: "learn_next",
+      source_authority: "pack_lifecycle_projection",
+      source_ref: "A01",
+      reason: "next",
+    })),
+    report: Promise.resolve(validReport(2)),
+  });
+  live.page.onLoad({});
+  await flushPromises();
+  await flushPromises();
+  assert.strictEqual(live.page.data.vm.actionsEnabled, true);
+  assert.strictEqual(live.page.data.vm.progressAvailable, true);
+  assert.strictEqual(live.page.data.vm.projectionState, "live");
+  assert.strictEqual(live.calls.cacheWrites.length, 1, "only a complete live snapshot may enter cache");
+
+  var stale = loadLearn({
+    cached: {
+      homeDashboard: validDashboard({
+        mode: "learn_next",
+        source_authority: "pack_lifecycle_projection",
+        source_ref: "A01",
+        reason: "cached",
+      }),
+      report: validReport(1),
+      lessons: { lessons: [{ pack_id: "A01", title: "缓存站" }], pack_universe: 41 },
+    },
+  });
+  stale.page.onLoad({});
+  await flushPromises();
+  await flushPromises();
+  assert.strictEqual(stale.page.data.vm.projectionState, "stale");
+  assert.strictEqual(stale.page.data.vm.actionsEnabled, false, "stale task identities must not be clickable");
+  assert.strictEqual(stale.page.data.vm.progressAvailable, true, "complete stale stats remain displayable");
+  assert.strictEqual(stale.calls.cacheWrites.length, 0, "failed refresh must not refresh cache age");
+
+  var invalid200 = loadLearn({
+    dashboard: Promise.resolve({}),
+    report: Promise.resolve({}),
+  });
+  invalid200.page.onLoad({});
+  await flushPromises();
+  await flushPromises();
+  assert.strictEqual(invalid200.page.data.vm.projectionState, "partial");
+  assert.strictEqual(invalid200.page.data.vm.actionsEnabled, false);
+  assert.strictEqual(invalid200.page.data.vm.progressAvailable, false);
+  assert.strictEqual(invalid200.page.data.vm.taskCard, null);
+  assert.strictEqual(invalid200.page.data.vm.litCount, 0, "internal zero may exist but UI is gated unknown");
+  assert.strictEqual(invalid200.calls.cacheWrites.length, 0);
+
+  var invalidLessons = loadLearn({
+    lessons: Promise.resolve({}),
+    dashboard: Promise.resolve(validDashboard()),
+    report: Promise.resolve(validReport(0)),
+  });
+  invalidLessons.page.onLoad({});
+  await flushPromises();
+  await flushPromises();
+  assert.strictEqual(
+    invalidLessons.page.data.supplyError,
+    "教学资源加载失败，请检查登录或网络后重试",
+    "HTTP 200 with an invalid lessons payload is an authority failure",
+  );
+
+  var invalidCache = loadLearn({
+    cached: { homeDashboard: {}, report: {}, lessons: {} },
+  });
+  invalidCache.page.onLoad({});
+  await flushPromises();
+  await flushPromises();
+  assert.strictEqual(invalidCache.page.data.vm.projectionState, "partial");
+  assert.strictEqual(invalidCache.page.data.vm.actionsEnabled, false);
 
   var wxml = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/learn/learn.wxml"),
@@ -158,7 +269,11 @@ function loadLearn(options) {
   assert(wxml.indexOf("不是微课未上线") >= 0);
   assert(wxml.indexOf('bindtap="retrySupply"') >= 0);
   assert(wxml.indexOf('<view class="lr-status-row" wx:if="{{!supplyError}}">') >= 0);
-  console.log("PASS test_learn_supply_authority.js (16 assertions)");
+  assert(
+    wxml.indexOf("!supplyError && vm.taskAuthorityAvailable && !vm.reviewCard") >= 0,
+    "partial task authority must not become a no-review-due claim",
+  );
+  console.log("PASS test_learn_supply_authority.js");
 })().catch(function (error) {
   console.error(error && error.stack ? error.stack : error);
   process.exit(1);

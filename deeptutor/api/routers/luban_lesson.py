@@ -15,6 +15,9 @@ from pydantic import BaseModel, Field
 from deeptutor.api._secure_router import secure_router
 from deeptutor.api.dependencies import AuthContext, get_current_user
 from deeptutor.api.dependencies.rate_limit import route_rate_limit
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    validate_immediate_confirm_parent,
+)
 from deeptutor.services.luban_lesson import (
     LessonNotAvailable,
     build_antidote,
@@ -45,7 +48,7 @@ from deeptutor.services.luban_lesson.review_due import (
 )
 from deeptutor.services.luban_lesson.variant_eligibility import (
     build_variant_probe_items,
-    resolve_variant_supply,
+    variant_probe_fact_ids,
     variant_probe_supply_identity,
 )
 from deeptutor.services.session import get_sqlite_session_store
@@ -167,6 +170,7 @@ async def retest_items(
     projection_receipt: str = "",
     probe_id: str = "",
     confirm_facts: str = "",
+    confirm_anchor: str = "",
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
     """题面投影（同一 endpoint / 同一 completion authority）：
@@ -222,17 +226,40 @@ async def retest_items(
     # selection 以 variant_probe_supply_identity 签发（writeback 按 token 的 supply_kind
     # 分派）。任一环不满足 → forward confirm 404 同形 / review 退 compiled MCQ 不空窗。
     confirm_facts_raw = str(confirm_facts or "").strip()
-    # confirm_requested 折入旗标：关 = 忽略 confirm_facts 走现行 compiled forward
-    # （前端本就只在 confirm_facts_ready 非空时导航，旗标关时该字段恒空）。
-    confirm_requested = (
-        mode == "forward" and _variant_probe_enabled() and bool(confirm_facts_raw)
-    )
+    # Intent 与 availability 必须分开：confirm URL 一旦携 facts 就只能是
+    # immediate-confirm；灰度关闭/供给撤回必须 fail-close，绝不能降级成普通
+    # compiled forward 后重开一个 episode。
+    confirm_requested = mode == "forward" and bool(confirm_facts_raw)
     variant_items: list[dict] | None = None
     variant_probe_role = ""
     if _variant_probe_enabled():
         if confirm_requested:
             # 消费点1：错后当场确认（immediate_confirm；facts = 客户端传的错题 facts，≤5）。
             facts = [f.strip() for f in confirm_facts_raw.split(",") if f.strip()][:5]
+            requested_parent = str(confirm_anchor or "").strip()
+            if not requested_parent:
+                raise HTTPException(
+                    status_code=400, detail="retest_confirm_anchor_required"
+                )
+            from deeptutor.services.learner_state.service import (
+                get_learner_state_service,
+            )
+
+            confirm_events = get_learner_state_service().list_learning_evidence_events(
+                current_user.user_id,
+                limit=None,
+                since=None,
+            )
+            if not validate_immediate_confirm_parent(
+                confirm_events,
+                pack_id=pack_id,
+                parent_terminal_id=requested_parent,
+                fact_ids=facts,
+            ):
+                raise HTTPException(
+                    status_code=400, detail="retest_confirm_parent_invalid"
+                )
+            cycle_anchor = requested_parent
             picked = build_variant_probe_items(
                 pack_id,
                 user_id=current_user.user_id,
@@ -435,15 +462,7 @@ def _confirm_facts_ready(pack_id: str) -> list[str]:
     旗标关 / 供给任一闸不过 → 空列表（fail-closed，入口不亮）。"""
     if not _variant_probe_enabled():
         return []
-    supply = resolve_variant_supply(pack_id)
-    if not supply:
-        return []
-    facts = supply.get("summary", {}).get("facts", {}) or {}
-    return sorted(
-        fact_id
-        for fact_id, entry in facts.items()
-        if int((entry or {}).get("immediate_confirm") or 0) >= 1
-    )
+    return sorted(variant_probe_fact_ids(pack_id, probe_role="immediate_confirm"))
 
 
 def _exam_date_for(user_id: str) -> str:

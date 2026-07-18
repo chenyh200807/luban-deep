@@ -472,3 +472,105 @@ def test_home_next_step_wires_real_intents_claims_and_verified_suppression(
         item.get("training_intent_id") == "ti_active_1"
         for item in captured["queue"]["prescription_outcomes"]
     )
+
+
+def test_closed_forward_terminal_is_removed_before_home_practice_arbitration(
+    tmp_path, monkeypatch
+) -> None:
+    """Root regression: five answered items must not reopen the same intent."""
+    from types import SimpleNamespace
+
+    from deeptutor.services.learner_state import home_next_step_projection as hns
+    from deeptutor.services.learner_state import pack_lifecycle_projection as plp
+    from deeptutor.services.learner_state import revalidation_queue as rq
+    from deeptutor.services.member_console.service import MemberConsoleService
+
+    common = {
+        "event_type": "learning_evidence",
+        "evidence_source": "assessment_testset",
+        "retest_completion_id": "completion-home",
+        "request_hash": "a" * 64,
+        "practice_mode": "forward",
+        "pack_id": "N01",
+        "target_pack_id": "N01",
+        "training_intent_id": "intent-home",
+        "prescription_phase": "transfer_case",
+    }
+    item = SimpleNamespace(
+        event_id="item-home",
+        source_feature="assessment_testset",
+        source_id="completion-home:q1",
+        memory_kind="learning_evidence",
+        created_at="2026-07-18T09:00:00+08:00",
+        payload_json={
+            **common,
+            "question_id": "q1",
+            "is_correct": False,
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "probe_role": "anchor",
+            "prescription_result": {"status": "not_verified", "score_ratio": 0.0},
+        },
+    )
+    terminal = SimpleNamespace(
+        event_id="terminal-home",
+        source_feature="assessment_testset",
+        source_id="completion-home:terminal",
+        memory_kind="learning_evidence",
+        created_at="2026-07-18T09:00:01+08:00",
+        payload_json={
+            **common,
+            "assessment_type": "luban_forward_completion",
+            "completion_terminal": True,
+            "claim_promotion_allowed": False,
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "item_event_refs": ["item-home"],
+            "prescription_result": {"status": "not_verified", "score_ratio": 0.0},
+            "quality": {
+                "authority": "compiled_html_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "medium",
+                "evidence_level": "L0_observed",
+            },
+        },
+    )
+    snapshot = SimpleNamespace(memory_events=[item, terminal])
+
+    class _FakeLearnerStateService:
+        def read_compiled_learning_truth(self, _user_id: str):
+            return {"weak_points": []}
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    captured: dict = {}
+
+    def _capture_arbiter(**kwargs):
+        captured.update(kwargs)
+        return {
+            "mode": "learn_next",
+            "source_authority": "pack_lifecycle_projection",
+            "source_ref": "A01",
+            "reason": "next",
+        }
+
+    monkeypatch.setattr(hns, "build_home_next_step_projection", _capture_arbiter)
+    monkeypatch.setattr(
+        rq,
+        "build_revalidation_queue_projection",
+        lambda **_kwargs: {"items": []},
+    )
+    monkeypatch.setattr(
+        plp,
+        "project_pack_lifecycle",
+        lambda **_kwargs: {"packs": {}},
+    )
+
+    step = service._build_home_next_step(
+        learner_user_id="student-home",
+        snapshot=snapshot,
+    )
+    assert step["mode"] == "learn_next"
+    assert captured["active_training_intents"] == []

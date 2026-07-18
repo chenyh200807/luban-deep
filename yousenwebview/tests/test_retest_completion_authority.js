@@ -115,6 +115,9 @@ assert.strictEqual(retest.indexOf("handoff/handoff"), -1, "canonical receipt mus
 assert.ok(retest.indexOf("probe_id: this.data.probeId") >= 0, "review must preserve canonical probe identity");
 assert.ok(retest.indexOf("probeId: this.data.probeId") >= 0, "review GET must carry due probe identity");
 assert.ok(apiSource.indexOf('"&probe_id=" + encodeURIComponent(probeId)') >= 0, "API must transmit review probe identity");
+assert.ok(retest.indexOf('"&confirm_anchor="') >= 0, "confirm navigation must carry its canonical parent terminal receipt");
+assert.ok(retest.indexOf("confirmAnchor: this.data.confirmAnchor") >= 0, "confirm GET must preserve the parent terminal identity");
+assert.ok(apiSource.indexOf('"&confirm_anchor=" + encodeURIComponent(confirmAnchor)') >= 0, "API must transmit the signed confirm parent input");
 assert.strictEqual(retest.indexOf("复习页会"), -1, "terminal receipt must route follow-up through learning, not an independent review module");
 assert.ok(retest.indexOf("selection_id: this.data.selectionId") >= 0, "completion must preserve server-issued selection identity");
 assert.ok(review.indexOf("entry.probeId") >= 0, "review due entry must forward probe identity");

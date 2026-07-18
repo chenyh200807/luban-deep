@@ -7,6 +7,7 @@ var assert = require("assert");
 var fs = require("fs");
 var path = require("path");
 var vm = require("vm");
+var realReportSnapshot = require("../packageDeeptutor/utils/report-snapshot");
 
 function deferred() {
   var d = {};
@@ -18,6 +19,24 @@ function deferred() {
 }
 function flush() {
   return new Promise(function (r) { setTimeout(r, 0); });
+}
+
+function validLessons(tag) {
+  return { tag: tag, pack_universe: 1, lessons: [{ pack_id: "N01" }] };
+}
+
+function validDashboard() {
+  return { learner_settings: {}, review: {}, mastery: {}, today: {} };
+}
+
+function validReport() {
+  return {
+    schema_version: 2,
+    authority: { read_model: "learning-report-read-model" },
+    overview: {},
+    freshness: {},
+    learning_brain: {},
+  };
 }
 
 function loadLearn() {
@@ -84,6 +103,7 @@ function loadLearn() {
       if (request === "../../utils/surface-telemetry") {
         return { trackModuleView: function () {}, trackModuleExit: function () {} };
       }
+      if (request === "../../utils/report-snapshot") return realReportSnapshot;
       throw new Error("unexpected require: " + request);
     },
     wx: {
@@ -108,16 +128,16 @@ function loadLearn() {
   t1.page._load(); // load #2(刷新)
   await flush();
   // load #2 先完成
-  t1.state.lessons[1].resolve({ tag: "fresh", lessons: [] });
-  t1.state.dashboards[1].resolve({});
-  t1.state.reports[1].resolve({});
+  t1.state.lessons[1].resolve(validLessons("fresh"));
+  t1.state.dashboards[1].resolve(validDashboard());
+  t1.state.reports[1].resolve(validReport());
   await flush();
   await flush();
   assert.strictEqual(t1.page.data.vm.marker, "fresh", "latest load must project");
   // load #1 姗姗来迟
-  t1.state.lessons[0].resolve({ tag: "stale", lessons: [] });
-  t1.state.dashboards[0].resolve({});
-  t1.state.reports[0].resolve({});
+  t1.state.lessons[0].resolve(validLessons("stale"));
+  t1.state.dashboards[0].resolve(validDashboard());
+  t1.state.reports[0].resolve(validReport());
   await flush();
   await flush();
   assert.strictEqual(
@@ -131,9 +151,9 @@ function loadLearn() {
   // 仍可被主按钮/复习卡按旧 pack/probe 导航——两个入口都必须挡在 _refreshing 后面。
   var t2 = loadLearn();
   t2.page.onLoad({});
-  t2.state.lessons[0].resolve({ tag: "first", lessons: [] });
-  t2.state.dashboards[0].resolve({});
-  t2.state.reports[0].resolve({});
+  t2.state.lessons[0].resolve(validLessons("first"));
+  t2.state.dashboards[0].resolve(validDashboard());
+  t2.state.reports[0].resolve(validReport());
   await flush();
   await flush();
   assert.strictEqual(t2.page.data.vm.marker, "first");
@@ -154,9 +174,9 @@ function loadLearn() {
   );
 
   // ── 3) 刷新 settle 后两个入口都恢复 ──
-  t2.state.lessons[1].resolve({ tag: "second", lessons: [] });
-  t2.state.dashboards[1].resolve({});
-  t2.state.reports[1].resolve({});
+  t2.state.lessons[1].resolve(validLessons("second"));
+  t2.state.dashboards[1].resolve(validDashboard());
+  t2.state.reports[1].resolve(validReport());
   await flush();
   await flush();
   t2.page.goLightPractice();

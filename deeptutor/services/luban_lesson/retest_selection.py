@@ -168,9 +168,12 @@ def _probe_cycle_identity(*, mode: str, probe_id: str, cycle_anchor: str) -> tup
         if not normalized_probe or not normalized_cycle:
             raise ValueError("retest_selection_probe_cycle_required")
         return normalized_mode, normalized_probe, normalized_cycle
-    if normalized_probe or normalized_cycle:
-        raise ValueError("retest_selection_forward_probe_cycle_forbidden")
-    return normalized_mode, "", ""
+    if normalized_probe:
+        raise ValueError("retest_selection_forward_probe_forbidden")
+    # Ordinary forward practice keeps an empty anchor. Immediate-confirm uses
+    # the same transport mode but signs its canonical parent forward terminal
+    # into cycle_anchor; writeback validates that parent before any append.
+    return normalized_mode, "", normalized_cycle
 
 
 def _valid_supply(kind: str, digest: str) -> bool:

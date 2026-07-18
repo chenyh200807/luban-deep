@@ -143,32 +143,115 @@ function _posters(packs, titleIdx, recommendedId) {
   return rows;
 }
 
-// ── 站点旅程轨道(红队 A1 收口):流程说明,不是进度账本 ──
-// 前端没有任何逐步完成证据(next_step.mode 是处方,不是完成观测):
-// practice_active 只证明存在未 verified 的 training_intent,不证明动画讲懂已完成;
-// review_due 只证明有 due probe,周期(次日/3 日/稳定期)由服务端 due 裁决。
-// 因此本轨道:禁 done/勾;只标 current(= CTA 对应步,唯一诚实声称)+
-// future(空心)+ promise(竹青虚环,不承诺具体日程);不画跨未完成节点的进度线。
-// 后端逐步状态 read-model 上线前,禁在前端伪造完成态。
-var JOURNEY_STEPS = ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "到期验证", "后续抽查"];
-var JOURNEY_PROMISE_FROM = 4; // steps[4], steps[5] 为承诺步
+// 六步只读服务端 station_journey_projection。next_step 是 CTA 处方，永不参与
+// 完成态推断；缺字段/authority/schema/pack 不匹配均 fail-closed 为 unknown。
+var JOURNEY_STEPS = [
+  { id: "lesson", label: "动画讲懂" },
+  { id: "practice", label: "训练 5 题" },
+  { id: "diagnosis", label: "错因讲评" },
+  { id: "immediate_confirm", label: "轻练确认" },
+  { id: "due_validation", label: "到期验证" },
+  { id: "followup", label: "后续抽查" },
+];
+var JOURNEY_STATUSES = {
+  completed: "done",
+  current: "current",
+  scheduled: "promise",
+  not_applicable: "not-needed",
+  unavailable: "unavailable",
+  available: "future",
+  upcoming: "future",
+  future: "future",
+};
 
-function _journeyFor(taskState) {
-  // 当前步(1-based)只由 next_step.mode 派生(CTA 对应步):
-  // learn_next → 1(动画讲懂);practice_active → 2(训练);review_due → 5(到期验证)。
-  var current = taskState === "review_due" ? 5 : taskState === "practice_active" ? 2 : 1;
-  var steps = JOURNEY_STEPS.map(function (label, i) {
-    var n = i + 1;
-    var state = n === current ? "current" : i >= JOURNEY_PROMISE_FROM ? "promise" : "future";
-    return { label: label, state: state };
-  });
+function _unknownJourney() {
   return {
-    steps: steps,
-    currentIndex: current,
+    available: false,
+    statusText: "进度暂不可用 · 下拉重试",
+    currentStepId: "",
+    journeyState: "unavailable",
+    currentIndex: 0,
     total: JOURNEY_STEPS.length,
-    // 环形指示 = 当前步位置/6(位置事实,非完成度、非掌握度)。
-    // 禁 progressRatio/lineFillPercent:没有完成证据就没有可画的已走线。
-    ringPercent: Math.round((current / JOURNEY_STEPS.length) * 100),
+    steps: JOURNEY_STEPS.map(function (step) {
+      return { id: step.id, label: step.label, status: "unknown", state: "future" };
+    }),
+  };
+}
+
+function _stationJourneyFor(report, packId) {
+  var projection = _safeObj(_safeObj(report).station_journey);
+  var normalizedPack = _str(packId).toUpperCase();
+  if (
+    projection.authority !== "station_journey_projection.read_model" ||
+    projection.schema_version !== 1 ||
+    projection.degraded === true ||
+    !normalizedPack
+  ) return _unknownJourney();
+  var pack = _safeObj(_safeObj(projection.packs)[normalizedPack]);
+  var rawSteps = _safeArr(pack.steps);
+  var journeyState = _str(pack.journey_state);
+  if (
+    _str(pack.pack_id).toUpperCase() !== normalizedPack ||
+    ["active", "completed", "unavailable"].indexOf(journeyState) < 0 ||
+    rawSteps.length !== JOURNEY_STEPS.length
+  ) {
+    return _unknownJourney();
+  }
+  var valid = rawSteps.every(function (raw, index) {
+    return _str(_safeObj(raw).id) === JOURNEY_STEPS[index].id && !!JOURNEY_STATUSES[_str(_safeObj(raw).status)];
+  });
+  if (!valid) return _unknownJourney();
+  var currentStepId = _str(pack.current_step_id);
+  var currentIndex = JOURNEY_STEPS.findIndex(function (step) { return step.id === currentStepId; }) + 1;
+  var currentRaw = currentIndex > 0 ? _safeObj(rawSteps[currentIndex - 1]) : {};
+  var actionableSteps = rawSteps.filter(function (raw) {
+    return ["current", "scheduled"].indexOf(_str(_safeObj(raw).status)) >= 0;
+  });
+  var followupStatus = _str(_safeObj(rawSteps[rawSteps.length - 1]).status);
+  var completedHasOpenStep = rawSteps.some(function (raw) {
+    return ["current", "scheduled", "available", "upcoming", "future"].indexOf(
+      _str(_safeObj(raw).status),
+    ) >= 0;
+  });
+  var unavailableCount = rawSteps.filter(function (raw) {
+    return _str(_safeObj(raw).status) === "unavailable";
+  }).length;
+  if (
+    (journeyState === "active" &&
+      (currentIndex <= 0 ||
+        actionableSteps.length !== 1 ||
+        ["current", "scheduled"].indexOf(_str(currentRaw.status)) < 0)) ||
+    (journeyState !== "active" && currentStepId) ||
+    (journeyState === "completed" &&
+      (completedHasOpenStep || followupStatus !== "completed")) ||
+    (journeyState === "unavailable" &&
+      (actionableSteps.length > 0 || unavailableCount === 0))
+  ) return _unknownJourney();
+  var statusText = journeyState === "completed"
+    ? "本轮六步已完成"
+    : journeyState === "unavailable"
+    ? "后续排期暂不可用"
+    : _str(currentRaw.status) === "scheduled"
+    ? "下一步：" + JOURNEY_STEPS[currentIndex - 1].label + " · 待排期"
+    : "当前：" + JOURNEY_STEPS[currentIndex - 1].label;
+  return {
+    available: true,
+    statusText: statusText,
+    currentStepId: currentStepId,
+    currentIndex: journeyState === "completed" ? JOURNEY_STEPS.length : currentIndex,
+    journeyState: journeyState,
+    total: JOURNEY_STEPS.length,
+    steps: rawSteps.map(function (raw, index) {
+      var status = _str(raw.status);
+      return {
+        id: JOURNEY_STEPS[index].id,
+        label: JOURNEY_STEPS[index].label,
+        status: status,
+        state: JOURNEY_STATUSES[status],
+        note: status === "not_applicable" ? "无需" : status === "unavailable" ? "暂不可用" : "",
+        blocking: raw.blocking === true,
+      };
+    }),
   };
 }
 
@@ -434,6 +517,9 @@ function _buildBrowseTask(nextStation, titleIdx) {
  */
 function buildLearnViewModel(args) {
   var a = _safeObj(args);
+  var taskAuthorityAvailable = a.taskAuthorityAvailable !== false;
+  var actionsEnabled = a.actionsEnabled !== false;
+  var progressAvailable = a.progressAvailable !== false;
   var dash = _safeObj(a.homeDashboard);
   var report = _safeObj(a.report);
   var titleIdx = _titleIndex(a.lessons);
@@ -518,29 +604,26 @@ function buildLearnViewModel(args) {
   // ── 今日唯一任务：直接投影 server next_step，不在前端重排优先级 ──
   // next_step 的 review_due 已由 home_next_step_projection 读取 canonical
   // revalidation queue 后裁决；本层只把状态翻译成对应动作。
-  var todayTask = buildCanonicalLearningTask({
+  var todayTask = taskAuthorityAvailable ? buildCanonicalLearningTask({
     homeDashboard: a.homeDashboard,
     lessons: a.lessons,
     report: a.report, // review 供给真值在 pack_review(A5),缺失时诚实降级
-  });
+  }) : null;
 
   // ── browse 兜底卡:todayTask 缺席但有可展示 nextStation 时的同构卡 ──
   // 让 day-0 / 首跑未完成 / 后端未部署等态下,页面仍长成 10a 定稿(训练/轻练/
   // 旅程条不塌)。永不与 todayTask 竞争:仅在 todayTask===null 时产出。
-  var browseTask = !todayTask && nextStation ? _buildBrowseTask(nextStation, titleIdx) : null;
+  var browseTask = taskAuthorityAvailable && !todayTask && nextStation ? _buildBrowseTask(nextStation, titleIdx) : null;
   // 任务卡渲染入口 = 真任务优先,否则 browse 兜底(单一渲染源,禁 wxml 重算)。
   var taskCard = todayTask || browseTask;
 
-  // ── 站点旅程条(owner 2026-07-18 排版去重):journey 叙述的是站点学习旅程,
-  //    挂到视频学习卡(nextStation),不再挂任务卡。current 步语义与 10a 一致:
-  //    仍由 taskCard.task_state 派生(CTA 对应步,处方非完成证据;红队 A1 约束
-  //    不变——禁 done 勾/进度线/写死复习日程)。无 taskCard 时诚实落 step1。
+  // 旅程挂站点卡，但只读 exact-pack 服务端 projection；绝不从 taskCard 猜。
   if (nextStation) {
-    nextStation.journey = _journeyFor(taskCard ? _str(taskCard.task_state) : "learn_next");
+    nextStation.journey = _stationJourneyFor(report, nextStation.pack_id);
   }
 
   // ── 复习卡:到期状态视图(数据=pack_review 投影;裁决权仍在 next_step) ──
-  var reviewCard = _buildReviewCard(report, todayTask);
+  var reviewCard = taskAuthorityAvailable ? _buildReviewCard(report, todayTask) : null;
 
   // ── 行为指标只透传事实计数；首页不呈现或解释 mastery 百分比 ──
   var overview = _safeObj(report.overview);
@@ -571,6 +654,10 @@ function buildLearnViewModel(args) {
       target: dailyTarget,
       percent: dailyTarget ? Math.min(100, Math.round((todayDone / dailyTarget) * 100)) : 0,
     },
+    progressAvailable: progressAvailable,
+    taskAuthorityAvailable: taskAuthorityAvailable,
+    actionsEnabled: actionsEnabled,
+    projectionState: _str(a.projectionState || "live"),
     // 供给面可用性(全空 = 后端未部署/无数据,页面走降级但不崩)
     hasSupply: !!(nextStation || posters.length || todayTask || browseTask),
   };

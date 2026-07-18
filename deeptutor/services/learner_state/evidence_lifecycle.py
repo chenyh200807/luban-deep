@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import math
 from typing import Any, Iterable
 
@@ -64,6 +65,20 @@ def canonical_retest_item_events(
     referenced item must belong to the same request, completion, mode and pack,
     and the item totals must reproduce the terminal score.
     """
+    by_event_id, duplicate_event_ids = _event_index(events)
+    return _canonical_retest_item_events_from_index(
+        terminal=terminal,
+        by_event_id=by_event_id,
+        duplicate_event_ids=duplicate_event_ids,
+    )
+
+
+def _canonical_retest_item_events_from_index(
+    *,
+    terminal: Any,
+    by_event_id: dict[str, Any],
+    duplicate_event_ids: set[str],
+) -> tuple[Any, ...] | None:
     if not is_canonical_luban_retest_terminal(terminal):
         return None
     terminal_payload = _safe_dict(getattr(terminal, "payload_json", {}))
@@ -89,15 +104,6 @@ def canonical_retest_item_events(
     ):
         return None
 
-    by_event_id: dict[str, Any] = {}
-    duplicate_event_ids: set[str] = set()
-    for event in events:
-        event_id = _clean(getattr(event, "event_id", ""))
-        if not event_id:
-            continue
-        if event_id in by_event_id:
-            duplicate_event_ids.add(event_id)
-        by_event_id[event_id] = event
     if duplicate_event_ids.intersection(item_refs):
         return None
 
@@ -166,6 +172,7 @@ def canonical_retest_item_events(
 def committed_retest_closure(events: Iterable[Any]) -> dict[str, tuple[str, ...]]:
     """Return completion -> ordered item ids for fully closed retests only."""
     event_list = list(events)
+    by_event_id, duplicate_event_ids = _event_index(event_list)
     closure: dict[str, tuple[str, ...]] = {}
     invalid_completions: set[str] = set()
     for terminal in event_list:
@@ -173,7 +180,11 @@ def committed_retest_closure(events: Iterable[Any]) -> dict[str, tuple[str, ...]
             continue
         payload = _safe_dict(getattr(terminal, "payload_json", {}))
         completion_id = _clean(payload.get("retest_completion_id"))
-        item_events = canonical_retest_item_events(event_list, terminal=terminal)
+        item_events = _canonical_retest_item_events_from_index(
+            terminal=terminal,
+            by_event_id=by_event_id,
+            duplicate_event_ids=duplicate_event_ids,
+        )
         if not completion_id or item_events is None or completion_id in closure:
             invalid_completions.add(completion_id)
             closure.pop(completion_id, None)
@@ -205,6 +216,220 @@ def is_retest_completion_terminal(event: Any) -> bool:
         payload.get("completion_terminal") is True
         and _clean(payload.get("retest_completion_id"))
     )
+
+
+RETEST_ROLE_FORWARD_PRACTICE = "forward_practice"
+RETEST_ROLE_IMMEDIATE_CONFIRM = "immediate_confirm"
+RETEST_ROLE_REVIEW = "review"
+EPISODE_BINDING_EXACT = "exact"
+EPISODE_BINDING_LEGACY = "legacy_compatible"
+EPISODE_BINDING_LEGACY_UNBOUND = "legacy_unbound"
+EPISODE_BINDING_UNBOUND = "unbound"
+
+
+@dataclass(frozen=True)
+class CanonicalRetestEpisodeRecord:
+    """One validated closure plus its binding to a forward practice episode."""
+
+    terminal: Any
+    items: tuple[Any, ...]
+    pack_id: str
+    role: str
+    episode_id: str
+    binding: str
+
+
+def canonical_retest_completion_role(
+    events: Iterable[Any], *, terminal: Any
+) -> str:
+    """Classify one committed Luban terminal from its canonical item closure.
+
+    ``practice_mode=forward`` is intentionally insufficient: immediate-confirm
+    uses the same transport mode but must not open a new learning/review cycle.
+    Legacy forward items without a role remain ordinary forward practice.  A
+    mixed/unknown role set fails closed so it cannot move lifecycle clocks.
+    """
+    if not is_canonical_luban_retest_terminal(terminal):
+        return ""
+    items = canonical_retest_item_events(events, terminal=terminal)
+    if items is None:
+        return ""
+    return _canonical_retest_role_from_items(terminal=terminal, items=items)
+
+
+def _canonical_retest_role_from_items(*, terminal: Any, items: Iterable[Any]) -> str:
+    payload = _safe_dict(getattr(terminal, "payload_json", {}))
+    mode = _clean(payload.get("practice_mode")).lower()
+    if mode == "review":
+        return RETEST_ROLE_REVIEW
+    if mode != "forward":
+        return ""
+    raw_roles = [
+        _clean(_safe_dict(getattr(item, "payload_json", {})).get("probe_role"))
+        for item in items
+    ]
+    if not raw_roles or all(not role for role in raw_roles):
+        return RETEST_ROLE_FORWARD_PRACTICE
+    if any(not role for role in raw_roles):
+        return ""
+    roles = set(raw_roles)
+    if roles == {"anchor"}:
+        return RETEST_ROLE_FORWARD_PRACTICE
+    if roles == {RETEST_ROLE_IMMEDIATE_CONFIRM}:
+        return RETEST_ROLE_IMMEDIATE_CONFIRM
+    return ""
+
+
+def canonical_retest_episode_records(
+    events: Iterable[Any],
+) -> tuple[CanonicalRetestEpisodeRecord, ...]:
+    """Validate closures once and bind sub-steps to one canonical episode.
+
+    Modern review terminals must carry the exact current ``cycle_anchor``.
+    Immediate-confirm terminals must contain only facts that were wrong in the
+    current forward closure.  Pre-v3 review rows retain an explicit legacy
+    compatibility path only inside a pre-v3 chronological episode; they can
+    never attach to a modern episode.
+    """
+    event_list = list(events or [])
+    closure = committed_retest_closure(event_list)
+    by_event_id = {
+        _clean(getattr(event, "event_id", "")): event
+        for event in event_list
+        if _clean(getattr(event, "event_id", ""))
+    }
+    ordered_terminals = sorted(
+        (
+            event
+            for event in event_list
+            if is_canonical_luban_retest_terminal(event)
+            and _clean(
+                _safe_dict(getattr(event, "payload_json", {})).get(
+                    "retest_completion_id"
+                )
+            )
+            in closure
+        ),
+        key=lambda event: (
+            _clean(getattr(event, "created_at", "")),
+            _clean(getattr(event, "event_id", "")),
+        ),
+    )
+    state_by_pack: dict[str, dict[str, Any]] = {}
+    records: list[CanonicalRetestEpisodeRecord] = []
+    for terminal in ordered_terminals:
+        payload = _safe_dict(getattr(terminal, "payload_json", {}))
+        completion_id = _clean(payload.get("retest_completion_id"))
+        items = tuple(by_event_id[item_id] for item_id in closure[completion_id])
+        pack_id = _clean(payload.get("pack_id")).upper()
+        role = _canonical_retest_role_from_items(terminal=terminal, items=items)
+        terminal_id = _clean(getattr(terminal, "event_id", "")) or completion_id
+        version = _whole_number(payload.get("request_hash_version"))
+        state = state_by_pack.get(pack_id)
+        episode_id = ""
+        binding = EPISODE_BINDING_UNBOUND
+
+        if role == RETEST_ROLE_FORWARD_PRACTICE:
+            wrong_facts = {
+                _clean(_safe_dict(getattr(item, "payload_json", {})).get("fact_id"))
+                for item in items
+                if _safe_dict(getattr(item, "payload_json", {})).get("is_correct")
+                is False
+            }
+            wrong_facts.discard("")
+            state = {
+                "episode_id": terminal_id,
+                "current_anchor": terminal_id,
+                "wrong_facts": wrong_facts,
+                "legacy_compatible": version != 3,
+            }
+            state_by_pack[pack_id] = state
+            episode_id = terminal_id
+            binding = EPISODE_BINDING_EXACT
+        elif role == RETEST_ROLE_IMMEDIATE_CONFIRM:
+            confirm_facts = {
+                _clean(_safe_dict(getattr(item, "payload_json", {})).get("fact_id"))
+                for item in items
+            }
+            confirm_facts.discard("")
+            parent_anchor = _clean(payload.get("cycle_anchor"))
+            if (
+                state is not None
+                and parent_anchor == str(state.get("episode_id") or "")
+                and confirm_facts
+                and confirm_facts.issubset(set(state.get("wrong_facts") or set()))
+            ):
+                episode_id = str(state["episode_id"])
+                binding = EPISODE_BINDING_EXACT
+        elif role == RETEST_ROLE_REVIEW:
+            cycle_anchor = _clean(payload.get("cycle_anchor"))
+            if version == 3:
+                if state is not None and cycle_anchor == str(state["current_anchor"]):
+                    episode_id = str(state["episode_id"])
+                    binding = EPISODE_BINDING_EXACT
+                    state["current_anchor"] = terminal_id
+                    state["legacy_compatible"] = False
+            elif state is not None and state.get("legacy_compatible") is True:
+                episode_id = str(state["episode_id"])
+                binding = EPISODE_BINDING_LEGACY
+                state["current_anchor"] = terminal_id
+            elif state is None:
+                # Historical review-only evidence remains visible to cadence
+                # readers, but has no authority to complete a six-step episode.
+                binding = EPISODE_BINDING_LEGACY_UNBOUND
+
+        records.append(
+            CanonicalRetestEpisodeRecord(
+                terminal=terminal,
+                items=items,
+                pack_id=pack_id,
+                role=role,
+                episode_id=episode_id,
+                binding=binding,
+            )
+        )
+    return tuple(records)
+
+
+def validate_immediate_confirm_parent(
+    events: Iterable[Any],
+    *,
+    pack_id: str,
+    parent_terminal_id: str,
+    fact_ids: Iterable[str],
+) -> bool:
+    """Validate an immediate-confirm request against the latest forward episode.
+
+    The client may carry a terminal id as an opaque receipt, but only this
+    canonical evidence reader may decide whether it is still the current
+    parent and whether every requested fact was actually wrong in that closure.
+    """
+    normalized_pack = _clean(pack_id).upper()
+    normalized_parent = _clean(parent_terminal_id)
+    requested_facts = {_clean(fact_id) for fact_id in fact_ids}
+    requested_facts.discard("")
+    if not normalized_pack or not normalized_parent or not requested_facts:
+        return False
+    forward_records = [
+        record
+        for record in canonical_retest_episode_records(events)
+        if record.pack_id == normalized_pack
+        and record.role == RETEST_ROLE_FORWARD_PRACTICE
+        and record.binding == EPISODE_BINDING_EXACT
+    ]
+    if not forward_records:
+        return False
+    parent = forward_records[-1]
+    parent_id = _clean(getattr(parent.terminal, "event_id", ""))
+    if parent_id != normalized_parent:
+        return False
+    wrong_facts = {
+        _clean(_safe_dict(getattr(item, "payload_json", {})).get("fact_id"))
+        for item in parent.items
+        if _safe_dict(getattr(item, "payload_json", {})).get("is_correct") is False
+    }
+    wrong_facts.discard("")
+    return requested_facts.issubset(wrong_facts)
 
 
 def is_canonical_luban_retest_terminal(event: Any) -> bool:
@@ -307,6 +532,19 @@ def _safe_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
+def _event_index(events: Iterable[Any]) -> tuple[dict[str, Any], set[str]]:
+    by_event_id: dict[str, Any] = {}
+    duplicate_event_ids: set[str] = set()
+    for event in events:
+        event_id = _clean(getattr(event, "event_id", ""))
+        if not event_id:
+            continue
+        if event_id in by_event_id:
+            duplicate_event_ids.add(event_id)
+        by_event_id[event_id] = event
+    return by_event_id, duplicate_event_ids
+
+
 def _clean(value: Any) -> str:
     return str(value or "").strip()
 
@@ -329,8 +567,18 @@ def _whole_number(value: Any) -> int | None:
 
 
 __all__ = [
+    "CanonicalRetestEpisodeRecord",
+    "EPISODE_BINDING_EXACT",
+    "EPISODE_BINDING_LEGACY",
+    "EPISODE_BINDING_LEGACY_UNBOUND",
+    "EPISODE_BINDING_UNBOUND",
     "LEARNING_EVIDENCE_SOURCE_FEATURES",
     "PRACTICE_EVIDENCE_SOURCE_FEATURES",
+    "RETEST_ROLE_FORWARD_PRACTICE",
+    "RETEST_ROLE_IMMEDIATE_CONFIRM",
+    "RETEST_ROLE_REVIEW",
+    "canonical_retest_completion_role",
+    "canonical_retest_episode_records",
     "canonical_retest_item_events",
     "committed_retest_closure",
     "distinct_attempt_count",
@@ -343,4 +591,5 @@ __all__ = [
     "is_canonical_luban_retest_terminal",
     "is_real_retest",
     "promotion_allowed",
+    "validate_immediate_confirm_parent",
 ]
