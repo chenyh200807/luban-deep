@@ -9,6 +9,13 @@
 
 ## Deviations
 
+### 2026-07-18（随堂练选择题反可猜性全量战役 · owner 指令"最长即答案/全在A"）
+- **[病灶量化]** 633 道单选(40 包):78% 正确项严格最长、100% 存储位 0、8% 干扰项带口语破绽词("就够了/看着定"类=免费排除法);渲染层 41/43 播放器有洗牌,但存储层数据后期要被练习模块复用,必须治存储层。
+- **[修法]** 40 包并行 agent 语义重写干扰项(题干/model/正确项/code/tempt/lose/fix 逐字节冻结,快照机械断言)+ 确定性目标位重排(surface 内四位均衡);新工具 `scripts/scan_luban_practice_option_defects.py`(可复用门禁,--assign 给目标位)与 `scripts/migrate_luban_practice_review_packets.py`(签名按 (surface,source_index) 稳定键迁移,断言 stem/model/正确项不变+supply_ready 不降级)。
+- **[终态]** longest 78%→9%、pos0 100%→25%(分布 160/156/158/159)、口语破绽 8%→0%、长度带 58%→100%;20 上线包 141 签名迁移重签(supply_ready 逐包不变);publish --practice-only --check exit 0;pytest luban_lesson 301 绿;141 签发题四组异模型对抗核验。
+- **[偏离]** ①56 题保留"正确项严格最长"(长采分句正确项结构性超长,强行注水会造第二处错误,各包 ≤25% 预算内);②个别 tempt 引用本为转述非逐字,维持与改前同等保真;③S07 播放器有"正确项永不显示在 A 位"的运行时反向偏置,播放器 JS 冻结未动(跟进项);④公开练习页 `ok:true` 答案键仍嵌在客户端(架构病,Codex 已设计 server-grading seam,另立战役);⑤variant_id 全量更换,在途练习会话按设计 content_updated_retake 重取,历史学习证据引用旧 id(生产 cohort 仅 N01,爆炸半径小)。
+- **[教训]** variant_id=内容哈希,改选项文本必须"迁移 packet→再 publish"而非直改 authority;Codex 前役之败=机械正则批改(改坏题干)+未理解签名链 fail-closed。
+
 ### 2026-07-18（PR#521 CI 红 · chat 渲染器变更传导 practice 签名供应链）
 - **[意外爆炸半径]** markdown.js 被 practice 发布器打包进答题卡 runtime(publish_luban_preview_cards.py:90)——改 chat 渲染器 → runtime digest 变 → 41 包投影 fail-closed drift + S05/X01 签名包身份失配,api-contract 分片红。**前端渲染器与 practice 供应链存在隐式耦合,改 markdown.js 必须连带全量重发布**。
 - **[收敛顺序(踩出来的)]** publish 写模式在 packet 失配包上跳写 → 正确序=publish→migrate_packets --all→**再 publish**→manifest→check(exit 0)。漏第二次 publish 就永不收敛(authority drift 滚动出现)。
