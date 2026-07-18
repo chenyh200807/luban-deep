@@ -86,8 +86,8 @@
 .history-entry-hint {
   padding: 14rpx 18rpx;
   border-radius: 16rpx;
-  background: rgba(96, 165, 250, 0.08);
-  border: 1rpx solid rgba(96, 165, 250, 0.14);
+  background: var(--pk-accent-soft);
+  border: 1rpx solid var(--pk-accent-border);
 }
 .history-entry-hint text {
   display: block;
@@ -456,11 +456,11 @@
 .history-page.light .date-label { color: #8b98ad; }
 .history-page.light .date-count { color: #a1adbf; }
 .history-page.light .history-entry-hint {
-  background: rgba(59, 130, 246, 0.07);
-  border-color: rgba(59, 130, 246, 0.14);
+  background: var(--pk-accent-soft);
+  border-color: var(--pk-accent-border);
 }
 .history-page.light .history-entry-hint text {
-  color: #2563eb;
+  color: var(--pk-grn);
 }
 .history-page.light .conv-item {
   background: rgba(255,255,255,0.9);
@@ -485,7 +485,7 @@
 .history-page.light .conv-archive:active { background: rgba(79,70,229,0.10); }
 .history-page.light .conv-del:active { background: rgba(239,68,68,0.10); }
 .history-page.light .conv-del-icon { color: #475569; }
-.history-page.light .tag-blue { background: rgba(59,130,246,0.08); color: #2563eb; border-color: rgba(59,130,246,0.16); }
+.history-page.light .tag-blue { background: var(--pk-accent-soft); color: var(--pk-grn); border-color: var(--pk-accent-border); }
 .history-page.light .tag-rose { background: rgba(244,63,94,0.08); color: #e11d48; border-color: rgba(244,63,94,0.16); }
 .history-page.light .tag-amber { background: rgba(245,158,11,0.10); color: #b45309; border-color: rgba(245,158,11,0.18); }
 .history-page.light .tag-sky { background: rgba(14,165,233,0.08); color: #0369a1; border-color: rgba(14,165,233,0.16); }

@@ -76,7 +76,7 @@ assert(
 );
 assert(
   tabBarJs.indexOf('var hostRuntime = require("../utils/host-runtime");') >= 0 &&
-    tabBarJs.indexOf('hostRuntime.getTheme() !== "light"') >= 0 &&
+    tabBarJs.indexOf('hostRuntime.getThemeOr("light") !== "light"') >= 0 &&
     tabBarJs.indexOf('typeof next.isDark !== "boolean"') >= 0,
   "custom tab bar should resolve light mode before page-level sync arrives",
 );

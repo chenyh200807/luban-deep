@@ -54,7 +54,8 @@ function getTimeGreeting() {
  * @returns {string} "dark" | "light"
  */
 function getTheme() {
-  return hostRuntime.getTheme();
+  // 主题单一权威:未显式选择=亮。旧默认暗语义已废,防回潮。
+  return hostRuntime.getThemeOr("light");
 }
 
 /**

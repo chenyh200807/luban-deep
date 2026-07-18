@@ -47,7 +47,9 @@ function getChatEngine() {
 }
 
 function getTheme() {
-  return getThemeOr("dark");
+  // 主题单一权威(2026-07-18):未显式选择=亮;旧默认暗是 tab 壳与页面
+  // 明暗打架的根源,禁止回潮。
+  return getThemeOr("light");
 }
 
 /** 读主题；用户从未显式选择时返回 fallback（页面级默认亮/暗由调用方决定）。 */

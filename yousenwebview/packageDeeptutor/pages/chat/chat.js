@@ -3229,6 +3229,7 @@ Page({
     // 五 tab 壳:问鲁班中央章 index=2
     helpers.syncTabBar(this, 2, {
       hidden: !!hidden,
+      isDark: helpers.isDarkOr("light"),
     });
   },
 
