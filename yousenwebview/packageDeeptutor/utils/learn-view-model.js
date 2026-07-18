@@ -10,7 +10,7 @@
 //   非绿灯 pack 一律"即将开通"(H3)。
 // - 掌握态只读 lifecycle_state,不发明判分语义(H5)。
 
-var PACK_UNIVERSE = 40; // 仅兼容尚未返回 pack_universe 的旧后端；正式值来自 lessons API。
+var PACK_UNIVERSE = 40; // 旧后端缺正式教学路线总数时的兼容值。
 
 // 站点卡简称(显示层):卡片名用简称保清爽,title 全名不变(详情页/下一站卡仍用全名)
 var _shortNames = require("./pack-short-names");
@@ -29,19 +29,41 @@ function _int(v) {
   return Number.isFinite(n) ? Math.round(n) : 0;
 }
 function _packUniverse(lessonsResp) {
-  var n = _int(_safeObj(lessonsResp).pack_universe);
+  // 用户路线的分母是正式教学 topic；pack_universe 是内部资产池（当前 41），
+  // 不能再投影成“路线 41 站”。
+  var n = _int(_safeObj(lessonsResp).teaching_topic_universe);
   return n > 0 ? n : PACK_UNIVERSE;
+}
+
+function _formalPackIds(lessonsResp) {
+  var ids = {};
+  _safeArr(_safeObj(lessonsResp).teaching_points).forEach(function (point) {
+    var id = _str(_safeObj(point).pack_id).trim().toUpperCase();
+    if (id) ids[id] = true;
+  });
+  return ids;
+}
+
+function _formalPacks(packs, formalIds) {
+  if (!Object.keys(formalIds).length) return packs;
+  var projected = {};
+  Object.keys(formalIds).forEach(function (id) {
+    if (Object.prototype.hasOwnProperty.call(packs, id)) projected[id] = packs[id];
+  });
+  return projected;
 }
 
 // pack_id -> title,来自绿灯 lessons(H3:只有绿灯是可学的真站)
 function _titleIndex(lessonsResp) {
   var idx = {};
+  var formalIds = _formalPackIds(lessonsResp);
+  var hasFormalRoute = Object.keys(formalIds).length > 0;
   _safeArr(_safeObj(lessonsResp).lessons).forEach(function (l) {
     var o = _safeObj(l);
     var id = _str(o.pack_id).toUpperCase();
     // summary = 后端签发考点卡首卡 front(路线卡副标题真源);缺则 ""(fail-closed 留空)
     // retest = 签发供给 + rollout 双闸后的可完成真值；缺字段=false 保守降级。
-    if (id) idx[id] = {
+    if (id && (!hasFormalRoute || formalIds[id])) idx[id] = {
       title: _str(o.title),
       sha: _str(o.content_sha256),
       green: true,
@@ -372,7 +394,8 @@ function buildCanonicalLearningTask(args) {
       ? nextStep.target_pack_id
       : nextStep.source_ref,
   ).toUpperCase();
-  if (!packId) return null;
+  var formalIds = _formalPackIds(a.lessons);
+  if (!packId || (Object.keys(formalIds).length && !formalIds[packId])) return null;
   var pack = _safeObj(titleIdx[packId]);
 
   // 任务级公共派生:轻练旁按钮供给真值。
@@ -522,10 +545,15 @@ function buildLearnViewModel(args) {
   var progressAvailable = a.progressAvailable !== false;
   var dash = _safeObj(a.homeDashboard);
   var report = _safeObj(a.report);
+  var formalIds = _formalPackIds(a.lessons);
+  var hasFormalRoute = Object.keys(formalIds).length > 0;
   var titleIdx = _titleIndex(a.lessons);
 
   var lifecycle = _safeObj(report.pack_lifecycle);
-  var packs = _safeObj(lifecycle.packs);
+  var packs = _formalPacks(
+    _safeObj(lifecycle.packs),
+    formalIds,
+  );
   var universe = _packUniverse(a.lessons);
 
   // ── 下一站卡(next_step 呈现仲裁,H3 只认真实 pack) ──
@@ -540,7 +568,12 @@ function buildLearnViewModel(args) {
   var greenIds = Object.keys(titleIdx).sort();
   var hostedIds = greenIds.filter(function (id) { return titleIdx[id].card_hosted; });
   var nextStation = null;
-  if (nextStep.mode && nextStep.mode !== "unavailable" && nsRef) {
+  if (
+    nextStep.mode &&
+    nextStep.mode !== "unavailable" &&
+    nsRef &&
+    (!hasFormalRoute || formalIds[nsRef])
+  ) {
     nextStation = {
       pack_id: nsRef,
       title: nsMeta.title || "即将开通",

@@ -43,6 +43,8 @@ function loadLearn(options) {
   var lessons = options.lessons || Promise.resolve({
     lessons: [{ pack_id: "A01", title: "检验批验收程序", card_hosted: true }],
     pack_universe: 41,
+    teaching_topic_universe: 40,
+    teaching_points: [{ pack_id: "A01" }],
   });
   var sandbox = {
     console: console,
@@ -214,7 +216,12 @@ function loadLearn(options) {
         reason: "cached",
       }),
       report: validReport(1),
-      lessons: { lessons: [{ pack_id: "A01", title: "缓存站" }], pack_universe: 41 },
+      lessons: {
+        lessons: [{ pack_id: "A01", title: "缓存站" }],
+        pack_universe: 41,
+        teaching_topic_universe: 40,
+        teaching_points: [{ pack_id: "A01" }],
+      },
     },
   });
   stale.page.onLoad({});
@@ -223,6 +230,7 @@ function loadLearn(options) {
   assert.strictEqual(stale.page.data.vm.projectionState, "stale");
   assert.strictEqual(stale.page.data.vm.actionsEnabled, false, "stale task identities must not be clickable");
   assert.strictEqual(stale.page.data.vm.progressAvailable, true, "complete stale stats remain displayable");
+  assert.strictEqual(stale.page.data.vm.packUniverse, 40, "cached user route must keep the formal 40-station denominator");
   assert.strictEqual(stale.calls.cacheWrites.length, 0, "failed refresh must not refresh cache age");
 
   var invalid200 = loadLearn({

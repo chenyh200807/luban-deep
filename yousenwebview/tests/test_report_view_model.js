@@ -308,6 +308,35 @@ assert.deepStrictEqual(map.counts, { stable: 1, watch: 1, reverify: 1, unlearned
 assert.strictEqual(byId.F16.green, true);
 assert.strictEqual(byId.F16.title, "防水");
 assert.strictEqual(byId.Q02.green, false);
+// manifest 可含内部 pack，但“40 站全景”只投影正式教学路线中的 pack；
+// 标题、cells 与四态计数必须同源，不能再把 E01 算成第 41 站。
+var formalRouteReport = JSON.parse(JSON.stringify(lifecycleReport));
+formalRouteReport.pack_lifecycle.packs.E01 = {
+  lifecycle_state: "unlearned",
+  blue_ring: "empty",
+};
+var formalLessons = {
+  lessons: [
+    { pack_id: "F16", title: "防水" },
+    { pack_id: "N01", title: "网络计划" },
+    { pack_id: "E01", title: "内部计价包" },
+  ],
+  teaching_points: [
+    { pack_id: "F16" },
+    { pack_id: "N01" },
+    { pack_id: "C01" },
+    { pack_id: "J01" },
+    { pack_id: "Q02" },
+  ],
+};
+var formalMap = yousenVm.buildPackMasteryMap(formalRouteReport, formalLessons);
+assert.deepStrictEqual(
+  wxVm.buildPackMasteryMap(formalRouteReport, formalLessons),
+  formalMap,
+);
+assert.strictEqual(formalMap.packUniverse, 5);
+assert.strictEqual(formalMap.cells.some(function (cell) { return cell.packId === "E01"; }), false);
+assert.deepStrictEqual(formalMap.counts, { stable: 1, watch: 1, reverify: 1, unlearned: 1, blue: 1 });
 // 降级不造数:packs 空 → available=false
 assert.strictEqual(yousenVm.buildPackMasteryMap({}, null).available, false);
 assert.strictEqual(
