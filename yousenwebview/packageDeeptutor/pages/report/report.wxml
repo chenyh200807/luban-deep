@@ -482,7 +482,7 @@
         <view class="report-map-summary">
           <view>
             <text class="map-summary-label">总体掌握</text>
-            <text class="map-summary-num">{{overallMastery}}%</text>
+            <text class="map-summary-num">{{overallMasteryKnown ? overallMastery + '%' : '—'}}</text>
           </view>
           <view class="map-summary-bars">
             <view class="map-summary-bar strong"></view>
@@ -610,9 +610,9 @@
         <view class="mastery-hero glass-card">
           <view class="mastery-score-wrap">
             <text class="mastery-score {{masteryScoreClass}}">
-              {{overallMastery}}
+              {{overallMasteryKnown ? overallMastery : '—'}}
             </text>
-            <text class="mastery-unit">%</text>
+            <text class="mastery-unit" wx:if="{{overallMasteryKnown}}">%</text>
           </view>
           <text class="mastery-label">总体掌握度</text>
           <view class="mastery-map-row" wx:if="{{knowledgeSummary.totalTextbookChapters || knowledgeSummary.total_textbook_chapters}}">
@@ -683,7 +683,7 @@
             </view>
             <view class="group-meta">
               <text class="group-avg {{item.avgClass}}">
-                {{item.avgMastery}}%
+                {{item.avgLabel || item.avgMastery + '%'}}
               </text>
               <text class="group-toggle">{{item.expanded ? '收起' : '展开'}}</text>
             </view>

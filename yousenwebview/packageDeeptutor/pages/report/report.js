@@ -1296,6 +1296,7 @@ Page({
 
     // 掌握度数据
     overallMastery: 0,
+    overallMasteryKnown: false,
     masteryScoreClass: "",
     masteryGroups: [],
     hotspots: [],
@@ -2094,6 +2095,7 @@ Page({
         return {
           name: group.name || "",
           avgMastery: Math.round(group.avg_mastery || 0),
+          avgLabel: Math.round(group.avg_mastery || 0) + "%",
           avgClass: group.avg_class || group.class_name || "",
           chapters: chapters,
         };
@@ -2164,36 +2166,23 @@ Page({
             avgClass: "",
             chapters: observedChapters,
           });
+        // 设计权威铁律「前端不算分/不算掌握度」:降级路径不再用章节均值
+        // 客户端合成组均分与总体掌握——没有后端 read model 就诚实展示"—"。
         groups.forEach(function (g) {
-          if (!g.chapters.length) return;
-          g.avgMastery = Math.round(
-            g.chapters.reduce(function (s, c) {
-              return s + c.mastery;
-            }, 0) / g.chapters.length,
-          );
+          g.avgMastery = 0;
+          g.avgLabel = "—";
+          g.avgClass = "";
         });
-
-        var allMastery = Object.keys(cm).map(function (k) {
-          var v = cm[k];
-          return _asLearningBrainNumber(
-            typeof v === "object" ? v.mastery : v,
-            0,
-          );
-        });
-        overall = allMastery.length
-          ? Math.round(
-              allMastery.reduce(function (a, b) {
-                return a + b;
-              }, 0) / allMastery.length,
-            )
-          : 0;
+        overall = null;
+        masteryScoreClass = "";
         hotspots = [];
         reviewSummary = { total_due: 0, overdue_count: 0 };
         knowledgeSummary = {};
       }
 
       this.setData({
-        overallMastery: overall,
+        overallMastery: overall == null ? 0 : overall,
+        overallMasteryKnown: overall != null,
         masteryScoreClass: masteryScoreClass,
         masteryGroups: groups,
         hotspots: hotspots,

@@ -1,6 +1,6 @@
-/* onboarding.wxss — 「先体验导学」黎明将至 · Light is coming 设计系统
-   世界观：与登录页/正式主页同族的深夜宇宙；地平线光弧（bolt.new 式）随页面推进
-   缓缓上升、天际黎明光逐页升温——黑夜将明 = 备考上岸的隐喻。
+/* onboarding.wxss — 「先体验导学」宣纸晨光 · Light is coming(纸墨朱竹版)
+   世界观：与登录页/正式主页同族的夜宣纸；地平线朱红晨光弧随页面推进
+   缓缓上升、天际晨光逐页升温(竹青夜→赭金→朱红→宣纸亮)——黑夜将明 = 备考上岸。
    节奏：文字幕 Apple 式慢而准；判分弹分 Nike 式蓄力爆发。
    红线：补间只用 transform/opacity（小面积文字高亮的颜色动画除外）。 */
 
@@ -8,8 +8,8 @@
   position: relative;
   height: 100vh;
   overflow: hidden;
-  color: #f2f6ff;
-  background: linear-gradient(180deg, #04081a 0%, #081127 52%, #0d1633 100%);
+  color: #f0ede1;
+  background: linear-gradient(180deg, #14120d 0%, #1c1a15 52%, #26231d 100%);
 }
 
 /* —— 天际黎明光：每页一种色温，交叉淡入 + 涌入动势 —— */
@@ -31,19 +31,19 @@
 }
 
 .dawn-hook {
-  background: radial-gradient(ellipse at 50% 100%, rgba(64, 124, 230, 0.4) 0%, rgba(52, 102, 200, 0.2) 36%, transparent 64%);
+  background: radial-gradient(ellipse at 50% 100%, rgba(127, 185, 157, 0.22) 0%, rgba(127, 185, 157, 0.1) 36%, transparent 64%);
 }
 
 .dawn-p1 {
-  background: radial-gradient(ellipse at 50% 100%, rgba(72, 150, 255, 0.52) 0%, rgba(58, 120, 230, 0.26) 38%, transparent 66%);
+  background: radial-gradient(ellipse at 50% 100%, rgba(201, 159, 61, 0.32) 0%, rgba(201, 159, 61, 0.15) 38%, transparent 66%);
 }
 
 .dawn-p2 {
-  background: radial-gradient(ellipse at 50% 100%, rgba(56, 186, 232, 0.55) 0%, rgba(48, 140, 220, 0.26) 38%, transparent 66%);
+  background: radial-gradient(ellipse at 50% 100%, rgba(207, 68, 54, 0.3) 0%, rgba(178, 96, 60, 0.16) 38%, transparent 66%);
 }
 
 .dawn-p3 {
-  background: radial-gradient(ellipse at 50% 100%, rgba(168, 214, 255, 0.6) 0%, rgba(96, 168, 250, 0.3) 36%, transparent 66%);
+  background: radial-gradient(ellipse at 50% 100%, rgba(244, 241, 230, 0.5) 0%, rgba(226, 178, 100, 0.26) 36%, transparent 66%);
 }
 
 .act-wave .dawn-hook,
@@ -86,18 +86,18 @@
 
 /* 星球盘 + 弧光环带：白核(6rpx) → 亮蓝 → 实蓝，渐薄渐淡 */
 .horizon-disc {
-  background: #02060f;
+  background: #14120d;
   box-shadow:
-    0 0 0 6rpx #ffffff,
-    0 0 0 15rpx #75c9ff,
-    0 0 0 28rpx rgba(10, 120, 255, 0.95);
+    0 0 0 6rpx #fffdf8,
+    0 0 0 15rpx #e8c87a,
+    0 0 0 28rpx rgba(207, 68, 54, 0.95);
 }
 
 /* 蓝色外晕（softBlue/wideBlue 双层），呼吸明暗 */
 .horizon-halo {
   box-shadow:
-    0 -18rpx 70rpx 38rpx rgba(21, 133, 255, 0.6),
-    0 -60rpx 220rpx 68rpx rgba(9, 103, 214, 0.34);
+    0 -18rpx 70rpx 38rpx rgba(207, 68, 54, 0.55),
+    0 -60rpx 220rpx 68rpx rgba(201, 159, 61, 0.32);
   opacity: 0.7;
   animation: horizonBreathe 4600ms ease-in-out infinite alternate;
 }
@@ -140,7 +140,7 @@
   bottom: 0;
   z-index: 60;
   pointer-events: none;
-  background: #02060f;
+  background: #14120d;
   opacity: 1;
 }
 
@@ -182,8 +182,9 @@
   height: 56rpx;
   padding: 10rpx;
   border-radius: 18rpx;
-  background: rgba(255, 255, 255, 0.09);
-  border: 1rpx solid rgba(255, 255, 255, 0.12);
+  background: #cf4436;
+  border: none;
+  box-shadow: 0 6rpx 18rpx rgba(207, 68, 54, 0.3);
   box-sizing: border-box;
 }
 
@@ -192,13 +193,13 @@
   font-size: 28rpx;
   line-height: 1.05;
   font-weight: 800;
-  color: #f2f6ff;
+  color: #f0ede1;
 }
 
 .brand-sub {
   display: block;
   margin-top: 5rpx;
-  color: rgba(205, 222, 250, 0.55);
+  color: rgba(183, 178, 162, 0.75);
   font-size: 20rpx;
   line-height: 1;
   letter-spacing: 0.08em;
@@ -221,12 +222,12 @@
 }
 
 .progress-pill.on {
-  background: rgba(143, 194, 255, 0.6);
+  background: rgba(232, 200, 122, 0.6);
 }
 
 .progress-pill.current {
   width: 72rpx;
-  background: #8fc2ff;
+  background: #e8c87a;
 }
 
 /* —— 幕 1: 垂直词轮播 → 品牌宣言 —— */
@@ -270,7 +271,7 @@
   font-size: 96rpx;
   font-weight: 900;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.14);
+  color: rgba(240, 237, 225, 0.16);
   letter-spacing: 0.02em;
   transform: scale(0.94);
   transform-origin: left center;
@@ -278,13 +279,13 @@
 }
 
 .roller-word.cur text {
-  color: #f2f6ff;
+  color: #f0ede1;
   transform: scale(1);
 }
 
 .roller-word.final text {
-  color: #6db4ff;
-  text-shadow: 0 0 36rpx rgba(109, 180, 255, 0.45);
+  color: #e8c87a;
+  text-shadow: 0 0 36rpx rgba(232, 200, 122, 0.45);
 }
 
 /* 品牌宣言：坐在天际光上 */
@@ -301,10 +302,10 @@
   height: 76rpx;
   padding: 14rpx;
   border-radius: 22rpx;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1rpx solid rgba(255, 255, 255, 0.14);
+  background: #cf4436;
+  border: none;
   box-sizing: border-box;
-  box-shadow: 0 14rpx 36rpx rgba(2, 6, 18, 0.5);
+  box-shadow: 0 14rpx 36rpx rgba(207, 68, 54, 0.35);
 }
 
 .hook-brand-mark image {
@@ -315,7 +316,7 @@
 .hook-brand-title {
   display: block;
   margin-top: 24rpx;
-  color: #f2f6ff;
+  color: #f0ede1;
   font-family: "Songti SC", "STSong", "Source Han Serif SC", serif;
   font-size: 46rpx;
   line-height: 1.25;
@@ -325,7 +326,7 @@
 .hook-brand-desc {
   display: block;
   margin-top: 14rpx;
-  color: rgba(214, 228, 250, 0.66);
+  color: rgba(183, 178, 162, 0.85);
   font-size: 27rpx;
   line-height: 1.6;
   font-weight: 500;
@@ -346,7 +347,7 @@
   transform: translateY(112%);
   font-family: "Songti SC", "STSong", "Source Han Serif SC", serif;
   font-weight: 900;
-  color: #f2f6ff;
+  color: #f0ede1;
   font-size: 82rpx;
   line-height: 1.22;
   letter-spacing: 0.01em;
@@ -371,8 +372,8 @@
 }
 
 .rise-char.is-accent {
-  color: #6db4ff;
-  text-shadow: 0 0 32rpx rgba(109, 180, 255, 0.4);
+  color: #e8c87a;
+  text-shadow: 0 0 32rpx rgba(232, 200, 122, 0.4);
 }
 
 /* —— 幕 2/3/4 容器 —— */
@@ -399,7 +400,7 @@
 
 .act-desc {
   display: block;
-  color: rgba(214, 228, 250, 0.66);
+  color: rgba(183, 178, 162, 0.85);
   font-size: 27rpx;
   line-height: 1.66;
   font-weight: 500;
@@ -429,7 +430,7 @@
 }
 
 .tag text {
-  color: rgba(228, 238, 255, 0.78);
+  color: rgba(240, 237, 225, 0.78);
   font-size: 22rpx;
   line-height: 1;
   font-weight: 600;
@@ -454,7 +455,7 @@
   border-radius: 30rpx;
   background: rgba(255, 255, 255, 0.06);
   border: 1rpx solid rgba(255, 255, 255, 0.11);
-  box-shadow: 0 34rpx 90rpx rgba(2, 6, 18, 0.6);
+  box-shadow: 0 34rpx 90rpx rgba(10, 9, 6, 0.6);
   animation: stageLand 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -483,7 +484,7 @@
 }
 
 .product-title {
-  color: rgba(232, 240, 252, 0.88);
+  color: rgba(240, 237, 225, 0.9);
   font-size: 28rpx;
   line-height: 1.1;
   font-weight: 800;
@@ -493,9 +494,9 @@
   flex: 0 0 auto;
   padding: 10rpx 16rpx;
   border-radius: 999rpx;
-  background: rgba(0, 201, 167, 0.16);
-  border: 1rpx solid rgba(0, 201, 167, 0.26);
-  color: #6fe3c2;
+  background: rgba(127, 185, 157, 0.16);
+  border: 1rpx solid rgba(127, 185, 157, 0.28);
+  color: #7fb99d;
   font-size: 22rpx;
   line-height: 1;
   font-weight: 800;
@@ -510,7 +511,7 @@
   padding: 20rpx;
   border-radius: 20rpx;
   background: rgba(255, 255, 255, 0.045);
-  color: rgba(222, 232, 248, 0.82);
+  color: rgba(235, 231, 219, 0.85);
   font-size: 26rpx;
   line-height: 1.62;
   font-weight: 500;
@@ -554,15 +555,15 @@
 
 @keyframes markIn {
   to {
-    color: #6fe3c2;
-    background: rgba(0, 201, 167, 0.16);
+    color: #7fb99d;
+    background: rgba(127, 185, 157, 0.16);
   }
 }
 
 @keyframes missIn {
   to {
-    color: #f0b15c;
-    background: rgba(232, 148, 58, 0.16);
+    color: #e2b264;
+    background: rgba(201, 159, 61, 0.18);
   }
 }
 
@@ -607,8 +608,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #04110d;
-  background: #2bd4ab;
+  color: #101613;
+  background: #7fb99d;
   font-size: 20rpx;
   line-height: 1;
   font-weight: 900;
@@ -616,30 +617,30 @@
 
 .point-row.warn .point-tag {
   color: #1d1204;
-  background: #e8a64d;
+  background: #e2b264;
 }
 
 .point-text {
   min-width: 0;
-  color: rgba(226, 236, 250, 0.85);
+  color: rgba(235, 231, 219, 0.85);
   font-size: 24rpx;
   line-height: 1.2;
   font-weight: 600;
 }
 
 .point-score {
-  color: #6fe3c2;
+  color: #7fb99d;
   font-size: 26rpx;
   line-height: 1;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 18rpx rgba(43, 212, 171, 0.45);
+  text-shadow: 0 0 18rpx rgba(127, 185, 157, 0.45);
   animation: scorePop 560ms cubic-bezier(0.16, 1, 0.3, 1) 240ms both;
 }
 
 .point-row.warn .point-score {
-  color: #f0b15c;
-  text-shadow: 0 0 18rpx rgba(232, 166, 77, 0.4);
+  color: #e2b264;
+  text-shadow: 0 0 18rpx rgba(201, 159, 61, 0.4);
 }
 
 @keyframes scorePop {
@@ -674,7 +675,7 @@
 }
 
 .weak-title {
-  color: rgba(226, 236, 250, 0.86);
+  color: rgba(235, 231, 219, 0.86);
   font-size: 25rpx;
   line-height: 1.2;
   font-weight: 700;
@@ -694,7 +695,7 @@
 .weak-bar view {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #3a8eff, #38d3c6);
+  background: #7fb99d;
   animation: barGrow 900ms cubic-bezier(0.22, 1, 0.36, 1) 180ms both;
 }
 
@@ -706,8 +707,8 @@
   margin-top: 16rpx;
   padding: 20rpx;
   border-radius: 20rpx;
-  background: linear-gradient(135deg, rgba(58, 142, 255, 0.18), rgba(56, 211, 198, 0.14));
-  border: 1rpx solid rgba(120, 170, 255, 0.2);
+  background: linear-gradient(135deg, rgba(207, 68, 54, 0.16), rgba(201, 159, 61, 0.12));
+  border: 1rpx solid rgba(232, 200, 122, 0.24);
 }
 
 .task-box.fx-pop.on {
@@ -727,7 +728,7 @@
 
 .task-label {
   display: block;
-  color: #8fc2ff;
+  color: #e8c87a;
   font-size: 21rpx;
   line-height: 1;
   font-weight: 800;
@@ -737,7 +738,7 @@
 .task-title {
   display: block;
   margin-top: 10rpx;
-  color: #f2f6ff;
+  color: #f0ede1;
   font-size: 26rpx;
   line-height: 1.35;
   font-weight: 700;
@@ -780,8 +781,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
-  box-shadow: 0 24rpx 60rpx rgba(64, 130, 240, 0.35);
+  background: #f0ede1;
+  box-shadow: 0 24rpx 60rpx rgba(207, 68, 54, 0.28);
 }
 
 .primary-btn.fx-pop.on {
@@ -789,7 +790,7 @@
 }
 
 .primary-text {
-  color: #0b1f3a;
+  color: #26241f;
   font-size: 30rpx;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -808,11 +809,11 @@
   border-radius: 999rpx;
   background: rgba(255, 255, 255, 0.1);
   border: 1rpx solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 10rpx 28rpx rgba(2, 6, 18, 0.4);
+  box-shadow: 0 10rpx 28rpx rgba(10, 9, 6, 0.4);
 }
 
 .skip-float text {
-  color: rgba(232, 240, 255, 0.72);
+  color: rgba(240, 237, 225, 0.72);
   font-size: 24rpx;
   line-height: 1;
   font-weight: 600;
