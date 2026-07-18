@@ -1,48 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "Q01",
   "source_pack_sha256": "be6eae789509f1b0c19c808b1a6b822e8d6181553fcda4fcfd60f7c183f56354",
   "source_bundle_sha256": "856a632c7ba7dbcaca74c7c00ba66b48cfd304fd90ec8daf24dde23142d064f4",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        2,
-        3,
-        14
-      ],
-      "variant_ids": [
-        "Q01-html-practice-html-q1-9752d199a392",
-        "Q01-html-practice-html-q2-4a84fcba6b1e",
-        "Q01-html-practice-html-q3-eac52d2ed42f",
-        "Q01-html-practice-html-q4-c8005fb201fb",
-        "Q01-html-practice-html-q15-bdd53df442bc"
-      ],
-      "eligible_variant_ids": [
-        "Q01-html-practice-html-q1-9752d199a392",
-        "Q01-html-practice-html-q2-4a84fcba6b1e",
-        "Q01-html-practice-html-q3-eac52d2ed42f",
-        "Q01-html-practice-html-q4-c8005fb201fb",
-        "Q01-html-practice-html-q6-8f708662653f",
-        "Q01-html-practice-html-q10-024627f3b2e3",
-        "Q01-html-practice-html-q15-bdd53df442bc"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtOTc1MmQxOTlhMzkyIiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00YTg0ZmNiYTZiMWUiLCJRMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWVhYzUyZDJlZDQyZiIsIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzgwMDVmYjIwMWZiIiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYmRkNTNkZjQ0MmJjIl0sInBhY2tfaWQiOiJRMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImMzZjg4MjQ2MzkwNWZlMzVjOTE5NDQ2MjM2Zjk4YjhkNzhjZDIyZDFhYjEwOGQ4MDVlOThjMTVhMGUxYjZiZGQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiY2JjNzM3ZDFkNjU3ZDRhODgzMGI5MDk2OWM5OTIzZDIyNzI2NjE5OTliNWJmZWYxMmMxOTIzNmRhYWQwNjE2MyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "6bc7d17aa407a9b2e199c176312f47b97042bb827e500f8687fb03a9126307c4"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 16,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "养护时长·条件维",
+      "variant_id": "Q01-html-practice-html-q1-9752d199a392",
+      "surface_id": "practice.html",
       "stem": "某工程有普通硅酸盐水泥现浇柱、有抗渗要求的地下室墙、后浇带三部分。关于最短养护时间，选出完整、能得分的作答。",
-      "model_answer": "普通硅酸盐水泥现浇≥7d；有抗渗要求的≥14d；后浇带养护≥14d。",
       "options": [
         {
           "text": "普通硅酸盐水泥现浇构件养护不少于 7d；有抗渗要求的不少于 14d；后浇带养护不少于 14d。",
@@ -81,53 +56,50 @@
           "option_id": "Q01-html-practice-html-q1-9752d199a392:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q1-9752d199a392",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q1",
-      "source_anchor": "kc:1A413030_104_0197:0",
-      "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "q01-fact-curing-days-matrix",
-      "skeleton_id": "q01-skel-养护天数条件矩阵",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "普通硅酸盐水泥现浇≥7d；有抗渗要求的≥14d；后浇带养护≥14d。",
+      "rule_group": "养护时长·条件维",
       "content_sha256": "663c52ae0d2b69d2cbebb8992c764242d913af805e1cf1a09d25d2c6497a5efb",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "663c52ae0d2b69d2cbebb8992c764242d913af805e1cf1a09d25d2c6497a5efb",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q1",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "q01-fact-curing-days-matrix",
+        "skeleton_id": "q01-skel-养护天数条件矩阵",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_104_0197:0",
+        "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "663c52ae0d2b69d2cbebb8992c764242d913af805e1cf1a09d25d2c6497a5efb",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "普硅7d/抗渗14d/后浇带14d 全矩阵, 教材 kc:...104_0197:0 直引; 真题 exam:2022:第15题(D 抗渗≥14d)佐证。三联 anchor。工单: 唯一完整枚举最长项。"
         },
-        "note": "普硅7d/抗渗14d/后浇带14d 全矩阵, 教材 kc:...104_0197:0 直引; 真题 exam:2022:第15题(D 抗渗≥14d)佐证。三联 anchor。工单: 唯一完整枚举最长项。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "大体积温控·条件维",
+      "variant_id": "Q01-html-practice-html-q2-4a84fcba6b1e",
+      "surface_id": "practice.html",
       "stem": "大体积混凝土底板测温控制，选出指标完整、能得分的作答。",
-      "model_answer": "里表温差≤25℃；降温速率≤2.0℃/d；温升≤50℃；入模温度 5~30℃。",
       "options": [
         {
           "text": "里表温差不大于 25℃；降温速率不大于 2.0℃/d；温升不大于 50℃；入模温度控制在 5~30℃。",
@@ -166,53 +138,50 @@
           "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q2-4a84fcba6b1e",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q2",
-      "source_anchor": "kc:1A413030_096_0181:0",
-      "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "q01-fact-mass-concrete-temps",
-      "skeleton_id": "q01-skel-大体积四温控指标",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "里表温差≤25℃；降温速率≤2.0℃/d；温升≤50℃；入模温度 5~30℃。",
+      "rule_group": "大体积温控·条件维",
       "content_sha256": "fda205ec0d3d0e97b2edac33cc3b90bd4ed6d4cce2f627c0091d3d440e648140",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "fda205ec0d3d0e97b2edac33cc3b90bd4ed6d4cce2f627c0091d3d440e648140",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q2",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "q01-fact-mass-concrete-temps",
+        "skeleton_id": "q01-skel-大体积四温控指标",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_096_0181:0",
+        "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "fda205ec0d3d0e97b2edac33cc3b90bd4ed6d4cce2f627c0091d3d440e648140",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "里表温差≤25℃/降温≤2.0℃/d/温升≤50℃/入模5~30℃, 教材 kc:...096_0181:0 逐项直引。"
         },
-        "note": "里表温差≤25℃/降温≤2.0℃/d/温升≤50℃/入模5~30℃, 教材 kc:...096_0181:0 逐项直引。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "冬期温控·条件维",
+      "variant_id": "Q01-html-practice-html-q3-eac52d2ed42f",
+      "surface_id": "practice.html",
       "stem": "冬期大体积混凝土温控，选出指标正确、能得分的作答。",
-      "model_answer": "中心-表面温差≤25℃；表面-大气温差≤20℃；温降梯度≤3℃/d；养护≥14d。",
       "options": [
         {
           "text": "中心与表面温差不大于 25℃；表面与大气温差不大于 20℃；温降梯度不大于 3℃/d；养护不少于 14d。",
@@ -251,53 +220,50 @@
           "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q3-eac52d2ed42f",
-      "surface_id": "practice.html",
-      "source_index": 2,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q3",
-      "source_anchor": "exam:2019:第1题",
-      "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "q01-fact-winter-curing-limits",
-      "skeleton_id": "q01-skel-冬期温控四数值",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "中心-表面温差≤25℃；表面-大气温差≤20℃；温降梯度≤3℃/d；养护≥14d。",
+      "rule_group": "冬期温控·条件维",
       "content_sha256": "cf41af07274cc08490ad9130821ff971ef3e927730397326854bc0678e82641f",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "cf41af07274cc08490ad9130821ff971ef3e927730397326854bc0678e82641f",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q3",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "q01-fact-winter-curing-limits",
+        "skeleton_id": "q01-skel-冬期温控四数值",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2019:第1题",
+        "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "cf41af07274cc08490ad9130821ff971ef3e927730397326854bc0678e82641f",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "中心表面25℃/表面大气20℃/温降3℃/d/14d, 真题 exam:2019:第1题 参考答案逐字。"
         },
-        "note": "中心表面25℃/表面大气20℃/温降3℃/d/14d, 真题 exam:2019:第1题 参考答案逐字。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "高温措施·程序维",
+      "variant_id": "Q01-html-practice-html-q4-c8005fb201fb",
+      "surface_id": "practice.html",
       "stem": "高温环境下混凝土防裂，下列哪一组作答完整、能得分？",
-      "model_answer": "安排早间/晚间施工、喷雾降温保湿、连续浇筑；不采用吹风。",
       "options": [
         {
           "text": "安排早间或晚间施工，喷雾降温保湿，连续浇筑避免冷缝；不宜采用吹风。",
@@ -336,53 +302,50 @@
           "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q4-c8005fb201fb",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q4",
-      "source_anchor": "exam:2016:第30题",
-      "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "q01-fact-hot-weather-measures",
-      "skeleton_id": "q01-skel-高温施工措施选择",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "安排早间/晚间施工、喷雾降温保湿、连续浇筑；不采用吹风。",
+      "rule_group": "高温措施·程序维",
       "content_sha256": "82e5d822188481a1c49c2c965d90bf9b104606a00b8ec897f23432dd15e8656c",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "82e5d822188481a1c49c2c965d90bf9b104606a00b8ec897f23432dd15e8656c",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q4",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "q01-fact-hot-weather-measures",
+        "skeleton_id": "q01-skel-高温施工措施选择",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2016:第30题",
+        "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "82e5d822188481a1c49c2c965d90bf9b104606a00b8ec897f23432dd15e8656c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "早间/晚间/喷雾/连续浇筑(排除吹风), 真题 exam:2016:第30题 ABCD 直判。冷缝机制说明为教学扩写(工单)。"
         },
-        "note": "早间/晚间/喷雾/连续浇筑(排除吹风), 真题 exam:2016:第30题 ABCD 直判。冷缝机制说明为教学扩写(工单)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "温差辨析·条件维",
+      "variant_id": "Q01-html-practice-html-q5-36e34c0fa4d2",
+      "surface_id": "practice.html",
       "stem": "关于「25℃」「20℃」两个温差指标的适用，选出对应正确、能得分的作答。",
-      "model_answer": "里表温差、冬期中心-表面温差均≤25℃；冬期表面-大气温差≤20℃。",
       "options": [
         {
           "text": "大体积里表温差、冬期中心与表面温差都控制在 25℃以内；冬期表面与大气温差控制在 20℃以内。",
@@ -421,41 +384,38 @@
           "option_id": "Q01-html-practice-html-q5-36e34c0fa4d2:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q5-36e34c0fa4d2",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "里表温差、冬期中心-表面温差均≤25℃；冬期表面-大气温差≤20℃。",
+      "rule_group": "温差辨析·条件维",
       "content_sha256": "d664c21b06ffd2f1fb7d7f96b7ebf79d3f66987a1c2b4736c9d60e9e1ae87e8c",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "d664c21b06ffd2f1fb7d7f96b7ebf79d3f66987a1c2b4736c9d60e9e1ae87e8c",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q5",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "d664c21b06ffd2f1fb7d7f96b7ebf79d3f66987a1c2b4736c9d60e9e1ae87e8c",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "判断纠错·条件维",
+      "variant_id": "Q01-html-practice-html-q6-8f708662653f",
+      "surface_id": "practice.html",
       "stem": "技术交底写道：有抗渗要求的地下室外墙混凝土养护 7 天即可。指出不妥并改正，选出能得分的作答。",
-      "model_answer": "不妥：有抗渗要求应养护≥14d；改正：养护时间不应少于 14d。",
       "options": [
         {
           "text": "不妥：有抗渗要求的混凝土养护不得少于 14d；应改为养护时间不少于 14d。",
@@ -494,53 +454,50 @@
           "option_id": "Q01-html-practice-html-q6-8f708662653f:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q6-8f708662653f",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q6",
-      "source_anchor": "m35:Q3-1A433000:P8",
-      "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "q01-fact-curing-days-matrix",
-      "skeleton_id": "q01-skel-7d不妥判断改正",
-      "probe_role": "immediate_confirm",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：有抗渗要求应养护≥14d；改正：养护时间不应少于 14d。",
+      "rule_group": "判断纠错·条件维",
       "content_sha256": "54857aae9104baabf79709257316650dfd1252d7e1ace5244b00982ccdb10656",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "54857aae9104baabf79709257316650dfd1252d7e1ace5244b00982ccdb10656",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q6",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "q01-fact-curing-days-matrix",
+        "skeleton_id": "q01-skel-7d不妥判断改正",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "m35:Q3-1A433000:P8",
+        "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "54857aae9104baabf79709257316650dfd1252d7e1ace5244b00982ccdb10656",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "抗渗混凝土养护7d不妥应≥14d, m35 判分卡逐字+exam:2022:第15题 佐证。三联 immediate_confirm(同养护天数 fact)。"
         },
-        "note": "抗渗混凝土养护7d不妥应≥14d, m35 判分卡逐字+exam:2022:第15题 佐证。三联 immediate_confirm(同养护天数 fact)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "裂缝控制目标·后果维",
+      "variant_id": "Q01-html-practice-html-q7-1316081b361b",
+      "surface_id": "practice.html",
       "stem": "关于混凝土裂缝控制，选出目标判断完整、能得分的作答。",
-      "model_answer": "先分不允许裂缝(控拉应力≤ftk)与允许裂缝(按构件+环境类别控宽度≤限值)；分三级。",
       "options": [
         {
           "text": "先分两类目标：不允许出现裂缝时控制拉应力不超过抗拉强度；允许出现裂缝时按构件类别、环境类别控制裂缝宽度不超限值。",
@@ -579,41 +536,38 @@
           "option_id": "Q01-html-practice-html-q7-1316081b361b:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q7-1316081b361b",
-      "surface_id": "practice.html",
-      "source_index": 6,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "先分不允许裂缝(控拉应力≤ftk)与允许裂缝(按构件+环境类别控宽度≤限值)；分三级。",
+      "rule_group": "裂缝控制目标·后果维",
       "content_sha256": "3ee4ef98c1248df6dc3d26aace709fb1f10f4a727c6ec4c18d39d096d3f836d1",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "3ee4ef98c1248df6dc3d26aace709fb1f10f4a727c6ec4c18d39d096d3f836d1",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q7",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "3ee4ef98c1248df6dc3d26aace709fb1f10f4a727c6ec4c18d39d096d3f836d1",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "防水施工·程序维",
+      "variant_id": "Q01-html-practice-html-q8-1217680a41d5",
+      "surface_id": "practice.html",
       "stem": "防水混凝土浇筑，选出施工要求完整、能得分的作答。",
-      "model_answer": "连续浇筑少留施工缝；分层厚度≤500mm；机械振捣避免漏/欠/超振。",
       "options": [
         {
           "text": "防水混凝土应连续浇筑、少留施工缝；分层浇筑时分层厚度不大于 500mm；采用机械振捣，避免漏振、欠振、超振。",
@@ -652,41 +606,38 @@
           "option_id": "Q01-html-practice-html-q8-1217680a41d5:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q8-1217680a41d5",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "连续浇筑少留施工缝；分层厚度≤500mm；机械振捣避免漏/欠/超振。",
+      "rule_group": "防水施工·程序维",
       "content_sha256": "577ae73f90fcc2383a4cea1f31f70df98e513bfcdecb3f6bc5f29b58be5ffd40",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "577ae73f90fcc2383a4cea1f31f70df98e513bfcdecb3f6bc5f29b58be5ffd40",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q8",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "577ae73f90fcc2383a4cea1f31f70df98e513bfcdecb3f6bc5f29b58be5ffd40",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "施工缝位置·程序维",
+      "variant_id": "Q01-html-practice-html-q9-6599e3f13c77",
+      "surface_id": "practice.html",
       "stem": "防水混凝土确需留施工缝时，选出位置正确、能得分的作答。",
-      "model_answer": "施工缝不留在剪力最大处，也不留在底板与侧墙交接处，宜留在便于止水的部位。",
       "options": [
         {
           "text": "施工缝不应留在剪力最大处，也不应留在底板与侧墙交接处，宜留在便于止水的部位。",
@@ -725,41 +676,38 @@
           "option_id": "Q01-html-practice-html-q9-6599e3f13c77:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q9-6599e3f13c77",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "施工缝不留在剪力最大处，也不留在底板与侧墙交接处，宜留在便于止水的部位。",
+      "rule_group": "施工缝位置·程序维",
       "content_sha256": "ef3f93c81b0f9c83b95a2c671302e2647dc31f819abcf52741ee8f3ea4409e6b",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "ef3f93c81b0f9c83b95a2c671302e2647dc31f819abcf52741ee8f3ea4409e6b",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q9",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "ef3f93c81b0f9c83b95a2c671302e2647dc31f819abcf52741ee8f3ea4409e6b",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "防水养护·条件维",
+      "variant_id": "Q01-html-practice-html-q10-024627f3b2e3",
+      "surface_id": "practice.html",
       "stem": "防水混凝土养护，选出正确、能得分的作答。",
-      "model_answer": "防水混凝土养护时间不少于 14d；冬期入模温度不低于 5℃。",
       "options": [
         {
           "text": "防水混凝土养护时间不少于 14d；冬期施工入模温度不低于 5℃。",
@@ -798,53 +746,50 @@
           "option_id": "Q01-html-practice-html-q10-024627f3b2e3:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q10-024627f3b2e3",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q10",
-      "source_anchor": "kc:1A438000_154_0302:0",
-      "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "q01-fact-curing-days-matrix",
-      "skeleton_id": "q01-skel-冬期入模养护数值",
-      "probe_role": "d1_probe",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "防水混凝土养护时间不少于 14d；冬期入模温度不低于 5℃。",
+      "rule_group": "防水养护·条件维",
       "content_sha256": "538381c3839bab7fce2409929fc3e3902dc9e4c4f2891d62050878c5cbbfdd97",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "538381c3839bab7fce2409929fc3e3902dc9e4c4f2891d62050878c5cbbfdd97",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q10",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "q01-fact-curing-days-matrix",
+        "skeleton_id": "q01-skel-冬期入模养护数值",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A438000_154_0302:0",
+        "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "538381c3839bab7fce2409929fc3e3902dc9e4c4f2891d62050878c5cbbfdd97",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "防水混凝土冬期入模≥5℃且养护≥14d, 教材 kc:...154_0302:0 直引; exam:2015:第26题(D 7d错) 佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。"
         },
-        "note": "防水混凝土冬期入模≥5℃且养护≥14d, 教材 kc:...154_0302:0 直引; exam:2015:第26题(D 7d错) 佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "后浇带·条件维",
+      "variant_id": "Q01-html-practice-html-q11-89e88dc29d18",
+      "surface_id": "practice.html",
       "stem": "关于底板后浇带，选出材料与时间都正确、能得分的作答。",
-      "model_answer": "用微膨胀混凝土、强度提高一级；养护≥14d；底板后浇带封闭≥28d。",
       "options": [
         {
           "text": "后浇带采用微膨胀(补偿收缩)混凝土、强度提高一级；养护不少于 14d；底板后浇带封闭时间不少于 28d。",
@@ -883,41 +828,38 @@
           "option_id": "Q01-html-practice-html-q11-89e88dc29d18:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q11-89e88dc29d18",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "用微膨胀混凝土、强度提高一级；养护≥14d；底板后浇带封闭≥28d。",
+      "rule_group": "后浇带·条件维",
       "content_sha256": "65bb5a530f7a29fa99198d4d788668018104c6c1597b8ea75da18c574733c7a5",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "65bb5a530f7a29fa99198d4d788668018104c6c1597b8ea75da18c574733c7a5",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q11",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "65bb5a530f7a29fa99198d4d788668018104c6c1597b8ea75da18c574733c7a5",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "拆模强度·计算表达维",
+      "variant_id": "Q01-html-practice-html-q12-1650b8c1cc5f",
+      "surface_id": "practice.html",
       "stem": "跨度 6m 的 C30 现浇板拆底模，选出依据与算式都能得分的作答。",
-      "model_answer": "需同条件养护试块强度≥设计值75%；C30→30×75%=22.5N/mm²。",
       "options": [
         {
           "text": "拆底模需同条件养护试块强度达到设计值的 75%；C30 代入 30×75%=22.5N/mm²，达到 22.5 方可拆底模。",
@@ -956,41 +898,38 @@
           "option_id": "Q01-html-practice-html-q12-1650b8c1cc5f:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q12-1650b8c1cc5f",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "需同条件养护试块强度≥设计值75%；C30→30×75%=22.5N/mm²。",
+      "rule_group": "拆模强度·计算表达维",
       "content_sha256": "9ebf9c886b868603787b9592de46639d88dee82f2b5e8ee792d3a1fc0ed07f68",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "9ebf9c886b868603787b9592de46639d88dee82f2b5e8ee792d3a1fc0ed07f68",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q12",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "9ebf9c886b868603787b9592de46639d88dee82f2b5e8ee792d3a1fc0ed07f68",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "裂缝成因识别·后果维",
+      "variant_id": "Q01-html-practice-html-q13-3fe4f66949a3",
+      "surface_id": "practice.html",
       "stem": "地基不均匀下沉引起的墙体裂缝，下列哪一项不属于其典型现象？",
-      "model_answer": "窗间墙竖向裂缝不属于地基不均匀下沉的典型现象。",
       "options": [
         {
           "text": "窗间墙竖向裂缝，不属于地基不均匀下沉的典型现象。",
@@ -1029,41 +968,38 @@
           "option_id": "Q01-html-practice-html-q13-3fe4f66949a3:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q13-3fe4f66949a3",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "窗间墙竖向裂缝不属于地基不均匀下沉的典型现象。",
+      "rule_group": "裂缝成因识别·后果维",
       "content_sha256": "591c9ceca380c73fc07263b5cfc8035e87917fef04ee908ea4e3b982d936b1c7",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "591c9ceca380c73fc07263b5cfc8035e87917fef04ee908ea4e3b982d936b1c7",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q13",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "591c9ceca380c73fc07263b5cfc8035e87917fef04ee908ea4e3b982d936b1c7",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "裂缝机理·后果维",
+      "variant_id": "Q01-html-practice-html-q14-1d4b5613b75d",
+      "surface_id": "practice.html",
       "stem": "关于混凝土裂缝的产生机理，选出表述正确、能得分的作答。",
-      "model_answer": "收缩与温度作用等间接作用在受约束构件内产生拉应力，超过抗拉强度即开裂。",
       "options": [
         {
           "text": "混凝土收缩、温度作用等间接作用，在受约束构件内产生拉应力，当拉应力超过混凝土抗拉强度时即开裂。",
@@ -1102,41 +1038,38 @@
           "option_id": "Q01-html-practice-html-q14-1d4b5613b75d:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q14-1d4b5613b75d",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "收缩与温度作用等间接作用在受约束构件内产生拉应力，超过抗拉强度即开裂。",
+      "rule_group": "裂缝机理·后果维",
       "content_sha256": "b3cda861a69cdb07ace8d1ba8a8e3c0dcc6ad83b52d433977632c01afbbf9cf4",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b3cda861a69cdb07ace8d1ba8a8e3c0dcc6ad83b52d433977632c01afbbf9cf4",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q14",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b3cda861a69cdb07ace8d1ba8a8e3c0dcc6ad83b52d433977632c01afbbf9cf4",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "Q01-html-practice-html-q15-bdd53df442bc",
+      "surface_id": "practice.html",
       "stem": "某学生对一份地下室防水底板交底作答：①防水混凝土养护 7 天；②施工缝留在剪力最大处；③后浇带 10 天后封闭。选出最准确的诊断与补写。",
-      "model_answer": "三处均不妥：防水养护应≥14d；施工缝不应留剪力最大处(避底板侧墙交接)；底板后浇带封闭≥28d。",
       "options": [
         {
           "text": "三处都不妥：①防水养护应不少于 14d；②施工缝不应留在剪力最大处，也不应留底板与侧墙交接处；③底板后浇带封闭不少于 28d。",
@@ -1175,53 +1108,50 @@
           "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q15-bdd53df442bc",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q15",
-      "source_anchor": "exam:2015:第26题",
-      "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "q01-fact-waterproof-composite-correction",
-      "skeleton_id": "q01-skel-防水混凝土综合纠错",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "三处均不妥：防水养护应≥14d；施工缝不应留剪力最大处(避底板侧墙交接)；底板后浇带封闭≥28d。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "145641407b43b7bcf63fcb7fcbede52022d7dd344b6b12edc1fc08bf51cf4ddb",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "145641407b43b7bcf63fcb7fcbede52022d7dd344b6b12edc1fc08bf51cf4ddb",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q15",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "q01-fact-waterproof-composite-correction",
+        "skeleton_id": "q01-skel-防水混凝土综合纠错",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2015:第26题",
+        "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "145641407b43b7bcf63fcb7fcbede52022d7dd344b6b12edc1fc08bf51cf4ddb",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:09:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:09:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "复合三改正各有源: 施工缝禁位(受剪力较大处)+养护≥14d=本锚 exam:2015:第26题 直判(C/D 错项); 后浇带≥28d 封闭=exam:2018:案例(三)问题3 逐字; 养护14d 另有 m35:Q3。Codex FATAL 系复合题血统误判(失效模式#4), 复合多源工单。工单: 正确项最长。"
         },
-        "note": "复合三改正各有源: 施工缝禁位(受剪力较大处)+养护≥14d=本锚 exam:2015:第26题 直判(C/D 错项); 后浇带≥28d 封闭=exam:2018:案例(三)问题3 逐字; 养护14d 另有 m35:Q3。Codex FATAL 系复合题血统误判(失效模式#4), 复合多源工单。工单: 正确项最长。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "水胶比辨析·条件维",
+      "variant_id": "Q01-html-practice-html-q16-2a6eb9424292",
+      "surface_id": "practice.html",
       "stem": "关于混凝土水胶比，选出对应正确、能得分的作答。",
-      "model_answer": "大体积混凝土水胶比不宜大于 0.45；防水混凝土水胶比不大于 0.50(有侵蚀性介质≤0.45)。",
       "options": [
         {
           "text": "大体积混凝土水胶比不宜大于 0.45；防水混凝土水胶比不大于 0.50，有侵蚀性介质时不大于 0.45。",
@@ -1260,36 +1190,42 @@
           "option_id": "Q01-html-practice-html-q16-2a6eb9424292:option-4"
         }
       ],
-      "variant_id": "Q01-html-practice-html-q16-2a6eb9424292",
-      "surface_id": "practice.html",
-      "source_index": 15,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "大体积混凝土水胶比不宜大于 0.45；防水混凝土水胶比不大于 0.50(有侵蚀性介质≤0.45)。",
+      "rule_group": "水胶比辨析·条件维",
       "content_sha256": "9ad69074b7600f45be4928cbf1d5cf7c73ee924eadd31d33de4699232424ef67",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "9ad69074b7600f45be4928cbf1d5cf7c73ee924eadd31d33de4699232424ef67",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q16",
+      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "9ad69074b7600f45be4928cbf1d5cf7c73ee924eadd31d33de4699232424ef67",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
   ],
-  "published_lesson_sha256": "acd6e9931e9293a448bc3c21ded5f69c97770c34540e652207af809ed15395b4"
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (q01.codex.out, fatal_count=3)。Codex 自陈『16题的答案事实本身均未发现考纲级错误』, 3 个 FATAL(q14/q15/q16)全部系『复合答案无单一候选锚』=失效模式#4 复合题血统误判: q15 三改正事实各有源(施工缝禁位+养护14d=exam:2015:第26题; 后浇带28d=exam:2018:案例(三)问题3; 养护14d=m35:Q3), q16 水胶比 0.50/0.45 各有 kc/ca 锚, q14 因果链为教材『温度收缩间接作用』的方向正确教学展开。=复合多源工单。q15(surface)按多源签; 非展示 q14/q16 不在签发七题内(保守省略)。5 surface 锚事实全绿。三联承 Codex 方案: 防水/抗渗混凝土养护≥14d fact q1/q6/q10。工单: 全包正确项最长+完整枚举对绝对化干扰项模板(编译病)。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }
