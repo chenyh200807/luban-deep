@@ -36,6 +36,9 @@ var sandbox = {
       };
     }
     if (request === "../../../utils/auth") return { isLoggedIn: function () { return true; } };
+    if (request === "../../../utils/helpers") {
+      return { isDarkOr: function () { return false; }, isDark: function () { return false; }, vibrate: function () {}, syncTabBar: function () {} };
+    }
     if (request === "../../../utils/route") {
       return {
         lubanTeachingPoints: function () { return "/teaching-points"; },

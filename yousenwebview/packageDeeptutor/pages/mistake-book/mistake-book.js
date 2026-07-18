@@ -24,7 +24,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 96,
-    isDark: true,
+    isDark: false,
     loading: true,
     errorText: "",
     filter: "all",
@@ -38,14 +38,14 @@ Page({
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: statusBarHeight + 48,
-      isDark: helpers.isDark(),
+      isDark: helpers.isDarkOr("light"),
     });
     this._loadMistakeBook();
   },
 
   onShow() {
     surfaceTelemetry.trackModuleView(this, { module: "notebook", section: "mistake_book" });
-    this.setData({ isDark: helpers.isDark() });
+    this.setData({ isDark: helpers.isDarkOr("light") });
   },
 
   onHide() {

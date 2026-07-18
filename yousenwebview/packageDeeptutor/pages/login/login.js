@@ -70,6 +70,7 @@ function isPrivacyAuthInterruption(detail) {
 
 Page({
   data: {
+    isDark: false,
     statusBarHeight: 44,
     safeBottom: 0,
     loading: false,
@@ -111,6 +112,7 @@ Page({
     ],
   },
   onLoad: function (options) {
+    this.setData({ isDark: helpers.isDarkOr("light") });
     trackBehavior("module_viewed", { module: "login", action: "view" });
     try {
       var info = helpers.getWindowInfo();
@@ -147,6 +149,7 @@ Page({
     this._refreshPrivacySetting();
   },
   onShow: function () {
+    this.setData({ isDark: helpers.isDarkOr("light") });
     if (this._orbScene && !this._orbTimer) this._startOrbMotion();
     if (!this._subtitleTimer) this._startSubtitleAutoPlay();
   },
@@ -959,15 +962,24 @@ Page({
       (Math.abs(orbs[0].x - orbs[2].x) + Math.abs(orbs[1].y - orbs[0].y)) /
       (sc.width * 0.9);
     var wo = Math.max(0.86, Math.min(1.04, 1.04 - sp * 0.18));
-    // 动态天光改纸墨暖调(几何/呼吸不变):暖纸光+赭金+竹青+朱红微洇,原蓝系内联会压过 wxss
+    // 动态天光纸墨双调(几何/呼吸不变):亮=暖纸光+赭金+竹青+朱红微洇;
+    // 暗=夜宣纸微光(同一结构降亮度)。内联样式会压过 wxss,故调色必须在此分主题。
+    var darkTheme = Boolean(this.data && this.data.isDark);
+    var p = darkTheme
+      ? ["rgba(240,237,225,0.07)", "rgba(58,54,44,0.5)", "rgba(201,159,61,0.05)",
+         "rgba(127,185,157,0.07)", "rgba(127,185,157,0.03)",
+         "rgba(207,68,54,0.05)", "rgba(207,68,54,0.02)", "rgba(0,0,0,0.16)", "rgba(0,0,0,0)"]
+      : ["rgba(255,253,248,0.6)", "rgba(233,229,215,0.4)", "rgba(201,159,61,0.1)",
+         "rgba(72,128,106,0.16)", "rgba(72,128,106,0.06)",
+         "rgba(207,68,54,0.06)", "rgba(207,68,54,0.03)", "rgba(38,36,31,0.05)", "rgba(38,36,31,0)"];
     var sky =
       "background:radial-gradient(circle at " +
       (gx * 100).toFixed(1) +
       "% " +
       Math.min(34, gy * 72).toFixed(1) +
-      "%,rgba(255,253,248,0.6) 0%,rgba(233,229,215,0.4) 16%,rgba(201,159,61,0.1) 34%,transparent 62%),radial-gradient(circle at " +
+      "%," + p[0] + " 0%," + p[1] + " 16%," + p[2] + " 34%,transparent 62%),radial-gradient(circle at " +
       Math.max(22, gx * 80).toFixed(1) +
-      "% 16%,rgba(72,128,106,0.16) 0%,rgba(72,128,106,0.06) 26%,transparent 58%),radial-gradient(circle at 86% 62%,rgba(207,68,54,0.06) 0%,rgba(207,68,54,0.03) 22%,transparent 46%),linear-gradient(180deg,rgba(38,36,31,0.05) 0%,rgba(38,36,31,0) 64%);opacity:" +
+      "% 16%," + p[3] + " 0%," + p[4] + " 26%,transparent 58%),radial-gradient(circle at 86% 62%," + p[5] + " 0%," + p[6] + " 22%,transparent 46%),linear-gradient(180deg," + p[7] + " 0%," + p[8] + " 64%);opacity:" +
       wo.toFixed(3) +
       ";";
     var lo = orbs[0];

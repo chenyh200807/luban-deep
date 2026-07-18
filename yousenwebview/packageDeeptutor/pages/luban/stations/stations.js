@@ -27,7 +27,7 @@ Page({
     var info =
       typeof wx !== "undefined" && wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     var sbh = info.statusBarHeight || 0;
-    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
+    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: helpers.isDarkOr("light") });
     if (!this._requireAuth()) return;
     // 历史深链兼容：完整路线已经收权到 74 集 C 版教学页。
     // redirectTo 替换旧页面，避免返回栈里残留一张状态染色路线。

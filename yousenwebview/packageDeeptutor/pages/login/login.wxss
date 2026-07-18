@@ -547,3 +547,20 @@
   color: var(--pk-grn);
   font-weight: 700;
 }
+
+/* ── 夜宣纸(paper 非 light):亮色字面量的暗态收口 ─────────── */
+.scene.paper:not(.light) .sky-wash {
+  opacity: 0.5;
+}
+.scene.paper:not(.light) .o1 {
+  background: radial-gradient(circle, rgba(240, 237, 225, 0.08) 0%, rgba(240, 237, 225, 0.03) 24%, transparent 66%);
+}
+.scene.paper:not(.light) .action-panel {
+  background: linear-gradient(
+    180deg,
+    rgba(28, 26, 21, 0) 0%,
+    rgba(28, 26, 21, 0.62) 18%,
+    rgba(28, 26, 21, 0.92) 46%,
+    rgba(28, 26, 21, 0.99) 100%
+  );
+}

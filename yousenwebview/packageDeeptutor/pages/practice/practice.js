@@ -10,7 +10,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 0,
-    isDark: true,
+    isDark: false,
     // 今日目标
     todayDone: 0,
     dailyTarget: 30,
@@ -65,13 +65,13 @@ Page({
     this.setData({
       statusBarHeight: windowInfo.statusBarHeight,
       navHeight,
-      isDark: helpers.isDark(),
+      isDark: helpers.isDarkOr("light"),
     });
   },
 
   onShow() {
     surfaceTelemetry.trackModuleView(this, { module: "practice", section: "home" });
-    this.setData({ isDark: helpers.isDark() });
+    this.setData({ isDark: helpers.isDarkOr("light") });
     runtime.checkAuth(() => {
       this._loadProgress();
       this._loadChapters();

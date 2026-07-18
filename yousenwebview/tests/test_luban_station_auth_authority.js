@@ -39,7 +39,7 @@ function makePage(definition) {
   const page = makePage(loadPage("pages/luban/stations/stations.js", {
     "../../../utils/api": { getLubanLessons() { lessonCalls += 1; return Promise.resolve({}); } },
     "../../../utils/auth": { isLoggedIn: () => false },
-    "../../../utils/helpers": {},
+    "../../../utils/helpers": { isDarkOr: function () { return false; }, isDark: function () { return false; }, vibrate: function () {}, syncTabBar: function () {} },
     "../../../utils/route": { lubanStations: () => "/packageDeeptutor/pages/luban/teaching-points/teaching-points" },
     "../../../utils/runtime": { redirectToLogin: (target) => { redirected = target; } },
     "../../../utils/learn-view-model": { buildLearnViewModel: () => ({}) },
@@ -59,7 +59,7 @@ function makePage(definition) {
     "../../../utils/route": { lubanStation: (packId) => "/packageDeeptutor/pages/luban/station/station?pack_id=" + packId },
     "../../../utils/runtime": { redirectToLogin: (target) => { redirected = target; } },
     "../../../utils/surface-telemetry": { trackProductBehavior() { telemetryCalls += 1; } },
-    "../../../utils/helpers": {},
+    "../../../utils/helpers": { isDarkOr: function () { return false; }, isDark: function () { return false; }, vibrate: function () {}, syncTabBar: function () {} },
   }));
   page.onLoad({ pack_id: "F16" });
   assert.strictEqual(redirected, "/packageDeeptutor/pages/luban/station/station?pack_id=F16");
@@ -94,7 +94,7 @@ function makePage(definition) {
       describeRequestError(_error, fallback) { return fallback; },
     },
     "../../../utils/auth": { isLoggedIn: () => stationsLoggedIn },
-    "../../../utils/helpers": {},
+    "../../../utils/helpers": { isDarkOr: function () { return false; }, isDark: function () { return false; }, vibrate: function () {}, syncTabBar: function () {} },
     "../../../utils/route": { lubanStations: () => "/packageDeeptutor/pages/luban/teaching-points/teaching-points" },
     "../../../utils/runtime": { redirectToLogin: (target) => { stationsRedirect = target; } },
     "../../../utils/learn-view-model": { buildLearnViewModel: () => ({}) },
@@ -118,7 +118,7 @@ function makePage(definition) {
     "../../../utils/route": { lubanStation: (packId) => "/packageDeeptutor/pages/luban/station/station?pack_id=" + packId },
     "../../../utils/runtime": { redirectToLogin: (target) => { stationRedirect = target; } },
     "../../../utils/surface-telemetry": { trackProductBehavior() {} },
-    "../../../utils/helpers": {},
+    "../../../utils/helpers": { isDarkOr: function () { return false; }, isDark: function () { return false; }, vibrate: function () {}, syncTabBar: function () {} },
   }));
   stationPage.onLoad({ pack_id: "F16" });
   await new Promise((resolve) => setTimeout(resolve, 0));

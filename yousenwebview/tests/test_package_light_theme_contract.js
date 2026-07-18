@@ -61,16 +61,16 @@ assert(
 assert(
   mistakeWxml.indexOf('class="mistake-book-page paper {{isDark?') >= 0 &&
     mistakeJs.indexOf('const helpers = require("../../utils/helpers");') >= 0 &&
-    mistakeJs.indexOf("isDark: helpers.isDark()") >= 0,
+    mistakeJs.indexOf('isDark: helpers.isDarkOr("light")') >= 0,
   "mistake-book should bind the root light class from the shared theme authority",
 );
 assert(
   /\.mistake-book-page\.light\s+\.mb-hero,[\s\S]*\.mistake-book-page\.light\s+\.mb-error\s*\{[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.96\)/.test(mistakeWxss) &&
-    /\.mistake-book-page\.light\s+\.mistake-action\.danger\s*\{[\s\S]*color:\s*#dc2626;/.test(mistakeWxss),
+    /\.mistake-book-page\.light\s+\.mistake-action\.danger\s*\{[\s\S]*color:\s*var\(--pk-warn\);/.test(mistakeWxss),
   "mistake-book should provide readable light surfaces and semantic danger actions",
 );
 assert(
-  feedbackJs.indexOf("isDark: helpers.isDark()") >= 0 &&
+  feedbackJs.indexOf('isDark: helpers.isDarkOr("light")') >= 0 &&
     feedbackJs.indexOf("onShow: function ()") >= 0,
   "feedback page should not force dark mode when light mode is selected",
 );

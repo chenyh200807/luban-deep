@@ -793,7 +793,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 0,
-    isDark: true,
+    isDark: false,
     stage: "welcome", // welcome | quiz | loading | result
     questions: [],
     currentIndex: 0,
@@ -880,7 +880,7 @@ Page({
     this.setData({
       statusBarHeight: info.statusBarHeight,
       navHeight: info.statusBarHeight + 44,
-      isDark: helpers.isDark(),
+      isDark: helpers.isDarkOr("light"),
       enableOrbs: helpers.getAnimConfig().enableBreathingOrbs,
     });
     this.loadTopicCatalog();
@@ -888,7 +888,7 @@ Page({
 
   onShow: function () {
     surfaceTelemetry.trackModuleView(this, { module: "assessment", section: "home" });
-    this.setData({ isDark: helpers.isDark() });
+    this.setData({ isDark: helpers.isDarkOr("light") });
   },
 
   onHide: function () {

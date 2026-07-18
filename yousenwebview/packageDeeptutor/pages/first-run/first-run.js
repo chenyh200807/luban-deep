@@ -56,6 +56,7 @@ Page({
   _answerLocked: false,
 
   onLoad: function () {
+    this.setData({ isDark: helpers.isDarkOr("light") });
     // 重置页级可变态：微信不为非 data 自定义属性做每实例克隆，
     // 从学情页再入本页时 this.results/profile 会残留上轮记录 → 报告分数翻倍。
     this.profile = {};

@@ -87,6 +87,9 @@ function loadPage(submitFeedback, uploadFeedbackAttachment) {
           isDark: function () {
             return true;
           },
+          isDarkOr: function () {
+            return false;
+          },
         };
       }
       throw new Error("unexpected require: " + request);

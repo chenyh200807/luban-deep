@@ -56,3 +56,6 @@
 .foot { margin-top: 24rpx; display: flex; align-items: center; justify-content: center; gap: 16rpx; }
 .foot-link { font-size: 23rpx; font-weight: 700; color: var(--pk-grn); }
 .foot-sep { font-size: 22rpx; color: var(--pk-sand); }
+
+/* ── 夜宣纸:天光暗态收口 ── */
+.manual-page.paper:not(.light) .sky-wash { opacity: 0.35; }

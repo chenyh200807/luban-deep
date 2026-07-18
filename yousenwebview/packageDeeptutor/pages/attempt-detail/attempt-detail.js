@@ -31,7 +31,7 @@ function hasAttemptEvidence(detail) {
 
 Page({
   data: {
-    isDark: true,
+    isDark: false,
     statusBarHeight: 0,
     navHeight: 96,
     loading: true,

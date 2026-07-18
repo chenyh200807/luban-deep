@@ -120,7 +120,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 0,
-    isDark: true,
+    isDark: false,
     source: "profile",
     problemTypes: PROBLEM_TYPES,
     issueOptions: syncIssueOptions("chat", []),
@@ -156,14 +156,14 @@ Page({
       source: source,
       statusBarHeight: win.statusBarHeight || 0,
       navHeight: (win.statusBarHeight || 0) + 48,
-      isDark: helpers.isDark(),
+      isDark: helpers.isDarkOr("light"),
       contextSnapshot: snapshot,
     });
     this._loadNetworkType();
   },
 
   onShow: function () {
-    this.setData({ isDark: helpers.isDark() });
+    this.setData({ isDark: helpers.isDarkOr("light") });
   },
 
   _loadNetworkType: function () {

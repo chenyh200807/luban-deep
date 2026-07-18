@@ -1,5 +1,5 @@
 <!-- login.wxml — 登录首屏(纸墨朱竹;root 挂 paper light 吃 --pk-* token) -->
-<view class="scene paper light">
+<view class="scene paper {{isDark?'':'light'}}">
   <view class="sky-wash" style="{{skyWashStyle}}"></view>
   <view class="orb o1" style="{{orbStyle1}}"></view>
   <view class="orb o2" style="{{orbStyle2}}"></view>
