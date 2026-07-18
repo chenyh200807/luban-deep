@@ -249,46 +249,46 @@ class Component extends DCLogic {
       stem:"地下室墙板拆模后出现四种表面缺陷。选出把它们对号入座、能得分的作答。",
       model:"密布小凹点且钢筋不露=麻面；钢筋外露无保护层=露筋；石子成堆缺砂浆空隙连片=蜂窝；局部贯穿大洞=孔洞。",
       opts:[
+        { t:"四种表面缺陷本质相同，都是振捣不实引起的，一律按蜂窝对待、成因统一写作漏振欠振即可完成命名。", ok:false, code:"E07", tempt:"觉得四种只是轻重不同、都怪振捣。", lose:"麻面主因在模板、露筋在保护层，一律叫蜂窝命名就错。", fix:"按形貌分别命名：麻面/露筋/蜂窝/孔洞。" },
         { t:"密布小凹点=麻面、钢筋外露=露筋、石子成堆缺砂浆=蜂窝、局部贯穿大洞=孔洞，按形貌逐一命名。", ok:true, fix:"四种形貌逐一对应命名，是识别题的采分地基。", code:"" },
-        { t:"表面缺陷都是振捣不实闹的，一律按蜂窝处理、成因都写漏振就行。", ok:false, code:"E07", tempt:"觉得四种只是轻重不同、都怪振捣。", lose:"麻面主因在模板、露筋在保护层，一律叫蜂窝命名就错。", fix:"按形貌分别命名：麻面/露筋/蜂窝/孔洞。" },
-        { t:"凡是凹陷类都算孔洞，表面小凹点也归到孔洞里一起报。", ok:false, code:"E07", tempt:"都是凹进去的，笼统归孔洞。", lose:"麻面是表面密布小凹点、孔洞是局部贯穿大洞，深浅范围完全不同。", fix:"密布小凹点是麻面，贯穿大洞才是孔洞。" },
-        { t:"先不管叫啥名，直接写防治措施加强振捣、加强养护就够拿分。", ok:false, code:"E05", tempt:"想跳过识别直接答措施。", lose:"识别命名是采分地基，跳过=丢识别分。", fix:"先逐图命名，再对应写成因与措施。" }
+        { t:"凡属凹陷类的表面缺陷都一并算作孔洞，表面密布的小凹点也归到孔洞里一起上报，无需再细分名称。", ok:false, code:"E07", tempt:"都是凹进去的，笼统归孔洞。", lose:"麻面是表面密布小凹点、孔洞是局部贯穿大洞，深浅范围完全不同。", fix:"密布小凹点是麻面，贯穿大洞才是孔洞。" },
+        { t:"无需先行逐一命名，直接写出加强振捣、加强养护等防治措施，就能覆盖四种缺陷的处理要求。", ok:false, code:"E05", tempt:"想跳过识别直接答措施。", lose:"识别命名是采分地基，跳过=丢识别分。", fix:"先逐图命名，再对应写成因与措施。" }
       ] },
 { tag:"表面缺陷·成因", typeHint:"单选 · 选出麻面成因分析能得分的作答", figLabel:"题给：成因三侧归类", figCaption:"麻面——该归哪一侧？", fig:"cause",
       stem:"构件拆模后表面出现麻面（密布小凹点、钢筋未外露）。选出成因分析能得分的作答。",
       model:"模板不光滑/接缝不严漏浆/浇筑前未湿润/隔离剂涂刷不匀，表面缺浆形成麻面。",
       opts:[
         { t:"模板表面不光滑、接缝不严漏浆、浇筑前未湿润、隔离剂涂刷不匀，表面缺浆形成麻面。", ok:true, fix:"四个成因都落在模板与缺浆，正是麻面采分点。", code:"" },
-        { t:"麻面是钢筋保护层垫块漏放、钢筋贴模造成的，属保护层不足。", ok:false, code:"E07", tempt:"把麻面和露筋的成因搞混。", lose:"垫块漏放导致的是露筋不是麻面；麻面钢筋并未外露。", fix:"麻面主因在模板与缺浆，露筋才是保护层不足。" },
-        { t:"麻面是混凝土内部石子成堆、砂浆包裹不足造成的密实度问题。", ok:false, code:"E07", tempt:"把麻面当蜂窝的成因来答。", lose:"石子成堆缺砂浆是蜂窝；麻面是表面缺浆、非内部离析。", fix:"麻面归模板/缺浆，蜂窝才归振捣离析。" },
-        { t:"麻面就是施工不认真、管理不到位造成的，加强管理确保质量即可。", ok:false, code:"E04", tempt:"口号化、好写。", lose:"只喊加强管理没写具体成因（模板/漏浆/湿润/隔离剂），拿不到采分。", fix:"写清模板不光滑·接缝漏浆·未湿润·隔离剂不匀。" }
+        { t:"麻面是由钢筋保护层垫块漏放、钢筋紧贴模板造成的，本质上属于保护层厚度不足的问题。", ok:false, code:"E07", tempt:"把麻面和露筋的成因搞混。", lose:"垫块漏放导致的是露筋不是麻面；麻面钢筋并未外露。", fix:"麻面主因在模板与缺浆，露筋才是保护层不足。" },
+        { t:"麻面是由混凝土内部石子成堆、砂浆包裹不足造成的，本质上属于本体密实度不够的问题。", ok:false, code:"E07", tempt:"把麻面当蜂窝的成因来答。", lose:"石子成堆缺砂浆是蜂窝；麻面是表面缺浆、非内部离析。", fix:"麻面归模板/缺浆，蜂窝才归振捣离析。" },
+        { t:"麻面主要是施工不认真、现场管理不到位造成的，加强现场管理、严格把关就能确保质量。", ok:false, code:"E04", tempt:"口号化、好写。", lose:"只喊加强管理没写具体成因（模板/漏浆/湿润/隔离剂），拿不到采分。", fix:"写清模板不光滑·接缝漏浆·未湿润·隔离剂不匀。" }
       ] },
 { tag:"表面缺陷·成因", typeHint:"单选 · 选出蜂窝/孔洞成因能得分的作答", figLabel:"题给：成因三侧归类", figCaption:"蜂窝/孔洞——该归哪一侧？", fig:"cause",
       stem:"构件出现蜂窝（石子成堆、空隙连片）与孔洞（局部贯穿）。选出成因分析能得分的作答。",
       model:"自由倾落过高致离析、漏振欠振、钢筋过密下料困难混凝土未振实，形成蜂窝孔洞。",
       opts:[
+        { t:"蜂窝孔洞是由模板接缝漏浆、隔离剂涂刷不匀造成表面缺浆而形成的，与振捣离析并无关系。", ok:false, code:"E07", tempt:"套用麻面的模板成因。", lose:"模板漏浆致麻面；蜂窝孔洞主因是振捣离析与配筋过密。", fix:"蜂窝孔洞归布料/振捣/配筋，不是模板缺浆。" },
+        { t:"蜂窝孔洞是养护不到位、后期强度不足被压出来的，只要加强后期养护就能有效避免。", ok:false, code:"E10", tempt:"把成因往养护上推。", lose:"养护影响强度/收缩，蜂窝孔洞是浇筑振捣阶段的密实度问题。", fix:"成因写离析·漏振·配筋过密，不是养护。" },
         { t:"自由倾落过高致离析、漏振欠振、钢筋过密下料困难混凝土未振实，形成蜂窝、孔洞。", ok:true, fix:"离析·漏振·配筋过密都是宆窝孔洞的采分成因。", code:"" },
-        { t:"蜂窝孔洞是模板接缝漏浆、隔离剂不匀造成表面缺浆。", ok:false, code:"E07", tempt:"套用麻面的模板成因。", lose:"模板漏浆致麻面；蜂窝孔洞主因是振捣离析与配筋过密。", fix:"蜂窝孔洞归布料/振捣/配筋，不是模板缺浆。" },
-        { t:"蜂窝孔洞是养护不到位、后期强度不够被压出来的。", ok:false, code:"E10", tempt:"把成因往养护上推。", lose:"养护影响强度/收缩，蜂窝孔洞是浇筑振捣阶段的密实度问题。", fix:"成因写离析·漏振·配筋过密，不是养护。" },
-        { t:"蜂窝就是振捣不实一句话，写上就够了。", ok:false, code:"E02", tempt:"只答一条省事。", lose:"漏了离析、下料过厚、配筋过密等采分点。", fix:"补齐离析·下料过厚·钢筋过密等成因。" }
+        { t:"蜂窝的成因就是振捣不实这一条，作答时把这一句写清楚就已经算完整了。", ok:false, code:"E02", tempt:"只答一条省事。", lose:"漏了离析、下料过厚、配筋过密等采分点。", fix:"补齐离析·下料过厚·钢筋过密等成因。" }
       ] },
 { tag:"缺陷治理·工艺顺序", typeHint:"单选 · 选出工艺顺序正确能得分的作答", figLabel:"题给：孔洞治理工艺六步", figCaption:"后三步是采分关键 · 顺序不能乱", fig:"process",
       stem:"孔洞缺陷需按工艺流程治理。选出流程顺序正确、能得分的作答。",
       model:"清理表面→支设模板→洒水湿润→涂混凝土界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。",
       opts:[
+        { t:"先浇筑高一强度等级的细石混凝土把整个孔洞填筑密实，再回头去清理表面、支设模板，最后洒水湿润并养护。", ok:false, code:"E06", tempt:"觉得先填上要紧、顺序无所谓。", lose:"先浇后清、乱序=程序错，界面没处理浇了也白搭。", fix:"必须先清理→支模→湿润→界面剂→再浇筑→养护。" },
         { t:"清理表面→支设模板→洒水湿润→涂界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。", ok:true, fix:"六步顺序正确、界面剂与高一强度与养护一个不漏。", code:"" },
-        { t:"先浇筑高强细石混凝土填实，再清理表面、支模板、最后洒水湿润养护。", ok:false, code:"E06", tempt:"觉得先填上要紧、顺序无所谓。", lose:"先浇后清、乱序=程序错，界面没处理浇了也白搭。", fix:"必须先清理→支模→湿润→界面剂→再浇筑→养护。" },
-        { t:"清理表面→支设模板→浇筑混凝土→然后养护即可。", ok:false, code:"E03", tempt:"看着步骤挺全。", lose:"漏了洒水湿润、涂界面剂两个关键采分词。", fix:"补洒水湿润与涂混凝土界面剂两步。" },
-        { t:"清理→支模→湿润→界面剂→浇筑→养护，养护2天即可拆模交工。", ok:false, code:"E10", tempt:"顺序对，只是养护天数随手填。", lose:"养护应不少于7天，写2天规范数值错。", fix:"保温保湿养护不少于7天。" }
+        { t:"先清理表面，再支设模板，接着浇筑混凝土，随后进行保温保湿养护，整个治理流程到此就算全部完成。", ok:false, code:"E03", tempt:"看着步骤挺全。", lose:"漏了洒水湿润、涂界面剂两个关键采分词。", fix:"补洒水湿润与涂混凝土界面剂两步。" },
+        { t:"按清理、支模、洒水湿润、涂界面剂、浇筑密实、养护的次序施工，养护满2天后即可拆模交工。", ok:false, code:"E10", tempt:"顺序对，只是养护天数随手填。", lose:"养护应不少于7天，写2天规范数值错。", fix:"保温保湿养护不少于7天。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断三条治标作答并给出正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"三条都只写了现象→处置，到底差在哪儿", fig:"diagnose",
       stem:"某学生对空鼓/裂缝/渗漏三问作答：①空鼓归师傅手艺、敲掉重贴；②墙裂渗水，做完防水层就行；③填充墙裂缝，抹层灰盖上。选出最准确的诊断与补写。",
       model:"三条均为治标：空鼓应清基层·浸砖·界面剂+背砂；渗漏应保湿养护治收缩+多道设防刚柔结合、穿墙管加止水环；填充墙应设2φ6@500拉结、下部墙砌完14d后砌顶、洞口加强网片。三处都需补规范措施。",
       opts:[
-        { t:"三条都只答了治标：空鼓应清基层浸砖界面剂背砂、渗漏应养护治收缩加多道设防、填充墙应2φ6@500加14d后砌，均需补规范措施。", ok:true, fix:"三处治标全揪出，对症补写就是上答题纸的采分句。", code:"" },
-        { t:"三条思路都对，只是写得简单些，补充点文字描述就能得满分。", ok:false, code:"E07", tempt:"以为方向对只是简略。", lose:"三条全是治标、方向就错，不是简略问题，阅卷看规范措施。", fix:"三处成因与措施都要重写，非补字数。" },
-        { t:"只有填充墙那条要补2φ6@500和14d，空鼓和渗漏两条其实没问题。", ok:false, code:"E02", tempt:"只抓到一处。", lose:"空鼓漏界面处理、渗漏漏养护与多道设防，两处也失分。", fix:"空鼓与渗漏同样要补规范措施。" },
-        { t:"空鼓补做防水层、渗漏敲掉重贴、填充墙把钢筋加密到间距200mm即可。", ok:false, code:"E10", tempt:"看似都在加措施。", lose:"措施张冠李戴且间距应≤500mm不是200mm，规范/对象错。", fix:"对症：空鼓清基层浸砖、渗漏养护+多道设防、填充塙2φ6@500。" }
+        { t:"三条思路其实都是对的，只是写得简单了一些，作答时只要再补充一些文字描述、把话讲全，就能够拿到满分。", ok:false, code:"E07", tempt:"以为方向对只是简略。", lose:"三条全是治标、方向就错，不是简略问题，阅卷看规范措施。", fix:"三处成因与措施都要重写，非补字数。" },
+        { t:"其实只有填充墙那一条需要补上2φ6@500与14d，空鼓和渗漏这两条在我看来其实并没有什么问题。", ok:false, code:"E02", tempt:"只抓到一处。", lose:"空鼓漏界面处理、渗漏漏养护与多道设防，两处也失分。", fix:"空鼓与渗漏同样要补规范措施。" },
+        { t:"空鼓补做防水层、渗漏敲除重贴、填充墙把钢筋加密到间距200mm，这样处理之后三处就都能得到解决。", ok:false, code:"E10", tempt:"看似都在加措施。", lose:"措施张冠李戴且间距应≤500mm不是200mm，规范/对象错。", fix:"对症：空鼓清基层浸砖、渗漏养护+多道设防、填充塙2φ6@500。" },
+        { t:"三条都只答了治标：空鼓应清基层浸砖界面剂背砂、渗漏应养护治收缩加多道设防、填充墙应2φ6@500加14d后砌，均需补规范措施。", ok:true, fix:"三处治标全揪出，对症补写就是上答题纸的采分句。", code:"" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -541,7 +541,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"Q03-html-practice-html-q1-781a1a1452d0","options":["Q03-html-practice-html-q1-781a1a1452d0:option-1","Q03-html-practice-html-q1-781a1a1452d0:option-2","Q03-html-practice-html-q1-781a1a1452d0:option-3","Q03-html-practice-html-q1-781a1a1452d0:option-4"]},{"variant_id":"Q03-html-practice-html-q2-cf369f4525c5","options":["Q03-html-practice-html-q2-cf369f4525c5:option-1","Q03-html-practice-html-q2-cf369f4525c5:option-2","Q03-html-practice-html-q2-cf369f4525c5:option-3","Q03-html-practice-html-q2-cf369f4525c5:option-4"]},{"variant_id":"Q03-html-practice-html-q3-667eefb8bc7c","options":["Q03-html-practice-html-q3-667eefb8bc7c:option-1","Q03-html-practice-html-q3-667eefb8bc7c:option-2","Q03-html-practice-html-q3-667eefb8bc7c:option-3","Q03-html-practice-html-q3-667eefb8bc7c:option-4"]},{"variant_id":"Q03-html-practice-html-q4-52d43cc6a165","options":["Q03-html-practice-html-q4-52d43cc6a165:option-1","Q03-html-practice-html-q4-52d43cc6a165:option-2","Q03-html-practice-html-q4-52d43cc6a165:option-3","Q03-html-practice-html-q4-52d43cc6a165:option-4"]},{"variant_id":"Q03-html-practice-html-q16-8e052f56df9e","options":["Q03-html-practice-html-q16-8e052f56df9e:option-1","Q03-html-practice-html-q16-8e052f56df9e:option-2","Q03-html-practice-html-q16-8e052f56df9e:option-3","Q03-html-practice-html-q16-8e052f56df9e:option-4"]}];
+    const exactItems=[{"variant_id":"Q03-html-practice-html-q1-0facc4f21e1f","options":["Q03-html-practice-html-q1-0facc4f21e1f:option-1","Q03-html-practice-html-q1-0facc4f21e1f:option-2","Q03-html-practice-html-q1-0facc4f21e1f:option-3","Q03-html-practice-html-q1-0facc4f21e1f:option-4"]},{"variant_id":"Q03-html-practice-html-q2-6bf945a6d23d","options":["Q03-html-practice-html-q2-6bf945a6d23d:option-1","Q03-html-practice-html-q2-6bf945a6d23d:option-2","Q03-html-practice-html-q2-6bf945a6d23d:option-3","Q03-html-practice-html-q2-6bf945a6d23d:option-4"]},{"variant_id":"Q03-html-practice-html-q3-a02b863f0e52","options":["Q03-html-practice-html-q3-a02b863f0e52:option-1","Q03-html-practice-html-q3-a02b863f0e52:option-2","Q03-html-practice-html-q3-a02b863f0e52:option-3","Q03-html-practice-html-q3-a02b863f0e52:option-4"]},{"variant_id":"Q03-html-practice-html-q4-7b527784302d","options":["Q03-html-practice-html-q4-7b527784302d:option-1","Q03-html-practice-html-q4-7b527784302d:option-2","Q03-html-practice-html-q4-7b527784302d:option-3","Q03-html-practice-html-q4-7b527784302d:option-4"]},{"variant_id":"Q03-html-practice-html-q16-5ca8e9bcfa1d","options":["Q03-html-practice-html-q16-5ca8e9bcfa1d:option-1","Q03-html-practice-html-q16-5ca8e9bcfa1d:option-2","Q03-html-practice-html-q16-5ca8e9bcfa1d:option-3","Q03-html-practice-html-q16-5ca8e9bcfa1d:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -558,7 +558,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("Q03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzgxYTFhMTQ1MmQwIiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1jZjM2OWY0NTI1YzUiLCJRMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTY2N2VlZmI4YmM3YyIsIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNTJkNDNjYzZhMTY1IiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtOGUwNTJmNTZkZjllIl0sInBhY2tfaWQiOiJRMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjRlM2VjNTMxMjdhZjg2MzU4MmI5NTU2N2JmZTdlODE0MTg1ZTM5MDQ3YmFiNDExN2E4ZjMwMjEyMmE3NjkyZGEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("Q03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMGZhY2M0ZjIxZTFmIiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi02YmY5NDVhNmQyM2QiLCJRMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwMmI4NjNmMGU1MiIsIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtN2I1Mjc3ODQzMDJkIiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNWNhOGU5YmNmYTFkIl0sInBhY2tfaWQiOiJRMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImZjYjA5NWNmOTY3NWQ4ZTBlM2VhN2RlNWRhZjlkZGExZGE5ZjhiN2Y3ZGQ4NjNmOTRjNDllZmYzYWRlM2E5NDYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "D14",
   "source_pack_sha256": "11ecd47be950ed09d72b3d93cf11e5f5ab29922f408099a9c4861442ea4a2fc0",
-  "source_bundle_sha256": "25fe57e1a5f7438f8d49b781bda457c4d5de73cc5ecbf67d476fb2c5ade912f8",
+  "source_bundle_sha256": "16900a43d8eadb137d2ea780ebe801895ae8a617ed4209b370217f95260d51d1",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,15 +18,15 @@
         15
       ],
       "variant_ids": [
-        "D14-html-practice-html-q1-dc70ba7f710c",
-        "D14-html-practice-html-q2-0adfdf5445c9",
-        "D14-html-practice-html-q3-680f21e9359a",
-        "D14-html-practice-html-q4-6967b3b24577",
-        "D14-html-practice-html-q16-1d4791490ee6"
+        "D14-html-practice-html-q1-44e4d541c479",
+        "D14-html-practice-html-q2-4ca677fecc2f",
+        "D14-html-practice-html-q3-b41a2ad10aa7",
+        "D14-html-practice-html-q4-6d0980f3a1b8",
+        "D14-html-practice-html-q16-81bcaf7123e6"
       ],
       "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtZGM3MGJhN2Y3MTBjIiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wYWRmZGY1NDQ1YzkiLCJEMTQtaHRtbC1wcmFjdGljZS1odG1sLXEzLTY4MGYyMWU5MzU5YSIsIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjk2N2IzYjI0NTc3IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMWQ0NzkxNDkwZWU2Il0sInBhY2tfaWQiOiJEMTQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImU5OTMzNTM1MTZkYTIzYjIxYTUxM2NjM2YyYzdiOWFlYTA2YmE4MGVlNzFjZDVlYzY1ZjBjOWU3MmM1NzEzOGEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "4cd7bce35e723c7f340ec66915799199e26f5d1534d281168529dcddb348ac17"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDRlNGQ1NDFjNDc5IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00Y2E2NzdmZWNjMmYiLCJEMTQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWI0MWEyYWQxMGFhNyIsIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNmQwOTgwZjNhMWI4IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtODFiY2FmNzEyM2U2Il0sInBhY2tfaWQiOiJEMTQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjQ1ZjE4Yzk3YTUxNmNhMWM5NzdjYWZkNGJmYTY5NGM4MWRlOTQyMzgzMWFhOWQwYTY4MWU2ZDkwMjc0OTk1YTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "39ba291254c207b4334dd5eb9633da24cb0ab8702cc93d0aa002c3688ccef385"
     }
   ],
   "items": [
@@ -37,43 +37,43 @@
       "model_answer": "主龙骨间距≤1200mm、悬臂≤300mm、接头错开；次龙骨间距≤600mm、不得搭接，洞口周边设附加龙骨。",
       "options": [
         {
+          "text": "主龙骨间距≤600mm、悬臂段≤300mm且接头错开；次龙骨间距≤1200mm、不得搭接，洞口周边设附加龙骨。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "主次间距数值记得，却把谁密谁疏记反。",
+          "loss_reason": "主≤1200、次≤600，此项主次值张冠李戴。",
+          "fix": "主龙骨≤1200、次龙骨≤600，别记反。",
+          "option_id": "D14-html-practice-html-q1-44e4d541c479:option-1"
+        },
+        {
+          "text": "主龙骨间距≤1200mm即可满足要求，悬臂长度、接头位置以及次龙骨与洞口等构造均属细节，作答时无需逐项写明。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住主间距一个数就下笔。",
+          "loss_reason": "漏悬臂≤300、接头错开、次≤600不搭接、洞口附加龙骨。",
+          "fix": "补悬臂≤300、次≤600不搭接、洞口设附加龙骨。",
+          "option_id": "D14-html-practice-html-q1-44e4d541c479:option-2"
+        },
+        {
+          "text": "次龙骨可搭接加长以增强刚度、间距≤600mm；主龙骨间距≤1200mm、悬臂段≤300mm，洞口周边无需额外处理。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为搭接更结实、洞口不用管。",
+          "loss_reason": "次龙骨不得搭接、洞口必须设附加龙骨，两处均错。",
+          "fix": "次龙骨不得搭接，洞口周边设附加龙骨。",
+          "option_id": "D14-html-practice-html-q1-44e4d541c479:option-3"
+        },
+        {
           "text": "主龙骨间距≤1200mm、悬臂段≤300mm且接头错开；次龙骨间距≤600mm、不得搭接，洞口周边设附加龙骨。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "主次间距、悬臂、接头、洞口四件齐，正是采分点。",
-          "option_id": "D14-html-practice-html-q1-dc70ba7f710c:option-1"
-        },
-        {
-          "text": "主龙骨间距≤600mm、次龙骨间距≤1200mm，主密次疏排布，把两个数记住即可。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "主次间距数值记得，却把谁密谁疏记反。",
-          "loss_reason": "主≤1200、次≤600，此项主次值张冠李戴。",
-          "fix": "主龙骨≤1200、次龙骨≤600，别记反。",
-          "option_id": "D14-html-practice-html-q1-dc70ba7f710c:option-2"
-        },
-        {
-          "text": "主龙骨间距≤1200mm即可，悬臂、接头、洞口这些细节现场灵活掌握不必写。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记住主间距一个数就下笔。",
-          "loss_reason": "漏悬臂≤300、接头错开、次≤600不搭接、洞口附加龙骨。",
-          "fix": "补悬臂≤300、次≤600不搭接、洞口设附加龙骨。",
-          "option_id": "D14-html-practice-html-q1-dc70ba7f710c:option-3"
-        },
-        {
-          "text": "次龙骨可搭接加长以增强刚度，间距≤600mm，洞口周边无需额外处理。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为搭接更结实、洞口不用管。",
-          "loss_reason": "次龙骨不得搭接、洞口必须设附加龙骨，两处均错。",
-          "fix": "次龙骨不得搭接，洞口周边设附加龙骨。",
-          "option_id": "D14-html-practice-html-q1-dc70ba7f710c:option-4"
+          "option_id": "D14-html-practice-html-q1-44e4d541c479:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q1-dc70ba7f710c",
+      "variant_id": "D14-html-practice-html-q1-44e4d541c479",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
@@ -81,17 +81,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q1",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f8720d21e15f178a922df23c4737936f0ed9f74533c996c0c644b41b2708388c",
+      "content_sha256": "df3b5c9db8be7d0cdfa11d5bfd7c108105239b9e349b7ea1acc2fbd064d51a3f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "f8720d21e15f178a922df23c4737936f0ed9f74533c996c0c644b41b2708388c",
+        "reviewed_content_sha256": "df3b5c9db8be7d0cdfa11d5bfd7c108105239b9e349b7ea1acc2fbd064d51a3f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -110,43 +110,43 @@
       "model_answer": "吊杆>1500mm设反支撑，>2500mm设钢结构转换层；遇梁、风管处设横担，不得直接吊挂于设备，灯具风口设附加龙骨。",
       "options": [
         {
+          "text": "吊杆超长时按比例加密吊杆、多吊几根即可保证牢固，遇梁、风管处避开布置，不必另设反支撑或钢结构转换层。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把超长稳定问题当成数量问题。",
+          "loss_reason": "吊杆超长是侧向失稳，加密解决不了，须设反支撑/转换层。",
+          "fix": ">1500反支撑、>2500转换层，不是加密。",
+          "option_id": "D14-html-practice-html-q2-4ca677fecc2f:option-1"
+        },
+        {
+          "text": "吊杆>1500mm一律设钢结构转换层，2500mm 仅作参考、两道门槛不必区分；遇梁风管设横担、灯具风口设附加龙骨。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记得有个门槛，却把两道并成一道。",
+          "loss_reason": "混淆两道门槛：>1500反支撑、>2500才转换层。",
+          "fix": "分清 1500 反支撑、2500 转换层两道门槛。",
+          "option_id": "D14-html-practice-html-q2-4ca677fecc2f:option-2"
+        },
+        {
           "text": "吊杆>1500mm设反支撑，>2500mm设钢结构转换层；遇梁风管设横担、不得吊挂于设备、灯具风口设附加龙骨。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "两道门槛+横担+不吊挂设备+灯口附加龙骨，全写才拿满。",
-          "option_id": "D14-html-practice-html-q2-0adfdf5445c9:option-1"
+          "option_id": "D14-html-practice-html-q2-4ca677fecc2f:option-3"
         },
         {
-          "text": "吊杆超长时按比例加密吊杆、多吊几根即可保证牢固，不必另设支撑构造。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "把超长稳定问题当成数量问题。",
-          "loss_reason": "吊杆超长是侧向失稳，加密解决不了，须设反支撑/转换层。",
-          "fix": ">1500反支撑、>2500转换层，不是加密。",
-          "option_id": "D14-html-practice-html-q2-0adfdf5445c9:option-2"
-        },
-        {
-          "text": "吊杆>1500mm一律设钢结构转换层，2500mm 只是参考值、可不区分。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "记得有个门槛，却把两道并成一道。",
-          "loss_reason": "混淆两道门槛：>1500反支撑、>2500才转换层。",
-          "fix": "分清 1500 反支撑、2500 转换层两道门槛。",
-          "option_id": "D14-html-practice-html-q2-0adfdf5445c9:option-3"
-        },
-        {
-          "text": "吊杆可直接吊挂在风管、设备上就近固定，遇梁绕开即可，省去横担。",
+          "text": "吊杆遇梁、风管时直接吊挂在设备上就近固定，绕开障碍走线即可，无需另设横担与附加龙骨。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "就近固定看着省事。",
           "loss_reason": "不得直接吊挂于设备，遇梁风管应设横担。",
           "fix": "遇梁风管设横担，不得吊挂于设备。",
-          "option_id": "D14-html-practice-html-q2-0adfdf5445c9:option-4"
+          "option_id": "D14-html-practice-html-q2-4ca677fecc2f:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q2-0adfdf5445c9",
+      "variant_id": "D14-html-practice-html-q2-4ca677fecc2f",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
@@ -154,17 +154,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q2",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "1b2cd9b789120a13c8d228325d5c77d495c0dedc443f82bd995c7bad366c584f",
+      "content_sha256": "233abda047100e4639fec1704b8fda85cff522083bb67aa118dc9e23348379b1",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "1b2cd9b789120a13c8d228325d5c77d495c0dedc443f82bd995c7bad366c584f",
+        "reviewed_content_sha256": "233abda047100e4639fec1704b8fda85cff522083bb67aa118dc9e23348379b1",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -183,43 +183,43 @@
       "model_answer": "从板中间向四周自由固定，长边沿纵向铺设，螺钉间距150-170mm，钉眼防锈，双层板接缝错开。",
       "options": [
         {
+          "text": "从板四边先固定牢再向中间收拢、长边沿纵向铺，螺钉间距150-170mm、钉眼防锈、双层板接缝错开。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得先钉牢四边更稳。",
+          "loss_reason": "方向反了：应从中间向四周自由固定，让板释放变形。",
+          "fix": "从中间向四周固定，不是从四边向中间。",
+          "option_id": "D14-html-practice-html-q3-b41a2ad10aa7:option-1"
+        },
+        {
+          "text": "从板中间向四周自由固定即可，至于钉距取值、钉眼是否防锈、双层是否错缝等均属操作细节，作答无需写明。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住固定方向一条。",
+          "loss_reason": "漏钉距150-170、钉眼防锈、双层错缝三处采分。",
+          "fix": "补钉距150-170、防锈、双层错缝。",
+          "option_id": "D14-html-practice-html-q3-b41a2ad10aa7:option-2"
+        },
+        {
           "text": "从板中间向四周自由固定、长边沿纵向铺，螺钉间距150-170mm、钉眼防锈、双层板接缝错开。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "固定方向+钉距+防锈+错缝四件齐，缺一扣一。",
-          "option_id": "D14-html-practice-html-q3-680f21e9359a:option-1"
+          "option_id": "D14-html-practice-html-q3-b41a2ad10aa7:option-3"
         },
         {
-          "text": "从板四边先固定牢再向中间收，钉距150-170mm、钉眼防锈、双层接缝错开。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得先钉牢四边更稳。",
-          "loss_reason": "方向反了：应从中间向四周自由固定，让板释放变形。",
-          "fix": "从中间向四周固定，不是从四边向中间。",
-          "option_id": "D14-html-practice-html-q3-680f21e9359a:option-2"
-        },
-        {
-          "text": "从中间向四周固定即可，钉距、钉眼防锈、错缝属细节，现场看着办。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记住固定方向一条。",
-          "loss_reason": "漏钉距150-170、钉眼防锈、双层错缝三处采分。",
-          "fix": "补钉距150-170、防锈、双层错缝。",
-          "option_id": "D14-html-practice-html-q3-680f21e9359a:option-3"
-        },
-        {
-          "text": "顶棚裂了主要靠面层：重新刷腻子、刷漆找平即可，固定方式不影响开裂。",
+          "text": "顶棚裂缝主要靠面层修饰：重新刮腻子、刷漆找平即可，罩面板固定方式与骨架并不影响开裂。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "把裂缝当表面问题。",
           "loss_reason": "口号化、避开固定与骨架，裂缝根子在固定与骨架。",
           "fix": "回到中间向四周固定+防裂五点，不是只刷漆。",
-          "option_id": "D14-html-practice-html-q3-680f21e9359a:option-4"
+          "option_id": "D14-html-practice-html-q3-b41a2ad10aa7:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q3-680f21e9359a",
+      "variant_id": "D14-html-practice-html-q3-b41a2ad10aa7",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
@@ -227,17 +227,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q3",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a591a8accf1b5a64cbbf27e2e0b06ed7d5d6347114a8aabb29afd844f7b3115b",
+      "content_sha256": "f7d2094b45758bb103344adb942f62af16495b39077afb5dbd1ce253e3d373e2",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "a591a8accf1b5a64cbbf27e2e0b06ed7d5d6347114a8aabb29afd844f7b3115b",
+        "reviewed_content_sha256": "f7d2094b45758bb103344adb942f62af16495b39077afb5dbd1ce253e3d373e2",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -262,37 +262,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "吊筋·错缝·螺钉·转角·嵌缝五点全写，对应五个断点。",
-          "option_id": "D14-html-practice-html-q4-6967b3b24577:option-1"
+          "option_id": "D14-html-practice-html-q4-6d0980f3a1b8:option-1"
         },
         {
-          "text": "裂缝铲除后重新刷腻子、刷两遍乳胶漆找平，把面层做光就不裂了。",
+          "text": "裂缝铲除后重新刮腻子、刷两遍乳胶漆找平，把面层做光做平，顶棚就不会再从拼缝里开裂。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "把裂缝当面层问题。",
           "loss_reason": "口号化治标，没回到骨架、缝、钉、角、嵌缝。",
           "fix": "按防裂五点治理，不是只刷漆。",
-          "option_id": "D14-html-practice-html-q4-6967b3b24577:option-2"
+          "option_id": "D14-html-practice-html-q4-6d0980f3a1b8:option-2"
         },
         {
-          "text": "主要保证吊筋间距≤1200、螺钉固定牢固两条，其余现场把控即可。",
+          "text": "主要保证吊筋间距≤1200、螺钉固定牢固这两条即可，拼缝、转角、嵌缝等其余各项按现场情况把握。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只记两点就下笔。",
           "loss_reason": "漏拼缝错缝不密拼、转角加强、嵌缝饱满三点。",
           "fix": "补错缝不密拼、转角加强、嵌缝饱满。",
-          "option_id": "D14-html-practice-html-q4-6967b3b24577:option-3"
+          "option_id": "D14-html-practice-html-q4-6d0980f3a1b8:option-3"
         },
         {
-          "text": "裂缝多在拼缝处，把板密拼、缝挤紧不留缝，就不会从缝里裂。",
+          "text": "裂缝多出在拼缝处，将板材密拼、缝隙挤紧不留缝，应力就不会从拼缝处集中而开裂。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "以为密拼更严实。",
           "loss_reason": "应拼缝错缝、不密拼；密拼反而应力集中开裂。",
           "fix": "拼缝要错缝、不密拼。",
-          "option_id": "D14-html-practice-html-q4-6967b3b24577:option-4"
+          "option_id": "D14-html-practice-html-q4-6d0980f3a1b8:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q4-6967b3b24577",
+      "variant_id": "D14-html-practice-html-q4-6d0980f3a1b8",
       "surface_id": "practice.html",
       "source_index": 3,
       "source_group": "Q",
@@ -300,17 +300,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q4",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d47e5f43918c0f3a2d8cd329e34e6087b8f2fbc6c55daac34139c36aafa2ee0f",
+      "content_sha256": "34f9cc517e610249d9984c5165d224f344cfa9856cc63e87b7b3f97738ecf86b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "d47e5f43918c0f3a2d8cd329e34e6087b8f2fbc6c55daac34139c36aafa2ee0f",
+        "reviewed_content_sha256": "34f9cc517e610249d9984c5165d224f344cfa9856cc63e87b7b3f97738ecf86b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -335,37 +335,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "水电先于主副龙骨、罩面板压条收尾，顺序全对。",
-          "option_id": "D14-html-practice-html-q5-b20c276b031f:option-1"
+          "option_id": "D14-html-practice-html-q5-62765ed7069e:option-1"
         },
         {
-          "text": "放线、装主龙骨、装副龙骨、装罩面板后，再穿水电管线、最后压条。",
+          "text": "放线、画分档线、装主龙骨、装副龙骨、装罩面板成型后，随后再穿水电管线、最后压条收口。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "以为先搭架封板、再穿管方便。",
           "loss_reason": "水电管线应先于骨架，后穿会破坏已成型骨架。",
           "fix": "水电管线排在主、副龙骨前。",
-          "option_id": "D14-html-practice-html-q5-b20c276b031f:option-2"
+          "option_id": "D14-html-practice-html-q5-62765ed7069e:option-2"
         },
         {
-          "text": "放线、装主龙骨、装罩面板、装副龙骨、穿水电、压条，边装边调最省事。",
+          "text": "放线、装主龙骨、装罩面板、装副龙骨、穿水电管线、最后压条，边装边调整逐步成型。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "凭印象排顺序。",
           "loss_reason": "罩面板排到副龙骨前、水电放最后，多处颠倒。",
           "fix": "副龙骨在罩面板前、水电在骨架前。",
-          "option_id": "D14-html-practice-html-q5-b20c276b031f:option-3"
+          "option_id": "D14-html-practice-html-q5-62765ed7069e:option-3"
         },
         {
-          "text": "先装龙骨再封板即可，放线、分档线、压条属次要步骤可省略不写。",
+          "text": "先装龙骨再封板即可，放线、画分档线、压条等属次要步骤，作答时可省略、不逐项写明。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只记住“搭架封板”主干。",
           "loss_reason": "漏放线/分档线/压条，且未点水电顺序。",
           "fix": "放线分档线在前、压条收尾、水电先于骨架都要写。",
-          "option_id": "D14-html-practice-html-q5-b20c276b031f:option-4"
+          "option_id": "D14-html-practice-html-q5-62765ed7069e:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q5-b20c276b031f",
+      "variant_id": "D14-html-practice-html-q5-62765ed7069e",
       "surface_id": "practice.html",
       "source_index": 4,
       "source_group": "Q",
@@ -373,17 +373,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c372f42d2dc6bdb6f9b40166a599c3e9ad2cfdad6e172e7249df251a8ac4fa18",
+      "content_sha256": "fb6c2311723d209ba81d90a5eb4337ab15f8c75cf63a734637a27e5f866eab72",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "c372f42d2dc6bdb6f9b40166a599c3e9ad2cfdad6e172e7249df251a8ac4fa18",
+        "reviewed_content_sha256": "fb6c2311723d209ba81d90a5eb4337ab15f8c75cf63a734637a27e5f866eab72",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -402,43 +402,43 @@
       "model_answer": "基层处理→放线→试拼→铺砂浆→铺石材→养护→勾缝；铺设前浸湿晾干防吸水空鼓。",
       "options": [
         {
+          "text": "先铺砂浆再放线、试拼，石材干铺压实即可，铺前浸湿反而打滑、不必进行，铺后自然干透。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得干铺压实更牢、放线可后补。",
+          "loss_reason": "顺序颠倒且漏浸湿；干石材吸水会致空鼓。",
+          "fix": "先放线试拼后铺浆，铺前浸湿晾干。",
+          "option_id": "D14-html-practice-html-q6-6fa91fc40768:option-1"
+        },
+        {
           "text": "流程为基层处理、放线、试拼、铺砂浆、铺石材、养护、勾缝；铺设前石材浸湿晾干，防吸水空鼓。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "流程+浸湿晾干防空鼓，主干与预处理都齐。",
-          "option_id": "D14-html-practice-html-q6-19297bc52e05:option-1"
+          "option_id": "D14-html-practice-html-q6-6fa91fc40768:option-2"
         },
         {
-          "text": "先铺砂浆再放线、试拼，石材干铺压实即可，浸湿会打滑不必做。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "觉得干铺压实更牢、放线可后补。",
-          "loss_reason": "顺序颠倒且漏浸湿；干石材吸水会致空鼓。",
-          "fix": "先放线试拼后铺浆，铺前浸湿晾干。",
-          "option_id": "D14-html-practice-html-q6-19297bc52e05:option-2"
-        },
-        {
-          "text": "基层处理、铺砂浆、铺石材、勾缝即可，试拼、养护现场看情况省略。",
+          "text": "流程取基层处理、铺砂浆、铺石材、勾缝即可，试拼与养护按现场情况省略，铺前浸湿处理也不必写明。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只记主干四步。",
           "loss_reason": "漏试拼、养护，且未写浸湿防空鼓。",
           "fix": "补试拼、养护、铺前浸湿晾干。",
-          "option_id": "D14-html-practice-html-q6-19297bc52e05:option-3"
+          "option_id": "D14-html-practice-html-q6-6fa91fc40768:option-3"
         },
         {
-          "text": "石材和瓷砖一样先泡透再铺，铺后无需养护、自然干即可。",
+          "text": "石材与瓷砖一样先浸水泡透再铺，铺贴完成后无需养护、自然阴干即可交付。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "把石材当瓷砖处理。",
           "loss_reason": "石材是浸湿晾干（非泡透），铺后仍需养护。",
           "fix": "石材浸湿晾干、铺后养护。",
-          "option_id": "D14-html-practice-html-q6-19297bc52e05:option-4"
+          "option_id": "D14-html-practice-html-q6-6fa91fc40768:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q6-19297bc52e05",
+      "variant_id": "D14-html-practice-html-q6-6fa91fc40768",
       "surface_id": "practice.html",
       "source_index": 5,
       "source_group": "Q",
@@ -446,17 +446,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "08461f87804b454ed6c9199dc4c3b42c9fbc58afb7885c2e48260070d7cf9f20",
+      "content_sha256": "bf6d557a151fe134dc63a4956d56b550ecfd931b3c1102a4f745aa1820290295",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "08461f87804b454ed6c9199dc4c3b42c9fbc58afb7885c2e48260070d7cf9f20",
+        "reviewed_content_sha256": "bf6d557a151fe134dc63a4956d56b550ecfd931b3c1102a4f745aa1820290295",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -481,37 +481,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "白水泥+勾缝顺直平整深浅一致，正是观感采分。",
-          "option_id": "D14-html-practice-html-q7-a53bb9f7adc5:option-1"
+          "option_id": "D14-html-practice-html-q7-24f368d49f8b:option-1"
         },
         {
-          "text": "浅色石材用普通灰水泥即可、颜色不影响；勾缝只要填满不漏即可。",
+          "text": "浅色石材用普通灰水泥即可、水泥颜色并不影响观感；勾缝只要填满不漏、无需强求顺直与深浅一致。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "以为水泥颜色无所谓。",
           "loss_reason": "浅色石材应用白水泥，勾缝还需顺直平整深浅一致。",
           "fix": "浅色用白水泥、勾缝顺直平整深浅一致。",
-          "option_id": "D14-html-practice-html-q7-a53bb9f7adc5:option-2"
+          "option_id": "D14-html-practice-html-q7-24f368d49f8b:option-2"
         },
         {
-          "text": "浅色石材用白水泥即可，勾缝质量现场把控不必细写。",
+          "text": "浅色石材铺贴宜用白水泥即可，至于勾缝方面的各项质量要求，作答时不必逐项细写。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只答白水泥一条。",
           "loss_reason": "漏勾缝清晰顺直平整深浅一致的采分。",
           "fix": "补勾缝顺直、平整、深浅一致。",
-          "option_id": "D14-html-practice-html-q7-a53bb9f7adc5:option-3"
+          "option_id": "D14-html-practice-html-q7-24f368d49f8b:option-3"
         },
         {
-          "text": "为增强观感，浅色石材面层刷防酸剂改色、缝用彩色勾缝剂拉宽。",
+          "text": "为增强观感，浅色石材面层可刷防酸剂改色、拼缝改用彩色勾缝剂并适当拉宽处理。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "臆造改色做法。",
           "loss_reason": "无锚编造，与浅色用白水泥、勾缝顺直深浅一致不符。",
           "fix": "按浅色用白水泥、勾缝顺直深浅一致作答。",
-          "option_id": "D14-html-practice-html-q7-a53bb9f7adc5:option-4"
+          "option_id": "D14-html-practice-html-q7-24f368d49f8b:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q7-a53bb9f7adc5",
+      "variant_id": "D14-html-practice-html-q7-24f368d49f8b",
       "surface_id": "practice.html",
       "source_index": 6,
       "source_group": "Q",
@@ -519,17 +519,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "872d6370979cad24b9073479778cd2499651df9f60ad429884d6fdfd412f8ad8",
+      "content_sha256": "6a6e998d82418c0a842d298fda8d99041b50d62765204afc87e070f4fd51cfe3",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "872d6370979cad24b9073479778cd2499651df9f60ad429884d6fdfd412f8ad8",
+        "reviewed_content_sha256": "6a6e998d82418c0a842d298fda8d99041b50d62765204afc87e070f4fd51cfe3",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -548,43 +548,43 @@
       "model_answer": "基层处理→放线→浸砖→铺砂浆→铺砖→养护→勾缝；浸砖在铺砂浆前，先清脱模剂、浸泡、阴干。",
       "options": [
         {
+          "text": "先铺砂浆再把干燥瓷砖压上去，浸砖处理放到铺贴完成后再补水养护，如此顺序施工反而更省工快捷。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为铺完补水一样。",
+          "loss_reason": "浸砖必须在铺砂浆前，否则干砖抢砂浆水导致空鼓。",
+          "fix": "浸砖排在铺砂浆前。",
+          "option_id": "D14-html-practice-html-q8-11e90142fc80:option-1"
+        },
+        {
+          "text": "流程取基层、放线、铺砂浆、铺砖、勾缝即可，浸砖与清脱模剂等预处理按现场情况省略。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "省掉预处理。",
+          "loss_reason": "漏浸砖、清脱模剂、阴干，易空鼓。",
+          "fix": "补浸砖（铺浆前）、清脱模剂、浸泡阴干。",
+          "option_id": "D14-html-practice-html-q8-11e90142fc80:option-2"
+        },
+        {
           "text": "流程为基层、放线、浸砖、铺砂浆、铺砖、养护、勾缝；浸砖在铺砂浆前，先清脱模剂、浸泡、阴干。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "浸砖在铺浆前+清脱模剂阴干，顺序与预处理齐。",
-          "option_id": "D14-html-practice-html-q8-4e4245ecd476:option-1"
+          "option_id": "D14-html-practice-html-q8-11e90142fc80:option-3"
         },
         {
-          "text": "先铺砂浆再把干瓷砖压上去，浸砖放到铺完再补水养护，顺序更省工。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "以为铺完补水一样。",
-          "loss_reason": "浸砖必须在铺砂浆前，否则干砖抢砂浆水导致空鼓。",
-          "fix": "浸砖排在铺砂浆前。",
-          "option_id": "D14-html-practice-html-q8-4e4245ecd476:option-2"
-        },
-        {
-          "text": "基层、放线、铺砂浆、铺砖、勾缝即可，浸砖、脱模剂处理可省。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "省掉预处理。",
-          "loss_reason": "漏浸砖、清脱模剂、阴干，易空鼓。",
-          "fix": "补浸砖（铺浆前）、清脱模剂、浸泡阴干。",
-          "option_id": "D14-html-practice-html-q8-4e4245ecd476:option-3"
-        },
-        {
-          "text": "瓷砖和竹木地板一样架空铺设、无需浸砖和砂浆，直接卡扣拼装。",
+          "text": "瓷砖与竹木地板一样架空铺设、无需浸砖与铺砂浆，直接卡扣拼装即可成活。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "把瓷砖当竹木。",
           "loss_reason": "瓷砖是湿贴、需浸砖铺砂浆，非架空。",
           "fix": "瓷砖湿贴、浸砖在铺砂浆前。",
-          "option_id": "D14-html-practice-html-q8-4e4245ecd476:option-4"
+          "option_id": "D14-html-practice-html-q8-11e90142fc80:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q8-4e4245ecd476",
+      "variant_id": "D14-html-practice-html-q8-11e90142fc80",
       "surface_id": "practice.html",
       "source_index": 7,
       "source_group": "Q",
@@ -592,17 +592,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "57c90c39e8da801585f0d093b0b0cd2eba9f6c15dc86b304eb1306f7de81d7dc",
+      "content_sha256": "1c2b7ea24534ec2251df3945ea900b304594ea549daa174d354dd95bf63cfa7c",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "57c90c39e8da801585f0d093b0b0cd2eba9f6c15dc86b304eb1306f7de81d7dc",
+        "reviewed_content_sha256": "1c2b7ea24534ec2251df3945ea900b304594ea549daa174d354dd95bf63cfa7c",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -621,43 +621,43 @@
       "model_answer": "基层清理干净、用水泥基粘结材料、油性防护石材界面剂+背砂、大面积设伸缩缝、养护到位。",
       "options": [
         {
+          "text": "空鼓处就把空的板块敲掉返工重铺，同时加强现场管理、严格保证施工质量即可解决。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "以为整改动作＝原因分析。",
+          "loss_reason": "口号化，未落到基层/材料/界面/伸缩缝/养护五断点。",
+          "fix": "按五断点写原因与措施。",
+          "option_id": "D14-html-practice-html-q9-35b59fc2fead:option-1"
+        },
+        {
+          "text": "主要是基层没清理干净、养护不到位这两条原因，其余粘结材料与界面处理等因素均属次要、可不展开细说。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答两条。",
+          "loss_reason": "漏水泥基粘结、界面剂+背砂、伸缩缝三处。",
+          "fix": "补粘结材料、界面剂+背砂、伸缩缝。",
+          "option_id": "D14-html-practice-html-q9-35b59fc2fead:option-2"
+        },
+        {
+          "text": "空鼓是水泥标号不够所致，换成高标号纯水泥、粘结层抹厚一点压实，板块就不会再空。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为加厚纯水泥更牢。",
+          "loss_reason": "纯水泥收缩更大反空鼓；应水泥基粘结+界面处理+伸缩缝。",
+          "fix": "用水泥基粘结材料并设伸缩缝。",
+          "option_id": "D14-html-practice-html-q9-35b59fc2fead:option-3"
+        },
+        {
           "text": "从五处防治：基层清理干净、用水泥基粘结材料、油性防护石材用界面剂+背砂、设伸缩缝、养护到位。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "基层/材料/界面/伸缩缝/养护五断点各修一处。",
-          "option_id": "D14-html-practice-html-q9-31d0a74c7bea:option-1"
-        },
-        {
-          "text": "空鼓就把空的板块敲掉重铺，加强现场管理、保证施工质量即可。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "以为整改动作＝原因分析。",
-          "loss_reason": "口号化，未落到基层/材料/界面/伸缩缝/养护五断点。",
-          "fix": "按五断点写原因与措施。",
-          "option_id": "D14-html-practice-html-q9-31d0a74c7bea:option-2"
-        },
-        {
-          "text": "主要是基层没清理干净、养护不到位两条，其余属次要。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只答两条。",
-          "loss_reason": "漏水泥基粘结、界面剂+背砂、伸缩缝三处。",
-          "fix": "补粘结材料、界面剂+背砂、伸缩缝。",
-          "option_id": "D14-html-practice-html-q9-31d0a74c7bea:option-3"
-        },
-        {
-          "text": "空鼓是水泥标号不够，换成高标号纯水泥、抹厚一点就实了。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为加厚纯水泥更牢。",
-          "loss_reason": "纯水泥收缩更大反空鼓；应水泥基粘结+界面处理+伸缩缝。",
-          "fix": "用水泥基粘结材料并设伸缩缝。",
-          "option_id": "D14-html-practice-html-q9-31d0a74c7bea:option-4"
+          "option_id": "D14-html-practice-html-q9-35b59fc2fead:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q9-31d0a74c7bea",
+      "variant_id": "D14-html-practice-html-q9-35b59fc2fead",
       "surface_id": "practice.html",
       "source_index": 8,
       "source_group": "Q",
@@ -665,17 +665,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6a84d7e3df0490383efbe361ee01a5e7f94ecdb358e755505fc3dff2f042cb94",
+      "content_sha256": "ca15c91a6a76f30c3c26a344e5f3d2fc606dc79eb8499bebea5fa9d05625167e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6a84d7e3df0490383efbe361ee01a5e7f94ecdb358e755505fc3dff2f042cb94",
+        "reviewed_content_sha256": "ca15c91a6a76f30c3c26a344e5f3d2fc606dc79eb8499bebea5fa9d05625167e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -694,43 +694,43 @@
       "model_answer": "基层→木搁栅→毛地板→面板；整张毛地板开槽（槽深板厚1/3、垂直搁栅、约200mm）；面板离墙10mm、由内向外、顺光顺行走方向。",
       "options": [
         {
+          "text": "竹木地板可按瓷砖湿贴工艺处理：基层浸砖、铺砂浆、把地板压上去压实，再统一养护并勾缝，全程无需木搁栅与毛地板。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把竹木当湿贴板块。",
+          "loss_reason": "竹木是搁栅架空、非湿贴，无浸砖铺砂浆。",
+          "fix": "竹木走搁栅、毛地板开槽、面板。",
+          "option_id": "D14-html-practice-html-q10-e57205870f2c:option-1"
+        },
+        {
+          "text": "铺木搁栅再钉面板即可，毛地板开槽、面板离墙、铺装方向等均属操作细节，作答时可省略。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "省掉毛地板与尺寸。",
+          "loss_reason": "漏毛地板开槽1/3约200、离墙10、方向。",
+          "fix": "补毛地板开槽1/3约200、离墙10、由内向外顺光。",
+          "option_id": "D14-html-practice-html-q10-e57205870f2c:option-2"
+        },
+        {
+          "text": "毛地板开槽越深越好、槽深宜取板厚1/2、开槽间距约50mm，面板紧贴墙铺不留伸缩缝。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为槽深、缝小更稳。",
+          "loss_reason": "槽深应1/3、间距约200、离墙10mm，数值全错。",
+          "fix": "槽深1/3、约200mm、离墙10mm。",
+          "option_id": "D14-html-practice-html-q10-e57205870f2c:option-3"
+        },
+        {
           "text": "木搁栅→毛地板→面板；整张毛地板开槽槽深1/3、垂直搁栅、约200mm；面板离墙10mm、由内向外、顺光。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "搁栅/开槽1/3约200/离墙10/方向全齐。",
-          "option_id": "D14-html-practice-html-q10-ba9215c73c44:option-1"
-        },
-        {
-          "text": "竹木地板按瓷砖湿贴：基层浸砖、铺砂浆、把地板压上去养护勾缝。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把竹木当湿贴板块。",
-          "loss_reason": "竹木是搁栅架空、非湿贴，无浸砖铺砂浆。",
-          "fix": "竹木走搁栅、毛地板开槽、面板。",
-          "option_id": "D14-html-practice-html-q10-ba9215c73c44:option-2"
-        },
-        {
-          "text": "铺木搁栅再钉面板即可，毛地板开槽、离墙、方向属细节可省。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "省掉毛地板与尺寸。",
-          "loss_reason": "漏毛地板开槽1/3约200、离墙10、方向。",
-          "fix": "补毛地板开槽1/3约200、离墙10、由内向外顺光。",
-          "option_id": "D14-html-practice-html-q10-ba9215c73c44:option-3"
-        },
-        {
-          "text": "毛地板开槽越深越好、槽深取板厚1/2、间距约50mm，紧贴墙铺不留缝。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为槽深、缝小更稳。",
-          "loss_reason": "槽深应1/3、间距约200、离墙10mm，数值全错。",
-          "fix": "槽深1/3、约200mm、离墙10mm。",
-          "option_id": "D14-html-practice-html-q10-ba9215c73c44:option-4"
+          "option_id": "D14-html-practice-html-q10-e57205870f2c:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q10-ba9215c73c44",
+      "variant_id": "D14-html-practice-html-q10-e57205870f2c",
       "surface_id": "practice.html",
       "source_index": 9,
       "source_group": "Q",
@@ -738,17 +738,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a41092c19bbcaf33006fcf213df1fed816e7ed99723f01e8ad8a0ae0ab957f25",
+      "content_sha256": "fac8d139882bfba5ab168ae19866af3fb3e85e66cf92ef94b6ce483398ef4b53",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "a41092c19bbcaf33006fcf213df1fed816e7ed99723f01e8ad8a0ae0ab957f25",
+        "reviewed_content_sha256": "fac8d139882bfba5ab168ae19866af3fb3e85e66cf92ef94b6ce483398ef4b53",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -767,43 +767,43 @@
       "model_answer": "裁剪长度比施工面长20mm；倒刺板距踢脚8-10mm；衬垫离倒刺板约10mm；先固定长边、撑子拉伸、接长缝合或烫带。",
       "options": [
         {
+          "text": "把地毯直接铺平、四周用胶水粘牢固定即可，裁剪余量、倒刺板间距与衬垫尺寸等数据都不必记，撑子拉伸这道工序也可以从简省去。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为铺平粘牢就行。",
+          "loss_reason": "漏裁+20、倒刺板8-10、衬垫10、撑子拉伸。",
+          "fix": "补裁+20、倒刺板8-10、衬垫10、撑子拉伸。",
+          "option_id": "D14-html-practice-html-q11-d69d008331d3:option-1"
+        },
+        {
           "text": "裁剪比施工面长20mm；倒刺板距踢脚8-10mm；衬垫离倒刺板约10mm；先固定长边、撑子拉伸、接长缝合或烫带。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "裁+20/刺板8-10/衬垫10/撑子拉伸全齐。",
-          "option_id": "D14-html-practice-html-q11-c5a605a74ca5:option-1"
+          "option_id": "D14-html-practice-html-q11-d69d008331d3:option-2"
         },
         {
-          "text": "把地毯铺平、四周用胶粘牢即可，裁剪余量、倒刺板、衬垫尺寸不必记。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为铺平粘牢就行。",
-          "loss_reason": "漏裁+20、倒刺板8-10、衬垫10、撑子拉伸。",
-          "fix": "补裁+20、倒刺板8-10、衬垫10、撑子拉伸。",
-          "option_id": "D14-html-practice-html-q11-c5a605a74ca5:option-2"
-        },
-        {
-          "text": "裁剪按施工面等长下料、倒刺板贴踢脚零间距、衬垫盖住倒刺板铺满。",
+          "text": "裁剪按施工面等长下料、倒刺板紧贴踢脚零间距布置、衬垫盖住倒刺板整面满铺，最后沿四周收边压实固定。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "以为贴紧铺满更牢。",
           "loss_reason": "应裁长20mm、倒刺板距踢脚8-10、衬垫离倒刺板约10。",
           "fix": "裁+20、倒刺板8-10、衬垫离倒刺板10。",
-          "option_id": "D14-html-practice-html-q11-c5a605a74ca5:option-3"
+          "option_id": "D14-html-practice-html-q11-d69d008331d3:option-3"
         },
         {
-          "text": "地毯与瓷砖一样满铺砂浆湿贴，压实养护后收边即可。",
+          "text": "地毯与瓷砖一样满铺砂浆湿贴，压实养护后再沿四周收边固定即可交付投入使用。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "把地毯当湿贴。",
           "loss_reason": "地毯非湿贴，靠倒刺板+衬垫+撑子拉伸。",
           "fix": "地毯用倒刺板、衬垫、撑子拉伸，非砂浆湿贴。",
-          "option_id": "D14-html-practice-html-q11-c5a605a74ca5:option-4"
+          "option_id": "D14-html-practice-html-q11-d69d008331d3:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q11-c5a605a74ca5",
+      "variant_id": "D14-html-practice-html-q11-d69d008331d3",
       "surface_id": "practice.html",
       "source_index": 10,
       "source_group": "Q",
@@ -811,17 +811,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e8e55adf6806ce52be2723ca6089b0a5b8e35e10c8b18e251449be326d3f82d2",
+      "content_sha256": "86bb039949ba746c832c3d8e956222dab26a91ecf78e515f12d2001d7d4d6c4b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e8e55adf6806ce52be2723ca6089b0a5b8e35e10c8b18e251449be326d3f82d2",
+        "reviewed_content_sha256": "86bb039949ba746c832c3d8e956222dab26a91ecf78e515f12d2001d7d4d6c4b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -840,43 +840,43 @@
       "model_answer": "砌体上安装门窗严禁用射钉固定；砌体握裹力不足，射钉破坏基层致框松动、密封失效。",
       "options": [
         {
+          "text": "砌体上安装门窗用射钉固定又快又牢，较膨胀螺栓明显省工省时，施工中应推荐优先采用此法。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为射钉快又牢。",
+          "loss_reason": "砌体严禁射钉，此项反向。",
+          "fix": "砌体严禁射钉固定。",
+          "option_id": "D14-html-practice-html-q12-29e4d467b914:option-1"
+        },
+        {
+          "text": "只要墙体足够厚实，砌体上用射钉固定门窗即无问题，只有薄墙才需另想固定办法。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "拿常识替规范、按墙厚判断。",
+          "loss_reason": "规范对砌体一律严禁射钉，与厚薄无关。",
+          "fix": "砌体一律严禁射钉，不看厚薄。",
+          "option_id": "D14-html-practice-html-q12-29e4d467b914:option-2"
+        },
+        {
+          "text": "门窗固定禁用射钉仅指木门窗，铝合金窗与塑钢窗在砌体上仍可采用射钉固定。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为按窗材料区分。",
+          "loss_reason": "禁令针对砌体基层，与门窗材料无关。",
+          "fix": "在砌体上一律严禁射钉。",
+          "option_id": "D14-html-practice-html-q12-29e4d467b914:option-3"
+        },
+        {
           "text": "砌体上安装门窗严禁用射钉固定；砌体握裹力不足，射钉会破坏基层导致框体松动、密封失效。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "点出严禁射钉+砌体基层原因，禁令写到位。",
-          "option_id": "D14-html-practice-html-q12-a7113ae29984:option-1"
-        },
-        {
-          "text": "砌体上安装门窗用射钉固定又快又牢，比膨胀螺栓省工，推荐优先采用。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为射钉快又牢。",
-          "loss_reason": "砌体严禁射钉，此项反向。",
-          "fix": "砌体严禁射钉固定。",
-          "option_id": "D14-html-practice-html-q12-a7113ae29984:option-2"
-        },
-        {
-          "text": "只要墙体够厚，砌体上射钉固定门窗没问题，薄墙才需另想办法。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "拿常识替规范、按墙厚判断。",
-          "loss_reason": "规范对砌体一律严禁射钉，与厚薄无关。",
-          "fix": "砌体一律严禁射钉，不看厚薄。",
-          "option_id": "D14-html-practice-html-q12-a7113ae29984:option-3"
-        },
-        {
-          "text": "门窗固定禁用射钉是指木门窗，铝合金和塑钢窗在砌体上可用射钉。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为按窗材料区分。",
-          "loss_reason": "禁令针对砌体基层，与门窗材料无关。",
-          "fix": "在砌体上一律严禁射钉。",
-          "option_id": "D14-html-practice-html-q12-a7113ae29984:option-4"
+          "option_id": "D14-html-practice-html-q12-29e4d467b914:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q12-a7113ae29984",
+      "variant_id": "D14-html-practice-html-q12-29e4d467b914",
       "surface_id": "practice.html",
       "source_index": 11,
       "source_group": "Q",
@@ -884,17 +884,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "040601ffe1c4e137eb45be1b92bce4f61c49e2cdf7376fb131e549a795a3e897",
+      "content_sha256": "a088d648c80a9c63882191cb515e61db37d18f1b2e0016749a71828ec2cf9fe4",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "040601ffe1c4e137eb45be1b92bce4f61c49e2cdf7376fb131e549a795a3e897",
+        "reviewed_content_sha256": "a088d648c80a9c63882191cb515e61db37d18f1b2e0016749a71828ec2cf9fe4",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -913,43 +913,43 @@
       "model_answer": "从五指标查：类型不符、传热系数超标、气密性差、中空玻璃露点高、可见光透射比不符。",
       "options": [
         {
+          "text": "门窗节能不好就是密封差、整体质量不过关，换一批更好的门窗、把胶打密实就能解决问题。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "以为写“密封不好”就够。",
+          "loss_reason": "口号化，未落到可检测指标。",
+          "fix": "落到类型、传热系数、气密性、露点、透射比五指标。",
+          "option_id": "D14-html-practice-html-q13-aaa319b8d902:option-1"
+        },
+        {
           "text": "按五个可检测指标排查：类型不符、传热系数超标、气密性差、中空玻璃露点高、可见光透射比不符。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "五个指标一条对应一个可查性能，全写才拿分。",
-          "option_id": "D14-html-practice-html-q13-ec22bcd3ac23:option-1"
+          "option_id": "D14-html-practice-html-q13-aaa319b8d902:option-2"
         },
         {
-          "text": "门窗节能不好就是密封差、质量不过关，换好一点的门窗、打胶密实就行。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "以为写“密封不好”就够。",
-          "loss_reason": "口号化，未落到可检测指标。",
-          "fix": "落到类型、传热系数、气密性、露点、透射比五指标。",
-          "option_id": "D14-html-practice-html-q13-ec22bcd3ac23:option-2"
-        },
-        {
-          "text": "主要看传热系数和气密性两项，露点、透射比、类型属次要可不查。",
+          "text": "主要查传热系数与气密性这两项即可，中空玻璃露点、可见光透射比、类型是否相符等均属次要、可不排查。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "只记两项。",
           "loss_reason": "漏类型不符、露点、透射比三项。",
           "fix": "五项都查：类型、传热系数、气密、露点、透射比。",
-          "option_id": "D14-html-practice-html-q13-ec22bcd3ac23:option-3"
+          "option_id": "D14-html-practice-html-q13-aaa319b8d902:option-3"
         },
         {
-          "text": "门窗节能查抗压强度、抗渗等级、坍落度这些指标是否达标。",
+          "text": "门窗节能主要排查混凝土的抗压强度、抗渗等级与坍落度等指标是否达标合格。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "套用混凝土指标。",
           "loss_reason": "抗压/抗渗/坍落度非门窗节能指标，张冠李戴。",
           "fix": "门窗节能查传热系数、气密性、露点、透射比等。",
-          "option_id": "D14-html-practice-html-q13-ec22bcd3ac23:option-4"
+          "option_id": "D14-html-practice-html-q13-aaa319b8d902:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q13-ec22bcd3ac23",
+      "variant_id": "D14-html-practice-html-q13-aaa319b8d902",
       "surface_id": "practice.html",
       "source_index": 12,
       "source_group": "Q",
@@ -957,17 +957,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "67a9b0c796d2066dd1bbe04f469084e39c97c6196d59088fca7911e7966ba9bb",
+      "content_sha256": "678033e2c15959c225c013c53c48ab77f1bbc9fdcd8a2472db1dd1a9ead0e58f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "67a9b0c796d2066dd1bbe04f469084e39c97c6196d59088fca7911e7966ba9bb",
+        "reviewed_content_sha256": "678033e2c15959c225c013c53c48ab77f1bbc9fdcd8a2472db1dd1a9ead0e58f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -992,37 +992,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "查验五类对象+门窗必查+外窗三项检测，全齐。",
-          "option_id": "D14-html-practice-html-q14-f0729a23fc4c:option-1"
+          "option_id": "D14-html-practice-html-q14-1e2658f141e3:option-1"
         },
         {
-          "text": "节能查验主要查保温材料是否达标，门窗、采暖、照明抽查或免检即可。",
+          "text": "节能查验主要查保温材料本身是否达标即可，门窗、采暖制冷系统与照明设备等一律抽查或免检，无需逐项列为必查对象。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "以为只查保温材料。",
           "loss_reason": "门窗是必查项，采暖制冷、照明也在查验对象内。",
           "fix": "门窗必查，五类对象都查。",
-          "option_id": "D14-html-practice-html-q14-f0729a23fc4c:option-2"
+          "option_id": "D14-html-practice-html-q14-1e2658f141e3:option-2"
         },
         {
-          "text": "外窗检测查抗震等级、耐火极限、隔声量三项安全功能。",
+          "text": "外窗检测主要查抗震等级、耐火极限、隔声量这三项安全与物理性能指标是否满足要求。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "套用其他检测项。",
           "loss_reason": "外窗查气密、水密、抗风压，非抗震/耐火/隔声。",
           "fix": "外窗检测气密性、水密性、抗风压性能。",
-          "option_id": "D14-html-practice-html-q14-f0729a23fc4c:option-3"
+          "option_id": "D14-html-practice-html-q14-1e2658f141e3:option-3"
         },
         {
-          "text": "现场查验只做资料核查，材料设备是否符合设计不用现场查验实物。",
+          "text": "现场节能查验只做书面资料核查，材料设备是否符合设计要求不必到现场查验实物。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "以为查资料即可。",
           "loss_reason": "现场应查验实物材料设备，不符设计不得使用。",
           "fix": "现场查验实物、不符设计不得使用。",
-          "option_id": "D14-html-practice-html-q14-f0729a23fc4c:option-4"
+          "option_id": "D14-html-practice-html-q14-1e2658f141e3:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q14-f0729a23fc4c",
+      "variant_id": "D14-html-practice-html-q14-1e2658f141e3",
       "surface_id": "practice.html",
       "source_index": 13,
       "source_group": "Q",
@@ -1030,17 +1030,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "056b9899a1079dab4e826b3d41e064b17ed421528b8cc6cc4a51d41a1d106c9f",
+      "content_sha256": "205fa497f30e465ab92b2b7fcea975586b9c747072173747591f0b54dbdb3a72",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "056b9899a1079dab4e826b3d41e064b17ed421528b8cc6cc4a51d41a1d106c9f",
+        "reviewed_content_sha256": "205fa497f30e465ab92b2b7fcea975586b9c747072173747591f0b54dbdb3a72",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1059,43 +1059,43 @@
       "model_answer": "门、窗属于围护体系，不属于结构体系（承重骨架）。",
       "options": [
         {
+          "text": "门窗洞口周边设有过梁，门窗便随过梁一同归入承重的结构受力构件（结构体系）。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "因洞口有过梁就归结构。",
+          "loss_reason": "过梁是结构，门窗本身属围护，不能混为一体。",
+          "fix": "门窗属围护体系，过梁才是结构。",
+          "option_id": "D14-html-practice-html-q15-414edd0dd695:option-1"
+        },
+        {
           "text": "门、窗与外墙一样属于围护体系，不属于承重的结构体系（柱、梁等骨架）。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "明确门窗属围护、不承重，判断题直接给分。",
-          "option_id": "D14-html-practice-html-q15-0bb447c86c02:option-1"
+          "option_id": "D14-html-practice-html-q15-414edd0dd695:option-2"
         },
         {
-          "text": "门窗洞口周边有过梁，门窗随过梁一起属于结构受力构件（结构体系）。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "因洞口有过梁就归结构。",
-          "loss_reason": "过梁是结构，门窗本身属围护，不能混为一体。",
-          "fix": "门窗属围护体系，过梁才是结构。",
-          "option_id": "D14-html-practice-html-q15-0bb447c86c02:option-2"
-        },
-        {
-          "text": "门窗既承重又围护，属于结构与围护的混合体系，两边都算。",
+          "text": "门窗既承重又起围护作用，应归入结构与围护并存的混合体系，两边都算。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "含糊两头占。",
           "loss_reason": "门窗不承重，明确属围护体系。",
           "fix": "门窗属围护体系，不承重。",
-          "option_id": "D14-html-practice-html-q15-0bb447c86c02:option-3"
+          "option_id": "D14-html-practice-html-q15-414edd0dd695:option-3"
         },
         {
-          "text": "门窗属于装饰装修部分，和体系划分无关，不必判归属。",
+          "text": "门窗属于装饰装修部分，与结构或围护的体系划分无关，无需判定其归属。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "回避判断。",
           "loss_reason": "题问体系归属，应答围护体系。",
           "fix": "明确答门窗属围护体系。",
-          "option_id": "D14-html-practice-html-q15-0bb447c86c02:option-4"
+          "option_id": "D14-html-practice-html-q15-414edd0dd695:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q15-0bb447c86c02",
+      "variant_id": "D14-html-practice-html-q15-414edd0dd695",
       "surface_id": "practice.html",
       "source_index": 14,
       "source_group": "Q",
@@ -1103,17 +1103,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a9046b68e6f9937bb1687cfc8d7a729e8935bb9b51af96ae48f76122306299ea",
+      "content_sha256": "1bcd85c54d78d2803af64264cd6621b43c3d40e5a1b0a6ff9d4dc1cc097c9ec6",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "a9046b68e6f9937bb1687cfc8d7a729e8935bb9b51af96ae48f76122306299ea",
+        "reviewed_content_sha256": "1bcd85c54d78d2803af64264cd6621b43c3d40e5a1b0a6ff9d4dc1cc097c9ec6",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1132,43 +1132,43 @@
       "model_answer": "三处全错：次龙骨不得搭接（应断开对接、洞口附加龙骨）；瓷砖须浸砖在铺砂浆前、空鼓按界面五断点防治；砌体门窗严禁射钉。",
       "options": [
         {
+          "text": "只有第③条错，射钉改为膨胀螺栓固定即可；①次龙骨搭接加长更结实、②瓷砖直接干铺、空鼓后敲掉重铺，两处均无问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只抓到射钉一处。",
+          "loss_reason": "漏诊次龙骨不得搭接、瓷砖须浸砖+空鼓五断点两处。",
+          "fix": "三处都要改，不止射钉。",
+          "option_id": "D14-html-practice-html-q16-81bcaf7123e6:option-1"
+        },
+        {
+          "text": "三条都属施工质量差，只需加强现场管理、按规范施工、切实保证质量即可，无需逐条纠正指出。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "笼统喊口号。",
+          "loss_reason": "未落到各采分点（搭接/浸砖/空鼓/射钉），不得分。",
+          "fix": "逐条纠：不搭接、浸砖在前、五断点、禁射钉。",
+          "option_id": "D14-html-practice-html-q16-81bcaf7123e6:option-2"
+        },
+        {
           "text": "三处都错：次龙骨应不搭接、断开对接并洞口附加龙骨；瓷砖须浸砖（铺浆前）、空鼓按五断点治；砌体门窗严禁射钉。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "三子域三处硬伤全揪出并补正确采分句。",
-          "option_id": "D14-html-practice-html-q16-1d4791490ee6:option-1"
+          "option_id": "D14-html-practice-html-q16-81bcaf7123e6:option-3"
         },
         {
-          "text": "只有第③条错，射钉改膨胀螺栓即可；①次龙骨搭接、②瓷砖干铺敲掉重铺都没问题。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "只抓到射钉一处。",
-          "loss_reason": "漏诊次龙骨不得搭接、瓷砖须浸砖+空鼓五断点两处。",
-          "fix": "三处都要改，不止射钉。",
-          "option_id": "D14-html-practice-html-q16-1d4791490ee6:option-2"
-        },
-        {
-          "text": "三条都属施工质量差，加强管理、按规范施工、保证质量即可，无需逐条纠。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "笼统喊口号。",
-          "loss_reason": "未落到各采分点（搭接/浸砖/空鼓/射钉），不得分。",
-          "fix": "逐条纠：不搭接、浸砖在前、五断点、禁射钉。",
-          "option_id": "D14-html-practice-html-q16-1d4791490ee6:option-3"
-        },
-        {
-          "text": "①②对，只③射钉需注明用于混凝土墙可以、砌体不行。",
+          "text": "①与②的作答均无误，仅第③条射钉需补注明：用于混凝土墙可以、用于砌体墙则不行。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只部分纠③。",
           "loss_reason": "①次龙骨搭接、②瓷砖干铺+敲掉重铺仍未纠。",
           "fix": "①不搭接洞口附加；②浸砖在前、空鼓五断点；③砌体禁射钉。",
-          "option_id": "D14-html-practice-html-q16-1d4791490ee6:option-4"
+          "option_id": "D14-html-practice-html-q16-81bcaf7123e6:option-4"
         }
       ],
-      "variant_id": "D14-html-practice-html-q16-1d4791490ee6",
+      "variant_id": "D14-html-practice-html-q16-81bcaf7123e6",
       "surface_id": "practice.html",
       "source_index": 15,
       "source_group": "Q",
@@ -1176,17 +1176,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q16",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "67fac797e4f4d913110f8737564b55e3dc8bcfa05e99699dac8a069fab59f6b8",
+      "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "4f107e62e237c9f2d5c719bb23a3198813dfd684ce3c6d244d6ab2f98dea2701",
+      "content_sha256": "3e06f9840e244db50eb741d72d37d10a6edbe3eaad23b4f6b316b71a892d5256",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "4f107e62e237c9f2d5c719bb23a3198813dfd684ce3c6d244d6ab2f98dea2701",
+        "reviewed_content_sha256": "3e06f9840e244db50eb741d72d37d10a6edbe3eaad23b4f6b316b71a892d5256",
         "signatures": [],
         "checks": {
           "source_verified": false,

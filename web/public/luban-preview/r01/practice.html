@@ -253,45 +253,45 @@ class Component extends DCLogic {
       model:"消防通道、消防水源、消防设施、灭火器材、明显标志、消防安全责任人；临时消防立管≥2根、消防箱≥2套。",
       opts:[
         { t:"消防通道、消防水源、消防设施、灭火器材、明显标志、消防安全责任人六要素齐全，临时消防立管≥2根、消防箱≥2套。", ok:true, fix:"六要素成组列全，再补临时消防设施数量，布置分才拿得满。", code:"" },
-        { t:"现场加强消防管理、多配灭火器、定期巡查，确保消防安全责任落实到位，做到防患于未然。", ok:false, code:"E04", tempt:"「加强管理、防患未然」听着面面俱到、像标准答案。", lose:"全是口号，没有一项具体布置要素，阅卷按口号化表达不给分。", fix:"列出六要素：通道、水源、设施、器材、标志、责任人。" },
-        { t:"配足灭火器材、留出消防通道两项即可，这两样是现场灭火最关键的硬件保障。", ok:false, code:"E02", tempt:"只记住了最显眼的通道和器材两项。", lose:"漏了水源、设施、标志、责任人四项，采分点大面积遗漏。", fix:"六要素一项不落：通道、水源、设施、器材、标志、责任人。" },
-        { t:"按仓库防火分区面积布置消防设施，控制每个分区不超过规定建筑面积并设防火墙分隔。", ok:false, code:"E05", tempt:"「消防」二字相同，顺手把仓库防火分区搬来。", lose:"答非所问——仓库防火分区是另一考点，不是现场消防布置。", fix:"回到现场消防布置六要素，别答仓库分区。" }
+        { t:"现场应切实加强管理，统一部署消防工作，把消防安全责任落实到每个班组，定期组织巡查，做到防患未然。", ok:false, code:"E04", tempt:"「加强管理、防患未然」听着面面俱到、像标准答案。", lose:"全是口号，没有一项具体布置要素，阅卷按口号化表达不给分。", fix:"列出六要素：通道、水源、设施、器材、标志、责任人。" },
+        { t:"布置时重点保障两项：配足灭火器材、留出畅通的消防通道，这两项是现场扑救初期火灾最关键的硬件条件。", ok:false, code:"E02", tempt:"只记住了最显眼的通道和器材两项。", lose:"漏了水源、设施、标志、责任人四项，采分点大面积遗漏。", fix:"六要素一项不落：通道、水源、设施、器材、标志、责任人。" },
+        { t:"总体布置可按仓库防火分区的思路开展：控制每个防火分区的建筑面积不超过规定限值，采用防火墙进行分隔，并据此布置各类消防设施。", ok:false, code:"E05", tempt:"「消防」二字相同，顺手把仓库防火分区搬来。", lose:"答非所问——仓库防火分区是另一考点，不是现场消防布置。", fix:"回到现场消防布置六要素，别答仓库分区。" }
       ] },
 { tag:"临时设施·上集", typeHint:"单选 · 选出数值与依据都对的改错", figLabel:"题给：临时消防设施（含错项待改）", figCaption:"立管 1 根 · 消防箱 1 套 · 消火栓距路边 5m", fig:"facil",
       stem:"某工地临时消防设施：立管 1 根、消防箱 1 套、消火栓距路边 5m。指出不妥并改正，选出能得分的作答。",
       model:"消防立管不应少于 2 根、消防箱不应少于 2 套、室外消火栓距路边不应大于 2m（并距拟建房屋≥5m 且≤25m）。",
       opts:[
         { t:"立管应不少于 2 根、消防箱应不少于 2 套、消火栓距路边应不大于 2m。", ok:true, fix:"三处逐项改正、都带规范数值，改错题拿满就靠数值。", code:"" },
-        { t:"临时消防设施配置偏少，应适当增加立管、消防箱数量，并把消火栓移到离路边近一些的位置。", ok:false, code:"E02", tempt:"方向对——确实要加、要移近，像是答对了。", lose:"「适当增加/近一些」没有规范数值，改错题漏数字不给分。", fix:"写清立管≥2 根、消防箱≥2 套、消火栓距路边≤2m。" },
-        { t:"立管应不少于 2 根、消防箱应不少于 2 套、消火栓距路边应不大于 5m 符合要求，无需调整。", ok:false, code:"M08", tempt:"改对了立管消防箱，消火栓 5m 看着也在范围内。", lose:"消火栓距路边应≤2m，5m 已超标，规范数字记错。", fix:"消火栓距路边不应大于 2m，5m 要改。" },
-        { t:"消火栓距拟建房屋应不大于 2m，越近越方便取水灭火，其余立管消防箱各 1 个够用。", ok:false, code:"M08", tempt:"把「距路边≤2m」张冠李戴到「距拟建房屋」上。", lose:"距拟建房屋应≥5m 且≤25m，不是≤2m；立管消防箱也各差 1。", fix:"距路边≤2m、距拟建房屋≥5m 且≤25m，立管消防箱各≥2。" }
+        { t:"临时消防设施数量偏少，应适当增加立管与消防箱的数量，并将消火栓移设至距路边近一些的位置。", ok:false, code:"E02", tempt:"方向对——确实要加、要移近，像是答对了。", lose:"「适当增加/近一些」没有规范数值，改错题漏数字不给分。", fix:"写清立管≥2 根、消防箱≥2 套、消火栓距路边≤2m。" },
+        { t:"立管应不少于 2 根、消防箱应不少于 2 套，消火栓距路边 5m 亦符合要求，无需调整。", ok:false, code:"M08", tempt:"改对了立管消防箱，消火栓 5m 看着也在范围内。", lose:"消火栓距路边应≤2m，5m 已超标，规范数字记错。", fix:"消火栓距路边不应大于 2m，5m 要改。" },
+        { t:"消火栓距拟建房屋应不大于 2m，以便就近取水灭火；立管与消防箱现有各 1 已能满足使用。", ok:false, code:"M08", tempt:"把「距路边≤2m」张冠李戴到「距拟建房屋」上。", lose:"距拟建房屋应≥5m 且≤25m，不是≤2m；立管消防箱也各差 1。", fix:"距路边≤2m、距拟建房屋≥5m 且≤25m，立管消防箱各≥2。" }
       ] },
 { tag:"灭火器·上集", typeHint:"单选 · 选出配置数值正确的作答", figLabel:"题给：临时建筑灭火器配置", figCaption:"每 100㎡ 该配几只？多大规格？", fig:"ext1",
       stem:"临时建筑灭火器应如何配置？选出带规范数值、能得分的作答。",
       model:"临时建筑每 100㎡ 配 2 只 10L 灭火器；面积超 1200㎡ 增设太平桶、积水池、黄砂池。",
       opts:[
+        { t:"现场应为临时建筑配置足够数量的灭火器，覆盖各功能区域与出入口，满足现场初期火灾扑救需要，并定期检查。", ok:false, code:"E02", tempt:"「足够数量、满足需要」像是万金油答案。", lose:"没有每 100㎡2 只 10L 的配置率，漏数字不给分。", fix:"写清每 100㎡ 配 2 只 10L。" },
         { t:"临时建筑每 100㎡ 配 2 只 10L 灭火器，面积超 1200㎡ 再增设太平桶、积水池、黄砂池。", ok:true, fix:"面积—数量—规格三件齐，超大面积补充设施也点到，数字全。", code:"" },
-        { t:"临时建筑应配置足够数量的灭火器，确保覆盖各个区域，满足现场初期火灾扑救需要。", ok:false, code:"E02", tempt:"「足够数量、满足需要」像是万金油答案。", lose:"没有每 100㎡2 只 10L 的配置率，漏数字不给分。", fix:"写清每 100㎡ 配 2 只 10L。" },
-        { t:"临时建筑每 100㎡ 配 1 只 5L 灭火器，面积再大也按此比例线性增配即可。", ok:false, code:"M08", tempt:"记得「100㎡配几只」的框架，只是数记小了。", lose:"应是 2 只 10L，不是 1 只 5L；且超 1200㎡ 要另设太平桶等。", fix:"每 100㎡2 只 10L，超 1200㎡ 增设太平桶积水池黄砂池。" },
-        { t:"灭火器随便摆在门口方便拿即可，数量按现场感觉配，够用就行不必拘泥规格。", ok:false, code:"M10", tempt:"凭「够用就行」的生活常识作答。", lose:"用常识替代规范，既无配置率也无规格，判分眼全丢。", fix:"按规范每 100㎡2 只 10L 配置。" }
+        { t:"临时建筑按每 100㎡ 配 1 只 5L 灭火器执行，面积增大时按同一比例线性增配即可。", ok:false, code:"M08", tempt:"记得「100㎡配几只」的框架，只是数记小了。", lose:"应是 2 只 10L，不是 1 只 5L；且超 1200㎡ 要另设太平桶等。", fix:"每 100㎡2 只 10L，超 1200㎡ 增设太平桶积水池黄砂池。" },
+        { t:"灭火器数量按现场经验估算，本着够用就行的原则配置，摆放在门口便于取用处，不必拘泥规格型号。", ok:false, code:"M10", tempt:"凭「够用就行」的生活常识作答。", lose:"用常识替代规范，既无配置率也无规格，判分眼全丢。", fix:"按规范每 100㎡2 只 10L 配置。" }
       ] },
 { tag:"灭火器·上集", typeHint:"单选 · 选出场所配比正确的作答", figLabel:"题给：木料间/油漆间 vs 普通临建", figCaption:"火险大的场所，灭火器该更密还是更疏？", fig:"ext2",
       stem:"木料间、油漆间的灭火器配置与普通临时建筑相比应如何？选出能得分的作答。",
       model:"木料间、油漆间每 25㎡ 配 1 只，比普通临建（100㎡2 只）配置更密，因火险大。",
       opts:[
+        { t:"与普通临建统一标准：木料间、油漆间同样按每 100㎡ 配 2 只 10L 灭火器配置。", ok:false, code:"M08", tempt:"图省事，用一个统一标准套所有场所。", lose:"火险大场所应加密到每 25㎡1 只，套 100㎡ 标准配置不足。", fix:"木料间油漆间每 25㎡1 只，比普通临建密。" },
         { t:"木料间、油漆间火险大，每 25㎡ 配 1 只灭火器，比普通临建配置更密。", ok:true, fix:"点出火险大→配更密，并给 25㎡1 只的具体比率，逻辑数值都在。", code:"" },
-        { t:"木料间、油漆间与普通临建一样，每 100㎡ 配 2 只 10L 灭火器即可，标准统一好管理。", ok:false, code:"M08", tempt:"图省事，用一个统一标准套所有场所。", lose:"火险大场所应加密到每 25㎡1 只，套 100㎡ 标准配置不足。", fix:"木料间油漆间每 25㎡1 只，比普通临建密。" },
-        { t:"木料间、油漆间火险大，应尽量多配灭火器，越多越安全，具体数量视现场情况灵活掌握。", ok:false, code:"E02", tempt:"知道要多配，方向没错。", lose:"「越多越好、灵活掌握」无配置率数字，漏采分点。", fix:"写清每 25㎡ 配 1 只。" },
-        { t:"木料间、油漆间火险大反而不宜放灭火器，以免占用空间，集中放在门外通道统一取用。", ok:false, code:"M10", tempt:"用「怕占空间」的想当然替代规范。", lose:"火险大场所恰恰要就近加密配置，判断方向完全错。", fix:"火险大场所就近加密：每 25㎡1 只。" }
+        { t:"考虑火险大，木料间、油漆间应尽量多配灭火器，越多越好，具体数量可结合现场情况灵活掌握。", ok:false, code:"E02", tempt:"知道要多配，方向没错。", lose:"「越多越好、灵活掌握」无配置率数字，漏采分点。", fix:"写清每 25㎡ 配 1 只。" },
+        { t:"为免占用作业空间，木料间、油漆间内不宜放置灭火器，可集中存放于门外通道统一取用。", ok:false, code:"M10", tempt:"用「怕占空间」的想当然替代规范。", lose:"火险大场所恰恰要就近加密配置，判断方向完全错。", fix:"火险大场所就近加密：每 25㎡1 只。" }
       ] },
 { tag:"采分诊断·综合末题", typeHint:"单选 · 揪出「像对实错」的作答并补写", figLabel:"模拟学生作答（待诊断）", figCaption:"看着答了不少，采分点到底丢在哪？", fig:"diag",
       stem:"某学生答「现场应加强消防管理、配足灭火器、动火前签字确认；电石着火用水降温」。选出最准确的诊断与补写。",
       model:"四处失分：①口号化无布置六要素与数值；②灭火器缺配置率（100㎡2 只/25㎡1 只）；③签字≠分级审批（一级报企业安全部门、动火证当日有效）；④电石严禁用水（应干砂或二氧化碳）。",
       opts:[
         { t:"四处都丢分：布置口号化缺六要素、灭火器缺配置率、签字未走分级审批、电石绝不能用水应用干砂或二氧化碳，逐条补规范做法与数值。", ok:true, fix:"把口号化、漏数字、程序违规、常识灭火四处一次揪出并补齐，这就是会写答案。", code:"" },
-        { t:"作答已覆盖消防管理、灭火器、动火、灭火四个方面，要点齐全，属于可给分的完整作答。", ok:false, code:"E05", tempt:"看「面都提到了」就以为要点齐全——最危险的误判。", lose:"每一项都是口号或错误：无数值、签字违规、电石用水，阅卷按点采分几乎不得分。", fix:"四项都要补规范数值与正确做法，尤其电石严禁用水。" },
-        { t:"只是电石灭火写错了，把用水改成干砂即可，其余消防管理、灭火器、动火作答都没问题。", ok:false, code:"E02", tempt:"抓到电石一处硬错，就以为只此一错。", lose:"漏诊布置口号化、灭火器缺数字、签字未分级审批三处失分。", fix:"布置补六要素、灭火器补配置率、动火补分级审批，均要改。" },
-        { t:"作答方向对但不够详细，把每一项都再多写几句、扩充篇幅就能拿分，内容无原则性错误。", ok:false, code:"M10", tempt:"以为「写多点、写长点」就能拿分。", lose:"问题是无数值、程序违规、常识灭火等原则性错误，堆字数救不了。", fix:"按采分点补规范数值与正确做法，不是加篇幅。" }
+        { t:"该作答已同时覆盖消防管理、灭火器配置、动火程序、电石灭火四个方面，要点齐全、面面俱到，属于可以给分的完整作答，无需再作补写。", ok:false, code:"E05", tempt:"看「面都提到了」就以为要点齐全——最危险的误判。", lose:"每一项都是口号或错误：无数值、签字违规、电石用水，阅卷按点采分几乎不得分。", fix:"四项都要补规范数值与正确做法，尤其电石严禁用水。" },
+        { t:"诊断结论是仅电石灭火一处写错，把用水改成干砂即可；其余消防管理、灭火器与动火部分的作答均无问题，不必再改。", ok:false, code:"E02", tempt:"抓到电石一处硬错，就以为只此一错。", lose:"漏诊布置口号化、灭火器缺数字、签字未分级审批三处失分。", fix:"布置补六要素、灭火器补配置率、动火补分级审批，均要改。" },
+        { t:"整体作答方向正确只是不够详细，把每一项内容再展开多写几句、适当扩充篇幅即可拿分，并无原则性错误需要修改。", ok:false, code:"M10", tempt:"以为「写多点、写长点」就能拿分。", lose:"问题是无数值、程序违规、常识灭火等原则性错误，堆字数救不了。", fix:"按采分点补规范数值与正确做法，不是加篇幅。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -554,7 +554,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"R01-html-practice-html-q1-4544f7872e42","options":["R01-html-practice-html-q1-4544f7872e42:option-1","R01-html-practice-html-q1-4544f7872e42:option-2","R01-html-practice-html-q1-4544f7872e42:option-3","R01-html-practice-html-q1-4544f7872e42:option-4"]},{"variant_id":"R01-html-practice-html-q2-7f1b07651a45","options":["R01-html-practice-html-q2-7f1b07651a45:option-1","R01-html-practice-html-q2-7f1b07651a45:option-2","R01-html-practice-html-q2-7f1b07651a45:option-3","R01-html-practice-html-q2-7f1b07651a45:option-4"]},{"variant_id":"R01-html-practice-html-q3-1538a7d3b154","options":["R01-html-practice-html-q3-1538a7d3b154:option-1","R01-html-practice-html-q3-1538a7d3b154:option-2","R01-html-practice-html-q3-1538a7d3b154:option-3","R01-html-practice-html-q3-1538a7d3b154:option-4"]},{"variant_id":"R01-html-practice-html-q4-5dd998ff8703","options":["R01-html-practice-html-q4-5dd998ff8703:option-1","R01-html-practice-html-q4-5dd998ff8703:option-2","R01-html-practice-html-q4-5dd998ff8703:option-3","R01-html-practice-html-q4-5dd998ff8703:option-4"]},{"variant_id":"R01-html-practice-html-q15-fe4a7892cba8","options":["R01-html-practice-html-q15-fe4a7892cba8:option-1","R01-html-practice-html-q15-fe4a7892cba8:option-2","R01-html-practice-html-q15-fe4a7892cba8:option-3","R01-html-practice-html-q15-fe4a7892cba8:option-4"]}];
+    const exactItems=[{"variant_id":"R01-html-practice-html-q1-f46cfc42b638","options":["R01-html-practice-html-q1-f46cfc42b638:option-1","R01-html-practice-html-q1-f46cfc42b638:option-2","R01-html-practice-html-q1-f46cfc42b638:option-3","R01-html-practice-html-q1-f46cfc42b638:option-4"]},{"variant_id":"R01-html-practice-html-q2-7509d37fe3e7","options":["R01-html-practice-html-q2-7509d37fe3e7:option-1","R01-html-practice-html-q2-7509d37fe3e7:option-2","R01-html-practice-html-q2-7509d37fe3e7:option-3","R01-html-practice-html-q2-7509d37fe3e7:option-4"]},{"variant_id":"R01-html-practice-html-q3-d0cdf4fe0036","options":["R01-html-practice-html-q3-d0cdf4fe0036:option-1","R01-html-practice-html-q3-d0cdf4fe0036:option-2","R01-html-practice-html-q3-d0cdf4fe0036:option-3","R01-html-practice-html-q3-d0cdf4fe0036:option-4"]},{"variant_id":"R01-html-practice-html-q4-728a062681da","options":["R01-html-practice-html-q4-728a062681da:option-1","R01-html-practice-html-q4-728a062681da:option-2","R01-html-practice-html-q4-728a062681da:option-3","R01-html-practice-html-q4-728a062681da:option-4"]},{"variant_id":"R01-html-practice-html-q15-eb279f02c7d1","options":["R01-html-practice-html-q15-eb279f02c7d1:option-1","R01-html-practice-html-q15-eb279f02c7d1:option-2","R01-html-practice-html-q15-eb279f02c7d1:option-3","R01-html-practice-html-q15-eb279f02c7d1:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -571,7 +571,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("R01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlIwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDU0NGY3ODcyZTQyIiwiUjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03ZjFiMDc2NTFhNDUiLCJSMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTE1MzhhN2QzYjE1NCIsIlIwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNWRkOTk4ZmY4NzAzIiwiUjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZmU0YTc4OTJjYmE4Il0sInBhY2tfaWQiOiJSMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjNlMzVkNzNiODAxMGM4NjVjODdiNzY0Y2MwMmUxOWE5NDgyM2RlYjcwMjJhNDcyMjc3MWEzMGMyNzJjNzIwY2QiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWFjYzI1ZjEwZDVjMWVkMTlkNThmNDczY2ZkYWNkMTllNjE3NWRlMmFjMDlhOWZlOTNkYWZkOWI4NTViM2UwYiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("R01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlIwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjQ2Y2ZjNDJiNjM4IiwiUjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03NTA5ZDM3ZmUzZTciLCJSMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWQwY2RmNGZlMDAzNiIsIlIwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNzI4YTA2MjY4MWRhIiwiUjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZWIyNzlmMDJjN2QxIl0sInBhY2tfaWQiOiJSMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImJhNzU4ZDZhMzZjY2Q0ZWI4ZjY2NDBhOWYyMGZlZmJhY2FjNTRiYWMwYTdlZGRiYmE5Y2I4MTYwODZjYjdmNjciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWFjYzI1ZjEwZDVjMWVkMTlkNThmNDczY2ZkYWNkMTllNjE3NWRlMmFjMDlhOWZlOTNkYWZkOWI4NTViM2UwYiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

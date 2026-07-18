@@ -249,46 +249,46 @@ class Component extends DCLogic {
       stem:"暗龙骨吊顶的主、次龙骨，选出间距与构造要求完整、能得分的作答。",
       model:"主龙骨间距≤1200mm、悬臂≤300mm、接头错开；次龙骨间距≤600mm、不得搭接，洞口周边设附加龙骨。",
       opts:[
-        { t:"主龙骨间距≤1200mm、悬臂段≤300mm且接头错开；次龙骨间距≤600mm、不得搭接，洞口周边设附加龙骨。", ok:true, fix:"主次间距、悬臂、接头、洞口四件齐，正是采分点。", code:"" },
-        { t:"主龙骨间距≤600mm、次龙骨间距≤1200mm，主密次疏排布，把两个数记住即可。", ok:false, code:"E07", tempt:"主次间距数值记得，却把谁密谁疏记反。", lose:"主≤1200、次≤600，此项主次值张冠李戴。", fix:"主龙骨≤1200、次龙骨≤600，别记反。" },
-        { t:"主龙骨间距≤1200mm即可，悬臂、接头、洞口这些细节现场灵活掌握不必写。", ok:false, code:"E02", tempt:"只记住主间距一个数就下笔。", lose:"漏悬臂≤300、接头错开、次≤600不搭接、洞口附加龙骨。", fix:"补悬臂≤300、次≤600不搭接、洞口设附加龙骨。" },
-        { t:"次龙骨可搭接加长以增强刚度，间距≤600mm，洞口周边无需额外处理。", ok:false, code:"E07", tempt:"以为搭接更结实、洞口不用管。", lose:"次龙骨不得搭接、洞口必须设附加龙骨，两处均错。", fix:"次龙骨不得搭接，洞口周边设附加龙骨。" }
+        { t:"主龙骨间距≤600mm、悬臂段≤300mm且接头错开；次龙骨间距≤1200mm、不得搭接，洞口周边设附加龙骨。", ok:false, code:"E07", tempt:"主次间距数值记得，却把谁密谁疏记反。", lose:"主≤1200、次≤600，此项主次值张冠李戴。", fix:"主龙骨≤1200、次龙骨≤600，别记反。" },
+        { t:"主龙骨间距≤1200mm即可满足要求，悬臂长度、接头位置以及次龙骨与洞口等构造均属细节，作答时无需逐项写明。", ok:false, code:"E02", tempt:"只记住主间距一个数就下笔。", lose:"漏悬臂≤300、接头错开、次≤600不搭接、洞口附加龙骨。", fix:"补悬臂≤300、次≤600不搭接、洞口设附加龙骨。" },
+        { t:"次龙骨可搭接加长以增强刚度、间距≤600mm；主龙骨间距≤1200mm、悬臂段≤300mm，洞口周边无需额外处理。", ok:false, code:"E07", tempt:"以为搭接更结实、洞口不用管。", lose:"次龙骨不得搭接、洞口必须设附加龙骨，两处均错。", fix:"次龙骨不得搭接，洞口周边设附加龙骨。" },
+        { t:"主龙骨间距≤1200mm、悬臂段≤300mm且接头错开；次龙骨间距≤600mm、不得搭接，洞口周边设附加龙骨。", ok:true, fix:"主次间距、悬臂、接头、洞口四件齐，正是采分点。", code:"" }
       ] },
 { tag:"吊顶·吊杆超长", typeHint:"单选 · 选出门槛与构造完整、能得分的作答", figLabel:"题给：吊杆长度与吊挂构造", figCaption:"1500 与 2500 两道门槛 · 各设什么", fig:"ruler2",
       stem:"某吊顶吊杆较长，并遇梁、风管。选出吊杆超长处理与吊挂构造完整、能得分的作答。",
       model:"吊杆>1500mm设反支撑，>2500mm设钢结构转换层；遇梁、风管处设横担，不得直接吊挂于设备，灯具风口设附加龙骨。",
       opts:[
+        { t:"吊杆超长时按比例加密吊杆、多吊几根即可保证牢固，遇梁、风管处避开布置，不必另设反支撑或钢结构转换层。", ok:false, code:"E10", tempt:"把超长稳定问题当成数量问题。", lose:"吊杆超长是侧向失稳，加密解决不了，须设反支撑/转换层。", fix:">1500反支撑、>2500转换层，不是加密。" },
+        { t:"吊杆>1500mm一律设钢结构转换层，2500mm 仅作参考、两道门槛不必区分；遇梁风管设横担、灯具风口设附加龙骨。", ok:false, code:"E10", tempt:"记得有个门槛，却把两道并成一道。", lose:"混淆两道门槛：>1500反支撑、>2500才转换层。", fix:"分清 1500 反支撑、2500 转换层两道门槛。" },
         { t:"吊杆>1500mm设反支撑，>2500mm设钢结构转换层；遇梁风管设横担、不得吊挂于设备、灯具风口设附加龙骨。", ok:true, fix:"两道门槛+横担+不吊挂设备+灯口附加龙骨，全写才拿满。", code:"" },
-        { t:"吊杆超长时按比例加密吊杆、多吊几根即可保证牢固，不必另设支撑构造。", ok:false, code:"E10", tempt:"把超长稳定问题当成数量问题。", lose:"吊杆超长是侧向失稳，加密解决不了，须设反支撑/转换层。", fix:">1500反支撑、>2500转换层，不是加密。" },
-        { t:"吊杆>1500mm一律设钢结构转换层，2500mm 只是参考值、可不区分。", ok:false, code:"E10", tempt:"记得有个门槛，却把两道并成一道。", lose:"混淆两道门槛：>1500反支撑、>2500才转换层。", fix:"分清 1500 反支撑、2500 转换层两道门槛。" },
-        { t:"吊杆可直接吊挂在风管、设备上就近固定，遇梁绕开即可，省去横担。", ok:false, code:"E10", tempt:"就近固定看着省事。", lose:"不得直接吊挂于设备，遇梁风管应设横担。", fix:"遇梁风管设横担，不得吊挂于设备。" }
+        { t:"吊杆遇梁、风管时直接吊挂在设备上就近固定，绕开障碍走线即可，无需另设横担与附加龙骨。", ok:false, code:"E10", tempt:"就近固定看着省事。", lose:"不得直接吊挂于设备，遇梁风管应设横担。", fix:"遇梁风管设横担，不得吊挂于设备。" }
       ] },
 { tag:"吊顶·石膏板固定", typeHint:"单选 · 选出方向与要求完整、能得分的作答", figLabel:"题给：纸面石膏板固定", figCaption:"从哪起固定 · 钉距 · 防锈 · 错缝", fig:"panel",
       stem:"纸面石膏板罩面板的固定，选出方向与要求完整、能得分的作答。",
       model:"从板中间向四周自由固定，长边沿纵向铺设，螺钉间距150-170mm，钉眼防锈，双层板接缝错开。",
       opts:[
+        { t:"从板四边先固定牢再向中间收拢、长边沿纵向铺，螺钉间距150-170mm、钉眼防锈、双层板接缝错开。", ok:false, code:"E07", tempt:"觉得先钉牢四边更稳。", lose:"方向反了：应从中间向四周自由固定，让板释放变形。", fix:"从中间向四周固定，不是从四边向中间。" },
+        { t:"从板中间向四周自由固定即可，至于钉距取值、钉眼是否防锈、双层是否错缝等均属操作细节，作答无需写明。", ok:false, code:"E02", tempt:"只记住固定方向一条。", lose:"漏钉距150-170、钉眼防锈、双层错缝三处采分。", fix:"补钉距150-170、防锈、双层错缝。" },
         { t:"从板中间向四周自由固定、长边沿纵向铺，螺钉间距150-170mm、钉眼防锈、双层板接缝错开。", ok:true, fix:"固定方向+钉距+防锈+错缝四件齐，缺一扣一。", code:"" },
-        { t:"从板四边先固定牢再向中间收，钉距150-170mm、钉眼防锈、双层接缝错开。", ok:false, code:"E07", tempt:"觉得先钉牢四边更稳。", lose:"方向反了：应从中间向四周自由固定，让板释放变形。", fix:"从中间向四周固定，不是从四边向中间。" },
-        { t:"从中间向四周固定即可，钉距、钉眼防锈、错缝属细节，现场看着办。", ok:false, code:"E02", tempt:"只记住固定方向一条。", lose:"漏钉距150-170、钉眼防锈、双层错缝三处采分。", fix:"补钉距150-170、防锈、双层错缝。" },
-        { t:"顶棚裂了主要靠面层：重新刷腻子、刷漆找平即可，固定方式不影响开裂。", ok:false, code:"E04", tempt:"把裂缝当表面问题。", lose:"口号化、避开固定与骨架，裂缝根子在固定与骨架。", fix:"回到中间向四周固定+防裂五点，不是只刷漆。" }
+        { t:"顶棚裂缝主要靠面层修饰：重新刮腻子、刷漆找平即可，罩面板固定方式与骨架并不影响开裂。", ok:false, code:"E04", tempt:"把裂缝当表面问题。", lose:"口号化、避开固定与骨架，裂缝根子在固定与骨架。", fix:"回到中间向四周固定+防裂五点，不是只刷漆。" }
       ] },
 { tag:"吊顶·顶棚防裂", typeHint:"单选 · 选出防裂措施完整、能得分的作答", figLabel:"题给：顶棚开裂治理", figCaption:"从五个断点写原因与措施", fig:"five",
       stem:"某石膏板顶棚出现裂缝。选出防裂原因与措施完整、能得分的作答。",
       model:"按防裂五点：吊筋间距≤1200、拼缝错缝不密拼、螺钉固定牢固、转角加强、嵌缝饱满。",
       opts:[
         { t:"从五点治理：吊筋间距≤1200、拼缝错缝且不密拼、螺钉固定牢固、转角加强、嵌缝饱满。", ok:true, fix:"吊筋·错缝·螺钉·转角·嵌缝五点全写，对应五个断点。", code:"" },
-        { t:"裂缝铲除后重新刷腻子、刷两遍乳胶漆找平，把面层做光就不裂了。", ok:false, code:"E04", tempt:"把裂缝当面层问题。", lose:"口号化治标，没回到骨架、缝、钉、角、嵌缝。", fix:"按防裂五点治理，不是只刷漆。" },
-        { t:"主要保证吊筋间距≤1200、螺钉固定牢固两条，其余现场把控即可。", ok:false, code:"E02", tempt:"只记两点就下笔。", lose:"漏拼缝错缝不密拼、转角加强、嵌缝饱满三点。", fix:"补错缝不密拼、转角加强、嵌缝饱满。" },
-        { t:"裂缝多在拼缝处，把板密拼、缝挤紧不留缝，就不会从缝里裂。", ok:false, code:"E07", tempt:"以为密拼更严实。", lose:"应拼缝错缝、不密拼；密拼反而应力集中开裂。", fix:"拼缝要错缝、不密拼。" }
+        { t:"裂缝铲除后重新刮腻子、刷两遍乳胶漆找平，把面层做光做平，顶棚就不会再从拼缝里开裂。", ok:false, code:"E04", tempt:"把裂缝当面层问题。", lose:"口号化治标，没回到骨架、缝、钉、角、嵌缝。", fix:"按防裂五点治理，不是只刷漆。" },
+        { t:"主要保证吊筋间距≤1200、螺钉固定牢固这两条即可，拼缝、转角、嵌缝等其余各项按现场情况把握。", ok:false, code:"E02", tempt:"只记两点就下笔。", lose:"漏拼缝错缝不密拼、转角加强、嵌缝饱满三点。", fix:"补错缝不密拼、转角加强、嵌缝饱满。" },
+        { t:"裂缝多出在拼缝处，将板材密拼、缝隙挤紧不留缝，应力就不会从拼缝处集中而开裂。", ok:false, code:"E07", tempt:"以为密拼更严实。", lose:"应拼缝错缝、不密拼；密拼反而应力集中开裂。", fix:"拼缝要错缝、不密拼。" }
       ] },
 { tag:"综合·采分诊断", typeHint:"单选 · 找出作答漏洞并正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"三处作答各有硬伤", fig:"sheet2",
       stem:"某生答装饰质量：①吊顶次龙骨搭接加长更结实；②地面瓷砖直接干铺、空鼓了敲掉重铺；③砌体门窗用射钉固定又快又牢。选出最准确的诊断与补写。",
       model:"三处全错：次龙骨不得搭接（应断开对接、洞口附加龙骨）；瓷砖须浸砖在铺砂浆前、空鼓按界面五断点防治；砌体门窗严禁射钉。",
       opts:[
+        { t:"只有第③条错，射钉改为膨胀螺栓固定即可；①次龙骨搭接加长更结实、②瓷砖直接干铺、空鼓后敲掉重铺，两处均无问题。", ok:false, code:"E07", tempt:"只抓到射钉一处。", lose:"漏诊次龙骨不得搭接、瓷砖须浸砖+空鼓五断点两处。", fix:"三处都要改，不止射钉。" },
+        { t:"三条都属施工质量差，只需加强现场管理、按规范施工、切实保证质量即可，无需逐条纠正指出。", ok:false, code:"E04", tempt:"笼统喊口号。", lose:"未落到各采分点（搭接/浸砖/空鼓/射钉），不得分。", fix:"逐条纠：不搭接、浸砖在前、五断点、禁射钉。" },
         { t:"三处都错：次龙骨应不搭接、断开对接并洞口附加龙骨；瓷砖须浸砖（铺浆前）、空鼓按五断点治；砌体门窗严禁射钉。", ok:true, fix:"三子域三处硬伤全揪出并补正确采分句。", code:"" },
-        { t:"只有第③条错，射钉改膨胀螺栓即可；①次龙骨搭接、②瓷砖干铺敲掉重铺都没问题。", ok:false, code:"E07", tempt:"只抓到射钉一处。", lose:"漏诊次龙骨不得搭接、瓷砖须浸砖+空鼓五断点两处。", fix:"三处都要改，不止射钉。" },
-        { t:"三条都属施工质量差，加强管理、按规范施工、保证质量即可，无需逐条纠。", ok:false, code:"E04", tempt:"笼统喊口号。", lose:"未落到各采分点（搭接/浸砖/空鼓/射钉），不得分。", fix:"逐条纠：不搭接、浸砖在前、五断点、禁射钉。" },
-        { t:"①②对，只③射钉需注明用于混凝土墙可以、砌体不行。", ok:false, code:"E02", tempt:"只部分纠③。", lose:"①次龙骨搭接、②瓷砖干铺+敲掉重铺仍未纠。", fix:"①不搭接洞口附加；②浸砖在前、空鼓五断点；③砌体禁射钉。" }
+        { t:"①与②的作答均无误，仅第③条射钉需补注明：用于混凝土墙可以、用于砌体墙则不行。", ok:false, code:"E02", tempt:"只部分纠③。", lose:"①次龙骨搭接、②瓷砖干铺+敲掉重铺仍未纠。", fix:"①不搭接洞口附加；②浸砖在前、空鼓五断点；③砌体禁射钉。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -547,7 +547,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"D14-html-practice-html-q1-dc70ba7f710c","options":["D14-html-practice-html-q1-dc70ba7f710c:option-1","D14-html-practice-html-q1-dc70ba7f710c:option-2","D14-html-practice-html-q1-dc70ba7f710c:option-3","D14-html-practice-html-q1-dc70ba7f710c:option-4"]},{"variant_id":"D14-html-practice-html-q2-0adfdf5445c9","options":["D14-html-practice-html-q2-0adfdf5445c9:option-1","D14-html-practice-html-q2-0adfdf5445c9:option-2","D14-html-practice-html-q2-0adfdf5445c9:option-3","D14-html-practice-html-q2-0adfdf5445c9:option-4"]},{"variant_id":"D14-html-practice-html-q3-680f21e9359a","options":["D14-html-practice-html-q3-680f21e9359a:option-1","D14-html-practice-html-q3-680f21e9359a:option-2","D14-html-practice-html-q3-680f21e9359a:option-3","D14-html-practice-html-q3-680f21e9359a:option-4"]},{"variant_id":"D14-html-practice-html-q4-6967b3b24577","options":["D14-html-practice-html-q4-6967b3b24577:option-1","D14-html-practice-html-q4-6967b3b24577:option-2","D14-html-practice-html-q4-6967b3b24577:option-3","D14-html-practice-html-q4-6967b3b24577:option-4"]},{"variant_id":"D14-html-practice-html-q16-1d4791490ee6","options":["D14-html-practice-html-q16-1d4791490ee6:option-1","D14-html-practice-html-q16-1d4791490ee6:option-2","D14-html-practice-html-q16-1d4791490ee6:option-3","D14-html-practice-html-q16-1d4791490ee6:option-4"]}];
+    const exactItems=[{"variant_id":"D14-html-practice-html-q1-44e4d541c479","options":["D14-html-practice-html-q1-44e4d541c479:option-1","D14-html-practice-html-q1-44e4d541c479:option-2","D14-html-practice-html-q1-44e4d541c479:option-3","D14-html-practice-html-q1-44e4d541c479:option-4"]},{"variant_id":"D14-html-practice-html-q2-4ca677fecc2f","options":["D14-html-practice-html-q2-4ca677fecc2f:option-1","D14-html-practice-html-q2-4ca677fecc2f:option-2","D14-html-practice-html-q2-4ca677fecc2f:option-3","D14-html-practice-html-q2-4ca677fecc2f:option-4"]},{"variant_id":"D14-html-practice-html-q3-b41a2ad10aa7","options":["D14-html-practice-html-q3-b41a2ad10aa7:option-1","D14-html-practice-html-q3-b41a2ad10aa7:option-2","D14-html-practice-html-q3-b41a2ad10aa7:option-3","D14-html-practice-html-q3-b41a2ad10aa7:option-4"]},{"variant_id":"D14-html-practice-html-q4-6d0980f3a1b8","options":["D14-html-practice-html-q4-6d0980f3a1b8:option-1","D14-html-practice-html-q4-6d0980f3a1b8:option-2","D14-html-practice-html-q4-6d0980f3a1b8:option-3","D14-html-practice-html-q4-6d0980f3a1b8:option-4"]},{"variant_id":"D14-html-practice-html-q16-81bcaf7123e6","options":["D14-html-practice-html-q16-81bcaf7123e6:option-1","D14-html-practice-html-q16-81bcaf7123e6:option-2","D14-html-practice-html-q16-81bcaf7123e6:option-3","D14-html-practice-html-q16-81bcaf7123e6:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -564,7 +564,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("D14")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtZGM3MGJhN2Y3MTBjIiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wYWRmZGY1NDQ1YzkiLCJEMTQtaHRtbC1wcmFjdGljZS1odG1sLXEzLTY4MGYyMWU5MzU5YSIsIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjk2N2IzYjI0NTc3IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMWQ0NzkxNDkwZWU2Il0sInBhY2tfaWQiOiJEMTQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImU5OTMzNTM1MTZkYTIzYjIxYTUxM2NjM2YyYzdiOWFlYTA2YmE4MGVlNzFjZDVlYzY1ZjBjOWU3MmM1NzEzOGEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("D14")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDRlNGQ1NDFjNDc5IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00Y2E2NzdmZWNjMmYiLCJEMTQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWI0MWEyYWQxMGFhNyIsIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNmQwOTgwZjNhMWI4IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtODFiY2FmNzEyM2U2Il0sInBhY2tfaWQiOiJEMTQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjQ1ZjE4Yzk3YTUxNmNhMWM5NzdjYWZkNGJmYTY5NGM4MWRlOTQyMzgzMWFhOWQwYTY4MWU2ZDkwMjc0OTk1YTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
