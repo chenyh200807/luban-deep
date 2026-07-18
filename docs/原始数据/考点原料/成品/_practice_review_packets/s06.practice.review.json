@@ -1,48 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "S06",
   "source_pack_sha256": "22438b347c9f36c8fb53a305b4c2f3d5eb07b8d7438b7bdb3d6e24e0d71870d8",
   "source_bundle_sha256": "0142062b113cd9227beebc2231043fd72fdb190cfb256c92f755224f7e99a193",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        2,
-        3,
-        15
-      ],
-      "variant_ids": [
-        "S06-html-practice-html-q1-eefc330c48e6",
-        "S06-html-practice-html-q2-f84743fdbc8b",
-        "S06-html-practice-html-q3-a8a6959fcd44",
-        "S06-html-practice-html-q4-e42d54f368cb",
-        "S06-html-practice-html-q16-30dcd356515c"
-      ],
-      "eligible_variant_ids": [
-        "S06-html-practice-html-q1-eefc330c48e6",
-        "S06-html-practice-html-q2-f84743fdbc8b",
-        "S06-html-practice-html-q3-a8a6959fcd44",
-        "S06-html-practice-html-q4-e42d54f368cb",
-        "S06-html-practice-html-q5-87ad10581a99",
-        "S06-html-practice-html-q14-36859c31b0cc",
-        "S06-html-practice-html-q16-30dcd356515c"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZWVmYzMzMGM0OGU2IiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mODQ3NDNmZGJjOGIiLCJTMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWE4YTY5NTlmY2Q0NCIsIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZTQyZDU0ZjM2OGNiIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMzBkY2QzNTY1MTVjIl0sInBhY2tfaWQiOiJTMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjE3OGM2Y2RiMmM1M2Y3MmM2YjQyMDUxM2EwMzI1NGRhNTAwZjgxMmM0MzBkMDg1MzNiZjllNzM3M2MxOWQwZmYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmQ4NWUxM2RjNDMzYzM1NWYzNjAxZjg4NTU0MjY1ZDYxZTM4MzZjZmU2MjkzNjI3ODFmNWIwNGY2NGYyOTczMCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "4efe1e89a42ae27f1b52e865ac107151082ebd2bd0ef299d74e9e38a9de258e5"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 16,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "临边触发·条件维",
+      "variant_id": "S06-html-practice-html-q1-eefc330c48e6",
+      "surface_id": "practice.html",
       "stem": "某工程楼层临边作业，坠落高度基准面 2.3m。选出判定与做法最能得分的作答。",
-      "model_answer": "坠落高度基准面 2m 及以上临边作业，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
       "options": [
         {
           "text": "坠落高度基准面 2m 及以上，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
@@ -81,53 +56,50 @@
           "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q1-eefc330c48e6",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q1",
-      "source_anchor": "kc:1A436000_121_0195:0",
-      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "s06-fact-edge-guard-2m-trigger",
-      "skeleton_id": "s06-skel-临边2m触发场景",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "坠落高度基准面 2m 及以上临边作业，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
+      "rule_group": "临边触发·条件维",
       "content_sha256": "ae692ee3311c24e4b2b8fa5e170a12e469c2fb9a21686c6570f0f2b146142763",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "ae692ee3311c24e4b2b8fa5e170a12e469c2fb9a21686c6570f0f2b146142763",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q1",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "s06-fact-edge-guard-2m-trigger",
+        "skeleton_id": "s06-skel-临边2m触发场景",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_121_0195:0",
+        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "ae692ee3311c24e4b2b8fa5e170a12e469c2fb9a21686c6570f0f2b146142763",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "坠落高度≥2m 须设防护栏杆+密目网/工具式栏板封闭, 教材 kc:...121_0195:0 直引。三联 anchor。"
         },
-        "note": "坠落高度≥2m 须设防护栏杆+密目网/工具式栏板封闭, 教材 kc:...121_0195:0 直引。三联 anchor。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "栏杆构造·条件维",
+      "variant_id": "S06-html-practice-html-q2-f84743fdbc8b",
+      "surface_id": "practice.html",
       "stem": "关于临边防护栏杆的构造要求，选出参数完整、能得分的作答。",
-      "model_answer": "上杆离地 1.2m、立杆间距≤2m、挡脚板≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
       "options": [
         {
           "text": "上杆离地 1.2m、立杆间距≤2m、挡脚板高≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
@@ -166,53 +138,50 @@
           "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q2-f84743fdbc8b",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q2",
-      "source_anchor": "kc:1A436000_121_0195:2",
-      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "s06-fact-guardrail-construction",
-      "skeleton_id": "s06-skel-栏杆构造四数值",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "上杆离地 1.2m、立杆间距≤2m、挡脚板≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
+      "rule_group": "栏杆构造·条件维",
       "content_sha256": "baf3dac13e236b165ce71d859bc094b64227ad06570324a91e5beab4919a92f1",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "baf3dac13e236b165ce71d859bc094b64227ad06570324a91e5beab4919a92f1",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q2",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "s06-fact-guardrail-construction",
+        "skeleton_id": "s06-skel-栏杆构造四数值",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_121_0195:2",
+        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "baf3dac13e236b165ce71d859bc094b64227ad06570324a91e5beab4919a92f1",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "上杆1.2m/立杆间距≤2m/挡脚板≥180mm/1kN, 教材 kc:...121_0195:2 逐项直引。"
         },
-        "note": "上杆1.2m/立杆间距≤2m/挡脚板≥180mm/1kN, 教材 kc:...121_0195:2 逐项直引。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "洞口≥500·条件维",
+      "variant_id": "S06-html-practice-html-q3-a8a6959fcd44",
+      "surface_id": "practice.html",
       "stem": "楼板上短边 600mm 的竖向预留洞口，选出防护做法完整、能得分的作答。",
-      "model_answer": "短边≥500mm 洞口临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
       "options": [
         {
           "text": "短边≥500mm，临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
@@ -251,53 +220,50 @@
           "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q3-a8a6959fcd44",
-      "surface_id": "practice.html",
-      "source_index": 2,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q3",
-      "source_anchor": "kc:1A436000_121_0195:1",
-      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "s06-fact-vertical-opening-500",
-      "skeleton_id": "s06-skel-竖向洞口500判定",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "短边≥500mm 洞口临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
+      "rule_group": "洞口≥500·条件维",
       "content_sha256": "39e3511ea4acc51c6b44b6969ab1928782795c72b05a6ce0f81ab7694198ef02",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "39e3511ea4acc51c6b44b6969ab1928782795c72b05a6ce0f81ab7694198ef02",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q3",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "s06-fact-vertical-opening-500",
+        "skeleton_id": "s06-skel-竖向洞口500判定",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_121_0195:1",
+        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "39e3511ea4acc51c6b44b6969ab1928782795c72b05a6ce0f81ab7694198ef02",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "≥500mm 洞口设1.2m栏杆+封闭+挡脚板, 教材 kc:...121_0195:1 直引。工单: '安全平网'附加措辞无锚。"
         },
-        "note": "≥500mm 洞口设1.2m栏杆+封闭+挡脚板, 教材 kc:...121_0195:1 直引。工单: '安全平网'附加措辞无锚。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "洞口25~500·条件维",
+      "variant_id": "S06-html-practice-html-q4-e42d54f368cb",
+      "surface_id": "practice.html",
       "stem": "楼板上短边 300mm 的洞口，选出防护做法正确、能得分的作答。",
-      "model_answer": "短边 25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
       "options": [
         {
           "text": "25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
@@ -336,53 +302,50 @@
           "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q4-e42d54f368cb",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q4",
-      "source_anchor": "kc:1A436000_121_0195:1",
-      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "s06-fact-opening-cover-300",
-      "skeleton_id": "s06-skel-300mm洞口盖板",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "短边 25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
+      "rule_group": "洞口25~500·条件维",
       "content_sha256": "c0e98e4d906294fa63e1da6ec482f09be3cef6ee1cbc81330354f80b5c6e60b7",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "c0e98e4d906294fa63e1da6ec482f09be3cef6ee1cbc81330354f80b5c6e60b7",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q4",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "s06-fact-opening-cover-300",
+        "skeleton_id": "s06-skel-300mm洞口盖板",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_121_0195:1",
+        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "c0e98e4d906294fa63e1da6ec482f09be3cef6ee1cbc81330354f80b5c6e60b7",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "300mm 落 25~500mm 档用承重盖板, 教材 kc:...121_0195:1 三档表直引。工单: 固定防移位出处待补。"
         },
-        "note": "300mm 落 25~500mm 档用承重盖板, 教材 kc:...121_0195:1 三档表直引。工单: 固定防移位出处待补。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "临边封闭·措施维",
+      "variant_id": "S06-html-practice-html-q5-87ad10581a99",
+      "surface_id": "practice.html",
       "stem": "临边已设防护栏杆，关于栏杆下沿的封闭措施，选出能得分的作答。",
-      "model_answer": "栏杆下沿配合密目式安全立网或工具式栏板封闭。",
       "options": [
         {
           "text": "栏杆下沿配合密目式安全立网或工具式栏板封闭。",
@@ -421,53 +384,50 @@
           "option_id": "S06-html-practice-html-q5-87ad10581a99:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q5-87ad10581a99",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q5",
-      "source_anchor": "kc:1A436000_121_0195:0",
-      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "s06-fact-edge-guard-2m-trigger",
-      "skeleton_id": "s06-skel-封闭措施回忆",
-      "probe_role": "immediate_confirm",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "栏杆下沿配合密目式安全立网或工具式栏板封闭。",
+      "rule_group": "临边封闭·措施维",
       "content_sha256": "3422c955bfe6adf05612eeb7aeaadac067157aedd8ab5b7496f12aecffa9b24d",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "3422c955bfe6adf05612eeb7aeaadac067157aedd8ab5b7496f12aecffa9b24d",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q5",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "s06-fact-edge-guard-2m-trigger",
+        "skeleton_id": "s06-skel-封闭措施回忆",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A436000_121_0195:0",
+        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "3422c955bfe6adf05612eeb7aeaadac067157aedd8ab5b7496f12aecffa9b24d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "密目式安全立网或工具式栏板封闭, 教材直引。Codex severity none。三联 immediate_confirm(同临边防护 fact)。"
         },
-        "note": "密目式安全立网或工具式栏板封闭, 教材直引。Codex severity none。三联 immediate_confirm(同临边防护 fact)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "检查项补全·措施维",
+      "variant_id": "S06-html-practice-html-q6-0ca144e4f73b",
+      "surface_id": "practice.html",
       "stem": "某项目高处作业专项检查内容仅列「安全帽、安全网、安全带」。选出补充最完整、能得分的作答。",
-      "model_answer": "还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。",
       "options": [
         {
           "text": "还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。",
@@ -506,41 +466,38 @@
           "option_id": "S06-html-practice-html-q6-0ca144e4f73b:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q6-0ca144e4f73b",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。",
+      "rule_group": "检查项补全·措施维",
       "content_sha256": "a6f0e3f7ef114bf3b191baf284bf8af78337db609222369ce9d170347ba60b31",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "a6f0e3f7ef114bf3b191baf284bf8af78337db609222369ce9d170347ba60b31",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q6",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "a6f0e3f7ef114bf3b191baf284bf8af78337db609222369ce9d170347ba60b31",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "悬空作业·措施维",
+      "variant_id": "S06-html-practice-html-q7-ec494a6420a7",
+      "surface_id": "practice.html",
       "stem": "钢筋、模板等坠落高度 2m 以上的悬空作业，选出作业面做法能得分的作答。",
-      "model_answer": "坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。",
       "options": [
         {
           "text": "坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。",
@@ -579,41 +536,38 @@
           "option_id": "S06-html-practice-html-q7-ec494a6420a7:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q7-ec494a6420a7",
-      "surface_id": "practice.html",
-      "source_index": 6,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。",
+      "rule_group": "悬空作业·措施维",
       "content_sha256": "b22a8a4675bdfd57bda195772dfad4f3249dd6656d707592e562918955a1944a",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b22a8a4675bdfd57bda195772dfad4f3249dd6656d707592e562918955a1944a",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q7",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b22a8a4675bdfd57bda195772dfad4f3249dd6656d707592e562918955a1944a",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "梯子纠错·后果维",
+      "variant_id": "S06-html-practice-html-q8-43e27009997e",
+      "surface_id": "practice.html",
       "stem": "背景资料：「坠落高度超过 2m 的安装作业使用梯子攀登」。选出对不妥的判定与正确做法最准确的作答。",
-      "model_answer": "不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。",
       "options": [
         {
           "text": "不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。",
@@ -652,41 +606,38 @@
           "option_id": "S06-html-practice-html-q8-43e27009997e:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q8-43e27009997e",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。",
+      "rule_group": "梯子纠错·后果维",
       "content_sha256": "fbfa22544ab3f4540bc96f1b94165189d730d3f46146127e30ee2711b4d34b82",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "fbfa22544ab3f4540bc96f1b94165189d730d3f46146127e30ee2711b4d34b82",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q8",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "fbfa22544ab3f4540bc96f1b94165189d730d3f46146127e30ee2711b4d34b82",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "严禁行为·后果维",
+      "variant_id": "S06-html-practice-html-q9-184707bb9cc1",
+      "surface_id": "practice.html",
       "stem": "关于高处作业的严禁行为，选出表述正确、能得分的作答。",
-      "model_answer": "严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。",
       "options": [
         {
           "text": "严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。",
@@ -725,41 +676,38 @@
           "option_id": "S06-html-practice-html-q9-184707bb9cc1:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q9-184707bb9cc1",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。",
+      "rule_group": "严禁行为·后果维",
       "content_sha256": "04c7582006c7cfabc68e677d93e102efc2dc486aae80781373a252ca82a1adea",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "04c7582006c7cfabc68e677d93e102efc2dc486aae80781373a252ca82a1adea",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q9",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "04c7582006c7cfabc68e677d93e102efc2dc486aae80781373a252ca82a1adea",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "攀登分档·条件维",
+      "variant_id": "S06-html-practice-html-q10-54fe1a63ef9a",
+      "surface_id": "practice.html",
       "stem": "关于固定式直梯的攀登作业要求，选出高度分档正确、能得分的作答。",
-      "model_answer": "同一梯子禁两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。",
       "options": [
         {
           "text": "同一梯子禁止两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。",
@@ -798,41 +746,38 @@
           "option_id": "S06-html-practice-html-q10-54fe1a63ef9a:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q10-54fe1a63ef9a",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "同一梯子禁两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。",
+      "rule_group": "攀登分档·条件维",
       "content_sha256": "942c4878049721619effd6de3826a72f9c3c4f1a8ade926b8246d6b1ee984753",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "942c4878049721619effd6de3826a72f9c3c4f1a8ade926b8246d6b1ee984753",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q10",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "942c4878049721619effd6de3826a72f9c3c4f1a8ade926b8246d6b1ee984753",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "卸料平台纠错·后果维",
+      "variant_id": "S06-html-practice-html-q11-62a809dfcf67",
+      "surface_id": "practice.html",
       "stem": "背景资料：「在悬挑卸料钢平台三侧设置 1200mm 固定防护栏杆」。选出对不妥的判定与正确做法最准确的作答。",
-      "model_answer": "不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。",
       "options": [
         {
           "text": "不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。",
@@ -871,41 +816,38 @@
           "option_id": "S06-html-practice-html-q11-62a809dfcf67:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q11-62a809dfcf67",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。",
+      "rule_group": "卸料平台纠错·后果维",
       "content_sha256": "b26fef24f3aed0e4a5f9f4f8029cf470061fd1af18c0b9b59212dafa3477c156",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b26fef24f3aed0e4a5f9f4f8029cf470061fd1af18c0b9b59212dafa3477c156",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q11",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b26fef24f3aed0e4a5f9f4f8029cf470061fd1af18c0b9b59212dafa3477c156",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "交叉作业·条件维",
+      "variant_id": "S06-html-practice-html-q12-b68cbcb8e526",
+      "surface_id": "practice.html",
       "stem": "上下交叉作业，上层坠落高度约 20m。选出下层防护做法完整、能得分的作答。",
-      "model_answer": "坠落高度 15~30m 取半径 5m，下层作业点须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。",
       "options": [
         {
           "text": "坠落高度 15~30m 取半径 5m，下层须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。",
@@ -944,41 +886,38 @@
           "option_id": "S06-html-practice-html-q12-b68cbcb8e526:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q12-b68cbcb8e526",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "坠落高度 15~30m 取半径 5m，下层作业点须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。",
+      "rule_group": "交叉作业·条件维",
       "content_sha256": "191d31bccdc808899ecd0c8c304a7e51504b0a9bbf4777f2746ecd365d74d803",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "191d31bccdc808899ecd0c8c304a7e51504b0a9bbf4777f2746ecd365d74d803",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q12",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "191d31bccdc808899ecd0c8c304a7e51504b0a9bbf4777f2746ecd365d74d803",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "屋面作业·条件维",
+      "variant_id": "S06-html-practice-html-q13-218ac7cdc2ea",
+      "surface_id": "practice.html",
       "stem": "坡度 28° 的坡屋面作业，选出屋檐边防护做法正确、能得分的作答。",
-      "model_answer": "坡度>25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。",
       "options": [
         {
           "text": "坡度大于 25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。",
@@ -1017,41 +956,38 @@
           "option_id": "S06-html-practice-html-q13-218ac7cdc2ea:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q13-218ac7cdc2ea",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "坡度>25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。",
+      "rule_group": "屋面作业·条件维",
       "content_sha256": "f83f613d3be174833ebf2486ba342df71516d9a861d514b571af66587a00d52e",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "f83f613d3be174833ebf2486ba342df71516d9a861d514b571af66587a00d52e",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q13",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "f83f613d3be174833ebf2486ba342df71516d9a861d514b571af66587a00d52e",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "楼梯口·措施维",
+      "variant_id": "S06-html-practice-html-q14-36859c31b0cc",
+      "surface_id": "practice.html",
       "stem": "关于楼梯口、楼梯平台、梯段边的临边防护，选出能得分的作答。",
-      "model_answer": "楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。",
       "options": [
         {
           "text": "楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。",
@@ -1090,53 +1026,50 @@
           "option_id": "S06-html-practice-html-q14-36859c31b0cc:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q14-36859c31b0cc",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q14",
-      "source_anchor": "kc:1A436000_121_0195:2",
-      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "s06-fact-edge-guard-2m-trigger",
-      "skeleton_id": "s06-skel-楼梯口栏杆应用",
-      "probe_role": "d1_probe",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。",
+      "rule_group": "楼梯口·措施维",
       "content_sha256": "15f2a575cb5a7bc6b7e8edbb4f49ec7f81b95bf12604af8a9bc3462b3f1b4b50",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "15f2a575cb5a7bc6b7e8edbb4f49ec7f81b95bf12604af8a9bc3462b3f1b4b50",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q14",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "s06-fact-edge-guard-2m-trigger",
+        "skeleton_id": "s06-skel-楼梯口栏杆应用",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A436000_121_0195:2",
+        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "15f2a575cb5a7bc6b7e8edbb4f49ec7f81b95bf12604af8a9bc3462b3f1b4b50",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "楼梯口/平台/梯段边设防护栏杆, 教材构造要求直引应用。三联 d1_probe(同 fact, 第3独立 skeleton)。"
         },
-        "note": "楼梯口/平台/梯段边设防护栏杆, 教材构造要求直引应用。三联 d1_probe(同 fact, 第3独立 skeleton)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "通道口·措施维",
+      "variant_id": "S06-html-practice-html-q15-7633990b3848",
+      "surface_id": "practice.html",
       "stem": "建筑物出入口、通道口处于坠物影响范围内，选出防护做法正确、能得分的作答。",
-      "model_answer": "出入口、通道口上方应搭设防护棚，非机动车道≥3m、机动车道≥4m，坠物影响大时用木板须双层。",
       "options": [
         {
           "text": "出入口、通道口上方应搭设防护棚（非机动车道≥3m、机动车道≥4m），坠物影响大时木板双层。",
@@ -1175,41 +1108,38 @@
           "option_id": "S06-html-practice-html-q15-7633990b3848:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q15-7633990b3848",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "出入口、通道口上方应搭设防护棚，非机动车道≥3m、机动车道≥4m，坠物影响大时用木板须双层。",
+      "rule_group": "通道口·措施维",
       "content_sha256": "5da95ace5b2937a6f642d56bb5e2d4e17e4a314596f497fe7d716f805be6f677",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "5da95ace5b2937a6f642d56bb5e2d4e17e4a314596f497fe7d716f805be6f677",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q15",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "5da95ace5b2937a6f642d56bb5e2d4e17e4a314596f497fe7d716f805be6f677",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "S06-html-practice-html-q16-30dcd356515c",
+      "surface_id": "practice.html",
       "stem": "某学生答临边洞口防护：①临边挂警示牌提醒；②600mm 竖向洞口盖块木板；③防护栏杆高 0.9m。选出最准确的诊断与补写。",
-      "model_answer": "①警示牌须改实体栏杆+密目网封闭；②竖向≥500 洞口须设 1.2m 栏杆封闭加挡脚板（25~500 才用承重盖板）；③栏杆高应 1.2m（0.9m 是室内扶手）。三处都要补写。",
       "options": [
         {
           "text": "三处均失分：①应改实体栏杆+密目网封闭；②≥500 洞口设 1.2m 栏杆封闭加挡脚板（25~500 才用盖板）；③栏杆上杆应 1.2m（0.9m 是室内扶手）。",
@@ -1248,48 +1178,54 @@
           "option_id": "S06-html-practice-html-q16-30dcd356515c:option-4"
         }
       ],
-      "variant_id": "S06-html-practice-html-q16-30dcd356515c",
-      "surface_id": "practice.html",
-      "source_index": 15,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q16",
-      "source_anchor": "kc:1A436000_121_0195:1",
-      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-      "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "s06-fact-edge-opening-composite",
-      "skeleton_id": "s06-skel-临边洞口综合诊断",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "①警示牌须改实体栏杆+密目网封闭；②竖向≥500 洞口须设 1.2m 栏杆封闭加挡脚板（25~500 才用承重盖板）；③栏杆高应 1.2m（0.9m 是室内扶手）。三处都要补写。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "dd81c7d7d473f7b659d365fd504f4be41988b1ae9be2d48861828edc67044109",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "dd81c7d7d473f7b659d365fd504f4be41988b1ae9be2d48861828edc67044109",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q16",
+      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+      "decision": {
+        "fact_id": "s06-fact-edge-opening-composite",
+        "skeleton_id": "s06-skel-临边洞口综合诊断",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_121_0195:1",
+        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "dd81c7d7d473f7b659d365fd504f4be41988b1ae9be2d48861828edc67044109",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:25:23+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:25:23+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "三诊断均 kc:...121_0195 判分眼族内(洞口三档=本锚; 临边封闭/栏杆高度=:0/:2 补足)=复合多源工单。三处诊断正确且唯一。工单: 正确项81字最长。"
         },
-        "note": "三诊断均 kc:...121_0195 判分眼族内(洞口三档=本锚; 临边封闭/栏杆高度=:0/:2 补足)=复合多源工单。三处诊断正确且唯一。工单: 正确项81字最长。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
   ],
-  "published_lesson_sha256": "ef7c5ec4c1afed634a4e0980a973fa379757212ea5e06d43054ce945f8808daf"
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (s06.codex.out, fatal_count=3)。5 surface 锚全无 FATAL, 13/16 approve。3 个非展示真病**排除不签**: q9/q10(题干未以『最完整』限定, 真命题干扰项致单选不唯一——同 J01 q12/K01 q3 病)/q13(删『当无外脚手架时』必要限定=无条件扩大)。主控核: 全部签发锚为 kc:1A436000_121_0195 临边洞口判分眼直引(2m触发/1.2m-2m-180mm-1kN 构造/洞口三档/临边封闭)。三联承 Codex 方案: 临边实体防护 fact q1/q5/q14。工单: 15/16 正确项最长(编译模板病); q6 教材/真题枚举混口径; q15 双层触发条件被模糊改写宜恢复『>24m且木板』口径。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }
