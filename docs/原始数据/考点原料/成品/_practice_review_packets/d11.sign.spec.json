@@ -1,0 +1,62 @@
+{
+  "pack_id": "D11",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 重跑 (d11.codex.out, fatal_count=3; 上批卡死已重启, packet/prefill 用修复后 per-采分点 matcher 重生成)。主控核: surface FATAL q15(复合诊断)=失效模式#4复合题血统误判——五组事实全有包内原文: 含水率8/10/12=kc:1A422000_043_0069:1 教材直引; 厨卫耐水腻子=kc:1A422000_043_0069:2 教材直引; **地下室耐水腻子=真题原文『卫生间、厨房、地下室等潮湿环境必须使用耐水腻子』(Codex 漏看 exam_evidence)**; 总厚35加强+层厚20/25+搭接100+室内5℃=exam:2023:第26题+kc:1A422000_042_0068。=复合多源工单签发。非展示 FATAL q6(题干缺基层类型限定, 乳液型10% 与木材12% 条件竞争=真 dropped_qualifier)与 q11(外保温薄抹灰边界仅 territory 注记无教学锚=血统弱)**排除不签**。其余 4 surface 锚 Codex 全 approve(MINOR)。工单: 全包正确项固定首位+最长项模板泄漏(编译管道病, 非内容错)。",
+  "signed": [
+    {
+      "variant_id": "D11-html-practice-html-q1-9d9c40421eea",
+      "probe_role": "anchor",
+      "fact_id": "d11-fact-plaster-thickness-reinforce",
+      "skeleton_id": "d11-skel-总厚35加强判定",
+      "source_anchor": "kc:1A422000_042_0068:0",
+      "note": "抹灰总厚度≥35mm 应采取加强措施(本题38mm), 教材 kc:...042_0068:0 直引。工单: '分层并设加强网'固定组合为教学扩写; 正确项首位+最长模板泄漏。"
+    },
+    {
+      "variant_id": "D11-html-practice-html-q2-f9d8018fa2c8",
+      "probe_role": "anchor",
+      "fact_id": "d11-fact-plaster-layer-thickness",
+      "skeleton_id": "d11-skel-普通高级层厚数值",
+      "source_anchor": "exam:2023:第26题",
+      "note": "普通抹灰≤20mm/高级≤25mm, 真题 exam:2023:第26题 逐项支持。工单: 干扰项机械换数。"
+    },
+    {
+      "variant_id": "D11-html-practice-html-q3-f227887a4b72",
+      "probe_role": "anchor",
+      "fact_id": "d11-fact-column-infill-mesh",
+      "skeleton_id": "d11-skel-柱填充墙交接设网",
+      "source_anchor": "exam:2024:第14页",
+      "note": "柱与填充墙接触面应设加强网片, 真题 exam:2024:第14页 逐字直引。'分摊差动位移'为解释性扩写不改措施。"
+    },
+    {
+      "variant_id": "D11-html-practice-html-q4-0e12bc15f773",
+      "probe_role": "anchor",
+      "fact_id": "d11-fact-mesh-overlap-100",
+      "skeleton_id": "d11-skel-加强网搭接宽度",
+      "source_anchor": "kc:1A422000_043_0069:0",
+      "note": "加强网与各基体搭接宽度≥100mm, 教材 kc:...043_0069:0 直引, 对象方向数值完整。"
+    },
+    {
+      "variant_id": "D11-html-practice-html-q15-bcc203575c55",
+      "probe_role": "anchor",
+      "fact_id": "d11-fact-substrate-moisture-limits",
+      "skeleton_id": "d11-skel-抹灰质量综合诊断补写",
+      "source_anchor": "exam:2023:第26题",
+      "note": "复合五组事实全有包内原文: 8/10/12(kc:...043_0069:1)/耐水腻子厨卫(kc:...043_0069:2)/地下室(真题耐水腻子题ABE)/35加强+20/25+100搭接+5℃(本锚 exam:2023:第26题)。Codex FATAL 系复合题血统误判(失效模式#4, 且漏看地下室真题证据)。三联 anchor。工单: 正确项最长。"
+    },
+    {
+      "variant_id": "D11-html-practice-html-q5-d66757ce8f6f",
+      "probe_role": "immediate_confirm",
+      "fact_id": "d11-fact-substrate-moisture-limits",
+      "skeleton_id": "d11-skel-溶剂型含水率阈值直问",
+      "source_anchor": "kc:1A422000_043_0069:1",
+      "note": "混凝土/抹灰基层用溶剂型涂料含水率≤8%(题干保留必要条件), 教材 kc:...043_0069:1 直引。三联 immediate_confirm(同含水率分对象 fact)。"
+    },
+    {
+      "variant_id": "D11-html-practice-html-q13-b3dd9f5b5e3c",
+      "probe_role": "d1_probe",
+      "fact_id": "d11-fact-substrate-moisture-limits",
+      "skeleton_id": "d11-skel-含水率统一值纠错诊断",
+      "source_anchor": "kc:1A422000_043_0069:1",
+      "note": "统一10%会放宽溶剂型8%上限, 应8/10/12分对象控制, 教材 kc:...043_0069:1 完整支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 正确项最长。"
+    }
+  ]
+}
