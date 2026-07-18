@@ -189,7 +189,9 @@ function _retestTask(concept, packId, reason, practiceKind, taskState) {
       ? "用 2 分钟完成到期验证"
       : "完成刚学内容的 5 题检验",
     // 主按钮短文案随任务类型;无供给不给按钮(禁 dead click)
-    ctaLabel: kind === "none" ? "" : reviewDue ? "开始验证" : "开始训练",
+    // owner 2026-07-18:练题优先重排——练习类主按钮统一「集中练习」;
+    // review_due「开始验证」不动(到期验证语义独立,不并入练习动作)。
+    ctaLabel: kind === "none" ? "" : reviewDue ? "开始验证" : "集中练习",
     supplyNote: kind === "none"
       ? reviewDue
         ? "这次验证暂时没有安全题；学习记录仍会保留"
@@ -333,9 +335,9 @@ function buildCanonicalLearningTask(args) {
     return _decorate(practiceTask);
   }
   if (mode !== "learn_next") return null;
-  // owner 2026-07-17 拍板:「继续学习」改「继续练习」——学习主任务优先练
-  // 教学视频后面的练习题(retest forward,633 池);仅当该站练习池未签发时
-  // 才回落「进站看讲解」。供给真值仍由 _practiceKindFor 单点裁决,无第二处方。
+  // owner 2026-07-18 拍板:学习主任务优先练教学视频后面的练习题
+  // (retest forward,633 池),主按钮统一「集中练习」;仅当该站练习池
+  // 未签发时才回落「进站看讲解」。供给真值仍由 _practiceKindFor 单点裁决,无第二处方。
   if (_practiceKindFor(packId, titleIdx) === "retest") {
     var learnPractice = _retestTask(
       pack.title || "最需要提分的考点",
@@ -345,7 +347,7 @@ function buildCanonicalLearningTask(args) {
       "learn_next",
     );
     learnPractice.cta = "练教学视频后面的 5 题，错了当场弄懂";
-    learnPractice.ctaLabel = "继续练习";
+    learnPractice.ctaLabel = "集中练习";
     return _decorate(learnPractice);
   }
   return _decorate(_lessonTask({
@@ -395,7 +397,7 @@ function _buildBrowseTask(nextStation, titleIdx) {
   var s = _safeObj(nextStation);
   var packId = _str(s.pack_id).toUpperCase();
   if (!packId) return null;
-  // 供给真值单点:练习池已签发 → 继续练习(retest forward);否则进站看讲解。
+  // 供给真值单点:练习池已签发 → 集中练习(retest forward);否则进站看讲解。
   var isRetest = _practiceKindFor(packId, titleIdx) === "retest";
   return {
     kicker: "从这里开始", // 推荐起点口吻,禁"今日任务"
@@ -404,7 +406,7 @@ function _buildBrowseTask(nextStation, titleIdx) {
     cta: isRetest
       ? "从这一站的 5 题开始，错了当场弄懂"
       : "先看这一站的讲解，点亮你的提分路线",
-    ctaLabel: isRetest ? "继续练习" : "进站学习",
+    ctaLabel: isRetest ? "集中练习" : "进站学习",
     supplyNote: "",
     task_type: isRetest ? "light_practice" : "microlesson",
     task_state: "browse", // 非 review_due/practice_active:轻练走 probe-less forward

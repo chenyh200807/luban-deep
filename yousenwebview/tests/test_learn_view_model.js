@@ -241,7 +241,7 @@ ok("practice_active arm → today task is MCQ light practice (not case grading)"
   assert.strictEqual(vm.todayTask.concept, "网络计划关键线路");
   assert.ok(vm.todayTask.title.indexOf("网络计划关键线路") === 0);
   assert.strictEqual(vm.todayTask.reason, "练:你漏的采分点");
-  assert.strictEqual(vm.todayTask.ctaLabel, "开始训练");
+  assert.strictEqual(vm.todayTask.ctaLabel, "集中练习");
   assert.strictEqual(vm.todayTask.light_practice_available, true);
   assert.strictEqual(vm.todayTask.secondaryCta, undefined);
   // 案例题批改已降级:今日任务不再携带案例批改 prompt(不走 chat 判分流)
@@ -349,8 +349,8 @@ ok("frontend never creates a competing priority from pack_review", () => {
   assert.strictEqual(vm.todayTask.cta, "完成刚学内容的 5 题检验");
 });
 
-// ── 兜底臂(无到期/未闭合练习)→ 练习池已签发时主任务=继续练习(owner 2026-07-17 拍板) ──
-ok("learn_next with signed practice pool → practice-first task 继续练习", () => {
+// ── 兜底臂(无到期/未闭合练习)→ 练习池已签发时主任务=集中练习(owner 2026-07-18 拍板) ──
+ok("learn_next with signed practice pool → practice-first task 集中练习", () => {
   const vm = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "learn_next", source_ref: "N01", reason: "下一站" } },
     report: FULL.report,
@@ -361,7 +361,7 @@ ok("learn_next with signed practice pool → practice-first task 继续练习", 
   assert.strictEqual(vm.todayTask.practice_kind, "retest");
   assert.strictEqual(vm.todayTask.mode, "forward");
   assert.strictEqual(vm.todayTask.pack_id, "N01");
-  assert.strictEqual(vm.todayTask.ctaLabel, "继续练习");
+  assert.strictEqual(vm.todayTask.ctaLabel, "集中练习");
   assert.strictEqual(vm.todayTask.cta, "练教学视频后面的 5 题，错了当场弄懂");
   assert.strictEqual(vm.todayTask.prompt, undefined);
 });
@@ -614,7 +614,7 @@ ok("light practice stays usable only in learn/forward contexts", () => {
 });
 
 // ── 主按钮短文案随任务类型;无供给时不给按钮(禁 dead click) ──
-ok("ctaLabel: 开始验证 / 开始训练 / 继续学习 by task type; empty when no supply", () => {
+ok("ctaLabel: 开始验证 / 集中练习 / 继续学习 by task type; empty when no supply", () => {
   const review = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
     report: {
@@ -628,9 +628,9 @@ ok("ctaLabel: 开始验证 / 开始训练 / 继续学习 by task type; empty whe
     lessons: FULL.lessons,
   });
   assert.strictEqual(review.todayTask.ctaLabel, "开始验证");
-  // FULL=N01 练习池已签发 → 练习优先「继续练习」(owner 2026-07-17 拍板)
+  // FULL=N01 练习池已签发 → 练习优先「集中练习」(owner 2026-07-18 拍板)
   const lesson = buildLearnViewModel(FULL);
-  assert.strictEqual(lesson.todayTask.ctaLabel, "继续练习");
+  assert.strictEqual(lesson.todayTask.ctaLabel, "集中练习");
   assert.strictEqual(lesson.todayTask.light_practice_available, true); // N01 供给已接通
   // 无 retest 供给的 practice_active → ctaLabel 空(按钮隐藏)+ 诚实降级说明
   const none = buildLearnViewModel({
@@ -872,7 +872,7 @@ ok("review card hidden when the review task has no routable retest supply (no de
 // review_due 逻辑零改;轻练供给复用 _practiceKindFor 单点。
 // ══════════════════════════════════════════════════════════════
 
-// 单绿灯站 + 已签发练习池 → day-0 fallback 落到该站,browse=retest 继续练习
+// 单绿灯站 + 已签发练习池 → day-0 fallback 落到该站,browse=retest 集中练习
 const BROWSE_RETEST = {
   homeDashboard: { next_step: { mode: "unavailable", source_ref: "", reason: "" } },
   report: {},
@@ -894,12 +894,12 @@ const BROWSE_LESSON = {
   },
 };
 
-ok("browse: todayTask null + nextStation present → isomorphic browseTask (retest supply → 继续练习)", () => {
+ok("browse: todayTask null + nextStation present → isomorphic browseTask (retest supply → 集中练习)", () => {
   const vm = buildLearnViewModel(BROWSE_RETEST);
   assert.strictEqual(vm.todayTask, null, "browse must not fabricate a server today task");
   assert.ok(vm.browseTask, "browse card must render when todayTask is null but a station exists");
   assert.strictEqual(vm.taskCard, vm.browseTask, "taskCard is the single render source = todayTask || browseTask");
-  assert.strictEqual(vm.browseTask.ctaLabel, "继续练习"); // _practiceKindFor === retest
+  assert.strictEqual(vm.browseTask.ctaLabel, "集中练习"); // _practiceKindFor === retest
   assert.strictEqual(vm.browseTask.action_kind, "retest");
   assert.strictEqual(vm.browseTask.practice_kind, "retest");
   assert.strictEqual(vm.browseTask.mode, "forward");
