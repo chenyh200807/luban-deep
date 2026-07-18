@@ -8,16 +8,15 @@ from contextlib import contextmanager
 import hashlib
 import json
 import os
+from pathlib import Path
 import subprocess
 import sys
 import time
+from typing import Any, Callable
 import urllib.error
+from urllib.parse import urlparse
 import urllib.request
 import uuid
-from pathlib import Path
-from typing import Any, Callable
-from urllib.parse import urlparse
-
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -35,7 +34,6 @@ def _apply_local_qa_env(*, user_data_dir: str) -> None:
     os.environ["DEEPTUTOR_MISTAKE_BOOK_ENABLED"] = "1"
     os.environ["DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"] = "1"
     os.environ["DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK"] = "1"
-    os.environ["DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS"] = "10000"
     os.environ["DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN"] = "1"
     os.environ["FF_AUTH_SUPABASE_BACKEND"] = "false"
     os.environ["SUPABASE_RAG_ENABLED"] = "false"
@@ -45,8 +43,8 @@ def _apply_local_qa_env(*, user_data_dir: str) -> None:
 
 def _prepare_local_user_data_dir(user_data_dir: str) -> None:
     _apply_local_qa_env(user_data_dir=user_data_dir)
-    from deeptutor.services.path_service import PathService
     from deeptutor.services.learner_state import service as learner_state_service_module
+    from deeptutor.services.path_service import PathService
 
     PathService.reset_instance()
     learner_state_service_module._learner_state_service = None
@@ -167,9 +165,6 @@ def _local_api_server(
             "DEEPTUTOR_MISTAKE_BOOK_ENABLED": os.environ["DEEPTUTOR_MISTAKE_BOOK_ENABLED"],
             "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED": os.environ["DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"],
             "DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK": os.environ["DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK"],
-            "DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS": os.environ[
-                "DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS"
-            ],
             "DEEPTUTOR_USER_DATA_DIR": os.environ["DEEPTUTOR_USER_DATA_DIR"],
             REDACT_MODEL_CATALOG_AT_REST_ENV: os.environ[REDACT_MODEL_CATALOG_AT_REST_ENV],
             "DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN": os.environ["DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN"],

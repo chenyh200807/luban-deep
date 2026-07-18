@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 import json
+import time
 
 import pytest
 
@@ -1031,6 +1032,115 @@ def test_mastery_dashboard_failure_marks_degraded_with_source_status() -> None:
     # Evidence-driven progress 仍可见
     assert model["overview"]["today_done"] == 1
     assert model["source_status"]["learner_events"]["ok"] is True
+
+
+def test_cold_core_events_wait_for_first_authoritative_report_while_legacy_times_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    item = LearnerStateEvent(
+        event_id="item_c04_cold",
+        user_id="student_demo",
+        source_feature="assessment_testset",
+        source_id="c04_cold:q1",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="item_c04_cold",
+        created_at=_iso(0),
+        payload_json={
+            "event_type": "learning_evidence",
+            "retest_completion_id": "c04_cold",
+            "request_hash": "cold-request",
+            "practice_mode": "forward",
+            "pack_id": "C04",
+            "target_pack_id": "C04",
+            "question_id": "q1",
+            "probe_role": "anchor",
+            "is_correct": True,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "claim_promotion_allowed": False,
+        },
+    )
+    terminal = LearnerStateEvent(
+        event_id="terminal_c04_cold",
+        user_id="student_demo",
+        source_feature="assessment_testset",
+        source_id="c04_cold:terminal",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="terminal_c04_cold",
+        created_at=_iso(0),
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "assessment_testset",
+            "assessment_type": "luban_forward_completion",
+            "retest_completion_id": "c04_cold",
+            "completion_terminal": True,
+            "request_hash": "cold-request",
+            "practice_mode": "forward",
+            "pack_id": "C04",
+            "target_pack_id": "C04",
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "item_event_refs": [item.event_id],
+            "claim_promotion_allowed": False,
+            "prescription_result": {"status": "not_verified", "score_ratio": 1.0},
+            "quality": {
+                "authority": "compiled_html_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "medium",
+                "evidence_level": "L0_observed",
+            },
+        },
+    )
+
+    class SlowCoreEvents(FakeLearnerStateService):
+        def __init__(self) -> None:
+            super().__init__([item, terminal])
+            self.read_count = 0
+
+        def list_memory_events(
+            self,
+            user_id: str,
+            limit: int | None = 100,
+        ) -> list[LearnerStateEvent]:
+            self.read_count += 1
+            time.sleep(0.02)
+            return super().list_memory_events(user_id, limit=limit)
+
+        def read_compiled_learning_truth(self, user_id: str) -> dict:
+            return {
+                "subject": "construction_exam_learning_truth",
+                "schema_version": 2,
+                "compiled_objects": {},
+                "weak_points": [],
+                "improvement_signals": [],
+                "stale_claims": [],
+                "typed_graph": {"edges": [], "readiness_gaps": []},
+                "synthesis_run": {"input_event_count": 2, "created_claim_count": 0},
+            }
+
+    class SlowOptionalLegacy(FakeMemberService):
+        def get_today_progress(self, user_id: str) -> dict:
+            time.sleep(0.1)
+            return super().get_today_progress(user_id)
+
+    learner_state = SlowCoreEvents()
+    monkeypatch.setenv("DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS", "1")
+    monkeypatch.setenv("DEEPTUTOR_LEARNING_REPORT_LEGACY_SOURCE_TIMEOUT_MS", "10")
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=SlowOptionalLegacy(),
+        learner_state_service=learner_state,
+        event_limit=50,
+    )
+
+    assert learner_state.read_count == 1
+    assert model["source_status"]["learner_events"]["ok"] is True
+    assert model["pack_lifecycle"]["packs"]["C04"]["lifecycle_state"] == "practiced"
+    assert model["source_status"]["today_progress"]["ok"] is False
+    assert "TimeoutError" in str(model["source_status"]["today_progress"]["error"])
 
 
 def test_multiple_source_failures_listed_in_degraded_sources() -> None:

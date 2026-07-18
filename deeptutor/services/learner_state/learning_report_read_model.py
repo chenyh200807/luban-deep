@@ -232,7 +232,6 @@ SCHEMA_ID = "learning_report_read_model.v2"
 _SCHEMA_VERSION = 1
 _ERROR_MESSAGE_LIMIT = 200
 _LEGACY_SOURCE_TIMEOUT_S = 0.5
-_CORE_SOURCE_TIMEOUT_S = 2.0
 _SOURCE_EXECUTOR = ThreadPoolExecutor(
     max_workers=max(4, int(os.getenv("DEEPTUTOR_LEARNING_REPORT_SOURCE_WORKERS", "8") or 8)),
     thread_name_prefix="learning-report-source",
@@ -334,7 +333,7 @@ def build_learning_report_read_model(
             "assessment_profile": lambda: member_service.get_assessment_profile(normalized_user),
             "mastery_dashboard": lambda: member_service.get_mastery_dashboard(normalized_user),
         },
-        timeout_s=_source_timeout_s("legacy", _LEGACY_SOURCE_TIMEOUT_S),
+        timeout_s=_legacy_source_timeout_s(_LEGACY_SOURCE_TIMEOUT_S),
     )
     legacy_today = legacy_sources.get("today_progress")
     home_dashboard = legacy_sources.get("home_dashboard")
@@ -350,7 +349,6 @@ def build_learning_report_read_model(
             since="",
         ),
         default=[],
-        timeout_s=_source_timeout_s("core", _CORE_SOURCE_TIMEOUT_S),
     )
 
     legacy_today = _safe_dict(legacy_today)
@@ -1376,17 +1374,10 @@ def _call_source(
     fn: Callable[[], Any],
     *,
     default: Any = None,
-    timeout_s: float | None = None,
 ) -> tuple[Any, dict[str, Any]]:
     started = time.perf_counter()
     try:
-        value = _run_source_with_timeout(fn, timeout_s=timeout_s)
-    except TimeoutError:
-        latency_ms = int((time.perf_counter() - started) * 1000)
-        message = f"TimeoutError: source exceeded {float(timeout_s or 0):.2f}s"[:_ERROR_MESSAGE_LIMIT]
-        status = {"ok": False, "latency_ms": latency_ms, "error": message}
-        source_status[name] = status
-        return default, status
+        value = fn()
     except Exception as exc:
         latency_ms = int((time.perf_counter() - started) * 1000)
         message = f"{type(exc).__name__}: {exc!s}"[:_ERROR_MESSAGE_LIMIT]
@@ -1436,17 +1427,9 @@ def _call_sources_parallel(
     return results
 
 
-def _run_source_with_timeout(fn: Callable[[], Any], *, timeout_s: float | None) -> Any:
-    if timeout_s is None or timeout_s <= 0:
-        return fn()
-    future = _SOURCE_EXECUTOR.submit(fn)
-    return future.result(timeout=float(timeout_s))
-
-
-def _source_timeout_s(kind: str, default: float) -> float:
-    env_name = f"DEEPTUTOR_LEARNING_REPORT_{str(kind or '').upper()}_SOURCE_TIMEOUT_MS"
+def _legacy_source_timeout_s(default: float) -> float:
     try:
-        value = float(os.getenv(env_name, "")) / 1000.0
+        value = float(os.getenv("DEEPTUTOR_LEARNING_REPORT_LEGACY_SOURCE_TIMEOUT_MS", "")) / 1000.0
     except (TypeError, ValueError):
         value = 0.0
     return value if value > 0 else float(default)
