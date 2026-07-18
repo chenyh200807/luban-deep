@@ -363,6 +363,11 @@ Page({
         wx.showToast({ title: "这一站微课即将开通", icon: "none" });
       return;
     }
+    // 进站预热:station onLoad 会发同一 GET(requestStateGet dedupeInFlight 并流),
+    // 把 detail 的 RTT 与页面导航并行。无状态不落缓存;失败静默,station 自有错误路径。
+    try {
+      api.getLubanLessonDetail(packId, { silent: true, suppressAuthRedirect: true }).catch(function () {});
+    } catch (_e) {}
     this._navTo("/packageDeeptutor/pages/luban/station/station?pack_id=" + encodeURIComponent(String(packId)));
   },
 
