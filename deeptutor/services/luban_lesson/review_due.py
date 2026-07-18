@@ -29,10 +29,15 @@ def build_review_due_projection(
     events: Iterable[Any] | None,
     now_iso: str = "",
     exam_date_iso: str = "",
+    pack_lifecycle: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     events = list(events or [])
     green = {row["pack_id"]: row for row in list_green_lessons()}
-    lifecycle = project_pack_lifecycle(events=events, claims=[])
+    lifecycle = (
+        pack_lifecycle
+        if isinstance(pack_lifecycle, dict)
+        else project_pack_lifecycle(events=events, claims=[])
+    )
     packs = lifecycle.get("packs") if isinstance(lifecycle.get("packs"), dict) else {}
     candidates = [
         {

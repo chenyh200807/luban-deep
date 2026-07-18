@@ -21,11 +21,18 @@ var reportCache = null;
 var reportSnapshot = null;
 try { reportCache = require("../../utils/report-cache"); } catch (_) { reportCache = null; }
 try { reportSnapshot = require("../../utils/report-snapshot"); } catch (_) { reportSnapshot = null; }
+var readModelAdmissionReady = Boolean(
+  reportSnapshot &&
+    typeof reportSnapshot.isLearningReportPayload === "function" &&
+    typeof reportSnapshot.isHomeDashboardPayload === "function" &&
+    typeof reportSnapshot.isLubanLessonsPayload === "function" &&
+    typeof reportSnapshot.isCompleteLearnSnapshot === "function"
+);
 var snapshotLayerReady = Boolean(
-  reportCache &&
+  readModelAdmissionReady &&
+    reportCache &&
     typeof reportCache.read === "function" &&
     typeof reportCache.writeIfFresher === "function" &&
-    reportSnapshot &&
     typeof reportSnapshot.buildUnifiedReportSnapshot === "function",
 );
 
@@ -242,8 +249,12 @@ Page({
     // 30min 内快照秒渲染整页(诚实旧投影,非发明数据;组装仍走唯一 builder)。
     // 统一策略=缓存秒渲染+始终静默刷新——曾有的 fresh-skip 门被对抗 review
     // 证伪删除(它会把陈旧/降级/半残快照钉成终态),hydrate 后无条件继续刷新。
-    var cached = snapshotLayerReady
+    var cachedCandidate = snapshotLayerReady
       ? reportCache.read(startedUserId, reportCache.SNAPSHOT_MAX_AGE_MS)
+      : null;
+    // report 页允许写缺 home/lessons 的局部快照；学习页只 hydrate 完整三元组。
+    var cached = snapshotLayerReady && reportSnapshot.isCompleteLearnSnapshot(cachedCandidate)
+      ? cachedCandidate
       : null;
     if (cached && !this.data.vm) {
       var cachedVm = buildLearnViewModel({
@@ -251,6 +262,8 @@ Page({
         homeDashboard: cached.homeDashboard || {},
         report: cached.report || {},
         lessons: cached.lessons || {},
+        actionsEnabled: false,
+        projectionState: "stale",
       });
       // 与下方 lessons 快通道同一门:空态投影不上屏(宁等真数据,不闪空态)。
       if (cachedVm.hasSupply) this.setData({ vm: cachedVm, loading: false, supplyError: "" });
@@ -260,10 +273,10 @@ Page({
     var settle = function (p) {
       return Promise.resolve(p).then(
         function (r) {
-          return r;
+          return { ok: true, value: r };
         },
-        function () {
-          return null; // 单源失败不拖垮整页(降级)
+        function (error) {
+          return { ok: false, error: error };
         }
       );
     };
@@ -272,14 +285,23 @@ Page({
     var lessonsPromise = Promise.resolve(api.getLubanLessons(opt));
     // 首屏快通道:绿灯站列表是静态 manifest 投影(live 实测 ~0.15s),
     // dashboard/learning-report 是重 read model(live 实测 3-5s)。
-    // 冷启动先用 lessons 画出舞台+课程架(view-model 对缺 dashboard/report
-    // 本就降级),整页数据到齐后再覆盖——不发明数据,只是分两拍投影。
+    // 冷启动先用 lessons 画出供给，但关闭任务 authority/事实计数/动作；
+    // 缺失读模型不能被归一化成 0/41，也不能生成可点击 browse 处方。
     lessonsPromise.then(
       function (lessonsRes) {
         if (seq !== that._loadSeq) return; // 乱序旧响应,丢弃
         if (that.data.vm) return; // 已有整页数据(onShow 静默刷新),不做部分回退
         var lessons = api.unwrapResponse(lessonsRes) || {};
-        var fast = buildLearnViewModel({ homeDashboard: {}, report: {}, lessons: lessons });
+        if (!readModelAdmissionReady || !reportSnapshot.isLubanLessonsPayload(lessons)) return;
+        var fast = buildLearnViewModel({
+          homeDashboard: {},
+          report: {},
+          lessons: lessons,
+          taskAuthorityAvailable: false,
+          progressAvailable: false,
+          actionsEnabled: false,
+          projectionState: "partial",
+        });
         if (fast.hasSupply) that.setData({ vm: fast, loading: false, supplyError: "" });
       },
       function () {
@@ -297,13 +319,52 @@ Page({
         that._requireAuth();
         return null;
       }
-      var homeDashboard = api.unwrapResponse(res[0]) || {};
-      var report = api.unwrapResponse(res[1]) || {};
+      var homeResult = res[0] || { ok: false };
+      var reportResult = res[1] || { ok: false };
       var lessons = api.unwrapResponse(res[2]) || {};
+      if (!readModelAdmissionReady || !reportSnapshot.isLubanLessonsPayload(lessons)) {
+        throw new Error("lesson authority payload invalid");
+      }
+      var homePayload = homeResult.ok ? api.unwrapResponse(homeResult.value) || {} : {};
+      var reportPayload = reportResult.ok ? api.unwrapResponse(reportResult.value) || {} : {};
+      var homeValid = homeResult.ok && reportSnapshot.isHomeDashboardPayload(homePayload);
+      var reportValid = reportResult.ok && reportSnapshot.isLearningReportPayload(reportPayload);
+      // 只有同一轮三个 read model 全部成功，才形成可缓存、可点击的 live 投影。
+      // 部分失败时不拼半新半旧快照，不把未知压成零。
+      if (!homeValid || !reportValid) {
+        var degradedVm;
+        if (cached) {
+          degradedVm = buildLearnViewModel({
+            homeDashboard: cached.homeDashboard || {},
+            report: cached.report || {},
+            lessons: cached.lessons || {},
+            actionsEnabled: false,
+            projectionState: "stale",
+          });
+        } else {
+          degradedVm = buildLearnViewModel({
+            homeDashboard: homeValid ? homePayload : {},
+            report: reportValid ? reportPayload : {},
+            lessons: lessons,
+            taskAuthorityAvailable: false,
+            progressAvailable: reportValid,
+            actionsEnabled: false,
+            projectionState: "partial",
+          });
+        }
+        that.setData({ vm: degradedVm, loading: false, supplyError: "" });
+        return degradedVm;
+      }
+      var homeDashboard = homePayload;
+      var report = reportPayload;
       var vm = buildLearnViewModel({
         homeDashboard: homeDashboard,
         report: report,
         lessons: lessons,
+        taskAuthorityAvailable: true,
+        progressAvailable: true,
+        actionsEnabled: true,
+        projectionState: "live",
       });
       that.setData({ vm: vm, loading: false, supplyError: "" });
       // 第二合法写者(与学情页共用唯一组装权威 buildUnifiedReportSnapshot):
@@ -393,6 +454,11 @@ Page({
   // 二轮红队 A4:主任务按钮与复习卡共用本 handler,刷新 in-flight 期间
   // 旧 VM 的 pack/probe 身份可能已过期,与 goLightPractice 同一守卫禁点。
   goTodayTask() {
+    if (this.data.vm && this.data.vm.actionsEnabled === false) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "进度核对中，请下拉重试", icon: "none" });
+      return;
+    }
     if (this._refreshing) {
       if (typeof wx !== "undefined" && wx.showToast)
         wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
@@ -426,6 +492,11 @@ Page({
   // 目标站 = vm.nextStation(next_step 呈现仲裁的推荐学习站),不重算推荐;
   // card_hosted===false 诚实降级 toast(禁 dead click 假可播)。
   goLesson() {
+    if (this.data.vm && this.data.vm.actionsEnabled === false) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "进度核对中，请下拉重试", icon: "none" });
+      return;
+    }
     if (this._refreshing) {
       if (typeof wx !== "undefined" && wx.showToast)
         wx.showToast({ title: "正在刷新，请稍候", icon: "none" });
@@ -449,6 +520,11 @@ Page({
   // review_due 下禁 probe-less forward 旁路(绕开到期验证会重开 fresh cycle);
   // 供给刷新 in-flight 期间禁点(旧 VM 的供给旗标可能已被撤回)。
   goLightPractice() {
+    if (this.data.vm && this.data.vm.actionsEnabled === false) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "进度核对中，请下拉重试", icon: "none" });
+      return;
+    }
     if (this._refreshing) {
       if (typeof wx !== "undefined" && wx.showToast)
         wx.showToast({ title: "正在刷新，请稍候", icon: "none" });

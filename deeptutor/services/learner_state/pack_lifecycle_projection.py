@@ -27,13 +27,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 from loguru import logger
 
 from deeptutor.services.learner_state.evidence_lifecycle import (
-    committed_retest_closure,
-    is_canonical_luban_retest_terminal,
+    EPISODE_BINDING_EXACT,
+    EPISODE_BINDING_LEGACY,
+    EPISODE_BINDING_LEGACY_UNBOUND,
+    RETEST_ROLE_FORWARD_PRACTICE,
+    RETEST_ROLE_IMMEDIATE_CONFIRM,
+    RETEST_ROLE_REVIEW,
+    CanonicalRetestEpisodeRecord,
+    canonical_retest_episode_records,
     is_retest_completion_terminal,
 )
 from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event
@@ -211,27 +217,8 @@ def _claim_packs(claims: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return by_pack
 
 
-def _canonical_completion_packs(
-    events: list[Any],
-    closure: dict[str, tuple[str, ...]],
-) -> dict[str, str]:
-    completion_packs: dict[str, str] = {}
-    for event in list(events or []):
-        if not is_canonical_luban_retest_terminal(event):
-            continue
-        payload = getattr(event, "payload_json", None) or {}
-        completion_id = str(payload.get("retest_completion_id") or "").strip()
-        if completion_id not in closure:
-            continue
-        pack_id = str(payload.get("pack_id") or payload.get("target_pack_id") or "").strip().upper()
-        if completion_id and pack_id:
-            completion_packs[completion_id] = pack_id
-    return completion_packs
-
-
 def _pack_retest_facts(
-    events: list[Any],
-    closure: dict[str, tuple[str, ...]],
+    records: Iterable[CanonicalRetestEpisodeRecord],
 ) -> dict[str, dict[str, Any]]:
     """Project terminal-only canonical retest facts per pack.
 
@@ -241,28 +228,45 @@ def _pack_retest_facts(
     lifecycle or move the review clock.
     """
     by_pack: dict[str, dict[str, Any]] = {}
-    seen_completions: set[str] = set()
     ordered = sorted(
-        list(events or []),
-        key=lambda event: (
-            str(getattr(event, "created_at", "") or ""),
-            str(getattr(event, "event_id", "") or ""),
+        list(records or []),
+        key=lambda record: (
+            str(getattr(record.terminal, "created_at", "") or ""),
+            str(getattr(record.terminal, "event_id", "") or ""),
         ),
     )
-    for event in ordered:
+    for record in ordered:
+        event = record.terminal
         payload = getattr(event, "payload_json", None) or {}
-        if not isinstance(payload, dict) or not is_canonical_luban_retest_terminal(event):
+        if not isinstance(payload, dict):
             continue
         completion_id = str(payload.get("retest_completion_id") or "").strip()
-        if completion_id not in closure:
+        pack_id = record.pack_id
+        completion_role = record.role
+        if not completion_role:
             continue
-        pack_id = str(payload.get("pack_id") or payload.get("target_pack_id") or "").strip().upper()
-        if completion_id in seen_completions:
-            continue
-        seen_completions.add(completion_id)
-        mode = "review" if str(payload.get("practice_mode") or "").strip() == "review" else "forward"
         created_at = str(getattr(event, "created_at", "") or "").strip()
         event_id = str(getattr(event, "event_id", "") or "").strip()
+        if completion_role == RETEST_ROLE_IMMEDIATE_CONFIRM:
+            # Immediate confirmation is part of the current forward cycle.  It
+            # may enrich the receipt but must never postpone D+1 by replacing
+            # the cycle anchor.  An orphan confirm cannot create a cycle.
+            if record.binding not in {EPISODE_BINDING_EXACT, EPISODE_BINDING_LEGACY}:
+                continue
+            fact = by_pack.get(pack_id)
+            if fact is None:
+                continue
+            fact["immediate_confirm_at"] = created_at
+            if event_id:
+                fact["immediate_confirm_evidence_refs"].append(event_id)
+                fact["terminal_evidence_refs"].append(event_id)
+            continue
+        if completion_role == RETEST_ROLE_REVIEW and record.binding not in {
+            EPISODE_BINDING_EXACT,
+            EPISODE_BINDING_LEGACY,
+            EPISODE_BINDING_LEGACY_UNBOUND,
+        }:
+            continue
         fact = by_pack.setdefault(
             pack_id,
             {
@@ -272,19 +276,23 @@ def _pack_retest_facts(
                 "successful_review_streak": 0,
                 "review_cycle_anchor": "",
                 "terminal_evidence_refs": [],
+                "immediate_confirm_at": "",
+                "immediate_confirm_evidence_refs": [],
             },
         )
         fact["last_completion_at"] = created_at
         fact["review_cycle_anchor"] = event_id or completion_id
         if event_id:
             fact["terminal_evidence_refs"].append(event_id)
-        if mode != "review":
+        if completion_role == RETEST_ROLE_FORWARD_PRACTICE:
             # A new forward completion starts a fresh learning cycle.  Older
             # review success must not keep the new cycle on its old 7/14-day
             # clock.
             fact["last_review_at"] = ""
             fact["last_review_status"] = ""
             fact["successful_review_streak"] = 0
+            continue
+        if completion_role != RETEST_ROLE_REVIEW:
             continue
         result = payload.get("prescription_result")
         status = str(result.get("status") or "").strip() if isinstance(result, dict) else ""
@@ -303,6 +311,7 @@ def project_pack_lifecycle(
     claims: list[dict[str, Any]] | None = None,
     pack_ids: list[str] | None = None,
     verified_concepts: set[str] | frozenset[str] = frozenset(),
+    episode_records: Iterable[CanonicalRetestEpisodeRecord] | None = None,
 ) -> dict[str, Any]:
     """派生每 pack 生命周期状态。``claims`` 传 compiled truth 的
     weak_points/claim 列表（含 concept_id/evidence_level/decay_state）——
@@ -318,12 +327,36 @@ def project_pack_lifecycle(
     practiced_packs: dict[str, int] = {}
     unassigned: list[dict[str, Any]] = []
     all_events = list(events or [])
-    retest_closure = committed_retest_closure(all_events)
+    retest_records = tuple(
+        episode_records
+        if episode_records is not None
+        else canonical_retest_episode_records(all_events)
+    )
+    retest_closure = {
+        str(
+            (getattr(record.terminal, "payload_json", None) or {}).get(
+                "retest_completion_id"
+            )
+            or ""
+        ).strip(): tuple(
+            str(getattr(item, "event_id", "") or "").strip()
+            for item in record.items
+        )
+        for record in retest_records
+    }
     committed_item_ids = {
         event_id for refs in retest_closure.values() for event_id in refs
     }
-    retest_by_pack = _pack_retest_facts(all_events, retest_closure)
-    completion_packs = _canonical_completion_packs(all_events, retest_closure)
+    retest_by_pack = _pack_retest_facts(retest_records)
+    completion_packs = {
+        str(
+            (getattr(record.terminal, "payload_json", None) or {}).get(
+                "retest_completion_id"
+            )
+            or ""
+        ).strip(): record.pack_id
+        for record in retest_records
+    }
 
     for event in all_events:
         payload = getattr(event, "payload_json", None) or {}
@@ -416,6 +449,10 @@ def project_pack_lifecycle(
             "successful_review_streak": int(retest.get("successful_review_streak") or 0),
             "review_cycle_anchor": str(retest.get("review_cycle_anchor") or ""),
             "terminal_evidence_refs": list(retest.get("terminal_evidence_refs") or []),
+            "immediate_confirm_at": str(retest.get("immediate_confirm_at") or ""),
+            "immediate_confirm_evidence_refs": list(
+                retest.get("immediate_confirm_evidence_refs") or []
+            ),
         }
 
     return {

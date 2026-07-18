@@ -563,6 +563,8 @@ def test_confirm_facts_forward_serves_variant_probe(monkeypatch) -> None:
     monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
     monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
     monkeypatch.setattr(router, "_variant_probe_enabled", lambda: True)
+    _review_learner(monkeypatch)
+    monkeypatch.setattr(router, "validate_immediate_confirm_parent", lambda *a, **k: True)
     captured: dict = {}
 
     def _probe(pack_id, *, user_id, day_index, probe_role, fact_ids=None, limit=5):
@@ -592,6 +594,7 @@ def test_confirm_facts_forward_serves_variant_probe(monkeypatch) -> None:
             "S05",
             mode="forward",
             confirm_facts="fact-a,fact-b",
+            confirm_anchor="terminal-forward-1",
             current_user=SimpleNamespace(user_id="u1"),
         )
     )
@@ -603,54 +606,45 @@ def test_confirm_facts_forward_serves_variant_probe(monkeypatch) -> None:
     assert captured["probe"]["probe_role"] == "immediate_confirm"
     assert captured["probe"]["fact_ids"] == ["fact-a", "fact-b"]
     assert captured["selection"]["supply_kind"] == "signed_variant"
+    assert captured["selection"]["cycle_anchor"] == "terminal-forward-1"
 
 
-def test_confirm_facts_flag_off_ignores_and_serves_compiled(monkeypatch) -> None:
+def test_confirm_facts_flag_off_fails_closed_without_compiled_fallback(monkeypatch) -> None:
     monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
     monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
     monkeypatch.setattr(router, "_variant_probe_enabled", lambda: False)
-    items = [
-        {
-            "answer_type": "single_choice",
-            "variant_id": f"F16-html-q{index}",
-            "rule_group": f"group-{index}",
-            "stem": f"stem-{index}",
-            "options": [{"option_id": f"q{index}:a", "text": "A"}],
-        }
-        for index in range(5)
-    ]
-    monkeypatch.setattr(router, "build_retest_items", lambda *a, **k: items)
-    monkeypatch.setattr(
-        router,
-        "retest_supply_identity",
-        lambda *a, **k: {"kind": "compiled_html", "digest": "a" * 64},
-    )
-    monkeypatch.setattr(
-        router,
-        "compiled_practice_pool_meta",
-        lambda *a, **k: {"core_total": 16, "rule_groups_total": 6},
-    )
-    monkeypatch.setattr(router, "issue_retest_selection", lambda **k: "signed-five")
 
-    result = asyncio.run(
-        router.retest_items(
-            "F16",
-            mode="forward",
-            confirm_facts="fact-a",
-            current_user=SimpleNamespace(user_id="u1"),
+    def _no_compiled(*_args, **_kwargs):
+        raise AssertionError("confirm must never downgrade to compiled forward")
+
+    monkeypatch.setattr(router, "build_retest_items", _no_compiled)
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_items(
+                "F16",
+                mode="forward",
+                confirm_facts="fact-a",
+                confirm_anchor="terminal-forward-1",
+                current_user=SimpleNamespace(user_id="u1"),
+            )
         )
-    )
 
-    assert result["practice_source"] == "compiled_html"
-    assert result["confirm_facts_ready"] == []  # 旗标关 → 入口不亮
+    assert exc.value.status_code == 404
 
 
 def test_confirm_facts_no_supply_returns_404(monkeypatch) -> None:
     monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
     monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
     monkeypatch.setattr(router, "_variant_probe_enabled", lambda: True)
+    _review_learner(monkeypatch)
+    monkeypatch.setattr(router, "validate_immediate_confirm_parent", lambda *a, **k: True)
     monkeypatch.setattr(router, "build_variant_probe_items", lambda *a, **k: [])
-    monkeypatch.setattr(router, "build_retest_items", lambda *a, **k: [])
+
+    def _no_compiled(*_args, **_kwargs):
+        raise AssertionError("confirm supply failure must not enter compiled fallback")
+
+    monkeypatch.setattr(router, "build_retest_items", _no_compiled)
 
     with pytest.raises(HTTPException) as exc:
         asyncio.run(
@@ -658,11 +652,31 @@ def test_confirm_facts_no_supply_returns_404(monkeypatch) -> None:
                 "S05",
                 mode="forward",
                 confirm_facts="fact-none",
+                confirm_anchor="terminal-forward-1",
                 current_user=SimpleNamespace(user_id="u1"),
             )
         )
 
     assert exc.value.status_code == 404
+
+
+def test_confirm_facts_rejects_missing_parent_anchor(monkeypatch) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+    monkeypatch.setattr(router, "_variant_probe_enabled", lambda: True)
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_items(
+                "S05",
+                mode="forward",
+                confirm_facts="fact-a",
+                current_user=SimpleNamespace(user_id="u1"),
+            )
+        )
+
+    assert exc.value.status_code == 400
+    assert exc.value.detail == "retest_confirm_anchor_required"
 
 
 def test_compiled_forward_exposes_confirm_facts_ready(monkeypatch) -> None:
@@ -693,15 +707,8 @@ def test_compiled_forward_exposes_confirm_facts_ready(monkeypatch) -> None:
     monkeypatch.setattr(router, "issue_retest_selection", lambda **k: "signed-five")
     monkeypatch.setattr(
         router,
-        "resolve_variant_supply",
-        lambda *a, **k: {
-            "summary": {
-                "facts": {
-                    "fact-a": {"immediate_confirm": 2, "d1_probe": 1},
-                    "fact-b": {"immediate_confirm": 0, "d1_probe": 1},
-                }
-            }
-        },
+        "variant_probe_fact_ids",
+        lambda *a, **k: frozenset({"fact-a"}),
     )
 
     result = asyncio.run(

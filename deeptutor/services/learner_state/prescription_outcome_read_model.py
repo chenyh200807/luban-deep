@@ -12,15 +12,32 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable
 
 from deeptutor.services.learner_state.evidence_lifecycle import (
-    committed_retest_completion_ids,
+    EPISODE_BINDING_EXACT,
+    EPISODE_BINDING_LEGACY,
+    EPISODE_BINDING_LEGACY_UNBOUND,
+    RETEST_ROLE_FORWARD_PRACTICE,
+    RETEST_ROLE_REVIEW,
+    canonical_retest_episode_records,
     is_canonical_luban_retest_terminal,
 )
 
 _TZ = timezone(timedelta(hours=8))
+_ACTIVE_PRACTICE_STATUSES = frozenset({"assigned", "in_progress", "needs_followup"})
+
+
+def requires_active_practice(outcome: dict[str, Any] | None) -> bool:
+    """Single workflow predicate for the home practice arm.
+
+    Verification outcomes and a closed forward practice are owned by the
+    revalidation cadence.  They must never be re-opened as generic practice.
+    """
+    return str(_safe_dict(outcome).get("status") or "").strip() in _ACTIVE_PRACTICE_STATUSES
 
 
 def build_prescription_outcomes_read_projection(
-    *, events: Iterable[Any]
+    *,
+    events: Iterable[Any],
+    episode_records: Iterable[Any] | None = None,
 ) -> list[dict[str, Any]]:
     grouped: dict[str, list[Any]] = defaultdict(list)
     unlinked: list[dict[str, Any]] = []
@@ -31,6 +48,21 @@ def build_prescription_outcomes_read_projection(
             str(getattr(event, "event_id", "") or ""),
         ),
     )
+    episode_records = tuple(
+        episode_records
+        if episode_records is not None
+        else canonical_retest_episode_records(ordered)
+    )
+    committed_retest_ids = {
+        str(
+            _safe_dict(getattr(record.terminal, "payload_json", {})).get(
+                "retest_completion_id"
+            )
+            or ""
+        ).strip()
+        for record in episode_records
+    }
+    committed_retest_ids.discard("")
     for event in ordered:
         payload = _safe_dict(getattr(event, "payload_json", {}))
         if not _has_prescription_signal(payload):
@@ -42,7 +74,12 @@ def build_prescription_outcomes_read_projection(
         grouped[intent_id].append(event)
 
     outcomes = [
-        _prescription_outcome(intent_id, group)
+        _prescription_outcome(
+            intent_id,
+            group,
+            episode_records=episode_records,
+            committed_retest_ids=committed_retest_ids,
+        )
         for intent_id, group in grouped.items()
     ]
     outcomes.extend(unlinked)
@@ -80,7 +117,13 @@ def _unlinked_prescription_outcome(event: Any) -> dict[str, Any]:
     }
 
 
-def _prescription_outcome(training_intent_id: str, events: list[Any]) -> dict[str, Any]:
+def _prescription_outcome(
+    training_intent_id: str,
+    events: list[Any],
+    *,
+    episode_records: Iterable[Any],
+    committed_retest_ids: set[str],
+) -> dict[str, Any]:
     ordered = sorted(
         list(events or []),
         key=lambda event: (
@@ -107,19 +150,73 @@ def _prescription_outcome(training_intent_id: str, events: list[Any]) -> dict[st
         latest_result.get("score_ratio", latest_payload.get("score_ratio"))
     )
 
-    committed_retest_ids = committed_retest_completion_ids(ordered)
+    group_event_ids = {
+        str(getattr(event, "event_id", "") or "").strip()
+        for event in ordered
+        if str(getattr(event, "event_id", "") or "").strip()
+    }
+    workflow_records = [
+        record
+        for record in episode_records
+        if str(getattr(record.terminal, "event_id", "") or "").strip()
+        in group_event_ids
+        and record.role in {RETEST_ROLE_FORWARD_PRACTICE, RETEST_ROLE_REVIEW}
+        and record.binding
+        in {
+            EPISODE_BINDING_EXACT,
+            EPISODE_BINDING_LEGACY,
+            EPISODE_BINDING_LEGACY_UNBOUND,
+        }
+    ]
+    allowed_retest_terminal_ids = {
+        str(getattr(record.terminal, "event_id", "") or "").strip()
+        for record in workflow_records
+    }
     verified_probe = _latest_grading_probe(
         ordered,
         require_success=True,
         committed_retest_ids=committed_retest_ids,
+        allowed_retest_terminal_ids=allowed_retest_terminal_ids,
     )
     failed_probe = _latest_grading_probe(
         ordered,
         require_success=False,
         committed_retest_ids=committed_retest_ids,
+        allowed_retest_terminal_ids=allowed_retest_terminal_ids,
     )
+    latest_record = workflow_records[-1] if workflow_records else None
+    latest_terminal = latest_record.terminal if latest_record is not None else None
+    latest_terminal_role = latest_record.role if latest_record is not None else ""
 
-    if verified_probe is not None and evidence_refs:
+    if latest_terminal_role == RETEST_ROLE_FORWARD_PRACTICE:
+        status = "completed"
+        next_required_action = "wait_for_due_verification"
+        terminal_payload = _safe_dict(getattr(latest_terminal, "payload_json", {}))
+        terminal_result = _safe_dict(terminal_payload.get("prescription_result"))
+        score_ratio = _score_ratio_value(
+            terminal_result.get("score_ratio", terminal_payload.get("score_ratio"))
+        )
+        latest_phase = str(
+            terminal_payload.get("prescription_phase") or latest_phase
+        ).strip()
+    elif latest_terminal_role == RETEST_ROLE_REVIEW:
+        terminal_payload = _safe_dict(getattr(latest_terminal, "payload_json", {}))
+        terminal_result = _safe_dict(terminal_payload.get("prescription_result"))
+        verified = str(terminal_result.get("status") or "").strip() == "verified"
+        status = "verified" if verified else "not_verified"
+        next_required_action = "maintain" if verified else "retry_verification_probe"
+        score_ratio = _score_ratio_value(
+            terminal_result.get("score_ratio", terminal_payload.get("score_ratio"))
+        )
+        verified_at = (
+            str(getattr(latest_terminal, "created_at", "") or "").strip()
+            if verified
+            else ""
+        )
+        latest_phase = str(
+            terminal_payload.get("prescription_phase") or latest_phase
+        ).strip()
+    elif verified_probe is not None and evidence_refs:
         status = "verified"
         next_required_action = "maintain"
         verified_payload = _safe_dict(getattr(verified_probe, "payload_json", {}))
@@ -144,6 +241,7 @@ def _prescription_outcome(training_intent_id: str, events: list[Any]) -> dict[st
     elif _assigned_needs_followup(
         ordered,
         committed_retest_ids=committed_retest_ids,
+        allowed_retest_terminal_ids=allowed_retest_terminal_ids,
     ):
         status = "needs_followup"
         next_required_action = "resume_prescription"
@@ -183,6 +281,7 @@ def _latest_grading_probe(
     *,
     require_success: bool,
     committed_retest_ids: set[str],
+    allowed_retest_terminal_ids: set[str],
 ) -> Any | None:
     for event in reversed(list(events or [])):
         if not str(getattr(event, "event_id", "") or "").strip():
@@ -195,6 +294,10 @@ def _latest_grading_probe(
         is_canonical_retest = is_canonical_luban_retest_terminal(event)
         completion_id = str(payload.get("retest_completion_id") or "").strip()
         if is_canonical_retest and completion_id not in committed_retest_ids:
+            continue
+        if is_canonical_retest and str(
+            getattr(event, "event_id", "") or ""
+        ).strip() not in allowed_retest_terminal_ids:
             continue
         carries_retest_identity = bool(
             str(payload.get("retest_completion_id") or "").strip()
@@ -238,6 +341,7 @@ def _assigned_needs_followup(
     events: list[Any],
     *,
     committed_retest_ids: set[str],
+    allowed_retest_terminal_ids: set[str],
 ) -> bool:
     assigned = [
         event
@@ -254,10 +358,12 @@ def _assigned_needs_followup(
         list(events or []),
         require_success=True,
         committed_retest_ids=committed_retest_ids,
+        allowed_retest_terminal_ids=allowed_retest_terminal_ids,
     ) or _latest_grading_probe(
         list(events or []),
         require_success=False,
         committed_retest_ids=committed_retest_ids,
+        allowed_retest_terminal_ids=allowed_retest_terminal_ids,
     )
     if latest_probe is not None:
         return False
@@ -294,4 +400,4 @@ def _safe_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-__all__ = ["build_prescription_outcomes_read_projection"]
+__all__ = ["build_prescription_outcomes_read_projection", "requires_active_practice"]

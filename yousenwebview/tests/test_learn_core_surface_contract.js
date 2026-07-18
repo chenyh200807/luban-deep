@@ -39,9 +39,9 @@ assert(
 assert(learnVm.indexOf("从这里开始") >= 0, "browse task must use a 推荐起点 kicker, not a 今日任务 claim");
 // 复习模块无到期时渲染诚实空态(10a改),而非整块消失。
 assert(
-  learnWxml.indexOf("!supplyError && !vm.reviewCard") >= 0 &&
+  learnWxml.indexOf("!supplyError && vm.taskAuthorityAvailable && !vm.reviewCard") >= 0 &&
     learnWxml.indexOf("暂无到期考点") >= 0,
-  "review module must render an honest empty state when nothing is due (never vanish)",
+  "review empty state requires known task authority; partial reads must stay unknown",
 );
 // 10a改:复习卡是到期状态视图,点击必须复用任务卡同一 handler(goTodayTask),
 // 因此 canonical 路由入口恰好 2 处(任务卡主按钮 + 复习卡),不允许更多。
@@ -77,9 +77,16 @@ assert(
 ["半写", "填空"].forEach(function (needle) {
   assert.strictEqual(learnVm.indexOf(needle), -1, "journey must not fabricate a nonexistent step: " + needle);
 });
-// 红队 A1:前端无逐步完成证据 → 禁 done 勾/进度线跨未完成节点/写死复习日程
+// 六步完成态只许消费服务端 projection；仍禁前端自画跨步进度线与伪造勾选。
 assert.strictEqual(learnWxml.indexOf("lr-jline-fill"), -1, "journey must not draw a progress line across unverified steps");
 assert.strictEqual(learnWxml.indexOf("lr-jnode-check"), -1, "journey must not render done checkmarks without completion evidence");
+assert(learnVm.indexOf("station_journey_projection.read_model") >= 0, "journey must consume the canonical server projection");
+assert.strictEqual(learnVm.indexOf("_journeyFor"), -1, "next_step modes must not infer six-step completion");
+assert(
+  learnWxml.indexOf("{{vm.nextStation.journey.statusText}}") >= 0 &&
+    learnWxml.indexOf("{{vm.nextStation.journey.currentIndex}}/{{vm.nextStation.journey.total}}") < 0,
+  "unknown journey must render an honest status instead of a fake 0/6 position",
+);
 
 // ── owner 2026-07-18 对齐第10轮定稿 10a:收回 #512/#514 两卡拆分 ──
 // 站点身份与学习旅程回到同一张「一体化站点卡」(lr-lesson):头部行(下一站·pack +
@@ -161,16 +168,19 @@ assert.strictEqual(learnVm.indexOf("昨天的"), -1, "review copy must not claim
 // recent_three_done 是作答计数,禁用「次」冒充练习会话数(合同意图不变)。
 assert(
   learnWxml.indexOf("近 3 天练习") >= 0 &&
-    learnWxml.indexOf("{{vm.stats.recent_practice || 0}} 道") >= 0,
+    learnWxml.indexOf("vm.progressAvailable ? vm.stats.recent_practice : '—'") >= 0,
   "recent_three_done must be labeled as answer count rather than practice sessions",
 );
 // 三指标卡③已验证考点:只许消费 view-model 的 mastered 事实计数
 // (verified_stations,terminal 证据),禁前端自算/禁掌握百分比。
 assert(
   learnWxml.indexOf("已验证考点") >= 0 &&
-    learnWxml.indexOf("{{vm.stats.verified_stations || 0}} 站") >= 0,
+    learnWxml.indexOf("vm.progressAvailable ? vm.stats.verified_stations : '—'") >= 0,
   "verified stations metric must project vm.stats.verified_stations (mastered fact count)",
 );
+assert.strictEqual(learnWxml.indexOf("vm.litCount || 0"), -1, "unknown route progress must not become 0");
+assert(learnJs.indexOf("taskAuthorityAvailable: false") >= 0, "partial reads must fail-close task authority");
+assert(learnJs.indexOf("actionsEnabled === false") >= 0, "stale/partial actions must be blocked");
 
 ["goReview", "goSwitchPractice", "goSeethrough", "route.lubanReview", "getLubanSeethroughLibrary", "F16"].forEach(function (needle) {
   assert.strictEqual(learnJs.indexOf(needle), -1, "learn.js must not retain first-class legacy surface: " + needle);
@@ -203,7 +213,7 @@ vm.runInNewContext(learnJs, {
 
 function navigate(task) {
   var page = {
-    data: { vm: { todayTask: task } },
+    data: { vm: { todayTask: task, actionsEnabled: true } },
     _navTo: pageDef._navTo,
   };
   pageDef.goTodayTask.call(page);
@@ -229,7 +239,7 @@ assert.strictEqual(
 // ── 轻练旁按钮:供给真值路由 forward;未接通→诚实 toast,零导航 ──
 function lightPractice(task) {
   var page = {
-    data: { vm: { todayTask: task } },
+    data: { vm: { todayTask: task, actionsEnabled: true } },
     _navTo: pageDef._navTo,
   };
   pageDef.goLightPractice.call(page);
@@ -259,7 +269,7 @@ assert.strictEqual(toasts.pop(), "快练准备中", "no supply must surface the 
 // ── 视频学习卡 goLesson:进站学习/舞台播放 → 站点页;card_hosted=false 诚实降级 ──
 function enterStation(station) {
   var page = {
-    data: { vm: { nextStation: station } },
+    data: { vm: { nextStation: station, actionsEnabled: true } },
     _navTo: pageDef._navTo,
   };
   pageDef.goLesson.call(page);

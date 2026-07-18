@@ -14,6 +14,7 @@ from deeptutor.services.construction_grading.learning_evidence import compute_qu
 from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.evidence_lifecycle import (
+    canonical_retest_episode_records,
     committed_retest_item_event_ids,
     event_promotion_allowed,
     evidence_attempt_id,
@@ -72,9 +73,14 @@ def _build_learning_state_from(*, events: list[Any]) -> dict[str, Any]:
     return project_three_layer_learning_state(events=events)
 
 
-def _build_prescription_outcomes_from(*, events: list[Any]) -> list[dict[str, Any]]:
+def _build_prescription_outcomes_from(
+    *, events: list[Any], episode_records: tuple[Any, ...] | None = None
+) -> list[dict[str, Any]]:
     """Batch D Task 9: thin composer over the sibling read projection."""
-    return build_prescription_outcomes_read_projection(events=events)
+    return build_prescription_outcomes_read_projection(
+        events=events,
+        episode_records=episode_records,
+    )
 
 
 def aggregate_attempts_by_label(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
@@ -84,7 +90,12 @@ def aggregate_attempts_by_label(events: list[Any]) -> dict[str, list[dict[str, A
     return _aggregate_learning_evidence(_learning_evidence_events(list(events or [])))["attempts_by_label"]
 
 
-def _build_pack_lifecycle_from(*, events: list[Any], weak_points: list[dict[str, Any]]) -> dict[str, Any]:
+def _build_pack_lifecycle_from(
+    *,
+    events: list[Any],
+    weak_points: list[dict[str, Any]],
+    episode_records: tuple[Any, ...] | None = None,
+) -> dict[str, Any]:
     """融合计划 §1：per-pack 生命周期投影（蓝环/掌握双轨）——thin composer。
     投影数据文件缺失时降级为空投影，不拖垮整份 report。"""
     try:
@@ -92,13 +103,62 @@ def _build_pack_lifecycle_from(*, events: list[Any], weak_points: list[dict[str,
             project_pack_lifecycle,
         )
 
-        return project_pack_lifecycle(events=events, claims=weak_points)
+        return project_pack_lifecycle(
+            events=events,
+            claims=weak_points,
+            episode_records=episode_records,
+        )
     except Exception:
         return {
             "authority": "pack_lifecycle_projection.read_model",
             "packs": {},
             "unassigned_practice": [],
             "degraded": True,
+        }
+
+
+def _build_station_journey_from(
+    *,
+    events: list[Any],
+    pack_lifecycle: dict[str, Any],
+    pack_review: dict[str, Any],
+    events_available: bool,
+    episode_records: tuple[Any, ...] | None = None,
+) -> dict[str, Any]:
+    """Thin composer over canonical closures, lifecycle and review due."""
+    try:
+        from deeptutor.services.learner_state.station_journey_projection import (
+            project_station_journeys,
+        )
+        from deeptutor.services.luban_lesson.variant_eligibility import (
+            variant_probe_fact_ids,
+        )
+
+        confirm_enabled = str(
+            os.getenv("LUBAN_VARIANT_PROBE_ENABLED", "") or ""
+        ).strip().lower() in {"1", "true", "yes", "on"}
+
+        def _confirm_facts(pack_id: str) -> frozenset[str]:
+            if not confirm_enabled:
+                return frozenset()
+            return variant_probe_fact_ids(pack_id, probe_role="immediate_confirm")
+
+        return project_station_journeys(
+            events=events,
+            pack_lifecycle=pack_lifecycle,
+            pack_review=pack_review,
+            confirm_fact_resolver=_confirm_facts,
+            events_available=events_available,
+            episode_records=episode_records,
+        )
+    except Exception:
+        return {
+            "authority": "station_journey_projection.read_model",
+            "schema_version": 1,
+            "degraded": True,
+            "degraded_sources": ["station_journey_projection"],
+            "step_ids": [],
+            "packs": {},
         }
 
 
@@ -109,6 +169,7 @@ def _build_pack_review_from(
     home_dashboard: dict[str, Any],
     events_available: bool = True,
     settings_available: bool = True,
+    pack_lifecycle: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Cross-module pack review slice over the existing scheduler authority."""
     enabled = str(os.getenv("LUBAN_REVIEW_MODULE_ENABLED", "") or "").strip().lower() in {
@@ -145,6 +206,7 @@ def _build_pack_review_from(
             user_id=user_id,
             events=events,
             exam_date_iso=str(settings.get("exam_date") or ""),
+            pack_lifecycle=pack_lifecycle,
         )
         projection["enabled"] = True
         return projection
@@ -329,12 +391,26 @@ def build_learning_report_read_model(
             if isinstance(item, dict) and str(item.get("name") or "").strip()
         ]
 
+    episode_records = canonical_retest_episode_records(all_events)
+    pack_lifecycle = _build_pack_lifecycle_from(
+        events=all_events,
+        weak_points=weak_points,
+        episode_records=episode_records,
+    )
     pack_review = _build_pack_review_from(
         user_id=normalized_user,
         events=all_events,
         home_dashboard=home_dashboard,
         events_available=source_status["learner_events"].get("ok") is True,
         settings_available=source_status["home_dashboard"].get("ok") is True,
+        pack_lifecycle=pack_lifecycle,
+    )
+    station_journey = _build_station_journey_from(
+        events=all_events,
+        pack_lifecycle=pack_lifecycle,
+        pack_review=pack_review,
+        events_available=source_status["learner_events"].get("ok") is True,
+        episode_records=episode_records,
     )
     pack_review_known = pack_review.get("enabled") is True and pack_review.get("degraded") is not True
     progress_feedback = build_progress_feedback(
@@ -440,7 +516,10 @@ def build_learning_report_read_model(
         if flag_state["action_loop"]
         else _empty_scoring_point_map("feature_flag_off")
     )
-    prescription_outcomes = _build_prescription_outcomes_from(events=all_events)
+    prescription_outcomes = _build_prescription_outcomes_from(
+        events=all_events,
+        episode_records=episode_records,
+    )
     learning_state = (
         _build_learning_state_from(events=events)
         if flag_state["state_projection"]
@@ -472,6 +551,7 @@ def build_learning_report_read_model(
             "note_assets_source": "learner_notebook_cards",
             "today_tasks_source": "learning-report-read-model.note_assets",
             "pack_review_source": "pack_lifecycle_projection -> revalidation_queue",
+            "station_journey_source": "station_journey_projection.read_model",
             "deprecated_page_sources": list(_DEPRECATED_PAGE_SOURCES),
         },
         "degraded": degraded,
@@ -517,7 +597,9 @@ def build_learning_report_read_model(
         "learning_state": learning_state,
         # 融合计划 §1：per-pack 生命周期（未学/已学·待验证/练过/真懂/休眠）——
         # 蓝环（接触轨）与红黄绿（掌握轨）拆开，供前端第 11 轮增量稿消费。
-        "pack_lifecycle": _build_pack_lifecycle_from(events=all_events, weak_points=weak_points),
+        "pack_lifecycle": pack_lifecycle,
+        # 六步站点闭环：只读 canonical evidence + due，不决定 CTA。
+        "station_journey": station_journey,
         # D-class: student-visible long-term analytics (recurrent errors + trend).
         # Pure read projection — derived from learning_brain.weak_points.occurrence_timeline.
         "long_term_analytics": _build_long_term_analytics(learning_brain),

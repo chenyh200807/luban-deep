@@ -121,6 +121,15 @@ def _completion_events(terminal: LearnerStateEvent) -> list[LearnerStateEvent]:
             "event_type": "learning_evidence",
             "retest_completion_id": completion_id,
             "request_hash": payload["request_hash"],
+            **(
+                {
+                    "request_hash_version": payload.get("request_hash_version"),
+                    "probe_id": payload.get("probe_id", ""),
+                    "cycle_anchor": payload.get("cycle_anchor", ""),
+                }
+                if payload.get("request_hash_version") is not None
+                else {}
+            ),
             "practice_mode": payload["practice_mode"],
             "pack_id": payload["pack_id"],
             "target_pack_id": payload["target_pack_id"],
@@ -351,6 +360,82 @@ def test_compiled_forward_terminal_is_canonical_for_lifecycle_only() -> None:
     assert n01["last_completion_at"] == terminal.created_at
     assert n01["terminal_evidence_refs"] == [terminal.event_id]
     assert projection["unassigned_practice"] == []
+
+
+def test_immediate_confirm_terminal_does_not_restart_forward_review_cycle() -> None:
+    forward = _compiled_forward_terminal()
+    forward.event_id = "terminal_forward"
+    forward.source_id = "forward:terminal"
+    forward.created_at = "2026-07-04T09:00:00+08:00"
+    forward.payload_json["retest_completion_id"] = "forward"
+    forward.payload_json["item_event_refs"] = ["item_forward"]
+    forward.payload_json.update(
+        {"score_awarded": 0.0, "score_ratio": 0.0, "request_hash_version": 3}
+    )
+    forward.payload_json["prescription_result"].update(
+        {"status": "not_verified", "score_ratio": 0.0}
+    )
+
+    confirm = _compiled_forward_terminal()
+    confirm.event_id = "terminal_confirm"
+    confirm.source_id = "confirm:terminal"
+    confirm.created_at = "2026-07-04T09:05:00+08:00"
+    confirm.payload_json["retest_completion_id"] = "confirm"
+    confirm.payload_json["item_event_refs"] = ["item_confirm"]
+    confirm.payload_json["request_hash_version"] = 3
+    confirm.payload_json["cycle_anchor"] = "terminal_forward"
+
+    forward_events = _completion_events(forward)
+    forward_events[0].payload_json.update(
+        {"fact_id": "fact-n01", "probe_role": "anchor"}
+    )
+    confirm_events = _completion_events(confirm)
+    confirm_events[0].payload_json.update(
+        {"probe_role": "immediate_confirm", "fact_id": "fact-n01"}
+    )
+
+    projection = project_pack_lifecycle(
+        events=[*forward_events, *confirm_events], claims=[], pack_ids=_PACK_IDS
+    )
+
+    n01 = projection["packs"]["N01"]
+    assert n01["last_completion_at"] == forward.created_at
+    assert n01["review_cycle_anchor"] == forward.event_id
+    assert n01["immediate_confirm_at"] == confirm.created_at
+
+
+def test_wrong_review_cycle_anchor_cannot_move_pack_clock() -> None:
+    forward = _compiled_forward_terminal()
+    forward.event_id = "terminal_forward"
+    forward.source_id = "forward:terminal"
+    forward.payload_json.update(
+        {
+            "retest_completion_id": "forward",
+            "item_event_refs": ["item_forward"],
+            "request_hash_version": 3,
+        }
+    )
+    review = _signed_terminal()
+    review.event_id = "terminal_review"
+    review.source_id = "review:terminal"
+    review.payload_json.update(
+        {
+            "retest_completion_id": "review",
+            "item_event_refs": ["item_review"],
+            "request_hash_version": 3,
+            "probe_id": "probe-review",
+            "cycle_anchor": "terminal-from-another-cycle",
+        }
+    )
+    projection = project_pack_lifecycle(
+        events=[*_completion_events(forward), *_completion_events(review)],
+        claims=[],
+        pack_ids=_PACK_IDS,
+    )
+    n01 = projection["packs"]["N01"]
+    assert n01["review_cycle_anchor"] == "terminal_forward"
+    assert n01["last_review_at"] == ""
+    assert n01["successful_review_streak"] == 0
 
 
 def test_compiled_authority_cannot_impersonate_review_terminal() -> None:

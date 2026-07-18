@@ -1173,6 +1173,11 @@ def _pin_variant_probe(
     )
     monkeypatch.setattr(
         module,
+        "validate_immediate_confirm_parent",
+        lambda *a, **k: True,
+    )
+    monkeypatch.setattr(
+        module,
         "build_lesson_viewmodel",
         lambda pack_id: {"pack_id": pack_id, "title": "S05 送电停电顺序"},
     )
@@ -1198,7 +1203,7 @@ def _complete_probe(
         supply_kind="signed_variant",
         supply_digest=_PROBE_DIGEST,
         probe_id=str(over.get("probe_id") or ""),
-        cycle_anchor="cycle-s05-v1" if canonical_mode == "review" else "",
+        cycle_anchor="cycle-s05-v1",
     )
     payload = {
         "user_id": "qa_eval_first_run_loop",
@@ -1257,6 +1262,29 @@ def test_variant_probe_forward_completes_full_chain(
         for e in item_events
     )
     assert all(e.payload_json["claim_promotion_allowed"] is False for e in item_events)
+    terminal = next(
+        e for e in learner.events if e.payload_json.get("completion_terminal") is True
+    )
+    assert terminal.payload_json["cycle_anchor"] == "cycle-s05-v1"
+
+
+def test_variant_probe_forward_rejects_invalid_parent_before_append(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _pin_variant_probe(monkeypatch, rows=_probe_rows())
+    monkeypatch.setattr(
+        module,
+        "validate_immediate_confirm_parent",
+        lambda *a, **k: False,
+    )
+    learner = _LearnerState()
+    with pytest.raises(ValueError, match="retest_confirm_parent_invalid"):
+        _complete_probe(
+            _probe_service(learner),
+            mode="forward",
+            answers=_probe_answers(first=True, second=False),
+        )
+    assert learner.events == []
 
 
 def test_variant_probe_supply_drift_rejects_before_write(

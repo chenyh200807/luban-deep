@@ -3,6 +3,7 @@ var assert = require("assert");
 var fs = require("fs");
 var path = require("path");
 var vm = require("vm");
+var realReportSnapshot = require("../packageDeeptutor/utils/report-snapshot");
 
 function flushPromises() {
   return new Promise(function (resolve) { setTimeout(resolve, 0); });
@@ -25,9 +26,21 @@ function loadLearn(options) {
     require: function (request) {
       if (request === "../../utils/api") {
         return {
-          getLubanLessons: function () { return Promise.resolve({}); },
-          getHomeDashboard: function () { return Promise.resolve({}); },
-          getLearningReport: function () { return Promise.resolve({}); },
+          getLubanLessons: function () {
+            return Promise.resolve({ pack_universe: 1, lessons: [{ pack_id: "c04" }] });
+          },
+          getHomeDashboard: function () {
+            return Promise.resolve({ learner_settings: {}, review: {}, mastery: {}, today: {} });
+          },
+          getLearningReport: function () {
+            return Promise.resolve({
+              schema_version: 2,
+              authority: { read_model: "learning-report-read-model" },
+              overview: {},
+              freshness: {},
+              learning_brain: {},
+            });
+          },
           getLubanSeethroughLibrary: function () { return Promise.resolve({}); },
           unwrapResponse: function (value) { return value; },
           completeFirstRun: function (payload, requestOptions) {
@@ -41,6 +54,7 @@ function loadLearn(options) {
           },
           errorCodeOf: function () { return "unknown_error"; },
           getAssessmentProfile: function () { return Promise.resolve({}); },
+          describeRequestError: function (_error, fallback) { return fallback; },
         };
       }
       if (request === "../first-run/script-data") {
@@ -87,6 +101,7 @@ function loadLearn(options) {
       if (request === "../../utils/surface-telemetry") {
         return { trackModuleView: function () {}, trackModuleExit: function () {} };
       }
+      if (request === "../../utils/report-snapshot") return realReportSnapshot;
       throw new Error("unexpected require: " + request);
     },
     wx: {

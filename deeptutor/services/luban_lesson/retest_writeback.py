@@ -9,6 +9,7 @@ from typing import Any
 from deeptutor.services.learner_state.evidence_lifecycle import (
     canonical_retest_item_events,
     is_canonical_luban_retest_terminal,
+    validate_immediate_confirm_parent,
 )
 from deeptutor.services.learner_state.learner_signal import record_learner_signal
 from deeptutor.services.luban_lesson.practice_html import is_compiled_practice_pack
@@ -307,6 +308,34 @@ class RetestWritebackService:
         if set(canonical_by_id) != {item["variant_id"] for item in normalized_answers}:
             raise ValueError("retest_answer_set_mismatch")
 
+        issued_roles = {
+            str(item.get("probe_role") or "").strip()
+            for item in canonical_items
+        }
+        immediate_confirm = (
+            normalized_mode == "forward"
+            and issued_roles == {"immediate_confirm"}
+        )
+        if immediate_confirm:
+            confirm_facts = {
+                str(item.get("fact_id") or "").strip()
+                for item in canonical_items
+                if str(item.get("fact_id") or "").strip()
+            }
+            parent_events = list(
+                self._learner_state.list_memory_events(normalized_user, limit=None)
+                or []
+            )
+            if not validate_immediate_confirm_parent(
+                parent_events,
+                pack_id=normalized_pack,
+                parent_terminal_id=cycle_anchor,
+                fact_ids=confirm_facts,
+            ):
+                raise ValueError("retest_confirm_parent_invalid")
+        elif normalized_mode == "forward" and cycle_anchor:
+            raise ValueError("retest_forward_cycle_anchor_invalid")
+
         title = str(lesson.get("title") or normalized_pack).strip()
         scored: list[dict[str, Any]] = []
         for answer in normalized_answers:
@@ -566,11 +595,18 @@ class RetestWritebackService:
                     ),
                 ],
             }
-            if is_variant_probe_item:
-                # additive：变体探针 fact/probe_role 溯源（gauntlet 同形 forward
-                # completion 靠 probe_role 区分；review d1_probe 场标记档位）。
-                payload["fact_id"] = str(item.get("fact_id") or "")
-                payload["probe_role"] = str(item.get("probe_role") or "")
+            # Additive provenance from the canonical issued item.  Compiled
+            # anchor MCQs also carry fact_id/probe_role; persisting them lets
+            # restart/cross-device projections determine whether a wrong fact
+            # has a safe immediate-confirm supply without guessing from today’s
+            # mutable catalog.  Historical rows without these fields remain
+            # fail-closed.
+            fact_id = str(item.get("fact_id") or "").strip()
+            probe_role = str(item.get("probe_role") or "").strip()
+            if fact_id:
+                payload["fact_id"] = fact_id
+            if probe_role:
+                payload["probe_role"] = probe_role
             event = self._learner_state.append_memory_event(
                 normalized_user,
                 source_feature=SOURCE_FEATURE,
