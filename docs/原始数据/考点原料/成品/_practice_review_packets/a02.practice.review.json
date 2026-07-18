@@ -1,0 +1,1791 @@
+{
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "A02",
+  "source_pack_sha256": "ebc3b0793d53451b31324e6b212f5f45f5e70576b76254bab0c211f1619aa80b",
+  "source_bundle_sha256": "5fbb57dea7d03e4a85ba82bb91d18de87bcd73bb19382e979c76b88cfdaacebb",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 24,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "A02-html-practice-html-q1-728f764294c4",
+      "surface_id": "practice.html",
+      "stem": "一批钢筋运到现场，作为施工方进场验收，最先应做的是？",
+      "options": [
+        {
+          "text": "核查质量证明文件，检查品种、规格、数量、外观，挂牌标识并登记收料台账",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q1-728f764294c4:option-1"
+        },
+        {
+          "text": "只要随车带出厂合格证，即可直接入库投入使用",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q1-728f764294c4:option-2"
+        },
+        {
+          "text": "先送第三方做全项复验，合格后再办进场手续",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q1-728f764294c4:option-3"
+        },
+        {
+          "text": "通知监理旁站见证后方可卸车",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q1-728f764294c4:option-4"
+        }
+      ],
+      "model_answer": "核查质量证明文件，检查品种、规格、数量、外观，挂牌标识并登记收料台账",
+      "rule_group": "进场关·材料进场验收",
+      "content_sha256": "c99f01123a2b17165d7dd225bd92a7cd27557ecb45eb0edb041b915950715373",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q1",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "a02-fact-material-entry-acceptance",
+        "skeleton_id": "a02-skel-进场验收内容枚举",
+        "probe_role": "anchor",
+        "source_anchor": "ca:1A438000_150_0241",
+        "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "c99f01123a2b17165d7dd225bd92a7cd27557ecb45eb0edb041b915950715373",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "进场验收=凭证/数量规格/外观/挂牌待检/台账, 教材卡 ca:...150_0241(验收内容,挂牌标识,待检标识)直接覆盖。工单: 正确项最长+固定首位。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q2-2de44e410ea8",
+      "surface_id": "practice.html",
+      "stem": "下列关于材料复验的说法，正确的是？",
+      "options": [
+        {
+          "text": "涉及安全、节能、环保的主要材料须复验并经监理认可后方可使用",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q2-2de44e410ea8:option-1"
+        },
+        {
+          "text": "只要有出厂合格证的材料一律无需复验",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q2-2de44e410ea8:option-2"
+        },
+        {
+          "text": "所有进场材料都必须做见证取样复验",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q2-2de44e410ea8:option-3"
+        },
+        {
+          "text": "是否复验由施工单位自行决定",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q2-2de44e410ea8:option-4"
+        }
+      ],
+      "model_answer": "涉及安全、节能、环保的主要材料须复验并经监理认可后方可使用",
+      "rule_group": "进场关·复验触发原则",
+      "content_sha256": "dbaee871a4c73308eaffcf0b6769894a0771a9cc9f351aea1048a2dc56dc65f5",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q2",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "a02-fact-safety-energy-env-recheck",
+        "skeleton_id": "a02-skel-复验范围与监理认可",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A438000_151_0243:0",
+        "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "dbaee871a4c73308eaffcf0b6769894a0771a9cc9f351aea1048a2dc56dc65f5",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "涉及安全/节能/环保材料须复验并经监理认可, 教材 kc:...151_0243:0 直引; 干扰项均绝对化错误。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q3-1ce285425843",
+      "surface_id": "practice.html",
+      "stem": "普通热轧钢筋进场复试，应检验的项目是？",
+      "options": [
+        {
+          "text": "屈服强度、抗拉强度、伸长率、弯曲性能、重量偏差",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q3-1ce285425843:option-1"
+        },
+        {
+          "text": "仅屈服强度和抗拉强度两项",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q3-1ce285425843:option-2"
+        },
+        {
+          "text": "屈服强度、抗拉强度、伸长率、含碳量",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q3-1ce285425843:option-3"
+        },
+        {
+          "text": "抗拉强度、弯曲性能、氯离子含量",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q3-1ce285425843:option-4"
+        }
+      ],
+      "model_answer": "屈服强度、抗拉强度、伸长率、弯曲性能、重量偏差",
+      "rule_group": "进场关·钢筋复试项目",
+      "content_sha256": "bb314f624078023db5d02c59235a5ee7c0078708ac1152d9faa08b232d9d7336",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q3",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "a02-fact-rebar-recheck-five",
+        "skeleton_id": "a02-skel-普通钢筋复试五项",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2016:第17题",
+        "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "bb314f624078023db5d02c59235a5ee7c0078708ac1152d9faa08b232d9d7336",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "普通钢筋复试五项(屈服/抗拉/伸长率/弯曲/重量偏差), 真题 exam:2016:第17题 解析逐项+kc:...152_0245:0 教材同文。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q4-34f5c52d4995",
+      "surface_id": "practice.html",
+      "stem": "成型钢筋进场复验时，可以不检验的项目是？",
+      "options": [
+        {
+          "text": "弯曲性能（屈服、抗拉、伸长、重量偏差仍照检）",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q4-34f5c52d4995:option-1"
+        },
+        {
+          "text": "屈服强度",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q4-34f5c52d4995:option-2"
+        },
+        {
+          "text": "重量偏差",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q4-34f5c52d4995:option-3"
+        },
+        {
+          "text": "全部项目都要检验，无免检项",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q4-34f5c52d4995:option-4"
+        }
+      ],
+      "model_answer": "弯曲性能（屈服、抗拉、伸长、重量偏差仍照检）",
+      "rule_group": "进场关·成型钢筋例外",
+      "content_sha256": "c55cc0cf9e4cb14e159f681b8bbbe4402ddeb7b98010c1746b99d832efeb1e13",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q4",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "a02-fact-formed-rebar-exemption",
+        "skeleton_id": "a02-skel-成型钢筋免检项判定",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2016:第17题",
+        "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "c55cc0cf9e4cb14e159f681b8bbbe4402ddeb7b98010c1746b99d832efeb1e13",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "成型钢筋进场可免弯曲性能复验其余四项仍检, 真题 exam:2016:第17题 原题直判(B)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q5-74031676375f",
+      "surface_id": "practice.html",
+      "stem": "水泥进场复试项目正确的一组是？",
+      "options": [
+        {
+          "text": "胶砂强度、氯离子含量、安定性、凝结时间",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q5-74031676375f:option-1"
+        },
+        {
+          "text": "胶砂强度、伸长率、密度、外观",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q5-74031676375f:option-2"
+        },
+        {
+          "text": "抗压强度、弯曲性能、导热系数",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q5-74031676375f:option-3"
+        },
+        {
+          "text": "安定性、凝结时间、含泥量、级配",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q5-74031676375f:option-4"
+        }
+      ],
+      "model_answer": "胶砂强度、氯离子含量、安定性、凝结时间",
+      "rule_group": "进场关·水泥复试",
+      "content_sha256": "a717f5d59bacfeb6ce0104c4d8cb7460d4136c00289dcaeddc6cabb5fe3d2292",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q5",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "a717f5d59bacfeb6ce0104c4d8cb7460d4136c00289dcaeddc6cabb5fe3d2292",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q6-e70083cce5ee",
+      "surface_id": "practice.html",
+      "stem": "混凝土有氯离子含量要求时，应首先检验的材料是？",
+      "options": [
+        {
+          "text": "外加剂",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q6-e70083cce5ee:option-1"
+        },
+        {
+          "text": "碎石",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q6-e70083cce5ee:option-2"
+        },
+        {
+          "text": "河砂",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q6-e70083cce5ee:option-3"
+        },
+        {
+          "text": "拌合用水",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q6-e70083cce5ee:option-4"
+        }
+      ],
+      "model_answer": "外加剂",
+      "rule_group": "进场关·氯离子首检",
+      "content_sha256": "fb0f0fec5b06e45b2eab12ce19a02ff3bfc79ad3a4dea8771fcd508b48cd467e",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q6",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "fb0f0fec5b06e45b2eab12ce19a02ff3bfc79ad3a4dea8771fcd508b48cd467e",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q7-dc4024b2b8e6",
+      "surface_id": "practice.html",
+      "stem": "屋面保温材料进场必须复验的技术指标是？",
+      "options": [
+        {
+          "text": "导热系数、密度、燃烧性能",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q7-dc4024b2b8e6:option-1"
+        },
+        {
+          "text": "抗拉强度、伸长率、屈服强度",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q7-dc4024b2b8e6:option-2"
+        },
+        {
+          "text": "导热系数、抗压强度、含水率",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q7-dc4024b2b8e6:option-3"
+        },
+        {
+          "text": "仅检查外观和厚度即可",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q7-dc4024b2b8e6:option-4"
+        }
+      ],
+      "model_answer": "导热系数、密度、燃烧性能",
+      "rule_group": "进场关·保温材料复验",
+      "content_sha256": "091313a65bc048b49874326b450b9b48b3e6f7c13bca9604883058787bf38cea",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q7",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "091313a65bc048b49874326b450b9b48b3e6f7c13bca9604883058787bf38cea",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q8-17c5eaf32718",
+      "surface_id": "practice.html",
+      "stem": "墙体保温砌块进场复验内容是？",
+      "options": [
+        {
+          "text": "导热系数、抗压强度、吸水率",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q8-17c5eaf32718:option-1"
+        },
+        {
+          "text": "导热系数、密度、燃烧性能",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q8-17c5eaf32718:option-2"
+        },
+        {
+          "text": "抗拉强度、伸长率、重量偏差",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q8-17c5eaf32718:option-3"
+        },
+        {
+          "text": "凝结时间、安定性、胶砂强度",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q8-17c5eaf32718:option-4"
+        }
+      ],
+      "model_answer": "导热系数、抗压强度、吸水率",
+      "rule_group": "进场关·保温材料复验",
+      "content_sha256": "a6d3f9ff7a5edc1ea923c8cdf08946a55baeab78af5524720414c9bb48904460",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q8",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "a6d3f9ff7a5edc1ea923c8cdf08946a55baeab78af5524720414c9bb48904460",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q9-ca178721a3a7",
+      "surface_id": "practice.html",
+      "stem": "严寒和寒冷地区，建筑外门窗节能复验应包括？",
+      "options": [
+        {
+          "text": "传热系数和气密性",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q9-ca178721a3a7:option-1"
+        },
+        {
+          "text": "太阳得热系数和可见光透射比",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q9-ca178721a3a7:option-2"
+        },
+        {
+          "text": "抗风压和水密性",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q9-ca178721a3a7:option-3"
+        },
+        {
+          "text": "传热系数和抗拉强度",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q9-ca178721a3a7:option-4"
+        }
+      ],
+      "model_answer": "传热系数和气密性",
+      "rule_group": "进场关·门窗节能复验",
+      "content_sha256": "6c42d8ad60687b4366bf68a3c752254ba437e71da9a4f0fa4a0fbba0740abe22",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q9",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "6c42d8ad60687b4366bf68a3c752254ba437e71da9a4f0fa4a0fbba0740abe22",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q10-f02b45be1743",
+      "surface_id": "practice.html",
+      "stem": "见证取样送检中，见证人应由谁书面确认？",
+      "options": [
+        {
+          "text": "建设单位",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q10-f02b45be1743:option-1"
+        },
+        {
+          "text": "监理单位",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q10-f02b45be1743:option-2"
+        },
+        {
+          "text": "施工单位项目经理",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q10-f02b45be1743:option-3"
+        },
+        {
+          "text": "检测机构",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q10-f02b45be1743:option-4"
+        }
+      ],
+      "model_answer": "建设单位",
+      "rule_group": "进场关·见证主体",
+      "content_sha256": "3546dd76365449b4e98454ebc21c66db506ec064afc715c62af16acc1cfe6289",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q10",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "a02-fact-witness-sampling-chain",
+        "skeleton_id": "a02-skel-见证人确认主体直问",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2017:第13题",
+        "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "3546dd76365449b4e98454ebc21c66db506ec064afc715c62af16acc1cfe6289",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "见证人由建设单位(项目监理机构)书面确认, 真题 exam:2017:第13题 B 错项否定直证。三联 immediate_confirm(同见证取样 fact)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q11-ba42137ceead",
+      "surface_id": "practice.html",
+      "stem": "见证取样时，见证记录应由谁填写？",
+      "options": [
+        {
+          "text": "见证人本人",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q11-ba42137ceead:option-1"
+        },
+        {
+          "text": "试验员",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q11-ba42137ceead:option-2"
+        },
+        {
+          "text": "施工员",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q11-ba42137ceead:option-3"
+        },
+        {
+          "text": "监理随意指定人员",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q11-ba42137ceead:option-4"
+        }
+      ],
+      "model_answer": "见证人本人",
+      "rule_group": "进场关·见证主体",
+      "content_sha256": "3e708ce1d6d5bffea478824c7ecf45f8c8c0013c730bd971ae79c2296644e527",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q11",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "3e708ce1d6d5bffea478824c7ecf45f8c8c0013c730bd971ae79c2296644e527",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q12-446155cc0383",
+      "surface_id": "practice.html",
+      "stem": "关于见证取样送检的规则，正确的是？",
+      "options": [
+        {
+          "text": "试样现场内抽取，送检前通知见证人，检测机构核实见证人",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q12-446155cc0383:option-1"
+        },
+        {
+          "text": "试样可在现场外抽取后再送检",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q12-446155cc0383:option-2"
+        },
+        {
+          "text": "送检后再补通知见证人即可",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q12-446155cc0383:option-3"
+        },
+        {
+          "text": "施工单位可自行取样、自行送检",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q12-446155cc0383:option-4"
+        }
+      ],
+      "model_answer": "试样现场内抽取，送检前通知见证人，检测机构核实见证人",
+      "rule_group": "进场关·见证规则",
+      "content_sha256": "0ac2f4d168937f98c312a93ac70caab3af0aafcb358bdabf15a8dd885c99f39b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q12",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "a02-fact-witness-sampling-chain",
+        "skeleton_id": "a02-skel-见证取样流程规则辨析",
+        "probe_role": "d1_probe",
+        "source_anchor": "exam:2019:第30题",
+        "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "0ac2f4d168937f98c312a93ac70caab3af0aafcb358bdabf15a8dd885c99f39b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "见证人填写记录/变更书面手续/与备案不符检测机构核实, 真题 exam:2019:第30题 直判; 现场内抽取另由 exam:2017:第13题 支持(复合多源工单)。三联 d1_probe(同 fact, 第3独立 skeleton)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q13-3b9117dade9d",
+      "surface_id": "practice.html",
+      "stem": "关于隐蔽工程验收时机，正确的是？",
+      "options": [
+        {
+          "text": "隐蔽部位在被后续工序覆盖前完成验收并形成隐检记录",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q13-3b9117dade9d:option-1"
+        },
+        {
+          "text": "可在覆盖后补做验收并补记录",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q13-3b9117dade9d:option-2"
+        },
+        {
+          "text": "只要最终实体检验合格，隐蔽验收可省略",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q13-3b9117dade9d:option-3"
+        },
+        {
+          "text": "由施工班组口头确认即可",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q13-3b9117dade9d:option-4"
+        }
+      ],
+      "model_answer": "隐蔽部位在被后续工序覆盖前完成验收并形成隐检记录",
+      "rule_group": "覆盖关·隐蔽验收时机",
+      "content_sha256": "14167913c03360c6f5ba31bf98d87b14f54a29f755e158da268ee2fb24294bc3",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q13",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "14167913c03360c6f5ba31bf98d87b14f54a29f755e158da268ee2fb24294bc3",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q14-72b5a25a7159",
+      "surface_id": "practice.html",
+      "stem": "关于建筑防雷构造连接，正确的说法是？",
+      "options": [
+        {
+          "text": "防雷构造连接必须进行隐蔽工程验收",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q14-72b5a25a7159:option-1"
+        },
+        {
+          "text": "防雷连接不必进行隐蔽工程验收",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q14-72b5a25a7159:option-2"
+        },
+        {
+          "text": "防雷连接可在覆盖后抽查",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q14-72b5a25a7159:option-3"
+        },
+        {
+          "text": "防雷连接只需电气专业自检",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q14-72b5a25a7159:option-4"
+        }
+      ],
+      "model_answer": "防雷构造连接必须进行隐蔽工程验收",
+      "rule_group": "覆盖关·防雷隐蔽",
+      "content_sha256": "164d4bb13f91df4c3f9d50a7383f2fedb98b0766e513d8d6058022487153d96d",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q14",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "164d4bb13f91df4c3f9d50a7383f2fedb98b0766e513d8d6058022487153d96d",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q15-b1f434775314",
+      "surface_id": "practice.html",
+      "stem": "墙体节能隐蔽验收应包括的项目是？",
+      "options": [
+        {
+          "text": "基层及表面处理、保温材料种类与厚度、热桥部位处理、隔汽层",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q15-b1f434775314:option-1"
+        },
+        {
+          "text": "仅保温材料的种类和厚度",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q15-b1f434775314:option-2"
+        },
+        {
+          "text": "基层处理、抗压强度、燃烧性能、可见光透射比",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q15-b1f434775314:option-3"
+        },
+        {
+          "text": "保温层、防水层、装饰面层、地面找平",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q15-b1f434775314:option-4"
+        }
+      ],
+      "model_answer": "基层及表面处理、保温材料种类与厚度、热桥部位处理、隔汽层",
+      "rule_group": "覆盖关·节能隐蔽",
+      "content_sha256": "b72b0c9f2c1f192ef10e460ee4c803bb1e588b7f3cebd1a2669d51b67857736a",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q15",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b72b0c9f2c1f192ef10e460ee4c803bb1e588b7f3cebd1a2669d51b67857736a",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q16-d7713c32b71f",
+      "surface_id": "practice.html",
+      "stem": "结构实体混凝土强度检验，正确的处理顺序是？",
+      "options": [
+        {
+          "text": "优先同条件养护试件，不足时回弹辅以取芯，仍存疑用钻芯法且须第三方",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q16-d7713c32b71f:option-1"
+        },
+        {
+          "text": "强度不足直接判定构件报废",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q16-d7713c32b71f:option-2"
+        },
+        {
+          "text": "一律先钻芯，不用同条件养护试件",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q16-d7713c32b71f:option-3"
+        },
+        {
+          "text": "由施工单位实验室钻芯出具最终结论",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q16-d7713c32b71f:option-4"
+        }
+      ],
+      "model_answer": "优先同条件养护试件，不足时回弹辅以取芯，仍存疑用钻芯法且须第三方",
+      "rule_group": "覆盖关·结构实体检验",
+      "content_sha256": "f6477f7720b94253ba4399a14c28627befe82b0a8834bf2935ce8484547e76c8",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q16",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "f6477f7720b94253ba4399a14c28627befe82b0a8834bf2935ce8484547e76c8",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q17-90b5ddd915c1",
+      "surface_id": "practice.html",
+      "stem": "结构实体检验的内容包括？",
+      "options": [
+        {
+          "text": "混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q17-90b5ddd915c1:option-1"
+        },
+        {
+          "text": "仅混凝土强度一项",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q17-90b5ddd915c1:option-2"
+        },
+        {
+          "text": "材料进场复验项目",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q17-90b5ddd915c1:option-3"
+        },
+        {
+          "text": "隐蔽工程验收记录审查",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q17-90b5ddd915c1:option-4"
+        }
+      ],
+      "model_answer": "混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差",
+      "rule_group": "覆盖关·结构实体检验",
+      "content_sha256": "8a60fca4071646f41e28833ec144cce7c28b05bf613be0afcb11941c724758af",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q17",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "8a60fca4071646f41e28833ec144cce7c28b05bf613be0afcb11941c724758af",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q18-33bdeb6868f6",
+      "surface_id": "practice.html",
+      "stem": "经认证的钢筋连续三批检验合格，其检验批可如何调整？",
+      "options": [
+        {
+          "text": "检验批扩大、抽样量减半（原材料60t扩大到120t）",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q18-33bdeb6868f6:option-1"
+        },
+        {
+          "text": "检验批不变、抽样量翻倍",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q18-33bdeb6868f6:option-2"
+        },
+        {
+          "text": "直接免检",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q18-33bdeb6868f6:option-3"
+        },
+        {
+          "text": "检验批缩小到30t",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q18-33bdeb6868f6:option-4"
+        }
+      ],
+      "model_answer": "检验批扩大、抽样量减半（原材料60t扩大到120t）",
+      "rule_group": "覆盖关·检验批扩大",
+      "content_sha256": "4cdb9ca284f6bca2838df77ef63be3b9289059fac5f2032e14d91a998cbe30b2",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q18",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "4cdb9ca284f6bca2838df77ef63be3b9289059fac5f2032e14d91a998cbe30b2",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q19-58d1a8122a7a",
+      "surface_id": "practice.html",
+      "stem": "关于预制构件进场结构性能检验，正确的是？",
+      "options": [
+        {
+          "text": "梁板类简支受弯构件必做结构性能检验，叠合板预制底板可不做",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q19-58d1a8122a7a:option-1"
+        },
+        {
+          "text": "所有预制构件都必须做结构性能检验",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q19-58d1a8122a7a:option-2"
+        },
+        {
+          "text": "所有预制构件都可不做结构性能检验",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q19-58d1a8122a7a:option-3"
+        },
+        {
+          "text": "预制外墙板做结构性能检验代替淋水试验",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q19-58d1a8122a7a:option-4"
+        }
+      ],
+      "model_answer": "梁板类简支受弯构件必做结构性能检验，叠合板预制底板可不做",
+      "rule_group": "覆盖关·预制构件检验",
+      "content_sha256": "71f21446fa6bc3ea5f04c644283ed8a8894fb73220bc1ad802072730cef5cd06",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q19",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "71f21446fa6bc3ea5f04c644283ed8a8894fb73220bc1ad802072730cef5cd06",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q20-837eed700d60",
+      "surface_id": "practice.html",
+      "stem": "进场材料检验不合格时，正确的处理是？",
+      "options": [
+        {
+          "text": "禁用或经审批降级使用；退场须申请→审批→见证退场→记录确认",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q20-837eed700d60:option-1"
+        },
+        {
+          "text": "直接拉走退场即可，无需记录",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q20-837eed700d60:option-2"
+        },
+        {
+          "text": "施工方可自行降级使用",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q20-837eed700d60:option-3"
+        },
+        {
+          "text": "堆放现场待后续再定",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q20-837eed700d60:option-4"
+        }
+      ],
+      "model_answer": "禁用或经审批降级使用；退场须申请→审批→见证退场→记录确认",
+      "rule_group": "进场关·材料进场验收",
+      "content_sha256": "5c10898a179726b4f6e7497d26429ac3662bbce5999fc31a67fbf53e329971e2",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q20",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "5c10898a179726b4f6e7497d26429ac3662bbce5999fc31a67fbf53e329971e2",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q21-0f835a0744d8",
+      "surface_id": "practice.html",
+      "stem": "案例问'指出见证取样做法不妥并改正'。下列哪句是可直接得分的完整采分句？",
+      "options": [
+        {
+          "text": "见证人由建设单位书面确认，见证记录由见证人本人填写，试样现场内抽取、送检前通知见证人",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q21-0f835a0744d8:option-1"
+        },
+        {
+          "text": "见证取样要按规范认真做好",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q21-0f835a0744d8:option-2"
+        },
+        {
+          "text": "见证人签字确认就行",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q21-0f835a0744d8:option-3"
+        },
+        {
+          "text": "由监理确认见证人、由试验员填写见证记录",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q21-0f835a0744d8:option-4"
+        }
+      ],
+      "model_answer": "见证人由建设单位书面确认，见证记录由见证人本人填写，试样现场内抽取、送检前通知见证人",
+      "rule_group": "采分句·见证取样·采分句",
+      "content_sha256": "3c55a5c44f38c3685e1759b56fceb6156d80a3bcc3be97fc3e85327232e82990",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q21",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "a02-fact-witness-sampling-chain",
+        "skeleton_id": "a02-skel-见证取样完整采分句",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2017:第13题",
+        "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "3c55a5c44f38c3685e1759b56fceb6156d80a3bcc3be97fc3e85327232e82990",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:02:26+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "见证取样: 见证人建设单位书面确认+试样现场内抽取, 真题 exam:2017:第13题 正误项直判; 见证记录由见证人员填写另有 exam:2023:案例一 佐证(复合多源工单)。三联 anchor。工单: 正确项远长于干扰项。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q22-845784d54c63",
+      "surface_id": "practice.html",
+      "stem": "学生把钢筋复试写成'屈服强度、抗拉强度'。诊断问题并给出补句？",
+      "options": [
+        {
+          "text": "漏了伸长率、弯曲性能、重量偏差三项，应补齐为五项",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q22-845784d54c63:option-1"
+        },
+        {
+          "text": "完全正确，无需补充",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q22-845784d54c63:option-2"
+        },
+        {
+          "text": "多写了两项，应删掉抗拉强度",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q22-845784d54c63:option-3"
+        },
+        {
+          "text": "应改成检验氯离子含量",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q22-845784d54c63:option-4"
+        }
+      ],
+      "model_answer": "漏了伸长率、弯曲性能、重量偏差三项，应补齐为五项",
+      "rule_group": "答案诊断·钢筋复试·诊断",
+      "content_sha256": "f047c583031b5edc7074b02a960544303b82f7b08e165d430a94bce9842d3298",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q22",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "f047c583031b5edc7074b02a960544303b82f7b08e165d430a94bce9842d3298",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q23-2c77f3eb587d",
+      "surface_id": "practice.html",
+      "stem": "案例问'结构实体混凝土强度存疑如何处理'。可直接得分的采分句是？",
+      "options": [
+        {
+          "text": "优先用同条件养护试件评定，不足时回弹辅以取芯，仍存疑用钻芯法并由有资质第三方检测",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q23-2c77f3eb587d:option-1"
+        },
+        {
+          "text": "强度不够就返工重做",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q23-2c77f3eb587d:option-2"
+        },
+        {
+          "text": "让项目部实验室复测确认",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q23-2c77f3eb587d:option-3"
+        },
+        {
+          "text": "直接判合格继续施工",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q23-2c77f3eb587d:option-4"
+        }
+      ],
+      "model_answer": "优先用同条件养护试件评定，不足时回弹辅以取芯，仍存疑用钻芯法并由有资质第三方检测",
+      "rule_group": "采分句·实体强度·采分句",
+      "content_sha256": "b30573ec6dd644e95170aed81acc6d304b8d867304cdd71791d25d213f7a20f7",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q23",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b30573ec6dd644e95170aed81acc6d304b8d867304cdd71791d25d213f7a20f7",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "A02-html-practice-html-q24-f646548dd749",
+      "surface_id": "practice.html",
+      "stem": "学生写'隐蔽工程覆盖后补做验收记录'。诊断并改正？",
+      "options": [
+        {
+          "text": "时机错误，隐蔽验收须在覆盖前完成并形成隐检记录",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q24-f646548dd749:option-1"
+        },
+        {
+          "text": "完全正确",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q24-f646548dd749:option-2"
+        },
+        {
+          "text": "应改成由施工班组口头确认",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q24-f646548dd749:option-3"
+        },
+        {
+          "text": "应改成实体检验合格即可免隐蔽验收",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q24-f646548dd749:option-4"
+        }
+      ],
+      "model_answer": "时机错误，隐蔽验收须在覆盖前完成并形成隐检记录",
+      "rule_group": "答案诊断·隐蔽验收·诊断",
+      "content_sha256": "e49d17c7ccf972b14dfcc44e66f2683a3194ee5fd514739e18455f0c0abae6be",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q24",
+      "authoring_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e49d17c7ccf972b14dfcc44e66f2683a3194ee5fd514739e18455f0c0abae6be",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
+  ],
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (a02.codex.out, fatal_count=3)。21 approve/3 reject; 5 surface 锚(q1/q2/q3/q4/q21)全无 FATAL。3 个非展示 FATAL 主控核认: q13/q24『覆盖前完成并形成隐检记录』时机事实包内无原文=真血统断; q15 屋面节能四项(kc:1A422000_049_0075 系屋面/地面)错套墙体题干且含隔汽层后非墙体口径唯一正确=真病。**三题均排除不签**。三联承 Codex 方案: 见证取样链 q21/q10/q12。工单(非阻塞): 全包 24 题正确项固定首位+多题最长+干扰项解析字段空(编译模板病); q16/q23 钻芯第三方表述需补强来源; q18 触发条件叠写宜收紧。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
+}

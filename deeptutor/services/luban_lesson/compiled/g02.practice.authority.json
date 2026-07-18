@@ -24,9 +24,17 @@
         "G02-html-practice-html-q5-7d9d763971e5",
         "G02-html-practice-html-q16-d5e2e8aea5ac"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTItNjEzMTkzZWE2ZDc1IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMy05NzY3MTQwOTI0NGMiLCJHMDItaHRtbC1wcmFjdGljZS1odG1sLXE0LTlhMGIzNWExYzA1YSIsIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTUtN2Q5ZDc2Mzk3MWU1IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZDVlMmU4YWVhNWFjIl0sInBhY2tfaWQiOiJHMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImJjNWYyZTI4OTg5OTU1ODg5ZWY0MGFmMTgxMzgyMjBkZmQ0MGE5ZWE1Yjg4ZmNkY2EyM2EwN2Q2ODQ5M2Y0MGUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "694b34f61e4f542f79dd5dccff7265d4dd63dce2a408a4dbea65c188fa918c3d"
+      "eligible_variant_ids": [
+        "G02-html-practice-html-q2-613193ea6d75",
+        "G02-html-practice-html-q3-97671409244c",
+        "G02-html-practice-html-q4-9a0b35a1c05a",
+        "G02-html-practice-html-q5-7d9d763971e5",
+        "G02-html-practice-html-q6-62bc9be3d96c",
+        "G02-html-practice-html-q12-fe42944fdb14",
+        "G02-html-practice-html-q16-d5e2e8aea5ac"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTItNjEzMTkzZWE2ZDc1IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMy05NzY3MTQwOTI0NGMiLCJHMDItaHRtbC1wcmFjdGljZS1odG1sLXE0LTlhMGIzNWExYzA1YSIsIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTUtN2Q5ZDc2Mzk3MWU1IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZDVlMmU4YWVhNWFjIl0sInBhY2tfaWQiOiJHMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImE3YTRhMzBmZjM5NTczMGY1ZTA4M2ViNzUyNDUyNTBkNDZjNDllMzk3MzM1NDRlYzY4MmJkNDZhZGU5NjViNzQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMTM2MWQyMmMzNzRmMDllODk2ZTdmYTIyYTI2YTE2MTI0NjdmZTc3YzdhOGY2NmJlNjUyMDk0ZDNkNmFmZGM1ZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "29a51a4c83a332bf444d44b49a28e73f30a4b92a8d956b1465ed71d5319191bc"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413000_085_0158:0",
+      "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
       "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-fill-soil-selection",
+      "skeleton_id": "g02-skel-填方土料禁用类",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "508e5c40bcb852442a36f47374d3c51cd1508004960677a0b7361ec4393c551c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "508e5c40bcb852442a36f47374d3c51cd1508004960677a0b7361ec4393c551c",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "填方土料不得用淤泥/淤泥质土/有机质>5%/含水量不符压实的黏性土, 教材 kc:...085_0158:0 直引。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2016:第8题",
+      "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
       "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-fill-start-position",
+      "skeleton_id": "g02-skel-最低处起填分层",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "1ba2cccd380e9d9b725a51f1e6421564cd2f14a8b2acfecf14bc38394db3d4f6",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "1ba2cccd380e9d9b725a51f1e6421564cd2f14a8b2acfecf14bc38394db3d4f6",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "填土从场地最低处开始由下而上整宽度分层铺填, 真题 exam:2016:第8题 直接支持(B为真选项)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2016:第8题",
+      "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
       "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-symmetric-backfill",
+      "skeleton_id": "g02-skel-两侧对称均衡回填",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "aa80e22bb584de70160d2ff8e74c7f132812ace5113cc2c3c02abe7f6e6d6c78",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "aa80e22bb584de70160d2ff8e74c7f132812ace5113cc2c3c02abe7f6e6d6c78",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "基础两侧应相对对称均衡回填避免单侧受力偏移, 真题 exam:2016:第8题 逐字含‘C.应在相对两侧对称回填’(真选项)。Codex FATAL 系 threshold0.25 召回空(缺口非血统断)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2016:第8题",
+      "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
       "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-loose-layer-thickness",
+      "skeleton_id": "g02-skel-虚铺厚度按夯实机具",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "48891780f710ca677f2aa0532d33a4a7063a5a15cf03363a2796efd4f3db54c3",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "48891780f710ca677f2aa0532d33a4a7063a5a15cf03363a2796efd4f3db54c3",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "每层虚铺厚度按夯实机具(夯击能)确定而非含水量, 真题 exam:2016:第8题 支持(D‘按含水量’为错项)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -371,29 +427,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2018:案例分析(三)问题2",
+      "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
       "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-vibratory-compaction-backfill",
+      "skeleton_id": "g02-skel-振动压实分层厚度遍数",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "d901ef8aad589dac84071ca9acf34e12b7c7a96d5e64ba48c030100196407191",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "d901ef8aad589dac84071ca9acf34e12b7c7a96d5e64ba48c030100196407191",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "振动压实机分层厚度250-350mm每层压实3-4遍, 真题 exam:2018:案例(三)问题2 直引(铺填>400mm不妥→250-350)。三联 immediate_confirm(同振动压实回填 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -809,29 +877,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2018:案例分析(三)问题3",
+      "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
       "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-vibratory-compaction-backfill",
+      "skeleton_id": "g02-skel-压实系数标准击实法",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "0cece41c998da2a1cac1632ed289d5ece11965ff6a092a3cb33c6d04755014ec",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "0cece41c998da2a1cac1632ed289d5ece11965ff6a092a3cb33c6d04755014ec",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "压实系数用标准击实法标定最大干密度逐层测定, 真题 exam:2018:案例(三)问题3 支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: longest-option。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1028,29 +1108,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2018:案例分析(三)问题2",
+      "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
       "source_html_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-vibratory-compaction-backfill",
+      "skeleton_id": "g02-skel-振动压实回填诊断",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "60c50533c52867082e308ef1a619e6bd3075bb380774fe1ea0fe81dc530688e3",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "60c50533c52867082e308ef1a619e6bd3075bb380774fe1ea0fe81dc530688e3",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:45:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "振动压实回填纠错: ②③缺数值(应250-350mm/3-4遍)④应标准击实法非多层环刀①建筑垃圾未识别, 真题 exam:2018:案例(三)问题2 支持。三联 anchor。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1126,5 +1218,5 @@
       "eligible": false
     }
   ],
-  "published_lesson_sha256": "c051a9a5d105d7463370750ec1266c1ae7fe4c193aa6a12db672965b4021d71a"
+  "published_lesson_sha256": "74eece53dfa476bea23015b65074f479cc6afd6812a7b96bb080f0051a7c7f51"
 }

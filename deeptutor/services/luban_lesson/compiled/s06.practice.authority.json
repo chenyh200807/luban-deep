@@ -24,9 +24,17 @@
         "S06-html-practice-html-q4-e42d54f368cb",
         "S06-html-practice-html-q16-30dcd356515c"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZWVmYzMzMGM0OGU2IiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mODQ3NDNmZGJjOGIiLCJTMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWE4YTY5NTlmY2Q0NCIsIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZTQyZDU0ZjM2OGNiIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMzBkY2QzNTY1MTVjIl0sInBhY2tfaWQiOiJTMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjVkNDRiMTQxMTliMWE4MjE1NmJiMWYwMmI2NTEwNTEyNzZjNjBlOTgyODE1NmRkZDQyZGZkZDQ4YmFmZDQwZjMiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "83f262c92917c5b4db61629a6634d04e4f11fbdaa154b1a91f4c7237b9ee5b6a"
+      "eligible_variant_ids": [
+        "S06-html-practice-html-q1-eefc330c48e6",
+        "S06-html-practice-html-q2-f84743fdbc8b",
+        "S06-html-practice-html-q3-a8a6959fcd44",
+        "S06-html-practice-html-q4-e42d54f368cb",
+        "S06-html-practice-html-q5-87ad10581a99",
+        "S06-html-practice-html-q14-36859c31b0cc",
+        "S06-html-practice-html-q16-30dcd356515c"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZWVmYzMzMGM0OGU2IiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mODQ3NDNmZGJjOGIiLCJTMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWE4YTY5NTlmY2Q0NCIsIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZTQyZDU0ZjM2OGNiIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMzBkY2QzNTY1MTVjIl0sInBhY2tfaWQiOiJTMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjE3OGM2Y2RiMmM1M2Y3MmM2YjQyMDUxM2EwMzI1NGRhNTAwZjgxMmM0MzBkMDg1MzNiZjllNzM3M2MxOWQwZmYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmQ4NWUxM2RjNDMzYzM1NWYzNjAxZjg4NTU0MjY1ZDYxZTM4MzZjZmU2MjkzNjI3ODFmNWIwNGY2NGYyOTczMCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "4efe1e89a42ae27f1b52e865ac107151082ebd2bd0ef299d74e9e38a9de258e5"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_121_0195:0",
+      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
       "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s06-fact-edge-guard-2m-trigger",
+      "skeleton_id": "s06-skel-临边2m触发场景",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "ae692ee3311c24e4b2b8fa5e170a12e469c2fb9a21686c6570f0f2b146142763",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "ae692ee3311c24e4b2b8fa5e170a12e469c2fb9a21686c6570f0f2b146142763",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "坠落高度≥2m 须设防护栏杆+密目网/工具式栏板封闭, 教材 kc:...121_0195:0 直引。三联 anchor。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_121_0195:2",
+      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
       "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s06-fact-guardrail-construction",
+      "skeleton_id": "s06-skel-栏杆构造四数值",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "baf3dac13e236b165ce71d859bc094b64227ad06570324a91e5beab4919a92f1",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "baf3dac13e236b165ce71d859bc094b64227ad06570324a91e5beab4919a92f1",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "上杆1.2m/立杆间距≤2m/挡脚板≥180mm/1kN, 教材 kc:...121_0195:2 逐项直引。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_121_0195:1",
+      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
       "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s06-fact-vertical-opening-500",
+      "skeleton_id": "s06-skel-竖向洞口500判定",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "39e3511ea4acc51c6b44b6969ab1928782795c72b05a6ce0f81ab7694198ef02",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "39e3511ea4acc51c6b44b6969ab1928782795c72b05a6ce0f81ab7694198ef02",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "≥500mm 洞口设1.2m栏杆+封闭+挡脚板, 教材 kc:...121_0195:1 直引。工单: '安全平网'附加措辞无锚。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_121_0195:1",
+      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
       "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s06-fact-opening-cover-300",
+      "skeleton_id": "s06-skel-300mm洞口盖板",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "c0e98e4d906294fa63e1da6ec482f09be3cef6ee1cbc81330354f80b5c6e60b7",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "c0e98e4d906294fa63e1da6ec482f09be3cef6ee1cbc81330354f80b5c6e60b7",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "300mm 落 25~500mm 档用承重盖板, 教材 kc:...121_0195:1 三档表直引。工单: 固定防移位出处待补。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -371,29 +427,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_121_0195:0",
+      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
       "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s06-fact-edge-guard-2m-trigger",
+      "skeleton_id": "s06-skel-封闭措施回忆",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "3422c955bfe6adf05612eeb7aeaadac067157aedd8ab5b7496f12aecffa9b24d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "3422c955bfe6adf05612eeb7aeaadac067157aedd8ab5b7496f12aecffa9b24d",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "密目式安全立网或工具式栏板封闭, 教材直引。Codex severity none。三联 immediate_confirm(同临边防护 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1028,29 +1096,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_121_0195:2",
+      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
       "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s06-fact-edge-guard-2m-trigger",
+      "skeleton_id": "s06-skel-楼梯口栏杆应用",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "15f2a575cb5a7bc6b7e8edbb4f49ec7f81b95bf12604af8a9bc3462b3f1b4b50",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "15f2a575cb5a7bc6b7e8edbb4f49ec7f81b95bf12604af8a9bc3462b3f1b4b50",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "楼梯口/平台/梯段边设防护栏杆, 教材构造要求直引应用。三联 d1_probe(同 fact, 第3独立 skeleton)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1174,30 +1254,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_121_0195:1",
+      "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
       "source_html_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s06-fact-edge-opening-composite",
+      "skeleton_id": "s06-skel-临边洞口综合诊断",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "dd81c7d7d473f7b659d365fd504f4be41988b1ae9be2d48861828edc67044109",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "dd81c7d7d473f7b659d365fd504f4be41988b1ae9be2d48861828edc67044109",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:25:23+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "三诊断均 kc:...121_0195 判分眼族内(洞口三档=本锚; 临边封闭/栏杆高度=:0/:2 补足)=复合多源工单。三处诊断正确且唯一。工单: 正确项81字最长。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "1fbd811121cc09861f0054ce795dead35b07bb04aa2573c6d2ced838ff236a18"
+  "published_lesson_sha256": "ef7c5ec4c1afed634a4e0980a973fa379757212ea5e06d43054ce945f8808daf"
 }

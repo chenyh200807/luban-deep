@@ -24,9 +24,17 @@
         "F04-html-practice-html-q4-c3b5b6ab6b4c",
         "F04-html-practice-html-q15-1bd9bc83105c"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtYmQwOTMwNGI3MTM3IiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00NDQwNDJmNGZhZTciLCJGMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWU3ZjZjMjNhMmZjYSIsIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzNiNWI2YWI2YjRjIiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMWJkOWJjODMxMDVjIl0sInBhY2tfaWQiOiJGMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjhiZTZjMjQ2Zjc0ZDAyYjc0YWU3MDExOTM5M2UwNjcyOWU5YWM2NmE4ZmI2NjFkZmNjOTk5NWJlZGRlYzZiODgiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "7e8198cc753ff393324ebe6b403b6fdada7b167a8bea01efc8aac8188ca9ba6a"
+      "eligible_variant_ids": [
+        "F04-html-practice-html-q1-bd09304b7137",
+        "F04-html-practice-html-q2-444042f4fae7",
+        "F04-html-practice-html-q3-e7f6c23a2fca",
+        "F04-html-practice-html-q4-c3b5b6ab6b4c",
+        "F04-html-practice-html-q11-8dde83419cf9",
+        "F04-html-practice-html-q13-872d3ba434ff",
+        "F04-html-practice-html-q15-1bd9bc83105c"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtYmQwOTMwNGI3MTM3IiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00NDQwNDJmNGZhZTciLCJGMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWU3ZjZjMjNhMmZjYSIsIkYwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzNiNWI2YWI2YjRjIiwiRjA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMWJkOWJjODMxMDVjIl0sInBhY2tfaWQiOiJGMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjEwZGNiNjdjNmJiNzgzMjE3YWIyMGNlY2NhNTQzOGVmYjMwM2FmNzk2NzhmOGYxN2M3MTljZjcxM2Y5MTRlYmQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZTk5MDM0MjE1Zjk2ZWZlMDMzYzNmYmJiM2Q3MjRiZWVmNjBjMWM4NmY0N2U4OTViMGFmZDlkM2FiZjYxZDYwYyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "000bd2928268986efc6a0ec2c9144d272ec73875537e6e6714346c6b2fe677c4"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:案例2",
+      "source_sha256": "725de61aa9505fe5a41328cc7bbb4250a190728a994a1e652ef643c3796ebef4",
       "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f04-fact-corner-round-or-45",
+      "skeleton_id": "f04-skel-阴阳角做法选择",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "103f0fe710bb423d31d8d31cbde6c41f7704fd6cf689016baf26af7af08ab07d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "103f0fe710bb423d31d8d31cbde6c41f7704fd6cf689016baf26af7af08ab07d",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "阴阳角基层做圆弧或45度, 真题 exam:2015:案例2 逐字(错误之二整改)。'平顺过渡不翘空'为解释性扩写。工单: 正确项首位最长。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_134_0257:1",
+      "source_sha256": "343ad530500a0ce69398241af7584641b80b3042b558b6cc6853f52da6deacbd",
       "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f04-fact-additional-layer-first",
+      "skeleton_id": "f04-skel-薄弱部位附加层先行",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "bcd1c631c860b29c91c3aabc00c242a7def4227c3c911c5836f7e272da0340e2",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "bcd1c631c860b29c91c3aabc00c242a7def4227c3c911c5836f7e272da0340e2",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "阴阳角/管根/地漏先做附加层夹铺胎体增强材料, 教材 kc:...134_0257:1 直引。工单: '再施工大面卷材'宜措辞为'大面防水层'。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_133_0256:1",
+      "source_sha256": "343ad530500a0ce69398241af7584641b80b3042b558b6cc6853f52da6deacbd",
       "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f04-fact-pipe-root-seal-20mm",
+      "skeleton_id": "f04-skel-管根套管密封数值",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "977c899acafb595d86026e540aaec7494dfa45806029fd9556ad5803fa95a060",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "977c899acafb595d86026e540aaec7494dfa45806029fd9556ad5803fa95a060",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "管根密封+套管嵌填压实+套管高出装饰面≥20mm, 教材 kc:...133_0256:1 逐项直引。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_134_0259:1",
+      "source_sha256": "343ad530500a0ce69398241af7584641b80b3042b558b6cc6853f52da6deacbd",
       "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f04-fact-node-first-then-field",
+      "skeleton_id": "f04-skel-节点先行部件后防水",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "fdcffe1f3cfaa0e295ca1caeac4000eebc9219c586790afd0fdc3b2a9a07a2df",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "fdcffe1f3cfaa0e295ca1caeac4000eebc9219c586790afd0fdc3b2a9a07a2df",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "部件安装完毕后施工防水+先做节点处理, 教材 kc:...134_0259:1 直引。工单: 屋面题干配外墙外延锚场景跨域, 宜补同域教材锚。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -809,29 +865,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:案例2",
+      "source_sha256": "725de61aa9505fe5a41328cc7bbb4250a190728a994a1e652ef643c3796ebef4",
       "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f04-fact-corner-round-or-45",
+      "skeleton_id": "f04-skel-泛水节点多错纠错",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "1a110329e0137733302a51c878ba138d04a1b33c077562a8c2e704160e06c8d2",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "1a110329e0137733302a51c878ba138d04a1b33c077562a8c2e704160e06c8d2",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "泛水≥250/阴阳角圆弧45/女儿墙附加层平立面≥250, 真题 exam:2015:案例2 三处错误整改逐字覆盖。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 最长项。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -955,29 +1023,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_134_0257:0",
+      "source_sha256": "343ad530500a0ce69398241af7584641b80b3042b558b6cc6853f52da6deacbd",
       "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f04-fact-corner-round-or-45",
+      "skeleton_id": "f04-skel-基层条件补全",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "4f5d3ec7eb5f6f2740ec43ce098a1bf7d6d08e8f11c1871c46589476835b326d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "4f5d3ec7eb5f6f2740ec43ce098a1bf7d6d08e8f11c1871c46589476835b326d",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "基层坚实平整无浮浆起砂裂缝+阴阳角宜做圆弧, 教材 kc:...134_0257:0 直引; 45度另有真题 exam:2015:案例2 支持不冲突。三联 immediate_confirm(同阴阳角 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1101,30 +1181,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F04/P40_F04.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A422000_042_0066",
+      "source_sha256": "343ad530500a0ce69398241af7584641b80b3042b558b6cc6853f52da6deacbd",
       "source_html_sha256": "7d09d9bdfa24c898bfd84e1d9f4cf42e37640d50a4ec27f8251e3f0e764febdb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f04-fact-parapet-coping-flashing",
+      "skeleton_id": "f04-skel-女儿墙压顶收头综合诊断",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "56f5735b64ecc66fb3765c83c915871d8c3849b28b8194aeff494ed379695b8b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "56f5735b64ecc66fb3765c83c915871d8c3849b28b8194aeff494ed379695b8b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:57:35+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "压顶向内坡≥5%/涂膜至压顶下/收头金属压条+密封+鹰嘴滴水槽/泛水250, 教材卡 ca:...042_0066(5%,鹰嘴,滴水槽,金属压条,密封)复合支持+真题 exam:2015:案例2 佐证。工单: 鹰嘴滴水槽并入收头对象粘连(多源)。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "cfabfb687b8c1c737b52581c654f9a16ca98e91ca588411980fb5ad919920c48"
+  "published_lesson_sha256": "2da7b2d6f0228ec085909a5ac6c5d82468417433164d462790933cc01e2e4e5d"
 }

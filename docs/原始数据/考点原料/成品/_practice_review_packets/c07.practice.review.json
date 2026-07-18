@@ -1,0 +1,1161 @@
+{
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "C07",
+  "source_pack_sha256": "8b631ce2e6ac6297bf715a0890b40294b9b3d6d43bc122a15274eb719479e8ac",
+  "source_bundle_sha256": "b1ad81b0f4b641bd599933fa0180f0f31080db93cb1f20c3bb6857dc2de771fd",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 15,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "C07-html-practice-html-q1-1dbc01dbdcec",
+      "surface_id": "practice.html",
+      "stem": "钢结构构件的连接方法包括哪几类？选出列全、能得分的作答。",
+      "options": [
+        {
+          "text": "钢结构连接方法包括焊接、普通螺栓连接、高强度螺栓连接、铆接四类。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四类列全、不多不漏，正是定性采分点。",
+          "option_id": "C07-html-practice-html-q1-1dbc01dbdcec:option-1"
+        },
+        {
+          "text": "钢结构连接方法主要就是焊接和高强度螺栓连接两大类。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "工程上焊接和高强螺栓最常用，容易只答这两类。",
+          "loss_reason": "漏了普通螺栓连接和铆接，采分点列不全。",
+          "fix": "补齐为焊接、普通螺栓连接、高强度螺栓连接、铆接四类。",
+          "option_id": "C07-html-practice-html-q1-1dbc01dbdcec:option-2"
+        },
+        {
+          "text": "连接方法包括焊接、螺栓连接、铆接和栓钉焊四类。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "栓钉焊听着像一种连接方式，顺手就写上。",
+          "loss_reason": "栓钉焊是焊接接头类型，不是并列的连接方法，属分类混淆。",
+          "fix": "连接方法是焊接/普通螺栓/高强螺栓/铆接；栓钉焊归焊接接头。",
+          "option_id": "C07-html-practice-html-q1-1dbc01dbdcec:option-3"
+        },
+        {
+          "text": "连接方法包括焊接、吊装、制孔、防腐四类。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把施工过程当成了连接方法。",
+          "loss_reason": "吊装/制孔/防腐是加工安装工序，不是连接方法。",
+          "fix": "连接方法只有焊接、普通螺栓、高强螺栓、铆接四类。",
+          "option_id": "C07-html-practice-html-q1-1dbc01dbdcec:option-4"
+        }
+      ],
+      "model_answer": "钢结构连接方法包括：焊接、普通螺栓连接、高强度螺栓连接、铆接。",
+      "rule_group": "连接方法·定性",
+      "content_sha256": "dd21f9f727d7a9539fe0f9a8f2ee7fcbe18704768830d7f6b4bf81065f940ba4",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q1",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-connection-methods",
+        "skeleton_id": "c07-skel-连接方法四类枚举",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_109_0216:0",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "dd21f9f727d7a9539fe0f9a8f2ee7fcbe18704768830d7f6b4bf81065f940ba4",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "钢结构连接方法四类,教材直引(0.88)。工单:正确项恒首位且最长(template artifact)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q2-b4a3fc6a4689",
+      "surface_id": "practice.html",
+      "stem": "钢结构焊接接头的类型包括哪些？选出列全、能得分的作答。",
+      "options": [
+        {
+          "text": "全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "七类枚举齐全，分类采分点拿满。",
+          "option_id": "C07-html-practice-html-q2-b4a3fc6a4689:option-1"
+        },
+        {
+          "text": "就是对接焊缝和角焊缝两类，其余按现场情况定。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "平时最常见对接、角焊缝，容易只答这两种。",
+          "loss_reason": "塞焊/槽焊/电渣焊/栓钉焊等未列，采分点大面积遗漏。",
+          "fix": "补齐全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。",
+          "option_id": "C07-html-practice-html-q2-b4a3fc6a4689:option-2"
+        },
+        {
+          "text": "焊接、普通螺栓、高强螺栓、铆接、角焊缝五类。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把连接方法和焊接接头混在一起写。",
+          "loss_reason": "前四个是连接方法不是焊接接头，问的是接头类型。",
+          "fix": "接头类型只列焊接内部的七类，别掺连接方法。",
+          "option_id": "C07-html-practice-html-q2-b4a3fc6a4689:option-3"
+        },
+        {
+          "text": "全熔透、部分熔透、角焊缝、搭接焊、点焊、铆焊六类。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "编了几个听着像的名词凑数。",
+          "loss_reason": "搭接焊/点焊/铆焊不是教材列出的接头类型，属知识点缺失。",
+          "fix": "按教材七类：全熔透/部分熔透/角焊缝/塞焊/槽焊/电渣焊/栓钉焊。",
+          "option_id": "C07-html-practice-html-q2-b4a3fc6a4689:option-4"
+        }
+      ],
+      "model_answer": "全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。",
+      "rule_group": "焊接接头·分类",
+      "content_sha256": "9e2044e7f8cefecb701668c1d39e952b738ede2af6634f5bd88fd07d6b23771a",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q2",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-weld-joint-types",
+        "skeleton_id": "c07-skel-焊接接头七类枚举",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_109_0216:1",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "9e2044e7f8cefecb701668c1d39e952b738ede2af6634f5bd88fd07d6b23771a",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "焊接接头七类,教材直引(0.74)。工单:template artifact。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q3-5c99057d90f9",
+      "surface_id": "practice.html",
+      "stem": "钢结构焊接作业环境应满足哪些条件？选出数值正确、能得分的作答。",
+      "options": [
+        {
+          "text": "温度不低于−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四个阈值都对、两种焊风速分开写，条件维拿满。",
+          "option_id": "C07-html-practice-html-q3-5c99057d90f9:option-1"
+        },
+        {
+          "text": "温度不低于−10℃、相对湿度≤90%、手工电弧焊风速≤2m/s、气体保护焊风速≤8m/s。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有 8 和 2，却把两种焊对应的风速写反了。",
+          "loss_reason": "风速 8/2 张冠李戴：气体保护焊怕吹散保护气应≤2，手工电弧焊≤8。",
+          "fix": "手工电弧焊≤8m/s、气体保护焊≤2m/s，别写反。",
+          "option_id": "C07-html-practice-html-q3-5c99057d90f9:option-2"
+        },
+        {
+          "text": "温度不低于0℃、相对湿度≤80%、风速不限，技术过硬就能焊。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "凭常识觉得 0℃、80% 差不多。",
+          "loss_reason": "温度阈值应−10℃、湿度应90%，且风速有限值，数值全错。",
+          "fix": "温度≥−10℃、湿度≤90%、手工≤8/气保≤2m/s。",
+          "option_id": "C07-html-practice-html-q3-5c99057d90f9:option-3"
+        },
+        {
+          "text": "只要现场环境适宜、避开雨雪大风即可施焊，具体数值按经验掌握。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用「环境适宜」这种常识话术代替规范。",
+          "loss_reason": "没有可判分的数值，属用常识替代规范。",
+          "fix": "必须写出−10℃/90%/8m/s/2m/s 四个规范阈值。",
+          "option_id": "C07-html-practice-html-q3-5c99057d90f9:option-4"
+        }
+      ],
+      "model_answer": "温度≥−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s，低温须加热防护。",
+      "rule_group": "焊接环境·条件维",
+      "content_sha256": "9187b4b8dbda2dd50ead87abc3f9c055d9e08b2c5af35162b65aeacf8fbbf771",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q3",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-weld-environment",
+        "skeleton_id": "c07-skel-焊接环境数值",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_110_0217:1",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "9187b4b8dbda2dd50ead87abc3f9c055d9e08b2c5af35162b65aeacf8fbbf771",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "焊接环境4数值(≥-10℃/湿度≤90%/风速8/2)全对,教材直引(0.84)。工单:stem 限定数值,解析可补'低温需加热/防护'(另一采分点)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q4-3ff4600ca2e6",
+      "surface_id": "practice.html",
+      "stem": "某焊缝检测发现固体夹渣缺陷，其主要成因是下列哪项？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "焊接电流太小（熔池温度不够、熔渣来不及上浮），及速度太快、熔渣未清除。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "抓住主因「电流太小」，与气孔/裂纹成因分开，后果维拿分。",
+          "option_id": "C07-html-practice-html-q4-3ff4600ca2e6:option-1"
+        },
+        {
+          "text": "焊前未预热、层间温度过低，导致熔渣夹在焊缝里形成固体夹渣。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "预热听着和焊接质量有关，顺手套上。",
+          "loss_reason": "预热不足对应的是裂纹缺陷，不是固体夹渣，成因张冠李戴。",
+          "fix": "固体夹渣主因是焊接电流太小，不是没预热。",
+          "option_id": "C07-html-practice-html-q4-3ff4600ca2e6:option-2"
+        },
+        {
+          "text": "焊后冷却太快、内应力集中，把熔渣挤在焊缝里造成夹渣。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "冷却快听着像会出问题。",
+          "loss_reason": "冷却快对应裂纹，不是夹渣，缺陷成因混淆。",
+          "fix": "夹渣主因是电流太小；冷却快归裂纹。",
+          "option_id": "C07-html-practice-html-q4-3ff4600ca2e6:option-3"
+        },
+        {
+          "text": "作业环境相对湿度太大，水汽混入熔池形成固体夹渣。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "湿度大确实是焊接大忌。",
+          "loss_reason": "湿度大对应的是气孔，不是固体夹渣，成因归错。",
+          "fix": "夹渣主因是电流太小；湿度大归气孔。",
+          "option_id": "C07-html-practice-html-q4-3ff4600ca2e6:option-4"
+        }
+      ],
+      "model_answer": "固体夹渣主因是焊接电流太小（及焊接速度太快、熔渣密度太大、多层焊熔渣未清除）。",
+      "rule_group": "焊接缺陷·后果维",
+      "content_sha256": "39c9d043682a6306fafc1560bf7d063b34085fec41674ce58aafca6aac07e561",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q4",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-slag-inclusion-cause",
+        "skeleton_id": "c07-skel-夹渣成因",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2021:第8题",
+        "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "39c9d043682a6306fafc1560bf7d063b34085fec41674ce58aafca6aac07e561",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "固体夹渣成因(电流小/速度快/熔渣未清),真题锚。工单:机理化括注宜另补教材锚。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q5-a3c1013cb4eb",
+      "surface_id": "practice.html",
+      "stem": "构件承受动荷载且需疲劳验算时，严禁使用哪几种焊接接头？选出列全、能得分的作答。",
+      "options": [
+        {
+          "text": "严禁使用塞焊、槽焊、电渣焊、气电立焊接头。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四种接头列全、并点明触发条件是动荷载需疲劳验算。",
+          "option_id": "C07-html-practice-html-q5-a3c1013cb4eb:option-1"
+        },
+        {
+          "text": "严禁使用塞焊、槽焊、坡口焊、电渣焊接头。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "坡口焊听着像特殊接头，误当禁用项。",
+          "loss_reason": "坡口焊不在严禁之列，漏了气电立焊，四种记错一种。",
+          "fix": "是塞焊/槽焊/电渣焊/气电立焊，坡口焊不属此列。",
+          "option_id": "C07-html-practice-html-q5-a3c1013cb4eb:option-2"
+        },
+        {
+          "text": "接头形式与荷载无关，动荷载下任何接头都能用，只要焊透即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为焊透了就万事大吉。",
+          "loss_reason": "疲劳验算下接头形式恰恰关键，塞/槽/电渣/气电立焊严禁。",
+          "fix": "动荷载需疲劳验算时严禁这四种接头。",
+          "option_id": "C07-html-practice-html-q5-a3c1013cb4eb:option-3"
+        },
+        {
+          "text": "动荷载下要严禁使用不当的焊接接头，具体哪几种按规范来。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道有禁用项但记不清，写句套话。",
+          "loss_reason": "没点出具体四种接头，采分点落空。",
+          "fix": "明确写塞焊、槽焊、电渣焊、气电立焊四种。",
+          "option_id": "C07-html-practice-html-q5-a3c1013cb4eb:option-4"
+        }
+      ],
+      "model_answer": "严禁塞焊、槽焊、电渣焊、气电立焊接头。",
+      "rule_group": "疲劳禁焊·后果维",
+      "content_sha256": "c4fa01f3795b8871b80980d0435035eb865e2859298d5cbf06fbc436ad8fe76a",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q5",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "c4fa01f3795b8871b80980d0435035eb865e2859298d5cbf06fbc436ad8fe76a",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q6-704d5a80ae54",
+      "surface_id": "practice.html",
+      "stem": "钢结构焊接质量主控项目应包括哪些内容？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "焊接材料须烘焙、焊工持证上岗、一级和二级焊缝须无损检测。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三项主控齐全，尤其盯准「一二级」焊缝无损检测。",
+          "option_id": "C07-html-practice-html-q6-704d5a80ae54:option-1"
+        },
+        {
+          "text": "焊接材料须烘焙、焊工持证上岗、全部焊缝一律进行无损检测。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "以为焊缝都查一遍更保险。",
+          "loss_reason": "应是「一级、二级」焊缝无损检测，写「全部」关键词错、不合规。",
+          "fix": "改为一级、二级焊缝须无损检测，不是全部焊缝。",
+          "option_id": "C07-html-practice-html-q6-704d5a80ae54:option-2"
+        },
+        {
+          "text": "焊工持证上岗，其余加强现场管理、按规范施焊即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住焊工持证一条。",
+          "loss_reason": "漏了焊材烘焙和一二级焊缝无损检测两项主控。",
+          "fix": "补焊材须烘焙、一二级焊缝须无损检测。",
+          "option_id": "C07-html-practice-html-q6-704d5a80ae54:option-3"
+        },
+        {
+          "text": "焊接质量靠焊工经验和责任心保证，主控就是加强质量意识。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用「意识/责任心」这种话代替具体项目。",
+          "loss_reason": "无可判分的主控项目，属常识替代规范。",
+          "fix": "写焊材烘焙、焊工持证、一二级焊缝无损检测。",
+          "option_id": "C07-html-practice-html-q6-704d5a80ae54:option-4"
+        }
+      ],
+      "model_answer": "焊接材料须烘焙、焊工持证上岗、一二级焊缝须无损检测。",
+      "rule_group": "焊接主控·记录维",
+      "content_sha256": "7440742a8f6f8b4a9dff5c58a54f173b139cb1cc73c5f4bc474af4aac5beb343",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q6",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "7440742a8f6f8b4a9dff5c58a54f173b139cb1cc73c5f4bc474af4aac5beb343",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q7-96577c31d42c",
+      "surface_id": "practice.html",
+      "stem": "关于焊接连接的特点，选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "优点是节约钢材、构造简单、易自动化、加工方便；内部缺陷难查，须无损探伤。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "优点四条对，且点明内部缺陷难查、须探伤，避开「易于检查」陷阱。",
+          "option_id": "C07-html-practice-html-q7-96577c31d42c:option-1"
+        },
+        {
+          "text": "优点是节约钢材、构造简单、易自动化、加工方便，而且焊缝易于检查。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "焊缝表面看得见，就以为「易于检查」也是优点。",
+          "loss_reason": "焊缝内部夹渣气孔肉眼难查、须探伤，「易于检查」是典型陷阱项。",
+          "fix": "删掉「易于检查」，改为内部缺陷须无损探伤。",
+          "option_id": "C07-html-practice-html-q7-96577c31d42c:option-2"
+        },
+        {
+          "text": "焊接最大优点是连接可拆卸、可重复使用，施工灵活。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把螺栓的可拆特性安到焊接头上。",
+          "loss_reason": "焊接是永久连接不可拆，可拆是螺栓的特点，概念混淆。",
+          "fix": "焊接优点是节约钢材/构造简单/易自动化/加工方便。",
+          "option_id": "C07-html-practice-html-q7-96577c31d42c:option-3"
+        },
+        {
+          "text": "焊接优点就是牢固耐用，能焊多牢就多牢，没什么缺点。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "笼统说「牢固」省事。",
+          "loss_reason": "没列具体优点、也回避了内部缺陷难查，采分点空。",
+          "fix": "列四条优点并补内部缺陷难查、须探伤。",
+          "option_id": "C07-html-practice-html-q7-96577c31d42c:option-4"
+        }
+      ],
+      "model_answer": "焊接优点：节约钢材、构造简单、易自动化、加工方便；但内部缺陷难查，须无损探伤，不能算「易于检查」。",
+      "rule_group": "焊接特点·陷阱",
+      "content_sha256": "8fafbf2013a4de300422d9d193d68c331a0979f6d0ea93e5b725362705243a90",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q7",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "8fafbf2013a4de300422d9d193d68c331a0979f6d0ea93e5b725362705243a90",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q8-253f5eb9b411",
+      "surface_id": "practice.html",
+      "stem": "高强度螺栓连接（摩擦型）主要靠什么传递外荷载？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "靠拧出的预拉力把板件夹紧，接触面产生摩擦力来传递外荷载。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明「预拉力夹紧、摩擦传力」，正是摩擦型高强螺栓的机理采分句。",
+          "option_id": "C07-html-practice-html-q8-253f5eb9b411:option-1"
+        },
+        {
+          "text": "靠螺栓杆抵住孔壁承受剪力来传递外荷载，像销钉一样抗剪。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "直觉觉得螺栓就是靠杆顶着受力。",
+          "loss_reason": "那是普通螺栓承压型的传力方式，摩擦型高强螺栓靠摩擦传力。",
+          "fix": "摩擦型靠预拉力夹紧、接触面摩擦力传外荷载。",
+          "option_id": "C07-html-practice-html-q8-253f5eb9b411:option-2"
+        },
+        {
+          "text": "靠螺栓和钢板焊在一起形成整体来传递外荷载。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把螺栓连接和焊接搞混。",
+          "loss_reason": "高强螺栓是机械连接不焊接，传力靠摩擦不靠熔合。",
+          "fix": "靠预拉力夹紧、摩擦力传外荷载。",
+          "option_id": "C07-html-practice-html-q8-253f5eb9b411:option-3"
+        },
+        {
+          "text": "只要把高强螺栓拧得足够紧，靠拧紧本身就能把荷载传过去。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得「拧紧就行」。",
+          "loss_reason": "没说清是靠预拉力产生的摩擦力传力，机理采分点没答到。",
+          "fix": "预拉力夹紧板件、接触面摩擦力传外荷载。",
+          "option_id": "C07-html-practice-html-q8-253f5eb9b411:option-4"
+        }
+      ],
+      "model_answer": "靠预拉力把板件夹紧、接触面摩擦力传递外荷载（摩擦连接）。",
+      "rule_group": "高强螺栓·原理",
+      "content_sha256": "13247874d5eff27240133fdf1c272f751ffe9b45d3d238e4fc26ee14462ece06",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q8",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "13247874d5eff27240133fdf1c272f751ffe9b45d3d238e4fc26ee14462ece06",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q9-16d06c3c7aef",
+      "surface_id": "practice.html",
+      "stem": "钢结构安装时，安装螺栓与冲钉的数量应满足哪些要求？选出列全、能得分的作答。",
+      "options": [
+        {
+          "text": "安装螺栓不少于2个且不少于安装孔总数的1/3；冲钉不多于安装螺栓的30%；不得用高强螺栓兼作安装螺栓。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三条纪律齐：数量下限、冲钉上限、不得兼作，条件维拿满。",
+          "option_id": "C07-html-practice-html-q9-16d06c3c7aef:option-1"
+        },
+        {
+          "text": "安装螺栓不少于2个即可，冲钉数量不限，随孔位灵活穿。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "只记住「≥2个」一个数。",
+          "loss_reason": "漏了「≥安装孔1/3」和「冲钉≤30%」，数量纪律不全。",
+          "fix": "补≥安装孔总数1/3、冲钉≤安装螺栓30%。",
+          "option_id": "C07-html-practice-html-q9-16d06c3c7aef:option-2"
+        },
+        {
+          "text": "孔位不够时可直接用高强度螺栓兼作安装螺栓临时固定，方便省事。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得高强螺栓装一遍能临时又最终，省一道。",
+          "loss_reason": "明确规定不得用高强螺栓兼作安装螺栓，属规范适用错误。",
+          "fix": "另设安装螺栓≥2个且≥1/3孔，高强螺栓不得兼作。",
+          "option_id": "C07-html-practice-html-q9-16d06c3c7aef:option-3"
+        },
+        {
+          "text": "安装螺栓不少于安装孔总数的1/2，冲钉不少于安装螺栓的50%。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有分数和百分比，数值凭印象填。",
+          "loss_reason": "应是≥1/3孔、冲钉≤30%（是上限不是下限），数值和方向都错。",
+          "fix": "≥安装孔1/3、冲钉≤安装螺栓30%。",
+          "option_id": "C07-html-practice-html-q9-16d06c3c7aef:option-4"
+        }
+      ],
+      "model_answer": "安装螺栓≥2个且≥安装孔总数1/3；冲钉≤安装螺栓数量30%；不得用高强螺栓兼作安装螺栓。",
+      "rule_group": "安装螺栓·条件维",
+      "content_sha256": "6d52245ce843c7363895d61504fb4356c0ac33fdf3d4bcbfcbfe68c9462f461f",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q9",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-high-strength-bolt-install",
+        "skeleton_id": "c07-skel-冲钉数量下限",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A413030_110_0217:0",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "6d52245ce843c7363895d61504fb4356c0ac33fdf3d4bcbfcbfe68c9462f461f",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "安装螺栓/冲钉数量下限+不得兼作,教材直引(0.79)。工单:荷载计算前提未列(不穷尽非反错)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q10-eef5eb0d8bee",
+      "surface_id": "practice.html",
+      "stem": "施工员用高强度螺栓兼作安装螺栓做临时固定。指出是否妥当，并选出正确做法。",
+      "options": [
+        {
+          "text": "不妥。应另设安装螺栓，不少于2个且不少于安装孔总数的1/3，高强螺栓不得兼作。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先判不妥、再给带数值的正确做法，判断纠错三段齐。",
+          "option_id": "C07-html-practice-html-q10-eef5eb0d8bee:option-1"
+        },
+        {
+          "text": "妥当。高强螺栓先当安装螺栓临时固定、后续再终拧当正式受力件，一举两得。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得高强螺栓装一次能兼两用，效率高。",
+          "loss_reason": "违反「不得用高强螺栓兼作安装螺栓」，属规范适用错误。",
+          "fix": "不妥；另设安装螺栓≥2个且≥1/3孔。",
+          "option_id": "C07-html-practice-html-q10-eef5eb0d8bee:option-2"
+        },
+        {
+          "text": "不妥，应该换成普通螺栓来兼作安装螺栓临时固定即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道不能用高强螺栓兼作，改口说换普通螺栓。",
+          "loss_reason": "没给出「另设安装螺栓≥2个≥1/3孔」的数量限值，纠正缺关键数。",
+          "fix": "应另设安装螺栓，不少于2个且不少于安装孔1/3。",
+          "option_id": "C07-html-practice-html-q10-eef5eb0d8bee:option-3"
+        },
+        {
+          "text": "不妥，应把全部孔都先用冲钉打满固定后再拧高强螺栓。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "想用冲钉替代解决临时固定。",
+          "loss_reason": "冲钉不多于安装螺栓30%，不能打满；且没设安装螺栓，方向错。",
+          "fix": "另设安装螺栓≥2个≥1/3孔，冲钉≤30%。",
+          "option_id": "C07-html-practice-html-q10-eef5eb0d8bee:option-4"
+        }
+      ],
+      "model_answer": "不妥：不得用高强度螺栓兼作安装螺栓；应另设安装螺栓，不少于2个且不少于安装孔总数的1/3。",
+      "rule_group": "兼作纠错·判断纠错",
+      "content_sha256": "2a281aae25c1058f32bfbe8ae30793786f2fe6871ff552534f9b11f5b41cad03",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q10",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-high-strength-bolt-install",
+        "skeleton_id": "c07-skel-兼作判断纠错",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A413030_110_0217:0",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "2a281aae25c1058f32bfbe8ae30793786f2fe6871ff552534f9b11f5b41cad03",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "高强螺栓不得兼作安装螺栓,教材直引(0.68)。工单:正确做法可补荷载计算前提。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q11-331ef393cc27",
+      "surface_id": "practice.html",
+      "stem": "高强度螺栓的穿入与扩孔应如何处理？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "必须自由穿入、不得强行；若需扩孔，孔径不超过螺栓直径的1.2倍，且禁止气割扩孔。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "自由穿入 + 扩孔≤1.2D + 禁气割，三点齐，程序维拿满。",
+          "option_id": "C07-html-practice-html-q11-331ef393cc27:option-1"
+        },
+        {
+          "text": "穿不进去可用锤子敲击强行打入，孔差得多时用气割把孔扩大到位。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "现场图快，能穿进去就行。",
+          "loss_reason": "强行锤入伤螺纹、气割扩孔烧伤孔壁，都违反规范。",
+          "fix": "必须自由穿入；扩孔≤1.2D、只能机械扩、禁气割。",
+          "option_id": "C07-html-practice-html-q11-331ef393cc27:option-2"
+        },
+        {
+          "text": "必须自由穿入；若需扩孔，孔径不超过螺栓直径的1.5倍即可，扩孔方式不限。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有个倍数，凭印象写 1.5。",
+          "loss_reason": "扩孔上限是1.2倍不是1.5倍，且未禁气割。",
+          "fix": "扩孔≤1.2倍螺栓直径，且禁气割扩孔。",
+          "option_id": "C07-html-practice-html-q11-331ef393cc27:option-3"
+        },
+        {
+          "text": "只要最终能拧紧到位，穿入方式和扩孔方式都无所谓。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为结果拧紧就行、过程随意。",
+          "loss_reason": "忽略自由穿入与禁气割/≤1.2D的过程规定，规范适用错误。",
+          "fix": "必须自由穿入、扩孔≤1.2D、禁气割。",
+          "option_id": "C07-html-practice-html-q11-331ef393cc27:option-4"
+        }
+      ],
+      "model_answer": "必须自由穿入、不得强行；若需扩孔，孔径不得超过螺栓直径的1.2倍，且不得使用气割扩孔。",
+      "rule_group": "穿入扩孔·程序维",
+      "content_sha256": "74b0c49777abc6c95b3ededf2da02052d6691b71209964d3fd965ddb30f65a77",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q11",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "74b0c49777abc6c95b3ededf2da02052d6691b71209964d3fd965ddb30f65a77",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q12-fdacf10bed27",
+      "surface_id": "practice.html",
+      "stem": "个别螺栓孔不对位，施工员用气割把孔扩大。指出是否妥当，并选出正确做法。",
+      "options": [
+        {
+          "text": "不妥。应采用机械方法扩孔，孔径不超过螺栓直径的1.2倍，不得用气割扩孔。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明禁气割、给出机械扩孔且≤1.2D 的限值，三段齐。",
+          "option_id": "C07-html-practice-html-q12-fdacf10bed27:option-1"
+        },
+        {
+          "text": "妥当。气割扩孔又快又省事，只要能把螺栓穿进去就行。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "现场赶工，气割最快。",
+          "loss_reason": "气割烧伤孔壁、留热影响区，明确禁止，属规范适用错误。",
+          "fix": "不妥；应机械扩孔≤1.2D，禁气割。",
+          "option_id": "C07-html-practice-html-q12-fdacf10bed27:option-2"
+        },
+        {
+          "text": "不妥，应该改用锤子把螺栓强行打进原孔，不必扩孔。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "想避开扩孔干脆硬砸进去。",
+          "loss_reason": "强行锤入违反自由穿入要求，方向纠错错。",
+          "fix": "应机械扩孔、孔径≤1.2D，且必须自由穿入。",
+          "option_id": "C07-html-practice-html-q12-fdacf10bed27:option-3"
+        },
+        {
+          "text": "不妥，气割扩孔不好，用机械扩孔就行。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道禁气割改机械，但没写限值。",
+          "loss_reason": "缺「孔径≤螺栓直径1.2倍」关键限值，正确做法不完整。",
+          "fix": "机械扩孔且孔径≤螺栓直径的1.2倍。",
+          "option_id": "C07-html-practice-html-q12-fdacf10bed27:option-4"
+        }
+      ],
+      "model_answer": "不妥：不得用气割扩孔（烧伤孔壁、热影响）；应用机械方法扩孔，且孔径不超过螺栓直径的1.2倍。",
+      "rule_group": "气割纠错·判断纠错",
+      "content_sha256": "138b69fa9c1997df165d6e5824e0291139788c924699ceb2fc9ceae22f3bd351",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q12",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "138b69fa9c1997df165d6e5824e0291139788c924699ceb2fc9ceae22f3bd351",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q13-2c2c754418ec",
+      "surface_id": "practice.html",
+      "stem": "高强度螺栓连接的摩擦面应如何处理？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "摩擦面须干燥清洁，无飞边毛刺焊渣氧化皮污垢，不得作标记，生锈用钢丝刷除浮锈。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "洁净要求 + 不得作标记 + 除浮锈都写全，尤其「不得作标记」是判分眼。",
+          "option_id": "C07-html-practice-html-q13-2c2c754418ec:option-1"
+        },
+        {
+          "text": "摩擦面清理干净即可；为方便安装，可用记号笔在摩擦面上做定位标记。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得做个定位记号方便对位、无伤大雅。",
+          "loss_reason": "摩擦面不得作标记，记号会降低摩擦系数，属规范适用错误。",
+          "fix": "摩擦面不得作标记；定位标记只能做在摩擦面以外。",
+          "option_id": "C07-html-practice-html-q13-2c2c754418ec:option-2"
+        },
+        {
+          "text": "摩擦面打磨光亮后抹一层薄油防锈，安装前擦掉即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得抹油防锈是好习惯。",
+          "loss_reason": "油膜会降低摩擦系数、削弱抗滑移承载力，方向错。",
+          "fix": "摩擦面须干燥清洁无油污，不得抹油、不得作标记。",
+          "option_id": "C07-html-practice-html-q13-2c2c754418ec:option-3"
+        },
+        {
+          "text": "把摩擦面清理干净就行，其他没什么特别要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答「清理干净」一句了事。",
+          "loss_reason": "漏了「不得作标记」「除浮锈」等关键要求，采分点不全。",
+          "fix": "补无飞边毛刺焊渣污垢、不得作标记、生锈钢丝刷除浮锈。",
+          "option_id": "C07-html-practice-html-q13-2c2c754418ec:option-4"
+        }
+      ],
+      "model_answer": "摩擦面干燥清洁，无飞边毛刺焊渣氧化皮污垢，不得作标记，生锈须钢丝刷除浮锈。",
+      "rule_group": "摩擦面·记录维",
+      "content_sha256": "dc6966c31c0572119458a5c58a3a065789df40ce43ed52d29b517f9ec3302ceb",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q13",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "dc6966c31c0572119458a5c58a3a065789df40ce43ed52d29b517f9ec3302ceb",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q14-4826382afbc0",
+      "surface_id": "practice.html",
+      "stem": "高强度螺栓连接的检验应包括什么？终拧后应何时检查？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "摩擦面须做抗滑移试验；终拧完成后应在1~48小时内检查。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "抗滑移试验 + 终拧后1~48h 检查，两项齐、时间准。",
+          "option_id": "C07-html-practice-html-q14-4826382afbc0:option-1"
+        },
+        {
+          "text": "摩擦面须做抗滑移试验；终拧完成后检查即可，时间没有特别要求。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "记得要抗滑移、要检查，却忘了时间窗。",
+          "loss_reason": "漏了「终拧后1~48h内」这个关键时间，关键词缺失。",
+          "fix": "补终拧后应在1~48小时内检查。",
+          "option_id": "C07-html-practice-html-q14-4826382afbc0:option-2"
+        },
+        {
+          "text": "摩擦面须做抗滑移试验；终拧完成后一周内检查完毕即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得一周内挺宽松、来得及。",
+          "loss_reason": "检查时间是1~48小时，写「一周内」时间数值错。",
+          "fix": "终拧后应在1~48小时内检查，不是一周内。",
+          "option_id": "C07-html-practice-html-q14-4826382afbc0:option-3"
+        },
+        {
+          "text": "终拧完成后在1~48小时内检查扭矩即可，安装前不必做别的试验。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住了时间窗，就以为够了。",
+          "loss_reason": "漏了「摩擦面须做抗滑移试验」这一检验项。",
+          "fix": "补摩擦面抗滑移试验，与终拧后1~48h检查并列。",
+          "option_id": "C07-html-practice-html-q14-4826382afbc0:option-4"
+        }
+      ],
+      "model_answer": "摩擦面须做抗滑移试验；终拧后应在1~48小时内检查。",
+      "rule_group": "抗滑移·终拧检查",
+      "content_sha256": "7e6a775e4ff56f980568f3a35a04bb5bf2bd9a63bedb0e5e331293bf032c27a0",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q14",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "7e6a775e4ff56f980568f3a35a04bb5bf2bd9a63bedb0e5e331293bf032c27a0",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C07-html-practice-html-q15-e2594578228f",
+      "surface_id": "practice.html",
+      "stem": "某学生作答：①用高强螺栓兼作安装螺栓临时固定；②孔不对位用气割扩孔；③摩擦面用记号笔做定位；④终拧完一周后检查；⑤焊缝夹渣是焊前没预热造成的。选出最准确的诊断与补写。",
+      "options": [
+        {
+          "text": "五处都不对：应另设安装螺栓≥2个≥1/3孔、机械扩孔≤1.2D禁气割、摩擦面不得作标记、终拧后1~48h内检查、夹渣主因是电流太小。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五处失分全揪出并逐条给正确采分句——这就是「会写答案」。",
+          "option_id": "C07-html-practice-html-q15-e2594578228f:option-1"
+        },
+        {
+          "text": "只有第⑤条夹渣成因写错，前四条施工做法都合规，改成因即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只盯住了成因那句，觉得施工步骤没毛病。",
+          "loss_reason": "兼作、气割、摩擦面标记、终拧时间四处施工也全违规，漏诊四处。",
+          "fix": "五处都要改，不止成因一处。",
+          "option_id": "C07-html-practice-html-q15-e2594578228f:option-2"
+        },
+        {
+          "text": "主要问题是第②条气割扩孔，改用机械扩孔即可，其余基本没问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到气割最扎眼的一处就收手。",
+          "loss_reason": "兼作、摩擦面标记、终拧时间、夹渣成因四处失分被漏诊。",
+          "fix": "五处逐条改：兼作/气割/标记/终拧时间/夹渣成因。",
+          "option_id": "C07-html-practice-html-q15-e2594578228f:option-3"
+        },
+        {
+          "text": "把第⑤条夹渣成因纠成「湿度太大」，其余四条按现场惯例即可。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "知道成因写错了，却纠成了另一个错答案。",
+          "loss_reason": "湿度大是气孔成因不是夹渣，且前四条违规未纠，诊断方向错。",
+          "fix": "夹渣主因是电流太小；前四条也须逐条纠正。",
+          "option_id": "C07-html-practice-html-q15-e2594578228f:option-4"
+        }
+      ],
+      "model_answer": "五处全错：①不得兼作，应另设安装螺栓≥2个≥1/3孔；②禁气割，应机械扩孔≤1.2D；③摩擦面不得作标记；④应终拧后1~48h内检查；⑤夹渣主因是焊接电流太小，非没预热。",
+      "rule_group": "采分诊断·末题",
+      "content_sha256": "57a829dd4ba1060b891082b866d0fe9b9f0cb431bdc2b876304f057c6cfb0c21",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q15",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-high-strength-bolt-install",
+        "skeleton_id": "c07-skel-五错诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_110_0217:0",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "57a829dd4ba1060b891082b866d0fe9b9f0cb431bdc2b876304f057c6cfb0c21",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "高强螺栓五错诊断(兼作/气割扩孔/摩擦面标记/终拧/…)。锚 kc:...110_0217:0 覆盖兼作+禁气割扩孔;摩擦面/终拧为多源。工单:复合题多源 provenance,非血统断(各事实均教材有据)。Codex '设计单位同意' FATAL 为幻觉,已否。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
+  ],
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (c07.codex.out, 报 4 FATAL). 主控逐条核 _C07_compiled_source.json: (1) Codex 对 q11/q12/q15 的 '扩孔须征得设计单位同意' FATAL 系幻觉——grep 全 compiled_source '设计单位' 零命中,q11 答案'孔径不超1.2倍+禁气割扩孔'与教材逐字一致;(2) q3 漏'低温需加热/防护'属实,但 stem 限定'数值正确',所列4数值全对,单选可接受=工单;(3) q15 五错诊断为复合题,单锚只覆盖兼作/气割扩孔2事实,余为多源=工单。结论:无 FATAL,全部答案教材正确、引文可溯,按 N01/C01 先例 approved+工单。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
+}

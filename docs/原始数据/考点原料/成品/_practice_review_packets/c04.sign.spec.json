@@ -1,0 +1,13 @@
+{
+  "pack_id": "C04",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (c04.codex.out, 报 3 FATAL: q2/q16 surface + q17). 主控逐条核 _C04_compiled_source.json: (1) q2 拆模强度百分率与教材表3.4-1逐值一致(板≤2m50%/>2m~8m75%/>8m100%;梁拱壳≤8m75%/>8m100%;悬臂100%),Codex 的 '2m边界双归属' 系 '2~8m' 简记的措辞欠精=工单,非数值错;(2) q16 复合诊断的'拆模顺序对句'与'技术负责人批准'两事实教材均有原文('后支先拆先支后拆'/'技术负责人方能批准拆模'),Codex 说无锚系 prefill 召回缺口=复合多源工单,非血统断;(3) q17 非 surface anchor,不入签发集。结论:无 FATAL,答案全部教材正确,按先例 approved+工单。",
+  "signed": [
+    {"variant_id":"C04-html-practice-html-q1-3f9696fe7b90","probe_role":"anchor","fact_id":"c04-fact-side-form-removal","skeleton_id":"c04-skel-侧模拆除条件","source_anchor":"kc:1A413030_099_0186:0","note":"不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。"},
+    {"variant_id":"C04-html-practice-html-q2-57b7aba68476","probe_role":"anchor","fact_id":"c04-fact-bottom-form-strength-table","skeleton_id":"c04-skel-底模强度全表","source_anchor":"kc:1A413030_099_0185:0","note":"底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。"},
+    {"variant_id":"C04-html-practice-html-q3-fd09f109c0de","probe_role":"anchor","fact_id":"c04-fact-bottom-form-strength-apply-6m","skeleton_id":"c04-skel-6m板强度应用","source_anchor":"exam:2021:第9题","note":"6m现浇板拆底模≥75%,真题锚。"},
+    {"variant_id":"C04-html-practice-html-q4-2f60c2911a87","probe_role":"anchor","fact_id":"c04-fact-bottom-form-strength-threshold","skeleton_id":"c04-skel-8m边界判定","source_anchor":"exam:2024:第10题","note":"8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。"},
+    {"variant_id":"C04-html-practice-html-q16-bd3fe10391f8","probe_role":"anchor","fact_id":"c04-fact-form-removal-diagnosis","skeleton_id":"c04-skel-拆模五错诊断","source_anchor":"ca:1A413030_099_0186","note":"拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。"},
+    {"variant_id":"C04-html-practice-html-q5-0f31b7c99ac5","probe_role":"immediate_confirm","fact_id":"c04-fact-bottom-form-strength-threshold","skeleton_id":"c04-skel-多构件达标判断","source_anchor":"exam:2024:第10题","note":"多构件同条件强度哪项达拆模要求,真题锚。"},
+    {"variant_id":"C04-html-practice-html-q6-30a632b3e3e3","probe_role":"d1_probe","fact_id":"c04-fact-bottom-form-strength-threshold","skeleton_id":"c04-skel-快拆保留立杆","source_anchor":"exam:2015:第10题","note":"8m快拆板拆模保留立杆顶托,条件判定,真题锚。"}
+  ]
+}

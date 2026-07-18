@@ -1,0 +1,62 @@
+{
+  "pack_id": "F04",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (f04.codex.out, fatal_count=0)。Codex 15/15 approve, 5 surface 锚全 MINOR 无 FATAL。主控抽核 surface+三联锚引文: q1/q11/q13=exam:2015:案例2 逐字(『阴阳角基层卷材做成 45 度角或圆弧型』『泛水高度至少为 250mm』『女儿墙泛水处…附加层』); q2=kc:1A413030_134_0257:1 直引; q3=kc:1A413030_133_0256:1 直引(≥20mm); q4=kc:1A413030_134_0259:1 直引(节点处理优先)。三联承 Codex 方案: 阴阳角圆弧/45度 fact q1/q13/q11。工单(非阻塞): 全包正确项固定首位+最长(编译模板病); q4 屋面题干配外墙外延锚场景跨域宜补同域锚; q8/q15 收头对象粘连; q10 双锚拼合宜绑双来源。",
+  "signed": [
+    {
+      "variant_id": "F04-html-practice-html-q1-bd09304b7137",
+      "probe_role": "anchor",
+      "fact_id": "f04-fact-corner-round-or-45",
+      "skeleton_id": "f04-skel-阴阳角做法选择",
+      "source_anchor": "exam:2015:案例2",
+      "note": "阴阳角基层做圆弧或45度, 真题 exam:2015:案例2 逐字(错误之二整改)。'平顺过渡不翘空'为解释性扩写。工单: 正确项首位最长。"
+    },
+    {
+      "variant_id": "F04-html-practice-html-q2-444042f4fae7",
+      "probe_role": "anchor",
+      "fact_id": "f04-fact-additional-layer-first",
+      "skeleton_id": "f04-skel-薄弱部位附加层先行",
+      "source_anchor": "kc:1A413030_134_0257:1",
+      "note": "阴阳角/管根/地漏先做附加层夹铺胎体增强材料, 教材 kc:...134_0257:1 直引。工单: '再施工大面卷材'宜措辞为'大面防水层'。"
+    },
+    {
+      "variant_id": "F04-html-practice-html-q3-e7f6c23a2fca",
+      "probe_role": "anchor",
+      "fact_id": "f04-fact-pipe-root-seal-20mm",
+      "skeleton_id": "f04-skel-管根套管密封数值",
+      "source_anchor": "kc:1A413030_133_0256:1",
+      "note": "管根密封+套管嵌填压实+套管高出装饰面≥20mm, 教材 kc:...133_0256:1 逐项直引。"
+    },
+    {
+      "variant_id": "F04-html-practice-html-q4-c3b5b6ab6b4c",
+      "probe_role": "anchor",
+      "fact_id": "f04-fact-node-first-then-field",
+      "skeleton_id": "f04-skel-节点先行部件后防水",
+      "source_anchor": "kc:1A413030_134_0259:1",
+      "note": "部件安装完毕后施工防水+先做节点处理, 教材 kc:...134_0259:1 直引。工单: 屋面题干配外墙外延锚场景跨域, 宜补同域教材锚。"
+    },
+    {
+      "variant_id": "F04-html-practice-html-q15-1bd9bc83105c",
+      "probe_role": "anchor",
+      "fact_id": "f04-fact-parapet-coping-flashing",
+      "skeleton_id": "f04-skel-女儿墙压顶收头综合诊断",
+      "source_anchor": "ca:1A422000_042_0066",
+      "note": "压顶向内坡≥5%/涂膜至压顶下/收头金属压条+密封+鹰嘴滴水槽/泛水250, 教材卡 ca:...042_0066(5%,鹰嘴,滴水槽,金属压条,密封)复合支持+真题 exam:2015:案例2 佐证。工单: 鹰嘴滴水槽并入收头对象粘连(多源)。"
+    },
+    {
+      "variant_id": "F04-html-practice-html-q13-872d3ba434ff",
+      "probe_role": "immediate_confirm",
+      "fact_id": "f04-fact-corner-round-or-45",
+      "skeleton_id": "f04-skel-基层条件补全",
+      "source_anchor": "kc:1A413030_134_0257:0",
+      "note": "基层坚实平整无浮浆起砂裂缝+阴阳角宜做圆弧, 教材 kc:...134_0257:0 直引; 45度另有真题 exam:2015:案例2 支持不冲突。三联 immediate_confirm(同阴阳角 fact)。"
+    },
+    {
+      "variant_id": "F04-html-practice-html-q11-8dde83419cf9",
+      "probe_role": "d1_probe",
+      "fact_id": "f04-fact-corner-round-or-45",
+      "skeleton_id": "f04-skel-泛水节点多错纠错",
+      "source_anchor": "exam:2015:案例2",
+      "note": "泛水≥250/阴阳角圆弧45/女儿墙附加层平立面≥250, 真题 exam:2015:案例2 三处错误整改逐字覆盖。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 最长项。"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "pack_id": "S06",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (s06.codex.out, fatal_count=3)。5 surface 锚全无 FATAL, 13/16 approve。3 个非展示真病**排除不签**: q9/q10(题干未以『最完整』限定, 真命题干扰项致单选不唯一——同 J01 q12/K01 q3 病)/q13(删『当无外脚手架时』必要限定=无条件扩大)。主控核: 全部签发锚为 kc:1A436000_121_0195 临边洞口判分眼直引(2m触发/1.2m-2m-180mm-1kN 构造/洞口三档/临边封闭)。三联承 Codex 方案: 临边实体防护 fact q1/q5/q14。工单: 15/16 正确项最长(编译模板病); q6 教材/真题枚举混口径; q15 双层触发条件被模糊改写宜恢复『>24m且木板』口径。",
+  "signed": [
+    {
+      "variant_id": "S06-html-practice-html-q1-eefc330c48e6",
+      "probe_role": "anchor",
+      "fact_id": "s06-fact-edge-guard-2m-trigger",
+      "skeleton_id": "s06-skel-临边2m触发场景",
+      "source_anchor": "kc:1A436000_121_0195:0",
+      "note": "坠落高度≥2m 须设防护栏杆+密目网/工具式栏板封闭, 教材 kc:...121_0195:0 直引。三联 anchor。"
+    },
+    {
+      "variant_id": "S06-html-practice-html-q2-f84743fdbc8b",
+      "probe_role": "anchor",
+      "fact_id": "s06-fact-guardrail-construction",
+      "skeleton_id": "s06-skel-栏杆构造四数值",
+      "source_anchor": "kc:1A436000_121_0195:2",
+      "note": "上杆1.2m/立杆间距≤2m/挡脚板≥180mm/1kN, 教材 kc:...121_0195:2 逐项直引。"
+    },
+    {
+      "variant_id": "S06-html-practice-html-q3-a8a6959fcd44",
+      "probe_role": "anchor",
+      "fact_id": "s06-fact-vertical-opening-500",
+      "skeleton_id": "s06-skel-竖向洞口500判定",
+      "source_anchor": "kc:1A436000_121_0195:1",
+      "note": "≥500mm 洞口设1.2m栏杆+封闭+挡脚板, 教材 kc:...121_0195:1 直引。工单: '安全平网'附加措辞无锚。"
+    },
+    {
+      "variant_id": "S06-html-practice-html-q4-e42d54f368cb",
+      "probe_role": "anchor",
+      "fact_id": "s06-fact-opening-cover-300",
+      "skeleton_id": "s06-skel-300mm洞口盖板",
+      "source_anchor": "kc:1A436000_121_0195:1",
+      "note": "300mm 落 25~500mm 档用承重盖板, 教材 kc:...121_0195:1 三档表直引。工单: 固定防移位出处待补。"
+    },
+    {
+      "variant_id": "S06-html-practice-html-q16-30dcd356515c",
+      "probe_role": "anchor",
+      "fact_id": "s06-fact-edge-opening-composite",
+      "skeleton_id": "s06-skel-临边洞口综合诊断",
+      "source_anchor": "kc:1A436000_121_0195:1",
+      "note": "三诊断均 kc:...121_0195 判分眼族内(洞口三档=本锚; 临边封闭/栏杆高度=:0/:2 补足)=复合多源工单。三处诊断正确且唯一。工单: 正确项81字最长。"
+    },
+    {
+      "variant_id": "S06-html-practice-html-q5-87ad10581a99",
+      "probe_role": "immediate_confirm",
+      "fact_id": "s06-fact-edge-guard-2m-trigger",
+      "skeleton_id": "s06-skel-封闭措施回忆",
+      "source_anchor": "kc:1A436000_121_0195:0",
+      "note": "密目式安全立网或工具式栏板封闭, 教材直引。Codex severity none。三联 immediate_confirm(同临边防护 fact)。"
+    },
+    {
+      "variant_id": "S06-html-practice-html-q14-36859c31b0cc",
+      "probe_role": "d1_probe",
+      "fact_id": "s06-fact-edge-guard-2m-trigger",
+      "skeleton_id": "s06-skel-楼梯口栏杆应用",
+      "source_anchor": "kc:1A436000_121_0195:2",
+      "note": "楼梯口/平台/梯段边设防护栏杆, 教材构造要求直引应用。三联 d1_probe(同 fact, 第3独立 skeleton)。"
+    }
+  ]
+}

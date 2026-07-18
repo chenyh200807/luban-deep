@@ -24,9 +24,17 @@
         "C04-html-practice-html-q4-2f60c2911a87",
         "C04-html-practice-html-q16-bd3fe10391f8"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtM2Y5Njk2ZmU3YjkwIiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01N2I3YWJhNjg0NzYiLCJDMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZkMDlmMTA5YzBkZSIsIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmY2MGMyOTExYTg3IiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmQzZmUxMDM5MWY4Il0sInBhY2tfaWQiOiJDMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjNjMjU0OTU0N2E2YjViYTBjYTIwMTIzNjhkMTQ2MzliNmY1ODg4MjQxY2Q1NGE4NDdmNDEwYjk5Yzg4MWVkOTEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "6928e347cff6c735f3c3a40388506ded5a779a08367747c39741da838ff3a7df"
+      "eligible_variant_ids": [
+        "C04-html-practice-html-q1-3f9696fe7b90",
+        "C04-html-practice-html-q2-57b7aba68476",
+        "C04-html-practice-html-q3-fd09f109c0de",
+        "C04-html-practice-html-q4-2f60c2911a87",
+        "C04-html-practice-html-q5-0f31b7c99ac5",
+        "C04-html-practice-html-q6-30a632b3e3e3",
+        "C04-html-practice-html-q16-bd3fe10391f8"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtM2Y5Njk2ZmU3YjkwIiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01N2I3YWJhNjg0NzYiLCJDMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZkMDlmMTA5YzBkZSIsIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmY2MGMyOTExYTg3IiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmQzZmUxMDM5MWY4Il0sInBhY2tfaWQiOiJDMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjFmZThlYTgyZGU4OWU2NGQ2MzIxNjUzNmU3ZDNkOWVhOTYxZDVjZDkzNWFkMjJkYTEzYTJmYjJjOTViZTFmYjUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWFiZmRiZDdiN2U5OTE3ZDM5ZDc3OTc3N2NmNWJlZTMxYjY4NjExYzgyNjFmMmExYzFlODMwZGEzOGVhMWJkMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "28a74700d8695093431251fbb119f9e4e4f4717cc590e70f195ee26f46014a2f"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_099_0186:0",
+      "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
       "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c04-fact-side-form-removal",
+      "skeleton_id": "c04-skel-侧模拆除条件",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "92261ac7a4384ec88faa9412144ffb1f5ec1e33127ff3bbd393ad32560490f99",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "92261ac7a4384ec88faa9412144ffb1f5ec1e33127ff3bbd393ad32560490f99",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_099_0185:0",
+      "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
       "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c04-fact-bottom-form-strength-table",
+      "skeleton_id": "c04-skel-底模强度全表",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "5bb9d3bfb7fdd72e344bf311acd0ffba09d501fbf1ebfe3f110c1d0d761e3641",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "5bb9d3bfb7fdd72e344bf311acd0ffba09d501fbf1ebfe3f110c1d0d761e3641",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2021:第9题",
+      "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
       "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c04-fact-bottom-form-strength-apply-6m",
+      "skeleton_id": "c04-skel-6m板强度应用",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a5434285b32446573c10f6a925e01464e3361b7137c52684f4a2a6b63d80f8b2",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a5434285b32446573c10f6a925e01464e3361b7137c52684f4a2a6b63d80f8b2",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "6m现浇板拆底模≥75%,真题锚。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2024:第10题",
+      "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
       "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c04-fact-bottom-form-strength-threshold",
+      "skeleton_id": "c04-skel-8m边界判定",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "9825f95ab986a08850522c09d87f4a715d849f81d54a007db89fb687c1ea49bc",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "9825f95ab986a08850522c09d87f4a715d849f81d54a007db89fb687c1ea49bc",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -371,29 +427,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2024:第10题",
+      "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
       "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c04-fact-bottom-form-strength-threshold",
+      "skeleton_id": "c04-skel-多构件达标判断",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "dbe1bf14ab58e0eddadd690cdd7fdd2fb5e1e1dd92f346d20766ac2a2593c49e",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "dbe1bf14ab58e0eddadd690cdd7fdd2fb5e1e1dd92f346d20766ac2a2593c49e",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "多构件同条件强度哪项达拆模要求,真题锚。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -444,29 +512,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:第10题",
+      "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
       "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c04-fact-bottom-form-strength-threshold",
+      "skeleton_id": "c04-skel-快拆保留立杆",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "e2d3e2d825c8fc4ed07ec709d8eb65af775b47ccb8e1036b5b72ed13a635e798",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "e2d3e2d825c8fc4ed07ec709d8eb65af775b47ccb8e1036b5b72ed13a635e798",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "8m快拆板拆模保留立杆顶托,条件判定,真题锚。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1174,29 +1254,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A413030_099_0186",
+      "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
       "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c04-fact-form-removal-diagnosis",
+      "skeleton_id": "c04-skel-拆模五错诊断",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "b9a4d97fb1c7bc001551fd130f03c92a94328e49894ae54e59ea9853c832ef35",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "b9a4d97fb1c7bc001551fd130f03c92a94328e49894ae54e59ea9853c832ef35",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:01:22+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1272,5 +1364,5 @@
       "eligible": false
     }
   ],
-  "published_lesson_sha256": "bbaadb5b8fa81210c4f6d31399645065f9287d543c8774d3460ea4026eb65952"
+  "published_lesson_sha256": "95d6c6f7464d19271255610b379a791f150a666871ac599f45c4a6f810b63e32"
 }

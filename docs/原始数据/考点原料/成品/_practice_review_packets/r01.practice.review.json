@@ -1,0 +1,1161 @@
+{
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "R01",
+  "source_pack_sha256": "86e87afc3a453d012eb91f86508f9dd45fd04a532bbc073d0ffcc96fd1bdfbe1",
+  "source_bundle_sha256": "8ad75498d87d4d02f56da9015f3668a177da9c3e7b7fa5e4b8011f9a8ae45369",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 15,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "R01-html-practice-html-q1-4544f7872e42",
+      "surface_id": "practice.html",
+      "stem": "施工现场总体消防布置应包含哪些要素？选出成组列全、能得分的作答。",
+      "options": [
+        {
+          "text": "消防通道、消防水源、消防设施、灭火器材、明显标志、消防安全责任人六要素齐全，临时消防立管≥2根、消防箱≥2套。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六要素成组列全，再补临时消防设施数量，布置分才拿得满。",
+          "option_id": "R01-html-practice-html-q1-4544f7872e42:option-1"
+        },
+        {
+          "text": "现场加强消防管理、多配灭火器、定期巡查，确保消防安全责任落实到位，做到防患于未然。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「加强管理、防患未然」听着面面俱到、像标准答案。",
+          "loss_reason": "全是口号，没有一项具体布置要素，阅卷按口号化表达不给分。",
+          "fix": "列出六要素：通道、水源、设施、器材、标志、责任人。",
+          "option_id": "R01-html-practice-html-q1-4544f7872e42:option-2"
+        },
+        {
+          "text": "配足灭火器材、留出消防通道两项即可，这两样是现场灭火最关键的硬件保障。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住了最显眼的通道和器材两项。",
+          "loss_reason": "漏了水源、设施、标志、责任人四项，采分点大面积遗漏。",
+          "fix": "六要素一项不落：通道、水源、设施、器材、标志、责任人。",
+          "option_id": "R01-html-practice-html-q1-4544f7872e42:option-3"
+        },
+        {
+          "text": "按仓库防火分区面积布置消防设施，控制每个分区不超过规定建筑面积并设防火墙分隔。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "「消防」二字相同，顺手把仓库防火分区搬来。",
+          "loss_reason": "答非所问——仓库防火分区是另一考点，不是现场消防布置。",
+          "fix": "回到现场消防布置六要素，别答仓库分区。",
+          "option_id": "R01-html-practice-html-q1-4544f7872e42:option-4"
+        }
+      ],
+      "model_answer": "消防通道、消防水源、消防设施、灭火器材、明显标志、消防安全责任人；临时消防立管≥2根、消防箱≥2套。",
+      "rule_group": "布置·上集",
+      "content_sha256": "ce68e30af3ac9f3e552a02fea1d1b3062605bc94510ec1ef4e2b138f4609779a",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q1",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "r01-fact-site-fire-layout-six",
+        "skeleton_id": "r01-skel-消防布置六要素成组",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2018:第5题",
+        "source_sha256": "f8e6a2099f0ca0d3fdb9613bc6bd438afd8726e6fc8e3f84b43f17dca3d9cb1a",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "ce68e30af3ac9f3e552a02fea1d1b3062605bc94510ec1ef4e2b138f4609779a",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "立管≥2根/消防箱≥2套=本锚真题理由句逐字; 六要素=EP 1A436000-B099 grading_keywords 逐字(复合多源工单)。工单: 2根2套源自标准层案例语境, 宜标注适用场景。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q2-7f1b07651a45",
+      "surface_id": "practice.html",
+      "stem": "某工地临时消防设施：立管 1 根、消防箱 1 套、消火栓距路边 5m。指出不妥并改正，选出能得分的作答。",
+      "options": [
+        {
+          "text": "立管应不少于 2 根、消防箱应不少于 2 套、消火栓距路边应不大于 2m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处逐项改正、都带规范数值，改错题拿满就靠数值。",
+          "option_id": "R01-html-practice-html-q2-7f1b07651a45:option-1"
+        },
+        {
+          "text": "临时消防设施配置偏少，应适当增加立管、消防箱数量，并把消火栓移到离路边近一些的位置。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "方向对——确实要加、要移近，像是答对了。",
+          "loss_reason": "「适当增加/近一些」没有规范数值，改错题漏数字不给分。",
+          "fix": "写清立管≥2 根、消防箱≥2 套、消火栓距路边≤2m。",
+          "option_id": "R01-html-practice-html-q2-7f1b07651a45:option-2"
+        },
+        {
+          "text": "立管应不少于 2 根、消防箱应不少于 2 套、消火栓距路边应不大于 5m 符合要求，无需调整。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "改对了立管消防箱，消火栓 5m 看着也在范围内。",
+          "loss_reason": "消火栓距路边应≤2m，5m 已超标，规范数字记错。",
+          "fix": "消火栓距路边不应大于 2m，5m 要改。",
+          "option_id": "R01-html-practice-html-q2-7f1b07651a45:option-3"
+        },
+        {
+          "text": "消火栓距拟建房屋应不大于 2m，越近越方便取水灭火，其余立管消防箱各 1 个够用。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把「距路边≤2m」张冠李戴到「距拟建房屋」上。",
+          "loss_reason": "距拟建房屋应≥5m 且≤25m，不是≤2m；立管消防箱也各差 1。",
+          "fix": "距路边≤2m、距拟建房屋≥5m 且≤25m，立管消防箱各≥2。",
+          "option_id": "R01-html-practice-html-q2-7f1b07651a45:option-4"
+        }
+      ],
+      "model_answer": "消防立管不应少于 2 根、消防箱不应少于 2 套、室外消火栓距路边不应大于 2m（并距拟建房屋≥5m 且≤25m）。",
+      "rule_group": "临时设施·上集",
+      "content_sha256": "a70021cf69f1c6ec4a04e47263770c766299b61b7bbba56db8812ea2d1b2f33d",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q2",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "r01-fact-hydrant-standpipe-placement",
+        "skeleton_id": "r01-skel-立管消防箱消火栓位置",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2016:案例5",
+        "source_sha256": "f8e6a2099f0ca0d3fdb9613bc6bd438afd8726e6fc8e3f84b43f17dca3d9cb1a",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "a70021cf69f1c6ec4a04e47263770c766299b61b7bbba56db8812ea2d1b2f33d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "消火栓距路边≤2m=本锚真题; 立管/消防箱数量=exam:2018:第5题(复合多源)。Codex severity none。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q3-1538a7d3b154",
+      "surface_id": "practice.html",
+      "stem": "临时建筑灭火器应如何配置？选出带规范数值、能得分的作答。",
+      "options": [
+        {
+          "text": "临时建筑每 100㎡ 配 2 只 10L 灭火器，面积超 1200㎡ 再增设太平桶、积水池、黄砂池。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "面积—数量—规格三件齐，超大面积补充设施也点到，数字全。",
+          "option_id": "R01-html-practice-html-q3-1538a7d3b154:option-1"
+        },
+        {
+          "text": "临时建筑应配置足够数量的灭火器，确保覆盖各个区域，满足现场初期火灾扑救需要。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「足够数量、满足需要」像是万金油答案。",
+          "loss_reason": "没有每 100㎡2 只 10L 的配置率，漏数字不给分。",
+          "fix": "写清每 100㎡ 配 2 只 10L。",
+          "option_id": "R01-html-practice-html-q3-1538a7d3b154:option-2"
+        },
+        {
+          "text": "临时建筑每 100㎡ 配 1 只 5L 灭火器，面积再大也按此比例线性增配即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得「100㎡配几只」的框架，只是数记小了。",
+          "loss_reason": "应是 2 只 10L，不是 1 只 5L；且超 1200㎡ 要另设太平桶等。",
+          "fix": "每 100㎡2 只 10L，超 1200㎡ 增设太平桶积水池黄砂池。",
+          "option_id": "R01-html-practice-html-q3-1538a7d3b154:option-3"
+        },
+        {
+          "text": "灭火器随便摆在门口方便拿即可，数量按现场感觉配，够用就行不必拘泥规格。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭「够用就行」的生活常识作答。",
+          "loss_reason": "用常识替代规范，既无配置率也无规格，判分眼全丢。",
+          "fix": "按规范每 100㎡2 只 10L 配置。",
+          "option_id": "R01-html-practice-html-q3-1538a7d3b154:option-4"
+        }
+      ],
+      "model_answer": "临时建筑每 100㎡ 配 2 只 10L 灭火器；面积超 1200㎡ 增设太平桶、积水池、黄砂池。",
+      "rule_group": "灭火器·上集",
+      "content_sha256": "b640f030e8610c83aaa3312c5e28661693c3a45cefc126851ffe23627d4d224e",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q3",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "r01-fact-extinguisher-100sqm",
+        "skeleton_id": "r01-skel-临建灭火器配置率",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A437000_146_0233:0",
+        "source_sha256": "2bc3d11e62a462c153c0bde5b437916e33a549bd5e640213f9c305ad4e0faa5b",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "b640f030e8610c83aaa3312c5e28661693c3a45cefc126851ffe23627d4d224e",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "临建每100㎡配2只10L+超1200㎡设太平桶积水池黄砂池, 教材 kc:...146_0233:0 直引。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q4-5dd998ff8703",
+      "surface_id": "practice.html",
+      "stem": "木料间、油漆间的灭火器配置与普通临时建筑相比应如何？选出能得分的作答。",
+      "options": [
+        {
+          "text": "木料间、油漆间火险大，每 25㎡ 配 1 只灭火器，比普通临建配置更密。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出火险大→配更密，并给 25㎡1 只的具体比率，逻辑数值都在。",
+          "option_id": "R01-html-practice-html-q4-5dd998ff8703:option-1"
+        },
+        {
+          "text": "木料间、油漆间与普通临建一样，每 100㎡ 配 2 只 10L 灭火器即可，标准统一好管理。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "图省事，用一个统一标准套所有场所。",
+          "loss_reason": "火险大场所应加密到每 25㎡1 只，套 100㎡ 标准配置不足。",
+          "fix": "木料间油漆间每 25㎡1 只，比普通临建密。",
+          "option_id": "R01-html-practice-html-q4-5dd998ff8703:option-2"
+        },
+        {
+          "text": "木料间、油漆间火险大，应尽量多配灭火器，越多越安全，具体数量视现场情况灵活掌握。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道要多配，方向没错。",
+          "loss_reason": "「越多越好、灵活掌握」无配置率数字，漏采分点。",
+          "fix": "写清每 25㎡ 配 1 只。",
+          "option_id": "R01-html-practice-html-q4-5dd998ff8703:option-3"
+        },
+        {
+          "text": "木料间、油漆间火险大反而不宜放灭火器，以免占用空间，集中放在门外通道统一取用。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用「怕占空间」的想当然替代规范。",
+          "loss_reason": "火险大场所恰恰要就近加密配置，判断方向完全错。",
+          "fix": "火险大场所就近加密：每 25㎡1 只。",
+          "option_id": "R01-html-practice-html-q4-5dd998ff8703:option-4"
+        }
+      ],
+      "model_answer": "木料间、油漆间每 25㎡ 配 1 只，比普通临建（100㎡2 只）配置更密，因火险大。",
+      "rule_group": "灭火器·上集",
+      "content_sha256": "c898bf95a508b050775c47aba92ff3bf8774d351d8804b9564bb0345d0b89028",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q4",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "r01-fact-extinguisher-25sqm",
+        "skeleton_id": "r01-skel-木料油漆间配置率",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A437000_146_0233:0",
+        "source_sha256": "2bc3d11e62a462c153c0bde5b437916e33a549bd5e640213f9c305ad4e0faa5b",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "c898bf95a508b050775c47aba92ff3bf8774d351d8804b9564bb0345d0b89028",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "木料间/油漆间每25㎡配1只, 教材 kc:...146_0233:0 直引。Codex severity none。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q5-dc07bbdea692",
+      "surface_id": "practice.html",
+      "stem": "手提式灭火器设置高度有何要求？选出带规范数值、能得分的作答。",
+      "options": [
+        {
+          "text": "顶部离地面不应大于 1.5m、底部离地面不应小于 0.15m，设在明显便于取用处、铭牌朝外。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "顶部上限、底部下限两个数都给，再补明显位置铭牌朝外。",
+          "option_id": "R01-html-practice-html-q5-dc07bbdea692:option-1"
+        },
+        {
+          "text": "灭火器应摆放在明显、便于取用的位置，铭牌朝外，方便人员快速识别和取用。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "位置和铭牌答对了，看着挺规范。",
+          "loss_reason": "漏了顶部≤1.5m、底部≥0.15m 两个高度数值。",
+          "fix": "补顶部离地≤1.5m、底部离地≥0.15m。",
+          "option_id": "R01-html-practice-html-q5-dc07bbdea692:option-2"
+        },
+        {
+          "text": "顶部离地面不应大于 1.5m、底部离地面不应小于 1.5m，一律挂到与视线齐平的高度。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "顶部数字对了，底部顺手也写成 1.5m。",
+          "loss_reason": "底部应≥0.15m，写成 1.5m 把两个数字混了。",
+          "fix": "顶部≤1.5m、底部≥0.15m，两个数不同。",
+          "option_id": "R01-html-practice-html-q5-dc07bbdea692:option-3"
+        },
+        {
+          "text": "灭火器放地上或随手一放都行，能拿到就成，高度不用太讲究反正是应急用的。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭「能拿到就行」的常识作答。",
+          "loss_reason": "用常识替代规范，无任何高度数值，判分眼全丢。",
+          "fix": "顶部≤1.5m、底部≥0.15m，按规范设置。",
+          "option_id": "R01-html-practice-html-q5-dc07bbdea692:option-4"
+        }
+      ],
+      "model_answer": "顶部离地面不应大于 1.5m、底部离地面不应小于 0.15m，设在明显、便于取用位置，铭牌朝外。",
+      "rule_group": "灭火器·上集",
+      "content_sha256": "74871e93d354c5703cc9ff45b4aa59bd89d15af91b0ac82e509bd0beb32d8824",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q5",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "74871e93d354c5703cc9ff45b4aa59bd89d15af91b0ac82e509bd0beb32d8824",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q6-211e782cebbd",
+      "surface_id": "practice.html",
+      "stem": "气焊作业电石着火应如何扑救？选出能得分的作答。",
+      "options": [
+        {
+          "text": "应使用干砂或二氧化碳扑救，严禁用水、泡沫、四氯化碳，因电石遇水生成乙炔助燃爆燃。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "给对灭火剂+列禁用项+点机理，三段齐，改错题拿满。",
+          "option_id": "R01-html-practice-html-q6-211e782cebbd:option-1"
+        },
+        {
+          "text": "应立即用大量水浇灭并持续降温，水是最常用、最经济的灭火剂，可快速控制火势。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "「着火就浇水」是根深蒂固的生活常识。",
+          "loss_reason": "电石遇水生乙炔、越浇越旺，用常识替代规范酿成事故。",
+          "fix": "电石火严禁用水，应用干砂或二氧化碳。",
+          "option_id": "R01-html-practice-html-q6-211e782cebbd:option-2"
+        },
+        {
+          "text": "应使用干砂扑救。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道用干砂，方向对，写得简短。",
+          "loss_reason": "漏了二氧化碳选项和「严禁用水泡沫四氯化碳」的禁用项，采分不全。",
+          "fix": "补二氧化碳，并写明严禁用水、泡沫、四氯化碳。",
+          "option_id": "R01-html-practice-html-q6-211e782cebbd:option-3"
+        },
+        {
+          "text": "应使用泡沫灭火器或四氯化碳扑救，泡沫覆盖隔氧、四氯化碳窒息灭火，效果好。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "泡沫、四氯化碳都是常见灭火剂，看着专业。",
+          "loss_reason": "这两样恰是电石火的禁用项，规范适用错误。",
+          "fix": "电石火用干砂或二氧化碳，严禁泡沫、四氯化碳。",
+          "option_id": "R01-html-practice-html-q6-211e782cebbd:option-4"
+        }
+      ],
+      "model_answer": "应使用干砂或二氧化碳扑救，严禁用水、泡沫、四氯化碳（电石遇水生乙炔，助燃爆燃）。",
+      "rule_group": "电石灭火·上集",
+      "content_sha256": "ff47baa93eb7f642486105179723b9345b35aed784084390a70971e313508398",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q6",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "ff47baa93eb7f642486105179723b9345b35aed784084390a70971e313508398",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q7-0e42ac5b4579",
+      "surface_id": "practice.html",
+      "stem": "某工地把调料间设在油漆料库内。指出不妥并改正，选出能得分的作答。",
+      "options": [
+        {
+          "text": "不妥：油漆料库与调料间应分开设置、留防火间距，不得把调料间设在料库内。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "判出不妥+给正确做法（分开设、留间距），改错题的标准结构。",
+          "option_id": "R01-html-practice-html-q7-0e42ac5b4579:option-1"
+        },
+        {
+          "text": "油漆料库内设调料间比较方便管理、节省场地，只要加强通风、专人看护即可继续使用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "从「方便管理、省地」的角度觉得合理。",
+          "loss_reason": "料库与调料间必须分开，合设违规，规范适用错误。",
+          "fix": "两者应分开设置、留防火间距。",
+          "option_id": "R01-html-practice-html-q7-0e42ac5b4579:option-2"
+        },
+        {
+          "text": "现场存在火灾隐患，应加强防火管理、落实责任、定期检查，消除各类不安全因素。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「加强管理、消除隐患」像稳妥的通用答案。",
+          "loss_reason": "没判出具体不妥、没给正确做法，口号化不给分。",
+          "fix": "具体写：油漆料库与调料间应分开设置、留防火间距。",
+          "option_id": "R01-html-practice-html-q7-0e42ac5b4579:option-3"
+        },
+        {
+          "text": "不妥：调料间面积太小，应扩大调料间面积并增设通风设备，方便调漆作业。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "判出「不妥」了，但抓错了点。",
+          "loss_reason": "问题在「合设违规」不是「面积小」，审题跑偏。",
+          "fix": "不妥点是合设，应分开设置、留防火间距。",
+          "option_id": "R01-html-practice-html-q7-0e42ac5b4579:option-4"
+        }
+      ],
+      "model_answer": "油漆料库与调料间应分开设置、留防火间距；木工操作间用阻燃材料搭建、人离开断电、清理刨花锯末。",
+      "rule_group": "特殊场所·上集",
+      "content_sha256": "d8c5ebe2329a0fb6fa5d69e0804981c5c6f21dc73a1a6ff916f1fc687095c37b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q7",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "d8c5ebe2329a0fb6fa5d69e0804981c5c6f21dc73a1a6ff916f1fc687095c37b",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q8-596e7d894c00",
+      "surface_id": "practice.html",
+      "stem": "关于在建工程消防管理，选出判断正确、数值达标、能得分的作答。",
+      "options": [
+        {
+          "text": "在建工程内禁存氧气乙炔瓶、禁用液化气钢瓶、禁用易燃材料作安全网，义务消防队≥总人数 10%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "禁存禁用三项+义务消防队 10% 数值，管理判断题拿满。",
+          "option_id": "R01-html-practice-html-q8-596e7d894c00:option-1"
+        },
+        {
+          "text": "在建工程内应加强用火用气管理、落实消防责任，组建足够人数的义务消防队伍。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「加强管理、足够人数」听着全面。",
+          "loss_reason": "没列禁存禁用具体项，也没给 10% 数值，采分点遗漏。",
+          "fix": "补禁存氧气乙炔瓶等，义务消防队≥总人数 10%。",
+          "option_id": "R01-html-practice-html-q8-596e7d894c00:option-2"
+        },
+        {
+          "text": "在建工程内禁存氧气乙炔瓶、禁用液化气钢瓶，义务消防队人数不少于施工总人数的 5%。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "禁用项答对了，比例记成了 5%。",
+          "loss_reason": "义务消防队应≥10%，写 5% 规范数字错。",
+          "fix": "义务消防队≥总人数 10%。",
+          "option_id": "R01-html-practice-html-q8-596e7d894c00:option-3"
+        },
+        {
+          "text": "为方便夜间照明和取暖，可在在建工程内临时存放少量氧气乙炔瓶和液化气钢瓶备用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "从「方便施工」角度觉得少量无妨。",
+          "loss_reason": "在建工程内明令禁存禁用，规范适用错误。",
+          "fix": "在建工程内禁存氧气乙炔瓶、禁用液化气钢瓶。",
+          "option_id": "R01-html-practice-html-q8-596e7d894c00:option-4"
+        }
+      ],
+      "model_answer": "在建工程内禁存氧气乙炔瓶、禁用液化气钢瓶、禁用易燃材料作安全网防尘网；义务消防队人数不少于施工总人数的 10%。",
+      "rule_group": "消防管理·上集",
+      "content_sha256": "beb6a971075ba5128555257c03ed2f7c03961612a66cb5d1565f8d92538f636b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q8",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "beb6a971075ba5128555257c03ed2f7c03961612a66cb5d1565f8d92538f636b",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q9-c008b7b53dda",
+      "surface_id": "practice.html",
+      "stem": "题目问「施工现场消防布置应做哪些工作」。以下哪个作答方向正确、不跑题？",
+      "options": [
+        {
+          "text": "应答现场消防布置六要素、临时消防设施、灭火器配置与动火管理，紧扣「现场消防布置」本题。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "锁定本考点答布置六要素等，方向正确、不跑题。",
+          "option_id": "R01-html-practice-html-q9-c008b7b53dda:option-1"
+        },
+        {
+          "text": "应答仓库防火分区面积控制、防火墙设置与耐火等级，把防火分区做扎实是消防核心。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "「消防」同字，防火分区听着也很专业。",
+          "loss_reason": "防火分区是另一考点，答非所问、离题失分。",
+          "fix": "回到现场消防布置六要素，别答防火分区。",
+          "option_id": "R01-html-practice-html-q9-c008b7b53dda:option-2"
+        },
+        {
+          "text": "应答施工现场扬尘治理、雾炮喷淋、裸土覆盖等环保措施，改善现场环境保障安全。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "环保和现场管理沾边，容易被拉过去。",
+          "loss_reason": "扬尘环保属绿色施工，不是消防布置，跑题。",
+          "fix": "答现场消防布置六要素等本考点内容。",
+          "option_id": "R01-html-practice-html-q9-c008b7b53dda:option-3"
+        },
+        {
+          "text": "应答现场消防布置六要素，同时详细展开仓库防火分区和扬尘治理，覆盖面越广越保险。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "「多答点更保险」的心理，什么都往上堆。",
+          "loss_reason": "掺入防火分区、扬尘等无关内容，冲淡采分、暴露审题不清。",
+          "fix": "只答本考点：现场消防布置六要素等，不铺无关内容。",
+          "option_id": "R01-html-practice-html-q9-c008b7b53dda:option-4"
+        }
+      ],
+      "model_answer": "应答现场消防布置六要素、临时消防设施、灭火器配置、动火管理等；不应答仓库防火分区、环保扬尘。",
+      "rule_group": "审题·上集",
+      "content_sha256": "8381af84dd5da0874b1a0cf1772bb867d89b24a0c499d7cd8b09816aadc9284a",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q9",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "8381af84dd5da0874b1a0cf1772bb867d89b24a0c499d7cd8b09816aadc9284a",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q10-197a048e6a96",
+      "surface_id": "practice.html",
+      "stem": "在密封空间（如设备内部）进行焊接作业，属于几级动火？选出判定正确的作答。",
+      "options": [
+        {
+          "text": "属一级动火——密封空间与禁火区、油罐、受压设备、登高焊割、大量可燃物同属最危险场所。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "定级+点出一级场所清单，判据清楚，后续审批主体才不会错。",
+          "option_id": "R01-html-practice-html-q10-197a048e6a96:option-1"
+        },
+        {
+          "text": "属二级动火，密封空间只是空间小一点，按非禁火区临时焊割处理即可，审批走项目层。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得密封空间「只是小」，够不上最高级。",
+          "loss_reason": "密封空间是典型一级场所，判成二级会连锁把审批主体降错。",
+          "fix": "密封空间属一级动火。",
+          "option_id": "R01-html-practice-html-q10-197a048e6a96:option-2"
+        },
+        {
+          "text": "属三级动火，只要作业前通风、备好灭火器就没有明显危险，简单审批即可开焊。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为做了防护就「没明显危险」。",
+          "loss_reason": "密封空间危险性高，属一级，判三级严重降级。",
+          "fix": "密封空间属一级动火，不是三级。",
+          "option_id": "R01-html-practice-html-q10-197a048e6a96:option-3"
+        },
+        {
+          "text": "动火等级看作业时长，短时间焊接算三级、长时间算一级，与作业场所关系不大。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭「时间长短定危险」的想当然。",
+          "loss_reason": "等级看场所危险性而非时长，判据方向错。",
+          "fix": "按场所定级：密封空间等属一级。",
+          "option_id": "R01-html-practice-html-q10-197a048e6a96:option-4"
+        }
+      ],
+      "model_answer": "属一级动火。禁火区域、油罐、受压设备、登高焊割、密封空间、大量可燃物附近的动火均为一级。",
+      "rule_group": "动火等级·下集",
+      "content_sha256": "8b10331487f322dfdf4cf3a3d0c68e1af260e837dae92dbf74ae607221d381ba",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q10",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "8b10331487f322dfdf4cf3a3d0c68e1af260e837dae92dbf74ae607221d381ba",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q11-7e30a1ff89f7",
+      "surface_id": "practice.html",
+      "stem": "一、二、三级动火分别由谁审批？选出对应完整、能得分的作答。",
+      "options": [
+        {
+          "text": "一级报企业安全管理部门、二级报项目安全部门加项目负责人、三级报责任工程师加项目安全部门。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三级审批主体逐一对应，一级到企业级，最高频判分眼拿满。",
+          "option_id": "R01-html-practice-html-q11-7e30a1ff89f7:option-1"
+        },
+        {
+          "text": "三级动火都由项目负责人统一审批签字即可，责任集中、流程简便、便于现场快速开工。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「一个人签字最省事」符合现场图快心理。",
+          "loss_reason": "一级须报企业安全管理部门，一律项目负责人签字违规。",
+          "fix": "一级报企业安全部门，分级审批不能一人统签。",
+          "option_id": "R01-html-practice-html-q11-7e30a1ff89f7:option-2"
+        },
+        {
+          "text": "一级报项目安全部门、二级报项目负责人、三级报班组长，按级别从高到低逐级下放审批权。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记得「分级」框架，但把每级主体整体降了一档。",
+          "loss_reason": "一级应报企业安全管理部门，不是项目安全部门，主体错级。",
+          "fix": "一级→企业安全部门、二级→项目、三级→责任工程师。",
+          "option_id": "R01-html-practice-html-q11-7e30a1ff89f7:option-3"
+        },
+        {
+          "text": "现场负责人在动火证上签字确认后即可动火，级别高低只影响记录详略，不影响审批人。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「签字就能干」是最常见的违规心智。",
+          "loss_reason": "签字≠分级审批，一级须报企业安全部门审批。",
+          "fix": "按等级报对应主体审批，一级到企业安全部门。",
+          "option_id": "R01-html-practice-html-q11-7e30a1ff89f7:option-4"
+        }
+      ],
+      "model_answer": "一级报企业（安全管理）部门审批；二级报项目安全部门+项目负责人；三级报责任工程师+项目安全部门。",
+      "rule_group": "审批主体·下集",
+      "content_sha256": "3b63fee63cb588940f0766b3b74fd5be004a9bab5c44e20e90c2e57b12ff10b4",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q11",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "r01-fact-hot-work-permit-rules",
+        "skeleton_id": "r01-skel-动火分级审批主体",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A437000_145_0231:0",
+        "source_sha256": "2bc3d11e62a462c153c0bde5b437916e33a549bd5e640213f9c305ad4e0faa5b",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "3b63fee63cb588940f0766b3b74fd5be004a9bab5c44e20e90c2e57b12ff10b4",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "一级企业安全部门/二级项目安全部门+负责人/三级责任工程师, 教材 kc:...145_0231:0 逐项直引。三联 immediate_confirm(同动火审批 fact)。Codex severity none。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q12-63317aa2da6d",
+      "surface_id": "practice.html",
+      "stem": "关于动火证的使用，选出规则正确、能得分的作答。",
+      "options": [
+        {
+          "text": "动火证当日开具当日有效，动火地点发生变化时须重新办理，不得跨日或跨地点使用。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "当日有效+地点变化重办，两条关键规则都点到。",
+          "option_id": "R01-html-practice-html-q12-63317aa2da6d:option-1"
+        },
+        {
+          "text": "动火证在同一工地内本周有效，一周内同类作业可通用，避免反复办证影响施工进度。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "「一证多用省事」迎合现场怕麻烦心理。",
+          "loss_reason": "动火证当日有效，写「本周有效/通用」时效数字错。",
+          "fix": "当日有效，换日换地点都要重新办理。",
+          "option_id": "R01-html-practice-html-q12-63317aa2da6d:option-2"
+        },
+        {
+          "text": "动火证有效期较短，用完应及时重新审批，具体时限按现场安排灵活掌握即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道「有效期短」，方向对但含糊。",
+          "loss_reason": "缺「当日有效」关键词和「地点变化重办」，采分点不全。",
+          "fix": "明确当日有效、地点变化须重新办理。",
+          "option_id": "R01-html-practice-html-q12-63317aa2da6d:option-3"
+        },
+        {
+          "text": "动火证一经审批长期有效，只要作业内容不变，同一张证可在工地各处持续使用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为「一次许可管到底」。",
+          "loss_reason": "当日有效、换地点重办，长期通用严重违规。",
+          "fix": "当日有效，地点变化须重新办理。",
+          "option_id": "R01-html-practice-html-q12-63317aa2da6d:option-4"
+        }
+      ],
+      "model_answer": "动火证当日开具当日有效；动火地点变化时须重新办理，不得跨日、跨地点使用。",
+      "rule_group": "动火证·下集",
+      "content_sha256": "a4112247cb7a2707eb78f8ca3efd90568369c0d4a4b633abbaaab7a52d88852c",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q12",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "r01-fact-hot-work-permit-rules",
+        "skeleton_id": "r01-skel-动火证有效期规则",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A437000_145_0231:1",
+        "source_sha256": "2bc3d11e62a462c153c0bde5b437916e33a549bd5e640213f9c305ad4e0faa5b",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "a4112247cb7a2707eb78f8ca3efd90568369c0d4a4b633abbaaab7a52d88852c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "动火证当日开具当日有效/地点变化重新办理, 教材 kc:...145_0231:1 逐字+exam:2015:第30题(A)佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q13-b18505c13746",
+      "surface_id": "practice.html",
+      "stem": "气焊气割作业的安全距离有何要求？选出数值正确、能得分的作答。",
+      "options": [
+        {
+          "text": "焊割点与氧气乙炔瓶≥10m、与易燃易爆物≥30m，氧气瓶与乙炔瓶存放≥2m、使用≥5m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四个距离全给且不反：瓶十、易燃三十、瓶间存 2 用 5。",
+          "option_id": "R01-html-practice-html-q13-b18505c13746:option-1"
+        },
+        {
+          "text": "焊割点与氧气乙炔瓶≥30m、与易燃易爆物≥10m，距离越大越安全，宁远勿近。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "知道有 10m、30m 两个数，但记反了。",
+          "loss_reason": "应是与气瓶≥10m、与易燃≥30m，两个数值对调。",
+          "fix": "焊割点与气瓶≥10m、与易燃易爆≥30m。",
+          "option_id": "R01-html-practice-html-q13-b18505c13746:option-2"
+        },
+        {
+          "text": "焊割点与各类气瓶、易燃物保持足够安全距离，确保火星飞溅不引燃即可，无需拘泥米数。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「保持足够距离」听着稳妥。",
+          "loss_reason": "无具体米数，改错/条件题漏数字不给分。",
+          "fix": "写清与气瓶≥10m、与易燃≥30m、瓶间存 2 用 5。",
+          "option_id": "R01-html-practice-html-q13-b18505c13746:option-3"
+        },
+        {
+          "text": "氧气瓶与乙炔瓶可以并排紧挨放置，只要固定牢固不倒即可，节省现场堆放空间。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "从「省空间、固定就行」的常识出发。",
+          "loss_reason": "两瓶存放须≥2m、使用≥5m，紧挨违规。",
+          "fix": "氧气瓶与乙炔瓶存放≥2m、使用≥5m。",
+          "option_id": "R01-html-practice-html-q13-b18505c13746:option-4"
+        }
+      ],
+      "model_answer": "焊割点与氧气乙炔瓶≥10m、与易燃易爆物≥30m；氧气瓶与乙炔瓶存放间距≥2m、使用间距≥5m。",
+      "rule_group": "气瓶距离·下集",
+      "content_sha256": "f26cfb8f1ec38e353b6e8d28941af2d5b6076d283a5d7c87fe50c6d1cf803843",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q13",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "f26cfb8f1ec38e353b6e8d28941af2d5b6076d283a5d7c87fe50c6d1cf803843",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q14-3904a9a57231",
+      "surface_id": "practice.html",
+      "stem": "现场消防检查应逐项比对哪些内容、如何收口？选出流程完整、能得分的作答。",
+      "options": [
+        {
+          "text": "逐项比对布置六要素、动火审批与动火证、灭火器配置、作业面十不烧，整改后形成检查记录、合格进下道工序。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "查项列全+整改+记录+合格放行，检查流程闭环拿满。",
+          "option_id": "R01-html-practice-html-q14-3904a9a57231:option-1"
+        },
+        {
+          "text": "现场消防检查就是看看灭火器够不够、通道通不通，重点抽查几处明显隐患即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住了最显眼的灭火器和通道两项。",
+          "loss_reason": "漏动火审批、动火证、十不烧及整改记录收口，采分点大量遗漏。",
+          "fix": "补动火审批/动火证/十不烧，并写整改—记录—合格放行。",
+          "option_id": "R01-html-practice-html-q14-3904a9a57231:option-2"
+        },
+        {
+          "text": "现场消防检查应加强领导重视、层层落实责任、营造人人讲消防的良好氛围。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「加强重视、落实责任」是典型稳妥话术。",
+          "loss_reason": "全是口号，没有一项具体检查内容与流程，不给分。",
+          "fix": "列出逐项比对内容并写整改—记录—合格放行。",
+          "option_id": "R01-html-practice-html-q14-3904a9a57231:option-3"
+        },
+        {
+          "text": "现场消防检查应核对消防设计审查、竣工验收备案等手续是否齐全，重点查验收资料。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "「检查」「验收」都沾，把消防设计验收搬来。",
+          "loss_reason": "消防设计审查验收是另一章内容，现场消防检查查的是布置/动火/器材/十不烧。",
+          "fix": "查现场布置六要素、动火审批、灭火器、十不烧，非设计验收手续。",
+          "option_id": "R01-html-practice-html-q14-3904a9a57231:option-4"
+        }
+      ],
+      "model_answer": "逐项比对布置六要素→动火审批与动火证→灭火器配置→作业面十不烧，发现问题整改、形成检查记录，合格后进入下道工序。",
+      "rule_group": "现场检查·下集",
+      "content_sha256": "a1c2e2e5a6e8d11ada5156fdf6bfc68a39264673fbdfe0c5fe552d1dfd26e1df",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q14",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "a1c2e2e5a6e8d11ada5156fdf6bfc68a39264673fbdfe0c5fe552d1dfd26e1df",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "R01-html-practice-html-q15-fe4a7892cba8",
+      "surface_id": "practice.html",
+      "stem": "某学生答「现场应加强消防管理、配足灭火器、动火前签字确认；电石着火用水降温」。选出最准确的诊断与补写。",
+      "options": [
+        {
+          "text": "四处都丢分：布置口号化缺六要素、灭火器缺配置率、签字未走分级审批、电石绝不能用水应用干砂或二氧化碳，逐条补规范做法与数值。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "把口号化、漏数字、程序违规、常识灭火四处一次揪出并补齐，这就是会写答案。",
+          "option_id": "R01-html-practice-html-q15-fe4a7892cba8:option-1"
+        },
+        {
+          "text": "作答已覆盖消防管理、灭火器、动火、灭火四个方面，要点齐全，属于可给分的完整作答。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "看「面都提到了」就以为要点齐全——最危险的误判。",
+          "loss_reason": "每一项都是口号或错误：无数值、签字违规、电石用水，阅卷按点采分几乎不得分。",
+          "fix": "四项都要补规范数值与正确做法，尤其电石严禁用水。",
+          "option_id": "R01-html-practice-html-q15-fe4a7892cba8:option-2"
+        },
+        {
+          "text": "只是电石灭火写错了，把用水改成干砂即可，其余消防管理、灭火器、动火作答都没问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到电石一处硬错，就以为只此一错。",
+          "loss_reason": "漏诊布置口号化、灭火器缺数字、签字未分级审批三处失分。",
+          "fix": "布置补六要素、灭火器补配置率、动火补分级审批，均要改。",
+          "option_id": "R01-html-practice-html-q15-fe4a7892cba8:option-3"
+        },
+        {
+          "text": "作答方向对但不够详细，把每一项都再多写几句、扩充篇幅就能拿分，内容无原则性错误。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "以为「写多点、写长点」就能拿分。",
+          "loss_reason": "问题是无数值、程序违规、常识灭火等原则性错误，堆字数救不了。",
+          "fix": "按采分点补规范数值与正确做法，不是加篇幅。",
+          "option_id": "R01-html-practice-html-q15-fe4a7892cba8:option-4"
+        }
+      ],
+      "model_answer": "四处失分：①口号化无布置六要素与数值；②灭火器缺配置率（100㎡2 只/25㎡1 只）；③签字≠分级审批（一级报企业安全部门、动火证当日有效）；④电石严禁用水（应干砂或二氧化碳）。",
+      "rule_group": "采分诊断·综合末题",
+      "content_sha256": "0d89a8a2d5253a5ef211806d14504dbfa595d418c1d09caef230eb42de170e4f",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q15",
+      "authoring_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "decision": {
+        "fact_id": "r01-fact-hot-work-permit-rules",
+        "skeleton_id": "r01-skel-消防管理四诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_127_0203:0",
+        "source_sha256": "2bc3d11e62a462c153c0bde5b437916e33a549bd5e640213f9c305ad4e0faa5b",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "0d89a8a2d5253a5ef211806d14504dbfa595d418c1d09caef230eb42de170e4f",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:11:45+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "四诊断各有源: 电石干砂/CO2 严禁用水=本锚教材逐字; 六要素=EP 1A436000-B099; 灭火器配置率=kc:146_0233; 分级审批=kc:145_0231(三联同 fact 子事实)。Codex FATAL 系复合题血统误判(失效模式#4)。三联 anchor。工单: 正确项最长。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
+  ],
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (r01.codex.out, fatal_count=5)。主控核: surface q1/q15 FATAL=失效模式#4 复合题血统误判——Codex 自相矛盾(其 q9 理由承认『候选锚直接给出现场消防布置六要素』): 六要素=EP 1A436000-B099 grading_keywords 逐字(消防通道/水源/设施/灭火器材/标志/责任人); 立管≥2根+消防箱≥2套=exam:2018:第5题 真题理由句通则表述(『立管不应少于2根』『消防箱不应少于2套』); q15 四诊断各有源(六要素=EP/灭火器配置率=kc:146_0233/分级审批=kc:145_0231/电石干砂=kc:1A436000_127_0203 教材直引)。=复合多源工单签发。**非展示真病排除不签**: q6(干扰项『干砂扑救』被真题支持亦真=唯一性破坏)/q7(删『散发火星场所』限定词改变防火间距对象关系)/q14(检查闭环『合格进下道工序』无包内锚+异域检查模板串入)。三联=动火审批判分眼单 chunk(kc:1A437000_145_0231 分级审批+动火证当日有效+地点重办): q15(诊断含分级审批)/q11(审批主体)/q12(动火证规则)。工单: q1 数字泛化语境宜标注标准层来源; 多题最长项模板。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
+}

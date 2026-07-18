@@ -24,9 +24,17 @@
         "D13-html-practice-html-q4-b67400c5b10c",
         "D13-html-practice-html-q15-2ff7d0b4fec0"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTNiNWM3M2FlNDk0IiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03NTNhYTQwOGNmYzEiLCJEMTMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTlmYTAyZTQ4OWFiOCIsIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtYjY3NDAwYzViMTBjIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMmZmN2QwYjRmZWMwIl0sInBhY2tfaWQiOiJEMTMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjdmYmRiYTg5ZGNkN2JhNzgwYWYyNTRiNDUxMzQ0Zjg1MzFhNDQyMDYxZjViNzJmYjRmZTg4MDA5ZDI4MjNhY2IiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "aeecf5890cf4b3469c3f31d1af0458579144ec2b6f6b3b89932fed4d98328eb5"
+      "eligible_variant_ids": [
+        "D13-html-practice-html-q1-a3b5c73ae494",
+        "D13-html-practice-html-q2-753aa408cfc1",
+        "D13-html-practice-html-q3-9fa02e489ab8",
+        "D13-html-practice-html-q4-b67400c5b10c",
+        "D13-html-practice-html-q7-3cb18e9f15d4",
+        "D13-html-practice-html-q8-601cc4b8b67e",
+        "D13-html-practice-html-q15-2ff7d0b4fec0"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTNiNWM3M2FlNDk0IiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03NTNhYTQwOGNmYzEiLCJEMTMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTlmYTAyZTQ4OWFiOCIsIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtYjY3NDAwYzViMTBjIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMmZmN2QwYjRmZWMwIl0sInBhY2tfaWQiOiJEMTMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjllYWRmOGZhNTAxZjkyMmQzZmUyOGZjYWIxNzliZmZhZmEyNjkxOTJhZDg1MGZhOTIxMjRmMmQ3MzA1ODQ5YmYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYTAyZTQzYWJjZjVlMTBlNmFkYzI1ODdhZjlhNmYxOTkxOTYzMTc0NzU1M2YwZmE5Zjg2OGRhOWUxZmRkZDkxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "a7164a69bdf4b57d8fea119ececb053cd013f8b63436b6b2d67924c7f53e54c8"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:案例2",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-interfloor-firestop",
+      "skeleton_id": "d13-skel-封堵要素全枚举",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "d84ca28687a44353767b97b73b23705607bad4d43db219d14e29d22a8f446f26",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "d84ca28687a44353767b97b73b23705607bad4d43db219d14e29d22a8f446f26",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "幕墙与楼板间缝隙用不燃材料封堵厚度≥100mm+水平防火烟带+镀锌钢板承托+防火密封胶, 真题 exam:2015:案例2 支持。三联 anchor。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:案例2",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-support-plate-material",
+      "skeleton_id": "d13-skel-承托板镀锌钢板不得铝板",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "2f23bbe5252a08127b9d213cb7a945fc76a9c94476b00fa68041df05e2a6f0d7",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "2f23bbe5252a08127b9d213cb7a945fc76a9c94476b00fa68041df05e2a6f0d7",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "防火层承托板应≥1.5mm镀锌钢板, 不得用铝板(铝熔点低), 真题直引。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:案例2",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-support-plate-thickness-unit",
+      "skeleton_id": "d13-skel-1.5mm单位辨析",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "2b1cdd526c07ea91c1f07cb128c2991565326152d521b5fd36ef2f2b8e06f339",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "2b1cdd526c07ea91c1f07cb128c2991565326152d521b5fd36ef2f2b8e06f339",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "承托板厚度1.5mm(毫米非米)镀锌钢板, 单位辨析题, 真题支持。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_148_0286:0",
+      "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826",
       "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-opening-vertical-separation",
+      "skeleton_id": "d13-skel-上下层开口实体墙挑檐",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "3f1bfb05918d7e3383d6f7d1ad3aff42dacec24fddb6f8a9145206d2f656941b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "3f1bfb05918d7e3383d6f7d1ad3aff42dacec24fddb6f8a9145206d2f656941b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "上下层开口间设≥1.2m实体墙, 不足时防火挑檐宽≥1.0m且长≥开口宽, 教材 kc:...148_0286:0 直引。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -517,29 +573,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:案例2",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-interfloor-firestop",
+      "skeleton_id": "d13-skel-承托板缝隙防火密封胶",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "725c2108fe16580657cca0814da10111025a430414a4bffda7930f7e17968736",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "725c2108fe16580657cca0814da10111025a430414a4bffda7930f7e17968736",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "承托板与主体/幕墙结构间缝隙应用防火密封胶密封, 真题支持。三联 immediate_confirm(同层间封堵 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -590,29 +658,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:案例2",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-interfloor-firestop",
+      "skeleton_id": "d13-skel-水平防火烟带耐火极限",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a8d9b81832d5bd1435e0e10c42cb3c682bc1f9b29445e438f5c03ac380507e9d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a8d9b81832d5bd1435e0e10c42cb3c682bc1f9b29445e438f5c03ac380507e9d",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "层间封堵应形成水平防火烟带并满足耐火极限, 逐层截断, 真题支持。三联 d1_probe(同 fact, 第3独立 skeleton)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1101,29 +1181,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:案例2",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-interfloor-firestop-diagnosis",
+      "skeleton_id": "d13-skel-层间封堵诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "d4ba03e6a413f222d6c92173697d88c1aa7fa9b666098a1050cef046da12ee75",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "d4ba03e6a413f222d6c92173697d88c1aa7fa9b666098a1050cef046da12ee75",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T10:41:07+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "诊断: ①缺≥100mm与水平烟带 ②承托板应改镀锌钢板 ③缝隙应用防火密封胶, 三处均正确, 真题综合。工单: longest-option。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
   "published_lesson_sha256": "e37f3ac7f93b9afe5f02608d5c070a200ac28204d60b213a2fea3907d8cfaaf2"
