@@ -1,48 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "C07",
   "source_pack_sha256": "8b631ce2e6ac6297bf715a0890b40294b9b3d6d43bc122a15274eb719479e8ac",
   "source_bundle_sha256": "b1ad81b0f4b641bd599933fa0180f0f31080db93cb1f20c3bb6857dc2de771fd",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        2,
-        3,
-        14
-      ],
-      "variant_ids": [
-        "C07-html-practice-html-q1-1dbc01dbdcec",
-        "C07-html-practice-html-q2-b4a3fc6a4689",
-        "C07-html-practice-html-q3-5c99057d90f9",
-        "C07-html-practice-html-q4-3ff4600ca2e6",
-        "C07-html-practice-html-q15-e2594578228f"
-      ],
-      "eligible_variant_ids": [
-        "C07-html-practice-html-q1-1dbc01dbdcec",
-        "C07-html-practice-html-q2-b4a3fc6a4689",
-        "C07-html-practice-html-q3-5c99057d90f9",
-        "C07-html-practice-html-q4-3ff4600ca2e6",
-        "C07-html-practice-html-q9-16d06c3c7aef",
-        "C07-html-practice-html-q10-eef5eb0d8bee",
-        "C07-html-practice-html-q15-e2594578228f"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMWRiYzAxZGJkY2VjIiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iNGEzZmM2YTQ2ODkiLCJDMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLTVjOTkwNTdkOTBmOSIsIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtM2ZmNDYwMGNhMmU2IiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZTI1OTQ1NzgyMjhmIl0sInBhY2tfaWQiOiJDMDciLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImQ3ZjZlMTgyNjUzYmNjZTVlZjA4YTc3MWFlYWEyMjhmOGMxMTk5YTgwNGI2NjA5ODQ0ZDcyZjk4YmYyNDU4YTIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNzlkN2VjMWRmNWEzMGQ4MDFjNjNhN2Y4ZTk2NGY0NWFhZGUxNDVjMDM1OWZkMDA1OWFiN2ZjZWE5OTIxMDdjMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "40e0a0d718772d6d96ec625c3c7a51f5e76c8db6a11220d4212220105513b57b"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 15,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "连接方法·定性",
+      "variant_id": "C07-html-practice-html-q1-1dbc01dbdcec",
+      "surface_id": "practice.html",
       "stem": "钢结构构件的连接方法包括哪几类？选出列全、能得分的作答。",
-      "model_answer": "钢结构连接方法包括：焊接、普通螺栓连接、高强度螺栓连接、铆接。",
       "options": [
         {
           "text": "钢结构连接方法包括焊接、普通螺栓连接、高强度螺栓连接、铆接四类。",
@@ -81,53 +56,50 @@
           "option_id": "C07-html-practice-html-q1-1dbc01dbdcec:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q1-1dbc01dbdcec",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q1",
-      "source_anchor": "kc:1A413030_109_0216:0",
-      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "c07-fact-connection-methods",
-      "skeleton_id": "c07-skel-连接方法四类枚举",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "钢结构连接方法包括：焊接、普通螺栓连接、高强度螺栓连接、铆接。",
+      "rule_group": "连接方法·定性",
       "content_sha256": "dd21f9f727d7a9539fe0f9a8f2ee7fcbe18704768830d7f6b4bf81065f940ba4",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "dd21f9f727d7a9539fe0f9a8f2ee7fcbe18704768830d7f6b4bf81065f940ba4",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q1",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-connection-methods",
+        "skeleton_id": "c07-skel-连接方法四类枚举",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_109_0216:0",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "dd21f9f727d7a9539fe0f9a8f2ee7fcbe18704768830d7f6b4bf81065f940ba4",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "钢结构连接方法四类,教材直引(0.88)。工单:正确项恒首位且最长(template artifact)。"
         },
-        "note": "钢结构连接方法四类,教材直引(0.88)。工单:正确项恒首位且最长(template artifact)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "焊接接头·分类",
+      "variant_id": "C07-html-practice-html-q2-b4a3fc6a4689",
+      "surface_id": "practice.html",
       "stem": "钢结构焊接接头的类型包括哪些？选出列全、能得分的作答。",
-      "model_answer": "全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。",
       "options": [
         {
           "text": "全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。",
@@ -166,53 +138,50 @@
           "option_id": "C07-html-practice-html-q2-b4a3fc6a4689:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q2-b4a3fc6a4689",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q2",
-      "source_anchor": "kc:1A413030_109_0216:1",
-      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "c07-fact-weld-joint-types",
-      "skeleton_id": "c07-skel-焊接接头七类枚举",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。",
+      "rule_group": "焊接接头·分类",
       "content_sha256": "9e2044e7f8cefecb701668c1d39e952b738ede2af6634f5bd88fd07d6b23771a",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "9e2044e7f8cefecb701668c1d39e952b738ede2af6634f5bd88fd07d6b23771a",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q2",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-weld-joint-types",
+        "skeleton_id": "c07-skel-焊接接头七类枚举",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_109_0216:1",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "9e2044e7f8cefecb701668c1d39e952b738ede2af6634f5bd88fd07d6b23771a",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "焊接接头七类,教材直引(0.74)。工单:template artifact。"
         },
-        "note": "焊接接头七类,教材直引(0.74)。工单:template artifact。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "焊接环境·条件维",
+      "variant_id": "C07-html-practice-html-q3-5c99057d90f9",
+      "surface_id": "practice.html",
       "stem": "钢结构焊接作业环境应满足哪些条件？选出数值正确、能得分的作答。",
-      "model_answer": "温度≥−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s，低温须加热防护。",
       "options": [
         {
           "text": "温度不低于−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s。",
@@ -251,53 +220,50 @@
           "option_id": "C07-html-practice-html-q3-5c99057d90f9:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q3-5c99057d90f9",
-      "surface_id": "practice.html",
-      "source_index": 2,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q3",
-      "source_anchor": "kc:1A413030_110_0217:1",
-      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "c07-fact-weld-environment",
-      "skeleton_id": "c07-skel-焊接环境数值",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "温度≥−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s，低温须加热防护。",
+      "rule_group": "焊接环境·条件维",
       "content_sha256": "9187b4b8dbda2dd50ead87abc3f9c055d9e08b2c5af35162b65aeacf8fbbf771",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "9187b4b8dbda2dd50ead87abc3f9c055d9e08b2c5af35162b65aeacf8fbbf771",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q3",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-weld-environment",
+        "skeleton_id": "c07-skel-焊接环境数值",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_110_0217:1",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "9187b4b8dbda2dd50ead87abc3f9c055d9e08b2c5af35162b65aeacf8fbbf771",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "焊接环境4数值(≥-10℃/湿度≤90%/风速8/2)全对,教材直引(0.84)。工单:stem 限定数值,解析可补'低温需加热/防护'(另一采分点)。"
         },
-        "note": "焊接环境4数值(≥-10℃/湿度≤90%/风速8/2)全对,教材直引(0.84)。工单:stem 限定数值,解析可补'低温需加热/防护'(另一采分点)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "焊接缺陷·后果维",
+      "variant_id": "C07-html-practice-html-q4-3ff4600ca2e6",
+      "surface_id": "practice.html",
       "stem": "某焊缝检测发现固体夹渣缺陷，其主要成因是下列哪项？选出正确、能得分的作答。",
-      "model_answer": "固体夹渣主因是焊接电流太小（及焊接速度太快、熔渣密度太大、多层焊熔渣未清除）。",
       "options": [
         {
           "text": "焊接电流太小（熔池温度不够、熔渣来不及上浮），及速度太快、熔渣未清除。",
@@ -336,53 +302,50 @@
           "option_id": "C07-html-practice-html-q4-3ff4600ca2e6:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q4-3ff4600ca2e6",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q4",
-      "source_anchor": "exam:2021:第8题",
-      "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "c07-fact-slag-inclusion-cause",
-      "skeleton_id": "c07-skel-夹渣成因",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "固体夹渣主因是焊接电流太小（及焊接速度太快、熔渣密度太大、多层焊熔渣未清除）。",
+      "rule_group": "焊接缺陷·后果维",
       "content_sha256": "39c9d043682a6306fafc1560bf7d063b34085fec41674ce58aafca6aac07e561",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "39c9d043682a6306fafc1560bf7d063b34085fec41674ce58aafca6aac07e561",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q4",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-slag-inclusion-cause",
+        "skeleton_id": "c07-skel-夹渣成因",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2021:第8题",
+        "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "39c9d043682a6306fafc1560bf7d063b34085fec41674ce58aafca6aac07e561",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "固体夹渣成因(电流小/速度快/熔渣未清),真题锚。工单:机理化括注宜另补教材锚。"
         },
-        "note": "固体夹渣成因(电流小/速度快/熔渣未清),真题锚。工单:机理化括注宜另补教材锚。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "疲劳禁焊·后果维",
+      "variant_id": "C07-html-practice-html-q5-a3c1013cb4eb",
+      "surface_id": "practice.html",
       "stem": "构件承受动荷载且需疲劳验算时，严禁使用哪几种焊接接头？选出列全、能得分的作答。",
-      "model_answer": "严禁塞焊、槽焊、电渣焊、气电立焊接头。",
       "options": [
         {
           "text": "严禁使用塞焊、槽焊、电渣焊、气电立焊接头。",
@@ -421,41 +384,38 @@
           "option_id": "C07-html-practice-html-q5-a3c1013cb4eb:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q5-a3c1013cb4eb",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "严禁塞焊、槽焊、电渣焊、气电立焊接头。",
+      "rule_group": "疲劳禁焊·后果维",
       "content_sha256": "c4fa01f3795b8871b80980d0435035eb865e2859298d5cbf06fbc436ad8fe76a",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "c4fa01f3795b8871b80980d0435035eb865e2859298d5cbf06fbc436ad8fe76a",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q5",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "c4fa01f3795b8871b80980d0435035eb865e2859298d5cbf06fbc436ad8fe76a",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "焊接主控·记录维",
+      "variant_id": "C07-html-practice-html-q6-704d5a80ae54",
+      "surface_id": "practice.html",
       "stem": "钢结构焊接质量主控项目应包括哪些内容？选出正确、能得分的作答。",
-      "model_answer": "焊接材料须烘焙、焊工持证上岗、一二级焊缝须无损检测。",
       "options": [
         {
           "text": "焊接材料须烘焙、焊工持证上岗、一级和二级焊缝须无损检测。",
@@ -494,41 +454,38 @@
           "option_id": "C07-html-practice-html-q6-704d5a80ae54:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q6-704d5a80ae54",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "焊接材料须烘焙、焊工持证上岗、一二级焊缝须无损检测。",
+      "rule_group": "焊接主控·记录维",
       "content_sha256": "7440742a8f6f8b4a9dff5c58a54f173b139cb1cc73c5f4bc474af4aac5beb343",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "7440742a8f6f8b4a9dff5c58a54f173b139cb1cc73c5f4bc474af4aac5beb343",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q6",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "7440742a8f6f8b4a9dff5c58a54f173b139cb1cc73c5f4bc474af4aac5beb343",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "焊接特点·陷阱",
+      "variant_id": "C07-html-practice-html-q7-96577c31d42c",
+      "surface_id": "practice.html",
       "stem": "关于焊接连接的特点，选出正确、能得分的作答。",
-      "model_answer": "焊接优点：节约钢材、构造简单、易自动化、加工方便；但内部缺陷难查，须无损探伤，不能算「易于检查」。",
       "options": [
         {
           "text": "优点是节约钢材、构造简单、易自动化、加工方便；内部缺陷难查，须无损探伤。",
@@ -567,41 +524,38 @@
           "option_id": "C07-html-practice-html-q7-96577c31d42c:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q7-96577c31d42c",
-      "surface_id": "practice.html",
-      "source_index": 6,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "焊接优点：节约钢材、构造简单、易自动化、加工方便；但内部缺陷难查，须无损探伤，不能算「易于检查」。",
+      "rule_group": "焊接特点·陷阱",
       "content_sha256": "8fafbf2013a4de300422d9d193d68c331a0979f6d0ea93e5b725362705243a90",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "8fafbf2013a4de300422d9d193d68c331a0979f6d0ea93e5b725362705243a90",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q7",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "8fafbf2013a4de300422d9d193d68c331a0979f6d0ea93e5b725362705243a90",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "高强螺栓·原理",
+      "variant_id": "C07-html-practice-html-q8-253f5eb9b411",
+      "surface_id": "practice.html",
       "stem": "高强度螺栓连接（摩擦型）主要靠什么传递外荷载？选出正确、能得分的作答。",
-      "model_answer": "靠预拉力把板件夹紧、接触面摩擦力传递外荷载（摩擦连接）。",
       "options": [
         {
           "text": "靠拧出的预拉力把板件夹紧，接触面产生摩擦力来传递外荷载。",
@@ -640,41 +594,38 @@
           "option_id": "C07-html-practice-html-q8-253f5eb9b411:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q8-253f5eb9b411",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "靠预拉力把板件夹紧、接触面摩擦力传递外荷载（摩擦连接）。",
+      "rule_group": "高强螺栓·原理",
       "content_sha256": "13247874d5eff27240133fdf1c272f751ffe9b45d3d238e4fc26ee14462ece06",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "13247874d5eff27240133fdf1c272f751ffe9b45d3d238e4fc26ee14462ece06",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q8",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "13247874d5eff27240133fdf1c272f751ffe9b45d3d238e4fc26ee14462ece06",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "安装螺栓·条件维",
+      "variant_id": "C07-html-practice-html-q9-16d06c3c7aef",
+      "surface_id": "practice.html",
       "stem": "钢结构安装时，安装螺栓与冲钉的数量应满足哪些要求？选出列全、能得分的作答。",
-      "model_answer": "安装螺栓≥2个且≥安装孔总数1/3；冲钉≤安装螺栓数量30%；不得用高强螺栓兼作安装螺栓。",
       "options": [
         {
           "text": "安装螺栓不少于2个且不少于安装孔总数的1/3；冲钉不多于安装螺栓的30%；不得用高强螺栓兼作安装螺栓。",
@@ -713,53 +664,50 @@
           "option_id": "C07-html-practice-html-q9-16d06c3c7aef:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q9-16d06c3c7aef",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q9",
-      "source_anchor": "kc:1A413030_110_0217:0",
-      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "c07-fact-high-strength-bolt-install",
-      "skeleton_id": "c07-skel-冲钉数量下限",
-      "probe_role": "d1_probe",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "安装螺栓≥2个且≥安装孔总数1/3；冲钉≤安装螺栓数量30%；不得用高强螺栓兼作安装螺栓。",
+      "rule_group": "安装螺栓·条件维",
       "content_sha256": "6d52245ce843c7363895d61504fb4356c0ac33fdf3d4bcbfcbfe68c9462f461f",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "6d52245ce843c7363895d61504fb4356c0ac33fdf3d4bcbfcbfe68c9462f461f",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q9",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-high-strength-bolt-install",
+        "skeleton_id": "c07-skel-冲钉数量下限",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A413030_110_0217:0",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "6d52245ce843c7363895d61504fb4356c0ac33fdf3d4bcbfcbfe68c9462f461f",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "安装螺栓/冲钉数量下限+不得兼作,教材直引(0.79)。工单:荷载计算前提未列(不穷尽非反错)。"
         },
-        "note": "安装螺栓/冲钉数量下限+不得兼作,教材直引(0.79)。工单:荷载计算前提未列(不穷尽非反错)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "兼作纠错·判断纠错",
+      "variant_id": "C07-html-practice-html-q10-eef5eb0d8bee",
+      "surface_id": "practice.html",
       "stem": "施工员用高强度螺栓兼作安装螺栓做临时固定。指出是否妥当，并选出正确做法。",
-      "model_answer": "不妥：不得用高强度螺栓兼作安装螺栓；应另设安装螺栓，不少于2个且不少于安装孔总数的1/3。",
       "options": [
         {
           "text": "不妥。应另设安装螺栓，不少于2个且不少于安装孔总数的1/3，高强螺栓不得兼作。",
@@ -798,53 +746,50 @@
           "option_id": "C07-html-practice-html-q10-eef5eb0d8bee:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q10-eef5eb0d8bee",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q10",
-      "source_anchor": "kc:1A413030_110_0217:0",
-      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "c07-fact-high-strength-bolt-install",
-      "skeleton_id": "c07-skel-兼作判断纠错",
-      "probe_role": "immediate_confirm",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：不得用高强度螺栓兼作安装螺栓；应另设安装螺栓，不少于2个且不少于安装孔总数的1/3。",
+      "rule_group": "兼作纠错·判断纠错",
       "content_sha256": "2a281aae25c1058f32bfbe8ae30793786f2fe6871ff552534f9b11f5b41cad03",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "2a281aae25c1058f32bfbe8ae30793786f2fe6871ff552534f9b11f5b41cad03",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q10",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-high-strength-bolt-install",
+        "skeleton_id": "c07-skel-兼作判断纠错",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A413030_110_0217:0",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "2a281aae25c1058f32bfbe8ae30793786f2fe6871ff552534f9b11f5b41cad03",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "高强螺栓不得兼作安装螺栓,教材直引(0.68)。工单:正确做法可补荷载计算前提。"
         },
-        "note": "高强螺栓不得兼作安装螺栓,教材直引(0.68)。工单:正确做法可补荷载计算前提。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "穿入扩孔·程序维",
+      "variant_id": "C07-html-practice-html-q11-331ef393cc27",
+      "surface_id": "practice.html",
       "stem": "高强度螺栓的穿入与扩孔应如何处理？选出正确、能得分的作答。",
-      "model_answer": "必须自由穿入、不得强行；若需扩孔，孔径不得超过螺栓直径的1.2倍，且不得使用气割扩孔。",
       "options": [
         {
           "text": "必须自由穿入、不得强行；若需扩孔，孔径不超过螺栓直径的1.2倍，且禁止气割扩孔。",
@@ -883,41 +828,38 @@
           "option_id": "C07-html-practice-html-q11-331ef393cc27:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q11-331ef393cc27",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "必须自由穿入、不得强行；若需扩孔，孔径不得超过螺栓直径的1.2倍，且不得使用气割扩孔。",
+      "rule_group": "穿入扩孔·程序维",
       "content_sha256": "74b0c49777abc6c95b3ededf2da02052d6691b71209964d3fd965ddb30f65a77",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "74b0c49777abc6c95b3ededf2da02052d6691b71209964d3fd965ddb30f65a77",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q11",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "74b0c49777abc6c95b3ededf2da02052d6691b71209964d3fd965ddb30f65a77",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "气割纠错·判断纠错",
+      "variant_id": "C07-html-practice-html-q12-fdacf10bed27",
+      "surface_id": "practice.html",
       "stem": "个别螺栓孔不对位，施工员用气割把孔扩大。指出是否妥当，并选出正确做法。",
-      "model_answer": "不妥：不得用气割扩孔（烧伤孔壁、热影响）；应用机械方法扩孔，且孔径不超过螺栓直径的1.2倍。",
       "options": [
         {
           "text": "不妥。应采用机械方法扩孔，孔径不超过螺栓直径的1.2倍，不得用气割扩孔。",
@@ -956,41 +898,38 @@
           "option_id": "C07-html-practice-html-q12-fdacf10bed27:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q12-fdacf10bed27",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：不得用气割扩孔（烧伤孔壁、热影响）；应用机械方法扩孔，且孔径不超过螺栓直径的1.2倍。",
+      "rule_group": "气割纠错·判断纠错",
       "content_sha256": "138b69fa9c1997df165d6e5824e0291139788c924699ceb2fc9ceae22f3bd351",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "138b69fa9c1997df165d6e5824e0291139788c924699ceb2fc9ceae22f3bd351",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q12",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "138b69fa9c1997df165d6e5824e0291139788c924699ceb2fc9ceae22f3bd351",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "摩擦面·记录维",
+      "variant_id": "C07-html-practice-html-q13-2c2c754418ec",
+      "surface_id": "practice.html",
       "stem": "高强度螺栓连接的摩擦面应如何处理？选出正确、能得分的作答。",
-      "model_answer": "摩擦面干燥清洁，无飞边毛刺焊渣氧化皮污垢，不得作标记，生锈须钢丝刷除浮锈。",
       "options": [
         {
           "text": "摩擦面须干燥清洁，无飞边毛刺焊渣氧化皮污垢，不得作标记，生锈用钢丝刷除浮锈。",
@@ -1029,41 +968,38 @@
           "option_id": "C07-html-practice-html-q13-2c2c754418ec:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q13-2c2c754418ec",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "摩擦面干燥清洁，无飞边毛刺焊渣氧化皮污垢，不得作标记，生锈须钢丝刷除浮锈。",
+      "rule_group": "摩擦面·记录维",
       "content_sha256": "dc6966c31c0572119458a5c58a3a065789df40ce43ed52d29b517f9ec3302ceb",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "dc6966c31c0572119458a5c58a3a065789df40ce43ed52d29b517f9ec3302ceb",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q13",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "dc6966c31c0572119458a5c58a3a065789df40ce43ed52d29b517f9ec3302ceb",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "抗滑移·终拧检查",
+      "variant_id": "C07-html-practice-html-q14-4826382afbc0",
+      "surface_id": "practice.html",
       "stem": "高强度螺栓连接的检验应包括什么？终拧后应何时检查？选出正确、能得分的作答。",
-      "model_answer": "摩擦面须做抗滑移试验；终拧后应在1~48小时内检查。",
       "options": [
         {
           "text": "摩擦面须做抗滑移试验；终拧完成后应在1~48小时内检查。",
@@ -1102,41 +1038,38 @@
           "option_id": "C07-html-practice-html-q14-4826382afbc0:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q14-4826382afbc0",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "摩擦面须做抗滑移试验；终拧后应在1~48小时内检查。",
+      "rule_group": "抗滑移·终拧检查",
       "content_sha256": "7e6a775e4ff56f980568f3a35a04bb5bf2bd9a63bedb0e5e331293bf032c27a0",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "7e6a775e4ff56f980568f3a35a04bb5bf2bd9a63bedb0e5e331293bf032c27a0",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q14",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "7e6a775e4ff56f980568f3a35a04bb5bf2bd9a63bedb0e5e331293bf032c27a0",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "C07-html-practice-html-q15-e2594578228f",
+      "surface_id": "practice.html",
       "stem": "某学生作答：①用高强螺栓兼作安装螺栓临时固定；②孔不对位用气割扩孔；③摩擦面用记号笔做定位；④终拧完一周后检查；⑤焊缝夹渣是焊前没预热造成的。选出最准确的诊断与补写。",
-      "model_answer": "五处全错：①不得兼作，应另设安装螺栓≥2个≥1/3孔；②禁气割，应机械扩孔≤1.2D；③摩擦面不得作标记；④应终拧后1~48h内检查；⑤夹渣主因是焊接电流太小，非没预热。",
       "options": [
         {
           "text": "五处都不对：应另设安装螺栓≥2个≥1/3孔、机械扩孔≤1.2D禁气割、摩擦面不得作标记、终拧后1~48h内检查、夹渣主因是电流太小。",
@@ -1175,48 +1108,54 @@
           "option_id": "C07-html-practice-html-q15-e2594578228f:option-4"
         }
       ],
-      "variant_id": "C07-html-practice-html-q15-e2594578228f",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q15",
-      "source_anchor": "kc:1A413030_110_0217:0",
-      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "c07-fact-high-strength-bolt-install",
-      "skeleton_id": "c07-skel-五错诊断补写",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "五处全错：①不得兼作，应另设安装螺栓≥2个≥1/3孔；②禁气割，应机械扩孔≤1.2D；③摩擦面不得作标记；④应终拧后1~48h内检查；⑤夹渣主因是焊接电流太小，非没预热。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "57a829dd4ba1060b891082b866d0fe9b9f0cb431bdc2b876304f057c6cfb0c21",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "57a829dd4ba1060b891082b866d0fe9b9f0cb431bdc2b876304f057c6cfb0c21",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q15",
+      "authoring_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "decision": {
+        "fact_id": "c07-fact-high-strength-bolt-install",
+        "skeleton_id": "c07-skel-五错诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_110_0217:0",
+        "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "57a829dd4ba1060b891082b866d0fe9b9f0cb431bdc2b876304f057c6cfb0c21",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T09:58:48+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T09:58:48+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "高强螺栓五错诊断(兼作/气割扩孔/摩擦面标记/终拧/…)。锚 kc:...110_0217:0 覆盖兼作+禁气割扩孔;摩擦面/终拧为多源。工单:复合题多源 provenance,非血统断(各事实均教材有据)。Codex '设计单位同意' FATAL 为幻觉,已否。"
         },
-        "note": "高强螺栓五错诊断(兼作/气割扩孔/摩擦面标记/终拧/…)。锚 kc:...110_0217:0 覆盖兼作+禁气割扩孔;摩擦面/终拧为多源。工单:复合题多源 provenance,非血统断(各事实均教材有据)。Codex '设计单位同意' FATAL 为幻觉,已否。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
   ],
-  "published_lesson_sha256": "a467488ce316b0368465a071c86e9bc2f933f4b00928f95dfb93fdba8057b796"
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (c07.codex.out, 报 4 FATAL). 主控逐条核 _C07_compiled_source.json: (1) Codex 对 q11/q12/q15 的 '扩孔须征得设计单位同意' FATAL 系幻觉——grep 全 compiled_source '设计单位' 零命中,q11 答案'孔径不超1.2倍+禁气割扩孔'与教材逐字一致;(2) q3 漏'低温需加热/防护'属实,但 stem 限定'数值正确',所列4数值全对,单选可接受=工单;(3) q15 五错诊断为复合题,单锚只覆盖兼作/气割扩孔2事实,余为多源=工单。结论:无 FATAL,全部答案教材正确、引文可溯,按 N01/C01 先例 approved+工单。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }

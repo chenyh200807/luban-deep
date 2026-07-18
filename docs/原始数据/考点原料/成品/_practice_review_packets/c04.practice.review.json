@@ -1,48 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "C04",
   "source_pack_sha256": "890334cf5c4a12d7a68f569af605ea5b5adb4637848ec9936521fbc292f9aed2",
   "source_bundle_sha256": "96ec196afc9422ad8e66de9be55d25e28e695e21c4f262a74cf1d1c9b0b94042",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        2,
-        3,
-        15
-      ],
-      "variant_ids": [
-        "C04-html-practice-html-q1-3f9696fe7b90",
-        "C04-html-practice-html-q2-57b7aba68476",
-        "C04-html-practice-html-q3-fd09f109c0de",
-        "C04-html-practice-html-q4-2f60c2911a87",
-        "C04-html-practice-html-q16-bd3fe10391f8"
-      ],
-      "eligible_variant_ids": [
-        "C04-html-practice-html-q1-3f9696fe7b90",
-        "C04-html-practice-html-q2-57b7aba68476",
-        "C04-html-practice-html-q3-fd09f109c0de",
-        "C04-html-practice-html-q4-2f60c2911a87",
-        "C04-html-practice-html-q5-0f31b7c99ac5",
-        "C04-html-practice-html-q6-30a632b3e3e3",
-        "C04-html-practice-html-q16-bd3fe10391f8"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtM2Y5Njk2ZmU3YjkwIiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01N2I3YWJhNjg0NzYiLCJDMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZkMDlmMTA5YzBkZSIsIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmY2MGMyOTExYTg3IiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmQzZmUxMDM5MWY4Il0sInBhY2tfaWQiOiJDMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjFmZThlYTgyZGU4OWU2NGQ2MzIxNjUzNmU3ZDNkOWVhOTYxZDVjZDkzNWFkMjJkYTEzYTJmYjJjOTViZTFmYjUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWFiZmRiZDdiN2U5OTE3ZDM5ZDc3OTc3N2NmNWJlZTMxYjY4NjExYzgyNjFmMmExYzFlODMwZGEzOGVhMWJkMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "28a74700d8695093431251fbb119f9e4e4f4717cc590e70f195ee26f46014a2f"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 17,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "侧模判据·条件维",
+      "variant_id": "C04-html-practice-html-q1-3f9696fe7b90",
+      "surface_id": "practice.html",
       "stem": "梁、柱、墙的侧模板要拆除，拆除条件怎么写才能得分？",
-      "model_answer": "不承重侧模：混凝土强度保证其表面、棱角不因拆模受损即可拆除；墙体大模板常温达 1N/mm² 即可拆除。",
       "options": [
         {
           "text": "不承重侧模只要混凝土强度保证表面、棱角不因拆模受损即可拆；墙体大模板常温达 1N/mm² 即可拆。",
@@ -81,53 +56,50 @@
           "option_id": "C04-html-practice-html-q1-3f9696fe7b90:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q1-3f9696fe7b90",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q1",
-      "source_anchor": "kc:1A413030_099_0186:0",
-      "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "c04-fact-side-form-removal",
-      "skeleton_id": "c04-skel-侧模拆除条件",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不承重侧模：混凝土强度保证其表面、棱角不因拆模受损即可拆除；墙体大模板常温达 1N/mm² 即可拆除。",
+      "rule_group": "侧模判据·条件维",
       "content_sha256": "92261ac7a4384ec88faa9412144ffb1f5ec1e33127ff3bbd393ad32560490f99",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "92261ac7a4384ec88faa9412144ffb1f5ec1e33127ff3bbd393ad32560490f99",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q1",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "c04-fact-side-form-removal",
+        "skeleton_id": "c04-skel-侧模拆除条件",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_099_0186:0",
+        "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "92261ac7a4384ec88faa9412144ffb1f5ec1e33127ff3bbd393ad32560490f99",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。"
         },
-        "note": "不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "底模强度表·条件维",
+      "variant_id": "C04-html-practice-html-q2-57b7aba68476",
+      "surface_id": "practice.html",
       "stem": "底模及支架拆除时的混凝土强度要求，怎么写才完整、能得分？",
-      "model_answer": "按构件类型+跨度：板 ≤2m→50%、2~8m→75%、＞8m→100%；梁拱壳 ≤8m→75%、＞8m→100%；悬臂构件一律 100%。",
       "options": [
         {
           "text": "按构件类型加跨度查表：板 ≤2m 取 50%、2~8m 取 75%、＞8m 取 100%；梁拱壳 ≤8m 取 75%、＞8m 取 100%；悬臂构件一律 100%。",
@@ -166,53 +138,50 @@
           "option_id": "C04-html-practice-html-q2-57b7aba68476:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q2-57b7aba68476",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q2",
-      "source_anchor": "kc:1A413030_099_0185:0",
-      "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "c04-fact-bottom-form-strength-table",
-      "skeleton_id": "c04-skel-底模强度全表",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "按构件类型+跨度：板 ≤2m→50%、2~8m→75%、＞8m→100%；梁拱壳 ≤8m→75%、＞8m→100%；悬臂构件一律 100%。",
+      "rule_group": "底模强度表·条件维",
       "content_sha256": "5bb9d3bfb7fdd72e344bf311acd0ffba09d501fbf1ebfe3f110c1d0d761e3641",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "5bb9d3bfb7fdd72e344bf311acd0ffba09d501fbf1ebfe3f110c1d0d761e3641",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q2",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "c04-fact-bottom-form-strength-table",
+        "skeleton_id": "c04-skel-底模强度全表",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_099_0185:0",
+        "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "5bb9d3bfb7fdd72e344bf311acd0ffba09d501fbf1ebfe3f110c1d0d761e3641",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。"
         },
-        "note": "底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "强度换算·计算表达维",
+      "variant_id": "C04-html-practice-html-q3-fd09f109c0de",
+      "surface_id": "practice.html",
       "stem": "某现浇楼板跨度 6m、混凝土 C30。拆底模时同条件养护试块强度至少应达到多少？写出可得分的算式与依据。",
-      "model_answer": "6m 板落 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块代表值≥22.5 方可拆底模。",
       "options": [
         {
           "text": "6m 板属 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块强度≥22.5 方可拆底模。",
@@ -251,53 +220,50 @@
           "option_id": "C04-html-practice-html-q3-fd09f109c0de:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q3-fd09f109c0de",
-      "surface_id": "practice.html",
-      "source_index": 2,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q3",
-      "source_anchor": "exam:2021:第9题",
-      "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "c04-fact-bottom-form-strength-apply-6m",
-      "skeleton_id": "c04-skel-6m板强度应用",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "6m 板落 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块代表值≥22.5 方可拆底模。",
+      "rule_group": "强度换算·计算表达维",
       "content_sha256": "a5434285b32446573c10f6a925e01464e3361b7137c52684f4a2a6b63d80f8b2",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "a5434285b32446573c10f6a925e01464e3361b7137c52684f4a2a6b63d80f8b2",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q3",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "c04-fact-bottom-form-strength-apply-6m",
+        "skeleton_id": "c04-skel-6m板强度应用",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2021:第9题",
+        "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "a5434285b32446573c10f6a925e01464e3361b7137c52684f4a2a6b63d80f8b2",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "6m现浇板拆底模≥75%,真题锚。"
         },
-        "note": "6m现浇板拆底模≥75%,真题锚。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "边界辨析·条件维",
+      "variant_id": "C04-html-practice-html-q4-2f60c2911a87",
+      "surface_id": "practice.html",
       "stem": "某现浇混凝土梁跨度恰好为 8m。拆底模时强度百分率应取多少？选出依据正确的作答。",
-      "model_answer": "梁 8m 属「≤8m」档取 75%；只有跨度超过 8m 才取 100%。",
       "options": [
         {
           "text": "梁跨度 8m 属「不超过 8m」档，取设计强度的 75%；超过 8m 才取 100%。",
@@ -336,53 +302,50 @@
           "option_id": "C04-html-practice-html-q4-2f60c2911a87:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q4-2f60c2911a87",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q4",
-      "source_anchor": "exam:2024:第10题",
-      "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "c04-fact-bottom-form-strength-threshold",
-      "skeleton_id": "c04-skel-8m边界判定",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "梁 8m 属「≤8m」档取 75%；只有跨度超过 8m 才取 100%。",
+      "rule_group": "边界辨析·条件维",
       "content_sha256": "9825f95ab986a08850522c09d87f4a715d849f81d54a007db89fb687c1ea49bc",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "9825f95ab986a08850522c09d87f4a715d849f81d54a007db89fb687c1ea49bc",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q4",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "c04-fact-bottom-form-strength-threshold",
+        "skeleton_id": "c04-skel-8m边界判定",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2024:第10题",
+        "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "9825f95ab986a08850522c09d87f4a715d849f81d54a007db89fb687c1ea49bc",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。"
         },
-        "note": "8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "全表辨析·条件维",
+      "variant_id": "C04-html-practice-html-q5-0f31b7c99ac5",
+      "surface_id": "practice.html",
       "stem": "下列构件同条件试块强度均已测得，其中已达到底模拆除要求的是哪一项？",
-      "model_answer": "逐项查表：8m 拱 ≤8m 档取 75%，达 75% 即满足；3m 板需 75%（40% 不够）；10m 梁需 100%（75% 不够）；悬臂梁需 100%（75% 不够）。",
       "options": [
         {
           "text": "跨度 8m 的拱，混凝土强度已达设计强度的 75%——拱 ≤8m 档要求 75%，满足可拆。",
@@ -421,53 +384,50 @@
           "option_id": "C04-html-practice-html-q5-0f31b7c99ac5:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q5-0f31b7c99ac5",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q5",
-      "source_anchor": "exam:2024:第10题",
-      "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "c04-fact-bottom-form-strength-threshold",
-      "skeleton_id": "c04-skel-多构件达标判断",
-      "probe_role": "immediate_confirm",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "逐项查表：8m 拱 ≤8m 档取 75%，达 75% 即满足；3m 板需 75%（40% 不够）；10m 梁需 100%（75% 不够）；悬臂梁需 100%（75% 不够）。",
+      "rule_group": "全表辨析·条件维",
       "content_sha256": "dbe1bf14ab58e0eddadd690cdd7fdd2fb5e1e1dd92f346d20766ac2a2593c49e",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "dbe1bf14ab58e0eddadd690cdd7fdd2fb5e1e1dd92f346d20766ac2a2593c49e",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q5",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "c04-fact-bottom-form-strength-threshold",
+        "skeleton_id": "c04-skel-多构件达标判断",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2024:第10题",
+        "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "dbe1bf14ab58e0eddadd690cdd7fdd2fb5e1e1dd92f346d20766ac2a2593c49e",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "多构件同条件强度哪项达拆模要求,真题锚。"
         },
-        "note": "多构件同条件强度哪项达拆模要求,真题锚。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "快拆判定链·计算表达维",
+      "variant_id": "C04-html-practice-html-q6-30a632b3e3e3",
+      "surface_id": "practice.html",
       "stem": "8m 跨现浇楼板 C30，采用快拆支架体系，立杆间距 2m，拆模时保留立杆并顶托支承楼板。拆模最低强度是多少？写出可得分的判定链。",
-      "model_answer": "快拆保留立杆顶托、立杆≤2m → 按等效 2m 小跨取 50% → 30×50%=15MPa，试块≥15 方可拆。",
       "options": [
         {
           "text": "保留立杆顶托、立杆间距≤2m，按等效 2m 小跨取 50%：30×50%=15MPa 即可拆模。",
@@ -506,53 +466,50 @@
           "option_id": "C04-html-practice-html-q6-30a632b3e3e3:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q6-30a632b3e3e3",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q6",
-      "source_anchor": "exam:2015:第10题",
-      "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "c04-fact-bottom-form-strength-threshold",
-      "skeleton_id": "c04-skel-快拆保留立杆",
-      "probe_role": "d1_probe",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "快拆保留立杆顶托、立杆≤2m → 按等效 2m 小跨取 50% → 30×50%=15MPa，试块≥15 方可拆。",
+      "rule_group": "快拆判定链·计算表达维",
       "content_sha256": "e2d3e2d825c8fc4ed07ec709d8eb65af775b47ccb8e1036b5b72ed13a635e798",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "e2d3e2d825c8fc4ed07ec709d8eb65af775b47ccb8e1036b5b72ed13a635e798",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q6",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "c04-fact-bottom-form-strength-threshold",
+        "skeleton_id": "c04-skel-快拆保留立杆",
+        "probe_role": "d1_probe",
+        "source_anchor": "exam:2015:第10题",
+        "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "e2d3e2d825c8fc4ed07ec709d8eb65af775b47ccb8e1036b5b72ed13a635e798",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "8m快拆板拆模保留立杆顶托,条件判定,真题锚。"
         },
-        "note": "8m快拆板拆模保留立杆顶托,条件判定,真题锚。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "快拆纠错·条件维",
+      "variant_id": "C04-html-practice-html-q7-f2123ca6fc06",
+      "surface_id": "practice.html",
       "stem": "某工程采用快拆支架体系（按 50% 拆模），现场拆模时把立杆连同顶托一次性全部拆除。判断该做法并改正。",
-      "model_answer": "不妥。快拆体系拆模时应保留立杆并顶托支承楼板，立杆间距不应大于 2m；立杆全拆则等效小跨不成立，强度须按原跨度档判定。",
       "options": [
         {
           "text": "不妥。快拆拆模时应保留立杆并顶托支承楼板、立杆间距不大于 2m；立杆全拆则须按原跨度档判强度。",
@@ -591,41 +548,38 @@
           "option_id": "C04-html-practice-html-q7-f2123ca6fc06:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q7-f2123ca6fc06",
-      "surface_id": "practice.html",
-      "source_index": 6,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥。快拆体系拆模时应保留立杆并顶托支承楼板，立杆间距不应大于 2m；立杆全拆则等效小跨不成立，强度须按原跨度档判定。",
+      "rule_group": "快拆纠错·条件维",
       "content_sha256": "ea227d94645e55204d729cba807aa5614d5f4118843edc23d93431f44790a47c",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "ea227d94645e55204d729cba807aa5614d5f4118843edc23d93431f44790a47c",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q7",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "ea227d94645e55204d729cba807aa5614d5f4118843edc23d93431f44790a47c",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "拆除顺序·程序维",
+      "variant_id": "C04-html-practice-html-q8-c68c8fecf91c",
+      "surface_id": "practice.html",
       "stem": "模板拆除顺序的原则怎么写才完整、能得分？",
-      "model_answer": "后支先拆、先支后拆；先拆除非承重部分、后拆除承重部分（成对句写全）。",
       "options": [
         {
           "text": "按「后支先拆、先支后拆；先拆非承重部分、后拆承重部分」的顺序进行拆除。",
@@ -664,41 +618,38 @@
           "option_id": "C04-html-practice-html-q8-c68c8fecf91c:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q8-c68c8fecf91c",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "后支先拆、先支后拆；先拆除非承重部分、后拆除承重部分（成对句写全）。",
+      "rule_group": "拆除顺序·程序维",
       "content_sha256": "8d826f9a08d3243c2aaee07a27cb4a777743129ee6937be4800a30ed67c9cd4e",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "8d826f9a08d3243c2aaee07a27cb4a777743129ee6937be4800a30ed67c9cd4e",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q8",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "8d826f9a08d3243c2aaee07a27cb4a777743129ee6937be4800a30ed67c9cd4e",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "顺序纠错·程序维",
+      "variant_id": "C04-html-practice-html-q9-d4ccff294645",
+      "surface_id": "practice.html",
       "stem": "某现场拆模时，先将梁底承重支架和底模拆除，最后拆除梁侧模。判断该做法并改正。",
-      "model_answer": "不妥。违反「后支先拆、先支后拆；先拆非承重、后拆承重」——应先拆不承重的侧模，承重底模及支架最后拆。",
       "options": [
         {
           "text": "不妥。违反「先拆非承重、后拆承重」原则——应先拆不承重侧模，承重底模及支架最后拆除。",
@@ -737,41 +688,38 @@
           "option_id": "C04-html-practice-html-q9-d4ccff294645:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q9-d4ccff294645",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥。违反「后支先拆、先支后拆；先拆非承重、后拆承重」——应先拆不承重的侧模，承重底模及支架最后拆。",
+      "rule_group": "顺序纠错·程序维",
       "content_sha256": "51827a366d60871a94ba2d38c3c1faa656cef65f5f974a67923ebfc6755d82c3",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "51827a366d60871a94ba2d38c3c1faa656cef65f5f974a67923ebfc6755d82c3",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q9",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "51827a366d60871a94ba2d38c3c1faa656cef65f5f974a67923ebfc6755d82c3",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "拆模程序·主体+程序维",
+      "variant_id": "C04-html-practice-html-q10-b28be6000d66",
+      "surface_id": "practice.html",
       "stem": "模板拆除前应履行什么程序？怎么写才完整、能得分？",
-      "model_answer": "拆模前须填拆模申请，同条件养护试块强度达到规定要求时，由技术负责人批准后方可拆除。",
       "options": [
         {
           "text": "填拆模申请，同条件养护试块强度达到规定要求时，经技术负责人批准后方可拆除。",
@@ -810,41 +758,38 @@
           "option_id": "C04-html-practice-html-q10-b28be6000d66:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q10-b28be6000d66",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "拆模前须填拆模申请，同条件养护试块强度达到规定要求时，由技术负责人批准后方可拆除。",
+      "rule_group": "拆模程序·主体+程序维",
       "content_sha256": "020d18d38ab0d57361e277f8fd5f762dd858e1f80a3e2c5312dfd6c1274cc369",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "020d18d38ab0d57361e277f8fd5f762dd858e1f80a3e2c5312dfd6c1274cc369",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q10",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "020d18d38ab0d57361e277f8fd5f762dd858e1f80a3e2c5312dfd6c1274cc369",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "批准主体·主体维",
+      "variant_id": "C04-html-practice-html-q11-613dbebeb7fa",
+      "surface_id": "practice.html",
       "stem": "拆模申请填好、同条件试块也达标了。批准拆模的主体是谁？选出主体定位正确的作答。",
-      "model_answer": "拆模批准主体是（项目）技术负责人，不是生产经理、项目经理，也不是监理工程师。",
       "options": [
         {
           "text": "由技术负责人批准——生产经理、项目经理或监理同意都不能替代技术负责人的批准。",
@@ -883,41 +828,38 @@
           "option_id": "C04-html-practice-html-q11-613dbebeb7fa:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q11-613dbebeb7fa",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "拆模批准主体是（项目）技术负责人，不是生产经理、项目经理，也不是监理工程师。",
+      "rule_group": "批准主体·主体维",
       "content_sha256": "e1c8af7282e117d1c58c8f6c5c4244d1ffcbc56bd13d78351fe3852ad0e36f1e",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "e1c8af7282e117d1c58c8f6c5c4244d1ffcbc56bd13d78351fe3852ad0e36f1e",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q11",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e1c8af7282e117d1c58c8f6c5c4244d1ffcbc56bd13d78351fe3852ad0e36f1e",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "作业安全·后果维",
+      "variant_id": "C04-html-practice-html-q12-e98be625c74a",
+      "surface_id": "practice.html",
       "stem": "模板拆除作业时的安全控制要点怎么写才完整、能得分？",
-      "model_answer": "拆模时下方不得有人、设警戒线；模板向下传递须上下呼应、协调一致；楼板底模不得采取无控制大片塌落的拆除方法。",
       "options": [
         {
           "text": "下方不得有人、设警戒线；模板向下传递上下呼应；楼板底模不得无控制大片塌落。",
@@ -956,41 +898,38 @@
           "option_id": "C04-html-practice-html-q12-e98be625c74a:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q12-e98be625c74a",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "拆模时下方不得有人、设警戒线；模板向下传递须上下呼应、协调一致；楼板底模不得采取无控制大片塌落的拆除方法。",
+      "rule_group": "作业安全·后果维",
       "content_sha256": "dc4a00492b496f69de28d57a29ee1e11cfbd710b80962128da02838d4c8c22a4",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "dc4a00492b496f69de28d57a29ee1e11cfbd710b80962128da02838d4c8c22a4",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q12",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "dc4a00492b496f69de28d57a29ee1e11cfbd710b80962128da02838d4c8c22a4",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "预应力条件·条件维",
+      "variant_id": "C04-html-practice-html-q13-0def06881ec4",
+      "surface_id": "practice.html",
       "stem": "后张法预应力混凝土梁的底模拆除，应满足哪些条件？选出写全的作答。",
-      "model_answer": "①预应力张拉后方可拆除底模；②混凝土强度符合同条件养护试件要求；③经技术负责人批准；④有孔道灌浆的，灌浆强度不应低于 C30。",
       "options": [
         {
           "text": "张拉后方可拆底模；同条件试件强度达标；经技术负责人批准；有孔道灌浆的灌浆强度不低于 C30。",
@@ -1029,41 +968,38 @@
           "option_id": "C04-html-practice-html-q13-0def06881ec4:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q13-0def06881ec4",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "①预应力张拉后方可拆除底模；②混凝土强度符合同条件养护试件要求；③经技术负责人批准；④有孔道灌浆的，灌浆强度不应低于 C30。",
+      "rule_group": "预应力条件·条件维",
       "content_sha256": "e5c3da52183244691367fb71cfa6a94b9b5c6c2e1acdfef78d5beb214d7995bd",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "e5c3da52183244691367fb71cfa6a94b9b5c6c2e1acdfef78d5beb214d7995bd",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q13",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e5c3da52183244691367fb71cfa6a94b9b5c6c2e1acdfef78d5beb214d7995bd",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "预应力纠错·程序维",
+      "variant_id": "C04-html-practice-html-q14-df0f3507700f",
+      "surface_id": "practice.html",
       "stem": "某地下室顶板设后张法预应力梁。同条件试件达标后，生产经理向监理口头申请拆模，监理同意后将顶板模板及支架全部拆除。判断并写出应满足的前置条件。",
-      "model_answer": "不正确。前置条件四条：①张拉后拆底模；②同条件试件强度达标；③填拆模申请、经技术负责人批准；④有孔道灌浆的灌浆强度≥C30。",
       "options": [
         {
           "text": "不正确。应满足：张拉后拆底模；同条件试件达标；填拆模申请经技术负责人批准；灌浆强度≥C30。",
@@ -1102,41 +1038,38 @@
           "option_id": "C04-html-practice-html-q14-df0f3507700f:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q14-df0f3507700f",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不正确。前置条件四条：①张拉后拆底模；②同条件试件强度达标；③填拆模申请、经技术负责人批准；④有孔道灌浆的灌浆强度≥C30。",
+      "rule_group": "预应力纠错·程序维",
       "content_sha256": "8cd7d7e151ccb5f0916c6c2c53db79b41c086e6ddcee1d0de75c8e228f54d764",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "8cd7d7e151ccb5f0916c6c2c53db79b41c086e6ddcee1d0de75c8e228f54d764",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q14",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "8cd7d7e151ccb5f0916c6c2c53db79b41c086e6ddcee1d0de75c8e228f54d764",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "综合判断·条件维",
+      "variant_id": "C04-html-practice-html-q15-d09997019a40",
+      "surface_id": "practice.html",
       "stem": "某现场规定：「同条件试块强度达标后，各部位模板即可安排拆除。」判断该规定并改正。",
-      "model_answer": "不妥。合法拆模须同时满足强度（按构件×跨度查表）、顺序（成对句）、程序（申请+试块+技术负责人批准）与作业安全四道门槛，试块达标仅是强度门槛的一部分。",
       "options": [
         {
           "text": "不妥。拆模须同时满足强度、顺序、程序与作业安全四道门槛，试块达标只是其中一环。",
@@ -1175,41 +1108,38 @@
           "option_id": "C04-html-practice-html-q15-d09997019a40:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q15-d09997019a40",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥。合法拆模须同时满足强度（按构件×跨度查表）、顺序（成对句）、程序（申请+试块+技术负责人批准）与作业安全四道门槛，试块达标仅是强度门槛的一部分。",
+      "rule_group": "综合判断·条件维",
       "content_sha256": "62a43dce4e0ff53e32cba33f96b6a20cd8ac6c757b20fb2a5fbb5ee335e8623c",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "62a43dce4e0ff53e32cba33f96b6a20cd8ac6c757b20fb2a5fbb5ee335e8623c",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q15",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "62a43dce4e0ff53e32cba33f96b6a20cd8ac6c757b20fb2a5fbb5ee335e8623c",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "C04-html-practice-html-q16-bd3fe10391f8",
+      "surface_id": "practice.html",
       "stem": "某学生作答拆模条件题：①所有模板达 1N/mm² 即可拆；②顺序按施工方案执行；③经监理同意后拆除。选出最准确的诊断与补写。",
-      "model_answer": "三处全失分：①1N/mm² 仅限墙体大模板侧模，底模须按构件×跨度查表；②顺序须写成对句「后支先拆、先支后拆；非承重先、承重后」；③程序须填申请+试块达标+技术负责人批准。",
       "options": [
         {
           "text": "三处都失分：1N/mm² 仅限墙体大模板，底模须查表；顺序须写成对句；程序须技术负责人批准。",
@@ -1248,53 +1178,50 @@
           "option_id": "C04-html-practice-html-q16-bd3fe10391f8:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q16-bd3fe10391f8",
-      "surface_id": "practice.html",
-      "source_index": 15,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q16",
-      "source_anchor": "ca:1A413030_099_0186",
-      "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "c04-fact-form-removal-diagnosis",
-      "skeleton_id": "c04-skel-拆模五错诊断",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "三处全失分：①1N/mm² 仅限墙体大模板侧模，底模须按构件×跨度查表；②顺序须写成对句「后支先拆、先支后拆；非承重先、承重后」；③程序须填申请+试块达标+技术负责人批准。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "b9a4d97fb1c7bc001551fd130f03c92a94328e49894ae54e59ea9853c832ef35",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "b9a4d97fb1c7bc001551fd130f03c92a94328e49894ae54e59ea9853c832ef35",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q16",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "c04-fact-form-removal-diagnosis",
+        "skeleton_id": "c04-skel-拆模五错诊断",
+        "probe_role": "anchor",
+        "source_anchor": "ca:1A413030_099_0186",
+        "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "b9a4d97fb1c7bc001551fd130f03c92a94328e49894ae54e59ea9853c832ef35",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:01:22+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。"
         },
-        "note": "拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "侧底混淆·条件维",
+      "variant_id": "C04-html-practice-html-q17-c25503c0f053",
+      "surface_id": "practice.html",
       "stem": "某墙体采用大模板施工，常温下混凝土强度已达 1.2N/mm²，现场却要求等强度达设计值 75% 后才拆墙模。判断该要求并改正。",
-      "model_answer": "要求不当。墙体大模板属不承重侧模，常温达 1N/mm² 即可拆除；75% 百分率表适用于承重底模及支架，套用到侧模属判据混淆。",
       "options": [
         {
           "text": "不当。墙体大模板属不承重侧模，常温达 1N/mm² 即可拆；75% 是底模的档位，不适用于侧模。",
@@ -1333,36 +1260,42 @@
           "option_id": "C04-html-practice-html-q17-c25503c0f053:option-4"
         }
       ],
-      "variant_id": "C04-html-practice-html-q17-c25503c0f053",
-      "surface_id": "practice.html",
-      "source_index": 16,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q17",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "要求不当。墙体大模板属不承重侧模，常温达 1N/mm² 即可拆除；75% 百分率表适用于承重底模及支架，套用到侧模属判据混淆。",
+      "rule_group": "侧底混淆·条件维",
       "content_sha256": "e685eedcc5e1bca77c8d1d9a65613285f57f39711e1fde431207725c5163d9f1",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "e685eedcc5e1bca77c8d1d9a65613285f57f39711e1fde431207725c5163d9f1",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q17",
+      "authoring_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e685eedcc5e1bca77c8d1d9a65613285f57f39711e1fde431207725c5163d9f1",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
   ],
-  "published_lesson_sha256": "95d6c6f7464d19271255610b379a791f150a666871ac599f45c4a6f810b63e32"
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (c04.codex.out, 报 3 FATAL: q2/q16 surface + q17). 主控逐条核 _C04_compiled_source.json: (1) q2 拆模强度百分率与教材表3.4-1逐值一致(板≤2m50%/>2m~8m75%/>8m100%;梁拱壳≤8m75%/>8m100%;悬臂100%),Codex 的 '2m边界双归属' 系 '2~8m' 简记的措辞欠精=工单,非数值错;(2) q16 复合诊断的'拆模顺序对句'与'技术负责人批准'两事实教材均有原文('后支先拆先支后拆'/'技术负责人方能批准拆模'),Codex 说无锚系 prefill 召回缺口=复合多源工单,非血统断;(3) q17 非 surface anchor,不入签发集。结论:无 FATAL,答案全部教材正确,按先例 approved+工单。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }
