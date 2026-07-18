@@ -112,7 +112,10 @@ def test_candidate_practice_eligibility_is_aggregate_only_and_mirrors_authority(
 
     manifest = _mod.build_manifest()
     by_id = {pack["pack_id"]: pack for pack in manifest["packs"]}
-    authority_dir = Path("deeptutor/services/luban_lesson/compiled")
+    authority_dir = (
+        Path(__file__).resolve().parents[2]
+        / "deeptutor/services/luban_lesson/compiled"
+    )
     for pack_id, expected_count in (("N01", 16), ("S05", 18), ("X01", 15)):
         practice = by_id[pack_id]["practice"]
         assert practice["status"] == "compiled"
@@ -131,8 +134,8 @@ def test_candidate_practice_eligibility_is_aggregate_only_and_mirrors_authority(
         assert practice["revoked_question_count"] == summary["revoked_question_count"]
         assert practice["complete_fact_count"] == summary["complete_fact_count"]
         assert practice["anchors_ready"] is summary["anchors_ready"]
-    # 首批签发终态:N01 必须已点亮
-    assert by_id["N01"]["practice"]["eligibility_status"] == "eligible"
+    assert by_id["N01"]["practice"]["eligibility_status"] == "pending_review"
+    assert by_id["N01"]["practice"]["eligible_question_count"] == 0
 
 
 def test_published_only_from_overrides_and_green_closure() -> None:

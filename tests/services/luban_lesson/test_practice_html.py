@@ -369,19 +369,18 @@ def test_every_compiled_surface_fails_closed_unless_supply_ready() -> None:
                     )
 
 
-def test_n01_first_batch_signed_supply_ready_and_serves_eligible_only() -> None:
-    """首批签发终态钉死:N01 七题签发、fact 三件套齐、投影只出签发集合。"""
+def test_n01_machine_delegated_batch_is_not_supply_ready() -> None:
+    """未获直接 owner 签名的 N01 必须回到 fail-closed pending。"""
     canonical = load_compiled_practice("N01")
     assert canonical is not None
     summary = compiled_practice_eligibility_summary(canonical)
-    assert summary["supply_ready"] is True
-    assert summary["eligible_question_count"] == 7
-    assert summary["complete_fact_ids"] == ["n01-fact-critical-work-zero-float"]
-    eligible_ids = {
-        item["variant_id"] for item in canonical["items"] if item["eligible"] is True
-    }
-    rows = project_compiled_practice("N01", selection_key="qa_eval_signed:2026196:forward")
-    assert rows and {row["variant_id"] for row in rows} <= eligible_ids
+    assert summary["supply_ready"] is False
+    assert summary["eligible_question_count"] == 0
+    assert summary["complete_fact_ids"] == []
+    with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):
+        project_compiled_practice(
+            "N01", selection_key="qa_eval_pending:2026199:forward"
+        )
 
 
 def test_public_projection_contains_only_compiled_questions_and_server_bridge() -> None:

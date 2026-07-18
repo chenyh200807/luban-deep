@@ -834,11 +834,10 @@ def test_retest_receipt_outside_compiled_forward_fails_closed(monkeypatch):
         )
 
 
-def test_signed_first_batch_pack_advertises_retest_supply() -> None:
-    """N01 首批签发后,读模型必须点亮同一签发供给(不回退 signed bank)。"""
+def test_n01_without_direct_owner_signatures_hides_retest_supply() -> None:
+    """N01 撤销机器代签后,读模型必须 fail-close 且不回退 signed bank。"""
     rows = {row["pack_id"]: row for row in list_green_lessons()}
-    assert rows["N01"]["retest_available"] is True
+    assert rows["N01"]["retest_available"] is False
     vm = build_lesson_viewmodel("N01")
-    assert vm["practice_surface"]["available"] is True
-    assert vm["variant_retest"]["available"] is True
-    assert vm["variant_retest"]["bank_status"] == "compiled_v3"
+    assert vm["practice_surface"]["available"] is False
+    assert vm["variant_retest"]["available"] is False
