@@ -83,6 +83,7 @@ Page({
   },
 
   onLoad: function (options) {
+    this.setData({ isDark: helpers.isDarkOr("light") });
     try {
       var info = helpers.getWindowInfo();
       var sb = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;

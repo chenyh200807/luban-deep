@@ -368,7 +368,7 @@ Page({
     feedbackTags: [],
     feedbackComment: "",
     feedbackSubmitting: false,
-    isDark: true,
+    isDark: false,
     showInternalStatus: true,
     // 性能分级：控制 WXML 中动效开关
     enableOrbs: _animCfg.enableBreathingOrbs,
@@ -536,7 +536,7 @@ Page({
       contentHeight: contentHeight,
       workspaceShellHeight: workspaceShellHeight,
       hasMessages: !!pendingInitialConversationId,
-      isDark: helpers.isDark(),
+      isDark: helpers.isDarkOr("light"),
       enableReason: false,
       webSearchAvailable: DEFAULT_WEB_SEARCH_AVAILABLE,
       enableWebSearch: DEFAULT_WEB_SEARCH_AVAILABLE && !!savedToolPrefs.enableWebSearch,
@@ -606,7 +606,7 @@ Page({
   onShow: function () {
     surfaceTelemetry.trackModuleView(this, { module: "chat", section: "home" });
     var self = this;
-    var dark = helpers.isDark();
+    var dark = helpers.isDarkOr("light");
     var pendingConversationId =
       typeof runtime.peekPendingConversationId === "function"
         ? runtime.peekPendingConversationId()

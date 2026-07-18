@@ -34,7 +34,7 @@ Page({
     var info =
       typeof wx !== "undefined" && wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     var sbh = info.statusBarHeight || 0;
-    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
+    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: helpers.isDarkOr("light") });
     this._loadLongCangFont();
     if (!this._requireAuth()) return;
     this._load();
@@ -42,7 +42,9 @@ Page({
 
   onShow() {
     surfaceTelemetry.trackModuleView(this, { module: "learning", section: "home" });
-    // 五 tab 壳:学习 index=0;本页第 10 版定稿=宣纸亮,壳跟页面主题
+    // 主题单一权威:tab 常驻页在 onShow 重读(外观切换后返回本 tab 需生效)
+    this.setData({ isDark: helpers.isDarkOr("light") });
+    // 五 tab 壳:学习 index=0;壳跟页面主题
     helpers.syncTabBar(this, 0, {
       isDark: this.data.isDark,
       hidden: !flags.shouldShowWorkspaceShell(),

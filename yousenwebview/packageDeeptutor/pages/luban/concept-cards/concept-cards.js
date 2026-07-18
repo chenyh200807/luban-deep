@@ -7,6 +7,7 @@
 //   绝不写掌握态——掌握语义唯一权威仍是判分链路 + revalidation_queue；
 // - 未签发/旗标关 = 后端 404/空投影，本页走诚实空态深链回复习页。
 var api = require("../../../utils/api");
+var helpers = require("../../../utils/helpers");
 var auth = require("../../../utils/auth");
 var route = require("../../../utils/route");
 var runtime = require("../../../utils/runtime");
@@ -40,7 +41,7 @@ Page({
         ? wx.getSystemInfoSync()
         : {};
     var sbh = info.statusBarHeight || 0;
-    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: false });
+    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: helpers.isDarkOr("light") });
     if (!auth.isLoggedIn()) {
       runtime.redirectToLogin(route.lubanConceptCards());
       return;

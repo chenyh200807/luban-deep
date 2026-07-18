@@ -2,6 +2,7 @@
 // 40 个考点是进度/练习/掌握的唯一归属；这里仅把已发布 lesson*.html 投影成可点视频集。
 // 不写学习证据，不缓存或自造 episode 名单；后端缺页时 fail-closed，前端宁可少展示。
 const api = require("../../../utils/api");
+const helpers = require("../../../utils/helpers");
 const auth = require("../../../utils/auth");
 const route = require("../../../utils/route");
 const runtime = require("../../../utils/runtime");
@@ -129,7 +130,7 @@ Page({
   onLoad: function () {
     const info = typeof wx !== "undefined" && wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     const statusBarHeight = info.statusBarHeight || 0;
-    this.setData({ statusBarHeight: statusBarHeight, navHeight: statusBarHeight + 48, isDark: false });
+    this.setData({ statusBarHeight: statusBarHeight, navHeight: statusBarHeight + 48, isDark: helpers.isDarkOr("light") });
     if (!this._requireAuth()) return;
     this._load();
   },

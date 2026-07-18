@@ -148,7 +148,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 96,
-    isDark: true,
+    isDark: false,
     packId: "",
     practiceSurface: "",
     mode: "review",
@@ -228,7 +228,7 @@ Page({
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: statusBarHeight + 48,
-      isDark: helpers.isDark(),
+      isDark: helpers.isDarkOr("light"),
       packId: packId,
       practiceSurface: practiceSurface,
       mode: mode,

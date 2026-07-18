@@ -5,7 +5,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 0,
-    isDark: true,
+    isDark: false,
     updatedAt: "2026-06-15",
     sections: [
       {
@@ -93,12 +93,12 @@ Page({
     this.setData({
       statusBarHeight: info.statusBarHeight,
       navHeight: info.statusBarHeight + 44,
-      isDark: helpers.isDark(),
+      isDark: helpers.isDarkOr("light"),
     });
   },
 
   onShow: function () {
-    this.setData({ isDark: helpers.isDark() });
+    this.setData({ isDark: helpers.isDarkOr("light") });
   },
 
   goBack: function () {

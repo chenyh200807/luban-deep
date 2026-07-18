@@ -42,7 +42,7 @@ Page({
     this.setData({
       statusBarHeight: sbh,
       navHeight: sbh + 48,
-      isDark: helpers.isDark(),
+      isDark: helpers.isDarkOr("light"),
     });
     if (!auth.isLoggedIn()) {
       runtime.redirectToLogin(route.lubanErrorbank());

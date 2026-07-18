@@ -1,4 +1,4 @@
-<view class="fr-page paper light pk-paper-bg">
+<view class="fr-page paper {{isDark?'':'light'}} pk-paper-bg">
   <!-- 微信安全区下的产品顶栏：答题期隐藏五 Tab，只保留退出/旅程名/题数 -->
   <view class="fr-topbar" style="padding-top: {{statusBarHeight}}px">
     <view class="fr-nav-side fr-nav-action" bindtap="onSkip">稍后</view>

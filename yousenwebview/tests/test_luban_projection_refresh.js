@@ -48,7 +48,7 @@ async function testStationsNormalizesToTeachingPoints() {
   var page = instantiate("packageDeeptutor/pages/luban/stations/stations.js", {
     "../../../utils/api": api,
     "../../../utils/auth": { isLoggedIn: function () { return true; } },
-    "../../../utils/helpers": { isDark: function () { return false; } },
+    "../../../utils/helpers": { isDarkOr: function () { return false; }, isDark: function () { return false; } },
     "../../../utils/route": {
       lubanStations: function () { return "/teaching-points"; },
       lubanTeachingPoints: function () { return "/teaching-points"; },
@@ -81,7 +81,7 @@ async function testReviewRefresh() {
     "../../../utils/api": api,
     "../../../utils/auth": { isLoggedIn: function () { return true; } },
     "../../../utils/flags": { shouldShowWorkspaceShell: function () { return true; } },
-    "../../../utils/helpers": { syncTabBar: function () {} },
+    "../../../utils/helpers": { isDarkOr: function () { return false; }, syncTabBar: function () {} },
     "../../../utils/route": { lubanReview: function () { return "/review"; } },
     "../../../utils/runtime": { redirectToLogin: function () {} },
     "../../../utils/mistake-book-view-model": {

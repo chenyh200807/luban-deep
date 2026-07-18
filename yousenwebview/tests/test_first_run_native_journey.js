@@ -80,7 +80,7 @@ function loadPage(options) {
         return { resolve: function (value) { return "/packageDeeptutor/" + value; } };
       }
       if (request === "../../utils/helpers") {
-        return { getWindowInfo: function () { return { statusBarHeight: 44 }; } };
+        return { isDarkOr: function () { return false; }, getWindowInfo: function () { return { statusBarHeight: 44 }; } };
       }
       if (request === "../../utils/first-run-entry") return entryMock;
       if (request === "../../utils/surface-telemetry") {

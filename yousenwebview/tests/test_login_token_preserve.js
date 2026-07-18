@@ -65,6 +65,9 @@ function loadPage(relativePath, overrides) {
     isDark: function () {
       return true;
     },
+    isDarkOr: function () {
+      return false;
+    },
   };
   var routeMock = {
     chat: function () {

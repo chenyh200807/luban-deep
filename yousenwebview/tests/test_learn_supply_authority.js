@@ -66,7 +66,7 @@ function loadLearn(options) {
           getState: function () { return { state: "hidden", checkpoint: null, pending: null }; },
         };
       }
-      if (request === "../../utils/helpers") return { syncTabBar: function () {} };
+      if (request === "../../utils/helpers") return { isDarkOr: function () { return false; }, isDark: function () { return false; }, vibrate: function () {}, syncTabBar: function () {} };
       if (request === "../../utils/flags") return { shouldShowWorkspaceShell: function () { return true; } };
       if (request === "../../utils/route") {
         return {

@@ -103,7 +103,7 @@ function loadPage(options) {
           },
         };
       }
-      if (request === "../../../utils/helpers") return { isDark: function () { return false; } };
+      if (request === "../../../utils/helpers") return { isDarkOr: function () { return false; }, isDark: function () { return false; }, vibrate: function () {}, isDark: function () { return false; } };
       if (request === "../../../utils/auth") {
         return {
           getUserId: function () { return "student-a"; },
