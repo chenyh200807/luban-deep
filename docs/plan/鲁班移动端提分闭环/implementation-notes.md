@@ -9,6 +9,101 @@
 
 ## Deviations
 
+### 2026-07-18（问鲁班对话面 10d 精修 · 渲染断链接线 PR#519）
+- **[owner 指令]** 系统性优化问鲁班对话 UI/UX 含渲染模块,参考 10d,细节自裁。先派 agent 测绘 chat 三层叠罗汉结构(基座=几何/paper=配色,10d repave 契约测试在案)。
+- **[渲染模块两处真断链(数据侧早就绪,渲染层没接)]** ①列表项 rich nodes:markdown.js 616 早产出 li.nodes(加粗已解析),wxml 只画 li.raw → 用户看裸 `**` 星号,接线 rich-text+raw 保底;②callout 空体空框:小节标签(结论/易错点)content 空时仍渲染带边大卡、正文漏框外 → bare/has-body 分型,空体=裸章胶囊,有体=竹青/赭左轨软卡。活体 page.data() 死证驱动(contentLen=0/hasNodes=true)。
+- **[10d 版式]** 处理摘要完成态→一行思考细条(副行/核对计数移入展开态);引用块→金句卡(宣纸点阵舞台);发送钮→圆形墨钮↑(停止=朱红圆钮);callout 胶囊化。
+- **[编译缓存坑第三次复发]** 改后截图三轮"数据对渲染旧"(裸**依旧/▶依旧),清 WeappCache(77M)+重启 DevTools 后全部生效——**改 wxml/wxss 后截图验收若与数据矛盾,先清缓存再怀疑代码**。
+- **[验证]** 110 全绿;历史会话回放+真实发送流式全程(QA 打 test2)截图:加粗零裸星/裸章/圆钮/流式光标/停止钮朱红圆全对。
+
+### 2026-07-18（tab 壳明暗与页面统一 + 主题默认暗残根拔除 PR#513）
+- **[owner 报障]** history 亮页配黑 tab 壳。根因=主题统一战役(PR#507)漏了壳:custom-tab-bar 自解析 `getTheme()`(默认暗),而 chat/history 的 syncTabBar 载荷没带 isDark(learn/report/profile 带了)——冷启这两 tab 壳落到自解析默认暗。
+- **[举一反三拔残根]** 全包 grep "默认暗"解析:壳自解析→getThemeOr('light');chat/history 载荷补 isDark;helpers.getTheme()/host-runtime.getTheme() 默认 dark→light(零调用者陷阱函数,防回潮,注释载明禁改回)。顺手清 history 残蓝(入口提示条蓝底蓝字/tag-blue 亮层)。两契约测试断言对齐。110/110 PASS;清空主题冷启 history 活体截图=页面与壳同宣纸亮。
+- **[教训]** 主题类战役的收口清单必须含:页面 js 解析 + **组件自解析** + **sync 载荷完整性** + utils 兜底默认值——四处任一漏都=明暗打架。
+
+### 2026-07-18（答题卡亮态隐形治本 + paper 覆盖审计工具化 PR#511）
+- **[owner 报障+举一反三指令]** 摸底测试答题卡未答题号亮态隐形(白字白底)——系统病第 N 例:基层暗色字面量只被 paper 层盖住部分状态。治法升级为**工具化审计**:脚本解析每页 wxss,基层含浅色字/白系玻璃底的选择器逐一核对 .paper/.light 覆盖(scratchpad/audit-paper-coverage.js)。
+- **[清扫结果]** assessment 27 缺口(答题卡+深报告 dr-* 全系)/chat 15/history 4/practice 1 全补;retest/gauntlet/station/errorbank **零缺口**——纸墨原生单层页免疫,反证叶子页整文件重写路线正确。assessment 基层蓝紫渐变/选中态/主按钮一并换 token 断根。
+- **[审计工具双盲区(方法论教训)]** ①覆盖存在性≠色板合规:recommend-reason 的 .light 覆盖存在但值=旧蓝 #2563eb,查覆盖不查值会放过;②白字配实色底(seethrough 对错徽章)是合法搭配,纯正则会误报——工具产出必须人眼复核。first-run 51 条标记为待视觉复核(07-12 人眼验过亮态,疑选择器尾链匹配误差)。
+- **[验证]** 110 测试全绿(history 契约 conv-action-btn 断言由字面量对齐 token);答题卡亮/暗双态活体截图(QA 账号真实开卷),12 题号全可见。
+
+### 2026-07-18（设计文件夹=样式+逻辑双权威 · 导学收编+逻辑对照审计）
+- **[owner 指令]** "全按《微信小程序前端设计》的样式和逻辑"。样式面收尾:导学电影流(此前 cinematic 例外)收进纸墨——文件夹无导学屏,适用「缺失屏同风格补」;「黎明将至」世界观翻译而非推翻(夜宣纸起幕/朱红+赭金太阳弧/天际光竹青夜→赭金→朱红→宣纸亮逐幕升温),keyframes/时序零改动(PR#510)。至此全包无深蓝残留。
+- **[逻辑对照审计]** 派 agent 拿评审要点 9 条规则逐条对照实现(静态+行号证据)。达标:learn 首屏契约/三种历史归属/四禁词零命中/风险档位词/朱红四处纪律(两处 borderline:chat 停止钮红底、learn 舞台角标,可接受)。
+- **[当场治本]** 规则8违例:mastery 降级路径前端用章节均值自算总体掌握%+组均分——铁律"前端不算分"。修=降级 overall=null/'—' 诚实展示,主路径不变(931f3980e,随下个 PR)。
+- **[待 owner 裁决的缺口]** ①规则3 chat 答完三件套只落 1/3:「加入今日任务」后端无投影、「拍照批改」**owner 已另行拍板后置**(代码注释在案)——文件夹"必附"是否降级请确认;②规则4 错题本缺「按采分点」组织轴(现有错因/母题/待复习三轴);③规则7 mistake-book「标记掌握」一键直标 mastered,与 D17「我会了=触发换皮挑战非直标」相左——改深链复测涉及复习闭环行为,需拍板;④chat「我会了→换皮挑战」等后端投影。
+
+### 2026-07-18（明暗主题单一权威 · 亮全亮/暗全暗 PR#507）
+- **[owner 反馈]** "亮色模式下有的页暗、暗色模式下有的页亮,混乱"——盘点确认主题权威碎片化三类:13 页跟随 `isDark()`(未选默认**暗**:chat/billing/history/practice/assessment/feedback/legal/mistake-book/register/luban 四页)、3 页跟随 `isDarkOr("light")`(默认亮:report/profile/attempt-detail)、12 页**写死**亮色(learn/luban 五页 js 写死 false;登录四页/first-run/seethrough root 写死 paper light——外观选暗也纹丝不动)。
+- **[收权]** 全包统一 `helpers.isDarkOr("light")`:未选=全亮/选暗=全暗/选亮=全亮。C 组夜宣纸暗版 wxss 本就在(历次注释"仍在"属实);learn 为 tab 常驻页补 onShow 重读;auth 四页补 `.paper:not(.light)` 暗态收口+login.js 天光内联双调色板;mistake-book 亮层旧蓝残留(蓝 kicker/蓝重试钮/冷蓝底)全量换 token——该页此前默认暗,亮层从未被人眼验过,正是"默认翻亮须逐页核 .light 完备性"预言(07-12 待办)的实证。
+- **[测试]** 25 个测试沙箱 helpers stub 补 isDarkOr(07-12 同坑重演,mock 形状五花八门逐一补);light-theme 契约两断言对齐新语义+danger 色对齐 --pk-warn(赭红警示纪律)。110/110 PASS(合 main 后复跑)。
+- **[活体验收]** automator 明暗矩阵 11 张人眼核对:learn 夜宣纸驾驶舱/teaching-points 课程架三色海报/review/concept-cards/chat 双态全对;动画卡宣纸舞台按设计保持原色不随主题变;中途 QA token 失效被截图暴露(learn 截成 login 页),重注入后复拍——截图落地页路径必须核对,别信"截了就是那页"。
+- **[范围外(有意)]** onboarding 导学电影流保持深夜蓝黑舞台(一次性 cinematic 资产,同动画卡炭黑壳例外);老蓝壳主包(freeCourse 等)不属五模块面。
+
+### 2026-07-18（我的树二三级收尾:登录家族四页纸墨收编 PR#505）
+- **[审查结论]** owner 问"我的二三级还需要优化吗"——billing/feedback/legal/attempt-detail 已在 #503 收编;剩余深蓝残留=login/manual/reset-password/register 四页(旧 Zentra 深蓝营销风)。按 owner 既定惯例「缺失屏按第10轮定稿同风格补,不另起炉灶」收进纸墨。
+- **[改法]** 四页 wxss 重写 --pk-* 单层(root 挂 paper light,登录场景固定宣纸亮不随夜间反转);布局几何/电影感入场编排/视差 orb 全保留。品牌=白 logo 落朱红章+点睛词书法朱红(动画卡同语言)+主按钮墨色。**隐蔽残留**:login.js 视差引擎把蓝系天光渐变硬编码为内联样式压过 wxss——js 换纸墨暖调,几何/呼吸不动(首截图人眼抓到,automation 死证)。
+- **[验证]** 110 node 测试全绿;automator 四页截图人眼核对(含天光修复复截)。register root 原有 isDark 切换改固定 paper light(单主题页)。
+
+### 2026-07-18（"学情又变简单版"虚惊定性 + 游客态承诺兑现 + 全链上 main PR#503）
+- **[虚惊定性]** owner 报"学情又变简单版,是不是没同步"——磁盘/分支/commit 全在,真相=DevTools 重启丢登录态→游客模式把 10e 卡全藏,只剩引导卡;叠加本地后端 8001 未起→快速登录必失败。用 QA 凭据打 test2 注入 token 复原完整版(现成 run_wechat_devtools_page_automation.js 的 env_http 路径)。
+- **[游客态治本]** 直接原因收敛:guest 卡承诺「只展示模块结构」但结构全隐藏——改为游客渲染完整 10e 结构(空态口径不造数),仅行动键留登录门(7d375d37);guest paywall 审计测试口径未动,全绿。
+- **[误诊收回]** 前日报的"登录失败静默"不成立:login.js 全链路有 errorMsg 内联反馈,automation 点不动 open-type 真手势按钮才显得"无反馈";不做盲修,真机若复现再按具体路径治。
+- **[合 main]** owner 指令上 main;origin/main 已被并行会话推进(#501/#502),干净 worktree(~/deeptutor-merge-wt)merge 零冲突,合并后双套件复跑(wechat 110/110 + learner_state 598)全绿;直推被 branch protection 拒,走 merge 分支 PR **#503**(自带最新 main,免 BEHIND 循环),已合并 f2d1c89ab。
+- **[第二次"没同步"虚惊=DevTools 专用 worktree 落后]** owner 的 DevTools 项目根不是主工作区,而是 `~/worktrees/deeptutor-devtools`(branch main)——#503 合并后它没 pull,停在 #502,故模拟器仍是 B5 旧版(紫返回键)。已 ff 到 f2d1c89ab 并 cli open 触发重载。**拓扑教训:合 main ≠ owner 可见;devtools worktree pull 应并入每次 main 落地的收尾清单。**
+
+### 2026-07-17 晚（消费链部署上线 + 活体验证抓真断链治本 · PR #500/#501)
+- **[owner 两指令即时落地]** ①「继续学习改继续练习,主要练教学视频后面的练习题」→ PR #500:learn_next 任务在该站练习池已签发时 ctaLabel=继续练习、直接路由 retest forward(633 池);未签发站诚实回落进站讲解(禁空头按钮),供给真值仍由 `_practiceKindFor` 单点裁决。②「轻练模块不通」根因=owner DevTools 跑的旧前端+服务端旧代码,非接线缺陷(活体已证轻练进 forward 不再 toast)。
+- **[部署 857be72c]** 全量 deploy 两次 SSH 断线(一次杀构建/一次断在 Recreate 致容器停 Created,手动 --no-build 拉起收尾);五层核验齐:host/容器 SHA 一致+容器内 confirm_facts_ready×3+变体资产 19 件在场+healthz/readyz 200+observability 通。`LUBAN_VARIANT_PROBE_ENABLED=true` 已进容器(.env 有备份)。
+- **[活体验证(QA 零学情账号,截图 lc-01~09,live-chain-verify.md)]** 下游逐环健全:forward 5 题 MCQ(compiled 来源)→服务端判分收据→confirm 按钮真门控(全对不亮=诚实负例;答错亮,4/7 交集吻合)→签发变体判断会话(signed_variant 来源,教材溯源)→完成回执。**抓到唯一实链断点**:确认按钮整串 encodeURIComponent 把分隔逗号编成 %2C,接收端 split(",") 拆不开→0 题(同一分钟三形态隔离实验死证)。
+- **[治本 PR #501]** 双侧收口:发送端逐 fact 编码+字面逗号;接收端提取 `parseConfirmFacts` 有界解码(≤4 跳,同 #492 桥接教训),兼容已解码/单次/双重编码;行为级红测试重放死证三形态+禁整串编码断言(vm 沙箱 realm 数组原型坑用串比较)。
+- **[复走终证 PASS]** 真按钮 `.rt-cc-link` 全链活体闭环(2cc9ac969):答错×5→收据→点按钮→`confirmFacts` 拆开 4 元素零 % 残留→signed_variant 5 题→完成→独立 canonical 回执 `terminalEventId=3bf464eb…`;判分序列与 expected_ok 完全一致。同账号同按钮修复前 0 题/修复后 5 题对照在案(live-chain-verify.md「复走终证」节)。注:复走时段模拟器截图子层 wedge,断言以页面栈 dump 为 ground truth;同页面 UI 人眼截图有上午 lc-04/04b/05(#501 不改渲染)。
+- **[待办]** 真机复验(owner 上传后);S05 MCQ fact_id 签发(该站 confirm 才能亮);变体判断会话 feedback 字段 null(temptation/loss_reason 未透出,门道由 correct_statement 承载)=内容形态观察项,归消费增强。
+
+### 2026-07-17（变体消费接线切片 · 轻练当场确认 + D+3/D+7 抽查 · PR #499)
+- **[接线]** 签发变体判断题(S05 68/N01 40 eligible)接入两消费点:①**错后当场确认**——`retest-items?confirm_facts=…`(forward,immediate_confirm 角色,≤5 facts),compiled forward 响应新增 `confirm_facts_ready`,收据错题与之有 fact 交集才亮"错题当场确认"按钮(同页新会话);②**D+3/D+7 抽查**——review 档 `state∈{weak,stable}` 先试 d1_probe 变体,空则退 compiled MCQ 不空窗,`fresh`(D+1 首验)恒走 anchor MCQ。实施顺序 registry T2→服务层三纯函数→writeback kind-aware→router→前端,五步五 commit(d58970b4→6e2a1b3f),每步绿再进。
+- **[单一权威红线]** 供给只经 `resolve_variant_supply`(绿灯闸:projection_green ∩ manifest sha ∩ signed ∩ blocklist),生产 diff 零旁路(主控独立 grep 核);writeback 按 selection token `supply_kind` 分派不重跑路由;`luban_variant_decision.v1` 升 T2(36→37/176→175,full 221 不变)。
+- **[灰度]** `LUBAN_VARIANT_PROBE_ENABLED` 默认关(register-before-use),合入零线上行为变化;开旗标 + QA cohort 活体走完 confirm/D+3 两链才宣称"打通"。
+- **[验证]** 实施 agent 1069 绿;主控独立复跑 1107 绿 + CI 同款 contract guard 过 + `test_variant_probe_consumption.js` PASS + 旁路/kind 分派抽查。偏离 2 条(writeback 测试 autouse pin 保 35 条 legacy 用例走原路径逐字节不变;review 场 practice_source 既有口径不动)记 wiring-progress.md。
+- **[边界(如实)]** S05 全程 fail-closed(compiled MCQ fact_id 全空串,治理字段未签)——S05 MCQ 签发+fact_id 回填归内容侧切片;N01 唯一活体 pilot 且 MCQ∩变体 fact=4/7,非交集错题 confirm 入口诚实不亮;decision 无 fix 字段不造。
+
+### 2026-07-17（UI 真机行走审查终报 · 三任接力 78 图 · 5 SEV 候选)
+- **[方法]** automator 逐页驱动真实 handler + 截图 + page.data() 死证;三任 agent 因 API 中断接力,分段落盘纪律(report-partial.md 先落盘再前进)使接手零损失——owner 同日立"subagent 必须增量落盘"为常设纪律。终报=scratchpad/artifacts/ui-walk-final.md;与静态审查 361 点合并。(注:本条曾被并行窗口写账本时覆盖丢失,已重放——共享账本并发写是真实风险,主控写后必须回读核在。)
+- **[SEV 工单 5 个]** ①chat 停止会话重开丢助手已渲染内容;②智能模式停止后 trace 无终态(90s 无 final);③report 学情依据 0/0/0 与主视图"17 道有效作答"口径矛盾;④**billing 间歇降级态套餐区消失+无重试,购买链路不可达(唯一直接触收入,最高优先级)**;⑤错题回路 knowledge_point 字段泄漏 prompt/会话主题串("用3道题训练水泥"等)——写入侧数据治理病,呈现层原样渲染,信任杀手。
+- **[坐实与亮点]** assessment「看依据」「筛选错因」死按钮活体坐实(md5 相等+delta 0);luban/handoff+seethrough F16 五关全链 PASS(教材溯源/暖纠正/证据入账),内容质量标杆;四禁词用户可见 wxml 0 命中。
+- **[审查盲区(如实)]** web-view 内 H5 交互全盲(automator 限制);SEV④ 无稳定复现条件;QA 账号数据分布≠真实用户,SEV⑤ 真实污染率未知。
+
+### 2026-07-17（学情二三级内容逻辑审计 · owner 问"点进去内容有没有逻辑错误"）
+- **[F1 已修]** 零证据洗白:后端 `_build_long_term_analytics` 把 `recurrent_count==0` 无条件译成 improving——零数据账号同屏出现「反复出现的错因在减少」vs「暂时没有反复出现的错因」vs 风险环待评估三重矛盾(活体 page.data() 死证)。治本=零薄弱点+零复发→空方向,前端既有 fail-closed 兜底文案接住;测试洗白契约改写+新增有据 improving 用例,learner_state 598 passed(16571271b)。
+- **[F2 待 owner 裁]** 双掌握权威同屏:10e 主面掌握地图=pack_lifecycle(41 站,QA 富态下 0 点亮),map 详情视图四态统计+总体掌握 40%=mastery dashboard/radar——**两套 universe 共用同一套「稳了/再看一眼/待复验/未学」词汇**,用户必读成矛盾(0/41 vs 40%)。候选修法:详情四态改投影 pack_lifecycle,或换词汇+标注口径。属产品级收权决策。
+- **[F3 旧案再证]** 富态下 primaryFocus/headline=「重点关注 第1次练习」——ui-walk SEV⑤ knowledge_point 写入侧污染在学情头条再现,呈现层原样渲染,等写入侧治理。
+- **[F4 非 bug]** 41 站全未点亮与 34 次练习并存=诚实呈现(对话/练习面不推进站点旅程 lifecycle);但空态文案「完成一次学习或作答后点亮」对此类用户有误导嫌疑(他们确实作答了),文案微调候选。
+- **[环境噪声(如实)]** 本地后端间歇降级致页面在「缓存富态↔实时降级态」间翻转(degradedHint 如实提示);数据丰富态截图=缓存快照,降级态多源 0 值与主面空态口径一致,未见新矛盾。
+
+### 2026-07-17（学情主面恢复 10e 诊断单 · owner 拍板推翻 B5 三件事精简）
+- **[owner 反馈]** "学情怎么变得这么简单了，我还是要原来第十版 10e 的样式和内容；前几天还是这个版本"——考古确认:10e 诊断单主面 a8ce2979 实现、61aaf9a2 迭代文案，`d2e62d46`(five-tab collapse) 将其替换为 B5 三件事投影并删除 absorbDiagnosisIntoPlan。**数据管道从未拆**（riskGear/diagnosisHeadline/trendNarrative/masteryMap 一直由 toReportPageData/_hydrateFromUnifiedReport 填充），B5 只换了投影层——恢复 = wxml 首页块还原 d2e62d46^ 终版 + 补回一个 handler（c3b2547a，同分支）。
+- **[测试对齐]** test_report_layout 整文件还原 B5 前 10e 契约版（116 断言）；test_report_home_core_contract 保留 view-model 单元段、结构段从"锁 B5+反 10e"改锁 10e 骨架；test_interaction_hints 还原 10e 提示语断言。110/110 PASS。
+- **[功能打通活体验证]** （owner 叮嘱"各个功能得打通，注意盲区"）automator 真实 tap 六条链路全通：唯一行动键→teaching-points（route.lubanStations 权威已收归此页，非断链）、完整诊断报告→evidence、地图绿格→station（非绿格 toast「即将开通」）、看章节强弱→map、错题本、看变化记录→progress。
+- **[已知盲区(如实)]** QA 账号无学习数据：风险环=待评估、41 格全未学、错因结构空——数据丰富态（四态混合地图/折叠诊断单展开/趋势有向叙述）未在真实用户数据下过目；暗色截图 tab 壳未同步是 setData 绕过 helpers.setTheme 的测试手法产物，非产品 bug（07-12 已验证正常链路）。
+- **[遗留问题]** B5 的 reportHome/buildReportHomeViewModel/goReportHomeTask 在 js 仍被构建但不再被 wxml 消费——是否拆除待 owner 定（若 B5 永久废弃应删投影，避免第二套主面 authority 潜伏回流）。
+
+### 2026-07-17（学情/我的二三级页纸墨收权 · owner 指令"按设计稿优化二三级 UI/UX"）
+- **[病根与治法]** billing/feedback/legal/attempt-detail 四叶子页 wxss 均为三层配色叠罗汉（旧深蓝基 + `.light` 蓝覆盖 + `.paper` 薄补丁），补丁没盖住的选择器就漏旧蓝（蓝选中卡/青蓝渐变环/靛蓝返回键/纯蓝小节标题/亮红账本数字）。按单一权威原则**整文件重写为纸墨单层**（wxml 类名不动，palette 唯一来源 `--pk-*`），report 页因收口层已较完备改走基层字面量原位换 token。分支 `feat/luban-report-profile-paper-ink-ui`（5c2e754c，已 push 未 PR，按"过程只 commit+push"惯例）。
+- **[内容级修正（超出纯样式，保守小步）]** ①profile/billing「使用记录/按使用记录」伪行删除（两分支推同一条零信息行+恒 100% 假进度条）；②profile 摘要卡不再复读「剩余 N%」（明细在抽屉）；③report 降级提示 `note_assets` 补映射「学习卡片」（不再漏内部字段名）；④训练闭环徽标改 `title` 兜底，不再裸展 `action_type` 枚举（`diagnostic_probe` 曾直接可见）；⑤report 空态 emoji（📡/⚠️）改书法印章（线性图标纪律）。
+- **[测试契约随行更新]** `test_package_feedback_page_contract` 原断言锁死旧深色玻璃字面量（#f8fafc/#cbd5e1）——设计权威已是第10轮纸墨定稿，断言改锁 paper-ink token + 禁旧色字面量（意图"标题可读/调色自洽"不变、不弱化）。全套 node 测试 110/110 PASS。
+- **[有意保留]** 掌握地图"蓝环第五态"（#4a7aab，注释载明从对象蓝降饱和派生）不动；套餐营销徽标赭黄 #c99f3d 两处字面量（paper-ink 无 gold token）注释载明。
+- **[验证与盲区]** automator 六页 + report 四个二级视图（setData 强切）before/after 截图人眼核对；盲区=登录态数据丰富视图（掌握分布展开/作答证据卡列表）未在真数据下过目，QA 空态为主。
+- **[方法]** automator 逐页驱动真实 handler + 截图 + page.data() 死证;三任 agent 因 API 中断接力,分段落盘纪律(report-partial.md 先落盘再前进)使接手零损失——owner 同日立"subagent 必须增量落盘"为常设纪律。终报=scratchpad/artifacts/ui-walk-final.md;与静态审查 361 点合并。
+- **[SEV 工单 5 个]** ①chat 停止会话重开丢助手已渲染内容;②智能模式停止后 trace 无终态(90s 无 final);③report 学情依据 0/0/0 与主视图"17 道有效作答"口径矛盾;④**billing 间歇降级态套餐区消失+无重试,购买链路不可达(唯一直接触收入,最高优先级)**;⑤错题回路 knowledge_point 字段泄漏 prompt/会话主题串("用3道题训练水泥"等)——写入侧数据治理病,呈现层原样渲染,信任杀手。
+- **[坐实与亮点]** assessment「看依据」「筛选错因」死按钮活体坐实(md5 相等+delta 0);luban/handoff+seethrough F16 五关全链 PASS(教材溯源/暖纠正/证据入账),内容质量标杆;四禁词用户可见 wxml 0 命中。
+- **[审查盲区(如实)]** web-view 内 H5 交互全盲(automator 限制);SEV④ 无稳定复现条件;QA 账号数据分布≠真实用户,SEV⑤ 真实污染率未知。
+
+### 2026-07-17（变体弹药首批真实签发 · S05 74 + N01 40 · owner 委托裁决落地)
+- **[签发执行]** owner 拍板委托("不用我拍板,你直接拍板")后由主控本体亲手执行(非 agent 代跑):`scripts/bake_variant_decisions.py S05 N01 --spec`,reviewer_id=`owner-delegated:claude-main-control:2026-07-17`,S05 74 条 + N01 40 条决策块烤入 `_{PACK}_variant_bank.v0.json`(identity 三链核对/整包 abort/幂等复跑 UNCHANGED 已验)。签发前提=四轮 Codex 异源对抗收敛(74+40 全 PASS,含 loss_reason 纪律头、S05 50kW 事实排除、N01 F 序补虚过度断言排除)。
+- **[活体资格]** `eligible_variant_items` 实测:S05 68 条(74 签 − 6 extension 按设计不服务)/ N01 40 条;摘要门 fact-ready。分支 luban/variant-eligibility,PR #498。
+- **[CI 连带两修]** ①schema 闭包 176≠175:先自证不变量(orphans=0/is_closed=True)再对齐声明(+`luban_variant_decision_bake_spec.v1`,175→176/220→221),playbook 顺序不倒;②`test_variant_audit_packet_writes_pending_decision_cards` 原断言"决策全 pending/eligible=0"已被合法签发推翻——守卫升级为**签名链断言**(74 signed 全部 owner-delegated reviewer + 64hex 签名信封 + checks 全真;1 条排除项保持零签名),守卫精神"机器绝不自铸签名"不降级。
+- **[边界]** 本 PR 只落供给侧(签发+资格框架),不改线上行为;消费接线(轻练错后当场确认 + D+3 抽查吃 signed_variant)为下一切片,届时 `luban_variant_decision.v1` 升 T2。
+
 ### 2026-07-17 凌晨(QA 双缺陷修复上线 + 部署资产守卫)
 - **[QA 双缺陷全闭合并部署]** ①桥接编码不对称(PR #492):`parseBridgeReceipt` 加有界解码兜底(直 parse→逐层 decode≤4 跳,双编码安全),DevTools 与真机 JSSDK 双路径均可用,1.7.19 已传;②首跑空处方遮蔽任务卡(PR #493):仲裁端"practice intent 无可路由 target 不得胜出"(fail-closed 落下一臂+skipped_intents 可审计诊断)+ 处方端候选序列(q1: F16→N01,q4: X03→N01,supply-ready 过滤无字面特权),630 测试绿+真盘 e2e;契约同步 learner-state.md。两修复随 main 部署(容器 ba832122→e80a0216)。
 - **[镜像资产守卫]** 生产容器缺 `_variant_blocklist.json`(dockerignore 反选漏),撤题权威 fail-closed 挡完整作答面;排查顺手抓出同类第二漏(看穿 bank)。PR #494:补两条反选 + 守卫测试钉死"runtime 必需文件必须入镜像/build-time 审核件必须排除"边界;rebuild 部署后容器内文件确认在场(e80a0216)。
