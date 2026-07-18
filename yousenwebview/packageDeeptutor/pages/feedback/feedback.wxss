@@ -1,25 +1,24 @@
 @import "/packageDeeptutor/styles/paper-ink.wxss";
 
-/* pages/feedback/feedback.wxss — 结构化意见反馈 */
+/* pages/feedback/feedback.wxss — 结构化意见反馈（纸墨朱竹单层：
+ * palette 全走 --pk-* token，亮/暗由 paper-ink 切换，不再自带第二套配色） */
 
 .feedback-page {
   height: 100vh;
-  color: #f8fafc;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(34, 211, 238, 0.12), transparent 34%),
-    radial-gradient(circle at 90% 18%, rgba(99, 102, 241, 0.14), transparent 28%),
-    #0b1220;
+  color: var(--pk-t1);
   overflow: hidden;
+  font-family: -apple-system, "PingFang SC", sans-serif;
 }
 
+/* ── 导航 ───────────────────────────────────────────────── */
 .nav-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 50;
-  background: rgba(10, 10, 10, 0.9);
-  border-bottom: 1rpx solid rgba(148, 163, 184, 0.16);
+  background: var(--pk-paper);
+  border-bottom: 1rpx solid var(--pk-bd);
 }
 
 .nav-content {
@@ -39,10 +38,29 @@
   border-radius: 8rpx;
 }
 
-.nav-back:active { background: rgba(255,255,255,0.08); }
-.nav-back-arrow { font-size: 40rpx; color: #818cf8; font-weight: 300; line-height: 1; margin-top: -4rpx; }
-.nav-back-txt { font-size: 28rpx; color: #818cf8; font-weight: 500; }
-.nav-title { flex: 1; font-size: 34rpx; font-weight: 700; color: #f8fafc; }
+.nav-back:active {
+  opacity: 0.72;
+}
+
+.nav-back-arrow {
+  font-size: 40rpx;
+  line-height: 1;
+  margin-top: -4rpx;
+  color: var(--pk-grn);
+}
+
+.nav-back-txt {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--pk-grn);
+}
+
+.nav-title {
+  flex: 1;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+}
 
 .page-scroll {
   position: fixed;
@@ -58,42 +76,41 @@
   gap: 22rpx;
 }
 
+/* ── 卡片（沿用 legacy 类名，材质=pk-card） ─────────────── */
 .glass-card {
-  background: linear-gradient(180deg, rgba(18, 28, 47, 0.96), rgba(10, 18, 33, 0.92));
-  border: 1rpx solid rgba(148, 163, 184, 0.24);
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
   border-radius: 28rpx;
-  box-shadow: 0 24rpx 60rpx rgba(0, 0, 0, 0.34);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
 }
 
 .feedback-hero {
   padding: 32rpx;
-  background:
-    radial-gradient(circle at top right, rgba(125, 211, 252, 0.28), transparent 44%),
-    linear-gradient(145deg, rgba(20, 184, 166, 0.22), rgba(30, 41, 59, 0.78));
 }
 
 .hero-kicker {
   display: block;
-  color: #7dd3fc;
+  margin-bottom: 10rpx;
   font-size: 24rpx;
   font-weight: 700;
-  margin-bottom: 10rpx;
+  letter-spacing: 2rpx;
+  color: var(--pk-grn);
 }
 
 .hero-title {
   display: block;
-  color: #f8fafc;
-  font-size: 42rpx;
+  font-size: 40rpx;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.2;
+  color: var(--pk-t1);
 }
 
 .hero-sub {
   display: block;
   margin-top: 12rpx;
-  color: #dbeafe;
   font-size: 24rpx;
-  line-height: 1.55;
+  line-height: 1.6;
+  color: var(--pk-t2);
 }
 
 .hero-pills {
@@ -104,13 +121,13 @@
 }
 
 .hero-pill {
-  padding: 8rpx 14rpx;
+  padding: 8rpx 16rpx;
   border-radius: 999rpx;
-  color: #dbeafe;
-  background: rgba(15, 23, 42, 0.38);
-  border: 1rpx solid rgba(125, 211, 252, 0.18);
-  font-size: 21rpx;
+  border: 1rpx solid var(--pk-accent-border);
+  background: var(--pk-accent-soft);
+  font-size: 22rpx;
   font-weight: 700;
+  color: var(--pk-grn);
 }
 
 .locate-strip {
@@ -119,33 +136,33 @@
   align-items: center;
   justify-content: space-between;
   gap: 18rpx;
-  border-color: rgba(45, 212, 191, 0.22);
 }
 
 .locate-kicker {
   display: block;
-  color: #67e8f9;
-  font-size: 21rpx;
-  font-weight: 760;
+  font-size: 22rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  color: var(--pk-t3);
 }
 
 .locate-title {
   display: block;
   margin-top: 4rpx;
-  color: #f8fafc;
   font-size: 30rpx;
-  font-weight: 820;
+  font-weight: 800;
+  color: var(--pk-t1);
 }
 
 .locate-count {
   flex-shrink: 0;
-  padding: 10rpx 16rpx;
+  padding: 10rpx 18rpx;
   border-radius: 999rpx;
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.14);
-  border: 1rpx solid rgba(52, 211, 153, 0.2);
+  border: 1rpx solid var(--pk-accent-border);
+  background: var(--pk-accent-soft);
   font-size: 22rpx;
-  font-weight: 750;
+  font-weight: 800;
+  color: var(--pk-grn);
 }
 
 .section-head {
@@ -157,16 +174,17 @@
 }
 
 .section-title {
-  color: #f8fafc;
   font-size: 30rpx;
-  font-weight: 760;
+  font-weight: 800;
+  color: var(--pk-t1);
 }
 
 .section-hint {
-  color: #cbd5e1;
   font-size: 22rpx;
+  color: var(--pk-t3);
 }
 
+/* ── 模块九宫格 ─────────────────────────────────────────── */
 .type-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -176,11 +194,10 @@
 .type-card {
   min-height: 164rpx;
   padding: 22rpx;
-  border: 1rpx solid rgba(148, 163, 184, 0.18);
+  border: 1rpx solid var(--pk-bd);
   border-radius: 24rpx;
-  background:
-    radial-gradient(circle at top right, rgba(148, 163, 184, 0.08), transparent 40%),
-    rgba(9, 17, 31, 0.92);
+  background: var(--pk-card);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
   transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
@@ -189,10 +206,8 @@
 }
 
 .type-card-active {
-  border-color: rgba(45, 212, 191, 0.68);
-  background:
-    radial-gradient(circle at top right, rgba(45, 212, 191, 0.28), transparent 44%),
-    linear-gradient(145deg, rgba(14, 116, 144, 0.32), rgba(15, 23, 42, 0.88));
+  border-color: var(--pk-grn);
+  background: var(--pk-accent-soft);
 }
 
 .type-mark {
@@ -204,27 +219,28 @@
   padding: 0 10rpx;
   margin-bottom: 12rpx;
   border-radius: 12rpx;
-  color: #99f6e4;
-  background: rgba(20, 184, 166, 0.14);
+  background: var(--pk-accent-soft);
   font-size: 20rpx;
   font-weight: 800;
+  color: var(--pk-grn);
 }
 
 .type-title {
   display: block;
-  color: #f8fafc;
   font-size: 28rpx;
-  font-weight: 760;
+  font-weight: 800;
+  color: var(--pk-t1);
 }
 
 .type-desc {
   display: block;
   margin-top: 8rpx;
-  color: #cbd5e1;
   font-size: 22rpx;
   line-height: 1.4;
+  color: var(--pk-t2);
 }
 
+/* ── 现象多选 chip ─────────────────────────────────────── */
 .symptom-row {
   display: flex;
   flex-wrap: wrap;
@@ -235,8 +251,8 @@
   min-height: 66rpx;
   padding: 0 18rpx;
   border-radius: 999rpx;
-  border: 1rpx solid rgba(148, 163, 184, 0.22);
-  background: rgba(15, 23, 42, 0.68);
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
   display: flex;
   align-items: center;
   gap: 10rpx;
@@ -248,41 +264,47 @@
 }
 
 .symptom-chip-active {
-  border-color: rgba(125, 211, 252, 0.72);
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.36), rgba(20, 184, 166, 0.26));
+  border-color: var(--pk-grn);
+  background: var(--pk-accent-soft);
 }
 
 .symptom-dot {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: rgba(148, 163, 184, 0.64);
+  background: var(--pk-gauge);
 }
 
 .symptom-chip-active .symptom-dot {
-  background: #67e8f9;
-  box-shadow: 0 0 18rpx rgba(103, 232, 249, 0.7);
+  background: var(--pk-grn);
 }
 
 .symptom-text {
-  color: #e5eefc;
   font-size: 24rpx;
-  font-weight: 650;
+  font-weight: 700;
+  color: var(--pk-t2);
 }
 
+.symptom-chip-active .symptom-text {
+  color: var(--pk-grn);
+}
+
+/* ── 补充说明 ───────────────────────────────────────────── */
 .feedback-input {
   width: 100%;
   min-height: 196rpx;
   padding: 24rpx;
-  color: #f8fafc;
+  box-sizing: border-box;
   font-size: 26rpx;
   line-height: 1.5;
+  color: var(--pk-t1);
 }
 
 .feedback-placeholder {
-  color: rgba(203, 213, 225, 0.42);
+  color: var(--pk-t3);
 }
 
+/* ── 附件 ───────────────────────────────────────────────── */
 .attachment-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -292,8 +314,8 @@
 .attachment-item {
   aspect-ratio: 1;
   border-radius: 22rpx;
-  border: 1rpx dashed rgba(148, 163, 184, 0.3);
-  background: rgba(255,255,255,0.045);
+  border: 1rpx dashed var(--pk-sand);
+  background: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -303,160 +325,73 @@
 
 .attachment-filled {
   border-style: solid;
-  border-color: rgba(96, 165, 250, 0.32);
-  background: linear-gradient(135deg, rgba(96,165,250,0.24), rgba(15,23,42,0.3));
+  border-color: var(--pk-accent-border);
+  background: var(--pk-accent-soft);
 }
 
 .attachment-plus {
-  color: #7dd3fc;
   font-size: 38rpx;
   font-weight: 300;
   line-height: 1;
+  color: var(--pk-grn);
 }
 
 .attachment-title {
-  color: #f8fafc;
   font-size: 24rpx;
   font-weight: 700;
+  color: var(--pk-t1);
 }
 
 .attachment-sub {
-  color: #cbd5e1;
   font-size: 20rpx;
+  color: var(--pk-t3);
 }
 
+/* ── 自动上下文说明 ─────────────────────────────────────── */
 .context-box {
   padding: 22rpx;
-  border-color: rgba(52, 211, 153, 0.2);
-  background: rgba(52, 211, 153, 0.075);
+  border-color: var(--pk-accent-border);
+  background: var(--pk-accent-soft);
+  box-shadow: none;
 }
 
 .context-title {
   display: block;
-  color: #a7f3d0;
   font-size: 24rpx;
-  font-weight: 740;
+  font-weight: 800;
+  color: var(--pk-grn);
 }
 
 .context-text {
   display: block;
   margin-top: 8rpx;
-  color: rgba(209, 250, 229, 0.82);
   font-size: 22rpx;
-  line-height: 1.45;
+  line-height: 1.5;
+  color: var(--pk-t2);
 }
 
+/* ── 提交（墨色主按钮，夜=纸色反转） ────────────────────── */
 .submit-btn {
-  height: 96rpx;
+  height: 92rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 28rpx;
-  background: linear-gradient(135deg, #2563eb, #60a5fa);
-  box-shadow: 0 18rpx 38rpx rgba(37, 99, 235, 0.34);
+  border-radius: 22rpx;
+  background: var(--pk-ink-btn);
+  box-shadow: 0 8rpx 20rpx var(--pk-shadow);
 }
 
-.submit-btn:active { opacity: 0.82; }
-.submit-btn-disabled { opacity: 0.62; }
-.submit-btn-text { color: #fff; font-size: 30rpx; font-weight: 800; }
-
-.feedback-page.light {
-  background: #eef4fb;
+.submit-btn:active {
+  opacity: 0.82;
 }
 
-.feedback-page.light .nav-bar {
-  background: rgba(255,255,255,0.92);
-  border-bottom-color: #e5eaf2;
+.submit-btn-disabled {
+  opacity: 0.62;
 }
 
-.feedback-page.light .nav-title,
-.feedback-page.light .hero-title,
-.feedback-page.light .section-title,
-.feedback-page.light .type-title,
-.feedback-page.light .feedback-input,
-.feedback-page.light .attachment-title {
-  color: #0f172a;
+.submit-btn-text {
+  font-size: 28rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--pk-ink-btn-t);
 }
-
-.feedback-page.light .glass-card,
-.feedback-page.light .type-card,
-.feedback-page.light .symptom-chip,
-.feedback-page.light .attachment-item {
-  background: #fff;
-  border-color: #e5eaf2;
-}
-
-.feedback-page.light .hero-pill,
-.feedback-page.light .locate-count,
-.feedback-page.light .type-mark {
-  color: #0f766e;
-  background: #ecfeff;
-}
-
-.feedback-page.light .locate-kicker,
-.feedback-page.light .hero-kicker {
-  color: #0891b2;
-}
-
-.feedback-page.light .symptom-text,
-.feedback-page.light .type-desc,
-.feedback-page.light .hero-sub,
-.feedback-page.light .section-hint,
-.feedback-page.light .attachment-sub {
-  color: #64748b;
-}
-
-.feedback-page.light .type-card-active {
-  border-color: #38bdf8;
-  background: linear-gradient(145deg, #e0f2fe, #eef2ff);
-}
-
-.feedback-page.light .symptom-chip-active {
-  border-color: #38bdf8;
-  background: #e0f2fe;
-}
-
-.feedback-page.light .symptom-chip-active .symptom-text {
-  color: #0f172a;
-}
-
-/* ── 我的→反馈：表单控件与五模块共用纸墨 token ── */
-.feedback-page.paper {
-  background-color: var(--pk-paper);
-  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
-  background-size: 34rpx 34rpx;
-  color: var(--pk-t1);
-}
-.feedback-page.paper .nav-bar { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
-.feedback-page.paper .nav-back-arrow,
-.feedback-page.paper .nav-back-txt,
-.feedback-page.paper .hero-kicker,
-.feedback-page.paper .locate-kicker { color: var(--pk-grn); }
-.feedback-page.paper .nav-title,
-.feedback-page.paper .hero-title,
-.feedback-page.paper .locate-title,
-.feedback-page.paper .section-title,
-.feedback-page.paper .type-title,
-.feedback-page.paper .attachment-title,
-.feedback-page.paper .context-title { color: var(--pk-t1); }
-.feedback-page.paper .hero-sub,
-.feedback-page.paper .section-hint,
-.feedback-page.paper .type-desc,
-.feedback-page.paper .attachment-sub,
-.feedback-page.paper .context-text { color: var(--pk-t2); }
-.feedback-page.paper .glass-card,
-.feedback-page.paper .type-card,
-.feedback-page.paper .symptom-chip,
-.feedback-page.paper .feedback-input,
-.feedback-page.paper .attachment-item,
-.feedback-page.paper .context-box {
-  background: var(--pk-card);
-  border-color: var(--pk-bd);
-  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
-}
-.feedback-page.paper .type-card-active,
-.feedback-page.paper .symptom-chip-active { background: rgba(72, 128, 106, 0.12); border-color: var(--pk-grn); }
-.feedback-page.paper .symptom-chip-active .symptom-text,
-.feedback-page.paper .type-card-active .type-mark { color: var(--pk-grn); }
-.feedback-page.paper .submit-btn { background: var(--pk-ink-btn); box-shadow: 0 8rpx 20rpx var(--pk-shadow); }
-.feedback-page.paper .submit-btn-text { color: var(--pk-ink-btn-t); }

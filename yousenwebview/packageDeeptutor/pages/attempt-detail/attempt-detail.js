@@ -17,6 +17,18 @@ function readCachedCard(cacheKey) {
   return cached && typeof cached === "object" ? cached.card || {} : {};
 }
 
+// 空态判定：view model 恒有兜底标题，只有摘要/解析/下一步全缺才算无证据可展示
+function hasAttemptEvidence(detail) {
+  return Boolean(
+    detail &&
+      (detail.concept ||
+        detail.answerLine ||
+        detail.error ||
+        (detail.explanationSections && detail.explanationSections.length) ||
+        detail.nextTraining)
+  );
+}
+
 Page({
   data: {
     isDark: true,
@@ -24,6 +36,7 @@ Page({
     navHeight: 96,
     loading: true,
     errorText: "",
+    isEmpty: false,
     detail: attemptDetailViewModel.buildAttemptDetailViewModel({}, {}),
   },
 
@@ -58,21 +71,26 @@ Page({
 
   async _loadDetail() {
     if (!this._attemptRef || !api.getLearningAttemptDetail) {
-      this.setData({ loading: false });
+      var fallback = attemptDetailViewModel.buildAttemptDetailViewModel({}, this._card);
+      this.setData({ loading: false, isEmpty: !hasAttemptEvidence(fallback) });
       return;
     }
     try {
       var detail = api.unwrapResponse(await api.getLearningAttemptDetail(this._attemptRef));
+      var built = attemptDetailViewModel.buildAttemptDetailViewModel(detail, this._card);
       this.setData({
         loading: false,
         errorText: "",
-        detail: attemptDetailViewModel.buildAttemptDetailViewModel(detail, this._card),
+        isEmpty: !hasAttemptEvidence(built),
+        detail: built,
       });
     } catch (_err) {
+      var cachedOnly = attemptDetailViewModel.buildAttemptDetailViewModel({}, this._card);
       this.setData({
         loading: false,
         errorText: "详情暂时加载失败，先显示学情页缓存的摘要。",
-        detail: attemptDetailViewModel.buildAttemptDetailViewModel({}, this._card),
+        isEmpty: !hasAttemptEvidence(cachedOnly),
+        detail: cachedOnly,
       });
       if (typeof helpers.vibrate === "function") helpers.vibrate("light");
     }

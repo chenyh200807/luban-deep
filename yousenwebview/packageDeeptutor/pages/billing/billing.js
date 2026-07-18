@@ -148,12 +148,8 @@ function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
         remainingLabel: remainingLabel,
         barStyle: "width:" + Math.max(0, Math.min(100, Math.round(remainingPercent))) + "%",
       },
-      {
-        key: "usage_record",
-        label: "使用记录",
-        remainingLabel: "按使用记录",
-        barStyle: "width:100%",
-      },
+      // 「使用记录/按使用记录」伪行已删：零信息 + 恒 100% 假进度条，
+      // 账本真身就在本页下方的使用记录区。
     ],
     ledgerRows: _normalizeLedgerRows(ledgerEntries, denominator),
   };

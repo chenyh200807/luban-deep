@@ -1181,6 +1181,7 @@ var _DEGRADED_SOURCE_LABELS = {
   dry_run_synthesis: "Learning Brain 即时合成",
   learning_report: "学情统一接口",
   learning_report_window: "近 3 天窗口",
+  note_assets: "学习卡片",
 };
 
 function _buildDegradedHint(sources) {
@@ -1238,8 +1239,9 @@ Page({
     navHeight: 0,
 
     // WXML 不支持 HTML 实体，用 data 绑定传入 Unicode 字符
-    warnIcon: "\u26A0\uFE0F",
-    radarIcon: "\uD83D\uDCE1",
+    // \u7A7A\u6001\u5370\u7AE0\u4E66\u6CD5\u5B57\uFF08emoji \u5B57\u7B26\u56FE\u6807\u8FDD\u53CD\u7EBF\u6027\u56FE\u6807\u7EAA\u5F8B\uFF0C\u6539\u4E0E attempt-detail \u7A7A\u6001\u540C\u6784\uFF09
+    warnIcon: "\u91CD",
+    radarIcon: "\u6D4B",
 
     isDark: false, // 学情页默认亮色(owner 2026-07-12);用户显式选过主题则跟随
     reportDetailView: "home",
@@ -1884,6 +1886,20 @@ Page({
         encodeURIComponent(String(task.probe_id || ""));
     }
     if (!url) return;
+    wx.navigateTo({
+      url: url,
+      fail: function () {
+        if (wx.reLaunch) wx.reLaunch({ url: url });
+      },
+    });
+  },
+
+  // 10e 诊断单唯一行动键:把诊断喂回本周计划(深链学习路线站点)。
+  // d2e62d46 随 B5 精简误删,owner 2026-07-17 拍板恢复 10e 主面时一并还原。
+  absorbDiagnosisIntoPlan() {
+    helpers.vibrate("light");
+    runtime.setWorkspaceBack(route.report(), "学情");
+    var url = route.lubanStations();
     wx.navigateTo({
       url: url,
       fail: function () {
