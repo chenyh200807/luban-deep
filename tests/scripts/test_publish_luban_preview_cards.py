@@ -275,13 +275,46 @@ def test_degrade_practice_entry_replaces_link_with_warm_copy_and_is_idempotent()
     assert again == degraded
 
 
-def test_hosted_reachability_gate_follows_supply_ready_for_whole_corpus() -> None:
-    """全语料闸：非 supply_ready 的注册 pack 讲解页不得留可点练习入口。
+def test_restore_practice_entry_roundtrips_degrade_byte_exact() -> None:
+    """还原 = 降级的逆：supply_ready 后活链必须逐字节回到原样。
 
-    reachability 单一权威 = ``supply_ready``。此测试把发布产物层锁死，避免未来
-    有人重发某个未签发 pack 时又放出可点的"做练习"入口（用户点进去必吃
-    ``practice_not_released``）。同时校验 ``published_lesson_sha256`` 与降级后的
-    托管 ``lesson.html`` 一致（runtime / manifest sha 校验的前提）。
+    语料里 href（practice.html/2/3）与文案（做练习/全集做练习 →/…）并非同形，
+    盲模板重建会错——还原只能吃降级时保留的 percent-encoded 原锚。
+    """
+    html = (
+        '<a href="practice.html" style="background:#2c8a5b;color:#fff;'
+        'cursor:pointer;">做练习</a>'
+        '<a href="practice2.html" style="flex:1;">全集做练习 →</a>'
+        '<a href="lesson2.html">下一集</a>'
+    )
+    degraded, hits = _mod._degrade_practice_entry(html)
+    assert hits == 2
+    restored, restore_hits = _mod._restore_practice_entry(degraded, context="t")
+    assert restore_hits == 2
+    assert restored == html  # 逐字节同形
+    # 幂等：已还原页面再跑一次不再命中。
+    again, again_hits = _mod._restore_practice_entry(restored, context="t")
+    assert again_hits == 0
+    assert again == restored
+    # fail-closed：旧格式降级 span（无 entry 属性，信息已销毁）绝不模板猜，直接报错。
+    legacy = (
+        '<span data-luban-practice-gate="pending" '
+        'style="cursor:default;">练习题教研签发中·先看讲解打底</span>'
+    )
+    with pytest.raises(_mod.TransformError):
+        _mod._restore_practice_entry(legacy, context="legacy")
+
+
+def test_hosted_reachability_gate_follows_supply_ready_for_whole_corpus() -> None:
+    """全语料闸（双向）：托管讲解页的练习入口必须精确跟随 ``supply_ready``。
+
+    reachability 单一权威 = ``supply_ready``，两个方向都要锁：
+    - 非 supply_ready：不得留可点练习入口（用户点进去必吃
+      ``practice_not_released``）。
+    - supply_ready：不得残留降级 span——签发后活链必须恢复，单向只降级会让
+      新签发包的讲解页永远断链（练习已释放却无入口）。
+    同时校验 ``published_lesson_sha256`` 与托管 ``lesson.html`` 一致
+    （runtime / manifest sha 校验的前提）。
     """
     from deeptutor.services.luban_lesson.practice_html import (
         compiled_practice_eligibility_summary,
@@ -305,19 +338,33 @@ def test_hosted_reachability_gate_follows_supply_ready_for_whole_corpus() -> Non
         assert authority.get("published_lesson_sha256") == _sha(lesson), (
             f"{sid}: published_lesson_sha256 drifted from hosted lesson.html"
         )
+        live_entry_pages = 0
         for hosted_lesson in sorted((_mod.HOST / sid).glob("lesson*.html")):
             html = hosted_lesson.read_text(encoding="utf-8")
             if supply_ready:
-                continue
-            assert not entry_re.search(html), (
-                f"{sid}/{hosted_lesson.name}: non-supply_ready pack still exposes a "
-                "clickable practice entry (reachability drifted from supply_ready)"
-            )
+                assert _mod._PRACTICE_GATE_MARKER not in html, (
+                    f"{sid}/{hosted_lesson.name}: supply_ready pack still carries a "
+                    "degraded practice span (release did not restore the live CTA)"
+                )
+                if entry_re.search(html):
+                    live_entry_pages += 1
+            else:
+                assert not entry_re.search(html), (
+                    f"{sid}/{hosted_lesson.name}: non-supply_ready pack still exposes a "
+                    "clickable practice entry (reachability drifted from supply_ready)"
+                )
         if supply_ready:
+            # 全语料不变量：每个 pack 至少有一页讲解带练习入口（有的 pack 入口
+            # 在 lesson2/lesson3，不逐页强求，但整包不得为零）。
+            assert live_entry_pages, (
+                f"{sid}: supply_ready pack has no clickable practice entry on any "
+                "lesson page (released practice is unreachable from the lesson)"
+            )
             checked_ready += 1
         else:
             checked_gated += 1
     assert checked_gated, "expected at least one gated (non-supply_ready) pack"
+    assert checked_ready, "expected at least one supply_ready pack"
 
 
 def test_rewrite_hrefs_handles_html_and_x_dc_script_links() -> None:
