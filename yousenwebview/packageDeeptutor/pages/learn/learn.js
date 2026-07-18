@@ -41,6 +41,8 @@ Page({
     loading: true,
     vm: null, // learn-view-model 输出
     whyOpen: false,
+    stationOpen: true, // 一体化站点卡折叠态(定稿 10a 头部行折叠箭头);默认展开
+    stationWhyOpen: false, // 「为什么先走这一站」折叠态
     supplyError: "",
     firstRunState: "new", // new | resume | syncing | blocked | hidden
     firstRunProgress: 0,
@@ -346,6 +348,16 @@ Page({
     this.setData({ whyOpen: !this.data.whyOpen });
   },
 
+  // 一体化站点卡折叠(定稿 10a 头部行折叠箭头):纯呈现层,不触发任何加载/写入
+  toggleStation() {
+    this.setData({ stationOpen: !this.data.stationOpen });
+  },
+
+  // 「为什么先走这一站」折叠:展示 nextStation.reason(群体/证据理由,不算分)
+  toggleStationWhy() {
+    this.setData({ stationWhyOpen: !this.data.stationWhyOpen });
+  },
+
   // 下一站卡「播放」/ 课程架海报 → 进 spike 站点页(复用两幕 web-view 播放器)
   openStation(event) {
     var ds = (event && event.currentTarget && event.currentTarget.dataset) || {};
@@ -410,7 +422,7 @@ Page({
     }
   },
 
-  // 视频学习卡「进站学习」/舞台播放(owner 2026-07-18 排版去重:学习动作归视频卡)。
+  // 一体化站点卡舞台播放/进站学习(第10轮定稿:学习动作走站点卡舞台点击)。
   // 目标站 = vm.nextStation(next_step 呈现仲裁的推荐学习站),不重算推荐;
   // card_hosted===false 诚实降级 toast(禁 dead click 假可播)。
   goLesson() {

@@ -120,15 +120,23 @@
 .lr-supply-error-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
 .lr-supply-retry { align-self: flex-start; margin-top: 8rpx; min-width: 180rpx; }
 
-/* ── 视频学习卡(设计:18px 圆角;owner 2026-07-18 排版去重:删重复站名头部行,
-     卡直接以播放舞台开头,是练题卡的"学习入口延伸") ── */
+/* ── 一体化站点卡(第10轮定稿 10a·收回两卡拆分:头部行+舞台+路线+旅程+为什么先走
+     全在同一张卡;卡 padding:0,各内行自带横向内衬) ── */
 .lr-lesson { overflow: hidden; padding: 0; border-radius: 34rpx; }
-/* 「进站学习」动作行(卡 padding:0 → 自带 28rpx 横向内衬对齐 route 行) */
-.lr-lesson-cta { padding: 22rpx 28rpx 0; }
-.lr-lesson-btn { width: 100%; }
-.lr-lesson-btn--muted { opacity: 0.5; }
-/* 站点旅程条内嵌视频卡(卡 padding:0),用横向 margin 对齐其余行 */
+/* ① 头部行(可折叠):logo 红章 + 下一站/站名 + chip + 折叠箭头(设计:seal 34px/9px 圆角) */
+.lr-lesson-head { display: flex; align-items: center; gap: 18rpx; padding: 24rpx 28rpx; border-bottom: 1rpx solid var(--pk-bd); }
+.lr-lesson-head--empty { opacity: 0.75; }
+.lr-lesson-seal { width: 63rpx; height: 63rpx; border-radius: 17rpx; flex-shrink: 0; }
+.lr-lesson-logo { width: 37rpx; height: 37rpx; }
+.lr-lesson-headtxt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2rpx; }
+.lr-lesson-title { font-size: 28rpx; }  /* 10a: 15px */
+.lr-lesson-chip { flex-shrink: 0; }
+.lr-lesson-chev { flex-shrink: 0; font-size: 24rpx; color: var(--pk-t3); line-height: 1; padding-left: 4rpx; }
+/* 站点旅程条内嵌本卡(卡 padding:0),用横向 margin 对齐其余行 */
 .lr-journey--lesson { margin: 18rpx 28rpx 0; }
+/* ⑤ 为什么先走这一站(卡 padding:0 → 自带横向内衬对齐旅程条) */
+.lr-why--station { padding: 16rpx 28rpx 0; }
+.lr-why-text--station { padding: 0 28rpx 4rpx; }
 
 /* 宣纸舞台 · 原色宣纸(设计:196px 高/16px 点阵;永远浅色,不随主题) */
 .lr-stage {
