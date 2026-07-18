@@ -148,3 +148,9 @@ def test_e2e_artifact_redaction_keeps_runtime_environment(monkeypatch, tmp_path:
     e2e._redact_artifact_model_catalog(str(tmp_path))
 
     assert e2e.os.environ["LLM_API_KEY"] == "sk-runtime-still-available"
+
+
+def test_e2e_script_does_not_restore_removed_core_source_timeout() -> None:
+    source = Path("scripts/run_learning_report_read_model_e2e.py").read_text(encoding="utf-8")
+
+    assert "DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS" not in source

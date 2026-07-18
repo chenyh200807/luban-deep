@@ -512,6 +512,36 @@ def test_sync_full_learning_evidence_read_pages_past_postgrest_row_cap() -> None
     client.close()
 
 
+def test_sync_full_learning_evidence_read_raises_instead_of_returning_partial_pages() -> None:
+    import pytest
+
+    offsets: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        offset = str(request.url.params.get("offset", "0"))
+        offsets.append(offset)
+        if offset == "0":
+            return httpx.Response(
+                200,
+                json=[{"event_id": f"evt-{index}"} for index in range(500)],
+                request=request,
+            )
+        return httpx.Response(503, json={"message": "cold replica"}, request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    store = LearnerStateSupabaseSyncCoreStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+
+    with pytest.raises(httpx.HTTPStatusError):
+        store.read_learning_evidence_events("student_demo", limit=None, since=None)
+
+    assert offsets == ["0", "500"]
+    client.close()
+
+
 def test_sync_profile_batch_read_uses_one_request_and_preserves_missing_rows() -> None:
     requests: list[dict[str, str]] = []
 

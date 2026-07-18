@@ -454,6 +454,7 @@ Overlay 必须支持：
   按 event_id / dedupe_key 去重并按时间裁剪。这样 assessment submit 后即使 outbox
   尚未完成远端写回，首页、学情和 report 仍能 read-your-writes；本地 JSONL 只能通过
   `LearnerStateService` 参与该合并，不能绕过 Supabase 成为平行长期权威。
+- learning report 的 `learner_events` 是生命周期与六步状态的核心事实输入，不是 optional source：read model 不得给它设置可降级为空的内部 timeout，也不得把读取提交给超时后继续运行的后台 future。冷 Supabase 首次读取必须等待 learner-state reader 的 authoritative result；只有 today-progress、legacy dashboard 等 optional compatibility source 允许在独立预算内降级。
 - `dedupe_key` 命中已有事件时必须返回原事件，不能重新生成 event_id 或再次写入 outbox。
   重复作答若要形成 L1/L2 证据，dedupe_key 必须包含 turn/session/attempt 级输入边界。
 - `dedupe_key` 命中已有本地 JSONL 事件时，`LearnerStateService` 仍必须确保同一事件存在
