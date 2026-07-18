@@ -729,7 +729,13 @@ def _build_long_term_analytics(learning_brain: dict[str, Any]) -> dict[str, Any]
 
     active_weak_count = len(weak_points)
     recurrent_count = len(recurrent_errors)
-    if recurrent_count == 0:
+    if active_weak_count == 0 and recurrent_count == 0:
+        # 零薄弱点+零复发=零证据:不宣称方向。原实现把"没有任何记录"也标成
+        # improving("反复出现的错因在减少"),对新用户是无证据洗白——同屏与
+        # "错因结构:暂无"自相矛盾。空方向由前端 fail-closed 落
+        # "完成更多练习后，这里会给出趋势方向"。
+        trend = ""
+    elif recurrent_count == 0:
         trend = "improving"
     elif recurrent_count > max(1, active_weak_count // 2):
         trend = "declining"
