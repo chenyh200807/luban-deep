@@ -296,11 +296,19 @@ async def retest_items(
             projection_receipt=projection_receipt,
         )
     except PracticeHtmlInvalid as exc:
-        if str(exc) == "content_updated_retake":
+        code = str(exc)
+        if code == "content_updated_retake":
             # receipt 与当前供给漂移（重签/撤销/篡改）——语义错误要求客户端
             # 整卷重取；服务端绝不按 index 重映射或静默换题。
             raise HTTPException(
                 status_code=409, detail={"error": "content_updated_retake"}
+            ) from exc
+        if code == "practice_not_released":
+            # 练习供给尚未签发发布（教研节奏问题，非用户侧数据漂移）。用独立
+            # 错误码回传，让前端给出"练习还在签发中，先看讲解"暖文案，绝不
+            # 冒充 content_updated_retake 误导用户去"重做已更新的题"。
+            raise HTTPException(
+                status_code=409, detail={"error": "practice_not_released"}
             ) from exc
         raise HTTPException(status_code=404, detail="lesson not found") from exc
     except LessonNotAvailable:
