@@ -1,48 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "J01",
   "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
   "source_bundle_sha256": "450b89c170a6c81d8515f6bb3ecbe40e5ac2a725aa6af5825d664d2c30ceba9b",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        2,
-        3,
-        15
-      ],
-      "variant_ids": [
-        "J01-html-practice-html-q1-c90daf8ddfb3",
-        "J01-html-practice-html-q2-1703f826ad25",
-        "J01-html-practice-html-q3-afa772a5b009",
-        "J01-html-practice-html-q4-1a5d57147d8c",
-        "J01-html-practice-html-q16-c2a1c8df11f6"
-      ],
-      "eligible_variant_ids": [
-        "J01-html-practice-html-q1-c90daf8ddfb3",
-        "J01-html-practice-html-q2-1703f826ad25",
-        "J01-html-practice-html-q3-afa772a5b009",
-        "J01-html-practice-html-q4-1a5d57147d8c",
-        "J01-html-practice-html-q6-9d8303e489f9",
-        "J01-html-practice-html-q13-de3c8f20255e",
-        "J01-html-practice-html-q16-c2a1c8df11f6"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYzkwZGFmOGRkZmIzIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xNzAzZjgyNmFkMjUiLCJKMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFmYTc3MmE1YjAwOSIsIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWE1ZDU3MTQ3ZDhjIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzJhMWM4ZGYxMWY2Il0sInBhY2tfaWQiOiJKMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImJkZmI0MWE4ZjljNGJjOWE4ZTllNDZkODU5MjQwNDU1NTJhYmNiZGQ3ZTUwNzU0MzFjMDcyOTFjZWI5ODMzMTciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNTRlMzZhMmVhMTliOWFlNjA5ODg5OTJkMzkzN2E2ZWFjMGQ0OWNlMjI5NGNkZjg1MDlmMzgzZDhlODAzYTQzNyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "06cd7c39be45bc6bcdfff65f1837943d767859c0627205243d19c2df9f20adf5"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 16,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "判档·条件维",
+      "variant_id": "J01-html-practice-html-q1-c90daf8ddfb3",
+      "surface_id": "practice.html",
       "stem": "某工程基坑开挖深度 4m。就危大工程判定，选出最完整、能得分的作答。",
-      "model_answer": "开挖深度 4m（≥3m）属危险性较大的分部分项工程，应编制专项施工方案；未达 5m，尚不需专家论证。",
       "options": [
         {
           "text": "基坑开挖深度 4m，达到 3m 及以上，属危险性较大的分部分项工程，应编制专项施工方案（未达 5m，暂不需专家论证）。",
@@ -81,53 +56,50 @@
           "option_id": "J01-html-practice-html-q1-c90daf8ddfb3:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q1-c90daf8ddfb3",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q1",
-      "source_anchor": "ca:1A436000_008_0011",
-      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "j01-fact-3m-dangerous-threshold",
-      "skeleton_id": "j01-skel-4m两档判定",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "开挖深度 4m（≥3m）属危险性较大的分部分项工程，应编制专项施工方案；未达 5m，尚不需专家论证。",
+      "rule_group": "判档·条件维",
       "content_sha256": "5c927fd7f04b29ead2f2bf9a59f9cfc11cc4c44ca5b92bdb2ab868e63515bb14",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "5c927fd7f04b29ead2f2bf9a59f9cfc11cc4c44ca5b92bdb2ab868e63515bb14",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q1",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "j01-fact-3m-dangerous-threshold",
+        "skeleton_id": "j01-skel-4m两档判定",
+        "probe_role": "anchor",
+        "source_anchor": "ca:1A436000_008_0011",
+        "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "5c927fd7f04b29ead2f2bf9a59f9cfc11cc4c44ca5b92bdb2ab868e63515bb14",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "4m≥3m 属危大应编专项方案(本锚 3m 阈值 grading_keywords 直证); 未达5m不需论证系括注, 5m线另有 kc:1A436000_009_0012:0 教材原文(复合多源工单)。"
         },
-        "note": "4m≥3m 属危大应编专项方案(本锚 3m 阈值 grading_keywords 直证); 未达5m不需论证系括注, 5m线另有 kc:1A436000_009_0012:0 教材原文(复合多源工单)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "判档·条件维",
+      "variant_id": "J01-html-practice-html-q2-1703f826ad25",
+      "surface_id": "practice.html",
       "stem": "某深基坑开挖深度 6m。就危大工程判定，选出最完整、能得分的作答。",
-      "model_answer": "深基坑 6m（≥5m）属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
       "options": [
         {
           "text": "深基坑开挖深度 6m，达到 5m 及以上，属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
@@ -166,53 +138,50 @@
           "option_id": "J01-html-practice-html-q2-1703f826ad25:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q2-1703f826ad25",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q2",
-      "source_anchor": "kc:1A436000_009_0012:0",
-      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "j01-fact-5m-super-scale-threshold",
-      "skeleton_id": "j01-skel-6m超规模判定",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "深基坑 6m（≥5m）属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
+      "rule_group": "判档·条件维",
       "content_sha256": "dc293a5d2cd0f877ee89b798292d4061838130b90ead11005f8f3514596f256c",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "dc293a5d2cd0f877ee89b798292d4061838130b90ead11005f8f3514596f256c",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q2",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "j01-fact-5m-super-scale-threshold",
+        "skeleton_id": "j01-skel-6m超规模判定",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_009_0012:0",
+        "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "dc293a5d2cd0f877ee89b798292d4061838130b90ead11005f8f3514596f256c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "6m≥5m 属超规模危大(本锚教材原文直证); 超规模→组织专家论证后果另有 cc:1A437000_010_0013:1 逐字(复合多源工单)。干扰项(建设单位组织/8m界限)均显错。"
         },
-        "note": "6m≥5m 属超规模危大(本锚教材原文直证); 超规模→组织专家论证后果另有 cc:1A437000_010_0013:1 逐字(复合多源工单)。干扰项(建设单位组织/8m界限)均显错。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "混档辨析·条件维",
+      "variant_id": "J01-html-practice-html-q3-afa772a5b009",
+      "surface_id": "practice.html",
       "stem": "有人说：「基坑只要开挖深度超过 3m，就必须组织专家论证。」选出最准确的判断与纠正。",
-      "model_answer": "说法错误。3m 是危大线（编专项方案），5m 才是超规模线（专家论证）；3～5m 之间只需编方案、不需论证。",
       "options": [
         {
           "text": "错误。开挖深度达 3m 属危大、应编专项方案；达 5m 才属超规模、才需专家论证。3～5m 之间编方案不论证。",
@@ -251,53 +220,50 @@
           "option_id": "J01-html-practice-html-q3-afa772a5b009:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q3-afa772a5b009",
-      "surface_id": "practice.html",
-      "source_index": 2,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q3",
-      "source_anchor": "kc:1A436000_008_0011:0",
-      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "j01-fact-two-tier-distinction",
-      "skeleton_id": "j01-skel-3m论证误区纠正",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "说法错误。3m 是危大线（编专项方案），5m 才是超规模线（专家论证）；3～5m 之间只需编方案、不需论证。",
+      "rule_group": "混档辨析·条件维",
       "content_sha256": "82a2b2f06b446481490b64c2333624b89ecadee12742f18e2614a0ddb7e81a4d",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "82a2b2f06b446481490b64c2333624b89ecadee12742f18e2614a0ddb7e81a4d",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q3",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "j01-fact-two-tier-distinction",
+        "skeleton_id": "j01-skel-3m论证误区纠正",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_008_0011:0",
+        "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "82a2b2f06b446481490b64c2333624b89ecadee12742f18e2614a0ddb7e81a4d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "3m属危大编方案/5m才超规模需论证, 本锚 3m 标准教材原文+5m线 kc:1A436000_009_0012:0(复合多源工单)。『3~5m之间编方案不论证』表述与两档线一致。"
         },
-        "note": "3m属危大编方案/5m才超规模需论证, 本锚 3m 标准教材原文+5m线 kc:1A436000_009_0012:0(复合多源工单)。『3~5m之间编方案不论证』表述与两档线一致。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "编制主体·主体维",
+      "variant_id": "J01-html-practice-html-q4-1a5d57147d8c",
+      "surface_id": "practice.html",
       "stem": "某超规模危大工程需编制专项施工方案。该方案应由谁组织编制？选出能得分的作答。",
-      "model_answer": "专项施工方案由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
       "options": [
         {
           "text": "由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
@@ -336,53 +302,50 @@
           "option_id": "J01-html-practice-html-q4-1a5d57147d8c:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q4-1a5d57147d8c",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q4",
-      "source_anchor": "cc:1A436000_008_0011:3",
-      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "j01-fact-plan-author-responsibility",
-      "skeleton_id": "j01-skel-专项方案编制主体",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "专项施工方案由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
+      "rule_group": "编制主体·主体维",
       "content_sha256": "24bd939b12a0a6034da28410c7b2d424169a5344610e8061f9694ef2ddeadb74",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "24bd939b12a0a6034da28410c7b2d424169a5344610e8061f9694ef2ddeadb74",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q4",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "j01-fact-plan-author-responsibility",
+        "skeleton_id": "j01-skel-专项方案编制主体",
+        "probe_role": "anchor",
+        "source_anchor": "cc:1A436000_008_0011:3",
+        "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "24bd939b12a0a6034da28410c7b2d424169a5344610e8061f9694ef2ddeadb74",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "总承包单位组织编制=本锚教材原文(『实行施工总承包的…』); 专业工程可由专业承包单位编制=cc:...008_0011:4 逐字。工单: 题干未给总承包前提(删限定词), 但相对3显错干扰项唯一正确(承 C06 先例), 建议题干补『实行施工总承包』。"
         },
-        "note": "总承包单位组织编制=本锚教材原文(『实行施工总承包的…』); 专业工程可由专业承包单位编制=cc:...008_0011:4 逐字。工单: 题干未给总承包前提(删限定词), 但相对3显错干扰项唯一正确(承 C06 先例), 建议题干补『实行施工总承包』。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "编制主体·主体维",
+      "variant_id": "J01-html-practice-html-q5-751cf67dae80",
+      "surface_id": "practice.html",
       "stem": "起重机械安装拆卸、深基坑等专业工程的专项方案，除总包外还可由谁编制？选出能得分的作答。",
-      "model_answer": "起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
       "options": [
         {
           "text": "起重机械安装拆卸、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
@@ -421,41 +384,38 @@
           "option_id": "J01-html-practice-html-q5-751cf67dae80:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q5-751cf67dae80",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
+      "rule_group": "编制主体·主体维",
       "content_sha256": "9db7d5cd697630555bf2389afec932c73efc353dc78447819da4732fdaf84c21",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "9db7d5cd697630555bf2389afec932c73efc353dc78447819da4732fdaf84c21",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q5",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "9db7d5cd697630555bf2389afec932c73efc353dc78447819da4732fdaf84c21",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "前置程序·程序维",
+      "variant_id": "J01-html-practice-html-q6-9d8303e489f9",
+      "surface_id": "practice.html",
       "stem": "专项方案编制完成后到组织专家论证之前，正确的程序顺序是？选出能得分的作答。",
-      "model_answer": "专项方案应先经施工单位审核、再经总监理工程师审查，方可组织专家论证；顺序不可颠倒。",
       "options": [
         {
           "text": "方案编制后，先经施工单位审核、再经总监理工程师审查，方可组织专家论证。",
@@ -494,53 +454,50 @@
           "option_id": "J01-html-practice-html-q6-9d8303e489f9:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q6-9d8303e489f9",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q6",
-      "source_anchor": "cc:1A437000_010_0013:3",
-      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "j01-fact-expert-panel-rules",
-      "skeleton_id": "j01-skel-论证前程序顺序",
-      "probe_role": "d1_probe",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "专项方案应先经施工单位审核、再经总监理工程师审查，方可组织专家论证；顺序不可颠倒。",
+      "rule_group": "前置程序·程序维",
       "content_sha256": "bfb1c7b0459510f8f57a65b1bf828df9ac399b3a8643d77ccd57d7b5c73fae4b",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "bfb1c7b0459510f8f57a65b1bf828df9ac399b3a8643d77ccd57d7b5c73fae4b",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q6",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "j01-fact-expert-panel-rules",
+        "skeleton_id": "j01-skel-论证前程序顺序",
+        "probe_role": "d1_probe",
+        "source_anchor": "cc:1A437000_010_0013:3",
+        "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "bfb1c7b0459510f8f57a65b1bf828df9ac399b3a8643d77ccd57d7b5c73fae4b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "论证前须先施工单位审核再总监理工程师审查, 教材 cc:...010_0013:3 逐字(同 primary 专家论证单句多要点)。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。"
         },
-        "note": "论证前须先施工单位审核再总监理工程师审查, 教材 cc:...010_0013:3 逐字(同 primary 专家论证单句多要点)。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "程序纠错·程序维",
+      "variant_id": "J01-html-practice-html-q7-fe71e2eefa5c",
+      "surface_id": "practice.html",
       "stem": "某项目专项方案经施工单位审核后，直接组织了专家论证。指出程序不妥并纠正，选出能得分的作答。",
-      "model_answer": "不妥：审核后未经总监理工程师审查即论证。正确：应先经总监理工程师审查，方可组织专家论证。",
       "options": [
         {
           "text": "不妥之处：审核后未经总监理工程师审查即组织论证。正确做法：应先经总监理工程师审查，方可组织专家论证。",
@@ -579,41 +536,38 @@
           "option_id": "J01-html-practice-html-q7-fe71e2eefa5c:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q7-fe71e2eefa5c",
-      "surface_id": "practice.html",
-      "source_index": 6,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：审核后未经总监理工程师审查即论证。正确：应先经总监理工程师审查，方可组织专家论证。",
+      "rule_group": "程序纠错·程序维",
       "content_sha256": "780f4676ddabfb9a45c4bf6f8c01c4fb0e0446314e20ede3c623ed74e8330767",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "780f4676ddabfb9a45c4bf6f8c01c4fb0e0446314e20ede3c623ed74e8330767",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q7",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "780f4676ddabfb9a45c4bf6f8c01c4fb0e0446314e20ede3c623ed74e8330767",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "组织主体·主体维",
+      "variant_id": "J01-html-practice-html-q8-36d8192c20c9",
+      "surface_id": "practice.html",
       "stem": "某超规模危大工程的专家论证会应由谁组织召开？选出能得分的作答。",
-      "model_answer": "本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
       "options": [
         {
           "text": "本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
@@ -652,41 +606,38 @@
           "option_id": "J01-html-practice-html-q8-36d8192c20c9:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q8-36d8192c20c9",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
+      "rule_group": "组织主体·主体维",
       "content_sha256": "e47bcd864b27a7b9e7f23203091b3baede1488a7459cb41e4f8a705787528284",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "e47bcd864b27a7b9e7f23203091b3baede1488a7459cb41e4f8a705787528284",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q8",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e47bcd864b27a7b9e7f23203091b3baede1488a7459cb41e4f8a705787528284",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "方案内容·记录维",
+      "variant_id": "J01-html-practice-html-q9-443ade4fd936",
+      "surface_id": "practice.html",
       "stem": "基坑工程专项施工方案应包含哪些内容？选出最完整、能得分的作答。",
-      "model_answer": "应含：①工程概况②编制依据③施工计划④施工工艺技术⑤施工保证措施⑥施工管理及人员配备⑦验收要求⑧应急处置措施。",
       "options": [
         {
           "text": "工程概况、编制依据、施工计划、施工工艺技术、施工保证措施、施工管理及人员配备、验收要求、应急处置措施，共八项。",
@@ -725,41 +676,38 @@
           "option_id": "J01-html-practice-html-q9-443ade4fd936:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q9-443ade4fd936",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "应含：①工程概况②编制依据③施工计划④施工工艺技术⑤施工保证措施⑥施工管理及人员配备⑦验收要求⑧应急处置措施。",
+      "rule_group": "方案内容·记录维",
       "content_sha256": "5ff7300542150e7a20754420626351c88872dd483b32bc184c390ea72fc76396",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "5ff7300542150e7a20754420626351c88872dd483b32bc184c390ea72fc76396",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q9",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "5ff7300542150e7a20754420626351c88872dd483b32bc184c390ea72fc76396",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "模板方案·记录维",
+      "variant_id": "J01-html-practice-html-q10-79b73e44b6b8",
+      "surface_id": "practice.html",
       "stem": "模板工程及支撑体系专项方案，除常规内容外，特别应包含哪一项（最易漏）？选出能得分的作答。",
-      "model_answer": "模板支撑方案应含工程概况、技术参数、工艺流程、施工方法、检查要求，特别是计算书及相关施工图纸。",
       "options": [
         {
           "text": "除工程概况、技术参数、工艺流程、施工方法、检查要求外，特别应包含计算书及相关施工图纸。",
@@ -798,41 +746,38 @@
           "option_id": "J01-html-practice-html-q10-79b73e44b6b8:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q10-79b73e44b6b8",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "模板支撑方案应含工程概况、技术参数、工艺流程、施工方法、检查要求，特别是计算书及相关施工图纸。",
+      "rule_group": "模板方案·记录维",
       "content_sha256": "250c2788176a1d6eb9cb4f046f606bf51c92e1d083f017724e575d018fe95c72",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "250c2788176a1d6eb9cb4f046f606bf51c92e1d083f017724e575d018fe95c72",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q10",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "250c2788176a1d6eb9cb4f046f606bf51c92e1d083f017724e575d018fe95c72",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "编案清单·记录维",
+      "variant_id": "J01-html-practice-html-q11-04eace3d0f8c",
+      "surface_id": "practice.html",
       "stem": "下列需单独编制专项施工方案的工程，选出列举完整、能得分的作答。",
-      "model_answer": "深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等。",
       "options": [
         {
           "text": "深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等，均需单独编制专项方案。",
@@ -871,41 +816,38 @@
           "option_id": "J01-html-practice-html-q11-04eace3d0f8c:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q11-04eace3d0f8c",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等。",
+      "rule_group": "编案清单·记录维",
       "content_sha256": "9a52b5157f3dea2be01c9c7be14e6aecb74deec9a16169441e8f4dfaf8c3af47",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "9a52b5157f3dea2be01c9c7be14e6aecb74deec9a16169441e8f4dfaf8c3af47",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q11",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "9a52b5157f3dea2be01c9c7be14e6aecb74deec9a16169441e8f4dfaf8c3af47",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "专家组·主体维",
+      "variant_id": "J01-html-practice-html-q12-e94cfe94c653",
+      "surface_id": "practice.html",
       "stem": "专家论证会的专家组人数应如何表述才准确、能得分？选出能得分的作答。",
-      "model_answer": "专家组成员应为 5 人以上，且与本工程无利害关系。",
       "options": [
         {
           "text": "专家组成人员应为 5 人以上，且与本工程无利害关系。",
@@ -944,41 +886,38 @@
           "option_id": "J01-html-practice-html-q12-e94cfe94c653:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q12-e94cfe94c653",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "专家组成员应为 5 人以上，且与本工程无利害关系。",
+      "rule_group": "专家组·主体维",
       "content_sha256": "de089aacec0508a0ee910a96f982587f2f46ec5ae01c59bad26d2399640f5042",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "de089aacec0508a0ee910a96f982587f2f46ec5ae01c59bad26d2399640f5042",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q12",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "de089aacec0508a0ee910a96f982587f2f46ec5ae01c59bad26d2399640f5042",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "专家回避·主体维",
+      "variant_id": "J01-html-practice-html-q13-de3c8f20255e",
+      "surface_id": "practice.html",
       "stem": "某基坑论证组织了「包括总承包单位技术负责人在内的 5 名专家」。指出不妥并纠正，选出能得分的作答。",
-      "model_answer": "不妥：本项目参建各方人员不得以专家身份参加，总包技术负责人属参建方、不能当专家；且专家应为 5 人以上。",
       "options": [
         {
           "text": "不妥：总承包单位技术负责人属本项目参建方，不得以专家身份参加论证，应更换为无利害关系的外部专家；且专家组人数应为 5 人以上。",
@@ -1017,53 +956,50 @@
           "option_id": "J01-html-practice-html-q13-de3c8f20255e:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q13-de3c8f20255e",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q13",
-      "source_anchor": "exam:2019:第2题",
-      "source_sha256": "0aaeefccb2f6f29355590a5ed2167b7cd38ce3c405316434da07c6c600b44c19",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "j01-fact-expert-panel-rules",
-      "skeleton_id": "j01-skel-论证组成不妥纠正",
-      "probe_role": "immediate_confirm",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：本项目参建各方人员不得以专家身份参加，总包技术负责人属参建方、不能当专家；且专家应为 5 人以上。",
+      "rule_group": "专家回避·主体维",
       "content_sha256": "29c60ed1bcbc1c3878aa4e995053c7f4042bdd130618c4d898f31c0e35325c7b",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "29c60ed1bcbc1c3878aa4e995053c7f4042bdd130618c4d898f31c0e35325c7b",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q13",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "j01-fact-expert-panel-rules",
+        "skeleton_id": "j01-skel-论证组成不妥纠正",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2019:第2题",
+        "source_sha256": "0aaeefccb2f6f29355590a5ed2167b7cd38ce3c405316434da07c6c600b44c19",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "29c60ed1bcbc1c3878aa4e995053c7f4042bdd130618c4d898f31c0e35325c7b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "总承包技术负责人属参建方不得当专家+专家组5人以上, 真题 exam:2019:第2题 逐字。三联 immediate_confirm(同专家论证规则 fact)。"
         },
-        "note": "总承包技术负责人属参建方不得当专家+专家组5人以上, 真题 exam:2019:第2题 逐字。三联 immediate_confirm(同专家论证规则 fact)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "论证内容·记录维",
+      "variant_id": "J01-html-practice-html-q14-83aaacb28444",
+      "surface_id": "practice.html",
       "stem": "专家论证的主要内容包括哪三项？选出准确、能得分的作答。",
-      "model_answer": "①方案是否完整、可行②计算书及验算依据、施工图是否符合标准规范③是否满足现场实际、确保施工安全。",
       "options": [
         {
           "text": "①方案是否完整、可行；②计算书及验算依据、施工图是否符合规范；③是否满足现场实际、能否确保施工安全。",
@@ -1102,41 +1038,38 @@
           "option_id": "J01-html-practice-html-q14-83aaacb28444:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q14-83aaacb28444",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "①方案是否完整、可行②计算书及验算依据、施工图是否符合标准规范③是否满足现场实际、确保施工安全。",
+      "rule_group": "论证内容·记录维",
       "content_sha256": "0dd51213cd3ba592322db1bd32b172d5159d6f3b0791ec8536cbe5f61d962e64",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "0dd51213cd3ba592322db1bd32b172d5159d6f3b0791ec8536cbe5f61d962e64",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q14",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "0dd51213cd3ba592322db1bd32b172d5159d6f3b0791ec8536cbe5f61d962e64",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "实施控制·后果维",
+      "variant_id": "J01-html-practice-html-q15-6ed7f9858fc8",
+      "surface_id": "practice.html",
       "stem": "专项方案实施过程中如需修改，正确的处理是？选出最完整、能得分的作答。",
-      "model_answer": "施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证后方可执行。",
       "options": [
         {
           "text": "施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证，通过后方可执行。",
@@ -1175,41 +1108,38 @@
           "option_id": "J01-html-practice-html-q15-6ed7f9858fc8:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q15-6ed7f9858fc8",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证后方可执行。",
+      "rule_group": "实施控制·后果维",
       "content_sha256": "827962bed58e7d48289ef4162065f8cfe1c126263e8f087c58a4e475b85f92ed",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "827962bed58e7d48289ef4162065f8cfe1c126263e8f087c58a4e475b85f92ed",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q15",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "827962bed58e7d48289ef4162065f8cfe1c126263e8f087c58a4e475b85f92ed",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "J01-html-practice-html-q16-c2a1c8df11f6",
+      "surface_id": "practice.html",
       "stem": "真题背景：基坑深 7.6m，基坑支护专业施工单位编制方案并履行审批签字后，组织「包括总承包单位技术负责人在内的 5 名专家」论证。学生答：「论证不妥。专家应有 5 人，够了。让施工单位再仔细检查方案。」选出最准确的诊断与补写。",
-      "model_answer": "漏点：①未指出参建方人员（总包技术负责人）不得当专家（回避）②「5 人够了」应为「5 人以上」③「再检查方案」答非所问。补写：不妥在组织含总承包单位技术负责人在内的 5 名专家论证；专家应为 5 人以上，且本项目参建各方人员不得以专家身份参加。",
       "options": [
         {
           "text": "漏了核心不妥：总包技术负责人属参建方、不得当专家（回避）；「5 人够了」应为「5 人以上」；「再检查方案」答非所问。补写：专家应为 5 人以上，且参建各方人员不得以专家身份参加论证。",
@@ -1248,48 +1178,54 @@
           "option_id": "J01-html-practice-html-q16-c2a1c8df11f6:option-4"
         }
       ],
-      "variant_id": "J01-html-practice-html-q16-c2a1c8df11f6",
-      "surface_id": "practice.html",
-      "source_index": 15,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q16",
-      "source_anchor": "exam:2019:第2题",
-      "source_sha256": "0aaeefccb2f6f29355590a5ed2167b7cd38ce3c405316434da07c6c600b44c19",
-      "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "j01-fact-expert-panel-rules",
-      "skeleton_id": "j01-skel-论证组成诊断补写",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "漏点：①未指出参建方人员（总包技术负责人）不得当专家（回避）②「5 人够了」应为「5 人以上」③「再检查方案」答非所问。补写：不妥在组织含总承包单位技术负责人在内的 5 名专家论证；专家应为 5 人以上，且本项目参建各方人员不得以专家身份参加。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "12e72db39701885a11e33aa10d658b380e99d51f0784e12e8ce628adbb24265a",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "12e72db39701885a11e33aa10d658b380e99d51f0784e12e8ce628adbb24265a",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q16",
+      "authoring_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
+      "decision": {
+        "fact_id": "j01-fact-expert-panel-rules",
+        "skeleton_id": "j01-skel-论证组成诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2019:第2题",
+        "source_sha256": "0aaeefccb2f6f29355590a5ed2167b7cd38ce3c405316434da07c6c600b44c19",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "12e72db39701885a11e33aa10d658b380e99d51f0784e12e8ce628adbb24265a",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:05:18+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:05:18+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "回避(参建方不得以专家身份参加)+5人以上, 真题 exam:2019:第2题 标准答案逐字(本题即由该真题改编)。三联 anchor。工单: 正确项最长。"
         },
-        "note": "回避(参建方不得以专家身份参加)+5人以上, 真题 exam:2019:第2题 标准答案逐字(本题即由该真题改编)。三联 anchor。工单: 正确项最长。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
   ],
-  "published_lesson_sha256": "63e8dc9015833fe99b8fcb1ad22571eb3f60e62e12be7f36c77eb3dc656d88cc"
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (j01.codex.out, fatal_count=7)。主控逐条对包内源核: surface q1/q2/q3 的『血统断』=失效模式#4 召回缺口证伪——编译源逐字含 3m危大线(kc:1A436000_008_0011:0)/5m超规模线(kc:1A436000_009_0012:0『深基坑开挖深度≥5m』)/超规模→论证后果(cc:1A437000_010_0013:1『对于超过一定规模的危大工程，施工单位应当组织召开专家论证会』), 三题答案均双档线下唯一正确=复合多源工单。surface q4 删『实行施工总承包的』前提=承 C06 先例: 相对 3 显错干扰项(备案合规/建设单位编制/监理编制)唯一正确, 且答案后半(专业工程可由专业承包单位编制)cc:...008_0011:4 逐字, =工单(题干宜补总承包前提)非 FATAL。**非展示真病排除不签**: q8(论证组织无条件化, 同 q4 病但无需保号)/q11(案例清单泛化断言)/q12(恰好5人满足『不少于5人』致干扰项亦真=唯一性破坏坐实)。q16(surface)=exam:2019:第2题真题标准答案逐字(回避+5人以上), Codex approve。三联=专家论证规则单句多要点 fact(primary chunk 1A437000_010_0013 一句话含组织/人数/回避/审核审查): q16(诊断补写)/q13(不妥纠正, exam:2019:第2题逐字)/q6(论证前程序顺序)。工单: 多题正确项最长+『最完整能得分』题干放大长度线索。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }

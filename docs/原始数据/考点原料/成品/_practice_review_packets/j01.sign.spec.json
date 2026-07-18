@@ -1,0 +1,62 @@
+{
+  "pack_id": "J01",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (j01.codex.out, fatal_count=7)。主控逐条对包内源核: surface q1/q2/q3 的『血统断』=失效模式#4 召回缺口证伪——编译源逐字含 3m危大线(kc:1A436000_008_0011:0)/5m超规模线(kc:1A436000_009_0012:0『深基坑开挖深度≥5m』)/超规模→论证后果(cc:1A437000_010_0013:1『对于超过一定规模的危大工程，施工单位应当组织召开专家论证会』), 三题答案均双档线下唯一正确=复合多源工单。surface q4 删『实行施工总承包的』前提=承 C06 先例: 相对 3 显错干扰项(备案合规/建设单位编制/监理编制)唯一正确, 且答案后半(专业工程可由专业承包单位编制)cc:...008_0011:4 逐字, =工单(题干宜补总承包前提)非 FATAL。**非展示真病排除不签**: q8(论证组织无条件化, 同 q4 病但无需保号)/q11(案例清单泛化断言)/q12(恰好5人满足『不少于5人』致干扰项亦真=唯一性破坏坐实)。q16(surface)=exam:2019:第2题真题标准答案逐字(回避+5人以上), Codex approve。三联=专家论证规则单句多要点 fact(primary chunk 1A437000_010_0013 一句话含组织/人数/回避/审核审查): q16(诊断补写)/q13(不妥纠正, exam:2019:第2题逐字)/q6(论证前程序顺序)。工单: 多题正确项最长+『最完整能得分』题干放大长度线索。",
+  "signed": [
+    {
+      "variant_id": "J01-html-practice-html-q1-c90daf8ddfb3",
+      "probe_role": "anchor",
+      "fact_id": "j01-fact-3m-dangerous-threshold",
+      "skeleton_id": "j01-skel-4m两档判定",
+      "source_anchor": "ca:1A436000_008_0011",
+      "note": "4m≥3m 属危大应编专项方案(本锚 3m 阈值 grading_keywords 直证); 未达5m不需论证系括注, 5m线另有 kc:1A436000_009_0012:0 教材原文(复合多源工单)。"
+    },
+    {
+      "variant_id": "J01-html-practice-html-q2-1703f826ad25",
+      "probe_role": "anchor",
+      "fact_id": "j01-fact-5m-super-scale-threshold",
+      "skeleton_id": "j01-skel-6m超规模判定",
+      "source_anchor": "kc:1A436000_009_0012:0",
+      "note": "6m≥5m 属超规模危大(本锚教材原文直证); 超规模→组织专家论证后果另有 cc:1A437000_010_0013:1 逐字(复合多源工单)。干扰项(建设单位组织/8m界限)均显错。"
+    },
+    {
+      "variant_id": "J01-html-practice-html-q3-afa772a5b009",
+      "probe_role": "anchor",
+      "fact_id": "j01-fact-two-tier-distinction",
+      "skeleton_id": "j01-skel-3m论证误区纠正",
+      "source_anchor": "kc:1A436000_008_0011:0",
+      "note": "3m属危大编方案/5m才超规模需论证, 本锚 3m 标准教材原文+5m线 kc:1A436000_009_0012:0(复合多源工单)。『3~5m之间编方案不论证』表述与两档线一致。"
+    },
+    {
+      "variant_id": "J01-html-practice-html-q4-1a5d57147d8c",
+      "probe_role": "anchor",
+      "fact_id": "j01-fact-plan-author-responsibility",
+      "skeleton_id": "j01-skel-专项方案编制主体",
+      "source_anchor": "cc:1A436000_008_0011:3",
+      "note": "总承包单位组织编制=本锚教材原文(『实行施工总承包的…』); 专业工程可由专业承包单位编制=cc:...008_0011:4 逐字。工单: 题干未给总承包前提(删限定词), 但相对3显错干扰项唯一正确(承 C06 先例), 建议题干补『实行施工总承包』。"
+    },
+    {
+      "variant_id": "J01-html-practice-html-q16-c2a1c8df11f6",
+      "probe_role": "anchor",
+      "fact_id": "j01-fact-expert-panel-rules",
+      "skeleton_id": "j01-skel-论证组成诊断补写",
+      "source_anchor": "exam:2019:第2题",
+      "note": "回避(参建方不得以专家身份参加)+5人以上, 真题 exam:2019:第2题 标准答案逐字(本题即由该真题改编)。三联 anchor。工单: 正确项最长。"
+    },
+    {
+      "variant_id": "J01-html-practice-html-q13-de3c8f20255e",
+      "probe_role": "immediate_confirm",
+      "fact_id": "j01-fact-expert-panel-rules",
+      "skeleton_id": "j01-skel-论证组成不妥纠正",
+      "source_anchor": "exam:2019:第2题",
+      "note": "总承包技术负责人属参建方不得当专家+专家组5人以上, 真题 exam:2019:第2题 逐字。三联 immediate_confirm(同专家论证规则 fact)。"
+    },
+    {
+      "variant_id": "J01-html-practice-html-q6-9d8303e489f9",
+      "probe_role": "d1_probe",
+      "fact_id": "j01-fact-expert-panel-rules",
+      "skeleton_id": "j01-skel-论证前程序顺序",
+      "source_anchor": "cc:1A437000_010_0013:3",
+      "note": "论证前须先施工单位审核再总监理工程师审查, 教材 cc:...010_0013:3 逐字(同 primary 专家论证单句多要点)。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。"
+    }
+  ]
+}
