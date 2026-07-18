@@ -153,6 +153,10 @@ feature_flags:
   # /light-practice 取题 + /light-practice/submit 交卷判分+写 learning_evidence;
   # 关 = 取题空集/交卷不写(诚实 disabled 态), 与上线前行为一致。
   - {name: LUBAN_LIGHT_PRACTICE_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  # 变体判断题消费接线灰度: 两消费点(错后当场确认 immediate_confirm /
+  # D+3·D+7 抽查 d1_probe)都 gate; 供给唯一权威=resolve_variant_supply(绿灯签发闸);
+  # 关 = 全部现行为(confirm 入口不亮 / review 退 compiled MCQ 不空窗)。
+  - {name: LUBAN_VARIANT_PROBE_ENABLED, default: false, kind: rollout, read: hand_rolled}
   # Battle1 W4-T2 fast-turn 轻档灰度门。默认关 = fast 轮 preferred_model 恒 ""，生产 bit-for-bit 不变;
   # 开 + 设 LLM_FAST_MODEL 才让 smart/fast 轮吃轻模型(deep/判分永不吃)。战役期内生产永不置位。
   - {name: LUBAN_FAST_TURN_LIGHT_MODEL_ENABLED, default: false, kind: rollout, read: hand_rolled}

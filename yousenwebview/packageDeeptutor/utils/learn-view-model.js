@@ -298,6 +298,7 @@ function buildCanonicalLearningTask(args) {
   function _decorate(task) {
     if (!task) return task;
     var reviewDue = task.task_state === "review_due";
+    task.kicker = "今天最该完成"; // 真任务卡 kicker(browse 卡另有"从这里开始"口吻)
     task.journey = _journeyFor(task.task_state);
     task.light_practice_visible = !reviewDue;
     task.light_practice_available =
@@ -332,6 +333,21 @@ function buildCanonicalLearningTask(args) {
     return _decorate(practiceTask);
   }
   if (mode !== "learn_next") return null;
+  // owner 2026-07-17 拍板:「继续学习」改「继续练习」——学习主任务优先练
+  // 教学视频后面的练习题(retest forward,633 池);仅当该站练习池未签发时
+  // 才回落「进站看讲解」。供给真值仍由 _practiceKindFor 单点裁决,无第二处方。
+  if (_practiceKindFor(packId, titleIdx) === "retest") {
+    var learnPractice = _retestTask(
+      pack.title || "最需要提分的考点",
+      packId,
+      _str(nextStep.reason),
+      "retest",
+      "learn_next",
+    );
+    learnPractice.cta = "练教学视频后面的 5 题，错了当场弄懂";
+    learnPractice.ctaLabel = "继续练习";
+    return _decorate(learnPractice);
+  }
   return _decorate(_lessonTask({
     pack_id: packId,
     title: pack.title || "即将开通",
@@ -364,6 +380,47 @@ function _buildReviewCard(report, todayTask) {
     title: "复习 · " + dueCount + " 个考点到期",
     sub: "换题验证 · 约 2 分钟 · 通过即亮「已验证」",
     cta: "去验证",
+  };
+}
+
+// ── browse 兜底投影(owner 2026-07-17):todayTask 为 null(server next_step
+//    缺失 / unavailable / day-0 冷启动)但已有可展示的 nextStation 时,产出与
+//    今日任务卡视觉同构的 browse 卡——让学习页在任何状态都长成 10a 定稿的样子,
+//    不退化成 hero+海报。红线(禁第二处方):
+//    - browse 只在 todayTask 为 null 时出现,永不与 server next_step 竞争今日任务;
+//    - browse 不声称"今日任务",kicker/文案用"从这里开始 / 推荐起点"口吻;
+//    - review_due 由 next_step 唯一裁决,browse 不碰复习逻辑;
+//    - 轻练与主按钮供给真值复用 _practiceKindFor 单点(禁页面层再判)。
+function _buildBrowseTask(nextStation, titleIdx) {
+  var s = _safeObj(nextStation);
+  var packId = _str(s.pack_id).toUpperCase();
+  if (!packId) return null;
+  // 供给真值单点:练习池已签发 → 继续练习(retest forward);否则进站看讲解。
+  var isRetest = _practiceKindFor(packId, titleIdx) === "retest";
+  return {
+    kicker: "从这里开始", // 推荐起点口吻,禁"今日任务"
+    title: _str(s.title) || "最需要提分的考点",
+    reason: _str(s.reason), // 群体理由(evidenceBacked=false),不伪装个性化证据
+    cta: isRetest
+      ? "从这一站的 5 题开始，错了当场弄懂"
+      : "先看这一站的讲解，点亮你的提分路线",
+    ctaLabel: isRetest ? "继续练习" : "进站学习",
+    supplyNote: "",
+    task_type: isRetest ? "light_practice" : "microlesson",
+    task_state: "browse", // 非 review_due/practice_active:轻练走 probe-less forward
+    action_kind: isRetest ? "retest" : "lesson",
+    practice_kind: isRetest ? "retest" : "",
+    estimated_minutes: isRetest ? 2 : 5,
+    concept: _str(s.title),
+    pack_id: packId,
+    training_intent_id: "",
+    probe_id: "",
+    mode: isRetest ? "forward" : "learn",
+    // 旅程 step1(动画讲懂=诚实的当前步):browse 无逐步完成证据,禁 done/进度线。
+    journey: _journeyFor("learn_next"),
+    // 轻练旁按钮:browse 永不 review_due → 可见;可用性=供给真值(retest)单点。
+    light_practice_visible: true,
+    light_practice_available: isRetest,
   };
 }
 
@@ -464,6 +521,13 @@ function buildLearnViewModel(args) {
     report: a.report, // review 供给真值在 pack_review(A5),缺失时诚实降级
   });
 
+  // ── browse 兜底卡:todayTask 缺席但有可展示 nextStation 时的同构卡 ──
+  // 让 day-0 / 首跑未完成 / 后端未部署等态下,页面仍长成 10a 定稿(训练/轻练/
+  // 旅程条不塌)。永不与 todayTask 竞争:仅在 todayTask===null 时产出。
+  var browseTask = !todayTask && nextStation ? _buildBrowseTask(nextStation, titleIdx) : null;
+  // 任务卡渲染入口 = 真任务优先,否则 browse 兜底(单一渲染源,禁 wxml 重算)。
+  var taskCard = todayTask || browseTask;
+
   // ── 复习卡:到期状态视图(数据=pack_review 投影;裁决权仍在 next_step) ──
   var reviewCard = _buildReviewCard(report, todayTask);
 
@@ -485,8 +549,10 @@ function buildLearnViewModel(args) {
     nextStation: nextStation,          // null → 显示"内容即将上线"空态卡
     posters: posters,                  // [] → 课程架空态(完整地图/stations 用真实态)
     routePreview: routePreview,        // 首页 3 卡真实状态预览
-    todayTask: todayTask,              // null → 隐藏今日任务卡
-    reviewCard: reviewCard,            // null → 隐藏复习卡(到期 0 / 权威不明 / 未裁决到期)
+    todayTask: todayTask,              // null → 无 server 裁决的今日任务(可能走 browse)
+    browseTask: browseTask,            // todayTask 缺席时的同构 browse 兜底卡
+    taskCard: taskCard,                // 任务卡唯一渲染源 = todayTask || browseTask
+    reviewCard: reviewCard,            // null → 复习空态(诚实排期占位,不整块消失)
     stats: stats,
     examDate: _str(learnerSettings.exam_date),
     todayProgress: {
@@ -495,7 +561,7 @@ function buildLearnViewModel(args) {
       percent: dailyTarget ? Math.min(100, Math.round((todayDone / dailyTarget) * 100)) : 0,
     },
     // 供给面可用性(全空 = 后端未部署/无数据,页面走降级但不崩)
-    hasSupply: !!(nextStation || posters.length || todayTask),
+    hasSupply: !!(nextStation || posters.length || todayTask || browseTask),
   };
 }
 
