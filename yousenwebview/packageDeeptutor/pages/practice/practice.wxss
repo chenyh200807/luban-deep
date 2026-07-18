@@ -113,7 +113,7 @@
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  background: var(--pk-grn);
   border-radius: 8rpx;
   transition: width 0.5s ease;
   min-width: 4rpx;
@@ -157,7 +157,7 @@
   display: flex;
   flex-direction: column;
   gap: 14rpx;
-  border-top: 3rpx solid var(--accent, #3b82f6);
+  border-top: 3rpx solid var(--accent, var(--pk-grn));
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -394,3 +394,7 @@
 .practice-page.paper .chapter-bar-fill { background: var(--pk-grn); }
 .practice-page.paper .report-card { border-left-color: var(--pk-grn); }
 .practice-page.paper .link-arrow { color: var(--pk-grn); }
+
+/* ── 亮暗双态补漏(2026-07-18 审计) ── */
+.practice-page.paper .streak-val { color: #a07f2e; }
+.practice-page.paper:not(.light) .streak-val { color: #e2b264; }
