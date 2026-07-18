@@ -3137,3 +3137,40 @@
 .page.paper .msg .nba-card {
   margin-left: 78rpx;
 }
+
+/* ⑨ 10d 步骤头:「第N步·标题」竹青徽章行(确定性升格,模型分步即触发) */
+.page.paper .md-step-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin: 18rpx 0 6rpx;
+  padding: 12rpx 16rpx 12rpx 20rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid var(--pk-accent-border);
+  background: var(--pk-accent-soft);
+}
+.page.paper .md-step-head::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12rpx;
+  bottom: 12rpx;
+  width: 6rpx;
+  border-radius: 0 4rpx 4rpx 0;
+  background: var(--pk-grn);
+}
+.page.paper .md-step-badge {
+  flex-shrink: 0;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  background: var(--pk-grn);
+  font-size: 20rpx;
+  font-weight: 800;
+  color: #ffffff;
+}
+.page.paper .md-step-title {
+  font-size: 27rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+}

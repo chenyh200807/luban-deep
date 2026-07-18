@@ -418,8 +418,13 @@ module.exports = {
           <block wx:if="{{item.blocks.length}}">
             <block wx:for="{{item.blocks}}" wx:key="id" wx:for-item="b">
 
+              <!-- 步骤头(10d):「第N步·标题」heading 升格为竹青徽章行 -->
+              <view class="md-step-head" wx:if="{{b.type==='heading' && b.stepLabel}}">
+                <text class="md-step-badge" user-select>{{b.stepLabel}}</text>
+                <text class="md-step-title" user-select>{{b.stepTitle || b.raw}}</text>
+              </view>
               <!-- 标题 -->
-              <view class="md-h{{b.level}}" wx:if="{{b.type==='heading'}}">
+              <view class="md-h{{b.level}}" wx:elif="{{b.type==='heading'}}">
                 <rich-text class="md-richtext" user-select nodes="{{b.nodes}}"></rich-text>
               </view>
 

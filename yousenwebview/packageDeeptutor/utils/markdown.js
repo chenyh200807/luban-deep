@@ -130,6 +130,8 @@ function parse(text) {
         level: hMatch[1].length,
         content: parseInline(hMatch[2]),
         raw: hMatch[2],
+        stepLabel: _stepHeadingLabel(hMatch[2]),
+        stepTitle: _stepHeadingTitle(hMatch[2]),
       });
       i++;
       continue;
@@ -512,12 +514,24 @@ function _splitInlineCircledNums(blocks) {
 
 // ── 行内格式解析 ──────────────────────────────────────────
 
+
+// ── 10d 步骤头识别:「第N步·标题」heading 升格为步骤徽章行 ──────────
+var _STEP_HEADING_RE = /^第\s*([0-9一二三四五六七八九十]+)\s*步\s*[·:：、.-]?\s*(.*)$/;
+function _stepHeadingLabel(raw) {
+  var m = String(raw || "").trim().match(_STEP_HEADING_RE);
+  return m ? "第 " + m[1] + " 步" : "";
+}
+function _stepHeadingTitle(raw) {
+  var m = String(raw || "").trim().match(_STEP_HEADING_RE);
+  return m ? (m[2] || "").trim() : "";
+}
+
 function parseInline(text) {
   if (!text || typeof text !== "string") return [{ type: "text", text: "" }];
 
   var spans = [];
   var pattern =
-    /(\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*|__(.+?)__|`(.+?)`|\*(.+?)\*|_(.+?)_)/g;
+    /(\*\*\*(.+?)\*\*\*|==(.+?)==|\*\*(.+?)\*\*|__(.+?)__|`(.+?)`|\*(.+?)\*|_(.+?)_)/g;
 
   var lastIndex = 0;
   var match;
@@ -530,12 +544,15 @@ function parseInline(text) {
     var full = match[1];
     if (full.startsWith("***")) {
       spans.push({ type: "bold_italic", text: match[2] });
+    } else if (full.startsWith("==")) {
+      // 10d 关键词语义:朱红下划线(采分关键词点睛)
+      spans.push({ type: "mark", text: match[3] });
     } else if (full.startsWith("**") || full.startsWith("__")) {
-      spans.push({ type: "bold", text: match[3] || match[4] });
+      spans.push({ type: "bold", text: match[4] || match[5] });
     } else if (full.startsWith("`")) {
-      spans.push({ type: "code", text: match[5] });
+      spans.push({ type: "code", text: match[6] });
     } else {
-      spans.push({ type: "italic", text: match[6] || match[7] });
+      spans.push({ type: "italic", text: match[7] || match[8] });
     }
 
     lastIndex = pattern.lastIndex;
@@ -552,10 +569,15 @@ function _inlineStyleForSpanType(type) {
   if (type === "bold") return "font-weight:700;";
   if (type === "italic") return "font-style:italic;";
   if (type === "bold_italic") return "font-weight:700;font-style:italic;";
+  if (type === "mark") {
+    // 朱红下划线 = 品牌关键词点睛(10d);rich-text 内联样式吃不到 CSS 变量,
+    // #cf4436 是明暗恒定品牌色,可安全硬编码
+    return "font-weight:700;border-bottom:2px solid #cf4436;padding-bottom:1px;";
+  }
   if (type === "code") {
     return (
       "font-family:monospace;" +
-      "background-color:rgba(96,165,250,0.15);" +
+      "background-color:rgba(72,128,106,0.14);" +
       "padding:0 0.28em;" +
       "border-radius:0.28em;"
     );
