@@ -768,8 +768,8 @@ def test_variant_audit_packet_writes_pending_decision_cards(
     assert packet["bank_status"] == "signed"
     assert packet["candidate_count"] == 75
     # 2026-07-17 owner 委托签发落地(S05 74 签/1 排除,eligible 68 = 74 - 6 extension)。
-    # 守卫精神不变:机器绝不自铸签名 —— 每条 eligible 决策必须携带完整签名链
-    # (owner-delegated reviewer + 签名信封摘要 + checks 全真),pending 必须零签名。
+    # MCQ 的选项长度门只适用于实际包含 options 的题面；陈述型变体仍由同一
+    # 签名、内容 identity 与撤发链裁决，不能被错误降为 stale。
     assert packet["eligible_count"] == 68
     assert packet["human_gate"]["machine_must_not_sign"] is True
     signed_rows = [r for r in packet["items"] if r["decision"]["review"]["status"] == "signed"]

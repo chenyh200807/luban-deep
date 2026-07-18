@@ -65,7 +65,13 @@ _ITEM_GOVERNANCE_FIELDS = {
     "eligible",
     "revoked",
     "revocation_refs",
+    "option_style_audit",
 }
+
+# A single-character difference is not a reliable visual tell.  The threshold
+# deliberately targets choices that read like an answer key next to much
+# shorter distractors; it never manufactures longer distractors to pass.
+_OPTION_LENGTH_RATIO_BLOCK = 1.35
 
 
 class PracticeHtmlInvalid(ValueError):
@@ -99,6 +105,65 @@ def _item_content_payload(item: dict[str, Any]) -> dict[str, Any]:
             "source_html_sha256",
         )
     }
+
+
+def _option_visible_length(value: Any) -> int:
+    """Stable, conservative proxy for the text students can compare at a glance."""
+    return len(re.sub(r"\s+", "", str(value or "")))
+
+
+def option_style_audit(options: list[dict[str, Any]]) -> dict[str, Any]:
+    """Measure answer-pattern tells without pretending to judge engineering truth.
+
+    This is intentionally a mechanical audit rather than an automatic rewriter:
+    an overlong correct option must be redesigned from its source blueprint, not
+    padded with filler.  The result is stored with the compiled item so the
+    human ``longest_option_checked`` attestation has reproducible evidence.
+    """
+    lengths = [_option_visible_length(option.get("text")) for option in options]
+    correct_indexes = [
+        index
+        for index, option in enumerate(options)
+        if option.get("is_correct") is True
+    ]
+    if len(correct_indexes) != 1 or len(options) < 2:
+        raise PracticeHtmlInvalid("practice_html_option_style_answer_invalid")
+    correct_index = correct_indexes[0]
+    correct_length = lengths[correct_index]
+    distractor_lengths = [
+        length for index, length in enumerate(lengths) if index != correct_index
+    ]
+    longest_distractor = max(distractor_lengths)
+    ratio = (
+        round(correct_length / longest_distractor, 3)
+        if longest_distractor
+        else float("inf")
+    )
+    unique_longest = correct_length > longest_distractor
+    return {
+        "option_lengths": lengths,
+        "correct_option_index": correct_index,
+        "correct_unique_longest": unique_longest,
+        "correct_longest_distractor_ratio": ratio,
+        "requires_content_rewrite": bool(
+            unique_longest and ratio >= _OPTION_LENGTH_RATIO_BLOCK
+        ),
+    }
+
+
+def _option_style_is_publishable(item: dict[str, Any]) -> bool:
+    # Variant probes share the signing predicate but are statement judgments,
+    # not multiple-choice surfaces. They have no option list to audit.
+    if "options" not in item:
+        return True
+    audit = item.get("option_style_audit")
+    if not isinstance(audit, dict):
+        return False
+    try:
+        expected = option_style_audit(list(item.get("options") or []))
+    except PracticeHtmlInvalid:
+        return False
+    return audit == expected and audit["requires_content_rewrite"] is False
 
 
 def _default_review(content_sha256: str) -> dict[str, Any]:
@@ -136,6 +201,7 @@ def _review_is_signed(item: dict[str, Any]) -> bool:
         and isinstance(checks, dict)
         and all(checks.get(name) is True for name in _REQUIRED_REVIEW_CHECKS)
         and _REQUIRED_REVIEW_ROLES.issubset(roles)
+        and _option_style_is_publishable(item)
     )
 
 
@@ -549,6 +615,7 @@ def compile_practice_surface(
                 "revoked": False,
                 "revocation_refs": [],
             }
+        item["option_style_audit"] = option_style_audit(options)
         item["content_sha256"] = _canonical_sha256(_item_content_payload(item))
         item["review"] = _default_review(item["content_sha256"])
         item["eligible"] = False
@@ -656,11 +723,67 @@ def _replace_array(text: str, marker: str, blocks: list[str]) -> str:
     return text[: start + 1] + rendered + text[end - 1 :]
 
 
+def _presentation_mode(html: str, *, format_kind: str) -> str:
+    """Pick one adapter from the authoring page's stable interaction shape.
+
+    The compiler already owns the format adapters (bank / POOL / normal Q).  This
+    adds only the missing distinction required for selection identity: some
+    pages store the source option index, while others store the display index.
+    """
+    if format_kind == "bank_drawn":
+        return "bank_raw_index"
+    if re.search(r"\borderFor\s*\(", html):
+        return "raw_index_permutation"
+    if re.search(r"\bpickOptOrders\s*\(", html):
+        return "raw_index_permutation"
+    if re.search(r"\boptPerm\s*\(", html):
+        return "display_index_permutation"
+    return "direct_reordered"
+
+
+def _remove_fixed_option_permutations(html: str) -> str:
+    """Delete the one known six-question fixed permutation before compiling it.
+
+    It changes the source objects rather than exposing a source-to-display map,
+    so it cannot be safely combined with canonical ``option_id`` evidence.
+    """
+    if "const perms=" not in html:
+        return html
+    updated, count = re.subn(
+        r"\s*if\(!this\._shuffled\)\{\s*"
+        r"//[^\n]*\n\s*const perms=\[[\s\S]*?"
+        r"this\._shuffled=true;\s*\}",
+        "",
+        html,
+        count=1,
+    )
+    if count != 1 or "const perms=" in updated:
+        raise PracticeHtmlInvalid("practice_html_fixed_option_permutation_unrecognized")
+    return updated
+
+
+def _rename_author_component_mount(html: str) -> str:
+    """Let the projection run after the author page's viewport setup, pre-render."""
+    updated, count = re.subn(
+        r"(?P<indent>\n\s*)componentDidMount\s*\(\)\s*\{",
+        r"\g<indent>__dtAuthorComponentDidMount(){",
+        html,
+        count=1,
+    )
+    if count != 1:
+        raise PracticeHtmlInvalid("practice_html_component_mount_missing")
+    return updated
+
+
 def transform_compiled_practice_html(
     pack_id: str, *, surface: dict[str, Any], items: list[dict[str, Any]], html: str
 ) -> str:
     """把 public 投影限定为 sidecar 同五题，并注入统一证据桥。"""
     format_kind = str(surface.get("format_kind") or "")
+    presentation_mode = _presentation_mode(html, format_kind=format_kind)
+    if presentation_mode == "direct_reordered":
+        html = _remove_fixed_option_permutations(html)
+        html = _rename_author_component_mount(html)
     presentation_ids = [str(item or "") for item in surface.get("variant_ids") or []]
     if len(items) != PRACTICE_LIMIT and len(presentation_ids) == PRACTICE_LIMIT:
         by_id = {str(item.get("variant_id") or ""): item for item in items}
@@ -699,6 +822,7 @@ def transform_compiled_practice_html(
     projection_receipt_js = json.dumps(
         str(surface.get("projection_receipt") or ""), ensure_ascii=False
     )
+    presentation_mode_js = json.dumps(presentation_mode, ensure_ascii=False)
     evidence_items_js = json.dumps(
         [
             {
@@ -710,15 +834,83 @@ def transform_compiled_practice_html(
         ensure_ascii=False,
         separators=(",", ":"),
     )
+    if presentation_mode == "display_index_permutation":
+        presentation_adapter_methods = """
+  buildOptOrder(){ const out={}; const qs=Array.isArray(this.Q)?this.Q:[]; qs.forEach((q,i)=>{ out[i]=this.__dtOptionOrder(i,Array.isArray(q.opts)?q.opts.length:0); }); return out; }
+  optPerm(qslot){ const q=this.__dtQuestionForSlot(qslot); return this.__dtOptionOrder(qslot,q&&Array.isArray(q.opts)?q.opts.length:0); }
+"""
+    elif presentation_mode == "raw_index_permutation" and re.search(
+        r"\bpickOptOrders\s*\(", html
+    ):
+        presentation_adapter_methods = """
+  pickOptOrders(){ const out={}; const qs=Array.isArray(this.Q)?this.Q:[]; qs.forEach((q,i)=>{ out[i]=this.__dtOptionOrder(i,Array.isArray(q.opts)?q.opts.length:0); }); return out; }
+"""
+    elif presentation_mode == "raw_index_permutation":
+        presentation_adapter_methods = """
+  orderFor(qslot){ const q=this.__dtQuestionForSlot(qslot); return this.__dtOptionOrder(qslot,q&&Array.isArray(q.opts)?q.opts.length:0); }
+"""
+    else:
+        presentation_adapter_methods = ""
+    direct_mount = """
+  componentDidMount(){
+    if(typeof this.__dtAuthorComponentDidMount==='function') this.__dtAuthorComponentDidMount();
+    this.__dtPrepareDirectOptions();
+    this.setState({__dtPresentationReady:true});
+  }
+""" if presentation_mode == "direct_reordered" else ""
     bridge = f"""
-{order_methods}  __dtEvidenceAnswers(){{
+{order_methods}{presentation_adapter_methods}{direct_mount}  __dtPresentationMode(){{ return {presentation_mode_js}; }}
+  __dtRandomBelow(upper){{
+    if(!Number.isInteger(upper)||upper<=1) return 0;
+    try{{ const bits=new Uint32Array(1); if(window.crypto&&window.crypto.getRandomValues){{ window.crypto.getRandomValues(bits); return bits[0]%upper; }} }}catch(_){{ }}
+    this.__dtFallbackSeed=((Number(this.__dtFallbackSeed)||Date.now())^0x9e3779b9)>>>0;
+    this.__dtFallbackSeed=(Math.imul(this.__dtFallbackSeed,1664525)+1013904223)>>>0;
+    return this.__dtFallbackSeed%upper;
+  }}
+  __dtOptionOrder(slot,count){{
+    if(!Number.isInteger(count)||count<1) return [];
+    if(!this.__dtOptionOrders) this.__dtOptionOrders={{}};
+    const key=String(slot)+":"+String(count);
+    const cached=this.__dtOptionOrders[key];
+    if(Array.isArray(cached)&&cached.length===count) return cached.slice();
+    const order=Array.from({{length:count}},(_,i)=>i);
+    for(let i=count-1;i>0;i--){{ const j=this.__dtRandomBelow(i+1); const t=order[i]; order[i]=order[j]; order[j]=t; }}
+    this.__dtOptionOrders[key]=order;
+    return order.slice();
+  }}
+  __dtQuestionForSlot(slot){{
+    if(typeof this.qAt==='function'){{ try{{ const q=this.qAt(slot); if(q) return q; }}catch(_){{ }} }}
+    return Array.isArray(this.Q)?this.Q[slot]:null;
+  }}
+  __dtPrepareDirectOptions(){{
+    if(this.__dtDirectOptionsPrepared) return;
+    this.__dtDirectOptionsPrepared=true;
+    const questions=Array.isArray(this.Q)?this.Q:[];
+    questions.forEach((q,slot)=>{{
+      if(!q||!Array.isArray(q.opts)) return;
+      const source=q.opts.slice(); const order=this.__dtOptionOrder(slot,source.length);
+      q.__dtSourceOptionOrder=order.slice(); q.opts=order.map(index=>source[index]);
+    }});
+  }}
+  __dtSelectedSourceIndex(slot,selected){{
+    if(!Number.isInteger(selected)||selected<0) return -1;
+    const mode=this.__dtPresentationMode();
+    if(mode==='display_index_permutation'){{
+      const q=this.__dtQuestionForSlot(slot); const order=this.__dtOptionOrder(slot,q&&Array.isArray(q.opts)?q.opts.length:0);
+      return Number.isInteger(order[selected])?order[selected]:-1;
+    }}
+    if(mode==='direct_reordered'){{
+      const q=this.__dtQuestionForSlot(slot); const order=q&&q.__dtSourceOptionOrder;
+      return Array.isArray(order)&&Number.isInteger(order[selected])?order[selected]:-1;
+    }}
+    return selected;
+  }}
+  __dtEvidenceAnswers(){{
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{{}});
     const exactItems={evidence_items_js};
     return [0,1,2,3,4].map(i=>{{
       const selected=Number(source[i]);
-      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
-      const sourceIndex=Array.isArray(permutation)&&Number.isInteger(selected)
-        ?Number(permutation[selected]):selected;
+      const sourceIndex=this.__dtSelectedSourceIndex(i,selected);
       const item=exactItems[i];
       return item&&Number.isInteger(sourceIndex)&&item.options[sourceIndex]
         ?{{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}}:null;
@@ -735,6 +927,14 @@ def transform_compiled_practice_html(
     return true;
   }}
   setState(patch,...args){{
+    if(this.__dtPresentationMode()==='bank_raw_index'&&patch&&Array.isArray(patch.drawn)){{
+      this.__dtOptionOrders={{}};
+      const drawn=patch.drawn.map((q,slot)=>{{
+        if(q&&Array.isArray(q.opts)) q._order=this.__dtOptionOrder(slot,q.opts.length);
+        return q;
+      }});
+      patch={{...patch,drawn}};
+    }}
     const done=patch&&(patch.finished===true||patch.phase==='result');
     if(done){{
       const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
@@ -802,6 +1002,7 @@ def _validate_authority(value: Any, *, expected_pack: str) -> dict[str, Any]:
             not _ITEM_GOVERNANCE_FIELDS.issubset(item)
             or not re.fullmatch(r"[0-9a-f]{64}", str(item.get("content_sha256") or ""))
             or item.get("content_sha256") != _canonical_sha256(_item_content_payload(item))
+            or item.get("option_style_audit") != option_style_audit(options)
             or not isinstance(item.get("review"), dict)
             or not isinstance(item.get("revocation_refs"), list)
             or item.get("eligible") is not _eligible(item)

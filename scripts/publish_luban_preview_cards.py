@@ -1321,6 +1321,7 @@ def _build_practice_review_packet(authority: dict[str, object]) -> dict[str, obj
                 "surface_id": item["surface_id"],
                 "stem": item["stem"],
                 "options": item["options"],
+                "option_style_audit": item["option_style_audit"],
                 "model_answer": item["model_answer"],
                 "rule_group": item["rule_group"],
                 "content_sha256": item["content_sha256"],

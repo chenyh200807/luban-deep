@@ -834,11 +834,11 @@ def test_retest_receipt_outside_compiled_forward_fails_closed(monkeypatch):
         )
 
 
-def test_signed_first_batch_pack_advertises_retest_supply() -> None:
-    """N01 首批签发后,读模型必须点亮同一签发供给(不回退 signed bank)。"""
+def test_pack_with_material_option_length_tell_is_not_advertised_as_retest_supply() -> None:
+    """N01 有一题须重写时，读模型不得仍把不完整供给投放给学生。"""
     rows = {row["pack_id"]: row for row in list_green_lessons()}
-    assert rows["N01"]["retest_available"] is True
+    assert rows["N01"]["retest_available"] is False
     vm = build_lesson_viewmodel("N01")
-    assert vm["practice_surface"]["available"] is True
-    assert vm["variant_retest"]["available"] is True
+    assert vm["practice_surface"]["available"] is False
+    assert vm["variant_retest"]["available"] is False
     assert vm["variant_retest"]["bank_status"] == "compiled_v3"

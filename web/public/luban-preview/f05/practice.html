@@ -534,14 +534,61 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
+
+  buildOptOrder(){ const out={}; const qs=Array.isArray(this.Q)?this.Q:[]; qs.forEach((q,i)=>{ out[i]=this.__dtOptionOrder(i,Array.isArray(q.opts)?q.opts.length:0); }); return out; }
+  optPerm(qslot){ const q=this.__dtQuestionForSlot(qslot); return this.__dtOptionOrder(qslot,q&&Array.isArray(q.opts)?q.opts.length:0); }
+  __dtPresentationMode(){ return "display_index_permutation"; }
+  __dtRandomBelow(upper){
+    if(!Number.isInteger(upper)||upper<=1) return 0;
+    try{ const bits=new Uint32Array(1); if(window.crypto&&window.crypto.getRandomValues){ window.crypto.getRandomValues(bits); return bits[0]%upper; } }catch(_){ }
+    this.__dtFallbackSeed=((Number(this.__dtFallbackSeed)||Date.now())^0x9e3779b9)>>>0;
+    this.__dtFallbackSeed=(Math.imul(this.__dtFallbackSeed,1664525)+1013904223)>>>0;
+    return this.__dtFallbackSeed%upper;
+  }
+  __dtOptionOrder(slot,count){
+    if(!Number.isInteger(count)||count<1) return [];
+    if(!this.__dtOptionOrders) this.__dtOptionOrders={};
+    const key=String(slot)+":"+String(count);
+    const cached=this.__dtOptionOrders[key];
+    if(Array.isArray(cached)&&cached.length===count) return cached.slice();
+    const order=Array.from({length:count},(_,i)=>i);
+    for(let i=count-1;i>0;i--){ const j=this.__dtRandomBelow(i+1); const t=order[i]; order[i]=order[j]; order[j]=t; }
+    this.__dtOptionOrders[key]=order;
+    return order.slice();
+  }
+  __dtQuestionForSlot(slot){
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(slot); if(q) return q; }catch(_){ } }
+    return Array.isArray(this.Q)?this.Q[slot]:null;
+  }
+  __dtPrepareDirectOptions(){
+    if(this.__dtDirectOptionsPrepared) return;
+    this.__dtDirectOptionsPrepared=true;
+    const questions=Array.isArray(this.Q)?this.Q:[];
+    questions.forEach((q,slot)=>{
+      if(!q||!Array.isArray(q.opts)) return;
+      const source=q.opts.slice(); const order=this.__dtOptionOrder(slot,source.length);
+      q.__dtSourceOptionOrder=order.slice(); q.opts=order.map(index=>source[index]);
+    });
+  }
+  __dtSelectedSourceIndex(slot,selected){
+    if(!Number.isInteger(selected)||selected<0) return -1;
+    const mode=this.__dtPresentationMode();
+    if(mode==='display_index_permutation'){
+      const q=this.__dtQuestionForSlot(slot); const order=this.__dtOptionOrder(slot,q&&Array.isArray(q.opts)?q.opts.length:0);
+      return Number.isInteger(order[selected])?order[selected]:-1;
+    }
+    if(mode==='direct_reordered'){
+      const q=this.__dtQuestionForSlot(slot); const order=q&&q.__dtSourceOptionOrder;
+      return Array.isArray(order)&&Number.isInteger(order[selected])?order[selected]:-1;
+    }
+    return selected;
+  }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
     const exactItems=[{"variant_id":"F05-html-practice-html-q3-c8e8abe7e0c1","options":["F05-html-practice-html-q3-c8e8abe7e0c1:option-1","F05-html-practice-html-q3-c8e8abe7e0c1:option-2","F05-html-practice-html-q3-c8e8abe7e0c1:option-3","F05-html-practice-html-q3-c8e8abe7e0c1:option-4"]},{"variant_id":"F05-html-practice-html-q4-5abd48b93a15","options":["F05-html-practice-html-q4-5abd48b93a15:option-1","F05-html-practice-html-q4-5abd48b93a15:option-2","F05-html-practice-html-q4-5abd48b93a15:option-3","F05-html-practice-html-q4-5abd48b93a15:option-4"]},{"variant_id":"F05-html-practice-html-q5-fc674c9a61fa","options":["F05-html-practice-html-q5-fc674c9a61fa:option-1","F05-html-practice-html-q5-fc674c9a61fa:option-2","F05-html-practice-html-q5-fc674c9a61fa:option-3","F05-html-practice-html-q5-fc674c9a61fa:option-4"]},{"variant_id":"F05-html-practice-html-q6-38da71f9263e","options":["F05-html-practice-html-q6-38da71f9263e:option-1","F05-html-practice-html-q6-38da71f9263e:option-2","F05-html-practice-html-q6-38da71f9263e:option-3","F05-html-practice-html-q6-38da71f9263e:option-4"]},{"variant_id":"F05-html-practice-html-q16-b2706e4117b7","options":["F05-html-practice-html-q16-b2706e4117b7:option-1","F05-html-practice-html-q16-b2706e4117b7:option-2","F05-html-practice-html-q16-b2706e4117b7:option-3","F05-html-practice-html-q16-b2706e4117b7:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
-      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
-      const sourceIndex=Array.isArray(permutation)&&Number.isInteger(selected)
-        ?Number(permutation[selected]):selected;
+      const sourceIndex=this.__dtSelectedSourceIndex(i,selected);
       const item=exactItems[i];
       return item&&Number.isInteger(sourceIndex)&&item.options[sourceIndex]
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
@@ -558,6 +605,14 @@ class Component extends DCLogic {
     return true;
   }
   setState(patch,...args){
+    if(this.__dtPresentationMode()==='bank_raw_index'&&patch&&Array.isArray(patch.drawn)){
+      this.__dtOptionOrders={};
+      const drawn=patch.drawn.map((q,slot)=>{
+        if(q&&Array.isArray(q.opts)) q._order=this.__dtOptionOrder(slot,q.opts.length);
+        return q;
+      });
+      patch={...patch,drawn};
+    }
     const done=patch&&(patch.finished===true||patch.phase==='result');
     if(done){
       const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
