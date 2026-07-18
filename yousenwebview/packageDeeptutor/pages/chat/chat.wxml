@@ -262,8 +262,12 @@ module.exports = {
           </view>
         </view>
 
-        <!-- AI 消息 -->
-          <view class="bubble-ai {{showInternalStatus && item.thinkingStatus && !item.renderableContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length) ? 'bubble-ai-thinking' : ''}}" wx:else>
+        <!-- AI 消息:10d 朱红章头像 + 气泡行 -->
+          <view class="ai-row" wx:else>
+          <view class="ai-avatar" aria-hidden="true">
+            <image class="ai-avatar-img" src="../../images/logo-mark-white.png" mode="aspectFit" />
+          </view>
+          <view class="bubble-ai {{showInternalStatus && item.thinkingStatus && !item.renderableContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length) ? 'bubble-ai-thinking' : ''}}">
             <!-- 思考中：独立状态面板 -->
           <view class="thinking-panel thinking-panel-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}" wx:if="{{showInternalStatus && item.thinkingStatus && !item.renderableContent && !item.blocks.length && !(item.mcqCards && item.mcqCards.length)}}">
             <view class="thinking-rail"></view>
@@ -632,6 +636,7 @@ module.exports = {
 	            </view>
 	          </view>
 	          <text class="runtime-meta-text" user-select wx:if="{{item.runtimeMetaText}}">{{item.runtimeMetaText}}</text>
+        </view>
         </view>
         <!-- 10d 导回钩子：next_best_action 服务端投影单 CTA，「练一道同类题」由它承载。
              设计里的另两选项「加入今日任务 / 我会了→换皮挑战」后端无投影，不做不造。
