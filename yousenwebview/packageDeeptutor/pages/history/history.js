@@ -438,6 +438,7 @@ Page({
     // 五 tab 壳：历史 index=1；内容职责仍只限对话历史与继续对话。
     helpers.syncTabBar(this, 1, {
       hidden: !flags.shouldShowWorkspaceShell(),
+      isDark: helpers.isDarkOr("light"),
     });
     if (!auth.isLoggedIn()) {
       this._showGuestPreview();
@@ -708,6 +709,7 @@ Page({
     });
     helpers.syncTabBar(this, 1, {
       hidden: !flags.shouldShowWorkspaceShell(),
+      isDark: helpers.isDarkOr("light"),
     });
   },
 
