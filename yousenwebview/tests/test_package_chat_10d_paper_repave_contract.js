@@ -154,6 +154,19 @@ assert(
   chatWxml.indexOf("aurora-layer") < 0 && chatWxml.indexOf("bg_horizon") < 0,
   "old aurora/horizon背景 must be replaced by宣纸底",
 );
+// 10d 金句卡回归守卫:bq-line 是引用正文唯一渲染节点,金句卡只换舞台不得藏正文
+// (曾出现 display:none 致引用全篇消失,review CONFIRMED)。
+assert(
+  !/\.md-blockquote[^}]*\.bq-line\s*\{[^}]*display:\s*none/.test(chatWxss),
+  "blockquote bq-line must stay visible — it is the only node rendering quote text",
+);
+// callout 明暗必须走 --pkx-* 派生 token,禁把 light 值硬编码进 .page.paper 基座
+// (rgba(72,128,106,…) 是 light 侧 --pkx-grn 派生值,写死会让暗色态错色)。
+assert(
+  !/\.page\.paper[^{]*md-callout[^}]*\{[^}]*rgba\(72,\s*128,\s*106/.test(chatWxss) &&
+    !/\.page\.paper[^{]*callout-tag[^}]*\{[^}]*rgba\(72,\s*128,\s*106/.test(chatWxss),
+  "paper callout rules must use --pkx-* tokens, not hardcoded light-theme rgba values",
+);
 
 /* ── 8. 流式等待文案 ─────────────────────────────────────── */
 assert(

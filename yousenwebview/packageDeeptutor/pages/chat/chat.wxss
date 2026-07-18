@@ -2448,6 +2448,8 @@
   --pkx-grn-bg: rgba(127, 185, 157, 0.08);
   --pkx-warn-bd: rgba(194, 101, 85, 0.4);
   --pkx-warn-bg: rgba(194, 101, 85, 0.1);
+  --pkx-grn-chip: rgba(127, 185, 157, 0.16);
+  --pkx-warn-chip: rgba(194, 101, 85, 0.18);
   --pkx-ink-soft: rgba(240, 237, 225, 0.07);
   --pkx-ink-soft-strong: rgba(240, 237, 225, 0.12);
   background: var(--pk-paper);
@@ -2459,6 +2461,8 @@
   --pkx-grn-bg: rgba(72, 128, 106, 0.06);
   --pkx-warn-bd: rgba(194, 101, 85, 0.35);
   --pkx-warn-bg: rgba(194, 101, 85, 0.06);
+  --pkx-grn-chip: rgba(72, 128, 106, 0.14);
+  --pkx-warn-chip: rgba(194, 101, 85, 0.14);
   --pkx-ink-soft: rgba(38, 36, 31, 0.05);
   --pkx-ink-soft-strong: rgba(38, 36, 31, 0.1);
   background: var(--pk-paper);
@@ -2998,19 +3002,19 @@
 .page.paper .md-callout-highlight,
 .page.paper .md-callout-tip {
   position: relative;
-  border: 1rpx solid rgba(72, 128, 106, 0.35);
+  border: 1rpx solid var(--pkx-grn-bd);
   border-left-width: 1rpx;
   border-radius: 20rpx;
-  background: rgba(72, 128, 106, 0.05);
+  background: var(--pkx-grn-bg);
   padding: 18rpx 22rpx 18rpx 28rpx;
   overflow: hidden;
 }
 .page.paper .md-callout-warning {
   position: relative;
-  border: 1rpx solid rgba(194, 101, 85, 0.35);
+  border: 1rpx solid var(--pkx-warn-bd);
   border-left-width: 1rpx;
   border-radius: 20rpx;
-  background: rgba(194, 101, 85, 0.06);
+  background: var(--pkx-warn-bg);
   padding: 18rpx 22rpx 18rpx 28rpx;
   overflow: hidden;
 }
@@ -3033,14 +3037,14 @@
 .page.paper .callout-tag-conclusion,
 .page.paper .callout-tag-highlight,
 .page.paper .callout-tag-tip {
-  background: rgba(72, 128, 106, 0.14);
+  background: var(--pkx-grn-chip);
   border: none;
   color: var(--pk-grn);
   border-radius: 999rpx;
   padding: 4rpx 14rpx;
 }
 .page.paper .callout-tag-warning {
-  background: rgba(194, 101, 85, 0.14);
+  background: var(--pkx-warn-chip);
   border: none;
   color: var(--pk-warn);
   border-radius: 999rpx;
@@ -3058,8 +3062,11 @@
   background-size: 24rpx 24rpx;
   color: var(--pk-t1);
 }
+/* bq-line 是引用正文唯一渲染节点(chat.wxml blockquote 分支),金句卡只换舞台
+   不得藏正文——曾误写 display:none 致引用全篇消失,review CONFIRMED 后修正。 */
 .page.paper .md-blockquote .bq-line {
-  display: none;
+  display: block;
+  color: var(--pk-t1);
 }
 
 /* ④ 发送钮 → 墨色圆钮(10d 输入坞) */
@@ -3094,4 +3101,39 @@
   font-size: 28rpx;
   line-height: 1.7;
   color: var(--pk-t1);
+}
+
+/* ⑧ 10d 助手消息:朱红章头像行 + 层次 */
+.ai-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 18rpx;
+}
+.ai-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 16rpx;
+  background: #cf4436;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 4rpx;
+  box-shadow: 0 6rpx 18rpx rgba(207, 68, 54, 0.28);
+}
+.ai-avatar-img {
+  width: 34rpx;
+  height: 34rpx;
+}
+.page.paper .ai-row .bubble-ai {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  border-radius: 8rpx 32rpx 32rpx 32rpx;
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow), 0 10rpx 32rpx rgba(38, 36, 31, 0.05);
+}
+/* 操作行与导练卡缩进对齐气泡(避开头像列),形成三级纵向层次 */
+.page.paper .msg.ai .msg-actions-left,
+.page.paper .msg .nba-card {
+  margin-left: 78rpx;
 }
