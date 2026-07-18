@@ -6,6 +6,9 @@
 //   2. 切到已归档且缓存过期（>TTL）→ 先渲染缓存（loading false），后台 silent fetch(archived=true) 刷新并回写缓存。
 //   3. 切到已归档且无缓存 → loading:true + fetch(archived=true)，resolve 后渲染服务端数据。
 //   4. 切回全部且缓存新鲜 → 零新增网络请求。
+//   5. 串台竞态守卫：归档静默刷新在途时切回全部，归档响应到达后不得覆盖
+//      「全部」tab 的 UI（conversations/groups/totalCount），但归档缓存照常回写。
+//   6. 失败分支同守卫：在途归档请求失败不得把 error 态贴到「全部」tab。
 
 var fs = require("fs");
 var path = require("path");
@@ -50,9 +53,14 @@ function loadHistoryPage(serverConversationsByTab, initialStorage, deferred) {
                 ? serverConversationsByTab.archived || []
                 : serverConversationsByTab.active || [];
             if (deferred) {
-              return new Promise(function (resolve) {
-                pendingResolvers.push(function () {
-                  resolve({ conversations: list });
+              return new Promise(function (resolve, reject) {
+                pendingResolvers.push({
+                  resolve: function () {
+                    resolve({ conversations: list });
+                  },
+                  reject: function () {
+                    reject(new Error("network down"));
+                  },
                 });
               });
             }
@@ -186,8 +194,14 @@ function loadHistoryPage(serverConversationsByTab, initialStorage, deferred) {
   page._fetchCalls = fetchCalls;
   page._resolvePending = function () {
     var resolvers = pendingResolvers.splice(0);
-    resolvers.forEach(function (fn) {
-      fn();
+    resolvers.forEach(function (entry) {
+      entry.resolve();
+    });
+  };
+  page._rejectPending = function () {
+    var resolvers = pendingResolvers.splice(0);
+    resolvers.forEach(function (entry) {
+      entry.reject();
     });
   };
   return page;
@@ -338,6 +352,96 @@ function serverConv(id) {
       coldPage.data.conversations.length === 1 &&
       coldPage.data.conversations[0].id === "srv_arch_cold",
     "no archived cache: fetched archived conversations should render after resolve",
+  );
+
+  // ── 场景 5：串台竞态——归档静默刷新在途时切回全部，响应不得盖 UI ──
+  // 陈旧归档缓存 + 新鲜全部缓存；deferred 挂住归档静默刷新。
+  var racePage = loadHistoryPage(
+    { active: [serverConv("srv_active_race")], archived: [serverConv("srv_arch_race")] },
+    {
+      "history_cache:student-a": cacheEnvelope("cached_active", now),
+      "history_cache_archived:student-a": cacheEnvelope(
+        "cached_arch_stale",
+        now - 120 * 1000,
+      ),
+    },
+    true, // deferred：挂住归档静默刷新，模拟慢响应
+  );
+  racePage.setData({ loading: false, tab: "active" });
+  tapTab(racePage, "archived");
+  assert(
+    racePage._fetchCalls.length === 1 && racePage._fetchCalls[0] === true,
+    "race: switching to archived with stale cache should fire one silent archived fetch",
+  );
+  assert(
+    racePage.data.conversations.length === 1 &&
+      racePage.data.conversations[0].id === "cached_arch_stale",
+    "race: stale archived cache should render instantly while fetch is in flight",
+  );
+  tapTab(racePage, "active");
+  assert(
+    racePage._fetchCalls.length === 1,
+    "race: switching back to active with fresh cache must not issue a new request",
+  );
+  assert(
+    racePage.data.conversations[0].id === "cached_active",
+    "race: active tab should render fresh active cache",
+  );
+  var activeGroupsBefore = racePage.data.groups;
+  racePage._resolvePending(); // 归档响应此刻才到达
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  assert(
+    racePage.data.tab === "active",
+    "race: tab must still be active after late archived response",
+  );
+  assert(
+    racePage.data.conversations.length === 1 &&
+      racePage.data.conversations[0].id === "cached_active",
+    "race: late archived response must NOT overwrite active tab conversations",
+  );
+  assert(
+    racePage.data.totalCount === 1 &&
+      racePage.data.groups === activeGroupsBefore,
+    "race: late archived response must NOT overwrite active tab groups/totalCount",
+  );
+  var raceRewritten =
+    racePage._testStorage["history_cache_archived:student-a"].value;
+  assert(
+    raceRewritten.ts > now - 1000 &&
+      raceRewritten.conversations.length === 1 &&
+      raceRewritten.conversations[0].id === "srv_arch_race",
+    "race: archived cache must still be rewritten with the server snapshot",
+  );
+
+  // ── 场景 6：失败分支守卫——在途归档请求失败不得把 error 贴到全部 tab ──
+  var raceErrPage = loadHistoryPage(
+    { active: [], archived: [] },
+    {
+      "history_cache:student-a": cacheEnvelope("cached_active", now),
+      "history_cache_archived:student-a": cacheEnvelope(
+        "cached_arch_stale",
+        now - 120 * 1000,
+      ),
+    },
+    true,
+  );
+  raceErrPage.setData({ loading: false, tab: "active" });
+  tapTab(raceErrPage, "archived");
+  tapTab(raceErrPage, "active");
+  raceErrPage._rejectPending(); // 归档静默刷新此刻失败
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  assert(
+    raceErrPage.data.error === false,
+    "race error: failed in-flight archived fetch must not paint error onto active tab",
+  );
+  assert(
+    raceErrPage.data.conversations.length === 1 &&
+      raceErrPage.data.conversations[0].id === "cached_active",
+    "race error: active tab data must survive a failed archived fetch",
   );
 
   if (fail) {

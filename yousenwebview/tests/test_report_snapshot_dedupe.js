@@ -79,8 +79,10 @@ function loadReportPage(stubs) {
       if (request === "../../utils/api") return stubs.api;
       if (request === "../../utils/report-cache") {
         return stubs.reportCache || {
-          FRESH_MAX_AGE_MS: 60 * 1000,
           SNAPSHOT_MAX_AGE_MS: 30 * 60 * 1000,
+          writeIfFresher: function (userId, snapshot) {
+            return this.write(userId, snapshot);
+          },
           read: function (userId, maxAgeMs) {
             if (!userId) return null;
             var cached = storage["deeptutor.report.unifiedSnapshot.v2:" + encodeURIComponent(userId)];

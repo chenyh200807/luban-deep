@@ -1,12 +1,15 @@
 // Run: node yousenwebview/tests/test_report_snapshot_swr.js
-// 守「新鲜即跳过网络」(SWR)三件事:
-// (a) 页面进入(首个 onShow)+ 新鲜缓存(< FRESH_MAX_AGE_MS)→ 直接以缓存为终态,
-//     不发任何网络请求,loading 态全清;
-// (b) 页面进入 + 陈旧缓存 → 先 hydrate 缓存(带"上次学情快照"提示)再网络刷新覆盖;
-// (c) 子页返回(后续 onShow)→ 强制刷新,不被新鲜缓存跳过(刚发生学习动作)。
-// 另守:直接调用 _loadReportPage()(不带 freshSkip)保持 SWR 旧行为,不跳网络。
+// 守「缓存秒渲染 + 始终静默刷新」(SWR,无 fresh-skip)五件事:
+// (a) 页面进入 + 新鲜缓存 → 先渲染缓存(带"正在刷新"提示),仍发起网络刷新,
+//     网络回来覆盖并清提示;子页返回(第二次 onShow)同样强制刷新;
+// (b) 页面进入 + 陈旧缓存 → 同上(缓存年龄不改变行为);
+// (c) 网络失败 + 有缓存 → degradedHint 改口为"网络暂时不稳…",不残留"正在刷新…";
+// (d) 无缓存 → 正常网络拉取;
+// (e) 刷新成功 → 经 writeIfFresher(带 fetchStartedAt)写缓存,不走裸 write。
+// 注:「新鲜即跳过网络」门已被对抗 review 证伪删除(会把陈旧/降级快照钉成终态、
+// 吞掉其他 tab 刚完成的学习动作),本测试不再包含 fresh-skip 断言。
 // harness 写法参照 tests/test_report_snapshot_dedupe.js;report-cache 用带
-// readWithMeta/FRESH_MAX_AGE_MS 的 stub,report-snapshot 用真模块(共享 builder 主路径)。
+// read/write/writeIfFresher 的 stub,report-snapshot 用真模块(共享 builder 主路径)。
 var fs = require("fs");
 var path = require("path");
 var vm = require("vm");
@@ -49,27 +52,31 @@ var realReportSnapshot = require(
   path.join(__dirname, "../packageDeeptutor/utils/report-snapshot.js"),
 );
 
-var FRESH_MAX_AGE_MS = 60 * 1000;
 var SNAPSHOT_MAX_AGE_MS = 30 * 60 * 1000;
 
 // 与生产 report-cache 语义一致(严格大于 maxAge 过期),但年龄可控。
+// writeIfFresher 记录调用供 (e) 断言,并落盘到 entries(简化:测试内单飞行,
+// 不复现并发写序竞争,写序真语义由 report-cache 自己的测试守)。
 function makeReportCacheStub(state) {
   return {
-    FRESH_MAX_AGE_MS: FRESH_MAX_AGE_MS,
     SNAPSHOT_MAX_AGE_MS: SNAPSHOT_MAX_AGE_MS,
-    readWithMeta: function (userId, maxAgeMs) {
+    read: function (userId, maxAgeMs) {
       var entry = state.entries[userId];
       if (!entry) return null;
       var ageMs = Date.now() - entry.cachedAt;
       if (ageMs > Number(maxAgeMs || 0)) return null;
-      return { snapshot: entry.snapshot, ageMs: ageMs };
-    },
-    read: function (userId, maxAgeMs) {
-      var hit = this.readWithMeta(userId, maxAgeMs);
-      return hit ? hit.snapshot : null;
+      return entry.snapshot;
     },
     write: function (userId, snapshot) {
-      state.writes.push(userId);
+      state.bareWrites.push(userId);
+      state.entries[userId] = { cachedAt: Date.now(), snapshot: snapshot };
+      return true;
+    },
+    writeIfFresher: function (userId, snapshot, fetchStartedAt) {
+      state.writeIfFresherCalls.push({
+        userId: userId,
+        fetchStartedAt: fetchStartedAt,
+      });
       state.entries[userId] = { cachedAt: Date.now(), snapshot: snapshot };
       return true;
     },
@@ -257,9 +264,12 @@ function createPageInstance(pageDef) {
   return page;
 }
 
-function buildScenario(cacheAgeMs) {
+// opts.cacheAgeMs=null → 无缓存;opts.networkFails=true → unified report 拉取失败。
+function buildScenario(opts) {
+  var cacheAgeMs = opts.cacheAgeMs;
+  var networkFails = opts.networkFails === true;
   var counters = { report: 0, home: 0, lessons: 0 };
-  var cacheState = { entries: {}, writes: [] };
+  var cacheState = { entries: {}, bareWrites: [], writeIfFresherCalls: [] };
   var cachedSnapshot = realReportSnapshot.buildUnifiedReportSnapshot({
     report: makeLearningReport("缓存学情先显示", "beginner"),
     homeDashboard: null,
@@ -279,17 +289,23 @@ function buildScenario(cacheAgeMs) {
       },
       getLearningReport: function () {
         counters.report += 1;
-        return Promise.resolve(
-          makeLearningReport("新鲜学情覆盖缓存", "intermediate"),
-        );
+        return networkFails
+          ? Promise.reject(new Error("simulated network failure"))
+          : Promise.resolve(
+              makeLearningReport("新鲜学情覆盖缓存", "intermediate"),
+            );
       },
       getHomeDashboard: function () {
         counters.home += 1;
-        return Promise.resolve({});
+        return networkFails
+          ? Promise.reject(new Error("simulated network failure"))
+          : Promise.resolve({});
       },
       getLubanLessons: function () {
         counters.lessons += 1;
-        return Promise.resolve(null);
+        return networkFails
+          ? Promise.reject(new Error("simulated network failure"))
+          : Promise.resolve(null);
       },
     },
   });
@@ -300,50 +316,45 @@ function buildScenario(cacheAgeMs) {
   };
 }
 
+var REFRESHING_HINT = "正在刷新，先显示上次学情快照";
+var NETWORK_DEGRADED_HINT = "网络暂时不稳，已显示上次学情快照";
+
 (async function main() {
   await run(
-    "(a) page enter + fresh cache -> zero network, loading cleared",
+    "(a) page enter + fresh cache -> cached render first, still refreshes over network",
     async function () {
-      var s = buildScenario(5 * 1000); // 5s < FRESH_MAX_AGE_MS
+      var s = buildScenario({ cacheAgeMs: 5 * 1000 });
       s.page.onShow();
-      await settle();
+      // 缓存 hydrate 在 _loadReportPage 首个 await 之前同步完成。
       assert(
-        s.counters.report === 0 &&
-          s.counters.home === 0 &&
-          s.counters.lessons === 0,
-        "fresh snapshot on page enter must skip all network reads",
+        s.page.data.focusHint === "缓存学情先显示" &&
+          s.page.data.degradedHint === REFRESHING_HINT,
+        "fresh cache on page enter must render cached data immediately with the refreshing hint",
       );
       assert(
         s.page.data.radarLoading === false &&
           s.page.data.masteryLoading === false &&
           s.page.data.learningBrainLoading === false,
-        "fresh-skip must clear radar/mastery/learningBrain loading flags",
+        "cached hydrate must clear radar/mastery/learningBrain loading flags",
       );
-      assert(
-        s.page.data.focusHint === "缓存学情先显示",
-        "fresh-skip must hydrate page data from the cached snapshot",
-      );
-      assert(
-        s.page.data.degradedHint === "",
-        "fresh-skip is a terminal render — must not show the refreshing-hint copy",
-      );
-
-      // (c) 子页返回:第二次 onShow,缓存仍然新鲜,也必须强制刷新。
-      s.page.onShow();
       await settle();
       assert(
         s.counters.report === 1,
-        "second onShow (sub-page return) must force a unified report refresh despite fresh cache",
+        "fresh cache must NOT skip the network — exactly one unified report read on page enter",
       );
       assert(
         s.page.data.focusHint === "新鲜学情覆盖缓存" &&
-          s.page.data.learnerLevel === "中级",
-        "sub-page return refresh must overwrite cached data with the fresh payload",
+          s.page.data.learnerLevel === "中级" &&
+          s.page.data.degradedHint === "",
+        "network payload must overwrite the cached render and clear the refreshing hint",
       );
+
+      // 子页返回:第二次 onShow(刚发生学习动作)同样强制刷新。
+      s.page.onShow();
+      await settle();
       assert(
-        s.cacheState.writes.length === 1 &&
-          s.cacheState.writes[0] === "student_a",
-        "forced refresh must write the fresh snapshot back to the cache",
+        s.counters.report === 2,
+        "second onShow (sub-page return) must refresh again — onShow behavior is uniform",
       );
     },
   );
@@ -351,18 +362,17 @@ function buildScenario(cacheAgeMs) {
   await run(
     "(b) page enter + stale cache -> hydrate cached first, then refresh",
     async function () {
-      var s = buildScenario(10 * 60 * 1000); // 10min: usable but not fresh
+      var s = buildScenario({ cacheAgeMs: 10 * 60 * 1000 }); // 10min, still < SNAPSHOT_MAX_AGE_MS
       s.page.onShow();
-      // 缓存 hydrate 在 _loadReportPage 首个 await 之前同步完成。
       assert(
         s.page.data.focusHint === "缓存学情先显示" &&
-          s.page.data.degradedHint.indexOf("上次学情快照") >= 0,
+          s.page.data.degradedHint === REFRESHING_HINT,
         "stale cache on page enter must render immediately with the refreshing hint",
       );
       await settle();
       assert(
         s.counters.report === 1,
-        "stale cache on page enter must still trigger exactly one unified report read",
+        "stale cache on page enter must trigger exactly one unified report read",
       );
       assert(
         s.page.data.focusHint === "新鲜学情覆盖缓存" &&
@@ -373,25 +383,46 @@ function buildScenario(cacheAgeMs) {
   );
 
   await run(
-    "direct _loadReportPage() keeps SWR behavior (no fresh-skip without flag)",
+    "(c) network failure + cache -> degraded hint replaces the refreshing hint",
     async function () {
-      var s = buildScenario(5 * 1000); // fresh cache
-      await s.page._loadReportPage();
+      var s = buildScenario({ cacheAgeMs: 5 * 1000, networkFails: true });
+      s.page.onShow();
+      assert(
+        s.page.data.degradedHint === REFRESHING_HINT,
+        "cached hydrate must show the refreshing hint before the network settles",
+      );
+      await settle();
       assert(
         s.counters.report === 1,
-        "_loadReportPage without freshSkip must still refresh over a fresh cache (dedupe-test parity)",
+        "network-failure path must still have attempted the unified report read",
       );
       assert(
-        s.page.data.focusHint === "新鲜学情覆盖缓存",
-        "flagless load must end on the fresh payload",
+        s.page.data.focusHint === "缓存学情先显示",
+        "network failure must keep showing the cached snapshot data",
+      );
+      assert(
+        s.page.data.degradedHint === NETWORK_DEGRADED_HINT,
+        "failed refresh must replace the refreshing hint with the network-degraded hint, not keep '" +
+          REFRESHING_HINT +
+          "'",
+      );
+      assert(
+        s.page.data.radarLoading === false &&
+          s.page.data.masteryLoading === false &&
+          s.page.data.learningBrainLoading === false,
+        "network-failure-with-cache branch must clear loading flags",
+      );
+      assert(
+        s.page.data.reportFallbackActive === false,
+        "cached fallback must not flip reportFallbackActive",
       );
     },
   );
 
   await run(
-    "page enter with no cache -> normal network load",
+    "(d) page enter with no cache -> normal network load",
     async function () {
-      var s = buildScenario(null);
+      var s = buildScenario({ cacheAgeMs: null });
       s.page.onShow();
       await settle();
       assert(
@@ -401,6 +432,30 @@ function buildScenario(cacheAgeMs) {
       assert(
         s.page.data.focusHint === "新鲜学情覆盖缓存",
         "network payload must hydrate the page when no cache exists",
+      );
+    },
+  );
+
+  await run(
+    "(e) successful refresh writes cache via writeIfFresher (ordered write guard)",
+    async function () {
+      var s = buildScenario({ cacheAgeMs: null });
+      var before = Date.now();
+      s.page.onShow();
+      await settle();
+      assert(
+        s.cacheState.writeIfFresherCalls.length === 1 &&
+          s.cacheState.writeIfFresherCalls[0].userId === "student_a",
+        "successful refresh must persist through writeIfFresher exactly once",
+      );
+      assert(
+        typeof s.cacheState.writeIfFresherCalls[0].fetchStartedAt === "number" &&
+          s.cacheState.writeIfFresherCalls[0].fetchStartedAt >= before,
+        "writeIfFresher must receive the fetchStartedAt anchor recorded before the fetch",
+      );
+      assert(
+        s.cacheState.bareWrites.length === 0,
+        "success path must not fall back to the bare write() (would bypass the write-order guard)",
       );
     },
   );

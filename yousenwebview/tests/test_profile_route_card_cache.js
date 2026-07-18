@@ -1,11 +1,11 @@
 // test_profile_route_card_cache.js — 我的页路线卡必须复用学情统一快照缓存
 //
-// 契约（tab 切换性能修复）：
-// (a) 新鲜快照（ageMs < FRESH_MAX_AGE_MS）命中 → routeCard 来自缓存，
-//     整轮不调 getLearningReport / getLubanLessons（重接口 3-5s，省整轮网络）；
+// 契约（缓存秒渲染 + 始终静默刷新；对抗 review 证伪了 fresh-skip 门后修订）：
+// (a) 缓存命中（<= SNAPSHOT_MAX_AGE_MS）→ 先同步渲出缓存 routeCard（秒渲染），
+//     同时**仍然**发起 getLearningReport + getLubanLessons 静默刷新，网络回来
+//     覆盖缓存卡——不存在"新鲜即免网络"分支（FRESH_MAX_AGE_MS 已从基座删除）；
 // (b) 无缓存 → 照旧走网络路径拉 learning-report + lessons；
-// (c) 陈旧命中（FRESH < ageMs <= SNAPSHOT_MAX_AGE_MS）→ 先同步渲出缓存
-//     routeCard，再静默网络刷新覆盖；静默刷新失败不把已渲出的卡片抹回 null；
+// (c) 静默刷新失败不把已渲出的缓存卡抹回 null（保守降级）；
 // (d) 异步返回时用户已切换 → 不 setData（守卫，跟随 report 页惯例）；
 //     profile 只读缓存、绝不写（三元组不全，写入会污染 learn/report 快照消费）。
 
@@ -43,7 +43,6 @@ function flushPromises() {
   });
 }
 
-var FRESH_MAX_AGE_MS = 60 * 1000;
 var SNAPSHOT_MAX_AGE_MS = 30 * 60 * 1000;
 
 // 与 report-cache envelope 契约一致：snapshot.report / snapshot.lessons
@@ -68,7 +67,7 @@ function loadProfilePage(overrides) {
   var calls = {
     getLearningReport: 0,
     getLubanLessons: 0,
-    readWithMeta: [],
+    cacheReads: [],
     cacheWrites: 0,
   };
   var apiMock = Object.assign(
@@ -97,12 +96,10 @@ function loadProfilePage(overrides) {
         return Promise.resolve({ entries: [] });
       },
       getLearningReport: function () {
-        calls.getLearningReport += 1;
-        return Promise.reject(new Error("network should not be hit"));
+        return Promise.reject(new Error("silent refresh failed"));
       },
       getLubanLessons: function () {
-        calls.getLubanLessons += 1;
-        return Promise.reject(new Error("network should not be hit"));
+        return Promise.reject(new Error("silent refresh failed"));
       },
       updateSettings: function () {
         return Promise.resolve({});
@@ -110,15 +107,34 @@ function loadProfilePage(overrides) {
     },
     (overrides && overrides.api) || {},
   );
+  // 计数放在 override 合并之后统一包一层，场景自带的 api override 也被计入。
+  ["getLearningReport", "getLubanLessons"].forEach(function (name) {
+    var inner = apiMock[name];
+    apiMock[name] = function () {
+      calls[name] += 1;
+      return inner.apply(this, arguments);
+    };
+  });
   var authState = { userId: "user-1", loggedIn: true };
+  // 镜像基座 report-cache 现行导出面：read/readWithMeta/write/writeIfFresher/
+  // clear/SNAPSHOT_MAX_AGE_MS——刻意不含 FRESH_MAX_AGE_MS（已删）。
   var reportCacheMock = {
+    read: function (userId, maxAgeMs) {
+      calls.cacheReads.push({ userId: userId, maxAgeMs: maxAgeMs });
+      var hit = overrides && overrides.cacheHit;
+      return hit ? hit.snapshot : null;
+    },
     readWithMeta: function (userId, maxAgeMs) {
-      calls.readWithMeta.push({ userId: userId, maxAgeMs: maxAgeMs });
+      calls.cacheReads.push({ userId: userId, maxAgeMs: maxAgeMs });
       var hit = overrides && overrides.cacheHit;
       return hit ? { snapshot: hit.snapshot, ageMs: hit.ageMs } : null;
     },
-    // profile 是只读消费者；任何 write/clear 调用都是 envelope 污染。
+    // profile 是只读消费者；任何 write/writeIfFresher/clear 调用都是 envelope 污染。
     write: function () {
+      calls.cacheWrites += 1;
+      return true;
+    },
+    writeIfFresher: function () {
       calls.cacheWrites += 1;
       return true;
     },
@@ -126,7 +142,6 @@ function loadProfilePage(overrides) {
       calls.cacheWrites += 1;
       return true;
     },
-    FRESH_MAX_AGE_MS: FRESH_MAX_AGE_MS,
     SNAPSHOT_MAX_AGE_MS: SNAPSHOT_MAX_AGE_MS,
   };
   var helpersMock = {
@@ -234,10 +249,20 @@ function loadProfilePage(overrides) {
 
 (async function main() {
   await run(
-    "(a) fresh cache hit renders routeCard without any network call",
+    "(a) cache hit renders instantly AND still silently refreshes over network",
     async function () {
       var loaded = loadProfilePage({
         cacheHit: { snapshot: makeSnapshot(["F16"]), ageMs: 5 * 1000 },
+        api: {
+          getLearningReport: function () {
+            return Promise.resolve({
+              data: makeSnapshot(["F16", "N01"]).report,
+            });
+          },
+          getLubanLessons: function () {
+            return Promise.resolve({ data: { lessons: [], pack_universe: 40 } });
+          },
+        },
       });
 
       loaded.page.onLoad();
@@ -247,31 +272,52 @@ function loadProfilePage(overrides) {
       assert(
         loaded.page.data.routeCard &&
           loaded.page.data.routeCard.label === "路线 1 / 40 站已点亮",
-        "fresh cache should render routeCard synchronously from snapshot",
+        "cache hit should render routeCard synchronously from snapshot",
       );
 
       await flushPromises();
       await flushPromises();
 
+      // 秒渲染之外必须仍发起静默刷新——60s 内其他 tab 的学习动作
+      // 没有后台纠正通道，"新鲜即免网络"会吞掉它（对抗 review 结论）。
       assert(
-        loaded.calls.getLearningReport === 0,
-        "fresh cache must not call getLearningReport (got " +
+        loaded.calls.getLearningReport === 1,
+        "cache hit must STILL call getLearningReport once (got " +
           loaded.calls.getLearningReport +
           ")",
       );
       assert(
-        loaded.calls.getLubanLessons === 0,
-        "fresh cache must not call getLubanLessons",
+        loaded.calls.getLubanLessons === 1,
+        "cache hit must STILL call getLubanLessons once",
       );
       assert(
-        loaded.calls.readWithMeta.length === 1 &&
-          loaded.calls.readWithMeta[0].userId === "user-1" &&
-          loaded.calls.readWithMeta[0].maxAgeMs === SNAPSHOT_MAX_AGE_MS,
+        loaded.page.data.routeCard &&
+          loaded.page.data.routeCard.label === "路线 2 / 40 站已点亮",
+        "network refresh result must override the cached routeCard",
+      );
+      assert(
+        loaded.calls.cacheReads.length === 1 &&
+          loaded.calls.cacheReads[0].userId === "user-1" &&
+          loaded.calls.cacheReads[0].maxAgeMs === SNAPSHOT_MAX_AGE_MS,
         "cache read must use current userId with SNAPSHOT_MAX_AGE_MS window",
       );
       assert(
         loaded.calls.cacheWrites === 0,
         "profile must never write the report cache (envelope integrity)",
+      );
+    },
+  );
+
+  await run(
+    "(a2) profile.js no longer references the deleted FRESH_MAX_AGE_MS gate",
+    async function () {
+      var source = fs.readFileSync(
+        path.join(__dirname, "../packageDeeptutor/pages/profile/profile.js"),
+        "utf8",
+      );
+      assert(
+        source.indexOf("FRESH_MAX_AGE_MS") === -1,
+        "profile.js must not reference FRESH_MAX_AGE_MS (deleted from report-cache)",
       );
     },
   );

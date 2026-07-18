@@ -292,7 +292,9 @@ Page({
   },
 
   // 我的路线：优先复用学情统一快照(report-cache,learn/report 页网络成功后写入),
-  // 新鲜(<FRESH_MAX_AGE_MS)命中则整轮免网络;陈旧命中先渲染再静默刷新;
+  // 命中则先同步渲出缓存卡(秒渲染),随后**始终**静默网络刷新覆盖——
+  // 不设"新鲜即免网络"门:60s 内其他 tab 完成的学习动作没有任何后台纠正
+  // 通道,免网络会把它吞掉(对抗 review 证伪,基座的 fresh 门常量已删)。
   // 未命中照旧静默拉 learning-report(重 read model)+lessons。
   // 本页只读缓存、绝不写:profile 不拉 homeDashboard,三元组不全,写入会污染
   // learn/report 页的快照消费(单一 envelope 完整性约束)。
@@ -303,14 +305,10 @@ Page({
     var userId = String((auth.getUserId && auth.getUserId()) || "").trim();
     var cachedCard = null;
     if (reportCache && userId) {
-      var cached = reportCache.readWithMeta(userId, reportCache.SNAPSHOT_MAX_AGE_MS);
-      if (cached && cached.snapshot) {
-        cachedCard = _routeCardFromPayloads(cached.snapshot.report, cached.snapshot.lessons);
-        if (cachedCard) {
-          self.setData({ routeCard: cachedCard });
-          // 快照足够新鲜:静默刷新也省掉,到此为止不发网络。
-          if (cached.ageMs < reportCache.FRESH_MAX_AGE_MS) return;
-        }
+      var snapshot = reportCache.read(userId, reportCache.SNAPSHOT_MAX_AGE_MS);
+      if (snapshot) {
+        cachedCard = _routeCardFromPayloads(snapshot.report, snapshot.lessons);
+        if (cachedCard) self.setData({ routeCard: cachedCard });
       }
     }
     var opt = { silent: true };

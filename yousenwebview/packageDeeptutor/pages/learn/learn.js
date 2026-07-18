@@ -23,8 +23,8 @@ try { reportCache = require("../../utils/report-cache"); } catch (_) { reportCac
 try { reportSnapshot = require("../../utils/report-snapshot"); } catch (_) { reportSnapshot = null; }
 var snapshotLayerReady = Boolean(
   reportCache &&
-    typeof reportCache.readWithMeta === "function" &&
-    typeof reportCache.write === "function" &&
+    typeof reportCache.read === "function" &&
+    typeof reportCache.writeIfFresher === "function" &&
     reportSnapshot &&
     typeof reportSnapshot.buildUnifiedReportSnapshot === "function",
 );
@@ -69,12 +69,13 @@ Page({
     const firstRunSnapshot = this._syncFirstRunState();
     this._retryPendingFirstRun(firstRunSnapshot);
     // 首个 onShow 紧跟 onLoad(_load 已由 onLoad 发起),不重复触发;
-    // 后续 onShow = 从站点/练习返回(刚发生学习动作),强制刷新 canonical 投影
-    // (force 绕过快照 fresh 跳过;并发安全由 _load 的单调 request epoch 保证)。
+    // 后续 onShow = 从站点/练习返回(刚发生学习动作),重新加载 canonical 投影
+    // (统一策略=缓存秒渲染+始终静默刷新,无 fresh 门可绕;
+    // 并发安全由 _load 的单调 request epoch 保证)。
     if (!this._shownOnce) {
       this._shownOnce = true;
     } else {
-      this._load({ force: true });
+      this._load();
     }
   },
 
@@ -147,8 +148,9 @@ Page({
         }
         firstRunEntry.markDone(userId, pending);
         that.setData({ firstRunState: "hidden", firstRunProgress: 4 });
-        // 首跑完成刚同步到服务端(学习动作落账),强制刷新绕过快照 fresh 门。
-        that._load({ force: true });
+        // 首跑完成刚同步到服务端(学习动作落账),重新拉取 canonical 投影
+        // (_load 本就始终静默刷新)。
+        that._load();
         return result;
       })
       .catch(function (error) {
@@ -182,8 +184,8 @@ Page({
 
   onPullDownRefresh() {
     var that = this;
-    // 用户显式下拉 = 必须真刷新,不许被快照 fresh 门吞掉。
-    this._load({ force: true }).then(function () {
+    // 用户显式下拉 = 真刷新;_load 本就始终静默刷新,无 fresh 门可吞。
+    this._load().then(function () {
       if (typeof wx !== "undefined" && wx.stopPullDownRefresh) wx.stopPullDownRefresh();
     });
   },
@@ -191,8 +193,8 @@ Page({
   retrySupply() {
     if (!this._requireAuth()) return;
     this.setData({ loading: true, supplyError: "" });
-    // 错误重试 = 用户显式要求重取,绕过快照 fresh 门(否则可能卡在 loading)。
-    return this._load({ force: true });
+    // 错误重试 = 用户显式要求重取;_load 本就始终静默刷新。
+    return this._load();
   },
 
   _requireAuth() {
@@ -220,39 +222,36 @@ Page({
     });
   },
 
-  _load(opts) {
+  _load() {
     var that = this;
     if (!this._requireAuth()) return Promise.resolve(null);
+    // 写序守卫(对抗 review #8/#9):记录发起时刻与发起者身份;网络成功写缓存前
+    // 由 cache 权威层按 fetchStartedAt 裁决写序(孤儿响应=页面已销毁的在途请求,
+    // 其发起时刻早于现存快照写入时刻,在 writeIfFresher 内拒写)。
+    var fetchStartedAt = Date.now();
+    var startedUserId = String((auth.getUserId && auth.getUserId()) || "").trim();
     // 红队 A4:单调 request epoch——onShow 静默刷新与下拉刷新可并发,
     // 只有最新一代请求可 setData,乱序到达的旧响应(旧供给 true)一律丢弃;
     // 刷新 in-flight 期间轻练 CTA 禁点(goLightPractice 检查 _refreshing)。
     var seq = (this._loadSeq || 0) + 1;
     this._loadSeq = seq;
     this._refreshing = true;
-    // ── 快照 SWR:tab redirectTo 冷启动的 3-5s 重 read model 等待期,先用
+    // ── 快照秒渲染:tab redirectTo 冷启动的 3-5s 重 read model 等待期,先用
     // 30min 内快照秒渲染整页(诚实旧投影,非发明数据;组装仍走唯一 builder)。
+    // 统一策略=缓存秒渲染+始终静默刷新——曾有的 fresh-skip 门被对抗 review
+    // 证伪删除(它会把陈旧/降级/半残快照钉成终态),hydrate 后无条件继续刷新。
     var cached = snapshotLayerReady
-      ? reportCache.readWithMeta(auth.getUserId(), reportCache.SNAPSHOT_MAX_AGE_MS)
+      ? reportCache.read(startedUserId, reportCache.SNAPSHOT_MAX_AGE_MS)
       : null;
     if (cached && !this.data.vm) {
       var cachedVm = buildLearnViewModel({
-        homeDashboard: cached.snapshot.homeDashboard || {},
-        report: cached.snapshot.report || {},
-        lessons: cached.snapshot.lessons || {},
+        // builder 把空对象 homeDashboard/lessons 归一化为 null,消费侧补 {}。
+        homeDashboard: cached.homeDashboard || {},
+        report: cached.report || {},
+        lessons: cached.lessons || {},
       });
       // 与下方 lessons 快通道同一门:空态投影不上屏(宁等真数据,不闪空态)。
       if (cachedVm.hasSupply) this.setData({ vm: cachedVm, loading: false, supplyError: "" });
-    }
-    // 新鲜(60s 内)即跳过三路网络请求;唯一豁免 = 显式 force(子页返回/下拉/
-    // 重试,刚发生学习动作或用户显式要求)。未上屏(无 vm)时不许跳过,防卡加载态。
-    if (
-      cached &&
-      cached.ageMs < reportCache.FRESH_MAX_AGE_MS &&
-      !(opts && opts.force) &&
-      this.data.vm
-    ) {
-      this._refreshing = false;
-      return Promise.resolve(this.data.vm);
     }
     // 页面拥有 returnTo 语义；API 只清理过期 token 并返回错误，不能抢先跳默认登录。
     var opt = { silent: true, suppressAuthRedirect: true };
@@ -307,13 +306,20 @@ Page({
       that.setData({ vm: vm, loading: false, supplyError: "" });
       // 第二合法写者(与学情页共用唯一组装权威 buildUnifiedReportSnapshot):
       // report 无效(如 unwrap 出的空对象)时 builder 返回 null 即不写,防污染。
-      if (snapshotLayerReady) {
+      // 写侧守卫(review #8/#9):re-check 当前登录者仍是发起者(用户中途切换
+      // 一律拒写),再经 writeIfFresher 按 fetchStartedAt 在 cache 权威层裁决
+      // 写序(孤儿响应拒写)。
+      if (
+        snapshotLayerReady &&
+        auth.isLoggedIn() &&
+        String((auth.getUserId && auth.getUserId()) || "").trim() === startedUserId
+      ) {
         var snap = reportSnapshot.buildUnifiedReportSnapshot({
           report: report,
           homeDashboard: homeDashboard,
           lessons: lessons,
         });
-        if (snap) reportCache.write(auth.getUserId(), snap);
+        if (snap) reportCache.writeIfFresher(startedUserId, snap, fetchStartedAt);
       }
       return vm;
     }).catch(function (err) {

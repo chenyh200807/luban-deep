@@ -51,17 +51,18 @@ function chapterMasteryFromRadar(dimensions) {
   return mastery;
 }
 
+function _objectWithKeys(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return Object.keys(value).length > 0 ? value : null;
+}
+
 function buildUnifiedReportSnapshot(input) {
   var report = input && input.report;
   if (!isLearningReportPayload(report)) return null;
-  var homeDashboard =
-    input && input.homeDashboard && typeof input.homeDashboard === "object"
-      ? input.homeDashboard
-      : null;
-  var lessons =
-    input && input.lessons && typeof input.lessons === "object"
-      ? input.lessons
-      : null;
+  // 空对象归一化为 null:learn 的 settle() 会把失败源映成 {},若原样入快照,
+  // 消费页会把"缺失"误当"有数据"渲染出半残模块。null=统一的"缺失"语义。
+  var homeDashboard = _objectWithKeys(input && input.homeDashboard);
+  var lessons = _objectWithKeys(input && input.lessons);
   var overview = report.overview || {};
   var mastery = report.mastery || {};
   var weakNodes = ((report.learning_brain || {}).weak_points || []).map(

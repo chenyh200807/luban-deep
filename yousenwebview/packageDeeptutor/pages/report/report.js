@@ -12,11 +12,14 @@ const { buildCanonicalLearningTask } = require("../../utils/learn-view-model");
 const { buildReportHomeViewModel } = require("../../utils/report-home-view-model");
 const reportCache = require("../../utils/report-cache");
 // 快照组装唯一权威(生产运行时):utils/report-snapshot。缓存年龄阈值唯一权威:
-// reportCache.SNAPSHOT_MAX_AGE_MS / FRESH_MAX_AGE_MS(本地常量副本已删)。
+// reportCache.SNAPSHOT_MAX_AGE_MS(本地常量副本已删)。
 const reportSnapshot = require("../../utils/report-snapshot");
 const taxonomy = require("../../utils/taxonomy");
 
 const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
+// cached hydrate 的临时提示文案。网络失败兜底分支要用同一字符串比较后替换成
+// 真实降级文案,提成 const 避免字符串双份漂移。
+const REPORT_CACHED_REFRESHING_HINT = "正在刷新，先显示上次学情快照";
 const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";
 const ASSESSMENT_PENDING_TRAINING_ACTION_KEY =
   "deeptutor.report.pendingTrainingAction";
@@ -1341,9 +1344,6 @@ Page({
   _radarImageSignature: "",
   _radarSignature: "",
   _reportSnapshot: null,
-  // 「页面进入 vs 子页返回」判别位:首个 onShow=页面进入(允许新鲜缓存跳过网络),
-  // 后续 onShow=子页返回(刚发生学习动作,强制刷新)。数据加载只由 onShow 触发。
-  _shownOnce: false,
 
   onLoad(options) {
     const windowInfo = helpers.getWindowInfo();
@@ -1445,8 +1445,6 @@ Page({
       this._syncExperienceSections();
       return;
     }
-    var reportFirstShow = !this._shownOnce;
-    this._shownOnce = true;
     this.setData({
       isGuestPreview: false,
       radarLoading: true,
@@ -1457,7 +1455,7 @@ Page({
       learningBrainError: false,
       learningBrainEmpty: false,
     });
-    this._loadReportPage({ freshSkip: reportFirstShow });
+    this._loadReportPage();
   },
 
   onHide() {
@@ -1505,8 +1503,7 @@ Page({
     });
   },
 
-  async _loadReportPage(options) {
-    var opts = options || {};
+  async _loadReportPage() {
     var userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
     var generation = Number(this._reportLoadGeneration || 0) + 1;
     this._reportLoadGeneration = generation;
@@ -1514,40 +1511,21 @@ Page({
       var currentUserId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
       return !!userId && page._reportLoadGeneration === generation && currentUserId === userId;
     };
-    // readWithMeta 带回快照年龄供「新鲜即跳过网络」判定;typeof 守卫兜底旧
-    // vm 测试 harness 的 report-cache stub(只有 read/write),行为与原 read 等价。
-    var cachedHit =
-      typeof reportCache.readWithMeta === "function"
-        ? reportCache.readWithMeta(userId, reportCache.SNAPSHOT_MAX_AGE_MS)
-        : null;
-    var cachedSnapshot = cachedHit
-      ? cachedHit.snapshot
-      : reportCache.read(userId, reportCache.SNAPSHOT_MAX_AGE_MS);
+    // SWR:缓存命中先秒渲染(带"正在刷新"提示),随后**无条件**静默网络刷新。
+    // 不做"新鲜即跳过网络"——那会把陈旧/降级快照钉成终态,吞掉刚完成的学习动作。
+    var cachedSnapshot = reportCache.read(userId, reportCache.SNAPSHOT_MAX_AGE_MS);
     if (cachedSnapshot && isCurrentRequest(this)) {
-      // 「新鲜即跳过网络」:仅页面进入(首个 onShow,opts.freshSkip=true)且快照
-      // 年龄 < FRESH_MAX_AGE_MS 时,以缓存为终态渲染并省掉网络重拉;
-      // 子页返回(后续 onShow,刚发生学习动作)不带 freshSkip,保持强制刷新。
-      if (
-        opts.freshSkip &&
-        cachedHit &&
-        cachedHit.ageMs < reportCache.FRESH_MAX_AGE_MS
-      ) {
-        this._reportSnapshot = cachedSnapshot;
-        // 非 cached hydrate:降级提示如实反映快照自身状态(不显示"正在刷新"),
-        // 且 _hydrateFromUnifiedReport 会清掉 radar/mastery/learningBrain 全部 loading 态。
-        this._hydrateFromUnifiedReport(cachedSnapshot, {});
-        this._syncExperienceSections();
-        return;
-      }
       this._reportSnapshot = cachedSnapshot;
       this._hydrateFromUnifiedReport(cachedSnapshot, { cached: true });
       this._syncExperienceSections();
     }
+    // 写序守卫锚点:晚于 fetchStartedAt 的既有缓存不被本次结果回退覆盖。
+    var fetchStartedAt = Date.now();
     var snapshot = await this._loadReportSnapshot();
     if (!isCurrentRequest(this)) return;
     if (snapshot) {
       this._reportSnapshot = snapshot;
-      reportCache.write(userId, snapshot);
+      reportCache.writeIfFresher(userId, snapshot, fetchStartedAt);
       this._hydrateFromUnifiedReport(snapshot);
       this._syncExperienceSections();
       return;
@@ -1557,8 +1535,13 @@ Page({
         radarLoading: false,
         masteryLoading: false,
         learningBrainLoading: false,
+        // cached hydrate 设下的"正在刷新"是临时态,刷新已失败必须改口成真实
+        // 降级文案;其余非空 degradedHint(快照自身的真实降级提示)如实保留。
         degradedHint:
-          this.data.degradedHint || "网络暂时不稳，已显示上次学情快照",
+          !this.data.degradedHint ||
+          this.data.degradedHint === REPORT_CACHED_REFRESHING_HINT
+            ? "网络暂时不稳，已显示上次学情快照"
+            : this.data.degradedHint,
         degradedSources:
           this.data.degradedSources && this.data.degradedSources.length
             ? this.data.degradedSources
@@ -1635,7 +1618,7 @@ Page({
         learningBrainLoading: false,
         learningBrainError: false,
         degradedHint: opts.cached
-          ? "正在刷新，先显示上次学情快照"
+          ? REPORT_CACHED_REFRESHING_HINT
           : snapshot.degraded
             ? _buildDegradedHint(snapshot.degradedSources)
             : "",

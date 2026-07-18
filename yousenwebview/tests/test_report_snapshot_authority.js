@@ -24,8 +24,9 @@ var reportSnapshot = require(builderPath);
 
 // --- readWithMeta 语义 ---
 assert.strictEqual(typeof cache.readWithMeta, "function");
-assert.ok(cache.FRESH_MAX_AGE_MS > 0 && cache.FRESH_MAX_AGE_MS < cache.SNAPSHOT_MAX_AGE_MS,
-  "fresh window must be shorter than snapshot ttl");
+assert.ok(cache.SNAPSHOT_MAX_AGE_MS > 0, "snapshot ttl must exist");
+assert.strictEqual(cache.FRESH_MAX_AGE_MS, undefined,
+  "fresh-skip gate was refuted by adversarial review and must stay deleted");
 
 var snapshotA = { report: { user_id: "student_a", overview: {} } };
 assert.strictEqual(cache.write("student_a", snapshotA), true);
@@ -44,9 +45,27 @@ assert.strictEqual(cache.readWithMeta("student_a", 60 * 1000), null,
 var staleHit = cache.readWithMeta("student_a", cache.SNAPSHOT_MAX_AGE_MS);
 assert.ok(staleHit && staleHit.ageMs >= 2 * 60 * 1000 - 50,
   "ageMs must reflect the backdated write");
-assert.ok(staleHit.ageMs > cache.FRESH_MAX_AGE_MS,
-  "a 2min-old snapshot is hydratable but not fresh — the SWR discriminator");
+
+// 时钟回拨:cachedAt 在未来 → 负年龄快照必须视为无效(否则永不过期,
+// 且会把所有静默刷新永久压制——review 发现 #4)。
+storage[envelopeKey].value.cachedAt = Date.now() + 10 * 60 * 1000;
+assert.strictEqual(cache.readWithMeta("student_a", cache.SNAPSHOT_MAX_AGE_MS), null,
+  "future-stamped snapshot (negative age) must not hydrate");
 storage[envelopeKey].value.cachedAt = Date.now();
+
+// --- writeIfFresher 写序守卫(双写者 ABA 防护) ---
+var snapshotA2 = { report: { user_id: "student_a", overview: { focus_hint: "新" } } };
+var beforeExisting = Date.now() - 60 * 1000; // 孤儿请求:发起早于现存快照写入
+assert.strictEqual(cache.writeIfFresher("student_a", snapshotA2, beforeExisting), false,
+  "orphan response fetched before the existing snapshot was written must not overwrite it");
+assert.deepStrictEqual(cache.read("student_a", cache.SNAPSHOT_MAX_AGE_MS), snapshotA,
+  "existing snapshot survives the orphan write attempt");
+assert.strictEqual(cache.writeIfFresher("student_a", snapshotA2, Date.now()), true,
+  "a fetch started after the existing write wins");
+assert.deepStrictEqual(cache.read("student_a", cache.SNAPSHOT_MAX_AGE_MS), snapshotA2);
+assert.strictEqual(cache.writeIfFresher("student_a", snapshotA, 0), true,
+  "missing fetchStartedAt degrades to plain write");
+cache.write("student_a", snapshotA);
 assert.deepStrictEqual(cache.read("student_a", cache.SNAPSHOT_MAX_AGE_MS), snapshotA,
   "read stays a thin view over readWithMeta");
 
@@ -112,6 +131,16 @@ var builtTruncated = reportSnapshot.buildUnifiedReportSnapshot({ report: truncat
 assert.deepStrictEqual(builtTruncated.degradedSources, ["learning_report_window"]);
 assert.strictEqual(builtTruncated.degraded, true);
 assert.strictEqual(builtTruncated.homeDashboard, null, "missing dashboard degrades to null, not {}");
+
+// settle() 把失败源映成 {} —— builder 必须归一化为 null(review 发现 #3:
+// 空对象入快照会让消费页把"缺失"当"有数据"渲染半残模块)。
+var builtEmptySources = reportSnapshot.buildUnifiedReportSnapshot({
+  report: validReport,
+  homeDashboard: {},
+  lessons: {},
+});
+assert.strictEqual(builtEmptySources.homeDashboard, null, "settled-to-{} dashboard normalizes to null");
+assert.strictEqual(builtEmptySources.lessons, null, "settled-to-{} lessons normalizes to null");
 
 delete global.wx;
 console.log("test_report_snapshot_authority: all assertions passed");
