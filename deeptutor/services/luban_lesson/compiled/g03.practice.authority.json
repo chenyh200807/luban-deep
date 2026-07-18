@@ -24,17 +24,9 @@
         "G03-html-practice-html-q5-a89c9f731582",
         "G03-html-practice-html-q15-f68850feb673"
       ],
-      "eligible_variant_ids": [
-        "G03-html-practice-html-q1-eea4184844be",
-        "G03-html-practice-html-q2-aae75cddc48d",
-        "G03-html-practice-html-q4-8082ee20ea91",
-        "G03-html-practice-html-q5-a89c9f731582",
-        "G03-html-practice-html-q6-5cd8a117649b",
-        "G03-html-practice-html-q9-6430051dff96",
-        "G03-html-practice-html-q15-f68850feb673"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZWVhNDE4NDg0NGJlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1hYWU3NWNkZGM0OGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTgwODJlZTIwZWE5MSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtYTg5YzlmNzMxNTgyIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZjY4ODUwZmViNjczIl0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjNlZGQ4NjVlNWE0YjI5MzRlZTg4OThiMjE4NmY1NTM4MzAzNDZiNzViNjg1MzNjNTEzMzhjZmIwODk4YTFkNDIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiOGVkZDQ5MTZlMDhjMGRhNGZkNzVkZmU2MWVkMmQ4YmY2MTcwZWM2OTUzZGZmYjNlZTA1M2VkZjgzZDRmNzc4ZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "92bd4a938334c12acf97fb26641033f67f5114cf670656d76a4cb090d34d1f4a"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZWVhNDE4NDg0NGJlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1hYWU3NWNkZGM0OGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTgwODJlZTIwZWE5MSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtYTg5YzlmNzMxNTgyIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZjY4ODUwZmViNjczIl0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImEyZmUwODNmZmUyYjkwMmFkNWJhMWU0YmEzNzZmODJkZDE2NTI5MDAzNjk5M2IxYTllMzc2OGE5NzE4YzFlNjgiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "dd16de8bef219fadbf0318c381f3eb6200ac315359c26bd9678b7de3893aa824"
     }
   ],
   "items": [
@@ -87,41 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q1",
-      "source_anchor": "kc:1A413030_091_0167:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+      "source_anchor": "",
+      "source_sha256": "",
       "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-castinplace-pile-methods",
-      "skeleton_id": "g03-skel-灌注桩成孔四类分类",
-      "probe_role": "anchor",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "baf63138de9106f2ba3271d28ca25fb700e30a88099b286686daefd8ef95fa18",
       "review": {
-        "status": "signed",
-        "verdict": "approved",
+        "status": "pending",
+        "verdict": "pending",
         "reviewed_content_sha256": "baf63138de9106f2ba3271d28ca25fb700e30a88099b286686daefd8ef95fa18",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
+        "signatures": [],
         "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
-        },
-        "note": "灌注桩按成孔工法分泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔四类, 教材 kc:...091_0167:0 直引。三联 anchor。"
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
       },
-      "eligible": true
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -172,41 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q2",
-      "source_anchor": "kc:1A413030_090_0165:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+      "source_anchor": "",
+      "source_sha256": "",
       "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-precast-pile-strength",
-      "skeleton_id": "g03-skel-预制桩强度70-100",
-      "probe_role": "anchor",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "34bf492ff79f97a753945d39284fde9561258f5bda8f98a8475cb0bbe96a4219",
       "review": {
-        "status": "signed",
-        "verdict": "approved",
+        "status": "pending",
+        "verdict": "pending",
         "reviewed_content_sha256": "34bf492ff79f97a753945d39284fde9561258f5bda8f98a8475cb0bbe96a4219",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
+        "signatures": [],
         "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
-        },
-        "note": "预制桩强度达设计≥70%起吊/≥100%运输打桩, 两点吊吊点距端0.2L, 教材 kc:...090_0165:0 直引。"
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
       },
-      "eligible": true
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -257,41 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q4",
-      "source_anchor": "exam:2017:第26题",
-      "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
+      "source_anchor": "",
+      "source_sha256": "",
       "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-hammer-driving-mode",
-      "skeleton_id": "g03-skel-锤击重锤低击",
-      "probe_role": "anchor",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "403d2a4d08d39f0dd05cd2ab01ad18c77960ba56cc2ab6b1aab584fe59825af2",
       "review": {
-        "status": "signed",
-        "verdict": "approved",
+        "status": "pending",
+        "verdict": "pending",
         "reviewed_content_sha256": "403d2a4d08d39f0dd05cd2ab01ad18c77960ba56cc2ab6b1aab584fe59825af2",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
+        "signatures": [],
         "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
-        },
-        "note": "锤击法沉桩宜重锤低击(低锤重打)减小冲击峰值保桩身, 真题 exam:2017:第26题 支持。"
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
       },
-      "eligible": true
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -342,41 +298,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q5",
-      "source_anchor": "kc:1A413030_091_0166:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+      "source_anchor": "",
+      "source_sha256": "",
       "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-static-press-pile",
-      "skeleton_id": "g03-skel-静压桩终止沉桩控制",
-      "probe_role": "anchor",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "35174eb3a64667da3427afc750afb566ddd40c41a34a53b9dbdb62973fd43228",
       "review": {
-        "status": "signed",
-        "verdict": "approved",
+        "status": "pending",
+        "verdict": "pending",
         "reviewed_content_sha256": "35174eb3a64667da3427afc750afb566ddd40c41a34a53b9dbdb62973fd43228",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
+        "signatures": [],
         "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
-        },
-        "note": "试压桩≥3根/不得边压边挖/终止沉桩摩擦桩标高为主端承桩压力为主, 教材 kc:...091_0166:0 直引。"
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
       },
-      "eligible": true
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -427,41 +371,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q6",
-      "source_anchor": "kc:1A413030_091_0168:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+      "source_anchor": "",
+      "source_sha256": "",
       "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-castinplace-pile-methods",
-      "skeleton_id": "g03-skel-泥浆护壁回转钻流程",
-      "probe_role": "immediate_confirm",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "5322dd7f71cd4ab6b90e0214d93e298f35b5682caed1e8f3bf087af54e686f7b",
       "review": {
-        "status": "signed",
-        "verdict": "approved",
+        "status": "pending",
+        "verdict": "pending",
         "reviewed_content_sha256": "5322dd7f71cd4ab6b90e0214d93e298f35b5682caed1e8f3bf087af54e686f7b",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
+        "signatures": [],
         "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
-        },
-        "note": "泥浆护壁回转钻成孔流程=放线→埋护筒→成孔→清孔→下钢筋笼→水下浇筑→成桩, 教材 kc:...091_0168:0 直引。三联 immediate_confirm(同灌注桩工法 fact)。"
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
       },
-      "eligible": true
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -658,41 +590,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q9",
-      "source_anchor": "kc:1A413030_092_0171:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+      "source_anchor": "",
+      "source_sha256": "",
       "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-castinplace-pile-methods",
-      "skeleton_id": "g03-skel-沉管灌注桩工法",
-      "probe_role": "d1_probe",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "6fe1c68436966aa132648c88acf811cad7438a447f20f7eb9025cea9e9d00fcd",
       "review": {
-        "status": "signed",
-        "verdict": "approved",
+        "status": "pending",
+        "verdict": "pending",
         "reviewed_content_sha256": "6fe1c68436966aa132648c88acf811cad7438a447f20f7eb9025cea9e9d00fcd",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
+        "signatures": [],
         "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
-        },
-        "note": "沉管灌注桩除单打法外有复打法/反插法; 边振边拔管边浇筑→下钢筋笼→成桩, 教材 kc:...092_0171:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
       },
-      "eligible": true
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -1108,41 +1028,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q15",
-      "source_anchor": "exam:2016:第30题",
-      "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
+      "source_anchor": "",
+      "source_sha256": "",
       "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-castinplace-pile-diagnosis",
-      "skeleton_id": "g03-skel-灌注桩诊断补写",
-      "probe_role": "anchor",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a7eb934b131a81210c8faf2510a5c968fa5e6db55d909da7c5bdcf1e20b4725e",
       "review": {
-        "status": "signed",
-        "verdict": "approved",
+        "status": "pending",
+        "verdict": "pending",
         "reviewed_content_sha256": "a7eb934b131a81210c8faf2510a5c968fa5e6db55d909da7c5bdcf1e20b4725e",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
+        "signatures": [],
         "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
-        },
-        "note": "诊断: ①超灌应0.8~1.0m ②甲级灌注桩完整性≥30%=270根 ③断裂五因+具体防治, 三处均正确, 真题 exam:2016:第30题 综合。工单: longest-option。"
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
       },
-      "eligible": true
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "a9d219fcfd42434a65f8744178a00a9a79050805be8ea142df42836067ed48e9"
