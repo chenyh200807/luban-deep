@@ -286,7 +286,7 @@ Page({
     // 首屏快通道:绿灯站列表是静态 manifest 投影(live 实测 ~0.15s),
     // dashboard/learning-report 是重 read model(live 实测 3-5s)。
     // 冷启动先用 lessons 画出供给，但关闭任务 authority/事实计数/动作；
-    // 缺失读模型不能被归一化成 0/41，也不能生成可点击 browse 处方。
+    // 缺失读模型不能被归一化成 0/40，也不能生成可点击 browse 处方。
     lessonsPromise.then(
       function (lessonsRes) {
         if (seq !== that._loadSeq) return; // 乱序旧响应,丢弃
