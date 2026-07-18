@@ -234,6 +234,53 @@ def test_confirm_then_d1_then_followup_use_chained_canonical_terminals() -> None
     assert after_followup["followup"] == "completed"
 
 
+@pytest.mark.parametrize(
+    ("stored_item_id", "item_ref"),
+    [
+        (
+            "550e8400-e29b-41d4-a716-446655440000",
+            "550E8400E29B41D4A716446655440000",
+        ),
+        (
+            "550e8400e29b41d4a716446655440000",
+            "550E8400-E29B-41D4-A716-446655440000",
+        ),
+    ],
+)
+def test_item_event_refs_bind_across_uuid_representations(
+    stored_item_id: str,
+    item_ref: str,
+) -> None:
+    events = _completion("uuidrefs", at="2026-07-18T09:00:00+08:00", correct=True)
+    events[0].event_id = stored_item_id
+    events[1].payload_json["item_event_refs"] = [item_ref]
+
+    assert canonical_retest_completion_role(events, terminal=events[1]) == "forward_practice"
+    assert _statuses(_journey(events))["practice"] == "completed"
+
+
+def test_cycle_anchor_and_terminal_identity_bind_across_uuid_representations() -> None:
+    forward = _completion("uuidforward", at="2026-07-18T09:00:00+08:00")
+    forward[1].event_id = "550e8400-e29b-41d4-a716-446655440000"
+    confirm = _completion(
+        "uuidconfirm",
+        at="2026-07-18T09:05:00+08:00",
+        correct=True,
+        probe_role="immediate_confirm",
+        cycle_anchor="550E8400E29B41D4A716446655440000",
+    )
+
+    statuses = _statuses(_journey([*forward, *confirm]))
+
+    assert statuses["immediate_confirm"] == "completed"
+    assert validate_immediate_confirm_parent(
+        forward,
+        pack_id="N01",
+        parent_terminal_id="550E8400E29B41D4A716446655440000",
+        fact_ids={"fact-n01"},
+    ) is True
+
+
 def test_exact_due_item_controls_current_validation_stage() -> None:
     forward = _completion("forward", at="2026-07-18T09:00:00+08:00", correct=True)
     due = [{"pack_id": "N01", "state": "fresh", "probe_id": "rvp", "due_at": "now"}]

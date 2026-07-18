@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 import json
 import sqlite3
+import uuid
 
 import pytest
 
+from deeptutor.services.learner_state.event_identity import canonical_event_id
 from deeptutor.services.learner_state.evidence_lifecycle import (
     committed_retest_completion_ids,
     is_learning_evidence_event,
@@ -164,6 +166,51 @@ def _make_service(tmp_path, *, core_store=None):
         path_service=_PathServiceStub(tmp_path),
         member_service=_FakeMemberService(),
         core_store=core_store or _DisabledCoreStoreStub(),
+    )
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "550e8400-e29b-41d4-a716-446655440000",
+        "550E8400E29B41D4A716446655440000",
+        "550E8400-E29B-41D4-A716-446655440000",
+    ],
+)
+def test_canonical_event_id_unifies_uuid_forms(raw: str) -> None:
+    assert canonical_event_id(raw) == "550e8400e29b41d4a716446655440000"
+
+
+def test_canonical_event_id_preserves_trimmed_opaque_identity() -> None:
+    assert canonical_event_id("  terminal_forward  ") == "terminal_forward"
+
+
+def test_generated_event_ids_use_canonical_uuid_identity(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    generated = [
+        service.append_memory_event(
+            "student_demo",
+            source_feature="construction_grading",
+            source_id="turn:generated",
+            memory_kind="learning_evidence",
+            payload_json={"event_type": "learning_evidence"},
+            dedupe_key="generated-random",
+        ),
+        service.append_memory_event(
+            "student_demo",
+            source_feature="assessment_testset",
+            source_id="completion:q1",
+            memory_kind="learning_evidence",
+            payload_json={"event_type": "learning_evidence"},
+            dedupe_key="luban_retest_item:generated-stable",
+        ),
+    ]
+
+    assert all(
+        len(event.event_id) == 32
+        and event.event_id == canonical_event_id(event.event_id)
+        and event.event_id.islower()
+        for event in generated
     )
 
 
@@ -750,7 +797,7 @@ def test_taxonomy_superseded_local_events_are_skipped(tmp_path) -> None:
     assert live.event_id in memory_ids
 
 
-def test_read_learning_evidence_event_local_hit_miss_and_cache(tmp_path) -> None:
+def test_read_learning_evidence_event_local_hit_and_current_wal_state(tmp_path) -> None:
     service = _make_service(tmp_path)
     saved = service.append_memory_event(
         "student_demo",
@@ -769,9 +816,40 @@ def test_read_learning_evidence_event_local_hit_miss_and_cache(tmp_path) -> None
 
     event_path = tmp_path / "learner_state" / "student_demo" / "MEMORY_EVENTS.jsonl"
     event_path.write_text("", encoding="utf-8")
-    cached = service.read_learning_evidence_event("student_demo", saved.event_id)
-    assert cached is not None
-    assert cached.event_id == saved.event_id
+    assert service.read_learning_evidence_event("student_demo", saved.event_id) is None
+
+
+def test_exact_local_read_matches_hyphenated_uuid_by_canonical_identity(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service._ensure_seed_state("student_demo")
+    event_path = tmp_path / "learner_state" / "student_demo" / "MEMORY_EVENTS.jsonl"
+    event_path.write_text(
+        json.dumps(
+            {
+                "event_id": "550E8400-E29B-41D4-A716-446655440000",
+                "user_id": "student_demo",
+                "source_feature": "construction_grading",
+                "source_id": "turn:local-uuid",
+                "source_bot_id": "construction-exam-coach",
+                "memory_kind": "learning_evidence",
+                "payload_json": {
+                    "event_type": "learning_evidence",
+                    "question_id": "q-local-uuid",
+                },
+                "dedupe_key": "local-uuid",
+                "created_at": "2026-05-21T00:00:00+08:00",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    event = service.read_learning_evidence_event(
+        "student_demo", "550e8400e29b41d4a716446655440000"
+    )
+
+    assert event is not None
+    assert event.event_id == "550e8400e29b41d4a716446655440000"
 
 
 def test_read_learning_evidence_event_remote_first_when_configured(tmp_path) -> None:
@@ -796,6 +874,225 @@ def test_read_learning_evidence_event_remote_first_when_configured(tmp_path) -> 
     assert event is not None
     assert event.event_id == "evt_remote"
     assert event.payload_json["question_id"] == "q-remote"
+
+
+def test_exact_learning_evidence_read_uses_one_canonical_input_identity(tmp_path) -> None:
+    canonical_id = "550e8400e29b41d4a716446655440000"
+
+    class CanonicalReaderStore(_CoreStoreStub):
+        def __init__(self) -> None:
+            super().__init__()
+            self.read_ids: list[str] = []
+
+        def read_learning_evidence_event(self, user_id: str, event_id: str):
+            self.read_ids.append(event_id)
+            return {
+                "event_id": "550E8400-E29B-41D4-A716-446655440000",
+                "user_id": user_id,
+                "source_feature": "construction_grading",
+                "source_id": "turn:remote",
+                "source_bot_id": "construction-exam-coach",
+                "memory_kind": "learning_evidence",
+                "payload_json": {
+                    "event_type": "learning_evidence",
+                    "question_id": "q-remote",
+                },
+                "dedupe_key": "remote-event",
+                "created_at": "2026-05-21T00:00:00+08:00",
+            }
+
+    store = CanonicalReaderStore()
+    service = _make_service(tmp_path, core_store=store)
+
+    first = service.read_learning_evidence_event(
+        "student_demo", "550e8400-e29b-41d4-a716-446655440000"
+    )
+    second = service.read_learning_evidence_event(
+        "student_demo", "550E8400E29B41D4A716446655440000"
+    )
+
+    assert first == second
+    assert first is not None and first.event_id == canonical_id
+    assert store.read_ids == [canonical_id, canonical_id]
+
+
+def test_local_remote_uuid_replicas_are_idempotent_and_reads_do_not_write(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=store)
+    service._ensure_seed_state("student_demo")
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn:uuid-replica",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "q-replica"},
+        dedupe_key="uuid-replica",
+    )
+    local_path = tmp_path / "learner_state" / "student_demo" / "MEMORY_EVENTS.jsonl"
+    local_row = json.loads(local_path.read_text(encoding="utf-8"))
+    local_row["event_id"] = "550e8400e29b41d4a716446655440000"
+    local_row["created_at"] = "2026-07-19T08:00:00+08:00"
+    local_row["payload_json"]["numeric_round_trip"] = {
+        "score": 1,
+        "parts": [1, 2],
+    }
+    local_path.write_text(json.dumps(local_row, ensure_ascii=False) + "\n", encoding="utf-8")
+    remote_z = json.loads(json.dumps(local_row))
+    remote_z["event_id"] = "550E8400-E29B-41D4-A716-446655440000"
+    remote_z["created_at"] = "2026-07-19T00:00:00Z"
+    remote_z["payload_json"]["numeric_round_trip"] = {
+        "score": 1.0,
+        "parts": [1.0, 2.0],
+    }
+    remote_offset = json.loads(json.dumps(remote_z))
+    remote_offset["created_at"] = "2026-07-19T00:00:00+00:00"
+    store.memory_events = [remote_z, remote_offset]
+    before_bytes = local_path.read_bytes()
+    monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
+
+    first = service.list_learning_evidence_events("student_demo", limit=20)
+    second = service.list_learning_evidence_events("student_demo", limit=20)
+
+    assert [event.event_id for event in first] == [
+        "550e8400e29b41d4a716446655440000"
+    ]
+    assert second == first
+    assert local_path.read_bytes() == before_bytes
+
+
+def test_two_services_observe_shared_wal_conflict_without_process_cache(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    dedupe_key = "luban_retest_item:cache-conflict"
+    canonical_id = canonical_event_id(
+        uuid.uuid5(
+            uuid.NAMESPACE_URL,
+            f"deeptutor:learner_memory_events:{dedupe_key}",
+        )
+    )
+
+    class CanonicalConflictStore(_CoreStoreStub):
+        def __init__(self) -> None:
+            super().__init__()
+            self.read_ids: list[str] = []
+
+        def read_learning_evidence_event(self, user_id: str, event_id: str):
+            self.read_ids.append(event_id)
+            return next(
+                (
+                    dict(row)
+                    for row in self.memory_events
+                    if row.get("user_id") == user_id
+                    and canonical_event_id(row.get("event_id"))
+                    == canonical_event_id(event_id)
+                ),
+                None,
+            )
+
+    store = CanonicalConflictStore()
+    store.memory_events = [
+        {
+            "event_id": str(uuid.UUID(canonical_id)),
+            "user_id": "student_demo",
+            "source_feature": "assessment_testset",
+            "source_id": "remote:q1",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q-remote",
+            },
+            "dedupe_key": dedupe_key,
+            "created_at": "2026-07-19T00:00:00Z",
+        }
+    ]
+    reader_service = _make_service(tmp_path, core_store=store)
+    writer_service = _make_service(tmp_path, core_store=store)
+    first = reader_service.read_learning_evidence_event(
+        "student_demo", str(uuid.UUID(canonical_id))
+    )
+    assert first is not None
+
+    local = writer_service.append_memory_event(
+        "student_demo",
+        source_feature="assessment_testset",
+        source_id="local:q1",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "q-local"},
+        dedupe_key=dedupe_key,
+    )
+    assert local.event_id == canonical_id
+    monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
+
+    assert (
+        reader_service.read_learning_evidence_event(
+            "student_demo", str(uuid.UUID(canonical_id)).upper()
+        )
+        is None
+    )
+    assert reader_service.read_learning_evidence_event("student_demo", canonical_id) is None
+    assert reader_service.list_learning_evidence_events("student_demo", limit=20) == []
+    assert store.read_ids == [canonical_id, canonical_id, canonical_id]
+
+
+def test_conflicting_uuid_replicas_fail_closed_and_warn(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=store)
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn:uuid-conflict",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "q-local"},
+        dedupe_key="uuid-conflict",
+    )
+    event_path = tmp_path / "learner_state" / "student_demo" / "MEMORY_EVENTS.jsonl"
+    local_row = json.loads(event_path.read_text(encoding="utf-8"))
+    local_row["event_id"] = "550e8400e29b41d4a716446655440000"
+    event_path.write_text(json.dumps(local_row, ensure_ascii=False) + "\n", encoding="utf-8")
+    remote = dict(local_row)
+    remote["event_id"] = "550E8400-E29B-41D4-A716-446655440000"
+    remote["payload_json"] = {"event_type": "learning_evidence", "question_id": "q-remote"}
+    store.memory_events = [remote]
+    monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
+    caplog.set_level("WARNING", logger=learner_state_service_module.__name__)
+
+    assert service.list_learning_evidence_events("student_demo", limit=20) == []
+    assert "replica conflict; dropping all copies" in caplog.text
+
+
+def test_claim_retest_probe_canonicalizes_cycle_anchor(tmp_path) -> None:
+    class ClaimStore(_CoreStoreStub):
+        def __init__(self) -> None:
+            super().__init__()
+            self.claim: dict[str, str] = {}
+
+        def claim_retest_probe(self, **kwargs: str) -> dict[str, str]:
+            self.claim = dict(kwargs)
+            return {"status": "acquired"}
+
+    store = ClaimStore()
+    service = _make_service(tmp_path, core_store=store)
+
+    assert service.claim_retest_probe(
+        user_id="student_demo",
+        probe_id="probe-1",
+        cycle_anchor="550E8400-E29B-41D4-A716-446655440000",
+        completion_id="completion-1",
+        request_hash="request-hash",
+    ) == {"status": "acquired"}
+    assert store.claim["cycle_anchor"] == "550e8400e29b41d4a716446655440000"
 
 
 def test_learner_state_synthesize_learning_truth_dry_run_does_not_enqueue(tmp_path) -> None:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 import hashlib
 import json
 import logging
@@ -17,6 +18,7 @@ from deeptutor.services.learner_state.canonical_truth_policy import (
     canonical_truth_production_write_cohort_allowed,
     canonical_truth_promotion_decision,
 )
+from deeptutor.services.learner_state.event_identity import canonical_event_id
 from deeptutor.services.learner_state.evidence_lifecycle import (
     is_learning_evidence_record,
 )
@@ -187,7 +189,6 @@ class LearnerStateService:
         self._learning_plan_service = LearningPlanService(path_service=self._path_service)
         self._heartbeat_job_service = LearnerHeartbeatJobService(path_service=self._path_service)
         self._locks: dict[str, asyncio.Lock] = {}
-        self._learning_evidence_event_cache: dict[tuple[str, str], LearnerStateEvent] = {}
         # Battle2 S1-T1: per-user summary-gate cursors (process-local, fail-open).
         self._summary_gate_states: dict[str, _SummaryGateState] = {}
 
@@ -682,7 +683,7 @@ class LearnerStateService:
                         return []
                 else:
                     if remote_events:
-                        events = _dedupe_events_by_id([*remote_events, *local_events])
+                        events = _arbitrate_event_replicas([*remote_events, *local_events])
                         if limit is None or limit < 0:
                             return events
                         return events[-max(int(limit), 0):]
@@ -775,7 +776,7 @@ class LearnerStateService:
                 except Exception:
                     if is_production_environment():
                         return []
-        events = _dedupe_events_by_id([*events, *local_events])
+        events = _arbitrate_event_replicas([*events, *local_events])
         if limit is None or limit < 0:
             return events
         return events[-max(int(limit), 0):]
@@ -788,15 +789,16 @@ class LearnerStateService:
         max_age_seconds: int | None = None,
     ) -> LearnerStateEvent | None:
         normalized = _normalize_user_id(user_id)
-        normalized_event_id = str(event_id or "").strip()
+        normalized_event_id = canonical_event_id(event_id)
         if not normalized or not normalized_event_id:
             return None
 
-        cache_key = (normalized, normalized_event_id)
-        cached = self._learning_evidence_event_cache.get(cache_key)
-        if cached is not None:
-            return cached
-
+        replicas = [
+            event
+            for event in self._list_local_memory_events(normalized)
+            if canonical_event_id(event.event_id) == normalized_event_id
+            and is_learning_evidence_record(event)
+        ]
         if bool(getattr(self._core_store, "is_configured", False)):
             reader = getattr(self._core_store, "read_learning_evidence_event", None)
             if callable(reader):
@@ -808,30 +810,24 @@ class LearnerStateService:
                         return None
                 else:
                     event = self._event_from_mapping(row, default_user_id=normalized) if isinstance(row, dict) else None
-                    if event is not None and is_learning_evidence_record(event):
-                        self._cache_learning_evidence_event(cache_key, event)
-                        return event
-                    if is_production_environment():
-                        return None
+                    if (
+                        event is not None
+                        and canonical_event_id(event.event_id) == normalized_event_id
+                        and is_learning_evidence_record(event)
+                    ):
+                        replicas.append(event)
 
-        for event in self._list_local_memory_events(normalized):
-            if event.event_id != normalized_event_id:
-                continue
-            if not is_learning_evidence_record(event):
-                return None
-            self._cache_learning_evidence_event(cache_key, event)
-            return event
+        resolved = next(
+            (
+                event
+                for event in _arbitrate_event_replicas(replicas)
+                if canonical_event_id(event.event_id) == normalized_event_id
+            ),
+            None,
+        )
+        if resolved is not None:
+            return resolved
         return None
-
-    def _cache_learning_evidence_event(
-        self,
-        cache_key: tuple[str, str],
-        event: LearnerStateEvent,
-    ) -> None:
-        self._learning_evidence_event_cache[cache_key] = event
-        while len(self._learning_evidence_event_cache) > 256:
-            oldest = next(iter(self._learning_evidence_event_cache))
-            self._learning_evidence_event_cache.pop(oldest, None)
 
     def list_heartbeat_history(
         self,
@@ -911,13 +907,13 @@ class LearnerStateService:
             )
         )
         event = LearnerStateEvent(
-            event_id=(
+            event_id=canonical_event_id(
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
                     f"deeptutor:learner_memory_events:{resolved_dedupe_key}",
-                ).hex
+                )
                 if stable_luban_identity
-                else uuid.uuid4().hex
+                else uuid.uuid4()
             ),
             user_id=normalized,
             source_feature=str(source_feature or "").strip() or "manual",
@@ -964,7 +960,7 @@ class LearnerStateService:
             claimer(
                 user_id=_normalize_user_id(user_id),
                 probe_id=str(probe_id or "").strip(),
-                cycle_anchor=str(cycle_anchor or "").strip(),
+                cycle_anchor=canonical_event_id(cycle_anchor),
                 completion_id=str(completion_id or "").strip(),
                 request_hash=str(request_hash or "").strip(),
             )
@@ -2115,7 +2111,7 @@ class LearnerStateService:
             # so filtering here keeps every reader consistent.
             return None
         return LearnerStateEvent(
-            event_id=str(data.get("event_id", "") or ""),
+            event_id=canonical_event_id(data.get("event_id")),
             user_id=str(data.get("user_id", "") or default_user_id),
             source_feature=str(data.get("source_feature", "") or ""),
             source_id=str(data.get("source_id", "") or ""),
@@ -2996,17 +2992,91 @@ def _is_superseded_event_payload(payload_json: Any) -> bool:
     return isinstance(supersede, dict) and bool(supersede.get("superseded"))
 
 
-def _dedupe_events_by_id(events: list[LearnerStateEvent]) -> list[LearnerStateEvent]:
-    seen: set[str] = set()
-    deduped: list[LearnerStateEvent] = []
-    for event in sorted(events, key=lambda item: (str(item.created_at or ""), str(item.event_id or ""))):
-        key = str(event.event_id or event.dedupe_key or "").strip()
-        if key and key in seen:
+def _arbitrate_event_replicas(events: list[LearnerStateEvent]) -> list[LearnerStateEvent]:
+    by_id: dict[str, LearnerStateEvent] = {}
+    conflicted_ids: set[str] = set()
+    unkeyed: list[LearnerStateEvent] = []
+    ordered = sorted(
+        events,
+        key=lambda item: (str(item.created_at or ""), canonical_event_id(item.event_id)),
+    )
+    for event in ordered:
+        key = canonical_event_id(event.event_id) or str(event.dedupe_key or "").strip()
+        if not key:
+            unkeyed.append(event)
             continue
-        if key:
-            seen.add(key)
-        deduped.append(event)
-    return deduped
+        if key in conflicted_ids:
+            continue
+        existing = by_id.get(key)
+        if existing is None:
+            by_id[key] = event
+            continue
+        if _immutable_event_body(existing) == _immutable_event_body(event):
+            continue
+        conflicted_ids.add(key)
+        by_id.pop(key, None)
+        logger.warning(
+            "learner-state replica conflict; dropping all copies: user_id=%s event_id=%s",
+            event.user_id,
+            key,
+        )
+    return sorted(
+        [*by_id.values(), *unkeyed],
+        key=lambda item: (str(item.created_at or ""), canonical_event_id(item.event_id)),
+    )
+
+
+def _immutable_event_body(event: LearnerStateEvent) -> tuple[Any, ...]:
+    return (
+        event.user_id,
+        event.source_feature,
+        event.source_id,
+        event.source_bot_id,
+        event.memory_kind,
+        _semantic_json_value(event.payload_json),
+        event.dedupe_key,
+        _canonical_timestamp(event.created_at),
+    )
+
+
+def _canonical_timestamp(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return text
+    if parsed.tzinfo is None:
+        return text
+    return parsed.astimezone(timezone.utc).isoformat()
+
+
+def _semantic_json_value(value: Any) -> tuple[Any, ...]:
+    if value is None:
+        return ("null",)
+    if isinstance(value, bool):
+        return ("boolean", value)
+    if isinstance(value, (int, float, Decimal)):
+        number = Decimal(str(value))
+        if number.is_finite():
+            if number == 0:
+                number = Decimal(0)
+            return ("number", number.normalize().as_tuple())
+        return ("number", str(number))
+    if isinstance(value, str):
+        return ("string", value)
+    if isinstance(value, dict):
+        return (
+            "object",
+            tuple(
+                (str(key), _semantic_json_value(item))
+                for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
+            ),
+        )
+    if isinstance(value, (list, tuple)):
+        return ("array", tuple(_semantic_json_value(item) for item in value))
+    return ("other", type(value).__name__, str(value))
 
 
 def _json_dump(data: Any) -> str:

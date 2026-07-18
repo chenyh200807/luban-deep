@@ -21,17 +21,18 @@ from deeptutor.services.luban_lesson.retest_writeback import (
 
 
 def _migration_sql() -> str:
-    path = (
-        Path(__file__).resolve().parents[2]
-        / "supabase"
-        / "migrations"
-        / "20260716000100_learner_state_luban_retest_probe_claim.sql"
-    )
+    migration_root = Path(__file__).resolve().parents[2] / "supabase" / "migrations"
+    paths = [
+        migration_root / "20260716000100_learner_state_luban_retest_probe_claim.sql",
+        migration_root
+        / "20260718000100_learner_state_retest_probe_canonical_identity.sql",
+    ]
     # A plain local PostgreSQL does not have Supabase's cluster-global roles.
     # Privilege statements are covered by the structural migration test; keep
     # the exact function/table/transaction SQL for this behavioral test.
     return "\n".join(
         line
+        for path in paths
         for line in path.read_text(encoding="utf-8").splitlines()
         if not any(role in line for role in (" from anon", " from authenticated", " to service_role"))
     )
@@ -55,6 +56,47 @@ def _claim(dsn: str, *, barrier: Barrier | None = None, **kwargs: str) -> dict:
         ).fetchone()
         assert row is not None
         return dict(row[0])
+
+
+def _insert_legacy_claim(
+    dsn: str,
+    *,
+    probe_id: str,
+    cycle_anchor: str,
+    completion_id: str,
+    request_hash: str,
+    created_at: str,
+) -> str:
+    event_id = str(uuid.uuid4())
+    with psycopg.connect(dsn) as connection:
+        connection.execute(
+            """
+            insert into public.learner_memory_events(
+              event_id, user_id, source_feature, source_id, memory_kind,
+              payload_json, dedupe_key, created_at
+            ) values (
+              %s, 'student', 'luban_retest_claim', %s, 'retest_control_claim',
+              %s, %s, %s
+            )
+            """,
+            (
+                event_id,
+                probe_id,
+                Jsonb(
+                    {
+                        "event_type": "retest_probe_claim",
+                        "probe_id": probe_id,
+                        "cycle_anchor": cycle_anchor,
+                        "completion_id": completion_id,
+                        "request_hash": request_hash,
+                        "request_hash_version": 3,
+                    }
+                ),
+                f"legacy-claim:{uuid.uuid4().hex}",
+                created_at,
+            ),
+        )
+    return event_id
 
 
 def _event(row: tuple) -> SimpleNamespace:
@@ -261,6 +303,76 @@ def test_probe_claim_is_atomic_across_transactions_and_winner_can_resume(
         assert other_pending["request_hash"] == "b" * 64
         assert conflict["status"] == "conflict"
 
+        canonical_anchor = "550e8400e29b41d4a716446655440000"
+        hyphen_anchor = "550E8400-E29B-41D4-A716-446655440000"
+        legacy_cases = [
+            ("probe-legacy-hyphen", hyphen_anchor, canonical_anchor),
+            ("probe-legacy-compact", canonical_anchor, hyphen_anchor),
+            ("probe-legacy-opaque", "  opaque-cycle  ", "opaque-cycle"),
+        ]
+        for probe_id, stored_anchor, requested_anchor in legacy_cases:
+            legacy_event_id = _insert_legacy_claim(
+                test_dsn,
+                probe_id=probe_id,
+                cycle_anchor=stored_anchor,
+                completion_id=f"winner-{probe_id}",
+                request_hash="e" * 64,
+                created_at="2026-07-17T00:00:00Z",
+            )
+            recovered = _claim(
+                test_dsn,
+                user_id="student",
+                probe_id=probe_id,
+                cycle_anchor=requested_anchor,
+                completion_id=f"loser-{probe_id}",
+                request_hash="e" * 64,
+            )
+            assert recovered["status"] == "replay"
+            assert recovered["claim_event_id"] == legacy_event_id
+            with psycopg.connect(test_dsn) as verify:
+                row_count = verify.execute(
+                    "select count(*) from public.learner_memory_events "
+                    "where user_id = 'student' and source_id = %s "
+                    "and memory_kind = 'retest_control_claim'",
+                    (probe_id,),
+                ).fetchone()
+                assert row_count == (1,)
+
+        earliest_id = _insert_legacy_claim(
+            test_dsn,
+            probe_id="probe-legacy-duplicate",
+            cycle_anchor=hyphen_anchor,
+            completion_id="earliest-winner",
+            request_hash="f" * 64,
+            created_at="2026-07-16T00:00:00Z",
+        )
+        _insert_legacy_claim(
+            test_dsn,
+            probe_id="probe-legacy-duplicate",
+            cycle_anchor=canonical_anchor,
+            completion_id="later-winner",
+            request_hash="f" * 64,
+            created_at="2026-07-17T00:00:00Z",
+        )
+        duplicate_recovery = _claim(
+            test_dsn,
+            user_id="student",
+            probe_id="probe-legacy-duplicate",
+            cycle_anchor=canonical_anchor,
+            completion_id="new-loser",
+            request_hash="f" * 64,
+        )
+        assert duplicate_recovery["status"] == "replay"
+        assert duplicate_recovery["claim_event_id"] == earliest_id
+        with psycopg.connect(test_dsn) as verify:
+            duplicate_count = verify.execute(
+                "select count(*) from public.learner_memory_events "
+                "where user_id = 'student' "
+                "and source_id = 'probe-legacy-duplicate' "
+                "and memory_kind = 'retest_control_claim'"
+            ).fetchone()
+            assert duplicate_count == (2,)
+
         # Delimiter-looking inputs produce different canonical tuple hashes.
         left = _claim(
             test_dsn,
@@ -298,6 +410,11 @@ def test_probe_claim_is_atomic_across_transactions_and_winner_can_resume(
                     "anchor": "kc:F16",
                 }
             ],
+        )
+        monkeypatch.setattr(
+            writeback_module,
+            "is_compiled_practice_pack",
+            lambda _pack_id: False,
         )
         monkeypatch.setattr(
             writeback_module,

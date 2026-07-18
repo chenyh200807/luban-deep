@@ -672,6 +672,59 @@ def test_review_replay_succeeds_after_original_probe_is_no_longer_due() -> None:
     assert len(probe_calls) == 1
 
 
+@pytest.mark.parametrize(
+    ("selection_anchor", "due_anchor"),
+    [
+        (
+            "550E8400-E29B-41D4-A716-446655440000",
+            "550e8400e29b41d4a716446655440000",
+        ),
+        (
+            "550E8400E29B41D4A716446655440000",
+            "550e8400-e29b-41d4-a716-446655440000",
+        ),
+    ],
+)
+def test_review_accepts_legacy_signed_cycle_anchor_representation(
+    selection_anchor: str,
+    due_anchor: str,
+) -> None:
+    learner = _LearnerState()
+    selection = issue_retest_selection(
+        user_id="qa_eval_first_run_loop",
+        pack_id="F16",
+        day_index=2026192,
+        mode="review",
+        variant_ids=["F16-v1", "F16-v2"],
+        supply_kind="signed_variant",
+        supply_digest="f" * 64,
+        probe_id="probe-f16",
+        cycle_anchor=selection_anchor,
+    )
+    service = RetestWritebackService(
+        learner_state_service=learner,
+        review_probe_resolver=lambda **_kwargs: {
+            "due": True,
+            "cycle_anchor": due_anchor,
+        },
+        training_intent_validator=lambda **_kwargs: True,
+    )
+
+    result = _complete(
+        service,
+        completion_id="legacy-cycle-anchor",
+        mode="review",
+        probe_id="probe-f16",
+        selection_id=selection,
+    )
+
+    assert result["completion_id"] == "legacy-cycle-anchor"
+    terminal = next(
+        event for event in learner.events if event.payload_json.get("completion_terminal")
+    )
+    assert terminal.payload_json["cycle_anchor"] == selection_anchor
+
+
 def test_retry_heals_terminal_committed_but_station_write_failed() -> None:
     learner = _LearnerState(fail_on_append_call=5)
     service = _service(learner)
