@@ -1,0 +1,62 @@
+{
+  "pack_id": "Q01",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (q01.codex.out, fatal_count=3)。Codex 自陈『16题的答案事实本身均未发现考纲级错误』, 3 个 FATAL(q14/q15/q16)全部系『复合答案无单一候选锚』=失效模式#4 复合题血统误判: q15 三改正事实各有源(施工缝禁位+养护14d=exam:2015:第26题; 后浇带28d=exam:2018:案例(三)问题3; 养护14d=m35:Q3), q16 水胶比 0.50/0.45 各有 kc/ca 锚, q14 因果链为教材『温度收缩间接作用』的方向正确教学展开。=复合多源工单。q15(surface)按多源签; 非展示 q14/q16 不在签发七题内(保守省略)。5 surface 锚事实全绿。三联承 Codex 方案: 防水/抗渗混凝土养护≥14d fact q1/q6/q10。工单: 全包正确项最长+完整枚举对绝对化干扰项模板(编译病)。",
+  "signed": [
+    {
+      "variant_id": "Q01-html-practice-html-q1-9752d199a392",
+      "probe_role": "anchor",
+      "fact_id": "q01-fact-curing-days-matrix",
+      "skeleton_id": "q01-skel-养护天数条件矩阵",
+      "source_anchor": "kc:1A413030_104_0197:0",
+      "note": "普硅7d/抗渗14d/后浇带14d 全矩阵, 教材 kc:...104_0197:0 直引; 真题 exam:2022:第15题(D 抗渗≥14d)佐证。三联 anchor。工单: 唯一完整枚举最长项。"
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q2-4a84fcba6b1e",
+      "probe_role": "anchor",
+      "fact_id": "q01-fact-mass-concrete-temps",
+      "skeleton_id": "q01-skel-大体积四温控指标",
+      "source_anchor": "kc:1A413030_096_0181:0",
+      "note": "里表温差≤25℃/降温≤2.0℃/d/温升≤50℃/入模5~30℃, 教材 kc:...096_0181:0 逐项直引。"
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q3-eac52d2ed42f",
+      "probe_role": "anchor",
+      "fact_id": "q01-fact-winter-curing-limits",
+      "skeleton_id": "q01-skel-冬期温控四数值",
+      "source_anchor": "exam:2019:第1题",
+      "note": "中心表面25℃/表面大气20℃/温降3℃/d/14d, 真题 exam:2019:第1题 参考答案逐字。"
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q4-c8005fb201fb",
+      "probe_role": "anchor",
+      "fact_id": "q01-fact-hot-weather-measures",
+      "skeleton_id": "q01-skel-高温施工措施选择",
+      "source_anchor": "exam:2016:第30题",
+      "note": "早间/晚间/喷雾/连续浇筑(排除吹风), 真题 exam:2016:第30题 ABCD 直判。冷缝机制说明为教学扩写(工单)。"
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q15-bdd53df442bc",
+      "probe_role": "anchor",
+      "fact_id": "q01-fact-waterproof-composite-correction",
+      "skeleton_id": "q01-skel-防水混凝土综合纠错",
+      "source_anchor": "exam:2015:第26题",
+      "note": "复合三改正各有源: 施工缝禁位(受剪力较大处)+养护≥14d=本锚 exam:2015:第26题 直判(C/D 错项); 后浇带≥28d 封闭=exam:2018:案例(三)问题3 逐字; 养护14d 另有 m35:Q3。Codex FATAL 系复合题血统误判(失效模式#4), 复合多源工单。工单: 正确项最长。"
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q6-8f708662653f",
+      "probe_role": "immediate_confirm",
+      "fact_id": "q01-fact-curing-days-matrix",
+      "skeleton_id": "q01-skel-7d不妥判断改正",
+      "source_anchor": "m35:Q3-1A433000:P8",
+      "note": "抗渗混凝土养护7d不妥应≥14d, m35 判分卡逐字+exam:2022:第15题 佐证。三联 immediate_confirm(同养护天数 fact)。"
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q10-024627f3b2e3",
+      "probe_role": "d1_probe",
+      "fact_id": "q01-fact-curing-days-matrix",
+      "skeleton_id": "q01-skel-冬期入模养护数值",
+      "source_anchor": "kc:1A438000_154_0302:0",
+      "note": "防水混凝土冬期入模≥5℃且养护≥14d, 教材 kc:...154_0302:0 直引; exam:2015:第26题(D 7d错) 佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。"
+    }
+  ]
+}

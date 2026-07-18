@@ -24,9 +24,17 @@
         "X03-html-practice-html-q4-6fc7530044e5",
         "X03-html-practice-html-q16-bbe15ebcc71a"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMWVjMThjNmUyODc5IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iNDk2ZmU4ZmIxYWEiLCJYMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTliYjYyNjRkOGFmNSIsIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNmZjNzUzMDA0NGU1IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmJlMTVlYmNjNzFhIl0sInBhY2tfaWQiOiJYMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjkwYTVhMDJmZjZkZDFkMWE2MmM3NDUzOTEyNTQxYTE3NzY3YjYyZDAxZjg2ZjlhNTBlM2ExODVhZGE4NmFlY2EiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "02e6e0b2375bdc7a0514a165049870d39eb01b4bde6a80573a7ab0d0ded2d07e"
+      "eligible_variant_ids": [
+        "X03-html-practice-html-q1-1ec18c6e2879",
+        "X03-html-practice-html-q2-b496fe8fb1aa",
+        "X03-html-practice-html-q3-9bb6264d8af5",
+        "X03-html-practice-html-q4-6fc7530044e5",
+        "X03-html-practice-html-q14-e6276e8c6094",
+        "X03-html-practice-html-q15-130d497b6a54",
+        "X03-html-practice-html-q16-bbe15ebcc71a"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMWVjMThjNmUyODc5IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iNDk2ZmU4ZmIxYWEiLCJYMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTliYjYyNjRkOGFmNSIsIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNmZjNzUzMDA0NGU1IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmJlMTVlYmNjNzFhIl0sInBhY2tfaWQiOiJYMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjU3N2IzYmQ2YTcyODlhMDkzNWVjMWEyOWZhYzNiYTI1ZmJkYTM3YmU2ODQzZTc2N2IyZmY5ZmU2OWNkNjEyZGYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjVkZDBmN2ZjOTBlYjYxZGJlZmZmYjgzY2NhNzQ1Y2QzOWYzMmFkYWY5N2E5NzZjMDA3ZDNjODJkN2NjZmVmZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "4beba9628b16ce058da07d775022a5a47994f2310f88e26e3f460dbb42bf6e63"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_143_0229:1",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-site-zoning-rules",
+      "skeleton_id": "x03-skel-文明施工错误项辨析",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "105f4d3d45de419b0834ad5a439ab4c500be53b52eb60ac12cce1c7e61eb1224",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "105f4d3d45de419b0834ad5a439ab4c500be53b52eb60ac12cce1c7e61eb1224",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "选错误项: 三真项教材逐字(本锚: 施工区与办公生活区划分清晰隔离+在建严禁住人); 错误项『办公生活必须分开否则违规』教材无此强制规定(外延句『应相对隔离』印证)。工单: 辨析印证句属 X01 邻接 territory。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_143_0229:1",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-civilized-six-standards",
+      "skeleton_id": "x03-skel-文明施工要求成组",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "5fd921686246c708767c0e1724bb425b5ef4de4fae903aadfda5840853b19350",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "5fd921686246c708767c0e1724bb425b5ef4de4fae903aadfda5840853b19350",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "六化+分区隔离+严禁住人, 教材 kc:...143_0229:1 直引。工单: 五牌一图/主入口内侧可补真题锚。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_141_0225:0",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-enclosure-standards",
+      "skeleton_id": "x03-skel-围挡材料高度",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "4001b85787afa37dfc599e19369a47d5c92aa1c221bc2417424916b367c55426",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "4001b85787afa37dfc599e19369a47d5c92aa1c221bc2417424916b367c55426",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "围挡可循环/可拆卸/标准化定型材料且≥1.8m, 教材 kc:...141_0225:0 逐字。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2017:案例三",
+      "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a",
       "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-five-boards-one-map",
+      "skeleton_id": "x03-skel-五牌一图位置纠错",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a3b994e7c30e3ac789b8b7488da31ec69be38fa16bc903ad0b63e5b9521b379d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a3b994e7c30e3ac789b8b7488da31ec69be38fa16bc903ad0b63e5b9521b379d",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "五牌一图应布置主入口内侧(围墙外侧不妥), 真题 exam:2017:案例三 背景+整改逐字。工单: 牌数口径按真题原句收紧。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -955,29 +1011,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_013_0019:0",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-waste-management-resourceization",
+      "skeleton_id": "x03-skel-垃圾堆高计量再利用",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "64a6650abc8a6092e5eb89f0a0b8cff096265b2faa3bbb5525f76e395debd135",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "64a6650abc8a6092e5eb89f0a0b8cff096265b2faa3bbb5525f76e395debd135",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "堆放≤3m/超限稳定性验算/分类计量台账/再生利用, 教材 kc:...013_0019 判分眼直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1028,29 +1096,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A437000_149_0294",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-waste-management-resourceization",
+      "skeleton_id": "x03-skel-建筑垃圾五组完整性",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "187bc72af9f3b827b11def70e67d6b3f8452b3bfca790f6562e2220e08e47909",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "187bc72af9f3b827b11def70e67d6b3f8452b3bfca790f6562e2220e08e47909",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "资源化核心子事实+污染控制子事实各有锚(建筑垃圾=kc:013_0019/噪声=本锚), 五组齐复合 provenance 待补(工单)。相对判据唯一。三联 immediate_confirm(同建筑垃圾 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1101,30 +1181,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_013_0019:4",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-waste-management-resourceization",
+      "skeleton_id": "x03-skel-绿色施工缺口诊断",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "71bbac5604764466ffc51c5bb5d615857984110ee7f2f32a86419db1c42f1147",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "71bbac5604764466ffc51c5bb5d615857984110ee7f2f32a86419db1c42f1147",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:27:08+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "泥浆/建筑垃圾补写子事实=本锚(分类计量台账)直引; 扬尘/噪声等复合诊断多源(kc:141_0225/149_0294)=复合多源工单。三联 anchor。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "4126f1a50a65a04578cb3c12cf911eda4378134d8f816ca705c713c3d9d29cf4"
+  "published_lesson_sha256": "564d018c3c36a1a0bd20eb942142b0ca4cff757333442e70931b92d8cb41a02a"
 }

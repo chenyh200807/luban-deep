@@ -60,6 +60,7 @@ import re
 import shutil
 import sys
 import tempfile
+import urllib.parse
 
 REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
@@ -1109,6 +1110,10 @@ def _degrade_practice_entry(html: str) -> tuple[str, int]:
     幂等：降级后页面不再含 ``practice*.html`` 锚点，重复运行为 no-op——因此
     ``publish()`` 每次重发都会收敛到同一降级态，与 ``published_lesson_sha256``
     保持一致。返回 (降级后 HTML, 命中锚点数)。
+
+    可逆：原始锚点整段 percent-encode 存进 ``data-luban-practice-entry``，供
+    ``_restore_practice_entry`` 在 pack 转 supply_ready 后逐字节还原活链
+    （不销毁信息——语料里 href/文案并非同形，盲模板重建会错）。
     """
     count = 0
 
@@ -1123,12 +1128,49 @@ def _degrade_practice_entry(html: str) -> tuple[str, int]:
             + "background:rgba(148,163,184,.22);color:rgba(255,255,255,.72);"
             + "box-shadow:none;cursor:default;text-decoration:none;"
         )
+        entry = urllib.parse.quote(match.group(0), safe="")
         return (
             '<span data-luban-practice-gate="pending" '
+            f'data-luban-practice-entry="{entry}" '
             f'style="{muted}">{PRACTICE_GATE_COPY}</span>'
         )
 
     return _PRACTICE_ENTRY_RE.sub(_replace, html), count
+
+
+_PRACTICE_GATE_SPAN_RE = re.compile(
+    r'<span data-luban-practice-gate="pending" '
+    r'data-luban-practice-entry="(?P<entry>[^"]*)" '
+    r'style="[^"]*">[^<]*</span>'
+)
+_PRACTICE_GATE_MARKER = 'data-luban-practice-gate="pending"'
+
+
+def _restore_practice_entry(html: str, *, context: str) -> tuple[str, int]:
+    """把降级 span 逐字节还原为原始可点练习锚点（``_degrade_practice_entry`` 的逆）。
+
+    supply_ready 的 pack 讲解页必须恢复活链——reachability 单一权威 = supply_ready，
+    双向都要跟随。还原源 = 降级时存进 ``data-luban-practice-entry`` 的 percent-encoded
+    原锚整段，解码即得原始字节，与 ``publish()`` 从 finished 源渲出的产物同形。
+
+    fail-closed：若页面残留旧格式降级 span（无 entry 属性，信息已销毁不可逆），
+    直接 TransformError——绝不用模板猜 href/文案（语料非同形，猜必错）。
+    需先做一次性迁移（从 git 基线原始字节重建降级态）再跑。
+    """
+    count = 0
+
+    def _replace(match: "re.Match[str]") -> str:
+        nonlocal count
+        count += 1
+        return urllib.parse.unquote(match.group("entry"))
+
+    restored = _PRACTICE_GATE_SPAN_RE.sub(_replace, html)
+    if _PRACTICE_GATE_MARKER in restored:
+        raise TransformError(
+            "legacy degraded practice span without data-luban-practice-entry "
+            f"(irreversible, needs one-time migration from pristine source): {context}"
+        )
+    return restored, count
 
 
 def _sha256(path: Path) -> str:
@@ -1682,16 +1724,20 @@ def write_variant_audit_packet(station_id: str) -> list[str]:
 
 
 def apply_reachability_gate_to_hosted() -> list[str]:
-    """把 reachability gate 应用到已托管的存量卡片（source-independent 迁移）。
+    """把 reachability gate 双向对账到已托管的存量卡片（source-independent 迁移）。
 
     多数 finished 源在本仓不完整，无法整卡重发；但本 gate 只依赖已托管的
     ``lesson*.html`` + 已签发 authority + manifest（都在仓内），可确定性重写：
-    对每个非 ``supply_ready`` 的注册 pack，降级其所有 ``lesson*.html`` 的练习入口，
-    并把 ``authority.published_lesson_sha256`` 重算到降级后的 ``lesson.html``（与
-    runtime ``load_compiled_practice`` / manifest 的 sha 校验保持一致）。
-    ``practice*.html`` 不动——编译 receipt 单一权威闸要求每个 compiled surface 都
-    有内嵌 receipt 的 HTML 在场；此处只切断入口，不改练习产物本身。最后刷新
-    manifest 让 ``authority_sha256`` 收敛。返回被改动的 pack 列表。
+    - 非 ``supply_ready`` 的注册 pack：降级其所有 ``lesson*.html`` 的练习入口
+      （原锚 percent-encode 保留在降级 span 内，可逆）。
+    - ``supply_ready`` 的 pack：把降级 span 逐字节还原为活链（签发后 CTA 必须
+      恢复；单向只降级会让新签发包的讲解页永远断链）。
+    两个方向都把 ``authority.published_lesson_sha256`` 重算到对账后的
+    ``lesson.html``（与 runtime ``load_compiled_practice`` / manifest 的 sha 校验
+    保持一致）。``practice*.html`` 不动——编译 receipt 单一权威闸要求每个
+    compiled surface 都有内嵌 receipt 的 HTML 在场；此处只切换入口，不改练习
+    产物本身。幂等：两方向各自收敛。最后刷新 manifest 让 ``authority_sha256``
+    收敛。返回被改动的 pack 列表。
     """
     changed: list[str] = []
     for sid in sorted(STATIONS):
@@ -1700,14 +1746,20 @@ def apply_reachability_gate_to_hosted() -> list[str]:
         if not authority_path.is_file() or not (dst / "lesson.html").is_file():
             continue
         authority = json.loads(authority_path.read_text(encoding="utf-8"))
-        if compiled_practice_eligibility_summary(authority)["supply_ready"]:
-            continue
+        supply_ready = bool(
+            compiled_practice_eligibility_summary(authority)["supply_ready"]
+        )
         touched = False
         for lesson in sorted(dst.glob("lesson*.html")):
             original = lesson.read_text(encoding="utf-8")
-            degraded, hits = _degrade_practice_entry(original)
-            if hits and degraded != original:
-                lesson.write_text(degraded, encoding="utf-8")
+            if supply_ready:
+                reconciled, hits = _restore_practice_entry(
+                    original, context=f"{sid}/{lesson.name}"
+                )
+            else:
+                reconciled, hits = _degrade_practice_entry(original)
+            if hits and reconciled != original:
+                lesson.write_text(reconciled, encoding="utf-8")
                 touched = True
         new_lesson_sha = _sha256(dst / "lesson.html")
         if str(authority.get("published_lesson_sha256") or "") != new_lesson_sha:
@@ -1757,8 +1809,9 @@ def main(argv: list[str]) -> int:
     parser.add_argument(
         "--apply-reachability-gate",
         action="store_true",
-        help="只把 reachability gate 应用到已托管存量卡片（降级非 supply_ready 包"
-        "讲解页的练习入口 + 重算 lesson sha + 刷新 manifest），零重编，source-independent",
+        help="只把 reachability gate 双向对账到已托管存量卡片（降级非 supply_ready 包"
+        "讲解页的练习入口 / 还原 supply_ready 包的活链 + 重算 lesson sha + 刷新"
+        " manifest），零重编，source-independent",
     )
     parser.add_argument("stations", nargs="*", help="可选站点 ID；缺省发布全部注册站点")
     args = parser.parse_args(argv)
@@ -1768,7 +1821,7 @@ def main(argv: list[str]) -> int:
                 "--apply-reachability-gate cannot combine with other modes"
             )
         changed = apply_reachability_gate_to_hosted()
-        print(f"reachability-gate: degraded {len(changed)} pack(s): {' '.join(changed)}")
+        print(f"reachability-gate: reconciled {len(changed)} pack(s): {' '.join(changed)}")
         return 0
     if args.check and not args.practice_only:
         parser.error("--check requires --practice-only")

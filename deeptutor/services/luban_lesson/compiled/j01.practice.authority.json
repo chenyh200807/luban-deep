@@ -24,9 +24,17 @@
         "J01-html-practice-html-q4-1a5d57147d8c",
         "J01-html-practice-html-q16-c2a1c8df11f6"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYzkwZGFmOGRkZmIzIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xNzAzZjgyNmFkMjUiLCJKMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFmYTc3MmE1YjAwOSIsIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWE1ZDU3MTQ3ZDhjIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzJhMWM4ZGYxMWY2Il0sInBhY2tfaWQiOiJKMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjRmYTg0NmY0ZGRmOTRhZTQyMTMxZWY4ZjA2MDBjZjdjOGQ3YzAzYWZlNGQwMTU0YTY1MjI1YjEzYjBjN2JlZGIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "2e8e21124188da73326ea451dab8e26f2f4a9ef3e7dfd5fc2684d533ef0001c1"
+      "eligible_variant_ids": [
+        "J01-html-practice-html-q1-c90daf8ddfb3",
+        "J01-html-practice-html-q2-1703f826ad25",
+        "J01-html-practice-html-q3-afa772a5b009",
+        "J01-html-practice-html-q4-1a5d57147d8c",
+        "J01-html-practice-html-q6-9d8303e489f9",
+        "J01-html-practice-html-q13-de3c8f20255e",
+        "J01-html-practice-html-q16-c2a1c8df11f6"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYzkwZGFmOGRkZmIzIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xNzAzZjgyNmFkMjUiLCJKMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFmYTc3MmE1YjAwOSIsIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWE1ZDU3MTQ3ZDhjIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzJhMWM4ZGYxMWY2Il0sInBhY2tfaWQiOiJKMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImJkZmI0MWE4ZjljNGJjOWE4ZTllNDZkODU5MjQwNDU1NTJhYmNiZGQ3ZTUwNzU0MzFjMDcyOTFjZWI5ODMzMTciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNTRlMzZhMmVhMTliOWFlNjA5ODg5OTJkMzkzN2E2ZWFjMGQ0OWNlMjI5NGNkZjg1MDlmMzgzZDhlODAzYTQzNyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "06cd7c39be45bc6bcdfff65f1837943d767859c0627205243d19c2df9f20adf5"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A436000_008_0011",
+      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
       "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "j01-fact-3m-dangerous-threshold",
+      "skeleton_id": "j01-skel-4m两档判定",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "5c927fd7f04b29ead2f2bf9a59f9cfc11cc4c44ca5b92bdb2ab868e63515bb14",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "5c927fd7f04b29ead2f2bf9a59f9cfc11cc4c44ca5b92bdb2ab868e63515bb14",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "4m≥3m 属危大应编专项方案(本锚 3m 阈值 grading_keywords 直证); 未达5m不需论证系括注, 5m线另有 kc:1A436000_009_0012:0 教材原文(复合多源工单)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_009_0012:0",
+      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
       "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "j01-fact-5m-super-scale-threshold",
+      "skeleton_id": "j01-skel-6m超规模判定",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "dc293a5d2cd0f877ee89b798292d4061838130b90ead11005f8f3514596f256c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "dc293a5d2cd0f877ee89b798292d4061838130b90ead11005f8f3514596f256c",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "6m≥5m 属超规模危大(本锚教材原文直证); 超规模→组织专家论证后果另有 cc:1A437000_010_0013:1 逐字(复合多源工单)。干扰项(建设单位组织/8m界限)均显错。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_008_0011:0",
+      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
       "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "j01-fact-two-tier-distinction",
+      "skeleton_id": "j01-skel-3m论证误区纠正",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "82a2b2f06b446481490b64c2333624b89ecadee12742f18e2614a0ddb7e81a4d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "82a2b2f06b446481490b64c2333624b89ecadee12742f18e2614a0ddb7e81a4d",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "3m属危大编方案/5m才超规模需论证, 本锚 3m 标准教材原文+5m线 kc:1A436000_009_0012:0(复合多源工单)。『3~5m之间编方案不论证』表述与两档线一致。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "cc:1A436000_008_0011:3",
+      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
       "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "j01-fact-plan-author-responsibility",
+      "skeleton_id": "j01-skel-专项方案编制主体",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "24bd939b12a0a6034da28410c7b2d424169a5344610e8061f9694ef2ddeadb74",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "24bd939b12a0a6034da28410c7b2d424169a5344610e8061f9694ef2ddeadb74",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "总承包单位组织编制=本锚教材原文(『实行施工总承包的…』); 专业工程可由专业承包单位编制=cc:...008_0011:4 逐字。工单: 题干未给总承包前提(删限定词), 但相对3显错干扰项唯一正确(承 C06 先例), 建议题干补『实行施工总承包』。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -444,29 +500,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "cc:1A437000_010_0013:3",
+      "source_sha256": "fe1e9d9ae43908c05825ed278a6e19c12d5e1c71c16b5dc73ab68197b33a88b5",
       "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "j01-fact-expert-panel-rules",
+      "skeleton_id": "j01-skel-论证前程序顺序",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "bfb1c7b0459510f8f57a65b1bf828df9ac399b3a8643d77ccd57d7b5c73fae4b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "bfb1c7b0459510f8f57a65b1bf828df9ac399b3a8643d77ccd57d7b5c73fae4b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "论证前须先施工单位审核再总监理工程师审查, 教材 cc:...010_0013:3 逐字(同 primary 专家论证单句多要点)。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -955,29 +1023,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:第2题",
+      "source_sha256": "0aaeefccb2f6f29355590a5ed2167b7cd38ce3c405316434da07c6c600b44c19",
       "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "j01-fact-expert-panel-rules",
+      "skeleton_id": "j01-skel-论证组成不妥纠正",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "29c60ed1bcbc1c3878aa4e995053c7f4042bdd130618c4d898f31c0e35325c7b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "29c60ed1bcbc1c3878aa4e995053c7f4042bdd130618c4d898f31c0e35325c7b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "总承包技术负责人属参建方不得当专家+专家组5人以上, 真题 exam:2019:第2题 逐字。三联 immediate_confirm(同专家论证规则 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1174,30 +1254,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:第2题",
+      "source_sha256": "0aaeefccb2f6f29355590a5ed2167b7cd38ce3c405316434da07c6c600b44c19",
       "source_html_sha256": "73fdee43d4d5be2d53ce1723866bb58d11f0db2ba4609015f9a67fa7c9db8214",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "j01-fact-expert-panel-rules",
+      "skeleton_id": "j01-skel-论证组成诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "12e72db39701885a11e33aa10d658b380e99d51f0784e12e8ce628adbb24265a",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "12e72db39701885a11e33aa10d658b380e99d51f0784e12e8ce628adbb24265a",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:05:18+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "回避(参建方不得以专家身份参加)+5人以上, 真题 exam:2019:第2题 标准答案逐字(本题即由该真题改编)。三联 anchor。工单: 正确项最长。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "31decbec1e840fbcda75d1853ffeab4087bad58ed00f9ef30f9bea5a8bb6e238"
+  "published_lesson_sha256": "63e8dc9015833fe99b8fcb1ad22571eb3f60e62e12be7f36c77eb3dc656d88cc"
 }

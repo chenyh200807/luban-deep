@@ -1,0 +1,62 @@
+{
+  "pack_id": "S07",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (s07.codex.out, fatal_count=3)。3 FATAL(q1 surface/q7/q8)同一指控:『直接经济损失未知不能定级』。主控以本包真题口径仲裁**证伪**: exam:2016:案例2 参考答案『本质量事故属于一般事故』与 exam:2017:案例三『3. 事故等级：一般事故』均按题面给定维度定级(真题惯例=按已知三指标取最高档, 未提维度不抬档), 且 q1/q7/q8 题干显式标注『无直接经济损失数据』, 干扰项皆显错(重大/较大误档), 唯一性成立。=工单(题干宜改『直接经济损失轻微/不足1000万』消除严格性争议)。其余 9 题 Codex approve。三联承 Codex 最小方案: 事故等级三阈值 fact q2/q8/q9。工单: 全包正确项固定首位+最长(编译模板病); q3/q10 部门链需限定事故类型; q4 复合双锚 provenance 待补。",
+  "signed": [
+    {
+      "variant_id": "S07-html-practice-html-q1-d47c5c18b725",
+      "probe_role": "anchor",
+      "fact_id": "s07-fact-death-threshold-grade",
+      "skeleton_id": "s07-skel-死亡人数定级",
+      "source_anchor": "kc:1A436000_129_0207:1",
+      "note": "死亡1人<3 落一般档, 教材 kc:...129_0207:1 三阈值表直引; 按给定维度定级=真题口径(exam:2016:案例2/exam:2017:案例三 参考答案先例)。工单: 题干宜写明损失轻微。"
+    },
+    {
+      "variant_id": "S07-html-practice-html-q2-5929a5de0083",
+      "probe_role": "anchor",
+      "fact_id": "s07-fact-accident-grade-thresholds",
+      "skeleton_id": "s07-skel-经济损失档判定",
+      "source_anchor": "kc:1A436000_129_0207:1",
+      "note": "3000万落较大档(1000万-5000万), 教材三阈值表直引, 相对干扰项唯一。三联 anchor。"
+    },
+    {
+      "variant_id": "S07-html-practice-html-q3-8ca63b619897",
+      "probe_role": "anchor",
+      "fact_id": "s07-fact-first-report-target",
+      "skeleton_id": "s07-skel-现场第一报告对象",
+      "source_anchor": "exam:2019:第17题",
+      "note": "事故现场有关人员应立即报告本单位负责人, 真题 exam:2019:第17题 原题直判(D)。工单: 后续部门链宜另锚并限定事故类型。"
+    },
+    {
+      "variant_id": "S07-html-practice-html-q4-873b4f6c56e4",
+      "probe_role": "anchor",
+      "fact_id": "s07-fact-30d-supplement-report",
+      "skeleton_id": "s07-skel-30日补报与报告内容",
+      "source_anchor": "exam:2015:第19题",
+      "note": "自事故发生之日起30日内伤亡变化及时补报, 真题 exam:2015:第19题 原题直判(D); 报告三项内容=exam:2016:案例2(复合多源工单)。"
+    },
+    {
+      "variant_id": "S07-html-practice-html-q5-23669e801abb",
+      "probe_role": "anchor",
+      "fact_id": "s07-fact-investigation-team",
+      "skeleton_id": "s07-skel-调查组组成清单",
+      "source_anchor": "exam:2017:案例三",
+      "note": "调查组成员清单, 真题 exam:2017:案例三 逐项支持, 相对干扰项唯一。"
+    },
+    {
+      "variant_id": "S07-html-practice-html-q8-6580f9a10675",
+      "probe_role": "immediate_confirm",
+      "fact_id": "s07-fact-accident-grade-thresholds",
+      "skeleton_id": "s07-skel-重伤人数档判定",
+      "source_anchor": "kc:1A436000_129_0207:1",
+      "note": "重伤60人落重大档(50-100), 教材三阈值表直引; 按给定维度定级=真题口径(同 q1 裁决)。三联 immediate_confirm(同三阈值 fact)。"
+    },
+    {
+      "variant_id": "S07-html-practice-html-q9-a1fb4b7a6269",
+      "probe_role": "d1_probe",
+      "fact_id": "s07-fact-accident-grade-thresholds",
+      "skeleton_id": "s07-skel-临界数归档",
+      "source_anchor": "kc:1A436000_129_0207:1",
+      "note": "≥30/10-30/3-10/<3 四临界数归档, 教材 kc:...129_0207:1 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
+    }
+  ]
+}

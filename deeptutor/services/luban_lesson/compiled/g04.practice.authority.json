@@ -24,9 +24,17 @@
         "G04-html-practice-html-q5-336fe2d3fe07",
         "G04-html-practice-html-q17-bb8e11ba7aab"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtN2NjMTFkNWU5ODM4IiwiRzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03OTAxYjEyODdkZWMiLCJHMDQtaHRtbC1wcmFjdGljZS1odG1sLXE0LWU2NmU1NTBiYjRiNyIsIkcwNC1odG1sLXByYWN0aWNlLWh0bWwtcTUtMzM2ZmUyZDNmZTA3IiwiRzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTctYmI4ZTExYmE3YWFiIl0sInBhY2tfaWQiOiJHMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjlmZDMzNTg1MGQ1OTY3M2I5Y2JkMzMxNTk0YWUyNDE4MzdkNDgzOTJiZGI3MmJiYWFjNGFmNzllZjA5ZGExNTciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "0586937f98b438bbd543b64e1b6a2b79d99b8216c33d1d24245be75212e12240"
+      "eligible_variant_ids": [
+        "G04-html-practice-html-q1-7cc11d5e9838",
+        "G04-html-practice-html-q2-7901b1287dec",
+        "G04-html-practice-html-q4-e66e550bb4b7",
+        "G04-html-practice-html-q5-336fe2d3fe07",
+        "G04-html-practice-html-q6-b56823595332",
+        "G04-html-practice-html-q7-0034ff46eb09",
+        "G04-html-practice-html-q17-bb8e11ba7aab"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtN2NjMTFkNWU5ODM4IiwiRzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03OTAxYjEyODdkZWMiLCJHMDQtaHRtbC1wcmFjdGljZS1odG1sLXE0LWU2NmU1NTBiYjRiNyIsIkcwNC1odG1sLXByYWN0aWNlLWh0bWwtcTUtMzM2ZmUyZDNmZTA3IiwiRzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTctYmI4ZTExYmE3YWFiIl0sInBhY2tfaWQiOiJHMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6Ijg4MmIyMzkyOGUxYWNmZGNlMmNkNGIyMjRjZDYwZmJmMmIyNDAzNzUyNzNhYzE2YzgyZGY1OTZiNTJkOTlkZWIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiOWU4ODkxMmRkYTU1OTNjYjc2YzRkZTU4NGE2YzdhYjYwZWM2NWIyOGVjMzYyNjc2YjhjZDYyNjYxZTFhMjY5MCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "2b91080dbcd8e4f708992fd11a92d30de58756fb5f5cfe6839901d179fe4bfd1"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413000_086_0159:2",
+      "source_sha256": "0ddde8279b6bae775cd859d10f8f4968e04b7bed1d245b74673493f5e07f49ad",
       "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g04-fact-inspection-observation-method",
+      "skeleton_id": "g04-skel-验槽观察法要点",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "487185b897031a44e4415205ce940554891c1ec919147fd54d6e82765fa94522",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "487185b897031a44e4415205ce940554891c1ec919147fd54d6e82765fa94522",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "验槽以观察法为主(槽壁槽底土质与勘察一致/开挖深度达标/土质结构未破坏), 教材 kc:...086_0159:2 直引。工单: 正确项最长模板泄漏。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413000_086_0159:1",
+      "source_sha256": "0ddde8279b6bae775cd859d10f8f4968e04b7bed1d245b74673493f5e07f49ad",
       "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g04-fact-no-probe-three-cases",
+      "skeleton_id": "g04-skel-密实砂厚度阈值判定",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "15c76c812f627f7b40ea65f5bebf0b1d36016bf85fb6c9bbff370d6fd7bf6cff",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "15c76c812f627f7b40ea65f5bebf0b1d36016bf85fb6c9bbff370d6fd7bf6cff",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "可不触探三情况: 均匀密实砂层>1.5m(本题1.2m不满足仍须触探), 教材 kc:...086_0159:1 直引数值。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2022:第12题",
+      "source_sha256": "f9c649aef1f5a1afdfd7d3b4c3ce0327a0c6ff24503f448bc2cbbe078a2044a2",
       "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g04-fact-composite-foundation-inspection",
+      "skeleton_id": "g04-skel-增强体复合地基验槽检查项",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "659a850cf5913aafbbd446949147aa9df8e45fefca8802c65e9d56a0eab0d71f",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "659a850cf5913aafbbd446949147aa9df8e45fefca8802c65e9d56a0eab0d71f",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "增强体复合地基现场验槽应检查桩间土情况, 真题 exam:2022:第12题 原题直判(C 真选项)。Codex severity none。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_087_0160:0",
+      "source_sha256": "0ddde8279b6bae775cd859d10f8f4968e04b7bed1d245b74673493f5e07f49ad",
       "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g04-fact-light-dynamic-probe-scope",
+      "skeleton_id": "g04-skel-轻型动力触探检测内容",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "fefa05a6ba225009a5a9ce5d8ac3af43b2b1c835870d0f9dd04a061de9867631",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "fefa05a6ba225009a5a9ce5d8ac3af43b2b1c835870d0f9dd04a061de9867631",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "轻型动力触探检测持力层强度/均匀性/浅埋软硬层/古井墓穴空洞, 教材 kc:...087_0160:0 直引。工单: 正确项显著长于跨专业干扰项。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -371,29 +427,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_087_0162:0",
+      "source_sha256": "0ddde8279b6bae775cd859d10f8f4968e04b7bed1d245b74673493f5e07f49ad",
       "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g04-fact-cushion-fill-seam-quality",
+      "skeleton_id": "g04-skel-换填分层厚度压实系数",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "5021ff774853aea751c2c2fdf227bdeb55de784582dcb875a29e158ac0c0a3e8",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "5021ff774853aea751c2c2fdf227bdeb55de784582dcb875a29e158ac0c0a3e8",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "换填分层厚度200~300mm, 压实系数灰土/粉煤灰≥0.95其他≥0.97, 教材 kc:...087_0162:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 正确项集中承载全部数字。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -444,29 +512,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2022:第13题",
+      "source_sha256": "f9c649aef1f5a1afdfd7d3b4c3ce0327a0c6ff24503f448bc2cbbe078a2044a2",
       "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g04-fact-cushion-fill-seam-quality",
+      "skeleton_id": "g04-skel-换填接缝场景纠错",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "b50f00dcae64c89608fb9e09b89b2d3a6ce4505b00c5796b070cc5d85c6e2d3d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "b50f00dcae64c89608fb9e09b89b2d3a6ce4505b00c5796b070cc5d85c6e2d3d",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "换填接缝不得设柱基/墙角/承重窗间墙下, 缝距≥500mm 夯压密实, 真题 exam:2022:第13题 背景资料直引(kc:...088_0163:2 同文)。三联 immediate_confirm(同换填垫层施工质量 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1174,30 +1254,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G04/P40_G04.practice.dc.html#Q17",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2022:第13题",
+      "source_sha256": "f9c649aef1f5a1afdfd7d3b4c3ce0327a0c6ff24503f448bc2cbbe078a2044a2",
       "source_html_sha256": "c5fc000b532a4ecdecad3ffe4d60a4402eb73fc7241f85738b0ed9fc0135c969",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g04-fact-cushion-fill-seam-quality",
+      "skeleton_id": "g04-skel-地基处理四错综合诊断",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "e46cb0b444ca34ab84a1e83efe3e9c75c063843d6139ecb1f26123ecc70d3fb6",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "e46cb0b444ca34ab84a1e83efe3e9c75c063843d6139ecb1f26123ecc70d3fb6",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T11:51:20+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "复合四诊断四事实全有包内原文: ①观察法为主(kc:...086_0159:2)②密实砂>1.5m(kc:...086_0159:1)③换填接缝避柱基墙角缝距≥500mm(本锚 exam:2022:第13题 直引+kc:...088_0163:2)④强夯从最初起夯面算(真题解析直引)。Codex FATAL 系复合题血统误判(失效模式#4), 各事实分散多 chunk=复合多源工单非血统断。三联 anchor。工单: 正确项最长。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "2196e9143f0bdf3b160eee8d3b5df299c6272632646c6506e7217d1378d99b9b"
+  "published_lesson_sha256": "bdfc6026fd57939be81b364ada44782ef2e42c059b67ec6648ebc6575728ad7a"
 }

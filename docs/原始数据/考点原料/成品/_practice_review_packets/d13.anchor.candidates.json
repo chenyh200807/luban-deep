@@ -1,0 +1,330 @@
+{
+  "machine_candidates_only": true,
+  "generated_at": "2026-07-18T02:26:45+00:00",
+  "generator": "scripts/prefill_practice_review_anchors.py",
+  "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
+  "pack_id": "D13",
+  "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/d13.practice.review.json",
+  "score_threshold": 0.25,
+  "warnings": [],
+  "coverage": {
+    "total_items": 15,
+    "items_with_candidates": 15,
+    "items_empty_handed": 0
+  },
+  "items": [
+    {
+      "variant_id": "D13-html-practice-html-q1-a3b5c73ae494",
+      "candidates": [
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": "等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度 不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小 于 1.5mm 的镀锌钢板承托，不得采用铝板。承托板与主体结构、幕墙结构及承托板之间的缝隙应采用防 火密封胶密封",
+          "match_score": 0.6943,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "exam:2019:第29题",
+          "quote": "关于建筑幕墙防火、防雷构造技术要求的说法, 正确的有（ ）。 A. 防火层承托应采用厚度不小于1.5m铝板 B. 防火密封胶应有法定检测机构的防火检验报告 C. 同一幕墙玻璃单元不应跨越两个防火分区 D. 在有镀膜层的构件上进行防雷连接不应破坏镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 BCE 【解析】A项错误，应为1.5mm而非1.5m；B项正确，防火密封胶需有检测报告；C项正确",
+          "match_score": 0.2885,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "kc:1A412010_066_0130:0",
+          "quote": "[🔵邻接/通识/材料外延] 防火涂料厚度要求：膨胀型钢结构防火涂料涂层厚度≥1.5mm；非膨胀型≥15mm。 膨胀型钢结构防火涂料涂层厚度≥1.5mm；非膨胀型≥15mm。 材料外延·建筑防火封堵材料(结构工程材料层): 防火堵料分三类有机(可塑性)/无机(速固型)/防火包(耐火包); 膨胀型钢结构防火涂料涂层厚≥1.5mm非膨胀型≥15mm; 防火板材含硅酸钙板/耐火纸面石膏板/矿物棉板等. 真",
+          "match_score": 0.2724,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q2-753aa408cfc1",
+      "candidates": [
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": "等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度 不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小 于 1.5mm 的镀锌钢板承托，不得采用铝板。承托板与主体结构、幕墙结构及承托板之间的缝隙应采用防 火密封胶密封",
+          "match_score": 0.5525,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "exam:2019:第29题",
+          "quote": "关于建筑幕墙防火、防雷构造技术要求的说法, 正确的有（ ）。 A. 防火层承托应采用厚度不小于1.5m铝板 B. 防火密封胶应有法定检测机构的防火检验报告 C. 同一幕墙玻璃单元不应跨越两个防火分区 D. 在有镀膜层的构件上进行防雷连接不应破坏镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 BCE 【解析】A项错误，应为1.5mm而非1.5m；B项正确，防火密封胶需有检测报告；C项正确",
+          "match_score": 0.4377,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "kc:1A413030_148_0286:0",
+          "quote": "幕墙防火构造关键尺寸：上下层开口间实体墙≥1.2m 或 防火挑檐宽度≥1.0m 且长度≥开口宽度；空腔填塞高度≥200mm；钢质承托板厚度≥1.5mm。 上下层开口间实体墙≥1.2m 或 防火挑檐宽度≥1.0m 且长度≥开口宽度；空腔填塞高度≥200mm；钢质承托板厚度≥1.5mm。 本体·registry support 幕墙防火构造要求(判分眼): 上下层开口间实体墙≥1.2m 或防火挑檐宽≥",
+          "match_score": 0.3689,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q3-9fa02e489ab8",
+      "candidates": [
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": "等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度 不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小 于 1.5mm 的镀锌钢板承托，不得采用铝板。承托板与主体结构、幕墙结构及承托板之间的缝隙应采用防 火密封胶密封",
+          "match_score": 0.4056,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "exam:2019:第29题",
+          "quote": "关于建筑幕墙防火、防雷构造技术要求的说法, 正确的有（ ）。 A. 防火层承托应采用厚度不小于1.5m铝板 B. 防火密封胶应有法定检测机构的防火检验报告 C. 同一幕墙玻璃单元不应跨越两个防火分区 D. 在有镀膜层的构件上进行防雷连接不应破坏镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 BCE 【解析】A项错误，应为1.5mm而非1.5m；B项正确，防火密封胶需有检测报告；C项正确",
+          "match_score": 0.3718,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "kc:1A413030_148_0286:0",
+          "quote": "幕墙防火构造关键尺寸：上下层开口间实体墙≥1.2m 或 防火挑檐宽度≥1.0m 且长度≥开口宽度；空腔填塞高度≥200mm；钢质承托板厚度≥1.5mm。 上下层开口间实体墙≥1.2m 或 防火挑檐宽度≥1.0m 且长度≥开口宽度；空腔填塞高度≥200mm；钢质承托板厚度≥1.5mm。 本体·registry support 幕墙防火构造要求(判分眼): 上下层开口间实体墙≥1.2m 或防火挑檐宽≥",
+          "match_score": 0.3492,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q4-b67400c5b10c",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_148_0286:0",
+          "quote": "幕墙防火构造关键尺寸：上下层开口间实体墙≥1.2m 或 防火挑檐宽度≥1.0m 且长度≥开口宽度；空腔填塞高度≥200mm；钢质承托板厚度≥1.5mm。 上下层开口间实体墙≥1.2m 或 防火挑檐宽度≥1.0m 且长度≥开口宽度；空腔填塞高度≥200mm；钢质承托板厚度≥1.5mm。 本体·registry support 幕墙防火构造要求(判分眼): 上下层开口间实体墙≥1.2m 或防火挑檐宽≥",
+          "match_score": 0.561,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        },
+        {
+          "source_anchor": "ca:1A413030_148_0286",
+          "quote": "m，是否满足防火要求？应如何整改？ | grading_keywords=1.2m,1.0m,200mm,1.5mm,钢质承托板,防火分区 本体·registry support 幕墙防火构造要求(判分眼): 上下层开口间实体墙≥1.2m 或防火挑檐宽≥1.0m且长≥开口宽; 窗槛墙空腔上下沿矿物棉填塞高度≥200mm; 钢质承托板厚≥1.5mm; 同一玻璃单元不跨两个防火分区. **逐尺寸核真*",
+          "match_score": 0.5136,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q5-29b95dba321c",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_148_0286:0",
+          "quote": "腔填塞高度≥200mm；钢质承托板厚度≥1.5mm。 上下层开口间实体墙≥1.2m 或 防火挑檐宽度≥1.0m 且长度≥开口宽度；空腔填塞高度≥200mm；钢质承托板厚度≥1.5mm。 本体·registry support 幕墙防火构造要求(判分眼): 上下层开口间实体墙≥1.2m 或防火挑檐宽≥1.0m且长≥开口宽; 窗槛墙空腔上下沿矿物棉填塞高度≥200mm; 钢质承托板厚≥1.5mm; 同",
+          "match_score": 0.418,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        },
+        {
+          "source_anchor": "ca:1A413030_148_0286",
+          "quote": "m，是否满足防火要求？应如何整改？ | grading_keywords=1.2m,1.0m,200mm,1.5mm,钢质承托板,防火分区 本体·registry support 幕墙防火构造要求(判分眼): 上下层开口间实体墙≥1.2m 或防火挑檐宽≥1.0m且长≥开口宽; 窗槛墙空腔上下沿矿物棉填塞高度≥200mm; 钢质承托板厚≥1.5mm; 同一玻璃单元不跨两个防火分区. **逐尺寸核真*",
+          "match_score": 0.4066,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        },
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": " 测项目进行了见证取样或抽样检查。 事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度 不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小 于 1.5m",
+          "match_score": 0.3262,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q6-0282e40dcdae",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:第29题",
+          "quote": "关于建筑幕墙防火、防雷构造技术要求的说法, 正确的有（ ）。 A. 防火层承托应采用厚度不小于1.5m铝板 B. 防火密封胶应有法定检测机构的防火检验报告 C. 同一幕墙玻璃单元不应跨越两个防火分区 D. 在有镀膜层的构件上进行防雷连接不应破坏镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 BCE 【解析】A项错误，应为1.5mm而非1.5m；B项正确，防火密封胶需有检测报告；C项正确",
+          "match_score": 0.3585,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q7-3cb18e9f15d4",
+      "candidates": [
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": "等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度 不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小 于 1.5mm 的镀锌钢板承托，不得采用铝板。承托板与主体结构、幕墙结构及承托板之间的缝隙应采用防 火密封胶密封",
+          "match_score": 0.6145,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "exam:2019:第29题",
+          "quote": "关于建筑幕墙防火、防雷构造技术要求的说法, 正确的有（ ）。 A. 防火层承托应采用厚度不小于1.5m铝板 B. 防火密封胶应有法定检测机构的防火检验报告 C. 同一幕墙玻璃单元不应跨越两个防火分区 D. 在有镀膜层的构件上进行防雷连接不应破坏镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 BCE 【解析】A项错误，应为1.5mm而非1.5m；B项正确，防火密封胶需有检测报告；C项正确",
+          "match_score": 0.442,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "ca:1A412010_066_0130",
+          "quote": "下列关于防火涂料的说法中，正确的是？ 下列关于防火涂料的说法中，正确的是？ | grading_keywords=膨胀型,1.5mm,非膨胀型,15mm,配套使用,防锈性能 材料外延·建筑防火封堵材料(结构工程材料层): 防火堵料分三类有机(可塑性)/无机(速固型)/防火包(耐火包); 膨胀型钢结构防火涂料涂层厚≥1.5mm非膨胀型≥15mm; 防火板材含硅酸钙板/耐火纸面石膏板/矿物棉板等. 真",
+          "match_score": 0.3507,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q8-601cc4b8b67e",
+      "candidates": [
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": " 测项目进行了见证取样或抽样检查。 事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度 不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小 于 1.5m",
+          "match_score": 0.6222,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q9-35dff56d82a2",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:第29题",
+          "quote": "关于建筑幕墙防火、防雷构造技术要求的说法, 正确的有（ ）。 A. 防火层承托应采用厚度不小于1.5m铝板 B. 防火密封胶应有法定检测机构的防火检验报告 C. 同一幕墙玻璃单元不应跨越两个防火分区 D. 在有镀膜层的构件上进行防雷连接不应破坏镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 BCE 【解析】A项错误，应为1.5mm而非1.5m；B项正确，防火密封胶需有检测报告；C项正确",
+          "match_score": 0.3889,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "exam:2020:第23题",
+          "quote": "建筑幕墙的防雷做法正确的有（ ）。 A. 避雷接地一般每三层与均压环连接 B. 防雷构造连接不必进行隐蔽工程验收 C. 防雷连接的钢构件上完成后都应进行防锈油漆 D. 在有镀膜的构件上进行防雷连接应除去其镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 ACDE 解析：防雷连接必须进行隐蔽工程验收，故B错误；其余选项均符合规范要求。",
+          "match_score": 0.3889,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "kc:1A413030_148_0287:0",
+          "quote": "幕墙防雷连接要点：金属框架→连接主体防雷系统；铝合金立柱每10m内用柔性导线连通上下柱；预埋件→焊接至均压环。 金属框架→连接主体防雷系统；铝合金立柱每10m内用柔性导线连通上下柱；预埋件→焊接至均压环。 本体·registry support 幕墙防雷构造要求(判分眼): 金属框架与主体防雷体系可靠连接; 铝合金立柱≤10m范围宜一根柔性导线连通上下柱; 均压环楼层预埋件用圆钢/扁钢与均压环焊接",
+          "match_score": 0.2778,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q10-f04f4a515ba5",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_148_0287:0",
+          "quote": "幕墙防雷连接要点：金属框架→连接主体防雷系统；铝合金立柱每10m内用柔性导线连通上下柱；预埋件→焊接至均压环。 金属框架→连接主体防雷系统；铝合金立柱每10m内用柔性导线连通上下柱；预埋件→焊接至均压环。 本体·registry support 幕墙防雷构造要求(判分眼): 金属框架与主体防雷体系可靠连接; 铝合金立柱≤10m范围宜一根柔性导线连通上下柱; 均压环楼层预埋件用圆钢/扁钢与均压环焊接",
+          "match_score": 0.5288,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        },
+        {
+          "source_anchor": "ca:1A413030_148_0287",
+          "quote": "某幕墙铝合金立柱间距为12m，是否需要设置柔性导线？如何连接？ 某幕墙铝合金立柱间距为12m，是否需要设置柔性导线？如何连接？ | grading_keywords=金属框架连接,柔性导线,10m,均压环,焊接连通 本体·registry support 幕墙防雷构造要求(判分眼): 金属框架与主体防雷体系可靠连接; 铝合金立柱≤10m范围宜一根柔性导线连通上下柱; 均压环楼层预埋件用圆钢/扁钢与",
+          "match_score": 0.5288,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q11-ab8eec74c58b",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A413030_148_0287",
+          "quote": "某幕墙铝合金立柱间距为12m，是否需要设置柔性导线？如何连接？ 某幕墙铝合金立柱间距为12m，是否需要设置柔性导线？如何连接？ | grading_keywords=金属框架连接,柔性导线,10m,均压环,焊接连通 本体·registry support 幕墙防雷构造要求(判分眼): 金属框架与主体防雷体系可靠连接; 铝合金立柱≤10m范围宜一根柔性导线连通上下柱; 均压环楼层预埋件用圆钢/扁钢与",
+          "match_score": 0.4468,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        },
+        {
+          "source_anchor": "kc:1A413030_148_0287:0",
+          "quote": "幕墙防雷连接要点：金属框架→连接主体防雷系统；铝合金立柱每10m内用柔性导线连通上下柱；预埋件→焊接至均压环。 金属框架→连接主体防雷系统；铝合金立柱每10m内用柔性导线连通上下柱；预埋件→焊接至均压环。 本体·registry support 幕墙防雷构造要求(判分眼): 金属框架与主体防雷体系可靠连接; 铝合金立柱≤10m范围宜一根柔性导线连通上下柱; 均压环楼层预埋件用圆钢/扁钢与均压环焊接",
+          "match_score": 0.4043,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        },
+        {
+          "source_anchor": "exam:2020:第23题",
+          "quote": "建筑幕墙的防雷做法正确的有（ ）。 A. 避雷接地一般每三层与均压环连接 B. 防雷构造连接不必进行隐蔽工程验收 C. 防雷连接的钢构件上完成后都应进行防锈油漆 D. 在有镀膜的构件上进行防雷连接应除去其镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 ACDE 解析：防雷连接必须进行隐蔽工程验收，故B错误；其余选项均符合规范要求。",
+          "match_score": 0.2979,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q12-1627902f1c4b",
+      "candidates": [
+        {
+          "source_anchor": "exam:2020:第23题",
+          "quote": "建筑幕墙的防雷做法正确的有（ ）。 A. 避雷接地一般每三层与均压环连接 B. 防雷构造连接不必进行隐蔽工程验收 C. 防雷连接的钢构件上完成后都应进行防锈油漆 D. 在有镀膜的构件上进行防雷连接应除去其镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 ACDE 解析：防雷连接必须进行隐蔽工程验收，故B错误；其余选项均符合规范要求。",
+          "match_score": 0.3333,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "exam:2019:第29题",
+          "quote": "关于建筑幕墙防火、防雷构造技术要求的说法, 正确的有（ ）。 A. 防火层承托应采用厚度不小于1.5m铝板 B. 防火密封胶应有法定检测机构的防火检验报告 C. 同一幕墙玻璃单元不应跨越两个防火分区 D. 在有镀膜层的构件上进行防雷连接不应破坏镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 BCE 【解析】A项错误，应为1.5mm而非1.5m；B项正确，防火密封胶需有检测报告；C项正确",
+          "match_score": 0.25,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q13-9c6de8e15544",
+      "candidates": [
+        {
+          "source_anchor": "exam:2020:第23题",
+          "quote": "建筑幕墙的防雷做法正确的有（ ）。 A. 避雷接地一般每三层与均压环连接 B. 防雷构造连接不必进行隐蔽工程验收 C. 防雷连接的钢构件上完成后都应进行防锈油漆 D. 在有镀膜的构件上进行防雷连接应除去其镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 ACDE 解析：防雷连接必须进行隐蔽工程验收，故B错误；其余选项均符合规范要求。",
+          "match_score": 0.3276,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q14-0981c1e057eb",
+      "candidates": [
+        {
+          "source_anchor": "exam:2015:第23题",
+          "quote": "关于有机防火封堵材料特点的说法，正确的有( )。 A. 不能重复使用 B. 遇火时发泡膨胀 C. 优异的水密性能 D. 优异的气密性能 E. 可塑性好 BCDE 【解析】本题考查的是防火堵料。有机防火堵料又称可塑性防火堵料，它是以合成树脂为胶粘剂，并 配以防火助剂、填料制成的。此类堵料在使用过程长期不硬化，可塑性好，容易封堵各种不规则形状的孔 洞，能够重复使用。遇火时发泡膨胀，因此具有优异的防火、",
+          "match_score": 0.5738,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        }
+      ]
+    },
+    {
+      "variant_id": "D13-html-practice-html-q15-2ff7d0b4fec0",
+      "candidates": [
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": "等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度 不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小 于 1.5mm 的镀锌钢板承托，不得采用铝板。承托板与主体结构、幕墙结构及承托板之间的缝隙应采用防 火密封胶密封",
+          "match_score": 0.5699,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "exam:2019:第29题",
+          "quote": "关于建筑幕墙防火、防雷构造技术要求的说法, 正确的有（ ）。 A. 防火层承托应采用厚度不小于1.5m铝板 B. 防火密封胶应有法定检测机构的防火检验报告 C. 同一幕墙玻璃单元不应跨越两个防火分区 D. 在有镀膜层的构件上进行防雷连接不应破坏镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 BCE 【解析】A项错误，应为1.5mm而非1.5m；B项正确，防火密封胶需有检测报告；C项正确",
+          "match_score": 0.2843,
+          "source_file": "docs/原始数据/考点原料/_D13_exam_evidence.json",
+          "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35"
+        },
+        {
+          "source_anchor": "kc:1A412010_066_0130:2",
+          "quote": "[🔵邻接/通识/材料外延] 防火玻璃耐火等级：防火玻璃按耐火极限分为五个等级：0.50h、1.00h、1.50h、2.00h、3.00h。 防火玻璃按耐火极限分为五个等级：0.50h、1.00h、1.50h、2.00h、3.00h。 材料外延·建筑防火封堵材料(结构工程材料层): 防火堵料分三类有机(可塑性)/无机(速固型)/防火包(耐火包); 膨胀型钢结构防火涂料涂层厚≥1.5mm非膨胀型≥15",
+          "match_score": 0.2675,
+          "source_file": "docs/原始数据/考点原料/_D13_compiled_source.json",
+          "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826"
+        }
+      ]
+    }
+  ]
+}

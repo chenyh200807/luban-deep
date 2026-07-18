@@ -1,0 +1,1161 @@
+{
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "C05",
+  "source_pack_sha256": "48ab7ee6eef1a5f9170f8e4ab40d87259c0899f95df8c0d2f1b77bee6ebb5734",
+  "source_bundle_sha256": "58da79010d30f3bab204b9a87010a1ebb09b8ed83fa5d4a45fbd46130ef1e490",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 15,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "C05-html-practice-html-q1-a8bb0089be20",
+      "surface_id": "practice.html",
+      "stem": "钢筋连接的方法有哪几种？其中机械连接最常用的形式是什么？选出最完整、能得分的作答。",
+      "options": [
+        {
+          "text": "钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以剥肋滚压直螺纹套筒连接最为常用。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三类连接写全，再点出机械连接最常用形式是剥肋滚压直螺纹套筒，缺一都丢采分句。",
+          "option_id": "C05-html-practice-html-q1-a8bb0089be20:option-1"
+        },
+        {
+          "text": "钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以电渣压力焊连接最为常用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记得有电渣压力焊这个名词，顺手就填上。",
+          "loss_reason": "电渣压力焊属焊接类，不是机械连接；机械连接最常用是剥肋滚压直螺纹套筒。",
+          "fix": "机械连接最常用是剥肋滚压直螺纹套筒连接。",
+          "option_id": "C05-html-practice-html-q1-a8bb0089be20:option-2"
+        },
+        {
+          "text": "钢筋连接主要就是焊接和绑扎两种，机械连接用得少可以不单列，按现场习惯选即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "平时现场焊接、绑扎见得多，机械连接反倒少见。",
+          "loss_reason": "漏了机械连接这一大类，采分点直接遗漏；机械连接恰恰是大直径/动力荷载首选。",
+          "fix": "三类都要列：焊接、机械连接、绑扎连接。",
+          "option_id": "C05-html-practice-html-q1-a8bb0089be20:option-3"
+        },
+        {
+          "text": "连接方法就看哪种最牢，直接选焊接把钢筋熔成一体，其余两种都不如焊接可靠。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "觉得熔成一体最结实，凭经验选最牢的。",
+          "loss_reason": "题问方法种类不是问哪种最牢；且焊接有热影响区、动力荷载还不宜。",
+          "fix": "先列三类方法，机械连接以剥肋滚压直螺纹套筒最常用。",
+          "option_id": "C05-html-practice-html-q1-a8bb0089be20:option-4"
+        }
+      ],
+      "model_answer": "钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以剥肋滚压直螺纹套筒连接最为常用。",
+      "rule_group": "选用总纲·条件维",
+      "content_sha256": "0de14fdc76dfddccabfaaf1487c31bc3c3847e22140885cff410eb52d705461a",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q1",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "c05-fact-connection-methods",
+        "skeleton_id": "c05-skel-连接方法三类枚举",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_100_0190:0",
+        "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "0de14fdc76dfddccabfaaf1487c31bc3c3847e22140885cff410eb52d705461a",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "钢筋连接方法=焊接/机械连接/绑扎连接三种, 机械连接以剥肋滚压直螺纹套筒最常用, 教材 kc:...100_0190:0 直引。工单: 正确项唯一最长。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q2-1a3530671de1",
+      "surface_id": "practice.html",
+      "stem": "下列纵向受力钢筋中，宜采用绑扎搭接接头的是哪一种？选出正确且能说明理由的作答。",
+      "options": [
+        {
+          "text": "受压 Φ25 钢筋宜采用绑扎搭接；受拉 Φ28、桁架拉杆、行车梁受力筋不宜绑扎、应机械连接。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "受压中等直径可绑扎，受拉大直径/桁架/行车梁不宜绑扎，口诀拉25压28。",
+          "option_id": "C05-html-practice-html-q2-1a3530671de1:option-1"
+        },
+        {
+          "text": "受拉 Φ28 钢筋宜采用绑扎搭接，直径大搭接面积也大、握裹更牢，反而比受压更适合绑扎。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "想当然以为直径大搭接面积大就更牢。",
+          "loss_reason": "端点搞反：受拉大直径搭接区应力集中、握裹不住，不宜绑扎。",
+          "fix": "受拉 Φ28 不宜绑扎，应机械连接；受压 Φ25 才可绑扎。",
+          "option_id": "C05-html-practice-html-q2-1a3530671de1:option-2"
+        },
+        {
+          "text": "行车梁受力钢筋宜采用绑扎搭接，行车梁是静载构件，绑扎省工又能满足受力要求。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "没提取到行车梁是动力/重要受力筋这个条件。",
+          "loss_reason": "行车梁受力筋属不宜绑扎之列，条件提取不全导致误判。",
+          "fix": "行车梁受力筋不宜绑扎；宜绑扎的是受压 Φ25。",
+          "option_id": "C05-html-practice-html-q2-1a3530671de1:option-3"
+        },
+        {
+          "text": "桁架拉杆宜采用绑扎搭接，拉杆细长、绑扎方便，只要多绑几道丝扣就能保证连接强度。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得拉杆细、绑扎方便，多绑几道就行。",
+          "loss_reason": "桁架拉杆是受拉关键杆件，不宜绑扎；绑扎强度靠握裹不靠丝扣道数。",
+          "fix": "桁架拉杆不宜绑扎；宜绑扎的是受压 Φ25。",
+          "option_id": "C05-html-practice-html-q2-1a3530671de1:option-4"
+        }
+      ],
+      "model_answer": "受压 Φ25 钢筋宜采用绑扎搭接；受拉大直径（Φ28）、桁架拉杆、行车梁受力筋不宜绑扎，应机械连接。",
+      "rule_group": "端点·条件维",
+      "content_sha256": "f46e09be2b941e6ad2b3521934c80e4e5aa6b0d088b1b63e7d54306c77683d74",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q2",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "c05-fact-lap-splice-selection",
+        "skeleton_id": "c05-skel-绑扎搭接直径判别",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2022:第14题",
+        "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "f46e09be2b941e6ad2b3521934c80e4e5aa6b0d088b1b63e7d54306c77683d74",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "受压Φ25宜绑扎、受拉Φ28/桁架拉杆/行车梁不宜绑扎, 真题 exam:2022:第14题 逐字一致(答案B)。工单: 尾句‘应机械连接’较真题‘不宜绑扎’偏强(焊接亦可), 作为单选仍是唯一正确项; longest-option。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q3-53335854e455",
+      "surface_id": "practice.html",
+      "stem": "某吊车梁直接承受动力荷载，其 Φ20 纵向受力钢筋宜优先采用哪种连接方式？选出正确且说明理由的作答。",
+      "options": [
+        {
+          "text": "宜优先采用机械连接（剥肋滚压直螺纹套筒）；直接承受动力荷载的构件纵向钢筋不宜焊接。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "动力荷载往机械连接端走，并点出焊接不宜，理由与结论都到位。",
+          "option_id": "C05-html-practice-html-q3-53335854e455:option-1"
+        },
+        {
+          "text": "宜优先采用焊接连接，焊接把钢筋熔为一体、传力最直接，最能承受吊车梁的动力荷载。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得熔为一体最结实、最抗动力。",
+          "loss_reason": "焊接有热影响区，直接承受动力荷载的构件纵向钢筋不宜焊接。",
+          "fix": "动力荷载优先机械连接（直螺纹套筒），焊接不宜。",
+          "option_id": "C05-html-practice-html-q3-53335854e455:option-2"
+        },
+        {
+          "text": "宜优先采用绑扎搭接，Φ20 直径不大、绑扎方便，动力荷载靠混凝土握裹也能传递。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "看直径 Φ20 不算大就想退到绑扎。",
+          "loss_reason": "动力荷载不是绑扎的地界；绑扎握裹扛不住反复动力，应机械连接。",
+          "fix": "动力荷载优先机械连接（直螺纹套筒），不退绑扎。",
+          "option_id": "C05-html-practice-html-q3-53335854e455:option-3"
+        },
+        {
+          "text": "三种连接都行，按现场哪种方便就用哪种，动力荷载对连接方式没有特别的选用要求。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "图省事，以为动力荷载没啥特别讲究。",
+          "loss_reason": "以常识替代规范：动力荷载明确导向机械连接、焊接不宜。",
+          "fix": "动力荷载优先机械连接（直螺纹套筒），焊接不宜。",
+          "option_id": "C05-html-practice-html-q3-53335854e455:option-4"
+        }
+      ],
+      "model_answer": "宜优先采用机械连接（剥肋滚压直螺纹套筒）；直接承受动力荷载的构件纵向钢筋不宜焊接。",
+      "rule_group": "动力荷载·条件维",
+      "content_sha256": "be55675245a7fa5d11d35da7164dc8be5dc981ff3f2e9945f6b17b8c126e897b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q3",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "c05-fact-dynamic-load-mechanical",
+        "skeleton_id": "c05-skel-动力荷载优先机械连接",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2019:第8题",
+        "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "be55675245a7fa5d11d35da7164dc8be5dc981ff3f2e9945f6b17b8c126e897b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "直接承受动力荷载Φ20纵筋宜优先机械连接(直螺纹套筒), 不宜焊接, 真题 exam:2019:第8题 逐字支持(答案B)。工单: 干扰项机制化解释可收紧。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q4-ad6cb81072cf",
+      "surface_id": "practice.html",
+      "stem": "直接承受动力荷载的构件采用机械连接时，同一连接区段的纵向受力钢筋接头面积百分率应如何控制？选出关键词与数值都能得分的作答。",
+      "options": [
+        {
+          "text": "直接承受动力荷载、采用机械连接时，接头面积百分率不应超过50%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三要素齐：直接承受动力荷载 + 机械连接 + 不应超过50%，关键词是不应。",
+          "option_id": "C05-html-practice-html-q4-ad6cb81072cf:option-1"
+        },
+        {
+          "text": "直接承受动力荷载、采用机械连接时，接头面积百分率不宜超过50%，尽量控制在半数以内。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数值 50% 记对了，不宜/不应没在意。",
+          "loss_reason": "把强制性的不应弱化成建议性的不宜，关键词分被扣。",
+          "fix": "应写不应超过50%（强制），不是不宜。",
+          "option_id": "C05-html-practice-html-q4-ad6cb81072cf:option-2"
+        },
+        {
+          "text": "直接承受动力荷载、采用机械连接时，接头面积百分率不应超过25%，动力荷载要更严。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得动力荷载更危险，数值想当然压到更低。",
+          "loss_reason": "数值记错：规范是不应超过50%，不是25%。",
+          "fix": "接头面积百分率不应超过50%。",
+          "option_id": "C05-html-practice-html-q4-ad6cb81072cf:option-3"
+        },
+        {
+          "text": "接头面积百分率不应超过50%，受拉受压、静载动力都一样，按这一个数控制即可。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "记住了 50% 就一刀切套到所有情况。",
+          "loss_reason": "漏了前提条件：受拉接头不宜>50%、受压可不受限，动力荷载机械连接才是不应超50%。",
+          "fix": "限定前提：直接承受动力荷载、机械连接，接头不应超过50%。",
+          "option_id": "C05-html-practice-html-q4-ad6cb81072cf:option-4"
+        }
+      ],
+      "model_answer": "直接承受动力荷载、采用机械连接时，接头面积百分率不应超过50%。",
+      "rule_group": "接头百分率·计算表达维",
+      "content_sha256": "54dc6f123bb23f38374b61aa72c88260e9e2d4ffb9b4eac3c0a790e6b48fa78e",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q4",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "c05-fact-rebar-splice-layout",
+        "skeleton_id": "c05-skel-接头面积百分率50",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2023:第1题",
+        "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "54dc6f123bb23f38374b61aa72c88260e9e2d4ffb9b4eac3c0a790e6b48fa78e",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "直接承受动力荷载机械连接接头面积百分率不应超过50%, 真题 exam:2023:第1题 逐字(‘不应超过50%’, 受压接头不受限)。三联 anchor(钢筋接头构造要求 fact)。Codex severity=none, 本包最干净题。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q5-4c47d02bfc5a",
+      "surface_id": "practice.html",
+      "stem": "预制剪力墙竖向分布钢筋的连接，下列做法正确、能得分的是？",
+      "options": [
+        {
+          "text": "边缘构件竖向钢筋应逐根连接；非边缘区被连接的同侧钢筋间距不应大于600mm；一二级抗震底部加强区宜套筒灌浆。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "边缘逐根、非边缘≤600、抗震底部加强区套筒灌浆，三条件全抓到。",
+          "option_id": "C05-html-practice-html-q5-4c47d02bfc5a:option-1"
+        },
+        {
+          "text": "竖向钢筋按现场方便隔根连接即可，边缘构件和非边缘区做法一致，间距不用特别控制。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "图省事，觉得边缘和非边缘一个样。",
+          "loss_reason": "漏了边缘构件逐根连接、非边缘≤600两个条件，题干条件提取不全。",
+          "fix": "边缘逐根连接、非边缘间距不应大于600mm。",
+          "option_id": "C05-html-practice-html-q5-4c47d02bfc5a:option-2"
+        },
+        {
+          "text": "边缘构件竖向钢筋间距不应大于600mm即可，不必逐根连接，抗震部位也无需套筒灌浆。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把非边缘的≤600误套到边缘构件上。",
+          "loss_reason": "概念混淆：逐根连接是边缘构件的要求，≤600是非边缘区的要求，且抗震底部加强区宜套筒灌浆。",
+          "fix": "边缘逐根连接；非边缘≤600；抗震底部加强区套筒灌浆。",
+          "option_id": "C05-html-practice-html-q5-4c47d02bfc5a:option-3"
+        },
+        {
+          "text": "所有竖向钢筋一律采用套筒灌浆逐根连接，不分边缘非边缘、不分抗震等级，最保险。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "觉得全逐根套筒灌浆最保险最省心。",
+          "loss_reason": "非边缘区允许部分连接（间距≤600），一律逐根既不经济也偏离规范分档。",
+          "fix": "分区分档：边缘逐根、非边缘≤600、一二级底部加强区套筒灌浆。",
+          "option_id": "C05-html-practice-html-q5-4c47d02bfc5a:option-4"
+        }
+      ],
+      "model_answer": "边缘构件竖向钢筋应逐根连接；非边缘区被连接的同侧钢筋间距不应大于600mm；一二级抗震底部加强区宜采用套筒灌浆连接。",
+      "rule_group": "装配式·条件维",
+      "content_sha256": "32517794d1debb23d1e52db62bf7e10a229ff50bb6fd1ce1c96ee1fd93468827",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q5",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "32517794d1debb23d1e52db62bf7e10a229ff50bb6fd1ce1c96ee1fd93468827",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q6-d3c7fe14fab1",
+      "surface_id": "practice.html",
+      "stem": "框架梁纵向受力钢筋的接头位置应如何设置？选出上下位置正确、能得分的作答。",
+      "options": [
+        {
+          "text": "上部钢筋接头宜设在跨中1/3范围，下部钢筋接头宜设在梁端1/3范围，都避开最大拉应力区。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "上跨中1/3、下梁端1/3，并点出避开最大拉应力区的道理。",
+          "option_id": "C05-html-practice-html-q6-d3c7fe14fab1:option-1"
+        },
+        {
+          "text": "上部钢筋接头宜设在梁端1/3范围，下部钢筋接头宜设在跨中1/3范围，这样接头更分散。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得错开分散更好，把上下位置对调。",
+          "loss_reason": "位置写反：上部接头搁到梁端正撞负弯矩最大处，下部搁跨中撞正弯矩最大处。",
+          "fix": "上部→跨中1/3，下部→梁端1/3。",
+          "option_id": "C05-html-practice-html-q6-d3c7fe14fab1:option-2"
+        },
+        {
+          "text": "上下钢筋接头都设在跨中1/3范围内，集中在跨中便于施工，也方便质量检查。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "图施工方便，把接头都集中到跨中。",
+          "loss_reason": "下部钢筋跨中正弯矩最大，接头搁这儿正踩最大拉应力，规范适用错误。",
+          "fix": "上部→跨中1/3，下部→梁端1/3，各自避开最大拉应力区。",
+          "option_id": "C05-html-practice-html-q6-d3c7fe14fab1:option-3"
+        },
+        {
+          "text": "接头位置按现场下料长度定，钢筋接到哪算哪，只要接头错开搭接长度就行。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "以下料方便为准，用常识替代规范。",
+          "loss_reason": "忽略了梁上部/下部接头的规定位置，接头位置采分点丢失。",
+          "fix": "上部→跨中1/3、下部→梁端1/3是硬规定，不能只看下料。",
+          "option_id": "C05-html-practice-html-q6-d3c7fe14fab1:option-4"
+        }
+      ],
+      "model_answer": "上部钢筋接头宜设在跨中1/3范围内，下部钢筋接头宜设在梁端1/3范围内，避开最大拉应力区。",
+      "rule_group": "梁接头位置·程序维",
+      "content_sha256": "e2724295a4ac014c743b82c48bb9d8db6e7fae8fabc02c6db2a18ec1881e256c",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q6",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "c05-fact-rebar-splice-layout",
+        "skeleton_id": "c05-skel-框架梁接头位置",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2025:第12题",
+        "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "e2724295a4ac014c743b82c48bb9d8db6e7fae8fabc02c6db2a18ec1881e256c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "框架梁上部接头宜设跨中1/3、下部接头宜设梁端1/3, 避开最大拉应力区, 真题 exam:2025:第12题 支持。三联 immediate_confirm(同接头构造 fact: 接头位置与百分率同属钢筋连接接头构造要求)。工单: 正确项附受力解释后偏长。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q7-fe802505d488",
+      "surface_id": "practice.html",
+      "stem": "框架柱第一个钢筋接头距楼面的位置应如何确定？选出下限完整、能得分的作答。",
+      "options": [
+        {
+          "text": "距楼面应≥500mm、≥H/6、≥b（柱截面长边），三者取最大值；箍筋绑扎丝扣呈八字形。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三个下限齐全，并强调取最大值、八字形丝扣，位置采分不漏。",
+          "option_id": "C05-html-practice-html-q7-fe802505d488:option-1"
+        },
+        {
+          "text": "距楼面应≥500mm、≥H/6、≥b，三者满足其一即可，取其中较方便的一个作为接头位置。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "看到三个数就想挑最省事的一个。",
+          "loss_reason": "漏了取最大值：三条下限须同时满足，取三者中的最大，不能满足其一。",
+          "fix": "三者取最大值，同时满足。",
+          "option_id": "C05-html-practice-html-q7-fe802505d488:option-2"
+        },
+        {
+          "text": "距楼面不小于500mm即可，H/6 和 b 是构造参考、可不作硬性要求，主要控制500这一个数。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住了 500 这个整数。",
+          "loss_reason": "漏了≥H/6、≥b 两个下限，接头位置采分点遗漏。",
+          "fix": "三个下限 500/ H6/ b 都要，取最大值。",
+          "option_id": "C05-html-practice-html-q7-fe802505d488:option-3"
+        },
+        {
+          "text": "距楼面越高越安全，接头直接设在柱中部，只要不在柱根就行，具体数值不必记。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭越高越安全的直觉定位置。",
+          "loss_reason": "用常识替代规范：接头位置有明确下限，不是越高越好，需 500/H6/b 取最大。",
+          "fix": "按≥500、≥H/6、≥b 取最大值确定第一接头位置。",
+          "option_id": "C05-html-practice-html-q7-fe802505d488:option-4"
+        }
+      ],
+      "model_answer": "柱第一个接头距楼面应≥500mm、≥H/6（柱净高六分之一）、≥b（柱截面长边），三者取最大值；箍筋绑扎丝扣呈八字形。",
+      "rule_group": "柱接头位置·程序维",
+      "content_sha256": "767e88ace3c2608e769936e12ccf7a5dd299938dc0ac7dde1f1e4150bd25b292",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q7",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "c05-fact-rebar-splice-layout",
+        "skeleton_id": "c05-skel-框架柱首接头下限",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A413030_100_0190:2",
+        "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "767e88ace3c2608e769936e12ccf7a5dd299938dc0ac7dde1f1e4150bd25b292",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "框架柱第一接头距楼面≥500mm、≥H/6、≥柱截面长边三者取最大值, 教材 kc:...100_0190:2 直引。三联 d1_probe(同接头构造 fact, 第3独立 skeleton: 柱接头位置下限)。工单: 强弱词‘应≥’宜按教材‘不宜小于’收紧。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q8-f9d6202c0ad7",
+      "surface_id": "practice.html",
+      "stem": "受力钢筋代换的基本要求有哪些？选出完整且能得分、并排除干扰项的作答。",
+      "options": [
+        {
+          "text": "基本要求为等强度代换、等面积代换、满足构造要求，且须经设计单位同意；等刚度不是基本要求。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "等强度+等面积+满足构造+设计单位同意，并点明等刚度是干扰。",
+          "option_id": "C05-html-practice-html-q8-f9d6202c0ad7:option-1"
+        },
+        {
+          "text": "基本要求为等强度代换、等面积代换、等刚度代换三条，刚度相等才能保证变形一致最稳妥。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "觉得刚度相等变形一致，听着很合理。",
+          "loss_reason": "等刚度是经典干扰项，不属基本要求；还漏了满足构造与设计单位同意。",
+          "fix": "基本要求=等强度+等面积+满足构造+设计单位同意，等刚度不算。",
+          "option_id": "C05-html-practice-html-q8-f9d6202c0ad7:option-2"
+        },
+        {
+          "text": "只要代换后钢筋总面积相等就行，等面积一条即可，强度和构造会自动跟着满足。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为面积够了强度自然够。",
+          "loss_reason": "漏了等强度、满足构造、设计单位同意，采分点大面积遗漏。",
+          "fix": "面积只是一条，还要等强度、满足构造、设计单位同意。",
+          "option_id": "C05-html-practice-html-q8-f9d6202c0ad7:option-3"
+        },
+        {
+          "text": "钢筋代换由施工方按库存自行决定，等强度换算清楚即可，不需要经过设计单位同意。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得施工方懂换算就能自己换。",
+          "loss_reason": "漏了须经设计单位同意这一主体要求，代换不能施工方自定。",
+          "fix": "代换必须经设计单位同意，且等强度+等面积+满足构造。",
+          "option_id": "C05-html-practice-html-q8-f9d6202c0ad7:option-4"
+        }
+      ],
+      "model_answer": "基本要求为等强度代换、等面积代换、满足构造要求，且须经设计单位同意；等刚度不是基本要求。",
+      "rule_group": "代换守恒·后果维",
+      "content_sha256": "3dfcaeab15bd6752f66aa02a23d3647c44cd1ed614b94482f6434638f989df91",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q8",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "3dfcaeab15bd6752f66aa02a23d3647c44cd1ed614b94482f6434638f989df91",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q9-c9e2d32a6af5",
+      "surface_id": "practice.html",
+      "stem": "钢筋代换后应复核的构造要求包括下列哪些？选出归类正确、能得分的作答。",
+      "options": [
+        {
+          "text": "构造要求包括钢筋间距、保护层厚度、锚固（搭接）长度；裂缝宽度验算、配筋率属设计要求。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "间距/保护层/锚固归构造，裂缝验算/配筋率归设计，两类不混。",
+          "option_id": "C05-html-practice-html-q9-c9e2d32a6af5:option-1"
+        },
+        {
+          "text": "构造要求包括钢筋间距、保护层厚度、裂缝宽度验算，代换后把这几项复核到位即可。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "裂缝宽度听着也像构造上的事，顺手归进构造。",
+          "loss_reason": "裂缝宽度验算属设计要求不是构造要求，类别错配。",
+          "fix": "构造要求=间距/保护层/锚固长度；裂缝验算属设计要求。",
+          "option_id": "C05-html-practice-html-q9-c9e2d32a6af5:option-2"
+        },
+        {
+          "text": "构造要求包括保护层厚度、锚固长度、配筋率，配筋率是构造里最要紧的一项。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "觉得配筋率跟钢筋构造关系最紧。",
+          "loss_reason": "配筋率（承载力）属设计要求，不归构造要求。",
+          "fix": "构造要求=间距/保护层/锚固长度；配筋率属设计要求。",
+          "option_id": "C05-html-practice-html-q9-c9e2d32a6af5:option-3"
+        },
+        {
+          "text": "代换只要面积相等，构造要求自动满足，不必再单独复核间距、保护层、锚固长度。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为等面积就万事大吉。",
+          "loss_reason": "漏答构造要求复核内容，采分点遗漏；等面积不代表构造自动满足。",
+          "fix": "仍须复核间距、保护层厚度、锚固（搭接）长度等构造要求。",
+          "option_id": "C05-html-practice-html-q9-c9e2d32a6af5:option-4"
+        }
+      ],
+      "model_answer": "构造要求包括钢筋间距、保护层厚度、锚固（搭接）长度；裂缝宽度验算、配筋率属设计要求，不归构造。",
+      "rule_group": "代换构造·后果维",
+      "content_sha256": "aef933b5491e88fc05fd81df96ddc453a85dab9c91fab53ce7b41ec034038858",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q9",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "aef933b5491e88fc05fd81df96ddc453a85dab9c91fab53ce7b41ec034038858",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q10-dabaf07630f0",
+      "surface_id": "practice.html",
+      "stem": "检测直螺纹接头加工精度应采用下列哪些量具？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "应采用通规、止规、量规检测直螺纹接头加工精度；直尺不属精度检具。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "通/止/量规三件齐，并点明直尺不属精度检具。",
+          "option_id": "C05-html-practice-html-q10-dabaf07630f0:option-1"
+        },
+        {
+          "text": "用直尺量出螺纹长度和外径即可，直尺读数直观，能满足加工精度的检测要求。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "直尺常见、读数直观，凭常识以为能量。",
+          "loss_reason": "直尺量不了螺纹配合精度，不属直螺纹接头加工精度检具。",
+          "fix": "应用通规、止规、量规，直尺不行。",
+          "option_id": "C05-html-practice-html-q10-dabaf07630f0:option-2"
+        },
+        {
+          "text": "用游标卡尺量外径就够了，直螺纹接头主要看外径尺寸，卡尺精度高于专用规。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得卡尺精度高，量外径就代表合格。",
+          "loss_reason": "精度靠螺纹配合的通/止/量规判定，不是量外径；概念混淆。",
+          "fix": "应采用通规、止规、量规检测。",
+          "option_id": "C05-html-practice-html-q10-dabaf07630f0:option-3"
+        },
+        {
+          "text": "接头拧紧看着到位就算合格，凭经验手感判断即可，不必用专门的量规检测。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭手感、看着到位就放行。",
+          "loss_reason": "以常识替代规范：加工精度须用通/止/量规检测，不能凭手感。",
+          "fix": "用通规、止规、量规检测精度。",
+          "option_id": "C05-html-practice-html-q10-dabaf07630f0:option-4"
+        }
+      ],
+      "model_answer": "应采用通规、止规、量规检测；直尺不属直螺纹接头加工精度检具。",
+      "rule_group": "检具·计算表达维",
+      "content_sha256": "5ca52f2cf1fc1e2011a52c8b706583e3c6139dfeee266a5589caeccc3f80447c",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q10",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "5ca52f2cf1fc1e2011a52c8b706583e3c6139dfeee266a5589caeccc3f80447c",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q11-e9109bc8bea5",
+      "surface_id": "practice.html",
+      "stem": "套筒灌浆连接用灌浆料的强度试件应如何留置与养护？选出形状、组数、养护都能得分的作答。",
+      "options": [
+        {
+          "text": "试件为40mm×40mm×160mm长方体，每工作班留1组、每层不少于3组，标准养护28天。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "长方体尺寸 + 每班1组/每层≥3组 + 标养28d，形状组数养护齐。",
+          "option_id": "C05-html-practice-html-q11-e9109bc8bea5:option-1"
+        },
+        {
+          "text": "试件为边长70.7mm的立方体，每工作班留1组，标准养护28天后测强度即可。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "70.7 立方体眼熟，跟别的胶砂试件混了。",
+          "loss_reason": "70.7mm立方体是水泥胶砂试件，灌浆料应是40×40×160长方体；还漏每层≥3组。",
+          "fix": "灌浆料试件是40×40×160长方体，每层≥3组、标养28d。",
+          "option_id": "C05-html-practice-html-q11-e9109bc8bea5:option-2"
+        },
+        {
+          "text": "试件为边长150mm的混凝土标准立方体，同条件养护28天，与混凝土试块一并留置。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "顺手套用混凝土 150 立方体那一套。",
+          "loss_reason": "灌浆料不是混凝土立方体，是40×40×160长方体、标准养护，不是同条件。",
+          "fix": "灌浆料试件40×40×160长方体、标准养护28d。",
+          "option_id": "C05-html-practice-html-q11-e9109bc8bea5:option-3"
+        },
+        {
+          "text": "试件为40×40×160长方体即可，留几组、怎么养护现场按经验掌握，不必卡每层3组。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "形状记对了就松了组数和养护。",
+          "loss_reason": "漏了每工作班1组/每层≥3组/标准养护28天，采分点遗漏。",
+          "fix": "补齐每工作班1组、每层≥3组、标准养护28d。",
+          "option_id": "C05-html-practice-html-q11-e9109bc8bea5:option-4"
+        }
+      ],
+      "model_answer": "试件为40mm×40mm×160mm长方体，每工作班留1组、每层不少于3组，标准养护28天。",
+      "rule_group": "灌浆料试件·计算表达维",
+      "content_sha256": "bcf7f55e92cd1fbddf6c99d03d2b6bfc807e5131bf2ff4599cb932141b27b646",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q11",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "bcf7f55e92cd1fbddf6c99d03d2b6bfc807e5131bf2ff4599cb932141b27b646",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q12-9bed4272deb9",
+      "surface_id": "practice.html",
+      "stem": "钢筋连接前采用冷拉方法调直时，冷拉率应如何控制？选出数值正确、能得分的作答。",
+      "options": [
+        {
+          "text": "HPB300冷拉率不宜大于4%，HRB400、HRB500不宜大于1%，且不得反复弯折。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两档数值对号入座，并点明不得反复弯折，塑性是抗震保险丝。",
+          "option_id": "C05-html-practice-html-q12-9bed4272deb9:option-1"
+        },
+        {
+          "text": "HPB300冷拉率不宜大于1%，HRB400、HRB500不宜大于4%，光圆钢筋要求更严。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得光圆钢弱应更严，把两档数值对调。",
+          "loss_reason": "数值张冠李戴：HPB300是≤4%，HRB400/500才是≤1%。",
+          "fix": "HPB300≤4%，HRB400/HRB500≤1%。",
+          "option_id": "C05-html-practice-html-q12-9bed4272deb9:option-2"
+        },
+        {
+          "text": "各类钢筋冷拉率统一不宜大于4%，按一个数控制便于现场操作、也不影响使用。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "图省事想用一个数一刀切。",
+          "loss_reason": "两档要求不同，HRB400/500 只到1%，一刀切会超限。",
+          "fix": "分档：HPB300≤4%，HRB400/HRB500≤1%。",
+          "option_id": "C05-html-practice-html-q12-9bed4272deb9:option-3"
+        },
+        {
+          "text": "钢筋可反复弯折调直，多弯几次更平顺，冷拉率大点也没关系，能拉直就行。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为多弯几下更直更好用。",
+          "loss_reason": "反复弯折使钢筋变脆、降低塑性，抗震时先断；冷拉率也有上限。",
+          "fix": "不得反复弯折；HPB300≤4%、HRB400/500≤1%。",
+          "option_id": "C05-html-practice-html-q12-9bed4272deb9:option-4"
+        }
+      ],
+      "model_answer": "HPB300冷拉率不宜大于4%，HRB400、HRB500不宜大于1%，且钢筋不得反复弯折。",
+      "rule_group": "冷拉率·条件维",
+      "content_sha256": "bdb46639b6f0ce19be6796ea9c898a28a8c535105d126c7d9f8405467ed3cea9",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q12",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "bdb46639b6f0ce19be6796ea9c898a28a8c535105d126c7d9f8405467ed3cea9",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q13-a76354083964",
+      "surface_id": "practice.html",
+      "stem": "某案例背景涉及钢筋混凝土构件的钢筋连接，下列关于连接方法的表述正确的是？",
+      "options": [
+        {
+          "text": "钢筋连接采用焊接、机械连接、绑扎连接；高强螺栓、熔透焊缝属钢结构连接，不能套到钢筋连接。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "钢筋连接三类清楚，并划清与钢结构连接的对象边界。",
+          "option_id": "C05-html-practice-html-q13-a76354083964:option-1"
+        },
+        {
+          "text": "钢筋连接可采用摩擦型高强螺栓连接，抗剪性能好，比绑扎和机械连接更可靠。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "高强螺栓听着高级、抗剪好就想用上。",
+          "loss_reason": "高强螺栓是钢结构连接，对象错位，钢筋连接里没有这种做法。",
+          "fix": "钢筋连接只有焊接/机械连接/绑扎，高强螺栓属钢结构。",
+          "option_id": "C05-html-practice-html-q13-a76354083964:option-2"
+        },
+        {
+          "text": "钢筋重要接头应采用熔透焊缝连接，等强对接、传力最可靠，参照钢结构焊缝执行。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把钢结构熔透焊缝那套照搬过来。",
+          "loss_reason": "熔透焊缝是钢结构焊缝形式，钢筋连接不这么分，对象混淆。",
+          "fix": "钢筋焊接不用熔透焊缝口径；连接方法是焊接/机械/绑扎。",
+          "option_id": "C05-html-practice-html-q13-a76354083964:option-3"
+        },
+        {
+          "text": "钢筋连接和钢结构连接原理一样，方法可以互相通用，按哪种方便就用哪种。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得都是连接、原理差不多能通用。",
+          "loss_reason": "两类构件连接对象不同、方法不通用，混用导致答案全错。",
+          "fix": "钢筋连接=焊接/机械/绑扎；钢结构连接另成体系，不通用。",
+          "option_id": "C05-html-practice-html-q13-a76354083964:option-4"
+        }
+      ],
+      "model_answer": "钢筋连接采用焊接、机械连接、绑扎连接；高强螺栓、熔透焊缝是钢结构连接方法，不能套用到钢筋连接。",
+      "rule_group": "对象错位·后果维",
+      "content_sha256": "34d22634d13e26d3f1d4a18ec0c8ed0bd504cc2330ca1bd08a722fe12b4785d0",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q13",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "34d22634d13e26d3f1d4a18ec0c8ed0bd504cc2330ca1bd08a722fe12b4785d0",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q14-699863839d98",
+      "surface_id": "practice.html",
+      "stem": "关于钢筋连接方式的选用思路，下列表述正确、能得分的是？",
+      "options": [
+        {
+          "text": "按直径、受力、荷载、部位四个条件匹配：越大直径/受拉/动力/抗震关键越往机械连接端，越小直径/受压/静载才退绑扎。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出四输入匹配与两端走向，这是选用主线的采分表述。",
+          "option_id": "C05-html-practice-html-q14-699863839d98:option-1"
+        },
+        {
+          "text": "哪种连接最牢就选哪种，一律优先焊接，其次机械连接，绑扎只在实在没条件时才用。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "把选用简化成比谁最牢。",
+          "loss_reason": "选用是四输入匹配不是比最牢；焊接在动力荷载下还不宜。",
+          "fix": "按直径/受力/荷载/部位匹配，不是选最牢。",
+          "option_id": "C05-html-practice-html-q14-699863839d98:option-2"
+        },
+        {
+          "text": "只看直径一个条件，直径大用机械连接、直径小用绑扎，受力和荷载可以不用管。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "只抓直径一个变量，简单好记。",
+          "loss_reason": "漏了受力、荷载、部位三个条件，条件提取不全会误判端点。",
+          "fix": "四个条件都要看：直径×受力×荷载×部位。",
+          "option_id": "C05-html-practice-html-q14-699863839d98:option-3"
+        },
+        {
+          "text": "连接方式由施工单位按机械设备情况自定，规范对怎么选没有硬性的匹配要求。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "以设备方便为准，用常识替代规范。",
+          "loss_reason": "选用有明确的四输入匹配规则，不是施工单位随意定。",
+          "fix": "按直径/受力/荷载/部位四条件匹配连接方式。",
+          "option_id": "C05-html-practice-html-q14-699863839d98:option-4"
+        }
+      ],
+      "model_answer": "应按直径、受力性质、荷载性质、部位/抗震四个条件匹配连接方式：越大直径、受拉、动力、抗震关键越往机械连接端，越小直径、受压、静载、非关键才退绑扎。",
+      "rule_group": "选用主线·条件维",
+      "content_sha256": "7ef1d3a99764d9d56eba0d66dd5e810025315a6e011a561b7671b7cfdf414832",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q14",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "7ef1d3a99764d9d56eba0d66dd5e810025315a6e011a561b7671b7cfdf414832",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C05-html-practice-html-q15-c6ed1b359fba",
+      "surface_id": "practice.html",
+      "stem": "某学生对一道动力荷载吊车梁配筋题作答：①Φ28受拉钢筋用绑扎搭接；②接头面积百分率不宜超过50%；③直尺检测直螺纹接头精度。选出最准确的诊断与补写。",
+      "options": [
+        {
+          "text": "三处都失分：①受拉Φ28不宜绑扎、应机械连接；②不宜应改为不应超过50%；③直尺不属检具、应用通止量规。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "逐处揪出并给出正确采分句——端点、关键词、检具三处都补齐，这就是会写答案。",
+          "option_id": "C05-html-practice-html-q15-c6ed1b359fba:option-1"
+        },
+        {
+          "text": "作答基本正确，只是③直尺换成卷尺更准，①②的绑扎和不宜超过50%都没有问题。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "只盯着量具这一处小毛病，放过了大错。",
+          "loss_reason": "漏诊①受拉Φ28绑扎（端点搞反）和②不宜应为不应两处，且卷尺同样不行。",
+          "fix": "①改机械连接、②改不应超过50%、③用通止量规，三处都要补。",
+          "option_id": "C05-html-practice-html-q15-c6ed1b359fba:option-2"
+        },
+        {
+          "text": "只有②的数值要改，把50%改成25%就全对了，①绑扎和③直尺检测都可以保留。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为问题只在一个数值上。",
+          "loss_reason": "50%数值本就是对的（错在不宜/不应），且①③都是错的，漏诊两处。",
+          "fix": "②改不应超过50%（数值不动），①改机械连接、③用通止量规。",
+          "option_id": "C05-html-practice-html-q15-c6ed1b359fba:option-3"
+        },
+        {
+          "text": "③改成通止量规就行，①受拉Φ28绑扎、②不宜超过50%都符合规范，无需改动。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "抓对检具一处，就以为其余都对。",
+          "loss_reason": "漏诊①端点搞反（受拉大直径不宜绑扎）与②不宜应为不应两处失分。",
+          "fix": "三处齐补：①机械连接、②不应超过50%、③通止量规。",
+          "option_id": "C05-html-practice-html-q15-c6ed1b359fba:option-4"
+        }
+      ],
+      "model_answer": "三处都失分：①受拉Φ28不宜绑扎应机械连接；②不宜应改不应超过50%；③直尺不属检具应用通/止/量规。",
+      "rule_group": "采分诊断·末题",
+      "content_sha256": "40c92e5f37ccc2015d416439d11502c301567f620eb7111de8f4f3dc9ee5dd2b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q15",
+      "authoring_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "decision": {
+        "fact_id": "c05-fact-dynamic-load-diagnosis",
+        "skeleton_id": "c05-skel-动力荷载配筋诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2023:第1题",
+        "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "40c92e5f37ccc2015d416439d11502c301567f620eb7111de8f4f3dc9ee5dd2b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:23:42+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "动力荷载吊车梁诊断: ①受拉Φ28不宜绑扎应机械 ②不宜→不应超50% ③直尺→通止量规, 三处诊断均正确。exam:2023:第1题 覆盖②(不应超50%)③(通止量规), ①由 exam:2022:第14题 支持=多源工单非血统断(Codex 自认 answer true)。工单: longest-option。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
+  ],
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (c05.codex.out, 报 5 FATAL, 其中 surface 锚 q2/q15). 主控逐条核 _C05_exam_evidence.json 真题原文裁决: (1) q2(surface): exam:2022:第14题 逐字=‘宜采用绑扎搭接的是 B.直径25mm受压钢筋(正确); A.28受拉/C.桁架拉杆/D.行车梁 均不宜绑扎’ — q2 的判别(受压Φ25宜绑扎 vs 受拉Φ28/桁架/行车梁不宜)100% 真题一致; 尾句‘应机械连接’较真题‘不宜绑扎’偏强(未含焊接), 但作为单选该选项相对3个全错干扰项是唯一正确选择=措辞工单非答案错。(2) q15(surface): Codex 自认 answer_correct=true, 仅复合三事实(①受拉Φ28不宜绑扎②不应超50%③通止量规)单锚覆盖不全; exam:2023:第1题 覆盖②③、exam:2022:第14题 覆盖①, 各事实真题均有原文=多源工单非血统断。(3) 非展示 FATAL: q9(配筋率归类, 最接近真错)与 q14(选用四维启发式, per-采分点重召回后 threshold0.25 空候选=血统弱+Codex判编造) 均排除不签; q13(方法辨析)Codex 自认答案 true 但本签发集未用。结论: 5 surface 锚全部真题可溯可签; 三联取钢筋接头构造要求 fact(q4 百分率=Codex severity none 最干净 / q6 梁接头位置 / q7 柱接头位置, 均 approve)。工单: 全包多题正确项最长(longest-option)+首项倾向, 已记 note。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
+}

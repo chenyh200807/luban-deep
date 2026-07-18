@@ -1,0 +1,407 @@
+{
+  "machine_candidates_only": true,
+  "generated_at": "2026-07-18T01:48:31+00:00",
+  "generator": "scripts/prefill_practice_review_anchors.py",
+  "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
+  "pack_id": "C07",
+  "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/c07.practice.review.json",
+  "score_threshold": 0.1,
+  "warnings": [],
+  "coverage": {
+    "total_items": 15,
+    "items_with_candidates": 15,
+    "items_empty_handed": 0
+  },
+  "items": [
+    {
+      "variant_id": "C07-html-practice-html-q1-1dbc01dbdcec",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_109_0216:0",
+          "quote": "钢结构构件的连接方法包括焊接、普通螺栓连接、高强度螺栓连接和铆接。 钢结构构件的连接方法包括焊接、普通螺栓连接、高强度螺栓连接和铆接。",
+          "match_score": 0.8846,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A413030_109_0216",
+          "quote": "钢结构构件的连接方法有哪些？ 焊接",
+          "match_score": 0.7143,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A434000_068_0102",
+          "quote": "关于高强度螺栓连接的终拧检查时间，正确的是？ 1h后",
+          "match_score": 0.3,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q2-b4a3fc6a4689",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_109_0216:1",
+          "quote": "焊接接头包括全熔透、部分熔透、角焊缝、塞焊与槽焊、电渣焊和栓钉焊。 焊接接头包括全熔透、部分熔透、角焊缝、塞焊与槽焊、电渣焊和栓钉焊。",
+          "match_score": 0.7407,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A413030_109_0216",
+          "quote": "钢结构构件的连接方法有哪些？ 焊接",
+          "match_score": 0.2857,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "kc:1A422000_038_0062:1",
+          "quote": "钢结构承受动荷载且需进行疲劳验算时，严禁使用塞焊、槽焊、电渣焊和气电立焊接头。 钢结构承受动荷载且需进行疲劳验算时，严禁使用塞焊、槽焊、电渣焊和气电立焊接头。",
+          "match_score": 0.2857,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q3-5c99057d90f9",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_110_0217:1",
+          "quote": "焊接作业环境温度不应低于-10℃；相对湿度≤90%；手工电弧焊风速≤8m/s；气体保护焊风速≤2m/s；低温时需加热或防护。 焊接作业环境温度不应低于-10℃；相对湿度≤90%；手工电弧焊风速≤8m/s；气体保护焊风速≤2m/s；低温时需加热或防护。",
+          "match_score": 0.8444,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "exam:2016:案例2",
+          "quote": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构 网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。 地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监 理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架 全部拆除。 “两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设 计要求，",
+          "match_score": 0.206,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        },
+        {
+          "source_anchor": "exam:2022:第19题",
+          "quote": "安全专项施工方案需要进行专家论证的是（ ）。 A.高度 24m 落地式钢管脚手架工程 B.跨度 16m 的混凝土模板支撑工程 C.开挖深度 8m 的基坑工程 D.跨度 32m 的钢结构安装工程 C 5m活埋是常识，3编5论三方案。机理如下：A选项：落地式脚手架工程“落编24论50”——搭设高度24m编案，50m才专家论证。B选项：模板支撑工程“5101015,8181520”——跨度18m才需要组",
+          "match_score": 0.2046,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q4-3ff4600ca2e6",
+      "candidates": [
+        {
+          "source_anchor": "exam:2021:第8题",
+          "quote": "易产生焊缝固体夹渣缺陷的原因是()。 A.焊缝布置不当 B.焊前未加热 C.焊接电流太小 D.焊后冷却快 C 【解析】考察考点 1A415043 钢结构工程施工 固体夹杂:有夹渣和夹钨两种缺陷。产生夹渣的主要原因是焊接材料质量不好焊接电流太小、焊接速度太快、熔渣密度太大、阻碍熔渣上浮、多层焊时熔渣未清除干净等，其处理方法是铲除夹渣处的焊缝金属，然后焊补。产生夹钨的主要原因是氩弧焊时钨极与熔池金属接",
+          "match_score": 0.4054,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        },
+        {
+          "source_anchor": "exam:2018:第12题",
+          "quote": "下列属于产生焊缝固体夹渣缺陷主要原因的是（）。 A. 焊缝布置不当 B. 焊前未预热 C. 焊接电流太小 D. 焊条未烘烤 C 【解析】C 基本知识。 P121",
+          "match_score": 0.3043,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        },
+        {
+          "source_anchor": "ca:1A422000_038_0062",
+          "quote": "下列关于钢结构焊缝设计的说法中，正确的是？ 焊接材料匹配",
+          "match_score": 0.2083,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q5-a3c1013cb4eb",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A422000_038_0062:1",
+          "quote": "钢结构承受动荷载且需进行疲劳验算时，严禁使用塞焊、槽焊、电渣焊和气电立焊接头。 钢结构承受动荷载且需进行疲劳验算时，严禁使用塞焊、槽焊、电渣焊和气电立焊接头。",
+          "match_score": 0.7429,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "exam:2023:第24题",
+          "quote": "钢结构承受动荷载且需进行疲劳验算时，严禁使用（ ）接头。 A. 塞焊 B. 槽焊 C. 电渣焊 D. 气电立焊 E. 坡口焊 ABCD 【解析】‘疲劳验算禁四焊’——塞焊、槽焊、电渣焊、气电立焊。这四类接头形式和工艺，无法满足结构的抗疲劳性，承受交变荷载的能力较差。",
+          "match_score": 0.5208,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        },
+        {
+          "source_anchor": "kc:1A413030_109_0216:1",
+          "quote": "焊接接头包括全熔透、部分熔透、角焊缝、塞焊与槽焊、电渣焊和栓钉焊。 焊接接头包括全熔透、部分熔透、角焊缝、塞焊与槽焊、电渣焊和栓钉焊。",
+          "match_score": 0.2963,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q6-704d5a80ae54",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434000_068_0102:0",
+          "quote": "焊接材料须烘焙；焊工必须持证上岗；一级二级焊缝需无损检测；高强度螺栓摩擦面需做抗滑移试验；终拧后1~48小时内检查。 焊接材料须烘焙；焊工必须持证上岗；一级二级焊缝需无损检测；高强度螺栓摩擦面需做抗滑移试验；终拧后1~48小时内检查。",
+          "match_score": 0.3878,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A422000_038_0062",
+          "quote": "下列关于钢结构焊缝设计的说法中，正确的是？ 焊接材料匹配",
+          "match_score": 0.3333,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A434000_068_0101",
+          "quote": "下列哪项不属于钢结构安装主控项目的检查内容？ 制作质量",
+          "match_score": 0.2917,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q7-96577c31d42c",
+      "candidates": [
+        {
+          "source_anchor": "exam:2017:第23题",
+          "quote": "钢结构焊接连接的优点有（ ）。 A. 节约钢材 B. 构造简单 C. 易于采用自动化操作 D. 加工方便 E. 易于检查 ABCD 【解析】钢结构焊接连接的优点包括： - A项正确：焊接可减少连接件，节约钢材； - B项正确：焊缝连接构造简洁； - C项正确：现代焊接设备支持自动化作业； - D项正确：焊接可在现场灵活加工； - E项错误：焊缝内部缺陷难以检查，需借助探伤手段。故选ABCD。",
+          "match_score": 0.45,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        },
+        {
+          "source_anchor": "ca:1A434000_068_0102",
+          "quote": "关于高强度螺栓连接的终拧检查时间，正确的是？ 1h后",
+          "match_score": 0.25,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A413030_109_0216",
+          "quote": "钢结构构件的连接方法有哪些？ 焊接",
+          "match_score": 0.1429,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q8-253f5eb9b411",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A434000_068_0102",
+          "quote": "关于高强度螺栓连接的终拧检查时间，正确的是？ 1h后",
+          "match_score": 0.35,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "exam:2019:第9题",
+          "quote": "高强度螺栓广泛采用的连接形式是（ ）。 A. 平接连接 B. T形连接 C. 搭接连接 D. 摩擦连接 D 高强度螺栓连接广泛采用摩擦连接形式，通过螺栓预紧力使连接板件接触面间产生足够的摩擦力来传递外力。",
+          "match_score": 0.3396,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        },
+        {
+          "source_anchor": "kc:1A413030_109_0216:0",
+          "quote": "钢结构构件的连接方法包括焊接、普通螺栓连接、高强度螺栓连接和铆接。 钢结构构件的连接方法包括焊接、普通螺栓连接、高强度螺栓连接和铆接。",
+          "match_score": 0.2308,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q9-16d06c3c7aef",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_110_0217:0",
+          "quote": "安装螺栓不应少于2个；安装螺栓数量不应少于安装孔总数的1/3；冲钉穿入数量不宜多于安装螺栓数量的30%；不得用高强度螺栓兼作安装螺栓。 安装螺栓不应少于2个；安装螺栓数量不应少于安装孔总数的1/3；冲钉穿入数量不宜多于安装螺栓数量的30%；不得用高强度螺栓兼作安装螺栓。",
+          "match_score": 0.7919,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A413030_110_0217",
+          "quote": "关于高强度螺栓安装时安装螺栓和冲钉的数量要求，下列说法正确的是？ 安装螺栓不少于2个",
+          "match_score": 0.425,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "exam:2016:第30题",
+          "quote": "11】 三、案例分析题 【案例一】参考答案： 1. 不妥一：灌注指桩顶混凝土面超过设计标高 500mm。 正确做法：水下灌注时桩顶混凝土面标高到少要比设计标高超灌 0.8 到 1.0m。 不妥二：成桩后按总桩数的 20% 对桩身质量进行检验。 正确做法，对设计等级为甲级或地质条件复杂，成桩质量可靠性低的灌注桩，抽检数量不应少于总数 的 30%，且不应少于 20 根。 2. 当变形量发生异常后，第三",
+          "match_score": 0.3125,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q10-eef5eb0d8bee",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_110_0217:0",
+          "quote": "安装螺栓不应少于2个；安装螺栓数量不应少于安装孔总数的1/3；冲钉穿入数量不宜多于安装螺栓数量的30%；不得用高强度螺栓兼作安装螺栓。 安装螺栓不应少于2个；安装螺栓数量不应少于安装孔总数的1/3；冲钉穿入数量不宜多于安装螺栓数量的30%；不得用高强度螺栓兼作安装螺栓。",
+          "match_score": 0.6784,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A413030_110_0217",
+          "quote": "关于高强度螺栓安装时安装螺栓和冲钉的数量要求，下列说法正确的是？ 安装螺栓不少于2个",
+          "match_score": 0.3406,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "exam:2016:第30题",
+          "quote": "11】 三、案例分析题 【案例一】参考答案： 1. 不妥一：灌注指桩顶混凝土面超过设计标高 500mm。 正确做法：水下灌注时桩顶混凝土面标高到少要比设计标高超灌 0.8 到 1.0m。 不妥二：成桩后按总桩数的 20% 对桩身质量进行检验。 正确做法，对设计等级为甲级或地质条件复杂，成桩质量可靠性低的灌注桩，抽检数量不应少于总数 的 30%，且不应少于 20 根。 2. 当变形量发生异常后，第三",
+          "match_score": 0.325,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q11-331ef393cc27",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_111_0218:0",
+          "quote": "高强度螺栓安装时，必须保证自由穿入，不得强行穿入。若需扩孔，孔径不得超过螺栓直径的1.2倍，且不得使用气割扩孔。 高强度螺栓安装时，必须保证自由穿入，不得强行穿入。若需扩孔，孔径不得超过螺栓直径的1.2倍，且不得使用气割扩孔。",
+          "match_score": 0.8333,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "exam:2016:案例2",
+          "quote": "，地上四层，地下室顶板设计有后张法预应力混凝土梁。 地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监 理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架 全部拆除。 “两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设 计要求，经设计单位验算，需对二层结构进行加固处理，造成直接经济损失300 余万元， 工程质量事故发生后，现场",
+          "match_score": 0.3593,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        },
+        {
+          "source_anchor": "kc:1A436000_117_0191:2",
+          "quote": "楼层周边钢梁吊装完成后，应在每层临边设置防护栏，且防护栏高度不应低于 1.2m。 楼层周边钢梁吊装完成后，应在每层临边设置防护栏，且防护栏高度不应低于 1.2m。",
+          "match_score": 0.3,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q12-fdacf10bed27",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_111_0218:0",
+          "quote": "高强度螺栓安装时，必须保证自由穿入，不得强行穿入。若需扩孔，孔径不得超过螺栓直径的1.2倍，且不得使用气割扩孔。 高强度螺栓安装时，必须保证自由穿入，不得强行穿入。若需扩孔，孔径不得超过螺栓直径的1.2倍，且不得使用气割扩孔。",
+          "match_score": 0.55,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "exam:2016:案例2",
+          "quote": "。正确做法：进场小砌块的产品龄期不小于 28d，不需对小砌块浇水湿润，如遇天气干燥炎热，宜在 砌筑前对其喷水湿润。 不妥之处二：小砌块的搭接长度为块体长度的 1/3。 正确做法：单排孔小砌块的搭接长度应为块体长度的 1/2。 不妥之处三：竖向灰缝的砂浆饱满度为 85%。 正确做法：竖向灰缝的砂浆饱满度不得低于 90%. 不妥之处四：填充墙砌筑 7d 后即开始顶砌施工。 正确做法：填充墙梁口下最后 ",
+          "match_score": 0.3731,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        },
+        {
+          "source_anchor": "kc:1A436000_117_0191:2",
+          "quote": "楼层周边钢梁吊装完成后，应在每层临边设置防护栏，且防护栏高度不应低于 1.2m。 楼层周边钢梁吊装完成后，应在每层临边设置防护栏，且防护栏高度不应低于 1.2m。",
+          "match_score": 0.3,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q13-2c2c754418ec",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_110_0217:2",
+          "quote": "摩擦面应干燥清洁，无飞边、毛刺、焊渣、氧化皮、污垢；不得在摩擦面作标记；若采用生锈处理，安装前须用钢丝刷清除浮锈。 摩擦面应干燥清洁，无飞边、毛刺、焊渣、氧化皮、污垢；不得在摩擦面作标记；若采用生锈处理，安装前须用钢丝刷清除浮锈。",
+          "match_score": 0.6522,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A434000_068_0102",
+          "quote": "关于高强度螺栓连接的终拧检查时间，正确的是？ 1h后",
+          "match_score": 0.4,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "kc:1A413030_109_0216:0",
+          "quote": "钢结构构件的连接方法包括焊接、普通螺栓连接、高强度螺栓连接和铆接。 钢结构构件的连接方法包括焊接、普通螺栓连接、高强度螺栓连接和铆接。",
+          "match_score": 0.2308,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q14-4826382afbc0",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434000_068_0102:0",
+          "quote": "焊接材料须烘焙；焊工必须持证上岗；一级二级焊缝需无损检测；高强度螺栓摩擦面需做抗滑移试验；终拧后1~48小时内检查。 焊接材料须烘焙；焊工必须持证上岗；一级二级焊缝需无损检测；高强度螺栓摩擦面需做抗滑移试验；终拧后1~48小时内检查。",
+          "match_score": 0.5571,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A434000_068_0102",
+          "quote": "关于高强度螺栓连接的终拧检查时间，正确的是？ 1h后",
+          "match_score": 0.5,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "exam:2024:第(四)题",
+          "quote": "### 案例背景 建设单位编制了投资兴建某工程的招标文件，部分要求有：承包模式为施工总承包，报价采用工程量清单计价，投标单位须遵守工程量清单使用范围等强制性内容的规定。投标单位承担项目的进度、质量、安全等管理责任，应对招标文件中要求的技术标准、质量、投标有效期等作出实质性响应，中标单位不得违法分包，如将工程分包给个人等。工程竣工验收后6个月内完成结算，工程结算据实调整。 某施工单位工程中标造价为7",
+          "match_score": 0.3269,
+          "source_file": "docs/原始数据/考点原料/_C07_exam_evidence.json",
+          "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db"
+        }
+      ]
+    },
+    {
+      "variant_id": "C07-html-practice-html-q15-e2594578228f",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_110_0217:0",
+          "quote": "安装螺栓不应少于2个；安装螺栓数量不应少于安装孔总数的1/3；冲钉穿入数量不宜多于安装螺栓数量的30%；不得用高强度螺栓兼作安装螺栓。 安装螺栓不应少于2个；安装螺栓数量不应少于安装孔总数的1/3；冲钉穿入数量不宜多于安装螺栓数量的30%；不得用高强度螺栓兼作安装螺栓。",
+          "match_score": 0.3503,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "ca:1A434000_068_0102",
+          "quote": "关于高强度螺栓连接的终拧检查时间，正确的是？ 1h后",
+          "match_score": 0.235,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        },
+        {
+          "source_anchor": "kc:1A434000_068_0102:0",
+          "quote": "焊接材料须烘焙；焊工必须持证上岗；一级二级焊缝需无损检测；高强度螺栓摩擦面需做抗滑移试验；终拧后1~48小时内检查。 焊接材料须烘焙；焊工必须持证上岗；一级二级焊缝需无损检测；高强度螺栓摩擦面需做抗滑移试验；终拧后1~48小时内检查。",
+          "match_score": 0.2171,
+          "source_file": "docs/原始数据/考点原料/_C07_compiled_source.json",
+          "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467"
+        }
+      ]
+    }
+  ]
+}

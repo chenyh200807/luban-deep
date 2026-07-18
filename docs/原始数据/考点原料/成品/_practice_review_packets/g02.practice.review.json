@@ -1,0 +1,1161 @@
+{
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "G02",
+  "source_pack_sha256": "c7439e8e1907c65d489879e883d865e136c8f45d633c0aaa92916561f749aecc",
+  "source_bundle_sha256": "6235b8e10360c229e9cc61813b99f6c600128612a822a7a7a15068ae8314ab2b",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 15,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "G02-html-practice-html-q2-613193ea6d75",
+      "surface_id": "practice.html",
+      "stem": "关于填方土料的选择，下列作答完整、能得分的是？",
+      "options": [
+        {
+          "text": "尽量采用同类土；淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土不得用作填方。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "优选同类土 + 完整禁用四类，一句写全。",
+          "option_id": "G02-html-practice-html-q2-613193ea6d75:option-1"
+        },
+        {
+          "text": "只要不是淤泥就能填，砂、碎石、黏土随取随填省成本。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为只忌讳淤泥一种。",
+          "loss_reason": "漏了淤泥质土/有机质>5%/含水量不符黏性土三类禁用。",
+          "fix": "禁用四类写全，并点'尽量同类土'。",
+          "option_id": "G02-html-practice-html-q2-613193ea6d75:option-2"
+        },
+        {
+          "text": "填方土料越黏越密实，应优先选含水量高的黏性土回填。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为黏土密实、含水多好压。",
+          "loss_reason": "含水量不符压实要求的黏性土恰是禁用项，概念反了。",
+          "fix": "含水量不符要求的黏性土禁用，应选可压密的砂、碎石、同类土。",
+          "option_id": "G02-html-practice-html-q2-613193ea6d75:option-3"
+        },
+        {
+          "text": "淤泥、有机质土只要掺点石灰改良，都可直接用作填方无限制。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为掺灰改良就能随便用。",
+          "loss_reason": "本考点口径淤泥/有机质>5%属禁用，不以'掺石灰'为由放开。",
+          "fix": "按规范禁用四类，不随意放开。",
+          "option_id": "G02-html-practice-html-q2-613193ea6d75:option-4"
+        }
+      ],
+      "model_answer": "尽量采用同类土；不得用淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土；砂、碎石土可用。",
+      "rule_group": "选料·条件维",
+      "content_sha256": "508e5c40bcb852442a36f47374d3c51cd1508004960677a0b7361ec4393c551c",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q2",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "g02-fact-fill-soil-selection",
+        "skeleton_id": "g02-skel-填方土料禁用类",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413000_085_0158:0",
+        "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "508e5c40bcb852442a36f47374d3c51cd1508004960677a0b7361ec4393c551c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "填方土料不得用淤泥/淤泥质土/有机质>5%/含水量不符压实的黏性土, 教材 kc:...085_0158:0 直引。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q3-97671409244c",
+      "surface_id": "practice.html",
+      "stem": "土方回填时，填土的起填位置与铺填方式，正确的是？",
+      "options": [
+        {
+          "text": "填土从场地最低处开始，由下而上整个宽度分层铺填。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "起填位置+由下而上+整宽分层，一句齐。",
+          "option_id": "G02-html-practice-html-q3-97671409244c:option-1"
+        },
+        {
+          "text": "从场地最高处往低处赶，一次填到设计标高后再统一压实。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得从高处推土顺势方便。",
+          "loss_reason": "起填位置错、且不分层，下部压不实。",
+          "fix": "应从最低处起、由下而上分层铺。",
+          "option_id": "G02-html-practice-html-q3-97671409244c:option-2"
+        },
+        {
+          "text": "从最低处开始铺即可，厚度铺到多少不影响，压一遍成活。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住最低处起就以为够了。",
+          "loss_reason": "漏了分层与厚度控制。",
+          "fix": "补'由下而上整宽分层'+按机具控厚度遍数。",
+          "option_id": "G02-html-practice-html-q3-97671409244c:option-3"
+        },
+        {
+          "text": "由上而下逐层挖填，边挖边填保证密实。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把开挖顺序当回填顺序。",
+          "loss_reason": "回填是由下而上，不是由上而下。",
+          "fix": "回填应由下而上分层铺填。",
+          "option_id": "G02-html-practice-html-q3-97671409244c:option-4"
+        }
+      ],
+      "model_answer": "填土从场地最低处开始，由下而上整个宽度分层铺填。",
+      "rule_group": "铺填·程序维",
+      "content_sha256": "1ba2cccd380e9d9b725a51f1e6421564cd2f14a8b2acfecf14bc38394db3d4f6",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q3",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "g02-fact-fill-start-position",
+        "skeleton_id": "g02-skel-最低处起填分层",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2016:第8题",
+        "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "1ba2cccd380e9d9b725a51f1e6421564cd2f14a8b2acfecf14bc38394db3d4f6",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "填土从场地最低处开始由下而上整宽度分层铺填, 真题 exam:2016:第8题 直接支持(B为真选项)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q4-9a0b35a1c05a",
+      "surface_id": "practice.html",
+      "stem": "对基础两侧（或周边）进行回填时，正确做法是？",
+      "options": [
+        {
+          "text": "相对两侧（或周边）应对称、均衡回填，避免单侧受力使结构偏移。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出对称均衡+防偏压。",
+          "option_id": "G02-html-practice-html-q4-9a0b35a1c05a:option-1"
+        },
+        {
+          "text": "先把一侧回填压实到顶，再回填另一侧，逐侧完成效率高。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得一侧干完再干一侧省事。",
+          "loss_reason": "单侧回填致结构偏压移位。",
+          "fix": "两侧应对称、均衡同步回填。",
+          "option_id": "G02-html-practice-html-q4-9a0b35a1c05a:option-2"
+        },
+        {
+          "text": "两侧分层回填即可，是否对称无所谓，压实达标就行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记分层，忽略对称。",
+          "loss_reason": "漏'对称'，单侧仍会偏压。",
+          "fix": "必须相对两侧对称均衡回填。",
+          "option_id": "G02-html-practice-html-q4-9a0b35a1c05a:option-3"
+        },
+        {
+          "text": "哪侧空间大先填哪侧，方便机械进出。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "按施工便利决定顺序。",
+          "loss_reason": "忽视结构受力对称要求。",
+          "fix": "以结构受力为准，两侧对称回填。",
+          "option_id": "G02-html-practice-html-q4-9a0b35a1c05a:option-4"
+        }
+      ],
+      "model_answer": "相对两侧或周边应对称、均衡回填，防止结构偏压。",
+      "rule_group": "铺填·程序维",
+      "content_sha256": "aa80e22bb584de70160d2ff8e74c7f132812ace5113cc2c3c02abe7f6e6d6c78",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q4",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "g02-fact-symmetric-backfill",
+        "skeleton_id": "g02-skel-两侧对称均衡回填",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2016:第8题",
+        "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "aa80e22bb584de70160d2ff8e74c7f132812ace5113cc2c3c02abe7f6e6d6c78",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "基础两侧应相对对称均衡回填避免单侧受力偏移, 真题 exam:2016:第8题 逐字含‘C.应在相对两侧对称回填’(真选项)。Codex FATAL 系 threshold0.25 召回空(缺口非血统断)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q5-7d9d763971e5",
+      "surface_id": "practice.html",
+      "stem": "每层虚铺厚度应依据什么确定？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "每层虚铺厚度应根据夯实机具（夯击能）确定，不按含水量确定。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明按夯实机具，且否定'按含水量'。",
+          "option_id": "G02-html-practice-html-q5-7d9d763971e5:option-1"
+        },
+        {
+          "text": "每层虚铺厚度应根据土的含水量确定，含水量越大铺得越薄。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得土湿就该铺薄点，很顺手。",
+          "loss_reason": "2016年真题经典反向陷阱——虚铺厚度按机具不按含水量。",
+          "fix": "按夯实机具定，含水量只影响压实效果。",
+          "option_id": "G02-html-practice-html-q5-7d9d763971e5:option-2"
+        },
+        {
+          "text": "每层虚铺厚度按经验大致铺开就行，压实达标即可，无需固定依据。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得凭经验铺差不多。",
+          "loss_reason": "漏了'按夯实机具确定'这一采分依据。",
+          "fix": "必须写'按夯实机具确定'。",
+          "option_id": "G02-html-practice-html-q5-7d9d763971e5:option-3"
+        },
+        {
+          "text": "每层虚铺厚度统一按300mm铺，任何机具都一样。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记了个300mm就套所有机具。",
+          "loss_reason": "厚度随机具不同，不能一刀切。",
+          "fix": "按机具查表：平碾250-300、振动压实机250-350等。",
+          "option_id": "G02-html-practice-html-q5-7d9d763971e5:option-4"
+        }
+      ],
+      "model_answer": "每层虚铺厚度应根据夯实机具确定，不按含水量。",
+      "rule_group": "虚铺·条件维",
+      "content_sha256": "48891780f710ca677f2aa0532d33a4a7063a5a15cf03363a2796efd4f3db54c3",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q5",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "g02-fact-loose-layer-thickness",
+        "skeleton_id": "g02-skel-虚铺厚度按夯实机具",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2016:第8题",
+        "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "48891780f710ca677f2aa0532d33a4a7063a5a15cf03363a2796efd4f3db54c3",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "每层虚铺厚度按夯实机具(夯击能)确定而非含水量, 真题 exam:2016:第8题 支持(D‘按含水量’为错项)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q6-62bc9be3d96c",
+      "surface_id": "practice.html",
+      "stem": "采用振动压实机回填压实，其分层（虚铺）厚度与压实遍数应为？",
+      "options": [
+        {
+          "text": "分层厚度250-350mm，每层压实3-4遍。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "厚度区间+遍数区间，按机具查表写对。",
+          "option_id": "G02-html-practice-html-q6-62bc9be3d96c:option-1"
+        },
+        {
+          "text": "分层厚度可达400mm以上，压实2遍成活即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "想少压几遍、铺厚点赶进度。",
+          "loss_reason": "铺填>400mm超上限、压2遍遍数不足（2018案例三不妥点）。",
+          "fix": "应250-350mm、3-4遍。",
+          "option_id": "G02-html-practice-html-q6-62bc9be3d96c:option-2"
+        },
+        {
+          "text": "套用平碾参数：分层250-300mm、压6-8遍。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记混了机具参数。",
+          "loss_reason": "机具-参数错配，振动压实机是3-4遍不是6-8遍。",
+          "fix": "振动压实机250-350mm/3-4遍。",
+          "option_id": "G02-html-practice-html-q6-62bc9be3d96c:option-3"
+        },
+        {
+          "text": "分层薄铺、多压几遍即可，具体数值凭现场把握。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对但不给数值。",
+          "loss_reason": "改正无具体数值=关键词缺失，只得半分。",
+          "fix": "必带250-350mm、3-4遍。",
+          "option_id": "G02-html-practice-html-q6-62bc9be3d96c:option-4"
+        }
+      ],
+      "model_answer": "振动压实机分层厚度250-350mm，每层压实3-4遍。",
+      "rule_group": "压实·计算表达维",
+      "content_sha256": "d901ef8aad589dac84071ca9acf34e12b7c7a96d5e64ba48c030100196407191",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q6",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "g02-fact-vibratory-compaction-backfill",
+        "skeleton_id": "g02-skel-振动压实分层厚度遍数",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2018:案例分析(三)问题2",
+        "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "d901ef8aad589dac84071ca9acf34e12b7c7a96d5e64ba48c030100196407191",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "振动压实机分层厚度250-350mm每层压实3-4遍, 真题 exam:2018:案例(三)问题2 直引(铺填>400mm不妥→250-350)。三联 immediate_confirm(同振动压实回填 fact)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q7-593dad823ddc",
+      "surface_id": "practice.html",
+      "stem": "采用平碾进行填土压实，其分层厚度与压实遍数应为？",
+      "options": [
+        {
+          "text": "分层厚度250-300mm，每层压实6-8遍。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "平碾按表：250-300mm/6-8遍。",
+          "option_id": "G02-html-practice-html-q7-593dad823ddc:option-1"
+        },
+        {
+          "text": "分层厚度250-350mm、压3-4遍，与振动压实机相同。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "两种机具数值相近易混。",
+          "loss_reason": "平碾是6-8遍，不是3-4遍。",
+          "fix": "平碾250-300mm/6-8遍。",
+          "option_id": "G02-html-practice-html-q7-593dad823ddc:option-2"
+        },
+        {
+          "text": "分层厚度不限，压到不再下沉为止，遍数越多越好。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为多压总没错。",
+          "loss_reason": "厚度/遍数应按参数表控制。",
+          "fix": "平碾250-300mm/6-8遍。",
+          "option_id": "G02-html-practice-html-q7-593dad823ddc:option-3"
+        },
+        {
+          "text": "薄层多遍碾压即可，数值现场定。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对不给数值。",
+          "loss_reason": "缺具体数值。",
+          "fix": "必写250-300mm/6-8遍。",
+          "option_id": "G02-html-practice-html-q7-593dad823ddc:option-4"
+        }
+      ],
+      "model_answer": "平碾分层厚度250-300mm，每层压实6-8遍。",
+      "rule_group": "压实·计算表达维",
+      "content_sha256": "cb7c061d79bd208bf313b28f26fc5d9bb538d952d7ed592bc57c3e5e6dbfaf49",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q7",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "cb7c061d79bd208bf313b28f26fc5d9bb538d952d7ed592bc57c3e5e6dbfaf49",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q8-0a6ebb0ea2f6",
+      "surface_id": "practice.html",
+      "stem": "多层回填压实的施工顺序，正确的是？",
+      "options": [
+        {
+          "text": "下层压实系数经试验合格后，方可进行上层填土施工。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出'下层合格再上层'。",
+          "option_id": "G02-html-practice-html-q8-0a6ebb0ea2f6:option-1"
+        },
+        {
+          "text": "各层连续铺填压实、一次做到设计标高，最后统一检测压实系数。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得一口气填完再检省事。",
+          "loss_reason": "未逐层验收，下层不合格会埋隐患。",
+          "fix": "下层压实系数合格后再上层。",
+          "option_id": "G02-html-practice-html-q8-0a6ebb0ea2f6:option-2"
+        },
+        {
+          "text": "分层压实即可，是否检验下层不影响上层施工。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记分层压实。",
+          "loss_reason": "漏'下层合格再上层'程序采分点。",
+          "fix": "补'下层压实系数合格后再上层'。",
+          "option_id": "G02-html-practice-html-q8-0a6ebb0ea2f6:option-3"
+        },
+        {
+          "text": "上层先做、下层后补，方便控制总标高。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "想先定顶标高。",
+          "loss_reason": "顺序颠倒，违反由下而上+逐层合格。",
+          "fix": "由下而上、下层合格再上层。",
+          "option_id": "G02-html-practice-html-q8-0a6ebb0ea2f6:option-4"
+        }
+      ],
+      "model_answer": "下层压实系数试验合格后，再进行上层施工。",
+      "rule_group": "压实·程序维",
+      "content_sha256": "4122ae0c5f080e0b33b0c668f708623b157c378c535fdc5869bc057df6b20f5d",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q8",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "4122ae0c5f080e0b33b0c668f708623b157c378c535fdc5869bc057df6b20f5d",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q9-0f8887a6e8c9",
+      "surface_id": "practice.html",
+      "stem": "易造成回填土密实度达不到要求的原因是？",
+      "options": [
+        {
+          "text": "土的含水率过大或过小，均致密实度达不到要求（最优含水率附近最易压实）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "双向：过大过小都不行。",
+          "option_id": "G02-html-practice-html-q9-0f8887a6e8c9:option-1"
+        },
+        {
+          "text": "含水率越大越软越好压，密实度不足只因含水率太低。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为水多就软好压。",
+          "loss_reason": "含水率过大成稀泥同样压不实，单向理解错。",
+          "fix": "过大过小均不行，双向写。",
+          "option_id": "G02-html-practice-html-q9-0f8887a6e8c9:option-2"
+        },
+        {
+          "text": "只要分层压实遍数够，含水率高低都不影响密实度。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为遍数够就行。",
+          "loss_reason": "忽略含水率对压实的决定作用。",
+          "fix": "含水率过大过小均致密实度不足。",
+          "option_id": "G02-html-practice-html-q9-0f8887a6e8c9:option-3"
+        },
+        {
+          "text": "密实度不足主要因为土料颗粒太粗，与含水率无关。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "归因到颗粒粗细。",
+          "loss_reason": "本题采分点是含水率过大过小。",
+          "fix": "应答含水率过大或过小。",
+          "option_id": "G02-html-practice-html-q9-0f8887a6e8c9:option-4"
+        }
+      ],
+      "model_answer": "土的含水率过大或过小，均不利于压实，致密实度达不到要求。",
+      "rule_group": "机理·后果维",
+      "content_sha256": "af0fff34649c450899412bef9efea84e511c23d6aea3c723cd12da806f530ba0",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q9",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "af0fff34649c450899412bef9efea84e511c23d6aea3c723cd12da806f530ba0",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q10-bb16c258fab8",
+      "surface_id": "practice.html",
+      "stem": "土方回填施工结束后，应进行哪些检验？选出完整作答。",
+      "options": [
+        {
+          "text": "施工结束后应进行标高及压实系数检验。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "标高+压实系数，双项齐。",
+          "option_id": "G02-html-practice-html-q10-bb16c258fab8:option-1"
+        },
+        {
+          "text": "施工结束后检验标高即可，表面平整达标就说明压实合格。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为表面平整=压实合格。",
+          "loss_reason": "漏压实系数检验。",
+          "fix": "补压实系数检验。",
+          "option_id": "G02-html-practice-html-q10-bb16c258fab8:option-2"
+        },
+        {
+          "text": "只检压实系数，标高由测量另管，不在回填检验内。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为标高不算回填检验。",
+          "loss_reason": "漏标高检验项。",
+          "fix": "标高与压实系数都要检。",
+          "option_id": "G02-html-practice-html-q10-bb16c258fab8:option-3"
+        },
+        {
+          "text": "检验外观、色泽、含石量即可，压实系数可免抽查。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "用外观代替量化指标。",
+          "loss_reason": "压实系数为必检量化项，不能免。",
+          "fix": "必检标高+压实系数。",
+          "option_id": "G02-html-practice-html-q10-bb16c258fab8:option-4"
+        }
+      ],
+      "model_answer": "施工结束后应进行标高及压实系数检验。",
+      "rule_group": "检测·计算表达维",
+      "content_sha256": "1ba805e0fc7bfc03b21873ee826d17d2b0ebe4d3cd7658b9e8d0cb76722dac6b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q10",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "1ba805e0fc7bfc03b21873ee826d17d2b0ebe4d3cd7658b9e8d0cb76722dac6b",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q11-a07c6231235c",
+      "surface_id": "practice.html",
+      "stem": "回填工程质量验收时，下列属于必查内容的是？",
+      "options": [
+        {
+          "text": "填筑厚度、含水量控制、压实系数为必查内容（排水系统非必查）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三必查+点明排水系统非必查。",
+          "option_id": "G02-html-practice-html-q11-a07c6231235c:option-1"
+        },
+        {
+          "text": "填筑厚度、含水量、压实系数、排水系统四项都是必查内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得排水系统重要就该必查。",
+          "loss_reason": "排水系统非回填质量必查项（真题反向陷阱）。",
+          "fix": "必查是填筑厚度/含水量/压实系数，排水系统非必查。",
+          "option_id": "G02-html-practice-html-q11-a07c6231235c:option-2"
+        },
+        {
+          "text": "只查压实系数一项即可，其余属工艺记录不必查。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住压实系数。",
+          "loss_reason": "漏填筑厚度、含水量控制两项。",
+          "fix": "三项都必查。",
+          "option_id": "G02-html-practice-html-q11-a07c6231235c:option-3"
+        },
+        {
+          "text": "必查地基承载力和沉降观测，回填厚度可免查。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "混入地基检验项。",
+          "loss_reason": "承载力/沉降非回填必查，填筑厚度必查。",
+          "fix": "回填必查填筑厚度/含水量/压实系数。",
+          "option_id": "G02-html-practice-html-q11-a07c6231235c:option-4"
+        }
+      ],
+      "model_answer": "必查：填筑厚度、含水量控制、压实系数；排水系统非必查。",
+      "rule_group": "检测·条件维",
+      "content_sha256": "da5580c2ab07f91b80f970bc0a87abefdee87bfa03a6a003bc8c86bec4179414",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q11",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "da5580c2ab07f91b80f970bc0a87abefdee87bfa03a6a003bc8c86bec4179414",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q12-fe42944fdb14",
+      "surface_id": "practice.html",
+      "stem": "压实系数的检测方法，正确、能得分的是？",
+      "options": [
+        {
+          "text": "用标准击实法标定最大干密度，逐层测定判定压实系数。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出标准击实法+逐层判定。",
+          "option_id": "G02-html-practice-html-q12-fe42944fdb14:option-1"
+        },
+        {
+          "text": "把每天回填2-3层的环刀土样收集起来，统一送检测单位检测。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得攒一起送检省事、常规。",
+          "loss_reason": "多层环刀土样统一送检分不清各层（2018案例三不妥点）。",
+          "fix": "用标准击实法、逐层标定判定。",
+          "option_id": "G02-html-practice-html-q12-fe42944fdb14:option-2"
+        },
+        {
+          "text": "环刀法本身被禁用，压实系数只能用灌砂法检测。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为错在'环刀法'这个方法本身。",
+          "loss_reason": "错在'多层统一送检'不分层，非环刀法被禁。",
+          "fix": "压实系数用标准击实法标定，分层判定。",
+          "option_id": "G02-html-practice-html-q12-fe42944fdb14:option-3"
+        },
+        {
+          "text": "取样送检测压实系数即可，用什么方法现场定。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对不点方法。",
+          "loss_reason": "缺'标准击实法'关键词。",
+          "fix": "必写'标准击实法'。",
+          "option_id": "G02-html-practice-html-q12-fe42944fdb14:option-4"
+        }
+      ],
+      "model_answer": "压实系数用标准击实法标定最大干密度、逐层判定；不能把多层回填的环刀土样统一送检。",
+      "rule_group": "检测·计算表达维",
+      "content_sha256": "0cece41c998da2a1cac1632ed289d5ece11965ff6a092a3cb33c6d04755014ec",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q12",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "g02-fact-vibratory-compaction-backfill",
+        "skeleton_id": "g02-skel-压实系数标准击实法",
+        "probe_role": "d1_probe",
+        "source_anchor": "exam:2018:案例分析(三)问题3",
+        "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "0cece41c998da2a1cac1632ed289d5ece11965ff6a092a3cb33c6d04755014ec",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "压实系数用标准击实法标定最大干密度逐层测定, 真题 exam:2018:案例(三)问题3 支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: longest-option。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q13-bc035f734186",
+      "surface_id": "practice.html",
+      "stem": "回填压实检测的取样与试验资料，正确顺序是？",
+      "options": [
+        {
+          "text": "先编制取样点布置图，后形成试验结果表。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先布置图、后结果表，顺序不颠倒。",
+          "option_id": "G02-html-practice-html-q13-bc035f734186:option-1"
+        },
+        {
+          "text": "先出试验结果表，再补画取样点布置图对应，方便凑数据。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得先有数据再画图省事。",
+          "loss_reason": "顺序颠倒，资料失真。",
+          "fix": "应先取样点布置图，后试验结果表。",
+          "option_id": "G02-html-practice-html-q13-bc035f734186:option-2"
+        },
+        {
+          "text": "有试验结果表即可，取样点布置图可省略。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为结果表就够。",
+          "loss_reason": "漏取样点布置图。",
+          "fix": "先布置图后结果表，两者都要。",
+          "option_id": "G02-html-practice-html-q13-bc035f734186:option-3"
+        },
+        {
+          "text": "取样点随机定即可，布置图与结果表无先后。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为无所谓顺序。",
+          "loss_reason": "忽视先图后表的程序要求。",
+          "fix": "先取样点布置图，后试验结果表。",
+          "option_id": "G02-html-practice-html-q13-bc035f734186:option-4"
+        }
+      ],
+      "model_answer": "应先有取样点布置图，后有试验结果表。",
+      "rule_group": "检测·程序维",
+      "content_sha256": "b8629e685952e7eca40a43e12a30167ce8bde2607f4a8d995db4bfb7910f74b5",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q13",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b8629e685952e7eca40a43e12a30167ce8bde2607f4a8d995db4bfb7910f74b5",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q15-ab9568929a91",
+      "surface_id": "practice.html",
+      "stem": "某回填土料中混有建筑垃圾，施工员认为'能填空隙、无妨'。正确判断是？",
+      "options": [
+        {
+          "text": "不妥：回填土料不得混有建筑垃圾，应清除后用合格土料（尽量同类土）回填。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "指不妥+给正确做法。",
+          "option_id": "G02-html-practice-html-q15-ab9568929a91:option-1"
+        },
+        {
+          "text": "妥当：建筑垃圾能填空隙、增加密实度，可直接用作填方。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为碎块能填空隙增密。",
+          "loss_reason": "建筑垃圾成分杂、不均匀，禁止混入。",
+          "fix": "应清除建筑垃圾后再回填。",
+          "option_id": "G02-html-practice-html-q15-ab9568929a91:option-2"
+        },
+        {
+          "text": "只要把大块建筑垃圾挑出来，碎渣可以留在土料里回填。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得挑大块就行。",
+          "loss_reason": "仍属混入建筑垃圾，不妥。",
+          "fix": "建筑垃圾应清除，不得混入。",
+          "option_id": "G02-html-practice-html-q15-ab9568929a91:option-3"
+        },
+        {
+          "text": "建筑垃圾属于碎石土，可作填方土料。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把建筑垃圾等同碎石土。",
+          "loss_reason": "建筑垃圾≠碎石土，不得用。",
+          "fix": "建筑垃圾禁用，只有合格碎石土才可用。",
+          "option_id": "G02-html-practice-html-q15-ab9568929a91:option-4"
+        }
+      ],
+      "model_answer": "不妥：回填土料不得混有建筑垃圾，应清除后采用合格同类土回填。",
+      "rule_group": "选料·条件维",
+      "content_sha256": "eeb44698d7efa781c91f0a89c17eea70299e92eeded0fdc368d25449151bc0b1",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q15",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "eeb44698d7efa781c91f0a89c17eea70299e92eeded0fdc368d25449151bc0b1",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q16-d5e2e8aea5ac",
+      "surface_id": "practice.html",
+      "stem": "某学生就'振动压实机回填施工纠错'作答：②铺得太厚应薄一点；③压得太少多压几遍；④环刀取样送检没问题；①土料没看出问题。选出最准确的诊断与补写。",
+      "options": [
+        {
+          "text": "②③方向对但缺数值（应250-350mm、3-4遍）；④多层环刀统一送检不妥、应用标准击实法；①建筑垃圾未识别——四处都要补写。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "半命中补数值 + 两处漏点全揪出，这就是'会写答案'。",
+          "option_id": "G02-html-practice-html-q16-d5e2e8aea5ac:option-1"
+        },
+        {
+          "text": "作答基本正确，只是表述口语化，方向都对，可给满分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "看方向对就以为拿满分。",
+          "loss_reason": "缺数值=半分，且漏④环刀送检与①建筑垃圾两处。",
+          "fix": "补数值 + 补④标准击实法、①清除建筑垃圾两处。",
+          "option_id": "G02-html-practice-html-q16-d5e2e8aea5ac:option-2"
+        },
+        {
+          "text": "只需把'薄一点''多压几遍'改成具体数值即可，其余都对。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "抓到缺数值一处。",
+          "loss_reason": "漏诊④环刀统一送检、①建筑垃圾两处不妥。",
+          "fix": "除补数值，还要指④用标准击实法、①清除建筑垃圾。",
+          "option_id": "G02-html-practice-html-q16-d5e2e8aea5ac:option-3"
+        },
+        {
+          "text": "环刀法本身违规，四处主要错在都用了环刀，改灌砂法即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为错在环刀法本身。",
+          "loss_reason": "错在多层统一送检不分层，非环刀法被禁；且漏其他失分。",
+          "fix": "④错在统一送检、应标准击实法逐层；另补数值与建筑垃圾。",
+          "option_id": "G02-html-practice-html-q16-d5e2e8aea5ac:option-4"
+        }
+      ],
+      "model_answer": "②③方向对但缺数值（应250-350mm、3-4遍）；④多层环刀统一送检不妥、应标准击实法；①建筑垃圾未识别；四处都要补写。",
+      "rule_group": "采分诊断·末题",
+      "content_sha256": "60c50533c52867082e308ef1a619e6bd3075bb380774fe1ea0fe81dc530688e3",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q16",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "g02-fact-vibratory-compaction-backfill",
+        "skeleton_id": "g02-skel-振动压实回填诊断",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2018:案例分析(三)问题2",
+        "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "60c50533c52867082e308ef1a619e6bd3075bb380774fe1ea0fe81dc530688e3",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:45:32+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "振动压实回填纠错: ②③缺数值(应250-350mm/3-4遍)④应标准击实法非多层环刀①建筑垃圾未识别, 真题 exam:2018:案例(三)问题2 支持。三联 anchor。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "G02-html-practice-html-q17-e1127d9b2a1b",
+      "surface_id": "practice.html",
+      "stem": "就'土方回填施工要点'作答，选出最完整、最能拿分的采分句组织。",
+      "options": [
+        {
+          "text": "选料：禁用淤泥/淤泥质土/有机质>5%/含水量不符黏性土、尽量同类土；铺填：最低处起、由下而上、对称分层，虚铺按机具；压实：按机具控厚度遍数（振动压实机250-350mm/3-4遍）、下层合格再上层；检测：标高+压实系数、标准击实法。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四步全、带数值方法，采分句一句不少。",
+          "option_id": "G02-html-practice-html-q17-e1127d9b2a1b:option-1"
+        },
+        {
+          "text": "回填要分层压实、控制质量、检测合格，按规范施工即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "笼统套话觉得稳妥。",
+          "loss_reason": "无具体采分点/数值/方法，四步全空。",
+          "fix": "按选料/铺填/压实/检测四步写具体内容。",
+          "option_id": "G02-html-practice-html-q17-e1127d9b2a1b:option-2"
+        },
+        {
+          "text": "选好土、铺好层、压密实、检测过关，四步做到位。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "四步框架有了。",
+          "loss_reason": "缺禁用清单、数值、检测方法等关键词。",
+          "fix": "每步补关键词与数值。",
+          "option_id": "G02-html-practice-html-q17-e1127d9b2a1b:option-3"
+        },
+        {
+          "text": "重点是压实系数用环刀统一送检、虚铺厚度按含水量定、冬期加厚赶工。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "塞了几个'专业'说法。",
+          "loss_reason": "三处全是错项（统一送检/按含水量/冬期加厚）。",
+          "fix": "应标准击实法、虚铺按机具、冬期减薄。",
+          "option_id": "G02-html-practice-html-q17-e1127d9b2a1b:option-4"
+        }
+      ],
+      "model_answer": "选料→铺填→压实→检测四步写全，每步带关键数值/方法。",
+      "rule_group": "采分句·末题",
+      "content_sha256": "e32675cd6abea7f55f666f3a7088113fe7d49e097b3f2a48cf276178db6d58e4",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q17",
+      "authoring_sha256": "e644b9ec3e3f9beaec3b8b279d6ef54635990db84113dd4afb5e7125c93a0e0c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e32675cd6abea7f55f666f3a7088113fe7d49e097b3f2a48cf276178db6d58e4",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
+  ],
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (g02.codex.out, fatal_count=2). 主控核: 5 surface 锚 q2/q3/q4/q5/q16 答案均土方回填标准事实。q4(surface)Codex 判 FATAL 仅因 threshold0.25 时 anchor_candidates 空(召回缺口非血统断): 降 threshold 后 exam:2016:第8题 逐字含‘C.应在相对两侧对称回填’(真选项, 错项为D虚铺按含水量), 直接支持 q4‘对称均衡回填’, 亦支持 q3(起填最低处)与 q5(虚铺按夯实机具)。非展示 FATAL q17(综合回填清单单锚覆盖不全)排除不签。三联=振动压实回填纠错链 fact(q16诊断/q6分层厚度遍数/q12压实系数检测, exam:2018:案例(三)链)。工单: 部分正确项最长。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
+}

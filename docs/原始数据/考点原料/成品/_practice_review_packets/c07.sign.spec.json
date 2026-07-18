@@ -1,0 +1,13 @@
+{
+  "pack_id": "C07",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (c07.codex.out, 报 4 FATAL). 主控逐条核 _C07_compiled_source.json: (1) Codex 对 q11/q12/q15 的 '扩孔须征得设计单位同意' FATAL 系幻觉——grep 全 compiled_source '设计单位' 零命中,q11 答案'孔径不超1.2倍+禁气割扩孔'与教材逐字一致;(2) q3 漏'低温需加热/防护'属实,但 stem 限定'数值正确',所列4数值全对,单选可接受=工单;(3) q15 五错诊断为复合题,单锚只覆盖兼作/气割扩孔2事实,余为多源=工单。结论:无 FATAL,全部答案教材正确、引文可溯,按 N01/C01 先例 approved+工单。",
+  "signed": [
+    {"variant_id":"C07-html-practice-html-q1-1dbc01dbdcec","probe_role":"anchor","fact_id":"c07-fact-connection-methods","skeleton_id":"c07-skel-连接方法四类枚举","source_anchor":"kc:1A413030_109_0216:0","note":"钢结构连接方法四类,教材直引(0.88)。工单:正确项恒首位且最长(template artifact)。"},
+    {"variant_id":"C07-html-practice-html-q2-b4a3fc6a4689","probe_role":"anchor","fact_id":"c07-fact-weld-joint-types","skeleton_id":"c07-skel-焊接接头七类枚举","source_anchor":"kc:1A413030_109_0216:1","note":"焊接接头七类,教材直引(0.74)。工单:template artifact。"},
+    {"variant_id":"C07-html-practice-html-q3-5c99057d90f9","probe_role":"anchor","fact_id":"c07-fact-weld-environment","skeleton_id":"c07-skel-焊接环境数值","source_anchor":"kc:1A413030_110_0217:1","note":"焊接环境4数值(≥-10℃/湿度≤90%/风速8/2)全对,教材直引(0.84)。工单:stem 限定数值,解析可补'低温需加热/防护'(另一采分点)。"},
+    {"variant_id":"C07-html-practice-html-q4-3ff4600ca2e6","probe_role":"anchor","fact_id":"c07-fact-slag-inclusion-cause","skeleton_id":"c07-skel-夹渣成因","source_anchor":"exam:2021:第8题","note":"固体夹渣成因(电流小/速度快/熔渣未清),真题锚。工单:机理化括注宜另补教材锚。"},
+    {"variant_id":"C07-html-practice-html-q15-e2594578228f","probe_role":"anchor","fact_id":"c07-fact-high-strength-bolt-install","skeleton_id":"c07-skel-五错诊断补写","source_anchor":"kc:1A413030_110_0217:0","note":"高强螺栓五错诊断(兼作/气割扩孔/摩擦面标记/终拧/…)。锚 kc:...110_0217:0 覆盖兼作+禁气割扩孔;摩擦面/终拧为多源。工单:复合题多源 provenance,非血统断(各事实均教材有据)。Codex '设计单位同意' FATAL 为幻觉,已否。"},
+    {"variant_id":"C07-html-practice-html-q10-eef5eb0d8bee","probe_role":"immediate_confirm","fact_id":"c07-fact-high-strength-bolt-install","skeleton_id":"c07-skel-兼作判断纠错","source_anchor":"kc:1A413030_110_0217:0","note":"高强螺栓不得兼作安装螺栓,教材直引(0.68)。工单:正确做法可补荷载计算前提。"},
+    {"variant_id":"C07-html-practice-html-q9-16d06c3c7aef","probe_role":"d1_probe","fact_id":"c07-fact-high-strength-bolt-install","skeleton_id":"c07-skel-冲钉数量下限","source_anchor":"kc:1A413030_110_0217:0","note":"安装螺栓/冲钉数量下限+不得兼作,教材直引(0.79)。工单:荷载计算前提未列(不穷尽非反错)。"}
+  ]
+}

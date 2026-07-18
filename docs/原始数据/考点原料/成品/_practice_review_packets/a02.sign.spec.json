@@ -1,0 +1,62 @@
+{
+  "pack_id": "A02",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (a02.codex.out, fatal_count=3)。21 approve/3 reject; 5 surface 锚(q1/q2/q3/q4/q21)全无 FATAL。3 个非展示 FATAL 主控核认: q13/q24『覆盖前完成并形成隐检记录』时机事实包内无原文=真血统断; q15 屋面节能四项(kc:1A422000_049_0075 系屋面/地面)错套墙体题干且含隔汽层后非墙体口径唯一正确=真病。**三题均排除不签**。三联承 Codex 方案: 见证取样链 q21/q10/q12。工单(非阻塞): 全包 24 题正确项固定首位+多题最长+干扰项解析字段空(编译模板病); q16/q23 钻芯第三方表述需补强来源; q18 触发条件叠写宜收紧。",
+  "signed": [
+    {
+      "variant_id": "A02-html-practice-html-q1-728f764294c4",
+      "probe_role": "anchor",
+      "fact_id": "a02-fact-material-entry-acceptance",
+      "skeleton_id": "a02-skel-进场验收内容枚举",
+      "source_anchor": "ca:1A438000_150_0241",
+      "note": "进场验收=凭证/数量规格/外观/挂牌待检/台账, 教材卡 ca:...150_0241(验收内容,挂牌标识,待检标识)直接覆盖。工单: 正确项最长+固定首位。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q2-2de44e410ea8",
+      "probe_role": "anchor",
+      "fact_id": "a02-fact-safety-energy-env-recheck",
+      "skeleton_id": "a02-skel-复验范围与监理认可",
+      "source_anchor": "kc:1A438000_151_0243:0",
+      "note": "涉及安全/节能/环保材料须复验并经监理认可, 教材 kc:...151_0243:0 直引; 干扰项均绝对化错误。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q3-1ce285425843",
+      "probe_role": "anchor",
+      "fact_id": "a02-fact-rebar-recheck-five",
+      "skeleton_id": "a02-skel-普通钢筋复试五项",
+      "source_anchor": "exam:2016:第17题",
+      "note": "普通钢筋复试五项(屈服/抗拉/伸长率/弯曲/重量偏差), 真题 exam:2016:第17题 解析逐项+kc:...152_0245:0 教材同文。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q4-34f5c52d4995",
+      "probe_role": "anchor",
+      "fact_id": "a02-fact-formed-rebar-exemption",
+      "skeleton_id": "a02-skel-成型钢筋免检项判定",
+      "source_anchor": "exam:2016:第17题",
+      "note": "成型钢筋进场可免弯曲性能复验其余四项仍检, 真题 exam:2016:第17题 原题直判(B)。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q21-0f835a0744d8",
+      "probe_role": "anchor",
+      "fact_id": "a02-fact-witness-sampling-chain",
+      "skeleton_id": "a02-skel-见证取样完整采分句",
+      "source_anchor": "exam:2017:第13题",
+      "note": "见证取样: 见证人建设单位书面确认+试样现场内抽取, 真题 exam:2017:第13题 正误项直判; 见证记录由见证人员填写另有 exam:2023:案例一 佐证(复合多源工单)。三联 anchor。工单: 正确项远长于干扰项。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q10-f02b45be1743",
+      "probe_role": "immediate_confirm",
+      "fact_id": "a02-fact-witness-sampling-chain",
+      "skeleton_id": "a02-skel-见证人确认主体直问",
+      "source_anchor": "exam:2017:第13题",
+      "note": "见证人由建设单位(项目监理机构)书面确认, 真题 exam:2017:第13题 B 错项否定直证。三联 immediate_confirm(同见证取样 fact)。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q12-446155cc0383",
+      "probe_role": "d1_probe",
+      "fact_id": "a02-fact-witness-sampling-chain",
+      "skeleton_id": "a02-skel-见证取样流程规则辨析",
+      "source_anchor": "exam:2019:第30题",
+      "note": "见证人填写记录/变更书面手续/与备案不符检测机构核实, 真题 exam:2019:第30题 直判; 现场内抽取另由 exam:2017:第13题 支持(复合多源工单)。三联 d1_probe(同 fact, 第3独立 skeleton)。"
+    }
+  ]
+}

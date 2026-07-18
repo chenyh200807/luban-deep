@@ -24,9 +24,17 @@
         "Q02-html-practice-html-q4-b844d305af66",
         "Q02-html-practice-html-q16-d048c3ff4a5a"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMDgzYzBjZWVjZmU0IiwiUTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xZTdhMmRkNjllNTIiLCJRMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWY4NmFiOTlmYWMwOSIsIlEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtYjg0NGQzMDVhZjY2IiwiUTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZDA0OGMzZmY0YTVhIl0sInBhY2tfaWQiOiJRMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjMzYmJkNDUzOTViYWJhODQzOTA0YWJjOWFmN2VjYjhiODUxNzFhM2JhZWI2ODFhYWFkNzNmMDU5M2RhMWM0ZTciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "f2237e891969ee165cfc945816deb161e943260e40e3ff22367298795bd4697b"
+      "eligible_variant_ids": [
+        "Q02-html-practice-html-q1-083c0ceecfe4",
+        "Q02-html-practice-html-q2-1e7a2dd69e52",
+        "Q02-html-practice-html-q3-f86ab99fac09",
+        "Q02-html-practice-html-q4-b844d305af66",
+        "Q02-html-practice-html-q6-1d2b4271f6d9",
+        "Q02-html-practice-html-q8-c47e11a4d38f",
+        "Q02-html-practice-html-q16-d048c3ff4a5a"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMDgzYzBjZWVjZmU0IiwiUTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xZTdhMmRkNjllNTIiLCJRMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWY4NmFiOTlmYWMwOSIsIlEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtYjg0NGQzMDVhZjY2IiwiUTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZDA0OGMzZmY0YTVhIl0sInBhY2tfaWQiOiJRMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjViNmYyNWJmNTU0ODRmY2FkMzcwZjZlYjZiMTk0OGRkMTNjYzM3YWNkNjVhNDgyMTAyNzgzM2EyOWQ2MzM3OTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNTRjMzE0ODJhODg3NTg0NmMzNjU2NmJkNzkzZTMxODkxNWRjYTFjY2U3YWRjNjhlZWQyY2VlNGI3MTYyZTQ4YiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "478cd1204c06390fcacbaa4ba03001d0e681a011ca181e4b15664cca6cc98911"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_095_0180:0",
+      "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
       "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "q02-fact-crack-prevention-four-groups",
+      "skeleton_id": "q02-skel-防裂四组措施骨架",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "bb8a2da1c556a315c3d9b974b975e7e8d0a4cea86ab102287298fbd1e6119943",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "bb8a2da1c556a315c3d9b974b975e7e8d0a4cea86ab102287298fbd1e6119943",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "四组措施各有源: 配合比组=本锚 kc:...095_0180:0(0.45/170kg/180mm 等)直引; 材料组(低水化热掺合料)/施工组(分层300~500)/养护测温组(≥14d+四温控)=kc:...096_0181 及大体积防水控制原文(复合多源工单)。Codex FATAL 系复合题血统误判。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_096_0181:0",
+      "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
       "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "q02-fact-four-temp-limits",
+      "skeleton_id": "q02-skel-四温控指标数值",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "201b928618980f9d7a12dc24557963c124301baa56a9567d6d4013d7d53698b1",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "201b928618980f9d7a12dc24557963c124301baa56a9567d6d4013d7d53698b1",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "温升≤50℃/里表≤25℃/降温≤2.0℃/d/拆保温≤20℃, 教材 kc:...096_0181:0 逐项直引。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2023:第16题",
+      "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
       "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "q02-fact-curing-14d",
+      "skeleton_id": "q02-skel-养护7d不妥改正",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "be820495d55c6b2b785be6b025be69c4f1511976d84bf16a4c5aeb82f2d447fe",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "be820495d55c6b2b785be6b025be69c4f1511976d84bf16a4c5aeb82f2d447fe",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "大体积保湿养护≥14d, 本锚真题解析逐字『C错：保湿养护持续时间不少于14d』; 教材 kc:...096_0181『保湿养护时间：≥14d』同文。Codex FATAL 系漏看真题 analysis。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2021:第13题",
+      "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
       "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "q02-fact-insulation-removal-20c",
+      "skeleton_id": "q02-skel-拆保温温差判定",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a686b58d6f980caf83504c043cd6cb26b47e0652180ca0c1e45fe08b4f661389",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a686b58d6f980caf83504c043cd6cb26b47e0652180ca0c1e45fe08b4f661389",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "拆保温时表面与大气温差≤20℃, 真题 exam:2021:第13题 原题直判(B)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -444,29 +500,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:案例一(一)背景资料",
+      "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
       "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "q02-fact-mix-conversion-and-limits",
+      "skeleton_id": "q02-skel-配合比换算计算",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "bc0834587d6ec031b621569840c4785a94da7cdacec68d76c1c800e14156758c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "bc0834587d6ec031b621569840c4785a94da7cdacec68d76c1c800e14156758c",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "水泥 400×0.8=320kg/m³, 粉煤灰 400×20%=80kg/m³, 真题背景+答案逐字。三联 immediate_confirm(同换算限值 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -590,29 +658,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_095_0180:0",
+      "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
       "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "q02-fact-mix-conversion-and-limits",
+      "skeleton_id": "q02-skel-水胶比限值判断",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "9be6eebca01143e806e865602682a664b4f91a4a89c44c41c71dc98af69b5956",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "9be6eebca01143e806e865602682a664b4f91a4a89c44c41c71dc98af69b5956",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "大体积水胶比≤0.45 限值判据, 教材 kc:...095_0180:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1174,30 +1254,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:案例一(一)背景资料",
+      "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
       "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "q02-fact-mix-conversion-and-limits",
+      "skeleton_id": "q02-skel-大体积综合诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a0624e5fa228bafab587b4d8ea7d0ea935cbef7373ff716383442dc7560456e9",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a0624e5fa228bafab587b4d8ea7d0ea935cbef7373ff716383442dc7560456e9",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:15:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "三诊断各有源: 320/80 换算=本锚 exam:2019 案例(20%等量替换400kg)+第1题答案; 拆保温≤20℃=exam:2021:13; 养护≥14d=exam:2023:16 解析+kc:096_0181。『补列式与回判』为答题方法表述(工单: 宜避免旁置阅卷口吻)。Codex FATAL 系复合题血统误判(失效模式#4)。三联 anchor。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "f83be528d3604506537a68e17e62564c9221325f8943a3d6af72578839fa04d9"
+  "published_lesson_sha256": "989df4c1cf5a3f438da4f9c5ed50b0bd9ae7575ff38170c7b040f3536664eea4"
 }
