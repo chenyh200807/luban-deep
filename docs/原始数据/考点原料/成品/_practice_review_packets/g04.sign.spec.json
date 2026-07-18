@@ -1,0 +1,62 @@
+{
+  "pack_id": "G04",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (g04.codex.out, fatal_count=1). 主控核: 唯一 FATAL=surface q17(复合四诊断)系失效模式#4复合题血统误判——四事实逐条对包内源核验全部有原文: ①观察法为主=kc:1A413000_086_0159:2 教材直引『观察法是验槽的主要方法』; ②密实砂>1.5m可不触探=kc:1A413000_086_0159:1 教材直引; ③换填接缝避柱基墙角/缝距≥500mm=exam:2022:第13题+kc:1A413030_088_0163:2 双源直引; ④强夯有效加固深度从最初起夯面算=真题解析直引『从最初起夯面开始计算，即第一次夯击前的地面标高』。=复合多源工单非血统断, approved+note 签发。其余 4 surface 锚 Codex 全 approve(q4/q5 none~MINOR)。Codex 未给三联(判定过严), 主控自建: 换填垫层施工质量链 q17(诊断复合)/q7(接缝场景纠错)/q6(分层厚度压实系数), 三 distinct skeleton。工单: 12 题正确项最长/唯一完整枚举模板泄漏(非阻塞)。",
+  "signed": [
+    {
+      "variant_id": "G04-html-practice-html-q1-7cc11d5e9838",
+      "probe_role": "anchor",
+      "fact_id": "g04-fact-inspection-observation-method",
+      "skeleton_id": "g04-skel-验槽观察法要点",
+      "source_anchor": "kc:1A413000_086_0159:2",
+      "note": "验槽以观察法为主(槽壁槽底土质与勘察一致/开挖深度达标/土质结构未破坏), 教材 kc:...086_0159:2 直引。工单: 正确项最长模板泄漏。"
+    },
+    {
+      "variant_id": "G04-html-practice-html-q2-7901b1287dec",
+      "probe_role": "anchor",
+      "fact_id": "g04-fact-no-probe-three-cases",
+      "skeleton_id": "g04-skel-密实砂厚度阈值判定",
+      "source_anchor": "kc:1A413000_086_0159:1",
+      "note": "可不触探三情况: 均匀密实砂层>1.5m(本题1.2m不满足仍须触探), 教材 kc:...086_0159:1 直引数值。"
+    },
+    {
+      "variant_id": "G04-html-practice-html-q4-e66e550bb4b7",
+      "probe_role": "anchor",
+      "fact_id": "g04-fact-composite-foundation-inspection",
+      "skeleton_id": "g04-skel-增强体复合地基验槽检查项",
+      "source_anchor": "exam:2022:第12题",
+      "note": "增强体复合地基现场验槽应检查桩间土情况, 真题 exam:2022:第12题 原题直判(C 真选项)。Codex severity none。"
+    },
+    {
+      "variant_id": "G04-html-practice-html-q5-336fe2d3fe07",
+      "probe_role": "anchor",
+      "fact_id": "g04-fact-light-dynamic-probe-scope",
+      "skeleton_id": "g04-skel-轻型动力触探检测内容",
+      "source_anchor": "kc:1A413030_087_0160:0",
+      "note": "轻型动力触探检测持力层强度/均匀性/浅埋软硬层/古井墓穴空洞, 教材 kc:...087_0160:0 直引。工单: 正确项显著长于跨专业干扰项。"
+    },
+    {
+      "variant_id": "G04-html-practice-html-q17-bb8e11ba7aab",
+      "probe_role": "anchor",
+      "fact_id": "g04-fact-cushion-fill-seam-quality",
+      "skeleton_id": "g04-skel-地基处理四错综合诊断",
+      "source_anchor": "exam:2022:第13题",
+      "note": "复合四诊断四事实全有包内原文: ①观察法为主(kc:...086_0159:2)②密实砂>1.5m(kc:...086_0159:1)③换填接缝避柱基墙角缝距≥500mm(本锚 exam:2022:第13题 直引+kc:...088_0163:2)④强夯从最初起夯面算(真题解析直引)。Codex FATAL 系复合题血统误判(失效模式#4), 各事实分散多 chunk=复合多源工单非血统断。三联 anchor。工单: 正确项最长。"
+    },
+    {
+      "variant_id": "G04-html-practice-html-q7-0034ff46eb09",
+      "probe_role": "immediate_confirm",
+      "fact_id": "g04-fact-cushion-fill-seam-quality",
+      "skeleton_id": "g04-skel-换填接缝场景纠错",
+      "source_anchor": "exam:2022:第13题",
+      "note": "换填接缝不得设柱基/墙角/承重窗间墙下, 缝距≥500mm 夯压密实, 真题 exam:2022:第13题 背景资料直引(kc:...088_0163:2 同文)。三联 immediate_confirm(同换填垫层施工质量 fact)。"
+    },
+    {
+      "variant_id": "G04-html-practice-html-q6-b56823595332",
+      "probe_role": "d1_probe",
+      "fact_id": "g04-fact-cushion-fill-seam-quality",
+      "skeleton_id": "g04-skel-换填分层厚度压实系数",
+      "source_anchor": "kc:1A413030_087_0162:0",
+      "note": "换填分层厚度200~300mm, 压实系数灰土/粉煤灰≥0.95其他≥0.97, 教材 kc:...087_0162:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 正确项集中承载全部数字。"
+    }
+  ]
+}
