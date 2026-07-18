@@ -1273,10 +1273,18 @@ def _load_practice_review_records(
                 str(signature.get("role") or "")
                 for signature in signatures or []
                 if isinstance(signature, dict)
-                and signature.get("reviewer_id") == "owner"
-                and str(signature.get("signed_at") or "").strip()
             }
-            if roles != {"teaching", "scoring"}:
+            if (
+                not isinstance(signatures, list)
+                or len(signatures) != 2
+                or roles != {"teaching", "scoring"}
+                or any(
+                    not isinstance(signature, dict)
+                    or signature.get("reviewer_id") != "owner"
+                    or not str(signature.get("signed_at") or "").strip()
+                    for signature in signatures
+                )
+            ):
                 raise TransformError(
                     f"practice review packet requires direct owner signatures: "
                     f"{pack_id}/{variant_id}"

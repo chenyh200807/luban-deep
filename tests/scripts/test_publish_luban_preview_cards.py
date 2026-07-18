@@ -191,17 +191,20 @@ def test_candidate_review_packets_are_complete_and_never_machine_signed(
 
 
 @pytest.mark.parametrize(
-    ("reviewer_id", "accepted"),
+    ("reviewer_id", "extra_reviewer_id", "accepted"),
     [
-        ("owner", True),
-        ("owner-delegated:claude-main-control:2026-07-16", False),
-        ("machine-reviewer", False),
+        ("owner", "", True),
+        ("owner-delegated:claude-main-control:2026-07-16", "", False),
+        ("machine-reviewer", "", False),
+        ("owner", "machine-reviewer", False),
+        ("owner", "owner-delegated:claude-main-control:2026-07-16", False),
     ],
 )
 def test_practice_review_loader_requires_direct_owner_signatures(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     reviewer_id: str,
+    extra_reviewer_id: str,
     accepted: bool,
 ) -> None:
     packet_path = tmp_path / "n01.practice.review.json"
@@ -233,7 +236,18 @@ def test_practice_review_loader_requires_direct_owner_signatures(
                                         "signed_at": "2026-07-18T00:00:00Z",
                                     }
                                     for role in ("teaching", "scoring")
-                                ],
+                                ]
+                                + (
+                                    [
+                                        {
+                                            "role": "audit",
+                                            "reviewer_id": extra_reviewer_id,
+                                            "signed_at": "2026-07-18T00:00:00Z",
+                                        }
+                                    ]
+                                    if extra_reviewer_id
+                                    else []
+                                ),
                             }
                         },
                     }
