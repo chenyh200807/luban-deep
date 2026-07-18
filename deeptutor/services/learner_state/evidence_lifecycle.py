@@ -10,12 +10,33 @@ PRACTICE_EVIDENCE_SOURCE_FEATURES = frozenset(
 LEARNING_EVIDENCE_SOURCE_FEATURES = PRACTICE_EVIDENCE_SOURCE_FEATURES | frozenset(
     {"conversation_synthesis", "first_run_diagnostic"}
 )
+LIFECYCLE_EVIDENCE_SOURCE_FEATURES = LEARNING_EVIDENCE_SOURCE_FEATURES | frozenset(
+    {"luban_lesson"}
+)
+
+
+def is_learning_evidence_record(event: Any) -> bool:
+    """Return whether a row belongs to the learner-evidence read stream.
+
+    This is deliberately broader than promotion eligibility: non-promoting
+    facts such as ``luban_lesson`` exposure still have to reach lifecycle read
+    models, while control rows such as ``retest_completion_claim`` must not.
+    """
+    payload = _safe_dict(getattr(event, "payload_json", {}))
+    if _clean(getattr(event, "memory_kind", "")) != "learning_evidence":
+        return False
+    source = _clean(getattr(event, "source_feature", ""))
+    if source not in LIFECYCLE_EVIDENCE_SOURCE_FEATURES:
+        return False
+    if source == "construction_grading":
+        return True
+    return _clean(payload.get("event_type")) == "learning_evidence"
 
 
 def is_learning_evidence_event(event: Any) -> bool:
     payload = _safe_dict(getattr(event, "payload_json", {}))
     source = _clean(getattr(event, "source_feature", ""))
-    if _clean(getattr(event, "memory_kind", "")) != "learning_evidence":
+    if not is_learning_evidence_record(event):
         return False
     if source not in LEARNING_EVIDENCE_SOURCE_FEATURES:
         return False
@@ -246,8 +267,10 @@ def canonical_retest_completion_role(
 
     ``practice_mode=forward`` is intentionally insufficient: immediate-confirm
     uses the same transport mode but must not open a new learning/review cycle.
-    Legacy forward items without a role remain ordinary forward practice.  A
-    mixed/unknown role set fails closed so it cannot move lifecycle clocks.
+    The signed ``cycle_anchor`` and sealed item roles jointly define the episode:
+    an empty anchor restores only the known historical selector bug shape (at
+    least one anchor plus known sub-step roles); homogeneous confirm remains a
+    confirm and must bind to a parent later; unknown/blank roles fail closed.
     """
     if not is_canonical_luban_retest_terminal(terminal):
         return ""
@@ -268,15 +291,25 @@ def _canonical_retest_role_from_items(*, terminal: Any, items: Iterable[Any]) ->
         _clean(_safe_dict(getattr(item, "payload_json", {})).get("probe_role"))
         for item in items
     ]
-    if not raw_roles or all(not role for role in raw_roles):
-        return RETEST_ROLE_FORWARD_PRACTICE
+    if not raw_roles:
+        return ""
+    cycle_anchor = _clean(payload.get("cycle_anchor"))
     if any(not role for role in raw_roles):
         return ""
     roles = set(raw_roles)
-    if roles == {"anchor"}:
-        return RETEST_ROLE_FORWARD_PRACTICE
     if roles == {RETEST_ROLE_IMMEDIATE_CONFIRM}:
         return RETEST_ROLE_IMMEDIATE_CONFIRM
+    recoverable_forward_roles = {
+        "anchor",
+        RETEST_ROLE_IMMEDIATE_CONFIRM,
+        "d1_probe",
+    }
+    if (
+        not cycle_anchor
+        and "anchor" in roles
+        and roles.issubset(recoverable_forward_roles)
+    ):
+        return RETEST_ROLE_FORWARD_PRACTICE
     return ""
 
 
@@ -573,6 +606,7 @@ __all__ = [
     "EPISODE_BINDING_LEGACY_UNBOUND",
     "EPISODE_BINDING_UNBOUND",
     "LEARNING_EVIDENCE_SOURCE_FEATURES",
+    "LIFECYCLE_EVIDENCE_SOURCE_FEATURES",
     "PRACTICE_EVIDENCE_SOURCE_FEATURES",
     "RETEST_ROLE_FORWARD_PRACTICE",
     "RETEST_ROLE_IMMEDIATE_CONFIRM",
@@ -587,6 +621,7 @@ __all__ = [
     "evidence_attempt_id",
     "event_promotion_allowed",
     "is_learning_evidence_event",
+    "is_learning_evidence_record",
     "is_retest_completion_terminal",
     "is_canonical_luban_retest_terminal",
     "is_real_retest",

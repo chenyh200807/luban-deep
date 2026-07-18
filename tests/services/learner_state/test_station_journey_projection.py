@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import hashlib
 
+import pytest
+
 from deeptutor.services.learner_state.evidence_lifecycle import (
+    canonical_retest_completion_role,
     validate_immediate_confirm_parent,
 )
 from deeptutor.services.learner_state.service import LearnerStateEvent
@@ -312,6 +315,74 @@ def test_mixed_blank_and_confirm_roles_fail_closed() -> None:
     confirm[1].payload_json["max_score"] = 2.0
     statuses = _statuses(_journey([*forward, confirm[0], extra, confirm[1]]))
     assert statuses["immediate_confirm"] == "current"
+
+
+def test_historical_mixed_forward_without_cycle_anchor_restores_base_episode() -> None:
+    mixed = _completion(
+        "mixedforward",
+        at="2026-07-18T09:00:00+08:00",
+        correct=True,
+        probe_role="anchor",
+    )
+    extra = _event(
+        "item_mixedforward_probe",
+        "2026-07-18T09:00:00+08:00",
+        {
+            **mixed[0].payload_json,
+            "question_id": "q_probe",
+            "probe_role": "d1_probe",
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+        },
+    )
+    mixed[1].payload_json["item_event_refs"].append(extra.event_id)
+    mixed[1].payload_json["score_awarded"] = 2.0
+    mixed[1].payload_json["max_score"] = 2.0
+
+    event_history = [mixed[0], extra, mixed[1]]
+    statuses = _statuses(_journey(event_history))
+
+    assert statuses["practice"] == "completed"
+    assert statuses["diagnosis"] == "not_applicable"
+    assert statuses["immediate_confirm"] == "not_applicable"
+    assert _statuses(_journey(event_history)) == statuses
+
+
+def test_empty_anchor_homogeneous_confirm_keeps_identity_but_cannot_bind() -> None:
+    confirm = _completion(
+        "orphan_confirm",
+        at="2026-07-18T09:00:00+08:00",
+        correct=True,
+        probe_role="immediate_confirm",
+        cycle_anchor="",
+    )
+
+    assert canonical_retest_completion_role(
+        confirm,
+        terminal=confirm[1],
+    ) == "immediate_confirm"
+    statuses = _statuses(_journey(confirm))
+    assert statuses["practice"] == "current"
+    assert statuses["due_validation"] == "upcoming"
+
+
+@pytest.mark.parametrize("probe_role", ["d1_probe", "unknown_role", ""])
+def test_empty_anchor_without_anchor_role_fails_closed(probe_role: str) -> None:
+    completion = _completion(
+        f"orphan_{probe_role or 'blank'}",
+        at="2026-07-18T09:00:00+08:00",
+        correct=True,
+        probe_role=probe_role,
+        cycle_anchor="",
+    )
+
+    assert canonical_retest_completion_role(
+        completion,
+        terminal=completion[1],
+    ) == ""
+    statuses = _statuses(_journey(completion))
+    assert statuses["practice"] == "current"
+    assert statuses["due_validation"] == "upcoming"
 
 
 def test_review_with_wrong_cycle_anchor_cannot_advance_validation() -> None:

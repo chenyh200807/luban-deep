@@ -426,6 +426,12 @@ def test_every_compiled_surface_fails_closed_unless_supply_ready() -> None:
                 )
                 assert rows, f"{pack_id}/{surface_id} supply_ready 却未发题"
                 assert {row["variant_id"] for row in rows} <= eligible_ids
+                roles = {
+                    str(item.get("probe_role") or "")
+                    for item in authority["items"]
+                    if item["variant_id"] in {row["variant_id"] for row in rows}
+                }
+                assert roles == {"anchor"}
             else:
                 assert surface["eligible_variant_ids"] == []
                 with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):

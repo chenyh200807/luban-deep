@@ -89,6 +89,7 @@ def _items_for_terminal(terminal):
                 "pack_id": payload["pack_id"],
                 "target_pack_id": payload["target_pack_id"],
                 "question_id": f"q{index + 1}",
+                "probe_role": "anchor" if payload["practice_mode"] == "forward" else "",
                 "is_correct": index < correct_count,
                 "score_awarded": 1.0 if index < correct_count else 0.0,
                 "max_score": 1.0,

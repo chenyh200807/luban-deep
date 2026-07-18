@@ -18,6 +18,7 @@ from deeptutor.services.learner_state.evidence_lifecycle import (
     committed_retest_item_event_ids,
     event_promotion_allowed,
     evidence_attempt_id,
+    is_learning_evidence_record,
     is_retest_completion_terminal,
 )
 from deeptutor.services.learner_state.home_personalization import (
@@ -1510,8 +1511,7 @@ def _learning_evidence_events(events: list[Any]) -> list[Any]:
     return _dedupe_learning_evidence_events([
         event
         for event in list(events or [])
-        if str(getattr(event, "memory_kind", "") or "") == "learning_evidence"
-        and _is_learning_evidence_payload(event)
+        if is_learning_evidence_record(event)
     ])
 
 
@@ -1547,14 +1547,6 @@ def _learning_evidence_identity(event: Any) -> str:
         json.dumps(raw, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
     return f"fingerprint:{digest}"
-
-
-def _is_learning_evidence_payload(event: Any) -> bool:
-    payload = _safe_dict(getattr(event, "payload_json", {}))
-    return (
-        str(payload.get("event_type") or "") == "learning_evidence"
-        or str(getattr(event, "source_feature", "") or "") == "construction_grading"
-    )
 
 
 def _is_progress_countable_event(event: Any) -> bool:

@@ -918,6 +918,7 @@ def test_forward_compiled_html_mcq_is_server_rescored_and_written_as_l0(
             "stem": "怎样分档？",
             "model_answer": "按100mm分档。",
             "anchor": "compiled_html:f16/practice.html#Q1",
+            "probe_role": "anchor",
             "source_html_sha256": "html-sha",
             "options": [
                 {"option_id": "q1:a", "text": "正确", "is_correct": True, "fix": "分档"},
@@ -935,6 +936,7 @@ def test_forward_compiled_html_mcq_is_server_rescored_and_written_as_l0(
             "stem": "完整工序？",
             "model_answer": "八环工序。",
             "anchor": "compiled_html:f16/practice.html#Q2",
+            "probe_role": "anchor",
             "source_html_sha256": "html-sha",
             "options": [
                 {"option_id": "q2:a", "text": "正确", "is_correct": True, "fix": "八环"},

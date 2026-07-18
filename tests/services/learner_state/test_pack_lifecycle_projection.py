@@ -134,6 +134,7 @@ def _completion_events(terminal: LearnerStateEvent) -> list[LearnerStateEvent]:
             "pack_id": payload["pack_id"],
             "target_pack_id": payload["target_pack_id"],
             "question_id": "q1",
+            "probe_role": "anchor" if payload["practice_mode"] == "forward" else "",
             "is_correct": bool(payload["score_awarded"]),
             "score_awarded": payload["score_awarded"],
             "max_score": 1.0,

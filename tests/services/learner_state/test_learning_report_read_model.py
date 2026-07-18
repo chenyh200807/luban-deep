@@ -1338,6 +1338,71 @@ def test_pack_lifecycle_uses_full_history_while_recent_metrics_keep_window() -> 
     assert model["freshness"]["window_truncated"] is True
 
 
+def test_real_service_report_reads_lesson_but_denies_rogue_source(
+    tmp_path,
+) -> None:
+    learner_state = LearnerStateService(
+        path_service=PathServiceStub(tmp_path),
+        member_service=FakeMemberService(),
+        core_store=DisabledCoreStoreStub(),
+    )
+    user_id = "student_demo"
+    lesson = learner_state.append_memory_event(
+        user_id,
+        source_feature="luban_lesson",
+        source_id="lesson_viewed:C04:lesson",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "learning_signal_type": "lesson_viewed",
+            "pack_id": "C04",
+            "watched_stage": "lesson",
+            "quality": {"progress_countable": False},
+        },
+        dedupe_key="lesson_viewed:student_demo:C04:lesson:2026-07-19",
+    )
+    learner_state.append_memory_event(
+        user_id,
+        source_feature="rich_leaf_shadow_candidate",
+        source_id="rich-leaf:q1",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "rich-leaf-q1",
+        },
+        dedupe_key="rich-leaf-q1",
+    )
+
+    before_event_ids = [
+        event.event_id
+        for event in learner_state.list_memory_events(user_id, limit=None)
+    ]
+    models = [
+        build_learning_report_read_model(
+            user_id=user_id,
+            member_service=FakeMemberService(),
+            learner_state_service=learner_state,
+            event_limit=50,
+        )
+        for _ in range(2)
+    ]
+    after_event_ids = [
+        event.event_id
+        for event in learner_state.list_memory_events(user_id, limit=None)
+    ]
+
+    assert [
+        event.event_id
+        for event in learner_state.list_learning_evidence_events(user_id, limit=None)
+    ] == [lesson.event_id]
+    assert before_event_ids == after_event_ids
+    for model in models:
+        assert model["pack_lifecycle"]["packs"]["C04"]["lifecycle_state"] == "exposed"
+        assert model["overview"]["attempt_count"] == 0
+        assert model["overview"]["today_done"] == 0
+        assert model["freshness"]["event_count"] == 1
+
+
 def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1393,6 +1458,7 @@ def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
             "pack_id": "F16",
             "target_pack_id": "F16",
             "question_id": "q1",
+            "probe_role": "anchor",
             "is_correct": True,
             "score_awarded": 1.0,
             "max_score": 1.0,

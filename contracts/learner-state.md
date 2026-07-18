@@ -59,7 +59,7 @@
 
 - `LearnerStateService.append_memory_event(memory_kind="learning_evidence")` 是学习证据写入、dedupe 和后续 synthesis 触发的唯一服务入口；API/router/wrapper 不得各自触发第二套长期画像刷新。
 - `dedupe_key` 命中时必须返回既有事件，不得再次写入 `MEMORY_EVENTS.jsonl`，也不得再次触发 compiled-truth synthesis；读模型可以按同一 `dedupe_key`/内容 fingerprint 折叠 local+remote replay，但不得折叠 dedupe 不同的真实复练/复测。
-- `memory_kind="learning_evidence"` 只是存储分区，不足以让一条事件成为学习证据。local/remote reader 必须共用 `evidence_lifecycle.is_learning_evidence_event`：只放行登记的 evidence source 与 `payload.event_type="learning_evidence"`（兼容 construction grading 的既有例外）。durable completion claim 等控制记录即使同居该分区，也不得进入 synthesis、报告或学情投影。
+- `memory_kind="learning_evidence"` 只是存储分区，不足以让一条事件成为学习证据。local/remote 生命周期 reader 必须共用 `evidence_lifecycle.is_learning_evidence_record`：只读取显式 lifecycle source 集合中 `payload.event_type="learning_evidence"` 的事实 envelope（兼容 construction grading 的既有例外）；synthesis/promotion 再由更窄的 `is_learning_evidence_event` source 白名单与 quality gate 裁决。`luban_lesson` 等 non-promoting 生命周期事实必须可读但不得促升；未注册 rogue source 与 durable completion claim 等非 evidence envelope 控制记录即使同居该分区，也不得进入报告或学情投影。
 - 自动 synthesis 只允许在显式开关 `LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED=1` 下运行；生产环境还必须受既有 `qa_`/`operator_` canonical cohort gate 约束。broad learner canonical truth 仍由 `canonical_truth_promotion_decision()` 决定，不能因为自动 synthesis 而默认打开。
 - `learning_evidence.payload_json.canonical_topic` 是 taxonomy resolver 对证据的只读投影。Learning report、Learning Brain 和 synthesis 消费它时，不得在 UI/router 层重新猜 topic；若该字段缺失，旧事件继续按兼容路径读取。
 - PGO shadow same-attempt evidence 只能作为 `learning_signal_type="pgo_case_rubric_shadow"` 的
@@ -677,6 +677,8 @@ Overlay 必须支持：
    identity 经唯一 lesson supply resolver 重判；compiled Pack 不得回退 signed bank，只有无
    compiled authority 的 legacy/custom Pack 才走 signed bank。forward 永远 non-promoting；review 只允许影响
    `pack:{pack_id}:rule:{rule_group}` 的同粒度概念，不得以 pack 粗粒度清除 sibling 错因。
+   普通 compiled forward/fresh-review 选卷只能从 `probe_role="anchor"` 的签发题中抽取；
+   `immediate_confirm` 与 `d1_probe` 只能由各自既有 probe supply 主链签发，不得混入普通五题。
    review 的 canonical `training_intent_id` 由服务端恢复为该 `probe_id`，忽略客户端自报 intent/mode；
    取题日使用服务端 UTC+8 日历日。
 8. 所有 read projection 必须共用 `evidence_lifecycle` 的 terminal closure，而不是只看同一
@@ -688,8 +690,10 @@ Overlay 必须支持：
    当前 Luban retest 只允许单选/判断的逐题二元 1 分制：item `max_score=1`、`score_awarded∈{0,1}`
    且必须与 `is_correct` 一致；NaN/Infinity、损坏分数、加权题或部分给分不得静默进入该 closure。
    未来支持加权题必须先升级 scoring contract，不能把容差 fallback 塞进现有 reader。
-   `evidence_lifecycle` 还必须从 closure item 的 `probe_role` 区分普通 forward 与
-   `immediate_confirm`；只有普通 forward 能开启新 cycle，确认题不得重置
+   `evidence_lifecycle` 还必须用签发的 `cycle_anchor` 区分普通 forward 与
+   `immediate_confirm`：空 anchor 只恢复至少含一题 `anchor` 且角色全集属于
+   `{anchor, immediate_confirm, d1_probe}` 的历史错误混签闭合；全 `immediate_confirm`
+   仍保持 confirm 身份并要求 parent，全 `d1_probe`、空白或未知角色 fail-close；只有普通 forward 能开启新 cycle，确认题不得重置
    `last_completion_at/review_cycle_anchor/successful_review_streak`，也不得单独把
    prescription workflow 关闭为 completed。confirm GET 必须携带上一轮 canonical forward
    terminal receipt；服务端复核其仍是该 pack 最新 forward 且 confirm facts 是该 closure
