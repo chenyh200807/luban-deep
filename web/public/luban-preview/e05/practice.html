@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -258,10 +258,10 @@ class Component extends DCLogic {
       stem:"ACWP（已完成工作实际成本）的构成式是哪一个？选出定义准确的作答。",
       model:"ACWP = 已完成工程量 × 实际单价（已经花出去的钱）。",
       opts:[
-        { t:"ACWP = 已完成工程量 × 实际单价，就是已完成部分实际花出去的钱。", ok:true, fix:"量取「已完成」、价取「实际」，ACWP 是真金白银的实际支出。", code:"" },
         { t:"ACWP = 已完成工程量 × 预算单价，按预算价核算已完成部分的成本。", ok:false, code:"E07", tempt:"「已完成」对了，价却配成「预算」。", lose:"价用错：已完成量×预算单价是 BCWP（挣值），不是 ACWP；ACWP 必须用实际单价。", fix:"ACWP=已完成量×实际单价；已完成量×预算单价那是 BCWP。" },
         { t:"ACWP = 计划工程量 × 实际单价，按实际价核算原计划工程量的成本。", ok:false, code:"E07", tempt:"「实际价」对了，量却配成「计划」。", lose:"量用错：ACWP 的量是「已完成」，不是「计划」；计划量×任何价都不是 ACWP。", fix:"ACWP=已完成量×实际单价，量取已完成、不取计划量。" },
-        { t:"ACWP = 预算总成本，即项目开工前编制的全部预算金额。", ok:false, code:"E07", tempt:"「实际成本」听着像个总额，误当预算总账。", lose:"ACWP 是到检查点「已完成部分」的实际支出，不是全项目预算总额。", fix:"ACWP=已完成量×实际单价，只算已干部分的实际花费。" }
+        { t:"ACWP = 预算总成本，即项目开工前编制的全部预算金额。", ok:false, code:"E07", tempt:"「实际成本」听着像个总额，误当预算总账。", lose:"ACWP 是到检查点「已完成部分」的实际支出，不是全项目预算总额。", fix:"ACWP=已完成量×实际单价，只算已干部分的实际花费。" },
+        { t:"ACWP = 已完成工程量 × 实际单价，就是已完成部分实际花出去的钱。", ok:true, fix:"量取「已完成」、价取「实际」，ACWP 是真金白银的实际支出。", code:"" }
       ] },
 { tag:"三值代入·背景提取维", typeHint:"单选 · 选出三值代入位置正确的作答", figLabel:"题给三值（第20周末）", figCaption:"BCWP=6370 · ACWP=6240 · BCWS=5340（万元）", fig:"threevals",
       stem:"第20周末检查：挣值 BCWP=6370 万元、已完成实际成本 ACWP=6240 万元、计划值 BCWS=5340 万元。下列把三值放入指标公式，哪一组位置正确？",
@@ -277,9 +277,9 @@ class Component extends DCLogic {
       stem:"已知 BCWP=6370 万元、ACWP=6240 万元。求成本偏差 CV 并判读成本状态，选出能得分的作答。",
       model:"CV=BCWP−ACWP=6370−6240=130 万元；CV>0 → 成本节支。",
       opts:[
-        { t:"CV=BCWP−ACWP=6370−6240=130 万元，CV>0，成本节支。", ok:true, fix:"公式+代入+结果 130 万元+方向「节支」四件齐，偏差带万元。", code:"" },
         { t:"CV=ACWP−BCWP=6240−6370=−130 万元，CV<0，成本超支。", ok:false, code:"E09", tempt:"「实际花的减挣的」听着顺，算出负数就判超支。", lose:"被减数减数反了，把节支的项目判成超支——方向彻底错。", fix:"CV=BCWP−ACWP=+130 万元，挣的减花的、正数是节支。" },
         { t:"CV=BCWP−ACWP=6370−6240=130 万元，CV>0，说明成本超支了 130 万。", ok:false, code:"E07", tempt:"算式对、结果对，却把「正数」的方向记反了。", lose:"数值对但方向判反：CV>0 是节支不是超支，方向分丢光。", fix:"CV>0 → 成本节支；正数是省钱，不是超支。" },
+        { t:"CV=BCWP−ACWP=6370−6240=130 万元，CV>0，成本节支。", ok:true, fix:"公式+代入+结果 130 万元+方向「节支」四件齐，偏差带万元。", code:"" },
         { t:"CV=BCWP−ACWP=6370−6240=130，成本控制得不错，比预期好。", ok:false, code:"E04", tempt:"结果对，用「控制得不错」口语带过。", lose:"没写规范判读词「节支」、结果漏「万元」单位，口号化不给分。", fix:"补规范词与单位：CV=130 万元，CV>0 → 成本节支。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"结论方向对，但过程有问题…", fig:"sheet",
@@ -287,10 +287,10 @@ class Component extends DCLogic {
       stem:"某学生作答如图：①CV 写成 ACWP−BCWP=−130；②判成本超支；③未算进度。选出最准确的诊断与补写。",
       model:"CV 被减数减数颠倒（应 BCWP−ACWP=+130 万元，成本节支）、方向随之判反、且漏算进度 SV=1030 万元/SPI≈1.19（进度提前）；三处都要补。",
       opts:[
+        { t:"计算与方向均无问题，学生的 CV 算式和成本超支判断本身都成立、不用改，只是漏了进度部分，把 SV、SPI 补齐就是满分作答。", ok:false, code:"E09", tempt:"只盯着「漏进度」，没发现 CV 公式本身写反。", lose:"CV=ACWP−BCWP 已经颠倒、成本超支判反；只补进度仍是错的。", fix:"先纠 CV=BCWP−ACWP=+130 万元（节支），再补进度侧。" },
         { t:"CV 被减数减数颠倒致方向判反（应=BCWP−ACWP=+130 万元、成本节支），且漏算进度 SV=1030 万元、SPI≈1.19（进度提前），三处都要补。", ok:true, fix:"揪出「公式颠倒→方向反」和「漏进度侧」两类失分，补写即成满分采分句。", code:"" },
-        { t:"计算和方向都没问题，只是漏了进度部分，把 SV、SPI 补上就是满分作答，学生的 CV 算式与成本超支判断本身都成立、不用改，只差把进度侧两项补齐、整道题就算完整作答了。", ok:false, code:"E09", tempt:"只盯着「漏进度」，没发现 CV 公式本身写反。", lose:"CV=ACWP−BCWP 已经颠倒、成本超支判反；只补进度仍是错的。", fix:"先纠 CV=BCWP−ACWP=+130 万元（节支），再补进度侧。" },
-        { t:"CV 算出 −130、判成本超支，结论没错；只要再补一句进度提前即可。", ok:false, code:"E07", tempt:"把颠倒得到的 −130/超支当成正确结论。", lose:"−130/超支正是公式颠倒造成的错误方向，不是正确结论。", fix:"CV 应=+130 万元、成本节支；方向要改回来。" },
-        { t:"学生思路完全正确，CV 用实际减挣值更直观，判超支也合理，可给满分。", ok:false, code:"E07", tempt:"被「实际减挣值更直观」的错觉带偏。", lose:"CV 定义就是 BCWP−ACWP，颠倒即错，且方向判反、漏进度，远非满分。", fix:"CV=BCWP−ACWP=+130 万元、成本节支，并补齐进度侧。" }
+        { t:"CV 算出 −130、判定成本超支，这一步的结论并没有错，无须改动；诊断时只需提醒学生补写一句「进度提前」，整份作答即可视为完整。", ok:false, code:"E07", tempt:"把颠倒得到的 −130/超支当成正确结论。", lose:"−130/超支正是公式颠倒造成的错误方向，不是正确结论。", fix:"CV 应=+130 万元、成本节支；方向要改回来。" },
+        { t:"该学生的思路完全正确：CV 用实际减挣值更直观，据此判定成本超支也顺理成章，这份三步作答无须再作修改，可以直接给予满分。", ok:false, code:"E07", tempt:"被「实际减挣值更直观」的错觉带偏。", lose:"CV 定义就是 BCWP−ACWP，颠倒即错，且方向判反、漏进度，远非满分。", fix:"CV=BCWP−ACWP=+130 万元、成本节支，并补齐进度侧。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码 E01–E12，勿自造）──
@@ -498,7 +498,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"E05-html-practice-html-q1-368ca609e03b","options":["E05-html-practice-html-q1-368ca609e03b:option-1","E05-html-practice-html-q1-368ca609e03b:option-2","E05-html-practice-html-q1-368ca609e03b:option-3","E05-html-practice-html-q1-368ca609e03b:option-4"]},{"variant_id":"E05-html-practice-html-q2-0f20ede257a0","options":["E05-html-practice-html-q2-0f20ede257a0:option-1","E05-html-practice-html-q2-0f20ede257a0:option-2","E05-html-practice-html-q2-0f20ede257a0:option-3","E05-html-practice-html-q2-0f20ede257a0:option-4"]},{"variant_id":"E05-html-practice-html-q3-a27747a1aaaf","options":["E05-html-practice-html-q3-a27747a1aaaf:option-1","E05-html-practice-html-q3-a27747a1aaaf:option-2","E05-html-practice-html-q3-a27747a1aaaf:option-3","E05-html-practice-html-q3-a27747a1aaaf:option-4"]},{"variant_id":"E05-html-practice-html-q4-d7227a4b0101","options":["E05-html-practice-html-q4-d7227a4b0101:option-1","E05-html-practice-html-q4-d7227a4b0101:option-2","E05-html-practice-html-q4-d7227a4b0101:option-3","E05-html-practice-html-q4-d7227a4b0101:option-4"]},{"variant_id":"E05-html-practice-html-q16-7061592c4f36","options":["E05-html-practice-html-q16-7061592c4f36:option-1","E05-html-practice-html-q16-7061592c4f36:option-2","E05-html-practice-html-q16-7061592c4f36:option-3","E05-html-practice-html-q16-7061592c4f36:option-4"]}];
+    const exactItems=[{"variant_id":"E05-html-practice-html-q1-368ca609e03b","options":["E05-html-practice-html-q1-368ca609e03b:option-1","E05-html-practice-html-q1-368ca609e03b:option-2","E05-html-practice-html-q1-368ca609e03b:option-3","E05-html-practice-html-q1-368ca609e03b:option-4"]},{"variant_id":"E05-html-practice-html-q2-b7eff7104a83","options":["E05-html-practice-html-q2-b7eff7104a83:option-1","E05-html-practice-html-q2-b7eff7104a83:option-2","E05-html-practice-html-q2-b7eff7104a83:option-3","E05-html-practice-html-q2-b7eff7104a83:option-4"]},{"variant_id":"E05-html-practice-html-q3-a27747a1aaaf","options":["E05-html-practice-html-q3-a27747a1aaaf:option-1","E05-html-practice-html-q3-a27747a1aaaf:option-2","E05-html-practice-html-q3-a27747a1aaaf:option-3","E05-html-practice-html-q3-a27747a1aaaf:option-4"]},{"variant_id":"E05-html-practice-html-q4-65ed25e57b8f","options":["E05-html-practice-html-q4-65ed25e57b8f:option-1","E05-html-practice-html-q4-65ed25e57b8f:option-2","E05-html-practice-html-q4-65ed25e57b8f:option-3","E05-html-practice-html-q4-65ed25e57b8f:option-4"]},{"variant_id":"E05-html-practice-html-q16-c4d93d1c98c8","options":["E05-html-practice-html-q16-c4d93d1c98c8:option-1","E05-html-practice-html-q16-c4d93d1c98c8:option-2","E05-html-practice-html-q16-c4d93d1c98c8:option-3","E05-html-practice-html-q16-c4d93d1c98c8:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -515,7 +515,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("E05")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzY4Y2E2MDllMDNiIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wZjIwZWRlMjU3YTAiLCJFMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEyNzc0N2ExYWFhZiIsIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDcyMjdhNGIwMTAxIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNzA2MTU5MmM0ZjM2Il0sInBhY2tfaWQiOiJFMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImIyZmU4MWRkNTRlNjVhMGQzNmMzOGZkMjViYTQyMzJmYTZmNDEyMTQ1ZmQyZTk2YWE3NTEzNDRmNTU4Mzc1ZTQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("E05")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzY4Y2E2MDllMDNiIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iN2VmZjcxMDRhODMiLCJFMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEyNzc0N2ExYWFhZiIsIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjVlZDI1ZTU3YjhmIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzRkOTNkMWM5OGM4Il0sInBhY2tfaWQiOiJFMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImY2NDZjN2IwODhmZDllYjc1YWM1NGMyMTJmNjMwYjg3MWQzM2E1M2U0NGQwZjA5ZjRjYjI1ODBmOWE2MGJlODciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

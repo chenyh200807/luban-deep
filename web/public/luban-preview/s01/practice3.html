@@ -10,7 +10,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -232,45 +232,45 @@ class Component extends DCLogic {
       model:"保证项目=施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收（6项）。",
       opts:[
         { t:"施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收。", ok:true, fix:"六项保证项目一个不差、照清单归。", code:"" },
-        { t:"支架拆除、杆件连接、构件材质、底座与托撑。", ok:false, code:"M03", tempt:"支架拆除、杆件连接听着挺重要。", lose:"这四项恰是一般项目，凭「听着重要」归错类。", fix:"保证项目=方案/基础/构造/稳定/荷载/交底验收。" },
-        { t:"施工方案、支架稳定、支架拆除、构件材质。", ok:false, code:"M03", tempt:"混着选、有对有错。", lose:"支架拆除、构件材质是一般项目，混进保证项目。", fix:"支架拆除、构件材质属一般项，剔除。" },
-        { t:"随便哪几项都行，保证/一般没固定清单。", ok:false, code:"E01", tempt:"觉得凭感觉分。", lose:"保证/一般项目是固定清单，须照清单归。", fix:"照清单：保证6项固定，别凭感觉。" }
+        { t:"支架拆除、杆件连接、构件材质、底座与托撑，以上四项均属保证项目。", ok:false, code:"M03", tempt:"支架拆除、杆件连接听着挺重要。", lose:"这四项恰是一般项目，凭「听着重要」归错类。", fix:"保证项目=方案/基础/构造/稳定/荷载/交底验收。" },
+        { t:"施工方案、支架稳定、支架拆除、构件材质（共四项）。", ok:false, code:"M03", tempt:"混着选、有对有错。", lose:"支架拆除、构件材质是一般项目，混进保证项目。", fix:"支架拆除、构件材质属一般项，剔除。" },
+        { t:"任意选取若干项目均可，保证与一般项目并无固定清单划分。", ok:false, code:"E01", tempt:"觉得凭感觉分。", lose:"保证/一般项目是固定清单，须照清单归。", fix:"照清单：保证6项固定，别凭感觉。" }
       ] },
 { tag:"验收·支架拆除归类", typeHint:"单选 · 选出归类与依据都对的作答", fig:"sort", figLabel:"支架拆除 · 归哪类？", figCaption:"听着重要 ≠ 保证项目",
       stem:"模板支架评分表中，「支架拆除」属于保证项目还是一般项目？选出能得分的作答。",
       model:"支架拆除属一般项目；保证项目是施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收。",
       opts:[
         { t:"支架拆除属一般项目；保证项目为方案、基础、构造、稳定、荷载、交底与验收。", ok:true, fix:"归类对、并列出保证6项作对照。", code:"" },
-        { t:"支架拆除关系安全，属保证项目。", ok:false, code:"M03", tempt:"「拆除关系安全」听着就该是保证项。", lose:"支架拆除是一般项目，凭语感升成保证项归错。", fix:"支架拆除属一般项目，别凭听着重要。" },
-        { t:"支架拆除既是保证也是一般，两边都算。", ok:false, code:"M03", tempt:"拿不准就两边都占。", lose:"评分项目归类唯一，支架拆除只在一般项目。", fix:"支架拆除只属一般项目。" },
-        { t:"支架拆除不在评分表里。", ok:false, code:"E01", tempt:"没记住它在表里。", lose:"支架拆除是评分表一般项目之一，漏记。", fix:"支架拆除在一般项目里。" }
+        { t:"支架拆除关系安全与成品保护，理应列入保证项目进行重点检查。", ok:false, code:"M03", tempt:"「拆除关系安全」听着就该是保证项。", lose:"支架拆除是一般项目，凭语感升成保证项归错。", fix:"支架拆除属一般项目，别凭听着重要。" },
+        { t:"支架拆除兼具双重属性，既可计入保证项目，也可同时计入一般项目，两类均应评分。", ok:false, code:"M03", tempt:"拿不准就两边都占。", lose:"评分项目归类唯一，支架拆除只在一般项目。", fix:"支架拆除只属一般项目。" },
+        { t:"支架拆除并未列入模板支架检查评分表，该项不参与任何评分。", ok:false, code:"E01", tempt:"没记住它在表里。", lose:"支架拆除是评分表一般项目之一，漏记。", fix:"支架拆除在一般项目里。" }
       ] },
 { tag:"验收·四要素", typeHint:"单选 · 选出四要素齐全的作答", fig:"four", figLabel:"脚手架验收 · 四要素", figCaption:"验收查哪四样？",
       stem:"脚手架验收应检查哪四方面要素？选出齐全、能得分的作答。",
       model:"脚手架验收四要素：材料、支承与固定、搭设质量、技术资料。",
       opts:[
+        { t:"对搭设质量一项进行重点核查即可完成验收。", ok:false, code:"E01", tempt:"觉得搭得好就验收过。", lose:"漏了材料、支承固定、技术资料三项。", fix:"补材料、支承与固定、技术资料。" },
+        { t:"材料、外观、颜色、品牌四项要素。", ok:false, code:"M03", tempt:"把无关项凑成四样。", lose:"外观/颜色/品牌不是验收要素，张冠李戴。", fix:"四要素=材料/支承固定/搭设质量/技术资料。" },
         { t:"材料、支承与固定、搭设质量、技术资料。", ok:true, fix:"四要素齐全，验收查全才算过。", code:"" },
-        { t:"只看搭设质量合不合格就行。", ok:false, code:"E01", tempt:"觉得搭得好就验收过。", lose:"漏了材料、支承固定、技术资料三项。", fix:"补材料、支承与固定、技术资料。" },
-        { t:"材料、外观、颜色、品牌四样。", ok:false, code:"M03", tempt:"把无关项凑成四样。", lose:"外观/颜色/品牌不是验收要素，张冠李戴。", fix:"四要素=材料/支承固定/搭设质量/技术资料。" },
-        { t:"只查技术资料齐不齐即可。", ok:false, code:"E01", tempt:"以为资料齐就验收过。", lose:"漏了实体检查（材料/支承固定/搭设质量）。", fix:"资料 + 实体三项一起查。" }
+        { t:"查验技术资料是否齐全即可通过验收。", ok:false, code:"E01", tempt:"以为资料齐就验收过。", lose:"漏了实体检查（材料/支承固定/搭设质量）。", fix:"资料 + 实体三项一起查。" }
       ] },
 { tag:"验收·五阶段节点", typeHint:"单选 · 选出检查节点正确的作答", fig:"stages", figLabel:"搭设过程 · 五阶段检查", figCaption:"支撑架每搭多少要查？",
       stem:"钢管脚手架搭设过程中的检查节点，下列哪项数值正确？选出能得分的作答。",
       model:"检查节点：基础完工后、首层水平杆搭设后、每搭完一楼层高度后、悬挑脚手架固定后、支撑脚手架每搭约6m后。",
       opts:[
+        { t:"支撑脚手架每搭设约 10m 后检查一次即可，基础完工后、首层水平杆搭设后、悬挑固定后等节点照常执行。", ok:false, code:"M08", tempt:"把节点数值记大了。", lose:"支撑架是每搭约 6m 检查，写 10m 超了。", fix:"支撑脚手架每搭约 6m 后检查。" },
+        { t:"架体整体搭设完成后统一组织一次验收即可，搭设过程中不必再安排阶段性检查节点。", ok:false, code:"E01", tempt:"图省事只验收一次。", lose:"搭设过程有五个阶段节点，须分阶段查。", fix:"分五节点查，不能只验收一次。" },
         { t:"支撑脚手架每搭约 6m 后应检查一次；另有基础完工后、首层水平杆后、每层楼高后、悬挑固定后。", ok:true, fix:"支撑架 6m 节点 + 其余四节点齐。", code:"" },
-        { t:"支撑脚手架每搭约 10m 后检查一次即可。", ok:false, code:"M08", tempt:"把节点数值记大了。", lose:"支撑架是每搭约 6m 检查，写 10m 超了。", fix:"支撑脚手架每搭约 6m 后检查。" },
-        { t:"搭完整体后统一验收一次就行，中途不查。", ok:false, code:"E01", tempt:"图省事只验收一次。", lose:"搭设过程有五个阶段节点，须分阶段查。", fix:"分五节点查，不能只验收一次。" },
-        { t:"只在基础完工后查一次即可。", ok:false, code:"E01", tempt:"记住了第一个节点。", lose:"漏了首层、每层、悬挑固定、支撑架6m 四节点。", fix:"补齐五节点，含支撑架每6m。" }
+        { t:"仅需在支架基础完工后进行一次检查，后续各搭设阶段均不再设置其他检查节点。", ok:false, code:"E01", tempt:"记住了第一个节点。", lose:"漏了首层、每层、悬挑固定、支撑架6m 四节点。", fix:"补齐五节点，含支撑架每6m。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断作答失分并给正确补写", fig:"diag", figLabel:"模拟学生作答（待诊断）", figCaption:"归类对不对？卸料平台呢？",
       stem:"某学生答：「支架拆除是保证项目；卸料平台旁边有脚手架，搁支、拉结在脚手架上即可。」选出最准确的诊断与补写。",
       model:"两处均错：支架拆除属一般项目（保证项目=方案/基础/构造/稳定/荷载/交底验收）；卸料平台搁支/拉结点必须设建筑主体结构、严禁固定作业脚手架上。",
       opts:[
+        { t:"该作答中「支架拆除归保证项目」的归类没有问题、不必修改；仅有一处失分——卸料平台的搁支点与拉结点不应设在脚手架上，应改设在建筑主体结构之上。", ok:false, code:"M03", tempt:"只揪出卸料平台、放过归类错。", lose:"支架拆除是一般项目，归保证项也错，漏诊一处。", fix:"支架拆除改一般项 + 卸料平台设主体。" },
         { t:"两处都错：支架拆除属一般项目（保证=方案/基础/构造/稳定/荷载/交底验收）；卸料平台搁支/拉结点必须设主体结构、严禁挂作业架。", ok:true, fix:"归类错 + 卸料平台红线两处都揪出并补写。", code:"" },
-        { t:"支架拆除归保证项没问题，只是卸料平台该设主体。", ok:false, code:"M03", tempt:"只揪出卸料平台、放过归类错。", lose:"支架拆除是一般项目，归保证项也错，漏诊一处。", fix:"支架拆除改一般项 + 卸料平台设主体。" },
-        { t:"卸料平台挂脚手架可以，只是支架拆除该归一般项。", ok:false, code:"E10", tempt:"纠了归类、却认可挂脚手架。", lose:"卸料平台挂作业架是红线错误，超载失稳。", fix:"卸料平台必须设主体、严禁挂作业架。" },
-        { t:"两处都对，可给满分。", ok:false, code:"M03", tempt:"没看出两处都是典型错。", lose:"支架拆除归错类、卸料平台挂错处，两处都失分。", fix:"两处都要改：一般项 + 设主体。" }
+        { t:"卸料平台旁既有脚手架、搁支拉结其上属可行做法，无需纠正；真正的失分点只有归类——支架拆除应当改归入一般项目之中。", ok:false, code:"E10", tempt:"纠了归类、却认可挂脚手架。", lose:"卸料平台挂作业架是红线错误，超载失稳。", fix:"卸料平台必须设主体、严禁挂作业架。" },
+        { t:"两处表述均正确：支架拆除关系拆除安全、列入保证项目合理；卸料平台就近搁支于旁侧脚手架亦属可行，本题作答应给满分。", ok:false, code:"M03", tempt:"没看出两处都是典型错。", lose:"支架拆除归错类、卸料平台挂错处，两处都失分。", fix:"两处都要改：一般项 + 设主体。" }
       ] }
   ];
   codeMap={
@@ -473,7 +473,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"S01-html-practice3-html-q1-845c98b80a40","options":["S01-html-practice3-html-q1-845c98b80a40:option-1","S01-html-practice3-html-q1-845c98b80a40:option-2","S01-html-practice3-html-q1-845c98b80a40:option-3","S01-html-practice3-html-q1-845c98b80a40:option-4"]},{"variant_id":"S01-html-practice3-html-q2-84705bb978b9","options":["S01-html-practice3-html-q2-84705bb978b9:option-1","S01-html-practice3-html-q2-84705bb978b9:option-2","S01-html-practice3-html-q2-84705bb978b9:option-3","S01-html-practice3-html-q2-84705bb978b9:option-4"]},{"variant_id":"S01-html-practice3-html-q3-5b0d7df2a874","options":["S01-html-practice3-html-q3-5b0d7df2a874:option-1","S01-html-practice3-html-q3-5b0d7df2a874:option-2","S01-html-practice3-html-q3-5b0d7df2a874:option-3","S01-html-practice3-html-q3-5b0d7df2a874:option-4"]},{"variant_id":"S01-html-practice3-html-q4-25a4df8b2864","options":["S01-html-practice3-html-q4-25a4df8b2864:option-1","S01-html-practice3-html-q4-25a4df8b2864:option-2","S01-html-practice3-html-q4-25a4df8b2864:option-3","S01-html-practice3-html-q4-25a4df8b2864:option-4"]},{"variant_id":"S01-html-practice3-html-q14-6441c5410af5","options":["S01-html-practice3-html-q14-6441c5410af5:option-1","S01-html-practice3-html-q14-6441c5410af5:option-2","S01-html-practice3-html-q14-6441c5410af5:option-3","S01-html-practice3-html-q14-6441c5410af5:option-4"]}];
+    const exactItems=[{"variant_id":"S01-html-practice3-html-q1-f311ddc91759","options":["S01-html-practice3-html-q1-f311ddc91759:option-1","S01-html-practice3-html-q1-f311ddc91759:option-2","S01-html-practice3-html-q1-f311ddc91759:option-3","S01-html-practice3-html-q1-f311ddc91759:option-4"]},{"variant_id":"S01-html-practice3-html-q2-18ac847eb932","options":["S01-html-practice3-html-q2-18ac847eb932:option-1","S01-html-practice3-html-q2-18ac847eb932:option-2","S01-html-practice3-html-q2-18ac847eb932:option-3","S01-html-practice3-html-q2-18ac847eb932:option-4"]},{"variant_id":"S01-html-practice3-html-q3-afe468e0891d","options":["S01-html-practice3-html-q3-afe468e0891d:option-1","S01-html-practice3-html-q3-afe468e0891d:option-2","S01-html-practice3-html-q3-afe468e0891d:option-3","S01-html-practice3-html-q3-afe468e0891d:option-4"]},{"variant_id":"S01-html-practice3-html-q4-7fbcc8d360eb","options":["S01-html-practice3-html-q4-7fbcc8d360eb:option-1","S01-html-practice3-html-q4-7fbcc8d360eb:option-2","S01-html-practice3-html-q4-7fbcc8d360eb:option-3","S01-html-practice3-html-q4-7fbcc8d360eb:option-4"]},{"variant_id":"S01-html-practice3-html-q14-a5ffd07b57d0","options":["S01-html-practice3-html-q14-a5ffd07b57d0:option-1","S01-html-practice3-html-q14-a5ffd07b57d0:option-2","S01-html-practice3-html-q14-a5ffd07b57d0:option-3","S01-html-practice3-html-q14-a5ffd07b57d0:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -490,7 +490,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S01")+'&practice_surface='+encodeURIComponent("practice3.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExLTg0NWM5OGI4MGE0MCIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEyLTg0NzA1YmI5NzhiOSIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEzLTViMGQ3ZGYyYTg3NCIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXE0LTI1YTRkZjhiMjg2NCIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExNC02NDQxYzU0MTBhZjUiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiNDQyNDAxZjViODQ4NjBmMzI3ZTdkNTUwNTg2MDJlMTllYmM1MTQyMTMwYmI4NTgzOTc5Mzg0MTg5MjkyMDQyNiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMy5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S01")+'&practice_surface='+encodeURIComponent("practice3.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExLWYzMTFkZGM5MTc1OSIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEyLTE4YWM4NDdlYjkzMiIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEzLWFmZTQ2OGUwODkxZCIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXE0LTdmYmNjOGQzNjBlYiIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExNC1hNWZmZDA3YjU3ZDAiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiNzU1NTNhY2ZkZjBlYWU0ZGMzMTFjYWI2YWM4N2U3Y2JkYjNjNDZkMjlhMGExYWU1NTgyMjAzZjZiYWZiOGM2YyIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMy5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -239,46 +239,46 @@ class Component extends DCLogic {
       stem:"施工缝的留置位置，选出各构件都对、能得分的作答。",
       model:"柱留基础/楼板/梁顶面；单向板平行短边任意位置；有主次梁楼板留次梁跨中1/3；墙留门洞口过梁跨中1/3或纵横交接处；楼梯梯段端部1/3；双向板按设计确定。",
       opts:[
+        { t:"各构件的施工缝均宜留置在受剪力较大的部位，使新旧混凝土在主要受力处结合，以保证结构整体性，必要时经设计单位确认。", ok:false, code:"E10", tempt:"「受力大处接得牢」听着顺理成章。", lose:"方向反了——施工缝是薄弱面，规范要求留在受剪力较小处。", fix:"施工缝宜留在受剪力较小、便于施工处。" },
+        { t:"柱留梁板顶面、单向板平行于短边任意位置、有主次梁楼板留主梁跨中1/3、墙留洞口过梁跨中1/3或交接处、楼梯端部1/3、双向板按设计确定。", ok:false, code:"E07", tempt:"主梁比次梁大，直觉认为跟主梁。", lose:"规定是次梁跨中1/3，把主次梁搞反、构件认错。", fix:"有主次梁楼板留次梁跨中1/3范围内。" },
         { t:"柱在梁板顶面、单向板平行短边任意位置、有主次梁楼板留次梁跨中1/3、墙留洞口过梁跨中1/3或交接处、楼梯端部1/3、双向板按设计确定。", ok:true, fix:"各构件位置逐条写全、数值到位，这就是位置题的满分骨架。", code:"" },
-        { t:"施工缝宜留在各构件受剪力较大的部位，让新混凝土在受力大处接得更牢、整体性更好。", ok:false, code:"E10", tempt:"「受力大处接得牢」听着顺理成章。", lose:"方向反了——施工缝是薄弱面，规范要求留在受剪力较小处。", fix:"施工缝宜留在受剪力较小、便于施工处。" },
-        { t:"有主次梁的楼板，施工缝留在主梁跨中1/3范围内，跟着最大的主梁走最稳妥。", ok:false, code:"E07", tempt:"主梁比次梁大，直觉认为跟主梁。", lose:"规定是次梁跨中1/3，把主次梁搞反、构件认错。", fix:"有主次梁楼板留次梁跨中1/3范围内。" },
-        { t:"施工缝留在次梁跨中1/3、楼梯端部1/3就够了，柱墙等其余构件现场看着定。", ok:false, code:"E02", tempt:"记住两条就以为覆盖全了。", lose:"漏了柱、墙、单向板、双向板的位置，采分点大面积遗漏。", fix:"补全柱梁板顶面0~100、墙0~300/交接、单向板平行短边、双向板按设计。" }
+        { t:"有主次梁楼板留次梁跨中1/3范围内，楼梯留梯段端部1/3范围内，两处按上述位置留置即可，其余构件的施工缝位置可由施工单位酌情确定。", ok:false, code:"E02", tempt:"记住两条就以为覆盖全了。", lose:"漏了柱、墙、单向板、双向板的位置，采分点大面积遗漏。", fix:"补全柱梁板顶面0~100、墙0~300/交接、单向板平行短边、双向板按设计。" }
       ] },
 { tag:"施工缝·受力位置", typeHint:"单选 · 选出方向、原则都对的表述", figLabel:"题给：梁上受剪力分布", figCaption:"支座剪力大 / 跨中剪力小 · 缝留哪？", fig:"shear",
       stem:"关于施工缝留在受剪力较小还是较大处，选出正确、能得分的表述。",
       model:"施工缝宜留在受剪力较小、便于施工的部位；必要时经设计单位确认。",
       opts:[
-        { t:"施工缝宜留在受剪力较小、便于施工的部位，必要时经设计单位确认。", ok:true, fix:"方向词「受剪力较小」+「设计单位确认」都写到，位置原则满分。", code:"" },
         { t:"施工缝宜留在受剪力较大部位，让接缝主动承担较大剪力以增强结构整体性。", ok:false, code:"M04", tempt:"选项把「承担剪力」包装成优点，很像正确表述。", lose:"这是典型选项陷阱，方向恰好反了，留剪力大处会被剪力撕开。", fix:"改成受剪力较小、便于施工处。" },
-        { t:"施工缝留哪都行，只要凿毛铺砂浆把接缝处理干净，就不影响结构整体性。", ok:false, code:"E07", tempt:"觉得「处理到位就行」，弱化了位置要求。", lose:"位置与处理是两个独立采分点，位置错照样扣分。", fix:"先满足受剪力较小处，再谈处理工序。" },
-        { t:"施工缝留在受剪力较小处即可，是否经设计单位确认无所谓、施工方自行决定。", ok:false, code:"E02", tempt:"位置说对了，容易忽略主体确认。", lose:"漏了「必要时经设计单位确认」这个主体维采分点。", fix:"补一句必要时经设计单位确认。" }
+        { t:"施工缝的留置位置对结构无实质影响，只要接缝处理符合工序要求即可任意留置。", ok:false, code:"E07", tempt:"觉得「处理到位就行」，弱化了位置要求。", lose:"位置与处理是两个独立采分点，位置错照样扣分。", fix:"先满足受剪力较小处，再谈处理工序。" },
+        { t:"施工缝留在受剪力较小处即可，位置由施工单位自行确定，无须经设计单位确认。", ok:false, code:"E02", tempt:"位置说对了，容易忽略主体确认。", lose:"漏了「必要时经设计单位确认」这个主体维采分点。", fix:"补一句必要时经设计单位确认。" },
+        { t:"施工缝宜留在受剪力较小、便于施工的部位，必要时经设计单位确认。", ok:true, fix:"方向词「受剪力较小」+「设计单位确认」都写到，位置原则满分。", code:"" }
       ] },
 { tag:"施工缝·时机", typeHint:"单选 · 选出留设时机能得分的作答", figLabel:"题给：浇筑与初凝时间关系", figCaption:"连续浇筑 / 初凝临界 / 否则留缝", fig:"settime",
       stem:"关于施工缝的留设时机，选出能得分的作答。",
       model:"浇筑宜连续；必须间歇时尽量缩短，并在前层混凝土初凝前浇完次层，否则留置施工缝。",
       opts:[
-        { t:"浇筑宜连续；必须间歇时尽量缩短，并在前层混凝土初凝前浇完次层，否则留置施工缝。", ok:true, fix:"连续、初凝前、否则留缝三段齐，时机采分句完整。", code:"" },
-        { t:"浇筑中断多久都不要紧，只要最后把缝处理好，中断时间与是否留缝无关。", ok:false, code:"E06", tempt:"觉得「处理好就行」，忽视时间窗。", lose:"漏了初凝前浇完这个时机判据，中断过久不留缝会成通缝。", fix:"须在前层初凝前浇完次层，否则留置施工缝。" },
+        { t:"浇筑间歇时间的长短不影响是否留置施工缝，只要后续对接缝按规定工序处理，即可继续浇筑次层混凝土。", ok:false, code:"E06", tempt:"觉得「处理好就行」，忽视时间窗。", lose:"漏了初凝前浇完这个时机判据，中断过久不留缝会成通缝。", fix:"须在前层初凝前浇完次层，否则留置施工缝。" },
         { t:"只要坚持连续浇筑，任何工程都绝不会出现施工缝，不必考虑留设。", ok:false, code:"E07", tempt:"把「宜连续」绝对化成「一定不留」。", lose:"实际必须间歇时仍要留缝，概念绝对化。", fix:"宜连续；必须间歇时初凝前浇完，否则留缝。" },
-        { t:"必须间歇时，在前层混凝土终凝前浇完次层即可，否则留置施工缝。", ok:false, code:"M08", tempt:"「凝」字对，只是初凝写成了终凝。", lose:"规范是初凝前，不是终凝前，关键时间点记错。", fix:"是前层初凝前浇完次层。" }
+        { t:"必须间歇时，在前层混凝土终凝前浇完次层即可，否则留置施工缝。", ok:false, code:"M08", tempt:"「凝」字对，只是初凝写成了终凝。", lose:"规范是初凝前，不是终凝前，关键时间点记错。", fix:"是前层初凝前浇完次层。" },
+        { t:"浇筑宜连续；必须间歇时尽量缩短，并在前层混凝土初凝前浇完次层，否则留置施工缝。", ok:true, fix:"连续、初凝前、否则留缝三段齐，时机采分句完整。", code:"" }
       ] },
 { tag:"施工缝·数值", typeHint:"单选 · 选出柱/墙水平缝数值正确的作答", figLabel:"题给：柱、墙水平施工缝", figCaption:"距结构上表面多少？", fig:"column",
       stem:"柱、墙水平施工缝距结构上表面的距离，选出数值正确的作答。",
       model:"柱水平施工缝距结构上表面0~100mm；墙0~300mm；均留在梁板顶面等受剪力较小处。",
       opts:[
+        { t:"柱的水平施工缝宜留在柱身中段受力较大的部位，以便于后续接柱作业与模板支设施工。", ok:false, code:"E10", tempt:"「施工方便」当挡箭牌。", lose:"应留梁板顶面受剪力较小处，留柱中段位置错。", fix:"柱留基础/楼板/梁顶面，距上表面0~100mm。" },
         { t:"柱水平施工缝距结构上表面0~100mm，墙0~300mm，都留在梁板顶面等受剪力较小处。", ok:true, fix:"柱0~100、墙0~300分清，数值维采分到位。", code:"" },
-        { t:"柱、墙水平施工缝一律距结构上表面0~300mm，两者按同一数值控制即可。", ok:false, code:"M08", tempt:"记了0~300一个数就套用到柱。", lose:"柱是0~100mm、墙才0~300mm，数值混淆。", fix:"柱0~100mm、墙0~300mm，分开记。" },
-        { t:"柱的水平施工缝留在柱中段受力较大处，便于后续接柱、施工方便。", ok:false, code:"E10", tempt:"「施工方便」当挡箭牌。", lose:"应留梁板顶面受剪力较小处，留柱中段位置错。", fix:"柱留基础/楼板/梁顶面，距上表面0~100mm。" },
-        { t:"柱墙水平缝的具体高度不重要，只要留在竖向构件上、方便支模就行。", ok:false, code:"E02", tempt:"弱化数值、只谈方便。", lose:"漏了0~100/0~300mm的具体数值采分点。", fix:"写明柱0~100mm、墙0~300mm。" }
+        { t:"柱、墙的水平施工缝均距结构上表面0~300mm留置，两类构件按同一数值控制，同样留在梁板顶面等受剪力较小处。", ok:false, code:"M08", tempt:"记了0~300一个数就套用到柱。", lose:"柱是0~100mm、墙才0~300mm，数值混淆。", fix:"柱0~100mm、墙0~300mm，分开记。" },
+        { t:"柱、墙水平施工缝距上表面的具体数值不作要求，留置在竖向构件范围内并便于支模即可。", ok:false, code:"E02", tempt:"弱化数值、只谈方便。", lose:"漏了0~100/0~300mm的具体数值采分点。", fix:"写明柱0~100mm、墙0~300mm。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"同强度混凝土 · 10d封闭 · 好好养护", fig:"diagnose",
       stem:"某学生答后浇带措施：「用与原结构同强度的混凝土填、10天后封闭、好好养护」。选出最准确的诊断与补写。",
       model:"三处失分：应用微膨胀混凝土(非同强度)、底板≥28d后封闭(非10d)、养护应写≥14d并补强度提高一级/整理钢筋冲洗/接缝按施工缝处理。",
       opts:[
+        { t:"作答三点全部成立：同强度混凝土协调、10天封闭利于工期、养护表述到位，应当判给满分。", ok:false, code:"E07", tempt:"只看「说了三件事」就判对。", lose:"同强度/10d/好好养护三处全错或空泛，把后浇带当普通缝且口号化。", fix:"改微膨胀、≥28d封闭、≥14d湿润养护并补六项措施。" },
         { t:"三处都要改：应用微膨胀混凝土、底板≥28d后封闭、养护写≥14d并补提高一级/整钢筋冲洗/按缝处理。", ok:true, fix:"逐处揪出失分并补成可上答题纸的采分句——这就是会写答案。", code:"" },
-        { t:"作答基本正确，只是把「10天」改成「28天」封闭就行，其余都对。", ok:false, code:"E02", tempt:"抓到封闭天数一处错，以为只此一错。", lose:"漏诊「同强度→应微膨胀」和「好好养护→应≥14d并提高一级」，采分点遗漏。", fix:"微膨胀混凝土、≥28d封闭、≥14d养护+提高一级都要补。" },
-        { t:"作答完全正确，同强度混凝土省钱、10天封闭省工期、好好养护也到位，可给满分。", ok:false, code:"E07", tempt:"只看「说了三件事」就判对。", lose:"同强度/10d/好好养护三处全错或空泛，把后浇带当普通缝且口号化。", fix:"改微膨胀、≥28d封闭、≥14d湿润养护并补六项措施。" },
-        { t:"只需把「好好养护」写具体成「浇水养护」即可，材料和封闭天数都没问题。", ok:false, code:"E04", tempt:"只盯着「好好养护」空泛，忽略更大的错。", lose:"漏诊同强度(应微膨胀)、10d(应28d)两处硬伤，且养护要写≥14d。", fix:"微膨胀混凝土、≥28d封闭、≥14d养护三处一起补。" }
+        { t:"仅封闭天数一处失分：把「10天后封闭」改为「底板≥28d后封闭」即可，混凝土选用与养护的表述均无须修改。", ok:false, code:"E02", tempt:"抓到封闭天数一处错，以为只此一错。", lose:"漏诊「同强度→应微膨胀」和「好好养护→应≥14d并提高一级」，采分点遗漏。", fix:"微膨胀混凝土、≥28d封闭、≥14d养护+提高一级都要补。" },
+        { t:"只有「好好养护」一处表述空泛，补写为「浇水养护」即可，材料选用与封闭天数均无问题。", ok:false, code:"E04", tempt:"只盯着「好好养护」空泛，忽略更大的错。", lose:"漏诊同强度(应微膨胀)、10d(应28d)两处硬伤，且养护要写≥14d。", fix:"微膨胀混凝土、≥28d封闭、≥14d养护三处一起补。" }
       ] }
   ];
   codeMap={
@@ -552,7 +552,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"C01-html-practice-html-q1-acc6b596f503","options":["C01-html-practice-html-q1-acc6b596f503:option-1","C01-html-practice-html-q1-acc6b596f503:option-2","C01-html-practice-html-q1-acc6b596f503:option-3","C01-html-practice-html-q1-acc6b596f503:option-4"]},{"variant_id":"C01-html-practice-html-q2-ef00f8f4d305","options":["C01-html-practice-html-q2-ef00f8f4d305:option-1","C01-html-practice-html-q2-ef00f8f4d305:option-2","C01-html-practice-html-q2-ef00f8f4d305:option-3","C01-html-practice-html-q2-ef00f8f4d305:option-4"]},{"variant_id":"C01-html-practice-html-q3-1e65c200f4eb","options":["C01-html-practice-html-q3-1e65c200f4eb:option-1","C01-html-practice-html-q3-1e65c200f4eb:option-2","C01-html-practice-html-q3-1e65c200f4eb:option-3","C01-html-practice-html-q3-1e65c200f4eb:option-4"]},{"variant_id":"C01-html-practice-html-q4-cab9423f74d4","options":["C01-html-practice-html-q4-cab9423f74d4:option-1","C01-html-practice-html-q4-cab9423f74d4:option-2","C01-html-practice-html-q4-cab9423f74d4:option-3","C01-html-practice-html-q4-cab9423f74d4:option-4"]},{"variant_id":"C01-html-practice-html-q15-897464688b02","options":["C01-html-practice-html-q15-897464688b02:option-1","C01-html-practice-html-q15-897464688b02:option-2","C01-html-practice-html-q15-897464688b02:option-3","C01-html-practice-html-q15-897464688b02:option-4"]}];
+    const exactItems=[{"variant_id":"C01-html-practice-html-q1-b9e7d1d4282c","options":["C01-html-practice-html-q1-b9e7d1d4282c:option-1","C01-html-practice-html-q1-b9e7d1d4282c:option-2","C01-html-practice-html-q1-b9e7d1d4282c:option-3","C01-html-practice-html-q1-b9e7d1d4282c:option-4"]},{"variant_id":"C01-html-practice-html-q2-6243d5fb9605","options":["C01-html-practice-html-q2-6243d5fb9605:option-1","C01-html-practice-html-q2-6243d5fb9605:option-2","C01-html-practice-html-q2-6243d5fb9605:option-3","C01-html-practice-html-q2-6243d5fb9605:option-4"]},{"variant_id":"C01-html-practice-html-q3-420249562481","options":["C01-html-practice-html-q3-420249562481:option-1","C01-html-practice-html-q3-420249562481:option-2","C01-html-practice-html-q3-420249562481:option-3","C01-html-practice-html-q3-420249562481:option-4"]},{"variant_id":"C01-html-practice-html-q4-c2bf08e2ffaa","options":["C01-html-practice-html-q4-c2bf08e2ffaa:option-1","C01-html-practice-html-q4-c2bf08e2ffaa:option-2","C01-html-practice-html-q4-c2bf08e2ffaa:option-3","C01-html-practice-html-q4-c2bf08e2ffaa:option-4"]},{"variant_id":"C01-html-practice-html-q15-dd906fe33c11","options":["C01-html-practice-html-q15-dd906fe33c11:option-1","C01-html-practice-html-q15-dd906fe33c11:option-2","C01-html-practice-html-q15-dd906fe33c11:option-3","C01-html-practice-html-q15-dd906fe33c11:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -569,7 +569,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYWNjNmI1OTZmNTAzIiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lZjAwZjhmNGQzMDUiLCJDMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTFlNjVjMjAwZjRlYiIsIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtY2FiOTQyM2Y3NGQ0IiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtODk3NDY0Njg4YjAyIl0sInBhY2tfaWQiOiJDMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjIxNWYzZTdlNzhlYjQwNDJmZDUyMTIwZjI5NTlkZjA4NGM1MzA2Mjg5MmRiNWQxOTdlOGI5MzVmMWQ2N2Q2ZWEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjRkNjE3MjhjMDI5Y2NkNjNiMGQ1ZTE3OTYwYzc3Yzg1MDcxODFiYTk0MDkxMWIyMTI2Y2UwYjZjZTY3ZTVkYSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("C01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjllN2QxZDQyODJjIiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi02MjQzZDVmYjk2MDUiLCJDMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQyMDI0OTU2MjQ4MSIsIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzJiZjA4ZTJmZmFhIiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZGQ5MDZmZTMzYzExIl0sInBhY2tfaWQiOiJDMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImFlOWFmZTliOGMxZjg4MzkzZWY3MTQwOGNiY2Y5MGRlYzQzMzgxMTc4YjNmODM5NGJlYmZmOTQxOWUyN2VhNzYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjRkNjE3MjhjMDI5Y2NkNjNiMGQ1ZTE3OTYwYzc3Yzg1MDcxODFiYTk0MDkxMWIyMTI2Y2UwYjZjZTY3ZTVkYSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

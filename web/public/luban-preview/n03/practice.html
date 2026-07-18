@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -249,26 +249,26 @@ class Component extends DCLogic {
       stem:"某工程四个施工过程的流水节拍为 3、3、6、3 个月。判定流水组织类型，选出最完整、能得分的作答。",
       model:"判型：节拍不全相等但成倍数（6=2×3）· 等步距异节奏流水；流水步距取各节拍最大公约数。",
       opts:[
-        { t:"节拍不全相等但均成倍数（6=2×3），判「等步距异节奏流水」，步距取各节拍最大公约数。", ok:true, fix:"判据链写全：先点成倍数、再定类型、并指向 K=最大公约数，三件齐。", code:"" },
-        { t:"节拍 3、3、6、3 不全相等、看着无规律，判为「无节奏流水」，用大差法逐段求步距。", ok:false, code:"E05", tempt:"看 3、3、6、3 不全等，第一反应「无规律·无节奏」。", lose:"漏了「成倍数·等步距异节奏」这档；判型错是地基错，K/队数/工期连锁全错。", fix:"先看成不成倍数：本题成倍数，应判等步距异节奏。" },
+        { t:"节拍 3、3、6、3 不全相等、无明显规律，判为「无节奏流水」，用大差法逐段求步距。", ok:false, code:"E05", tempt:"看 3、3、6、3 不全等，第一反应「无规律·无节奏」。", lose:"漏了「成倍数·等步距异节奏」这档；判型错是地基错，K/队数/工期连锁全错。", fix:"先看成不成倍数：本题成倍数，应判等步距异节奏。" },
         { t:"四个里三个节拍都是 3，判为「等节奏流水」，流水步距 K=t=3 个月、各段连续施工。", ok:false, code:"E07", tempt:"四个里三个都是 3，像等节奏。", lose:"等节奏要求所有节拍全等，而 6≠3，条件不成立。", fix:"等节奏须全部节拍相等；本题有 6，应判等步距异节奏。" },
-        { t:"节拍不同不必先判型，直接取最大节拍 6 当步距把队伍排开施工，省去判型这步。", ok:false, code:"E02", tempt:"想省事，跳过判型直接取步距开干。", lose:"判型是采分地基，跳过=丢判据分，且 K 取最大节拍本身就错。", fix:"先写「成倍数·等步距异节奏」，再据型取 K=最大公约数。" }
+        { t:"节拍不同不必先判型，直接取最大节拍 6 当步距把各专业队排开施工，省去判型这一步骤。", ok:false, code:"E02", tempt:"想省事，跳过判型直接取步距开干。", lose:"判型是采分地基，跳过=丢判据分，且 K 取最大节拍本身就错。", fix:"先写「成倍数·等步距异节奏」，再据型取 K=最大公约数。" },
+        { t:"节拍不全相等但均成倍数（6=2×3），判「等步距异节奏流水」，步距取各节拍最大公约数。", ok:true, fix:"判据链写全：先点成倍数、再定类型、并指向 K=最大公约数，三件齐。", code:"" }
       ] },
 { tag:"步距K·计算表达维", typeHint:"单选 · 选出可得分的算式与依据", figLabel:"题给：各节拍", figCaption:"3、3、6、3（月）· K = ？", fig:"gcd",
       stem:"承上题（已判等步距异节奏，节拍 3、3、6、3）。求流水步距 K，写出可得分的算式与依据。",
       model:"K = 各节拍最大公约数 gcd(3,6)=3 个月。",
       opts:[
+        { t:"步距要能把各道工序都排开，取各节拍中的「最大值」：K=6 个月，按最长的砌筑节拍来确定步距。", ok:false, code:"E09", tempt:"怕步距小排不开，想用最长工序节拍当步距。", lose:"K 取最大节拍会让队排稀、施工段空等，违反 K=最大公约数。", fix:"据型 K=gcd(3,6)=3，不是最大节拍。" },
         { t:"等步距异节奏，流水步距 K 取各节拍「最大公约数」：K=gcd(3,3,6,3)=3 个月。", ok:true, fix:"依据词「最大公约数」+算式+数值带单位，换组数据也不会错。", code:"" },
-        { t:"步距要能排开工序，取各节拍「最大值」：K=6 个月，按最长的砌筑节拍定步距。", ok:false, code:"E09", tempt:"怕步距小排不开，想用最长工序节拍当步距。", lose:"K 取最大节拍会让队排稀、施工段空等，违反 K=最大公约数。", fix:"据型 K=gcd(3,6)=3，不是最大节拍。" },
         { t:"步距取各节拍「平均值」折中：K=(3+3+6+3)÷4=3.75 个月，兼顾各工序不排稀。", ok:false, code:"E09", tempt:"平均看着「折中又公平」。", lose:"流水步距没有平均口径，3.75 非整数无法让各段整数个 K 咬合。", fix:"用最大公约数 3，不是平均值。" },
-        { t:"步距取各节拍「最小值」保证咬合：K=3 个月，用最短节拍定步距最紧凑。", ok:false, code:"E07", tempt:"数值 3 恰好正确，极易顺手就选。", lose:"数值对、依据错——最小值等于 gcd 只是本题巧合；阅卷看依据词「最大公约数」，写「最小节拍」不给判据分。", fix:"必须写「K=最大公约数 gcd(3,6)=3」，不能写「取最小节拍」。" }
+        { t:"步距取各节拍「最小值」以保证咬合：K=3 个月，用最短的节拍来确定步距最紧凑。", ok:false, code:"E07", tempt:"数值 3 恰好正确，极易顺手就选。", lose:"数值对、依据错——最小值等于 gcd 只是本题巧合；阅卷看依据词「最大公约数」，写「最小节拍」不给判据分。", fix:"必须写「K=最大公约数 gcd(3,6)=3」，不能写「取最小节拍」。" }
       ] },
 { tag:"队数·计算表达维", typeHint:"单选 · 选出可得分的列式与依据", figLabel:"题给：各工序节拍（K=3）", figCaption:"基础3 结构3 砌筑6 装修3 · 需几个专业队？", fig:"rows",
       stem:"承上题（等步距异节奏，K=3，节拍 3、3、6、3）。需要多少个专业施工队？写出可得分的列式与依据。",
       model:"各工序队数=节拍÷K=1+1+2+1=5 个；成倍节拍拆队，队数>工序数。",
       opts:[
         { t:"各工序队数=节拍÷K=1+1+2+1=5 个专业队；成倍节拍要拆队，队数大于工序数。", ok:true, fix:"逐工序÷K、求和、点明拆队与队数>工序数，砌筑拆 2 队归属清楚。", code:"" },
-        { t:"四个施工过程就设 4 个专业队，每个过程配 1 个队依次施工，队数等于工序数。", ok:false, code:"E07", tempt:"直觉「几道工序就几个队」，等节奏时确实如此。", lose:"成倍节拍未拆队：砌筑 6=2K 应拆 2 队，漏拆少 1 队。", fix:"队数=节拍÷K 求和=5，队数>工序数。" },
+        { t:"四个施工过程就设 4 个专业队，每个过程各配 1 个队依次施工，队数等于工序数。", ok:false, code:"E07", tempt:"直觉「几道工序就几个队」，等节奏时确实如此。", lose:"成倍节拍未拆队：砌筑 6=2K 应拆 2 队，漏拆少 1 队。", fix:"队数=节拍÷K 求和=5，队数>工序数。" },
         { t:"把节拍数当队数：砌筑 6 设 6 个队、其余每过程各设 3 个队，共 6+3+3+3=15 个队。", ok:false, code:"E09", tempt:"把「节拍数」直接当「队数」摆。", lose:"队数=节拍÷K，不是节拍本身，严重高估。", fix:"节拍÷K：6÷3=2 队、3÷3=1 队，合计 5 队。" },
         { t:"队数=总节拍÷K=(3+3+6+3)÷3=5 个队，用总节拍一次除以步距求出队数。", ok:false, code:"E07", tempt:"数值 5 正确，算式看着也「成立」。", lose:"数值对、口径错——「总节拍÷K」掩盖拆队归属，阅卷要求队数落到具体工序（砌筑拆 2）。", fix:"写成 1+1+2+1=5，标明砌筑拆 2 队、队数>工序数。" }
       ] },
@@ -276,18 +276,18 @@ class Component extends DCLogic {
       stem:"承上题（等步距异节奏，K=3 个月，施工段 M=2，拆队后专业队 N′=5）。求总工期 T，写出可得分的算式与依据。",
       model:"T=(M+N′−1)×K=(2+5−1)×3=18 个月，体现搭接、带单位。",
       opts:[
-        { t:"总工期体现搭接：T=(M+N′−1)×K=(2+5−1)×3=18 个月。", ok:true, fix:"用拆队后队数 N′=5、施工段 M=2，体现搭接并带单位，公式与数值齐。", code:"" },
         { t:"总工期就是各工序节拍相加：T=3+3+6+3=15 个月，把四道工序时间累加起来。", ok:false, code:"E09", tempt:"以为把工序节拍加起来就是工期。", lose:"机械相加不体现搭接，也没展开多施工段与拆队。", fix:"T=(M+N′−1)×K=(2+5−1)×3=18 个月。" },
         { t:"总工期=节拍在两个施工段上全摆开=(3+3+6+3)×2=30 个月。", ok:false, code:"E09", tempt:"两段就乘 2，看着「全做完」。", lose:"那是不搭接、一段段死等的算法；流水搭接后只 18 个月。", fix:"体现搭接 T=(2+5−1)×3=18 个月，不是 30。" },
+        { t:"总工期体现搭接：T=(M+N′−1)×K=(2+5−1)×3=18 个月。", ok:true, fix:"用拆队后队数 N′=5、施工段 M=2，体现搭接并带单位，公式与数值齐。", code:"" },
         { t:"总工期=(M+N′−1)×K=(2+4−1)×3=15 个月（按 4 道工序算）。", ok:false, code:"E07", tempt:"公式对，但把 N′ 当成了 4 道工序。", lose:"N′ 是拆队后总队数 5，不是工序数 4；用错连锁错。", fix:"N′=5，T=(2+5−1)×3=18 个月。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 工期数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"总工期 18 与标准答案数值一致，但…", fig:"sheet",
       stem:"某学生作答：①K 取最大节拍=6 个月；②设 4 个专业队；③总工期=3+3+6+6=18 个月。其总工期 18 恰与标准答案一致。选出最准确的诊断与补写。",
       model:"判型理由缺、K 取最大节拍（应 gcd=3）、未拆队（应 5 队）、工期机械相加未体现搭接；补写四句：成倍数·等步距异节奏／K=gcd(3,6)=3／队数 1+1+2+1=5／T=(2+5−1)×3=18 个月。",
       opts:[
-        { t:"判型理由缺、K 应取 gcd=3、未拆队应 5 队、工期系机械相加碰巧得 18；四处都要补写。", ok:true, fix:"四处失分全揪出，补写即可上答题纸的四句采分句——这就是「会写答案」。", code:"" },
         { t:"三步算出工期 18，与标准答案数值一致，判型 K 队数也都对，作答正确可给满分。", ok:false, code:"E07", tempt:"只看末位数字，数值对就以为全对——最危险的误判。", lose:"工期是机械相加 3+3+6+6 碰巧得 18，判型/K/队数全错且未体现搭接；阅卷看过程采分。", fix:"判型/K/队数都要重写，工期按 (2+5−1)×3 体现搭接。" },
-        { t:"只是总工期写法不够规范，把 K 从 6 改成 3 就行，判型和队数其余都正确无误。", ok:false, code:"E02", tempt:"抓到 K 错一处，就以为只此一错。", lose:"漏诊「判型理由缺失」和「未拆队（4 应 5）」两处失分。", fix:"判型理由、拆队 5 队、搭接工期三处都要补，不止改 K。" },
+        { t:"判型理由缺、K 应取 gcd=3、未拆队应 5 队、工期系机械相加碰巧得 18；四处都要补写。", ok:true, fix:"四处失分全揪出，补写即可上答题纸的四句采分句——这就是「会写答案」。", code:"" },
+        { t:"只是总工期写法不够规范，把 K 从 6 改成 3 即可，判型和队数其余都正确无误。", ok:false, code:"E02", tempt:"抓到 K 错一处，就以为只此一错。", lose:"漏诊「判型理由缺失」和「未拆队（4 应 5）」两处失分。", fix:"判型理由、拆队 5 队、搭接工期三处都要补，不止改 K。" },
         { t:"K 应取平均节拍 3.75 而非 6，队数与工期按 3.75 重算即可，其余判型思路都没问题。", ok:false, code:"E07", tempt:"看出 K=6 错了，却把它纠成了另一个错。", lose:"诊断方向本身错：K 是最大公约数 3，不是平均 3.75，用错 K 重算只会连锁错。", fix:"K=gcd(3,6)=3，按 K=3 重算队数 5、工期 18。" }
       ] }
   ];
@@ -524,7 +524,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"N03-html-practice-html-q1-f0ad516c7201","options":["N03-html-practice-html-q1-f0ad516c7201:option-1","N03-html-practice-html-q1-f0ad516c7201:option-2","N03-html-practice-html-q1-f0ad516c7201:option-3","N03-html-practice-html-q1-f0ad516c7201:option-4"]},{"variant_id":"N03-html-practice-html-q2-218baee30970","options":["N03-html-practice-html-q2-218baee30970:option-1","N03-html-practice-html-q2-218baee30970:option-2","N03-html-practice-html-q2-218baee30970:option-3","N03-html-practice-html-q2-218baee30970:option-4"]},{"variant_id":"N03-html-practice-html-q3-8a4c094011b3","options":["N03-html-practice-html-q3-8a4c094011b3:option-1","N03-html-practice-html-q3-8a4c094011b3:option-2","N03-html-practice-html-q3-8a4c094011b3:option-3","N03-html-practice-html-q3-8a4c094011b3:option-4"]},{"variant_id":"N03-html-practice-html-q4-0df28c99fb2d","options":["N03-html-practice-html-q4-0df28c99fb2d:option-1","N03-html-practice-html-q4-0df28c99fb2d:option-2","N03-html-practice-html-q4-0df28c99fb2d:option-3","N03-html-practice-html-q4-0df28c99fb2d:option-4"]},{"variant_id":"N03-html-practice-html-q6-d43c94b429a7","options":["N03-html-practice-html-q6-d43c94b429a7:option-1","N03-html-practice-html-q6-d43c94b429a7:option-2","N03-html-practice-html-q6-d43c94b429a7:option-3","N03-html-practice-html-q6-d43c94b429a7:option-4"]}];
+    const exactItems=[{"variant_id":"N03-html-practice-html-q1-96a1080c781a","options":["N03-html-practice-html-q1-96a1080c781a:option-1","N03-html-practice-html-q1-96a1080c781a:option-2","N03-html-practice-html-q1-96a1080c781a:option-3","N03-html-practice-html-q1-96a1080c781a:option-4"]},{"variant_id":"N03-html-practice-html-q2-0eb7cf01e2e9","options":["N03-html-practice-html-q2-0eb7cf01e2e9:option-1","N03-html-practice-html-q2-0eb7cf01e2e9:option-2","N03-html-practice-html-q2-0eb7cf01e2e9:option-3","N03-html-practice-html-q2-0eb7cf01e2e9:option-4"]},{"variant_id":"N03-html-practice-html-q3-bdaf1c44f8bc","options":["N03-html-practice-html-q3-bdaf1c44f8bc:option-1","N03-html-practice-html-q3-bdaf1c44f8bc:option-2","N03-html-practice-html-q3-bdaf1c44f8bc:option-3","N03-html-practice-html-q3-bdaf1c44f8bc:option-4"]},{"variant_id":"N03-html-practice-html-q4-49ae2a47bd94","options":["N03-html-practice-html-q4-49ae2a47bd94:option-1","N03-html-practice-html-q4-49ae2a47bd94:option-2","N03-html-practice-html-q4-49ae2a47bd94:option-3","N03-html-practice-html-q4-49ae2a47bd94:option-4"]},{"variant_id":"N03-html-practice-html-q6-988dcc45afab","options":["N03-html-practice-html-q6-988dcc45afab:option-1","N03-html-practice-html-q6-988dcc45afab:option-2","N03-html-practice-html-q6-988dcc45afab:option-3","N03-html-practice-html-q6-988dcc45afab:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -541,7 +541,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("N03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjBhZDUxNmM3MjAxIiwiTjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yMThiYWVlMzA5NzAiLCJOMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLThhNGMwOTQwMTFiMyIsIk4wMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtMGRmMjhjOTlmYjJkIiwiTjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1kNDNjOTRiNDI5YTciXSwicGFja19pZCI6Ik4wMyIsInByb2plY3Rpb25fZGlnZXN0IjoiMTA2ZmNlNGU1MTEyZTcxMjJjMDY2Mzg1NmNlMmVhNDNmZDY3YjAwOTVjMGQ3MmZjMzZjNDI1ZDYzZTc1NTQ1NiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("N03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtOTZhMTA4MGM3ODFhIiwiTjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wZWI3Y2YwMWUyZTkiLCJOMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWJkYWYxYzQ0ZjhiYyIsIk4wMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDlhZTJhNDdiZDk0IiwiTjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi05ODhkY2M0NWFmYWIiXSwicGFja19pZCI6Ik4wMyIsInByb2plY3Rpb25fZGlnZXN0IjoiZjFkYjE3NTU5MzIzMDJiNWY2MDkyNDk0OTQ0ZDI5ZTg4ZmZiMTcwZmI5ZjA4ZWI0MzcwNTgxZDVkMjkxZTEyYSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

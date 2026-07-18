@@ -10,7 +10,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -235,10 +235,10 @@ class Component extends DCLogic {
       stem:"某屋面防水等级 1 级、采用卷材防水。关于卷材铺贴顺序与起始方向，选出最完整、能得分的作答。",
       model:"先做细部构造处理（阴阳角、泛水、管根、落水口加强），后大面积铺贴；大面由屋面最低标高处起、由低向高铺贴，上幅压下幅。",
       opts:[
-        { t:"先做细部构造处理（阴阳角、泛水、管根、落水口加强），后大面积铺贴；大面由屋面最低标高处起、由低向高铺贴，上幅压下幅。", ok:true, fix:"先细部后大面 + 由低向高 + 上幅压下幅，三件齐，程序分稳拿。", code:"" },
         { t:"为图省事把大面积卷材先一次性铺贴到位、大面整体完成之后，才回头处理阴阳角、泛水、管根、落水口等各处细部节点，逐一统一收边加强、补做防水加强处理即可。", ok:false, code:"E06", tempt:"觉得先把大面铺完、细部最后收边更顺手。", lose:"违反「先细部后大面」，细部漏加强成渗漏隐患，程序顺序错误。", fix:"先做细部构造加强，再大面铺贴。" },
         { t:"先做阴阳角泛水等细部构造加强、后铺大面，大面卷材由屋脊最高标高处起步、由高向低往檐口方向铺贴，下一幅压住上一幅顺着坡势向下收边。", ok:false, code:"E06", tempt:"从高往低铺像是顺着重力、好操作。", lose:"由高向低、下幅压上幅使缝口迎水倒灌，方向全反。", fix:"由屋面最低标高起、由低向高、上幅压下幅。" },
-        { t:"大面卷材由屋面最低标高处起、由低向高、上幅压下幅铺贴到位，阴阳角、泛水、管根等细部节点与大面采用同一做法一并铺贴、不另行单独加强。", ok:false, code:"E02", tempt:"记住了「由低向高」，以为顺序就齐了。", lose:"漏写「先细部后大面、细部需专门加强」，采分点遗漏。", fix:"补「先做细部构造加强、后大面」。" }
+        { t:"大面卷材由屋面最低标高处起、由低向高、上幅压下幅铺贴到位，阴阳角、泛水、管根等细部节点与大面采用同一做法一并铺贴、不另行单独加强。", ok:false, code:"E02", tempt:"记住了「由低向高」，以为顺序就齐了。", lose:"漏写「先细部后大面、细部需专门加强」，采分点遗漏。", fix:"补「先做细部构造加强、后大面」。" },
+        { t:"先做细部构造处理（阴阳角、泛水、管根、落水口加强），后大面积铺贴；大面由屋面最低标高处起、由低向高铺贴，上幅压下幅。", ok:true, fix:"先细部后大面 + 由低向高 + 上幅压下幅，三件齐，程序分稳拿。", code:"" }
       ] },
 { tag:"方向·记录维", typeHint:"单选 · 选出方向口径完整的作答", figLabel:"图示：搭接缝与流水方向", figCaption:"顺流水 ✓ vs 逆流水迎水缝 ✗", fig:"flow",
       stem:"关于屋面卷材的搭接缝方向与铺贴方向，选出能得分的作答。",
@@ -253,10 +253,10 @@ class Component extends DCLogic {
       stem:"双层卷材铺贴，关于搭接错缝量，选出数值与口径都能得分的作答。",
       model:"同层相邻两幅短边搭接错缝距离≥500mm；上下两层及长边接缝错开≥1/3 幅宽。",
       opts:[
-        { t:"同层相邻两幅短边搭接错缝距离≥500mm；上下两层及长边接缝错开≥1/3 幅宽。", ok:true, fix:"两数值配套：短边≥500mm、错开≥1/3幅宽，换数据也不丢。", code:"" },
         { t:"同层相邻两幅短边搭接错缝距离≥50mm；上下两层及长边接缝错开距离≥1/2 幅宽。", ok:false, code:"M08", tempt:"数值记个大概，50mm、半幅宽顺口。", lose:"短边应≥500mm（差了 10 倍）、错开应≥1/3 幅宽，规范数字混淆。", fix:"短边≥500mm、错开≥1/3 幅宽。" },
         { t:"相邻两幅卷材的短边、长边接缝均要错缝铺贴，接缝彼此避开、不落在同一直线上即可。", ok:false, code:"E03", tempt:"知道要错缝，懒得写具体数值。", lose:"只写定性、不给「≥500mm / ≥1/3幅宽」数值，关键数值缺失=不得分。", fix:"必带数值：短边≥500mm、错开≥1/3幅宽。" },
-        { t:"同层相邻两幅短边搭接错缝距离≥500mm 即可，上下两层与长边接缝可对齐、无需另行错开。", ok:false, code:"M08", tempt:"记住了 500，以为长边/上下层随意。", lose:"漏「长边及上下层错开≥1/3幅宽」，且「无需错开」错误。", fix:"补「长边及上下层错开≥1/3幅宽」。" }
+        { t:"同层相邻两幅短边搭接错缝距离≥500mm 即可，上下两层与长边接缝可对齐、无需另行错开。", ok:false, code:"M08", tempt:"记住了 500，以为长边/上下层随意。", lose:"漏「长边及上下层错开≥1/3幅宽」，且「无需错开」错误。", fix:"补「长边及上下层错开≥1/3幅宽」。" },
+        { t:"同层相邻两幅短边搭接错缝距离≥500mm；上下两层及长边接缝错开≥1/3 幅宽。", ok:true, fix:"两数值配套：短边≥500mm、错开≥1/3幅宽，换数据也不丢。", code:"" }
       ] },
 { tag:"铺贴方法·条件维", typeHint:"单选 · 选出阈值条件点全的作答", figLabel:"图示：坡度/厚度阈值触发", figCaption:"坡度>25% 满粘+钉压 · 厚<3mm 严禁热熔 · 热熔180~200℃", fig:"cond",
       stem:"某屋面坡度 28%、采用厚度 4mm 的高聚物改性沥青卷材。关于铺贴方法与热熔施工，选出能得分的作答。",
@@ -271,9 +271,9 @@ class Component extends DCLogic {
       stem:"某学生答女儿墙泛水节点：①泛水高度做 200mm；②阴阳角基层做成直角；③女儿墙泛水未做附加层；④收头处简单压住。选出最准确的诊断与采分句补写。",
       model:"四处均不妥：泛水高度应≥250mm；阴阳角基层应做 45°或圆弧（不得直角）；应增设附加层、平面立面宽度均≥250mm；收头应金属压条钉压并密封、下端设鹰嘴和滴水槽。",
       opts:[
-        { t:"四处均不妥：泛水高度应≥250mm（非200）；阴阳角基层应做 45°或圆弧（不得直角）；应增设附加层、平面立面均≥250mm；收头金属压条钉压并密封、下端设鹰嘴滴水槽。", ok:true, fix:"四处全揪出、逐项给数值与做法——这就是「会写答案」。", code:"" },
         { t:"本题仅第①处泛水高度 200mm 偏低、应改成不小于250mm 即可；②阴阳角基层做成直角、③女儿墙泛水未做附加层、④收头处简单压住这三处做法均已符合规范要求、无需再整改。", ok:false, code:"E02", tempt:"抓到一个数值错，就以为只此一处。", lose:"漏诊阴阳角直角、未做附加层、收头无鹰嘴滴水槽三处，采分点遗漏。", fix:"阴阳角圆弧、附加层≥250、收头鹰嘴滴水槽都要补。" },
         { t:"仅①泛水高度和②阴阳角基层直角两处不妥、应整改到位；③增设附加层与④收头鹰嘴滴水槽属屋面大面及后续防水工序做法，女儿墙泛水节点处此处不必逐项单独列出诊断。", ok:false, code:"E02", tempt:"以为附加层/收头不算细部采分点。", lose:"附加层（平立面≥250）与收头（鹰嘴滴水槽）正是细部高分采分点，遗漏。", fix:"补附加层平立面≥250 + 收头金属压条钉压密封+鹰嘴滴水槽。" },
+        { t:"四处均不妥：泛水高度应≥250mm（非200）；阴阳角基层应做 45°或圆弧（不得直角）；应增设附加层、平面立面均≥250mm；收头金属压条钉压并密封、下端设鹰嘴滴水槽。", ok:true, fix:"四处全揪出、逐项给数值与做法——这就是「会写答案」。", code:"" },
         { t:"①②③④这几处做法都存在明显问题，应统一按屋面卷材防水规范要求整改到位、逐一加强女儿墙各节点构造处理、最终确保该部位长期不发生渗漏水现象。", ok:false, code:"E03", tempt:"知道有错，懒得逐项点准数值与做法。", lose:"未点准每处数值/做法（泛水≥250、圆弧、附加层≥250、鹰嘴滴水槽），改正不可操作=泛泛不得分。", fix:"逐项写：泛水≥250、阴阳角圆弧、附加层平立面≥250、收头鹰嘴滴水槽。" }
       ] }
   ];
@@ -498,7 +498,7 @@ class Component extends DCLogic {
 
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"F02-html-practice-html-q1-a901d12f5442","options":["F02-html-practice-html-q1-a901d12f5442:option-1","F02-html-practice-html-q1-a901d12f5442:option-2","F02-html-practice-html-q1-a901d12f5442:option-3","F02-html-practice-html-q1-a901d12f5442:option-4"]},{"variant_id":"F02-html-practice-html-q2-8c8411934bd3","options":["F02-html-practice-html-q2-8c8411934bd3:option-1","F02-html-practice-html-q2-8c8411934bd3:option-2","F02-html-practice-html-q2-8c8411934bd3:option-3","F02-html-practice-html-q2-8c8411934bd3:option-4"]},{"variant_id":"F02-html-practice-html-q3-737cf69735c4","options":["F02-html-practice-html-q3-737cf69735c4:option-1","F02-html-practice-html-q3-737cf69735c4:option-2","F02-html-practice-html-q3-737cf69735c4:option-3","F02-html-practice-html-q3-737cf69735c4:option-4"]},{"variant_id":"F02-html-practice-html-q4-d649932926b5","options":["F02-html-practice-html-q4-d649932926b5:option-1","F02-html-practice-html-q4-d649932926b5:option-2","F02-html-practice-html-q4-d649932926b5:option-3","F02-html-practice-html-q4-d649932926b5:option-4"]},{"variant_id":"F02-html-practice-html-q6-bae48b5ad9f5","options":["F02-html-practice-html-q6-bae48b5ad9f5:option-1","F02-html-practice-html-q6-bae48b5ad9f5:option-2","F02-html-practice-html-q6-bae48b5ad9f5:option-3","F02-html-practice-html-q6-bae48b5ad9f5:option-4"]}];
+    const exactItems=[{"variant_id":"F02-html-practice-html-q1-742212cd1582","options":["F02-html-practice-html-q1-742212cd1582:option-1","F02-html-practice-html-q1-742212cd1582:option-2","F02-html-practice-html-q1-742212cd1582:option-3","F02-html-practice-html-q1-742212cd1582:option-4"]},{"variant_id":"F02-html-practice-html-q2-8c8411934bd3","options":["F02-html-practice-html-q2-8c8411934bd3:option-1","F02-html-practice-html-q2-8c8411934bd3:option-2","F02-html-practice-html-q2-8c8411934bd3:option-3","F02-html-practice-html-q2-8c8411934bd3:option-4"]},{"variant_id":"F02-html-practice-html-q3-7e6cf9a55201","options":["F02-html-practice-html-q3-7e6cf9a55201:option-1","F02-html-practice-html-q3-7e6cf9a55201:option-2","F02-html-practice-html-q3-7e6cf9a55201:option-3","F02-html-practice-html-q3-7e6cf9a55201:option-4"]},{"variant_id":"F02-html-practice-html-q4-d649932926b5","options":["F02-html-practice-html-q4-d649932926b5:option-1","F02-html-practice-html-q4-d649932926b5:option-2","F02-html-practice-html-q4-d649932926b5:option-3","F02-html-practice-html-q4-d649932926b5:option-4"]},{"variant_id":"F02-html-practice-html-q6-c063c068d1c4","options":["F02-html-practice-html-q6-c063c068d1c4:option-1","F02-html-practice-html-q6-c063c068d1c4:option-2","F02-html-practice-html-q6-c063c068d1c4:option-3","F02-html-practice-html-q6-c063c068d1c4:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -515,7 +515,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTkwMWQxMmY1NDQyIiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzg0MTE5MzRiZDMiLCJGMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTczN2NmNjk3MzVjNCIsIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDY0OTkzMjkyNmI1IiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1iYWU0OGI1YWQ5ZjUiXSwicGFja19pZCI6IkYwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiNDExYjI4NmY3NmIyYzM0ZjRkMGJlZmFkMmZjZDVlMTUxOTc4YTE3N2FmODQxNTNlMGRmMzA5M2NlZGM4ZTQ3YSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzQyMjEyY2QxNTgyIiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzg0MTE5MzRiZDMiLCJGMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTdlNmNmOWE1NTIwMSIsIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDY0OTkzMjkyNmI1IiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1jMDYzYzA2OGQxYzQiXSwicGFja19pZCI6IkYwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiZTQwNTEyNTU3ODE4ZTIxZDY4ZTdmN2FlMGZmZTgwY2M4NTYyNzllNGI3NGU2MzhhMzExYWExYWU0NGM0ZTZlYSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

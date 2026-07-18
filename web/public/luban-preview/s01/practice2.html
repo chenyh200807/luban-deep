@@ -10,7 +10,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -231,46 +231,46 @@ class Component extends DCLogic {
       stem:"检查双排脚手架，量得立杆步距 2.3m。判断是否违规并给依据，选出能得分的作答。",
       model:"立杆步距应≤2m，实测 2.3m>2m，判违规，应调整步距至不大于 2m。",
       opts:[
-        { t:"立杆步距应≤2m，实测 2.3m 超限，判违规，应将步距调整至≤2m。", ok:true, fix:"阈值 2m + 实测比对 + 违规结论齐。", code:"" },
-        { t:"步距 2.3m 与 2m 相差不大，可判合格。", ok:false, code:"M08", tempt:"觉得差 0.3m「差不多」。", lose:"步距是硬阈值，2.3m>2m 即违规，「差不多」丢分。", fix:"步距>2m 即违规，须≤2m。" },
-        { t:"步距只要不超过 3m 就合格，2.3m 没问题。", ok:false, code:"M08", tempt:"把别的构造数值记成 3m。", lose:"步距阈值是 2m，不是 3m，数值记混。", fix:"立杆步距应≤2m。" },
-        { t:"步距合不合格看整体稳不稳，与具体数值无关。", ok:false, code:"E01", tempt:"以为凭整体感觉判。", lose:"步距有明确阈值 2m，须比数值，非凭感觉。", fix:"按阈值判：步距应≤2m。" }
+        { t:"实测步距 2.3m 与限值 2m 相差不大，属正常施工偏差，可判定合格。", ok:false, code:"M08", tempt:"觉得差 0.3m「差不多」。", lose:"步距是硬阈值，2.3m>2m 即违规，「差不多」丢分。", fix:"步距>2m 即违规，须≤2m。" },
+        { t:"立杆步距不超过 3m 即符合要求，实测 2.3m 在限值以内，判定合格。", ok:false, code:"M08", tempt:"把别的构造数值记成 3m。", lose:"步距阈值是 2m，不是 3m，数值记混。", fix:"立杆步距应≤2m。" },
+        { t:"步距是否合格应视架体整体稳定状况而定，与具体数值大小并无关系。", ok:false, code:"E01", tempt:"以为凭整体感觉判。", lose:"步距有明确阈值 2m，须比数值，非凭感觉。", fix:"按阈值判：步距应≤2m。" },
+        { t:"立杆步距应≤2m，实测 2.3m 超限，判违规，应将步距调整至≤2m。", ok:true, fix:"阈值 2m + 实测比对 + 违规结论齐。", code:"" }
       ] },
 { tag:"搭设·扫地杆", typeHint:"单选 · 选出数值与构造都对的作答", fig:"sweep", figLabel:"纵向扫地杆距底端 350mm", figCaption:"距底端多少才合格？",
       stem:"脚手架纵向扫地杆距立杆底端 350mm，横向扫地杆设在纵向上方。判断违规，选出能得分的作答。",
       model:"纵向扫地杆距底端应≤200mm，实测 350mm 超限；且横向扫地杆应在纵向下方，本例上下颠倒，均违规。",
       opts:[
         { t:"纵向扫地杆距底端应≤200mm，实测 350mm 超限；横向扫地杆应在纵向下方，本例颠倒，均违规。", ok:true, fix:"数值 200mm + 横纵上下关系两处都揪出。", code:"" },
-        { t:"扫地杆距底端 350mm 属正常，横纵位置无所谓。", ok:false, code:"M08", tempt:"觉得离地一点无关紧要。", lose:"纵向扫地杆距底端应≤200mm，且横向须在纵向下方，两处都错。", fix:"距底端≤200mm，横向在纵向下方。" },
-        { t:"只要设了扫地杆就合格，高低和上下都不影响。", ok:false, code:"E01", tempt:"以为「有就行」。", lose:"扫地杆有数值和构造要求，漏了≤200mm 与横纵关系。", fix:"补：≤200mm + 横向在纵向下方。" },
-        { t:"扫地杆距底端应≤500mm，350mm 合格。", ok:false, code:"M08", tempt:"把底座伸出限值 500 混过来。", lose:"扫地杆阈值是 200mm，500 是可调底座伸出值，张冠李戴。", fix:"纵向扫地杆距底端应≤200mm。" }
+        { t:"纵向扫地杆距底端 350mm 属正常范围，横向与纵向扫地杆的上下位置不影响架体受力。", ok:false, code:"M08", tempt:"觉得离地一点无关紧要。", lose:"纵向扫地杆距底端应≤200mm，且横向须在纵向下方，两处都错。", fix:"距底端≤200mm，横向在纵向下方。" },
+        { t:"扫地杆只要按规定数量设置完毕即可视为合格，距底端高度与横纵上下位置关系均不在检查范围之列、亦不影响验收判定。", ok:false, code:"E01", tempt:"以为「有就行」。", lose:"扫地杆有数值和构造要求，漏了≤200mm 与横纵关系。", fix:"补：≤200mm + 横向在纵向下方。" },
+        { t:"纵向扫地杆距立杆底端应≤500mm，实测 350mm 未超出该限值，应当判定为合格。", ok:false, code:"M08", tempt:"把底座伸出限值 500 混过来。", lose:"扫地杆阈值是 200mm，500 是可调底座伸出值，张冠李戴。", fix:"纵向扫地杆距底端应≤200mm。" }
       ] },
 { tag:"搭设·一次搭设自由高", typeHint:"单选 · 选出限值与依据都对的作答", fig:"freeh", figLabel:"一次搭设自由高度 5m", figCaption:"自由高度上限是多少？",
       stem:"搭设作业中，架体一次搭设的自由高度达 5m（超出最上层连墙件以上多步）。判断违规，选出能得分的作答。",
       model:"一次搭设高度不应超过最上层连墙件以上 2 步，且自由高度不应大于 4m；实测 5m 超限，违规。",
       opts:[
         { t:"一次搭设不应超过最上层连墙件以上 2 步、自由高度不应大于 4m；实测 5m 超限，违规。", ok:true, fix:"2 步 + 4m 两条限值都写、并给违规结论。", code:"" },
-        { t:"一次搭设自由高度 5m 在 6m 以内，合格。", ok:false, code:"M08", tempt:"把别的限值记成 6m。", lose:"自由高度限值是 4m，5m 已超，6m 是记错的数。", fix:"自由高度应≤4m，5m 违规。" },
-        { t:"只要搭完补上连墙件即可，一次搭多高无所谓。", ok:false, code:"E01", tempt:"觉得事后补救就行。", lose:"一次搭设有 2 步/4m 硬限，防的是搭设中失稳。", fix:"一次搭设≤最上连墙件上 2 步、自由高≤4m。" },
-        { t:"自由高度按步距算，2.3m×2=4.6m 也算合格。", ok:false, code:"M08", tempt:"想用步距凑算。", lose:"自由高度限值直接是 4m，且实测 5m 已超，凑算无意义。", fix:"自由高度≤4m，实测 5m 违规。" }
+        { t:"一次搭设自由高度的规范限值为 6m，实测 5m 尚在限值以内，应当判定符合要求、不属违规。", ok:false, code:"M08", tempt:"把别的限值记成 6m。", lose:"自由高度限值是 4m，5m 已超，6m 是记错的数。", fix:"自由高度应≤4m，5m 违规。" },
+        { t:"搭设完成后再补设连墙件即可满足要求，一次搭设的自由高度本身不受限制。", ok:false, code:"E01", tempt:"觉得事后补救就行。", lose:"一次搭设有 2 步/4m 硬限，防的是搭设中失稳。", fix:"一次搭设≤最上连墙件上 2 步、自由高≤4m。" },
+        { t:"自由高度可按两步步距折算，2.3m×2=4.6m 未超折算限值，应判定合格。", ok:false, code:"M08", tempt:"想用步距凑算。", lose:"自由高度限值直接是 4m，且实测 5m 已超，凑算无意义。", fix:"自由高度≤4m，实测 5m 违规。" }
       ] },
 { tag:"连墙件·刚性", typeHint:"单选 · 选出对连墙件定性正确的作答", fig:"tie", figLabel:"连墙件 · 刚性 ✓ / 柔性钢筋 ✕", figCaption:"钢筋柔性拉接算不算数？",
       stem:"某双排脚手架用钢筋做柔性连墙件拉接。判断是否合规，选出能得分的作答。",
       model:"连墙件应刚性、能承压承拉，严禁仅用钢筋柔性连墙件；本例用柔性钢筋违规，应改刚性连墙件。",
       opts:[
+        { t:"钢筋拉结已经能够将架体与建筑主体结构拉住，采用柔性连墙件的做法同样可判定为合格。", ok:false, code:"E07", tempt:"看着「拉住了」就以为行。", lose:"连墙件是抗倾覆受力构件，须刚性；柔性钢筋只抗拉不抗压，受压失稳。", fix:"必须刚性，严禁仅用柔性钢筋。" },
         { t:"连墙件应为刚性、能承压承拉，严禁仅用钢筋柔性连墙件；本例违规，应改刚性连墙件。", ok:true, fix:"点明「必刚性、严禁柔性钢筋」，定性到位。", code:"" },
-        { t:"钢筋能把架体拉住，柔性连墙件也算合格。", ok:false, code:"E07", tempt:"看着「拉住了」就以为行。", lose:"连墙件是抗倾覆受力构件，须刚性；柔性钢筋只抗拉不抗压，受压失稳。", fix:"必须刚性，严禁仅用柔性钢筋。" },
-        { t:"连墙件只是防晃辅助件，刚性柔性都无所谓。", ok:false, code:"E01", tempt:"把连墙件当可有可无的软拉绳。", lose:"连墙件是防倾覆受力构件，缺失/柔性都属重大隐患。", fix:"连墙件必刚性、是受力构件，缺失=重大隐患。" },
-        { t:"24m 以下可用柔性、24m 以上才要刚性。", ok:false, code:"M08", tempt:"记了「24m 双排必刚性」就反推低处可柔性。", lose:"连墙件一律应刚性，严禁柔性钢筋，无「低处可柔性」之说。", fix:"一律刚性；24m 以上双排更强调必刚性。" }
+        { t:"连墙件仅属防止架体晃动的辅助构件，采用刚性或柔性做法均可接受。", ok:false, code:"E01", tempt:"把连墙件当可有可无的软拉绳。", lose:"连墙件是防倾覆受力构件，缺失/柔性都属重大隐患。", fix:"连墙件必刚性、是受力构件，缺失=重大隐患。" },
+        { t:"搭设高度 24m 以下可采用柔性连墙件，24m 以上才须改用刚性连墙件。", ok:false, code:"M08", tempt:"记了「24m 双排必刚性」就反推低处可柔性。", lose:"连墙件一律应刚性，严禁柔性钢筋，无「低处可柔性」之说。", fix:"一律刚性；24m 以上双排更强调必刚性。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断拆除作答失分并给正确补写", fig:"diag", figLabel:"模拟学生作答（待诊断）", figCaption:"顺序对不对？连墙件呢？",
       stem:"某学生答脚手架拆除：「从下往上拆，先把连墙件整层拆掉腾地方，再拆杆件。」选出最准确的诊断与补写。",
       model:"方向错（应自上而下、先外后内）、连墙件拆除时机错（应随架体逐层同步拆、严禁先整层拆）；补写：自上而下、先外后内、逐层同步、严禁交叉；连墙件随层同步拆、悬臂段超2步加拉结。",
       opts:[
-        { t:"方向错（应自上而下、先外后内）、连墙件时机错（应随层同步拆、严禁先整层拆）。补写：自上而下·先外后内·逐层同步·严禁交叉；连墙件随层拆、悬臂超2步加拉结。", ok:true, fix:"方向 + 连墙件时机两处失分都揪出，补写即上答题纸。", code:"" },
-        { t:"顺序基本合理，只是没写「严禁交叉」，补上即可。", ok:false, code:"E06", tempt:"只挑出漏写一句，忽略方向和连墙件都反了。", lose:"从下往上、先拆连墙件两处方向性错误，非只漏一句。", fix:"方向改自上而下、连墙件改随层拆。" },
-        { t:"从下往上没问题，只要连墙件最后拆即可。", ok:false, code:"E06", tempt:"抓住「连墙件」却把方向判对了。", lose:"从下往上本身错，连墙件也应随层拆而非最后拆。", fix:"自上而下 + 连墙件随层同步拆。" },
-        { t:"先拆连墙件是对的，问题只在从下往上。", ok:false, code:"E06", tempt:"只纠了方向、漏了连墙件时机。", lose:"先整层拆连墙件会使架体变悬臂侧倒，是致命错。", fix:"连墙件随层同步拆，严禁先整层拆。" }
+        { t:"该作答的拆除顺序基本合理，从下往上、先拆连墙件的安排均可接受；不足之处只在没写「严禁交叉」这一句，在作答末尾补上「严禁上下同时交叉作业」即可拿到全部过程分。", ok:false, code:"E06", tempt:"只挑出漏写一句，忽略方向和连墙件都反了。", lose:"从下往上、先拆连墙件两处方向性错误，非只漏一句。", fix:"方向改自上而下、连墙件改随层拆。" },
+        { t:"「从下往上拆」的方向本身没有问题，不必纠正；真正要修改的只有连墙件——不应先整层拆除，而应留待最后统一拆除，据此补写一句即可完成订正。", ok:false, code:"E06", tempt:"抓住「连墙件」却把方向判对了。", lose:"从下往上本身错，连墙件也应随层拆而非最后拆。", fix:"自上而下 + 连墙件随层同步拆。" },
+        { t:"「先把连墙件整层拆掉」的安排是对的，可为后续拆除腾出作业面；该作答唯一失分点在方向——把「从下往上」改为自上而下即可，其余照原样保留。", ok:false, code:"E06", tempt:"只纠了方向、漏了连墙件时机。", lose:"先整层拆连墙件会使架体变悬臂侧倒，是致命错。", fix:"连墙件随层同步拆，严禁先整层拆。" },
+        { t:"方向错（应自上而下、先外后内）、连墙件时机错（应随层同步拆、严禁先整层拆）。补写：自上而下·先外后内·逐层同步·严禁交叉；连墙件随层拆、悬臂超2步加拉结。", ok:true, fix:"方向 + 连墙件时机两处失分都揪出，补写即上答题纸。", code:"" }
       ] }
   ];
   codeMap={
@@ -503,7 +503,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"S01-html-practice2-html-q1-6e97bf820647","options":["S01-html-practice2-html-q1-6e97bf820647:option-1","S01-html-practice2-html-q1-6e97bf820647:option-2","S01-html-practice2-html-q1-6e97bf820647:option-3","S01-html-practice2-html-q1-6e97bf820647:option-4"]},{"variant_id":"S01-html-practice2-html-q2-4216c00de6ed","options":["S01-html-practice2-html-q2-4216c00de6ed:option-1","S01-html-practice2-html-q2-4216c00de6ed:option-2","S01-html-practice2-html-q2-4216c00de6ed:option-3","S01-html-practice2-html-q2-4216c00de6ed:option-4"]},{"variant_id":"S01-html-practice2-html-q3-c232fd2408a4","options":["S01-html-practice2-html-q3-c232fd2408a4:option-1","S01-html-practice2-html-q3-c232fd2408a4:option-2","S01-html-practice2-html-q3-c232fd2408a4:option-3","S01-html-practice2-html-q3-c232fd2408a4:option-4"]},{"variant_id":"S01-html-practice2-html-q4-0c8177f2026b","options":["S01-html-practice2-html-q4-0c8177f2026b:option-1","S01-html-practice2-html-q4-0c8177f2026b:option-2","S01-html-practice2-html-q4-0c8177f2026b:option-3","S01-html-practice2-html-q4-0c8177f2026b:option-4"]},{"variant_id":"S01-html-practice2-html-q15-21defa249fa3","options":["S01-html-practice2-html-q15-21defa249fa3:option-1","S01-html-practice2-html-q15-21defa249fa3:option-2","S01-html-practice2-html-q15-21defa249fa3:option-3","S01-html-practice2-html-q15-21defa249fa3:option-4"]}];
+    const exactItems=[{"variant_id":"S01-html-practice2-html-q1-0786f260879b","options":["S01-html-practice2-html-q1-0786f260879b:option-1","S01-html-practice2-html-q1-0786f260879b:option-2","S01-html-practice2-html-q1-0786f260879b:option-3","S01-html-practice2-html-q1-0786f260879b:option-4"]},{"variant_id":"S01-html-practice2-html-q2-a40484831b45","options":["S01-html-practice2-html-q2-a40484831b45:option-1","S01-html-practice2-html-q2-a40484831b45:option-2","S01-html-practice2-html-q2-a40484831b45:option-3","S01-html-practice2-html-q2-a40484831b45:option-4"]},{"variant_id":"S01-html-practice2-html-q3-cdb1e3f80632","options":["S01-html-practice2-html-q3-cdb1e3f80632:option-1","S01-html-practice2-html-q3-cdb1e3f80632:option-2","S01-html-practice2-html-q3-cdb1e3f80632:option-3","S01-html-practice2-html-q3-cdb1e3f80632:option-4"]},{"variant_id":"S01-html-practice2-html-q4-6c9a4f7d2886","options":["S01-html-practice2-html-q4-6c9a4f7d2886:option-1","S01-html-practice2-html-q4-6c9a4f7d2886:option-2","S01-html-practice2-html-q4-6c9a4f7d2886:option-3","S01-html-practice2-html-q4-6c9a4f7d2886:option-4"]},{"variant_id":"S01-html-practice2-html-q15-4acb6ec051d4","options":["S01-html-practice2-html-q15-4acb6ec051d4:option-1","S01-html-practice2-html-q15-4acb6ec051d4:option-2","S01-html-practice2-html-q15-4acb6ec051d4:option-3","S01-html-practice2-html-q15-4acb6ec051d4:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -520,7 +520,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S01")+'&practice_surface='+encodeURIComponent("practice2.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExLTZlOTdiZjgyMDY0NyIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEyLTQyMTZjMDBkZTZlZCIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEzLWMyMzJmZDI0MDhhNCIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXE0LTBjODE3N2YyMDI2YiIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExNS0yMWRlZmEyNDlmYTMiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiNGNkYjM4OWI5NTBkNDA4MDU1Y2VmMDQwM2Y3NThjOWRmYThjMDAzMGJiYWY5NmFlNThhMjcwYzQ4YmM0OTExNyIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMi5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S01")+'&practice_surface='+encodeURIComponent("practice2.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExLTA3ODZmMjYwODc5YiIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEyLWE0MDQ4NDgzMWI0NSIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEzLWNkYjFlM2Y4MDYzMiIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXE0LTZjOWE0ZjdkMjg4NiIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExNS00YWNiNmVjMDUxZDQiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiZTE4YzAxOGYxOTAwODE3NzdhMWQwOTNhM2IwYjY4ZTkzYjRiYmY4OGQyOTkzOGRhNjI0MmMwYWE3ZmUyYmJiMCIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMi5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
