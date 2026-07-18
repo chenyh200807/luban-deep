@@ -44,6 +44,12 @@ const FULL = {
   },
   lessons: {
     pack_universe: 41,
+    teaching_topic_universe: 40,
+    teaching_points: [
+      { pack_id: "A01" },
+      { pack_id: "N01" },
+      { pack_id: "S05" },
+    ],
     lessons: [
       { pack_id: "A01", title: "检验批验收程序", content_sha256: "sha_a01", card_hosted: true, summary: "四级验收层级" },
       { pack_id: "N01", title: "网络计划关键线路", content_sha256: "sha_n01", card_hosted: true, summary: "关键工作判定", retest_available: true, light_practice_available: true },
@@ -100,15 +106,33 @@ ok("full data maps next station with reason and title", () => {
   assert.strictEqual(vm.nextStation.card_hosted, true);
 });
 
-ok("lit count = practiced+mastered+dormant, universe comes from manifest API", () => {
+ok("formal route count ignores the internal 41-pack asset universe", () => {
   const vm = buildLearnViewModel(FULL);
   assert.strictEqual(vm.litCount, 2); // A01 mastered + S05 practiced
-  assert.strictEqual(vm.packUniverse, 41);
+  assert.strictEqual(vm.packUniverse, 40);
 });
 
-ok("old lessons payload without pack_universe keeps compatibility fallback", () => {
-  const vm = buildLearnViewModel({ homeDashboard: {}, report: {}, lessons: { lessons: [] } });
+ok("old lessons payload without formal route total keeps the 40-station fallback", () => {
+  const vm = buildLearnViewModel({ homeDashboard: {}, report: {}, lessons: { pack_universe: 41, lessons: [] } });
   assert.strictEqual(vm.packUniverse, PACK_UNIVERSE);
+});
+
+ok("internal packs without teaching points never enter route cards or counters", () => {
+  const input = JSON.parse(JSON.stringify(FULL));
+  input.lessons.lessons.push({ pack_id: "E01", title: "工程量清单计价", card_hosted: false });
+  input.report.pack_lifecycle.packs.E01 = { lifecycle_state: "mastered" };
+  input.homeDashboard.next_step = {
+    mode: "learn_next",
+    source_authority: "pack_lifecycle_projection",
+    source_ref: "E01",
+    reason: "internal pack",
+  };
+  const vm = buildLearnViewModel(input);
+  assert.strictEqual(vm.packUniverse, 40);
+  assert.strictEqual(vm.litCount, 2);
+  assert.strictEqual(vm.posters.some((poster) => poster.pack_id === "E01"), false);
+  assert.strictEqual(vm.nextStation && vm.nextStation.pack_id === "E01", false);
+  assert.strictEqual(vm.todayTask, null);
 });
 
 ok("posters: recommended first(red), then ink lit, no dup", () => {

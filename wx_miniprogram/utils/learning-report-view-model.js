@@ -1196,8 +1196,17 @@ function buildPackMasteryMap(report, lessonsResp) {
   var body = asObject(report);
   var lifecycle = asObject(body.pack_lifecycle);
   var packs = asObject(lifecycle.packs);
+  var lessonsBody = asObject(lessonsResp);
+  // 40 站全景的范围只读正式教学路线；manifest 里的内部 pack 仍可保留
+  // lifecycle 事实，但没有 teaching point 时不冒充一站。
+  var formalPackIds = {};
+  asList(lessonsBody.teaching_points).forEach(function (point) {
+    var id = String(asObject(point).pack_id || "").trim().toUpperCase();
+    if (id) formalPackIds[id] = true;
+  });
+  var hasFormalPackUniverse = Object.keys(formalPackIds).length > 0;
   var titleIdx = {};
-  asList(asObject(lessonsResp).lessons).forEach(function (lesson) {
+  asList(lessonsBody.lessons).forEach(function (lesson) {
     var row = asObject(lesson);
     var id = String(row.pack_id || "").trim().toUpperCase();
     if (id) titleIdx[id] = { title: String(row.title || ""), green: true };
@@ -1207,7 +1216,9 @@ function buildPackMasteryMap(report, lessonsResp) {
     .map(function (id) {
       return String(id || "").trim().toUpperCase();
     })
-    .filter(Boolean)
+    .filter(function (id) {
+      return Boolean(id) && (!hasFormalPackUniverse || formalPackIds[id]);
+    })
     .sort()
     .map(function (id) {
       var pack = asObject(packs[id]);
