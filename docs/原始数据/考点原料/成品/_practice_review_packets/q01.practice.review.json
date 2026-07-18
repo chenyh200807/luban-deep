@@ -1,1231 +1,1222 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "Q01",
-  "source_pack_sha256": "be6eae789509f1b0c19c808b1a6b822e8d6181553fcda4fcfd60f7c183f56354",
-  "source_bundle_sha256": "856a632c7ba7dbcaca74c7c00ba66b48cfd304fd90ec8daf24dde23142d064f4",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 16,
-  "eligible_count": 0,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "Q01-html-practice-html-q1-9752d199a392",
-      "surface_id": "practice.html",
-      "stem": "某工程有普通硅酸盐水泥现浇柱、有抗渗要求的地下室墙、后浇带三部分。关于最短养护时间，选出完整、能得分的作答。",
-      "options": [
-        {
-          "text": "普通硅酸盐水泥现浇构件养护不少于 7d；有抗渗要求的不少于 14d；后浇带养护不少于 14d。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "按类别分档：普硅 7d、抗渗/后浇带 14d，一档不落。",
-          "option_id": "Q01-html-practice-html-q1-9752d199a392:option-1"
-        },
-        {
-          "text": "三部分统一养护 7d 即可，养护时间不必分类别。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "记了个 7d 就想一刀切省事。",
-          "loss_reason": "抗渗与后浇带必须不少于 14d，统一 7d 违反规范。",
-          "fix": "抗渗、后浇带养护≥14d，不能按 7d。",
-          "option_id": "Q01-html-practice-html-q1-9752d199a392:option-2"
-        },
-        {
-          "text": "普硅现浇 14d、抗渗 7d、后浇带 7d。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "记得有 7、14 两个数，随手一配。",
-          "loss_reason": "7d/14d 张冠李戴，方向配反。",
-          "fix": "普硅 7d、抗渗与后浇带 14d，别对调。",
-          "option_id": "Q01-html-practice-html-q1-9752d199a392:option-3"
-        },
-        {
-          "text": "只要洒水就行，养护天数不影响得分。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得养护是走过场。",
-          "loss_reason": "漏了养护时长这一采分点。",
-          "fix": "写明普硅≥7d、抗渗/后浇带≥14d。",
-          "option_id": "Q01-html-practice-html-q1-9752d199a392:option-4"
-        }
-      ],
-      "model_answer": "普通硅酸盐水泥现浇≥7d；有抗渗要求的≥14d；后浇带养护≥14d。",
-      "rule_group": "养护时长·条件维",
-      "content_sha256": "663c52ae0d2b69d2cbebb8992c764242d913af805e1cf1a09d25d2c6497a5efb",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q1",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "q01-fact-curing-days-matrix",
-        "skeleton_id": "q01-skel-养护天数条件矩阵",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_104_0197:0",
-        "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "663c52ae0d2b69d2cbebb8992c764242d913af805e1cf1a09d25d2c6497a5efb",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "普硅7d/抗渗14d/后浇带14d 全矩阵, 教材 kc:...104_0197:0 直引; 真题 exam:2022:第15题(D 抗渗≥14d)佐证。三联 anchor。工单: 唯一完整枚举最长项。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q2-4a84fcba6b1e",
-      "surface_id": "practice.html",
-      "stem": "大体积混凝土底板测温控制，选出指标完整、能得分的作答。",
-      "options": [
-        {
-          "text": "里表温差不大于 25℃；降温速率不大于 2.0℃/d；温升不大于 50℃；入模温度控制在 5~30℃。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "里表 25、降温 2℃/d、温升 50、入模 5~30，四个数写全。",
-          "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-1"
-        },
-        {
-          "text": "里表温差不大于 20℃、降温速率不大于 3℃/d。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "把冬期的 20℃、3℃/d 搬到了大体积。",
-          "loss_reason": "大体积是里表≤25℃、降温≤2℃/d，数值用串。",
-          "fix": "大体积里表≤25℃、降温≤2.0℃/d。",
-          "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-2"
-        },
-        {
-          "text": "只要连续测温、发现异常处理即可，不必给具体指标。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "知道要测温，懒得报数。",
-          "loss_reason": "缺 25/2/50 等关键数值，口号化不得分。",
-          "fix": "补里表≤25℃、降温≤2℃/d、温升≤50℃。",
-          "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-3"
-        },
-        {
-          "text": "里表温差不大于 25℃即可，其余不用控制。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "记住了最有名的 25℃。",
-          "loss_reason": "漏降温速率、温升、入模温度多个采分点。",
-          "fix": "补降温≤2℃/d、温升≤50℃、入模 5~30℃。",
-          "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-4"
-        }
-      ],
-      "model_answer": "里表温差≤25℃；降温速率≤2.0℃/d；温升≤50℃；入模温度 5~30℃。",
-      "rule_group": "大体积温控·条件维",
-      "content_sha256": "fda205ec0d3d0e97b2edac33cc3b90bd4ed6d4cce2f627c0091d3d440e648140",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q2",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "q01-fact-mass-concrete-temps",
-        "skeleton_id": "q01-skel-大体积四温控指标",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_096_0181:0",
-        "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "fda205ec0d3d0e97b2edac33cc3b90bd4ed6d4cce2f627c0091d3d440e648140",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "里表温差≤25℃/降温≤2.0℃/d/温升≤50℃/入模5~30℃, 教材 kc:...096_0181:0 逐项直引。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q3-eac52d2ed42f",
-      "surface_id": "practice.html",
-      "stem": "冬期大体积混凝土温控，选出指标正确、能得分的作答。",
-      "options": [
-        {
-          "text": "中心与表面温差不大于 25℃；表面与大气温差不大于 20℃；温降梯度不大于 3℃/d；养护不少于 14d。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "25/20/3/14 四数配对写全，方向别反。",
-          "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-1"
-        },
-        {
-          "text": "表面与大气温差不大于 25℃、中心与表面不大于 20℃。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "两个温差都记得，就是配反了。",
-          "loss_reason": "块内(中心-表面)是 25、对外界(表面-大气)是 20，方向写反。",
-          "fix": "中心-表面≤25℃、表面-大气≤20℃。",
-          "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-2"
-        },
-        {
-          "text": "温降梯度不大于 2℃/d。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "把大体积的 2℃/d 用到冬期。",
-          "loss_reason": "冬期温降梯度是≤3℃/d，不是 2。",
-          "fix": "冬期温降梯度≤3℃/d。",
-          "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-3"
-        },
-        {
-          "text": "冬期只要保温覆盖即可，不必控温差。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "知道要保温就以为够了。",
-          "loss_reason": "漏中心-表面 25、表面-大气 20、温降 3 等采分点。",
-          "fix": "补三项温差/温降数值与养护≥14d。",
-          "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-4"
-        }
-      ],
-      "model_answer": "中心-表面温差≤25℃；表面-大气温差≤20℃；温降梯度≤3℃/d；养护≥14d。",
-      "rule_group": "冬期温控·条件维",
-      "content_sha256": "cf41af07274cc08490ad9130821ff971ef3e927730397326854bc0678e82641f",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q3",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "q01-fact-winter-curing-limits",
-        "skeleton_id": "q01-skel-冬期温控四数值",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2019:第1题",
-        "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "cf41af07274cc08490ad9130821ff971ef3e927730397326854bc0678e82641f",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "中心表面25℃/表面大气20℃/温降3℃/d/14d, 真题 exam:2019:第1题 参考答案逐字。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q4-c8005fb201fb",
-      "surface_id": "practice.html",
-      "stem": "高温环境下混凝土防裂，下列哪一组作答完整、能得分？",
-      "options": [
-        {
-          "text": "安排早间或晚间施工，喷雾降温保湿，连续浇筑避免冷缝；不宜采用吹风。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "早晚施工+喷雾+连续浇筑，且点明不吹风。",
-          "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-1"
-        },
-        {
-          "text": "用鼓风机吹风给混凝土降温，加快散热防裂。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得吹风能降温、跟散热挂钩。",
-          "loss_reason": "吹风加速表面失水，是错误做法。",
-          "fix": "改喷雾保湿，不吹风。",
-          "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-2"
-        },
-        {
-          "text": "安排在正午高温时段一次浇完。",
-          "is_correct": false,
-          "source_error_code": "E05",
-          "temptation": "想着一鼓作气浇完。",
-          "loss_reason": "应避开正午高温，安排早晚施工。",
-          "fix": "避开正午，早间/晚间施工。",
-          "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-3"
-        },
-        {
-          "text": "只要多浇水就行，其他措施不必。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为浇水万能。",
-          "loss_reason": "漏早晚施工、喷雾、连续浇筑等措施。",
-          "fix": "补早晚施工、喷雾、连续浇筑。",
-          "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-4"
-        }
-      ],
-      "model_answer": "安排早间/晚间施工、喷雾降温保湿、连续浇筑；不采用吹风。",
-      "rule_group": "高温措施·程序维",
-      "content_sha256": "82e5d822188481a1c49c2c965d90bf9b104606a00b8ec897f23432dd15e8656c",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q4",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "q01-fact-hot-weather-measures",
-        "skeleton_id": "q01-skel-高温施工措施选择",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2016:第30题",
-        "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "82e5d822188481a1c49c2c965d90bf9b104606a00b8ec897f23432dd15e8656c",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "早间/晚间/喷雾/连续浇筑(排除吹风), 真题 exam:2016:第30题 ABCD 直判。冷缝机制说明为教学扩写(工单)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q5-36e34c0fa4d2",
-      "surface_id": "practice.html",
-      "stem": "关于「25℃」「20℃」两个温差指标的适用，选出对应正确、能得分的作答。",
-      "options": [
-        {
-          "text": "大体积里表温差、冬期中心与表面温差都控制在 25℃以内；冬期表面与大气温差控制在 20℃以内。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "块内 25、对外界 20，配对清楚。",
-          "option_id": "Q01-html-practice-html-q5-36e34c0fa4d2:option-1"
-        },
-        {
-          "text": "里表温差≤20℃，表面-大气温差≤25℃。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "两个数都记得，配反了。",
-          "loss_reason": "块内应 25、对外界应 20，方向反了。",
-          "fix": "里表/中心-表面≤25℃、表面-大气≤20℃。",
-          "option_id": "Q01-html-practice-html-q5-36e34c0fa4d2:option-2"
-        },
-        {
-          "text": "两个温差都按 25℃控制即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记住 25。",
-          "loss_reason": "漏了表面-大气≤20℃这一档。",
-          "fix": "补表面-大气≤20℃。",
-          "option_id": "Q01-html-practice-html-q5-36e34c0fa4d2:option-3"
-        },
-        {
-          "text": "温差指标随现场经验定，无固定数值。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "图省事不背数。",
-          "loss_reason": "缺具体数值，关键词缺失不得分。",
-          "fix": "写明 25℃与 20℃的适用对象。",
-          "option_id": "Q01-html-practice-html-q5-36e34c0fa4d2:option-4"
-        }
-      ],
-      "model_answer": "里表温差、冬期中心-表面温差均≤25℃；冬期表面-大气温差≤20℃。",
-      "rule_group": "温差辨析·条件维",
-      "content_sha256": "d664c21b06ffd2f1fb7d7f96b7ebf79d3f66987a1c2b4736c9d60e9e1ae87e8c",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q5",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "d664c21b06ffd2f1fb7d7f96b7ebf79d3f66987a1c2b4736c9d60e9e1ae87e8c",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q6-8f708662653f",
-      "surface_id": "practice.html",
-      "stem": "技术交底写道：有抗渗要求的地下室外墙混凝土养护 7 天即可。指出不妥并改正，选出能得分的作答。",
-      "options": [
-        {
-          "text": "不妥：有抗渗要求的混凝土养护不得少于 14d；应改为养护时间不少于 14d。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "指出 7d 不妥并给出正确数值 14d。",
-          "option_id": "Q01-html-practice-html-q6-8f708662653f:option-1"
-        },
-        {
-          "text": "交底正确，抗渗混凝土养护 7d 符合要求。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "记成普硅 7d 那档。",
-          "loss_reason": "抗渗要求≥14d，7d 是经典 0 分错项。",
-          "fix": "抗渗养护≥14d，不是 7d。",
-          "option_id": "Q01-html-practice-html-q6-8f708662653f:option-2"
-        },
-        {
-          "text": "不妥，但延长养护即可，不必写具体天数。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "看出不妥，懒得给数。",
-          "loss_reason": "判断纠错的正确做法必须带正确数值 14d。",
-          "fix": "改正应写养护不少于 14d。",
-          "option_id": "Q01-html-practice-html-q6-8f708662653f:option-3"
-        },
-        {
-          "text": "不妥，应改为养护 28d。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "把后浇带封闭 28d 记岔了。",
-          "loss_reason": "抗渗养护是 14d，28d 是后浇带封闭时机。",
-          "fix": "抗渗养护≥14d。",
-          "option_id": "Q01-html-practice-html-q6-8f708662653f:option-4"
-        }
-      ],
-      "model_answer": "不妥：有抗渗要求应养护≥14d；改正：养护时间不应少于 14d。",
-      "rule_group": "判断纠错·条件维",
-      "content_sha256": "54857aae9104baabf79709257316650dfd1252d7e1ace5244b00982ccdb10656",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q6",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "q01-fact-curing-days-matrix",
-        "skeleton_id": "q01-skel-7d不妥判断改正",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "m35:Q3-1A433000:P8",
-        "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "54857aae9104baabf79709257316650dfd1252d7e1ace5244b00982ccdb10656",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "抗渗混凝土养护7d不妥应≥14d, m35 判分卡逐字+exam:2022:第15题 佐证。三联 immediate_confirm(同养护天数 fact)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q7-1316081b361b",
-      "surface_id": "practice.html",
-      "stem": "关于混凝土裂缝控制，选出目标判断完整、能得分的作答。",
-      "options": [
-        {
-          "text": "先分两类目标：不允许出现裂缝时控制拉应力不超过抗拉强度；允许出现裂缝时按构件类别、环境类别控制裂缝宽度不超限值。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "两类目标+对应措施，别只写措施。",
-          "option_id": "Q01-html-practice-html-q7-1316081b361b:option-1"
-        },
-        {
-          "text": "不管哪种构件，控制裂缝宽度不超限值即可。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得裂缝就是控宽度。",
-          "loss_reason": "混淆了不允许裂缝(控拉应力)与允许裂缝(控宽度)。",
-          "fix": "不允许裂缝控拉应力≤ftk，允许裂缝才控宽度。",
-          "option_id": "Q01-html-practice-html-q7-1316081b361b:option-2"
-        },
-        {
-          "text": "直接采取养护、加钢筋等措施，不必先判目标。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "急着上措施。",
-          "loss_reason": "漏了先判控制目标属哪类。",
-          "fix": "先判目标属哪类，再上措施。",
-          "option_id": "Q01-html-practice-html-q7-1316081b361b:option-3"
-        },
-        {
-          "text": "允许裂缝时只要限制宽度即可，与构件、环境无关。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "记住限宽度，忘了前提。",
-          "loss_reason": "漏构件类别+环境类别与设计工作年限内耐久。",
-          "fix": "按构件类别+环境类别控宽度，保工作年限内耐久。",
-          "option_id": "Q01-html-practice-html-q7-1316081b361b:option-4"
-        }
-      ],
-      "model_answer": "先分不允许裂缝(控拉应力≤ftk)与允许裂缝(按构件+环境类别控宽度≤限值)；分三级。",
-      "rule_group": "裂缝控制目标·后果维",
-      "content_sha256": "3ee4ef98c1248df6dc3d26aace709fb1f10f4a727c6ec4c18d39d096d3f836d1",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q7",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "3ee4ef98c1248df6dc3d26aace709fb1f10f4a727c6ec4c18d39d096d3f836d1",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q8-1217680a41d5",
-      "surface_id": "practice.html",
-      "stem": "防水混凝土浇筑，选出施工要求完整、能得分的作答。",
-      "options": [
-        {
-          "text": "防水混凝土应连续浇筑、少留施工缝；分层浇筑时分层厚度不大于 500mm；采用机械振捣，避免漏振、欠振、超振。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "连续+分层≤500mm+机械振捣三要点齐。",
-          "option_id": "Q01-html-practice-html-q8-1217680a41d5:option-1"
-        },
-        {
-          "text": "分层厚度控制在 800mm 以内即可。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "记了个大概数。",
-          "loss_reason": "分层厚度应≤500mm，800 超标。",
-          "fix": "分层厚度≤500mm。",
-          "option_id": "Q01-html-practice-html-q8-1217680a41d5:option-2"
-        },
-        {
-          "text": "人工插捣密实即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得插捣也算振捣。",
-          "loss_reason": "防水混凝土应机械振捣，漏了这一要点。",
-          "fix": "采用机械振捣，避免漏/欠/超振。",
-          "option_id": "Q01-html-practice-html-q8-1217680a41d5:option-3"
-        },
-        {
-          "text": "多留施工缝、分段浇筑更利于施工。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得分段方便。",
-          "loss_reason": "防水应连续浇筑、少留缝，多留缝增加渗漏隐患。",
-          "fix": "连续浇筑、少留施工缝。",
-          "option_id": "Q01-html-practice-html-q8-1217680a41d5:option-4"
-        }
-      ],
-      "model_answer": "连续浇筑少留施工缝；分层厚度≤500mm；机械振捣避免漏/欠/超振。",
-      "rule_group": "防水施工·程序维",
-      "content_sha256": "577ae73f90fcc2383a4cea1f31f70df98e513bfcdecb3f6bc5f29b58be5ffd40",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q8",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "577ae73f90fcc2383a4cea1f31f70df98e513bfcdecb3f6bc5f29b58be5ffd40",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q9-6599e3f13c77",
-      "surface_id": "practice.html",
-      "stem": "防水混凝土确需留施工缝时，选出位置正确、能得分的作答。",
-      "options": [
-        {
-          "text": "施工缝不应留在剪力最大处，也不应留在底板与侧墙交接处，宜留在便于止水的部位。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "避剪力最大处+避底板侧墙交接，两处都点到。",
-          "option_id": "Q01-html-practice-html-q9-6599e3f13c77:option-1"
-        },
-        {
-          "text": "施工缝宜留在剪力最大处，便于受力。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "想当然觉得受力大处该断开。",
-          "loss_reason": "剪力最大处应力集中、易渗，正是禁留处。",
-          "fix": "施工缝避开剪力最大处。",
-          "option_id": "Q01-html-practice-html-q9-6599e3f13c77:option-2"
-        },
-        {
-          "text": "施工缝留在底板与侧墙交接处最方便。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "交接处看着好施工。",
-          "loss_reason": "底板侧墙交接是渗漏薄弱点，不应留缝。",
-          "fix": "施工缝避开底板与侧墙交接处。",
-          "option_id": "Q01-html-practice-html-q9-6599e3f13c77:option-3"
-        },
-        {
-          "text": "施工缝位置随意，做好止水带即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为止水带能补救。",
-          "loss_reason": "漏了施工缝位置采分点。",
-          "fix": "明确避剪力最大处与底板侧墙交接处。",
-          "option_id": "Q01-html-practice-html-q9-6599e3f13c77:option-4"
-        }
-      ],
-      "model_answer": "施工缝不留在剪力最大处，也不留在底板与侧墙交接处，宜留在便于止水的部位。",
-      "rule_group": "施工缝位置·程序维",
-      "content_sha256": "ef3f93c81b0f9c83b95a2c671302e2647dc31f819abcf52741ee8f3ea4409e6b",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q9",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "ef3f93c81b0f9c83b95a2c671302e2647dc31f819abcf52741ee8f3ea4409e6b",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q10-024627f3b2e3",
-      "surface_id": "practice.html",
-      "stem": "防水混凝土养护，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "防水混凝土养护时间不少于 14d；冬期施工入模温度不低于 5℃。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "养护≥14d + 冬期入模≥5℃。",
-          "option_id": "Q01-html-practice-html-q10-024627f3b2e3:option-1"
-        },
-        {
-          "text": "防水混凝土养护 7d 即可。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "跟普硅 7d 混。",
-          "loss_reason": "防水混凝土养护≥14d，7d 不达标。",
-          "fix": "养护不少于 14d。",
-          "option_id": "Q01-html-practice-html-q10-024627f3b2e3:option-2"
-        },
-        {
-          "text": "冬期入模温度不低于 0℃即可。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得不结冰就行。",
-          "loss_reason": "入模温度应不低于 5℃。",
-          "fix": "冬期入模温度≥5℃。",
-          "option_id": "Q01-html-practice-html-q10-024627f3b2e3:option-3"
-        },
-        {
-          "text": "只要不下雨随便养几天。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "口号化敷衍。",
-          "loss_reason": "无具体天数，不得分。",
-          "fix": "写明养护≥14d。",
-          "option_id": "Q01-html-practice-html-q10-024627f3b2e3:option-4"
-        }
-      ],
-      "model_answer": "防水混凝土养护时间不少于 14d；冬期入模温度不低于 5℃。",
-      "rule_group": "防水养护·条件维",
-      "content_sha256": "538381c3839bab7fce2409929fc3e3902dc9e4c4f2891d62050878c5cbbfdd97",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q10",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "q01-fact-curing-days-matrix",
-        "skeleton_id": "q01-skel-冬期入模养护数值",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A438000_154_0302:0",
-        "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "538381c3839bab7fce2409929fc3e3902dc9e4c4f2891d62050878c5cbbfdd97",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "防水混凝土冬期入模≥5℃且养护≥14d, 教材 kc:...154_0302:0 直引; exam:2015:第26题(D 7d错) 佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q11-89e88dc29d18",
-      "surface_id": "practice.html",
-      "stem": "关于底板后浇带，选出材料与时间都正确、能得分的作答。",
-      "options": [
-        {
-          "text": "后浇带采用微膨胀(补偿收缩)混凝土、强度提高一级；养护不少于 14d；底板后浇带封闭时间不少于 28d。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "微膨胀+提高一级+养护14d+封闭28d，全齐。",
-          "option_id": "Q01-html-practice-html-q11-89e88dc29d18:option-1"
-        },
-        {
-          "text": "后浇带混凝土浇筑后 10d 即可封闭。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得十来天差不多。",
-          "loss_reason": "底板后浇带封闭应≥28d，10d 是经典错项。",
-          "fix": "底板后浇带封闭≥28d。",
-          "option_id": "Q01-html-practice-html-q11-89e88dc29d18:option-2"
-        },
-        {
-          "text": "后浇带养护 14d 后即可封闭。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把养护 14d 当成封闭时机。",
-          "loss_reason": "养护 14d 与封闭 28d 是两回事，混了。",
-          "fix": "养护≥14d，封闭≥28d。",
-          "option_id": "Q01-html-practice-html-q11-89e88dc29d18:option-3"
-        },
-        {
-          "text": "用普通混凝土浇筑后浇带即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为随便用啥混凝土。",
-          "loss_reason": "漏了微膨胀、强度提高一级要点。",
-          "fix": "用微膨胀混凝土、强度提高一级。",
-          "option_id": "Q01-html-practice-html-q11-89e88dc29d18:option-4"
-        }
-      ],
-      "model_answer": "用微膨胀混凝土、强度提高一级；养护≥14d；底板后浇带封闭≥28d。",
-      "rule_group": "后浇带·条件维",
-      "content_sha256": "65bb5a530f7a29fa99198d4d788668018104c6c1597b8ea75da18c574733c7a5",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q11",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "65bb5a530f7a29fa99198d4d788668018104c6c1597b8ea75da18c574733c7a5",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q12-1650b8c1cc5f",
-      "surface_id": "practice.html",
-      "stem": "跨度 6m 的 C30 现浇板拆底模，选出依据与算式都能得分的作答。",
-      "options": [
-        {
-          "text": "拆底模需同条件养护试块强度达到设计值的 75%；C30 代入 30×75%=22.5N/mm²，达到 22.5 方可拆底模。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "同条件试块+75%+算式22.5，链条完整。",
-          "option_id": "Q01-html-practice-html-q12-1650b8c1cc5f:option-1"
-        },
-        {
-          "text": "按标准养护试块强度达到 75% 即可拆底模。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把标养当成同条件。",
-          "loss_reason": "拆模按同条件养护试块，不是标养。",
-          "fix": "用同条件养护试块，非标养。",
-          "option_id": "Q01-html-practice-html-q12-1650b8c1cc5f:option-2"
-        },
-        {
-          "text": "混凝土强度达到设计强度 100% 才能拆底模。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得越保险越好。",
-          "loss_reason": "跨度>2m且≤8m 按 75%，写 100% 门槛错。",
-          "fix": "该跨度门槛为 75%(=22.5N/mm²)。",
-          "option_id": "Q01-html-practice-html-q12-1650b8c1cc5f:option-3"
-        },
-        {
-          "text": "只要浇筑满 7 天就能拆底模。",
-          "is_correct": false,
-          "source_error_code": "E05",
-          "temptation": "用天数代替强度。",
-          "loss_reason": "拆底模按强度门槛而非固定天数。",
-          "fix": "按同条件试块≥75%设计强度=22.5N/mm²。",
-          "option_id": "Q01-html-practice-html-q12-1650b8c1cc5f:option-4"
-        }
-      ],
-      "model_answer": "需同条件养护试块强度≥设计值75%；C30→30×75%=22.5N/mm²。",
-      "rule_group": "拆模强度·计算表达维",
-      "content_sha256": "9ebf9c886b868603787b9592de46639d88dee82f2b5e8ee792d3a1fc0ed07f68",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q12",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "9ebf9c886b868603787b9592de46639d88dee82f2b5e8ee792d3a1fc0ed07f68",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q13-3fe4f66949a3",
-      "surface_id": "practice.html",
-      "stem": "地基不均匀下沉引起的墙体裂缝，下列哪一项不属于其典型现象？",
-      "options": [
-        {
-          "text": "窗间墙竖向裂缝，不属于地基不均匀下沉的典型现象。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "窗间墙出的是水平裂缝，竖向不属于。",
-          "option_id": "Q01-html-practice-html-q13-3fe4f66949a3:option-1"
-        },
-        {
-          "text": "纵墙两端斜裂缝、多通过窗口两个对角。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "看着像不典型。",
-          "loss_reason": "端部斜裂缝过窗口对角正是典型现象。",
-          "fix": "这是典型现象，不是本题答案。",
-          "option_id": "Q01-html-practice-html-q13-3fe4f66949a3:option-2"
-        },
-        {
-          "text": "窗间墙上下对角处成对水平裂缝。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "记不清窗间墙裂缝方向。",
-          "loss_reason": "窗间墙受剪出水平裂缝，是典型现象。",
-          "fix": "这是典型现象，不是本题答案。",
-          "option_id": "Q01-html-practice-html-q13-3fe4f66949a3:option-3"
-        },
-        {
-          "text": "纵墙中央顶部和底部窗台处竖向裂缝。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "竖向就以为都不算。",
-          "loss_reason": "纵墙中央顶部/窗台竖向裂缝是典型现象。",
-          "fix": "这是典型现象，不是本题答案。",
-          "option_id": "Q01-html-practice-html-q13-3fe4f66949a3:option-4"
-        }
-      ],
-      "model_answer": "窗间墙竖向裂缝不属于地基不均匀下沉的典型现象。",
-      "rule_group": "裂缝成因识别·后果维",
-      "content_sha256": "591c9ceca380c73fc07263b5cfc8035e87917fef04ee908ea4e3b982d936b1c7",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q13",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "591c9ceca380c73fc07263b5cfc8035e87917fef04ee908ea4e3b982d936b1c7",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q14-1d4b5613b75d",
-      "surface_id": "practice.html",
-      "stem": "关于混凝土裂缝的产生机理，选出表述正确、能得分的作答。",
-      "options": [
-        {
-          "text": "混凝土收缩、温度作用等间接作用，在受约束构件内产生拉应力，当拉应力超过混凝土抗拉强度时即开裂。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "收缩+温度→约束→拉应力>抗拉强度→裂。",
-          "option_id": "Q01-html-practice-html-q14-1d4b5613b75d:option-1"
-        },
-        {
-          "text": "裂缝只由外部荷载直接作用产生，与收缩、温度无关。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "只想到荷载。",
-          "loss_reason": "忽略了收缩、温度等间接作用这一主因。",
-          "fix": "间接作用(收缩/温度)是早期裂缝主因。",
-          "option_id": "Q01-html-practice-html-q14-1d4b5613b75d:option-2"
-        },
-        {
-          "text": "只要混凝土强度够高就绝不开裂。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为强度万能。",
-          "loss_reason": "约束下拉应力超抗拉强度仍会裂，强度非唯一。",
-          "fix": "关键是拉应力与抗拉强度、约束的关系。",
-          "option_id": "Q01-html-practice-html-q14-1d4b5613b75d:option-3"
-        },
-        {
-          "text": "裂缝与约束无关，自由变形也会大量开裂。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "混淆自由变形与受约束。",
-          "loss_reason": "自由变形应力小，受约束才产生大拉应力致裂。",
-          "fix": "受约束是产生拉应力致裂的关键。",
-          "option_id": "Q01-html-practice-html-q14-1d4b5613b75d:option-4"
-        }
-      ],
-      "model_answer": "收缩与温度作用等间接作用在受约束构件内产生拉应力，超过抗拉强度即开裂。",
-      "rule_group": "裂缝机理·后果维",
-      "content_sha256": "b3cda861a69cdb07ace8d1ba8a8e3c0dcc6ad83b52d433977632c01afbbf9cf4",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q14",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "b3cda861a69cdb07ace8d1ba8a8e3c0dcc6ad83b52d433977632c01afbbf9cf4",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q15-bdd53df442bc",
-      "surface_id": "practice.html",
-      "stem": "某学生对一份地下室防水底板交底作答：①防水混凝土养护 7 天；②施工缝留在剪力最大处；③后浇带 10 天后封闭。选出最准确的诊断与补写。",
-      "options": [
-        {
-          "text": "三处都不妥：①防水养护应不少于 14d；②施工缝不应留在剪力最大处，也不应留底板与侧墙交接处；③底板后浇带封闭不少于 28d。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三处逐一纠正并给正确数值——这就是会写答案。",
-          "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-1"
-        },
-        {
-          "text": "只有①养护天数偏短，②③都正确。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只抓到最显眼的养护错。",
-          "loss_reason": "漏诊施工缝位置与后浇带封闭两处失分。",
-          "fix": "施工缝避位、封闭≥28d 两处也要纠。",
-          "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-2"
-        },
-        {
-          "text": "三处都对，符合防水要求。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "数字看着眼熟就以为对。",
-          "loss_reason": "7d/剪力最大处/10d 封闭全是经典错项。",
-          "fix": "三处全改：14d、避剪力最大处、封闭 28d。",
-          "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-3"
-        },
-        {
-          "text": "把养护改成 28d、施工缝改留交接处即可。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "知道要改，却改错了方向。",
-          "loss_reason": "养护是 14d(28 是封闭)，交接处恰恰是禁留处。",
-          "fix": "养护 14d、施工缝避交接处、封闭 28d。",
-          "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-4"
-        }
-      ],
-      "model_answer": "三处均不妥：防水养护应≥14d；施工缝不应留剪力最大处(避底板侧墙交接)；底板后浇带封闭≥28d。",
-      "rule_group": "采分诊断·末题",
-      "content_sha256": "145641407b43b7bcf63fcb7fcbede52022d7dd344b6b12edc1fc08bf51cf4ddb",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q15",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "q01-fact-waterproof-composite-correction",
-        "skeleton_id": "q01-skel-防水混凝土综合纠错",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2015:第26题",
-        "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "145641407b43b7bcf63fcb7fcbede52022d7dd344b6b12edc1fc08bf51cf4ddb",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:09:56+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "复合三改正各有源: 施工缝禁位(受剪力较大处)+养护≥14d=本锚 exam:2015:第26题 直判(C/D 错项); 后浇带≥28d 封闭=exam:2018:案例(三)问题3 逐字; 养护14d 另有 m35:Q3。Codex FATAL 系复合题血统误判(失效模式#4), 复合多源工单。工单: 正确项最长。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "Q01-html-practice-html-q16-2a6eb9424292",
-      "surface_id": "practice.html",
-      "stem": "关于混凝土水胶比，选出对应正确、能得分的作答。",
-      "options": [
-        {
-          "text": "大体积混凝土水胶比不宜大于 0.45；防水混凝土水胶比不大于 0.50，有侵蚀性介质时不大于 0.45。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "两种混凝土两个阈值，分别写清。",
-          "option_id": "Q01-html-practice-html-q16-2a6eb9424292:option-1"
-        },
-        {
-          "text": "防水混凝土水胶比不大于 0.45，与大体积一致。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "两个都记得 0.45，混一块儿。",
-          "loss_reason": "防水混凝土是≤0.50(侵蚀才0.45)，与大体积0.45混了。",
-          "fix": "防水≤0.50，大体积≤0.45。",
-          "option_id": "Q01-html-practice-html-q16-2a6eb9424292:option-2"
-        },
-        {
-          "text": "混凝土水胶比统一不大于 0.50 即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "图省事一刀切。",
-          "loss_reason": "大体积应≤0.45，统一 0.50 漏了。",
-          "fix": "大体积≤0.45，别按 0.50。",
-          "option_id": "Q01-html-practice-html-q16-2a6eb9424292:option-3"
-        },
-        {
-          "text": "水胶比越大越利于泵送，宜取 0.6 以上。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "只顾和易性。",
-          "loss_reason": "水胶比过大增大收缩、降低抗渗，违反限值。",
-          "fix": "防水≤0.50、大体积≤0.45。",
-          "option_id": "Q01-html-practice-html-q16-2a6eb9424292:option-4"
-        }
-      ],
-      "model_answer": "大体积混凝土水胶比不宜大于 0.45；防水混凝土水胶比不大于 0.50(有侵蚀性介质≤0.45)。",
-      "rule_group": "水胶比辨析·条件维",
-      "content_sha256": "9ad69074b7600f45be4928cbf1d5cf7c73ee924eadd31d33de4699232424ef67",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q16",
-      "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "9ad69074b7600f45be4928cbf1d5cf7c73ee924eadd31d33de4699232424ef67",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "Q01",
+ "source_pack_sha256": "be6eae789509f1b0c19c808b1a6b822e8d6181553fcda4fcfd60f7c183f56354",
+ "source_bundle_sha256": "856a632c7ba7dbcaca74c7c00ba66b48cfd304fd90ec8daf24dde23142d064f4",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 16,
+ "eligible_count": 7,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "codex-cross-model 2026-07-18 (q01.codex.out, fatal_count=3)。Codex 自陈『16题的答案事实本身均未发现考纲级错误』, 3 个 FATAL(q14/q15/q16)全部系『复合答案无单一候选锚』=失效模式#4 复合题血统误判: q15 三改正事实各有源(施工缝禁位+养护14d=exam:2015:第26题; 后浇带28d=exam:2018:案例(三)问题3; 养护14d=m35:Q3), q16 水胶比 0.50/0.45 各有 kc/ca 锚, q14 因果链为教材『温度收缩间接作用』的方向正确教学展开。=复合多源工单。q15(surface)按多源签; 非展示 q14/q16 不在签发七题内(保守省略)。5 surface 锚事实全绿。三联承 Codex 方案: 防水/抗渗混凝土养护≥14d fact q1/q6/q10。工单: 全包正确项最长+完整枚举对绝对化干扰项模板(编译病)。",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "Q01-html-practice-html-q1-9752d199a392",
+   "surface_id": "practice.html",
+   "stem": "某工程有普通硅酸盐水泥现浇柱、有抗渗要求的地下室墙、后浇带三部分。关于最短养护时间，选出完整、能得分的作答。",
+   "options": [
+    {
+     "text": "普通硅酸盐水泥现浇构件养护不少于 7d；有抗渗要求的不少于 14d；后浇带养护不少于 14d。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "按类别分档：普硅 7d、抗渗/后浇带 14d，一档不落。",
+     "option_id": "Q01-html-practice-html-q1-9752d199a392:option-1"
+    },
+    {
+     "text": "三部分统一养护 7d 即可，养护时间不必分类别。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "记了个 7d 就想一刀切省事。",
+     "loss_reason": "抗渗与后浇带必须不少于 14d，统一 7d 违反规范。",
+     "fix": "抗渗、后浇带养护≥14d，不能按 7d。",
+     "option_id": "Q01-html-practice-html-q1-9752d199a392:option-2"
+    },
+    {
+     "text": "普硅现浇 14d、抗渗 7d、后浇带 7d。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "记得有 7、14 两个数，随手一配。",
+     "loss_reason": "7d/14d 张冠李戴，方向配反。",
+     "fix": "普硅 7d、抗渗与后浇带 14d，别对调。",
+     "option_id": "Q01-html-practice-html-q1-9752d199a392:option-3"
+    },
+    {
+     "text": "只要洒水就行，养护天数不影响得分。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得养护是走过场。",
+     "loss_reason": "漏了养护时长这一采分点。",
+     "fix": "写明普硅≥7d、抗渗/后浇带≥14d。",
+     "option_id": "Q01-html-practice-html-q1-9752d199a392:option-4"
+    }
+   ],
+   "model_answer": "普通硅酸盐水泥现浇≥7d；有抗渗要求的≥14d；后浇带养护≥14d。",
+   "rule_group": "养护时长·条件维",
+   "content_sha256": "663c52ae0d2b69d2cbebb8992c764242d913af805e1cf1a09d25d2c6497a5efb",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q1",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "q01-fact-curing-days-matrix",
+    "skeleton_id": "q01-skel-养护天数条件矩阵",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_104_0197:0",
+    "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "663c52ae0d2b69d2cbebb8992c764242d913af805e1cf1a09d25d2c6497a5efb",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "普硅7d/抗渗14d/后浇带14d 全矩阵, 教材 kc:...104_0197:0 直引; 真题 exam:2022:第15题(D 抗渗≥14d)佐证。三联 anchor。工单: 唯一完整枚举最长项。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q2-4a84fcba6b1e",
+   "surface_id": "practice.html",
+   "stem": "大体积混凝土底板测温控制，选出指标完整、能得分的作答。",
+   "options": [
+    {
+     "text": "里表温差不大于 25℃；降温速率不大于 2.0℃/d；温升不大于 50℃；入模温度控制在 5~30℃。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "里表 25、降温 2℃/d、温升 50、入模 5~30，四个数写全。",
+     "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-1"
+    },
+    {
+     "text": "里表温差不大于 20℃、降温速率不大于 3℃/d。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "把冬期的 20℃、3℃/d 搬到了大体积。",
+     "loss_reason": "大体积是里表≤25℃、降温≤2℃/d，数值用串。",
+     "fix": "大体积里表≤25℃、降温≤2.0℃/d。",
+     "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-2"
+    },
+    {
+     "text": "只要连续测温、发现异常处理即可，不必给具体指标。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "知道要测温，懒得报数。",
+     "loss_reason": "缺 25/2/50 等关键数值，口号化不得分。",
+     "fix": "补里表≤25℃、降温≤2℃/d、温升≤50℃。",
+     "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-3"
+    },
+    {
+     "text": "里表温差不大于 25℃即可，其余不用控制。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "记住了最有名的 25℃。",
+     "loss_reason": "漏降温速率、温升、入模温度多个采分点。",
+     "fix": "补降温≤2℃/d、温升≤50℃、入模 5~30℃。",
+     "option_id": "Q01-html-practice-html-q2-4a84fcba6b1e:option-4"
+    }
+   ],
+   "model_answer": "里表温差≤25℃；降温速率≤2.0℃/d；温升≤50℃；入模温度 5~30℃。",
+   "rule_group": "大体积温控·条件维",
+   "content_sha256": "fda205ec0d3d0e97b2edac33cc3b90bd4ed6d4cce2f627c0091d3d440e648140",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q2",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "q01-fact-mass-concrete-temps",
+    "skeleton_id": "q01-skel-大体积四温控指标",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_096_0181:0",
+    "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "fda205ec0d3d0e97b2edac33cc3b90bd4ed6d4cce2f627c0091d3d440e648140",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "里表温差≤25℃/降温≤2.0℃/d/温升≤50℃/入模5~30℃, 教材 kc:...096_0181:0 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q3-eac52d2ed42f",
+   "surface_id": "practice.html",
+   "stem": "冬期大体积混凝土温控，选出指标正确、能得分的作答。",
+   "options": [
+    {
+     "text": "中心与表面温差不大于 25℃；表面与大气温差不大于 20℃；温降梯度不大于 3℃/d；养护不少于 14d。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "25/20/3/14 四数配对写全，方向别反。",
+     "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-1"
+    },
+    {
+     "text": "表面与大气温差不大于 25℃、中心与表面不大于 20℃。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "两个温差都记得，就是配反了。",
+     "loss_reason": "块内(中心-表面)是 25、对外界(表面-大气)是 20，方向写反。",
+     "fix": "中心-表面≤25℃、表面-大气≤20℃。",
+     "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-2"
+    },
+    {
+     "text": "温降梯度不大于 2℃/d。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "把大体积的 2℃/d 用到冬期。",
+     "loss_reason": "冬期温降梯度是≤3℃/d，不是 2。",
+     "fix": "冬期温降梯度≤3℃/d。",
+     "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-3"
+    },
+    {
+     "text": "冬期只要保温覆盖即可，不必控温差。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "知道要保温就以为够了。",
+     "loss_reason": "漏中心-表面 25、表面-大气 20、温降 3 等采分点。",
+     "fix": "补三项温差/温降数值与养护≥14d。",
+     "option_id": "Q01-html-practice-html-q3-eac52d2ed42f:option-4"
+    }
+   ],
+   "model_answer": "中心-表面温差≤25℃；表面-大气温差≤20℃；温降梯度≤3℃/d；养护≥14d。",
+   "rule_group": "冬期温控·条件维",
+   "content_sha256": "cf41af07274cc08490ad9130821ff971ef3e927730397326854bc0678e82641f",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q3",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "q01-fact-winter-curing-limits",
+    "skeleton_id": "q01-skel-冬期温控四数值",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2019:第1题",
+    "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "cf41af07274cc08490ad9130821ff971ef3e927730397326854bc0678e82641f",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "中心表面25℃/表面大气20℃/温降3℃/d/14d, 真题 exam:2019:第1题 参考答案逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q4-c8005fb201fb",
+   "surface_id": "practice.html",
+   "stem": "高温环境下混凝土防裂，下列哪一组作答完整、能得分？",
+   "options": [
+    {
+     "text": "安排早间或晚间施工，喷雾降温保湿，连续浇筑避免冷缝；不宜采用吹风。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "早晚施工+喷雾+连续浇筑，且点明不吹风。",
+     "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-1"
+    },
+    {
+     "text": "用鼓风机吹风给混凝土降温，加快散热防裂。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "觉得吹风能降温、跟散热挂钩。",
+     "loss_reason": "吹风加速表面失水，是错误做法。",
+     "fix": "改喷雾保湿，不吹风。",
+     "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-2"
+    },
+    {
+     "text": "安排在正午高温时段一次浇完。",
+     "is_correct": false,
+     "source_error_code": "E05",
+     "temptation": "想着一鼓作气浇完。",
+     "loss_reason": "应避开正午高温，安排早晚施工。",
+     "fix": "避开正午，早间/晚间施工。",
+     "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-3"
+    },
+    {
+     "text": "只要多浇水就行，其他措施不必。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为浇水万能。",
+     "loss_reason": "漏早晚施工、喷雾、连续浇筑等措施。",
+     "fix": "补早晚施工、喷雾、连续浇筑。",
+     "option_id": "Q01-html-practice-html-q4-c8005fb201fb:option-4"
+    }
+   ],
+   "model_answer": "安排早间/晚间施工、喷雾降温保湿、连续浇筑；不采用吹风。",
+   "rule_group": "高温措施·程序维",
+   "content_sha256": "82e5d822188481a1c49c2c965d90bf9b104606a00b8ec897f23432dd15e8656c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q4",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "q01-fact-hot-weather-measures",
+    "skeleton_id": "q01-skel-高温施工措施选择",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2016:第30题",
+    "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "82e5d822188481a1c49c2c965d90bf9b104606a00b8ec897f23432dd15e8656c",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "早间/晚间/喷雾/连续浇筑(排除吹风), 真题 exam:2016:第30题 ABCD 直判。冷缝机制说明为教学扩写(工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q5-36e34c0fa4d2",
+   "surface_id": "practice.html",
+   "stem": "关于「25℃」「20℃」两个温差指标的适用，选出对应正确、能得分的作答。",
+   "options": [
+    {
+     "text": "大体积里表温差、冬期中心与表面温差都控制在 25℃以内；冬期表面与大气温差控制在 20℃以内。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "块内 25、对外界 20，配对清楚。",
+     "option_id": "Q01-html-practice-html-q5-36e34c0fa4d2:option-1"
+    },
+    {
+     "text": "里表温差≤20℃，表面-大气温差≤25℃。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "两个数都记得，配反了。",
+     "loss_reason": "块内应 25、对外界应 20，方向反了。",
+     "fix": "里表/中心-表面≤25℃、表面-大气≤20℃。",
+     "option_id": "Q01-html-practice-html-q5-36e34c0fa4d2:option-2"
+    },
+    {
+     "text": "两个温差都按 25℃控制即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只记住 25。",
+     "loss_reason": "漏了表面-大气≤20℃这一档。",
+     "fix": "补表面-大气≤20℃。",
+     "option_id": "Q01-html-practice-html-q5-36e34c0fa4d2:option-3"
+    },
+    {
+     "text": "温差指标随现场经验定，无固定数值。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "图省事不背数。",
+     "loss_reason": "缺具体数值，关键词缺失不得分。",
+     "fix": "写明 25℃与 20℃的适用对象。",
+     "option_id": "Q01-html-practice-html-q5-36e34c0fa4d2:option-4"
+    }
+   ],
+   "model_answer": "里表温差、冬期中心-表面温差均≤25℃；冬期表面-大气温差≤20℃。",
+   "rule_group": "温差辨析·条件维",
+   "content_sha256": "d664c21b06ffd2f1fb7d7f96b7ebf79d3f66987a1c2b4736c9d60e9e1ae87e8c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q5",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "d664c21b06ffd2f1fb7d7f96b7ebf79d3f66987a1c2b4736c9d60e9e1ae87e8c",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q6-8f708662653f",
+   "surface_id": "practice.html",
+   "stem": "技术交底写道：有抗渗要求的地下室外墙混凝土养护 7 天即可。指出不妥并改正，选出能得分的作答。",
+   "options": [
+    {
+     "text": "不妥：有抗渗要求的混凝土养护不得少于 14d；应改为养护时间不少于 14d。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "指出 7d 不妥并给出正确数值 14d。",
+     "option_id": "Q01-html-practice-html-q6-8f708662653f:option-1"
+    },
+    {
+     "text": "交底正确，抗渗混凝土养护 7d 符合要求。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "记成普硅 7d 那档。",
+     "loss_reason": "抗渗要求≥14d，7d 是经典 0 分错项。",
+     "fix": "抗渗养护≥14d，不是 7d。",
+     "option_id": "Q01-html-practice-html-q6-8f708662653f:option-2"
+    },
+    {
+     "text": "不妥，但延长养护即可，不必写具体天数。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "看出不妥，懒得给数。",
+     "loss_reason": "判断纠错的正确做法必须带正确数值 14d。",
+     "fix": "改正应写养护不少于 14d。",
+     "option_id": "Q01-html-practice-html-q6-8f708662653f:option-3"
+    },
+    {
+     "text": "不妥，应改为养护 28d。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "把后浇带封闭 28d 记岔了。",
+     "loss_reason": "抗渗养护是 14d，28d 是后浇带封闭时机。",
+     "fix": "抗渗养护≥14d。",
+     "option_id": "Q01-html-practice-html-q6-8f708662653f:option-4"
+    }
+   ],
+   "model_answer": "不妥：有抗渗要求应养护≥14d；改正：养护时间不应少于 14d。",
+   "rule_group": "判断纠错·条件维",
+   "content_sha256": "54857aae9104baabf79709257316650dfd1252d7e1ace5244b00982ccdb10656",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q6",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "q01-fact-curing-days-matrix",
+    "skeleton_id": "q01-skel-7d不妥判断改正",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "m35:Q3-1A433000:P8",
+    "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "54857aae9104baabf79709257316650dfd1252d7e1ace5244b00982ccdb10656",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "抗渗混凝土养护7d不妥应≥14d, m35 判分卡逐字+exam:2022:第15题 佐证。三联 immediate_confirm(同养护天数 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q7-1316081b361b",
+   "surface_id": "practice.html",
+   "stem": "关于混凝土裂缝控制，选出目标判断完整、能得分的作答。",
+   "options": [
+    {
+     "text": "先分两类目标：不允许出现裂缝时控制拉应力不超过抗拉强度；允许出现裂缝时按构件类别、环境类别控制裂缝宽度不超限值。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "两类目标+对应措施，别只写措施。",
+     "option_id": "Q01-html-practice-html-q7-1316081b361b:option-1"
+    },
+    {
+     "text": "不管哪种构件，控制裂缝宽度不超限值即可。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得裂缝就是控宽度。",
+     "loss_reason": "混淆了不允许裂缝(控拉应力)与允许裂缝(控宽度)。",
+     "fix": "不允许裂缝控拉应力≤ftk，允许裂缝才控宽度。",
+     "option_id": "Q01-html-practice-html-q7-1316081b361b:option-2"
+    },
+    {
+     "text": "直接采取养护、加钢筋等措施，不必先判目标。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "急着上措施。",
+     "loss_reason": "漏了先判控制目标属哪类。",
+     "fix": "先判目标属哪类，再上措施。",
+     "option_id": "Q01-html-practice-html-q7-1316081b361b:option-3"
+    },
+    {
+     "text": "允许裂缝时只要限制宽度即可，与构件、环境无关。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "记住限宽度，忘了前提。",
+     "loss_reason": "漏构件类别+环境类别与设计工作年限内耐久。",
+     "fix": "按构件类别+环境类别控宽度，保工作年限内耐久。",
+     "option_id": "Q01-html-practice-html-q7-1316081b361b:option-4"
+    }
+   ],
+   "model_answer": "先分不允许裂缝(控拉应力≤ftk)与允许裂缝(按构件+环境类别控宽度≤限值)；分三级。",
+   "rule_group": "裂缝控制目标·后果维",
+   "content_sha256": "3ee4ef98c1248df6dc3d26aace709fb1f10f4a727c6ec4c18d39d096d3f836d1",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q7",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "3ee4ef98c1248df6dc3d26aace709fb1f10f4a727c6ec4c18d39d096d3f836d1",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q8-1217680a41d5",
+   "surface_id": "practice.html",
+   "stem": "防水混凝土浇筑，选出施工要求完整、能得分的作答。",
+   "options": [
+    {
+     "text": "防水混凝土应连续浇筑、少留施工缝；分层浇筑时分层厚度不大于 500mm；采用机械振捣，避免漏振、欠振、超振。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "连续+分层≤500mm+机械振捣三要点齐。",
+     "option_id": "Q01-html-practice-html-q8-1217680a41d5:option-1"
+    },
+    {
+     "text": "分层厚度控制在 800mm 以内即可。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "记了个大概数。",
+     "loss_reason": "分层厚度应≤500mm，800 超标。",
+     "fix": "分层厚度≤500mm。",
+     "option_id": "Q01-html-practice-html-q8-1217680a41d5:option-2"
+    },
+    {
+     "text": "人工插捣密实即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得插捣也算振捣。",
+     "loss_reason": "防水混凝土应机械振捣，漏了这一要点。",
+     "fix": "采用机械振捣，避免漏/欠/超振。",
+     "option_id": "Q01-html-practice-html-q8-1217680a41d5:option-3"
+    },
+    {
+     "text": "多留施工缝、分段浇筑更利于施工。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得分段方便。",
+     "loss_reason": "防水应连续浇筑、少留缝，多留缝增加渗漏隐患。",
+     "fix": "连续浇筑、少留施工缝。",
+     "option_id": "Q01-html-practice-html-q8-1217680a41d5:option-4"
+    }
+   ],
+   "model_answer": "连续浇筑少留施工缝；分层厚度≤500mm；机械振捣避免漏/欠/超振。",
+   "rule_group": "防水施工·程序维",
+   "content_sha256": "577ae73f90fcc2383a4cea1f31f70df98e513bfcdecb3f6bc5f29b58be5ffd40",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q8",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "577ae73f90fcc2383a4cea1f31f70df98e513bfcdecb3f6bc5f29b58be5ffd40",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q9-6599e3f13c77",
+   "surface_id": "practice.html",
+   "stem": "防水混凝土确需留施工缝时，选出位置正确、能得分的作答。",
+   "options": [
+    {
+     "text": "施工缝不应留在剪力最大处，也不应留在底板与侧墙交接处，宜留在便于止水的部位。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "避剪力最大处+避底板侧墙交接，两处都点到。",
+     "option_id": "Q01-html-practice-html-q9-6599e3f13c77:option-1"
+    },
+    {
+     "text": "施工缝宜留在剪力最大处，便于受力。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "想当然觉得受力大处该断开。",
+     "loss_reason": "剪力最大处应力集中、易渗，正是禁留处。",
+     "fix": "施工缝避开剪力最大处。",
+     "option_id": "Q01-html-practice-html-q9-6599e3f13c77:option-2"
+    },
+    {
+     "text": "施工缝留在底板与侧墙交接处最方便。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "交接处看着好施工。",
+     "loss_reason": "底板侧墙交接是渗漏薄弱点，不应留缝。",
+     "fix": "施工缝避开底板与侧墙交接处。",
+     "option_id": "Q01-html-practice-html-q9-6599e3f13c77:option-3"
+    },
+    {
+     "text": "施工缝位置随意，做好止水带即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为止水带能补救。",
+     "loss_reason": "漏了施工缝位置采分点。",
+     "fix": "明确避剪力最大处与底板侧墙交接处。",
+     "option_id": "Q01-html-practice-html-q9-6599e3f13c77:option-4"
+    }
+   ],
+   "model_answer": "施工缝不留在剪力最大处，也不留在底板与侧墙交接处，宜留在便于止水的部位。",
+   "rule_group": "施工缝位置·程序维",
+   "content_sha256": "ef3f93c81b0f9c83b95a2c671302e2647dc31f819abcf52741ee8f3ea4409e6b",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q9",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "ef3f93c81b0f9c83b95a2c671302e2647dc31f819abcf52741ee8f3ea4409e6b",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q10-024627f3b2e3",
+   "surface_id": "practice.html",
+   "stem": "防水混凝土养护，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "防水混凝土养护时间不少于 14d；冬期施工入模温度不低于 5℃。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "养护≥14d + 冬期入模≥5℃。",
+     "option_id": "Q01-html-practice-html-q10-024627f3b2e3:option-1"
+    },
+    {
+     "text": "防水混凝土养护 7d 即可。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "跟普硅 7d 混。",
+     "loss_reason": "防水混凝土养护≥14d，7d 不达标。",
+     "fix": "养护不少于 14d。",
+     "option_id": "Q01-html-practice-html-q10-024627f3b2e3:option-2"
+    },
+    {
+     "text": "冬期入模温度不低于 0℃即可。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "觉得不结冰就行。",
+     "loss_reason": "入模温度应不低于 5℃。",
+     "fix": "冬期入模温度≥5℃。",
+     "option_id": "Q01-html-practice-html-q10-024627f3b2e3:option-3"
+    },
+    {
+     "text": "只要不下雨随便养几天。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "口号化敷衍。",
+     "loss_reason": "无具体天数，不得分。",
+     "fix": "写明养护≥14d。",
+     "option_id": "Q01-html-practice-html-q10-024627f3b2e3:option-4"
+    }
+   ],
+   "model_answer": "防水混凝土养护时间不少于 14d；冬期入模温度不低于 5℃。",
+   "rule_group": "防水养护·条件维",
+   "content_sha256": "538381c3839bab7fce2409929fc3e3902dc9e4c4f2891d62050878c5cbbfdd97",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q10",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "q01-fact-curing-days-matrix",
+    "skeleton_id": "q01-skel-冬期入模养护数值",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A438000_154_0302:0",
+    "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "538381c3839bab7fce2409929fc3e3902dc9e4c4f2891d62050878c5cbbfdd97",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "防水混凝土冬期入模≥5℃且养护≥14d, 教材 kc:...154_0302:0 直引; exam:2015:第26题(D 7d错) 佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q11-89e88dc29d18",
+   "surface_id": "practice.html",
+   "stem": "关于底板后浇带，选出材料与时间都正确、能得分的作答。",
+   "options": [
+    {
+     "text": "后浇带采用微膨胀(补偿收缩)混凝土、强度提高一级；养护不少于 14d；底板后浇带封闭时间不少于 28d。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "微膨胀+提高一级+养护14d+封闭28d，全齐。",
+     "option_id": "Q01-html-practice-html-q11-89e88dc29d18:option-1"
+    },
+    {
+     "text": "后浇带混凝土浇筑后 10d 即可封闭。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "觉得十来天差不多。",
+     "loss_reason": "底板后浇带封闭应≥28d，10d 是经典错项。",
+     "fix": "底板后浇带封闭≥28d。",
+     "option_id": "Q01-html-practice-html-q11-89e88dc29d18:option-2"
+    },
+    {
+     "text": "后浇带养护 14d 后即可封闭。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把养护 14d 当成封闭时机。",
+     "loss_reason": "养护 14d 与封闭 28d 是两回事，混了。",
+     "fix": "养护≥14d，封闭≥28d。",
+     "option_id": "Q01-html-practice-html-q11-89e88dc29d18:option-3"
+    },
+    {
+     "text": "用普通混凝土浇筑后浇带即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为随便用啥混凝土。",
+     "loss_reason": "漏了微膨胀、强度提高一级要点。",
+     "fix": "用微膨胀混凝土、强度提高一级。",
+     "option_id": "Q01-html-practice-html-q11-89e88dc29d18:option-4"
+    }
+   ],
+   "model_answer": "用微膨胀混凝土、强度提高一级；养护≥14d；底板后浇带封闭≥28d。",
+   "rule_group": "后浇带·条件维",
+   "content_sha256": "65bb5a530f7a29fa99198d4d788668018104c6c1597b8ea75da18c574733c7a5",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q11",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "65bb5a530f7a29fa99198d4d788668018104c6c1597b8ea75da18c574733c7a5",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q12-1650b8c1cc5f",
+   "surface_id": "practice.html",
+   "stem": "跨度 6m 的 C30 现浇板拆底模，选出依据与算式都能得分的作答。",
+   "options": [
+    {
+     "text": "拆底模需同条件养护试块强度达到设计值的 75%；C30 代入 30×75%=22.5N/mm²，达到 22.5 方可拆底模。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "同条件试块+75%+算式22.5，链条完整。",
+     "option_id": "Q01-html-practice-html-q12-1650b8c1cc5f:option-1"
+    },
+    {
+     "text": "按标准养护试块强度达到 75% 即可拆底模。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把标养当成同条件。",
+     "loss_reason": "拆模按同条件养护试块，不是标养。",
+     "fix": "用同条件养护试块，非标养。",
+     "option_id": "Q01-html-practice-html-q12-1650b8c1cc5f:option-2"
+    },
+    {
+     "text": "混凝土强度达到设计强度 100% 才能拆底模。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "觉得越保险越好。",
+     "loss_reason": "跨度>2m且≤8m 按 75%，写 100% 门槛错。",
+     "fix": "该跨度门槛为 75%(=22.5N/mm²)。",
+     "option_id": "Q01-html-practice-html-q12-1650b8c1cc5f:option-3"
+    },
+    {
+     "text": "只要浇筑满 7 天就能拆底模。",
+     "is_correct": false,
+     "source_error_code": "E05",
+     "temptation": "用天数代替强度。",
+     "loss_reason": "拆底模按强度门槛而非固定天数。",
+     "fix": "按同条件试块≥75%设计强度=22.5N/mm²。",
+     "option_id": "Q01-html-practice-html-q12-1650b8c1cc5f:option-4"
+    }
+   ],
+   "model_answer": "需同条件养护试块强度≥设计值75%；C30→30×75%=22.5N/mm²。",
+   "rule_group": "拆模强度·计算表达维",
+   "content_sha256": "9ebf9c886b868603787b9592de46639d88dee82f2b5e8ee792d3a1fc0ed07f68",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q12",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "9ebf9c886b868603787b9592de46639d88dee82f2b5e8ee792d3a1fc0ed07f68",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q13-3fe4f66949a3",
+   "surface_id": "practice.html",
+   "stem": "地基不均匀下沉引起的墙体裂缝，下列哪一项不属于其典型现象？",
+   "options": [
+    {
+     "text": "窗间墙竖向裂缝，不属于地基不均匀下沉的典型现象。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "窗间墙出的是水平裂缝，竖向不属于。",
+     "option_id": "Q01-html-practice-html-q13-3fe4f66949a3:option-1"
+    },
+    {
+     "text": "纵墙两端斜裂缝、多通过窗口两个对角。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "看着像不典型。",
+     "loss_reason": "端部斜裂缝过窗口对角正是典型现象。",
+     "fix": "这是典型现象，不是本题答案。",
+     "option_id": "Q01-html-practice-html-q13-3fe4f66949a3:option-2"
+    },
+    {
+     "text": "窗间墙上下对角处成对水平裂缝。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "记不清窗间墙裂缝方向。",
+     "loss_reason": "窗间墙受剪出水平裂缝，是典型现象。",
+     "fix": "这是典型现象，不是本题答案。",
+     "option_id": "Q01-html-practice-html-q13-3fe4f66949a3:option-3"
+    },
+    {
+     "text": "纵墙中央顶部和底部窗台处竖向裂缝。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "竖向就以为都不算。",
+     "loss_reason": "纵墙中央顶部/窗台竖向裂缝是典型现象。",
+     "fix": "这是典型现象，不是本题答案。",
+     "option_id": "Q01-html-practice-html-q13-3fe4f66949a3:option-4"
+    }
+   ],
+   "model_answer": "窗间墙竖向裂缝不属于地基不均匀下沉的典型现象。",
+   "rule_group": "裂缝成因识别·后果维",
+   "content_sha256": "591c9ceca380c73fc07263b5cfc8035e87917fef04ee908ea4e3b982d936b1c7",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q13",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "591c9ceca380c73fc07263b5cfc8035e87917fef04ee908ea4e3b982d936b1c7",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q14-1d4b5613b75d",
+   "surface_id": "practice.html",
+   "stem": "关于混凝土裂缝的产生机理，选出表述正确、能得分的作答。",
+   "options": [
+    {
+     "text": "混凝土收缩、温度作用等间接作用，在受约束构件内产生拉应力，当拉应力超过混凝土抗拉强度时即开裂。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "收缩+温度→约束→拉应力>抗拉强度→裂。",
+     "option_id": "Q01-html-practice-html-q14-1d4b5613b75d:option-1"
+    },
+    {
+     "text": "裂缝只由外部荷载直接作用产生，与收缩、温度无关。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "只想到荷载。",
+     "loss_reason": "忽略了收缩、温度等间接作用这一主因。",
+     "fix": "间接作用(收缩/温度)是早期裂缝主因。",
+     "option_id": "Q01-html-practice-html-q14-1d4b5613b75d:option-2"
+    },
+    {
+     "text": "只要混凝土强度够高就绝不开裂。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为强度万能。",
+     "loss_reason": "约束下拉应力超抗拉强度仍会裂，强度非唯一。",
+     "fix": "关键是拉应力与抗拉强度、约束的关系。",
+     "option_id": "Q01-html-practice-html-q14-1d4b5613b75d:option-3"
+    },
+    {
+     "text": "裂缝与约束无关，自由变形也会大量开裂。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "混淆自由变形与受约束。",
+     "loss_reason": "自由变形应力小，受约束才产生大拉应力致裂。",
+     "fix": "受约束是产生拉应力致裂的关键。",
+     "option_id": "Q01-html-practice-html-q14-1d4b5613b75d:option-4"
+    }
+   ],
+   "model_answer": "收缩与温度作用等间接作用在受约束构件内产生拉应力，超过抗拉强度即开裂。",
+   "rule_group": "裂缝机理·后果维",
+   "content_sha256": "b3cda861a69cdb07ace8d1ba8a8e3c0dcc6ad83b52d433977632c01afbbf9cf4",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q14",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "b3cda861a69cdb07ace8d1ba8a8e3c0dcc6ad83b52d433977632c01afbbf9cf4",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q15-bdd53df442bc",
+   "surface_id": "practice.html",
+   "stem": "某学生对一份地下室防水底板交底作答：①防水混凝土养护 7 天；②施工缝留在剪力最大处；③后浇带 10 天后封闭。选出最准确的诊断与补写。",
+   "options": [
+    {
+     "text": "三处都不妥：①防水养护应不少于 14d；②施工缝不应留在剪力最大处，也不应留底板与侧墙交接处；③底板后浇带封闭不少于 28d。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三处逐一纠正并给正确数值——这就是会写答案。",
+     "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-1"
+    },
+    {
+     "text": "只有①养护天数偏短，②③都正确。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只抓到最显眼的养护错。",
+     "loss_reason": "漏诊施工缝位置与后浇带封闭两处失分。",
+     "fix": "施工缝避位、封闭≥28d 两处也要纠。",
+     "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-2"
+    },
+    {
+     "text": "三处都对，符合防水要求。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "数字看着眼熟就以为对。",
+     "loss_reason": "7d/剪力最大处/10d 封闭全是经典错项。",
+     "fix": "三处全改：14d、避剪力最大处、封闭 28d。",
+     "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-3"
+    },
+    {
+     "text": "把养护改成 28d、施工缝改留交接处即可。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "知道要改，却改错了方向。",
+     "loss_reason": "养护是 14d(28 是封闭)，交接处恰恰是禁留处。",
+     "fix": "养护 14d、施工缝避交接处、封闭 28d。",
+     "option_id": "Q01-html-practice-html-q15-bdd53df442bc:option-4"
+    }
+   ],
+   "model_answer": "三处均不妥：防水养护应≥14d；施工缝不应留剪力最大处(避底板侧墙交接)；底板后浇带封闭≥28d。",
+   "rule_group": "采分诊断·末题",
+   "content_sha256": "145641407b43b7bcf63fcb7fcbede52022d7dd344b6b12edc1fc08bf51cf4ddb",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q15",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "q01-fact-waterproof-composite-correction",
+    "skeleton_id": "q01-skel-防水混凝土综合纠错",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2015:第26题",
+    "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "145641407b43b7bcf63fcb7fcbede52022d7dd344b6b12edc1fc08bf51cf4ddb",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:28:02+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "复合三改正各有源: 施工缝禁位(受剪力较大处)+养护≥14d=本锚 exam:2015:第26题 直判(C/D 错项); 后浇带≥28d 封闭=exam:2018:案例(三)问题3 逐字; 养护14d 另有 m35:Q3。Codex FATAL 系复合题血统误判(失效模式#4), 复合多源工单。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "Q01-html-practice-html-q16-2a6eb9424292",
+   "surface_id": "practice.html",
+   "stem": "关于混凝土水胶比，选出对应正确、能得分的作答。",
+   "options": [
+    {
+     "text": "大体积混凝土水胶比不宜大于 0.45；防水混凝土水胶比不大于 0.50，有侵蚀性介质时不大于 0.45。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "两种混凝土两个阈值，分别写清。",
+     "option_id": "Q01-html-practice-html-q16-2a6eb9424292:option-1"
+    },
+    {
+     "text": "防水混凝土水胶比不大于 0.45，与大体积一致。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "两个都记得 0.45，混一块儿。",
+     "loss_reason": "防水混凝土是≤0.50(侵蚀才0.45)，与大体积0.45混了。",
+     "fix": "防水≤0.50，大体积≤0.45。",
+     "option_id": "Q01-html-practice-html-q16-2a6eb9424292:option-2"
+    },
+    {
+     "text": "混凝土水胶比统一不大于 0.50 即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "图省事一刀切。",
+     "loss_reason": "大体积应≤0.45，统一 0.50 漏了。",
+     "fix": "大体积≤0.45，别按 0.50。",
+     "option_id": "Q01-html-practice-html-q16-2a6eb9424292:option-3"
+    },
+    {
+     "text": "水胶比越大越利于泵送，宜取 0.6 以上。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "只顾和易性。",
+     "loss_reason": "水胶比过大增大收缩、降低抗渗，违反限值。",
+     "fix": "防水≤0.50、大体积≤0.45。",
+     "option_id": "Q01-html-practice-html-q16-2a6eb9424292:option-4"
+    }
+   ],
+   "model_answer": "大体积混凝土水胶比不宜大于 0.45；防水混凝土水胶比不大于 0.50(有侵蚀性介质≤0.45)。",
+   "rule_group": "水胶比辨析·条件维",
+   "content_sha256": "9ad69074b7600f45be4928cbf1d5cf7c73ee924eadd31d33de4699232424ef67",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q16",
+   "authoring_sha256": "63bdb0c19dde4192c004364818954b6c8f493e3d54230cddd09e1ac3151309f3",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "9ad69074b7600f45be4928cbf1d5cf7c73ee924eadd31d33de4699232424ef67",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

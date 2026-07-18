@@ -34,7 +34,7 @@
         "C05-html-practice-html-q15-c6ed1b359fba"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYThiYjAwODliZTIwIiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0xYTM1MzA2NzFkZTEiLCJDMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLTUzMzM1ODU0ZTQ1NSIsIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtYWQ2Y2I4MTA3MmNmIiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYzZlZDFiMzU5ZmJhIl0sInBhY2tfaWQiOiJDMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjM1ZmYzNWVjNDhjOWY2ZmY3NTNmMmVlMzI3NTQwMDMwZmZiYjExYjE4Yzg3ODYxM2UzMGNhM2U0ZDc4MDUzNDciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMGIwOTM5MzExODg5ODNiYjlkYWY1ZTUyOTcyMGEyZTg4MWY2YzMzOTJhYjlhMzBlY2I4Mzg4OGFlNWIwYjYxYyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "f2863582399d74467350fa4c3c780101523735b8a8ca6754d58522be8354c32c"
+      "published_practice_sha256": "36fd3cf0d5a29b2e2c29303557475f2c553171b226b08ac44043afe4bff8bc3f"
     }
   ],
   "items": [
@@ -104,12 +104,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "钢筋连接方法=焊接/机械连接/绑扎连接三种, 机械连接以剥肋滚压直螺纹套筒最常用, 教材 kc:...100_0190:0 直引。工单: 正确项唯一最长。"
+        "note": "钢筋连接方法=焊接/机械连接/绑扎连接三种, 机械连接以剥肋滚压直螺纹套筒最常用, 教材 kc:...100_0190:0 直引。工单: 正确项唯一最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -189,12 +189,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -204,7 +204,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "受压Φ25宜绑扎、受拉Φ28/桁架拉杆/行车梁不宜绑扎, 真题 exam:2022:第14题 逐字一致(答案B)。工单: 尾句‘应机械连接’较真题‘不宜绑扎’偏强(焊接亦可), 作为单选仍是唯一正确项; longest-option。"
+        "note": "受压Φ25宜绑扎、受拉Φ28/桁架拉杆/行车梁不宜绑扎, 真题 exam:2022:第14题 逐字一致(答案B)。工单: 尾句‘应机械连接’较真题‘不宜绑扎’偏强(焊接亦可), 作为单选仍是唯一正确项; longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -274,12 +274,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -289,7 +289,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "直接承受动力荷载Φ20纵筋宜优先机械连接(直螺纹套筒), 不宜焊接, 真题 exam:2019:第8题 逐字支持(答案B)。工单: 干扰项机制化解释可收紧。"
+        "note": "直接承受动力荷载Φ20纵筋宜优先机械连接(直螺纹套筒), 不宜焊接, 真题 exam:2019:第8题 逐字支持(答案B)。工单: 干扰项机制化解释可收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -359,12 +359,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -374,7 +374,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "直接承受动力荷载机械连接接头面积百分率不应超过50%, 真题 exam:2023:第1题 逐字(‘不应超过50%’, 受压接头不受限)。三联 anchor(钢筋接头构造要求 fact)。Codex severity=none, 本包最干净题。"
+        "note": "直接承受动力荷载机械连接接头面积百分率不应超过50%, 真题 exam:2023:第1题 逐字(‘不应超过50%’, 受压接头不受限)。三联 anchor(钢筋接头构造要求 fact)。Codex severity=none, 本包最干净题。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -517,12 +517,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -532,7 +532,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "框架梁上部接头宜设跨中1/3、下部接头宜设梁端1/3, 避开最大拉应力区, 真题 exam:2025:第12题 支持。三联 immediate_confirm(同接头构造 fact: 接头位置与百分率同属钢筋连接接头构造要求)。工单: 正确项附受力解释后偏长。"
+        "note": "框架梁上部接头宜设跨中1/3、下部接头宜设梁端1/3, 避开最大拉应力区, 真题 exam:2025:第12题 支持。三联 immediate_confirm(同接头构造 fact: 接头位置与百分率同属钢筋连接接头构造要求)。工单: 正确项附受力解释后偏长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -602,12 +602,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -617,7 +617,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "框架柱第一接头距楼面≥500mm、≥H/6、≥柱截面长边三者取最大值, 教材 kc:...100_0190:2 直引。三联 d1_probe(同接头构造 fact, 第3独立 skeleton: 柱接头位置下限)。工单: 强弱词‘应≥’宜按教材‘不宜小于’收紧。"
+        "note": "框架柱第一接头距楼面≥500mm、≥H/6、≥柱截面长边三者取最大值, 教材 kc:...100_0190:2 直引。三联 d1_probe(同接头构造 fact, 第3独立 skeleton: 柱接头位置下限)。工单: 强弱词‘应≥’宜按教材‘不宜小于’收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -1198,12 +1198,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:23:42+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -1213,7 +1213,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "动力荷载吊车梁诊断: ①受拉Φ28不宜绑扎应机械 ②不宜→不应超50% ③直尺→通止量规, 三处诊断均正确。exam:2023:第1题 覆盖②(不应超50%)③(通止量规), ①由 exam:2022:第14题 支持=多源工单非血统断(Codex 自认 answer true)。工单: longest-option。"
+        "note": "动力荷载吊车梁诊断: ①受拉Φ28不宜绑扎应机械 ②不宜→不应超50% ③直尺→通止量规, 三处诊断均正确。exam:2023:第1题 覆盖②(不应超50%)③(通止量规), ①由 exam:2022:第14题 支持=多源工单非血统断(Codex 自认 answer true)。工单: longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     }

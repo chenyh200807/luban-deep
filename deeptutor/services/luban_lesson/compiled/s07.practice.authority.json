@@ -34,7 +34,7 @@
         "S07-html-practice-html-q9-a1fb4b7a6269"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZDQ3YzVjMThiNzI1IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01OTI5YTVkZTAwODMiLCJTMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLThjYTYzYjYxOTg5NyIsIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtODczYjRmNmM1NmU0IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xNS0yMzY2OWU4MDFhYmIiXSwicGFja19pZCI6IlMwNyIsInByb2plY3Rpb25fZGlnZXN0IjoiOTM4NmZlZmEwNDBkZmUyY2I0MmVmMTQ1OTQ4YmQ2NzEzZjQzMGRhYmUxYTM4YzdjODcwMDAwNGFiNDY3YjAwNiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJkMDZlMmFiMDdmOGFlNjc5N2JlNTRiYjgwMTExMDM4NWNjYzAxZGJlOWFlYzc0MGI4ZDc2MThhOTkxNTJkZDJjIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "53307a8c881d5bfba79c96bc36642838071b686f7bc7eaa57816e91ca0caccee"
+      "published_practice_sha256": "bc694ab20de8d158c8422a0c35f8712c934a7b3cd429a6302e8d87d2a51ca794"
     }
   ],
   "items": [
@@ -104,12 +104,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "死亡1人<3 落一般档, 教材 kc:...129_0207:1 三阈值表直引; 按给定维度定级=真题口径(exam:2016:案例2/exam:2017:案例三 参考答案先例)。工单: 题干宜写明损失轻微。"
+        "note": "死亡1人<3 落一般档, 教材 kc:...129_0207:1 三阈值表直引; 按给定维度定级=真题口径(exam:2016:案例2/exam:2017:案例三 参考答案先例)。工单: 题干宜写明损失轻微。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -189,12 +189,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -204,7 +204,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "3000万落较大档(1000万-5000万), 教材三阈值表直引, 相对干扰项唯一。三联 anchor。"
+        "note": "3000万落较大档(1000万-5000万), 教材三阈值表直引, 相对干扰项唯一。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -274,12 +274,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -289,7 +289,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "事故现场有关人员应立即报告本单位负责人, 真题 exam:2019:第17题 原题直判(D)。工单: 后续部门链宜另锚并限定事故类型。"
+        "note": "事故现场有关人员应立即报告本单位负责人, 真题 exam:2019:第17题 原题直判(D)。工单: 后续部门链宜另锚并限定事故类型。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -359,12 +359,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -374,7 +374,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "自事故发生之日起30日内伤亡变化及时补报, 真题 exam:2015:第19题 原题直判(D); 报告三项内容=exam:2016:案例2(复合多源工单)。"
+        "note": "自事故发生之日起30日内伤亡变化及时补报, 真题 exam:2015:第19题 原题直判(D); 报告三项内容=exam:2016:案例2(复合多源工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -444,12 +444,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -459,7 +459,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "调查组成员清单, 真题 exam:2017:案例三 逐项支持, 相对干扰项唯一。"
+        "note": "调查组成员清单, 真题 exam:2017:案例三 逐项支持, 相对干扰项唯一。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -602,12 +602,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -617,7 +617,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "重伤60人落重大档(50-100), 教材三阈值表直引; 按给定维度定级=真题口径(同 q1 裁决)。三联 immediate_confirm(同三阈值 fact)。"
+        "note": "重伤60人落重大档(50-100), 教材三阈值表直引; 按给定维度定级=真题口径(同 q1 裁决)。三联 immediate_confirm(同三阈值 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -687,12 +687,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:23:44+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -702,7 +702,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "≥30/10-30/3-10/<3 四临界数归档, 教材 kc:...129_0207:1 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
+        "note": "≥30/10-30/3-10/<3 四临界数归档, 教材 kc:...129_0207:1 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },

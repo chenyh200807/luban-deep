@@ -34,7 +34,7 @@
         "D11-html-practice-html-q15-bcc203575c55"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtOWQ5YzQwNDIxZWVhIiwiRDExLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mOWQ4MDE4ZmEyYzgiLCJEMTEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWYyMjc4ODdhNGI3MiIsIkQxMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMGUxMmJjMTVmNzczIiwiRDExLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYmNjMjAzNTc1YzU1Il0sInBhY2tfaWQiOiJEMTEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjliNzVlMTFhNDAyZGI4Y2E1ZWMzZDFmZGFjMTM3YjYzZWU3Y2E2NWNlYWZhMDYwYTY5MWM2NzZiODNlMzAxMmEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNDNhMjc2ZGFjMGJkMzVlMTFiNzY3Y2M1ZjVlNzUzOGZmZjNiMjUxYjdmZWVjZWIxYmNlYTRlOWFiOTUyMzhmZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "ce9ae7979f3ed7d1f60c0e9767ccd90ee6e02d26a30b0af7a348822ecfe8d70c"
+      "published_practice_sha256": "eee901c397848e052acdf7c4f9260fa88a0e3a00eeb02f29f5ab1947f7ff8fdb"
     }
   ],
   "items": [
@@ -104,12 +104,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "抹灰总厚度≥35mm 应采取加强措施(本题38mm), 教材 kc:...042_0068:0 直引。工单: '分层并设加强网'固定组合为教学扩写; 正确项首位+最长模板泄漏。"
+        "note": "抹灰总厚度≥35mm 应采取加强措施(本题38mm), 教材 kc:...042_0068:0 直引。工单: '分层并设加强网'固定组合为教学扩写; 正确项首位+最长模板泄漏。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -189,12 +189,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -204,7 +204,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "普通抹灰≤20mm/高级≤25mm, 真题 exam:2023:第26题 逐项支持。工单: 干扰项机械换数。"
+        "note": "普通抹灰≤20mm/高级≤25mm, 真题 exam:2023:第26题 逐项支持。工单: 干扰项机械换数。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -274,12 +274,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -289,7 +289,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "柱与填充墙接触面应设加强网片, 真题 exam:2024:第14页 逐字直引。'分摊差动位移'为解释性扩写不改措施。"
+        "note": "柱与填充墙接触面应设加强网片, 真题 exam:2024:第14页 逐字直引。'分摊差动位移'为解释性扩写不改措施。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -359,12 +359,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -374,7 +374,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "加强网与各基体搭接宽度≥100mm, 教材 kc:...043_0069:0 直引, 对象方向数值完整。"
+        "note": "加强网与各基体搭接宽度≥100mm, 教材 kc:...043_0069:0 直引, 对象方向数值完整。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -444,12 +444,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -459,7 +459,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "混凝土/抹灰基层用溶剂型涂料含水率≤8%(题干保留必要条件), 教材 kc:...043_0069:1 直引。三联 immediate_confirm(同含水率分对象 fact)。"
+        "note": "混凝土/抹灰基层用溶剂型涂料含水率≤8%(题干保留必要条件), 教材 kc:...043_0069:1 直引。三联 immediate_confirm(同含水率分对象 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -894,12 +894,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -909,7 +909,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "统一10%会放宽溶剂型8%上限, 应8/10/12分对象控制, 教材 kc:...043_0069:1 完整支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 正确项最长。"
+        "note": "统一10%会放宽溶剂型8%上限, 应8/10/12分对象控制, 教材 kc:...043_0069:1 完整支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -1052,12 +1052,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T11:56:01+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -1067,7 +1067,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "复合五组事实全有包内原文: 8/10/12(kc:...043_0069:1)/耐水腻子厨卫(kc:...043_0069:2)/地下室(真题耐水腻子题ABE)/35加强+20/25+100搭接+5℃(本锚 exam:2023:第26题)。Codex FATAL 系复合题血统误判(失效模式#4, 且漏看地下室真题证据)。三联 anchor。工单: 正确项最长。"
+        "note": "复合五组事实全有包内原文: 8/10/12(kc:...043_0069:1)/耐水腻子厨卫(kc:...043_0069:2)/地下室(真题耐水腻子题ABE)/35加强+20/25+100搭接+5℃(本锚 exam:2023:第26题)。Codex FATAL 系复合题血统误判(失效模式#4, 且漏看地下室真题证据)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     }

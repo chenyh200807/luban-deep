@@ -34,7 +34,7 @@
         "C04-html-practice-html-q16-bd3fe10391f8"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtM2Y5Njk2ZmU3YjkwIiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01N2I3YWJhNjg0NzYiLCJDMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZkMDlmMTA5YzBkZSIsIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmY2MGMyOTExYTg3IiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYmQzZmUxMDM5MWY4Il0sInBhY2tfaWQiOiJDMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjFmZThlYTgyZGU4OWU2NGQ2MzIxNjUzNmU3ZDNkOWVhOTYxZDVjZDkzNWFkMjJkYTEzYTJmYjJjOTViZTFmYjUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWFiZmRiZDdiN2U5OTE3ZDM5ZDc3OTc3N2NmNWJlZTMxYjY4NjExYzgyNjFmMmExYzFlODMwZGEzOGVhMWJkMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "28a74700d8695093431251fbb119f9e4e4f4717cc590e70f195ee26f46014a2f"
+      "published_practice_sha256": "1fa7c712b5101d9e62db0fe34066ae9058a5d904f8eaa3ae7aea48a432bee510"
     }
   ],
   "items": [
@@ -104,12 +104,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。"
+        "note": "不承重侧模强度保证表面棱角不损坏即可拆,教材直引(0.78)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -189,12 +189,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -204,7 +204,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。"
+        "note": "底模拆除强度表逐值与教材表3.4-1一致。工单:'2~8m' 宜写 '>2m~8m' 明确边界(值不错)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -274,12 +274,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -289,7 +289,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "6m现浇板拆底模≥75%,真题锚。"
+        "note": "6m现浇板拆底模≥75%,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -359,12 +359,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -374,7 +374,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。"
+        "note": "8m梁拆底模取75%(梁拱壳≤8m75%),边界判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -444,12 +444,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -459,7 +459,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "多构件同条件强度哪项达拆模要求,真题锚。"
+        "note": "多构件同条件强度哪项达拆模要求,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -529,12 +529,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -544,7 +544,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "8m快拆板拆模保留立杆顶托,条件判定,真题锚。"
+        "note": "8m快拆板拆模保留立杆顶托,条件判定,真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -1271,12 +1271,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:01:22+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -1286,7 +1286,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。"
+        "note": "拆模条件五错诊断。复合多源:顺序对句/技术负责人批准两事实教材有原文,anchor 用 primary scoring card。工单:复合 provenance(非血统断)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },

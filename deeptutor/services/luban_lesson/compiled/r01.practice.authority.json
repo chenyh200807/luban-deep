@@ -34,7 +34,7 @@
         "R01-html-practice-html-q15-fe4a7892cba8"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlIwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDU0NGY3ODcyZTQyIiwiUjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03ZjFiMDc2NTFhNDUiLCJSMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTE1MzhhN2QzYjE1NCIsIlIwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNWRkOTk4ZmY4NzAzIiwiUjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZmU0YTc4OTJjYmE4Il0sInBhY2tfaWQiOiJSMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjNlMzVkNzNiODAxMGM4NjVjODdiNzY0Y2MwMmUxOWE5NDgyM2RlYjcwMjJhNDcyMjc3MWEzMGMyNzJjNzIwY2QiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWFjYzI1ZjEwZDVjMWVkMTlkNThmNDczY2ZkYWNkMTllNjE3NWRlMmFjMDlhOWZlOTNkYWZkOWI4NTViM2UwYiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "4044e62986c1b39eea2b60848f6f2554cbbf48292133038b752a16c611398983"
+      "published_practice_sha256": "5c946a0177ea55c435608534c9b0380c3c46b078a427239861f1eaae2b0e1060"
     }
   ],
   "items": [
@@ -104,12 +104,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "立管≥2根/消防箱≥2套=本锚真题理由句逐字; 六要素=EP 1A436000-B099 grading_keywords 逐字(复合多源工单)。工单: 2根2套源自标准层案例语境, 宜标注适用场景。"
+        "note": "立管≥2根/消防箱≥2套=本锚真题理由句逐字; 六要素=EP 1A436000-B099 grading_keywords 逐字(复合多源工单)。工单: 2根2套源自标准层案例语境, 宜标注适用场景。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -189,12 +189,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -204,7 +204,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "消火栓距路边≤2m=本锚真题; 立管/消防箱数量=exam:2018:第5题(复合多源)。Codex severity none。"
+        "note": "消火栓距路边≤2m=本锚真题; 立管/消防箱数量=exam:2018:第5题(复合多源)。Codex severity none。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -274,12 +274,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -289,7 +289,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "临建每100㎡配2只10L+超1200㎡设太平桶积水池黄砂池, 教材 kc:...146_0233:0 直引。"
+        "note": "临建每100㎡配2只10L+超1200㎡设太平桶积水池黄砂池, 教材 kc:...146_0233:0 直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -359,12 +359,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -374,7 +374,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "木料间/油漆间每25㎡配1只, 教材 kc:...146_0233:0 直引。Codex severity none。"
+        "note": "木料间/油漆间每25㎡配1只, 教材 kc:...146_0233:0 直引。Codex severity none。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -882,12 +882,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -897,7 +897,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "一级企业安全部门/二级项目安全部门+负责人/三级责任工程师, 教材 kc:...145_0231:0 逐项直引。三联 immediate_confirm(同动火审批 fact)。Codex severity none。"
+        "note": "一级企业安全部门/二级项目安全部门+负责人/三级责任工程师, 教材 kc:...145_0231:0 逐项直引。三联 immediate_confirm(同动火审批 fact)。Codex severity none。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -967,12 +967,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -982,7 +982,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "动火证当日开具当日有效/地点变化重新办理, 教材 kc:...145_0231:1 逐字+exam:2015:第30题(A)佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。"
+        "note": "动火证当日开具当日有效/地点变化重新办理, 教材 kc:...145_0231:1 逐字+exam:2015:第30题(A)佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     },
@@ -1198,12 +1198,12 @@
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:11:45+08:00"
+            "signed_at": "2026-07-18T18:28:02+08:00"
           }
         ],
         "checks": {
@@ -1213,7 +1213,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "四诊断各有源: 电石干砂/CO2 严禁用水=本锚教材逐字; 六要素=EP 1A436000-B099; 灭火器配置率=kc:146_0233; 分级审批=kc:145_0231(三联同 fact 子事实)。Codex FATAL 系复合题血统误判(失效模式#4)。三联 anchor。工单: 正确项最长。"
+        "note": "四诊断各有源: 电石干砂/CO2 严禁用水=本锚教材逐字; 六要素=EP 1A436000-B099; 灭火器配置率=kc:146_0233; 分级审批=kc:145_0231(三联同 fact 子事实)。Codex FATAL 系复合题血统误判(失效模式#4)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
       "eligible": true
     }
