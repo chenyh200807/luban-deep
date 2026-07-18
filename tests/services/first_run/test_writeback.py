@@ -81,6 +81,20 @@ class _FakeLearnerState:
 
 
 @pytest.fixture(autouse=True)
+def supply_ready_packs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """处方供给真值 stub(disk-agnostic):默认 F16/X03 可练——磁盘 manifest
+    的签发/停发状态不再左右本文件断言(2026-07-16 F16 停发曾打红这里)。"""
+    monkeypatch.setattr(
+        "deeptutor.services.first_run.prescription_resolver.list_green_lessons",
+        lambda: [
+            {"pack_id": "F16", "retest_available": True},
+            {"pack_id": "X03", "retest_available": True},
+            {"pack_id": "N01", "retest_available": True},
+        ],
+    )
+
+
+@pytest.fixture(autouse=True)
 def signed_manifest(monkeypatch: pytest.MonkeyPatch) -> None:
     manifest = deepcopy(load_first_run_manifest())
     manifest["release_status"] = "signed"
@@ -226,6 +240,46 @@ def test_missed_item_with_source_backed_pack_drives_real_target_without_promotin
     assert focus_events[0].payload_json["target_pack_id"] == "F16"
     assert result["training_intent"]["evidence_refs"] == [focus_events[0].event_id]
     assert all(event.payload_json["claim_promotion_allowed"] is False for event in learner_state.events)
+
+
+def test_stopped_head_pack_resolves_to_next_supply_ready_candidate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 红测试②(writeback 面):F16/X03 停发时首跑处方不产空 target——
+    # intent 与 home projection 都绑定到下一个 supply-ready 候选(N01)。
+    monkeypatch.setattr(
+        "deeptutor.services.first_run.prescription_resolver.list_green_lessons",
+        lambda: [
+            {"pack_id": "F16", "retest_available": False},
+            {"pack_id": "X03", "retest_available": False},
+            {"pack_id": "N01", "retest_available": True},
+        ],
+    )
+    learner_state = _FakeLearnerState()
+    service = FirstRunWritebackService(learner_state_service=learner_state)
+
+    result = service.complete(user_id="user-1", **_completion(first_answer="B"))
+
+    assert result["training_intent"]["target_pack_id"] == "N01"
+    assert result["home_projection"]["target_pack_id"] == "N01"
+
+    # 全候选停发 → 诚实无 pack 绑定(空 target),不臆造第二真值。
+    monkeypatch.setattr(
+        "deeptutor.services.first_run.prescription_resolver.list_green_lessons",
+        lambda: [
+            {"pack_id": "F16", "retest_available": False},
+            {"pack_id": "X03", "retest_available": False},
+            {"pack_id": "N01", "retest_available": False},
+        ],
+    )
+    learner_state = _FakeLearnerState()
+    service = FirstRunWritebackService(learner_state_service=learner_state)
+
+    result = service.complete(user_id="user-1", **_completion(first_answer="B"))
+
+    assert result["training_intent"]["target_pack_id"] == ""
+    assert result["home_projection"]["target_pack_id"] == ""
+    assert all(not event.payload_json["target_pack_id"] for event in learner_state.events)
 
 
 def test_home_projection_failure_does_not_commit_first_run_completion(monkeypatch: pytest.MonkeyPatch) -> None:

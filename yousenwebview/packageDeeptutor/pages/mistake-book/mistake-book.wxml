@@ -1,4 +1,4 @@
-<view class="mistake-book-page {{isDark?'':'light'}}">
+<view class="mistake-book-page paper {{isDark?'':'light'}} pk-paper-bg">
   <view class="mb-nav" style="padding-top: {{statusBarHeight}}px">
     <view class="mb-nav-inner">
       <view class="mb-back" bindtap="goBack">

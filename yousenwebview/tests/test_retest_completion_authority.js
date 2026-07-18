@@ -63,6 +63,10 @@ var retestWxml = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/pages/luban/retest/retest.wxml"),
   "utf8",
 );
+var apiSource = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/utils/api.js"),
+  "utf8",
+);
 
 assert.ok(retest.indexOf("completeLubanRetest") >= 0, "retest must use canonical completion endpoint");
 assert.strictEqual(retest.indexOf("postStationCompleted"), -1, "retest page must not be a second station writer");
@@ -81,10 +85,13 @@ assert.strictEqual(f16Practice.indexOf("服务端正在重新判定并更新你�
 assert.ok(
   f16Practice.indexOf("presentation=receipt&pack_id=") >= 0 &&
     f16Practice.indexOf("&practice_surface=") >= 0 &&
-    f16Practice.indexOf("&answer_indexes=") >= 0,
-  "finished practice must enter retest in receipt-only mode after the same five answers",
+    f16Practice.indexOf("&projection_receipt=") >= 0 &&
+    f16Practice.indexOf("&answers=") >= 0,
+  "finished practice must enter retest with exact projection and answer identities",
 );
-assert.ok(retest.indexOf("bridgeAnswerIndexes") >= 0, "receipt-only bridge must map finished HTML answers to canonical option identities");
+assert.strictEqual(f16Practice.indexOf("&answer_indexes="), -1, "H5 must not hand off positional answers");
+assert.strictEqual(retest.indexOf("bridgeAnswerIndexes"), -1, "client must not reinterpret positional answers");
+assert.ok(retest.indexOf("bridgeAnswers") >= 0, "receipt bridge must preserve exact variant and option identities");
 assert.ok(retest.indexOf("selected_option_id") >= 0, "compiled HTML MCQ must submit only selected option identity");
 assert.ok(retest.indexOf("serverCorrectCount") >= 0, "forward score must come back from server rescore");
 assert.strictEqual(handoff.indexOf("luban_retest_due_"), -1, "handoff local storage must not become due authority");
@@ -99,6 +106,9 @@ assert.strictEqual(retestWxml.indexOf("'真懂'"), -1, "the item seal must descr
 assert.ok(retestWxml.indexOf("这是本轮作答结果") >= 0, "the item feedback must remain scoped to the current answer");
 assert.strictEqual(retest.indexOf("handoff/handoff"), -1, "canonical receipt must not be re-projected through a forgeable handoff query");
 assert.ok(retest.indexOf("probe_id: this.data.probeId") >= 0, "review must preserve canonical probe identity");
+assert.ok(retest.indexOf("probeId: this.data.probeId") >= 0, "review GET must carry due probe identity");
+assert.ok(apiSource.indexOf('"&probe_id=" + encodeURIComponent(probeId)') >= 0, "API must transmit review probe identity");
+assert.strictEqual(retest.indexOf("复习页会"), -1, "terminal receipt must route follow-up through learning, not an independent review module");
 assert.ok(retest.indexOf("selection_id: this.data.selectionId") >= 0, "completion must preserve server-issued selection identity");
 assert.ok(review.indexOf("entry.probeId") >= 0, "review due entry must forward probe identity");
 assert.ok(review.indexOf("pack_review") >= 0, "review must consume the unified report pack-review slice");
@@ -113,5 +123,40 @@ assert.ok(gauntlet.indexOf('"&mode=forward"') >= 0, "gauntlet repeat must be for
 assert.ok(errorbank.indexOf("getLubanReviewDue") >= 0, "errorbank must consume canonical review due");
 assert.strictEqual(errorbank.indexOf("getLubanRetestItems"), -1, "errorbank must not infer due from supply");
 assert.ok(errorbank.indexOf('"&mode=review&probe_id="') >= 0, "errorbank must forward due probe");
+
+// ── 收据错项四层诊断(纯呈现层, 全部服务端签发字段, 缺失整行隐藏) ──
+assert.ok(
+  retestWxml.indexOf('wx:if="{{item.selectedOptionText}}">你选了：{{item.selectedOptionText}}') >= 0,
+  "receipt wrong item layer 1 must show the learner's selected option text, hidden when absent",
+);
+assert.ok(
+  retestWxml.indexOf('wx:if="{{item.feedback && item.feedback.temptation}}">为什么它看起来像对的：{{item.feedback.temptation}}') >= 0,
+  "receipt wrong item layer 2 must render server-issued temptation, hidden when absent",
+);
+assert.ok(
+  retestWxml.indexOf('wx:if="{{item.feedback && item.feedback.loss_reason}}">考试为什么不给分：{{item.feedback.loss_reason}}') >= 0,
+  "receipt wrong item layer 3 must render server-issued loss_reason, hidden when absent",
+);
+assert.ok(
+  retestWxml.indexOf('wx:if="{{item.feedback && item.feedback.fix}}">下次这样答：{{item.feedback.fix}}') >= 0,
+  "receipt wrong item layer 4 must render server-issued fix, hidden when absent",
+);
+// 顺序合同: 你选了 → 像对的 → 不给分 → 下次这样答
+(function () {
+  var l1 = retestWxml.indexOf("你选了：");
+  var l2 = retestWxml.indexOf("为什么它看起来像对的：");
+  var l3 = retestWxml.indexOf("考试为什么不给分：");
+  var l4 = retestWxml.indexOf("下次这样答：");
+  assert.ok(l1 >= 0 && l1 < l2 && l2 < l3 && l3 < l4, "receipt wrong item layers must keep the four-layer order");
+})();
+// selectedOptionText 只能是签发 options 的查找结果(前端零造词)
+assert.ok(
+  retest.indexOf("_selectedOptionText(") >= 0 && retest.indexOf("selectedOptionText: that._selectedOptionText(item)") >= 0,
+  "selected option text must be resolved from issued options by selectedOptionId, never invented client-side",
+);
+// 项目红线: 不用"看穿/识破/揭穿/露馅"类审视语气
+["看穿", "识破", "揭穿", "露馅"].forEach(function (word) {
+  assert.strictEqual(retestWxml.indexOf(word), -1, "receipt copy must not use inspecting tone: " + word);
+});
 
 console.log("PASS test_retest_completion_authority.js");

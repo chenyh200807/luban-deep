@@ -6,10 +6,19 @@
 ```
 下一步 = 第一个非空项:
   1) 到期复: revalidation_queue 有 due probe   →「回炉：XX 再看一眼就稳了」
-  2) 活跃练: training_intent 有 active intent  →「练：你漏的采分点，换个题面」
+  2) 活跃练: training_intent 有 active intent
+     且 target pack 可路由（绿灯 ∧ retest_available 供给真值）
+     →「练：你漏的采分点，换个题面」
   3) 下一学: 路线上第一个 未学∧绿灯签发 的站    →「学：下一站 XX」
   4) fallback: registry 静态序第一个绿灯站（群体理由，day-0 不白屏）
 ```
+
+不可执行的 intent 不得在权威内遮蔽可执行臂（2026-07-16 QA 死证：F16/X03
+停发后空 target 的 practice_active 胜出 → 前端对空 pack fail-closed →
+任务卡永久隐藏）。解析不出可路由 target 的 practice intent 跳过、落到
+下一优先级臂；被跳过的 intent 不静默丢——保留在 ``skipped_intents``
+diagnostic 里（仅诊断，非第二处方）。供给真值 = caller 传入的
+``green_lessons`` read-model 行（``retest_available``），本模块不造第二真值。
 
 铁律（§3）：纯函数、零副作用——禁写 ledger、禁生成/修改 training_intent、
 禁改 revalidation 状态、禁前端/各 tab 再拼一次。它不产出任何「该练什么」
@@ -62,6 +71,16 @@ def build_home_next_step_projection(
     """确定性仲裁；所有输入由 caller 提供（本模块不读任何存储）。"""
     green = [item for item in list(green_lessons or []) if isinstance(item, dict) and _text(item.get("pack_id"))]
     green_ids = {_text(item.get("pack_id")).upper() for item in green}
+    green_by_id = {_text(item.get("pack_id")).upper(): item for item in green}
+
+    # 被跳过的不可执行 practice intent（诊断保留，不静默丢）。
+    skipped_intents: list[dict[str, Any]] = []
+
+    def _with_diagnostics(step: dict[str, Any]) -> dict[str, Any]:
+        if skipped_intents:
+            step["skipped_intents"] = list(skipped_intents)
+        return step
+
     for item in list(revalidation_items or []):
         if not isinstance(item, dict):
             continue
@@ -88,15 +107,34 @@ def build_home_next_step_projection(
             continue
         label = _text(intent.get("concept_label")) or _text(intent.get("error_label")) or "你漏的采分点"
         target_pack_id = _text(intent.get("target_pack_id")).upper()
-        if target_pack_id not in green_ids:
-            target_pack_id = ""
-        return {
-            "mode": MODE_PRACTICE,
-            "source_authority": "training_intent",
-            "source_ref": intent_id,
-            "target_pack_id": target_pack_id,
-            "reason": f"继续练：{label}，换个题面",
-        }
+        # 可路由 = 绿灯 ∧ 练供给真值（read model 的 retest_available，fail-closed:
+        # 缺字段与停发同形）。解析不出可路由 target 的 intent 不得胜出——
+        # 否则前端对空/死 pack fail-closed，可执行的 learn_next 被遮蔽。
+        supply_row = green_by_id.get(target_pack_id) if target_pack_id else None
+        if supply_row is None or not supply_row.get("retest_available"):
+            if not target_pack_id:
+                skip_reason = "intent_without_pack_binding"
+            elif target_pack_id not in green_ids:
+                skip_reason = "pack_not_green"
+            else:
+                skip_reason = "retest_supply_unavailable"
+            skipped_intents.append(
+                {
+                    "training_intent_id": intent_id,
+                    "target_pack_id": target_pack_id,
+                    "skip_reason": skip_reason,
+                }
+            )
+            continue
+        return _with_diagnostics(
+            {
+                "mode": MODE_PRACTICE,
+                "source_authority": "training_intent",
+                "source_ref": intent_id,
+                "target_pack_id": target_pack_id,
+                "reason": f"继续练：{label}，换个题面",
+            }
+        )
 
     packs = (pack_lifecycle or {}).get("packs") if isinstance(pack_lifecycle, dict) else {}
     packs = packs if isinstance(packs, dict) else {}
@@ -114,28 +152,34 @@ def build_home_next_step_projection(
     for pack_id in ordered_ids:
         if pack_id in unlearned:
             title = titles.get(pack_id) or pack_id
-            return {
-                "mode": MODE_LEARN,
-                "source_authority": "pack_lifecycle_projection",
-                "source_ref": pack_id,
-                "target_pack_id": pack_id,
-                "reason": f"下一站：{title}",
-            }
+            return _with_diagnostics(
+                {
+                    "mode": MODE_LEARN,
+                    "source_authority": "pack_lifecycle_projection",
+                    "source_ref": pack_id,
+                    "target_pack_id": pack_id,
+                    "reason": f"下一站：{title}",
+                }
+            )
 
     if green:
         first = green[0]
         title = _text(first.get("title")) or _text(first.get("pack_id"))
-        return {
-            "mode": MODE_FALLBACK,
-            "source_authority": "pack_manifest.registry_order",
-            "source_ref": _text(first.get("pack_id")),
-            "target_pack_id": _text(first.get("pack_id")),
-            # 群体理由（诚实版）：不伪装个性化。
-            "reason": f"从这里开始：{title}（多数考生的第一站）",
-        }
+        return _with_diagnostics(
+            {
+                "mode": MODE_FALLBACK,
+                "source_authority": "pack_manifest.registry_order",
+                "source_ref": _text(first.get("pack_id")),
+                "target_pack_id": _text(first.get("pack_id")),
+                # 群体理由（诚实版）：不伪装个性化。
+                "reason": f"从这里开始：{title}（多数考生的第一站）",
+            }
+        )
 
     # 供给面完全不可用（无绿灯站）——如实空态，交由上层降级文案。
-    return unavailable_next_step(source_authority="pack_manifest.registry_order")
+    return _with_diagnostics(
+        unavailable_next_step(source_authority="pack_manifest.registry_order")
+    )
 
 
 __all__ = [

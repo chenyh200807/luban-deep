@@ -346,6 +346,20 @@ def main() -> int:
                              for g in sorted({v["rule_group"] for v in variants})},
         "variants": variants,
     }
+    # 重建保留合并：按 variant_id + content_sha256 原位保留已签 decision 块，
+    # 内容/pack 漂移的条目置回 pending + stale（绝不静默保留旧签名）——镜像
+    # practice publisher `_load_practice_review_records` 的人审保留模式。
+    # 惰性导入：--check 门保持零依赖（promote gate 重跑不受服务层影响）。
+    if str(REPO) not in sys.path:
+        sys.path.insert(0, str(REPO))
+    from deeptutor.services.luban_lesson.variant_eligibility import (
+        carry_variant_bank_decisions,
+    )
+
+    carried = carry_variant_bank_decisions(OUT_PATH, payload)
+    if any(carried.values()):
+        print(f"decision blocks: preserved={carried['preserved']} "
+              f"stale_reset={carried['stale']} dropped={carried['dropped']}")
     OUT_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"written {OUT_PATH.relative_to(REPO)}")
     return 0

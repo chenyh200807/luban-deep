@@ -84,10 +84,14 @@ def _signed_terminal(
             "assessment_type": assessment_type,
             "retest_completion_id": "adversarial",
             "completion_terminal": True,
+            "request_hash": "a" * 64,
             "practice_mode": "review",
             "pack_id": "N01",
             "target_pack_id": target_pack_id,
             "score_ratio": score_ratio,
+            "score_awarded": score_ratio,
+            "max_score": 1.0,
+            "item_event_refs": ["item_adversarial"],
             "claim_promotion_allowed": True,
             "prescription_result": {"status": status, "score_ratio": score_ratio},
             "quality": {
@@ -98,6 +102,35 @@ def _signed_terminal(
             },
         },
     )
+
+
+def _completion_events(terminal: LearnerStateEvent) -> list[LearnerStateEvent]:
+    payload = terminal.payload_json
+    completion_id = str(payload["retest_completion_id"])
+    item_id = str(payload["item_event_refs"][0])
+    item = LearnerStateEvent(
+        event_id=item_id,
+        user_id=terminal.user_id,
+        source_feature="assessment_testset",
+        source_id=f"{completion_id}:q1",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key=item_id,
+        created_at=terminal.created_at,
+        payload_json={
+            "event_type": "learning_evidence",
+            "retest_completion_id": completion_id,
+            "request_hash": payload["request_hash"],
+            "practice_mode": payload["practice_mode"],
+            "pack_id": payload["pack_id"],
+            "target_pack_id": payload["target_pack_id"],
+            "question_id": "q1",
+            "is_correct": bool(payload["score_awarded"]),
+            "score_awarded": payload["score_awarded"],
+            "max_score": 1.0,
+        },
+    )
+    return [item, terminal]
 
 
 def _compiled_forward_terminal() -> LearnerStateEvent:
@@ -275,10 +308,14 @@ def test_terminal_review_projects_cycle_facts_without_coarse_pack_mastery() -> N
             "assessment_type": "luban_review_completion",
             "retest_completion_id": "r1",
             "completion_terminal": True,
+            "request_hash": "b" * 64,
             "practice_mode": "review",
             "pack_id": "N01",
             "target_pack_id": "N01",
             "score_ratio": 1.0,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "item_event_refs": ["item_r1"],
             "claim_promotion_allowed": True,
             "prescription_result": {"status": "verified", "score_ratio": 1.0},
             "quality": {
@@ -289,7 +326,11 @@ def test_terminal_review_projects_cycle_facts_without_coarse_pack_mastery() -> N
             },
         },
     )
-    projection = project_pack_lifecycle(events=[terminal], claims=[], pack_ids=_PACK_IDS)
+    projection = project_pack_lifecycle(
+        events=_completion_events(terminal),
+        claims=[],
+        pack_ids=_PACK_IDS,
+    )
     n01 = projection["packs"]["N01"]
     assert n01["lifecycle_state"] == LIFECYCLE_PRACTICED
     assert n01["last_review_status"] == "verified"
@@ -299,7 +340,11 @@ def test_terminal_review_projects_cycle_facts_without_coarse_pack_mastery() -> N
 
 def test_compiled_forward_terminal_is_canonical_for_lifecycle_only() -> None:
     terminal = _compiled_forward_terminal()
-    projection = project_pack_lifecycle(events=[terminal], claims=[], pack_ids=_PACK_IDS)
+    projection = project_pack_lifecycle(
+        events=_completion_events(terminal),
+        claims=[],
+        pack_ids=_PACK_IDS,
+    )
 
     n01 = projection["packs"]["N01"]
     assert n01["lifecycle_state"] == LIFECYCLE_PRACTICED
@@ -331,10 +376,11 @@ def test_compiled_authority_cannot_impersonate_review_terminal() -> None:
 
 def test_forged_terminal_cannot_commit_item_promotion() -> None:
     terminal = _compiled_forward_terminal()
-    assert committed_retest_completion_ids([terminal]) == {"adversarial"}
+    events = _completion_events(terminal)
+    assert committed_retest_completion_ids(events) == {"adversarial"}
 
     terminal.payload_json["quality"]["authority"] = "client_claimed_complete"
-    assert committed_retest_completion_ids([terminal]) == set()
+    assert committed_retest_completion_ids(events) == set()
 
 
 def test_item_without_terminal_never_advances_pack_review_cycle() -> None:
@@ -351,12 +397,14 @@ def test_item_without_terminal_never_advances_pack_review_cycle() -> None:
     assert n01["lifecycle_state"] == LIFECYCLE_UNLEARNED
     assert n01["successful_review_streak"] == 0
     assert n01["last_review_status"] == ""
-    assert projection["unassigned_practice"][0]["reason"] == "completion_terminal_missing"
+    assert projection["unassigned_practice"][0]["reason"] == "completion_terminal_ref_missing"
 
 
 def test_terminal_prescription_status_wins_over_conflicting_score_ratio() -> None:
     projection = project_pack_lifecycle(
-        events=[_signed_terminal(status="not_verified", score_ratio=1.0)],
+        events=_completion_events(
+            _signed_terminal(status="not_verified", score_ratio=1.0)
+        ),
         claims=[],
         pack_ids=_PACK_IDS,
     )

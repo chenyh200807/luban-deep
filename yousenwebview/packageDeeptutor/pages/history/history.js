@@ -435,8 +435,8 @@ Page({
     surfaceTelemetry.trackModuleView(this, { module: "history", section: "home" });
     this.setData({ isDark: helpers.isDark() });
     if (!flags.ensureFeatureEnabled("history")) return;
-    // 历史不在五 tab 壳中(入口=问鲁班顶栏时钟):挂壳但无选中态
-    helpers.syncTabBar(this, -1, {
+    // 五 tab 壳：历史 index=1；内容职责仍只限对话历史与继续对话。
+    helpers.syncTabBar(this, 1, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
     if (!auth.isLoggedIn()) {
@@ -706,7 +706,7 @@ Page({
       selectedCount: 0,
       allSelected: false,
     });
-    helpers.syncTabBar(this, -1, {
+    helpers.syncTabBar(this, 1, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
   },

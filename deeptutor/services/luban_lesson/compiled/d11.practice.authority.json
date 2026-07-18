@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "D11",
   "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
   "source_bundle_sha256": "4a1cd8b3027cab70df3359fda588bdc285e18b2b0f07e850acdcc423575a68e0",
@@ -24,7 +24,9 @@
         "D11-html-practice-html-q4-0e12bc15f773",
         "D11-html-practice-html-q15-bcc203575c55"
       ],
-      "published_practice_sha256": "9fde9e40f808fca2931becfdac4cd0a7e76a21d6614a3160b6aa0cc93cfe9d08"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtOWQ5YzQwNDIxZWVhIiwiRDExLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mOWQ4MDE4ZmEyYzgiLCJEMTEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWYyMjc4ODdhNGI3MiIsIkQxMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMGUxMmJjMTVmNzczIiwiRDExLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYmNjMjAzNTc1YzU1Il0sInBhY2tfaWQiOiJEMTEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjYxOWEwNWYzZWRjMjMzZDU5ZmM4MTMyOWQ0MjkwZDFjMTBiYzY0NmY4MzQ2Y2YzOTUxNTAxODM2OWRkNWZmNTQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "89e9ea6553a6a56e643bfde5534e11d9be2dd93ffd3b7aabb79b209ed3cec4f5"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q1",
-      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "cc1590b091e68a109003659dea46a6da668345f5627d1f3b39c0bfd6014dcf36",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "cc1590b091e68a109003659dea46a6da668345f5627d1f3b39c0bfd6014dcf36",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q2",
-      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "2f008afc074a5b6729026bc2bf8461d5cd951262134c5f2ebcaa230384c6480a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "2f008afc074a5b6729026bc2bf8461d5cd951262134c5f2ebcaa230384c6480a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q3",
-      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "fe6732eff2be2f2c101a194ede897e00d24125cc264c0f5c722c4d7ad4d03add",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "fe6732eff2be2f2c101a194ede897e00d24125cc264c0f5c722c4d7ad4d03add",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,613 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q4",
-      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "1bb0b310c624b1a5ef467366aa8d097d3a9dc3d2b359e190fd17d5ca56c05bb9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "1bb0b310c624b1a5ef467366aa8d097d3a9dc3d2b359e190fd17d5ca56c05bb9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "控含水率·条件维",
+      "stem": "混凝土/抹灰基层准备涂刷溶剂型涂料。关于基层含水率上限，选出正确作答。",
+      "model_answer": "用溶剂型涂料时，混凝土/抹灰基层含水率不得大于 8%。",
+      "options": [
+        {
+          "text": "混凝土或抹灰基层用溶剂型涂料时，含水率不得大于 8%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "对象“溶剂型”+数值 8% 对应准确。",
+          "option_id": "D11-html-practice-html-q5-d66757ce8f6f:option-1"
+        },
+        {
+          "text": "溶剂型涂料基层含水率不得大于 10%。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把乳液型的 10% 安到溶剂型头上。",
+          "loss_reason": "对象与数值错配，10% 是乳液型的上限。",
+          "fix": "溶剂型≤8%，10% 是乳液型。",
+          "option_id": "D11-html-practice-html-q5-d66757ce8f6f:option-2"
+        },
+        {
+          "text": "溶剂型涂料基层含水率不得大于 12%。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "和木材的 12% 混了。",
+          "loss_reason": "12% 是木材基层，不是溶剂型。",
+          "fix": "溶剂型≤8%。",
+          "option_id": "D11-html-practice-html-q5-d66757ce8f6f:option-3"
+        },
+        {
+          "text": "基层干一点就能刷溶剂型涂料，含水率不用较真具体数。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "图省事不写数字。",
+          "loss_reason": "漏了 8% 这个关键上限值。",
+          "fix": "写明溶剂型≤8%。",
+          "option_id": "D11-html-practice-html-q5-d66757ce8f6f:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q5-d66757ce8f6f",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "33bc7fbdd535c8fc9ccbb498494a4bfb546a28dcbe20e6ef0f44876587c358dd",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "33bc7fbdd535c8fc9ccbb498494a4bfb546a28dcbe20e6ef0f44876587c358dd",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "控含水率·条件维",
+      "stem": "基层准备涂刷乳液型涂料。关于基层含水率上限，选出正确作答。",
+      "model_answer": "用乳液型涂料时，基层含水率不得大于 10%。",
+      "options": [
+        {
+          "text": "用乳液型涂料时，基层含水率不得大于 10%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "对象“乳液型”+数值 10% 对应准确。",
+          "option_id": "D11-html-practice-html-q6-6f06db4d7b0b:option-1"
+        },
+        {
+          "text": "乳液型涂料基层含水率不得大于 8%。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把溶剂型的 8% 安到乳液型。",
+          "loss_reason": "8% 是溶剂型上限，对象错配。",
+          "fix": "乳液型≤10%。",
+          "option_id": "D11-html-practice-html-q6-6f06db4d7b0b:option-2"
+        },
+        {
+          "text": "乳液型涂料基层含水率不得大于 12%。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "和木材 12% 混。",
+          "loss_reason": "12% 是木材基层。",
+          "fix": "乳液型≤10%。",
+          "option_id": "D11-html-practice-html-q6-6f06db4d7b0b:option-3"
+        },
+        {
+          "text": "只要不是溶剂型涂料，基层含水率高一点没关系。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为乳液型对含水率不敏感。",
+          "loss_reason": "漏了乳液型 10% 这个上限。",
+          "fix": "乳液型≤10% 仍有明确上限。",
+          "option_id": "D11-html-practice-html-q6-6f06db4d7b0b:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q6-6f06db4d7b0b",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "096b4924eb84042b3b0971aa1fb2fc4fe3b344299822bd1fc7728b99bca7f6f9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "096b4924eb84042b3b0971aa1fb2fc4fe3b344299822bd1fc7728b99bca7f6f9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "控含水率·条件维",
+      "stem": "木材基层准备做后续涂饰。关于木材基层含水率上限，选出正确作答。",
+      "model_answer": "木材基层含水率不得大于 12%。",
+      "options": [
+        {
+          "text": "木材基层含水率不得大于 12%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "木材基层单列 12%，与涂料对象分开记。",
+          "option_id": "D11-html-practice-html-q7-b51eeb43a1f4:option-1"
+        },
+        {
+          "text": "木材基层含水率不得大于 8%。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "顺手用了溶剂型的 8%。",
+          "loss_reason": "8% 是溶剂型涂料基层，不是木材。",
+          "fix": "木材基层≤12%。",
+          "option_id": "D11-html-practice-html-q7-b51eeb43a1f4:option-2"
+        },
+        {
+          "text": "木材基层含水率不得大于 10%。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "用了乳液型的 10%。",
+          "loss_reason": "10% 是乳液型，木材是 12%。",
+          "fix": "木材基层≤12%。",
+          "option_id": "D11-html-practice-html-q7-b51eeb43a1f4:option-3"
+        },
+        {
+          "text": "木材基层含水率与涂料一致，统一按 8% 控制即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "想一刀切统一一个数。",
+          "loss_reason": "木材单列的 12% 被漏掉。",
+          "fix": "木材基层≤12% 单独列出。",
+          "option_id": "D11-html-practice-html-q7-b51eeb43a1f4:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q7-b51eeb43a1f4",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e1e5fa2ab161c5137c03e47aa3dd25e28cf002023bdb449c69b1a0ffe8b350e3",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e1e5fa2ab161c5137c03e47aa3dd25e28cf002023bdb449c69b1a0ffe8b350e3",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "控环境·条件维",
+      "stem": "冬期室内一般抹灰施工。关于环境温度，选出能得分的作答。",
+      "model_answer": "室内抹灰环境温度一般不应低于 5℃。",
+      "options": [
+        {
+          "text": "室内抹灰环境温度一般不应低于 5℃。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "温度下限 5℃，冬期抹灰的判分眼。",
+          "option_id": "D11-html-practice-html-q8-d034809246a9:option-1"
+        },
+        {
+          "text": "室内抹灰环境温度不低于 0℃ 即可施工。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得只要不结冰（0℃）就行。",
+          "loss_reason": "0℃ 偏低，规范是不低于 5℃；低于 5℃ 砂浆冻胀空鼓。",
+          "fix": "室内抹灰温度不应低于 5℃，不是 0℃。",
+          "option_id": "D11-html-practice-html-q8-d034809246a9:option-2"
+        },
+        {
+          "text": "室内抹灰环境温度不低于 10℃ 才能施工。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为越高越保险。",
+          "loss_reason": "10℃ 偏高，规范下限是 5℃。",
+          "fix": "下限是 5℃。",
+          "option_id": "D11-html-practice-html-q8-d034809246a9:option-3"
+        },
+        {
+          "text": "天不太冷就能抹，温度不用卡具体数。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "凭感觉，不写温度值。",
+          "loss_reason": "漏了 5℃ 这个关键下限。",
+          "fix": "写明室内抹灰温度不低于 5℃。",
+          "option_id": "D11-html-practice-html-q8-d034809246a9:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q8-d034809246a9",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6828b85608e157ea38d051e414658c1a38baafa3c79a12cd88288cae4e785f59",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6828b85608e157ea38d051e414658c1a38baafa3c79a12cd88288cae4e785f59",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "概念边界·迁移",
+      "stem": "某外墙外保温工程采用“薄抹灰”做法。判断其与一般（装饰）抹灰工序的关系，选出正确作答。",
+      "model_answer": "外保温薄抹灰是外墙外保温系统的构造层（抹面胶浆+玻纤网），不属于一般/装饰抹灰工序，不能套用一般抹灰的厚度/加强要求。",
+      "options": [
+        {
+          "text": "外保温薄抹灰是外墙外保温系统的构造层，不属于一般抹灰工序，不能套用一般抹灰的总厚 35 加强等要求。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明 territory：薄抹灰属外保温系统，不套一般抹灰采分点。",
+          "option_id": "D11-html-practice-html-q11-b8829e379c1a:option-1"
+        },
+        {
+          "text": "薄抹灰就是抹得薄的一般抹灰，按内墙普通抹灰≤20mm 控制即可。",
+          "is_correct": false,
+          "source_error_code": "E11",
+          "temptation": "望文生义，把“薄抹灰”当薄的一般抹灰。",
+          "loss_reason": "把外保温构造层当一般抹灰，迁移失败。",
+          "fix": "薄抹灰属外保温系统构造层，非一般抹灰。",
+          "option_id": "D11-html-practice-html-q11-b8829e379c1a:option-2"
+        },
+        {
+          "text": "薄抹灰和一般抹灰一样，交接处也按加强网搭接 100mm 处理。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "硬把本体规则套到薄抹灰上。",
+          "loss_reason": "territory 混淆，把外保温系统当抹灰本体。",
+          "fix": "薄抹灰属外保温系统，不套一般抹灰采分点。",
+          "option_id": "D11-html-practice-html-q11-b8829e379c1a:option-3"
+        },
+        {
+          "text": "薄抹灰不用特别区分，反正抹灰做法都差不多。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "含糊过去不作区分。",
+          "loss_reason": "未指出薄抹灰是外保温构造层这一关键区分。",
+          "fix": "须指出薄抹灰属外保温系统构造层。",
+          "option_id": "D11-html-practice-html-q11-b8829e379c1a:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q11-b8829e379c1a",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "5ab050b2eb8e15d236e1eb762f828ad3c3b781c469c102beb3ba80cda07cb6d9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "5ab050b2eb8e15d236e1eb762f828ad3c3b781c469c102beb3ba80cda07cb6d9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "工序衔接·程序维",
+      "stem": "关于涂饰工程与抹灰等湿作业的先后顺序，选出正确作答。",
+      "model_answer": "涂饰工程应在抹灰、吊顶、地面等湿作业完成后进行。",
+      "options": [
+        {
+          "text": "涂饰工程应在抹灰、吊顶、地面等湿作业完成后进行。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "湿作业在前、涂饰在后，工序顺序正确。",
+          "option_id": "D11-html-practice-html-q12-b98e75c92b1e:option-1"
+        },
+        {
+          "text": "为赶工期，涂饰可与抹灰湿作业同时穿插进行。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "抢工期想同步干。",
+          "loss_reason": "涂饰应在湿作业后，穿插=程序顺序错误。",
+          "fix": "涂饰在抹灰等湿作业完成后进行。",
+          "option_id": "D11-html-practice-html-q12-b98e75c92b1e:option-2"
+        },
+        {
+          "text": "先做涂饰再抹灰找平，最后统一收口。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "把先后顺序整个颠倒。",
+          "loss_reason": "抹灰在前、涂饰在后，顺序反了。",
+          "fix": "抹灰湿作业在前，涂饰在后。",
+          "option_id": "D11-html-practice-html-q12-b98e75c92b1e:option-3"
+        },
+        {
+          "text": "涂饰随时都能做，与抹灰没有先后关系。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为工序没先后。",
+          "loss_reason": "漏了涂饰须在湿作业后这一顺序要求。",
+          "fix": "涂饰应在抹灰等湿作业完成后。",
+          "option_id": "D11-html-practice-html-q12-b98e75c92b1e:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q12-b98e75c92b1e",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "45bfe4ffb9f721cf709548ab6eafa31c6da837a534ffc99ed6fb795e4072b55d",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "45bfe4ffb9f721cf709548ab6eafa31c6da837a534ffc99ed6fb795e4072b55d",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "含水率诊断·计算表达维",
+      "stem": "某技术交底写“基层含水率统一控制在 10% 以内即可涂饰”。选出最准确的诊断与补写。",
+      "model_answer": "含水率须分对象：溶剂型≤8%、乳液型≤10%、木材≤12%；统一 10% 对溶剂型偏高、未分对象。",
+      "options": [
+        {
+          "text": "未分对象——溶剂型应≤8%、乳液型≤10%、木材≤12%；统一 10% 对溶剂型超标，应按对象分别控制。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "指出“未分对象”并补齐 8/10/12 三个上限。",
+          "option_id": "D11-html-practice-html-q13-b3dd9f5b5e3c:option-1"
+        },
+        {
+          "text": "统一 10% 没问题，含水率只要不超过 10% 都安全。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "10 看着居中，误以为通用。",
+          "loss_reason": "溶剂型 8% 被放宽到 10%，且未分对象。",
+          "fix": "分对象：溶剂型8、乳液型10、木材12。",
+          "option_id": "D11-html-practice-html-q13-b3dd9f5b5e3c:option-2"
+        },
+        {
+          "text": "只要把数值统一改成 12% 就行了。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "抓到要改，却改错了方向。",
+          "loss_reason": "仍未分对象，且溶剂型/乳液型被放到 12% 超标。",
+          "fix": "分对象 8/10/12，不是统一 12。",
+          "option_id": "D11-html-practice-html-q13-b3dd9f5b5e3c:option-3"
+        },
+        {
+          "text": "含水率不重要，把加强网写清楚就够了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "避重就轻只写会的。",
+          "loss_reason": "整维漏掉含水率控制。",
+          "fix": "含水率分对象 8/10/12 必须写全。",
+          "option_id": "D11-html-practice-html-q13-b3dd9f5b5e3c:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q13-b3dd9f5b5e3c",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "9f7f94cf8676263cc9eeda47a4dbbd92974e7cae92b421e6be3c37f39cc61c89",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "9f7f94cf8676263cc9eeda47a4dbbd92974e7cae92b421e6be3c37f39cc61c89",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "交接搭接诊断·计算表达维",
+      "stem": "某技术交底写“不同材料基体交接处设加强网，与各基体搭接 50mm”。选出正确的指错与改正。",
+      "model_answer": "设加强网正确，但搭接 50mm 不妥——加强网与各基体搭接宽度不应小于 100mm。",
+      "options": [
+        {
+          "text": "设加强网正确，但搭接 50mm 不妥——加强网与各基体的搭接宽度不应小于 100mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "肯定设网这一步，只纠搭接数值到≥100mm。",
+          "option_id": "D11-html-practice-html-q14-c81bce15cee5:option-1"
+        },
+        {
+          "text": "搭接 50mm 已经合规，无需改正。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为 50mm 够用。",
+          "loss_reason": "50<100，不合规。",
+          "fix": "搭接宽度应≥100mm。",
+          "option_id": "D11-html-practice-html-q14-c81bce15cee5:option-2"
+        },
+        {
+          "text": "应把加强网取消，改成在交接处留伸缩缝处理。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "纠错方向跑偏。",
+          "loss_reason": "否定了本来正确的“设加强网”措施。",
+          "fix": "保留加强网，把搭接改到≥100mm。",
+          "option_id": "D11-html-practice-html-q14-c81bce15cee5:option-3"
+        },
+        {
+          "text": "把搭接改成 80mm 即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "知道要加大，却没加到位。",
+          "loss_reason": "80mm 仍小于 100mm。",
+          "fix": "搭接宽度不小于 100mm。",
+          "option_id": "D11-html-practice-html-q14-c81bce15cee5:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q14-c81bce15cee5",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "7662d136b5f576dc017844dea58cef50f9a3a9a6e3e768d9348f0d99cc6605fc",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "7662d136b5f576dc017844dea58cef50f9a3a9a6e3e768d9348f0d99cc6605fc",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +955,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q15",
-      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "a8d861e9317d74c952421aebda959299a77f3a2135638181e71e073c3c230b82",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "a8d861e9317d74c952421aebda959299a77f3a2135638181e71e073c3c230b82",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "46d5c87d4571b2db394eb21e317d4b79a0fe708a30bfea8e3874f5f69bef24ee"

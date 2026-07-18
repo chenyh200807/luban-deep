@@ -1,6 +1,7 @@
 # 鲁班移动端提分闭环 P0A 执行计划
 
-> Status: Proposed / Execution plan for P0A vertical slice
+> Authority status（2026-07-16）：**Reference-only / Superseded as current execution authority**。WS0、ViewModel、evidence、真微信与 decision package 边界可作历史输入；F16 WS1/M1、单 Pack 选择和旧首页形态均不可继续执行。当前产品 authority 见[父级 PRD](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)，当前 Practice 留存执行 authority 见[2026-07-15 计划](2026-07-15-luban-practice-mother-bank-retention-loop-implementation-plan.md)。
+> Status: Reference-only / Superseded 2026-07-16
 > Date: 2026-06-11
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 

@@ -35,7 +35,46 @@
    "expected_ok": true,
    "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
    "anchor": "kc:1A433000_056_0085:1 + {2015,案例1} + {2020,案例二问题2}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-parallel-critical-paths",
+    "skeleton_id": "n01-vskel-a-line-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
+    "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整，与作答要素一致。",
+    "source_anchor": "{2015,案例1} + {2020,案例二问题2}",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "c5354af6bc31f91aeb6a4bef2fa99f012556768fb1f784d22e4e4426d3393a60",
+    "decision_identity_sha256": "31c610067e07457fde588998c7e5048b7090963711a18eefb41a52b40d2d6b8e",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "c5354af6bc31f91aeb6a4bef2fa99f012556768fb1f784d22e4e4426d3393a60",
+     "reviewed_decision_sha256": "31c610067e07457fde588998c7e5048b7090963711a18eefb41a52b40d2d6b8e",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "648a410346b26f54413ef2519a0a42c3dd0ea19e53c3b75e4320d5d9a19d0a14"
+    }
+   }
   },
   {
    "variant_id": "N01-A-line-001",
@@ -50,7 +89,46 @@
    "expected_ok": false,
    "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
    "anchor": "kc:1A433000_056_0085:1 + {2015,案例1} + {2020,案例二问题2}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-parallel-critical-paths",
+    "skeleton_id": "n01-vskel-a-line-bad",
+    "probe_role": "d1_probe",
+    "temptation": "两条线路一样长，写出其中一条看着「已经找到关键线路」了，容易就此收笔。",
+    "loss_reason": "并列最长路径必须全部列出（本题 2 条只写了 1 条），漏列即未全部列出；答题要点是把并列的关键线路逐条写全。",
+    "source_anchor": "{2015,案例1} + {2020,案例二问题2}",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "92645e509fb2d843cb91f3a20b4ee4ac95a63adc523ec6fe2e8a09ff8e8056fb",
+    "decision_identity_sha256": "26f34c42312676895e2cff1a23f7619e694807cdbeb3b3c2c4136291c1d6917b",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "92645e509fb2d843cb91f3a20b4ee4ac95a63adc523ec6fe2e8a09ff8e8056fb",
+     "reviewed_decision_sha256": "26f34c42312676895e2cff1a23f7619e694807cdbeb3b3c2c4136291c1d6917b",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "56f0ab6b9a4f9845a786558bdfa58293ebe8ceae7aa6113e76300bff07114586"
+    }
+   }
   },
   {
    "variant_id": "N01-A-line-002",
@@ -65,7 +143,46 @@
    "expected_ok": false,
    "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
    "anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-parallel-critical-paths",
+    "skeleton_id": "n01-vskel-a-line-bad",
+    "probe_role": "immediate_confirm",
+    "temptation": "「最长的线路就是关键线路」这句判据本身没错，容易以为写到这就算答完。",
+    "loss_reason": "只写判据、未落到本图的具体线路（哪几个节点串成的路径），不满足「落到具体线路」的要求；要点是把线路节点逐一写出。",
+    "source_anchor": "{2017,案例一}",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "b74c68e1261a1c88896aacec05744b44040578673db1c2985ce0cd6638da3498",
+    "decision_identity_sha256": "1c34c869b7c68f633bce7081f9d39ac20eb57e42993b6e9053b6a414f5e6c849",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "b74c68e1261a1c88896aacec05744b44040578673db1c2985ce0cd6638da3498",
+     "reviewed_decision_sha256": "1c34c869b7c68f633bce7081f9d39ac20eb57e42993b6e9053b6a414f5e6c849",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "f4ce2e9448852b5efe1ec6268ff6f923933cd82af209736d06eeff31e0ca1769"
+    }
+   }
   },
   {
    "variant_id": "N01-A-line-003",
@@ -80,7 +197,46 @@
    "expected_ok": false,
    "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
    "anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-parallel-critical-paths",
+    "skeleton_id": "n01-vskel-a-line-bad",
+    "probe_role": "d1_probe",
+    "temptation": "线路里的节点看着都在，容易只核对「有没有这些点」而漏核对前后连不连得上。",
+    "loss_reason": "写出的关键线路节点跳号、前后不连续，不能构成从开始到结束的连续路径；答题要点是节点连续无跳号地贯通全线。",
+    "source_anchor": "{2017,案例一}",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "8bea3aad0232b5ad8b81d16b6e33db93d965d1d32400c487cdfea3c355c9d763",
+    "decision_identity_sha256": "e580d431eb36835f68cd233fccfa23cf18090ccd3f3d2ea4169137fc2e402ab4",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "8bea3aad0232b5ad8b81d16b6e33db93d965d1d32400c487cdfea3c355c9d763",
+     "reviewed_decision_sha256": "e580d431eb36835f68cd233fccfa23cf18090ccd3f3d2ea4169137fc2e402ab4",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "ee2da106ab076284e7903344b8eb9df3792e4e00a7567dce7dbe53e322dd93d7"
+    }
+   }
   },
   {
    "variant_id": "N01-A-line-004",
@@ -95,7 +251,46 @@
    "expected_ok": true,
    "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
    "anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-parallel-critical-paths",
+    "skeleton_id": "n01-vskel-a-line-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "关键线路的正确写法要素多，看到一条完整线路反而担心是不是还少了什么。",
+    "loss_reason": "本题关键线路落到了具体路径、节点连续无跳号，写法完整，与作答要素一致。",
+    "source_anchor": "{2017,案例一}",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "dda4f1a6f0581c3b2a2ea3cc7396a941624f6afe4fb0ff96e8a4953c54de4abc",
+    "decision_identity_sha256": "3acb5c502f6d653a414f85afe02514fd31d22218adebb2a87439f510e3982904",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "dda4f1a6f0581c3b2a2ea3cc7396a941624f6afe4fb0ff96e8a4953c54de4abc",
+     "reviewed_decision_sha256": "3acb5c502f6d653a414f85afe02514fd31d22218adebb2a87439f510e3982904",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "19eb7dbf6b56580b18feec598878a4807b87274049a443804a9a85adb3f5cbf9"
+    }
+   }
   },
   {
    "variant_id": "N01-A-line-005",
@@ -108,7 +303,46 @@
    "expected_ok": true,
    "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
    "anchor": "kc:1A433000_056_0085:1",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-critical-work-zero-float",
+    "skeleton_id": "n01-vskel-a-line-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "「总时差最小」这个判据平时用得少，看到正确写法反而怀疑是不是漏了什么。",
+    "loss_reason": "关键工作的判据就是「总时差最小」，且必须落到本网络图的具体工作上；本题判据与落点都对，与作答要求一致。",
+    "source_anchor": "kc:1A433000_056_0085:1",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "e3bef6a8244bf519254261940ba1aecdfa5064c058d9a497c7e0de3c07370e51",
+    "decision_identity_sha256": "941ac88d979a9e6d52a9e2b56c08393a579766af817b774325419cfb57556093",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "e3bef6a8244bf519254261940ba1aecdfa5064c058d9a497c7e0de3c07370e51",
+     "reviewed_decision_sha256": "941ac88d979a9e6d52a9e2b56c08393a579766af817b774325419cfb57556093",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "abe04d6e3862d3b1a2887e492bfdc41c45ee199d57698a6e5247537e6afa4207"
+    }
+   }
   },
   {
    "variant_id": "N01-A-line-006",
@@ -121,7 +355,46 @@
    "expected_ok": false,
    "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
    "anchor": "kc:1A433000_056_0085:1",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-critical-work-zero-float",
+    "skeleton_id": "n01-vskel-a-line-bad",
+    "probe_role": "d1_probe",
+    "temptation": "只背下「关键工作 = 总时差最小」这句判据，容易以为写出判据就够了。",
+    "loss_reason": "判据对但没落到本网络图的具体工作，不满足「落到具体工作」的要求；答题要点是判据 +「本图哪几项工作总时差最小」都写出。",
+    "source_anchor": "kc:1A433000_056_0085:1",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "9ee0da14a5185b235701b9a677309a0054738e9b84ccbe63a7c8fa03eda4b0f5",
+    "decision_identity_sha256": "7d3051392be9a3a7ea7c2e4a919238f841ad39423a631598a9d693bec893f9c5",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "9ee0da14a5185b235701b9a677309a0054738e9b84ccbe63a7c8fa03eda4b0f5",
+     "reviewed_decision_sha256": "7d3051392be9a3a7ea7c2e4a919238f841ad39423a631598a9d693bec893f9c5",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "4d01c9f26489595eabc6291851c3caa39c109c883d8e9319f6ee77bd6f278583"
+    }
+   }
   },
   {
    "variant_id": "N01-B-expr-007",
@@ -136,7 +409,46 @@
    "expected_ok": true,
    "correct_statement": "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全",
    "anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-duration-along-critical-path",
+    "skeleton_id": "n01-vskel-b-expr-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "总工期只要一个数就够了？看到「线路 + 算式 + 单位」全写反而怀疑是否啰嗦。",
+    "loss_reason": "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全；本题三件都在，与作答要求一致。",
+    "source_anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "a14042234dcf21b4d747fe49abbb5a5161aeff7f2135dd4e3167847c374fb424",
+    "decision_identity_sha256": "482753c228ef65ecb7102765dadaa57aa26e4d887c1cac170862673f19c25e5f",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "a14042234dcf21b4d747fe49abbb5a5161aeff7f2135dd4e3167847c374fb424",
+     "reviewed_decision_sha256": "482753c228ef65ecb7102765dadaa57aa26e4d887c1cac170862673f19c25e5f",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "95a300c08495ad71370092ec7ea83a5daf3fae8cb3b141f5dd14c8b2550030e9"
+    }
+   }
   },
   {
    "variant_id": "N01-B-expr-008",
@@ -151,7 +463,46 @@
    "expected_ok": false,
    "correct_statement": "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全",
    "anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-duration-along-critical-path",
+    "skeleton_id": "n01-vskel-b-expr-bad",
+    "probe_role": "d1_probe",
+    "temptation": "算式、单位都规整，容易只核对「算得对不对」而漏看是沿哪条线路求和的。",
+    "loss_reason": "总工期必须沿关键线路求和；本题沿非关键线路加总，路径选错则结果错，答题要点是先定关键线路再沿它求和。",
+    "source_anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "2c14dc8e17a366301c17f91ce459f81aade5079498b11f4525ec6ca3e38fcd69",
+    "decision_identity_sha256": "d22ce38297cb7f69f76a85a91a18c40b5b4f735828b5c21ba157f302ecf15d71",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "2c14dc8e17a366301c17f91ce459f81aade5079498b11f4525ec6ca3e38fcd69",
+     "reviewed_decision_sha256": "d22ce38297cb7f69f76a85a91a18c40b5b4f735828b5c21ba157f302ecf15d71",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "d7104aecd72bdc7f2d4aa69cce8af2b11d93a1b6fd8cb37cd30088d8e85cb0ac"
+    }
+   }
   },
   {
    "variant_id": "N01-B-expr-009",
@@ -166,7 +517,46 @@
    "expected_ok": false,
    "correct_statement": "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全",
    "anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-duration-along-critical-path",
+    "skeleton_id": "n01-vskel-b-expr-bad",
+    "probe_role": "immediate_confirm",
+    "temptation": "答案直接给出一个数字，看着干净利落，容易觉得「结果对就行」。",
+    "loss_reason": "只写数字、缺线路与算式，不满足「线路 + 算式 + 单位」三件齐全的要求；答题要点是三件都写出。",
+    "source_anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "7164af69e79ef84ac99a096307d87502e302ff5ff4a419bc90eaeb29fafda18a",
+    "decision_identity_sha256": "767efae829e70358a2e8ae1e739963b2a1c7bc725e638421c6c861b0cd4067c1",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "7164af69e79ef84ac99a096307d87502e302ff5ff4a419bc90eaeb29fafda18a",
+     "reviewed_decision_sha256": "767efae829e70358a2e8ae1e739963b2a1c7bc725e638421c6c861b0cd4067c1",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "a36d77d2fc41aed1f06978296d8fc22376a6add8fb8be015e5204a0e3c382226"
+    }
+   }
   },
   {
    "variant_id": "N01-C-delay-010",
@@ -181,7 +571,46 @@
    "expected_ok": true,
    "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
    "anchor": "{2018,案例分析(二)问题1-4}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-delay-vs-total-float",
+    "skeleton_id": "n01-vskel-c-delay-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "一看到「延误」两个字就担心工期，容易忘了先和 3 的总时差比一比。",
+    "loss_reason": "该工作是非关键工作、总时差 3，延误 1 未超过总时差，不影响总工期；判读链要写明「延误 vs 总时差」的比较再下结论。",
+    "source_anchor": "{2018,案例分析(二)问题1-4}",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "077ec1dad0afee7e87b977653e6c9564b2b4164d5b9bcca76575e9e3bf9b0b56",
+    "decision_identity_sha256": "3042741bbb3c82b43457dd7723eccf2ec96970f63feeedfddfe349c674c46d37",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "077ec1dad0afee7e87b977653e6c9564b2b4164d5b9bcca76575e9e3bf9b0b56",
+     "reviewed_decision_sha256": "3042741bbb3c82b43457dd7723eccf2ec96970f63feeedfddfe349c674c46d37",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "75160b15d8a93f921aa49debd215122cac31a92ae5a86815a0041a84d8385d1c"
+    }
+   }
   },
   {
    "variant_id": "N01-C-delay-011",
@@ -196,7 +625,46 @@
    "expected_ok": false,
    "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
    "anchor": "{2018,案例分析(二)问题1-4}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-delay-vs-total-float",
+    "skeleton_id": "n01-vskel-c-delay-bad",
+    "probe_role": "d1_probe",
+    "temptation": "「延误了就会拖工期」是最顺手的直觉，容易跳过与 3 总时差的比较。",
+    "loss_reason": "该工作总时差 3、延误 1 未超总时差，本不影响总工期；本题误判为「拖延」，要点是先比「延误 vs 总时差」再下结论，不能凭直觉。",
+    "source_anchor": "{2018,案例分析(二)问题1-4}",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "72b222048f75fd8298428e1e696bc119b88bcdd8b2374947a8acd6d1197b070c",
+    "decision_identity_sha256": "935b52d878321307c76e1d868aa91dcc1de05f40a069a1645909c0468123a7ec",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "72b222048f75fd8298428e1e696bc119b88bcdd8b2374947a8acd6d1197b070c",
+     "reviewed_decision_sha256": "935b52d878321307c76e1d868aa91dcc1de05f40a069a1645909c0468123a7ec",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "87849bbf8cbc50f733586a4b00661644b6666177cc295e93da255a0584ebf508"
+    }
+   }
   },
   {
    "variant_id": "N01-C-delay-012",
@@ -211,7 +679,46 @@
    "expected_ok": true,
    "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
    "anchor": "{2020,案例二问题3}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-delay-vs-total-float",
+    "skeleton_id": "n01-vskel-c-delay-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "一看到「延误」两个字就担心工期，容易忘了先和 3 的总时差比一比。",
+    "loss_reason": "该工作是非关键工作、总时差 3，延误 2 未超过总时差，不影响总工期；判读链要写明「延误 vs 总时差」的比较再下结论。",
+    "source_anchor": "{2020,案例二问题3}",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "1c5f2cf956c12a151f36e13daa3b85bc99ea924ef7d107524ed0e968a0d74863",
+    "decision_identity_sha256": "9782a8e496d00311e56b69b80fcf294ffbbb171bf7dcd033aa34830cbe940122",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "1c5f2cf956c12a151f36e13daa3b85bc99ea924ef7d107524ed0e968a0d74863",
+     "reviewed_decision_sha256": "9782a8e496d00311e56b69b80fcf294ffbbb171bf7dcd033aa34830cbe940122",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "4df437919c86afbce39397cbd8e58acf32e0490613b3014736c179f223b5b1d6"
+    }
+   }
   },
   {
    "variant_id": "N01-C-delay-013",
@@ -226,7 +733,46 @@
    "expected_ok": false,
    "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
    "anchor": "{2020,案例二问题3}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-delay-vs-total-float",
+    "skeleton_id": "n01-vskel-c-delay-bad",
+    "probe_role": "d1_probe",
+    "temptation": "「延误了就会拖工期」是最顺手的直觉，容易跳过与 3 总时差的比较。",
+    "loss_reason": "该工作总时差 3、延误 2 未超总时差，本不影响总工期；本题误判为「拖延」，要点是先比「延误 vs 总时差」再下结论，不能凭直觉。",
+    "source_anchor": "{2020,案例二问题3}",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "58f24ac55d8a3b6d5fdcddd7d7ec72f64a776ece86e7a6303be5caac28f673d0",
+    "decision_identity_sha256": "3e5d65efb2cf9c67e0867f711064373a1e07b67a5b2df4f9e5a3b6134bf706d1",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "58f24ac55d8a3b6d5fdcddd7d7ec72f64a776ece86e7a6303be5caac28f673d0",
+     "reviewed_decision_sha256": "3e5d65efb2cf9c67e0867f711064373a1e07b67a5b2df4f9e5a3b6134bf706d1",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "2f8a00c4f284f7802315638e56b0e49e292e189dc1c91e4538e98c5d7c1d63c8"
+    }
+   }
   },
   {
    "variant_id": "N01-C-delay-014",
@@ -241,7 +787,46 @@
    "expected_ok": true,
    "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
    "anchor": "{2018,案例分析(二)问题1-4} + kc:1A433000_056_0085:1",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-critical-work-zero-float",
+    "skeleton_id": "n01-vskel-c-delay-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "关键工作听起来「最重要」，反而会犹豫它延误到底算不算数。",
+    "loss_reason": "该工作在关键线路上、总时差为 0，延误即影响总工期；本题判「影响总工期」正确，判断链要写明「TF=0 → 影响总工期」。",
+    "source_anchor": "{2018,案例分析(二)问题1-4} + kc:1A433000_056_0085:1",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "9b664625e75c1b1daad20fe15150cc8dc6341938b5fd431b40e2678a8c71ec80",
+    "decision_identity_sha256": "3c139e107c05cefedf55af4d09cb9791044f7ed50d1f6aafe5e16f5305d29cd4",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "9b664625e75c1b1daad20fe15150cc8dc6341938b5fd431b40e2678a8c71ec80",
+     "reviewed_decision_sha256": "3c139e107c05cefedf55af4d09cb9791044f7ed50d1f6aafe5e16f5305d29cd4",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "cbe4695634dcb45c081146d0bb18a96a4defadc197f06740ecd9eae7b8487e68"
+    }
+   }
   },
   {
    "variant_id": "N01-C-delay-015",
@@ -256,7 +841,46 @@
    "expected_ok": false,
    "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
    "anchor": "{2018,案例分析(二)问题1-4} + kc:1A433000_056_0085:1",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-critical-work-zero-float",
+    "skeleton_id": "n01-vskel-c-delay-bad",
+    "probe_role": "d1_probe",
+    "temptation": "总觉得任何工作都能挤出点机动时间，容易顺手给关键工作也留一份缓冲。",
+    "loss_reason": "关键线路上工作总时差为 0，延误即影响总工期；本题误判为「不影响」，要点是先认定 TF=0 再下「影响」的结论。",
+    "source_anchor": "{2018,案例分析(二)问题1-4} + kc:1A433000_056_0085:1",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "12ea73eea7f97b15ad3536ca4b84df3e5bb8f8b0be11f1b0694cf0bfa8b06142",
+    "decision_identity_sha256": "526a075b0c63e848357430edd49f5e2bde209ba1d6b956572375591f64bbe2f9",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "12ea73eea7f97b15ad3536ca4b84df3e5bb8f8b0be11f1b0694cf0bfa8b06142",
+     "reviewed_decision_sha256": "526a075b0c63e848357430edd49f5e2bde209ba1d6b956572375591f64bbe2f9",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "b20f8cab8e39b6f54dd557cc028b8098a8511bd6a6d06d7b44385458fc3f308b"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-016",
@@ -269,7 +893,46 @@
    "expected_ok": true,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "进度调整方法有五类，「关键工作调整」是否算一类容易记不牢。",
+    "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「关键工作调整」正是其中一类。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "767f7407b433530ccbae3a3148d59685e9464e5b3e79305fcffd3bbc709b121d",
+    "decision_identity_sha256": "45a9e0d715f387b7444a9d3029952d9c718563a61a5a8a09822a856e6a890765",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "767f7407b433530ccbae3a3148d59685e9464e5b3e79305fcffd3bbc709b121d",
+     "reviewed_decision_sha256": "45a9e0d715f387b7444a9d3029952d9c718563a61a5a8a09822a856e6a890765",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "b830f99c938fea912081ae2cac7f3045a669cd1540825d77ab0ea717168f237f"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-017",
@@ -282,7 +945,46 @@
    "expected_ok": false,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-bad",
+    "probe_role": "d1_probe",
+    "temptation": "五类调整方法里，「关键工作调整」名字不如「压缩关键工作」直白，容易被漏认。",
+    "loss_reason": "「关键工作调整」确属进度计划调整方法五类之一；本题误判为「不属于」，答题要点是把五类方法记全，别漏项。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "223001417649e82640e0b6962d14086babbe30a02c7abf232e075027388a4eba",
+    "decision_identity_sha256": "0b3937bf6c85e45e6ecde96e882b58cd315bea459893a4989f2400ef2c410ff2",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "223001417649e82640e0b6962d14086babbe30a02c7abf232e075027388a4eba",
+     "reviewed_decision_sha256": "0b3937bf6c85e45e6ecde96e882b58cd315bea459893a4989f2400ef2c410ff2",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "1143fbec6b7db3d84cdfedabf1249e8675dfc53fa9d6a99a3be0a8f47d56ba53"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-018",
@@ -295,7 +997,46 @@
    "expected_ok": true,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "进度调整方法有五类，「逻辑关系调整」是否算一类容易记不牢。",
+    "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「逻辑关系调整」正是其中一类。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "f6ff1b882afb698df3cd4958a643b14350ecd0ad3cee43f0e92fadbd0a4d3f83",
+    "decision_identity_sha256": "c4691b3003770d1d1a7ab8fa0ca7196252e7bc93236b003ebb4d5287139dcf60",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "f6ff1b882afb698df3cd4958a643b14350ecd0ad3cee43f0e92fadbd0a4d3f83",
+     "reviewed_decision_sha256": "c4691b3003770d1d1a7ab8fa0ca7196252e7bc93236b003ebb4d5287139dcf60",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "6985f43557df30b06fe0894924d4361974b91324d52737a3b590dde9d6974100"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-019",
@@ -308,7 +1049,46 @@
    "expected_ok": false,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-bad",
+    "probe_role": "d1_probe",
+    "temptation": "五类调整方法里，「逻辑关系调整」名字不如「压缩关键工作」直白，容易被漏认。",
+    "loss_reason": "「逻辑关系调整」确属进度计划调整方法五类之一；本题误判为「不属于」，答题要点是把五类方法记全，别漏项。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "ec6b6c081eae079531a4ee70ada0c363e221781797c4995416f1efa09eac1cfa",
+    "decision_identity_sha256": "b904a3cfe4a0ce6eec19112b92edc6831338a8a4d515b1c7c9e57dc2318e6359",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "ec6b6c081eae079531a4ee70ada0c363e221781797c4995416f1efa09eac1cfa",
+     "reviewed_decision_sha256": "b904a3cfe4a0ce6eec19112b92edc6831338a8a4d515b1c7c9e57dc2318e6359",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "d3f590e4553a70f5be5a0902f131dbb37643891a61895487e08921d9c1395c48"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-020",
@@ -321,7 +1101,46 @@
    "expected_ok": true,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "进度调整方法有五类，「重新编制计划」是否算一类容易记不牢。",
+    "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「重新编制计划」正是其中一类。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "032700efa1dce314527d8dd4838d01bbc7897c764319948cbad883ac7de7b5a5",
+    "decision_identity_sha256": "e030e860651c01cecc051e0bbd903ab5c03f66c82ae7ab8e8b8ae62c5dd8a364",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "032700efa1dce314527d8dd4838d01bbc7897c764319948cbad883ac7de7b5a5",
+     "reviewed_decision_sha256": "e030e860651c01cecc051e0bbd903ab5c03f66c82ae7ab8e8b8ae62c5dd8a364",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "257d9b5f5531d95d4d4b87d072fe2d55eff9fec4d117734ca8ad2635b1a3a370"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-021",
@@ -334,7 +1153,46 @@
    "expected_ok": false,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-bad",
+    "probe_role": "d1_probe",
+    "temptation": "五类调整方法里，「重新编制计划」名字不如「压缩关键工作」直白，容易被漏认。",
+    "loss_reason": "「重新编制计划」确属进度计划调整方法五类之一；本题误判为「不属于」，答题要点是把五类方法记全，别漏项。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "858ff43366df27bf820068ea2e53112294b5b8708b7b98b864415c2ea57e8fa4",
+    "decision_identity_sha256": "e93a82a8281e0b71f085cb04b2e776b11b5dff9c90ba87aa2c90604fce515124",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "858ff43366df27bf820068ea2e53112294b5b8708b7b98b864415c2ea57e8fa4",
+     "reviewed_decision_sha256": "e93a82a8281e0b71f085cb04b2e776b11b5dff9c90ba87aa2c90604fce515124",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "5fd0db59af0b5dd45e6d43e2fe5add5b53121dc3b60041135d09903f0ebd025d"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-022",
@@ -347,7 +1205,46 @@
    "expected_ok": true,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "进度调整方法有五类，「非关键工作调整」是否算一类容易记不牢。",
+    "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「非关键工作调整」正是其中一类。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "338492289f5f0e4c1ddef44068ae8aeefae25333b6fd6ed5ae4ffebd14c922a3",
+    "decision_identity_sha256": "399ba8e39fc98d37f6aaad28f5b2381710daf3d7655e1d8672405bc5c322d97e",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "338492289f5f0e4c1ddef44068ae8aeefae25333b6fd6ed5ae4ffebd14c922a3",
+     "reviewed_decision_sha256": "399ba8e39fc98d37f6aaad28f5b2381710daf3d7655e1d8672405bc5c322d97e",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "7b4bd09556fc10180ad3999c83bcf84cc4e85aca6d81e363ca05937f90efd15a"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-023",
@@ -360,7 +1257,46 @@
    "expected_ok": false,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-bad",
+    "probe_role": "d1_probe",
+    "temptation": "五类调整方法里，「非关键工作调整」名字不如「压缩关键工作」直白，容易被漏认。",
+    "loss_reason": "「非关键工作调整」确属进度计划调整方法五类之一；本题误判为「不属于」，答题要点是把五类方法记全，别漏项。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "1db198cac557366a1003644b654c37419c524a5fb82a6594136c95557f771998",
+    "decision_identity_sha256": "9ddb12408bb14763540a566f2f95ab766c49204db708287d5438f1589aa4804b",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "1db198cac557366a1003644b654c37419c524a5fb82a6594136c95557f771998",
+     "reviewed_decision_sha256": "9ddb12408bb14763540a566f2f95ab766c49204db708287d5438f1589aa4804b",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "e0401b189e5a3abbd437a7b405687548c9e83272eb25b21c4bcad73e05872ddc"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-024",
@@ -373,7 +1309,46 @@
    "expected_ok": true,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "进度调整方法有五类，「资源调整」是否算一类容易记不牢。",
+    "loss_reason": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整，「资源调整」正是其中一类。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "f1e0c9c2f8aef0ab19f5a417603787842b90b6b1ef0edd0f1eaba7b2e310301d",
+    "decision_identity_sha256": "66ec112a8e665132f71deab39fce1074c3a5df5953bfe480ebd9b87909897f60",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "f1e0c9c2f8aef0ab19f5a417603787842b90b6b1ef0edd0f1eaba7b2e310301d",
+     "reviewed_decision_sha256": "66ec112a8e665132f71deab39fce1074c3a5df5953bfe480ebd9b87909897f60",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "a06490ddbda1061dcab11bf274f9e2490c0f8f9854e70781365a1a5375b95b09"
+    }
+   }
   },
   {
    "variant_id": "N01-D-adjust-025",
@@ -386,7 +1361,46 @@
    "expected_ok": false,
    "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
    "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-schedule-adjustment-methods",
+    "skeleton_id": "n01-vskel-d-adjust-bad",
+    "probe_role": "d1_probe",
+    "temptation": "五类调整方法里，「资源调整」名字不如「压缩关键工作」直白，容易被漏认。",
+    "loss_reason": "「资源调整」确属进度计划调整方法五类之一；本题误判为「不属于」，答题要点是把五类方法记全，别漏项。",
+    "source_anchor": "kc:1A433000_061_0092:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "a51c2a2f5de6dcea27cdef77fa27e0f058f006c69000b507578585c70205758a",
+    "decision_identity_sha256": "9a0b0574bc5e42824d0cb6d249a7afb042168e7e3d16130b665d8643a3f8e3f6",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "a51c2a2f5de6dcea27cdef77fa27e0f058f006c69000b507578585c70205758a",
+     "reviewed_decision_sha256": "9a0b0574bc5e42824d0cb6d249a7afb042168e7e3d16130b665d8643a3f8e3f6",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "27a73f764f9d780340c15174254488cc260f801772bfc0976628211ffd60d5b4"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-026",
@@ -399,7 +1413,46 @@
    "expected_ok": true,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "监测内容和调整动作容易混，「记录实际时间」到底算监测还是算调整拿不准。",
+    "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「记录实际时间」正是其中一项。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "0138bf661f138c676e34c52261bd6ee37d04a0231b4be6eb97848e89788414d2",
+    "decision_identity_sha256": "ed45ea46d0b1f7d69c3f43f6ac5d63ecd4f9f882fe717a153f476f507df790f3",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "0138bf661f138c676e34c52261bd6ee37d04a0231b4be6eb97848e89788414d2",
+     "reviewed_decision_sha256": "ed45ea46d0b1f7d69c3f43f6ac5d63ecd4f9f882fe717a153f476f507df790f3",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "4300c48a384936058f78852a7e231c52c0a745da1b15e00ca98945c69ff66201"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-027",
@@ -412,7 +1465,46 @@
    "expected_ok": false,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-bad",
+    "probe_role": "d1_probe",
+    "temptation": "「记录实际时间」听着像日常工作，容易觉得它不属于「监测」这个专门环节。",
+    "loss_reason": "「记录实际时间」确属进度实施监测内容之一；本题误判为「不属于」，答题要点是把监测五项内容记全，且别混入调整动作。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "ffac4c09213e4dfb21981d78ea53872bee856e00399e5072d84c8a09a3ccacf3",
+    "decision_identity_sha256": "e7ee4b3a56aba3894e69ceccaf2b60ea64d8d14bcf353b625b90d6eba4588a2e",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "ffac4c09213e4dfb21981d78ea53872bee856e00399e5072d84c8a09a3ccacf3",
+     "reviewed_decision_sha256": "e7ee4b3a56aba3894e69ceccaf2b60ea64d8d14bcf353b625b90d6eba4588a2e",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "793e404053a7ac462c5dc949c512a6bb0b34cd768a30d5d0a5a69cd1f4084c10"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-028",
@@ -425,7 +1517,46 @@
    "expected_ok": true,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "监测内容和调整动作容易混，「观测关键线路」到底算监测还是算调整拿不准。",
+    "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「观测关键线路」正是其中一项。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "b91df6cd4d8548e9f6346109aa72dba1a84c2bb38e1fbca97e02338aaf64dac6",
+    "decision_identity_sha256": "1400fd0c14e6f04444625e3678ed64f21848fba66c00c6d4a4fe7f338d197c11",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "b91df6cd4d8548e9f6346109aa72dba1a84c2bb38e1fbca97e02338aaf64dac6",
+     "reviewed_decision_sha256": "1400fd0c14e6f04444625e3678ed64f21848fba66c00c6d4a4fe7f338d197c11",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "b53d893ec08499703e91efc874ac949cb7af13b97f390f14598087e82dd10588"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-029",
@@ -438,7 +1569,46 @@
    "expected_ok": false,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-bad",
+    "probe_role": "d1_probe",
+    "temptation": "「观测关键线路」听着像日常工作，容易觉得它不属于「监测」这个专门环节。",
+    "loss_reason": "「观测关键线路」确属进度实施监测内容之一；本题误判为「不属于」，答题要点是把监测五项内容记全，且别混入调整动作。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "b82406d6949fdba71142d0a1c3b2d7b14b737585e491add801f823b854601d51",
+    "decision_identity_sha256": "950dbb2f09de0c33ee8e31a54389ff53d81e9a0789f81d5e29a2877bd1e1229c",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "b82406d6949fdba71142d0a1c3b2d7b14b737585e491add801f823b854601d51",
+     "reviewed_decision_sha256": "950dbb2f09de0c33ee8e31a54389ff53d81e9a0789f81d5e29a2877bd1e1229c",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "1e22375d9029c331d3eba25c2b4e3f3f982aeb3355716db1abd3859882e7e2c8"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-030",
@@ -451,7 +1621,46 @@
    "expected_ok": true,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "监测内容和调整动作容易混，「检查非关键工作」到底算监测还是算调整拿不准。",
+    "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「检查非关键工作」正是其中一项。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "36982927f05c84d94ca0f1fd6fcc1be711b8e568d32f44ab3b8dd9318865df63",
+    "decision_identity_sha256": "e3a645a493fa5998bda3586dcb106c1aa0a152e03a28a794a99bad1b2b29fb46",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "36982927f05c84d94ca0f1fd6fcc1be711b8e568d32f44ab3b8dd9318865df63",
+     "reviewed_decision_sha256": "e3a645a493fa5998bda3586dcb106c1aa0a152e03a28a794a99bad1b2b29fb46",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "f1e7ab47f9e94bec9e91c9713fdec48300946b319b8a26c20fb524bb628dad7d"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-031",
@@ -464,7 +1673,46 @@
    "expected_ok": false,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-bad",
+    "probe_role": "d1_probe",
+    "temptation": "「检查非关键工作」听着像日常工作，容易觉得它不属于「监测」这个专门环节。",
+    "loss_reason": "「检查非关键工作」确属进度实施监测内容之一；本题误判为「不属于」，答题要点是把监测五项内容记全，且别混入调整动作。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "326ab5386fc9cd6603c77a10b84734b886f5a008e353414f181c0ec91c8f4eda",
+    "decision_identity_sha256": "bb9b4147d3396108c15e574e94b32014a759a9d5ce92b9ce4fa1355dbe84abad",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "326ab5386fc9cd6603c77a10b84734b886f5a008e353414f181c0ec91c8f4eda",
+     "reviewed_decision_sha256": "bb9b4147d3396108c15e574e94b32014a759a9d5ce92b9ce4fa1355dbe84abad",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "fea1948baa66d794951b122ebb2dea5fcef778d90a31149d466fbd2a05a4dbe2"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-032",
@@ -477,7 +1725,46 @@
    "expected_ok": true,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "监测内容和调整动作容易混，「核查逻辑关系」到底算监测还是算调整拿不准。",
+    "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「核查逻辑关系」正是其中一项。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "e84952fa300433acbe29a2c6b1f18d6298ab7d59acaca6c7fbee961d71eeca2f",
+    "decision_identity_sha256": "4a20ffadb639c6c2f5465dcce852046fc0677eaccc1f2f0e0bb9d928e232de43",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "e84952fa300433acbe29a2c6b1f18d6298ab7d59acaca6c7fbee961d71eeca2f",
+     "reviewed_decision_sha256": "4a20ffadb639c6c2f5465dcce852046fc0677eaccc1f2f0e0bb9d928e232de43",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "601930551614357664b601931d079ed9b8bb7305933eb7b264e48bb69ee8d02d"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-033",
@@ -490,7 +1777,46 @@
    "expected_ok": false,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-bad",
+    "probe_role": "d1_probe",
+    "temptation": "「核查逻辑关系」听着像日常工作，容易觉得它不属于「监测」这个专门环节。",
+    "loss_reason": "「核查逻辑关系」确属进度实施监测内容之一；本题误判为「不属于」，答题要点是把监测五项内容记全，且别混入调整动作。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "9a3856b7eabb910e573b7af91099e25a1340a46d8bfb6752200cf867a1c333aa",
+    "decision_identity_sha256": "6173ce74d5024fed2437494b71d14ec618dcf3d133f06c943d3f547493caeb66",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "9a3856b7eabb910e573b7af91099e25a1340a46d8bfb6752200cf867a1c333aa",
+     "reviewed_decision_sha256": "6173ce74d5024fed2437494b71d14ec618dcf3d133f06c943d3f547493caeb66",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "9dc5f48edb8a5cb1fc5a2b663c881add09107a036badebcb504323a8c9a11031"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-034",
@@ -503,7 +1829,46 @@
    "expected_ok": true,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "监测内容和调整动作容易混，「收集变更」到底算监测还是算调整拿不准。",
+    "loss_reason": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更，「收集变更」正是其中一项。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "c2155271945b67d9c0025901e94e935d9efc5f2ccaf87b08bb76bb46970c83fa",
+    "decision_identity_sha256": "dc6c8bf5e040ed792770236fe4ab7ee7b4d47178707a575820a467abae844b71",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "c2155271945b67d9c0025901e94e935d9efc5f2ccaf87b08bb76bb46970c83fa",
+     "reviewed_decision_sha256": "dc6c8bf5e040ed792770236fe4ab7ee7b4d47178707a575820a467abae844b71",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "71b92544e57bab2997b17ffa3edcda1c65203f5379ff8021eb84dc480fd518f7"
+    }
+   }
   },
   {
    "variant_id": "N01-E-monitor-035",
@@ -516,7 +1881,46 @@
    "expected_ok": false,
    "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
    "anchor": "kc:1A433000_061_0091:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-progress-monitoring-content",
+    "skeleton_id": "n01-vskel-e-monitor-bad",
+    "probe_role": "d1_probe",
+    "temptation": "「收集变更」听着像日常工作，容易觉得它不属于「监测」这个专门环节。",
+    "loss_reason": "「收集变更」确属进度实施监测内容之一；本题误判为「不属于」，答题要点是把监测五项内容记全，且别混入调整动作。",
+    "source_anchor": "kc:1A433000_061_0091:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "54a316c358ad70e0da4565e5e2d6e825caeab4f6c1c1f99aa26d85bdc6802b9c",
+    "decision_identity_sha256": "7584953779a45ac529eaea452ce3417f61eb8825a8230c13c5f8258b6c830e66",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "54a316c358ad70e0da4565e5e2d6e825caeab4f6c1c1f99aa26d85bdc6802b9c",
+     "reviewed_decision_sha256": "7584953779a45ac529eaea452ce3417f61eb8825a8230c13c5f8258b6c830e66",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "42b1c50b7eb5105c43a2fe59b809da2b6c064b109cff30d4bf08c82b0e6d27e9"
+    }
+   }
   },
   {
    "variant_id": "N01-F-procedure-036",
@@ -565,7 +1969,46 @@
    "expected_ok": true,
    "correct_statement": "题干紧前逻辑不全应先补虚工作/调节点（2015：3—4 之间增加一个虚工作），再在正确的网络图上计算关键线路",
    "anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-dummy-activity-logic",
+    "skeleton_id": "n01-vskel-g-logic-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "题干临时加了一条紧前关系，容易想直接在原图上接着算，觉得补图太麻烦。",
+    "loss_reason": "新增紧前逻辑（F 须 B、C 均完成）后，应先在 3—4 节点间增设虚工作补全逻辑，再在正确的网络图上算关键线路；本题先补图再计算，做法正确。",
+    "source_anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "0968066bc50f16fb95f2ba16d9f42192ad8543c5d0deac62e33cb387003d926a",
+    "decision_identity_sha256": "9d020f0f543db65170d6cec3290f9b8c45b6f39cd84c36ac58024aae153ec9c6",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "0968066bc50f16fb95f2ba16d9f42192ad8543c5d0deac62e33cb387003d926a",
+     "reviewed_decision_sha256": "9d020f0f543db65170d6cec3290f9b8c45b6f39cd84c36ac58024aae153ec9c6",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "2de693fd07c4d21c97c82f2de2f13bf5cdecc4e9830565d18f86717ef0dbaa22"
+    }
+   }
   },
   {
    "variant_id": "N01-G-logic-040",
@@ -578,7 +2021,46 @@
    "expected_ok": false,
    "correct_statement": "题干紧前逻辑不全应先补虚工作/调节点（2015：3—4 之间增加一个虚工作），再在正确的网络图上计算关键线路",
    "anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-dummy-activity-logic",
+    "skeleton_id": "n01-vskel-g-logic-bad",
+    "probe_role": "d1_probe",
+    "temptation": "原图就在眼前，新增一条逻辑关系后，容易顺手在原图上直接开算。",
+    "loss_reason": "新增紧前逻辑却未调整网络图、未补虚工作，就在未补全逻辑的图上算关键线路，不满足「先补虚工作再计算」的要求；答题要点是先补虚工作/调节点，再在正确图上计算。",
+    "source_anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "c99320120e7f51c11aec81a8fdea6b6dd141f01533bc4aa9ab951117223e27c6",
+    "decision_identity_sha256": "eeadc01f89c7fe1ef9c66d3ecc40c95f3c8f0b1e3f3455369aa0f0b2fc381309",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "c99320120e7f51c11aec81a8fdea6b6dd141f01533bc4aa9ab951117223e27c6",
+     "reviewed_decision_sha256": "eeadc01f89c7fe1ef9c66d3ecc40c95f3c8f0b1e3f3455369aa0f0b2fc381309",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "8b69d0228f5f659ad907602c47611487933eb05cda92d327570145bdad36838c"
+    }
+   }
   },
   {
    "variant_id": "N01-G-logic-041",
@@ -591,7 +2073,46 @@
    "expected_ok": true,
    "correct_statement": "题干紧前逻辑不全应先补虚工作/调节点（2015：3—4 之间增加一个虚工作），再在正确的网络图上计算关键线路",
    "anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-dummy-activity-logic",
+    "skeleton_id": "n01-vskel-g-logic-ok",
+    "probe_role": "immediate_confirm",
+    "temptation": "题干临时加了一条紧前关系，容易想直接在原图上接着算，觉得补图太麻烦。",
+    "loss_reason": "新增紧前逻辑（F 须 B、C 均完成）后，应先在 3—4 节点间增设虚工作补全逻辑，再在正确的网络图上算关键线路；本题先补图再计算，做法正确。",
+    "source_anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "6b96ca8816693a66a0d7b8e282d884c382531ca36f735f89dcec86dc7cdfa9f2",
+    "decision_identity_sha256": "26f16a8167cd6d3af68349f3eb3271018308e22208f7bb4890a7d2aee465dc24",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "6b96ca8816693a66a0d7b8e282d884c382531ca36f735f89dcec86dc7cdfa9f2",
+     "reviewed_decision_sha256": "26f16a8167cd6d3af68349f3eb3271018308e22208f7bb4890a7d2aee465dc24",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "49416e756cfa945347a5a4c69ae32abd2a39d4116667f005d0e0192be150d53c"
+    }
+   }
   },
   {
    "variant_id": "N01-G-logic-042",
@@ -604,7 +2125,46 @@
    "expected_ok": false,
    "correct_statement": "题干紧前逻辑不全应先补虚工作/调节点（2015：3—4 之间增加一个虚工作），再在正确的网络图上计算关键线路",
    "anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
-   "extension": false
+   "extension": false,
+   "decision": {
+    "schema": "luban_variant_decision.v1",
+    "fact_id": "n01-fact-dummy-activity-logic",
+    "skeleton_id": "n01-vskel-g-logic-bad",
+    "probe_role": "d1_probe",
+    "temptation": "原图就在眼前，新增一条逻辑关系后，容易顺手在原图上直接开算。",
+    "loss_reason": "新增紧前逻辑却未调整网络图、未补虚工作，就在未补全逻辑的图上算关键线路，不满足「先补虚工作再计算」的要求；答题要点是先补虚工作/调节点，再在正确图上计算。",
+    "source_anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
+    "source_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+    "content_sha256": "7d386848e2ff82b6d398de4fe0895790f395692bf1249ff61f6755a817bfcfc6",
+    "decision_identity_sha256": "716e54d63c2cf1ad865c407571b4604ceb58dd585e500dbb7f9856195d4abfa7",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "7d386848e2ff82b6d398de4fe0895790f395692bf1249ff61f6755a817bfcfc6",
+     "reviewed_decision_sha256": "716e54d63c2cf1ad865c407571b4604ceb58dd585e500dbb7f9856195d4abfa7",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-17",
+       "signed_at": "2026-07-17T10:30:00+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "owner 授权委托签发(原话见 implementation-notes 2026-07-16 条);内容经四轮 Codex 异源对抗收敛(全量→修复→增量复核 GO):S05 74 条、N01 40 条;剔除项(50kW fact/F-procedure fact)归编译管道批,见 codex-candidates-final.md 与 codex-delta-review.md",
+     "signature_envelope_sha256": "593033cf9f863e7428fbbaa75973202fa5e6a5a14565c014ca67f0cd33a24880"
+    }
+   }
   }
  ],
  "signoff": {

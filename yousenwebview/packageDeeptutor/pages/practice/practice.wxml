@@ -1,5 +1,5 @@
 <!-- pages/practice/practice.wxml — 练习中心（复刻 Web practice 页） -->
-<view class="practice-page {{isDark?'':'light'}}">
+<view class="practice-page paper {{isDark?'':'light'}} pk-paper-bg">
 
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">

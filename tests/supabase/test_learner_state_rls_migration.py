@@ -174,3 +174,30 @@ def test_live_rls_regression_tables_force_rls() -> None:
         "wallets",
     ):
         assert f"alter table public.{table} force row level security;" in sql
+
+
+def test_luban_retest_probe_claim_reuses_ledger_and_is_service_role_only() -> None:
+    migration_path = (
+        Path(__file__).resolve().parents[2]
+        / "supabase"
+        / "migrations"
+        / "20260716000100_learner_state_luban_retest_probe_claim.sql"
+    )
+    sql = migration_path.read_text(encoding="utf-8").lower()
+
+    assert "create table" not in sql
+    assert "insert into public.learner_memory_events" in sql
+    assert "on conflict (dedupe_key) do nothing" in sql
+    assert "jsonb_build_array" in sql
+    assert "encode(digest(v_identity_json, 'sha256'), 'hex')" in sql
+    assert "when v_winner_completion = btrim(p_completion_id) then 'acquired'" in sql
+    assert "when v_winner_hash <> p_request_hash then 'conflict'" in sql
+    assert "create or replace function public.read_luban_retest_completion_events" in sql
+    for function_signature in (
+        "public.claim_luban_retest_probe(text, text, text, text, text)",
+        "public.read_luban_retest_completion_events(text, text)",
+    ):
+        assert f"revoke all on function {function_signature} from public" in sql
+        assert f"revoke all on function {function_signature} from anon" in sql
+        assert f"revoke all on function {function_signature} from authenticated" in sql
+        assert f"grant execute on function {function_signature} to service_role" in sql

@@ -135,6 +135,16 @@ function loadReportPage(stubs) {
           ),
         );
       }
+      if (request === "../../utils/learn-view-model") {
+        return require(
+          path.join(__dirname, "../packageDeeptutor/utils/learn-view-model.js"),
+        );
+      }
+      if (request === "../../utils/report-home-view-model") {
+        return require(
+          path.join(__dirname, "../packageDeeptutor/utils/report-home-view-model.js"),
+        );
+      }
       if (request === "../../utils/taxonomy") {
         return require(
           path.join(__dirname, "../packageDeeptutor/utils/taxonomy.js"),
@@ -844,8 +854,8 @@ function createPageInstance(pageDef) {
         "report page should not read legacy today progress directly",
       );
       assert(
-        counters.home === 0,
-        "report page should not read legacy homepage dashboard directly",
+        counters.home === 1,
+        "report page should read home dashboard once for canonical next_step only",
       );
       assert(
         counters.assessment === 0,
@@ -1616,11 +1626,11 @@ function createPageInstance(pageDef) {
       );
       assert(
         counters.today === 0 &&
-          counters.home === 0 &&
+          counters.home === 1 &&
           counters.assessment === 0 &&
           counters.mastery === 0 &&
           counters.brain === 0,
-        "cached report SWR must not revive legacy report readers",
+        "cached report SWR may refresh canonical next_step but must not revive legacy report readers",
       );
 
       freshDeferred.resolve({

@@ -10,7 +10,7 @@
 
 > 关联专项（2026-07-01）：获客 / 引流 / 转化维度另见 [考点小课引流与会员转化专项计划](2026-07-01-luban-microlesson-acquisition-conversion-plan.md)（Proposed，child plan）。它把教学动画卡当引流钩子（免费 3 个 → 会员），定位为漏斗顶部获客层，复用本文同一套单一权威，不改本文 P0A 留存主菜范围；其「把视频教学从 gated on 留存 提前到引流试点 + 引入会员转化」相对本文 §1 非目标是一个**待用户拍板的优先级调整**，不视为本文已批准范围。
 >
-> 关联专项（2026-07-02，产品负责人已拍板方向）：学习 / 复习双轮机制另见 [「学习 × 复习」双轮设计 v3](2026-07-02-luban-learn-review-double-wheel-design.md)（Proposed，child plan）。它是本文留存主菜「今日任务 → 轻练 → 诊断 → 次日复测」的**机制稿**（间隔重复引擎 = 次日复测的发动机），不改 North Star：①目标信息架构收敛为 5 Tab「学习 / 复习 / 对话 / 学情 / 我的」，「今日」保留为学习首屏英雄位（现线上聊天打头的 tabBar 属本文点名的反模式，迁移作为独立工程项 gated 在 v3 阶段 2）；②本文 §11 错题本纳入「复习」模块的复习单元之一，其复习调度 / 掌握态真值收权到 `revalidation_queue`（`mistake_book` 硬编码 due 日期已按 v3 §10-① 修复）；③落地节奏：v3 阶段 1 最小双轮 spike 即本文 P0A 的留存实验载体，阶段 2+ 扩量 gated on D1/D7 数据。
+> 关联专项（2026-07-02 机制输入；2026-07-16 产品表面已收口）：[「学习 × 复习」双轮设计 v3](2026-07-02-luban-learn-review-double-wheel-design.md) 仅保留为「今日任务 → 轻练 → 诊断 → 次日复测」的间隔复测机制输入，**不再定义独立复习模块或 Tab**。当前目标信息架构唯一为 5 Tab「学习 / 历史 / 问鲁班 / 学情 / 我的」；复测、错题和到期任务都是「学习」内的任务状态，调度/掌握真值仍收权到 `revalidation_queue` 与 LearnerState；「历史」只承载对话历史和继续对话，不承载练习流水。
 
 本文件吸收并收口以下输入资料，但这些输入资料不再单独作为实现 authority：
 
@@ -25,11 +25,11 @@
 v1.2 的关键升级不是把文档写厚，而是把本计划从「方向总控」升级成「可执行产品契约」，并吸收 2026-06-11 计划体系评审的 P0 收权结论：
 
 - 明确 North Star、用户承诺和业务闭环。
-- 明确 P0A 先做单母题 spike（v1.3 已把 spike 形态改为「每日留存闭环」，见 §0.0），再扩到 3-5 个高频母题，不一次性铺开全部 30-40 母题和五 Tab 全量重构。
+- 明确 P0A-0 先准备 2–3 个同门槛 Pack 的代表性微批 spike（treatment 默认 2 个，第 3 个只在真实流量足够时进入；v1.3 已把 spike 形态改为「每日留存闭环」，2026-07-16 取消 F16 专属优先级），再扩到 3–5 个高频母题；P0A-1 才解锁半写、完整作答与 AI 批改，不一次性铺开全部 30–40 母题和复杂训练形态。
 - 明确 P0B 再扩到 30-40 个高频母题包和更完整入口。
 - 补齐 release gates、失败态、资产生产线、任务推荐公式、人工复核、隐私、成本、灰度和回滚门槛。
 - 保持 single authority：前端、OCR、行为事件、RAG、知识图谱都不能成为评分或 learner truth 的第二来源。
-- 增补四个实施前置硬门槛：小程序开发树与验收树收权、推荐 authority 映射、半写/轻练 task scope 证据规则、`mistake_tag` canonical schema。
+- 增补实施前置硬门槛：小程序开发树与验收树收权、推荐 authority 映射、轻练证据规则；半写 `task_scope` 与 `mistake_tag` canonical schema 是 P0A-1 深度层前置，不再反向阻断 P0A-0 留存切片。
 
 ### 0.0 v1.3 重心收口（2026-06-15）
 
@@ -86,7 +86,7 @@ P0A 只有证明这条**留存主链**真实可走（人会回来），才允许
 
 P0 也不追求完整铺开所谓「100 个知识点」。这里的知识地图只表示后台有一套有限、可治理、可标注、可调度的章节/知识点/母题/采分点体系。前台不卖「100 知识点通关」，前台只告诉用户今天最该练什么、为什么丢分、下一题怎么补。
 
-P0A 也不追求一次性重构完整五 Tab、完整章节地图、完整 30-40 母题包、完整 OCR 流量策略或完整会员体系。P0A 的目标只有一个：先用单母题 spike 证明「今日任务 -> 作答 -> 批改 -> 证据 -> 错因复练 -> 复测」纵切闭环成立，再扩到 3-5 个高频母题。
+P0A 也不追求一次性重构完整五 Tab、完整章节地图、完整 30–40 母题包、完整 OCR 流量策略或完整会员体系。P0A 的目标只有一个：先用 2–3 个通过同一资格门的 Pack 微批，证明「今日任务 -> 作答 -> 批改 -> 证据 -> 错因复练 -> 复测」纵切闭环不依赖某一特殊 Pack，再扩到 3–5 个高频母题。
 
 ## 2. One Business Fact And Authority
 
@@ -194,13 +194,14 @@ Phase 0 必须先冻结「新概念 ↔ 既有 authority」映射，未映射的
 
 高频母题包分两层推进：
 
-- P0A：先做 1 个单母题的「每日留存闭环」spike（今日任务 → 2 分钟 MCQ 轻练 → 选错即诊断 → 次日复测，验证回访），再扩到 3-5 个高频案例母题包；案例题渐进作答 / AI 批改 / 错因写入作为养成后解锁的深度层，在留存验证通过后纳入。
+- P0A-0：准备 2–3 个同门槛 Pack 的「每日留存闭环」微批（今日任务 → 2 分钟 MCQ 轻练 → 选错即诊断 → 次日复测，验证回访）；treatment 默认 2 个，第 3 个只有在 A/A 自然流量与预注册样本门满足时进入，再扩到 3–5 个高频母题包。
+- P0A-1：案例题渐进作答 / AI 批改 / 二次作答 / 错因写入的深度层；只在 P0A-0 留存信号、answer oracle、fact revocation、`task_scope` 与 grading gates 通过后纳入。
 - P0B：在 P0A 闭环指标通过后，扩到 30-40 个高频案例母题包。
 
 P0A 推荐顺序（v1.3 重心已从「先打案例题深度闭环」改为「先验证每日留存」）：
 
-- Spike 1：**每日提分留存闭环**。范围 = 今日任务卡 + 1 个高频母题（F16 防水工程）下的一组知识点 / 母题 MCQ 轻练（2 分钟可完成）+ 当场盲点诊断（错选项映射采分点 / 教材章节）+「明天复测」开环 + 次日复测卡。目标不是把案例题批改打深，而是用最低门槛证明**忙碌成年人会连续几天回来**。
-- 复用 F16 防水已有的 grading-to-learning 资产作为内容来源，但第一锤验证的是**留存行为**，不是案例题批改深度。
+- Spike 1（P0A-0）：**每日提分留存闭环**。范围 = 今日任务卡 + 同一硬门槛下准备的 2–3 个 Pack 母题 MCQ 轻练（2 分钟可完成，treatment 默认 2 Pack）+ 当场盲点诊断（错选项映射采分点 / 教材章节）+「明天复测」开环 + 次日复测卡。目标不是把某一个案例题批改打深，而是用低门槛证明**忙碌成年人会连续几天回来，且效果不是某一 Pack 的偶然性**。
+- 所有 Pack 共用同一资格、选题、判分、复测和埋点链。F16 只作普通候选和历史回归样例，不默认入选，不允许专属逻辑；任何 Pack 都按同一内容资格与流量门进入或退出 cohort。
 - 案例题渐进作答 + AI 采分点批改深度层：作为留存闭环跑通后第二阶段解锁；扩展候选母题 F01 进度计划与关键线路、F02 工期索赔、F04 质量验收程序、F05 危大工程专项方案；F03 费用索赔作为备选，不在 Spike 1 阶段并行铺开。
 - GO 门：钉在真实 D1/D7 回访留存（预注册目标值），不是闭环完成率或技术走通。
 
@@ -249,7 +250,7 @@ P0B 目标池，包含 P0A 已验证母题并继续扩展：
 - 题目列表和题目难度。
 - 采分点清单、每点给分依据、命中/部分命中/未命中规则。
 - 常见错因标签与示例答案。
-- 轻练、半写、实战至少两种训练模式的任务设计；P0A 至少覆盖轻练 + 半写。
+- P0A-0 只要求轻练 + 诊断 + 到期验证同构闭环；P0A-1 候选包才要求半写/实战至少一种深度训练模式，并具备 answer oracle、`task_scope` 与评分证据门。
 - 对应 read model 字段和埋点。
 - 资产 owner、reviewer、更新时间、回滚方式。
 
@@ -267,28 +268,24 @@ P0B 目标池，包含 P0A 已验证母题并继续扩展：
 
 ## 5. 移动端信息架构
 
-最终信息架构目标是 5 Tab，但 P0A 不做全量 TabBar 替换。P0A 可以在现有 4 Tab 内用「今日焦点」入口、独立入口页或 feature flag 承载今日任务；只有单母题 spike 和 P0A decision package 通过后，才把 5 Tab 重构放入 P0B。
+目标信息架构唯一为 5 Tab。P0A-0 必须先完成底部导航与一级职责收权，但只改 Tab 归属、学习首页唯一 CTA 和必要深链，不借机全量重做所有二级页；P0B 再做视觉与能力扩面。
 
-底部导航采用：
-
-```text
-今日 | 练习 | AI 批改 | 错题 | 我的
-```
-
-不要采用：
+底部导航目标：
 
 ```text
-首页 | 题库 | 学情 | 问答 | 我的
+学习 | 历史 | 问鲁班 | 学情 | 我的
 ```
+
+禁止恢复独立复习 Tab，也不把历史变成成绩单/练习流水。
 
 一级页面职责：
 
 | 页面 | 用户问题 | 产品职责 |
 | --- | --- | --- |
-| 今日 | 我今天最该干什么？ | 输出主任务、风险、最近进步、重排入口 |
-| 练习 | 我想主动练哪类题？ | 高频母题、章节任务包、真题、模考、冲刺 |
-| AI 批改 | 我写的答案为什么丢分？ | 选题、拍照、OCR 确认、批改、二次作答 |
-| 错题 | 我持续以什么方式丢分？ | 按错因、采分点、母题、章节、复习时间组织 |
+| 学习 | 我现在只该做什么？ | 唯一主任务；微课、Practice、错后确认和到期复测在同一任务路中切换 |
+| 历史 | 我过去聊了什么，从哪里继续？ | 对话历史、搜索和继续对话；不混学习证据 |
+| 问鲁班 | 我现在要问什么？ | TutorBot 实时对话和当前会话 |
+| 学情 | 我最近进步了什么，下一个盲点是什么？ | 只留最近进步、当前 1–3 个盲点、唯一下一步；证据不足显示 `insufficient_evidence` |
 | 我的 | 账户和权益是什么？ | 会员、偏好、考试信息、客服、隐私 |
 
 ## 6. 首页「今日」要求
@@ -302,18 +299,17 @@ P0B 目标池，包含 P0A 已验证母题并继续扩展：
 3. 为什么推荐这件事。
 4. 做完能补哪类分。
 
-首页结构：
+首屏驾驶舱结构：
 
 ```text
-顶部状态条
-今日主任务卡
-快速操作区：轻练 5 分钟 | 半写 15 分钟 | 拍照批改
-薄弱点诊断卡
-最近一次批改卡
-微复习卡
-计划重排 / 冲刺入口
+顶部状态：距考试 / 今日可用时间
+唯一主任务卡：任务 + 推荐原因 + 预计收益
+唯一主 CTA：开始 / 继续 / 到期验证（三者只出现其一）
+完成后回执：本次补了什么 / 为什么丢分 / 明天验证什么
 底部导航
 ```
+
+到期复测、未闭合 Practice、推荐微课与断更恢复只竞争同一个主任务位；轻练、半写、拍照批改、薄弱点和最近批改不得在首屏形成并列 CTA，后续深度能力统一藏到任务完成后的下一步或二级页。
 
 首页验收：
 
@@ -377,10 +373,9 @@ priority_score =
 
 输出约束：
 
-- 今日主任务 1 个。
-- 微复习 1 个。
-- 可选任务 1 个。
-- 快速提问入口 1 个，但快速提问不能替代主任务。
+- 首屏 `primary_task` 恰好 1 个、主 CTA 恰好 1 个；到期复测、未闭合 Practice、推荐微课和断更恢复按 authority 优先级竞争该位置。
+- 不输出并列“微复习”或“可选任务”；次级能力进入任务完成后的下一步或二级页。
+- 快速提问只由底部「问鲁班」Tab 承载，不在学习首屏与主任务争抢注意力。
 
 推荐必须解释给用户看，但不暴露复杂公式。推荐原因应来自已存在的学习证据、错因、到期复习或冷启动诊断，不得用前端本地状态臆造。
 
@@ -390,7 +385,7 @@ priority_score =
 
 ## 8. 案例题渐进作答
 
-移动端不能默认要求用户长篇打字。案例题训练分四种模式：
+移动端不能默认要求用户长篇打字。以下是能力阶梯，不是 P0A-0 同期发布清单：
 
 | 模式 | 场景 | 输入方式 | 目标 |
 | --- | --- | --- | --- |
@@ -399,12 +394,13 @@ priority_score =
 | 实战 30 分钟 | 周末、考前、周测 | 纸笔手写 + OCR | 真实考试输出 |
 | 拍照批改 | 已有手写答案 | OCR + 校对 + 批改 | 诊断真实答案 |
 
-P0A 轻练题型收敛为单选/多选和案例小问；排序、匹配、填空进入 P0B。P0A 半写只能覆盖明确的 `covered_scoring_point_ids`，范围外采分点不得被写成 miss evidence。
+P0A-0 轻练题型收敛为单选/多选和案例小问；排序、匹配、填空进入 P0B。P0A-1 半写只能覆盖明确的 `covered_scoring_point_ids`，范围外采分点不得被写成 miss evidence。
 
 默认策略：
 
-- 新用户：轻练 1 题 -> 半写 1 题 -> 送 1 次拍照诊断。
-- 老用户日常：半写。
+- P0A-0 新用户：完成 5 题轻练 -> 诊断 -> 有安全题才当场确认 -> D+1 验证。
+- P0A-1 新用户（深度层解锁后）：轻练 1 题 -> 半写 1 题；拍照诊断仍为受控入口。
+- P0A-1 老用户日常：半写。
 - 长时间未学习：轻练。
 - 考前冲刺：提高实战比例。
 - 用户已有答案：拍照批改。
@@ -511,7 +507,7 @@ P1 再定义完整复核队列、SLA、复核结果回流 rubric/mistake_tag 的
 
 ## 11. 错题与学情
 
-> 2026-07-02 对齐：错题本在目标 IA 中归入「复习」模块，作为其两种复习单元之一（另一种为考点卡）；复习调度 / 到期 / 掌握态的唯一真值 = `revalidation_queue`（`mistake_book` 自建 due 日期已收权修复）。整合设计见 [双轮设计 v3](2026-07-02-luban-learn-review-double-wheel-design.md) §6。本节原则（复盘中心非收藏夹、关闭靠客观复测）不变。
+> 2026-07-16 IA 收权：错题、到期验证与考点回炉都进入「学习」内的任务状态，不再形成独立复习模块；调度 / 到期 / 掌握态的唯一真值仍是 `revalidation_queue`（`mistake_book` 自建 due 日期已收权修复）。[双轮设计 v3](2026-07-02-luban-learn-review-double-wheel-design.md) 只保留机制参考。本节“复盘中心非收藏夹、关闭靠客观复测”的原则不变。
 
 错题本不是错题收藏夹，而是错误模式复盘中心。
 
@@ -799,34 +795,34 @@ P0A 不用追求所有指标显著提升，但必须证明数据可采、口径�
 
 ## 14. P0 / P1 / P2
 
-### P0A: 端到端纵切
+### P0A: 两级纵切，不把深度层绑死在留存首发
 
 P0A 是第一实施批次，目标是证明闭环，而不是证明资产规模。
 
-范围：
+P0A-0（当前首发，Practice retention slice）范围：
 
-- 留存闭环 spike 先行（今日任务 + 2 分钟 MCQ 轻练 + 选错即诊断 + 次日复测），内容默认取 F16 防水工程；通过后扩到 3-5 个高频母题包，案例题批改深度层第二阶段解锁。
-- 今日页 1 个主任务 + 1 个微复习 + 1 个可选任务。
-- 轻练 5 分钟路径，P0A 只做单选/多选和案例小问。
-- 半写 15 分钟路径。
-- 1 个 AI 批改结果页。
-- 1 条错因复练路径。
-- 1 次复测 readback。
-- OCR 只做受控 preview 或小样本诊断，不作为日常默认路径。
-- 不替换现有 TabBar；5 Tab 重构进入 P0B。
-- 真实微信入口至少完成一个核心 entry flow 验证。
+- 5 Tab 一级职责收权：`学习 / 历史 / 问鲁班 / 学情 / 我的`，不做二级页全量重构。
+- 学习首页 1 个 `primary_task` + 1 个主 CTA；复测、未闭合 Practice 与推荐微课竞争同一位置。
+- 准备 2–3 个同门槛 Pack 切片，treatment 默认 2 个；第 3 个仅在自然流量与样本门满足时进入。
+- 视频后 5 题轻练（单选/多选/案例小问）→ 错项诊断 → 有安全题才当场确认 → D+1 同 fact 验证。
+- exact H5 receipt、服务端重判、canonical terminal、同 probe 多端原子幂等和一次复测 readback。
+- 真实微信入口至少完成一个核心 entry flow；OCR、半写、完整作答、AI 批改不在 P0A-0 发布范围。
 
-P0A 验收：
+P0A-0 验收：
 
-- 新用户能完成轻诊断并得到下一步半写任务。
-- 老用户能从今日任务进入半写，完成批改，看到 3 个主要问题和采分点证据。
-- 批改结果能产生 learning_evidence，并通过 read model 回到错因/今日任务。
-- 用户能从错因进入同类复练。
-- 一次复测能读回前序错因状态。
-- 半写/轻练 evidence 必须带 `task_scope`；范围外采分点不得写成 miss。
-- `mistake_tag` 只有在 canonical schema 冻结并接入 evidence builder 后才能写入长期 learner truth。
-- 前端不自算 score/mastery/next action。
-- OCR raw 不批改，行为事件不写 learner memory。
+- 新老用户都能在 5 秒内看见唯一任务，并在 2–5 分钟完成 5 题、可信诊断和回执。
+- 用户能在 D+1 由同一学习任务位进入到期验证，并读回前序 fact/probe 状态。
+- 所见 exact items 与服务端重判、terminal 引用和 learner evidence 100% 对齐；前端不自算 score/mastery/next action。
+- 所有 Pack 走同一路由与资格门；F16 不享有默认入口、schema、签发、学情或埋点特权。
+- 行为事件不写 learner memory；诊断若无 canonical `mistake_tag` 映射，只展示，不写长期 truth。
+
+P0A-1（留存后解锁的深度层）范围与验收：
+
+- 半写 15 分钟、完整作答、1 个 AI 批改结果页、二次作答和错因复练；OCR 只做受控 preview 或小样本诊断。
+- 新用户可从轻练进入半写；老用户可完成批改并看到 1–3 个主要问题和采分点证据。
+- 批改结果经 canonical grading/evidence authority 回到错因与下一任务，同类复练和二次作答可闭环。
+- 半写 evidence 必须带 `task_scope`、`covered_scoring_point_ids` 和 `evidence_weight`；范围外采分点不得写成 miss。
+- answer oracle、fact revocation、`mistake_tag` schema、Trust、Cost/SLA 与 grading gates 未通过时，P0A-1 保持关闭，不反向阻断 P0A-0。
 
 ### P0B: 扩展与入口完善
 
@@ -893,7 +889,7 @@ Phase 0: authority / inventory / asset gate
 - `mistake_tag` canonical schema 前置任务与 contract 影响清单。
 - 可复用组件清单。
 - 废弃页面清单。
-- P0A 单母题 spike 资产清单和扩展候选母题资产清单。
+- P0A-0 首批 2–3 Pack 切片资产清单和扩展候选资产清单。
 - P0A release gate owner 清单。
 
 验收：知道哪些页面保留、下线、迁移；哪些 API 复用；哪些 read model 需补。
@@ -949,16 +945,18 @@ P0A decision package 达到 GO 或受控 WEAK-GO 后，才能扩展到更多母�
 
 P0A 不满足以下 gate，不得进入真实用户灰度。
 
+适用性：Frontend、Asset、P0A-0 UX、Authority、Authorization、WeChat、Rollback、Decision Sample 是 P0A-0 硬门；Trust、Cost/SLA、Task Scope、Mistake Tag 与深度 UX 是 P0A-1 追加门。P0A-1 未就绪不得反向卡住 P0A-0。
+
 | Gate | 必须证明 | 不通过时 |
 | --- | --- | --- |
 | Frontend Source Tree Gate | 开发 source of truth、同步机制、最近一次上传源、真实验收目标一致；`wx_miniprogram` 与 `yousenwebview/packageDeeptutor` 不得漂移 | 阻断开发或验收，只能算 partial |
-| Asset Gate | 单母题 spike 资产完整；扩展母题包有来源、采分点、错因、题目绑定、训练任务、owner/reviewer | 停在 mock / internal |
-| UX Gate | 首页 5 秒知道任务；轻练 ≤5 分钟；半写 ≤15 分钟；批改首屏能说出 1-3 个问题；二次作答 CTA 可见 | 不进入灰度 |
+| Asset Gate | 首批每个 Pack 切片的已发集合均完整；所有 Pack 使用同一来源、答案、诊断、题目绑定、owner/reviewer 门槛 | 只移出未达标 Pack，合格 Pack 可继续 internal QA |
+| UX Gate | P0A-0：首页 5 秒知道唯一任务、无独立复习、轻练 ≤5 分钟；P0A-1：半写 ≤15 分钟、批改首屏能说出 1-3 个问题、二次作答 CTA 可见 | 只阻断未满足的对应阶段 |
 | Trust Gate | 分数区间/置信度/高风险/uncertain/needs_review 文案完整；标准答案默认折叠 | 不允许宣称批改可用 |
 | Cost/SLA Gate | 轻练不调 OCR；OCR 只在受控路径；单次 OCR/批改成本可统计；AI 批改 P50/P95 和免费用户日成本上限有预算与实测 | 降级到轻练/半写或异步结果 |
 | Authority Gate | 前端不算分、不写 learner truth；OCR raw 不批改；行为事件不写 learner memory；RAG/知识图谱不判分；`priority_score` 不取代 `training_intent`/`NextBestAction` | 阻断发布 |
-| Task Scope Evidence Gate | 轻练/半写 evidence 有 `task_scope`、`covered_scoring_point_ids`、`evidence_weight`；范围外点不写 miss | 阻断写入 learning_evidence |
-| Mistake Tag Schema Gate | `mistake_tag` canonical 字段、taxonomy version、payload builder、readback、contract tests 明确 | 错因只展示，不写长期 truth |
+| Task Scope Evidence Gate | P0A-1 半写 evidence 有 `task_scope`、`covered_scoring_point_ids`、`evidence_weight`；范围外点不写 miss | 阻断 P0A-1 半写写入，不阻断 P0A-0 terminal |
+| Mistake Tag Schema Gate | P0A-1 长期错因写入所需 `mistake_tag` canonical 字段、taxonomy version、payload builder、readback、contract tests 明确 | 错因只展示，不写长期 truth；不阻断 P0A-0 |
 | Authorization Gate | QA/operator、test user、真实白名单用户的 learning_evidence 写入门与既有 governed promotion 授权一致 | 阻断真实用户写入 |
 | WeChat Gate | `yousenwebview` project root + `packageDeeptutor` target page + entry_flow + auth_state/auth_mode 均有证据 | 只能算 shadow pass |
 | Rollback Gate | 有 feature flag、灰度 cohort、数据写入保护、回滚路径和用户可见降级文案 | 不进入真实用户 |
@@ -1128,7 +1126,7 @@ HomeDashboardViewModel
 
 风险控制策略：
 
-- 先 P0A 单母题 spike，再扩到 3-5 母题纵切，不做全量重构。
+- 先 P0A 2–3 Pack 同门槛微批，再扩到 3–5 母题纵切，不做全量重构，不指定任何 Pack 为永久特权样板。
 - 所有批改写回都必须走既有 grading / learning_evidence / Learning Brain authority。
 - OCR 低频、受控、可降级。
 - 每个 release 都有 Asset / UX / Trust / Cost / Authority / WeChat / Rollback gate。
@@ -1138,14 +1136,14 @@ HomeDashboardViewModel
 
 当前不阻塞 v1.2 PRD 完善，但进入 P0A 实施前需要明确：
 
-1. P0A 首个 spike 已定为「每日提分留存闭环」（v1.3，依据内测真实行为数据 + 已确认前提 B），内容默认取 F16 防水工程；产品负责人只需确认是否有更强业务理由改用其他母题作为内容来源。案例题批改作为养成后第二阶段深度层。
+1. P0A-0 首个 spike 已定为「每日提分留存闭环」（v1.3，依据内测真实行为数据 + 已确认前提 B）；2026-07-16 产品负责人取消 F16 默认优先，改为同一资格门下准备 2–3 个候选 Pack、treatment 默认 2 个且第 3 个由真实流量门决定。案例题批改属于 P0A-1 深度层。
 2. P0A 是否允许 photo/OCR 写入真实 learning_evidence；默认建议不允许，先 preview / diagnostic，待 OCR provenance gate 通过后再写。
 3. P0A 的商业化是否完全关闭，只做内测体验，还是允许首次完整批改后出现轻量付费提示。
 4. 人工复核在 P0A 是只记录 review_candidate，还是需要最小运营后台。
 5. P0A 灰度对象是 QA/operator cohort、内测用户，还是可开放给真实付费用户白名单。
 6. 「我的」页隐私能力 P0A 是否必须上线清除上传图片和导出学习记录，还是 P0B 上线。
 
-默认建议：P0A 不做商业化强转化、不做完整人工复核后台、不让 OCR photo path 写长期 truth；优先把今日任务、半写、AI 批改、错因复练、复测 readback 这条闭环做实。
+默认建议：P0A-0 不做商业化强转化、不做完整人工复核后台、不让 OCR photo path 写长期 truth；优先把唯一今日任务、视频 Practice、可信诊断、当场确认和 D+1 readback 做实。半写、AI 批改、二次作答与错因长期写入按 P0A-1 独立验收，不与首发捆绑。
 
 ## 21. Related Plans
 

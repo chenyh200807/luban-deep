@@ -1,0 +1,352 @@
+{
+  "machine_candidates_only": true,
+  "generated_at": "2026-07-16T06:09:10+00:00",
+  "generator": "scripts/prefill_practice_review_anchors.py",
+  "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
+  "pack_id": "S05",
+  "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/s05.practice.review.json",
+  "score_threshold": 0.25,
+  "warnings": [],
+  "coverage": {
+    "total_items": 18,
+    "items_with_candidates": 18,
+    "items_empty_handed": 0
+  },
+  "items": [
+    {
+      "variant_id": "S05-html-practice-html-q1-7a030fba2679",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_015_0016:0",
+          "quote": "临时用电三大系统：施工现场临时用电必须采用三级配电系统、TN-S接零保护系统、二级剩余电流动作保护系统。 施工现场临时用电必须采用三级配电系统、TN-S接零保护系统、二级剩余电流动作保护系统。 本体·临时用电安全技术(三大系统/送停电顺序/安全电压)",
+          "match_score": 0.7118,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q2-f519771940de",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_014_0015:1",
+          "quote": "三级配电系统：配电系统应设置总配电箱、分配电箱、开关箱三级配电装置，实行三级配电。 配电系统应设置总配电箱、分配电箱、开关箱三级配电装置，实行三级配电。 本体·临时用电管理(电缆埋地/三级配电装置/一机一闸/动力照明分设/电工持证)",
+          "match_score": 0.381,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        },
+        {
+          "source_anchor": "exam:2017:问题1-5",
+          "quote": "筒爬模施工，结构施工用胶合板模板。施工中，木工堆场发生火灾。紧急情况下值班电工及时断开了总配电箱开关，经查，火灾是因为临时用电布置和刨花堆放不当引起。部分木工堆场临时用电现场布置剖面示意图见图 5。 【问题】 1、背景资料中，需要进行专家论证的专项施工方案有哪些?排桩支护结构方式还有哪些？ 2、指出图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 1、（1",
+          "match_score": 0.2619,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "exam:2017:第2题",
+          "quote": "之处4：电锯的开关箱距离堆场配电箱距离为30.5m（开关箱和配电箱的间距不得大于30m）。 不妥之处5：木模板堆场（可燃物）应与电锯距离至少10m。 不妥之处6：开关箱安装在电线杆上。 不妥之处7：电锯部位敞开，应采用密封式。 不妥之处8：未设置灭火器。 不妥之处9：未设置消防水箱、消防水桶、消防用水等。 停电顺序：先开关箱→再分配电箱→最后总配电箱。 依据JGJ46-2005《施工现场临时用电安",
+          "match_score": 0.2619,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q3-0f0b0a35e964",
+      "candidates": [
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "处作业安全专项方案规定如下： 1. 钢结构构件宜地面组装，安全设施一并设置。 2. 坠落高度超 不妥之处：① 仅按项目临时用电施工组织设计进行施工用电管理；② 现场瓷砖切割机与砂浆搅拌机共用一个开关箱；③ 主教学楼一开关箱使用插座插头与配电箱连接。正确做法：① 装饰装修施工阶段，应补充编制单项施工用电方案；② 用电设备必须配备专用的开关箱，严禁 2 台及以上用电设备共用一个开关箱；③ 配电箱、开关",
+          "match_score": 0.8315,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "kc:1A431011_014_0015:2",
+          "quote": "开关箱控制原则：每台用电设备应有各自专用的开关箱，不得用同一个开关箱直接控制 2 台及以上用电设备（含插座）。 每台用电设备应有各自专用的开关箱，不得用同一个开关箱直接控制 2 台及以上用电设备（含插座）。 本体·临时用电管理(电缆埋地/三级配电装置/一机一闸/动力照明分设/电工持证)",
+          "match_score": 0.5204,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        },
+        {
+          "source_anchor": "exam:2017:第2题",
+          "quote": "认为一些做法不妥，要求改正。 【问题】 2. 指出图5中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 不妥之处1：模板一般放入室内或敞棚内；模板露台堆放时，底部应垫高100mm，顶面遮盖防水篷布或塑料布。 不妥之处2：电杆高度为5m，电杆距离模板堆垛为4.5m，距离不够；电杆应当距离模板堆垛不小于7.5m（5×1.5=7.5）。 不妥之处3：仓库或堆料场严禁使用碘钨灯。 不妥",
+          "match_score": 0.4296,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q4-eadc2e921fdd",
+      "candidates": [
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "之处：① 仅按项目临时用电施工组织设计进行施工用电管理；② 现场瓷砖切割机与砂浆搅拌机共用一个开关箱；③ 主教学楼一开关箱使用插座插头与配电箱连接。正确做法：① 装饰装修施工阶段，应补充编制单项施工用电方案；② 用电设备必须配备专用的开关箱，严禁 2 台及以上用电设备共用一个开关箱；③ 配电箱、开关箱的电源进线端严禁采用插头和插座做活动连接。 根据《施工现场临时用电安全技术规范》，装饰装修阶段需补",
+          "match_score": 0.5741,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q5-3cf1bf9e075a",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_014_0015:3",
+          "quote": "动力与照明配电分离：动力配电箱与照明配电箱宜分别设置；若合并，则动力和照明应分路配电，且动力开关箱与照明开关箱必须分设。 动力配电箱与照明配电箱宜分别设置；若合并，则动力和照明应分路配电，且动力开关箱与照明开关箱必须分设。 本体·临时用电管理(电缆埋地/三级配电装置/一机一闸/动力照明分设/电工持证)",
+          "match_score": 0.5745,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q6-0ae0fb217a3e",
+      "candidates": [
+        {
+          "source_anchor": "exam:2017:第2题",
+          "quote": "之处4：电锯的开关箱距离堆场配电箱距离为30.5m（开关箱和配电箱的间距不得大于30m）。 不妥之处5：木模板堆场（可燃物）应与电锯距离至少10m。 不妥之处6：开关箱安装在电线杆上。 不妥之处7：电锯部位敞开，应采用密封式。 不妥之处8：未设置灭火器。 不妥之处9：未设置消防水箱、消防水桶、消防用水等。 停电顺序：先开关箱→再分配电箱→最后总配电箱。 依据JGJ46-2005《施工现场临时用电安",
+          "match_score": 0.4,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "kc:1A431011_015_0016:1",
+          "quote": "送电与停电顺序：送电顺序：总配电箱 → 分配电箱 → 开关箱；停电顺序：开关箱 → 分配电箱 → 总配电箱。 送电顺序：总配电箱 → 分配电箱 → 开关箱；停电顺序：开关箱 → 分配电箱 → 总配电箱。 本体·临时用电安全技术(三大系统/送停电顺序/安全电压)",
+          "match_score": 0.3846,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        },
+        {
+          "source_anchor": "exam:2017:案例五",
+          "quote": "图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 【解析】本题考查的是建筑工程安全管理、专项施工方案论证、临时用电规范、混凝土强度检测及工程验收流程。根据《危险性较大的分部分项工程安全管理规定》，需专家论证的专项方案包括：深基坑、高大模板、起重吊装等。临时用电应遵循‘先开关箱→再分配电箱→最后总配电箱’的顺序停电。混凝土强度不合格判定依据为平均值小于设计值",
+          "match_score": 0.3778,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q7-0489481a3d23",
+      "candidates": [
+        {
+          "source_anchor": "exam:2017:第2题",
+          "quote": "负责人组织对工程进行检查验收，施工单位分别填写了《单位工程竣工验收记录表》中的“验收记录”、“验收结论”、“综合验收结论”。“综合验收结论”为“合格”。参加验收单位人员分别进行了签字。政府质量监督部门认为一些做法不妥，要求改正。 【问题】 2. 指出图5中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 不妥之处1：模板一般放入室内或敞棚内；模板露台堆放时，底部应垫高100mm，",
+          "match_score": 0.3966,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "exam:2017:案例五",
+          "quote": "图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 【解析】本题考查的是建筑工程安全管理、专项施工方案论证、临时用电规范、混凝土强度检测及工程验收流程。根据《危险性较大的分部分项工程安全管理规定》，需专家论证的专项方案包括：深基坑、高大模板、起重吊装等。临时用电应遵循‘先开关箱→再分配电箱→最后总配电箱’的顺序停电。混凝土强度不合格判定依据为平均值小于设计值",
+          "match_score": 0.3793,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "exam:2017:问题1-5",
+          "quote": "筒爬模施工，结构施工用胶合板模板。施工中，木工堆场发生火灾。紧急情况下值班电工及时断开了总配电箱开关，经查，火灾是因为临时用电布置和刨花堆放不当引起。部分木工堆场临时用电现场布置剖面示意图见图 5。 【问题】 1、背景资料中，需要进行专家论证的专项施工方案有哪些?排桩支护结构方式还有哪些？ 2、指出图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 1、（1",
+          "match_score": 0.3793,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q8-28a1673bd44c",
+      "candidates": [
+        {
+          "source_anchor": "exam:2016:第13题",
+          "quote": "下列施工场所中，照明电压不得超过12V 的是( )。 A. 地下车库 B. 潮湿场所 C. 金属容器内 D. 人防工程 C 【解析】特别潮湿场所、导电良好的地面、锅炉或金属容器内的照明，电源电压不得大于12V。",
+          "match_score": 0.4426,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "kc:1A431011_015_0016:2",
+          "quote": "安全特低电压应用：不同环境下的安全电压限值：潮湿/隧道/人防 → ≤36V；易触及带电体 → ≤24V；金属容器/锅炉 → ≤12V。 不同环境下的安全电压限值：潮湿/隧道/人防 → ≤36V；易触及带电体 → ≤24V；金属容器/锅炉 → ≤12V。 本体·临时用电安全技术(三大系统/送停电顺序/安全电压)",
+          "match_score": 0.4018,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q9-64e2d711dabb",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_015_0016:2",
+          "quote": "安全特低电压应用：不同环境下的安全电压限值：潮湿/隧道/人防 → ≤36V；易触及带电体 → ≤24V；金属容器/锅炉 → ≤12V。 不同环境下的安全电压限值：潮湿/隧道/人防 → ≤36V；易触及带电体 → ≤24V；金属容器/锅炉 → ≤12V。 本体·临时用电安全技术(三大系统/送停电顺序/安全电压)",
+          "match_score": 0.685,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        },
+        {
+          "source_anchor": "exam:2016:第13题",
+          "quote": "下列施工场所中，照明电压不得超过12V 的是( )。 A. 地下车库 B. 潮湿场所 C. 金属容器内 D. 人防工程 C 【解析】特别潮湿场所、导电良好的地面、锅炉或金属容器内的照明，电源电压不得大于12V。",
+          "match_score": 0.2575,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q10-78a3ee8c26fc",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A436000_130_0209:0",
+          "quote": "特殊场所照明安全电压：手持式灯具供电电压不得超过36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。 手持式灯具供电电压不得超过36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。 外延·触电事故预防/特殊场所照明安全电压(手持灯具≤36V/双绕组隔离变压器)",
+          "match_score": 0.7421,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        },
+        {
+          "source_anchor": "kc:1A431011_015_0016:2",
+          "quote": "安全特低电压应用：不同环境下的安全电压限值：潮湿/隧道/人防 → ≤36V；易触及带电体 → ≤24V；金属容器/锅炉 → ≤12V。 不同环境下的安全电压限值：潮湿/隧道/人防 → ≤36V；易触及带电体 → ≤24V；金属容器/锅炉 → ≤12V。 本体·临时用电安全技术(三大系统/送停电顺序/安全电压)",
+          "match_score": 0.3636,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q11-d51599b6f90c",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A436000_007_0010:0",
+          "quote": "临时用电重大隐患：在特殊环境下（如湿度>75%、积水）未使用安全电压照明，属重大事故隐患。 在特殊环境下（如湿度>75%、积水）未使用安全电压照明，属重大事故隐患。 本体外延·临时用电重大隐患(特殊环境未用安全电压照明) — 该chunk主题是重大隐患综合表,只取临时用电TC",
+          "match_score": 0.5471,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q12-1f366c5d96dc",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_014_0015:0",
+          "quote": "电缆埋地深度要求：电缆直接埋地敷设的深度不应小于 0.7m。 电缆直接埋地敷设的深度不应小于 0.7m。 本体·临时用电管理(电缆埋地/三级配电装置/一机一闸/动力照明分设/电工持证)",
+          "match_score": 0.4857,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q13-3fd433be684f",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:第14题",
+          "quote": "施工现场五芯电缆中用作N线的标识色是（ ）。 A. 绿色 B. 红色 C. 蓝色 D. 黄绿色 C 根据《施工现场临时用电安全技术规范》JGJ 46-2005，五芯电缆中N线（中性线）的标识色为蓝色。黄绿色为PE线（保护接地线）。故选C。",
+          "match_score": 0.4885,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q14-5a611c806f07",
+      "candidates": [
+        {
+          "source_anchor": "exam:2020:第15题",
+          "quote": "施工现场临时用电配电箱金属箱门与金属箱体的连接材料，正确的是（ ）。 A. 单股铜线 B. 绝缘多股铜线 C. 编织软铜线 D. 铜绞线 A 施工现场临时用电配电箱金属箱门与金属箱体的连接材料，正确的是单股铜线。",
+          "match_score": 0.3333,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q15-1d792fda5d90",
+      "candidates": [
+        {
+          "source_anchor": "exam:2018:第17题",
+          "quote": "关于施工现场临时用电管理的说法, 正确的是（） A. 现场电工必须经相关部门考核合格后, 持证上岗 B. 用电设备拆除时, 可由安全员完成 C. 用电设备总容量在 50kW 及以上的, 应制定用电防火措施 D. 装饰装修阶段用电参照用电组织设计执行 A 【解析】现场操作电工必须经国家部门考核合格后, 持证上岗；用电设备拆除时, 应由电工完成；用电设备总容量在 50kW 及以上的, 应制定用电组织设",
+          "match_score": 0.4186,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "kc:1A431011_014_0015:4",
+          "quote": "电工持证上岗：电工应经职业资格考试合格后，持证上岗工作。 电工应经职业资格考试合格后，持证上岗工作。 本体·临时用电管理(电缆埋地/三级配电装置/一机一闸/动力照明分设/电工持证)",
+          "match_score": 0.3023,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        },
+        {
+          "source_anchor": "exam:2021:第(五)题",
+          "quote": "单位中标后成立项目经理部组织施工。 项目总工程师编制了《临时用电组织设计》，其内容包括：总配电箱设在用电设备相对集中的区域；电缆直接埋地敷设，穿过临时设施时应设置警示标识并进行保护；临时用电施工完成后，由编制和使用单位共同验收合格后方可使用；各类用电人员经考试合格后持证上岗工作；发现用电安全隐患，经电工排除后继续使用；维修临时用电设备由电工独立完成；临时用电定期检查分部、分项工程进行。《临时用电组",
+          "match_score": 0.3023,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q16-bdac9de7a1bc",
+      "candidates": [
+        {
+          "source_anchor": "exam:2018:第17题",
+          "quote": "关于施工现场临时用电管理的说法, 正确的是（） A. 现场电工必须经相关部门考核合格后, 持证上岗 B. 用电设备拆除时, 可由安全员完成 C. 用电设备总容量在 50kW 及以上的, 应制定用电防火措施 D. 装饰装修阶段用电参照用电组织设计执行 A 【解析】现场操作电工必须经国家部门考核合格后, 持证上岗；用电设备拆除时, 应由电工完成；用电设备总容量在 50kW 及以上的, 应制定用电组织设",
+          "match_score": 0.6741,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "之处：① 仅按项目临时用电施工组织设计进行施工用电管理；② 现场瓷砖切割机与砂浆搅拌机共用一个开关箱；③ 主教学楼一开关箱使用插座插头与配电箱连接。正确做法：① 装饰装修施工阶段，应补充编制单项施工用电方案；② 用电设备必须配备专用的开关箱，严禁 2 台及以上用电设备共用一个开关箱；③ 配电箱、开关箱的电源进线端严禁采用插头和插座做活动连接。 根据《施工现场临时用电安全技术规范》，装饰装修阶段需补",
+          "match_score": 0.3259,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q17-b5f758614bd0",
+      "candidates": [
+        {
+          "source_anchor": "exam:2017:问题1-5",
+          "quote": "之处3：仓库或堆料场严禁使用碘钨灯。 不妥之处4：电锯的开关箱距离堆场配电箱距离为30.5m（开关箱和配电箱的间距不得大于30m）。 不妥之处5：木模板堆场（可燃物）应与电锯距离至少10m。 不妥之处6：开关箱安装在电线杆上。 不妥之处7：电锯部位敞开，应采用密封式。 不妥之处8：未设置灭火器。 不妥之处9：未设置消防水箱、消防水桶、消防用水等。 （2）现场临时停电的顺序为：先开关箱→再分配电箱→",
+          "match_score": 0.6138,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "exam:2017:第2题",
+          "quote": "系统停电的顺序是什么？ 不妥之处1：模板一般放入室内或敞棚内；模板露台堆放时，底部应垫高100mm，顶面遮盖防水篷布或塑料布。 不妥之处2：电杆高度为5m，电杆距离模板堆垛为4.5m，距离不够；电杆应当距离模板堆垛不小于7.5m（5×1.5=7.5）。 不妥之处3：仓库或堆料场严禁使用碘钨灯。 不妥之处4：电锯的开关箱距离堆场配电箱距离为30.5m（开关箱和配电箱的间距不得大于30m）。 不妥之处",
+          "match_score": 0.6017,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "妥之处：(1) 氧气瓶和乙炔瓶的放置距离不得小于5m； (2) 气瓶离明火的距离不得小于8m (3) 作业点离易燃物的距离不小于20m 正确做法：(1) 乙炔瓶和氧气瓶的存放间距不得小于2m，使用时距离不得小于5m； (2) 气瓶离明火的距离至少10m (3) 作业点离易燃物的距离不小于30m (4) 气瓶内的气体不能用尽，留有剩余压力或重量。 【解析】依据《施工现场临时用电安全技术规范》JGJ4",
+          "match_score": 0.4328,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        }
+      ]
+    },
+    {
+      "variant_id": "S05-html-practice-html-q18-38770f84494a",
+      "candidates": [
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "之处：① 仅按项目临时用电施工组织设计进行施工用电管理；② 现场瓷砖切割机与砂浆搅拌机共用一个开关箱；③ 主教学楼一开关箱使用插座插头与配电箱连接。正确做法：① 装饰装修施工阶段，应补充编制单项施工用电方案；② 用电设备必须配备专用的开关箱，严禁 2 台及以上用电设备共用一个开关箱；③ 配电箱、开关箱的电源进线端严禁采用插头和插座做活动连接。 根据《施工现场临时用电安全技术规范》，装饰装修阶段需补",
+          "match_score": 0.4393,
+          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
+          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+        },
+        {
+          "source_anchor": "kc:1A431011_014_0015:2",
+          "quote": "开关箱控制原则：每台用电设备应有各自专用的开关箱，不得用同一个开关箱直接控制 2 台及以上用电设备（含插座）。 每台用电设备应有各自专用的开关箱，不得用同一个开关箱直接控制 2 台及以上用电设备（含插座）。 本体·临时用电管理(电缆埋地/三级配电装置/一机一闸/动力照明分设/电工持证)",
+          "match_score": 0.25,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        }
+      ]
+    }
+  ]
+}

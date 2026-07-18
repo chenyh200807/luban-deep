@@ -121,6 +121,11 @@ def _write_signed_pack(tmp_path: Path) -> Path:
     }
     manifest_path = manifest_dir / "_pack_manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
+    # 撤题 authority（fail-closed）：合法空清单——对齐真实资产
+    # docs/原始数据/考点原料/成品/_variant_blocklist.json 的 schema 形状。
+    (manifest_dir / "_variant_blocklist.json").write_text(
+        json.dumps({"variants": []}, ensure_ascii=False), encoding="utf-8"
+    )
     return manifest_path
 
 
@@ -147,6 +152,14 @@ def test_resolve_full_answer_inputs_fail_closed_on_unknown_variant(tmp_path) -> 
     manifest_path = _write_signed_pack(tmp_path)
     with pytest.raises(FullAnswerNotAvailable):
         resolve_full_answer_inputs(_PACK_ID, "NOPE-999", manifest_path=manifest_path)
+
+
+def test_resolve_full_answer_inputs_fail_closed_when_blocklist_missing(tmp_path) -> None:
+    """撤题 authority 缺失 → 全量作答链 fail-closed（禁止静默复活已撤变体）。"""
+    manifest_path = _write_signed_pack(tmp_path)
+    (tmp_path / "supply" / "_variant_blocklist.json").unlink()
+    with pytest.raises(FullAnswerNotAvailable):
+        resolve_full_answer_inputs(_PACK_ID, _VARIANT_ID, manifest_path=manifest_path)
 
 
 # ── 边界 2: curated_rubric（注入 grading_key）→ promoting 全链 ────────────────

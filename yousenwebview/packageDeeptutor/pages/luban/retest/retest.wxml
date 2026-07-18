@@ -174,12 +174,21 @@
               <view class="rt-review-dot"></view>
               <view class="rt-review-copy">
                 <text class="rt-review-text">{{item.correct_statement}}</text>
-                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.loss_reason}}">为什么会丢分：{{item.feedback.loss_reason}}</text>
+                <!-- 四层错项诊断(全部服务端签发字段, 缺失整行隐藏) -->
+                <text class="rt-review-detail" wx:if="{{item.selectedOptionText}}">你选了：{{item.selectedOptionText}}</text>
+                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.temptation}}">为什么它看起来像对的：{{item.feedback.temptation}}</text>
+                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.loss_reason}}">考试为什么不给分：{{item.feedback.loss_reason}}</text>
                 <text class="rt-review-fix" wx:if="{{item.feedback && item.feedback.fix}}">下次这样答：{{item.feedback.fix}}</text>
               </view>
             </view>
           </view>
           <text class="rt-receipt-clean" wx:if="{{!wrongItems.length && total}}">本轮五题全对，已经记录；是否稳定，等下一次换皮验证。</text>
+
+          <!-- 错后当场确认(变体判断题消费点1): 有 immediate_confirm 供给的错题才亮; 纯导航零第二权威 -->
+          <view class="rt-cc-link" wx:if="{{showConfirmEntry}}" catchtap="goConfirmFacts">
+            <text class="rt-cc-link-tx">把刚才做错的 {{confirmEntryFacts.length}} 个考点 · 换身皮当场再确认</text>
+            <text class="rt-cc-link-arrow">›</text>
+          </view>
 
           <!-- 三角回路: 复测→考点卡(错了去背给分词;全对去巩固) 纯导航零第二权威 -->
           <view class="rt-cc-link" catchtap="goConceptCards">

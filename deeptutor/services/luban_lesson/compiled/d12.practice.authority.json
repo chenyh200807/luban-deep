@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "D12",
   "source_pack_sha256": "701c192b8452c27afb6af58d3c7054eeda3e8a2a4f2ef0526df840650a01b8fc",
   "source_bundle_sha256": "0405f85b607d6600a03d46e99234817a2f1a135360a044d9554fde7b65d6d3f3",
@@ -24,7 +24,9 @@
         "D12-html-practice-html-q4-06e0382b5e2b",
         "D12-html-practice-html-q16-5ba096d5deb8"
       ],
-      "published_practice_sha256": "a16e5f4f25016b957c32836901f5fa79b041abb08682a3b2286362f311ad9a5e"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYzgyYWM4YTY2MzBkIiwiRDEyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01NWQwYzAwYTVmNDYiLCJEMTItaHRtbC1wcmFjdGljZS1odG1sLXEzLWRmMDU2OTU5MmFiMyIsIkQxMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtMDZlMDM4MmI1ZTJiIiwiRDEyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNWJhMDk2ZDVkZWI4Il0sInBhY2tfaWQiOiJEMTIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImI2NzczYWRkYTU4OGE4NTBhMzNiMTU4ZDI4NzBhMzlkNDZiOGFjMTI1ZGI2NmZhMWFhNWE5OGFhZTRjMDk3YzYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "e7c4720c786d37ca6d6eba1808724d02f49e99536ef361ce536e712f94c845b9"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q1",
-      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "f0262e6bd90311f5458b38df86d6cede39294faa51d99da300db0939db90b251",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "f0262e6bd90311f5458b38df86d6cede39294faa51d99da300db0939db90b251",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q2",
-      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "1004305d983421e68d8b0918c4eebf738309ab46d60345a1634d6fb065e00eba",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "1004305d983421e68d8b0918c4eebf738309ab46d60345a1634d6fb065e00eba",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q3",
-      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0571b9beb38cdb0a27d68582809077c025388b9233b05e579167ad4063475d41",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0571b9beb38cdb0a27d68582809077c025388b9233b05e579167ad4063475d41",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,832 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q4",
-      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "70c19eb7a621d5ce83f8e5c5d122c89cf9c28a21fee4ffa1f21effe7adad23ff",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "70c19eb7a621d5ce83f8e5c5d122c89cf9c28a21fee4ffa1f21effe7adad23ff",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "饰面板复验·记录表达维",
+      "stem": "饰面板工程材料进场应复验哪些项目？选出完整、能得分的作答。",
+      "model_answer": "室内花岗石放射性、人造木板甲醛释放量、水泥基粘结料粘结强度、外墙陶瓷板吸水率、严寒地区陶瓷板抗冻性。",
+      "options": [
+        {
+          "text": "室内花岗石放射性、人造木板甲醛释放量、水泥基粘结料粘结强度、外墙陶瓷板吸水率、严寒地区陶瓷板抗冻性。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "放射性/甲醛/粘结强度/吸水率/抗冻性按材料对应写全。",
+          "option_id": "D12-html-practice-html-q5-21683dc438d5:option-1"
+        },
+        {
+          "text": "室内花岗石复验放射性即可，其余材料只要合格证齐全就不必再复验了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住放射性一项。",
+          "loss_reason": "漏甲醛、粘结强度、吸水率、抗冻性，采分点遗漏。",
+          "fix": "补全甲醛/粘结强度/吸水率/抗冻性。",
+          "option_id": "D12-html-practice-html-q5-21683dc438d5:option-2"
+        },
+        {
+          "text": "复验保温材料导热系数、燃烧性能，以及玻璃幕墙板的力学性能等项目内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把饰面板复验和保温/幕墙复验搞混。",
+          "loss_reason": "复验对象错，属概念混淆。",
+          "fix": "饰面板复验放射性/甲醛/粘结强度/吸水率/抗冻性。",
+          "option_id": "D12-html-practice-html-q5-21683dc438d5:option-3"
+        },
+        {
+          "text": "进场把放射性、甲醛这些有害的、还有些性能都复验一下就可以了。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "意思到了但没点全项目名。",
+          "loss_reason": "缺粘结强度/吸水率/抗冻性等具体项，关键词缺失。",
+          "fix": "逐项点名五项复验内容。",
+          "option_id": "D12-html-practice-html-q5-21683dc438d5:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q5-21683dc438d5",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "4b289491768dbac3ef739ead91935ed9018799fa47396079550fccabf8e9d3a9",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "4b289491768dbac3ef739ead91935ed9018799fa47396079550fccabf8e9d3a9",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "饰面砖复验·记录表达维",
+      "stem": "饰面砖工程材料进场应复验哪些项目？选出完整、能得分的作答。",
+      "model_answer": "室内瓷质砖放射性、水泥基粘结材料与外墙砖的拉伸粘结强度、外墙陶瓷砖吸水率、严寒寒冷地区外墙砖抗冻性。",
+      "options": [
+        {
+          "text": "室内瓷质砖放射性、水泥基粘结材料与外墙砖拉伸粘结强度、外墙陶瓷砖吸水率、严寒寒冷地区外墙砖抗冻性。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "外墙砖‘拉伸粘结强度’是招牌漏项，务必先写上。",
+          "option_id": "D12-html-practice-html-q6-6cc2841a17f7:option-1"
+        },
+        {
+          "text": "室内瓷质砖放射性、外墙陶瓷砖吸水率、严寒地区外墙砖抗冻性，这三项复验齐全。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "看着挺全，却正好漏了拉伸粘结强度。",
+          "loss_reason": "漏‘拉伸粘结强度’——外墙砖核心采分点，经典丢分。",
+          "fix": "补‘水泥基粘结材料与外墙砖拉伸粘结强度’。",
+          "option_id": "D12-html-practice-html-q6-6cc2841a17f7:option-2"
+        },
+        {
+          "text": "复验砌块抗压强度、砌筑砂浆强度，以及砖的放射性、吸水率等项目内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把饰面砖复验和砌体材料复验混。",
+          "loss_reason": "复验对象错，概念混淆。",
+          "fix": "饰面砖复验放射性/拉伸粘结强度/吸水率/抗冻性。",
+          "option_id": "D12-html-practice-html-q6-6cc2841a17f7:option-3"
+        },
+        {
+          "text": "把砖的放射性、粘结、吸水、抗冻这些都检一检、合格就可以用了。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "‘粘结’含糊带过。",
+          "loss_reason": "‘拉伸粘结强度’未点名，关键词缺失。",
+          "fix": "写全‘拉伸粘结强度’，不能只写‘粘结’。",
+          "option_id": "D12-html-practice-html-q6-6cc2841a17f7:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q6-6cc2841a17f7",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6747476a83bf51e638c69a09eab767acc40b6a65586649e7fd9ca7fbaec09df1",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6747476a83bf51e638c69a09eab767acc40b6a65586649e7fd9ca7fbaec09df1",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "粘贴工艺·条件程序维",
+      "stem": "饰面砖粘贴时粘结剂厚度及调整规定如何？选出能得分的作答。",
+      "model_answer": "粘结剂厚度 3~8mm；调整期内可微调，超过调整期严禁振动（超时振动＝假粘）。",
+      "options": [
+        {
+          "text": "粘结剂厚度控制在 3~8mm；调整期内可微调，超过调整期严禁振动。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "3~8mm＋超时严禁振动，两个采分点都写上。",
+          "option_id": "D12-html-practice-html-q7-42ddf60131b6:option-1"
+        },
+        {
+          "text": "粘结剂厚度 3~8mm，若超过调整期发现不平，可再振动找平后重新固定。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "想着不平就再振一下找平。",
+          "loss_reason": "超调整期振动会破坏初凝结晶成假粘，程序顺序错误。",
+          "fix": "超过调整期严禁振动，只能在调整期内微调。",
+          "option_id": "D12-html-practice-html-q7-42ddf60131b6:option-2"
+        },
+        {
+          "text": "粘结剂随抹灰层一道抹厚约 20mm，抹平后把砖贴上去压实即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把粘结剂当抹灰层随手抹厚。",
+          "loss_reason": "粘结剂 3~8mm 非抹灰层厚度，概念混淆。",
+          "fix": "粘结剂厚度 3~8mm，不是 20mm 抹灰层。",
+          "option_id": "D12-html-practice-html-q7-42ddf60131b6:option-3"
+        },
+        {
+          "text": "粘结剂抹薄薄一层，趁它没干赶紧把砖位置调好压住就成。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对但没给数值和禁振规定。",
+          "loss_reason": "缺 3~8mm、超时禁振关键词。",
+          "fix": "写 3~8mm、调整期内微调、超时严禁振动。",
+          "option_id": "D12-html-practice-html-q7-42ddf60131b6:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q7-42ddf60131b6",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "f02d98ea3a486e93beed6f2510e6a589257ba6c3d35d6d11ebc2cae136fdb2e2",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "f02d98ea3a486e93beed6f2510e6a589257ba6c3d35d6d11ebc2cae136fdb2e2",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "粘贴程序·程序维",
+      "stem": "饰面砖粘贴的排版与填缝顺序应如何？选出正确、能得分的作答。",
+      "model_answer": "粘贴前先排砖、分格、弹线（总体排版策划）；填缝先水平缝后垂直缝。",
+      "options": [
+        {
+          "text": "粘贴前先排砖、分格、弹线，做好总体排版策划；填缝先水平缝后垂直缝。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "排砖分格弹线＋填缝先水平后垂直，顺序写清。",
+          "option_id": "D12-html-practice-html-q8-8fef3854c800:option-1"
+        },
+        {
+          "text": "清理基层后直接上墙粘贴，全部贴完再统一填缝即可，无需先做排版。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "图快，跳过排版直接贴。",
+          "loss_reason": "漏排砖分格弹线（排版策划）采分点。",
+          "fix": "粘贴前必须先排砖、分格、弹线。",
+          "option_id": "D12-html-practice-html-q8-8fef3854c800:option-2"
+        },
+        {
+          "text": "先排砖分格弹线，填缝时先垂直缝后水平缝一次勾平即可。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "填缝顺序凭感觉写反。",
+          "loss_reason": "填缝应先水平后垂直，顺序颠倒扣分。",
+          "fix": "填缝先水平缝后垂直缝。",
+          "option_id": "D12-html-practice-html-q8-8fef3854c800:option-3"
+        },
+        {
+          "text": "上墙前先大致规划一下排布，贴完把缝隙填严实就行了。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "含糊带过没点名。",
+          "loss_reason": "缺排砖分格弹线、先水平后垂直关键词。",
+          "fix": "点名排砖分格弹线、填缝先水平后垂直。",
+          "option_id": "D12-html-practice-html-q8-8fef3854c800:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q8-8fef3854c800",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "34520221c3bcea0585483c20e4ee7a9c04fdb6dafa4c85e12066bfd903a5bc5a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "34520221c3bcea0585483c20e4ee7a9c04fdb6dafa4c85e12066bfd903a5bc5a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "满粘法高度·条件维",
+      "stem": "抗震设防烈度 7 度地区，满粘法外墙饰面砖粘贴工程高度限值为多少？选出能得分的作答。",
+      "model_answer": "抗震设防 7 度地区，满粘法外墙饰面砖粘贴工程高度不应大于 100m，超高须改其他工艺。",
+      "options": [
+        {
+          "text": "抗震设防 7 度地区，满粘法外墙饰面砖粘贴工程高度不应大于 100m，超高改其他工艺。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "记准 100m、超高改工艺，别写别的数。",
+          "option_id": "D12-html-practice-html-q9-23d73b4ff2b5:option-1"
+        },
+        {
+          "text": "抗震设防 7 度地区，满粘法外墙饰面砖粘贴工程高度不应大于 54m，超高改工艺。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把别处条文的 54m 套过来。",
+          "loss_reason": "满粘法限值是 100m，54m 属规范数字混淆。",
+          "fix": "限值是 100m，不是 24/50/54m。",
+          "option_id": "D12-html-practice-html-q9-23d73b4ff2b5:option-2"
+        },
+        {
+          "text": "满粘法外墙饰面砖是有高度限制的，超过一定高度就不能满粘，要改别的工艺。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道有限制但说不出具体数。",
+          "loss_reason": "缺‘不大于 100m’具体数值，关键词缺失。",
+          "fix": "写明‘高度不应大于 100m’。",
+          "option_id": "D12-html-practice-html-q9-23d73b4ff2b5:option-3"
+        },
+        {
+          "text": "外墙饰面砖不论多高都可满粘法施工，只要粘结牢固即可，无所谓高度限制。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为满粘法通用不限高。",
+          "loss_reason": "抗震 7 度满粘法有 100m 限值，规范适用错误。",
+          "fix": "抗震 7 度满粘法外墙饰面砖≤100m。",
+          "option_id": "D12-html-practice-html-q9-23d73b4ff2b5:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q9-23d73b4ff2b5",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "a2665e4648a639b86ff28dac44024b4746c522c10c02be7933fcf349c4f4aa52",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "a2665e4648a639b86ff28dac44024b4746c522c10c02be7933fcf349c4f4aa52",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "排版策划·程序维",
+      "stem": "饰面砖施工前为减少资源损耗（绿色施工）应做什么？选出能得分的作答。",
+      "model_answer": "饰面砖施工前应进行总体排版策划，合理排布减少切割损耗（绿色施工措施）。",
+      "options": [
+        {
+          "text": "饰面砖施工前应进行总体排版策划，合理排布减少切割损耗，属绿色施工措施。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "‘总体排版策划、减少损耗’是绿色施工采分句。",
+          "option_id": "D12-html-practice-html-q10-90c3c9fa376b:option-1"
+        },
+        {
+          "text": "饰面砖施工前主要确定粘贴方法和材料品种，损耗按现场经验控制即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只谈方法材料，漏排版策划。",
+          "loss_reason": "漏‘总体排版策划、减少损耗’采分点。",
+          "fix": "补‘施工前进行总体排版策划、减少损耗’。",
+          "option_id": "D12-html-practice-html-q10-90c3c9fa376b:option-2"
+        },
+        {
+          "text": "施工前做好安全技术交底、机械设备进场，即为绿色施工的主要措施内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把安全/机械当绿色施工措施。",
+          "loss_reason": "本问采分点是排版策划减少损耗，答非所问。",
+          "fix": "绿色施工此处指‘总体排版策划、减少损耗’。",
+          "option_id": "D12-html-practice-html-q10-90c3c9fa376b:option-3"
+        },
+        {
+          "text": "施工前规划一下砖怎么贴，尽量省点材料就算绿色施工了。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "口语带过。",
+          "loss_reason": "缺‘总体排版策划’‘减少资源损耗’规范表述。",
+          "fix": "用规范表述‘总体排版策划、减少资源损耗’。",
+          "option_id": "D12-html-practice-html-q10-90c3c9fa376b:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q10-90c3c9fa376b",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "4b4019ca16f2c93297c208747f63235d8a62d87ba0cfbac4125a042ed97612fd",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "4b4019ca16f2c93297c208747f63235d8a62d87ba0cfbac4125a042ed97612fd",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "禁用工艺·条件后果维",
+      "stem": "墙面饰面砖采用水泥砂浆粘贴，按现行口径是否妥当？选出能得分的作答。",
+      "model_answer": "不妥。墙面饰面砖水泥砂浆粘贴已列入禁止使用的施工工艺，应改用粘结剂薄贴等工艺。",
+      "options": [
+        {
+          "text": "不妥；墙面饰面砖水泥砂浆粘贴已列入禁止使用的施工工艺，应改用粘结剂薄贴等工艺。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "‘已列入禁止使用工艺＋改薄贴’是三段式正确做法。",
+          "option_id": "D12-html-practice-html-q11-2032c20307e7:option-1"
+        },
+        {
+          "text": "妥当；墙面饰面砖水泥砂浆粘贴属限制类工艺，25m 及以下部位可正常使用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "沿用旧‘限制·25m 以下可用’口径。",
+          "loss_reason": "新规已升级为禁止使用，旧口径被覆盖，规范适用错误。",
+          "fix": "按现行口径：水泥砂浆粘贴属禁止工艺，应改薄贴。",
+          "option_id": "D12-html-practice-html-q11-2032c20307e7:option-2"
+        },
+        {
+          "text": "不妥；水泥砂浆粘贴质量不好容易空鼓，应加强施工管理、做好养护后再用。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "指出不妥却不给正确工艺。",
+          "loss_reason": "漏‘禁止工艺＋改薄贴’正确做法，只指不妥不得分。",
+          "fix": "补‘属禁止使用工艺，应改用粘结剂薄贴’。",
+          "option_id": "D12-html-practice-html-q11-2032c20307e7:option-3"
+        },
+        {
+          "text": "不妥，这种老办法现在规范不让用了，得换一种新工艺来贴。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对但没点名。",
+          "loss_reason": "缺‘禁止使用工艺’‘粘结剂薄贴’关键词。",
+          "fix": "点名‘禁止使用工艺’并写‘改用粘结剂薄贴’。",
+          "option_id": "D12-html-practice-html-q11-2032c20307e7:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q11-2032c20307e7",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e38a4c3fb03cbd3432447d138b07e068ce1bf04f3b13540c4e807e44675db9a6",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e38a4c3fb03cbd3432447d138b07e068ce1bf04f3b13540c4e807e44675db9a6",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "空鼓防治·措施多维",
+      "stem": "外墙块料空鼓防治应从哪些方面采取措施？选出完整、能得分的作答。",
+      "model_answer": "基层清理干净；用水泥基粘结材料；油性防护石材用界面剂＋背砂；大面积铺贴设伸缩缝；养护到位。",
+      "options": [
+        {
+          "text": "基层清理干净；用水泥基粘结材料；油性防护石材用界面剂＋背砂；大面积铺贴设伸缩缝；养护到位。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "基层/材料/界面剂背砂/伸缩缝/养护五条逐条写。",
+          "option_id": "D12-html-practice-html-q12-425891bc1f62:option-1"
+        },
+        {
+          "text": "基层清理干净、选用水泥基粘结材料、养护到位，把这几条做好即可有效防空鼓。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "写了三条觉得够了。",
+          "loss_reason": "漏‘界面剂＋背砂’和‘设伸缩缝’两条，采分点遗漏。",
+          "fix": "补界面剂＋背砂、大面积设伸缩缝两条。",
+          "option_id": "D12-html-practice-html-q12-425891bc1f62:option-2"
+        },
+        {
+          "text": "加强现场管理、提高工人操作水平、发现空鼓及时敲掉重贴，确保工程质量达标。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "套‘加强管理、敲掉重贴’的万能口号。",
+          "loss_reason": "全是口号、无可判分措施，口号化 0 分。",
+          "fix": "改写基层/材料/界面剂背砂/伸缩缝/养护五条实措施。",
+          "option_id": "D12-html-practice-html-q12-425891bc1f62:option-3"
+        },
+        {
+          "text": "把基层、材料、构造、养护这几个方面都注意到位，空鼓自然就少了。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "维度点到但没具体措施。",
+          "loss_reason": "缺界面剂＋背砂、伸缩缝等具体关键词。",
+          "fix": "每维给出具体做法（界面剂＋背砂、设伸缩缝等）。",
+          "option_id": "D12-html-practice-html-q12-425891bc1f62:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q12-425891bc1f62",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "2be88d6197ecc309049eb2029c708d18f275c25c7ffd221ca22124546fe5de89",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "2be88d6197ecc309049eb2029c708d18f275c25c7ffd221ca22124546fe5de89",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "措施维度·防口号化",
+      "stem": "用‘措施维度’作答外墙饰面砖空鼓防治时，如何处理人员、机械等维度？选出能得分的作答。",
+      "model_answer": "只在有采分点的维（基层/材料/粘结工艺/构造伸缩缝/养护/检验）写实措施；人员、机械维无采分点，不硬凑口号。",
+      "options": [
+        {
+          "text": "在基层、材料、粘结工艺、构造(伸缩缝)、养护、检验等有采分点的维写实措施，人员/机械维不硬凑。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "有采分点才写，宁缺人机维也不凑口号。",
+          "option_id": "D12-html-practice-html-q13-cf747343eeb3:option-1"
+        },
+        {
+          "text": "人材机法环记六维都要写满：加强人员管理、机械到位、加强环境管理，逐维都补上。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "以为‘六维写满’更全更稳。",
+          "loss_reason": "人员/机械维无采分点，硬塞成口号化反而扣分。",
+          "fix": "只写有采分点的维，删掉‘加强人员管理’等口号。",
+          "option_id": "D12-html-practice-html-q13-cf747343eeb3:option-2"
+        },
+        {
+          "text": "只写养护到位一条就够了，别的维度都是凑数、写多了反而乱。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "走另一个极端，只写一条。",
+          "loss_reason": "漏基层/材料/界面剂背砂/伸缩缝多维，采分点遗漏。",
+          "fix": "有采分点的五六条都要写全。",
+          "option_id": "D12-html-practice-html-q13-cf747343eeb3:option-3"
+        },
+        {
+          "text": "按维度把该注意的都写上，重点维度多写几句、次要维度带一句。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "含糊没落到具体措施。",
+          "loss_reason": "缺基层清理、界面剂＋背砂、伸缩缝等关键词。",
+          "fix": "逐维给出具体可判分措施。",
+          "option_id": "D12-html-practice-html-q13-cf747343eeb3:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q13-cf747343eeb3",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "14cc8fbae6c0b739578045b0c7491bd194f33fe06ed27429760a6f47b9381351",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "14cc8fbae6c0b739578045b0c7491bd194f33fe06ed27429760a6f47b9381351",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "地面工序·程序维",
+      "stem": "地面瓷砖铺设‘基底处理→放线→浸砖’之后的工艺流程应如何？选出正确、能得分的作答。",
+      "model_answer": "浸砖→铺结合层砂浆→铺砖→养护→检查验收→勾缝→成品保护；浸砖须在铺砂浆前，不可颠倒。",
+      "options": [
+        {
+          "text": "浸砖后依次：铺结合层砂浆→铺砖→养护→检查验收→勾缝→成品保护；浸砖在铺砂浆前不可颠倒。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "后段养护/检查验收/勾缝/成品保护补全，顺序不颠倒。",
+          "option_id": "D12-html-practice-html-q14-bee94c1100b3:option-1"
+        },
+        {
+          "text": "浸砖后先铺结合层砂浆，铺砖前再补浸一次砖找水，然后铺砖、养护、勾缝。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "想着铺前再浸一下更保险。",
+          "loss_reason": "浸砖应在铺结合层砂浆之前，颠倒顺序程序错误。",
+          "fix": "浸砖在铺砂浆前，铺砂浆后直接铺砖，不再颠倒。",
+          "option_id": "D12-html-practice-html-q14-bee94c1100b3:option-2"
+        },
+        {
+          "text": "浸砖后铺结合层砂浆、把砖铺好，勾个缝就完成，可以交下道工序了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "补到铺砖就以为完了。",
+          "loss_reason": "漏养护、检查验收、成品保护后段，采分点遗漏。",
+          "fix": "补养护→检查验收→勾缝→成品保护后段。",
+          "option_id": "D12-html-practice-html-q14-bee94c1100b3:option-3"
+        },
+        {
+          "text": "浸砖之后把砂浆铺上、砖摆好，后面按正常流程一步步做完就行了。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "笼统带过没点名后段。",
+          "loss_reason": "缺养护/检查验收/勾缝/成品保护关键词。",
+          "fix": "点名后段各工序名称。",
+          "option_id": "D12-html-practice-html-q14-bee94c1100b3:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q14-bee94c1100b3",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "645f612aac9cd0dba739a3f7af819d44ec1b6173544105cfdb6b847c98e3ebdf",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "645f612aac9cd0dba739a3f7af819d44ec1b6173544105cfdb6b847c98e3ebdf",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "判断纠错·采分句输出",
+      "stem": "技术交底：‘粘结剂随抹灰层一道抹厚约 20mm 后贴砖’。用三段式指出不妥并改正，选出能得分的作答。",
+      "model_answer": "不妥：粘结剂随抹灰层抹厚 20mm。理由：饰面砖粘结剂厚度应为 3~8mm，非抹灰层厚度。正确做法：控制在 3~8mm，调整期内微调、超时严禁振动。",
+      "options": [
+        {
+          "text": "不妥：粘结剂抹厚 20mm。理由：粘结剂厚度应为 3~8mm，不是抹灰层。正确做法：控制在 3~8mm、超时严禁振动。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "不妥＋理由＋正确做法带数值 3~8mm，三段齐。",
+          "option_id": "D12-html-practice-html-q15-1636f6b17364:option-1"
+        },
+        {
+          "text": "不妥：粘结剂抹得太厚了。正确做法：把它抹薄一点再贴砖就好。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "指出太厚也给了方向。",
+          "loss_reason": "正确做法无 3~8mm 数值，关键词缺失只得半分。",
+          "fix": "正确做法必须写明 3~8mm。",
+          "option_id": "D12-html-practice-html-q15-1636f6b17364:option-2"
+        },
+        {
+          "text": "不妥：粘结剂抹厚 20mm，这样贴容易空鼓、开裂、脱落。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只指不妥并说后果。",
+          "loss_reason": "缺‘正确做法’一段，采分点遗漏。",
+          "fix": "补正确做法：控制在 3~8mm、超时严禁振动。",
+          "option_id": "D12-html-practice-html-q15-1636f6b17364:option-3"
+        },
+        {
+          "text": "妥当：抹灰层 20mm 厚度合适，垫得厚一点贴砖反而更牢固。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把粘结剂当抹灰层，以为越厚越牢。",
+          "loss_reason": "粘结剂 3~8mm 非抹灰层，判断方向就错。",
+          "fix": "应判不妥，粘结剂厚 3~8mm。",
+          "option_id": "D12-html-practice-html-q15-1636f6b17364:option-4"
+        }
+      ],
+      "variant_id": "D12-html-practice-html-q15-1636f6b17364",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q15",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d9e640de0045246424dd85e1c4690f9f2199c49837016e83f0dabfc069a071fd",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d9e640de0045246424dd85e1c4690f9f2199c49837016e83f0dabfc069a071fd",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +1174,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q16",
-      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "ac4e0a1df38e6fa03a293802266a02a0f78719b1caae6893800a42b296871d42",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "4b03432e41e451de1818bd157642aa090bc7560f1960bb5c4481002ceab486d6",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "4b03432e41e451de1818bd157642aa090bc7560f1960bb5c4481002ceab486d6",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "708507bde2d3ef72085bbd07d62ea545b82ec9bab607c9a3f94ad6d2cef48ea3"

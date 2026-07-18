@@ -17,8 +17,9 @@ ok("empty inputs degrade without throw", () => {
   const vm = buildLearnViewModel({});
   assert.strictEqual(vm.nextStation, null);
   assert.deepStrictEqual(vm.posters, []);
-  assert.strictEqual(vm.dueCount, 0);
+  assert.strictEqual(vm.dueCount, undefined);
   assert.strictEqual(vm.todayTask, null);
+  assert.strictEqual(vm.reviewCard, null);
   assert.strictEqual(vm.litCount, 0);
   assert.strictEqual(vm.packUniverse, PACK_UNIVERSE);
   assert.strictEqual(vm.hasSupply, false);
@@ -58,11 +59,11 @@ const FULL = {
         S05: { lifecycle_state: "practiced" },
       },
     },
-    revalidation_queue: { items: [{ probe_id: "p1" }, { probe_id: "p2" }] },
+    revalidation_queue: { items: [] },
     pack_review: {
       authority: "revalidation_queue",
       enabled: true,
-      due: [{ probe_id: "p1" }, { probe_id: "p2" }],
+      due: [],
     },
     overview: { recent_three_done: 8, weak_point_count: 3, today_done: 4, daily_target: 10 },
     mastery: { overall_mastery: { score: 72 } },
@@ -101,12 +102,14 @@ ok("posters: recommended first(red), then ink lit, no dup", () => {
   assert.strictEqual(new Set(ids).size, ids.length, "no duplicate posters");
 });
 
-ok("due count + stats mapped", () => {
+ok("activity stats map without exposing a frontend mastery decision", () => {
   const vm = buildLearnViewModel(FULL);
-  assert.strictEqual(vm.dueCount, 2);
+  assert.strictEqual(vm.dueCount, undefined);
   assert.strictEqual(vm.stats.recent_practice, 8);
   assert.strictEqual(vm.stats.pending_errors, 3);
-  assert.strictEqual(vm.stats.mastery_score, 72);
+  // 已验证考点=mastered 事实计数(A01 mastered;S05 practiced/ dormant 不计)
+  assert.strictEqual(vm.stats.verified_stations, 1);
+  assert.strictEqual(vm.stats.mastery_score, undefined);
   assert.strictEqual(vm.examDate, "2026-09-19");
   assert.deepStrictEqual(vm.todayProgress, { done: 4, target: 10, percent: 40 });
   assert.strictEqual(vm.hasSupply, true);
@@ -152,7 +155,11 @@ ok("unavailable but green lessons → day-0 fallback station renders stage", () 
   assert.ok(vm.nextStation, "fallback station must render the stage");
   assert.strictEqual(vm.nextStation.mode, "learn_fallback");
   assert.strictEqual(vm.nextStation.green, true);
-  assert.ok(vm.todayTask, "today task card must also render");
+  assert.strictEqual(
+    vm.todayTask,
+    null,
+    "browse fallback may keep the stage alive but must not compete with server next_step as today's task",
+  );
 });
 
 ok("day-0 fallback prefers a green station with a hosted microlesson", () => {
@@ -220,18 +227,23 @@ ok("practice_active arm → today task is MCQ light practice (not case grading)"
     lessons: FULL.lessons,
   });
   assert.ok(vm.todayTask);
-  assert.strictEqual(vm.todayTask.cta, "开始 2 分钟轻练");
+  assert.strictEqual(vm.todayTask.cta, "完成刚学内容的 5 题检验");
   // N01 fixture 有 signed 变体池 → practice_kind 按供给真值路由到 retest forward
   assert.strictEqual(vm.todayTask.practice_kind, "retest");
   assert.strictEqual(vm.todayTask.supplyNote, "");
   assert.strictEqual(vm.todayTask.task_type, "light_practice");
+  assert.strictEqual(vm.todayTask.task_state, "practice_active");
+  assert.strictEqual(vm.todayTask.action_kind, "retest");
   assert.strictEqual(vm.todayTask.estimated_minutes, 2);
-  assert.strictEqual(vm.todayTask.mode, "topic"); // 路由到 assessment 专题模式
+  assert.strictEqual(vm.todayTask.mode, "forward");
   assert.strictEqual(vm.todayTask.pack_id, "N01"); // 带上推荐考点
   assert.strictEqual(vm.todayTask.training_intent_id, "ti_n01");
   assert.strictEqual(vm.todayTask.concept, "网络计划关键线路");
   assert.ok(vm.todayTask.title.indexOf("网络计划关键线路") === 0);
   assert.strictEqual(vm.todayTask.reason, "练:你漏的采分点");
+  assert.strictEqual(vm.todayTask.ctaLabel, "开始训练");
+  assert.strictEqual(vm.todayTask.light_practice_available, true);
+  assert.strictEqual(vm.todayTask.secondaryCta, undefined);
   // 案例题批改已降级:今日任务不再携带案例批改 prompt(不走 chat 判分流)
   assert.strictEqual(vm.todayTask.prompt, undefined);
 });
@@ -272,7 +284,7 @@ ok("signed variant supply does not expose forward CTA while rollout is off", () 
   assert.strictEqual(vm.todayTask.cta, "");
 });
 
-ok("review source_ref is probe identity and target_pack_id selects the station", () => {
+ok("server review_due next step supplies the due probe and target station", () => {
   const vm = buildLearnViewModel({
     homeDashboard: {
       next_step: {
@@ -282,7 +294,15 @@ ok("review source_ref is probe identity and target_pack_id selects the station",
         reason: "到期复验",
       },
     },
-    report: FULL.report,
+    report: {
+      ...FULL.report,
+      // review 资格消费 canonical due 条目(A5):供给真值在 pack_review,不在 lessons 旗标
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "F16", title: "屋面防水起鼓割补", probe_id: "rvp_f16", retest_available: true }],
+      },
+    },
     lessons: {
       lessons: [
         { pack_id: "F16", title: "屋面防水起鼓割补", content_sha256: "sha_f16", retest_available: true, light_practice_available: true },
@@ -292,34 +312,86 @@ ok("review source_ref is probe identity and target_pack_id selects the station",
   assert.strictEqual(vm.nextStation.pack_id, "F16");
   assert.strictEqual(vm.todayTask.probe_id, "rvp_f16");
   assert.strictEqual(vm.todayTask.training_intent_id, "");
+  assert.strictEqual(vm.todayTask.task_state, "review_due");
+  assert.strictEqual(vm.todayTask.action_kind, "retest");
+  assert.strictEqual(vm.todayTask.mode, "review");
+  // 周期由服务端 due 裁决,前端不得声称"昨天"(可能是 3 日/稳定周期抽查)
+  assert.strictEqual(vm.todayTask.cta, "用 2 分钟完成到期验证");
 });
 
-// ── 兜底臂(有站可学但非 practice_active)→ 同样是 MCQ 轻练,带该站考点 ──
-ok("fallback arm → MCQ light practice carries next-station pack/concept", () => {
+ok("frontend never creates a competing priority from pack_review", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: {
+      next_step: {
+        mode: "practice_active",
+        source_ref: "intent_n01",
+        target_pack_id: "N01",
+        reason: "普通课后练",
+      },
+    },
+    report: {
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "S05", title: "临时用电", probe_id: "probe_s05" }],
+      },
+    },
+    lessons: {
+      lessons: [
+        { pack_id: "N01", title: "网络计划", light_practice_available: true },
+        { pack_id: "S05", title: "临时用电", light_practice_available: true },
+      ],
+    },
+  });
+  assert.strictEqual(vm.todayTask.pack_id, "N01");
+  assert.strictEqual(vm.todayTask.training_intent_id, "intent_n01");
+  assert.strictEqual(vm.todayTask.task_state, "practice_active");
+  assert.strictEqual(vm.todayTask.cta, "完成刚学内容的 5 题检验");
+});
+
+// ── 兜底臂(无到期/未闭合练习)→ 练习池已签发时主任务=继续练习(owner 2026-07-17 拍板) ──
+ok("learn_next with signed practice pool → practice-first task 继续练习", () => {
   const vm = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "learn_next", source_ref: "N01", reason: "下一站" } },
     report: FULL.report,
     lessons: FULL.lessons,
   });
   assert.ok(vm.todayTask);
-  assert.strictEqual(vm.todayTask.task_type, "light_practice");
-  assert.strictEqual(vm.todayTask.mode, "topic");
+  assert.strictEqual(vm.todayTask.action_kind, "retest");
+  assert.strictEqual(vm.todayTask.practice_kind, "retest");
+  assert.strictEqual(vm.todayTask.mode, "forward");
   assert.strictEqual(vm.todayTask.pack_id, "N01");
+  assert.strictEqual(vm.todayTask.ctaLabel, "继续练习");
+  assert.strictEqual(vm.todayTask.cta, "练教学视频后面的 5 题，错了当场弄懂");
   assert.strictEqual(vm.todayTask.prompt, undefined);
 });
 
-// ── 头牌按供给真值路由(承诺宽度收窄): seethrough > retest > none ──
-ok("practice_kind routes by signed supply: seethrough > retest > none", () => {
-  // ① 站有签发看穿包 → seethrough 优先(即使也有变体池)
+// ── 练习池未签发的 learn_next → 仍回落推荐微课(诚实,禁空头练习按钮) ──
+ok("learn_next without signed practice pool → microlesson fallback stays", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "learn_next", source_ref: "S05", reason: "下一站" } },
+    report: FULL.report,
+    lessons: FULL.lessons, // S05 无 retest_available
+  });
+  assert.ok(vm.todayTask);
+  assert.strictEqual(vm.todayTask.task_type, "microlesson");
+  assert.strictEqual(vm.todayTask.task_state, "learn_next");
+  assert.strictEqual(vm.todayTask.action_kind, "lesson");
+  assert.strictEqual(vm.todayTask.mode, "learn");
+  assert.strictEqual(vm.todayTask.ctaLabel, "继续学习");
+  assert.strictEqual(vm.todayTask.cta, "学这一小节，随后做 5 题");
+});
+
+// ── 一等任务只走通用 retest 供给；Pack 专属看穿 spike 不再参与学习首页 ──
+ok("practice task ignores the legacy seethrough library and uses generic retest supply", () => {
   const vmA = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
     report: FULL.report,
     lessons: FULL.lessons,
     seethroughLibrary: { total: 1, packs: [{ pack_id: "N01", title: "网络计划关键线路" }] },
   });
-  assert.strictEqual(vmA.todayTask.practice_kind, "seethrough");
-  // ② 无看穿有变体池 → retest(FULL 已断言)
-  // ③ 两者皆无 → none: 主按钮不渲染(cta 空) + 诚实降级说明
+  assert.strictEqual(vmA.todayTask.practice_kind, "retest");
+  // 无通用供给 → none: 主按钮不渲染(cta 空) + 诚实降级说明
   const vmC = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_a01", target_pack_id: "A01", reason: "r" } },
     report: FULL.report,
@@ -328,7 +400,7 @@ ok("practice_kind routes by signed supply: seethrough > retest > none", () => {
   assert.strictEqual(vmC.todayTask.practice_kind, "none");
   assert.strictEqual(vmC.todayTask.cta, "");
   assert.ok(vmC.todayTask.supplyNote.length > 0);
-  // 看穿库响应缺失/畸形 → 空集保守降级不抛
+  // 看穿库响应畸形也不能影响通用路由
   const vmD = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
     report: FULL.report,
@@ -400,6 +472,514 @@ ok("poster name uses registered 简称; title keeps full text; unregistered fall
   const z99 = vm.posters.find((p) => p.pack_id === "Z99");
   assert.strictEqual(z99.name, "未登记简称的"); // 未登记 → 回退旧 6 字截断止血
   assert.strictEqual(z99.title, "未登记简称的长站点标题");
+});
+
+// ══════════════════════════════════════════════════════════════
+// 10a改 · 今日任务卡三层 + 旅程轨道 + 复习卡(单一权威红线)
+// ══════════════════════════════════════════════════════════════
+
+// ── 旅程轨道(红队 A1 收口):前端没有逐步完成证据 → 轨道=流程说明。
+//    禁 done/勾;current 只由 next_step.mode 派生(CTA 对应步,唯一诚实声称);
+//    第 5/6 步不承诺具体日程(复习周期由服务端 due 裁决,前端不写死"明日/3日")。 ──
+const JOURNEY_LABELS = ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "到期验证", "后续抽查"];
+
+ok("journey: steps are exactly the 6 canonical labels; no schedule promises in copy", () => {
+  const vm = buildLearnViewModel(FULL); // learn_next
+  const j = vm.todayTask.journey;
+  assert.ok(j, "todayTask must carry a journey");
+  assert.deepStrictEqual(j.steps.map((s) => s.label), JOURNEY_LABELS);
+  assert.strictEqual(j.total, 6);
+  j.steps.forEach((s) => {
+    assert.ok(s.label.indexOf("半写") === -1 && s.label.indexOf("填空") === -1);
+    assert.ok(s.label.indexOf("明日") === -1 && s.label.indexOf("3 日") === -1,
+      "journey copy must not hardcode a review schedule the server did not sign: " + s.label);
+  });
+});
+
+ok("journey never claims done in any arm (frontend has no completion evidence)", () => {
+  const arms = [
+    { next_step: { mode: "learn_next", source_ref: "N01", reason: "r" } },
+    { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
+    { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "r" } },
+  ];
+  arms.forEach((homeDashboard) => {
+    const vm = buildLearnViewModel({ homeDashboard, report: FULL.report, lessons: FULL.lessons });
+    const j = vm.todayTask.journey;
+    assert.strictEqual(j.steps.filter((s) => s.state === "done").length, 0,
+      "next_step.mode is a prescription, never completion evidence (" + homeDashboard.next_step.mode + ")");
+  });
+});
+
+ok("journey learn_next+signed pool → practice-first, current = practice step", () => {
+  const vm = buildLearnViewModel(FULL); // N01 练习池已签发 → 练习优先(owner 2026-07-17)
+  const j = vm.todayTask.journey;
+  assert.strictEqual(j.currentIndex, 2); // 练习优先 → 当前步=训练(1-based)
+  assert.strictEqual(j.steps[1].state, "current");
+  assert.strictEqual(j.steps[4].state, "promise"); // 到期验证=竹青虚环承诺
+  assert.strictEqual(j.steps[5].state, "promise"); // 后续抽查=竹青虚环承诺
+});
+
+ok("journey learn_next without pool → current step 1, tail two steps promised", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "learn_next", source_ref: "S05", reason: "r" } },
+    report: FULL.report,
+    lessons: FULL.lessons, // S05 无 retest_available → 微课任务
+  });
+  const j = vm.todayTask.journey;
+  assert.strictEqual(j.currentIndex, 1);
+  assert.strictEqual(j.steps[0].state, "current");
+  assert.strictEqual(j.steps[1].state, "future");
+  assert.strictEqual(j.steps[2].state, "future");
+  assert.strictEqual(j.steps[3].state, "future");
+  assert.strictEqual(j.steps[4].state, "promise"); // 到期验证=竹青虚环承诺
+  assert.strictEqual(j.steps[5].state, "promise"); // 后续抽查=竹青虚环承诺
+});
+
+ok("journey practice_active → current step 2; earlier steps stay hollow, not done", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+  });
+  const j = vm.todayTask.journey;
+  assert.strictEqual(j.currentIndex, 2);
+  // practice_active 只证明存在未 verified 的 training_intent,不证明动画讲懂已完成
+  assert.strictEqual(j.steps[0].state, "future");
+  assert.strictEqual(j.steps[1].state, "current");
+  assert.strictEqual(j.steps[2].state, "future");
+  assert.strictEqual(j.steps[3].state, "future");
+  assert.strictEqual(j.steps[4].state, "promise");
+  assert.strictEqual(j.steps[5].state, "promise");
+});
+
+ok("journey review_due → current=到期验证(step 5); nothing marked done, no line over hollow steps", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "到期" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+  });
+  const j = vm.todayTask.journey;
+  assert.strictEqual(j.currentIndex, 5);
+  assert.strictEqual(j.steps[0].state, "future");
+  assert.strictEqual(j.steps[1].state, "future");
+  assert.strictEqual(j.steps[2].state, "future");
+  assert.strictEqual(j.steps[3].state, "future");
+  assert.strictEqual(j.steps[4].state, "current"); // 到期验证=当前,不再是虚环
+  assert.strictEqual(j.steps[5].state, "promise");
+});
+
+ok("journey draws no completion line: progressRatio/lineFillPercent removed", () => {
+  ["learn_next", "practice_active", "review_due"].forEach((mode) => {
+    const vm = buildLearnViewModel({
+      homeDashboard: { next_step: { mode, source_ref: mode === "learn_next" ? "N01" : "ref", target_pack_id: "N01" } },
+      report: FULL.report,
+      lessons: FULL.lessons,
+    });
+    const j = vm.todayTask.journey;
+    assert.strictEqual(j.progressRatio, undefined, "no progress ratio without completion evidence");
+    assert.strictEqual(j.lineFillPercent, undefined, "progress line must never cross unverified steps");
+  });
+});
+
+ok("journey exposes no mastery percent, only step-position facts", () => {
+  const vm = buildLearnViewModel(FULL);
+  const j = vm.todayTask.journey;
+  assert.strictEqual(j.masteryPercent, undefined);
+  assert.ok(j.currentIndex >= 1 && j.currentIndex <= 6);
+  assert.ok(typeof j.ringPercent === "number" && j.ringPercent >= 0 && j.ringPercent <= 100);
+});
+
+// ── 轻练旁按钮(红队 A2 收口):到期验证优先,review_due 下不给绕开路径 ──
+ok("review_due with supply must NOT expose light practice (no bypass around due verification)", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: FULL.report,
+    lessons: FULL.lessons, // N01 供给真值为 true,但到期验证优先
+  });
+  assert.strictEqual(vm.todayTask.light_practice_available, false);
+  assert.strictEqual(vm.todayTask.light_practice_visible, false);
+});
+
+ok("light practice stays usable only in learn/forward contexts", () => {
+  const practice = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(practice.todayTask.light_practice_available, true);
+  assert.strictEqual(practice.todayTask.light_practice_visible, true);
+  const lesson = buildLearnViewModel(FULL); // learn_next
+  assert.strictEqual(lesson.todayTask.light_practice_available, true);
+  assert.strictEqual(lesson.todayTask.light_practice_visible, true);
+});
+
+// ── 主按钮短文案随任务类型;无供给时不给按钮(禁 dead click) ──
+ok("ctaLabel: 开始验证 / 开始训练 / 继续学习 by task type; empty when no supply", () => {
+  const review = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01", retest_available: true }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(review.todayTask.ctaLabel, "开始验证");
+  // FULL=N01 练习池已签发 → 练习优先「继续练习」(owner 2026-07-17 拍板)
+  const lesson = buildLearnViewModel(FULL);
+  assert.strictEqual(lesson.todayTask.ctaLabel, "继续练习");
+  assert.strictEqual(lesson.todayTask.light_practice_available, true); // N01 供给已接通
+  // 无 retest 供给的 practice_active → ctaLabel 空(按钮隐藏)+ 诚实降级说明
+  const none = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_a01", target_pack_id: "A01" } },
+    report: FULL.report,
+    lessons: FULL.lessons, // A01 无 light_practice_available
+  });
+  assert.strictEqual(none.todayTask.ctaLabel, "");
+  assert.strictEqual(none.todayTask.light_practice_available, false);
+  assert.ok(none.todayTask.supplyNote.length > 0);
+});
+
+ok("practice title claims 5 题 only when the retest pool is really available", () => {
+  const withSupply = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+  });
+  assert.ok(withSupply.todayTask.title.indexOf("训练 5 题") >= 0);
+  const noSupply = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_a01", target_pack_id: "A01" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(noSupply.todayTask.title.indexOf("训练 5 题"), -1);
+});
+
+// ── 复习卡:只是到期状态视图,单一权威=next_step;禁第二任务源 ──
+const DUE_REPORT = {
+  ...FULL.report,
+  pack_review: {
+    authority: "revalidation_queue",
+    enabled: true,
+    due: [
+      { pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01", retest_available: true },
+      { pack_id: "S05", title: "临时用电三级配电", probe_id: "rvp_s05", retest_available: true },
+    ],
+    learned_count: 3,
+  },
+};
+
+ok("review card renders only when next_step already adjudicated review_due", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "到期" } },
+    report: DUE_REPORT,
+    lessons: FULL.lessons,
+  });
+  assert.ok(vm.reviewCard);
+  assert.strictEqual(vm.reviewCard.dueCount, 2);
+  assert.ok(vm.reviewCard.title.indexOf("2 个考点到期") >= 0);
+  assert.strictEqual(vm.reviewCard.title.indexOf("昨天"), -1, "review cycle length is server-owned; no 昨天 claim");
+  assert.ok(vm.reviewCard.sub.indexOf("换题验证") >= 0);
+  // 任务卡此时自动是验证任务(同一权威,不是复习卡自算的)
+  assert.strictEqual(vm.todayTask.task_state, "review_due");
+});
+
+// ── 红队 A3 收口:复习卡必须 exact-match 当前任务身份(pack_id+probe_id),
+//    禁跨快照身份漂移(卡显示 S05 计数,点击却路由 N01 旧 probe → dead click)。 ──
+ok("review card hidden when due snapshot has no exact task identity match", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        // 独立快照里 N01 已完成,只剩 S05 到期 → 与任务身份不匹配,必须隐藏
+        due: [{ pack_id: "S05", title: "临时用电三级配电", probe_id: "rvp_s05", retest_available: true }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null, "cross-snapshot drift must hide the card, never re-pick another due");
+});
+
+// 二轮红队 A3:字段缺失/空串身份都不得当成匹配(服务端 resolver 要求非空 + retest_available is True)
+ok("review card hidden when due entry omits retest_available (strict === true, no fail-open)", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        // retest_available 缺失 = 供给未知,必须保守隐藏,不得视同可用
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01" }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null);
+});
+
+ok("blank probe identities never match each other (empty-string equality is a bypass)", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "", retest_available: true }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null, "'' === '' must not count as identity match");
+  assert.strictEqual(vm.todayTask.ctaLabel, "", "blank probe is unroutable server-side; no dead-click CTA");
+});
+
+ok("review card hidden when the due entry carries a different probe identity", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_other", retest_available: true }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null);
+});
+
+// ── 二轮红队 A5(合法状态误杀恢复):review 路由资格不得复用 forward-only 的
+//    lessons light_practice_available(它同时受 LUBAN_LIGHT_PRACTICE_ENABLED 限制);
+//    mode=review 的资格 = exact-matched due 条目的 canonical retest_available === true。 ──
+ok("review stays routable when light flag is off but the canonical due entry is signed", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "到期" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01", retest_available: true }],
+      },
+    },
+    lessons: {
+      lessons: [
+        // LUBAN_LIGHT_PRACTICE_ENABLED=false → lessons 侧 forward 旗标为 false,
+        // 但 review module 开着且 due 条目已签发 → 到期验证必须仍可路由
+        { pack_id: "N01", title: "网络计划关键线路", light_practice_available: false },
+      ],
+    },
+  });
+  assert.strictEqual(vm.todayTask.practice_kind, "retest");
+  assert.strictEqual(vm.todayTask.ctaLabel, "开始验证");
+  assert.strictEqual(vm.todayTask.mode, "review");
+  assert.ok(vm.reviewCard, "legit due verification must not be killed by the forward-only light flag");
+  // 轻练旁按钮(forward)仍按 A2 规则在 review_due 下隐藏
+  assert.strictEqual(vm.todayTask.light_practice_visible, false);
+});
+
+ok("review eligibility degrades honestly when pack_review authority is degraded/unknown", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: { authority: "revalidation_queue", enabled: null, degraded: true,
+        due: [{ pack_id: "N01", probe_id: "rvp_n01", retest_available: true }] },
+    },
+    lessons: FULL.lessons, // lessons 侧 forward 旗标为 true,也不得代替 canonical due 供给
+  });
+  assert.strictEqual(vm.todayTask.practice_kind, "none", "degraded authority must not borrow the forward flag");
+  assert.strictEqual(vm.todayTask.ctaLabel, "");
+  assert.ok(vm.todayTask.supplyNote.length > 0, "must explain the honest degrade");
+  assert.strictEqual(vm.reviewCard, null);
+});
+
+ok("review card hidden when the matched due entry says retest unavailable", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01", retest_available: false }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null);
+});
+
+ok("review card hidden when due list is empty", () => {
+  const vm = buildLearnViewModel(FULL); // pack_review.due = []
+  assert.strictEqual(vm.reviewCard, null);
+});
+
+ok("review card never becomes a second task source when next_step chose another arm", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
+    report: DUE_REPORT, // 有到期,但 server 裁决了 practice_active
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.reviewCard, null, "review card must follow next_step adjudication, not pack_review");
+  assert.strictEqual(vm.todayTask.task_state, "practice_active");
+});
+
+ok("review card hidden when pack_review authority is degraded/unknown", () => {
+  const degraded = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: { authority: "revalidation_queue", enabled: null, degraded: true, due: [{ pack_id: "N01" }] },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(degraded.reviewCard, null);
+  const wrongAuthority = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01" } },
+    report: {
+      ...FULL.report,
+      pack_review: { authority: "frontend_guess", enabled: true, due: [{ pack_id: "N01" }] },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(wrongAuthority.reviewCard, null);
+});
+
+ok("review card hidden when the review task has no routable retest supply (no dead click)", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_a01", target_pack_id: "A01" } },
+    report: DUE_REPORT, // due 里没有 A01/rvp_a01 条目 → review 供给不可证 → none
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.todayTask.practice_kind, "none");
+  assert.strictEqual(vm.reviewCard, null);
+});
+
+// ══════════════════════════════════════════════════════════════
+// browse 兜底投影(owner 2026-07-17):todayTask 缺席但有 nextStation 时,
+// 产出与今日任务卡视觉同构的 browse 卡——让学习页在任何状态都长成 10a 定稿。
+// 红线:永不与 server next_step 竞争(仅 todayTask===null 出现);不声称"今日任务";
+// review_due 逻辑零改;轻练供给复用 _practiceKindFor 单点。
+// ══════════════════════════════════════════════════════════════
+
+// 单绿灯站 + 已签发练习池 → day-0 fallback 落到该站,browse=retest 继续练习
+const BROWSE_RETEST = {
+  homeDashboard: { next_step: { mode: "unavailable", source_ref: "", reason: "" } },
+  report: {},
+  lessons: {
+    lessons: [
+      { pack_id: "RB1", title: "工期索赔成立条件", content_sha256: "sha_rb1", card_hosted: true, retest_available: true, light_practice_available: true },
+    ],
+  },
+};
+
+// 单绿灯站 + 无练习池 → browse=进站学习(lesson)
+const BROWSE_LESSON = {
+  homeDashboard: { next_step: { mode: "unavailable", source_ref: "", reason: "" } },
+  report: {},
+  lessons: {
+    lessons: [
+      { pack_id: "LB1", title: "验收程序五步走", content_sha256: "sha_lb1", card_hosted: true },
+    ],
+  },
+};
+
+ok("browse: todayTask null + nextStation present → isomorphic browseTask (retest supply → 继续练习)", () => {
+  const vm = buildLearnViewModel(BROWSE_RETEST);
+  assert.strictEqual(vm.todayTask, null, "browse must not fabricate a server today task");
+  assert.ok(vm.browseTask, "browse card must render when todayTask is null but a station exists");
+  assert.strictEqual(vm.taskCard, vm.browseTask, "taskCard is the single render source = todayTask || browseTask");
+  assert.strictEqual(vm.browseTask.ctaLabel, "继续练习"); // _practiceKindFor === retest
+  assert.strictEqual(vm.browseTask.action_kind, "retest");
+  assert.strictEqual(vm.browseTask.practice_kind, "retest");
+  assert.strictEqual(vm.browseTask.mode, "forward");
+  assert.strictEqual(vm.browseTask.pack_id, "RB1");
+  assert.strictEqual(vm.browseTask.training_intent_id, "");
+  assert.strictEqual(vm.browseTask.probe_id, "");
+  assert.strictEqual(vm.hasSupply, true);
+});
+
+ok("browse: no retest supply → 进站学习 lesson card (station route, honest)", () => {
+  const vm = buildLearnViewModel(BROWSE_LESSON);
+  assert.ok(vm.browseTask);
+  assert.strictEqual(vm.browseTask.ctaLabel, "进站学习");
+  assert.strictEqual(vm.browseTask.action_kind, "lesson");
+  assert.strictEqual(vm.browseTask.practice_kind, "");
+  assert.strictEqual(vm.browseTask.mode, "learn");
+  assert.strictEqual(vm.browseTask.pack_id, "LB1");
+});
+
+ok("browse never claims 今日任务: kicker is 从这里开始, not 今天最该完成", () => {
+  const retest = buildLearnViewModel(BROWSE_RETEST);
+  const lesson = buildLearnViewModel(BROWSE_LESSON);
+  [retest.browseTask, lesson.browseTask].forEach((t) => {
+    assert.strictEqual(t.kicker, "从这里开始");
+    assert.strictEqual(t.kicker.indexOf("今日"), -1);
+    assert.strictEqual(t.kicker.indexOf("今天"), -1);
+    assert.strictEqual(t.task_state, "browse"); // 非 practice_active/review_due
+    assert.strictEqual(t.title.indexOf("今天"), -1);
+  });
+});
+
+ok("browse journey = step 1 (动画讲懂 current), no done, tail two steps promised", () => {
+  const j = buildLearnViewModel(BROWSE_RETEST).browseTask.journey;
+  assert.ok(j, "browse card must carry a journey so the 10a track renders");
+  assert.strictEqual(j.currentIndex, 1);
+  assert.strictEqual(j.steps[0].state, "current");
+  assert.strictEqual(j.steps.filter((s) => s.state === "done").length, 0);
+  assert.strictEqual(j.steps[4].state, "promise");
+  assert.strictEqual(j.steps[5].state, "promise");
+});
+
+ok("browse light practice reuses _practiceKindFor: visible always, available iff retest", () => {
+  const retest = buildLearnViewModel(BROWSE_RETEST).browseTask;
+  assert.strictEqual(retest.light_practice_visible, true);
+  assert.strictEqual(retest.light_practice_available, true);
+  const lesson = buildLearnViewModel(BROWSE_LESSON).browseTask;
+  assert.strictEqual(lesson.light_practice_visible, true); // 旁按钮仍在(与设计一致)
+  assert.strictEqual(lesson.light_practice_available, false); // 无供给 → 点击走诚实 toast
+});
+
+ok("browse must NOT compete with a server today task (learn_next present)", () => {
+  const vm = buildLearnViewModel(FULL); // learn_next, N01 有练习池 → todayTask 非空
+  assert.ok(vm.todayTask);
+  assert.strictEqual(vm.browseTask, null, "browse must be suppressed whenever server next_step adjudicated a task");
+  assert.strictEqual(vm.taskCard, vm.todayTask);
+});
+
+ok("browse absent under review_due (review logic untouched, no second task source)", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "review_due", source_ref: "rvp_n01", target_pack_id: "N01", reason: "到期" } },
+    report: {
+      ...FULL.report,
+      pack_review: {
+        authority: "revalidation_queue",
+        enabled: true,
+        due: [{ pack_id: "N01", title: "网络计划关键线路", probe_id: "rvp_n01", retest_available: true }],
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.todayTask.task_state, "review_due");
+  assert.strictEqual(vm.browseTask, null);
+  assert.strictEqual(vm.taskCard, vm.todayTask);
+});
+
+ok("browse absent when there is no station at all (empty inputs stay honest)", () => {
+  const vm = buildLearnViewModel({});
+  assert.strictEqual(vm.nextStation, null);
+  assert.strictEqual(vm.browseTask, null);
+  assert.strictEqual(vm.taskCard, null);
 });
 
 console.log("\nlearn-view-model: " + passed + " passed");

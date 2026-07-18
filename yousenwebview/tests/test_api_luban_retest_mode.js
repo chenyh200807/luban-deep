@@ -96,6 +96,37 @@ function urlOf(loaded) {
   assert(loaded.pendingRequests[0].data.episode === undefined, "episode 应在 URL，不应成为 GET body");
 })();
 
+// 错后当场确认: forward 场 confirmFacts 进 query(去空/去重限 5, 逗号连接)。
+(function () {
+  var loaded = loadApiModule();
+  loaded.api.getLubanRetestItems("S05", 5, "forward", {
+    confirmFacts: ["fact-a", " ", "fact-b"],
+  });
+  var url = urlOf(loaded);
+  assert(
+    url.indexOf("confirm_facts=fact-a%2Cfact-b") >= 0,
+    "forward 场 confirmFacts 应编码进 query, got " + url,
+  );
+})();
+
+// review 场绝不传 confirm_facts(消费点1 仅 forward)。
+(function () {
+  var loaded = loadApiModule();
+  loaded.api.getLubanRetestItems("S05", 5, "review", {
+    probeId: "probe-1",
+    confirmFacts: ["fact-a"],
+  });
+  var url = urlOf(loaded);
+  assert(url.indexOf("confirm_facts=") === -1, "review 场不得带 confirm_facts, got " + url);
+})();
+
+// 空 confirmFacts 不产生 query 参数(现行为)。
+(function () {
+  var loaded = loadApiModule();
+  loaded.api.getLubanRetestItems("S05", 5, "forward", { confirmFacts: [] });
+  assert(urlOf(loaded).indexOf("confirm_facts=") === -1, "空 confirmFacts 不得进 query");
+})();
+
 if (fail > 0) {
   console.error(errors.join("\n"));
   console.error("\napi-luban-retest-mode: " + pass + " passed, " + fail + " FAILED");

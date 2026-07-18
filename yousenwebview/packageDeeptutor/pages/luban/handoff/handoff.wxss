@@ -1,4 +1,5 @@
 @import "/packageDeeptutor/theme.wxss";
+@import "/packageDeeptutor/styles/paper-ink.wxss";
 
 .luban-page {
   height: 100vh;
@@ -126,3 +127,20 @@
 .ho-btn.ghost:active {
   background: rgba(255, 255, 255, 0.06);
 }
+
+/* 讲懂→练→明天见的交接页与学习/复习共用纸墨壳。 */
+.luban-page.paper {
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
+  color: var(--pk-t1);
+}
+.luban-page.paper .lb-nav { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
+.luban-page.paper .lb-back-arrow,
+.luban-page.paper .lb-back-text { color: var(--pk-grn); }
+.luban-page.paper .lb-nav-title,
+.luban-page.paper .ho-title { color: var(--pk-t1); }
+.luban-page.paper .ho-desc { color: var(--pk-t2); }
+.luban-page.paper .ho-hero { background: var(--pk-card); border-color: var(--pk-bd); box-shadow: 0 2rpx 12rpx var(--pk-shadow); }
+.luban-page.paper .ho-btn { background: var(--pk-ink-btn); color: var(--pk-ink-btn-t); box-shadow: 0 8rpx 20rpx var(--pk-shadow); }
+.luban-page.paper .ho-btn.ghost { background: transparent; border-color: var(--pk-bd); color: var(--pk-t2); box-shadow: none; }

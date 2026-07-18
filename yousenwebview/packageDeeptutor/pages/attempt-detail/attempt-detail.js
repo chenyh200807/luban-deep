@@ -19,6 +19,7 @@ function readCachedCard(cacheKey) {
 
 Page({
   data: {
+    isDark: true,
     statusBarHeight: 0,
     navHeight: 96,
     loading: true,
@@ -32,11 +33,16 @@ Page({
     this._attemptRef = decode(options && options.attemptRef);
     this._card = readCachedCard(decode(options && options.cacheKey));
     this.setData({
+      isDark: helpers.isDarkOr("light"),
       statusBarHeight: statusBarHeight,
       navHeight: statusBarHeight + 48,
       detail: attemptDetailViewModel.buildAttemptDetailViewModel({}, this._card),
     });
     this._loadDetail();
+  },
+
+  onShow() {
+    this.setData({ isDark: helpers.isDarkOr("light") });
   },
 
   goBack() {

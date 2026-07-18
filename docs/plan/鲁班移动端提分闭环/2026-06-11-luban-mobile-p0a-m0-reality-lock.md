@@ -1,6 +1,7 @@
 # 鲁班移动端 P0A M0 Reality Lock
 
-> Status: `Active / M0 reality lock`
+> Authority status（2026-07-16）：**Reference-only facts / F16 lock superseded**。source tree、true-entry、authority 与 schema 事实账本继续有效；F16 默认锁定、旧父计划选择和 M1 启动口径不再可执行。当前产品 authority 见[父级 PRD](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)，当前 Practice 留存执行 authority 见[2026-07-15 计划](2026-07-15-luban-practice-mother-bank-retention-loop-implementation-plan.md)。
+> Status: `Reference-only facts / F16 lock superseded 2026-07-16`
 > Date: 2026-06-11
 > Parent authority:
 > - [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)

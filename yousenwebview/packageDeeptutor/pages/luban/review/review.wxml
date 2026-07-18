@@ -212,6 +212,4 @@
     </view>
   </scroll-view>
 
-  <!-- 底部五 tab = 共享壳组件(单一壳权威,禁内联 tabbar) -->
-  <workspace-shell id="workspaceShell"></workspace-shell>
 </view>

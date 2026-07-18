@@ -102,3 +102,76 @@ def test_artifact_in_sync_with_generator_and_pack() -> None:
     assert bank["gate"]["verdict_mismatches"] == []
     assert bank["gate"]["contested_leaks"] == []
     assert bank["gate"]["duplicate_surfaces"] == []
+
+
+def test_rebuild_preserves_baked_decisions_by_id_and_content(tmp_path, monkeypatch):
+    """重建保留合并：bake 进 bank 的 decision 块在 builder 重跑后原位保留；
+    --check 零写入。（镜像 practice publisher `_load_practice_review_records`
+    的 build-time 人审保留模式。）"""
+    from deeptutor.services.luban_lesson.variant_eligibility import (
+        decision_identity_sha256,
+        review_signature_envelope_sha256,
+        variant_content_sha256,
+    )
+
+    out_path = tmp_path / "_F16_variant_bank.v0.json"
+    monkeypatch.setattr(_mod, "OUT_PATH", out_path)
+    monkeypatch.setattr(_mod, "REPO", tmp_path)  # 只影响收尾 relative_to 打印
+    monkeypatch.setattr(sys, "argv", ["build_luban_f16_variant_bank.py"])
+    assert _mod.main() == 0
+    bank = json.loads(out_path.read_text(encoding="utf-8"))
+
+    # 给第一个变体 bake 一条已签 decision（identity 用真实 sha 链）
+    variant = bank["variants"][0]
+    temptation, loss_reason = "诱错点", "丢分原因"
+    decision = {
+        "schema": "luban_variant_decision.v1",
+        "fact_id": "f16-fact-demo",
+        "skeleton_id": "f16-vskel-demo-ok",
+        "probe_role": "immediate_confirm",
+        "temptation": temptation,
+        "loss_reason": loss_reason,
+        "source_anchor": str(variant["anchor"]),
+        "source_sha256": bank["source_pack_sha256"],
+        "content_sha256": variant_content_sha256(
+            variant, temptation=temptation, loss_reason=loss_reason
+        ),
+    }
+    decision["decision_identity_sha256"] = decision_identity_sha256(decision)
+    decision["review"] = {
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": decision["content_sha256"],
+        "reviewed_decision_sha256": decision["decision_identity_sha256"],
+        "signatures": [
+            {"role": "teaching", "reviewer_id": "r", "signed_at": "t"},
+            {"role": "scoring", "reviewer_id": "r", "signed_at": "t"},
+        ],
+        "checks": {
+            "source_verified": True,
+            "answer_verified": True,
+            "diagnosis_verified": True,
+            "longest_option_checked": True,
+            "template_leakage_checked": True,
+        },
+    }
+    decision["review"]["signature_envelope_sha256"] = (
+        review_signature_envelope_sha256(decision)
+    )
+    variant["decision"] = decision
+    out_path.write_text(
+        json.dumps(bank, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+    )
+
+    # --check 零写入
+    before = out_path.read_text(encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["build_luban_f16_variant_bank.py", "--check"])
+    assert _mod.main() == 0
+    assert out_path.read_text(encoding="utf-8") == before
+
+    # 重建：decision 原位保留（variant_id + content_sha256 比中），其余变体不受扰
+    monkeypatch.setattr(sys, "argv", ["build_luban_f16_variant_bank.py"])
+    assert _mod.main() == 0
+    rebuilt = json.loads(out_path.read_text(encoding="utf-8"))
+    assert rebuilt["variants"][0]["decision"] == decision
+    assert all("decision" not in v for v in rebuilt["variants"][1:])

@@ -1,4 +1,5 @@
 @import "/packageDeeptutor/theme.wxss";
+@import "/packageDeeptutor/styles/paper-ink.wxss";
 
 /* pages/practice/practice.wxss — 练习中心样式 */
 
@@ -357,3 +358,39 @@
   background: rgba(0,0,0,0.06);
 }
 .practice-page.light .chapter-pct { color: #666; }
+
+/* ── 学习二级页：练习中心使用第10轮纸墨工作台 ── */
+.practice-page.paper {
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 34rpx 34rpx;
+  color: var(--pk-t1);
+}
+.practice-page.paper .nav-bar { background: var(--pk-paper); border-color: var(--pk-bd); box-shadow: none; }
+.practice-page.paper .nav-title,
+.practice-page.paper .today-label,
+.practice-page.paper .section-title,
+.practice-page.paper .mode-title,
+.practice-page.paper .report-title,
+.practice-page.paper .chapter-name { color: var(--pk-t1); }
+.practice-page.paper .nav-logo-tip,
+.practice-page.paper .progress-label,
+.practice-page.paper .section-hint,
+.practice-page.paper .mode-desc,
+.practice-page.paper .report-sub,
+.practice-page.paper .chapter-stat,
+.practice-page.paper .chapter-pct { color: var(--pk-t3); }
+.practice-page.paper .glass-card,
+.practice-page.paper .mode-card,
+.practice-page.paper .report-card,
+.practice-page.paper .chapter-item {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 2rpx 12rpx var(--pk-shadow);
+}
+.practice-page.paper .progress-bar-bg,
+.practice-page.paper .chapter-bar-bg { background: var(--pk-gauge); }
+.practice-page.paper .progress-bar-fill,
+.practice-page.paper .chapter-bar-fill { background: var(--pk-grn); }
+.practice-page.paper .report-card { border-left-color: var(--pk-grn); }
+.practice-page.paper .link-arrow { color: var(--pk-grn); }

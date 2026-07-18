@@ -1,5 +1,5 @@
-<!-- pages/report/report.wxml — 学情页(10e 诊断单):照镜子,只诊断不做题 -->
-<view class="report-page paper {{isDark?'':'light'}}">
+<!-- pages/report/report.wxml — 学情首页三件事 + 按需保留的证据详情 -->
+<view class="report-page paper {{isDark?'':'light'}} {{reportDetailView != 'home' ? 'report-detail-active' : ''}}">
 
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
@@ -14,14 +14,14 @@
 
   <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" scroll-top="{{reportScrollTop}}" style="top: {{navHeight}}px; bottom: 0">
     <view class="page-inner">
-      <!-- ══════════ 10e 诊断单(第 10 轮定稿 + round11 增量①④) ══════════
-           照镜子页铁律:只诊断不做题,全部字段来自 learning-report read model,
-           缺字段降级不造数;全页唯一行动键=把诊断喂回本周计划(深链学习页)。 -->
+      <!-- ══════════ B5 精简学情首页 ══════════
+           只保留近期进展、1–3 个盲点、唯一下一步；证据不足时 fail closed。
+           下一步只投影 homeDashboard.next_step，与学习页共用任务翻译器。 -->
       <block wx:if="{{reportDetailView == 'home'}}">
 
       <view class="lr-head">
-        <text class="lr-head-title">学情 · 诊断单</text>
-        <text class="lr-head-sub">先看结论 · 想深入再点开</text>
+        <text class="lr-head-title">学情 · 今天看三件事</text>
+        <text class="lr-head-sub">看见变化 · 找准盲点 · 立刻继续</text>
       </view>
 
       <view class="degraded-hint" wx:if="{{degradedHint}}">
@@ -41,125 +41,57 @@
 
       <block wx:if="{{!isGuestPreview}}">
 
-      <!-- ① 轻量诊断卡:风险档位词(非精确百分比)+ 主要差距 + 进步叙述,折叠单版式 -->
-      <view class="lr-card lr-diag-card">
-        <view class="lr-diag-main" bindtap="toggleDiagFold" hover-class="lr-pressed">
-          <view class="lr-risk-ring lr-risk-{{riskGearTone}}">
-            <text class="lr-risk-gear">{{riskGearLabel}}</text>
-            <text class="lr-risk-label">综合风险</text>
-          </view>
-          <view class="lr-diag-copy">
-            <text class="lr-diag-headline" wx:if="{{diagnosisHeadline}}">主要差距：{{diagnosisHeadline}}</text>
-            <text class="lr-diag-headline" wx:elif="{{learningBrainEmpty}}">完成一轮练习后，这里会给出你的诊断结论</text>
-            <text class="lr-diag-headline" wx:else>当前证据尚未形成可展示的盲点结论，继续练习后再看</text>
-            <text class="lr-diag-progress" wx:if="{{trendNarrative}}">{{trendNarrative}}</text>
-            <view class="lr-diag-meta-row">
-              <text class="lr-diag-meta" wx:if="{{learningReviewSummary.weakCount || weakNodeCount}}">待补盲点 {{learningReviewSummary.weakCount || weakNodeCount}} 个</text>
-              <text class="lr-diag-meta lr-diag-meta-warn" wx:if="{{recurrentErrorCount}}">反复出现的还有 {{recurrentErrorCount}} 个</text>
-            </view>
-            <text class="lr-diag-fold-toggle" wx:if="{{learningDiagnosisCards.length}}">{{diagFoldOpen ? '收起' : '点开看每一条'}}</text>
-          </view>
-        </view>
-        <view class="lr-diag-fold" wx:if="{{diagFoldOpen && learningDiagnosisCards.length}}">
-          <view class="lr-diag-fold-row" wx:for="{{learningDiagnosisCards}}" wx:key="key">
-            <text class="lr-diag-fold-level">{{item.levelLabel}}</text>
-            <view class="lr-diag-fold-body">
-              <text class="lr-diag-fold-title">{{item.title}}</text>
-              <text class="lr-diag-fold-meta">{{item.meta}}</text>
-              <text class="lr-diag-fold-detail" wx:if="{{item.detail}}">{{item.detail}}</text>
-            </view>
-          </view>
-        </view>
-        <view class="lr-card-link" data-detail="evidence" bindtap="openReportDetail" hover-class="lr-pressed">
-          <text>完整诊断报告 →</text>
-        </view>
-      </view>
-
-      <!-- ⑤ 分数账本:后端无路线级聚合,轻占位一行,不喧宾、不造数 -->
-      <view class="lr-ledger-line">
-        <text>分数账本 · 路线覆盖分即将开通</text>
-      </view>
-
-      <!-- ② 掌握地图:40 站全景,四态暖色 + 蓝环第五态(本页核心) -->
-      <view class="lr-card lr-map-card">
-        <view class="lr-card-head">
-          <text class="lr-card-title">掌握地图 · {{masteryMap.packUniverse || 40}} 站全景</text>
-          <text class="lr-card-note">点任意格 · 深链学习站</text>
-        </view>
-        <block wx:if="{{masteryMap.available}}">
-          <view class="lr-map-grid">
-            <view
-              wx:for="{{masteryMap.cells}}"
-              wx:key="packId"
-              class="lr-cell lr-cell--{{item.state}}"
-              data-pack-id="{{item.packId}}"
-              data-green="{{item.green}}"
-              bindtap="openMasteryCell"
-              aria-role="button"
-              aria-label="{{item.packId}} {{item.stateLabel}}"
-            >
-              <text wx:if="{{item.blueRing}}" class="lr-cell-bluecheck">✓</text>
-            </view>
-          </view>
-          <view class="lr-map-legend">
-            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--stable"></view><text>稳了 {{masteryMap.counts.stable}}</text></view>
-            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--watch"></view><text>再看一眼 {{masteryMap.counts.watch}}</text></view>
-            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--reverify"></view><text>待复验 {{masteryMap.counts.reverify}}</text></view>
-            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--unlearned"></view><text>未学 {{masteryMap.counts.unlearned}}</text></view>
-          </view>
-          <!-- 蓝环=接触轨,单独一行,绝不混入上面的掌握色阶 -->
-          <view class="lr-map-legend lr-map-legend-blue">
-            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--blue"><text class="lr-cell-bluecheck">✓</text></view><text>已学·待验证 {{masteryMap.counts.blue}} · 看过讲解，还没考过换皮变体</text></view>
-          </view>
-          <text class="lr-map-degraded" wx:if="{{masteryMap.degraded}}">部分站点数据暂时不可用，以上按已有记录显示</text>
-        </block>
-        <block wx:else>
-          <text class="lr-map-empty">完成一次学习或作答后，这里会点亮你的 40 站全景</text>
-        </block>
-        <view class="lr-card-link" data-detail="map" bindtap="openReportDetail" hover-class="lr-pressed">
-          <text>看章节强弱 →</text>
-        </view>
-      </view>
-
-      <!-- ④ 趋势:后端无数值时间序列,降级为方向性描述,不画假曲线 -->
+      <!-- ① 近期进展：只在 learner_events 可用且窗口内确有事件时展示。 -->
       <view class="lr-card lr-trend-card">
         <view class="lr-card-head">
-          <text class="lr-card-title">最近趋势</text>
-          <text class="lr-card-note">方向判断来自错因记录</text>
+          <text class="lr-card-title">近期进展</text>
+          <text class="lr-card-note">来自真实作答与练习</text>
         </view>
-        <text class="lr-trend-text" wx:if="{{trendNarrative}}">{{trendNarrative}}</text>
-        <text class="lr-trend-text lr-trend-empty" wx:else>完成更多练习后，这里会给出趋势方向</text>
-        <view class="lr-card-link" data-detail="progress" bindtap="openReportDetail" hover-class="lr-pressed">
-          <text>看变化记录 →</text>
-        </view>
+        <block wx:if="{{reportHome.recentProgress.available}}">
+          <text class="lr-trend-text">{{reportHome.recentProgress.title}}</text>
+          <text class="lr-diag-progress" wx:if="{{reportHome.recentProgress.detail}}">{{reportHome.recentProgress.detail}}</text>
+        </block>
+        <text class="lr-trend-text lr-trend-empty" wx:else>当前证据还不足以判断近期变化</text>
       </view>
 
-      <!-- ⑦ 错因结构:入口保留,深链错题本 -->
+      <!-- ② 1–3 个盲点：没有可追溯学习证据时不把“0”解释成没有盲点。 -->
       <view class="lr-card lr-error-card">
         <view class="lr-card-head">
-          <text class="lr-card-title">错因结构</text>
-          <text class="lr-card-note">由判分内核判定</text>
+          <text class="lr-card-title">1–3 个盲点</text>
+          <text class="lr-card-note">只呈现有依据的结论</text>
         </view>
-        <block wx:if="{{learningDiagnosisCards.length}}">
-          <view class="lr-error-row" wx:for="{{learningDiagnosisCards}}" wx:key="key">
-            <text class="lr-error-name">{{item.title}}</text>
-            <text class="lr-error-count">{{item.meta}}</text>
+        <block wx:if="{{reportHome.blindSpots.length}}">
+          <view class="lr-error-row" wx:for="{{reportHome.blindSpots}}" wx:key="key">
+            <view class="lr-diag-copy">
+              <text class="lr-error-name">{{item.title}}</text>
+              <text class="lr-error-count" wx:if="{{item.meta}}">{{item.meta}}</text>
+              <text class="lr-diag-progress" wx:if="{{item.detail}}">{{item.detail}}</text>
+            </view>
           </view>
         </block>
-        <text class="lr-error-empty" wx:else>暂时没有反复出现的错因</text>
-        <view class="lr-card-link" bindtap="openMistakeBook" hover-class="lr-pressed">
-          <text>想逐笔清掉？去错题本 →</text>
+        <block wx:else>
+          <text class="lr-error-empty" wx:if="{{reportHome.evidenceState == 'insufficient_evidence'}}">证据不足，完成一次可批改练习后再生成盲点</text>
+          <text class="lr-error-empty" wx:else>现有证据还没有形成稳定盲点，继续观察</text>
+        </block>
+      </view>
+
+      <!-- ③ 唯一下一步：由 server homeDashboard.next_step 裁决。 -->
+      <view class="lr-card lr-diag-card">
+        <view class="lr-card-head">
+          <text class="lr-card-title">唯一下一步</text>
+          <text class="lr-card-note">和学习首页保持一致</text>
         </view>
-      </view>
-
-      <!-- ⑥ 全页唯一行动键:把诊断喂回本周计划(深链学习页) -->
-      <view class="lr-absorb-btn" bindtap="absorbDiagnosisIntoPlan" hover-class="lr-absorb-pressed" aria-role="button">
-        <text>去提分路线查看诊断建议</text>
-      </view>
-
-      <!-- ③ 产品宣言(round11 增量①) -->
-      <view class="lr-manifesto">
-        <text>我们不给你假绿——考过换皮变体才算数。</text>
+        <block wx:if="{{reportHome.nextTask}}">
+          <text class="lr-diag-headline">{{reportHome.nextTask.title}}</text>
+          <text class="lr-diag-progress" wx:if="{{reportHome.nextTask.reason}}">{{reportHome.nextTask.reason}}</text>
+          <text class="lr-trend-text lr-trend-empty" wx:if="{{!reportHome.nextTaskAvailable}}">{{reportHome.nextTask.supplyNote || '这项学习内容暂时不可用'}}</text>
+          <view class="lr-absorb-btn" wx:if="{{reportHome.nextTaskAvailable}}" bindtap="goReportHomeTask" hover-class="lr-absorb-pressed" aria-role="button">
+            <text>{{reportHome.nextTask.cta}}</text>
+          </view>
+        </block>
+        <view wx:else>
+          <text class="lr-trend-text lr-trend-empty">学习任务暂时不可用，请稍后下拉刷新</text>
+        </view>
       </view>
 
       </block>

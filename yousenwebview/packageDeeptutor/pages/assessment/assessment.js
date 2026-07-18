@@ -20,13 +20,6 @@ var ARCHETYPE_ICONS = {
   builder: "B",
   policy_seeded: "智",
 };
-var ARCHETYPE_COLORS = {
-  strategist: "#3b82f6",
-  explorer: "#8b5cf6",
-  sprinter: "#f59e0b",
-  builder: "#22c55e",
-  policy_seeded: "#3b82f6",
-};
 var RESPONSE_LABELS = {
   fluent: "流畅型",
   deliberate: "审慎型",
@@ -865,7 +858,6 @@ Page({
     archetypeDesc: "",
     archetypeTraits: [],
     archetypeTip: "",
-    archetypeColor: "",
     archetypeIcon: "",
     // 认知画像
     responseLabel: "",
@@ -1406,7 +1398,6 @@ Page({
             archetypeDesc: archetypeDesc,
             archetypeTraits: archetypeTraits,
             archetypeTip: archetypeTip,
-            archetypeColor: ARCHETYPE_COLORS[archetype] || "#3b82f6",
             archetypeIcon: ARCHETYPE_ICONS[archetype] || "?",
             responseLabel: RESPONSE_LABELS[rp] || "待继续观察",
             responseDesc: RESPONSE_DESCS[rp] || "",

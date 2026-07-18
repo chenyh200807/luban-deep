@@ -57,23 +57,51 @@ def test_manifest_exposes_four_stable_question_ids_and_hashes() -> None:
     assert all(item["right"] == "A" for item in manifest["questions"])
 
 
-def test_default_manifest_is_honestly_blocked_pending_dual_teacher_review() -> None:
-    manifest = load_first_run_manifest()
+def test_unsigned_release_status_blocks_server_scoring(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 签发闸行为测试(disk-agnostic):磁盘 manifest 已由 owner 签发
+    # (645e0e70),旧测试钉死"未签发磁盘态"属陈旧断言——闸门语义
+    # (release_status 未 signed 必 fail-closed)在受控副本上验证。
+    blocked = _signed_manifest()
+    blocked["release_status"] = "blocked_pending_human_verdict"
+    monkeypatch.setattr(manifest_module, "load_first_run_manifest", lambda: blocked)
 
-    assert manifest["release_status"] == "blocked_pending_human_verdict"
-    assert all(item["review_status"] == "pending_dual_teacher_verdict" for item in manifest["questions"])
-    assert manifest["questions"][-1]["question_id"] == "first_run.v1:zhuangpeishi_laji"
-    assert manifest["questions"][-1]["candidate_status"] == "outside_initial_gold_candidates"
+    with pytest.raises(FirstRunManifestUnsigned, match="manifest_release_status"):
+        score_first_run_answers(
+            script_version=str(blocked["script_version"]),
+            answers=_answers(),
+        )
 
 
-def test_unsigned_question_blocks_server_scoring() -> None:
-    manifest = load_first_run_manifest()
+def test_unsigned_question_blocks_server_scoring(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    unsigned = _signed_manifest()
+    question = unsigned["questions"][0]  # type: ignore[index]
+    question["review_status"] = "pending_dual_teacher_verdict"
+    monkeypatch.setattr(manifest_module, "load_first_run_manifest", lambda: unsigned)
 
     with pytest.raises(FirstRunManifestUnsigned, match="first_run.v1:qigu_gebu"):
         score_first_run_answers(
-            script_version=str(manifest["script_version"]),
+            script_version=str(unsigned["script_version"]),
             answers=_answers(),
         )
+
+
+def test_disk_manifest_signature_gate_passes_only_when_actually_signed() -> None:
+    # 磁盘真值烟测:当前仓内 manifest 必须真的过签发闸(四题双 reviewer
+    # 绑定 question_id+content_sha256),否则线上首跑 complete 全 500。
+    manifest = load_first_run_manifest()
+
+    assert manifest["release_status"] == "signed"
+    assert all(item["review_status"] == "signed" for item in manifest["questions"])
+    assert manifest["questions"][-1]["question_id"] == "first_run.v1:zhuangpeishi_laji"
+    scored = score_first_run_answers(
+        script_version=str(manifest["script_version"]),
+        answers=_answers(),
+    )
+    assert len(scored) == 4
 
 
 def test_signed_gate_requires_distinct_reviewers_bound_to_question_content(

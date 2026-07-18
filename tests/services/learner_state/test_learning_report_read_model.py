@@ -1357,10 +1357,14 @@ def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
             "assessment_type": "luban_forward_completion",
             "retest_completion_id": "f16_forward",
             "completion_terminal": True,
+            "request_hash": "f16-forward-request",
             "practice_mode": "forward",
             "pack_id": "F16",
             "target_pack_id": "F16",
             "score_ratio": 1.0,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "item_event_refs": ["item_f16_forward"],
             "claim_promotion_allowed": False,
             "prescription_result": {"status": "not_verified", "score_ratio": 1.0},
             "quality": {
@@ -1372,10 +1376,33 @@ def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
             },
         },
     )
+    item = LearnerStateEvent(
+        event_id="item_f16_forward",
+        user_id="student_demo",
+        source_feature="assessment_testset",
+        source_id="f16_forward:q1",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="item_f16_forward",
+        created_at=_iso(2),
+        payload_json={
+            "event_type": "learning_evidence",
+            "retest_completion_id": "f16_forward",
+            "request_hash": "f16-forward-request",
+            "practice_mode": "forward",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "question_id": "q1",
+            "is_correct": True,
+            "score_awarded": 1.0,
+            "max_score": 1.0,
+            "claim_promotion_allowed": False,
+        },
+    )
     model = build_learning_report_read_model(
         user_id="student_demo",
         member_service=FakeMemberService(),
-        learner_state_service=FakeLearnerStateService([terminal]),
+        learner_state_service=FakeLearnerStateService([item, terminal]),
         event_limit=100,
     )
 

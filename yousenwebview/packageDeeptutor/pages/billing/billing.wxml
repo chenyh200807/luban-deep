@@ -1,5 +1,5 @@
 <!-- pages/billing/billing.wxml — 使用情况与权益 -->
-<view class="billing-page {{isDark?'':'light'}}">
+<view class="billing-page paper {{isDark?'':'light'}} pk-paper-bg">
 
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">

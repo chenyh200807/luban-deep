@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "C07",
   "source_pack_sha256": "8b631ce2e6ac6297bf715a0890b40294b9b3d6d43bc122a15274eb719479e8ac",
   "source_bundle_sha256": "b1ad81b0f4b641bd599933fa0180f0f31080db93cb1f20c3bb6857dc2de771fd",
@@ -24,7 +24,9 @@
         "C07-html-practice-html-q4-3ff4600ca2e6",
         "C07-html-practice-html-q15-e2594578228f"
       ],
-      "published_practice_sha256": "ac63bc48ad4ed531a78627bf73913d3c8bda15df1ae0c72bf4aa964d85bb2fb4"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMWRiYzAxZGJkY2VjIiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iNGEzZmM2YTQ2ODkiLCJDMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLTVjOTkwNTdkOTBmOSIsIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtM2ZmNDYwMGNhMmU2IiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZTI1OTQ1NzgyMjhmIl0sInBhY2tfaWQiOiJDMDciLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjdiYWEzMGJiOGVkZmNlYjRkNTVmNTZlNDgzYTc2MzFjNGZjMDlkMTYwNDQzNmIwZGZmNWEyOTUxYTc2N2M0NmYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "62340a5c0d32b67f3ac414d89f92052ad0fa4db7a746a35fbf20e40d8486c014"
     }
   ],
   "items": [
@@ -77,7 +79,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q1",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "dd21f9f727d7a9539fe0f9a8f2ee7fcbe18704768830d7f6b4bf81065f940ba4",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "dd21f9f727d7a9539fe0f9a8f2ee7fcbe18704768830d7f6b4bf81065f940ba4",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +152,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q2",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "9e2044e7f8cefecb701668c1d39e952b738ede2af6634f5bd88fd07d6b23771a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "9e2044e7f8cefecb701668c1d39e952b738ede2af6634f5bd88fd07d6b23771a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q3",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "9187b4b8dbda2dd50ead87abc3f9c055d9e08b2c5af35162b65aeacf8fbbf771",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "9187b4b8dbda2dd50ead87abc3f9c055d9e08b2c5af35162b65aeacf8fbbf771",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +298,759 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q4",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "39c9d043682a6306fafc1560bf7d063b34085fec41674ce58aafca6aac07e561",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "39c9d043682a6306fafc1560bf7d063b34085fec41674ce58aafca6aac07e561",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "疲劳禁焊·后果维",
+      "stem": "构件承受动荷载且需疲劳验算时，严禁使用哪几种焊接接头？选出列全、能得分的作答。",
+      "model_answer": "严禁塞焊、槽焊、电渣焊、气电立焊接头。",
+      "options": [
+        {
+          "text": "严禁使用塞焊、槽焊、电渣焊、气电立焊接头。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四种接头列全、并点明触发条件是动荷载需疲劳验算。",
+          "option_id": "C07-html-practice-html-q5-a3c1013cb4eb:option-1"
+        },
+        {
+          "text": "严禁使用塞焊、槽焊、坡口焊、电渣焊接头。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "坡口焊听着像特殊接头，误当禁用项。",
+          "loss_reason": "坡口焊不在严禁之列，漏了气电立焊，四种记错一种。",
+          "fix": "是塞焊/槽焊/电渣焊/气电立焊，坡口焊不属此列。",
+          "option_id": "C07-html-practice-html-q5-a3c1013cb4eb:option-2"
+        },
+        {
+          "text": "接头形式与荷载无关，动荷载下任何接头都能用，只要焊透即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为焊透了就万事大吉。",
+          "loss_reason": "疲劳验算下接头形式恰恰关键，塞/槽/电渣/气电立焊严禁。",
+          "fix": "动荷载需疲劳验算时严禁这四种接头。",
+          "option_id": "C07-html-practice-html-q5-a3c1013cb4eb:option-3"
+        },
+        {
+          "text": "动荷载下要严禁使用不当的焊接接头，具体哪几种按规范来。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道有禁用项但记不清，写句套话。",
+          "loss_reason": "没点出具体四种接头，采分点落空。",
+          "fix": "明确写塞焊、槽焊、电渣焊、气电立焊四种。",
+          "option_id": "C07-html-practice-html-q5-a3c1013cb4eb:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q5-a3c1013cb4eb",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q5",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "c4fa01f3795b8871b80980d0435035eb865e2859298d5cbf06fbc436ad8fe76a",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "c4fa01f3795b8871b80980d0435035eb865e2859298d5cbf06fbc436ad8fe76a",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "焊接主控·记录维",
+      "stem": "钢结构焊接质量主控项目应包括哪些内容？选出正确、能得分的作答。",
+      "model_answer": "焊接材料须烘焙、焊工持证上岗、一二级焊缝须无损检测。",
+      "options": [
+        {
+          "text": "焊接材料须烘焙、焊工持证上岗、一级和二级焊缝须无损检测。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三项主控齐全，尤其盯准「一二级」焊缝无损检测。",
+          "option_id": "C07-html-practice-html-q6-704d5a80ae54:option-1"
+        },
+        {
+          "text": "焊接材料须烘焙、焊工持证上岗、全部焊缝一律进行无损检测。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "以为焊缝都查一遍更保险。",
+          "loss_reason": "应是「一级、二级」焊缝无损检测，写「全部」关键词错、不合规。",
+          "fix": "改为一级、二级焊缝须无损检测，不是全部焊缝。",
+          "option_id": "C07-html-practice-html-q6-704d5a80ae54:option-2"
+        },
+        {
+          "text": "焊工持证上岗，其余加强现场管理、按规范施焊即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住焊工持证一条。",
+          "loss_reason": "漏了焊材烘焙和一二级焊缝无损检测两项主控。",
+          "fix": "补焊材须烘焙、一二级焊缝须无损检测。",
+          "option_id": "C07-html-practice-html-q6-704d5a80ae54:option-3"
+        },
+        {
+          "text": "焊接质量靠焊工经验和责任心保证，主控就是加强质量意识。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用「意识/责任心」这种话代替具体项目。",
+          "loss_reason": "无可判分的主控项目，属常识替代规范。",
+          "fix": "写焊材烘焙、焊工持证、一二级焊缝无损检测。",
+          "option_id": "C07-html-practice-html-q6-704d5a80ae54:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q6-704d5a80ae54",
+      "surface_id": "practice.html",
+      "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q6",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "7440742a8f6f8b4a9dff5c58a54f173b139cb1cc73c5f4bc474af4aac5beb343",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "7440742a8f6f8b4a9dff5c58a54f173b139cb1cc73c5f4bc474af4aac5beb343",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "焊接特点·陷阱",
+      "stem": "关于焊接连接的特点，选出正确、能得分的作答。",
+      "model_answer": "焊接优点：节约钢材、构造简单、易自动化、加工方便；但内部缺陷难查，须无损探伤，不能算「易于检查」。",
+      "options": [
+        {
+          "text": "优点是节约钢材、构造简单、易自动化、加工方便；内部缺陷难查，须无损探伤。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "优点四条对，且点明内部缺陷难查、须探伤，避开「易于检查」陷阱。",
+          "option_id": "C07-html-practice-html-q7-96577c31d42c:option-1"
+        },
+        {
+          "text": "优点是节约钢材、构造简单、易自动化、加工方便，而且焊缝易于检查。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "焊缝表面看得见，就以为「易于检查」也是优点。",
+          "loss_reason": "焊缝内部夹渣气孔肉眼难查、须探伤，「易于检查」是典型陷阱项。",
+          "fix": "删掉「易于检查」，改为内部缺陷须无损探伤。",
+          "option_id": "C07-html-practice-html-q7-96577c31d42c:option-2"
+        },
+        {
+          "text": "焊接最大优点是连接可拆卸、可重复使用，施工灵活。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把螺栓的可拆特性安到焊接头上。",
+          "loss_reason": "焊接是永久连接不可拆，可拆是螺栓的特点，概念混淆。",
+          "fix": "焊接优点是节约钢材/构造简单/易自动化/加工方便。",
+          "option_id": "C07-html-practice-html-q7-96577c31d42c:option-3"
+        },
+        {
+          "text": "焊接优点就是牢固耐用，能焊多牢就多牢，没什么缺点。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "笼统说「牢固」省事。",
+          "loss_reason": "没列具体优点、也回避了内部缺陷难查，采分点空。",
+          "fix": "列四条优点并补内部缺陷难查、须探伤。",
+          "option_id": "C07-html-practice-html-q7-96577c31d42c:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q7-96577c31d42c",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "8fafbf2013a4de300422d9d193d68c331a0979f6d0ea93e5b725362705243a90",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "8fafbf2013a4de300422d9d193d68c331a0979f6d0ea93e5b725362705243a90",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "高强螺栓·原理",
+      "stem": "高强度螺栓连接（摩擦型）主要靠什么传递外荷载？选出正确、能得分的作答。",
+      "model_answer": "靠预拉力把板件夹紧、接触面摩擦力传递外荷载（摩擦连接）。",
+      "options": [
+        {
+          "text": "靠拧出的预拉力把板件夹紧，接触面产生摩擦力来传递外荷载。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明「预拉力夹紧、摩擦传力」，正是摩擦型高强螺栓的机理采分句。",
+          "option_id": "C07-html-practice-html-q8-253f5eb9b411:option-1"
+        },
+        {
+          "text": "靠螺栓杆抵住孔壁承受剪力来传递外荷载，像销钉一样抗剪。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "直觉觉得螺栓就是靠杆顶着受力。",
+          "loss_reason": "那是普通螺栓承压型的传力方式，摩擦型高强螺栓靠摩擦传力。",
+          "fix": "摩擦型靠预拉力夹紧、接触面摩擦力传外荷载。",
+          "option_id": "C07-html-practice-html-q8-253f5eb9b411:option-2"
+        },
+        {
+          "text": "靠螺栓和钢板焊在一起形成整体来传递外荷载。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把螺栓连接和焊接搞混。",
+          "loss_reason": "高强螺栓是机械连接不焊接，传力靠摩擦不靠熔合。",
+          "fix": "靠预拉力夹紧、摩擦力传外荷载。",
+          "option_id": "C07-html-practice-html-q8-253f5eb9b411:option-3"
+        },
+        {
+          "text": "只要把高强螺栓拧得足够紧，靠拧紧本身就能把荷载传过去。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得「拧紧就行」。",
+          "loss_reason": "没说清是靠预拉力产生的摩擦力传力，机理采分点没答到。",
+          "fix": "预拉力夹紧板件、接触面摩擦力传外荷载。",
+          "option_id": "C07-html-practice-html-q8-253f5eb9b411:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q8-253f5eb9b411",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "13247874d5eff27240133fdf1c272f751ffe9b45d3d238e4fc26ee14462ece06",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "13247874d5eff27240133fdf1c272f751ffe9b45d3d238e4fc26ee14462ece06",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "安装螺栓·条件维",
+      "stem": "钢结构安装时，安装螺栓与冲钉的数量应满足哪些要求？选出列全、能得分的作答。",
+      "model_answer": "安装螺栓≥2个且≥安装孔总数1/3；冲钉≤安装螺栓数量30%；不得用高强螺栓兼作安装螺栓。",
+      "options": [
+        {
+          "text": "安装螺栓不少于2个且不少于安装孔总数的1/3；冲钉不多于安装螺栓的30%；不得用高强螺栓兼作安装螺栓。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三条纪律齐：数量下限、冲钉上限、不得兼作，条件维拿满。",
+          "option_id": "C07-html-practice-html-q9-16d06c3c7aef:option-1"
+        },
+        {
+          "text": "安装螺栓不少于2个即可，冲钉数量不限，随孔位灵活穿。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "只记住「≥2个」一个数。",
+          "loss_reason": "漏了「≥安装孔1/3」和「冲钉≤30%」，数量纪律不全。",
+          "fix": "补≥安装孔总数1/3、冲钉≤安装螺栓30%。",
+          "option_id": "C07-html-practice-html-q9-16d06c3c7aef:option-2"
+        },
+        {
+          "text": "孔位不够时可直接用高强度螺栓兼作安装螺栓临时固定，方便省事。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得高强螺栓装一遍能临时又最终，省一道。",
+          "loss_reason": "明确规定不得用高强螺栓兼作安装螺栓，属规范适用错误。",
+          "fix": "另设安装螺栓≥2个且≥1/3孔，高强螺栓不得兼作。",
+          "option_id": "C07-html-practice-html-q9-16d06c3c7aef:option-3"
+        },
+        {
+          "text": "安装螺栓不少于安装孔总数的1/2，冲钉不少于安装螺栓的50%。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有分数和百分比，数值凭印象填。",
+          "loss_reason": "应是≥1/3孔、冲钉≤30%（是上限不是下限），数值和方向都错。",
+          "fix": "≥安装孔1/3、冲钉≤安装螺栓30%。",
+          "option_id": "C07-html-practice-html-q9-16d06c3c7aef:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q9-16d06c3c7aef",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "6d52245ce843c7363895d61504fb4356c0ac33fdf3d4bcbfcbfe68c9462f461f",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "6d52245ce843c7363895d61504fb4356c0ac33fdf3d4bcbfcbfe68c9462f461f",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "兼作纠错·判断纠错",
+      "stem": "施工员用高强度螺栓兼作安装螺栓做临时固定。指出是否妥当，并选出正确做法。",
+      "model_answer": "不妥：不得用高强度螺栓兼作安装螺栓；应另设安装螺栓，不少于2个且不少于安装孔总数的1/3。",
+      "options": [
+        {
+          "text": "不妥。应另设安装螺栓，不少于2个且不少于安装孔总数的1/3，高强螺栓不得兼作。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先判不妥、再给带数值的正确做法，判断纠错三段齐。",
+          "option_id": "C07-html-practice-html-q10-eef5eb0d8bee:option-1"
+        },
+        {
+          "text": "妥当。高强螺栓先当安装螺栓临时固定、后续再终拧当正式受力件，一举两得。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得高强螺栓装一次能兼两用，效率高。",
+          "loss_reason": "违反「不得用高强螺栓兼作安装螺栓」，属规范适用错误。",
+          "fix": "不妥；另设安装螺栓≥2个且≥1/3孔。",
+          "option_id": "C07-html-practice-html-q10-eef5eb0d8bee:option-2"
+        },
+        {
+          "text": "不妥，应该换成普通螺栓来兼作安装螺栓临时固定即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道不能用高强螺栓兼作，改口说换普通螺栓。",
+          "loss_reason": "没给出「另设安装螺栓≥2个≥1/3孔」的数量限值，纠正缺关键数。",
+          "fix": "应另设安装螺栓，不少于2个且不少于安装孔1/3。",
+          "option_id": "C07-html-practice-html-q10-eef5eb0d8bee:option-3"
+        },
+        {
+          "text": "不妥，应把全部孔都先用冲钉打满固定后再拧高强螺栓。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "想用冲钉替代解决临时固定。",
+          "loss_reason": "冲钉不多于安装螺栓30%，不能打满；且没设安装螺栓，方向错。",
+          "fix": "另设安装螺栓≥2个≥1/3孔，冲钉≤30%。",
+          "option_id": "C07-html-practice-html-q10-eef5eb0d8bee:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q10-eef5eb0d8bee",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "2a281aae25c1058f32bfbe8ae30793786f2fe6871ff552534f9b11f5b41cad03",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "2a281aae25c1058f32bfbe8ae30793786f2fe6871ff552534f9b11f5b41cad03",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "穿入扩孔·程序维",
+      "stem": "高强度螺栓的穿入与扩孔应如何处理？选出正确、能得分的作答。",
+      "model_answer": "必须自由穿入、不得强行；若需扩孔，孔径不得超过螺栓直径的1.2倍，且不得使用气割扩孔。",
+      "options": [
+        {
+          "text": "必须自由穿入、不得强行；若需扩孔，孔径不超过螺栓直径的1.2倍，且禁止气割扩孔。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "自由穿入 + 扩孔≤1.2D + 禁气割，三点齐，程序维拿满。",
+          "option_id": "C07-html-practice-html-q11-331ef393cc27:option-1"
+        },
+        {
+          "text": "穿不进去可用锤子敲击强行打入，孔差得多时用气割把孔扩大到位。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "现场图快，能穿进去就行。",
+          "loss_reason": "强行锤入伤螺纹、气割扩孔烧伤孔壁，都违反规范。",
+          "fix": "必须自由穿入；扩孔≤1.2D、只能机械扩、禁气割。",
+          "option_id": "C07-html-practice-html-q11-331ef393cc27:option-2"
+        },
+        {
+          "text": "必须自由穿入；若需扩孔，孔径不超过螺栓直径的1.5倍即可，扩孔方式不限。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有个倍数，凭印象写 1.5。",
+          "loss_reason": "扩孔上限是1.2倍不是1.5倍，且未禁气割。",
+          "fix": "扩孔≤1.2倍螺栓直径，且禁气割扩孔。",
+          "option_id": "C07-html-practice-html-q11-331ef393cc27:option-3"
+        },
+        {
+          "text": "只要最终能拧紧到位，穿入方式和扩孔方式都无所谓。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为结果拧紧就行、过程随意。",
+          "loss_reason": "忽略自由穿入与禁气割/≤1.2D的过程规定，规范适用错误。",
+          "fix": "必须自由穿入、扩孔≤1.2D、禁气割。",
+          "option_id": "C07-html-practice-html-q11-331ef393cc27:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q11-331ef393cc27",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "74b0c49777abc6c95b3ededf2da02052d6691b71209964d3fd965ddb30f65a77",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "74b0c49777abc6c95b3ededf2da02052d6691b71209964d3fd965ddb30f65a77",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "气割纠错·判断纠错",
+      "stem": "个别螺栓孔不对位，施工员用气割把孔扩大。指出是否妥当，并选出正确做法。",
+      "model_answer": "不妥：不得用气割扩孔（烧伤孔壁、热影响）；应用机械方法扩孔，且孔径不超过螺栓直径的1.2倍。",
+      "options": [
+        {
+          "text": "不妥。应采用机械方法扩孔，孔径不超过螺栓直径的1.2倍，不得用气割扩孔。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明禁气割、给出机械扩孔且≤1.2D 的限值，三段齐。",
+          "option_id": "C07-html-practice-html-q12-fdacf10bed27:option-1"
+        },
+        {
+          "text": "妥当。气割扩孔又快又省事，只要能把螺栓穿进去就行。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "现场赶工，气割最快。",
+          "loss_reason": "气割烧伤孔壁、留热影响区，明确禁止，属规范适用错误。",
+          "fix": "不妥；应机械扩孔≤1.2D，禁气割。",
+          "option_id": "C07-html-practice-html-q12-fdacf10bed27:option-2"
+        },
+        {
+          "text": "不妥，应该改用锤子把螺栓强行打进原孔，不必扩孔。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "想避开扩孔干脆硬砸进去。",
+          "loss_reason": "强行锤入违反自由穿入要求，方向纠错错。",
+          "fix": "应机械扩孔、孔径≤1.2D，且必须自由穿入。",
+          "option_id": "C07-html-practice-html-q12-fdacf10bed27:option-3"
+        },
+        {
+          "text": "不妥，气割扩孔不好，用机械扩孔就行。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道禁气割改机械，但没写限值。",
+          "loss_reason": "缺「孔径≤螺栓直径1.2倍」关键限值，正确做法不完整。",
+          "fix": "机械扩孔且孔径≤螺栓直径的1.2倍。",
+          "option_id": "C07-html-practice-html-q12-fdacf10bed27:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q12-fdacf10bed27",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "138b69fa9c1997df165d6e5824e0291139788c924699ceb2fc9ceae22f3bd351",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "138b69fa9c1997df165d6e5824e0291139788c924699ceb2fc9ceae22f3bd351",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "摩擦面·记录维",
+      "stem": "高强度螺栓连接的摩擦面应如何处理？选出正确、能得分的作答。",
+      "model_answer": "摩擦面干燥清洁，无飞边毛刺焊渣氧化皮污垢，不得作标记，生锈须钢丝刷除浮锈。",
+      "options": [
+        {
+          "text": "摩擦面须干燥清洁，无飞边毛刺焊渣氧化皮污垢，不得作标记，生锈用钢丝刷除浮锈。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "洁净要求 + 不得作标记 + 除浮锈都写全，尤其「不得作标记」是判分眼。",
+          "option_id": "C07-html-practice-html-q13-2c2c754418ec:option-1"
+        },
+        {
+          "text": "摩擦面清理干净即可；为方便安装，可用记号笔在摩擦面上做定位标记。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得做个定位记号方便对位、无伤大雅。",
+          "loss_reason": "摩擦面不得作标记，记号会降低摩擦系数，属规范适用错误。",
+          "fix": "摩擦面不得作标记；定位标记只能做在摩擦面以外。",
+          "option_id": "C07-html-practice-html-q13-2c2c754418ec:option-2"
+        },
+        {
+          "text": "摩擦面打磨光亮后抹一层薄油防锈，安装前擦掉即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得抹油防锈是好习惯。",
+          "loss_reason": "油膜会降低摩擦系数、削弱抗滑移承载力，方向错。",
+          "fix": "摩擦面须干燥清洁无油污，不得抹油、不得作标记。",
+          "option_id": "C07-html-practice-html-q13-2c2c754418ec:option-3"
+        },
+        {
+          "text": "把摩擦面清理干净就行，其他没什么特别要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答「清理干净」一句了事。",
+          "loss_reason": "漏了「不得作标记」「除浮锈」等关键要求，采分点不全。",
+          "fix": "补无飞边毛刺焊渣污垢、不得作标记、生锈钢丝刷除浮锈。",
+          "option_id": "C07-html-practice-html-q13-2c2c754418ec:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q13-2c2c754418ec",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "dc6966c31c0572119458a5c58a3a065789df40ce43ed52d29b517f9ec3302ceb",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "dc6966c31c0572119458a5c58a3a065789df40ce43ed52d29b517f9ec3302ceb",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "抗滑移·终拧检查",
+      "stem": "高强度螺栓连接的检验应包括什么？终拧后应何时检查？选出正确、能得分的作答。",
+      "model_answer": "摩擦面须做抗滑移试验；终拧后应在1~48小时内检查。",
+      "options": [
+        {
+          "text": "摩擦面须做抗滑移试验；终拧完成后应在1~48小时内检查。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "抗滑移试验 + 终拧后1~48h 检查，两项齐、时间准。",
+          "option_id": "C07-html-practice-html-q14-4826382afbc0:option-1"
+        },
+        {
+          "text": "摩擦面须做抗滑移试验；终拧完成后检查即可，时间没有特别要求。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "记得要抗滑移、要检查，却忘了时间窗。",
+          "loss_reason": "漏了「终拧后1~48h内」这个关键时间，关键词缺失。",
+          "fix": "补终拧后应在1~48小时内检查。",
+          "option_id": "C07-html-practice-html-q14-4826382afbc0:option-2"
+        },
+        {
+          "text": "摩擦面须做抗滑移试验；终拧完成后一周内检查完毕即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得一周内挺宽松、来得及。",
+          "loss_reason": "检查时间是1~48小时，写「一周内」时间数值错。",
+          "fix": "终拧后应在1~48小时内检查，不是一周内。",
+          "option_id": "C07-html-practice-html-q14-4826382afbc0:option-3"
+        },
+        {
+          "text": "终拧完成后在1~48小时内检查扭矩即可，安装前不必做别的试验。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住了时间窗，就以为够了。",
+          "loss_reason": "漏了「摩擦面须做抗滑移试验」这一检验项。",
+          "fix": "补摩擦面抗滑移试验，与终拧后1~48h检查并列。",
+          "option_id": "C07-html-practice-html-q14-4826382afbc0:option-4"
+        }
+      ],
+      "variant_id": "C07-html-practice-html-q14-4826382afbc0",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "7e6a775e4ff56f980568f3a35a04bb5bf2bd9a63bedb0e5e331293bf032c27a0",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "7e6a775e4ff56f980568f3a35a04bb5bf2bd9a63bedb0e5e331293bf032c27a0",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +1101,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q15",
-      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "57a829dd4ba1060b891082b866d0fe9b9f0cb431bdc2b876304f057c6cfb0c21",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "57a829dd4ba1060b891082b866d0fe9b9f0cb431bdc2b876304f057c6cfb0c21",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "a467488ce316b0368465a071c86e9bc2f933f4b00928f95dfb93fdba8057b796"

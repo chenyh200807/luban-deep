@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from deeptutor.services.luban_lesson.review_due import build_review_due_projection
+from deeptutor.services.luban_lesson.review_due import (
+    build_review_due_projection,
+    resolve_due_review_probe,
+)
 
 
 def _ev(created, pack, sig="station_completed"):
@@ -31,6 +34,8 @@ def _terminal(
     authority="signed_variant_server_rescore",
 ):
     result_status = status or ("verified" if mode == "review" and score_ratio >= 1.0 else "not_verified")
+    question_count = 1 if score_ratio in {0.0, 1.0} else 2
+    score_awarded = score_ratio * question_count
     return SimpleNamespace(
         event_id=f"terminal_{completion_id}",
         created_at=created,
@@ -43,10 +48,16 @@ def _terminal(
             "assessment_type": f"luban_{mode}_completion",
             "retest_completion_id": completion_id,
             "completion_terminal": True,
+            "request_hash": f"request:{completion_id}",
             "practice_mode": mode,
             "pack_id": pack,
             "target_pack_id": pack,
             "score_ratio": score_ratio,
+            "score_awarded": score_awarded,
+            "max_score": float(question_count),
+            "item_event_refs": [
+                f"item_{completion_id}_{index}" for index in range(question_count)
+            ],
             "claim_promotion_allowed": mode == "review",
             "prescription_result": {"status": result_status, "score_ratio": score_ratio},
             "quality": {
@@ -59,14 +70,46 @@ def _terminal(
     )
 
 
+def _items_for_terminal(terminal):
+    payload = terminal.payload_json
+    completion_id = payload["retest_completion_id"]
+    correct_count = int(payload["score_awarded"])
+    return [
+        SimpleNamespace(
+            event_id=event_id,
+            created_at=terminal.created_at,
+            source_feature="assessment_testset",
+            source_id=f"{completion_id}:q{index + 1}",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "retest_completion_id": completion_id,
+                "request_hash": payload["request_hash"],
+                "practice_mode": payload["practice_mode"],
+                "pack_id": payload["pack_id"],
+                "target_pack_id": payload["target_pack_id"],
+                "question_id": f"q{index + 1}",
+                "is_correct": index < correct_count,
+                "score_awarded": 1.0 if index < correct_count else 0.0,
+                "max_score": 1.0,
+            },
+        )
+        for index, event_id in enumerate(payload["item_event_refs"])
+    ]
+
+
 def _completion_pair(created, pack, *, completion_id, mode="forward", score_ratio=1.0):
     station = _ev(created, pack)
     station.payload_json["completion_id"] = completion_id
     station.event_id = f"station_{completion_id}"
-    return [
-        _terminal(created, pack, completion_id=completion_id, mode=mode, score_ratio=score_ratio),
-        station,
-    ]
+    terminal = _terminal(
+        created,
+        pack,
+        completion_id=completion_id,
+        mode=mode,
+        score_ratio=score_ratio,
+    )
+    return [*_items_for_terminal(terminal), terminal, station]
 
 
 def _lesson_viewed_ev(created, pack, stage="lesson"):
@@ -92,6 +135,41 @@ def _lesson_viewed_ev(created, pack, stage="lesson"):
     return svc.event
 
 
+def test_exact_due_probe_resolution_requires_cycle_and_available_supply() -> None:
+    projection = {
+        "due": [
+            {
+                "pack_id": "F16",
+                "probe_id": "without-cycle",
+                "cycle_anchor": "",
+                "retest_available": True,
+            },
+            {
+                "pack_id": "F16",
+                "probe_id": "without-supply",
+                "cycle_anchor": "cycle-1",
+                "retest_available": False,
+            },
+            {
+                "pack_id": "F16",
+                "probe_id": "canonical",
+                "cycle_anchor": "cycle-1",
+                "retest_available": True,
+            },
+        ]
+    }
+
+    assert resolve_due_review_probe(
+        projection, pack_id="f16", probe_id="canonical"
+    ) == projection["due"][2]
+    assert resolve_due_review_probe(
+        projection, pack_id="F16", probe_id="without-cycle"
+    ) is None
+    assert resolve_due_review_probe(
+        projection, pack_id="F16", probe_id="without-supply"
+    ) is None
+
+
 def test_learned_yesterday_due_today_learned_today_not_due():
     out = build_review_due_projection(
         user_id="u1",
@@ -101,7 +179,7 @@ def test_learned_yesterday_due_today_learned_today_not_due():
         ],
         now_iso="2026-07-04T09:00:00+08:00")
     assert [d["pack_id"] for d in out["due"]] == ["F16"], "昨晚学的到期, 今早学的不到期"
-    assert out["due"][0]["retest_available"] is True, "F16 有变体池"
+    assert out["due"][0]["retest_available"] is False, "未完成 v3 人审签发时必须 fail-closed"
     assert out["learned_count"] == 2
     assert out["authority"] == "revalidation_queue"
 
@@ -113,15 +191,16 @@ def test_compiled_forward_completion_starts_next_calendar_day_review() -> None:
         completion_id="cmp_f16_compiled",
         authority="compiled_html_server_rescore",
     )
+    events = [*_items_for_terminal(terminal), terminal]
 
     before = build_review_due_projection(
         user_id="u1",
-        events=[terminal],
+        events=events,
         now_iso="2026-07-03T23:59:00+08:00",
     )
     due = build_review_due_projection(
         user_id="u1",
-        events=[terminal],
+        events=events,
         now_iso="2026-07-04T00:01:00+08:00",
     )
 
@@ -262,6 +341,49 @@ def test_variantless_green_pack_marks_retest_unavailable():
         now_iso="2026-07-04T09:00:00+08:00")
     assert [d["pack_id"] for d in out["due"]] == ["F05"]
     assert out["due"][0]["retest_available"] is False
+
+
+def test_due_item_carries_state_for_probe_tier_selection():
+    """due item 透传 state（fresh/weak/stable）——变体探针消费点2 据此在 D+3/D+7
+    抽查（weak/stable）换 d1_probe 变体，D+1 首验（fresh）恒走 anchor MCQ。"""
+    fresh = build_review_due_projection(
+        user_id="u1",
+        events=_completion_pair("2026-07-03T22:00:00+08:00", "F16", completion_id="cmp_f16_1"),
+        now_iso="2026-07-04T09:00:00+08:00",
+    )
+    assert fresh["due"][0]["state"] == "fresh"
+
+    verified = build_review_due_projection(
+        user_id="u1",
+        events=[
+            *_completion_pair("2026-07-01T09:00:00+08:00", "F16", completion_id="fwd"),
+            *_completion_pair(
+                "2026-07-02T09:30:00+08:00",
+                "F16",
+                completion_id="r1",
+                mode="review",
+                score_ratio=1.0,
+            ),
+        ],
+        now_iso="2026-07-05T10:00:00+08:00",
+    )
+    assert verified["due"][0]["state"] == "stable"
+
+    weak = build_review_due_projection(
+        user_id="u1",
+        events=[
+            *_completion_pair("2026-07-01T09:00:00+08:00", "F16", completion_id="fwd"),
+            *_completion_pair(
+                "2026-07-02T09:30:00+08:00",
+                "F16",
+                completion_id="r1f",
+                mode="review",
+                score_ratio=0.5,
+            ),
+        ],
+        now_iso="2026-07-05T10:00:00+08:00",
+    )
+    assert weak["due"][0]["state"] == "weak"
 
 
 def test_review_due_endpoint_flag_off_returns_empty(monkeypatch):

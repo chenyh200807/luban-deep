@@ -34,6 +34,10 @@ var profileDir = path.join(__dirname, "../packageDeeptutor/pages/profile");
 var profileJs = fs.readFileSync(path.join(profileDir, "profile.js"), "utf8");
 var profileWxml = fs.readFileSync(path.join(profileDir, "profile.wxml"), "utf8");
 var profileWxss = fs.readFileSync(path.join(profileDir, "profile.wxss"), "utf8");
+var paperInkWxss = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/styles/paper-ink.wxss"),
+  "utf8",
+);
 
 // ── IA 铁律：学习统计并入学情，不在我的单列 ──────────────────
 assert(!/getBadges/.test(profileJs), "profile must not load badges (学习统计并入学情)");
@@ -78,9 +82,15 @@ assert(/用于安排你的复习节奏/.test(profileWxml), "exam date row should
 assert(/exam_date/.test(profileJs), "exam date must persist through profile settings");
 assert(/TODO\(time_budget\)/.test(profileJs), "daily target must carry the time_budget mapping TODO");
 
-// ── 纸墨朱竹 token（页面作用域 --pk-*，暗/亮双态）────────────
-assert(/--pk-bg:\s*#1c1a15/.test(profileWxss), "dark paper-ink tokens must match the 10f2 palette");
-assert(/\.profile-page\.light\s*\{[^}]*--pk-bg:\s*#f5f3ec/.test(profileWxss), "light paper-ink tokens must match the 10f palette");
+// ── 纸墨朱竹 token（共享 authority，页面不得复制 palette）────
+assert(
+  /@import\s+"\/packageDeeptutor\/styles\/paper-ink\.wxss"/.test(profileWxss),
+  "profile must consume the shared paper-ink authority",
+);
+assert(/class="[^"]*\bpaper\b/.test(profileWxml), "profile root must mount the paper theme");
+assert(/\.paper\s*\{[^}]*--pk-paper:\s*#1c1a15/.test(paperInkWxss), "dark paper-ink tokens must match the 10f2 palette");
+assert(/\.paper\.light\s*\{[^}]*--pk-paper:\s*#f5f3ec/.test(paperInkWxss), "light paper-ink tokens must match the 10f palette");
+assert(!/--pk-card:|--pk-red:/.test(profileWxss), "profile must not keep a second palette copy");
 
 // ── 动态契约：免费档静态降级 + 路线卡诚实投影 ────────────────
 function loadProfilePage(apiOverrides) {

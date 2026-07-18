@@ -1,6 +1,7 @@
 # 鲁班五模块 IA 与前端设计对齐 Brief
 
-> Status: **Approved / owner 已拍板的 IA 定版收权文档**。此前仅存在于 owner 对话中的五模块 IA 拍板、三种历史归属、前端硬约束，在此收权成文——设计稿与前端实现以本文为对齐依据。
+> Authority status（2026-07-16）：**Superseded for IA / visual constraints reference-only**。旧 `学习 / 复习 / 对话 / 学情 / 我的` IA 不得继续实现；纸墨朱竹、弱网、前端不算分等不冲突的视觉/交互约束可保留。当前 IA 唯一 authority 见[父级 PRD](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)：`学习 / 历史 / 问鲁班 / 学情 / 我的`。
+> Status: **Reference-only / IA superseded 2026-07-16**。
 > Date: 2026-07-02
 > 基座：[双轮设计 v3.2](2026-07-02-luban-learn-review-double-wheel-design.md)（模块语义与边界的唯一上游，本文与其冲突以 v3.2 为准）· [PRD v1.3](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)（批改页规格 :420-446 / 商业化 :1076-1079 / screen spec 基调）· [spike 执行计划](2026-07-02-luban-spike-execution-plan.md)（owner P7 拍板「五模块全量 IA 先行」的登记处）
 > 设计定稿（已入仓，#350）：[设计资产-五模块第10轮/](设计资产-五模块第10轮/)（第 10 轮定稿 10a-10f · 纸墨朱竹语言 · 评审要点摘要）

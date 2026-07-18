@@ -43,7 +43,7 @@ function loadShell(overrides) {
       if (request === "../utils/route") {
         return {
           learn: function () { return "/packageDeeptutor/pages/learn/learn"; },
-          lubanReview: function () { return "/packageDeeptutor/pages/luban/review/review"; },
+          history: function () { return "/packageDeeptutor/pages/history/history"; },
           chat: function () { return "/packageDeeptutor/pages/chat/chat"; },
           report: function () { return "/packageDeeptutor/pages/report/report"; },
           profile: function () { return "/packageDeeptutor/pages/profile/profile"; },
@@ -121,7 +121,7 @@ run("package tab switch gives immediate feedback and uses redirectTo", function 
   var loaded = loadShell();
   var shell = createInstance(loaded.def);
 
-  // 五 tab 壳: 学习0 / 复习1 / 问鲁班2 / 学情3 / 我的4;默认 selected=0(学习)
+  // 五 tab 壳: 学习0 / 历史1 / 问鲁班2 / 学情3 / 我的4;默认 selected=0(学习)
   shell.switchTab({ currentTarget: { dataset: { index: 4 } } });
 
   assert(shell.data.selected === 4, "selected tab should update before navigation completes");
@@ -147,7 +147,7 @@ run("package tab switch falls back to reLaunch only when redirectTo fails", func
   assert(loaded.redirectCalls.length === 1, "redirectTo should still be attempted first");
   assert(loaded.reLaunchCalls.length === 1, "reLaunch should only be used as a fallback");
   assert(
-    loaded.reLaunchCalls[0].url === "/packageDeeptutor/pages/luban/review/review",
+    loaded.reLaunchCalls[0].url === "/packageDeeptutor/pages/history/history",
     "fallback reLaunch should preserve the selected destination",
   );
 });

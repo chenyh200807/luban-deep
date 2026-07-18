@@ -1,5 +1,5 @@
 {
-  "schema_version": "luban_compiled_practice.v1",
+  "schema_version": "luban_compiled_practice.v3",
   "pack_id": "F05",
   "source_pack_sha256": "eeb066fb568138d8358817e5fd9e05b9e6283ec175664ded3edf965cc80c3bf0",
   "source_bundle_sha256": "ce35efb72b7d4a0610d728a132753e7311a3943b035b3c7e8e968e7fea9af5f4",
@@ -24,10 +24,158 @@
         "F05-html-practice-html-q6-38da71f9263e",
         "F05-html-practice-html-q16-b2706e4117b7"
       ],
-      "published_practice_sha256": "964e75f37dd1529fda0d86aa6225c546a052aa67d8380b90ed61f75cb502b074"
+      "eligible_variant_ids": [],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTMtYzhlOGFiZTdlMGMxIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xNC01YWJkNDhiOTNhMTUiLCJGMDUtaHRtbC1wcmFjdGljZS1odG1sLXE1LWZjNjc0YzlhNjFmYSIsIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTYtMzhkYTcxZjkyNjNlIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYjI3MDZlNDExN2I3Il0sInBhY2tfaWQiOiJGMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImU5ZmE1NzZmMGVmZmE0ZTE1M2Q1NWY0N2IwNmQ2MWM0MzlmNjdiZjUyODUwYzQ4YTE2ZDJhOWM5MGEyYTRiZDYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "6ceecc82d41201fb48c52b3e7bdd40372bae78e58c3cbd371d2239001a522965"
     }
   ],
   "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工缝诊断·后果维",
+      "stem": "地下室墙体施工缝部位渗水。分析成因，选出最完整、能得分的作答。",
+      "model_answer": "施工缝未清理干净致新旧混凝土粘结不良渗漏；未按规范处理接槎明显；钢筋密集处浇捣困难、混凝土不密实。",
+      "options": [
+        {
+          "text": "施工缝未清理干净致新旧混凝土粘结不良、接槎明显、钢筋密集处浇捣不密实，共同形成渗水通路。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三条成因写全（未清理粘结不良 / 接槎 / 钢筋密集不密实），部位与成因都诊断到位。",
+          "option_id": "F05-html-practice-html-q1-3ed89e9bf29f:option-1"
+        },
+        {
+          "text": "是防水层没做好、防水材料不合格导致渗漏，把整个防水层重做一遍即可解决。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "一看渗漏就往'防水层没做好'上套，不去读施工缝这个部位背景。",
+          "loss_reason": "没提取施工缝部位背景、没诊断具体成因，答非所问。",
+          "fix": "先定位施工缝，写未清理粘结不良、接槎、钢筋密集不密实三条成因。",
+          "option_id": "F05-html-practice-html-q1-3ed89e9bf29f:option-2"
+        },
+        {
+          "text": "主要是施工缝未清理干净、粘结不良这一条原因造成的渗水，成因就这一点。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住了最典型的一条，就以为答完了。",
+          "loss_reason": "漏了接槎明显、钢筋密集浇捣不密实两条成因，采分点遗漏。",
+          "fix": "补写接槎明显、钢筋密集处浇捣不密实两条。",
+          "option_id": "F05-html-practice-html-q1-3ed89e9bf29f:option-3"
+        },
+        {
+          "text": "是混凝土强度不足产生结构裂缝渗水，应沿裂缝注浆按结构裂缝处理。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "都是混凝土渗水，容易和裂缝渗漏混为一谈。",
+          "loss_reason": "施工缝渗漏与结构裂缝是不同部位不同成因，概念混淆。",
+          "fix": "本题是施工缝部位，成因写未清理/接槎/钢筋密集不密实。",
+          "option_id": "F05-html-practice-html-q1-3ed89e9bf29f:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q1-3ed89e9bf29f",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q1",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "8a3a58ae18473616833eb0ec31e70114c81342a94ee52c6a2c1061af2ba07613",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "8a3a58ae18473616833eb0ec31e70114c81342a94ee52c6a2c1061af2ba07613",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工缝诊断·后果维",
+      "stem": "就施工缝渗漏「分析成因」这一问，哪种作答阅卷能拿到判据分？",
+      "model_answer": "逐条点出：未清理干净→粘结不良；未按规范处理→接槎明显；钢筋密集→浇捣困难→混凝土不密实。",
+      "options": [
+        {
+          "text": "未清理干净致粘结不良、接槎明显、钢筋密集处浇捣不密实三条并列，逐条点明成因。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三条并列、每条点到机理，阅卷按点给分。",
+          "option_id": "F05-html-practice-html-q2-56092b66b6c8:option-1"
+        },
+        {
+          "text": "施工缝部位施工质量差、当时没弄好，所以后来就渗水了。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "'质量差''没弄好'像是答了原因，写起来省事。",
+          "loss_reason": "全是口号、没有可判分的具体成因。",
+          "fix": "点明未清理粘结不良、接槎、钢筋密集不密实三条。",
+          "option_id": "F05-html-practice-html-q2-56092b66b6c8:option-2"
+        },
+        {
+          "text": "施工缝渗漏是因为养护不到位，加强保湿养护即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把裂缝治理里的'养护'搬过来当施工缝成因。",
+          "loss_reason": "养护是裂缝治理措施，不是施工缝渗漏成因，概念混淆。",
+          "fix": "施工缝成因写未清理/接槎/钢筋密集不密实。",
+          "option_id": "F05-html-practice-html-q2-56092b66b6c8:option-3"
+        },
+        {
+          "text": "钢筋太密浇不下去导致渗水，主要就这一条。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住钢筋密集一条觉得够了。",
+          "loss_reason": "漏未清理粘结不良、接槎明显两条。",
+          "fix": "补未清理粘结不良、接槎明显两条。",
+          "option_id": "F05-html-practice-html-q2-56092b66b6c8:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q2-56092b66b6c8",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q2",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "eb7f3bc1e926a3edc3f17a656016dd4d45f694168cdae406d2ffca9cdc001599",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "eb7f3bc1e926a3edc3f17a656016dd4d45f694168cdae406d2ffca9cdc001599",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
     {
       "answer_type": "single_choice",
       "rule_group": "裂缝治理·记录维",
@@ -77,7 +225,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q3",
-      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "64252ec27be8e51d6c5e6ca51e8a14f8d53827f30047c490307ad6ef3fa0e2c2",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "64252ec27be8e51d6c5e6ca51e8a14f8d53827f30047c490307ad6ef3fa0e2c2",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -128,7 +298,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q4",
-      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "32f6f6751ba8e22fb50bc15e25d82791a758cf3d7a074fccdbf9846e16830172",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "32f6f6751ba8e22fb50bc15e25d82791a758cf3d7a074fccdbf9846e16830172",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -179,7 +371,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q5",
-      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0d316932cc9b66faeff06aa5c41663eb5c08528b49ab7522d3701983340259f5",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0d316932cc9b66faeff06aa5c41663eb5c08528b49ab7522d3701983340259f5",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -230,7 +444,686 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q6",
-      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "339c8e80ceab3230e15958bd3417475deb5a2ad0c243452016788612ac63fb39",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "339c8e80ceab3230e15958bd3417475deb5a2ad0c243452016788612ac63fb39",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "流淌分级·记录维",
+      "stem": "屋面卷材出现流淌，项目部拟对全部流淌部位一律拆除重铺。选出最准确的诊断与作答。",
+      "model_answer": "先分严重/中等/轻微三级：严重拆除重铺、中等用三法、轻微不渗漏可不治；一律拆除属过度处置。",
+      "options": [
+        {
+          "text": "应先分严重/中等/轻微三级：严重拆除重铺、中等用三法、轻微不渗漏可不治，一律拆除属过度处置。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先分级再对症，指出轻微一律拆除是过度处置，分级采分句齐。",
+          "option_id": "F05-html-practice-html-q7-690c10845a85:option-1"
+        },
+        {
+          "text": "卷材流淌一律拆除重铺最彻底，不必分级，省得反复。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "'拆了重铺最彻底'听着稳妥。",
+          "loss_reason": "漏了分级这一整维，轻微不渗漏可不治没体现，属过度处置。",
+          "fix": "先分三级：严重拆除、中等三法、轻微可不治。",
+          "option_id": "F05-html-practice-html-q7-690c10845a85:option-2"
+        },
+        {
+          "text": "流淌就是热天晒化了，凭经验全部铲掉重铺最稳当。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用生活常识'晒化了铲掉'替代规范判断。",
+          "loss_reason": "以常识替代分级规范，把轻微也大拆，判断失据。",
+          "fix": "按规范分三级对症，轻微不渗漏可不治。",
+          "option_id": "F05-html-practice-html-q7-690c10845a85:option-3"
+        },
+        {
+          "text": "流淌按起鼓的直径100mm分档来处理即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "都是卷材病，容易把分级和分档搞混。",
+          "loss_reason": "100mm分档是起鼓的口径，流淌按程度分三级，概念混淆。",
+          "fix": "流淌按严重/中等/轻微三级，不是100mm分档。",
+          "option_id": "F05-html-practice-html-q7-690c10845a85:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q7-690c10845a85",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q7",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "bb7fd9ed8c631984cec934908ecb3888aa64ae5babbaf1ae60c2505d1323651b",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "bb7fd9ed8c631984cec934908ecb3888aa64ae5babbaf1ae60c2505d1323651b",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "中等流淌·记录维",
+      "stem": "中等程度卷材流淌的治理方法，选出作答完整、能得分的。",
+      "model_answer": "中等流淌可采用切割法、局部切除重铺、钉钉子法三法，择宜使用。",
+      "options": [
+        {
+          "text": "中等流淌可采用切割法、局部切除重铺、钉钉子法三法，视情况择宜使用。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三法列全、点明择宜，中等流淌采分句齐。",
+          "option_id": "F05-html-practice-html-q8-771956099306:option-1"
+        },
+        {
+          "text": "中等流淌用切割法把它切开压平就行了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住切割法一种，觉得够了。",
+          "loss_reason": "漏局部切除重铺、钉钉子法两法，采分点遗漏。",
+          "fix": "补局部切除重铺、钉钉子法两法。",
+          "option_id": "F05-html-practice-html-q8-771956099306:option-2"
+        },
+        {
+          "text": "中等流淌抽气灌胶抚平即可恢复。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "抽气灌胶是常听到的卷材治法，随手用上。",
+          "loss_reason": "抽气灌胶是起鼓治理，用于流淌属方法混淆。",
+          "fix": "中等流淌用切割法/局部切除重铺/钉钉子法三法。",
+          "option_id": "F05-html-practice-html-q8-771956099306:option-3"
+        },
+        {
+          "text": "中等流淌等天凉了自己就恢复，一般不用治理。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "把中等当轻微，凭常识以为能自愈。",
+          "loss_reason": "'不渗漏可不治'是轻微级，中等必须三法治理，混级。",
+          "fix": "中等要治：切割法/局部切除重铺/钉钉子法。",
+          "option_id": "F05-html-practice-html-q8-771956099306:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q8-771956099306",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q8",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "daac1808fb84061b5fa0ff9cf3c07d9fd3ecbb0ba2a746249f11b69630153533",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "daac1808fb84061b5fa0ff9cf3c07d9fd3ecbb0ba2a746249f11b69630153533",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "起鼓分档·条件维",
+      "stem": "屋面卷材起鼓，直径分别为 80mm 与 150mm。选出分档处置正确的作答。",
+      "model_answer": "80mm<100mm用抽气灌胶法；150mm≥100mm应斜十字形割开、清理、吹干、重贴方形卷材。",
+      "options": [
+        {
+          "text": "80mm<100mm用抽气灌胶法；150mm≥100mm应斜十字形割开、清理、吹干、重贴方形卷材。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "按100mm分档、两档处置各写清，条件维与做法都到位。",
+          "option_id": "F05-html-practice-html-q9-73d36dad7aa2:option-1"
+        },
+        {
+          "text": "起鼓一律斜十字割开重贴最彻底，不用看直径大小。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "'割开重贴最彻底'像最保险的做法。",
+          "loss_reason": "漏了100mm分档，小鼓也大拆属过度、规范数字缺失。",
+          "fix": "补100mm分界：<100mm抽气灌胶，≥100mm割开重贴。",
+          "option_id": "F05-html-practice-html-q9-73d36dad7aa2:option-2"
+        },
+        {
+          "text": "80mm和150mm都用抽气灌胶法抽气注胶抚平即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "抽气灌胶简单，想一招用到底。",
+          "loss_reason": "150mm≥100mm胶结料大面积失效，只抽气会复发，方法误用。",
+          "fix": "150mm应斜十字割开、吹干、重贴方形卷材。",
+          "option_id": "F05-html-practice-html-q9-73d36dad7aa2:option-3"
+        },
+        {
+          "text": "分界应按 50mm：小于50mm抽气灌胶、大于50mm割开重贴。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有个分界值，把数字记错成50。",
+          "loss_reason": "分档界值是100mm不是50mm，规范数字混淆。",
+          "fix": "分界是直径100mm。",
+          "option_id": "F05-html-practice-html-q9-73d36dad7aa2:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q9-73d36dad7aa2",
+      "surface_id": "practice.html",
+      "source_index": 8,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q9",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "51080fa63fbbae3bd67ed2ee8e28f88a291b221322adeecafe3c71ec34d47387",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "51080fa63fbbae3bd67ed2ee8e28f88a291b221322adeecafe3c71ec34d47387",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "起鼓分档·条件维",
+      "stem": "某处卷材起鼓直径 150mm，工人只做抽气灌胶。选出最准确的判断与作答。",
+      "model_answer": "不妥，≥100mm胶结料大面积失效，应斜十字割开、清理、吹干、重贴，只抽气会复发。",
+      "options": [
+        {
+          "text": "不妥，直径≥100mm胶结料大面积失效，应斜十字割开、清理、吹干、重贴，只抽气会复发。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "判不妥 + 依据(≥100mm大面积失效) + 正确做法(割开重贴)三段齐。",
+          "option_id": "F05-html-practice-html-q10-865f521410ee:option-1"
+        },
+        {
+          "text": "妥当，抽气灌胶法对各种大小的起鼓都适用有效。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抽气灌胶用着方便，就认为通用。",
+          "loss_reason": "漏了100mm分档，大鼓必须割开重贴，遗漏关键判据。",
+          "fix": "≥100mm应割开、吹干、重贴，非抽气。",
+          "option_id": "F05-html-practice-html-q10-865f521410ee:option-2"
+        },
+        {
+          "text": "妥当，起鼓不论大小抽气灌胶最省事、成本低。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "图省事、省成本的常识判断。",
+          "loss_reason": "以省事常识替代分档规范，大鼓只抽气会复发。",
+          "fix": "按100mm分档，大鼓割开重贴。",
+          "option_id": "F05-html-practice-html-q10-865f521410ee:option-3"
+        },
+        {
+          "text": "不妥，应改用拆除重铺，起鼓属于流淌治理的一种。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "知道不妥了，却纠成了另一个方法。",
+          "loss_reason": "起鼓不是流淌，不用拆除重铺，方向纠错错误。",
+          "fix": "≥100mm起鼓斜十字割开、吹干、重贴方形卷材。",
+          "option_id": "F05-html-practice-html-q10-865f521410ee:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q10-865f521410ee",
+      "surface_id": "practice.html",
+      "source_index": 9,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q10",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d32fdf8fcaedc5eb3236e7a741ddcc9e542deaa4b6fe5ede4081b35596ab3f4b",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "d32fdf8fcaedc5eb3236e7a741ddcc9e542deaa4b6fe5ede4081b35596ab3f4b",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "女儿墙诊断·后果维",
+      "stem": "山墙女儿墙根部渗漏。分析成因，选出能得分的作答。",
+      "model_answer": "卷材收口/压条脱落、滴水线破损、拉结不牢、阴阳角成钝角等收头薄弱处失效导致渗漏。",
+      "options": [
+        {
+          "text": "卷材收口/压条脱落、滴水线破损、拉结不牢、阴阳角成钝角等收头薄弱处失效导致渗漏。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "收头薄弱各项(收口/压条/滴水线/拉结/钝角)列全，部位与成因诊断到位。",
+          "option_id": "F05-html-practice-html-q11-265cfef537ac:option-1"
+        },
+        {
+          "text": "就是女儿墙防水没做好，把防水层返工重做即可。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "渗漏就往'防水没做好'上套，不读收头背景。",
+          "loss_reason": "没提取女儿墙收头部位背景、无具体成因，答非所问。",
+          "fix": "写收口/压条脱落、滴水线破损、拉结不牢、钝角。",
+          "option_id": "F05-html-practice-html-q11-265cfef537ac:option-2"
+        },
+        {
+          "text": "是施工缝未清理、钢筋密集不密实造成女儿墙渗漏。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把施工缝的成因套到女儿墙上。",
+          "loss_reason": "部位错、成因错，施工缝成因不适用女儿墙，概念混淆。",
+          "fix": "女儿墙成因写收口/压条脱落/滴水线破损/拉结不牢/钝角。",
+          "option_id": "F05-html-practice-html-q11-265cfef537ac:option-3"
+        },
+        {
+          "text": "主要是压条脱落一条原因导致的渗漏。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住压条脱落一条觉得够。",
+          "loss_reason": "漏收口、滴水线破损、拉结不牢、钝角其余成因。",
+          "fix": "补滴水线破损、拉结不牢、钝角等收头薄弱处。",
+          "option_id": "F05-html-practice-html-q11-265cfef537ac:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q11-265cfef537ac",
+      "surface_id": "practice.html",
+      "source_index": 10,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q11",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "71e9f9ffffa68f037cdbd8b029a1bbbda8e37aab72aba4afef4d9ebce6d96dec",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "71e9f9ffffa68f037cdbd8b029a1bbbda8e37aab72aba4afef4d9ebce6d96dec",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "女儿墙治理·程序维",
+      "stem": "山墙女儿墙渗漏治理。选出步骤最完整、能得分的作答。",
+      "model_answer": "清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口，并修复压顶砂浆。",
+      "options": [
+        {
+          "text": "清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口，并修复压顶砂浆。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五步齐全、含易漏的烤干基层与油膏封口，程序链完整。",
+          "option_id": "F05-html-practice-html-q12-a9cf6c33f245:option-1"
+        },
+        {
+          "text": "直接重新钉压条、覆盖新卷材，省去清旧料与烤干基层。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得钉压条铺新卷材是主活，前面可省。",
+          "loss_reason": "漏清旧料、烤干基层，基层不干新卷材粘不牢，程序缺步。",
+          "fix": "补清除旧胶结料、烤干基层，再钉压条、铺新卷材、封口。",
+          "option_id": "F05-html-practice-html-q12-a9cf6c33f245:option-2"
+        },
+        {
+          "text": "把女儿墙防水重新做一遍就行，按常规防水施工来。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "'重做防水'笼统好写。",
+          "loss_reason": "没有五步具体采分句，采分点遗漏。",
+          "fix": "写清旧料→烤干→钉压条→新卷材→油膏封口五步。",
+          "option_id": "F05-html-practice-html-q12-a9cf6c33f245:option-3"
+        },
+        {
+          "text": "用抽气灌胶法处理女儿墙收口渗漏。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "抽气灌胶记得牢，随手套用。",
+          "loss_reason": "抽气灌胶是起鼓治理，用于女儿墙收口属方法误用。",
+          "fix": "女儿墙用清旧料→烤干→钉压条→新卷材→油膏封口五步。",
+          "option_id": "F05-html-practice-html-q12-a9cf6c33f245:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q12-a9cf6c33f245",
+      "surface_id": "practice.html",
+      "source_index": 11,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q12",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "1cfb1830206ae9a04ab3b6b908a3dc1c99714039f5162f1a9baa44ff6d0ed486",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "1cfb1830206ae9a04ab3b6b908a3dc1c99714039f5162f1a9baa44ff6d0ed486",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "诊断总则·后果维",
+      "stem": "面对不同部位的渗漏，哪种作答思路阅卷能得分？",
+      "model_answer": "先按部位定位（施工缝/穿墙/流淌起鼓/女儿墙），回溯成因后对症治理，不混用治理方法。",
+      "options": [
+        {
+          "text": "先按部位定位（施工缝/穿墙/流淌起鼓/女儿墙），回溯成因后对症治理，不混用治理方法。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先诊断部位、再对症治理、不混答——正是判分主线。",
+          "option_id": "F05-html-practice-html-q13-b923b2ebb7ba:option-1"
+        },
+        {
+          "text": "渗漏题统一答『加强防水、做好防水层』最保险不会错。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "一句话套所有题，图省心。",
+          "loss_reason": "没审部位、无对症措施，全是口号，审题失据。",
+          "fix": "按部位诊断成因、对症治理。",
+          "option_id": "F05-html-practice-html-q13-b923b2ebb7ba:option-2"
+        },
+        {
+          "text": "所有渗漏都先灌浆堵漏，一招通用最省事。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "灌浆堵漏听着万能。",
+          "loss_reason": "不同部位成因不同、治理不同，一招通用属混答。",
+          "fix": "按部位对症：穿墙止水环、流淌分级、起鼓分档、女儿墙五步。",
+          "option_id": "F05-html-practice-html-q13-b923b2ebb7ba:option-3"
+        },
+        {
+          "text": "只写治理措施就行，不必分析渗漏部位与成因。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得阅卷只看措施。",
+          "loss_reason": "漏了部位诊断与成因回溯，诊断分丢掉。",
+          "fix": "先诊断部位+成因，再写对症治理。",
+          "option_id": "F05-html-practice-html-q13-b923b2ebb7ba:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q13-b923b2ebb7ba",
+      "surface_id": "practice.html",
+      "source_index": 12,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q13",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "0a08218e8b72fd9cbf8c735f59e218d12bcc2205f78efd40eaae4a27171ee333",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "0a08218e8b72fd9cbf8c735f59e218d12bcc2205f78efd40eaae4a27171ee333",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "相邻背景·审题",
+      "stem": "关于堵漏灌浆材料分类与外墙淋水检验，在渗漏治理案例中应如何定位？",
+      "model_answer": "属治理用材与诊断检验背景，主答案仍回到部位诊断与对症治理，不作为治理方法主体。",
+      "options": [
+        {
+          "text": "属治理用材与诊断检验背景，主答案仍回到部位诊断与对症治理，不作为主判分。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "把相邻知识当背景、主答案回诊断治理，审题定位准。",
+          "option_id": "F05-html-practice-html-q14-4813b94d4efa:option-1"
+        },
+        {
+          "text": "直接以堵漏灌浆材料的分类作为本治理案例的主答案。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "材料分类背得熟，顺手当主答案。",
+          "loss_reason": "材料分类是用材背景，非治理方法主体，审题偏了。",
+          "fix": "主答案写部位诊断+对症治理，材料只作背景。",
+          "option_id": "F05-html-practice-html-q14-4813b94d4efa:option-2"
+        },
+        {
+          "text": "外墙淋水试验本身就是渗漏的治理方法之一。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "淋水和渗漏都跟水有关，容易混。",
+          "loss_reason": "淋水试验是检验/验收方法，不是治理方法，概念混淆。",
+          "fix": "淋水是诊断检验背景，治理仍按部位对症。",
+          "option_id": "F05-html-practice-html-q14-4813b94d4efa:option-3"
+        },
+        {
+          "text": "只写灌浆材料分类即可得分，不必诊断治理。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得写了知识点就有分。",
+          "loss_reason": "漏诊断治理主线，采分点遗漏。",
+          "fix": "主线写诊断+对症治理，材料分类只是背景。",
+          "option_id": "F05-html-practice-html-q14-4813b94d4efa:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q14-4813b94d4efa",
+      "surface_id": "practice.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q14",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "95fcabf362576417af79e08e57b6731e22ee6b50263aee8519ea0afb4140eeaf",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "95fcabf362576417af79e08e57b6731e22ee6b50263aee8519ea0afb4140eeaf",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答女儿墙渗漏治理『重新做防水，把漏的地方补上』。选出最准确的诊断与补写。",
+      "model_answer": "成因未诊断、治理五步全缺；补成因(收口/压条脱落/滴水线破损/钝角)+五步(清旧料→烤干→钉压条→新卷材→油膏封口)。",
+      "options": [
+        {
+          "text": "成因未诊断、治理五步全缺；应补成因(收口/压条脱落/滴水线破损/钝角)与五步(清旧料→烤干→钉压条→新卷材→油膏封口)。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "揪出成因与五步都缺，给出可上答题纸的补写——这就是「会写答案」。",
+          "option_id": "F05-html-practice-html-q15-01da2d95650c:option-1"
+        },
+        {
+          "text": "作答思路正确、方向没问题，只是不够详细，可酌情给大部分分。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "看到'重做防水'觉得沾边，想给分。",
+          "loss_reason": "全是口号、无成因无五步，按点给分几乎为零。",
+          "fix": "必须补写成因五项与治理五步。",
+          "option_id": "F05-html-practice-html-q15-01da2d95650c:option-2"
+        },
+        {
+          "text": "只差写明用哪种防水材料，把材料补上就完整了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为差的只是材料。",
+          "loss_reason": "漏诊成因未写、治理五步全缺两大块。",
+          "fix": "补成因(收口/压条/滴水线/钝角)与五步治理。",
+          "option_id": "F05-html-practice-html-q15-01da2d95650c:option-3"
+        },
+        {
+          "text": "应补写卷材流淌三法与起鼓100mm分档的内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把别部位的采分句往上堆。",
+          "loss_reason": "流淌三法、起鼓分档不属女儿墙，部位方法混淆。",
+          "fix": "补女儿墙成因五项与治理五步，不是流淌起鼓。",
+          "option_id": "F05-html-practice-html-q15-01da2d95650c:option-4"
+        }
+      ],
+      "variant_id": "F05-html-practice-html-q15-01da2d95650c",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q15",
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "395e8a0c70a109f0f5758d104d150c0b55b57b3344c8551b86c8d5ce479e6cda",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "395e8a0c70a109f0f5758d104d150c0b55b57b3344c8551b86c8d5ce479e6cda",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     },
     {
       "answer_type": "single_choice",
@@ -281,7 +1174,29 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q16",
-      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1"
+      "source_anchor": "",
+      "source_sha256": "",
+      "source_html_sha256": "1b8375454f8e084352fd8476680327f2b3a3487d3af82e2b90051fce8c8541c1",
+      "fact_id": "",
+      "skeleton_id": "",
+      "probe_role": "",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e39c2c90f3b14cc0f914a2f008006990ebd8bda8eb981ec5bf5fa166abb17e5e",
+      "review": {
+        "status": "pending",
+        "verdict": "pending",
+        "reviewed_content_sha256": "e39c2c90f3b14cc0f914a2f008006990ebd8bda8eb981ec5bf5fa166abb17e5e",
+        "signatures": [],
+        "checks": {
+          "source_verified": false,
+          "answer_verified": false,
+          "diagnosis_verified": false,
+          "longest_option_checked": false,
+          "template_leakage_checked": false
+        }
+      },
+      "eligible": false
     }
   ],
   "published_lesson_sha256": "14898fe8a9e4d390f5372fb8193f9da1695ba98f435bac2ef8edf529265b9656"
