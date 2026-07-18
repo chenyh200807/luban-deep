@@ -1,951 +1,942 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "S07",
-  "source_pack_sha256": "4f4bb9138304e1a874ad07961d268a322f3fe87be4ac04312425ec381eeb497e",
-  "source_bundle_sha256": "96762dd59fe6a77745671cd318b125effe6613cd6ca6e399c1d7031def9e2914",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 12,
-  "eligible_count": 0,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "S07-html-practice-html-q1-d47c5c18b725",
-      "surface_id": "practice.html",
-      "stem": "某工程屋面梁安装时发生高处坠落，1 人死亡，无重伤、无直接经济损失数据。问本事故等级及判定依据 —— 哪个作答最能拿分？",
-      "options": [
-        {
-          "text": "属一般事故。依据死亡/重伤/直接经济损失三阈值，死亡 1 人＜3 人，落一般档（＜3 死/＜10 重伤/＜1000 万）。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "亮三阈值判据 → 代入死亡 1 人 → 比＜3 死 → 回判「一般事故」，判据链写全才满分。",
-          "option_id": "S07-html-practice-html-q1-d47c5c18b725:option-1"
-        },
-        {
-          "text": "本事故性质严重，属于重大事故。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "“死了人 = 严重” 的直觉，越严重往越高判。",
-          "loss_reason": "没代入死亡人数阈值，凭感觉定级；死 1 人应落一般，判成重大是整档错。",
-          "fix": "应代入三阈值：死 1 人＜3 → 一般事故。",
-          "option_id": "S07-html-practice-html-q1-d47c5c18b725:option-2"
-        },
-        {
-          "text": "属较大事故，因为造成了人员死亡。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "只要死亡就往“较大”靠，记住了“死亡=较大”。",
-          "loss_reason": "漏看“1 人”这个数，没和阈值比；死 1 人＜3 是一般，较大要 3~10 死。",
-          "fix": "代入死亡人数：1＜3，落一般档，不是较大。",
-          "option_id": "S07-html-practice-html-q1-d47c5c18b725:option-3"
-        },
-        {
-          "text": "本事故属安全生产事故。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "答了事故“类型”，以为就答完了。",
-          "loss_reason": "只定性没定级 —— 事故类型≠事故等级，等级判定这一采分点整个漏掉。",
-          "fix": "在“安全生产事故”后必须接：死 1 人＜3 → 一般事故。",
-          "option_id": "S07-html-practice-html-q1-d47c5c18b725:option-4"
-        }
-      ],
-      "model_answer": "本事故属一般事故。依据死亡人数、重伤人数、直接经济损失三阈值判定：死亡 1 人＜3 人（且无重伤、无经济损失数据），落「一般」档（＜3 死／＜10 重伤／＜1000 万）。",
-      "rule_group": "计算判定链·条件维",
-      "content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q1",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "s07-fact-death-threshold-grade",
-        "skeleton_id": "s07-skel-死亡人数定级",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_129_0207:1",
-        "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "死亡1人<3 落一般档, 教材 kc:...129_0207:1 三阈值表直引; 按给定维度定级=真题口径(exam:2016:案例2/exam:2017:案例三 参考答案先例)。工单: 题干宜写明损失轻微。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q2-5929a5de0083",
-      "surface_id": "practice.html",
-      "stem": "同一事故，若死亡仍为 1 人，但直接经济损失为 3000 万元。此时本事故等级及判定 —— 哪个作答最能拿分？",
-      "options": [
-        {
-          "text": "属较大事故。任一指标达更高级即按更高级：死 1 人虽落一般，但损失 3000 万落较大档（1000 万~5000 万），取最高 → 较大。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三指标分别比对、取最严档，是“计算判定链”的命门，必须写出“任一达高级即按高级”。",
-          "option_id": "S07-html-practice-html-q2-5929a5de0083:option-1"
-        },
-        {
-          "text": "属一般事故，因为死亡 1 人＜3 人。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "盯着死亡人数一项，忽略题干新增的经济损失。",
-          "loss_reason": "漏提取“损失 3000 万”，没做三指标比对；3000 万已达较大档，应取最高级。",
-          "fix": "补一句：损失 3000 万落较大，任一达高级即按较大。",
-          "option_id": "S07-html-practice-html-q2-5929a5de0083:option-2"
-        },
-        {
-          "text": "介于一般与较大之间，取两者平均按偏一般处理。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得指标不一致就“折中”更稳妥。",
-          "loss_reason": "等级判定不取平均、不取最低 —— 规则是任一达高级即按高级。",
-          "fix": "删掉“平均”，直接按最高的较大档定级。",
-          "option_id": "S07-html-practice-html-q2-5929a5de0083:option-3"
-        },
-        {
-          "text": "属重大事故。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "往高判“保险”，怕判轻了。",
-          "loss_reason": "3000 万落较大档（1000 万~5000 万），重大要 5000 万~1 亿，阈值错档。",
-          "fix": "对照损失区间：3000 万 = 较大，不是重大。",
-          "option_id": "S07-html-practice-html-q2-5929a5de0083:option-4"
-        }
-      ],
-      "model_answer": "本事故属较大事故。三指标任一达更高级即按更高级：死 1 人虽＜3（一般），但直接经济损失 3000 万落较大档（1000 万~5000 万），取最高 → 较大事故，不平均、不取最低。",
-      "rule_group": "计算判定链·取最高级",
-      "content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q2",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "s07-fact-accident-grade-thresholds",
-        "skeleton_id": "s07-skel-经济损失档判定",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_129_0207:1",
-        "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "3000万落较大档(1000万-5000万), 教材三阈值表直引, 相对干扰项唯一。三联 anchor。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q3-8ca63b619897",
-      "surface_id": "practice.html",
-      "stem": "事故发生后，现场施工人员第一时间“报告”这一步，应当向谁报告？",
-      "options": [
-        {
-          "text": "立即向本单位负责人报告，再由单位逐级上报至市（设区）级人民政府住建主管部门。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "报告对象=本单位负责人，是最高频陷阱；后接“逐级上报市级住建”才完整。",
-          "option_id": "S07-html-practice-html-q3-8ca63b619897:option-1"
-        },
-        {
-          "text": "立即向当地应急管理部门报告。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "“出事就报政府/应急”的错心智。",
-          "loss_reason": "报告对象错 —— 现场人员先报本单位负责人，不是直接报应急部门。",
-          "fix": "改为：立即向本单位负责人报告。",
-          "option_id": "S07-html-practice-html-q3-8ca63b619897:option-2"
-        },
-        {
-          "text": "立即向建设单位（业主）报告。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "受合同关系影响，觉得先报甲方。",
-          "loss_reason": "报告对象错；法定第一报告对象是本单位负责人。",
-          "fix": "改为：立即向本单位负责人报告。",
-          "option_id": "S07-html-practice-html-q3-8ca63b619897:option-3"
-        },
-        {
-          "text": "立即向劳动保障部门报告。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "由“伤亡”联想到劳动部门。",
-          "loss_reason": "报告对象错，与上报程序不符。",
-          "fix": "改为：立即向本单位负责人报告，再逐级上报。",
-          "option_id": "S07-html-practice-html-q3-8ca63b619897:option-4"
-        }
-      ],
-      "model_answer": "现场有关人员应立即向本单位负责人报告，再由本单位逐级上报至市（设区）级人民政府住建主管部门。",
-      "rule_group": "主体维·上报对象",
-      "content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q3",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "s07-fact-first-report-target",
-        "skeleton_id": "s07-skel-现场第一报告对象",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2019:第17题",
-        "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "事故现场有关人员应立即报告本单位负责人, 真题 exam:2019:第17题 原题直判(D)。工单: 后续部门链宜另锚并限定事故类型。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q4-873b4f6c56e4",
-      "surface_id": "practice.html",
-      "stem": "关于事故上报的时限与报告内容，哪个作答最全、最能拿分？",
-      "options": [
-        {
-          "text": "报告应含事故初步原因、联系人及联系方式、其他应报情况；自事故发生之日起 30 天内，伤亡变化的应及时补报。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "补报“30 天”+报告三项内容是记录维密集采分区，逐项编号防漏写。",
-          "option_id": "S07-html-practice-html-q4-873b4f6c56e4:option-1"
-        },
-        {
-          "text": "立即报告即可，伤亡变化在 7 天内补报。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "记成了别的时限（7/14/15 天）。",
-          "loss_reason": "补报期限写错 —— 是 30 天，关键数字错=丢分。",
-          "fix": "改为：30 天内伤亡变化及时补报。",
-          "option_id": "S07-html-practice-html-q4-873b4f6c56e4:option-2"
-        },
-        {
-          "text": "报告写明事故发生时间、地点、经过即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "套了“时间地点经过”的常识三要素。",
-          "loss_reason": "漏“初步原因/联系人及方式/其他”，报告内容采分点没写全。",
-          "fix": "补：①初步原因 ②联系人及方式 ③其他应报情况。",
-          "option_id": "S07-html-practice-html-q4-873b4f6c56e4:option-3"
-        },
-        {
-          "text": "伤亡变化随时口头补报，无需书面、无需期限。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "图省事，觉得口头也行。",
-          "loss_reason": "漏书面与 30 天期限，补报要求写不全。",
-          "fix": "补：30 天内、书面、及时补报伤亡变化。",
-          "option_id": "S07-html-practice-html-q4-873b4f6c56e4:option-4"
-        }
-      ],
-      "model_answer": "现场人员立即向本单位负责人报告；报告应含事故初步原因、报告联系人及联系方式、其他应报告的情况；自事故发生之日起 30 天内，伤亡人数发生变化的应及时补报。",
-      "rule_group": "记录维·时限+内容",
-      "content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q4",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "s07-fact-30d-supplement-report",
-        "skeleton_id": "s07-skel-30日补报与报告内容",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2015:第19题",
-        "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "自事故发生之日起30日内伤亡变化及时补报, 真题 exam:2015:第19题 原题直判(D); 报告三项内容=exam:2016:案例2(复合多源工单)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q5-23669e801abb",
-      "surface_id": "practice.html",
-      "stem": "事故调查组中，除施工单位、建设单位外，还应有哪些单位或人员参加？",
-      "options": [
-        {
-          "text": "还应有有关人民政府、安监部门、负有安监职责部门、监察机关、公安机关、工会、人民检察院、有关专家派员参加。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "调查组法定成员逐个列名（政府/安监/公安/监察/工会/检察院/专家），漏一类扣一处。",
-          "option_id": "S07-html-practice-html-q5-23669e801abb:option-1"
-        },
-        {
-          "text": "由施工、建设、监理三方组成即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "沿用“工程参建三方”的惯性。",
-          "loss_reason": "调查组写成单位内部，法定外部成员整组漏。",
-          "fix": "补：政府、安监、监察、公安、工会、检察院、专家。",
-          "option_id": "S07-html-practice-html-q5-23669e801abb:option-2"
-        },
-        {
-          "text": "还应有监理单位和设计单位参加。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "想到了别的参建方，方向仍在“单位”里。",
-          "loss_reason": "仍漏法定的政府/安监/公安/检察院/专家等成员。",
-          "fix": "补：人民政府牵头的法定成员清单。",
-          "option_id": "S07-html-practice-html-q5-23669e801abb:option-3"
-        },
-        {
-          "text": "由本单位安全部门牵头调查并自行处理。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "觉得自己单位能内部消化。",
-          "loss_reason": "单位不得自裁；事故应由政府组织的法定调查组调查。",
-          "fix": "改为：政府组织调查组（含安监/公安等）调查。",
-          "option_id": "S07-html-practice-html-q5-23669e801abb:option-4"
-        }
-      ],
-      "model_answer": "还应有有关人民政府、安监部门、负有安监职责的有关部门、监察机关、公安机关、工会、人民检察院及有关专家派员参加。",
-      "rule_group": "主体维·调查组成员",
-      "content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q5",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "s07-fact-investigation-team",
-        "skeleton_id": "s07-skel-调查组组成清单",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2017:案例三",
-        "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "调查组成员清单, 真题 exam:2017:案例三 逐项支持, 相对干扰项唯一。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q7-79ff091c8293",
-      "surface_id": "practice.html",
-      "stem": "某脚手架坍塌致 8 人重伤，无人员死亡、无直接经济损失数据。问本事故等级及依据 —— 哪个作答最能拿分？",
-      "options": [
-        {
-          "text": "属一般事故。量三阈值：重伤 8 人＜10 人（且无死亡、无经济损失），落一般档（＜3 死/＜10 重伤/＜1000 万）。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "重伤维也要代入阈值：8＜10 → 一般；判据链写全才满分。",
-          "option_id": "S07-html-practice-html-q7-79ff091c8293:option-1"
-        },
-        {
-          "text": "属较大事故，8 人重伤人数不少了。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得 8 人“挺多”，凭规模感往上判。",
-          "loss_reason": "重伤较大档是 10~50 人，8＜10 仍是一般；阈值错档。",
-          "fix": "对照重伤区间：8＜10 → 一般，不是较大。",
-          "option_id": "S07-html-practice-html-q7-79ff091c8293:option-2"
-        },
-        {
-          "text": "属较大事故，因为发生了坍塌。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把“坍塌”这个事故类型当成了等级。",
-          "loss_reason": "事故类型≠事故等级；坍塌只是类型，定级仍要量三阈值。",
-          "fix": "先定性坍塌，再定级：重伤 8＜10 → 一般。",
-          "option_id": "S07-html-practice-html-q7-79ff091c8293:option-3"
-        },
-        {
-          "text": "无法判定，因为没有死亡人数。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "以为没死人就没法定级。",
-          "loss_reason": "三指标任一有数据即可代入，重伤 8 人就能判一般，不必等死亡数。",
-          "fix": "用已有的重伤 8 人代入：＜10 → 一般。",
-          "option_id": "S07-html-practice-html-q7-79ff091c8293:option-4"
-        }
-      ],
-      "model_answer": "本事故属一般事故。重伤 8 人＜10 人，无死亡、无经济损失，按三阈值落一般档（＜3 死／＜10 重伤／＜1000 万）。",
-      "rule_group": "计算判定链·重伤维",
-      "content_sha256": "b5374e4249839edb355563ed2f862ba2e2d4fcaa15ec713e3eace5186f7206da",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q7",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "b5374e4249839edb355563ed2f862ba2e2d4fcaa15ec713e3eace5186f7206da",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q8-6580f9a10675",
-      "surface_id": "practice.html",
-      "stem": "某事故致 2 人死亡、60 人重伤，无直接经济损失数据。问本事故等级及判定 —— 哪个作答最能拿分？",
-      "options": [
-        {
-          "text": "属重大事故。任一指标达更高级即按更高级：死 2 人虽落一般，但重伤 60 人落重大档（50~100），取最高 → 重大。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "多指标冲突时逐项比、取最严档：重伤 60 落重大即定重大。",
-          "option_id": "S07-html-practice-html-q8-6580f9a10675:option-1"
-        },
-        {
-          "text": "属一般事故，死亡才 2 人，＜3。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "只盯死亡一项，忽略重伤 60 人。",
-          "loss_reason": "漏做重伤维比对；重伤 60 已落重大，应取最高级。",
-          "fix": "补：重伤 60 落重大（50~100），取最高 → 重大。",
-          "option_id": "S07-html-practice-html-q8-6580f9a10675:option-2"
-        },
-        {
-          "text": "属较大事故，重伤 60 人算较大。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "记住“重伤多=较大”，没对准区间。",
-          "loss_reason": "重伤较大档是 10~50，60＞50 已进重大档；阈值错档。",
-          "fix": "对照重伤区间：60 落 50~100 → 重大。",
-          "option_id": "S07-html-practice-html-q8-6580f9a10675:option-3"
-        },
-        {
-          "text": "死 2 人＋重伤 60 人，取平均按较大处理。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "指标不一致就想“折中”。",
-          "loss_reason": "定级不取平均、不取最低，只取最严档；重伤已到重大即定重大。",
-          "fix": "删“平均”，按最高的重大档定级。",
-          "option_id": "S07-html-practice-html-q8-6580f9a10675:option-4"
-        }
-      ],
-      "model_answer": "本事故属重大事故。三指标任一达更高级即按更高级：死 2 人＜3（一般），但重伤 60 人落重大档（50~100 人），取最高 → 重大事故，不平均、不取最低。",
-      "rule_group": "计算判定链·取最高级·重伤主导",
-      "content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q8",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "s07-fact-accident-grade-thresholds",
-        "skeleton_id": "s07-skel-重伤人数档判定",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A436000_129_0207:1",
-        "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "重伤60人落重大档(50-100), 教材三阈值表直引; 按给定维度定级=真题口径(同 q1 裁决)。三联 immediate_confirm(同三阈值 fact)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q9-a1fb4b7a6269",
-      "surface_id": "practice.html",
-      "stem": "关于事故分级中“××人以上/以下”的临界数，下列理解哪个正确？",
-      "options": [
-        {
-          "text": "“以上”含本数、“以下”不含本数：死 30 人→特别重大，死 10 人→重大，死 3 人→较大，死 2 人→一般。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "记牢法条口径：以上/以下的“本数”归属决定临界档，写判定时点明含不含本数。",
-          "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-1"
-        },
-        {
-          "text": "死亡 30 人属重大，要 31 人以上才特别重大。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "把“以上”误当作不含本数。",
-          "loss_reason": "“30 人以上”含本数，30 人即特别重大；理解反了。",
-          "fix": "改：30 人（含）→特别重大。",
-          "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-2"
-        },
-        {
-          "text": "临界数取相邻两档中间，按较低档处理更稳。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "怕判重了，往低靠“保险”。",
-          "loss_reason": "分级按法条区间硬判，无“取中间/往低靠”一说。",
-          "fix": "按法条：含本数即归高档，如 30 人→特别重大。",
-          "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-3"
-        },
-        {
-          "text": "死亡 3 人属一般，要超过 3 人才较大。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "把较大下限“3 人”误当不含。",
-          "loss_reason": "较大是“3 人以上不满 10 人”，含 3 人；死 3 人已是较大。",
-          "fix": "改：死 3 人（含）→较大，不是一般。",
-          "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-4"
-        }
-      ],
-      "model_answer": "“以上”含本数、“以下”不含本数：死亡 30 人属特别重大（≥30）；死亡 10 人属重大（10~30，含 10）；死亡 3 人属较大（3~10，含 3）；死亡 2 人属一般（＜3）。",
-      "rule_group": "规范适用·阈值端点",
-      "content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q9",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "s07-fact-accident-grade-thresholds",
-        "skeleton_id": "s07-skel-临界数归档",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A436000_129_0207:1",
-        "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:23:44+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "≥30/10-30/3-10/<3 四临界数归档, 教材 kc:...129_0207:1 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q10-520624e05653",
-      "surface_id": "practice.html",
-      "stem": "有考生说“安全事故发生后应第一时间报当地建设主管部门”。就“报告对象”这一步，正确作答是？",
-      "options": [
-        {
-          "text": "现场人员立即向本单位负责人报告，再由单位逐级上报至市（设区）级人民政府住建主管部门。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "报告对象=本单位负责人→单位逐级上报，两段都要写；这是最高频陷阱。",
-          "option_id": "S07-html-practice-html-q10-520624e05653:option-1"
-        },
-        {
-          "text": "现场人员第一时间直接报当地建设主管部门。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "记住了“建设主管部门”，跳过了本单位负责人。",
-          "loss_reason": "报告主体错：现场人员先报本单位负责人，由单位逐级上报，不是个人直报政府。",
-          "fix": "改：先报本单位负责人，再由单位逐级上报市级住建。",
-          "option_id": "S07-html-practice-html-q10-520624e05653:option-2"
-        },
-        {
-          "text": "现场人员立即拨打 12345 向政府热线报告。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把“报政府”具体成了政务热线。",
-          "loss_reason": "上报走法定程序（本单位负责人→逐级上报），非政务热线。",
-          "fix": "改：立即向本单位负责人报告，再逐级上报。",
-          "option_id": "S07-html-practice-html-q10-520624e05653:option-3"
-        },
-        {
-          "text": "现场人员立即向监理单位报告，由监理上报。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "受现场管理关系影响，觉得先报监理。",
-          "loss_reason": "法定第一报告对象是本单位负责人，不是监理。",
-          "fix": "改：先报本单位负责人。",
-          "option_id": "S07-html-practice-html-q10-520624e05653:option-4"
-        }
-      ],
-      "model_answer": "现场有关人员应立即向本单位负责人报告，再由本单位逐级上报至市（设区）级人民政府住建主管部门；不是现场人员直接报政府部门。",
-      "rule_group": "主体维·上报对象·概念混淆",
-      "content_sha256": "54a189b31579c6bbdbe4328b04982807adf3979028f2d26ef864c76a3657a1e0",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q10",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "54a189b31579c6bbdbe4328b04982807adf3979028f2d26ef864c76a3657a1e0",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q11-32d7b78a9aee",
-      "surface_id": "practice.html",
-      "stem": "事故调查报告完成后，对事故责任人的处理应走什么程序？",
-      "options": [
-        {
-          "text": "调查组提出处理建议 → 负责调查的人民政府批复 → 单位按批复执行；单位不得自裁。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三段链“建议·批复·执行”顺序不能断，且点明“单位不得自裁”。",
-          "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-1"
-        },
-        {
-          "text": "事故单位根据调查情况自行决定对责任人的处理。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "觉得自己单位的人自己处理天经地义。",
-          "loss_reason": "单位不得自裁；处理须经政府批复后执行。",
-          "fix": "改：调查组建议→政府批复→单位执行。",
-          "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-2"
-        },
-        {
-          "text": "调查组直接决定处罚，政府和单位照办即可。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "以为调查组权力最大、说了算。",
-          "loss_reason": "调查组只“提建议”，须经负责调查的人民政府批复，链条不能跳。",
-          "fix": "补：调查组建议→政府批复→单位执行。",
-          "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-3"
-        },
-        {
-          "text": "先由单位执行处理，再报政府备案批复。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "把顺序颠倒成“先执行后批复”。",
-          "loss_reason": "程序顺序错：必须先批复、后执行，不能先斩后奏。",
-          "fix": "改：政府批复在前，单位执行在后。",
-          "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-4"
-        }
-      ],
-      "model_answer": "由事故调查组提出处理建议 → 负责事故调查的人民政府批复 → 事故单位按批复执行；单位不得自行处理责任人。",
-      "rule_group": "后果维·处理链顺序",
-      "content_sha256": "0de55fd92c2e087182fee15a63b49ba3ce0d2d8746c377b3e80da3b0db2a6181",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q11",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "0de55fd92c2e087182fee15a63b49ba3ce0d2d8746c377b3e80da3b0db2a6181",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q12-6f13846f7f8d",
-      "surface_id": "practice.html",
-      "stem": "追究事故责任时，除对事故直接责任人追责外，还应追究谁的责任？",
-      "options": [
-        {
-          "text": "既追直接责任人的责任，也追负有领导责任人员的领导责任。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "“直接责任 + 领导责任”成对写；只写一类即漏采分点。",
-          "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-1"
-        },
-        {
-          "text": "只追直接责任人即可，领导没动手不担责。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得“谁干的追谁”最直接。",
-          "loss_reason": "漏“领导责任”采分点；负有领导责任的人员同样要追。",
-          "fix": "补：追究负有领导责任人员的领导责任。",
-          "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-2"
-        },
-        {
-          "text": "只对事故单位处以罚款，不追具体个人。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "把“处罚单位”当成了追责的全部。",
-          "loss_reason": "漏对直接责任人和领导责任人的追究，采分点缺两块。",
-          "fix": "补：追直接责任人 + 领导责任人员。",
-          "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-3"
-        },
-        {
-          "text": "追究监理和设计单位的连带责任即可。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "往参建各方“连带”上靠。",
-          "loss_reason": "追责对象是直接责任人与负领导责任的人员，非泛化的连带。",
-          "fix": "改：追直接责任人 + 负有领导责任的人员。",
-          "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-4"
-        }
-      ],
-      "model_answer": "既追究事故直接责任人的责任，也追究负有领导责任人员的领导责任；两类责任都要写，漏领导责任要扣分。",
-      "rule_group": "后果维·追责范围",
-      "content_sha256": "5ba6fa31c4fca8a122155a836a4cb886ee96f773512c5205e67b30fe822ba976",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q12",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "5ba6fa31c4fca8a122155a836a4cb886ee96f773512c5205e67b30fe822ba976",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S07-html-practice-html-q13-4aac892967cc",
-      "surface_id": "practice.html",
-      "stem": "事故上报后，伤亡人数发生变化的补报期限，应从哪天起算、多少天内补报？",
-      "options": [
-        {
-          "text": "自事故发生之日起 30 日内，伤亡人数变化的应及时补报。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "锁定“事故发生之日”起算 + “30 日”期限，两个要素都要写。",
-          "option_id": "S07-html-practice-html-q13-4aac892967cc:option-1"
-        },
-        {
-          "text": "自上报之日起 30 日内，伤亡变化及时补报。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "想当然从“报出去那天”开始数。",
-          "loss_reason": "起算点错：是事故发生之日起，不是上报之日起。",
-          "fix": "改：自事故发生之日起 30 日内补报。",
-          "option_id": "S07-html-practice-html-q13-4aac892967cc:option-2"
-        },
-        {
-          "text": "自事故发生之日起 7 日内补报。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "把期限记成了别的数字（7/15 天）。",
-          "loss_reason": "关键数字错：补报期限是 30 日，不是 7 日。",
-          "fix": "改：30 日内补报。",
-          "option_id": "S07-html-practice-html-q13-4aac892967cc:option-3"
-        },
-        {
-          "text": "调查结束后统一补报，无固定期限。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "觉得等调查清楚再一次报更省事。",
-          "loss_reason": "漏“事故发生之日起 30 日”这一法定期限。",
-          "fix": "补：自事故发生之日起 30 日内及时补报。",
-          "option_id": "S07-html-practice-html-q13-4aac892967cc:option-4"
-        }
-      ],
-      "model_answer": "自事故发生之日起 30 日内，事故造成的伤亡人数发生变化的，应当及时补报；起算点是“事故发生之日”，不是上报之日或调查结束之日。",
-      "rule_group": "记录维·补报起算点",
-      "content_sha256": "72433a10153f2edb0dd4284e6e4d4dfafab7f637788f55cf66a3606c49147f98",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q13",
-      "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "72433a10153f2edb0dd4284e6e4d4dfafab7f637788f55cf66a3606c49147f98",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "S07",
+ "source_pack_sha256": "4f4bb9138304e1a874ad07961d268a322f3fe87be4ac04312425ec381eeb497e",
+ "source_bundle_sha256": "96762dd59fe6a77745671cd318b125effe6613cd6ca6e399c1d7031def9e2914",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 12,
+ "eligible_count": 7,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "codex-cross-model 2026-07-18 (s07.codex.out, fatal_count=3)。3 FATAL(q1 surface/q7/q8)同一指控:『直接经济损失未知不能定级』。主控以本包真题口径仲裁**证伪**: exam:2016:案例2 参考答案『本质量事故属于一般事故』与 exam:2017:案例三『3. 事故等级：一般事故』均按题面给定维度定级(真题惯例=按已知三指标取最高档, 未提维度不抬档), 且 q1/q7/q8 题干显式标注『无直接经济损失数据』, 干扰项皆显错(重大/较大误档), 唯一性成立。=工单(题干宜改『直接经济损失轻微/不足1000万』消除严格性争议)。其余 9 题 Codex approve。三联承 Codex 最小方案: 事故等级三阈值 fact q2/q8/q9。工单: 全包正确项固定首位+最长(编译模板病); q3/q10 部门链需限定事故类型; q4 复合双锚 provenance 待补。",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "S07-html-practice-html-q1-d47c5c18b725",
+   "surface_id": "practice.html",
+   "stem": "某工程屋面梁安装时发生高处坠落，1 人死亡，无重伤、无直接经济损失数据。问本事故等级及判定依据 —— 哪个作答最能拿分？",
+   "options": [
+    {
+     "text": "属一般事故。依据死亡/重伤/直接经济损失三阈值，死亡 1 人＜3 人，落一般档（＜3 死/＜10 重伤/＜1000 万）。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "亮三阈值判据 → 代入死亡 1 人 → 比＜3 死 → 回判「一般事故」，判据链写全才满分。",
+     "option_id": "S07-html-practice-html-q1-d47c5c18b725:option-1"
+    },
+    {
+     "text": "本事故性质严重，属于重大事故。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "“死了人 = 严重” 的直觉，越严重往越高判。",
+     "loss_reason": "没代入死亡人数阈值，凭感觉定级；死 1 人应落一般，判成重大是整档错。",
+     "fix": "应代入三阈值：死 1 人＜3 → 一般事故。",
+     "option_id": "S07-html-practice-html-q1-d47c5c18b725:option-2"
+    },
+    {
+     "text": "属较大事故，因为造成了人员死亡。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "只要死亡就往“较大”靠，记住了“死亡=较大”。",
+     "loss_reason": "漏看“1 人”这个数，没和阈值比；死 1 人＜3 是一般，较大要 3~10 死。",
+     "fix": "代入死亡人数：1＜3，落一般档，不是较大。",
+     "option_id": "S07-html-practice-html-q1-d47c5c18b725:option-3"
+    },
+    {
+     "text": "本事故属安全生产事故。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "答了事故“类型”，以为就答完了。",
+     "loss_reason": "只定性没定级 —— 事故类型≠事故等级，等级判定这一采分点整个漏掉。",
+     "fix": "在“安全生产事故”后必须接：死 1 人＜3 → 一般事故。",
+     "option_id": "S07-html-practice-html-q1-d47c5c18b725:option-4"
+    }
+   ],
+   "model_answer": "本事故属一般事故。依据死亡人数、重伤人数、直接经济损失三阈值判定：死亡 1 人＜3 人（且无重伤、无经济损失数据），落「一般」档（＜3 死／＜10 重伤／＜1000 万）。",
+   "rule_group": "计算判定链·条件维",
+   "content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q1",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "s07-fact-death-threshold-grade",
+    "skeleton_id": "s07-skel-死亡人数定级",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_129_0207:1",
+    "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "死亡1人<3 落一般档, 教材 kc:...129_0207:1 三阈值表直引; 按给定维度定级=真题口径(exam:2016:案例2/exam:2017:案例三 参考答案先例)。工单: 题干宜写明损失轻微。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q2-5929a5de0083",
+   "surface_id": "practice.html",
+   "stem": "同一事故，若死亡仍为 1 人，但直接经济损失为 3000 万元。此时本事故等级及判定 —— 哪个作答最能拿分？",
+   "options": [
+    {
+     "text": "属较大事故。任一指标达更高级即按更高级：死 1 人虽落一般，但损失 3000 万落较大档（1000 万~5000 万），取最高 → 较大。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三指标分别比对、取最严档，是“计算判定链”的命门，必须写出“任一达高级即按高级”。",
+     "option_id": "S07-html-practice-html-q2-5929a5de0083:option-1"
+    },
+    {
+     "text": "属一般事故，因为死亡 1 人＜3 人。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "盯着死亡人数一项，忽略题干新增的经济损失。",
+     "loss_reason": "漏提取“损失 3000 万”，没做三指标比对；3000 万已达较大档，应取最高级。",
+     "fix": "补一句：损失 3000 万落较大，任一达高级即按较大。",
+     "option_id": "S07-html-practice-html-q2-5929a5de0083:option-2"
+    },
+    {
+     "text": "介于一般与较大之间，取两者平均按偏一般处理。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "觉得指标不一致就“折中”更稳妥。",
+     "loss_reason": "等级判定不取平均、不取最低 —— 规则是任一达高级即按高级。",
+     "fix": "删掉“平均”，直接按最高的较大档定级。",
+     "option_id": "S07-html-practice-html-q2-5929a5de0083:option-3"
+    },
+    {
+     "text": "属重大事故。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "往高判“保险”，怕判轻了。",
+     "loss_reason": "3000 万落较大档（1000 万~5000 万），重大要 5000 万~1 亿，阈值错档。",
+     "fix": "对照损失区间：3000 万 = 较大，不是重大。",
+     "option_id": "S07-html-practice-html-q2-5929a5de0083:option-4"
+    }
+   ],
+   "model_answer": "本事故属较大事故。三指标任一达更高级即按更高级：死 1 人虽＜3（一般），但直接经济损失 3000 万落较大档（1000 万~5000 万），取最高 → 较大事故，不平均、不取最低。",
+   "rule_group": "计算判定链·取最高级",
+   "content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q2",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "s07-fact-accident-grade-thresholds",
+    "skeleton_id": "s07-skel-经济损失档判定",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_129_0207:1",
+    "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "3000万落较大档(1000万-5000万), 教材三阈值表直引, 相对干扰项唯一。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q3-8ca63b619897",
+   "surface_id": "practice.html",
+   "stem": "事故发生后，现场施工人员第一时间“报告”这一步，应当向谁报告？",
+   "options": [
+    {
+     "text": "立即向本单位负责人报告，再由单位逐级上报至市（设区）级人民政府住建主管部门。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "报告对象=本单位负责人，是最高频陷阱；后接“逐级上报市级住建”才完整。",
+     "option_id": "S07-html-practice-html-q3-8ca63b619897:option-1"
+    },
+    {
+     "text": "立即向当地应急管理部门报告。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "“出事就报政府/应急”的错心智。",
+     "loss_reason": "报告对象错 —— 现场人员先报本单位负责人，不是直接报应急部门。",
+     "fix": "改为：立即向本单位负责人报告。",
+     "option_id": "S07-html-practice-html-q3-8ca63b619897:option-2"
+    },
+    {
+     "text": "立即向建设单位（业主）报告。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "受合同关系影响，觉得先报甲方。",
+     "loss_reason": "报告对象错；法定第一报告对象是本单位负责人。",
+     "fix": "改为：立即向本单位负责人报告。",
+     "option_id": "S07-html-practice-html-q3-8ca63b619897:option-3"
+    },
+    {
+     "text": "立即向劳动保障部门报告。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "由“伤亡”联想到劳动部门。",
+     "loss_reason": "报告对象错，与上报程序不符。",
+     "fix": "改为：立即向本单位负责人报告，再逐级上报。",
+     "option_id": "S07-html-practice-html-q3-8ca63b619897:option-4"
+    }
+   ],
+   "model_answer": "现场有关人员应立即向本单位负责人报告，再由本单位逐级上报至市（设区）级人民政府住建主管部门。",
+   "rule_group": "主体维·上报对象",
+   "content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q3",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "s07-fact-first-report-target",
+    "skeleton_id": "s07-skel-现场第一报告对象",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2019:第17题",
+    "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "事故现场有关人员应立即报告本单位负责人, 真题 exam:2019:第17题 原题直判(D)。工单: 后续部门链宜另锚并限定事故类型。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q4-873b4f6c56e4",
+   "surface_id": "practice.html",
+   "stem": "关于事故上报的时限与报告内容，哪个作答最全、最能拿分？",
+   "options": [
+    {
+     "text": "报告应含事故初步原因、联系人及联系方式、其他应报情况；自事故发生之日起 30 天内，伤亡变化的应及时补报。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "补报“30 天”+报告三项内容是记录维密集采分区，逐项编号防漏写。",
+     "option_id": "S07-html-practice-html-q4-873b4f6c56e4:option-1"
+    },
+    {
+     "text": "立即报告即可，伤亡变化在 7 天内补报。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "记成了别的时限（7/14/15 天）。",
+     "loss_reason": "补报期限写错 —— 是 30 天，关键数字错=丢分。",
+     "fix": "改为：30 天内伤亡变化及时补报。",
+     "option_id": "S07-html-practice-html-q4-873b4f6c56e4:option-2"
+    },
+    {
+     "text": "报告写明事故发生时间、地点、经过即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "套了“时间地点经过”的常识三要素。",
+     "loss_reason": "漏“初步原因/联系人及方式/其他”，报告内容采分点没写全。",
+     "fix": "补：①初步原因 ②联系人及方式 ③其他应报情况。",
+     "option_id": "S07-html-practice-html-q4-873b4f6c56e4:option-3"
+    },
+    {
+     "text": "伤亡变化随时口头补报，无需书面、无需期限。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "图省事，觉得口头也行。",
+     "loss_reason": "漏书面与 30 天期限，补报要求写不全。",
+     "fix": "补：30 天内、书面、及时补报伤亡变化。",
+     "option_id": "S07-html-practice-html-q4-873b4f6c56e4:option-4"
+    }
+   ],
+   "model_answer": "现场人员立即向本单位负责人报告；报告应含事故初步原因、报告联系人及联系方式、其他应报告的情况；自事故发生之日起 30 天内，伤亡人数发生变化的应及时补报。",
+   "rule_group": "记录维·时限+内容",
+   "content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q4",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "s07-fact-30d-supplement-report",
+    "skeleton_id": "s07-skel-30日补报与报告内容",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2015:第19题",
+    "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "自事故发生之日起30日内伤亡变化及时补报, 真题 exam:2015:第19题 原题直判(D); 报告三项内容=exam:2016:案例2(复合多源工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q5-23669e801abb",
+   "surface_id": "practice.html",
+   "stem": "事故调查组中，除施工单位、建设单位外，还应有哪些单位或人员参加？",
+   "options": [
+    {
+     "text": "还应有有关人民政府、安监部门、负有安监职责部门、监察机关、公安机关、工会、人民检察院、有关专家派员参加。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "调查组法定成员逐个列名（政府/安监/公安/监察/工会/检察院/专家），漏一类扣一处。",
+     "option_id": "S07-html-practice-html-q5-23669e801abb:option-1"
+    },
+    {
+     "text": "由施工、建设、监理三方组成即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "沿用“工程参建三方”的惯性。",
+     "loss_reason": "调查组写成单位内部，法定外部成员整组漏。",
+     "fix": "补：政府、安监、监察、公安、工会、检察院、专家。",
+     "option_id": "S07-html-practice-html-q5-23669e801abb:option-2"
+    },
+    {
+     "text": "还应有监理单位和设计单位参加。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "想到了别的参建方，方向仍在“单位”里。",
+     "loss_reason": "仍漏法定的政府/安监/公安/检察院/专家等成员。",
+     "fix": "补：人民政府牵头的法定成员清单。",
+     "option_id": "S07-html-practice-html-q5-23669e801abb:option-3"
+    },
+    {
+     "text": "由本单位安全部门牵头调查并自行处理。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "觉得自己单位能内部消化。",
+     "loss_reason": "单位不得自裁；事故应由政府组织的法定调查组调查。",
+     "fix": "改为：政府组织调查组（含安监/公安等）调查。",
+     "option_id": "S07-html-practice-html-q5-23669e801abb:option-4"
+    }
+   ],
+   "model_answer": "还应有有关人民政府、安监部门、负有安监职责的有关部门、监察机关、公安机关、工会、人民检察院及有关专家派员参加。",
+   "rule_group": "主体维·调查组成员",
+   "content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q5",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "s07-fact-investigation-team",
+    "skeleton_id": "s07-skel-调查组组成清单",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2017:案例三",
+    "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "调查组成员清单, 真题 exam:2017:案例三 逐项支持, 相对干扰项唯一。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q7-79ff091c8293",
+   "surface_id": "practice.html",
+   "stem": "某脚手架坍塌致 8 人重伤，无人员死亡、无直接经济损失数据。问本事故等级及依据 —— 哪个作答最能拿分？",
+   "options": [
+    {
+     "text": "属一般事故。量三阈值：重伤 8 人＜10 人（且无死亡、无经济损失），落一般档（＜3 死/＜10 重伤/＜1000 万）。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "重伤维也要代入阈值：8＜10 → 一般；判据链写全才满分。",
+     "option_id": "S07-html-practice-html-q7-79ff091c8293:option-1"
+    },
+    {
+     "text": "属较大事故，8 人重伤人数不少了。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "觉得 8 人“挺多”，凭规模感往上判。",
+     "loss_reason": "重伤较大档是 10~50 人，8＜10 仍是一般；阈值错档。",
+     "fix": "对照重伤区间：8＜10 → 一般，不是较大。",
+     "option_id": "S07-html-practice-html-q7-79ff091c8293:option-2"
+    },
+    {
+     "text": "属较大事故，因为发生了坍塌。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把“坍塌”这个事故类型当成了等级。",
+     "loss_reason": "事故类型≠事故等级；坍塌只是类型，定级仍要量三阈值。",
+     "fix": "先定性坍塌，再定级：重伤 8＜10 → 一般。",
+     "option_id": "S07-html-practice-html-q7-79ff091c8293:option-3"
+    },
+    {
+     "text": "无法判定，因为没有死亡人数。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "以为没死人就没法定级。",
+     "loss_reason": "三指标任一有数据即可代入，重伤 8 人就能判一般，不必等死亡数。",
+     "fix": "用已有的重伤 8 人代入：＜10 → 一般。",
+     "option_id": "S07-html-practice-html-q7-79ff091c8293:option-4"
+    }
+   ],
+   "model_answer": "本事故属一般事故。重伤 8 人＜10 人，无死亡、无经济损失，按三阈值落一般档（＜3 死／＜10 重伤／＜1000 万）。",
+   "rule_group": "计算判定链·重伤维",
+   "content_sha256": "b5374e4249839edb355563ed2f862ba2e2d4fcaa15ec713e3eace5186f7206da",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q7",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "b5374e4249839edb355563ed2f862ba2e2d4fcaa15ec713e3eace5186f7206da",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q8-6580f9a10675",
+   "surface_id": "practice.html",
+   "stem": "某事故致 2 人死亡、60 人重伤，无直接经济损失数据。问本事故等级及判定 —— 哪个作答最能拿分？",
+   "options": [
+    {
+     "text": "属重大事故。任一指标达更高级即按更高级：死 2 人虽落一般，但重伤 60 人落重大档（50~100），取最高 → 重大。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "多指标冲突时逐项比、取最严档：重伤 60 落重大即定重大。",
+     "option_id": "S07-html-practice-html-q8-6580f9a10675:option-1"
+    },
+    {
+     "text": "属一般事故，死亡才 2 人，＜3。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "只盯死亡一项，忽略重伤 60 人。",
+     "loss_reason": "漏做重伤维比对；重伤 60 已落重大，应取最高级。",
+     "fix": "补：重伤 60 落重大（50~100），取最高 → 重大。",
+     "option_id": "S07-html-practice-html-q8-6580f9a10675:option-2"
+    },
+    {
+     "text": "属较大事故，重伤 60 人算较大。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "记住“重伤多=较大”，没对准区间。",
+     "loss_reason": "重伤较大档是 10~50，60＞50 已进重大档；阈值错档。",
+     "fix": "对照重伤区间：60 落 50~100 → 重大。",
+     "option_id": "S07-html-practice-html-q8-6580f9a10675:option-3"
+    },
+    {
+     "text": "死 2 人＋重伤 60 人，取平均按较大处理。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "指标不一致就想“折中”。",
+     "loss_reason": "定级不取平均、不取最低，只取最严档；重伤已到重大即定重大。",
+     "fix": "删“平均”，按最高的重大档定级。",
+     "option_id": "S07-html-practice-html-q8-6580f9a10675:option-4"
+    }
+   ],
+   "model_answer": "本事故属重大事故。三指标任一达更高级即按更高级：死 2 人＜3（一般），但重伤 60 人落重大档（50~100 人），取最高 → 重大事故，不平均、不取最低。",
+   "rule_group": "计算判定链·取最高级·重伤主导",
+   "content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q8",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "s07-fact-accident-grade-thresholds",
+    "skeleton_id": "s07-skel-重伤人数档判定",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A436000_129_0207:1",
+    "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "重伤60人落重大档(50-100), 教材三阈值表直引; 按给定维度定级=真题口径(同 q1 裁决)。三联 immediate_confirm(同三阈值 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q9-a1fb4b7a6269",
+   "surface_id": "practice.html",
+   "stem": "关于事故分级中“××人以上/以下”的临界数，下列理解哪个正确？",
+   "options": [
+    {
+     "text": "“以上”含本数、“以下”不含本数：死 30 人→特别重大，死 10 人→重大，死 3 人→较大，死 2 人→一般。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "记牢法条口径：以上/以下的“本数”归属决定临界档，写判定时点明含不含本数。",
+     "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-1"
+    },
+    {
+     "text": "死亡 30 人属重大，要 31 人以上才特别重大。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "把“以上”误当作不含本数。",
+     "loss_reason": "“30 人以上”含本数，30 人即特别重大；理解反了。",
+     "fix": "改：30 人（含）→特别重大。",
+     "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-2"
+    },
+    {
+     "text": "临界数取相邻两档中间，按较低档处理更稳。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "怕判重了，往低靠“保险”。",
+     "loss_reason": "分级按法条区间硬判，无“取中间/往低靠”一说。",
+     "fix": "按法条：含本数即归高档，如 30 人→特别重大。",
+     "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-3"
+    },
+    {
+     "text": "死亡 3 人属一般，要超过 3 人才较大。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "把较大下限“3 人”误当不含。",
+     "loss_reason": "较大是“3 人以上不满 10 人”，含 3 人；死 3 人已是较大。",
+     "fix": "改：死 3 人（含）→较大，不是一般。",
+     "option_id": "S07-html-practice-html-q9-a1fb4b7a6269:option-4"
+    }
+   ],
+   "model_answer": "“以上”含本数、“以下”不含本数：死亡 30 人属特别重大（≥30）；死亡 10 人属重大（10~30，含 10）；死亡 3 人属较大（3~10，含 3）；死亡 2 人属一般（＜3）。",
+   "rule_group": "规范适用·阈值端点",
+   "content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q9",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "s07-fact-accident-grade-thresholds",
+    "skeleton_id": "s07-skel-临界数归档",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A436000_129_0207:1",
+    "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "≥30/10-30/3-10/<3 四临界数归档, 教材 kc:...129_0207:1 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q10-520624e05653",
+   "surface_id": "practice.html",
+   "stem": "有考生说“安全事故发生后应第一时间报当地建设主管部门”。就“报告对象”这一步，正确作答是？",
+   "options": [
+    {
+     "text": "现场人员立即向本单位负责人报告，再由单位逐级上报至市（设区）级人民政府住建主管部门。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "报告对象=本单位负责人→单位逐级上报，两段都要写；这是最高频陷阱。",
+     "option_id": "S07-html-practice-html-q10-520624e05653:option-1"
+    },
+    {
+     "text": "现场人员第一时间直接报当地建设主管部门。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "记住了“建设主管部门”，跳过了本单位负责人。",
+     "loss_reason": "报告主体错：现场人员先报本单位负责人，由单位逐级上报，不是个人直报政府。",
+     "fix": "改：先报本单位负责人，再由单位逐级上报市级住建。",
+     "option_id": "S07-html-practice-html-q10-520624e05653:option-2"
+    },
+    {
+     "text": "现场人员立即拨打 12345 向政府热线报告。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把“报政府”具体成了政务热线。",
+     "loss_reason": "上报走法定程序（本单位负责人→逐级上报），非政务热线。",
+     "fix": "改：立即向本单位负责人报告，再逐级上报。",
+     "option_id": "S07-html-practice-html-q10-520624e05653:option-3"
+    },
+    {
+     "text": "现场人员立即向监理单位报告，由监理上报。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "受现场管理关系影响，觉得先报监理。",
+     "loss_reason": "法定第一报告对象是本单位负责人，不是监理。",
+     "fix": "改：先报本单位负责人。",
+     "option_id": "S07-html-practice-html-q10-520624e05653:option-4"
+    }
+   ],
+   "model_answer": "现场有关人员应立即向本单位负责人报告，再由本单位逐级上报至市（设区）级人民政府住建主管部门；不是现场人员直接报政府部门。",
+   "rule_group": "主体维·上报对象·概念混淆",
+   "content_sha256": "54a189b31579c6bbdbe4328b04982807adf3979028f2d26ef864c76a3657a1e0",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q10",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "54a189b31579c6bbdbe4328b04982807adf3979028f2d26ef864c76a3657a1e0",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q11-32d7b78a9aee",
+   "surface_id": "practice.html",
+   "stem": "事故调查报告完成后，对事故责任人的处理应走什么程序？",
+   "options": [
+    {
+     "text": "调查组提出处理建议 → 负责调查的人民政府批复 → 单位按批复执行；单位不得自裁。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三段链“建议·批复·执行”顺序不能断，且点明“单位不得自裁”。",
+     "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-1"
+    },
+    {
+     "text": "事故单位根据调查情况自行决定对责任人的处理。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "觉得自己单位的人自己处理天经地义。",
+     "loss_reason": "单位不得自裁；处理须经政府批复后执行。",
+     "fix": "改：调查组建议→政府批复→单位执行。",
+     "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-2"
+    },
+    {
+     "text": "调查组直接决定处罚，政府和单位照办即可。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "以为调查组权力最大、说了算。",
+     "loss_reason": "调查组只“提建议”，须经负责调查的人民政府批复，链条不能跳。",
+     "fix": "补：调查组建议→政府批复→单位执行。",
+     "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-3"
+    },
+    {
+     "text": "先由单位执行处理，再报政府备案批复。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "把顺序颠倒成“先执行后批复”。",
+     "loss_reason": "程序顺序错：必须先批复、后执行，不能先斩后奏。",
+     "fix": "改：政府批复在前，单位执行在后。",
+     "option_id": "S07-html-practice-html-q11-32d7b78a9aee:option-4"
+    }
+   ],
+   "model_answer": "由事故调查组提出处理建议 → 负责事故调查的人民政府批复 → 事故单位按批复执行；单位不得自行处理责任人。",
+   "rule_group": "后果维·处理链顺序",
+   "content_sha256": "0de55fd92c2e087182fee15a63b49ba3ce0d2d8746c377b3e80da3b0db2a6181",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q11",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "0de55fd92c2e087182fee15a63b49ba3ce0d2d8746c377b3e80da3b0db2a6181",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q12-6f13846f7f8d",
+   "surface_id": "practice.html",
+   "stem": "追究事故责任时，除对事故直接责任人追责外，还应追究谁的责任？",
+   "options": [
+    {
+     "text": "既追直接责任人的责任，也追负有领导责任人员的领导责任。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "“直接责任 + 领导责任”成对写；只写一类即漏采分点。",
+     "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-1"
+    },
+    {
+     "text": "只追直接责任人即可，领导没动手不担责。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得“谁干的追谁”最直接。",
+     "loss_reason": "漏“领导责任”采分点；负有领导责任的人员同样要追。",
+     "fix": "补：追究负有领导责任人员的领导责任。",
+     "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-2"
+    },
+    {
+     "text": "只对事故单位处以罚款，不追具体个人。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "把“处罚单位”当成了追责的全部。",
+     "loss_reason": "漏对直接责任人和领导责任人的追究，采分点缺两块。",
+     "fix": "补：追直接责任人 + 领导责任人员。",
+     "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-3"
+    },
+    {
+     "text": "追究监理和设计单位的连带责任即可。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "往参建各方“连带”上靠。",
+     "loss_reason": "追责对象是直接责任人与负领导责任的人员，非泛化的连带。",
+     "fix": "改：追直接责任人 + 负有领导责任的人员。",
+     "option_id": "S07-html-practice-html-q12-6f13846f7f8d:option-4"
+    }
+   ],
+   "model_answer": "既追究事故直接责任人的责任，也追究负有领导责任人员的领导责任；两类责任都要写，漏领导责任要扣分。",
+   "rule_group": "后果维·追责范围",
+   "content_sha256": "5ba6fa31c4fca8a122155a836a4cb886ee96f773512c5205e67b30fe822ba976",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q12",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "5ba6fa31c4fca8a122155a836a4cb886ee96f773512c5205e67b30fe822ba976",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S07-html-practice-html-q13-4aac892967cc",
+   "surface_id": "practice.html",
+   "stem": "事故上报后，伤亡人数发生变化的补报期限，应从哪天起算、多少天内补报？",
+   "options": [
+    {
+     "text": "自事故发生之日起 30 日内，伤亡人数变化的应及时补报。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "锁定“事故发生之日”起算 + “30 日”期限，两个要素都要写。",
+     "option_id": "S07-html-practice-html-q13-4aac892967cc:option-1"
+    },
+    {
+     "text": "自上报之日起 30 日内，伤亡变化及时补报。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "想当然从“报出去那天”开始数。",
+     "loss_reason": "起算点错：是事故发生之日起，不是上报之日起。",
+     "fix": "改：自事故发生之日起 30 日内补报。",
+     "option_id": "S07-html-practice-html-q13-4aac892967cc:option-2"
+    },
+    {
+     "text": "自事故发生之日起 7 日内补报。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "把期限记成了别的数字（7/15 天）。",
+     "loss_reason": "关键数字错：补报期限是 30 日，不是 7 日。",
+     "fix": "改：30 日内补报。",
+     "option_id": "S07-html-practice-html-q13-4aac892967cc:option-3"
+    },
+    {
+     "text": "调查结束后统一补报，无固定期限。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "觉得等调查清楚再一次报更省事。",
+     "loss_reason": "漏“事故发生之日起 30 日”这一法定期限。",
+     "fix": "补：自事故发生之日起 30 日内及时补报。",
+     "option_id": "S07-html-practice-html-q13-4aac892967cc:option-4"
+    }
+   ],
+   "model_answer": "自事故发生之日起 30 日内，事故造成的伤亡人数发生变化的，应当及时补报；起算点是“事故发生之日”，不是上报之日或调查结束之日。",
+   "rule_group": "记录维·补报起算点",
+   "content_sha256": "72433a10153f2edb0dd4284e6e4d4dfafab7f637788f55cf66a3606c49147f98",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q13",
+   "authoring_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "72433a10153f2edb0dd4284e6e4d4dfafab7f637788f55cf66a3606c49147f98",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

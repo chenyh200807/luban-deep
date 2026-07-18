@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -249,46 +249,46 @@ class Component extends DCLogic {
       stem:"某工程采用灌注桩基础。判定灌注桩按成孔工法的分类，选出完整、能得分的作答。",
       model:"灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查工艺要求。",
       opts:[
-        { t:"灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查要求。", ok:true, fix:"四类工法列全、并点出先定性再查要求，这是答题地基。", code:"" },
-        { t:"灌注桩主要就是泥浆护壁和沉管两种，其余工艺按现场情况灵活确定即可。", ok:false, code:"E02", tempt:"只记住最常见两种。", lose:"漏长螺旋钻孔压灌与干作业成孔，工法分类不全。", fix:"补全四类：泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔。" },
-        { t:"灌注桩按受力分端承桩、摩擦桩两类，据受力性状直接确定成孔工艺。", ok:false, code:"E07", tempt:"端承/摩擦听着像分类。", lose:"端承/摩擦是受力性状，不是成孔工法分类，答错维度。", fix:"成孔工法=泥浆护壁/沉管/长螺旋/干作业，别用受力分类替代。" },
-        { t:"灌注桩与预制桩一样，先看锤击还是静压，据此确定成孔工法。", ok:false, code:"E05", tempt:"把预制桩打法套到灌注桩。", lose:"锤击/静压是预制桩沉桩方式，灌注桩看成孔工法，审题错位。", fix:"灌注桩按成孔工法定性，不用锤击/静压。" }
+        { t:"灌注桩按成孔工法仅分为泥浆护壁与沉管两大类，长螺旋钻孔压灌和干作业成孔均不再单独列出。", ok:false, code:"E02", tempt:"只记住最常见两种。", lose:"漏长螺旋钻孔压灌与干作业成孔，工法分类不全。", fix:"补全四类：泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔。" },
+        { t:"灌注桩按受力性状分端承桩与摩擦桩两类，据此性状直接确定成孔工艺。", ok:false, code:"E07", tempt:"端承/摩擦听着像分类。", lose:"端承/摩擦是受力性状，不是成孔工法分类，答错维度。", fix:"成孔工法=泥浆护壁/沉管/长螺旋/干作业，别用受力分类替代。" },
+        { t:"灌注桩与预制桩同理，先区分锤击还是静压沉桩，再据打法确定成孔工法。", ok:false, code:"E05", tempt:"把预制桩打法套到灌注桩。", lose:"锤击/静压是预制桩沉桩方式，灌注桩看成孔工法，审题错位。", fix:"灌注桩按成孔工法定性，不用锤击/静压。" },
+        { t:"灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查要求。", ok:true, fix:"四类工法列全、并点出先定性再查要求，这是答题地基。", code:"" }
       ] },
 { tag:"预制桩强度·条件维", typeHint:"单选 · 选出数字准确、能得分的作答", figLabel:"题给：预制桩混凝土强度", figCaption:"起吊 / 运输打桩 各需多少强度", fig:"strength",
       stem:"预制混凝土桩的吊运与打桩，对桩身混凝土强度有何要求？选出数字准确的作答。",
       model:"混凝土强度达设计≥70%可起吊、≥100%可运输和打桩；两点吊吊点距桩端0.2L。",
       opts:[
-        { t:"混凝土强度达设计值≥70%方可起吊、≥100%方可运输和打桩；两点吊吊点距桩端0.2L。", ok:true, fix:"70%/100%两档写准，并带吊点0.2L，未达强度吊运致断桩的前提也点到。", code:"" },
-        { t:"混凝土强度达设计值≥100%方可起吊、达70%即可运输和打桩，先运后强度补足。", ok:false, code:"M08", tempt:"记得有70与100，配反了。", lose:"70%/100%配反：起吊受力小≥70%即可，运输打桩受力大须≥100%。", fix:"≥70%起吊、≥100%运输打桩，别配反。" },
-        { t:"预制桩只要脱模成型、外观完好就能起吊运输，强度按现场经验掌握即可。", ok:false, code:"M10", tempt:"凭手感觉得结实就行。", lose:"用常识替代规范阈值，未达强度吊运会断桩。", fix:"按规范≥70%起吊、≥100%运输打桩。" },
-        { t:"混凝土强度达设计值≥75%即可起吊、≥90%即可运输和打桩。", ok:false, code:"M08", tempt:"记了个大概的数。", lose:"数值错位，规范是70%与100%。", fix:"起吊≥70%、运输打桩≥100%。" }
+        { t:"混凝土强度达设计值≥100%方可起吊、达≥70%即可运输和打桩，可先行运输后再养护补足强度。", ok:false, code:"M08", tempt:"记得有70与100，配反了。", lose:"70%/100%配反：起吊受力小≥70%即可，运输打桩受力大须≥100%。", fix:"≥70%起吊、≥100%运输打桩，别配反。" },
+        { t:"预制桩只要脱模成型、外观完好无明显裂缝即可起吊运输，桩身强度按现场施工经验掌握。", ok:false, code:"M10", tempt:"凭手感觉得结实就行。", lose:"用常识替代规范阈值，未达强度吊运会断桩。", fix:"按规范≥70%起吊、≥100%运输打桩。" },
+        { t:"混凝土强度达设计值≥75%即可起吊、达设计值≥90%即可运输和打桩。", ok:false, code:"M08", tempt:"记了个大概的数。", lose:"数值错位，规范是70%与100%。", fix:"起吊≥70%、运输打桩≥100%。" },
+        { t:"混凝土强度达设计值≥70%方可起吊、≥100%方可运输和打桩；两点吊吊点距桩端0.2L。", ok:true, fix:"70%/100%两档写准，并带吊点0.2L，未达强度吊运致断桩的前提也点到。", code:"" }
       ] },
 { tag:"锤击方式·条件维", typeHint:"单选 · 选出正确的落锤方式", figLabel:"题给：锤击落锤方式", figCaption:"落距大小与桩头完整", fig:"hammer",
       stem:"锤击法沉桩宜采用何种落锤方式？选出正确作答。",
       model:"宜重锤低击或低锤重打，避免桩头损坏、桩身开裂。",
       opts:[
+        { t:"宜采用重锤高击，锤举得越高、单击能量越大，沉桩速度更快。", ok:false, code:"M03", tempt:"以为锤举越高越快。", lose:"高落距冲击峰值超混凝土抗压，桩头碎裂、桩身纵裂。", fix:"应重锤低击，不是重锤高击。" },
         { t:"宜采用重锤低击或低锤重打，减小冲击峰值、保桩身完整。", ok:true, fix:"重锤低击/低锤重打，规范落锤方式，得分。", code:"" },
-        { t:"宜采用重锤高击，锤举高、能量大，沉桩更快。", ok:false, code:"M03", tempt:"以为锤举越高越快。", lose:"高落距冲击峰值超混凝土抗压，桩头碎裂、桩身纵裂。", fix:"应重锤低击，不是重锤高击。" },
-        { t:"宜采用轻锤高击，靠高频轻打逐渐把桩打入。", ok:false, code:"M03", tempt:"觉得轻打不伤桩。", lose:"轻锤高击有效贯入能量不足、桩头反复受冲击也易损。", fix:"应重锤低击或低锤重打。" },
-        { t:"落锤方式对桩身无影响，按机械默认落距施打即可。", ok:false, code:"M10", tempt:"以为落锤方式无所谓。", lose:"落锤方式直接影响桩头/桩身完整，须控制。", fix:"宜重锤低击或低锤重打。" }
+        { t:"宜采用轻锤高击，靠高频率轻打把桩逐步打入。", ok:false, code:"M03", tempt:"觉得轻打不伤桩。", lose:"轻锤高击有效贯入能量不足、桩头反复受冲击也易损。", fix:"应重锤低击或低锤重打。" },
+        { t:"落锤方式对桩身完整并无影响，按机械默认落距施打即可。", ok:false, code:"M10", tempt:"以为落锤方式无所谓。", lose:"落锤方式直接影响桩头/桩身完整，须控制。", fix:"宜重锤低击或低锤重打。" }
       ] },
 { tag:"静压·终止·主体维", typeHint:"单选 · 选出符合规范的静压与终止沉桩要求", figLabel:"题给：静力压桩与终止沉桩", figCaption:"试压桩根数 / 终止标准", fig:"jingya",
       stem:"静力压桩施工与终止沉桩控制，下列作答正确的是？",
       model:"试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
       opts:[
+        { t:"试压桩不应少于3根；可边压边挖以便随时纠偏纠斜；终止沉桩一律以最大压桩力控制为准。", ok:false, code:"E07", tempt:"觉得边压边挖能纠偏、压力控制最直观。", lose:"边压边挖破坏土体，且终止标准摩擦桩应以标高为主，答混。", fix:"不得边压边挖；摩擦桩以标高为主、端承桩以压力为主。" },
+        { t:"试验桩设1根即可；终止沉桩摩擦桩以压力为主、端承桩以标高为主控制。", ok:false, code:"M08", tempt:"根数记少、终止标准配反。", lose:"试压桩≥3根；终止标准摩擦↔端承互换错误。", fix:"试压桩≥3根；摩擦看标高、端承看压力。" },
         { t:"试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。", ok:true, fix:"试压桩根数、不得边压边挖、终止标准按桩型，三项齐，得分。", code:"" },
-        { t:"试压桩不应少于3根；可边压边挖以便及时纠偏；终止沉桩一律以压力为主。", ok:false, code:"E07", tempt:"觉得边压边挖能纠偏、压力控制最直观。", lose:"边压边挖破坏土体，且终止标准摩擦桩应以标高为主，答混。", fix:"不得边压边挖；摩擦桩以标高为主、端承桩以压力为主。" },
-        { t:"试验桩1根即可；终止沉桩摩擦桩以压力为主、端承桩以标高为主。", ok:false, code:"M08", tempt:"根数记少、终止标准配反。", lose:"试压桩≥3根；终止标准摩擦↔端承互换错误。", fix:"试压桩≥3根；摩擦看标高、端承看压力。" },
-        { t:"静压桩以压桩力大于机架配重即可，不必设试压桩。", ok:false, code:"E02", tempt:"只盯压桩力。", lose:"漏试压桩要求；最大压桩力还应小于机架配重×0.9。", fix:"补试压桩≥3根，压桩力<(机架+配重)×0.9。" }
+        { t:"只要压桩力大于机架配重即可终止，无须另行设置试压桩加以验证。", ok:false, code:"E02", tempt:"只盯压桩力。", lose:"漏试压桩要求；最大压桩力还应小于机架配重×0.9。", fix:"补试压桩≥3根，压桩力<(机架+配重)×0.9。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 揪出全部失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"甲级灌注桩900根 · 超灌+抽检+断桩", fig:"sheet",
       stem:"甲级灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③接桩段断裂因混凝土质量差、防治为加强管理。选出最准确的诊断与补写。",
       model:"三处都失分：超灌应0.8~1.0m；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；断裂应写五因(弯曲/障碍物/不直/偏心/强度不足)+具体防治。",
       opts:[
+        { t:"作答基本正确：超灌500mm已经达标，20%抽检180根也属合规，断裂归因于混凝土质量差也说得通，可判给分。", ok:false, code:"E05", tempt:"只看有没有作答、没核对采分点。", lose:"三处全错还判对，超灌不足、甲级应30%、断裂空话。", fix:"三处都要改：0.8~1.0m、30%·270根、五因+具体防治。" },
+        { t:"只有完整性抽检比例这一处有误、应改为30%，其余超灌500mm达标与断裂归因质量差两处均无问题，可予以保留。", ok:false, code:"E02", tempt:"抓到抽检一处就收手。", lose:"漏诊超灌不足与断裂口号化两处失分。", fix:"超灌改0.8~1.0m、断裂写五因+具体防治，不止改抽检。" },
         { t:"三处都不妥：超灌应0.8~1.0m；甲级灌注桩完整性≥30%即900×30%=270根；断裂应写五因+清障/垂直沉桩/接桩对中等具体防治。", ok:true, fix:"超灌、抽检、断桩三处全揪出并补写采分句，这就是会写答案。", code:"" },
-        { t:"作答基本正确：超灌500mm达标，20%抽检180根合规，断裂归因质量差也说得通，可给分。", ok:false, code:"E05", tempt:"只看有没有作答、没核对采分点。", lose:"三处全错还判对，超灌不足、甲级应30%、断裂空话。", fix:"三处都要改：0.8~1.0m、30%·270根、五因+具体防治。" },
-        { t:"只有抽检比例错，改成30%即可；超灌500mm和断裂归因都没问题。", ok:false, code:"E02", tempt:"抓到抽检一处就收手。", lose:"漏诊超灌不足与断裂口号化两处失分。", fix:"超灌改0.8~1.0m、断裂写五因+具体防治，不止改抽检。" },
-        { t:"断裂原因写得对，主要问题是超灌，改成超灌2m、抽检仍按20%即可。", ok:false, code:"E08", tempt:"以为断裂归因已到位。", lose:"断裂归因质量差是口号未提五因，且超灌2m/抽检20%仍错。", fix:"断裂写五因+防治；超灌0.8~1.0m；甲级抽检30%·20根。" }
+        { t:"断裂原因已经写到位、无须再作改动，主要问题在于超灌不足，只需改成超灌2m、完整性抽检仍按20%比例执行即可。", ok:false, code:"E08", tempt:"以为断裂归因已到位。", lose:"断裂归因质量差是口号未提五因，且超灌2m/抽检20%仍错。", fix:"断裂写五因+防治；超灌0.8~1.0m；甲级抽检30%·20根。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -516,7 +516,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"G03-html-practice-html-q1-eea4184844be","options":["G03-html-practice-html-q1-eea4184844be:option-1","G03-html-practice-html-q1-eea4184844be:option-2","G03-html-practice-html-q1-eea4184844be:option-3","G03-html-practice-html-q1-eea4184844be:option-4"]},{"variant_id":"G03-html-practice-html-q2-aae75cddc48d","options":["G03-html-practice-html-q2-aae75cddc48d:option-1","G03-html-practice-html-q2-aae75cddc48d:option-2","G03-html-practice-html-q2-aae75cddc48d:option-3","G03-html-practice-html-q2-aae75cddc48d:option-4"]},{"variant_id":"G03-html-practice-html-q4-8082ee20ea91","options":["G03-html-practice-html-q4-8082ee20ea91:option-1","G03-html-practice-html-q4-8082ee20ea91:option-2","G03-html-practice-html-q4-8082ee20ea91:option-3","G03-html-practice-html-q4-8082ee20ea91:option-4"]},{"variant_id":"G03-html-practice-html-q5-a89c9f731582","options":["G03-html-practice-html-q5-a89c9f731582:option-1","G03-html-practice-html-q5-a89c9f731582:option-2","G03-html-practice-html-q5-a89c9f731582:option-3","G03-html-practice-html-q5-a89c9f731582:option-4"]},{"variant_id":"G03-html-practice-html-q15-f68850feb673","options":["G03-html-practice-html-q15-f68850feb673:option-1","G03-html-practice-html-q15-f68850feb673:option-2","G03-html-practice-html-q15-f68850feb673:option-3","G03-html-practice-html-q15-f68850feb673:option-4"]}];
+    const exactItems=[{"variant_id":"G03-html-practice-html-q1-a5069fbe7083","options":["G03-html-practice-html-q1-a5069fbe7083:option-1","G03-html-practice-html-q1-a5069fbe7083:option-2","G03-html-practice-html-q1-a5069fbe7083:option-3","G03-html-practice-html-q1-a5069fbe7083:option-4"]},{"variant_id":"G03-html-practice-html-q2-8c691c527a8d","options":["G03-html-practice-html-q2-8c691c527a8d:option-1","G03-html-practice-html-q2-8c691c527a8d:option-2","G03-html-practice-html-q2-8c691c527a8d:option-3","G03-html-practice-html-q2-8c691c527a8d:option-4"]},{"variant_id":"G03-html-practice-html-q4-1867683ad625","options":["G03-html-practice-html-q4-1867683ad625:option-1","G03-html-practice-html-q4-1867683ad625:option-2","G03-html-practice-html-q4-1867683ad625:option-3","G03-html-practice-html-q4-1867683ad625:option-4"]},{"variant_id":"G03-html-practice-html-q5-6742026d87de","options":["G03-html-practice-html-q5-6742026d87de:option-1","G03-html-practice-html-q5-6742026d87de:option-2","G03-html-practice-html-q5-6742026d87de:option-3","G03-html-practice-html-q5-6742026d87de:option-4"]},{"variant_id":"G03-html-practice-html-q15-4f582e57e491","options":["G03-html-practice-html-q15-4f582e57e491:option-1","G03-html-practice-html-q15-4f582e57e491:option-2","G03-html-practice-html-q15-4f582e57e491:option-3","G03-html-practice-html-q15-4f582e57e491:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -533,7 +533,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZWVhNDE4NDg0NGJlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1hYWU3NWNkZGM0OGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTgwODJlZTIwZWE5MSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtYTg5YzlmNzMxNTgyIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZjY4ODUwZmViNjczIl0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImEyZmUwODNmZmUyYjkwMmFkNWJhMWU0YmEzNzZmODJkZDE2NTI5MDAzNjk5M2IxYTllMzc2OGE5NzE4YzFlNjgiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTUwNjlmYmU3MDgzIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04YzY5MWM1MjdhOGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTE4Njc2ODNhZDYyNSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtNjc0MjAyNmQ4N2RlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtNGY1ODJlNTdlNDkxIl0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjAwZDU1M2U0NTMwZGE4YzgxYmQ3M2ZjNzMzNTkyY2IxYjAzNDJlOGJmODdmODg3NjVkOTJkNjc1ZDc0NzEzM2QiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

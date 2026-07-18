@@ -10,7 +10,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -375,37 +375,37 @@ class Component extends DCLogic {
   bank(){
     const A=[
 {ep:"进场关",topic:"材料进场验收",fig:"gate",stem:"一批钢筋运到现场，作为施工方进场验收，最先应做的是？",
-        opts:["核查质量证明文件，检查品种、规格、数量、外观，挂牌标识并登记收料台账","只要随车带出厂合格证，即可直接入库投入使用","先送第三方做全项复验，合格后再办进场手续","通知监理旁站见证后方可卸车"],c:0,
-        ana:[{s:"核查证明文件+查品种规格数量外观+挂牌标识+建收料台账"},
-          {why:"合格证看着挺齐全，容易觉得够了。",lose:"合格证只证出厂，进场仍要查外观数量并建台账，跳过验收程序要扣分。",fix:"先核查证明文件、品种规格数量外观，挂牌台账。"},
-          {why:"记得材料要复验。",lose:"复验是进场验收之后按材料触发的环节，且非全项复验，顺序错、范围扩大。",fix:"先完成进场查验，再按材料类型触发复验。"},
-          {why:"记得见证取样。",lose:"见证针对关键材料取样送检，不是卸车前置条件，张冠李戴。",fix:"进场先查验建台账，见证用于取样送检。"}]},
+        opts:["查验随车出厂合格证齐全后即可直接入库并投入使用，不再进行外观与数量检查","应书面通知监理单位到场旁站见证，经其确认后方可卸车与堆放","核查质量证明文件，检查品种、规格、数量、外观，挂牌标识并登记收料台账","先将该批钢筋送第三方检测机构做全项复验，复验合格后再办理进场验收手续"],c:2,
+        ana:[{why:"合格证看着挺齐全，容易觉得够了。",lose:"合格证只证出厂，进场仍要查外观数量并建台账，跳过验收程序要扣分。",fix:"先核查证明文件、品种规格数量外观，挂牌台账。"},
+          {why:"记得见证取样。",lose:"见证针对关键材料取样送检，不是卸车前置条件，张冠李戴。",fix:"进场先查验建台账，见证用于取样送检。"},
+          {s:"核查证明文件+查品种规格数量外观+挂牌标识+建收料台账"},
+          {why:"记得材料要复验。",lose:"复验是进场验收之后按材料触发的环节，且非全项复验，顺序错、范围扩大。",fix:"先完成进场查验，再按材料类型触发复验。"}]},
 {ep:"进场关",topic:"复验触发原则",fig:"trigger",stem:"下列关于材料复验的说法，正确的是？",
-        opts:["涉及安全、节能、环保的主要材料须复验并经监理认可后方可使用","只要有出厂合格证的材料一律无需复验","所有进场材料都必须做见证取样复验","是否复验由施工单位自行决定"],c:0,
-        ana:[{s:"涉安全/节能/环保主要材料须复验并经监理认可"},
+        opts:["所有进场材料均必须进行见证取样复验，不分材料类别与用途","材料是否需要复验，由施工单位根据现场情况自行决定","凡是附有出厂合格证明文件的材料，一律无需再单独进行进场复验","涉及安全、节能、环保的主要材料须复验并经监理认可后方可使用"],c:3,
+        ana:[{why:"觉得宁可多做不会错。",lose:"并非全部材料都见证取样，扩大化不符规范。",fix:"主要材料检验、关键试块见证、涉安全节能环保复验，分层触发。"},
+          {why:"以为施工方能主导。",lose:"复验触发由规范和设计定，非自行决定。",fix:"按规范触发并经监理认可。"},
           {why:"'有合格证=合格'的印象很顽固。",lose:"涉安全节能环保材料合格证不能免复验，写'无需复验'漏采分点。",fix:"涉安全节能环保须复验、经监理认可。"},
-          {why:"觉得宁可多做不会错。",lose:"并非全部材料都见证取样，扩大化不符规范。",fix:"主要材料检验、关键试块见证、涉安全节能环保复验，分层触发。"},
-          {why:"以为施工方能主导。",lose:"复验触发由规范和设计定，非自行决定。",fix:"按规范触发并经监理认可。"}]},
+          {s:"涉安全/节能/环保主要材料须复验并经监理认可"}]},
 {ep:"进场关",topic:"钢筋复试项目",fig:"steel5",stem:"普通热轧钢筋进场复试，应检验的项目是？",
-        opts:["屈服强度、抗拉强度、伸长率、弯曲性能、重量偏差","仅屈服强度和抗拉强度两项","屈服强度、抗拉强度、伸长率、含碳量","抗拉强度、弯曲性能、氯离子含量"],c:0,
-        ana:[{s:"屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差 五项"},
-          {why:"觉得强度最关键，两项就够。",lose:"漏伸长率、弯曲、重量偏差，列项不全扣分。",fix:"五项列全。"},
+        opts:["仅需检验屈服强度与抗拉强度两项力学指标","屈服强度、抗拉强度、伸长率、弯曲性能、重量偏差","应检验屈服强度、抗拉强度、伸长率与含碳量共四项","抗拉强度、弯曲性能、伸长率、氯离子含量"],c:1,
+        ana:[{why:"觉得强度最关键，两项就够。",lose:"漏伸长率、弯曲、重量偏差，列项不全扣分。",fix:"五项列全。"},
+          {s:"屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差 五项"},
           {why:"含碳量像个化学指标。",lose:"复试不查含碳量，把弯曲、重量偏差换成含碳量属错项。",fix:"五项=屈服/抗拉/伸长/弯曲/重量偏差。"},
           {why:"氯离子记串了。",lose:"氯离子是水泥/外加剂项，不属钢筋复试。",fix:"钢筋五项不含氯离子。"}]},
 {ep:"进场关",topic:"成型钢筋例外",fig:"steelShaped",stem:"成型钢筋进场复验时，可以不检验的项目是？",
-        opts:["弯曲性能（屈服、抗拉、伸长、重量偏差仍照检）","屈服强度","重量偏差","全部项目都要检验，无免检项"],c:0,
-        ana:[{s:"成型钢筋进场可不检验弯曲性能，其余四项照检"},
-          {why:"不确定谁能免，随手选一个。",lose:"屈服强度是核心力学指标，必检不能免。",fix:"免的是弯曲性能。"},
+        opts:["屈服强度（抗拉、伸长、弯曲、重量偏差仍照检）","重量偏差（屈服、抗拉、伸长、弯曲仍照检）","不存在可免检项目，五项均应全部检验","弯曲性能（屈服、抗拉、伸长、重量偏差仍照检）"],c:3,
+        ana:[{why:"不确定谁能免，随手选一个。",lose:"屈服强度是核心力学指标，必检不能免。",fix:"免的是弯曲性能。"},
           {why:"觉得重量偏差像次要项。",lose:"重量偏差仍需检验。",fix:"免弯曲性能，不是重量偏差。"},
-          {why:"保守起见想全检。",lose:"成型钢筋弯曲在加工时已定，进场免弯曲，全检=不懂例外。",fix:"成型钢筋免弯曲性能。"}]}
+          {why:"保守起见想全检。",lose:"成型钢筋弯曲在加工时已定，进场免弯曲，全检=不懂例外。",fix:"成型钢筋免弯曲性能。"},
+          {s:"成型钢筋进场可不检验弯曲性能，其余四项照检"}]}
   ];
     const Dg=[
 {ep:"采分句",topic:"见证取样·采分句",fig:"sheetSeal",stem:"案例问'指出见证取样做法不妥并改正'。下列哪句是可直接得分的完整采分句？",
-        opts:["见证人由建设单位书面确认，见证记录由见证人本人填写，试样现场内抽取、送检前通知见证人","见证取样要按规范认真做好","见证人签字确认就行","由监理确认见证人、由试验员填写见证记录"],c:0,
-        ana:[{s:"建设单位确认见证人 + 见证人填记录 + 现场内抽取 + 送检前通知"},
-          {why:"'按规范做好'听着稳妥。",lose:"口号化表达无具体采分点，阅卷不给分。",fix:"写明主体+抽样+时序。"},
+        opts:["施工与监理各方应按规范做好见证取样送检工作，确保取样送检各环节符合要求","见证人在检测委托单上签字确认，试样抽取地点与通知时序可不作说明","见证人由监理单位书面确认，见证记录由试验员本人填写，试样现场内抽取、送检前通知见证人","见证人由建设单位书面确认，见证记录由见证人本人填写，试样现场内抽取、送检前通知见证人"],c:3,
+        ana:[{why:"'按规范做好'听着稳妥。",lose:"口号化表达无具体采分点，阅卷不给分。",fix:"写明主体+抽样+时序。"},
           {why:"觉得点到签字即可。",lose:"未点明主体和时序，采分点缺失。",fix:"建设单位确认+见证人填+现场内抽取送检前通知。"},
-          {why:"像一套完整流程。",lose:"主体全配错——监理确认、试验员填，见证链断，得0分。",fix:"建设单位确认、见证人本人填。"}]}
+          {why:"像一套完整流程。",lose:"主体全配错——监理确认、试验员填，见证链断，得0分。",fix:"建设单位确认、见证人本人填。"},
+          {s:"建设单位确认见证人 + 见证人填记录 + 现场内抽取 + 送检前通知"}]}
   ];
     return {A,Dg};
   }
@@ -572,7 +572,7 @@ class Component extends DCLogic {
   shuffle(a){ return a.slice(); }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"A02-html-practice-html-q1-728f764294c4","options":["A02-html-practice-html-q1-728f764294c4:option-1","A02-html-practice-html-q1-728f764294c4:option-2","A02-html-practice-html-q1-728f764294c4:option-3","A02-html-practice-html-q1-728f764294c4:option-4"]},{"variant_id":"A02-html-practice-html-q2-2de44e410ea8","options":["A02-html-practice-html-q2-2de44e410ea8:option-1","A02-html-practice-html-q2-2de44e410ea8:option-2","A02-html-practice-html-q2-2de44e410ea8:option-3","A02-html-practice-html-q2-2de44e410ea8:option-4"]},{"variant_id":"A02-html-practice-html-q3-1ce285425843","options":["A02-html-practice-html-q3-1ce285425843:option-1","A02-html-practice-html-q3-1ce285425843:option-2","A02-html-practice-html-q3-1ce285425843:option-3","A02-html-practice-html-q3-1ce285425843:option-4"]},{"variant_id":"A02-html-practice-html-q4-34f5c52d4995","options":["A02-html-practice-html-q4-34f5c52d4995:option-1","A02-html-practice-html-q4-34f5c52d4995:option-2","A02-html-practice-html-q4-34f5c52d4995:option-3","A02-html-practice-html-q4-34f5c52d4995:option-4"]},{"variant_id":"A02-html-practice-html-q21-0f835a0744d8","options":["A02-html-practice-html-q21-0f835a0744d8:option-1","A02-html-practice-html-q21-0f835a0744d8:option-2","A02-html-practice-html-q21-0f835a0744d8:option-3","A02-html-practice-html-q21-0f835a0744d8:option-4"]}];
+    const exactItems=[{"variant_id":"A02-html-practice-html-q1-c0fe26842e1b","options":["A02-html-practice-html-q1-c0fe26842e1b:option-1","A02-html-practice-html-q1-c0fe26842e1b:option-2","A02-html-practice-html-q1-c0fe26842e1b:option-3","A02-html-practice-html-q1-c0fe26842e1b:option-4"]},{"variant_id":"A02-html-practice-html-q2-df88cc2082ba","options":["A02-html-practice-html-q2-df88cc2082ba:option-1","A02-html-practice-html-q2-df88cc2082ba:option-2","A02-html-practice-html-q2-df88cc2082ba:option-3","A02-html-practice-html-q2-df88cc2082ba:option-4"]},{"variant_id":"A02-html-practice-html-q3-edb54e5e59a8","options":["A02-html-practice-html-q3-edb54e5e59a8:option-1","A02-html-practice-html-q3-edb54e5e59a8:option-2","A02-html-practice-html-q3-edb54e5e59a8:option-3","A02-html-practice-html-q3-edb54e5e59a8:option-4"]},{"variant_id":"A02-html-practice-html-q4-1f46fc7ac6a8","options":["A02-html-practice-html-q4-1f46fc7ac6a8:option-1","A02-html-practice-html-q4-1f46fc7ac6a8:option-2","A02-html-practice-html-q4-1f46fc7ac6a8:option-3","A02-html-practice-html-q4-1f46fc7ac6a8:option-4"]},{"variant_id":"A02-html-practice-html-q21-d07659eb1cf6","options":["A02-html-practice-html-q21-d07659eb1cf6:option-1","A02-html-practice-html-q21-d07659eb1cf6:option-2","A02-html-practice-html-q21-d07659eb1cf6:option-3","A02-html-practice-html-q21-d07659eb1cf6:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -589,7 +589,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("A02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzI4Zjc2NDI5NGM0IiwiQTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yZGU0NGU0MTBlYTgiLCJBMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTFjZTI4NTQyNTg0MyIsIkEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtMzRmNWM1MmQ0OTk1IiwiQTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMjEtMGY4MzVhMDc0NGQ4Il0sInBhY2tfaWQiOiJBMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjJlNjNhODFkOWY4Nzk4ZDNhYTkzMDAwNTZmMDMyZjZkYzNiMGU4YzNmZmI3MDQ2M2VkMjY1OTlmOWNiNTE4Y2UiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNWVhMjMyYmViNjc0MjhmY2FkOTkwNmVhMTRhMTcxNzE4NGYxNDdkNTZkNDUyYTQ3NTNmMGRmMzA4Y2NhZTBmMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("A02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYzBmZTI2ODQyZTFiIiwiQTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1kZjg4Y2MyMDgyYmEiLCJBMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWVkYjU0ZTVlNTlhOCIsIkEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWY0NmZjN2FjNmE4IiwiQTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMjEtZDA3NjU5ZWIxY2Y2Il0sInBhY2tfaWQiOiJBMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjRmODBmOGMxZWMzNzMyOWVjZjdmNTI0NzE0NjAzZmJiNzdkZjIzMWFkMTdhNzM5ZTAwN2FmODM0Nzc5NGEzYzMiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNWVhMjMyYmViNjc0MjhmY2FkOTkwNmVhMTRhMTcxNzE4NGYxNDdkNTZkNDUyYTQ3NTNmMGRmMzA4Y2NhZTBmMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

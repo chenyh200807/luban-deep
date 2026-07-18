@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -249,46 +249,46 @@ class Component extends DCLogic {
       stem:"基坑施工前应编制专项施工方案。选出内容列举最完整、能得分的作答。",
       model:"专项方案含支护、降水（地下水控制）、土方开挖、工艺流程、安全、应急、监测；开挖≥5m 属危大须专家论证。",
       opts:[
+        { t:"专项方案以支护结构和土方开挖两部分作为编制内容即可，降水、监测等其他事项由施工过程中另行部署安排，不必纳入方案正文。", ok:false, code:"E02", tempt:"觉得支护、开挖是主体，其余临时定。", lose:"漏降水、监测、应急等多项采分点。", fix:"补齐降水、工艺、安全、应急、监测，共七项。" },
+        { t:"方案中写明支护、降水（地下水控制）与土方开挖的做法即可满足编制要求，无需注明危大工程与专家论证的相关要求。", ok:false, code:"E02", tempt:"三大件齐了就以为够。", lose:"漏'开挖≥5m 属危大、须专家论证'采分点。", fix:"补'开挖≥5m 属危大、须专家论证'。" },
         { t:"专项方案应含支护、降水、土方开挖、工艺流程、安全、应急、监测七项；开挖深度≥5m 的基坑属危大工程，须专家论证。", ok:true, fix:"七项内容 + 危大≥5m 专家论证一并写全，正是采分点。", code:"" },
-        { t:"编制支护和土方开挖两部分即可，降水与监测由现场随机应变，不必写进方案。", ok:false, code:"E02", tempt:"觉得支护、开挖是主体，其余临时定。", lose:"漏降水、监测、应急等多项采分点。", fix:"补齐降水、工艺、安全、应急、监测，共七项。" },
-        { t:"方案写清支护、降水、开挖即可，无需注明危大工程与专家论证的要求。", ok:false, code:"E02", tempt:"三大件齐了就以为够。", lose:"漏'开挖≥5m 属危大、须专家论证'采分点。", fix:"补'开挖≥5m 属危大、须专家论证'。" },
-        { t:"浅基坑不必编专项方案，直接按经验开挖，只有深基坑才编制方案。", ok:false, code:"E10", tempt:"以为浅坑可免方案。", lose:"基坑施工前均应编专项方案，违反规范。", fix:"施工前均应编专项方案，≥5m 另须专家论证。" }
+        { t:"开挖深度不足 5m 的浅基坑可不编制专项施工方案，按常规工艺组织开挖即可，仅深基坑需在施工前编制专项方案。", ok:false, code:"E10", tempt:"以为浅坑可免方案。", lose:"基坑施工前均应编专项方案，违反规范。", fix:"施工前均应编专项方案，≥5m 另须专家论证。" }
       ] },
 { tag:"专项方案·程序维", typeHint:"单选 · 选出编制与论证程序正确的作答", figLabel:"题给：方案编制—审批—论证", figCaption:"谁编、谁批、何时论证？", fig:"plan",
       stem:"关于基坑专项施工方案的编制与论证程序，选出正确、能得分的作答。",
       model:"专项方案由施工单位编制、报监理审批；开挖≥5m 危大基坑须组织专家论证后实施。",
       opts:[
-        { t:"专项施工方案由施工单位编制、报监理审批；开挖深度≥5m 的危大基坑，还须组织专家论证后实施。", ok:true, fix:"编制主体、审批、危大论证三步齐，程序分清。", code:"" },
-        { t:"专项方案由监理单位编制、施工单位执行，深基坑由建设单位直接组织论证。", ok:false, code:"E06", tempt:"分不清编制主体。", lose:"编制主体答反、论证组织错。", fix:"施工单位编、报监理审批，危大再专家论证。" },
-        { t:"施工单位编制后即可施工，危大工程也无需专家论证，加强技术交底即可。", ok:false, code:"E02", tempt:"想省掉论证环节。", lose:"漏危大专家论证采分点。", fix:"≥5m 危大须专家论证方可实施。" },
-        { t:"所有基坑无论深浅都须先专家论证、后编制方案。", ok:false, code:"E10", tempt:"以为都要论证且顺序在前。", lose:"论证限危大(≥5m)、且程序颠倒。", fix:"先编方案，≥5m 危大才须专家论证。" }
+        { t:"专项施工方案由监理单位组织编制、交由施工单位负责执行，深基坑的专家论证由建设单位直接组织开展。", ok:false, code:"E06", tempt:"分不清编制主体。", lose:"编制主体答反、论证组织错。", fix:"施工单位编、报监理审批，危大再专家论证。" },
+        { t:"专项施工方案经施工单位编制完成后即可组织实施，危大基坑也无需开展专家论证，以加强技术交底予以弥补。", ok:false, code:"E02", tempt:"想省掉论证环节。", lose:"漏危大专家论证采分点。", fix:"≥5m 危大须专家论证方可实施。" },
+        { t:"各类基坑无论开挖深浅，均应先行组织专家论证，再依据论证意见编制专项施工方案并组织实施。", ok:false, code:"E10", tempt:"以为都要论证且顺序在前。", lose:"论证限危大(≥5m)、且程序颠倒。", fix:"先编方案，≥5m 危大才须专家论证。" },
+        { t:"专项施工方案由施工单位编制、报监理审批；开挖深度≥5m 的危大基坑，还须组织专家论证后实施。", ok:true, fix:"编制主体、审批、危大论证三步齐，程序分清。", code:"" }
       ] },
 { tag:"支护选型·条件维", typeHint:"单选 · 一级基坑支护选型", figLabel:"题给：安全等级—支护类型", figCaption:"安全等级一级 → 选哪类支护？", fig:"level",
       stem:"某深基坑安全等级为一级。选出支护结构选型正确、能得分的作答。",
       model:"一级宜选灌注桩排桩、地下连续墙、型钢水泥土搅拌墙等刚度大的支护。",
       opts:[
+        { t:"安全等级一级的基坑可采用土钉墙支护，其施工便捷、造价较低，适用于各类深基坑工程。", ok:false, code:"E10", tempt:"土钉墙常见就直接套用。", lose:"土钉墙限二三级，用于一级越界。", fix:"一级用排桩/地连墙/型钢搅拌墙。" },
+        { t:"支护类型的确定与安全等级并无关联，按工程造价最低的方案选定支护结构即可。", ok:false, code:"E01", tempt:"只顾省造价。", lose:"忽略安全等级这道首轮筛选。", fix:"先按安全等级筛，一级用排桩/地连墙。" },
         { t:"安全等级一级宜选灌注桩排桩、地下连续墙或型钢水泥土搅拌墙等刚度大的支护结构。", ok:true, fix:"一级对应排桩/地连墙/型钢搅拌墙，刚度大控制变形。", code:"" },
-        { t:"一级基坑可采用土钉墙支护，施工快、造价低，适合各类深基坑。", ok:false, code:"E10", tempt:"土钉墙常见就直接套用。", lose:"土钉墙限二三级，用于一级越界。", fix:"一级用排桩/地连墙/型钢搅拌墙。" },
-        { t:"一级基坑宜选水泥土重力式围护墙，靠自重挡土稳定可靠。", ok:false, code:"E10", tempt:"重力墙听着稳当。", lose:"重力墙属二三级、且限淤泥质≤7m。", fix:"一级用排桩/地连墙等；重力墙限二三级。" },
-        { t:"支护类型与安全等级无关，按造价最低的方案选即可。", ok:false, code:"E01", tempt:"只顾省造价。", lose:"忽略安全等级这道首轮筛选。", fix:"先按安全等级筛，一级用排桩/地连墙。" }
+        { t:"安全等级一级的基坑宜选用水泥土重力式围护墙，依靠墙体自重挡土，受力明确、稳定可靠。", ok:false, code:"E10", tempt:"重力墙听着稳当。", lose:"重力墙属二三级、且限淤泥质≤7m。", fix:"一级用排桩/地连墙等；重力墙限二三级。" }
       ] },
 { tag:"支护选型·条件维", typeHint:"单选 · 选出选型依据最完整的作答", figLabel:"题给：支护选型依据", figCaption:"选支护看哪几样？", fig:"level",
       stem:"关于基坑支护选型的依据，选出最完整、能得分的作答。",
       model:"按土层、地下水位、开挖深度、周边环境+安全等级综合确定，安全等级仅首轮筛选。",
       opts:[
-        { t:"支护选型应综合土层、地下水位、开挖深度、周边环境和安全等级确定，安全等级只是首轮筛选。", ok:true, fix:"五要素综合 + 点明安全等级为首轮筛选，最稳。", code:"" },
-        { t:"只要按安全等级对号入座即可，一级排桩、二三级土钉墙，不必再看别的。", ok:false, code:"E01", tempt:"以为安全等级单因子定死。", lose:"忽略土层/水位/深度/周边，选型不封闭。", fix:"安全等级是首轮筛选，还需综合四要素。" },
-        { t:"按造价和工期选最省的支护即可，土层和水位不是选型依据。", ok:false, code:"E01", tempt:"只算经济账。", lose:"漏土层、水位等技术依据。", fix:"选型先看安全等级 + 土层水位深度周边。" },
-        { t:"只看开挖深度定支护，深就排桩、浅就土钉墙，一刀切即可。", ok:false, code:"E02", tempt:"以为深度单因子决定。", lose:"漏安全等级/土层/周边多因子。", fix:"综合安全等级 + 土层水位深度周边。" }
+        { t:"支护选型按安全等级对号入座即可完成，一级选用排桩、二三级选用土钉墙，其余条件不必逐项核对。", ok:false, code:"E01", tempt:"以为安全等级单因子定死。", lose:"忽略土层/水位/深度/周边，选型不封闭。", fix:"安全等级是首轮筛选，还需综合四要素。" },
+        { t:"支护选型仅按开挖深度一项确定，深基坑选排桩、浅基坑选土钉墙，一律照此执行。", ok:false, code:"E02", tempt:"以为深度单因子决定。", lose:"漏安全等级/土层/周边多因子。", fix:"综合安全等级 + 土层水位深度周边。" },
+        { t:"支护选型应以造价与工期最省作为比选标准，土层与地下水位情况不属于选型依据。", ok:false, code:"E01", tempt:"只算经济账。", lose:"漏土层、水位等技术依据。", fix:"选型先看安全等级 + 土层水位深度周边。" },
+        { t:"支护选型应综合土层、地下水位、开挖深度、周边环境和安全等级确定，安全等级只是首轮筛选。", ok:true, fix:"五要素综合 + 点明安全等级为首轮筛选，最稳。", code:"" }
       ] },
 { tag:"支护选型·条件维", typeHint:"单选 · 淤泥质土二级基坑", figLabel:"题给：淤泥质土·深6m·二级", figCaption:"这坑可选哪种支护？", fig:"level",
       stem:"某淤泥质土基坑，开挖深度6m，安全等级二级。选出支护可选、能得分的作答。",
       model:"二级可选水泥土重力式围护墙（适淤泥质土、深度≤7m）或土钉墙等。",
       opts:[
+        { t:"该基坑应选用地下连续墙进行支护，水泥土重力式围护墙不能用于淤泥质土层。", ok:false, code:"E10", tempt:"以为软土一定要硬支护。", lose:"二级淤泥质≤7m 正适重力墙。", fix:"二级淤泥质≤7m 可选水泥土重力墙。" },
         { t:"该基坑安全等级二级、淤泥质土、深度≤7m，可选用水泥土重力式围护墙，也可用土钉墙。", ok:true, fix:"抓住二级 + 淤泥质 + ≤7m，正对应重力墙适用条件。", code:"" },
-        { t:"水泥土重力墙适用深度不超过10m，本基坑6m 完全适用。", ok:false, code:"M08", tempt:"记错了适用深度阈值。", lose:"重力墙限深度≤7m，写10m 数字错。", fix:"水泥土重力墙适用深度≤7m。" },
-        { t:"该基坑必须选地下连续墙，重力墙不能用于淤泥质土。", ok:false, code:"E10", tempt:"以为软土一定要硬支护。", lose:"二级淤泥质≤7m 正适重力墙。", fix:"二级淤泥质≤7m 可选水泥土重力墙。" },
-        { t:"淤泥质深基坑宜选土钉墙，超前支护、逐层施作即可。", ok:false, code:"E10", tempt:"土钉墙直接套用。", lose:"淤泥质软土不宜土钉墙。", fix:"淤泥质≤7m 宜水泥土重力墙。" }
+        { t:"水泥土重力式围护墙适用于开挖深度不超过 10m 的基坑，本基坑深 6m，处于其适用范围之内。", ok:false, code:"M08", tempt:"记错了适用深度阈值。", lose:"重力墙限深度≤7m，写10m 数字错。", fix:"水泥土重力墙适用深度≤7m。" },
+        { t:"该淤泥质土深基坑宜选用土钉墙支护，按超前支护、逐层施作的原则组织施工即可。", ok:false, code:"E10", tempt:"土钉墙直接套用。", lose:"淤泥质软土不宜土钉墙。", fix:"淤泥质≤7m 宜水泥土重力墙。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -501,7 +501,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"B02-html-practice-html-q1-f2000b14039d","options":["B02-html-practice-html-q1-f2000b14039d:option-1","B02-html-practice-html-q1-f2000b14039d:option-2","B02-html-practice-html-q1-f2000b14039d:option-3","B02-html-practice-html-q1-f2000b14039d:option-4"]},{"variant_id":"B02-html-practice-html-q2-2bddaf1e1e6a","options":["B02-html-practice-html-q2-2bddaf1e1e6a:option-1","B02-html-practice-html-q2-2bddaf1e1e6a:option-2","B02-html-practice-html-q2-2bddaf1e1e6a:option-3","B02-html-practice-html-q2-2bddaf1e1e6a:option-4"]},{"variant_id":"B02-html-practice-html-q3-8bd7bbd12396","options":["B02-html-practice-html-q3-8bd7bbd12396:option-1","B02-html-practice-html-q3-8bd7bbd12396:option-2","B02-html-practice-html-q3-8bd7bbd12396:option-3","B02-html-practice-html-q3-8bd7bbd12396:option-4"]},{"variant_id":"B02-html-practice-html-q4-c6ab82fa9b4d","options":["B02-html-practice-html-q4-c6ab82fa9b4d:option-1","B02-html-practice-html-q4-c6ab82fa9b4d:option-2","B02-html-practice-html-q4-c6ab82fa9b4d:option-3","B02-html-practice-html-q4-c6ab82fa9b4d:option-4"]},{"variant_id":"B02-html-practice-html-q5-b4aa29d9c0a5","options":["B02-html-practice-html-q5-b4aa29d9c0a5:option-1","B02-html-practice-html-q5-b4aa29d9c0a5:option-2","B02-html-practice-html-q5-b4aa29d9c0a5:option-3","B02-html-practice-html-q5-b4aa29d9c0a5:option-4"]}];
+    const exactItems=[{"variant_id":"B02-html-practice-html-q1-dc22990f1c95","options":["B02-html-practice-html-q1-dc22990f1c95:option-1","B02-html-practice-html-q1-dc22990f1c95:option-2","B02-html-practice-html-q1-dc22990f1c95:option-3","B02-html-practice-html-q1-dc22990f1c95:option-4"]},{"variant_id":"B02-html-practice-html-q2-8f70a9b74ad5","options":["B02-html-practice-html-q2-8f70a9b74ad5:option-1","B02-html-practice-html-q2-8f70a9b74ad5:option-2","B02-html-practice-html-q2-8f70a9b74ad5:option-3","B02-html-practice-html-q2-8f70a9b74ad5:option-4"]},{"variant_id":"B02-html-practice-html-q3-b8c928169e40","options":["B02-html-practice-html-q3-b8c928169e40:option-1","B02-html-practice-html-q3-b8c928169e40:option-2","B02-html-practice-html-q3-b8c928169e40:option-3","B02-html-practice-html-q3-b8c928169e40:option-4"]},{"variant_id":"B02-html-practice-html-q4-40d9ef03bcab","options":["B02-html-practice-html-q4-40d9ef03bcab:option-1","B02-html-practice-html-q4-40d9ef03bcab:option-2","B02-html-practice-html-q4-40d9ef03bcab:option-3","B02-html-practice-html-q4-40d9ef03bcab:option-4"]},{"variant_id":"B02-html-practice-html-q5-e68bd3e889d0","options":["B02-html-practice-html-q5-e68bd3e889d0:option-1","B02-html-practice-html-q5-e68bd3e889d0:option-2","B02-html-practice-html-q5-e68bd3e889d0:option-3","B02-html-practice-html-q5-e68bd3e889d0:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -518,7 +518,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("B02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjIwMDBiMTQwMzlkIiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yYmRkYWYxZTFlNmEiLCJCMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLThiZDdiYmQxMjM5NiIsIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzZhYjgyZmE5YjRkIiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNS1iNGFhMjlkOWMwYTUiXSwicGFja19pZCI6IkIwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiN2Y2OThhYmJkY2U4M2FjMjM0NzczNWQzZmYwZGI3Mzc3NzAzODExYWVhMjNhZTU2NDVkNjVjNzk0ZTAxNDc2NCIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("B02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZGMyMjk5MGYxYzk1IiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ZjcwYTliNzRhZDUiLCJCMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWI4YzkyODE2OWU0MCIsIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDBkOWVmMDNiY2FiIiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNS1lNjhiZDNlODg5ZDAiXSwicGFja19pZCI6IkIwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiYjEyYWEyNDJiYTExNDM3MjhhOGI5M2M4Yzg3MDI5OTk2ZjVmZWE0Y2UyZDIzZWEwMzRhZjhlYjgwOTk5YzdmOCIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

@@ -1,1231 +1,1222 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "S06",
-  "source_pack_sha256": "22438b347c9f36c8fb53a305b4c2f3d5eb07b8d7438b7bdb3d6e24e0d71870d8",
-  "source_bundle_sha256": "0142062b113cd9227beebc2231043fd72fdb190cfb256c92f755224f7e99a193",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 16,
-  "eligible_count": 0,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "S06-html-practice-html-q1-eefc330c48e6",
-      "surface_id": "practice.html",
-      "stem": "某工程楼层临边作业，坠落高度基准面 2.3m。选出判定与做法最能得分的作答。",
-      "options": [
-        {
-          "text": "坠落高度基准面 2m 及以上，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "2m 触发 + 临空侧栏杆 + 封闭三件齐，换个高度也不错。",
-          "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-1"
-        },
-        {
-          "text": "设「当心坠落」警示标志、拉警戒线提醒工人注意即可。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "觉得提醒到位、看得见就安全。",
-          "loss_reason": "警示标志是口号，没有实体隔离，临边必须设栏杆。",
-          "fix": "临空侧设防护栏杆，配密目网或工具式栏板封闭。",
-          "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-2"
-        },
-        {
-          "text": "高处临边要注意安全，做好临边防护措施，防止人员坠落。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "方向对、话也顺，像答到点了。",
-          "loss_reason": "没写 2m 触发、没写栏杆/封闭具体措施，空泛不给分。",
-          "fix": "写「2m 及以上临空侧设栏杆并封闭」。",
-          "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-3"
-        },
-        {
-          "text": "坠落高度不足 5m 可不设防护，2.3m 未到 5m，本处无需设栏杆。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "误把 5m 当成临边触发线。",
-          "loss_reason": "临边触发线是 2m，不是 5m，达线即须设防护。",
-          "fix": "2m 及以上就设栏杆并封闭。",
-          "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-4"
-        }
-      ],
-      "model_answer": "坠落高度基准面 2m 及以上临边作业，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
-      "rule_group": "临边触发·条件维",
-      "content_sha256": "ae692ee3311c24e4b2b8fa5e170a12e469c2fb9a21686c6570f0f2b146142763",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q1",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "s06-fact-edge-guard-2m-trigger",
-        "skeleton_id": "s06-skel-临边2m触发场景",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_121_0195:0",
-        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "ae692ee3311c24e4b2b8fa5e170a12e469c2fb9a21686c6570f0f2b146142763",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "坠落高度≥2m 须设防护栏杆+密目网/工具式栏板封闭, 教材 kc:...121_0195:0 直引。三联 anchor。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q2-f84743fdbc8b",
-      "surface_id": "practice.html",
-      "stem": "关于临边防护栏杆的构造要求，选出参数完整、能得分的作答。",
-      "options": [
-        {
-          "text": "上杆离地 1.2m、立杆间距≤2m、挡脚板高≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "四个硬数字 + 密目网一次写全，正是高分密集区。",
-          "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-1"
-        },
-        {
-          "text": "上杆离地 0.9m、立杆间距≤2m、设挡脚板即可，能挡住人就行。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把室内楼梯扶手 0.9m 套到临边栏杆上。",
-          "loss_reason": "临边栏杆上杆是 1.2m；0.9m 是室内楼梯扶手，串章丢分。",
-          "fix": "上杆改 1.2m，其余数字补齐。",
-          "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-2"
-        },
-        {
-          "text": "设防护栏杆，牢固可靠、高度足够，能防止人员坠落即可。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "觉得「牢固够高」意思到了。",
-          "loss_reason": "漏 1.2m / 间距 / 挡脚板 / 1kN 全部硬数字，空泛。",
-          "fix": "写 1.2m、≤2m、≥180mm、1kN。",
-          "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-3"
-        },
-        {
-          "text": "上杆 1.2m、张挂密目立网，其余参数按现场情况灵活掌握。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "记住主数字，其余想当然省了。",
-          "loss_reason": "漏立杆间距≤2m、挡脚板≥180mm、承 1kN。",
-          "fix": "补≤2m、≥180mm、1kN。",
-          "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-4"
-        }
-      ],
-      "model_answer": "上杆离地 1.2m、立杆间距≤2m、挡脚板≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
-      "rule_group": "栏杆构造·条件维",
-      "content_sha256": "baf3dac13e236b165ce71d859bc094b64227ad06570324a91e5beab4919a92f1",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q2",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "s06-fact-guardrail-construction",
-        "skeleton_id": "s06-skel-栏杆构造四数值",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_121_0195:2",
-        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "baf3dac13e236b165ce71d859bc094b64227ad06570324a91e5beab4919a92f1",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "上杆1.2m/立杆间距≤2m/挡脚板≥180mm/1kN, 教材 kc:...121_0195:2 逐项直引。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q3-a8a6959fcd44",
-      "surface_id": "practice.html",
-      "stem": "楼板上短边 600mm 的竖向预留洞口，选出防护做法完整、能得分的作答。",
-      "options": [
-        {
-          "text": "短边≥500mm，临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "判尺寸档 + 栏杆 + 封闭 + 挡脚板齐，够大的加平网。",
-          "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-1"
-        },
-        {
-          "text": "用一块木板把洞口盖住即可，600mm 的洞盖上就安全了。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为洞口「盖住就行」、不分尺寸。",
-          "loss_reason": "短边≥500 人可整个坠落，盖板兜不住，必须围栏杆封闭。",
-          "fix": "设 1.2m 栏杆并封闭、加挡脚板。",
-          "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-2"
-        },
-        {
-          "text": "25~500mm 用承重盖板，本洞 600 也按承重盖板可靠覆盖固定。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "记得盖板口径，却套错了尺寸段。",
-          "loss_reason": "600≥500 属栏杆档；承重盖板是 25~500 档，尺寸配错措施。",
-          "fix": "≥500 设栏杆 + 封闭 + 挡脚板。",
-          "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-3"
-        },
-        {
-          "text": "在洞口周边设警示标志、夜间加警示灯，提醒人员注意避让。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "觉得警示到位就算防护。",
-          "loss_reason": "口号化，没有实体防护，人照样会踩空坠落。",
-          "fix": "设 1.2m 栏杆并封闭、加挡脚板。",
-          "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-4"
-        }
-      ],
-      "model_answer": "短边≥500mm 洞口临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
-      "rule_group": "洞口≥500·条件维",
-      "content_sha256": "39e3511ea4acc51c6b44b6969ab1928782795c72b05a6ce0f81ab7694198ef02",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q3",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "s06-fact-vertical-opening-500",
-        "skeleton_id": "s06-skel-竖向洞口500判定",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_121_0195:1",
-        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "39e3511ea4acc51c6b44b6969ab1928782795c72b05a6ce0f81ab7694198ef02",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "≥500mm 洞口设1.2m栏杆+封闭+挡脚板, 教材 kc:...121_0195:1 直引。工单: '安全平网'附加措辞无锚。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q4-e42d54f368cb",
-      "surface_id": "practice.html",
-      "stem": "楼板上短边 300mm 的洞口，选出防护做法正确、能得分的作答。",
-      "options": [
-        {
-          "text": "25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "尺寸档 + 承重盖板 + 固定防移位，一次到位。",
-          "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-1"
-        },
-        {
-          "text": "300mm 洞口也要临空侧设 1.2m 防护栏杆并封闭、加挡脚板。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为「越严越好」，把栏杆档套到小洞口。",
-          "loss_reason": "25~500 档用承重盖板即可，套栏杆档属规范适用错误。",
-          "fix": "用承重盖板可靠覆盖、固定牢靠。",
-          "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-2"
-        },
-        {
-          "text": "拿彩条布或警戒线把洞口围一下，提醒工人别踩。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "图省事，拿警戒线糊弄。",
-          "loss_reason": "警戒线非承重、人踩即塌，属口号化。",
-          "fix": "用承重盖板可靠覆盖、固定牢靠。",
-          "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-3"
-        },
-        {
-          "text": "把洞口盖上就行，用什么盖、固不固定不重要。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "只记住「盖住」两个字。",
-          "loss_reason": "漏「承重」「固定」关键词，普通板会塌或移位。",
-          "fix": "承重盖板 + 可靠固定防移位。",
-          "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-4"
-        }
-      ],
-      "model_answer": "短边 25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
-      "rule_group": "洞口25~500·条件维",
-      "content_sha256": "c0e98e4d906294fa63e1da6ec482f09be3cef6ee1cbc81330354f80b5c6e60b7",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q4",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "s06-fact-opening-cover-300",
-        "skeleton_id": "s06-skel-300mm洞口盖板",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_121_0195:1",
-        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "c0e98e4d906294fa63e1da6ec482f09be3cef6ee1cbc81330354f80b5c6e60b7",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "300mm 落 25~500mm 档用承重盖板, 教材 kc:...121_0195:1 三档表直引。工单: 固定防移位出处待补。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q5-87ad10581a99",
-      "surface_id": "practice.html",
-      "stem": "临边已设防护栏杆，关于栏杆下沿的封闭措施，选出能得分的作答。",
-      "options": [
-        {
-          "text": "栏杆下沿配合密目式安全立网或工具式栏板封闭。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点名「密目立网 / 工具式栏板」+ 封闭，正是采分句。",
-          "option_id": "S06-html-practice-html-q5-87ad10581a99:option-1"
-        },
-        {
-          "text": "挂「禁止翻越」警示牌提示，栏杆立着就够，无需再封闭。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "觉得有栏杆、有提示就够。",
-          "loss_reason": "漏封闭措施，警示牌口号化不给分。",
-          "fix": "配密目立网或工具式栏板封闭。",
-          "option_id": "S06-html-practice-html-q5-87ad10581a99:option-2"
-        },
-        {
-          "text": "用大孔安全网随便围一下，能挡大件物料就行。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把大孔网当成密目网。",
-          "loss_reason": "临边封闭要「密目式」安全立网，大孔网不符。",
-          "fix": "用密目式安全立网封闭。",
-          "option_id": "S06-html-practice-html-q5-87ad10581a99:option-3"
-        },
-        {
-          "text": "做好封闭、防止物料坠落即可，具体材料现场定。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "方向对但没落到具体材料。",
-          "loss_reason": "漏「密目立网 / 工具式栏板」具体措施。",
-          "fix": "密目立网或工具式栏板封闭。",
-          "option_id": "S06-html-practice-html-q5-87ad10581a99:option-4"
-        }
-      ],
-      "model_answer": "栏杆下沿配合密目式安全立网或工具式栏板封闭。",
-      "rule_group": "临边封闭·措施维",
-      "content_sha256": "3422c955bfe6adf05612eeb7aeaadac067157aedd8ab5b7496f12aecffa9b24d",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q5",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "s06-fact-edge-guard-2m-trigger",
-        "skeleton_id": "s06-skel-封闭措施回忆",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A436000_121_0195:0",
-        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "3422c955bfe6adf05612eeb7aeaadac067157aedd8ab5b7496f12aecffa9b24d",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "密目式安全立网或工具式栏板封闭, 教材直引。Codex severity none。三联 immediate_confirm(同临边防护 fact)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q6-0ca144e4f73b",
-      "surface_id": "practice.html",
-      "stem": "某项目高处作业专项检查内容仅列「安全帽、安全网、安全带」。选出补充最完整、能得分的作答。",
-      "options": [
-        {
-          "text": "还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "7 项逐条编号写全，一项不落。",
-          "option_id": "S06-html-practice-html-q6-0ca144e4f73b:option-1"
-        },
-        {
-          "text": "还应补充：安全帽佩戴、安全带高挂低用、现场消防器材。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "围着「帽、带」加同类项，看着专业。",
-          "loss_reason": "帽带已列属重复、消防器材非高处作业项，7 个采分项全漏。",
-          "fix": "补临边/洞口/通道口/攀登/悬空/移动平台/交叉作业。",
-          "option_id": "S06-html-practice-html-q6-0ca144e4f73b:option-2"
-        },
-        {
-          "text": "还应补充临边防护和洞口防护两项，其余基本已经齐了。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只想到最熟的临边、洞口两项。",
-          "loss_reason": "漏通道口/攀登/悬空/移动平台/交叉作业 5 项。",
-          "fix": "7 项全补，逐条编号。",
-          "option_id": "S06-html-practice-html-q6-0ca144e4f73b:option-3"
-        },
-        {
-          "text": "还应加强高处作业安全管理、落实防护责任、专人巡查。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "管理话术显得面面俱到。",
-          "loss_reason": "口号化，没落到具体检查项，一分不给。",
-          "fix": "列出 7 个具体高处作业项。",
-          "option_id": "S06-html-practice-html-q6-0ca144e4f73b:option-4"
-        }
-      ],
-      "model_answer": "还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。",
-      "rule_group": "检查项补全·措施维",
-      "content_sha256": "a6f0e3f7ef114bf3b191baf284bf8af78337db609222369ce9d170347ba60b31",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q6",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "a6f0e3f7ef114bf3b191baf284bf8af78337db609222369ce9d170347ba60b31",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q7-ec494a6420a7",
-      "surface_id": "practice.html",
-      "stem": "钢筋、模板等坠落高度 2m 以上的悬空作业，选出作业面做法能得分的作答。",
-      "options": [
-        {
-          "text": "坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "2m 阈值 + 悬空作业 + 必设操作平台，措施点名到位。",
-          "option_id": "S06-html-practice-html-q7-ec494a6420a7:option-1"
-        },
-        {
-          "text": "悬空作业时间短，用梯子攀登上去作业即可，不必搭平台。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得短时作业、搭平台费事。",
-          "loss_reason": "超 2m 不得以梯子攀登替代，必须设操作平台。",
-          "fix": "必设操作平台。",
-          "option_id": "S06-html-practice-html-q7-ec494a6420a7:option-2"
-        },
-        {
-          "text": "搭个脚手架上去作业就行，脚手架比操作平台更稳当。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得脚手架也很稳。",
-          "loss_reason": "规范点名「操作平台」，写脚手架属措施张冠李戴。",
-          "fix": "设操作平台。",
-          "option_id": "S06-html-practice-html-q7-ec494a6420a7:option-3"
-        },
-        {
-          "text": "做好悬空作业防护、系好安全带即可，平台看情况再定。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "想靠安全带兜底。",
-          "loss_reason": "漏「必设操作平台」这一硬措施。",
-          "fix": "2m 及以上悬空作业必设操作平台。",
-          "option_id": "S06-html-practice-html-q7-ec494a6420a7:option-4"
-        }
-      ],
-      "model_answer": "坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。",
-      "rule_group": "悬空作业·措施维",
-      "content_sha256": "b22a8a4675bdfd57bda195772dfad4f3249dd6656d707592e562918955a1944a",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q7",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "b22a8a4675bdfd57bda195772dfad4f3249dd6656d707592e562918955a1944a",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q8-43e27009997e",
-      "surface_id": "practice.html",
-      "stem": "背景资料：「坠落高度超过 2m 的安装作业使用梯子攀登」。选出对不妥的判定与正确做法最准确的作答。",
-      "options": [
-        {
-          "text": "不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "判「不妥」+ 正确做法（操作平台）成对，才给全分。",
-          "option_id": "S06-html-practice-html-q8-43e27009997e:option-1"
-        },
-        {
-          "text": "妥当；只要梯子放稳、有人扶着，超 2m 用梯子攀登没问题。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "觉得扶稳了就安全。",
-          "loss_reason": "超 2m 必设操作平台，梯子不合规，判「妥当」方向就错了。",
-          "fix": "判不妥，应设操作平台。",
-          "option_id": "S06-html-practice-html-q8-43e27009997e:option-2"
-        },
-        {
-          "text": "不妥；应改用人字梯（合梯）攀登，比直梯稳一些。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "识别到不妥，但纠错停在换梯型。",
-          "loss_reason": "换梯型仍是梯子，规范要的是操作平台。",
-          "fix": "应设操作平台，而非换梯型。",
-          "option_id": "S06-html-practice-html-q8-43e27009997e:option-3"
-        },
-        {
-          "text": "不妥；应搭设脚手架上下，脚手架比操作平台更通用。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "知道要「平台类」却写成脚手架。",
-          "loss_reason": "规范措施是操作平台，脚手架不对口。",
-          "fix": "应设操作平台。",
-          "option_id": "S06-html-practice-html-q8-43e27009997e:option-4"
-        }
-      ],
-      "model_answer": "不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。",
-      "rule_group": "梯子纠错·后果维",
-      "content_sha256": "fbfa22544ab3f4540bc96f1b94165189d730d3f46146127e30ee2711b4d34b82",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q8",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "fbfa22544ab3f4540bc96f1b94165189d730d3f46146127e30ee2711b4d34b82",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q9-184707bb9cc1",
-      "surface_id": "practice.html",
-      "stem": "关于高处作业的严禁行为，选出表述正确、能得分的作答。",
-      "options": [
-        {
-          "text": "严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "两类严禁一次写全，性质是硬禁止。",
-          "option_id": "S06-html-practice-html-q9-184707bb9cc1:option-1"
-        },
-        {
-          "text": "作业紧张时可沿钢筋骨架攀登上下，注意抓稳即可。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得抓稳、赶工时通融一下没事。",
-          "loss_reason": "严禁沿骨架攀登，写成「可以」性质就错了。",
-          "fix": "严禁沿骨架攀登 / 站骨架作业。",
-          "option_id": "S06-html-practice-html-q9-184707bb9cc1:option-2"
-        },
-        {
-          "text": "严禁沿钢筋骨架攀登。（仅此一条）",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记住最熟的一类。",
-          "loss_reason": "漏「座板式单人吊具 / 自制吊篮」一类严禁。",
-          "fix": "补严禁座板式单人吊具、自制吊篮。",
-          "option_id": "S06-html-practice-html-q9-184707bb9cc1:option-3"
-        },
-        {
-          "text": "可使用自制吊篮载人上下，只要绳索牢固、有人监护。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得牢固加监护就安全。",
-          "loss_reason": "严禁座板式单人吊具、自制吊篮，属硬禁止。",
-          "fix": "严禁座板式单人吊具、自制吊篮。",
-          "option_id": "S06-html-practice-html-q9-184707bb9cc1:option-4"
-        }
-      ],
-      "model_answer": "严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。",
-      "rule_group": "严禁行为·后果维",
-      "content_sha256": "04c7582006c7cfabc68e677d93e102efc2dc486aae80781373a252ca82a1adea",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q9",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "04c7582006c7cfabc68e677d93e102efc2dc486aae80781373a252ca82a1adea",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q10-54fe1a63ef9a",
-      "surface_id": "practice.html",
-      "stem": "关于固定式直梯的攀登作业要求，选出高度分档正确、能得分的作答。",
-      "options": [
-        {
-          "text": "同一梯子禁止两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "同梯禁两人 + 3m 护笼 + 8m 梯间平台，档位清楚。",
-          "option_id": "S06-html-practice-html-q10-54fe1a63ef9a:option-1"
-        },
-        {
-          "text": "固定式直梯超 8m 宜设护笼，超 3m 应设梯间平台。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "记得两个档位，却把它们记反了。",
-          "loss_reason": "3m/8m 档记反：>3m 护笼、>8m 梯间平台。",
-          "fix": ">3m 护笼、>8m 梯间平台。",
-          "option_id": "S06-html-practice-html-q10-54fe1a63ef9a:option-2"
-        },
-        {
-          "text": "直梯要牢固、定期检查，工人系好安全带攀登即可。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "方向对但空泛。",
-          "loss_reason": "漏 3m/8m 分档和同梯禁两人。",
-          "fix": "补 >3m 护笼、>8m 梯间平台、同梯禁两人。",
-          "option_id": "S06-html-practice-html-q10-54fe1a63ef9a:option-3"
-        },
-        {
-          "text": "固定式直梯超 3m 宜设护笼。（仅此一条）",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只答了一个档位。",
-          "loss_reason": "漏 >8m 梯间平台、同梯禁两人。",
-          "fix": "补 >8m 梯间平台、同梯禁两人。",
-          "option_id": "S06-html-practice-html-q10-54fe1a63ef9a:option-4"
-        }
-      ],
-      "model_answer": "同一梯子禁两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。",
-      "rule_group": "攀登分档·条件维",
-      "content_sha256": "942c4878049721619effd6de3826a72f9c3c4f1a8ade926b8246d6b1ee984753",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q10",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "942c4878049721619effd6de3826a72f9c3c4f1a8ade926b8246d6b1ee984753",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q11-62a809dfcf67",
-      "surface_id": "practice.html",
-      "stem": "背景资料：「在悬挑卸料钢平台三侧设置 1200mm 固定防护栏杆」。选出对不妥的判定与正确做法最准确的作答。",
-      "options": [
-        {
-          "text": "不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "判不妥 + 两侧固定栏杆 + 底部 200mm 挡脚板，踩准采分点。",
-          "option_id": "S06-html-practice-html-q11-62a809dfcf67:option-1"
-        },
-        {
-          "text": "妥当；三侧 1200mm 固定栏杆围得更严，完全符合要求。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "觉得围得越多越好，只盯 1200 高度。",
-          "loss_reason": "采分点是两侧 + 挡脚板，「三侧 1200」没踩上点。",
-          "fix": "判不妥，两侧固定栏杆 + 200mm 挡脚板。",
-          "option_id": "S06-html-practice-html-q11-62a809dfcf67:option-2"
-        },
-        {
-          "text": "不妥；应把栏杆加高到 1500mm、三侧改四侧全围。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "识别到不妥，但纠错方向乱了。",
-          "loss_reason": "采分点不在高度更高、侧数更多，在两侧固定 + 挡脚板。",
-          "fix": "两侧固定栏杆 + 底部 200mm 挡脚板。",
-          "option_id": "S06-html-practice-html-q11-62a809dfcf67:option-3"
-        },
-        {
-          "text": "不妥；应在两侧设固定防护栏杆。（漏挡脚板）",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "答对了侧数，收尾漏了挡脚板。",
-          "loss_reason": "漏「底部 200mm 挡脚板」这一采分点。",
-          "fix": "补底部 200mm 高挡脚板。",
-          "option_id": "S06-html-practice-html-q11-62a809dfcf67:option-4"
-        }
-      ],
-      "model_answer": "不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。",
-      "rule_group": "卸料平台纠错·后果维",
-      "content_sha256": "b26fef24f3aed0e4a5f9f4f8029cf470061fd1af18c0b9b59212dafa3477c156",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q11",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "b26fef24f3aed0e4a5f9f4f8029cf470061fd1af18c0b9b59212dafa3477c156",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q12-b68cbcb8e526",
-      "surface_id": "practice.html",
-      "stem": "上下交叉作业，上层坠落高度约 20m。选出下层防护做法完整、能得分的作答。",
-      "options": [
-        {
-          "text": "坠落高度 15~30m 取半径 5m，下层须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "半径取值 + 退到圈外 + 圈内设棚/网，采分点齐。",
-          "option_id": "S06-html-practice-html-q12-b68cbcb8e526:option-1"
-        },
-        {
-          "text": "在下层作业区上方搭设防护棚即可，坠物砸不到人。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只想到「搭个棚」。",
-          "loss_reason": "漏坠落半径与下层退至半径外，采分点遗漏。",
-          "fix": "补「下层退到坠落半径 5m 外」。",
-          "option_id": "S06-html-practice-html-q12-b68cbcb8e526:option-2"
-        },
-        {
-          "text": "坠落高度 20m，坠落半径取 6m，下层退到 6m 外。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "记得两个档，却套错了区间。",
-          "loss_reason": "15~30m 取 5m，>30m 才取 6m；20m 应取 5m。",
-          "fix": "15~30m 取半径 5m。",
-          "option_id": "S06-html-practice-html-q12-b68cbcb8e526:option-3"
-        },
-        {
-          "text": "下层作业注意避让上方坠物、加强交叉作业协调管理即可。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "用管理话术带过。",
-          "loss_reason": "口号化，没有半径与防护棚具体措施。",
-          "fix": "半径 5m 外 + 圈内防护棚/网 + 警戒隔离。",
-          "option_id": "S06-html-practice-html-q12-b68cbcb8e526:option-4"
-        }
-      ],
-      "model_answer": "坠落高度 15~30m 取半径 5m，下层作业点须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。",
-      "rule_group": "交叉作业·条件维",
-      "content_sha256": "191d31bccdc808899ecd0c8c304a7e51504b0a9bbf4777f2746ecd365d74d803",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q12",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "191d31bccdc808899ecd0c8c304a7e51504b0a9bbf4777f2746ecd365d74d803",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q13-218ac7cdc2ea",
-      "surface_id": "practice.html",
-      "stem": "坡度 28° 的坡屋面作业，选出屋檐边防护做法正确、能得分的作答。",
-      "options": [
-        {
-          "text": "坡度大于 25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": ">25° 判档 + ≥1.5m 栏杆 + 密目网全封闭，一次写全。",
-          "option_id": "S06-html-practice-html-q13-218ac7cdc2ea:option-1"
-        },
-        {
-          "text": "屋面作业设 1.2m 临边栏杆即可，与楼层临边一样处理。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "直接套用普通临边 1.2m。",
-          "loss_reason": "坡度>25° 屋面屋檐边要≥1.5m 栏杆，比普通临边高。",
-          "fix": "屋檐边设≥1.5m 栏杆 + 密目网全封闭。",
-          "option_id": "S06-html-practice-html-q13-218ac7cdc2ea:option-2"
-        },
-        {
-          "text": "屋面作业系好安全带、注意防滑，坡陡处小心即可。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "想靠安全带加提醒。",
-          "loss_reason": "漏屋檐边≥1.5m 栏杆与全封闭实体措施。",
-          "fix": "设≥1.5m 栏杆 + 密目网全封闭。",
-          "option_id": "S06-html-practice-html-q13-218ac7cdc2ea:option-3"
-        },
-        {
-          "text": "屋面周边做好防护，防止人员和物料滑落即可。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "方向对但空泛。",
-          "loss_reason": "漏 >25°、≥1.5m、密目网全封闭关键词。",
-          "fix": ">25° 屋面屋檐边≥1.5m 栏杆全封闭。",
-          "option_id": "S06-html-practice-html-q13-218ac7cdc2ea:option-4"
-        }
-      ],
-      "model_answer": "坡度>25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。",
-      "rule_group": "屋面作业·条件维",
-      "content_sha256": "f83f613d3be174833ebf2486ba342df71516d9a861d514b571af66587a00d52e",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q13",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "f83f613d3be174833ebf2486ba342df71516d9a861d514b571af66587a00d52e",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q14-36859c31b0cc",
-      "surface_id": "practice.html",
-      "stem": "关于楼梯口、楼梯平台、梯段边的临边防护，选出能得分的作答。",
-      "options": [
-        {
-          "text": "楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点名三处 + 安装防护栏杆，采分点到位。",
-          "option_id": "S06-html-practice-html-q14-36859c31b0cc:option-1"
-        },
-        {
-          "text": "楼梯口挂「注意台阶、小心坠落」标志提醒即可。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "觉得提醒够用。",
-          "loss_reason": "口号化，应安装防护栏杆。",
-          "fix": "楼梯口/平台/梯段边安装防护栏杆。",
-          "option_id": "S06-html-practice-html-q14-36859c31b0cc:option-2"
-        },
-        {
-          "text": "只在楼层临边设栏杆即可，楼梯口不属临边、无需防护。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为楼梯口不算临边。",
-          "loss_reason": "楼梯口/平台/梯段边正是临边重点，漏设丢分。",
-          "fix": "三处均安装防护栏杆。",
-          "option_id": "S06-html-practice-html-q14-36859c31b0cc:option-3"
-        },
-        {
-          "text": "楼梯处做好安全防护、加强管理，防止踏空坠落。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "空泛管理话术。",
-          "loss_reason": "漏「安装防护栏杆」实体措施与具体部位。",
-          "fix": "楼梯口/平台/梯段边安装防护栏杆。",
-          "option_id": "S06-html-practice-html-q14-36859c31b0cc:option-4"
-        }
-      ],
-      "model_answer": "楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。",
-      "rule_group": "楼梯口·措施维",
-      "content_sha256": "15f2a575cb5a7bc6b7e8edbb4f49ec7f81b95bf12604af8a9bc3462b3f1b4b50",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q14",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "s06-fact-edge-guard-2m-trigger",
-        "skeleton_id": "s06-skel-楼梯口栏杆应用",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A436000_121_0195:2",
-        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "15f2a575cb5a7bc6b7e8edbb4f49ec7f81b95bf12604af8a9bc3462b3f1b4b50",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "楼梯口/平台/梯段边设防护栏杆, 教材构造要求直引应用。三联 d1_probe(同 fact, 第3独立 skeleton)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q15-7633990b3848",
-      "surface_id": "practice.html",
-      "stem": "建筑物出入口、通道口处于坠物影响范围内，选出防护做法正确、能得分的作答。",
-      "options": [
-        {
-          "text": "出入口、通道口上方应搭设防护棚（非机动车道≥3m、机动车道≥4m），坠物影响大时木板双层。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "防护棚 + 长度分档 + 双层，采分点齐。",
-          "option_id": "S06-html-practice-html-q15-7633990b3848:option-1"
-        },
-        {
-          "text": "通道口挂「注意坠物」标志、安排专人提醒行人快速通过。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "靠提醒和疏导。",
-          "loss_reason": "口号化，通道口应搭防护棚实体隔离。",
-          "fix": "搭设防护棚（非机动≥3m/机动≥4m）。",
-          "option_id": "S06-html-practice-html-q15-7633990b3848:option-2"
-        },
-        {
-          "text": "通道口拉警戒线围挡，禁止无关人员进入即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "警戒线看着像有隔离。",
-          "loss_reason": "警戒线不能承接坠物，应搭防护棚。",
-          "fix": "搭设防护棚承接坠物。",
-          "option_id": "S06-html-practice-html-q15-7633990b3848:option-3"
-        },
-        {
-          "text": "通道口做好防砸防护、注意上方作业协调即可。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "方向对但空泛。",
-          "loss_reason": "漏防护棚及长度/双层数值。",
-          "fix": "防护棚非机动≥3m / 机动≥4m。",
-          "option_id": "S06-html-practice-html-q15-7633990b3848:option-4"
-        }
-      ],
-      "model_answer": "出入口、通道口上方应搭设防护棚，非机动车道≥3m、机动车道≥4m，坠物影响大时用木板须双层。",
-      "rule_group": "通道口·措施维",
-      "content_sha256": "5da95ace5b2937a6f642d56bb5e2d4e17e4a314596f497fe7d716f805be6f677",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q15",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "5da95ace5b2937a6f642d56bb5e2d4e17e4a314596f497fe7d716f805be6f677",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S06-html-practice-html-q16-30dcd356515c",
-      "surface_id": "practice.html",
-      "stem": "某学生答临边洞口防护：①临边挂警示牌提醒；②600mm 竖向洞口盖块木板；③防护栏杆高 0.9m。选出最准确的诊断与补写。",
-      "options": [
-        {
-          "text": "三处均失分：①应改实体栏杆+密目网封闭；②≥500 洞口设 1.2m 栏杆封闭加挡脚板（25~500 才用盖板）；③栏杆上杆应 1.2m（0.9m 是室内扶手）。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三处逐条补成采分句——这就是「会写答案」。",
-          "option_id": "S06-html-practice-html-q16-30dcd356515c:option-1"
-        },
-        {
-          "text": "基本正确，只是栏杆 0.9m 偏低，改成 1.0m 就达标，其余没问题。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "只挑出一处、还改错了数。",
-          "loss_reason": "漏诊警示牌口号化、洞口盖板不分尺寸；栏杆应 1.2m 非 1.0m。",
-          "fix": "三处都补，栏杆改 1.2m。",
-          "option_id": "S06-html-practice-html-q16-30dcd356515c:option-2"
-        },
-        {
-          "text": "只是栏杆高度问题，把 0.9m 改 1.2m 即可，警示牌和盖木板都行。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "抓到栏杆一处就收手。",
-          "loss_reason": "警示牌替不了栏杆、≥500 洞口须设栏杆，漏两处。",
-          "fix": "警示牌改栏杆+网、洞口设 1.2m 栏杆封闭。",
-          "option_id": "S06-html-practice-html-q16-30dcd356515c:option-3"
-        },
-        {
-          "text": "思路对、防护到位，加强现场管理、落实责任即可给分。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "整体表扬式带过。",
-          "loss_reason": "三处实体措施都错或缺，纯口号不得分。",
-          "fix": "实体栏杆+网、洞口按尺寸设栏杆、栏杆 1.2m 三处补写。",
-          "option_id": "S06-html-practice-html-q16-30dcd356515c:option-4"
-        }
-      ],
-      "model_answer": "①警示牌须改实体栏杆+密目网封闭；②竖向≥500 洞口须设 1.2m 栏杆封闭加挡脚板（25~500 才用承重盖板）；③栏杆高应 1.2m（0.9m 是室内扶手）。三处都要补写。",
-      "rule_group": "采分诊断·末题",
-      "content_sha256": "dd81c7d7d473f7b659d365fd504f4be41988b1ae9be2d48861828edc67044109",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q16",
-      "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
-      "decision": {
-        "fact_id": "s06-fact-edge-opening-composite",
-        "skeleton_id": "s06-skel-临边洞口综合诊断",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_121_0195:1",
-        "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "dd81c7d7d473f7b659d365fd504f4be41988b1ae9be2d48861828edc67044109",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T12:25:23+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "三诊断均 kc:...121_0195 判分眼族内(洞口三档=本锚; 临边封闭/栏杆高度=:0/:2 补足)=复合多源工单。三处诊断正确且唯一。工单: 正确项81字最长。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "S06",
+ "source_pack_sha256": "22438b347c9f36c8fb53a305b4c2f3d5eb07b8d7438b7bdb3d6e24e0d71870d8",
+ "source_bundle_sha256": "0142062b113cd9227beebc2231043fd72fdb190cfb256c92f755224f7e99a193",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 16,
+ "eligible_count": 7,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "codex-cross-model 2026-07-18 (s06.codex.out, fatal_count=3)。5 surface 锚全无 FATAL, 13/16 approve。3 个非展示真病**排除不签**: q9/q10(题干未以『最完整』限定, 真命题干扰项致单选不唯一——同 J01 q12/K01 q3 病)/q13(删『当无外脚手架时』必要限定=无条件扩大)。主控核: 全部签发锚为 kc:1A436000_121_0195 临边洞口判分眼直引(2m触发/1.2m-2m-180mm-1kN 构造/洞口三档/临边封闭)。三联承 Codex 方案: 临边实体防护 fact q1/q5/q14。工单: 15/16 正确项最长(编译模板病); q6 教材/真题枚举混口径; q15 双层触发条件被模糊改写宜恢复『>24m且木板』口径。",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "S06-html-practice-html-q1-eefc330c48e6",
+   "surface_id": "practice.html",
+   "stem": "某工程楼层临边作业，坠落高度基准面 2.3m。选出判定与做法最能得分的作答。",
+   "options": [
+    {
+     "text": "坠落高度基准面 2m 及以上，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "2m 触发 + 临空侧栏杆 + 封闭三件齐，换个高度也不错。",
+     "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-1"
+    },
+    {
+     "text": "设「当心坠落」警示标志、拉警戒线提醒工人注意即可。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "觉得提醒到位、看得见就安全。",
+     "loss_reason": "警示标志是口号，没有实体隔离，临边必须设栏杆。",
+     "fix": "临空侧设防护栏杆，配密目网或工具式栏板封闭。",
+     "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-2"
+    },
+    {
+     "text": "高处临边要注意安全，做好临边防护措施，防止人员坠落。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "方向对、话也顺，像答到点了。",
+     "loss_reason": "没写 2m 触发、没写栏杆/封闭具体措施，空泛不给分。",
+     "fix": "写「2m 及以上临空侧设栏杆并封闭」。",
+     "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-3"
+    },
+    {
+     "text": "坠落高度不足 5m 可不设防护，2.3m 未到 5m，本处无需设栏杆。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "误把 5m 当成临边触发线。",
+     "loss_reason": "临边触发线是 2m，不是 5m，达线即须设防护。",
+     "fix": "2m 及以上就设栏杆并封闭。",
+     "option_id": "S06-html-practice-html-q1-eefc330c48e6:option-4"
+    }
+   ],
+   "model_answer": "坠落高度基准面 2m 及以上临边作业，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
+   "rule_group": "临边触发·条件维",
+   "content_sha256": "ae692ee3311c24e4b2b8fa5e170a12e469c2fb9a21686c6570f0f2b146142763",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q1",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "s06-fact-edge-guard-2m-trigger",
+    "skeleton_id": "s06-skel-临边2m触发场景",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_121_0195:0",
+    "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "ae692ee3311c24e4b2b8fa5e170a12e469c2fb9a21686c6570f0f2b146142763",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "坠落高度≥2m 须设防护栏杆+密目网/工具式栏板封闭, 教材 kc:...121_0195:0 直引。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q2-f84743fdbc8b",
+   "surface_id": "practice.html",
+   "stem": "关于临边防护栏杆的构造要求，选出参数完整、能得分的作答。",
+   "options": [
+    {
+     "text": "上杆离地 1.2m、立杆间距≤2m、挡脚板高≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "四个硬数字 + 密目网一次写全，正是高分密集区。",
+     "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-1"
+    },
+    {
+     "text": "上杆离地 0.9m、立杆间距≤2m、设挡脚板即可，能挡住人就行。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把室内楼梯扶手 0.9m 套到临边栏杆上。",
+     "loss_reason": "临边栏杆上杆是 1.2m；0.9m 是室内楼梯扶手，串章丢分。",
+     "fix": "上杆改 1.2m，其余数字补齐。",
+     "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-2"
+    },
+    {
+     "text": "设防护栏杆，牢固可靠、高度足够，能防止人员坠落即可。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "觉得「牢固够高」意思到了。",
+     "loss_reason": "漏 1.2m / 间距 / 挡脚板 / 1kN 全部硬数字，空泛。",
+     "fix": "写 1.2m、≤2m、≥180mm、1kN。",
+     "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-3"
+    },
+    {
+     "text": "上杆 1.2m、张挂密目立网，其余参数按现场情况灵活掌握。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "记住主数字，其余想当然省了。",
+     "loss_reason": "漏立杆间距≤2m、挡脚板≥180mm、承 1kN。",
+     "fix": "补≤2m、≥180mm、1kN。",
+     "option_id": "S06-html-practice-html-q2-f84743fdbc8b:option-4"
+    }
+   ],
+   "model_answer": "上杆离地 1.2m、立杆间距≤2m、挡脚板≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
+   "rule_group": "栏杆构造·条件维",
+   "content_sha256": "baf3dac13e236b165ce71d859bc094b64227ad06570324a91e5beab4919a92f1",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q2",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "s06-fact-guardrail-construction",
+    "skeleton_id": "s06-skel-栏杆构造四数值",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_121_0195:2",
+    "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "baf3dac13e236b165ce71d859bc094b64227ad06570324a91e5beab4919a92f1",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "上杆1.2m/立杆间距≤2m/挡脚板≥180mm/1kN, 教材 kc:...121_0195:2 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q3-a8a6959fcd44",
+   "surface_id": "practice.html",
+   "stem": "楼板上短边 600mm 的竖向预留洞口，选出防护做法完整、能得分的作答。",
+   "options": [
+    {
+     "text": "短边≥500mm，临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "判尺寸档 + 栏杆 + 封闭 + 挡脚板齐，够大的加平网。",
+     "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-1"
+    },
+    {
+     "text": "用一块木板把洞口盖住即可，600mm 的洞盖上就安全了。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为洞口「盖住就行」、不分尺寸。",
+     "loss_reason": "短边≥500 人可整个坠落，盖板兜不住，必须围栏杆封闭。",
+     "fix": "设 1.2m 栏杆并封闭、加挡脚板。",
+     "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-2"
+    },
+    {
+     "text": "25~500mm 用承重盖板，本洞 600 也按承重盖板可靠覆盖固定。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "记得盖板口径，却套错了尺寸段。",
+     "loss_reason": "600≥500 属栏杆档；承重盖板是 25~500 档，尺寸配错措施。",
+     "fix": "≥500 设栏杆 + 封闭 + 挡脚板。",
+     "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-3"
+    },
+    {
+     "text": "在洞口周边设警示标志、夜间加警示灯，提醒人员注意避让。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "觉得警示到位就算防护。",
+     "loss_reason": "口号化，没有实体防护，人照样会踩空坠落。",
+     "fix": "设 1.2m 栏杆并封闭、加挡脚板。",
+     "option_id": "S06-html-practice-html-q3-a8a6959fcd44:option-4"
+    }
+   ],
+   "model_answer": "短边≥500mm 洞口临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
+   "rule_group": "洞口≥500·条件维",
+   "content_sha256": "39e3511ea4acc51c6b44b6969ab1928782795c72b05a6ce0f81ab7694198ef02",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q3",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "s06-fact-vertical-opening-500",
+    "skeleton_id": "s06-skel-竖向洞口500判定",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_121_0195:1",
+    "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "39e3511ea4acc51c6b44b6969ab1928782795c72b05a6ce0f81ab7694198ef02",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "≥500mm 洞口设1.2m栏杆+封闭+挡脚板, 教材 kc:...121_0195:1 直引。工单: '安全平网'附加措辞无锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q4-e42d54f368cb",
+   "surface_id": "practice.html",
+   "stem": "楼板上短边 300mm 的洞口，选出防护做法正确、能得分的作答。",
+   "options": [
+    {
+     "text": "25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "尺寸档 + 承重盖板 + 固定防移位，一次到位。",
+     "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-1"
+    },
+    {
+     "text": "300mm 洞口也要临空侧设 1.2m 防护栏杆并封闭、加挡脚板。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为「越严越好」，把栏杆档套到小洞口。",
+     "loss_reason": "25~500 档用承重盖板即可，套栏杆档属规范适用错误。",
+     "fix": "用承重盖板可靠覆盖、固定牢靠。",
+     "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-2"
+    },
+    {
+     "text": "拿彩条布或警戒线把洞口围一下，提醒工人别踩。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "图省事，拿警戒线糊弄。",
+     "loss_reason": "警戒线非承重、人踩即塌，属口号化。",
+     "fix": "用承重盖板可靠覆盖、固定牢靠。",
+     "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-3"
+    },
+    {
+     "text": "把洞口盖上就行，用什么盖、固不固定不重要。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "只记住「盖住」两个字。",
+     "loss_reason": "漏「承重」「固定」关键词，普通板会塌或移位。",
+     "fix": "承重盖板 + 可靠固定防移位。",
+     "option_id": "S06-html-practice-html-q4-e42d54f368cb:option-4"
+    }
+   ],
+   "model_answer": "短边 25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
+   "rule_group": "洞口25~500·条件维",
+   "content_sha256": "c0e98e4d906294fa63e1da6ec482f09be3cef6ee1cbc81330354f80b5c6e60b7",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q4",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "s06-fact-opening-cover-300",
+    "skeleton_id": "s06-skel-300mm洞口盖板",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_121_0195:1",
+    "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "c0e98e4d906294fa63e1da6ec482f09be3cef6ee1cbc81330354f80b5c6e60b7",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "300mm 落 25~500mm 档用承重盖板, 教材 kc:...121_0195:1 三档表直引。工单: 固定防移位出处待补。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q5-87ad10581a99",
+   "surface_id": "practice.html",
+   "stem": "临边已设防护栏杆，关于栏杆下沿的封闭措施，选出能得分的作答。",
+   "options": [
+    {
+     "text": "栏杆下沿配合密目式安全立网或工具式栏板封闭。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点名「密目立网 / 工具式栏板」+ 封闭，正是采分句。",
+     "option_id": "S06-html-practice-html-q5-87ad10581a99:option-1"
+    },
+    {
+     "text": "挂「禁止翻越」警示牌提示，栏杆立着就够，无需再封闭。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "觉得有栏杆、有提示就够。",
+     "loss_reason": "漏封闭措施，警示牌口号化不给分。",
+     "fix": "配密目立网或工具式栏板封闭。",
+     "option_id": "S06-html-practice-html-q5-87ad10581a99:option-2"
+    },
+    {
+     "text": "用大孔安全网随便围一下，能挡大件物料就行。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把大孔网当成密目网。",
+     "loss_reason": "临边封闭要「密目式」安全立网，大孔网不符。",
+     "fix": "用密目式安全立网封闭。",
+     "option_id": "S06-html-practice-html-q5-87ad10581a99:option-3"
+    },
+    {
+     "text": "做好封闭、防止物料坠落即可，具体材料现场定。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "方向对但没落到具体材料。",
+     "loss_reason": "漏「密目立网 / 工具式栏板」具体措施。",
+     "fix": "密目立网或工具式栏板封闭。",
+     "option_id": "S06-html-practice-html-q5-87ad10581a99:option-4"
+    }
+   ],
+   "model_answer": "栏杆下沿配合密目式安全立网或工具式栏板封闭。",
+   "rule_group": "临边封闭·措施维",
+   "content_sha256": "3422c955bfe6adf05612eeb7aeaadac067157aedd8ab5b7496f12aecffa9b24d",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q5",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "s06-fact-edge-guard-2m-trigger",
+    "skeleton_id": "s06-skel-封闭措施回忆",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A436000_121_0195:0",
+    "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "3422c955bfe6adf05612eeb7aeaadac067157aedd8ab5b7496f12aecffa9b24d",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "密目式安全立网或工具式栏板封闭, 教材直引。Codex severity none。三联 immediate_confirm(同临边防护 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q6-0ca144e4f73b",
+   "surface_id": "practice.html",
+   "stem": "某项目高处作业专项检查内容仅列「安全帽、安全网、安全带」。选出补充最完整、能得分的作答。",
+   "options": [
+    {
+     "text": "还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "7 项逐条编号写全，一项不落。",
+     "option_id": "S06-html-practice-html-q6-0ca144e4f73b:option-1"
+    },
+    {
+     "text": "还应补充：安全帽佩戴、安全带高挂低用、现场消防器材。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "围着「帽、带」加同类项，看着专业。",
+     "loss_reason": "帽带已列属重复、消防器材非高处作业项，7 个采分项全漏。",
+     "fix": "补临边/洞口/通道口/攀登/悬空/移动平台/交叉作业。",
+     "option_id": "S06-html-practice-html-q6-0ca144e4f73b:option-2"
+    },
+    {
+     "text": "还应补充临边防护和洞口防护两项，其余基本已经齐了。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只想到最熟的临边、洞口两项。",
+     "loss_reason": "漏通道口/攀登/悬空/移动平台/交叉作业 5 项。",
+     "fix": "7 项全补，逐条编号。",
+     "option_id": "S06-html-practice-html-q6-0ca144e4f73b:option-3"
+    },
+    {
+     "text": "还应加强高处作业安全管理、落实防护责任、专人巡查。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "管理话术显得面面俱到。",
+     "loss_reason": "口号化，没落到具体检查项，一分不给。",
+     "fix": "列出 7 个具体高处作业项。",
+     "option_id": "S06-html-practice-html-q6-0ca144e4f73b:option-4"
+    }
+   ],
+   "model_answer": "还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。",
+   "rule_group": "检查项补全·措施维",
+   "content_sha256": "a6f0e3f7ef114bf3b191baf284bf8af78337db609222369ce9d170347ba60b31",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q6",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "a6f0e3f7ef114bf3b191baf284bf8af78337db609222369ce9d170347ba60b31",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q7-ec494a6420a7",
+   "surface_id": "practice.html",
+   "stem": "钢筋、模板等坠落高度 2m 以上的悬空作业，选出作业面做法能得分的作答。",
+   "options": [
+    {
+     "text": "坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "2m 阈值 + 悬空作业 + 必设操作平台，措施点名到位。",
+     "option_id": "S06-html-practice-html-q7-ec494a6420a7:option-1"
+    },
+    {
+     "text": "悬空作业时间短，用梯子攀登上去作业即可，不必搭平台。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "觉得短时作业、搭平台费事。",
+     "loss_reason": "超 2m 不得以梯子攀登替代，必须设操作平台。",
+     "fix": "必设操作平台。",
+     "option_id": "S06-html-practice-html-q7-ec494a6420a7:option-2"
+    },
+    {
+     "text": "搭个脚手架上去作业就行，脚手架比操作平台更稳当。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得脚手架也很稳。",
+     "loss_reason": "规范点名「操作平台」，写脚手架属措施张冠李戴。",
+     "fix": "设操作平台。",
+     "option_id": "S06-html-practice-html-q7-ec494a6420a7:option-3"
+    },
+    {
+     "text": "做好悬空作业防护、系好安全带即可，平台看情况再定。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "想靠安全带兜底。",
+     "loss_reason": "漏「必设操作平台」这一硬措施。",
+     "fix": "2m 及以上悬空作业必设操作平台。",
+     "option_id": "S06-html-practice-html-q7-ec494a6420a7:option-4"
+    }
+   ],
+   "model_answer": "坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。",
+   "rule_group": "悬空作业·措施维",
+   "content_sha256": "b22a8a4675bdfd57bda195772dfad4f3249dd6656d707592e562918955a1944a",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q7",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "b22a8a4675bdfd57bda195772dfad4f3249dd6656d707592e562918955a1944a",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q8-43e27009997e",
+   "surface_id": "practice.html",
+   "stem": "背景资料：「坠落高度超过 2m 的安装作业使用梯子攀登」。选出对不妥的判定与正确做法最准确的作答。",
+   "options": [
+    {
+     "text": "不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "判「不妥」+ 正确做法（操作平台）成对，才给全分。",
+     "option_id": "S06-html-practice-html-q8-43e27009997e:option-1"
+    },
+    {
+     "text": "妥当；只要梯子放稳、有人扶着，超 2m 用梯子攀登没问题。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "觉得扶稳了就安全。",
+     "loss_reason": "超 2m 必设操作平台，梯子不合规，判「妥当」方向就错了。",
+     "fix": "判不妥，应设操作平台。",
+     "option_id": "S06-html-practice-html-q8-43e27009997e:option-2"
+    },
+    {
+     "text": "不妥；应改用人字梯（合梯）攀登，比直梯稳一些。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "识别到不妥，但纠错停在换梯型。",
+     "loss_reason": "换梯型仍是梯子，规范要的是操作平台。",
+     "fix": "应设操作平台，而非换梯型。",
+     "option_id": "S06-html-practice-html-q8-43e27009997e:option-3"
+    },
+    {
+     "text": "不妥；应搭设脚手架上下，脚手架比操作平台更通用。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "知道要「平台类」却写成脚手架。",
+     "loss_reason": "规范措施是操作平台，脚手架不对口。",
+     "fix": "应设操作平台。",
+     "option_id": "S06-html-practice-html-q8-43e27009997e:option-4"
+    }
+   ],
+   "model_answer": "不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。",
+   "rule_group": "梯子纠错·后果维",
+   "content_sha256": "fbfa22544ab3f4540bc96f1b94165189d730d3f46146127e30ee2711b4d34b82",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q8",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "fbfa22544ab3f4540bc96f1b94165189d730d3f46146127e30ee2711b4d34b82",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q9-184707bb9cc1",
+   "surface_id": "practice.html",
+   "stem": "关于高处作业的严禁行为，选出表述正确、能得分的作答。",
+   "options": [
+    {
+     "text": "严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "两类严禁一次写全，性质是硬禁止。",
+     "option_id": "S06-html-practice-html-q9-184707bb9cc1:option-1"
+    },
+    {
+     "text": "作业紧张时可沿钢筋骨架攀登上下，注意抓稳即可。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "觉得抓稳、赶工时通融一下没事。",
+     "loss_reason": "严禁沿骨架攀登，写成「可以」性质就错了。",
+     "fix": "严禁沿骨架攀登 / 站骨架作业。",
+     "option_id": "S06-html-practice-html-q9-184707bb9cc1:option-2"
+    },
+    {
+     "text": "严禁沿钢筋骨架攀登。（仅此一条）",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只记住最熟的一类。",
+     "loss_reason": "漏「座板式单人吊具 / 自制吊篮」一类严禁。",
+     "fix": "补严禁座板式单人吊具、自制吊篮。",
+     "option_id": "S06-html-practice-html-q9-184707bb9cc1:option-3"
+    },
+    {
+     "text": "可使用自制吊篮载人上下，只要绳索牢固、有人监护。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得牢固加监护就安全。",
+     "loss_reason": "严禁座板式单人吊具、自制吊篮，属硬禁止。",
+     "fix": "严禁座板式单人吊具、自制吊篮。",
+     "option_id": "S06-html-practice-html-q9-184707bb9cc1:option-4"
+    }
+   ],
+   "model_answer": "严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。",
+   "rule_group": "严禁行为·后果维",
+   "content_sha256": "04c7582006c7cfabc68e677d93e102efc2dc486aae80781373a252ca82a1adea",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q9",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "04c7582006c7cfabc68e677d93e102efc2dc486aae80781373a252ca82a1adea",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q10-54fe1a63ef9a",
+   "surface_id": "practice.html",
+   "stem": "关于固定式直梯的攀登作业要求，选出高度分档正确、能得分的作答。",
+   "options": [
+    {
+     "text": "同一梯子禁止两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "同梯禁两人 + 3m 护笼 + 8m 梯间平台，档位清楚。",
+     "option_id": "S06-html-practice-html-q10-54fe1a63ef9a:option-1"
+    },
+    {
+     "text": "固定式直梯超 8m 宜设护笼，超 3m 应设梯间平台。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "记得两个档位，却把它们记反了。",
+     "loss_reason": "3m/8m 档记反：>3m 护笼、>8m 梯间平台。",
+     "fix": ">3m 护笼、>8m 梯间平台。",
+     "option_id": "S06-html-practice-html-q10-54fe1a63ef9a:option-2"
+    },
+    {
+     "text": "直梯要牢固、定期检查，工人系好安全带攀登即可。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "方向对但空泛。",
+     "loss_reason": "漏 3m/8m 分档和同梯禁两人。",
+     "fix": "补 >3m 护笼、>8m 梯间平台、同梯禁两人。",
+     "option_id": "S06-html-practice-html-q10-54fe1a63ef9a:option-3"
+    },
+    {
+     "text": "固定式直梯超 3m 宜设护笼。（仅此一条）",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只答了一个档位。",
+     "loss_reason": "漏 >8m 梯间平台、同梯禁两人。",
+     "fix": "补 >8m 梯间平台、同梯禁两人。",
+     "option_id": "S06-html-practice-html-q10-54fe1a63ef9a:option-4"
+    }
+   ],
+   "model_answer": "同一梯子禁两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。",
+   "rule_group": "攀登分档·条件维",
+   "content_sha256": "942c4878049721619effd6de3826a72f9c3c4f1a8ade926b8246d6b1ee984753",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q10",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "942c4878049721619effd6de3826a72f9c3c4f1a8ade926b8246d6b1ee984753",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q11-62a809dfcf67",
+   "surface_id": "practice.html",
+   "stem": "背景资料：「在悬挑卸料钢平台三侧设置 1200mm 固定防护栏杆」。选出对不妥的判定与正确做法最准确的作答。",
+   "options": [
+    {
+     "text": "不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "判不妥 + 两侧固定栏杆 + 底部 200mm 挡脚板，踩准采分点。",
+     "option_id": "S06-html-practice-html-q11-62a809dfcf67:option-1"
+    },
+    {
+     "text": "妥当；三侧 1200mm 固定栏杆围得更严，完全符合要求。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "觉得围得越多越好，只盯 1200 高度。",
+     "loss_reason": "采分点是两侧 + 挡脚板，「三侧 1200」没踩上点。",
+     "fix": "判不妥，两侧固定栏杆 + 200mm 挡脚板。",
+     "option_id": "S06-html-practice-html-q11-62a809dfcf67:option-2"
+    },
+    {
+     "text": "不妥；应把栏杆加高到 1500mm、三侧改四侧全围。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "识别到不妥，但纠错方向乱了。",
+     "loss_reason": "采分点不在高度更高、侧数更多，在两侧固定 + 挡脚板。",
+     "fix": "两侧固定栏杆 + 底部 200mm 挡脚板。",
+     "option_id": "S06-html-practice-html-q11-62a809dfcf67:option-3"
+    },
+    {
+     "text": "不妥；应在两侧设固定防护栏杆。（漏挡脚板）",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "答对了侧数，收尾漏了挡脚板。",
+     "loss_reason": "漏「底部 200mm 挡脚板」这一采分点。",
+     "fix": "补底部 200mm 高挡脚板。",
+     "option_id": "S06-html-practice-html-q11-62a809dfcf67:option-4"
+    }
+   ],
+   "model_answer": "不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。",
+   "rule_group": "卸料平台纠错·后果维",
+   "content_sha256": "b26fef24f3aed0e4a5f9f4f8029cf470061fd1af18c0b9b59212dafa3477c156",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q11",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "b26fef24f3aed0e4a5f9f4f8029cf470061fd1af18c0b9b59212dafa3477c156",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q12-b68cbcb8e526",
+   "surface_id": "practice.html",
+   "stem": "上下交叉作业，上层坠落高度约 20m。选出下层防护做法完整、能得分的作答。",
+   "options": [
+    {
+     "text": "坠落高度 15~30m 取半径 5m，下层须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "半径取值 + 退到圈外 + 圈内设棚/网，采分点齐。",
+     "option_id": "S06-html-practice-html-q12-b68cbcb8e526:option-1"
+    },
+    {
+     "text": "在下层作业区上方搭设防护棚即可，坠物砸不到人。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只想到「搭个棚」。",
+     "loss_reason": "漏坠落半径与下层退至半径外，采分点遗漏。",
+     "fix": "补「下层退到坠落半径 5m 外」。",
+     "option_id": "S06-html-practice-html-q12-b68cbcb8e526:option-2"
+    },
+    {
+     "text": "坠落高度 20m，坠落半径取 6m，下层退到 6m 外。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "记得两个档，却套错了区间。",
+     "loss_reason": "15~30m 取 5m，>30m 才取 6m；20m 应取 5m。",
+     "fix": "15~30m 取半径 5m。",
+     "option_id": "S06-html-practice-html-q12-b68cbcb8e526:option-3"
+    },
+    {
+     "text": "下层作业注意避让上方坠物、加强交叉作业协调管理即可。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "用管理话术带过。",
+     "loss_reason": "口号化，没有半径与防护棚具体措施。",
+     "fix": "半径 5m 外 + 圈内防护棚/网 + 警戒隔离。",
+     "option_id": "S06-html-practice-html-q12-b68cbcb8e526:option-4"
+    }
+   ],
+   "model_answer": "坠落高度 15~30m 取半径 5m，下层作业点须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。",
+   "rule_group": "交叉作业·条件维",
+   "content_sha256": "191d31bccdc808899ecd0c8c304a7e51504b0a9bbf4777f2746ecd365d74d803",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q12",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "191d31bccdc808899ecd0c8c304a7e51504b0a9bbf4777f2746ecd365d74d803",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q13-218ac7cdc2ea",
+   "surface_id": "practice.html",
+   "stem": "坡度 28° 的坡屋面作业，选出屋檐边防护做法正确、能得分的作答。",
+   "options": [
+    {
+     "text": "坡度大于 25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": ">25° 判档 + ≥1.5m 栏杆 + 密目网全封闭，一次写全。",
+     "option_id": "S06-html-practice-html-q13-218ac7cdc2ea:option-1"
+    },
+    {
+     "text": "屋面作业设 1.2m 临边栏杆即可，与楼层临边一样处理。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "直接套用普通临边 1.2m。",
+     "loss_reason": "坡度>25° 屋面屋檐边要≥1.5m 栏杆，比普通临边高。",
+     "fix": "屋檐边设≥1.5m 栏杆 + 密目网全封闭。",
+     "option_id": "S06-html-practice-html-q13-218ac7cdc2ea:option-2"
+    },
+    {
+     "text": "屋面作业系好安全带、注意防滑，坡陡处小心即可。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "想靠安全带加提醒。",
+     "loss_reason": "漏屋檐边≥1.5m 栏杆与全封闭实体措施。",
+     "fix": "设≥1.5m 栏杆 + 密目网全封闭。",
+     "option_id": "S06-html-practice-html-q13-218ac7cdc2ea:option-3"
+    },
+    {
+     "text": "屋面周边做好防护，防止人员和物料滑落即可。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "方向对但空泛。",
+     "loss_reason": "漏 >25°、≥1.5m、密目网全封闭关键词。",
+     "fix": ">25° 屋面屋檐边≥1.5m 栏杆全封闭。",
+     "option_id": "S06-html-practice-html-q13-218ac7cdc2ea:option-4"
+    }
+   ],
+   "model_answer": "坡度>25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。",
+   "rule_group": "屋面作业·条件维",
+   "content_sha256": "f83f613d3be174833ebf2486ba342df71516d9a861d514b571af66587a00d52e",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q13",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "f83f613d3be174833ebf2486ba342df71516d9a861d514b571af66587a00d52e",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q14-36859c31b0cc",
+   "surface_id": "practice.html",
+   "stem": "关于楼梯口、楼梯平台、梯段边的临边防护，选出能得分的作答。",
+   "options": [
+    {
+     "text": "楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点名三处 + 安装防护栏杆，采分点到位。",
+     "option_id": "S06-html-practice-html-q14-36859c31b0cc:option-1"
+    },
+    {
+     "text": "楼梯口挂「注意台阶、小心坠落」标志提醒即可。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "觉得提醒够用。",
+     "loss_reason": "口号化，应安装防护栏杆。",
+     "fix": "楼梯口/平台/梯段边安装防护栏杆。",
+     "option_id": "S06-html-practice-html-q14-36859c31b0cc:option-2"
+    },
+    {
+     "text": "只在楼层临边设栏杆即可，楼梯口不属临边、无需防护。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为楼梯口不算临边。",
+     "loss_reason": "楼梯口/平台/梯段边正是临边重点，漏设丢分。",
+     "fix": "三处均安装防护栏杆。",
+     "option_id": "S06-html-practice-html-q14-36859c31b0cc:option-3"
+    },
+    {
+     "text": "楼梯处做好安全防护、加强管理，防止踏空坠落。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "空泛管理话术。",
+     "loss_reason": "漏「安装防护栏杆」实体措施与具体部位。",
+     "fix": "楼梯口/平台/梯段边安装防护栏杆。",
+     "option_id": "S06-html-practice-html-q14-36859c31b0cc:option-4"
+    }
+   ],
+   "model_answer": "楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。",
+   "rule_group": "楼梯口·措施维",
+   "content_sha256": "15f2a575cb5a7bc6b7e8edbb4f49ec7f81b95bf12604af8a9bc3462b3f1b4b50",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q14",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "s06-fact-edge-guard-2m-trigger",
+    "skeleton_id": "s06-skel-楼梯口栏杆应用",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A436000_121_0195:2",
+    "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "15f2a575cb5a7bc6b7e8edbb4f49ec7f81b95bf12604af8a9bc3462b3f1b4b50",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "楼梯口/平台/梯段边设防护栏杆, 教材构造要求直引应用。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q15-7633990b3848",
+   "surface_id": "practice.html",
+   "stem": "建筑物出入口、通道口处于坠物影响范围内，选出防护做法正确、能得分的作答。",
+   "options": [
+    {
+     "text": "出入口、通道口上方应搭设防护棚（非机动车道≥3m、机动车道≥4m），坠物影响大时木板双层。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "防护棚 + 长度分档 + 双层，采分点齐。",
+     "option_id": "S06-html-practice-html-q15-7633990b3848:option-1"
+    },
+    {
+     "text": "通道口挂「注意坠物」标志、安排专人提醒行人快速通过。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "靠提醒和疏导。",
+     "loss_reason": "口号化，通道口应搭防护棚实体隔离。",
+     "fix": "搭设防护棚（非机动≥3m/机动≥4m）。",
+     "option_id": "S06-html-practice-html-q15-7633990b3848:option-2"
+    },
+    {
+     "text": "通道口拉警戒线围挡，禁止无关人员进入即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "警戒线看着像有隔离。",
+     "loss_reason": "警戒线不能承接坠物，应搭防护棚。",
+     "fix": "搭设防护棚承接坠物。",
+     "option_id": "S06-html-practice-html-q15-7633990b3848:option-3"
+    },
+    {
+     "text": "通道口做好防砸防护、注意上方作业协调即可。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "方向对但空泛。",
+     "loss_reason": "漏防护棚及长度/双层数值。",
+     "fix": "防护棚非机动≥3m / 机动≥4m。",
+     "option_id": "S06-html-practice-html-q15-7633990b3848:option-4"
+    }
+   ],
+   "model_answer": "出入口、通道口上方应搭设防护棚，非机动车道≥3m、机动车道≥4m，坠物影响大时用木板须双层。",
+   "rule_group": "通道口·措施维",
+   "content_sha256": "5da95ace5b2937a6f642d56bb5e2d4e17e4a314596f497fe7d716f805be6f677",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q15",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "5da95ace5b2937a6f642d56bb5e2d4e17e4a314596f497fe7d716f805be6f677",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S06-html-practice-html-q16-30dcd356515c",
+   "surface_id": "practice.html",
+   "stem": "某学生答临边洞口防护：①临边挂警示牌提醒；②600mm 竖向洞口盖块木板；③防护栏杆高 0.9m。选出最准确的诊断与补写。",
+   "options": [
+    {
+     "text": "三处均失分：①应改实体栏杆+密目网封闭；②≥500 洞口设 1.2m 栏杆封闭加挡脚板（25~500 才用盖板）；③栏杆上杆应 1.2m（0.9m 是室内扶手）。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三处逐条补成采分句——这就是「会写答案」。",
+     "option_id": "S06-html-practice-html-q16-30dcd356515c:option-1"
+    },
+    {
+     "text": "基本正确，只是栏杆 0.9m 偏低，改成 1.0m 就达标，其余没问题。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "只挑出一处、还改错了数。",
+     "loss_reason": "漏诊警示牌口号化、洞口盖板不分尺寸；栏杆应 1.2m 非 1.0m。",
+     "fix": "三处都补，栏杆改 1.2m。",
+     "option_id": "S06-html-practice-html-q16-30dcd356515c:option-2"
+    },
+    {
+     "text": "只是栏杆高度问题，把 0.9m 改 1.2m 即可，警示牌和盖木板都行。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "抓到栏杆一处就收手。",
+     "loss_reason": "警示牌替不了栏杆、≥500 洞口须设栏杆，漏两处。",
+     "fix": "警示牌改栏杆+网、洞口设 1.2m 栏杆封闭。",
+     "option_id": "S06-html-practice-html-q16-30dcd356515c:option-3"
+    },
+    {
+     "text": "思路对、防护到位，加强现场管理、落实责任即可给分。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "整体表扬式带过。",
+     "loss_reason": "三处实体措施都错或缺，纯口号不得分。",
+     "fix": "实体栏杆+网、洞口按尺寸设栏杆、栏杆 1.2m 三处补写。",
+     "option_id": "S06-html-practice-html-q16-30dcd356515c:option-4"
+    }
+   ],
+   "model_answer": "①警示牌须改实体栏杆+密目网封闭；②竖向≥500 洞口须设 1.2m 栏杆封闭加挡脚板（25~500 才用承重盖板）；③栏杆高应 1.2m（0.9m 是室内扶手）。三处都要补写。",
+   "rule_group": "采分诊断·末题",
+   "content_sha256": "dd81c7d7d473f7b659d365fd504f4be41988b1ae9be2d48861828edc67044109",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q16",
+   "authoring_sha256": "9bf196f21f9648027ba86126897b1a4e1c2a04c3a492985b9015104b03e35691",
+   "decision": {
+    "fact_id": "s06-fact-edge-opening-composite",
+    "skeleton_id": "s06-skel-临边洞口综合诊断",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_121_0195:1",
+    "source_sha256": "ae4e9933a81c78f9972494d842a13a9855810b29d3d1df2c69e3c8015e803ced",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "dd81c7d7d473f7b659d365fd504f4be41988b1ae9be2d48861828edc67044109",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-18T18:39:12+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "三诊断均 kc:...121_0195 判分眼族内(洞口三档=本锚; 临边封闭/栏杆高度=:0/:2 补足)=复合多源工单。三处诊断正确且唯一。工单: 正确项81字最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

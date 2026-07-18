@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -245,46 +245,46 @@ class Component extends DCLogic {
       stem:"某工程一构件单件起吊重量 80kN，用塔式起重机吊装。关于危大等级，选出能得分的作答。",
       model:"起重吊装单件≥10kN 即属危大工程，须编专项施工方案；80≥10，属危大（未达 100kN，不需专家论证）。",
       opts:[
+        { t:"单件起吊重量 80kN 未达到 100kN，因而不属于危大工程，按一般吊装作业组织施工即可，无需编制专项施工方案。", ok:false, code:"M08", tempt:"记成「起重吊装够 100kN 才算危大」。", lose:"把超危大论证线 100kN 当成危大下限——危大门槛是 10kN。", fix:"≥10kN 即属危大，80kN 早已达标。" },
         { t:"起重吊装单件起吊重量≥10kN 即属危大工程，须编专项施工方案；80kN 已超 10kN，属危大工程。", ok:true, fix:"引门槛 10kN + 结论「属危大」+ 须专项方案，三件齐。", code:"" },
-        { t:"80kN 不到 100kN，不属危大工程，按一般作业组织即可。", ok:false, code:"M08", tempt:"记成「起重吊装够 100kN 才算危大」。", lose:"把超危大论证线 100kN 当成危大下限——危大门槛是 10kN。", fix:"≥10kN 即属危大，80kN 早已达标。" },
-        { t:"80kN 属危大且须专家论证。", ok:false, code:"M08", tempt:"一见危大就联想到专家论证。", lose:"专家论证要「非常规且单件≥100kN」（或总重≥300/高≥200），80kN 够不到。", fix:"属危大编专项方案即可，不需专家论证。" },
-        { t:"较重，注意加强现场安全即可，等级不必判。", ok:false, code:"M09", tempt:"图省事跳过判等级。", lose:"不判危大等级=丢结论采分，且漏专项方案。", fix:"明确 ≥10kN 属危大、须专项方案。" }
+        { t:"该构件 80kN 已属危大工程，除编制专项施工方案外，还应当组织专家论证后方可实施吊装。", ok:false, code:"M08", tempt:"一见危大就联想到专家论证。", lose:"专家论证要「非常规且单件≥100kN」（或总重≥300/高≥200），80kN 够不到。", fix:"属危大编专项方案即可，不需专家论证。" },
+        { t:"此类起吊属常见吊装作业，重点在于加强现场安全管理与旁站监督，不必专门判定危大工程等级。", ok:false, code:"M09", tempt:"图省事跳过判等级。", lose:"不判危大等级=丢结论采分，且漏专项方案。", fix:"明确 ≥10kN 属危大、须专项方案。" }
       ] },
 { tag:"危大判定·两层门槛", typeHint:"单选 · 两层判断，选出能得分的作答", figLabel:"题给：常规塔机，单件 150kN", figCaption:"先比 10（危大），再比 100/300/200（论证）", fig:"ruler",
       stem:"某常规塔式起重机吊装，单件起吊重量 150kN。是否需要专家论证？选出能得分的作答。",
       model:"150≥10 属危大须专项方案；但专家论证须「非常规设备/方法」，常规设备的 150kN 够不到，不需论证。",
       opts:[
+        { t:"单件起吊重量 150kN 已超过 100kN 的专家论证门槛，应当组织专家论证后方可实施本次吊装作业。", ok:false, code:"M08", tempt:"只比 100kN 数字，忽略「非常规设备/方法」前置。", lose:"专家论证前置是非常规设备，常规 150kN 不触发论证。", fix:"属危大编专项方案，常规设备不需论证。" },
         { t:"150kN 属危大须专项方案；但为常规设备、未达「非常规且≥100kN」，不需专家论证。", ok:true, fix:"两阶写清：先 ≥10 判危大，再核「非常规+100/300/200」判论证。", code:"" },
-        { t:"150kN≥100kN，须专家论证。", ok:false, code:"M08", tempt:"只比 100kN 数字，忽略「非常规设备/方法」前置。", lose:"专家论证前置是非常规设备，常规 150kN 不触发论证。", fix:"属危大编专项方案，常规设备不需论证。" },
-        { t:"150kN<300kN，不属危大。", ok:false, code:"M08", tempt:"拿总重 300kN 门槛去比单件。", lose:"混淆单件与总重口径；单件 ≥10 已属危大。", fix:"单件 150≥10，属危大。" },
-        { t:"先开吊，专项方案随后补办。", ok:false, code:"E02", tempt:"赶工期，先干后补。", lose:"危大须先编专项方案并审批，漏方案=重大失分。", fix:"属危大，先编专项方案再作业。" }
+        { t:"起吊重量 150kN 尚未达到 300kN，该吊装不属于危大工程，无需编制专项施工方案。", ok:false, code:"M08", tempt:"拿总重 300kN 门槛去比单件。", lose:"混淆单件与总重口径；单件 ≥10 已属危大。", fix:"单件 150≥10，属危大。" },
+        { t:"为保证施工工期可先行组织起吊，专项施工方案在作业期间同步补办完善手续。", ok:false, code:"E02", tempt:"赶工期，先干后补。", lose:"危大须先编专项方案并审批，漏方案=重大失分。", fix:"属危大，先编专项方案再作业。" }
       ] },
 { tag:"危大判定·超危大", typeHint:"单选 · 选出能得分的作答", figLabel:"题给：双机抬吊，构件总重 320kN", figCaption:"总重口径落哪档？", fig:"ruler",
       stem:"双机抬吊一构件，构件总重 320kN。判定危大等级，选出能得分的作答。",
       model:"总重≥300kN 达超危大，须专家论证（并编专项方案）。",
       opts:[
+        { t:"双机抬吊时每台起重机各分担 160kN，均未达到 300kN 门槛，因此不需要组织专家论证。", ok:false, code:"M08", tempt:"按每台分担去规避总重门槛。", lose:"总重口径按构件总重 320 算，已≥300kN。", fix:"总重≥300kN，须专家论证。" },
         { t:"构件总重 320kN≥300kN，达超危大工程，须组织专家论证（并编专项方案）。", ok:true, fix:"抓「总重≥300kN」这条独立论证门槛。", code:"" },
-        { t:"每台起重机各分担 160kN，均<300kN，不需论证。", ok:false, code:"M08", tempt:"按每台分担去规避总重门槛。", lose:"总重口径按构件总重 320 算，已≥300kN。", fix:"总重≥300kN，须专家论证。" },
-        { t:"320kN 属危大，编专项方案即可，不必论证。", ok:false, code:"M08", tempt:"停在危大档、忘了超危大总重档。", lose:"总重≥300 已进超危大论证档。", fix:"须专家论证，不止专项方案。" },
-        { t:"抬吊灵活，不受门槛约束。", ok:false, code:"M04", tempt:"把「灵活」当成免检理由。", lose:"抬吊不改门槛，总重≥300 照样论证。", fix:"总重≥300kN 须论证。" }
+        { t:"该吊装属危大工程，依规编制专项施工方案并履行审批即可，不必再组织专家论证。", ok:false, code:"M08", tempt:"停在危大档、忘了超危大总重档。", lose:"总重≥300 已进超危大论证档。", fix:"须专家论证，不止专项方案。" },
+        { t:"双机抬吊属灵活的特殊工艺，可按现场实际组织实施，不受单机门槛数值的约束。", ok:false, code:"M04", tempt:"把「灵活」当成免检理由。", lose:"抬吊不改门槛，总重≥300 照样论证。", fix:"总重≥300kN 须论证。" }
       ] },
 { tag:"作业中·起吊90%", typeHint:"单选 · 选出能得分的完整作答", figLabel:"题给：起吊达额定 95%", figCaption:"达 90% 及以上，正式起吊前该做什么？", fig:"hoist",
       stem:"塔机起吊某构件，荷载达额定起重量的 95%。正式吊运前应如何处置？选出能得分的作答。",
       model:"起吊达额定 90% 及以上，应先将重物吊离地面 200~500mm，检查机械稳定性、制动器、重物平稳性、绑扎牢固后再起吊。",
       opts:[
-        { t:"达 90% 及以上，先将重物吊离地面 200~500mm，检查稳定性、制动器、重物平稳、绑扎牢固后再正式起吊。", ok:true, fix:"前置动作「先吊离 200~500」+ 四查清单，缺一扣一。", code:"" },
-        { t:"荷载偏大，起吊时加强观察、匀速慢吊即可。", ok:false, code:"M09", tempt:"当成「加强注意」态度题。", lose:"漏了「先吊离地 200~500 再四查」的前置程序，丢采分。", fix:"补「先吊离 200~500mm，查稳定/制动/平稳/绑扎」。" },
-        { t:"直接吊到位后再检查制动与绑扎。", ok:false, code:"M09", tempt:"觉得吊上去再查也一样。", lose:"检查须在吊离地面时做，吊到位才查已失意义、程序错。", fix:"先吊离地 200~500mm 检查，合格再升。" },
-        { t:"先吊离地面约 1m 稳一稳再检查。", ok:false, code:"M08", tempt:"记得要吊离，却记错高度。", lose:"离地高度应 200~500mm，不是 1m。", fix:"吊离 200~500mm 后四查。" }
+        { t:"荷载偏大时应加强起吊全过程的观察与统一指挥，采取匀速慢吊、平稳操作的方式完成本次吊运作业。", ok:false, code:"M09", tempt:"当成「加强注意」态度题。", lose:"漏了「先吊离地 200~500 再四查」的前置程序，丢采分。", fix:"补「先吊离 200~500mm，查稳定/制动/平稳/绑扎」。" },
+        { t:"可将构件一次直接吊运到设计安装位置，就位之后再对制动器与绑扎牢固情况进行全面检查与确认。", ok:false, code:"M09", tempt:"觉得吊上去再查也一样。", lose:"检查须在吊离地面时做，吊到位才查已失意义、程序错。", fix:"先吊离地 200~500mm 检查，合格再升。" },
+        { t:"应先将重物吊离地面约 1m 并稳定悬停，再逐项检查机械稳定性、制动器、重物平稳性与绑扎牢固情况，合格后正式吊运。", ok:false, code:"M08", tempt:"记得要吊离，却记错高度。", lose:"离地高度应 200~500mm，不是 1m。", fix:"吊离 200~500mm 后四查。" },
+        { t:"达 90% 及以上，先将重物吊离地面 200~500mm，检查稳定性、制动器、重物平稳、绑扎牢固后再正式起吊。", ok:true, fix:"前置动作「先吊离 200~500」+ 四查清单，缺一扣一。", code:"" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"指出塔机吊装不妥——学生只写了两条", fig:"sheet",
       stem:"题目要求指出塔机吊装作业中的不妥。某学生只答：①基础未验收；②钢丝绳有断丝。背景另给：6 级大风仍露天作业、起吊达 92% 未先吊离地检查。选出最准确的诊断与补写。",
       model:"漏采分：未答「6 级风应停露天作业」「起吊≥90% 应先吊离地 200~500 查四项」；补这两句，并把基础改为「须设计验算、高≥1m、C25」、钢丝绳补「断丝>10%/磨损40%报废」。",
       opts:[
-        { t:"漏两条采分：一，6 级风应停露天作业；二，起吊达 90% 应先吊离地 200~500 查四项。基础、钢丝绳两条方向对，补足数值即可。", ok:true, fix:"照三关补齐气象与 90% 前置，这正是丢的采分句。", code:"" },
-        { t:"学生答了两条不妥，基本到位，可给大部分分。", ok:false, code:"E02", tempt:"看见答了两条就以为差不多。", lose:"漏了气象（6 级停）与 90% 先吊离地两大采分点，逐条给分丢得多。", fix:"逐条比对，补 6 级停、90% 先吊离地四查。" },
-        { t:"只要再补一句「注意安全」就完整了。", ok:false, code:"M09", tempt:"用笼统一句凑数。", lose:"「注意安全」不是采分句，须落到具体规范条。", fix:"补具体两句：6 级停、90% 先吊离地查四项。" },
-        { t:"背景里 92% 未到 100%，不用先吊离地。", ok:false, code:"M08", tempt:"把 90% 触发线记成 100%。", lose:"触发线是 90% 及以上，92% 已触发先吊离地。", fix:"≥90% 即先吊离 200~500 查四项。" }
+        { t:"该生已答出基础未验收与钢丝绳存在断丝两条不妥，覆盖了背景材料的主要方向，作答基本到位，按照逐条给分的原则已可获得大部分分数，无需再补写。", ok:false, code:"E02", tempt:"看见答了两条就以为差不多。", lose:"漏了气象（6 级停）与 90% 先吊离地两大采分点，逐条给分丢得多。", fix:"逐条比对，补 6 级停、90% 先吊离地四查。" },
+        { t:"诊断结论为作答框架大体完整，只需在原有两条之外再补写一句「注意安全」，即可覆盖背景中给出的其余违规情形。", ok:false, code:"M09", tempt:"用笼统一句凑数。", lose:"「注意安全」不是采分句，须落到具体规范条。", fix:"补具体两句：6 级停、90% 先吊离地查四项。" },
+        { t:"背景中起吊荷载为额定起重量的 92%，尚未达到 100% 的触发线，不需要先吊离地检查，学生未补写此条并无遗漏。", ok:false, code:"M08", tempt:"把 90% 触发线记成 100%。", lose:"触发线是 90% 及以上，92% 已触发先吊离地。", fix:"≥90% 即先吊离 200~500 查四项。" },
+        { t:"漏两条采分：一，6 级风应停露天作业；二，起吊达 90% 应先吊离地 200~500 查四项。基础、钢丝绳两条方向对，补足数值即可。", ok:true, fix:"照三关补齐气象与 90% 前置，这正是丢的采分句。", code:"" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -535,7 +535,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"S02-html-practice-html-q1-dafe371b0b60","options":["S02-html-practice-html-q1-dafe371b0b60:option-1","S02-html-practice-html-q1-dafe371b0b60:option-2","S02-html-practice-html-q1-dafe371b0b60:option-3","S02-html-practice-html-q1-dafe371b0b60:option-4"]},{"variant_id":"S02-html-practice-html-q2-9492e6b106f9","options":["S02-html-practice-html-q2-9492e6b106f9:option-1","S02-html-practice-html-q2-9492e6b106f9:option-2","S02-html-practice-html-q2-9492e6b106f9:option-3","S02-html-practice-html-q2-9492e6b106f9:option-4"]},{"variant_id":"S02-html-practice-html-q3-21f675bf5b89","options":["S02-html-practice-html-q3-21f675bf5b89:option-1","S02-html-practice-html-q3-21f675bf5b89:option-2","S02-html-practice-html-q3-21f675bf5b89:option-3","S02-html-practice-html-q3-21f675bf5b89:option-4"]},{"variant_id":"S02-html-practice-html-q4-b88ef63813a7","options":["S02-html-practice-html-q4-b88ef63813a7:option-1","S02-html-practice-html-q4-b88ef63813a7:option-2","S02-html-practice-html-q4-b88ef63813a7:option-3","S02-html-practice-html-q4-b88ef63813a7:option-4"]},{"variant_id":"S02-html-practice-html-q17-ec6ea077b395","options":["S02-html-practice-html-q17-ec6ea077b395:option-1","S02-html-practice-html-q17-ec6ea077b395:option-2","S02-html-practice-html-q17-ec6ea077b395:option-3","S02-html-practice-html-q17-ec6ea077b395:option-4"]}];
+    const exactItems=[{"variant_id":"S02-html-practice-html-q1-b9701135f982","options":["S02-html-practice-html-q1-b9701135f982:option-1","S02-html-practice-html-q1-b9701135f982:option-2","S02-html-practice-html-q1-b9701135f982:option-3","S02-html-practice-html-q1-b9701135f982:option-4"]},{"variant_id":"S02-html-practice-html-q2-00a791b9b0ac","options":["S02-html-practice-html-q2-00a791b9b0ac:option-1","S02-html-practice-html-q2-00a791b9b0ac:option-2","S02-html-practice-html-q2-00a791b9b0ac:option-3","S02-html-practice-html-q2-00a791b9b0ac:option-4"]},{"variant_id":"S02-html-practice-html-q3-c311ae707eb3","options":["S02-html-practice-html-q3-c311ae707eb3:option-1","S02-html-practice-html-q3-c311ae707eb3:option-2","S02-html-practice-html-q3-c311ae707eb3:option-3","S02-html-practice-html-q3-c311ae707eb3:option-4"]},{"variant_id":"S02-html-practice-html-q4-db858af17b5b","options":["S02-html-practice-html-q4-db858af17b5b:option-1","S02-html-practice-html-q4-db858af17b5b:option-2","S02-html-practice-html-q4-db858af17b5b:option-3","S02-html-practice-html-q4-db858af17b5b:option-4"]},{"variant_id":"S02-html-practice-html-q17-4ea34f3f27c0","options":["S02-html-practice-html-q17-4ea34f3f27c0:option-1","S02-html-practice-html-q17-4ea34f3f27c0:option-2","S02-html-practice-html-q17-4ea34f3f27c0:option-3","S02-html-practice-html-q17-4ea34f3f27c0:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -552,7 +552,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZGFmZTM3MWIwYjYwIiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi05NDkyZTZiMTA2ZjkiLCJTMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTIxZjY3NWJmNWI4OSIsIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtYjg4ZWY2MzgxM2E3IiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTctZWM2ZWEwNzdiMzk1Il0sInBhY2tfaWQiOiJTMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImY1ZjA1Mzg3YTEzMGE2MTcxNzI3MDI0YmIzNTg4MDJlNjc5NjY2YTFhMjgxNzY1MzU1OTRkZjQ4MjY1MzkxMDAiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjk3MDExMzVmOTgyIiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wMGE3OTFiOWIwYWMiLCJTMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWMzMTFhZTcwN2ViMyIsIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZGI4NThhZjE3YjViIiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTctNGVhMzRmM2YyN2MwIl0sInBhY2tfaWQiOiJTMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjYyZTc0MzYzMGU1OWI4NTEzMDkzOTQzZGFhMjNhYThmMDc1NWY1OTJlM2Q1Yjc0YzFmMmE5YTBjOGU5MTg1ODEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -247,19 +247,19 @@ class Component extends DCLogic {
       stem:"某基坑开挖深度 4m，场地为软土、地下水丰富。问降水方案怎么选，选出最完整、能得分的作答。",
       model:"深度>3m 应井点降水；综合地质水文环境支护，危及周边截水回灌、有承压水验算突涌。",
       opts:[
-        { t:"深度>3m 应采用井点降水；并综合地质、水文、环境、支护，危及周边时截水或回灌。", ok:true, fix:"先按深度分流定井点，再补综合因素与周边保护，判据链完整。", code:"" },
-        { t:"有地下水就用集水明排、挖排水沟设集水井靠重力排走，简单经济即可满足降水。", ok:false, code:"E10", tempt:"一见地下水就想到最常见的集水明排。", lose:"深度 4m 已>3m，明排压不住；集水明排只适用≤3m 且软土。", fix:"深度>3m 应改井点降水，集水明排仅≤3m 软土。" },
+        { t:"场地地下水丰富，宜采用集水明排：沿坑底开挖排水沟并设集水井，借重力汇水后抽排，经济适用。", ok:false, code:"E10", tempt:"一见地下水就想到最常见的集水明排。", lose:"深度 4m 已>3m，明排压不住；集水明排只适用≤3m 且软土。", fix:"深度>3m 应改井点降水，集水明排仅≤3m 软土。" },
         { t:"不看深度直接选降水管井，管井出水量大、适应性强，任何土质基坑都能可靠降水。", ok:false, code:"E07", tempt:"觉得管井出水大、万能。", lose:"管井要求渗透系数较大（砂砾），软土/填土/黏土不宜；且未按深度分流。", fix:"先按深度分流用井点，再按渗透系数与土质选井点类型。" },
-        { t:"只要写采取降水措施把水位降下去即可，具体哪种方法现场看着定不必写死。", ok:false, code:"E02", tempt:"图省事、笼统写降水。", lose:"没有可判分的方法与依据，采分点全落空。", fix:"写明>3m 井点降水+综合因素+周边保护+承压水验算。" }
+        { t:"深度>3m 应采用井点降水；并综合地质、水文、环境、支护，危及周边时截水或回灌。", ok:true, fix:"先按深度分流定井点，再补综合因素与周边保护，判据链完整。", code:"" },
+        { t:"作答写明已采取降水措施、将水位降至开挖面以下即可，具体方法不必在方案中明确。", ok:false, code:"E02", tempt:"图省事、笼统写降水。", lose:"没有可判分的方法与依据，采分点全落空。", fix:"写明>3m 井点降水+综合因素+周边保护+承压水验算。" }
       ] },
 { tag:"井点选型·计算表达维", typeHint:"单选 · 亮阈值表→代入→排除→定方法", figLabel:"题给：降水深度 8m · 上部填土", figCaption:"轻型≤6 / 喷射8~20 / 真空>6 / 管井砂砾", fig:"ruler",
       stem:"某基坑降水深度约 8m，场地上部为填土层。按降水深度与土质选井点，选出能得分的作答。",
       model:"排除集水明排(>3m)、轻型(≤6m)、管井(填土不宜)，宜选喷射井点(降水深度 8~20m)。",
       opts:[
+        { t:"宜选轻型井点，其构造简单、布置方便，配合多级井点还可加大降水深度，用于本 8m 基坑较为稳妥。", ok:false, code:"M08", tempt:"轻型最常见、构造简单，顺手就选。", lose:"轻型井点降水深度≤6m（多级 6~10m 需分级），单级 8m 够不着。", fix:"8m 超轻型单级，应选喷射井点(8~20m)。" },
+        { t:"应选用降水管井，管井单井出水量大、对深度不敏感，用于 8m 填土基坑降水效率最高。", ok:false, code:"E07", tempt:"以为管井深度大、出水多就通用。", lose:"管井要求渗透系数较大（砂砾），填土渗透系数小、出水寥寥，不宜用管井。", fix:"填土不宜管井；按深度 8m 选喷射井点。" },
         { t:"深 8m 超轻型≤6m、填土不宜管井，宜选喷射井点，其降水深度 8~20m 覆盖本工况。", ok:true, fix:"逐条卡深度与土质排除，落到喷射并回判 8m∈8~20m，判据完整。", code:"" },
-        { t:"选轻型井点，轻型构造简单、布置方便，配合多级还能加深，用于本 8m 基坑最稳妥。", ok:false, code:"M08", tempt:"轻型最常见、构造简单，顺手就选。", lose:"轻型井点降水深度≤6m（多级 6~10m 需分级），单级 8m 够不着。", fix:"8m 超轻型单级，应选喷射井点(8~20m)。" },
-        { t:"选降水管井，管井出水量大、对深度不敏感，8m 填土用管井降水效率最高最省事。", ok:false, code:"E07", tempt:"以为管井深度大、出水多就通用。", lose:"管井要求渗透系数较大（砂砾），填土渗透系数小、出水寥寥，不宜用管井。", fix:"填土不宜管井；按深度 8m 选喷射井点。" },
-        { t:"选集水明排，沿坑底挖排水沟、设集水井把地下水引流抽走，明排对 8m 基坑也够用。", ok:false, code:"E10", tempt:"明排看着简单便宜。", lose:"明排只适用≤3m 且软土；8m 深坑必须井点降水。", fix:"深 8m 用井点（喷射），不是集水明排。" }
+        { t:"可采用集水明排，沿坑底挖排水沟并设集水井将地下水引流抽走，明排亦可满足 8m 基坑降水。", ok:false, code:"E10", tempt:"明排看着简单便宜。", lose:"明排只适用≤3m 且软土；8m 深坑必须井点降水。", fix:"深 8m 用井点（喷射），不是集水明排。" }
       ] },
 { tag:"轻型井点·条件维", typeHint:"单选 · 记准降水深度数字", figLabel:"题给：轻型井点降水深度", figCaption:"单级？多级？范围是多少", fig:"ruler",
       stem:"关于轻型井点的降水深度，选出表述正确、能得分的作答。",
@@ -283,8 +283,8 @@ class Component extends DCLogic {
       stem:"某学生对填土层、深 6m、坑底有承压水的基坑降水开挖方案作答：①用降水管井；②承压水靠井点回灌控制；③分层开挖每层 5m。选出最准确的诊断与补写。",
       model:"①填土不宜管井，应按深度选轻型(多级)/喷射；②回灌防沉降不防突涌，应验算突涌+钻孔减压/水平封底隔渗；③分层应≤3m。",
       opts:[
+        { t:"该方案基本合理，仅分层 5m 略偏大、调整为 4m 即可，管井降水与回灌控制承压水的用法均无问题。", ok:false, code:"E07", tempt:"只盯着一处、放过了张冠李戴的两处。", lose:"漏诊填土用管井、回灌当防突涌两处硬伤；分层应≤3m 非 4m。", fix:"三处都要改：喷射/多级轻型、减压封底、分层≤3m。" },
         { t:"三处都不妥：填土不宜管井应改喷射/多级轻型、回灌不防突涌应减压封底隔渗、分层5m超3m。", ok:true, fix:"逐条揪错并给正确方法/数值，正是判断纠错三段式。", code:"" },
-        { t:"方案基本合理，只是分层 5m 略大改成 4m 即可，管井和回灌的用法都没有问题。", ok:false, code:"E07", tempt:"只盯着一处、放过了张冠李戴的两处。", lose:"漏诊填土用管井、回灌当防突涌两处硬伤；分层应≤3m 非 4m。", fix:"三处都要改：喷射/多级轻型、减压封底、分层≤3m。" },
         { t:"只有承压水那条要改成加大管井抽水，其余管井降水、分层 5m 都符合规范无需调整。", ok:false, code:"E10", tempt:"以为加大抽水能治突涌。", lose:"填土不宜管井、分层5m超限也错；防突涌是减压/封底不是加大抽水。", fix:"改喷射/多级轻型、分层≤3m、减压封底防突涌。" },
         { t:"把降水管井换成集水明排就全对了，明排简单又便宜，回灌和分层 5m 保持不变即可。", ok:false, code:"M10", tempt:"用明排简单的常识替代规范。", lose:"深 6m 不能用明排；回灌当防突涌、分层5m 也未纠。", fix:"深6m 用喷射/多级轻型、分层≤3m、减压封底防突涌。" }
       ] }
@@ -557,7 +557,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"G01-html-practice-html-q1-dda33aea0861","options":["G01-html-practice-html-q1-dda33aea0861:option-1","G01-html-practice-html-q1-dda33aea0861:option-2","G01-html-practice-html-q1-dda33aea0861:option-3","G01-html-practice-html-q1-dda33aea0861:option-4"]},{"variant_id":"G01-html-practice-html-q2-56338410f994","options":["G01-html-practice-html-q2-56338410f994:option-1","G01-html-practice-html-q2-56338410f994:option-2","G01-html-practice-html-q2-56338410f994:option-3","G01-html-practice-html-q2-56338410f994:option-4"]},{"variant_id":"G01-html-practice-html-q3-413c0fb7959f","options":["G01-html-practice-html-q3-413c0fb7959f:option-1","G01-html-practice-html-q3-413c0fb7959f:option-2","G01-html-practice-html-q3-413c0fb7959f:option-3","G01-html-practice-html-q3-413c0fb7959f:option-4"]},{"variant_id":"G01-html-practice-html-q4-1ec0542e7a80","options":["G01-html-practice-html-q4-1ec0542e7a80:option-1","G01-html-practice-html-q4-1ec0542e7a80:option-2","G01-html-practice-html-q4-1ec0542e7a80:option-3","G01-html-practice-html-q4-1ec0542e7a80:option-4"]},{"variant_id":"G01-html-practice-html-q15-e408d7998051","options":["G01-html-practice-html-q15-e408d7998051:option-1","G01-html-practice-html-q15-e408d7998051:option-2","G01-html-practice-html-q15-e408d7998051:option-3","G01-html-practice-html-q15-e408d7998051:option-4"]}];
+    const exactItems=[{"variant_id":"G01-html-practice-html-q1-aba98d47b38a","options":["G01-html-practice-html-q1-aba98d47b38a:option-1","G01-html-practice-html-q1-aba98d47b38a:option-2","G01-html-practice-html-q1-aba98d47b38a:option-3","G01-html-practice-html-q1-aba98d47b38a:option-4"]},{"variant_id":"G01-html-practice-html-q2-0a5430fecbde","options":["G01-html-practice-html-q2-0a5430fecbde:option-1","G01-html-practice-html-q2-0a5430fecbde:option-2","G01-html-practice-html-q2-0a5430fecbde:option-3","G01-html-practice-html-q2-0a5430fecbde:option-4"]},{"variant_id":"G01-html-practice-html-q3-413c0fb7959f","options":["G01-html-practice-html-q3-413c0fb7959f:option-1","G01-html-practice-html-q3-413c0fb7959f:option-2","G01-html-practice-html-q3-413c0fb7959f:option-3","G01-html-practice-html-q3-413c0fb7959f:option-4"]},{"variant_id":"G01-html-practice-html-q4-1ec0542e7a80","options":["G01-html-practice-html-q4-1ec0542e7a80:option-1","G01-html-practice-html-q4-1ec0542e7a80:option-2","G01-html-practice-html-q4-1ec0542e7a80:option-3","G01-html-practice-html-q4-1ec0542e7a80:option-4"]},{"variant_id":"G01-html-practice-html-q15-ad73198f0e59","options":["G01-html-practice-html-q15-ad73198f0e59:option-1","G01-html-practice-html-q15-ad73198f0e59:option-2","G01-html-practice-html-q15-ad73198f0e59:option-3","G01-html-practice-html-q15-ad73198f0e59:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -574,7 +574,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtZGRhMzNhZWEwODYxIiwiRzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01NjMzODQxMGY5OTQiLCJHMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQxM2MwZmI3OTU5ZiIsIkcwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWVjMDU0MmU3YTgwIiwiRzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZTQwOGQ3OTk4MDUxIl0sInBhY2tfaWQiOiJHMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjVkYmE2MDU3ODAxY2E2MDZhOWQzZjJkOTlkMTkxNzJkZmIxOGQwMDM4YzY2MWY4MjdjYmMyYjM0OTc2YjYyZjIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYWJhOThkNDdiMzhhIiwiRzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wYTU0MzBmZWNiZGUiLCJHMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQxM2MwZmI3OTU5ZiIsIkcwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWVjMDU0MmU3YTgwIiwiRzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYWQ3MzE5OGYwZTU5Il0sInBhY2tfaWQiOiJHMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6Ijg1MmVmMGIyZThkZmQ1NDljZjBmNjU1YmFlNjY2NzY3YjJkOGYyOTQwYTI5NmFkZmU4MmM1NGI4YmM2NzZkOGQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

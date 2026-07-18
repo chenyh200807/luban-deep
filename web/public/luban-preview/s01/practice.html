@@ -10,7 +10,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -236,45 +236,45 @@ class Component extends DCLogic {
       model:"落地脚手架 24m 起编专项方案、50m 及以上才组织专家论证；40m 只需编专项方案、不需论证。",
       opts:[
         { t:"落地脚手架 24m 起编专项方案、50m 及以上才论证；40m 只需编专项方案，不需组织专家论证。", ok:true, fix:"两道门都点到、40m 落编案区，结论清楚。", code:"" },
-        { t:"脚手架 40m 已属超过一定规模危大工程，须组织专家论证。", ok:false, code:"M08", tempt:"看着挺高，直觉「高就论证」。", lose:"把编案门和论证门混成一条；落地脚手架论证门是 50m，40m 不到。", fix:"40m 只编专项方案，够 50m 才论证。" },
-        { t:"40m 脚手架很危险，凭经验应组织专家论证并停工整改。", ok:false, code:"M10", tempt:"「危险」俩字一上头就选论证。", lose:"用常识替代规范数值，没比落地脚手架 50m 论证阈值。", fix:"回数值：24m 编案、50m 论证，40m 只编案。" },
-        { t:"40m 未达 50m，既不用编专项方案也不用组织论证。", ok:false, code:"M03", tempt:"看 40<50 就全盘否掉。", lose:"漏了编案门 24m——40m 已过 24m，必须编专项方案。", fix:"40m 过 24m 编案门要编案，只是不论证。" }
+        { t:"该脚手架搭设高度 40m，已达到超过一定规模的危大工程判定标准，施工前应当组织专家论证其专项施工方案。", ok:false, code:"M08", tempt:"看着挺高，直觉「高就论证」。", lose:"把编案门和论证门混成一条；落地脚手架论证门是 50m，40m 不到。", fix:"40m 只编专项方案，够 50m 才论证。" },
+        { t:"40m 高的脚手架相当危险，依施工经验判断应组织专家论证，并同步停工整改。", ok:false, code:"M10", tempt:"「危险」俩字一上头就选论证。", lose:"用常识替代规范数值，没比落地脚手架 50m 论证阈值。", fix:"回数值：24m 编案、50m 论证，40m 只编案。" },
+        { t:"该架体 40m 未达 50m 论证门槛，既不必编制专项施工方案，也不必组织专家论证。", ok:false, code:"M03", tempt:"看 40<50 就全盘否掉。", lose:"漏了编案门 24m——40m 已过 24m，必须编专项方案。", fix:"40m 过 24m 编案门要编案，只是不论证。" }
       ] },
 { tag:"危大·论证阈值", typeHint:"单选 · 选出判据完整的作答", fig:"thresh4", figLabel:"模板支架 · 论证门四阈值（任一）", figCaption:"高8m · 跨18m · 荷载15 · 线荷载20",
       stem:"模板工程及支撑体系，满足下列哪种情形须组织专家论证？选出判据完整的作答。",
       model:"模板支架 高≥8m 或 跨≥18m 或 施工总荷载≥15kN/m² 或 集中线荷载≥20kN/m，四者满足任一即须论证。",
       opts:[
-        { t:"高≥8m、或跨≥18m、或施工总荷载≥15kN/m²、或集中线荷载≥20kN/m，满足任一即须组织专家论证。", ok:true, fix:"四阈值列全、逻辑是「任一即论证」，换数据也不错。", code:"" },
-        { t:"必须四个阈值同时满足，才须组织专家论证。", ok:false, code:"M03", tempt:"以为四个条件是「且」，都够才危险。", lose:"四阈值是「或」，满足任一即论证；写成「且」会漏判。", fix:"任一满足即论证，不是全部满足。" },
-        { t:"只有高度超过 8m 才须论证，跨度、荷载不作数。", ok:false, code:"M08", tempt:"只记住了最好背的「高 8m」。", lose:"漏掉跨 18m、荷载 15、线荷载 20 三条阈值。", fix:"补全四阈值：高8m/跨18m/15/20，任一即论证。" },
-        { t:"模板支架只要属危大工程就要论证，不用比阈值。", ok:false, code:"M03", tempt:"把编案门和论证门当一回事。", lose:"危大工程只需编案，论证要再过「超一定规模」四阈值。", fix:"编案≠论证，论证要再比高8m/跨18m/15/20。" }
+        { t:"高≥8m、跨≥18m、施工总荷载≥15kN/m²、集中线荷载≥20kN/m，四项须同时满足方须组织专家论证。", ok:false, code:"M03", tempt:"以为四个条件是「且」，都够才危险。", lose:"四阈值是「或」，满足任一即论证；写成「且」会漏判。", fix:"任一满足即论证，不是全部满足。" },
+        { t:"仅当搭设高度≥8m 时须组织专家论证，跨度、施工总荷载、集中线荷载均不作为论证判定依据。", ok:false, code:"M08", tempt:"只记住了最好背的「高 8m」。", lose:"漏掉跨 18m、荷载 15、线荷载 20 三条阈值。", fix:"补全四阈值：高8m/跨18m/15/20，任一即论证。" },
+        { t:"模板工程及支撑体系只要构成危大工程即应组织专家论证，无需再对照高度、跨度与荷载阈值。", ok:false, code:"M03", tempt:"把编案门和论证门当一回事。", lose:"危大工程只需编案，论证要再过「超一定规模」四阈值。", fix:"编案≠论证，论证要再比高8m/跨18m/15/20。" },
+        { t:"高≥8m、或跨≥18m、或施工总荷载≥15kN/m²、或集中线荷载≥20kN/m，满足任一即须组织专家论证。", ok:true, fix:"四阈值列全、逻辑是「任一即论证」，换数据也不错。", code:"" }
       ] },
 { tag:"危大·编案门", typeHint:"单选 · 选出编案门数值齐全的作答", fig:"gate4", figLabel:"危大工程 · 编专项方案门（够任一）", figCaption:"基坑3m · 模板5m · 脚手架24m · 吊装10kN",
       stem:"下列哪组数值是「危大工程、须编专项施工方案」的判定门槛？选出齐全正确的作答。",
       model:"基坑开挖≥3m、模板支架高≥5m、落地脚手架≥24m、起重吊装单件≥10kN，够任一即编专项方案。",
       opts:[
+        { t:"基坑≥5m、模板支架高≥8m、落地脚手架≥50m，三项之中够任一项即须编制专项施工方案。", ok:false, code:"M08", tempt:"这几个数看着眼熟、也是常背的。", lose:"把「论证门」的数值当成「编案门」——那是超一定规模、须论证的门槛。", fix:"编案门是基坑3m/模板5m/脚手架24m/吊装10kN。" },
         { t:"基坑≥3m、模板支架高≥5m、落地脚手架≥24m、起重吊装单件≥10kN，够任一即编专项方案。", ok:true, fix:"编案门四数值齐、与论证门区分清楚。", code:"" },
-        { t:"基坑≥5m、模板支架高≥8m、落地脚手架≥50m，够任一即编专项方案。", ok:false, code:"M08", tempt:"这几个数看着眼熟、也是常背的。", lose:"把「论证门」的数值当成「编案门」——那是超一定规模、须论证的门槛。", fix:"编案门是基坑3m/模板5m/脚手架24m/吊装10kN。" },
-        { t:"只要工程危险，就编专项方案，不用看具体数值。", ok:false, code:"M10", tempt:"凭感觉「危险就编案」省事。", lose:"编案是查表判定，须回具体数值，不是凭危险感。", fix:"回数值：基坑3m/模板5m/脚手架24m/吊装10kN。" },
-        { t:"基坑≥3m、模板支架高≥5m 两项即可，吊装和脚手架不在编案范围。", ok:false, code:"M08", tempt:"记住了前两个就以为齐了。", lose:"漏了落地脚手架 24m、起重吊装单件 10kN 两条编案门。", fix:"补齐脚手架 24m、吊装单件 10kN。" }
+        { t:"凡经现场综合评估认为危险性较大的分部分项工程，均应编制专项施工方案，无需对照具体数值门槛逐项判定。", ok:false, code:"M10", tempt:"凭感觉「危险就编案」省事。", lose:"编案是查表判定，须回具体数值，不是凭危险感。", fix:"回数值：基坑3m/模板5m/脚手架24m/吊装10kN。" },
+        { t:"基坑≥3m、模板支架高≥5m 两项即为全部门槛，起重吊装与落地脚手架不在编案判定范围。", ok:false, code:"M08", tempt:"记住了前两个就以为齐了。", lose:"漏了落地脚手架 24m、起重吊装单件 10kN 两条编案门。", fix:"补齐脚手架 24m、吊装单件 10kN。" }
       ] },
 { tag:"拆模强度·跨≤8m", typeHint:"单选 · 选出取值与依据都对的作答", fig:"beam", figLabel:"现浇梁 · 跨 6m · 底模拆除", figCaption:"梁跨 ≤ 8m，同条件强度取多少？",
       stem:"某现浇钢筋混凝土梁，计算跨度 6m，拟拆除底模。同条件养护强度应达到设计值的多少方可拆？",
       model:"梁属梁板拱壳类、跨 6m≤8m，同条件养护强度应达设计值的 75% 方可拆底模。",
       opts:[
-        { t:"梁属梁板拱壳类、跨 6m≤8m，同条件养护强度达设计值 75% 方可拆底模。", ok:true, fix:"构件归类 + 跨度落档 + 75% 三件齐。", code:"" },
-        { t:"底模一律待强度达 100% 才可拆除。", ok:false, code:"M08", tempt:"觉得底模承重，越保险越好、直接 100%。", lose:"跨≤8m 的梁板拱壳达 75% 即可，写 100% 是记死了另一档。", fix:"跨≤8m 取 75%，跨>8m 才 100%。" },
-        { t:"侧模拆除不受强度限制，随时可拆，本题按侧模处理。", ok:false, code:"M03", tempt:"记得「侧模不受强度限制」这句就套上。", lose:"题问的是底模，不是侧模；把承重底模当侧模判错。", fix:"底模看强度：跨6m≤8m 取 75%。" },
-        { t:"跨 6m 较小，凭经验大概达 50% 左右即可拆。", ok:false, code:"M10", tempt:"跨小就觉着「差不多就行」。", lose:"50% 是快拆体系按 2m 计的档，凭经验估必丢分。", fix:"梁跨6m≤8m 应取 75%，不是估 50%。" }
+        { t:"无论构件类型与计算跨度如何，底模一律待强度达设计值 100% 方可拆除。", ok:false, code:"M08", tempt:"觉得底模承重，越保险越好、直接 100%。", lose:"跨≤8m 的梁板拱壳达 75% 即可，写 100% 是记死了另一档。", fix:"跨≤8m 取 75%，跨>8m 才 100%。" },
+        { t:"侧模拆除不受强度限制，本题模板可按侧模处理，达到条件即可随时拆除。", ok:false, code:"M03", tempt:"记得「侧模不受强度限制」这句就套上。", lose:"题问的是底模，不是侧模；把承重底模当侧模判错。", fix:"底模看强度：跨6m≤8m 取 75%。" },
+        { t:"该梁跨度 6m 相对较小，依施工经验同条件强度达 50% 左右即可拆除底模。", ok:false, code:"M10", tempt:"跨小就觉着「差不多就行」。", lose:"50% 是快拆体系按 2m 计的档，凭经验估必丢分。", fix:"梁跨6m≤8m 应取 75%，不是估 50%。" },
+        { t:"梁属梁板拱壳类、跨 6m≤8m，同条件养护强度达设计值 75% 方可拆底模。", ok:true, fix:"构件归类 + 跨度落档 + 75% 三件齐。", code:"" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断作答失分并给正确补写", fig:"diag", figLabel:"模拟学生作答（待诊断）", figCaption:"结论看着对，过程采分呢？",
       stem:"某学生答：「16m 高模板支撑架——高、危险，编专项方案并组织专家论证；底模嘛一律 75% 拆。」选出最准确的诊断与补写。",
       model:"论证判对但依据缺（应指高≥8m 达论证门）、底模一律 75% 错（跨>8m 及悬臂须 100%）；补写：模板支撑高 16m≥8m 达论证门须论证；拆底模按跨度构件分档，跨>8m/悬臂须 100%。",
       opts:[
+        { t:"该生两个结论均正确——16m 模板支撑架属危大工程、须编专项方案并组织专家论证，底模按 75% 控制拆除亦符合规范；「要论证 + 75% 拆」的作答过程完整、依据充分，应当给满分，不需另行诊断补写。", ok:false, code:"M03", tempt:"看结论「要论证」对了就以为全对。", lose:"论证没写依据、底模一律 75% 是错档，过程采分丢两处。", fix:"补论证依据（高≥8m）、拆模按跨度构件分档。" },
         { t:"论证结论对但没写依据（应点明高 16m≥8m 达论证门）；「底模一律 75%」错——跨>8m 及悬臂须 100%。补写：高16m≥8m 须论证；拆底模按跨度构件分档、跨>8m 及悬臂 100%。", ok:true, fix:"依据缺 + 拆模档错两处都揪出，补写即可上答题纸。", code:"" },
-        { t:"结论「要论证 + 75% 拆」都对，可给满分。", ok:false, code:"M03", tempt:"看结论「要论证」对了就以为全对。", lose:"论证没写依据、底模一律 75% 是错档，过程采分丢两处。", fix:"补论证依据（高≥8m）、拆模按跨度构件分档。" },
-        { t:"只是论证依据没写清，拆模 75% 没问题。", ok:false, code:"M08", tempt:"抓到依据缺、却漏了拆模的错。", lose:"「一律 75%」漏了跨>8m/悬臂须 100%，拆模档也错。", fix:"拆模要分档：跨>8m 及悬臂须 100%。" },
-        { t:"应先判是否危大工程再论证，拆模改一律 100% 即可。", ok:false, code:"M08", tempt:"把拆模从一个极端改到另一个极端。", lose:"拆模不是一律 100%，跨≤8m 梁板取 75%；矫枉过正。", fix:"拆模按跨度构件分档，不是一律 100%。" }
+        { t:"该作答仅一处不足：论证判断未写依据，应补「高 16m≥8m 达论证门」；底模按 75% 控制拆除的表述没有问题、不必修改，补上论证依据后即可拿到全部过程分。", ok:false, code:"M08", tempt:"抓到依据缺、却漏了拆模的错。", lose:"「一律 75%」漏了跨>8m/悬臂须 100%，拆模档也错。", fix:"拆模要分档：跨>8m 及悬臂须 100%。" },
+        { t:"诊断与补写应为：先判定该支撑架是否属危大工程、再按程序组织专家论证；拆模控制则应把「一律 75%」改为一律按 100% 执行，即可覆盖全部构件、不再因分档丢分。", ok:false, code:"M08", tempt:"把拆模从一个极端改到另一个极端。", lose:"拆模不是一律 100%，跨≤8m 梁板取 75%；矫枉过正。", fix:"拆模按跨度构件分档，不是一律 100%。" }
       ] }
   ];
   codeMap={
@@ -491,7 +491,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"S01-html-practice-html-q1-3eaac6813f86","options":["S01-html-practice-html-q1-3eaac6813f86:option-1","S01-html-practice-html-q1-3eaac6813f86:option-2","S01-html-practice-html-q1-3eaac6813f86:option-3","S01-html-practice-html-q1-3eaac6813f86:option-4"]},{"variant_id":"S01-html-practice-html-q2-e6bc9e4ad044","options":["S01-html-practice-html-q2-e6bc9e4ad044:option-1","S01-html-practice-html-q2-e6bc9e4ad044:option-2","S01-html-practice-html-q2-e6bc9e4ad044:option-3","S01-html-practice-html-q2-e6bc9e4ad044:option-4"]},{"variant_id":"S01-html-practice-html-q3-0d824fc3a13f","options":["S01-html-practice-html-q3-0d824fc3a13f:option-1","S01-html-practice-html-q3-0d824fc3a13f:option-2","S01-html-practice-html-q3-0d824fc3a13f:option-3","S01-html-practice-html-q3-0d824fc3a13f:option-4"]},{"variant_id":"S01-html-practice-html-q4-91c55a65672c","options":["S01-html-practice-html-q4-91c55a65672c:option-1","S01-html-practice-html-q4-91c55a65672c:option-2","S01-html-practice-html-q4-91c55a65672c:option-3","S01-html-practice-html-q4-91c55a65672c:option-4"]},{"variant_id":"S01-html-practice-html-q15-c84007e64ab2","options":["S01-html-practice-html-q15-c84007e64ab2:option-1","S01-html-practice-html-q15-c84007e64ab2:option-2","S01-html-practice-html-q15-c84007e64ab2:option-3","S01-html-practice-html-q15-c84007e64ab2:option-4"]}];
+    const exactItems=[{"variant_id":"S01-html-practice-html-q1-053cee5462ee","options":["S01-html-practice-html-q1-053cee5462ee:option-1","S01-html-practice-html-q1-053cee5462ee:option-2","S01-html-practice-html-q1-053cee5462ee:option-3","S01-html-practice-html-q1-053cee5462ee:option-4"]},{"variant_id":"S01-html-practice-html-q2-728c8d7a3d3b","options":["S01-html-practice-html-q2-728c8d7a3d3b:option-1","S01-html-practice-html-q2-728c8d7a3d3b:option-2","S01-html-practice-html-q2-728c8d7a3d3b:option-3","S01-html-practice-html-q2-728c8d7a3d3b:option-4"]},{"variant_id":"S01-html-practice-html-q3-e0c3b346898f","options":["S01-html-practice-html-q3-e0c3b346898f:option-1","S01-html-practice-html-q3-e0c3b346898f:option-2","S01-html-practice-html-q3-e0c3b346898f:option-3","S01-html-practice-html-q3-e0c3b346898f:option-4"]},{"variant_id":"S01-html-practice-html-q4-389eeeae4e0f","options":["S01-html-practice-html-q4-389eeeae4e0f:option-1","S01-html-practice-html-q4-389eeeae4e0f:option-2","S01-html-practice-html-q4-389eeeae4e0f:option-3","S01-html-practice-html-q4-389eeeae4e0f:option-4"]},{"variant_id":"S01-html-practice-html-q15-d99a0723feac","options":["S01-html-practice-html-q15-d99a0723feac:option-1","S01-html-practice-html-q15-d99a0723feac:option-2","S01-html-practice-html-q15-d99a0723feac:option-3","S01-html-practice-html-q15-d99a0723feac:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -508,7 +508,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtM2VhYWM2ODEzZjg2IiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lNmJjOWU0YWQwNDQiLCJTMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTBkODI0ZmMzYTEzZiIsIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtOTFjNTVhNjU2NzJjIiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYzg0MDA3ZTY0YWIyIl0sInBhY2tfaWQiOiJTMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImFhYjJiMjhlODM3MzgzYzdhNDY2ZTg3NDRiNzE1YTFkMDUzOGI3NmM3MTFmOWNjMzlmZDhjYWU3YzIwYTdiNzEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMDUzY2VlNTQ2MmVlIiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03MjhjOGQ3YTNkM2IiLCJTMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWUwYzNiMzQ2ODk4ZiIsIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMzg5ZWVlYWU0ZTBmIiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZDk5YTA3MjNmZWFjIl0sInBhY2tfaWQiOiJTMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImJlMTBjYzQ3MmQyYTEwYzU2ZjQ0OTMzNWNjNzY4YWZkNGQ5ZDY1YTY0ZTJjNjE5MDE1NTU2Y2YxOTRiMzAyMDUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

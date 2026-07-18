@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "F02",
   "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
-  "source_bundle_sha256": "9efbda616c8ea0283cd1bc1cdbb55c7490866284c8d8fac5eda709affa400681",
+  "source_bundle_sha256": "27cc596b0ac956798c41c712393a38bca088d6cb93df3e52ba38ac00e030ae8a",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html",
-      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a",
+      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
       "format_kind": "q_direct",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,15 +18,15 @@
         5
       ],
       "variant_ids": [
-        "F02-html-practice-html-q1-a901d12f5442",
+        "F02-html-practice-html-q1-742212cd1582",
         "F02-html-practice-html-q2-8c8411934bd3",
-        "F02-html-practice-html-q3-737cf69735c4",
+        "F02-html-practice-html-q3-7e6cf9a55201",
         "F02-html-practice-html-q4-d649932926b5",
-        "F02-html-practice-html-q6-bae48b5ad9f5"
+        "F02-html-practice-html-q6-c063c068d1c4"
       ],
       "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTkwMWQxMmY1NDQyIiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzg0MTE5MzRiZDMiLCJGMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTczN2NmNjk3MzVjNCIsIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDY0OTkzMjkyNmI1IiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1iYWU0OGI1YWQ5ZjUiXSwicGFja19pZCI6IkYwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiNDExYjI4NmY3NmIyYzM0ZjRkMGJlZmFkMmZjZDVlMTUxOTc4YTE3N2FmODQxNTNlMGRmMzA5M2NlZGM4ZTQ3YSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "a0969f80554f84737d78543e88a6a29f692d1152eda4dfdc79dfad2d2a6ed504"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzQyMjEyY2QxNTgyIiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzg0MTE5MzRiZDMiLCJGMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTdlNmNmOWE1NTIwMSIsIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDY0OTkzMjkyNmI1IiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1jMDYzYzA2OGQxYzQiXSwicGFja19pZCI6IkYwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiZTQwNTEyNTU3ODE4ZTIxZDY4ZTdmN2FlMGZmZTgwY2M4NTYyNzllNGI3NGU2MzhhMzExYWExYWU0NGM0ZTZlYSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "38cced83ec7dae628375fa27d177968368c95a41be2742bfd79c4c26c2eeb705"
     }
   ],
   "items": [
@@ -37,22 +37,13 @@
       "model_answer": "先做细部构造处理（阴阳角、泛水、管根、落水口加强），后大面积铺贴；大面由屋面最低标高处起、由低向高铺贴，上幅压下幅。",
       "options": [
         {
-          "text": "先做细部构造处理（阴阳角、泛水、管根、落水口加强），后大面积铺贴；大面由屋面最低标高处起、由低向高铺贴，上幅压下幅。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "先细部后大面 + 由低向高 + 上幅压下幅，三件齐，程序分稳拿。",
-          "option_id": "F02-html-practice-html-q1-a901d12f5442:option-1"
-        },
-        {
           "text": "为图省事把大面积卷材先一次性铺贴到位、大面整体完成之后，才回头处理阴阳角、泛水、管根、落水口等各处细部节点，逐一统一收边加强、补做防水加强处理即可。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "觉得先把大面铺完、细部最后收边更顺手。",
           "loss_reason": "违反「先细部后大面」，细部漏加强成渗漏隐患，程序顺序错误。",
           "fix": "先做细部构造加强，再大面铺贴。",
-          "option_id": "F02-html-practice-html-q1-a901d12f5442:option-2"
+          "option_id": "F02-html-practice-html-q1-742212cd1582:option-1"
         },
         {
           "text": "先做阴阳角泛水等细部构造加强、后铺大面，大面卷材由屋脊最高标高处起步、由高向低往檐口方向铺贴，下一幅压住上一幅顺着坡势向下收边。",
@@ -61,7 +52,7 @@
           "temptation": "从高往低铺像是顺着重力、好操作。",
           "loss_reason": "由高向低、下幅压上幅使缝口迎水倒灌，方向全反。",
           "fix": "由屋面最低标高起、由低向高、上幅压下幅。",
-          "option_id": "F02-html-practice-html-q1-a901d12f5442:option-3"
+          "option_id": "F02-html-practice-html-q1-742212cd1582:option-2"
         },
         {
           "text": "大面卷材由屋面最低标高处起、由低向高、上幅压下幅铺贴到位，阴阳角、泛水、管根等细部节点与大面采用同一做法一并铺贴、不另行单独加强。",
@@ -70,10 +61,19 @@
           "temptation": "记住了「由低向高」，以为顺序就齐了。",
           "loss_reason": "漏写「先细部后大面、细部需专门加强」，采分点遗漏。",
           "fix": "补「先做细部构造加强、后大面」。",
-          "option_id": "F02-html-practice-html-q1-a901d12f5442:option-4"
+          "option_id": "F02-html-practice-html-q1-742212cd1582:option-3"
+        },
+        {
+          "text": "先做细部构造处理（阴阳角、泛水、管根、落水口加强），后大面积铺贴；大面由屋面最低标高处起、由低向高铺贴，上幅压下幅。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先细部后大面 + 由低向高 + 上幅压下幅，三件齐，程序分稳拿。",
+          "option_id": "F02-html-practice-html-q1-742212cd1582:option-4"
         }
       ],
-      "variant_id": "F02-html-practice-html-q1-a901d12f5442",
+      "variant_id": "F02-html-practice-html-q1-742212cd1582",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
@@ -81,17 +81,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q1",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a",
+      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "10ce1c65cafca2bd0ee278e8d0d10dd81abc5ee861c5abfe70dd547bac093d9f",
+      "content_sha256": "aa4b066a437ceed7a2c0f2824b23879aa8c68731b799eb345316effb78276190",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "10ce1c65cafca2bd0ee278e8d0d10dd81abc5ee861c5abfe70dd547bac093d9f",
+        "reviewed_content_sha256": "aa4b066a437ceed7a2c0f2824b23879aa8c68731b799eb345316effb78276190",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -154,17 +154,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q2",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a",
+      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "686ad73980e65fd2c541d5d21c1c9558fdcb0183606155ba08d7c961fea08371",
+      "content_sha256": "b125935da2dc574c27a92d96ea57ac128f1463d7965ff4f43886b8a69fde47f3",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "686ad73980e65fd2c541d5d21c1c9558fdcb0183606155ba08d7c961fea08371",
+        "reviewed_content_sha256": "b125935da2dc574c27a92d96ea57ac128f1463d7965ff4f43886b8a69fde47f3",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -183,22 +183,13 @@
       "model_answer": "同层相邻两幅短边搭接错缝距离≥500mm；上下两层及长边接缝错开≥1/3 幅宽。",
       "options": [
         {
-          "text": "同层相邻两幅短边搭接错缝距离≥500mm；上下两层及长边接缝错开≥1/3 幅宽。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "两数值配套：短边≥500mm、错开≥1/3幅宽，换数据也不丢。",
-          "option_id": "F02-html-practice-html-q3-737cf69735c4:option-1"
-        },
-        {
           "text": "同层相邻两幅短边搭接错缝距离≥50mm；上下两层及长边接缝错开距离≥1/2 幅宽。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "数值记个大概，50mm、半幅宽顺口。",
           "loss_reason": "短边应≥500mm（差了 10 倍）、错开应≥1/3 幅宽，规范数字混淆。",
           "fix": "短边≥500mm、错开≥1/3 幅宽。",
-          "option_id": "F02-html-practice-html-q3-737cf69735c4:option-2"
+          "option_id": "F02-html-practice-html-q3-7e6cf9a55201:option-1"
         },
         {
           "text": "相邻两幅卷材的短边、长边接缝均要错缝铺贴，接缝彼此避开、不落在同一直线上即可。",
@@ -207,7 +198,7 @@
           "temptation": "知道要错缝，懒得写具体数值。",
           "loss_reason": "只写定性、不给「≥500mm / ≥1/3幅宽」数值，关键数值缺失=不得分。",
           "fix": "必带数值：短边≥500mm、错开≥1/3幅宽。",
-          "option_id": "F02-html-practice-html-q3-737cf69735c4:option-3"
+          "option_id": "F02-html-practice-html-q3-7e6cf9a55201:option-2"
         },
         {
           "text": "同层相邻两幅短边搭接错缝距离≥500mm 即可，上下两层与长边接缝可对齐、无需另行错开。",
@@ -216,10 +207,19 @@
           "temptation": "记住了 500，以为长边/上下层随意。",
           "loss_reason": "漏「长边及上下层错开≥1/3幅宽」，且「无需错开」错误。",
           "fix": "补「长边及上下层错开≥1/3幅宽」。",
-          "option_id": "F02-html-practice-html-q3-737cf69735c4:option-4"
+          "option_id": "F02-html-practice-html-q3-7e6cf9a55201:option-3"
+        },
+        {
+          "text": "同层相邻两幅短边搭接错缝距离≥500mm；上下两层及长边接缝错开≥1/3 幅宽。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两数值配套：短边≥500mm、错开≥1/3幅宽，换数据也不丢。",
+          "option_id": "F02-html-practice-html-q3-7e6cf9a55201:option-4"
         }
       ],
-      "variant_id": "F02-html-practice-html-q3-737cf69735c4",
+      "variant_id": "F02-html-practice-html-q3-7e6cf9a55201",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
@@ -227,17 +227,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q3",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a",
+      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "536e5d15860224e89635d32bc4c2a6110a9149d66850cddb9f6d084f8da8c912",
+      "content_sha256": "a8a5cdc2665780da5f6a593317de7b586c1da5d1ee8ccfdae63a322884e49d6d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "536e5d15860224e89635d32bc4c2a6110a9149d66850cddb9f6d084f8da8c912",
+        "reviewed_content_sha256": "a8a5cdc2665780da5f6a593317de7b586c1da5d1ee8ccfdae63a322884e49d6d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -300,17 +300,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q4",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a",
+      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "701dc0fb659fd9b6044fd05001d7d58e8711e5888ef8a627f3d067ccb3e60682",
+      "content_sha256": "d84610d01a81e0959751decc0ddb6560849ca6e6e5b63dbb1f7d43fe374e783a",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "701dc0fb659fd9b6044fd05001d7d58e8711e5888ef8a627f3d067ccb3e60682",
+        "reviewed_content_sha256": "d84610d01a81e0959751decc0ddb6560849ca6e6e5b63dbb1f7d43fe374e783a",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -329,22 +329,22 @@
       "model_answer": "卷材防水层铺设在结构迎水面、外墙外侧采用满贴法、上下两层不得相互垂直；外防内贴法宜先铺立面、后铺平面。",
       "options": [
         {
-          "text": "卷材铺在结构迎水面、外墙外侧满贴，上下两层不得相互垂直；外防内贴法先铺立面、后铺平面。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "迎水面 + 外侧满贴 + 不垂直 + 先立面后平面，四点全。",
-          "option_id": "F02-html-practice-html-q5-4a149b7c6bdd:option-1"
-        },
-        {
           "text": "卷材铺在结构背水面、外墙内侧采用空铺法，上下两层可相互垂直，外防内贴法先铺平面后铺立面。",
           "is_correct": false,
           "source_error_code": "E11",
           "temptation": "觉得背水面也能挡水、空铺省事。",
           "loss_reason": "应铺迎水面、外墙外侧满贴；背水面/空铺迁移失败。",
           "fix": "迎水面 + 外墙外侧满贴。",
-          "option_id": "F02-html-practice-html-q5-4a149b7c6bdd:option-2"
+          "option_id": "F02-html-practice-html-q5-920d4b8af544:option-1"
+        },
+        {
+          "text": "卷材铺在结构迎水面、外墙外侧满贴，上下两层不得相互垂直；外防内贴法先铺立面、后铺平面。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "迎水面 + 外侧满贴 + 不垂直 + 先立面后平面，四点全。",
+          "option_id": "F02-html-practice-html-q5-920d4b8af544:option-2"
         },
         {
           "text": "卷材铺在结构迎水面、外墙外侧满贴，外防内贴法先铺平面、后铺立面，遵循先大面后转角收边。",
@@ -353,7 +353,7 @@
           "temptation": "习惯先铺地面大面、再上墙转角。",
           "loss_reason": "外防内贴法应先立面、后平面，程序顺序错误。",
           "fix": "外防内贴法先立面、后平面。",
-          "option_id": "F02-html-practice-html-q5-4a149b7c6bdd:option-3"
+          "option_id": "F02-html-practice-html-q5-920d4b8af544:option-3"
         },
         {
           "text": "卷材防水层铺设在结构迎水面即可，外墙铺贴方式、上下层关系与外防内贴顺序按现场条件灵活处理。",
@@ -362,10 +362,10 @@
           "temptation": "记住「迎水面」，以为够了。",
           "loss_reason": "漏「外墙外侧满贴、不得垂直、外防内贴先立面后平面」，关键词缺失。",
           "fix": "补满贴/不垂直/先立面后平面。",
-          "option_id": "F02-html-practice-html-q5-4a149b7c6bdd:option-4"
+          "option_id": "F02-html-practice-html-q5-920d4b8af544:option-4"
         }
       ],
-      "variant_id": "F02-html-practice-html-q5-4a149b7c6bdd",
+      "variant_id": "F02-html-practice-html-q5-920d4b8af544",
       "surface_id": "practice.html",
       "source_index": 4,
       "source_group": "Q",
@@ -373,17 +373,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a",
+      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "90bb94017c1704550d7529e319804fd0915ca618b9c39ca4532f7c372800bf50",
+      "content_sha256": "b27e71014b9b24aafdab8115352a694a9710bba5ff71a85590a4bd34cd0be15e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "90bb94017c1704550d7529e319804fd0915ca618b9c39ca4532f7c372800bf50",
+        "reviewed_content_sha256": "b27e71014b9b24aafdab8115352a694a9710bba5ff71a85590a4bd34cd0be15e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -402,22 +402,13 @@
       "model_answer": "四处均不妥：泛水高度应≥250mm；阴阳角基层应做 45°或圆弧（不得直角）；应增设附加层、平面立面宽度均≥250mm；收头应金属压条钉压并密封、下端设鹰嘴和滴水槽。",
       "options": [
         {
-          "text": "四处均不妥：泛水高度应≥250mm（非200）；阴阳角基层应做 45°或圆弧（不得直角）；应增设附加层、平面立面均≥250mm；收头金属压条钉压并密封、下端设鹰嘴滴水槽。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "四处全揪出、逐项给数值与做法——这就是「会写答案」。",
-          "option_id": "F02-html-practice-html-q6-bae48b5ad9f5:option-1"
-        },
-        {
           "text": "本题仅第①处泛水高度 200mm 偏低、应改成不小于250mm 即可；②阴阳角基层做成直角、③女儿墙泛水未做附加层、④收头处简单压住这三处做法均已符合规范要求、无需再整改。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "抓到一个数值错，就以为只此一处。",
           "loss_reason": "漏诊阴阳角直角、未做附加层、收头无鹰嘴滴水槽三处，采分点遗漏。",
           "fix": "阴阳角圆弧、附加层≥250、收头鹰嘴滴水槽都要补。",
-          "option_id": "F02-html-practice-html-q6-bae48b5ad9f5:option-2"
+          "option_id": "F02-html-practice-html-q6-c063c068d1c4:option-1"
         },
         {
           "text": "仅①泛水高度和②阴阳角基层直角两处不妥、应整改到位；③增设附加层与④收头鹰嘴滴水槽属屋面大面及后续防水工序做法，女儿墙泛水节点处此处不必逐项单独列出诊断。",
@@ -426,7 +417,16 @@
           "temptation": "以为附加层/收头不算细部采分点。",
           "loss_reason": "附加层（平立面≥250）与收头（鹰嘴滴水槽）正是细部高分采分点，遗漏。",
           "fix": "补附加层平立面≥250 + 收头金属压条钉压密封+鹰嘴滴水槽。",
-          "option_id": "F02-html-practice-html-q6-bae48b5ad9f5:option-3"
+          "option_id": "F02-html-practice-html-q6-c063c068d1c4:option-2"
+        },
+        {
+          "text": "四处均不妥：泛水高度应≥250mm（非200）；阴阳角基层应做 45°或圆弧（不得直角）；应增设附加层、平面立面均≥250mm；收头金属压条钉压并密封、下端设鹰嘴滴水槽。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四处全揪出、逐项给数值与做法——这就是「会写答案」。",
+          "option_id": "F02-html-practice-html-q6-c063c068d1c4:option-3"
         },
         {
           "text": "①②③④这几处做法都存在明显问题，应统一按屋面卷材防水规范要求整改到位、逐一加强女儿墙各节点构造处理、最终确保该部位长期不发生渗漏水现象。",
@@ -435,10 +435,10 @@
           "temptation": "知道有错，懒得逐项点准数值与做法。",
           "loss_reason": "未点准每处数值/做法（泛水≥250、圆弧、附加层≥250、鹰嘴滴水槽），改正不可操作=泛泛不得分。",
           "fix": "逐项写：泛水≥250、阴阳角圆弧、附加层平立面≥250、收头鹰嘴滴水槽。",
-          "option_id": "F02-html-practice-html-q6-bae48b5ad9f5:option-4"
+          "option_id": "F02-html-practice-html-q6-c063c068d1c4:option-4"
         }
       ],
-      "variant_id": "F02-html-practice-html-q6-bae48b5ad9f5",
+      "variant_id": "F02-html-practice-html-q6-c063c068d1c4",
       "surface_id": "practice.html",
       "source_index": 5,
       "source_group": "Q",
@@ -446,17 +446,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "5d9bd3f56575af955d4500e365e85a8209278c4a9883bef5a5efe28c9512674a",
+      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a59ec948173392ad61852e49e6510fb4478c0fb27a7993813f3ec752bed12dd7",
+      "content_sha256": "fd8e86146bf682bfd1f360d6fc55fa5d3e82c10d745cf64a14ecb93b472b3bb7",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "a59ec948173392ad61852e49e6510fb4478c0fb27a7993813f3ec752bed12dd7",
+        "reviewed_content_sha256": "fd8e86146bf682bfd1f360d6fc55fa5d3e82c10d745cf64a14ecb93b472b3bb7",
         "signatures": [],
         "checks": {
           "source_verified": false,

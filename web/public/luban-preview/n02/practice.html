@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -258,35 +258,35 @@ class Component extends DCLogic {
       stem:"承上题（已判等步距异节奏，节拍 3、3、6、3）。求流水步距 K，写出可得分的算式与依据。",
       model:"K = 各节拍最大公约数 gcd(3,6)=3 个月。",
       opts:[
-        { t:"等步距异节奏，流水步距 K 取各节拍「最大公约数」：K=gcd(3,3,6,3)=3 个月。", ok:true, fix:"依据词「最大公约数」+算式+数值带单位，换组数据也不会错。", code:"" },
         { t:"步距要能排开工序，取各节拍「最大值」：K=6 个月，按最长的砌筑节拍定步距。", ok:false, code:"E09", tempt:"怕步距小排不开，想用最长工序节拍当步距。", lose:"K 取最大节拍会让队排稀、施工段空等，违反 K=最大公约数。", fix:"据型 K=gcd(3,6)=3，不是最大节拍。" },
-        { t:"步距取各节拍「平均值」折中：K=(3+3+6+3)÷4=3.75 个月，兼顾各工序不排稀。", ok:false, code:"E09", tempt:"平均看着「折中又公平」。", lose:"流水步距没有平均口径，3.75 非整数无法让各段整数个 K 咬合。", fix:"用最大公约数 3，不是平均值。" },
-        { t:"步距取各节拍「最小值」保证咬合：K=3 个月，用最短节拍定步距最紧凑。", ok:false, code:"E07", tempt:"数值 3 恰好正确，极易顺手就选。", lose:"数值对、依据错——最小值等于 gcd 只是本题巧合；阅卷看依据词「最大公约数」，写「最小节拍」不给判据分。", fix:"必须写「K=最大公约数 gcd(3,6)=3」，不能写「取最小节拍」。" }
+        { t:"折中处理时取各节拍「平均值」：K=(3+3+6+3)÷4=3.75 个月，认为这样能兼顾各工序不排稀。", ok:false, code:"E09", tempt:"平均看着「折中又公平」。", lose:"流水步距没有平均口径，3.75 非整数无法让各段整数个 K 咬合。", fix:"用最大公约数 3，不是平均值。" },
+        { t:"步距取各节拍「最小值」保证咬合：K=3 个月，用最短节拍定步距最紧凑。", ok:false, code:"E07", tempt:"数值 3 恰好正确，极易顺手就选。", lose:"数值对、依据错——最小值等于 gcd 只是本题巧合；阅卷看依据词「最大公约数」，写「最小节拍」不给判据分。", fix:"必须写「K=最大公约数 gcd(3,6)=3」，不能写「取最小节拍」。" },
+        { t:"等步距异节奏，流水步距 K 取各节拍「最大公约数」：K=gcd(3,3,6,3)=3 个月。", ok:true, fix:"依据词「最大公约数」+算式+数值带单位，换组数据也不会错。", code:"" }
       ] },
 { tag:"队数·计算表达维", typeHint:"单选 · 选出可得分的列式与依据", figLabel:"题给：各工序节拍（K=3）", figCaption:"基础3 结构3 砌筑6 装修3 · 需几个专业队？", fig:"rows",
       stem:"承上题（等步距异节奏，K=3，节拍 3、3、6、3）。需要多少个专业施工队？写出可得分的列式与依据。",
       model:"各工序队数=节拍÷K=1+1+2+1=5 个；成倍节拍拆队，队数>工序数。",
       opts:[
-        { t:"各工序队数=节拍÷K=1+1+2+1=5 个专业队；成倍节拍要拆队，队数大于工序数。", ok:true, fix:"逐工序÷K、求和、点明拆队与队数>工序数，砌筑拆 2 队归属清楚。", code:"" },
         { t:"四个施工过程就设 4 个专业队，每个过程配 1 个队依次施工，队数等于工序数。", ok:false, code:"E07", tempt:"直觉「几道工序就几个队」，等节奏时确实如此。", lose:"成倍节拍未拆队：砌筑 6=2K 应拆 2 队，漏拆少 1 队。", fix:"队数=节拍÷K 求和=5，队数>工序数。" },
         { t:"把节拍数当队数：砌筑 6 设 6 个队、其余每过程各设 3 个队，共 6+3+3+3=15 个队。", ok:false, code:"E09", tempt:"把「节拍数」直接当「队数」摆。", lose:"队数=节拍÷K，不是节拍本身，严重高估。", fix:"节拍÷K：6÷3=2 队、3÷3=1 队，合计 5 队。" },
-        { t:"队数=总节拍÷K=(3+3+6+3)÷3=5 个队，用总节拍一次除以步距求出队数。", ok:false, code:"E07", tempt:"数值 5 正确，算式看着也「成立」。", lose:"数值对、口径错——「总节拍÷K」掩盖拆队归属，阅卷要求队数落到具体工序（砌筑拆 2）。", fix:"写成 1+1+2+1=5，标明砌筑拆 2 队、队数>工序数。" }
+        { t:"队数=总节拍÷K=(3+3+6+3)÷3=5 个队，用总节拍一次除以步距求出队数。", ok:false, code:"E07", tempt:"数值 5 正确，算式看着也「成立」。", lose:"数值对、口径错——「总节拍÷K」掩盖拆队归属，阅卷要求队数落到具体工序（砌筑拆 2）。", fix:"写成 1+1+2+1=5，标明砌筑拆 2 队、队数>工序数。" },
+        { t:"各工序队数=节拍÷K=1+1+2+1=5 个专业队；成倍节拍要拆队，队数大于工序数。", ok:true, fix:"逐工序÷K、求和、点明拆队与队数>工序数，砌筑拆 2 队归属清楚。", code:"" }
       ] },
 { tag:"工期·计算表达维", typeHint:"单选 · 选出可得分的工期算式与依据", figLabel:"题给：M=2 段，N′=5 队，K=3", figCaption:"5 队 2 段对角咬合 · 总工期 T = ？", fig:"gantt",
       stem:"承上题（等步距异节奏，K=3 个月，施工段 M=2，拆队后专业队 N′=5）。求总工期 T，写出可得分的算式与依据。",
       model:"T=(M+N′−1)×K=(2+5−1)×3=18 个月，体现搭接、带单位。",
       opts:[
-        { t:"总工期体现搭接：T=(M+N′−1)×K=(2+5−1)×3=18 个月。", ok:true, fix:"用拆队后队数 N′=5、施工段 M=2，体现搭接并带单位，公式与数值齐。", code:"" },
         { t:"总工期就是各工序节拍相加：T=3+3+6+3=15 个月，把四道工序时间累加起来。", ok:false, code:"E09", tempt:"以为把工序节拍加起来就是工期。", lose:"机械相加不体现搭接，也没展开多施工段与拆队。", fix:"T=(M+N′−1)×K=(2+5−1)×3=18 个月。" },
         { t:"总工期=节拍在两个施工段上全摆开=(3+3+6+3)×2=30 个月。", ok:false, code:"E09", tempt:"两段就乘 2，看着「全做完」。", lose:"那是不搭接、一段段死等的算法；流水搭接后只 18 个月。", fix:"体现搭接 T=(2+5−1)×3=18 个月，不是 30。" },
+        { t:"总工期体现搭接：T=(M+N′−1)×K=(2+5−1)×3=18 个月。", ok:true, fix:"用拆队后队数 N′=5、施工段 M=2，体现搭接并带单位，公式与数值齐。", code:"" },
         { t:"总工期=(M+N′−1)×K=(2+4−1)×3=15 个月（按 4 道工序算）。", ok:false, code:"E07", tempt:"公式对，但把 N′ 当成了 4 道工序。", lose:"N′ 是拆队后总队数 5，不是工序数 4；用错连锁错。", fix:"N′=5，T=(2+5−1)×3=18 个月。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 工期数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"总工期 18 与标准答案数值一致，但…", fig:"sheet",
       stem:"某学生作答：①K 取最大节拍=6 个月；②设 4 个专业队；③总工期=3+3+6+6=18 个月。其总工期 18 恰与标准答案一致。选出最准确的诊断与补写。",
       model:"判型理由缺、K 取最大节拍（应 gcd=3）、未拆队（应 5 队）、工期机械相加未体现搭接；补写四句：成倍数·等步距异节奏／K=gcd(3,6)=3／队数 1+1+2+1=5／T=(2+5−1)×3=18 个月。",
       opts:[
-        { t:"判型理由缺、K 应取 gcd=3、未拆队应 5 队、工期系机械相加碰巧得 18；四处都要补写。", ok:true, fix:"四处失分全揪出，补写即可上答题纸的四句采分句——这就是「会写答案」。", code:"" },
         { t:"三步算出工期 18，与标准答案数值一致，判型 K 队数也都对，作答正确可给满分。", ok:false, code:"E07", tempt:"只看末位数字，数值对就以为全对——最危险的误判。", lose:"工期是机械相加 3+3+6+6 碰巧得 18，判型/K/队数全错且未体现搭接；阅卷看过程采分。", fix:"判型/K/队数都要重写，工期按 (2+5−1)×3 体现搭接。" },
+        { t:"判型理由缺、K 应取 gcd=3、未拆队应 5 队、工期系机械相加碰巧得 18；四处都要补写。", ok:true, fix:"四处失分全揪出，补写即可上答题纸的四句采分句——这就是「会写答案」。", code:"" },
         { t:"只是总工期写法不够规范，把 K 从 6 改成 3 就行，判型和队数其余都正确无误。", ok:false, code:"E02", tempt:"抓到 K 错一处，就以为只此一错。", lose:"漏诊「判型理由缺失」和「未拆队（4 应 5）」两处失分。", fix:"判型理由、拆队 5 队、搭接工期三处都要补，不止改 K。" },
         { t:"K 应取平均节拍 3.75 而非 6，队数与工期按 3.75 重算即可，其余判型思路都没问题。", ok:false, code:"E07", tempt:"看出 K=6 错了，却把它纠成了另一个错。", lose:"诊断方向本身错：K 是最大公约数 3，不是平均 3.75，用错 K 重算只会连锁错。", fix:"K=gcd(3,6)=3，按 K=3 重算队数 5、工期 18。" }
       ] }
@@ -486,7 +486,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"N02-html-practice-html-q1-f0ad516c7201","options":["N02-html-practice-html-q1-f0ad516c7201:option-1","N02-html-practice-html-q1-f0ad516c7201:option-2","N02-html-practice-html-q1-f0ad516c7201:option-3","N02-html-practice-html-q1-f0ad516c7201:option-4"]},{"variant_id":"N02-html-practice-html-q2-218baee30970","options":["N02-html-practice-html-q2-218baee30970:option-1","N02-html-practice-html-q2-218baee30970:option-2","N02-html-practice-html-q2-218baee30970:option-3","N02-html-practice-html-q2-218baee30970:option-4"]},{"variant_id":"N02-html-practice-html-q3-8a4c094011b3","options":["N02-html-practice-html-q3-8a4c094011b3:option-1","N02-html-practice-html-q3-8a4c094011b3:option-2","N02-html-practice-html-q3-8a4c094011b3:option-3","N02-html-practice-html-q3-8a4c094011b3:option-4"]},{"variant_id":"N02-html-practice-html-q4-0df28c99fb2d","options":["N02-html-practice-html-q4-0df28c99fb2d:option-1","N02-html-practice-html-q4-0df28c99fb2d:option-2","N02-html-practice-html-q4-0df28c99fb2d:option-3","N02-html-practice-html-q4-0df28c99fb2d:option-4"]},{"variant_id":"N02-html-practice-html-q6-d43c94b429a7","options":["N02-html-practice-html-q6-d43c94b429a7:option-1","N02-html-practice-html-q6-d43c94b429a7:option-2","N02-html-practice-html-q6-d43c94b429a7:option-3","N02-html-practice-html-q6-d43c94b429a7:option-4"]}];
+    const exactItems=[{"variant_id":"N02-html-practice-html-q1-f0ad516c7201","options":["N02-html-practice-html-q1-f0ad516c7201:option-1","N02-html-practice-html-q1-f0ad516c7201:option-2","N02-html-practice-html-q1-f0ad516c7201:option-3","N02-html-practice-html-q1-f0ad516c7201:option-4"]},{"variant_id":"N02-html-practice-html-q2-813072d92c5a","options":["N02-html-practice-html-q2-813072d92c5a:option-1","N02-html-practice-html-q2-813072d92c5a:option-2","N02-html-practice-html-q2-813072d92c5a:option-3","N02-html-practice-html-q2-813072d92c5a:option-4"]},{"variant_id":"N02-html-practice-html-q3-578780f341e5","options":["N02-html-practice-html-q3-578780f341e5:option-1","N02-html-practice-html-q3-578780f341e5:option-2","N02-html-practice-html-q3-578780f341e5:option-3","N02-html-practice-html-q3-578780f341e5:option-4"]},{"variant_id":"N02-html-practice-html-q4-49ae2a47bd94","options":["N02-html-practice-html-q4-49ae2a47bd94:option-1","N02-html-practice-html-q4-49ae2a47bd94:option-2","N02-html-practice-html-q4-49ae2a47bd94:option-3","N02-html-practice-html-q4-49ae2a47bd94:option-4"]},{"variant_id":"N02-html-practice-html-q6-461d5405fa34","options":["N02-html-practice-html-q6-461d5405fa34:option-1","N02-html-practice-html-q6-461d5405fa34:option-2","N02-html-practice-html-q6-461d5405fa34:option-3","N02-html-practice-html-q6-461d5405fa34:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -503,7 +503,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("N02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjBhZDUxNmM3MjAxIiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yMThiYWVlMzA5NzAiLCJOMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLThhNGMwOTQwMTFiMyIsIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtMGRmMjhjOTlmYjJkIiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1kNDNjOTRiNDI5YTciXSwicGFja19pZCI6Ik4wMiIsInByb2plY3Rpb25fZGlnZXN0IjoiNDQ2YjkwNDNkYjJmZmM3OTQ5ZmU3OTEyZTRhOGJiMmMxNjZjOWI4ZDExMjJhNTM5MDMzMTY4ZTI2YjUzMDExZiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("N02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjBhZDUxNmM3MjAxIiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04MTMwNzJkOTJjNWEiLCJOMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTU3ODc4MGYzNDFlNSIsIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDlhZTJhNDdiZDk0IiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi00NjFkNTQwNWZhMzQiXSwicGFja19pZCI6Ik4wMiIsInByb2plY3Rpb25fZGlnZXN0IjoiYmY4ZWEwNjJjYmE1YTRhZGU2ZWRhZmFhOGJiZmNkNzhmODEyZWRkZTczNDVhNzk4MGIzNjljZDUzYjgwM2JlMiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "F03",
   "source_pack_sha256": "12b0066ad4ed932dd0ccdebf292cafb5fa005970a9108b808d4bfed705ff12e7",
-  "source_bundle_sha256": "fa0262229402d3ac249dff67bf3be2150e1e2ebbf582fba022eb658fd6e07ca8",
+  "source_bundle_sha256": "9f631ba74d6a16229959cf3223c24de8eca016e97cab37cdf76efdbc6d8558e6",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,15 +18,15 @@
         14
       ],
       "variant_ids": [
-        "F03-html-practice-html-q1-87bb98aa8f27",
-        "F03-html-practice-html-q2-eab6dce55fd7",
-        "F03-html-practice-html-q3-2e277ff26b26",
+        "F03-html-practice-html-q1-f462cac471c8",
+        "F03-html-practice-html-q2-ef9f1a4d6622",
+        "F03-html-practice-html-q3-45464ecc00a5",
         "F03-html-practice-html-q4-5436a7f644e1",
         "F03-html-practice-html-q15-fb7660e7484a"
       ],
       "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtODdiYjk4YWE4ZjI3IiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lYWI2ZGNlNTVmZDciLCJGMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTJlMjc3ZmYyNmIyNiIsIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNTQzNmE3ZjY0NGUxIiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZmI3NjYwZTc0ODRhIl0sInBhY2tfaWQiOiJGMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBjYjY0ZmM1OTQ1MGIwMzhmNjZmMWQzNDBiNTI3YjBlNzJkMmQ1Y2QyMmE5YzJkMGQ1ZGE1ZjAyMDYxNjc5YzAiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "94508235ef5323d234d5c24ac0fed15e7b02a536e54cc574cdce5743c327ad25"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjQ2MmNhYzQ3MWM4IiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lZjlmMWE0ZDY2MjIiLCJGMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQ1NDY0ZWNjMDBhNSIsIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNTQzNmE3ZjY0NGUxIiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZmI3NjYwZTc0ODRhIl0sInBhY2tfaWQiOiJGMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6Ijg0NGRmMTBhMDJmZmI5ZjBhZjMyZDQxOWE0ZWY4OWUyYjYyOTI0MmQ1MDgwMDc3NWM5OGJlZGYzODJhM2Q5MzAiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "a40d84163ced401406b53f9a28ee84466f5f629be8773a6251f1f215d3b5fa5f"
     }
   ],
   "items": [
@@ -37,43 +37,43 @@
       "model_answer": "屋面防水分一、二、三级共三级；一级不少于3道(卷材≥1道)、二级不少于2道(卷材≥1道)、三级不少于1道。",
       "options": [
         {
+          "text": "屋面防水与地下工程采用相同分级，同样分一、二、三、四级共四级，并按四级分别对应各级设防道数。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "屋面地下都叫防水，顺手记成同一套分级。",
+          "loss_reason": "屋面是三级、地下才四级，分级数记混，等级一错道数全跟着错。",
+          "fix": "屋面防水分三级；四级是地下工程防水等级。",
+          "option_id": "F03-html-practice-html-q1-f462cac471c8:option-1"
+        },
+        {
           "text": "屋面防水分一、二、三级共三级；一级不少于3道(其中卷材≥1道)、二级不少于2道、三级不少于1道。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "分级数写「三级」并把各级道数配套点出，一句到位。",
-          "option_id": "F03-html-practice-html-q1-87bb98aa8f27:option-1"
+          "option_id": "F03-html-practice-html-q1-f462cac471c8:option-2"
         },
         {
-          "text": "屋面防水和地下一样分一、二、三、四级共四级，按四级对应各级设防道数。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "屋面地下都叫防水，顺手记成同一套分级。",
-          "loss_reason": "屋面是三级、地下才四级，分级数记混，等级一错道数全跟着错。",
-          "fix": "屋面防水分三级；四级是地下工程防水等级。",
-          "option_id": "F03-html-practice-html-q1-87bb98aa8f27:option-2"
-        },
-        {
-          "text": "屋面防水分三级，但各级道数不用记，按现场渗漏情况增减道数即可。",
+          "text": "屋面防水虽分为三级，但各级具体设防道数无须逐一记忆，只要答出分级即算完整。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "记住「三级」就以为够了，懒得背道数。",
           "loss_reason": "漏了各级设防道数这组采分点，只答分级不给全分。",
           "fix": "补写一级≥3道(卷材≥1道)、二级≥2道、三级≥1道。",
-          "option_id": "F03-html-practice-html-q1-87bb98aa8f27:option-3"
+          "option_id": "F03-html-practice-html-q1-f462cac471c8:option-3"
         },
         {
-          "text": "屋面防水分三级，一级不少于2道、二级不少于1道，卷材涂料任选不作要求。",
+          "text": "屋面防水分三级，其中一级不少于2道、二级不少于1道，卷材与涂料任选、不作配套要求。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "分级对，道数凭印象往小了写。",
           "loss_reason": "一级道数写少、且漏了「卷材≥1道」这个关键配套，数字错位。",
           "fix": "一级≥3道且卷材≥1道、二级≥2道、三级≥1道。",
-          "option_id": "F03-html-practice-html-q1-87bb98aa8f27:option-4"
+          "option_id": "F03-html-practice-html-q1-f462cac471c8:option-4"
         }
       ],
-      "variant_id": "F03-html-practice-html-q1-87bb98aa8f27",
+      "variant_id": "F03-html-practice-html-q1-f462cac471c8",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
@@ -81,17 +81,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q1",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "57e1c46d169664d2f0c9719e18c0899647ef8aed6cc2efe7ead7b537aaa453d9",
+      "content_sha256": "25dd0fc6ab15fc639960a16bc0987dcc49e10d30d455040d89ff2f3687817a61",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "57e1c46d169664d2f0c9719e18c0899647ef8aed6cc2efe7ead7b537aaa453d9",
+        "reviewed_content_sha256": "25dd0fc6ab15fc639960a16bc0987dcc49e10d30d455040d89ff2f3687817a61",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -110,43 +110,43 @@
       "model_answer": "屋面一级防水设防不少于3道，其中卷材防水层不少于1道；多道设防、一道破了后道兜底。",
       "options": [
         {
+          "text": "屋面一级防水做1道高性能卷材即可，材料性能足够时单道便能顶住，不必叠加多道。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得材料够好、一道省事又省钱。",
+          "loss_reason": "一级要求≥3道，只写1道漏采分；单道被打穿水就进结构。",
+          "fix": "一级≥3道(卷材≥1道)，多道设防才容错。",
+          "option_id": "F03-html-practice-html-q2-ef9f1a4d6622:option-1"
+        },
+        {
+          "text": "屋面一级防水不少于3道，三道如何搭配不限，涂料涂膜叠三层也可视为达标。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "记住「3道」就以为齐了。",
+          "loss_reason": "漏了「其中卷材≥1道」这一硬性配套，三道全涂膜不达标。",
+          "fix": "3道里必须至少1道是卷材防水层。",
+          "option_id": "F03-html-practice-html-q2-ef9f1a4d6622:option-2"
+        },
+        {
+          "text": "屋面一级与地下一级要求一致，需防水混凝土1道加外设防水层2道共3道。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "都是「一级≥3道」，把地下的做法套到屋面。",
+          "loss_reason": "防水混凝土+外设是地下的构成，屋面不用结构自防水这套。",
+          "fix": "屋面一级=≥3道(卷材≥1道)；防水混凝土应选是地下的。",
+          "option_id": "F03-html-practice-html-q2-ef9f1a4d6622:option-3"
+        },
+        {
           "text": "屋面一级防水设防不少于3道，其中卷材防水层不少于1道，多道叠加、一道破了还有后手。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "道数+「卷材≥1道」配套+多道容错，采分句写全。",
-          "option_id": "F03-html-practice-html-q2-eab6dce55fd7:option-1"
-        },
-        {
-          "text": "屋面一级防水做1道高性能卷材即可，材料好一道就顶住，不必叠多道。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得材料够好、一道省事又省钱。",
-          "loss_reason": "一级要求≥3道，只写1道漏采分；单道被打穿水就进结构。",
-          "fix": "一级≥3道(卷材≥1道)，多道设防才容错。",
-          "option_id": "F03-html-practice-html-q2-eab6dce55fd7:option-2"
-        },
-        {
-          "text": "屋面一级防水不少于3道，三道随便配，涂料涂膜叠三层也算达标。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "记住「3道」就以为齐了。",
-          "loss_reason": "漏了「其中卷材≥1道」这一硬性配套，三道全涂膜不达标。",
-          "fix": "3道里必须至少1道是卷材防水层。",
-          "option_id": "F03-html-practice-html-q2-eab6dce55fd7:option-3"
-        },
-        {
-          "text": "屋面一级和地下一级一样，要防水混凝土1道加外设2道共3道。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "都是「一级≥3道」，把地下的做法套到屋面。",
-          "loss_reason": "防水混凝土+外设是地下的构成，屋面不用结构自防水这套。",
-          "fix": "屋面一级=≥3道(卷材≥1道)；防水混凝土应选是地下的。",
-          "option_id": "F03-html-practice-html-q2-eab6dce55fd7:option-4"
+          "option_id": "F03-html-practice-html-q2-ef9f1a4d6622:option-4"
         }
       ],
-      "variant_id": "F03-html-practice-html-q2-eab6dce55fd7",
+      "variant_id": "F03-html-practice-html-q2-ef9f1a4d6622",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
@@ -154,17 +154,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q2",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e125b3b93a11e2dbd34ba729b109a75ed8092c02dcd935c45de6d34fbbce0bd9",
+      "content_sha256": "8e6a6f50f1a543c44a0b3bae826b24134458828e841ae1b477215bb2f43b7641",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e125b3b93a11e2dbd34ba729b109a75ed8092c02dcd935c45de6d34fbbce0bd9",
+        "reviewed_content_sha256": "8e6a6f50f1a543c44a0b3bae826b24134458828e841ae1b477215bb2f43b7641",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -183,43 +183,43 @@
       "model_answer": "屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位设附加层。",
       "options": [
         {
+          "text": "屋面防水以排为主、以防为辅；设计工作年限不少于20年；天沟、泛水等部位加设附加层。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得屋面靠排水、「以排为主」顺口。",
+          "loss_reason": "原则写反了，屋面是「以防为主、以排为辅」，方针错要扣。",
+          "fix": "是以防为主、以排为辅，别把主辅颠倒。",
+          "option_id": "F03-html-practice-html-q3-45464ecc00a5:option-1"
+        },
+        {
+          "text": "屋面防水以防为主、以排为辅；设计工作年限不少于20年；各部位构造做法相同、无须分别处理。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "原则年限都对，就漏了细部。",
+          "loss_reason": "漏了天沟/檐沟/变形缝/泛水设附加层这组采分点。",
+          "fix": "补写泛水等薄弱部位加设附加层。",
+          "option_id": "F03-html-practice-html-q3-45464ecc00a5:option-2"
+        },
+        {
+          "text": "屋面防水以防为主、以排为辅；设计工作年限不少于10年；天沟、泛水等部位加设附加层。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "原则附加层都对，年限凭印象写10年。",
+          "loss_reason": "年限数字写小，屋面防水设计工作年限应≥20年。",
+          "fix": "设计工作年限不少于20年，不是10年。",
+          "option_id": "F03-html-practice-html-q3-45464ecc00a5:option-3"
+        },
+        {
           "text": "屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位加设附加层。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "排水原则+年限+附加层三件齐，采分句到位。",
-          "option_id": "F03-html-practice-html-q3-2e277ff26b26:option-1"
-        },
-        {
-          "text": "屋面防水以排为主、以防为辅；设计工作年限不少于20年，泛水部位加设附加层。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得屋面靠排水、「以排为主」顺口。",
-          "loss_reason": "原则写反了，屋面是「以防为主、以排为辅」，方针错要扣。",
-          "fix": "是以防为主、以排为辅，别把主辅颠倒。",
-          "option_id": "F03-html-practice-html-q3-2e277ff26b26:option-2"
-        },
-        {
-          "text": "屋面防水以防为主、以排为辅；设计工作年限不少于20年即可，各部位构造相同不必区别处理。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "原则年限都对，就漏了细部。",
-          "loss_reason": "漏了天沟/檐沟/变形缝/泛水设附加层这组采分点。",
-          "fix": "补写泛水等薄弱部位加设附加层。",
-          "option_id": "F03-html-practice-html-q3-2e277ff26b26:option-3"
-        },
-        {
-          "text": "屋面防水以防为主、以排为辅；设计工作年限不少于10年，泛水部位设附加层。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "原则附加层都对，年限凭印象写10年。",
-          "loss_reason": "年限数字写小，屋面防水设计工作年限应≥20年。",
-          "fix": "设计工作年限不少于20年，不是10年。",
-          "option_id": "F03-html-practice-html-q3-2e277ff26b26:option-4"
+          "option_id": "F03-html-practice-html-q3-45464ecc00a5:option-4"
         }
       ],
-      "variant_id": "F03-html-practice-html-q3-2e277ff26b26",
+      "variant_id": "F03-html-practice-html-q3-45464ecc00a5",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
@@ -227,17 +227,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q3",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ac19c783beb13f766a356e7a68f3c0222d06582b8fcb1333b23c6b7b653b03b6",
+      "content_sha256": "1b796c9005627b525cc222bb2c705a5f8ce310f89c455bf227ceb299d652f5d1",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "ac19c783beb13f766a356e7a68f3c0222d06582b8fcb1333b23c6b7b653b03b6",
+        "reviewed_content_sha256": "1b796c9005627b525cc222bb2c705a5f8ce310f89c455bf227ceb299d652f5d1",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -300,17 +300,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q4",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "87d1fe5681569d359bf0d3d4e1c9cce76a56ea67059b6af92067102ae6b762af",
+      "content_sha256": "ad42c45b9bce45adc670bf8fd81ef33723c6280c49678463e3c498000ea7b41a",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "87d1fe5681569d359bf0d3d4e1c9cce76a56ea67059b6af92067102ae6b762af",
+        "reviewed_content_sha256": "ad42c45b9bce45adc670bf8fd81ef33723c6280c49678463e3c498000ea7b41a",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -329,43 +329,43 @@
       "model_answer": "倒置式的特征是保温层设在防水层之上（正置式保温在防水之下），保温层保护防水层、延长其寿命。",
       "options": [
         {
+          "text": "倒置式与正置式的区别在于有无找坡层，倒置式取消找坡层、直接在找平层上做防水。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记不清特征，抓个「少一层」当区别。",
+          "loss_reason": "两者都有找坡层，区别不在找坡；判别特征找错。",
+          "fix": "区别是保温层在防水层之上（倒置）还是之下（正置）。",
+          "option_id": "F03-html-practice-html-q5-b26c75f1ed72:option-1"
+        },
+        {
           "text": "倒置式特征是保温层设在防水层之上，反过来正置式保温在防水之下；保温在上保护防水层、延寿。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "点出唯一判别特征「保温相对防水的位置」，并说清好处。",
-          "option_id": "F03-html-practice-html-q5-28a9bfe6333e:option-1"
+          "option_id": "F03-html-practice-html-q5-b26c75f1ed72:option-2"
         },
         {
-          "text": "倒置式与正置式的区别是有没有找坡层，倒置式取消找坡层直接做防水。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "记不清特征，抓个「少一层」当区别。",
-          "loss_reason": "两者都有找坡层，区别不在找坡；判别特征找错。",
-          "fix": "区别是保温层在防水层之上（倒置）还是之下（正置）。",
-          "option_id": "F03-html-practice-html-q5-28a9bfe6333e:option-2"
-        },
-        {
-          "text": "倒置式是把保护层做到最下面、结构层做到最上面，整个层序上下颠倒。",
+          "text": "倒置式是将保护层置于最下、结构层置于最上，使整个构造层序完全上下颠倒。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "望文生义，以为「倒置」是整摞层序翻转。",
           "loss_reason": "结构层始终在最下、保护层在最上，倒置只针对保温与防水的相对位置。",
           "fix": "倒置只把保温层挪到防水层之上，其余不倒。",
-          "option_id": "F03-html-practice-html-q5-28a9bfe6333e:option-3"
+          "option_id": "F03-html-practice-html-q5-b26c75f1ed72:option-3"
         },
         {
-          "text": "倒置式与正置式的区别是防水材料不同，倒置式必须用耐根穿刺卷材。",
+          "text": "倒置式与正置式的区别在于防水材料不同，倒置式必须采用耐根穿刺卷材防水。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "把种植屋面的耐根穿刺硬套过来。",
           "loss_reason": "倒置式区别在层位不在材料，耐根穿刺是种植屋面的层。",
           "fix": "判别特征是保温在防水之上，与材料无关。",
-          "option_id": "F03-html-practice-html-q5-28a9bfe6333e:option-4"
+          "option_id": "F03-html-practice-html-q5-b26c75f1ed72:option-4"
         }
       ],
-      "variant_id": "F03-html-practice-html-q5-28a9bfe6333e",
+      "variant_id": "F03-html-practice-html-q5-b26c75f1ed72",
       "surface_id": "practice.html",
       "source_index": 4,
       "source_group": "Q",
@@ -373,17 +373,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "12e13dab3f71d9c37a92783152e1e6a2b5ba1af5bfe38f375e57cc3676d41815",
+      "content_sha256": "170323957277db59651e24fd9c01d833e70007b6c16b229175f7d5b431a366a8",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "12e13dab3f71d9c37a92783152e1e6a2b5ba1af5bfe38f375e57cc3676d41815",
+        "reviewed_content_sha256": "170323957277db59651e24fd9c01d833e70007b6c16b229175f7d5b431a366a8",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -402,43 +402,43 @@
       "model_answer": "隔汽层设在结构层之上、保温层之下，气密性好；沿周边墙面向上连续铺设，高出保温层不少于150mm。",
       "options": [
         {
+          "text": "隔汽层设在防水层之上、保温层之上，将室内湿汽阻挡于最外层，并高出保温层不少于150mm。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得隔汽要挡在外面、往上放。",
+          "loss_reason": "位置错，隔汽层在结构层上、保温层下，不是放防水层上。",
+          "fix": "隔汽层在结构层之上、保温层之下。",
+          "option_id": "F03-html-practice-html-q6-5d8efed5e704:option-1"
+        },
+        {
           "text": "隔汽层设在结构层之上、保温层之下，气密性好；沿墙面向上连续铺设、高出保温层不少于150mm。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "位置（结构上·保温下）+翻起150mm两个采分点都写到。",
-          "option_id": "F03-html-practice-html-q6-e2877d3595db:option-1"
+          "option_id": "F03-html-practice-html-q6-5d8efed5e704:option-2"
         },
         {
-          "text": "隔汽层设在防水层之上、保温层之上，把室内湿汽挡在最外层，高出保温层不少于150mm。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "觉得隔汽要挡在外面、往上放。",
-          "loss_reason": "位置错，隔汽层在结构层上、保温层下，不是放防水层上。",
-          "fix": "隔汽层在结构层之上、保温层之下。",
-          "option_id": "F03-html-practice-html-q6-e2877d3595db:option-2"
-        },
-        {
-          "text": "隔汽层设在结构层之上、保温层之下，气密性好，沿墙面铺到与保温层齐平即可。",
+          "text": "隔汽层设在结构层之上、保温层之下，气密性好，沿墙面铺至与保温层齐平即算到位。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "位置对，翻起高度凭印象写「齐平」。",
           "loss_reason": "漏了」高出保温层≥150mm「这个数值采分点。",
           "fix": "沿墙翻起要高出保温层不少于150mm。",
-          "option_id": "F03-html-practice-html-q6-e2877d3595db:option-3"
+          "option_id": "F03-html-practice-html-q6-5d8efed5e704:option-3"
         },
         {
-          "text": "隔汽层设在结构层之上、保温层之下，沿墙面向上高出保温层不少于50mm即可。",
+          "text": "隔汽层设在结构层之上、保温层之下，沿墙面向上翻起、高出保温层不少于50mm。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "位置对，把150记成了50。",
           "loss_reason": "翻起高度数字写小，应≥150mm不是50mm。",
           "fix": "高出保温层不少于150mm。",
-          "option_id": "F03-html-practice-html-q6-e2877d3595db:option-4"
+          "option_id": "F03-html-practice-html-q6-5d8efed5e704:option-4"
         }
       ],
-      "variant_id": "F03-html-practice-html-q6-e2877d3595db",
+      "variant_id": "F03-html-practice-html-q6-5d8efed5e704",
       "surface_id": "practice.html",
       "source_index": 5,
       "source_group": "Q",
@@ -446,17 +446,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b7b4d06b2ede83ca88ede546d4413fca725615581e761b208395ecb25a0e5938",
+      "content_sha256": "58ffce0d26c3c59fbac595a9ef389aaa3957fdf0cabacebfd8a4491cc10a6d3d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "b7b4d06b2ede83ca88ede546d4413fca725615581e761b208395ecb25a0e5938",
+        "reviewed_content_sha256": "58ffce0d26c3c59fbac595a9ef389aaa3957fdf0cabacebfd8a4491cc10a6d3d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -481,37 +481,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "点名「耐根穿刺防水层」并说清作用，采分到位。",
-          "option_id": "F03-html-practice-html-q7-c1f10761768c:option-1"
+          "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-1"
         },
         {
-          "text": "种植屋面比普通屋面多一道保温隔热层，用来给植物根部保温防冻。",
+          "text": "种植屋面比普通屋面多设一道保温隔热层，用于为植物根部保温、防止冬季冻害。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "想当然以为给植物就多保温。",
           "loss_reason": "多的是耐根穿刺防水层，不是保温层；层的性质记错。",
           "fix": "多的是耐根穿刺防水层，防根扎穿。",
-          "option_id": "F03-html-practice-html-q7-c1f10761768c:option-2"
+          "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-2"
         },
         {
-          "text": "种植屋面比普通屋面多一道过滤层就够，防水层与普通屋面完全相同。",
+          "text": "种植屋面比普通屋面仅多设一道过滤层，防水层构造与普通屋面完全相同。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "看到「过滤层」这类新层就以为它是关键。",
           "loss_reason": "漏了耐根穿刺防水层这道关键采分层，过滤层挡不住根。",
           "fix": "关键是多一道耐根穿刺防水层。",
-          "option_id": "F03-html-practice-html-q7-c1f10761768c:option-3"
+          "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-3"
         },
         {
-          "text": "种植屋面把普通防水层换成一道耐根穿刺层，两者是替换关系、总层数不变。",
+          "text": "种植屋面将普通防水层替换为一道耐根穿刺层，二者属替换关系、总层数保持不变。",
           "is_correct": false,
           "source_error_code": "E06",
           "temptation": "以为耐根穿刺是替代普通防水。",
           "loss_reason": "是」多加」一道、普通防水在下耐根穿刺在上，不是替换。",
           "fix": "普通防水层保留，其上再加耐根穿刺防水层。",
-          "option_id": "F03-html-practice-html-q7-c1f10761768c:option-4"
+          "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-4"
         }
       ],
-      "variant_id": "F03-html-practice-html-q7-c1f10761768c",
+      "variant_id": "F03-html-practice-html-q7-3d905b13eef6",
       "surface_id": "practice.html",
       "source_index": 6,
       "source_group": "Q",
@@ -519,17 +519,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3a62a1565f72824f60c643c1ba2ed74e95700b31d7adc88649536cf8a103f65c",
+      "content_sha256": "523e05b5668f8296b55004189842fb3c9af69ffd0461e6262da4e378dd29dda0",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "3a62a1565f72824f60c643c1ba2ed74e95700b31d7adc88649536cf8a103f65c",
+        "reviewed_content_sha256": "523e05b5668f8296b55004189842fb3c9af69ffd0461e6262da4e378dd29dda0",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -548,43 +548,43 @@
       "model_answer": "耐根穿刺：改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
       "options": [
         {
+          "text": "耐根穿刺各类材料厚度一律不少于1mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "坡度对，厚度嫌麻烦笼统写「≥1mm」。",
+          "loss_reason": "厚度按材料分档，改性沥青要≥4mm，一刀切1mm数值错。",
+          "fix": "改性沥青≥4mm、PVC等≥1.2mm、聚脲≥2mm。",
+          "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-1"
+        },
+        {
+          "text": "耐根穿刺改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面按≥1%控制、天沟檐沟≥1%。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "厚度对，坡度把2%记成1%。",
+          "loss_reason": "种植平屋面坡度应≥2%，写1%数值偏小。",
+          "fix": "种植平屋面≥2%、天沟檐沟≥1%。",
+          "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-2"
+        },
+        {
+          "text": "耐根穿刺厚度由现场确定、无统一硬性要求；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "坡度写对，厚度懒得记具体值。",
+          "loss_reason": "漏了耐根穿刺分材料的最小厚度这组采分数值。",
+          "fix": "补写各材料最小厚度4/1.2/2mm。",
+          "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-3"
+        },
+        {
           "text": "耐根穿刺改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "厚度分材料写全、坡度两档写全，数值采分齐。",
-          "option_id": "F03-html-practice-html-q8-b704b7e37c4b:option-1"
-        },
-        {
-          "text": "耐根穿刺各材料厚度都不少于1mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "坡度对，厚度嫌麻烦笼统写「≥1mm」。",
-          "loss_reason": "厚度按材料分档，改性沥青要≥4mm，一刀切1mm数值错。",
-          "fix": "改性沥青≥4mm、PVC等≥1.2mm、聚脲≥2mm。",
-          "option_id": "F03-html-practice-html-q8-b704b7e37c4b:option-2"
-        },
-        {
-          "text": "耐根穿刺改性沥青≥4mm、PVC等≥1.2mm、聚脲≥2mm；排水坡度种植平屋面≥1%即可。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "厚度对，坡度把2%记成1%。",
-          "loss_reason": "种植平屋面坡度应≥2%，写1%数值偏小。",
-          "fix": "种植平屋面≥2%、天沟檐沟≥1%。",
-          "option_id": "F03-html-practice-html-q8-b704b7e37c4b:option-3"
-        },
-        {
-          "text": "耐根穿刺厚度按现场定、无硬性要求；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "坡度写对，厚度懒得记具体值。",
-          "loss_reason": "漏了耐根穿刺分材料的最小厚度这组采分数值。",
-          "fix": "补写各材料最小厚度4/1.2/2mm。",
-          "option_id": "F03-html-practice-html-q8-b704b7e37c4b:option-4"
+          "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-4"
         }
       ],
-      "variant_id": "F03-html-practice-html-q8-b704b7e37c4b",
+      "variant_id": "F03-html-practice-html-q8-b70e69ee0b83",
       "surface_id": "practice.html",
       "source_index": 7,
       "source_group": "Q",
@@ -592,17 +592,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "004a7b4abb5938f2e3a9b43b17f72865df9035ba10fa4b01b2a618307e948171",
+      "content_sha256": "e700712b5ccc10a31e59c052fe0c202243c0fc890981f4e54ef4ab4d6e1d876b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "004a7b4abb5938f2e3a9b43b17f72865df9035ba10fa4b01b2a618307e948171",
+        "reviewed_content_sha256": "e700712b5ccc10a31e59c052fe0c202243c0fc890981f4e54ef4ab4d6e1d876b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -621,43 +621,43 @@
       "model_answer": "地下工程防水等级分一、二、三、四级共四级（屋面防水才分三级），分级数不同不可互套。",
       "options": [
         {
+          "text": "地下工程防水等级与屋面相同，分一、二、三级共三级，按三级分别选取设防做法。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把屋面三级顺手套到地下。",
+          "loss_reason": "地下是四级、屋面才三级，分级数记混、等级一错全错。",
+          "fix": "地下分四级；三级是屋面防水分级。",
+          "option_id": "F03-html-practice-html-q9-7d75fc5bb872:option-1"
+        },
+        {
+          "text": "地下工程防水等级分一、二、三、四、五级共五级，级数越高对应要求越低。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "觉得地下更复杂，多补一级凑「五级」。",
+          "loss_reason": "地下只到四级，写五级分级数多了、数字错。",
+          "fix": "地下工程防水等级共四级，没有五级。",
+          "option_id": "F03-html-practice-html-q9-7d75fc5bb872:option-2"
+        },
+        {
           "text": "地下工程防水等级分一、二、三、四级共四级；屋面防水分三级，两者分级数不同不可互套。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "分级数「四级」写准，并点明与屋面三级的区分，防互套。",
-          "option_id": "F03-html-practice-html-q9-727ceb533c54:option-1"
+          "option_id": "F03-html-practice-html-q9-7d75fc5bb872:option-3"
         },
         {
-          "text": "地下工程防水等级和屋面一样分一、二、三级共三级，按三级选设防。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把屋面三级顺手套到地下。",
-          "loss_reason": "地下是四级、屋面才三级，分级数记混、等级一错全错。",
-          "fix": "地下分四级；三级是屋面防水分级。",
-          "option_id": "F03-html-practice-html-q9-727ceb533c54:option-2"
-        },
-        {
-          "text": "地下工程防水等级分一、二、三、四、五级共五级，级数越高要求越低。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "觉得地下更复杂，多补一级凑「五级」。",
-          "loss_reason": "地下只到四级，写五级分级数多了、数字错。",
-          "fix": "地下工程防水等级共四级，没有五级。",
-          "option_id": "F03-html-practice-html-q9-727ceb533c54:option-3"
-        },
-        {
-          "text": "地下工程防水按有无渗水只分合格与不合格两档，不细分等级。",
+          "text": "地下工程防水按有无渗水，仅分为合格与不合格两档，并不细分具体等级。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "以为渗漏就是「合格/不合格」二分。",
           "loss_reason": "地下防水按渗漏程度分四级，不是两档。",
           "fix": "分四级：一级不渗水到四级有漏点。",
-          "option_id": "F03-html-practice-html-q9-727ceb533c54:option-4"
+          "option_id": "F03-html-practice-html-q9-7d75fc5bb872:option-4"
         }
       ],
-      "variant_id": "F03-html-practice-html-q9-727ceb533c54",
+      "variant_id": "F03-html-practice-html-q9-7d75fc5bb872",
       "surface_id": "practice.html",
       "source_index": 8,
       "source_group": "Q",
@@ -665,17 +665,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6774e71995b63e157add4f3703789b3ccc162f3a2d39327706cbd53627f768ca",
+      "content_sha256": "a5bd7fec2744cd898aa9af6c26bf596e039d4783c67616b2601739296956e72f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6774e71995b63e157add4f3703789b3ccc162f3a2d39327706cbd53627f768ca",
+        "reviewed_content_sha256": "a5bd7fec2744cd898aa9af6c26bf596e039d4783c67616b2601739296956e72f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -738,17 +738,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e0acd072a5e742a063ce5dc8a4606bb8e8ee680d54938bf2254a25003a8b21ba",
+      "content_sha256": "842bb0d0b975f2439a897c40c949b4e5152b880692b0cde2068a0783ff7afca4",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e0acd072a5e742a063ce5dc8a4606bb8e8ee680d54938bf2254a25003a8b21ba",
+        "reviewed_content_sha256": "842bb0d0b975f2439a897c40c949b4e5152b880692b0cde2068a0783ff7afca4",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -811,17 +811,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2e055342c01f5eb71fbdeb42af3b127e5e0facd6819e4f5d384cdf23d6e0f0ae",
+      "content_sha256": "64b072f9a180f25774c70affdb5994083d9ffe644c1ba2cb0bf2726d3847c3ee",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "2e055342c01f5eb71fbdeb42af3b127e5e0facd6819e4f5d384cdf23d6e0f0ae",
+        "reviewed_content_sha256": "64b072f9a180f25774c70affdb5994083d9ffe644c1ba2cb0bf2726d3847c3ee",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -884,17 +884,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0bfd192be7d44a410ae4f3e7ec7a5620a56cd14b5ad7a455eb6f7045dcf2df50",
+      "content_sha256": "c7bfc59814e7f77be3fcaa41e507e95340d327f768f2c4966a339cc6a3569550",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "0bfd192be7d44a410ae4f3e7ec7a5620a56cd14b5ad7a455eb6f7045dcf2df50",
+        "reviewed_content_sha256": "c7bfc59814e7f77be3fcaa41e507e95340d327f768f2c4966a339cc6a3569550",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -957,17 +957,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d7d22b0d1b4e8f51bbf86cf8f273c610ddc7609cfa8d7fe5de94ac2978d86221",
+      "content_sha256": "835ae755822acf7bcc2147c4016cb849c59d09e97d0303f4fc0e85d0d907c10b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "d7d22b0d1b4e8f51bbf86cf8f273c610ddc7609cfa8d7fe5de94ac2978d86221",
+        "reviewed_content_sha256": "835ae755822acf7bcc2147c4016cb849c59d09e97d0303f4fc0e85d0d907c10b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1030,17 +1030,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "aa4011370869b3b499e2fe8cd2ef43a9be1e78e48377e0336c797188cda08de2",
+      "content_sha256": "eaf8ebab1fa7395de4067c977dae1059d94e42900d1a9bb7cc32db5192faa2af",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "aa4011370869b3b499e2fe8cd2ef43a9be1e78e48377e0336c797188cda08de2",
+        "reviewed_content_sha256": "eaf8ebab1fa7395de4067c977dae1059d94e42900d1a9bb7cc32db5192faa2af",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1103,17 +1103,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "7dda400de6e5033903169a7d94f3f165b5e35c1e4317ea86e7697eceec6e6003",
+      "source_html_sha256": "9b0e724f9a433219d94787890a1da0d1bf62d22850fd8711acda6a55d789d3a0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6e6a28c5a6d754046ddb8f2c1263d7cb46256c0d635224e72abe1a3d7c50f5e6",
+      "content_sha256": "90d5dc7e92add3c95709385506db2823d650d8af48da2b385634b353d5fbdea3",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6e6a28c5a6d754046ddb8f2c1263d7cb46256c0d635224e72abe1a3d7c50f5e6",
+        "reviewed_content_sha256": "90d5dc7e92add3c95709385506db2823d650d8af48da2b385634b353d5fbdea3",
         "signatures": [],
         "checks": {
           "source_verified": false,

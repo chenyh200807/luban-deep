@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -249,46 +249,46 @@ class Component extends DCLogic {
       stem:"施工中发生设计变更（发包人原因）致承包人停工。就该索赔能否成立，选出最完整、能得分的定性作答。",
       model:"本事件属发包人原因（设计变更），责任在发包人；应分别就工期、费用、利润逐项判成立性，不合并成一句「可索赔」。",
       opts:[
+        { t:"设计变更应属承包人自身施工方案的问题，由此产生的停工损失应由承包人自行承担。", ok:false, code:"E08", tempt:"没抓住「设计变更是发包人给的」这个背景。", lose:"责任方判反，后面工期费用连锁全错。", fix:"设计变更属发包人原因，责任在发包人。" },
+        { t:"既然责任在发包人一方，那么工期与费用便都随之成立，一并按发包人责任赔付即可，无需再逐项判。", ok:false, code:"E07", tempt:"「责任在对方就全赔」最顺手，一句话省事。", lose:"把工期和费用绑死了——工期还得过关键线路/总时差闸，不能凭责任一刀切。", fix:"定责任后，工期看网络位置、费用看责任，两闸分开判。" },
         { t:"本事件属发包人原因（设计变更），责任在发包人；应分别就工期、费用、利润逐项判成立性。", ok:true, fix:"点责任方 + 分项判工期/费用/利润，定性地基就稳了。", code:"" },
-        { t:"既然是发包人的责任，那么工期、费用就都随之成立，一并按发包人责任赔付即可。", ok:false, code:"E07", tempt:"「责任在对方就全赔」最顺手，一句话省事。", lose:"把工期和费用绑死了——工期还得过关键线路/总时差闸，不能凭责任一刀切。", fix:"定责任后，工期看网络位置、费用看责任，两闸分开判。" },
-        { t:"本事件的索赔成立。", ok:false, code:"E02", tempt:"知道是发包人责任，图省事一句带过。", lose:"没写责任方、没分工期/费用/利润，采分点几乎全漏。", fix:"点明发包人原因、责任在发包人，并分项判工期/费用/利润。" },
-        { t:"设计变更属承包人施工方案问题，损失应由承包人自行承担。", ok:false, code:"E08", tempt:"没抓住「设计变更是发包人给的」这个背景。", lose:"责任方判反，后面工期费用连锁全错。", fix:"设计变更属发包人原因，责任在发包人。" }
+        { t:"该索赔应予成立，承包人可据此向发包人一并主张，按实际发生额赔付即可。", ok:false, code:"E02", tempt:"知道是发包人责任，图省事一句带过。", lose:"没写责任方、没分工期/费用/利润，采分点几乎全漏。", fix:"点明发包人原因、责任在发包人，并分项判工期/费用/利润。" }
       ] },
 { tag:"程序·程序维", typeHint:"单选 · 选出可得分的程序表达", figLabel:"索赔程序：意向通知时限", figCaption:"从事件发生日起算 · 期限？", fig:"timer",
       stem:"合同对索赔期限未作约定。就提出索赔的程序时限，选出可得分的完整表达。",
       model:"应在索赔事件发生后、合同约定期限内（合同未约定的为28天内）提交书面索赔意向通知书，逾期丧失索赔权。",
       opts:[
+        { t:"只要索赔的相关证据齐全，便可以在竣工结算之前的任何时候一次性提出，不必再单独履行意向通知的时限。", ok:false, code:"E06", tempt:"觉得「反正有证据，什么时候提都行」。", lose:"漏了意向通知的时限，程序顺序错，逾期即丧权。", fix:"须先在28天内递书面意向通知，不能拖到结算。" },
         { t:"应在事件发生后、合同约定期限内（合同未约定的为28天）提交书面索赔意向通知书，逾期丧失索赔权。", ok:true, fix:"「合同未约定」前提 + 28天 + 书面意向通知 + 丧权，四要素齐。", code:"" },
-        { t:"只要证据齐全，索赔可以在结算前任何时候一次性提出。", ok:false, code:"E06", tempt:"觉得「反正有证据，什么时候提都行」。", lose:"漏了意向通知的时限，程序顺序错，逾期即丧权。", fix:"须先在28天内递书面意向通知，不能拖到结算。" },
-        { t:"应在28天内提出索赔。", ok:false, code:"E03", tempt:"记得「28天」，顺手就写。", lose:"漏「合同未约定」前提、漏「书面意向通知」，关键词缺失。", fix:"补「合同未约定的为28天」+「书面索赔意向通知书」。" },
-        { t:"口头向监理说明情况即可，事后补交材料。", ok:false, code:"E03", tempt:"现场先口头沟通，感觉也算通知了。", lose:"意向通知必须书面，口头不产生程序效力。", fix:"必须提交书面索赔意向通知书。" }
+        { t:"承包人应在事件发生后的28天内提出这项索赔，把相关费用与工期一并报送发包人核定。", ok:false, code:"E03", tempt:"记得「28天」，顺手就写。", lose:"漏「合同未约定」前提、漏「书面意向通知」，关键词缺失。", fix:"补「合同未约定的为28天」+「书面索赔意向通知书」。" },
+        { t:"只需口头向监理工程师说明情况，事后再补交书面材料即可，视同已经履行通知。", ok:false, code:"E03", tempt:"现场先口头沟通，感觉也算通知了。", lose:"意向通知必须书面，口头不产生程序效力。", fix:"必须提交书面索赔意向通知书。" }
       ] },
 { tag:"工期闸·条件维", typeHint:"单选 · 选出可得分的工期判断", figLabel:"延误落在关键线路", figCaption:"关键线路 · 总时差 0", fig:"ruler",
       stem:"某发包人原因致延误的工作位于关键线路上（总时差为0），延误2个月。就工期索赔，选出可得分的判断。",
       model:"该工作在关键线路上、总时差为0，延误直接影响总工期，可索赔工期2个月（延误几月顺延几月）。",
       opts:[
+        { t:"应先查明该工作拥有的总时差数值，再以延误时长减去总时差，所得差值方为可索的顺延工期。", ok:false, code:"E07", tempt:"把「非关键要减总时差」的规则套到了关键线路上。", lose:"关键线路总时差为0，无需再减；套错分支。", fix:"关键线路总时差0，延误几月直接顺延几月。" },
         { t:"该工作在关键线路上、总时差为0，延误直接影响总工期，可顺延工期2个月。", ok:true, fix:"先判关键线路，再给「延误=顺延」，判据到位。", code:"" },
-        { t:"要先看该工作有多少总时差，用延误减去总时差后才是可索工期。", ok:false, code:"E07", tempt:"把「非关键要减总时差」的规则套到了关键线路上。", lose:"关键线路总时差为0，无需再减；套错分支。", fix:"关键线路总时差0，延误几月直接顺延几月。" },
-        { t:"延误是否顺延要看是不是发包人责任，是发包人责任就顺延2个月。", ok:false, code:"E07", tempt:"「责任在发包人所以顺延」听着顺。", lose:"工期闸只认网络位置不认责任方；这里顺延是因为在关键线路。", fix:"工期成立的依据是「在关键线路」，不是「责任在谁」。" },
-        { t:"关键线路的延误只能顺延一半，即1个月。", ok:false, code:"E09", tempt:"凭印象觉得要打个折。", lose:"没有「顺延一半」的规则，数值错。", fix:"关键线路延误2个月，顺延2个月。" }
+        { t:"延误能否顺延取决于责任归属，本事件既属发包人责任，即可据此顺延工期2个月。", ok:false, code:"E07", tempt:"「责任在发包人所以顺延」听着顺。", lose:"工期闸只认网络位置不认责任方；这里顺延是因为在关键线路。", fix:"工期成立的依据是「在关键线路」，不是「责任在谁」。" },
+        { t:"关键线路上的延误按惯例只能顺延一半，故本事件可顺延工期1个月。", ok:false, code:"E09", tempt:"凭印象觉得要打个折。", lose:"没有「顺延一半」的规则，数值错。", fix:"关键线路延误2个月，顺延2个月。" }
       ] },
 { tag:"工期闸·条件维", typeHint:"单选 · 选出可得分的工期算法与依据", figLabel:"非关键 · 总时差1 · 延误2", figCaption:"真题C：延误 vs 总时差", fig:"ruler",
       stem:"C工作为非关键工作，总时差1个月，因设计变更延误2个月。就工期索赔，选出可得分的作答。",
       model:"C为非关键工作，延误2个月超总时差1个月，只索赔超出部分，可顺延工期=2−1=1个月。",
       opts:[
         { t:"C为非关键工作，延误2个月超出总时差1个月，只索超出部分，可顺延工期=2−1=1个月。", ok:true, fix:"非关键→比总时差→顺延=延误−总时差，链条完整。", code:"" },
-        { t:"C延误了2个月，对总工期的影响就是2个月，可顺延工期2个月。", ok:false, code:"E09", tempt:"「延误几月赔几月」最直觉。", lose:"非关键工作要先扣总时差，只赔超出的1个月，多算1个月。", fix:"顺延=延误2−总时差1=1个月。" },
-        { t:"C是非关键工作，不影响总工期，工期索赔不成立。", ok:false, code:"E05", tempt:"记得「非关键不影响总工期」，直接判0。", lose:"漏比总时差：延误2已超总时差1，仍顺延1个月。", fix:"延误超过总时差，超出部分1个月仍可索。" },
-        { t:"C的总时差是1个月，所以可顺延工期1个月。", ok:false, code:"E07", tempt:"数值1恰好对，顺手就选。", lose:"依据错——顺延1是「延误−总时差」的结果，不是「等于总时差」。", fix:"写「顺延=延误2−总时差1=1个月」，不是「等于总时差」。" }
+        { t:"C工作因设计变更延误了2个月，该延误对总工期的影响同样为2个月，故相应可顺延工期2个月。", ok:false, code:"E09", tempt:"「延误几月赔几月」最直觉。", lose:"非关键工作要先扣总时差，只赔超出的1个月，多算1个月。", fix:"顺延=延误2−总时差1=1个月。" },
+        { t:"C属于非关键工作，其延误不影响总工期，因此本事件的工期索赔不能成立，不予顺延。", ok:false, code:"E05", tempt:"记得「非关键不影响总工期」，直接判0。", lose:"漏比总时差：延误2已超总时差1，仍顺延1个月。", fix:"延误超过总时差，超出部分1个月仍可索。" },
+        { t:"C工作的总时差为1个月，据此本事件可顺延的工期即为1个月，与延误时长并无关联。", ok:false, code:"E07", tempt:"数值1恰好对，顺手就选。", lose:"依据错——顺延1是「延误−总时差」的结果，不是「等于总时差」。", fix:"写「顺延=延误2−总时差1=1个月」，不是「等于总时差」。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"结论对，过程未必对", fig:"diag",
       stem:"学生答某设计变更事件：「甲方有责任，所以工期费用都成立，工期按延误2个月顺延、费用连利润一起算」。已知C为非关键、总时差1。选出最准确的诊断与补写。",
       model:"工期费用不能绑死、非关键要减总时差、不可抗力才谈分担；补写：工期非关键顺延=2−1=1月，费用属发包人原因成立、可加利润，两闸分开判。",
       opts:[
+        { t:"该学生的作答思路基本正确，仅需把工期数字由顺延2个月更正为顺延1个月即可，其余关于费用与利润成立的表述均可保持原样照写。", ok:false, code:"E02", tempt:"只抓到工期数字一处错。", lose:"漏诊「工期费用绑死」这一根本错误，且未点非关键减总时差的依据。", fix:"除改工期为1月，还要拆开两闸、点明费用独立成立。" },
         { t:"错在「工期费用绑死」「非关键不减总时差」。补写：工期顺延=2−1=1月，费用属发包人原因成立、可加利润，两闸分开判。", ok:true, fix:"揪出绑死与不减总时差两处，补写分闸采分句。", code:"" },
-        { t:"作答基本正确，只是工期数字应从2改成1，其余照写即可。", ok:false, code:"E02", tempt:"只抓到工期数字一处错。", lose:"漏诊「工期费用绑死」这一根本错误，且未点非关键减总时差的依据。", fix:"除改工期为1月，还要拆开两闸、点明费用独立成立。" },
-        { t:"作答正确，责任在甲方，工期费用一起成立、一起算，给满分。", ok:false, code:"E07", tempt:"「责任在甲方全成立」听着通顺。", lose:"工期费用绑死+非关键不减总时差，两处硬伤。", fix:"工期非关键顺延1月、费用独立成立，分开判。" },
-        { t:"错在把不可抗力的分担规则漏了，应把损失对半分。", ok:false, code:"E10", tempt:"看到「分担」就想套对半。", lose:"诊断方向错——本事件是设计变更、非不可抗力，不涉及对半分担。", fix:"本题按发包人原因判，工期减总时差、费用可加利润。" }
+        { t:"作答无须修改：责任既然在甲方，工期与费用即应一同成立、合并计算，该学生这道题可以获得满分。", ok:false, code:"E07", tempt:"「责任在甲方全成立」听着通顺。", lose:"工期费用绑死+非关键不减总时差，两处硬伤。", fix:"工期非关键顺延1月、费用独立成立，分开判。" },
+        { t:"错在遗漏了不可抗力的分担规则，应当补写将全部损失由发包人与承包人双方对半分担，如此方能补齐失分。", ok:false, code:"E10", tempt:"看到「分担」就想套对半。", lose:"诊断方向错——本事件是设计变更、非不可抗力，不涉及对半分担。", fix:"本题按发包人原因判，工期减总时差、费用可加利润。" }
       ] }
   ];
   // ── 错因码库（按 ERROR_CODE_REGISTRY 注册码，勿自造）──
@@ -512,7 +512,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"K01-html-practice-html-q1-a72a9f1c5eb0","options":["K01-html-practice-html-q1-a72a9f1c5eb0:option-1","K01-html-practice-html-q1-a72a9f1c5eb0:option-2","K01-html-practice-html-q1-a72a9f1c5eb0:option-3","K01-html-practice-html-q1-a72a9f1c5eb0:option-4"]},{"variant_id":"K01-html-practice-html-q2-96bf0310053c","options":["K01-html-practice-html-q2-96bf0310053c:option-1","K01-html-practice-html-q2-96bf0310053c:option-2","K01-html-practice-html-q2-96bf0310053c:option-3","K01-html-practice-html-q2-96bf0310053c:option-4"]},{"variant_id":"K01-html-practice-html-q3-e42b632650eb","options":["K01-html-practice-html-q3-e42b632650eb:option-1","K01-html-practice-html-q3-e42b632650eb:option-2","K01-html-practice-html-q3-e42b632650eb:option-3","K01-html-practice-html-q3-e42b632650eb:option-4"]},{"variant_id":"K01-html-practice-html-q4-0ba04d80c42e","options":["K01-html-practice-html-q4-0ba04d80c42e:option-1","K01-html-practice-html-q4-0ba04d80c42e:option-2","K01-html-practice-html-q4-0ba04d80c42e:option-3","K01-html-practice-html-q4-0ba04d80c42e:option-4"]},{"variant_id":"K01-html-practice-html-q15-3423b28936e0","options":["K01-html-practice-html-q15-3423b28936e0:option-1","K01-html-practice-html-q15-3423b28936e0:option-2","K01-html-practice-html-q15-3423b28936e0:option-3","K01-html-practice-html-q15-3423b28936e0:option-4"]}];
+    const exactItems=[{"variant_id":"K01-html-practice-html-q1-5a5b246f81f9","options":["K01-html-practice-html-q1-5a5b246f81f9:option-1","K01-html-practice-html-q1-5a5b246f81f9:option-2","K01-html-practice-html-q1-5a5b246f81f9:option-3","K01-html-practice-html-q1-5a5b246f81f9:option-4"]},{"variant_id":"K01-html-practice-html-q2-f853d1e5a81e","options":["K01-html-practice-html-q2-f853d1e5a81e:option-1","K01-html-practice-html-q2-f853d1e5a81e:option-2","K01-html-practice-html-q2-f853d1e5a81e:option-3","K01-html-practice-html-q2-f853d1e5a81e:option-4"]},{"variant_id":"K01-html-practice-html-q3-44b4bc8a3b65","options":["K01-html-practice-html-q3-44b4bc8a3b65:option-1","K01-html-practice-html-q3-44b4bc8a3b65:option-2","K01-html-practice-html-q3-44b4bc8a3b65:option-3","K01-html-practice-html-q3-44b4bc8a3b65:option-4"]},{"variant_id":"K01-html-practice-html-q4-13f1299a5cdb","options":["K01-html-practice-html-q4-13f1299a5cdb:option-1","K01-html-practice-html-q4-13f1299a5cdb:option-2","K01-html-practice-html-q4-13f1299a5cdb:option-3","K01-html-practice-html-q4-13f1299a5cdb:option-4"]},{"variant_id":"K01-html-practice-html-q15-a162a87bca3c","options":["K01-html-practice-html-q15-a162a87bca3c:option-1","K01-html-practice-html-q15-a162a87bca3c:option-2","K01-html-practice-html-q15-a162a87bca3c:option-3","K01-html-practice-html-q15-a162a87bca3c:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -529,7 +529,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("K01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTcyYTlmMWM1ZWIwIiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi05NmJmMDMxMDA1M2MiLCJLMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWU0MmI2MzI2NTBlYiIsIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMGJhMDRkODBjNDJlIiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMzQyM2IyODkzNmUwIl0sInBhY2tfaWQiOiJLMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjRmMWRkNzVhZDMyMmUxMmQzZWMyM2QxMmJjN2FhNjZlMjM0MDcwZGY1YmYzZGRmYzI0ZjkyZTMxOWRjNmE5NjIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("K01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtNWE1YjI0NmY4MWY5IiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mODUzZDFlNWE4MWUiLCJLMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQ0YjRiYzhhM2I2NSIsIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMTNmMTI5OWE1Y2RiIiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYTE2MmE4N2JjYTNjIl0sInBhY2tfaWQiOiJLMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjY1YzE1Y2RiY2RlZjhiMWFmNDU1NWJjMjQ5MWY4ZWUwMjMxMTIwOTlmMjNjY2ZhZGU1OThkNDc2YmJiMjViN2MiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

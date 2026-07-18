@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "C02",
   "source_pack_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
-  "source_bundle_sha256": "94240e3e6d7af85ccd4db470e52a92fc149e0e8817786993dcfd6f1c4a00fec9",
+  "source_bundle_sha256": "bceba530e453c4b19e22004c110daeba91eda69adc4c9f2d6b2a493b4cfc65de",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html",
-      "source_html_sha256": "057d55f5cc48b76de45f87d6e60eb623db5b1f277321b5c3c5735489806c0a82",
+      "source_html_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
       "format_kind": "q_direct",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,15 +18,15 @@
         5
       ],
       "variant_ids": [
-        "C02-html-practice-html-q1-6b369fdfb3ff",
-        "C02-html-practice-html-q2-f8b06478e7ef",
-        "C02-html-practice-html-q3-a47e3d0bfbf1",
-        "C02-html-practice-html-q4-41445b595c03",
-        "C02-html-practice-html-q6-0be03602f3ff"
+        "C02-html-practice-html-q1-6a5429224580",
+        "C02-html-practice-html-q2-b80a345f8d5b",
+        "C02-html-practice-html-q3-c3d4bb34920f",
+        "C02-html-practice-html-q4-fdfa0d44d95e",
+        "C02-html-practice-html-q6-01bd53b75f48"
       ],
       "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNmIzNjlmZGZiM2ZmIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mOGIwNjQ3OGU3ZWYiLCJDMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWE0N2UzZDBiZmJmMSIsIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDE0NDViNTk1YzAzIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi0wYmUwMzYwMmYzZmYiXSwicGFja19pZCI6IkMwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiZTdiYWU3OGE2OTk5YmI5MTRjNjA1NzMyZTcwMGQ2MmRmOTE3OTRiNGNhM2M3ZDA0ZWY2Y2YyYjkyNTBmZmIwZSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "f2115a65ffddfdfa73f0de844053f160aacfef180a638e268ba211780948a2d0"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNmE1NDI5MjI0NTgwIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iODBhMzQ1ZjhkNWIiLCJDMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWMzZDRiYjM0OTIwZiIsIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZmRmYTBkNDRkOTVlIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi0wMWJkNTNiNzVmNDgiXSwicGFja19pZCI6IkMwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiYTlmMTNiN2Y5MWU2ODQzMGE0MDkzOTlmOTUwZjVmMjBkOTJhZjU4ZWUzZDkzMDQ2MTc2MDdjZjA2NmQ2ZDZiNyIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "cec8f013ecdc51186cde0d4774c0449af83560ce2bca27d28d5dabbec1cf96d8"
     }
   ],
   "items": [
@@ -37,43 +37,43 @@
       "model_answer": "综合单价是不含增值税的税前全费用价（含人材机+管理费+利润+风险），增值税在最末按税率整体计提一次，单价内不重复计税。",
       "options": [
         {
+          "text": "综合单价属于含税单价，其本身已经包含了增值税，结算时可以直接采用而无需另行计提税额。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得‘综合’就是啥都含、连税也含。",
+          "loss_reason": "综合单价是税前价，当含税价会漏掉最末计税环节或埋下重复计税。",
+          "fix": "综合单价不含税，税在最末整体乘一次。",
+          "option_id": "C02-html-practice-html-q1-6a5429224580:option-1"
+        },
+        {
+          "text": "综合单价应先乘以 (1+税率) 换算成含税单价，再乘以工程量得出该清单项目的结算价。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "想着每个单价都先含上税最稳妥。",
+          "loss_reason": "单价里乘一遍税、结算再乘一遍＝双重计税，违反计价规范。",
+          "fix": "税只在最末对税前合价整体计提一次。",
+          "option_id": "C02-html-practice-html-q1-6a5429224580:option-2"
+        },
+        {
+          "text": "综合单价就等于人工费、材料费与机械费这三项直接费相加得到的合计之和。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住了‘三大直接费’。",
+          "loss_reason": "漏了管理费、利润和风险，综合单价不完整。",
+          "fix": "综合单价 = 人材机 + 管理费 + 利润 + 风险（税前全费用）。",
+          "option_id": "C02-html-practice-html-q1-6a5429224580:option-3"
+        },
+        {
           "text": "综合单价是不含增值税的税前全费用价，增值税在最末整体计提一次，单价内不重复计税。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "点明‘不含税全费用价’+‘税最末整体计提一次’，口径与计税都对。",
-          "option_id": "C02-html-practice-html-q1-6b369fdfb3ff:option-1"
-        },
-        {
-          "text": "综合单价是含税单价，已包含增值税，结算时直接用即可。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得‘综合’就是啥都含、连税也含。",
-          "loss_reason": "综合单价是税前价，当含税价会漏掉最末计税环节或埋下重复计税。",
-          "fix": "综合单价不含税，税在最末整体乘一次。",
-          "option_id": "C02-html-practice-html-q1-6b369fdfb3ff:option-2"
-        },
-        {
-          "text": "综合单价要先乘 (1+税率) 得含税单价，再乘工程量得结算价。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "想着每个单价都先含上税最稳妥。",
-          "loss_reason": "单价里乘一遍税、结算再乘一遍＝双重计税，违反计价规范。",
-          "fix": "税只在最末对税前合价整体计提一次。",
-          "option_id": "C02-html-practice-html-q1-6b369fdfb3ff:option-3"
-        },
-        {
-          "text": "综合单价就是人工费、材料费、机械费三项之和。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记住了‘三大直接费’。",
-          "loss_reason": "漏了管理费、利润和风险，综合单价不完整。",
-          "fix": "综合单价 = 人材机 + 管理费 + 利润 + 风险（税前全费用）。",
-          "option_id": "C02-html-practice-html-q1-6b369fdfb3ff:option-4"
+          "option_id": "C02-html-practice-html-q1-6a5429224580:option-4"
         }
       ],
-      "variant_id": "C02-html-practice-html-q1-6b369fdfb3ff",
+      "variant_id": "C02-html-practice-html-q1-6a5429224580",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
@@ -81,17 +81,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q1",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "057d55f5cc48b76de45f87d6e60eb623db5b1f277321b5c3c5735489806c0a82",
+      "source_html_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f083cadd4f3fe14f908f37511d985dbf38e0450236b0d54f8d06f2cc182bedb4",
+      "content_sha256": "ba4b0ba1ebbe0910d86724df631ff41e506a38ad558045384eecc34ea7c54473",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "f083cadd4f3fe14f908f37511d985dbf38e0450236b0d54f8d06f2cc182bedb4",
+        "reviewed_content_sha256": "ba4b0ba1ebbe0910d86724df631ff41e506a38ad558045384eecc34ea7c54473",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -116,16 +116,16 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "先扣暂列金、再乘比例，公式+列式+数值带单位齐。",
-          "option_id": "C02-html-practice-html-q2-f8b06478e7ef:option-1"
+          "option_id": "C02-html-practice-html-q2-b80a345f8d5b:option-1"
         },
         {
-          "text": "预付款 = 合同价 × 预付比例 = 5800×20% = 1160 万元。",
+          "text": "预付款 = 合同价 × 预付比例 = 5800×20% = 1160 万元，直接以中标价作为计算基数。",
           "is_correct": false,
           "source_error_code": "E08",
           "temptation": "题面给了 5800，顺手就拿它当基数。",
           "loss_reason": "暂列金 580 未发包、不进预付款基数，基数错连锁全错。",
           "fix": "基数 = 5800−580 = 5220，预付款 = 5220×20% = 1044。",
-          "option_id": "C02-html-practice-html-q2-f8b06478e7ef:option-2"
+          "option_id": "C02-html-practice-html-q2-b80a345f8d5b:option-2"
         },
         {
           "text": "预付款 =（合同价−暂列金）× 预付比例 × 材料占比 =（5800−580）×20%×60% = 626.4 万元。",
@@ -134,19 +134,19 @@
           "temptation": "看到材料占比 60% 就想乘进预付款。",
           "loss_reason": "材料占比是起扣点的分母，不进预付款公式，多乘一项算错。",
           "fix": "预付款只 =（5800−580）×20% = 1044，占比留给起扣点。",
-          "option_id": "C02-html-practice-html-q2-f8b06478e7ef:option-3"
+          "option_id": "C02-html-practice-html-q2-b80a345f8d5b:option-3"
         },
         {
-          "text": "预付款 = 1044 万元。",
+          "text": "预付款 = 1044 万元，本题只需直接给出这个最终结果，无须再写出列式与计算依据。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "会算、直接写得数最省事。",
           "loss_reason": "只写得数没列式没依据，丢过程分。",
           "fix": "写全：（5800−580）×20% = 1044 万元。",
-          "option_id": "C02-html-practice-html-q2-f8b06478e7ef:option-4"
+          "option_id": "C02-html-practice-html-q2-b80a345f8d5b:option-4"
         }
       ],
-      "variant_id": "C02-html-practice-html-q2-f8b06478e7ef",
+      "variant_id": "C02-html-practice-html-q2-b80a345f8d5b",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
@@ -154,17 +154,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q2",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "057d55f5cc48b76de45f87d6e60eb623db5b1f277321b5c3c5735489806c0a82",
+      "source_html_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5ef1555d991ef16c9fb5d44c72fd9d25c9cf265ee5680ae67ddf9dcacfcac900",
+      "content_sha256": "f7b497886849ef9c26e26d4679baf1cd3fcf08a8b06e5317669f6437d54fb7aa",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "5ef1555d991ef16c9fb5d44c72fd9d25c9cf265ee5680ae67ddf9dcacfcac900",
+        "reviewed_content_sha256": "f7b497886849ef9c26e26d4679baf1cd3fcf08a8b06e5317669f6437d54fb7aa",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -189,37 +189,37 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "公式结构对（基数−预付款÷占比）+列式+数值+定性回判。",
-          "option_id": "C02-html-practice-html-q3-a47e3d0bfbf1:option-1"
+          "option_id": "C02-html-practice-html-q3-c3d4bb34920f:option-1"
         },
         {
-          "text": "起扣点 = 合同价 × 材料占比 − 预付款 = 5220×60% − 1044 = 2088 万元。",
+          "text": "起扣点 = 合同价 × 材料占比 − 预付款 = 5220×60% − 1044 = 2088 万元，先用占比乘基数再减去预付款。",
           "is_correct": false,
           "source_error_code": "E09",
           "temptation": "记成‘占比乘基数再减预付款’，乘除位置凭手感。",
           "loss_reason": "公式结构整个写反，阅卷直接判公式错。",
           "fix": "是基数−预付款÷占比 = 5220−1740 = 3480，不是占比×基数−预付款。",
-          "option_id": "C02-html-practice-html-q3-a47e3d0bfbf1:option-2"
+          "option_id": "C02-html-practice-html-q3-c3d4bb34920f:option-2"
         },
         {
-          "text": "起扣点 = 基数 − 预付款 × 材料占比 = 5220 − 1044×60% = 4593.6 万元。",
+          "text": "起扣点 = 基数 − 预付款 × 材料占比 = 5220 − 1044×60% = 4593.6 万元，把除以占比错记成乘以占比。",
           "is_correct": false,
           "source_error_code": "E09",
           "temptation": "知道要减预付款，却把‘÷占比’记成‘×占比’。",
           "loss_reason": "应除以占比（放大到对应已完产值），乘则方向反、数值错。",
           "fix": "预付款÷占比 = 1044÷60% = 1740，起扣点 = 5220−1740 = 3480。",
-          "option_id": "C02-html-practice-html-q3-a47e3d0bfbf1:option-3"
+          "option_id": "C02-html-practice-html-q3-c3d4bb34920f:option-3"
         },
         {
-          "text": "起扣点 = 3480 万元。",
+          "text": "起扣点 = 3480 万元，此处只写出最终数值，既未列出公式，也未说明累计达此线才开始扣回预付款。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "算对了直接写结论。",
           "loss_reason": "没写公式、没列式、没说‘累计达此才扣回’，丢过程分与定性分。",
           "fix": "写全公式 → 5220−1044÷60% = 3480 → 累计达此线才扣回预付款。",
-          "option_id": "C02-html-practice-html-q3-a47e3d0bfbf1:option-4"
+          "option_id": "C02-html-practice-html-q3-c3d4bb34920f:option-4"
         }
       ],
-      "variant_id": "C02-html-practice-html-q3-a47e3d0bfbf1",
+      "variant_id": "C02-html-practice-html-q3-c3d4bb34920f",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
@@ -227,17 +227,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q3",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "057d55f5cc48b76de45f87d6e60eb623db5b1f277321b5c3c5735489806c0a82",
+      "source_html_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "44d52df4ed9d4068a3bd88415bfb3cd265852f57c7b87d3f37a6d5ca16d1a162",
+      "content_sha256": "fb9d3d698ea60eede2d89f215c5804beac68b2e4d640cdb60e4682da25c23b0e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "44d52df4ed9d4068a3bd88415bfb3cd265852f57c7b87d3f37a6d5ca16d1a162",
+        "reviewed_content_sha256": "fb9d3d698ea60eede2d89f215c5804beac68b2e4d640cdb60e4682da25c23b0e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -256,43 +256,43 @@
       "model_answer": "5 月累计 = 180+500+750+1000+1400 = 3830 万元 ＞ 起扣点 3480 万元，故 5 月除扣 3% 质保金外，还应扣回预付款。",
       "options": [
         {
+          "text": "以 5 月当月产值 1400 直接与起扣点 3480 相比较，由于当月的 1400 ＜ 3480 尚未达到起扣点，故据此判定 5 月无需扣回预付款。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "拿当月产值跟起扣点比，看着 1400 远小于 3480。",
+          "loss_reason": "起扣点比的是累计完成额，不是当月产值；漏列累计就误判。",
+          "fix": "列累计 3830 ＞ 3480，5 月应扣回预付款。",
+          "option_id": "C02-html-practice-html-q4-fdfa0d44d95e:option-1"
+        },
+        {
+          "text": "经逐月比较，5 月累计 3830 ＞ 3480 已达起扣点，因此当月需要扣回预付款，除此之外不再另作其他扣减。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "判断方向对，直接下结论。",
+          "loss_reason": "漏写 3% 质保金这一刀，5 月是质保 + 扣回两刀。",
+          "fix": "5 月除扣 3% 质保金外，还扣回预付款（两刀）。",
+          "option_id": "C02-html-practice-html-q4-fdfa0d44d95e:option-2"
+        },
+        {
           "text": "逐月列累计，5 月累计 = 180+500+750+1000+1400 = 3830 ＞ 3480，故 5 月除扣 3% 质保金外还扣回预付款。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "列累计 + 判是否达起扣点 + 回判‘两刀’，条件维写全。",
-          "option_id": "C02-html-practice-html-q4-41445b595c03:option-1"
+          "option_id": "C02-html-practice-html-q4-fdfa0d44d95e:option-3"
         },
         {
-          "text": "5 月当月产值 1400 ＜ 3480，未达起扣点，5 月不扣回预付款。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "拿当月产值跟起扣点比，看着 1400 远小于 3480。",
-          "loss_reason": "起扣点比的是累计完成额，不是当月产值；漏列累计就误判。",
-          "fix": "列累计 3830 ＞ 3480，5 月应扣回预付款。",
-          "option_id": "C02-html-practice-html-q4-41445b595c03:option-2"
-        },
-        {
-          "text": "5 月累计 3830 ＞ 3480，需扣回预付款。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "判断方向对，直接下结论。",
-          "loss_reason": "漏写 3% 质保金这一刀，5 月是质保 + 扣回两刀。",
-          "fix": "5 月除扣 3% 质保金外，还扣回预付款（两刀）。",
-          "option_id": "C02-html-practice-html-q4-41445b595c03:option-3"
-        },
-        {
-          "text": "每月都按累计完成的 80% 支付，5 月也一样，无需单独扣回预付款。",
+          "text": "每月一律都按累计完成产值的 80% 支付进度款，5 月也应当同样照此办理，所以本月并不需要再单独扣回预付款。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "把‘未约定时不低于 80%’当成固定支付规则套上。",
           "loss_reason": "80% 是未约定时的下限、与扣回预付款是两回事；本题有约定不适用。",
           "fix": "按起扣点判：累计 3830 ＞ 3480，5 月扣回预付款。",
-          "option_id": "C02-html-practice-html-q4-41445b595c03:option-4"
+          "option_id": "C02-html-practice-html-q4-fdfa0d44d95e:option-4"
         }
       ],
-      "variant_id": "C02-html-practice-html-q4-41445b595c03",
+      "variant_id": "C02-html-practice-html-q4-fdfa0d44d95e",
       "surface_id": "practice.html",
       "source_index": 3,
       "source_group": "Q",
@@ -300,17 +300,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q4",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "057d55f5cc48b76de45f87d6e60eb623db5b1f277321b5c3c5735489806c0a82",
+      "source_html_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "aeaa949b02eff60212e5a9fbb618f86cfc459c89301f3fa15c3e6a358537cfff",
+      "content_sha256": "6e90d2ec454bbaa77ba4c898a5afd005a24692f9350c4a0cb63845b809cc06ac",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "aeaa949b02eff60212e5a9fbb618f86cfc459c89301f3fa15c3e6a358537cfff",
+        "reviewed_content_sha256": "6e90d2ec454bbaa77ba4c898a5afd005a24692f9350c4a0cb63845b809cc06ac",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -329,43 +329,43 @@
       "model_answer": "累计预留质保金（或保函）不得超过工程结算总价的 3%，以结算总价为基数；逐月按 3% 扣、累计不超结算总价 3%。题面 5% 是诱饵。",
       "options": [
         {
+          "text": "按照题面白纸黑字所写的那个数字，累计预留的质保金就应当以合同价所对应的 5% 作为最终的封顶上限来执行。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "题面白纸黑字写了 5%，照抄最稳。",
+          "loss_reason": "5% 是题面诱饵，规范钉死 ≤3%；写诱饵值＝判反丢分。",
+          "fix": "规范上限是结算总价 3%，不是 5%。",
+          "option_id": "C02-html-practice-html-q5-568d6a5fd4b9:option-1"
+        },
+        {
+          "text": "以合同价作为计提基数，累计预留的质量保证金总额控制在不超过合同价的 3% 即可。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "基数随手用了合同价。",
+          "loss_reason": "质保金以工程结算总价为基数，不是合同价。",
+          "fix": "以结算总价为基数、累计 ≤3%。",
+          "option_id": "C02-html-practice-html-q5-568d6a5fd4b9:option-2"
+        },
+        {
           "text": "累计预留质保金不得超过工程结算总价的 3%，以结算总价为基数；逐月按 3% 扣、累计封顶结算总价 3%。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "点‘结算总价为基数’+‘≤3%’+逐月与累计封顶并存。",
-          "option_id": "C02-html-practice-html-q5-dfeda6458d05:option-1"
+          "option_id": "C02-html-practice-html-q5-568d6a5fd4b9:option-3"
         },
         {
-          "text": "按题面累计预留到合同价的 5% 为上限。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "题面白纸黑字写了 5%，照抄最稳。",
-          "loss_reason": "5% 是题面诱饵，规范钉死 ≤3%；写诱饵值＝判反丢分。",
-          "fix": "规范上限是结算总价 3%，不是 5%。",
-          "option_id": "C02-html-practice-html-q5-dfeda6458d05:option-2"
-        },
-        {
-          "text": "以合同价为基数，累计预留不超过合同价的 3%。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "基数随手用了合同价。",
-          "loss_reason": "质保金以工程结算总价为基数，不是合同价。",
-          "fix": "以结算总价为基数、累计 ≤3%。",
-          "option_id": "C02-html-practice-html-q5-dfeda6458d05:option-3"
-        },
-        {
-          "text": "每月扣 3% 即可。",
+          "text": "逐月按进度款的 3% 预留质量保证金，这便是本题对质保金唯一需要交代清楚的处理口径。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只答了逐月扣法。",
           "loss_reason": "漏了‘累计不超结算总价 3%’的封顶口径。",
           "fix": "逐月扣 3% + 累计不超结算总价 3%，两句都写。",
-          "option_id": "C02-html-practice-html-q5-dfeda6458d05:option-4"
+          "option_id": "C02-html-practice-html-q5-568d6a5fd4b9:option-4"
         }
       ],
-      "variant_id": "C02-html-practice-html-q5-dfeda6458d05",
+      "variant_id": "C02-html-practice-html-q5-568d6a5fd4b9",
       "surface_id": "practice.html",
       "source_index": 4,
       "source_group": "Q",
@@ -373,17 +373,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "057d55f5cc48b76de45f87d6e60eb623db5b1f277321b5c3c5735489806c0a82",
+      "source_html_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e9f08034a126de12832225c6934b9354b39769db94be541dcb9796e95af8c026",
+      "content_sha256": "695d992a11d93247052224374d545dce89bf466f9a3cb2c34837cdd3c2ef8a43",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e9f08034a126de12832225c6934b9354b39769db94be541dcb9796e95af8c026",
+        "reviewed_content_sha256": "695d992a11d93247052224374d545dce89bf466f9a3cb2c34837cdd3c2ef8a43",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -402,43 +402,43 @@
       "model_answer": "① 基数未扣暂列金（应（5800−580）×20%=1044）；② 起扣点公式写反（应 5220−1044÷60%=3480）；③ 应列累计 3830＞3480、5 月扣回预付款。补写四步：（5800−580）×20%=1044；5220−1044÷60%=3480；累计3830＞3480；5月除3%质保外扣回预付款。",
       "options": [
         {
+          "text": "学生三步都写出了得数：第①问预付款算得 1160 万、第②问起扣点算得 2320 万、第③问依据 5 月当月产值判定不扣回预付款；三问均给出了明确的数值结论，作答完整、前后衔接连贯，看不出明显缺漏，应当整体判为正确并给予满分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "每问都有数、看着像全做完。",
+          "loss_reason": "基数错、公式反、漏累计三处全错，得数是错值；阅卷看过程采分。",
+          "fix": "基数 1044、起扣点 3480、5 月按累计 3830 扣回，全要重写。",
+          "option_id": "C02-html-practice-html-q6-01bd53b75f48:option-1"
+        },
+        {
           "text": "① 基数漏扣暂列金（应 1044）；② 起扣点公式写反（应 5220−1044÷60%=3480）；③ 漏列累计、应 3830＞3480 故 5 月扣回预付。补写：（5800−580）×20%=1044；5220−1044÷60%=3480；累计3830＞3480；5月质保外再扣回预付款。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "三处失分全揪出 + 四步采分句补齐，这就是‘会写答案’。",
-          "option_id": "C02-html-practice-html-q6-0be03602f3ff:option-1"
+          "option_id": "C02-html-practice-html-q6-01bd53b75f48:option-2"
         },
         {
-          "text": "三步得数都算出来了，作答正确，可给满分。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "每问都有数、看着像全做完。",
-          "loss_reason": "基数错、公式反、漏累计三处全错，得数是错值；阅卷看过程采分。",
-          "fix": "基数 1044、起扣点 3480、5 月按累计 3830 扣回，全要重写。",
-          "option_id": "C02-html-practice-html-q6-0be03602f3ff:option-2"
-        },
-        {
-          "text": "只是起扣点数值算错，改对它即可，其余都正确。",
+          "text": "通观全卷整体来看，本题实际上只有第②问起扣点这一处的数值算错，只要把这个错误的数值更正过来即可，其余第①问预付款的计算过程与第③问 5 月是否扣回预付款的判断都没有任何问题，因此完全没有必要再对其他两个步骤做任何改动。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "抓到起扣点一处，以为只此一错。",
           "loss_reason": "漏诊‘基数未扣暂列金’和‘5 月漏列累计’两处。",
           "fix": "基数、起扣点、5 月累计三处都要补，不止改一处。",
-          "option_id": "C02-html-practice-html-q6-0be03602f3ff:option-3"
+          "option_id": "C02-html-practice-html-q6-01bd53b75f48:option-3"
         },
         {
-          "text": "预付款 1160 对、起扣点公式没问题，只是 5 月该用 80% 下限重算。",
+          "text": "第①问预付款 1160 万计算无误、第②问起扣点的公式结构也完全没有问题，全卷唯一真正需要处理的地方是第③问 5 月应当改用累计完成产值 80% 的下限来重新计算当期的应付款项，只要补上这一步，其余各个步骤便都可以原样保留下来而无须改动。",
           "is_correct": false,
           "source_error_code": "E08",
           "temptation": "把 80% 下限硬套到本题。",
           "loss_reason": "预付款基数未扣暂列（错）、起扣点公式反（错），且 80% 是未约定下限、本题不适用。",
           "fix": "先扣暂列金=1044、起扣点 5220−1044÷60%=3480、5 月按累计 3830 扣回。",
-          "option_id": "C02-html-practice-html-q6-0be03602f3ff:option-4"
+          "option_id": "C02-html-practice-html-q6-01bd53b75f48:option-4"
         }
       ],
-      "variant_id": "C02-html-practice-html-q6-0be03602f3ff",
+      "variant_id": "C02-html-practice-html-q6-01bd53b75f48",
       "surface_id": "practice.html",
       "source_index": 5,
       "source_group": "Q",
@@ -446,17 +446,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "057d55f5cc48b76de45f87d6e60eb623db5b1f277321b5c3c5735489806c0a82",
+      "source_html_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6f30c27a63eeb0f2f33b11565fdc1d3fd84ec1f9a8a429d04653412663bf5239",
+      "content_sha256": "dae887f05c04ff747bc76c58b7c75f9119388403645ef83d2fb155312a479e7b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6f30c27a63eeb0f2f33b11565fdc1d3fd84ec1f9a8a429d04653412663bf5239",
+        "reviewed_content_sha256": "dae887f05c04ff747bc76c58b7c75f9119388403645ef83d2fb155312a479e7b",
         "signatures": [],
         "checks": {
           "source_verified": false,
