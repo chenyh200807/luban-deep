@@ -1,48 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "G03",
   "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
   "source_bundle_sha256": "551390b6da3161fdf968d3a93c50ea5649110ae9750813c7aa439efe8687c664",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        3,
-        4,
-        14
-      ],
-      "variant_ids": [
-        "G03-html-practice-html-q1-eea4184844be",
-        "G03-html-practice-html-q2-aae75cddc48d",
-        "G03-html-practice-html-q4-8082ee20ea91",
-        "G03-html-practice-html-q5-a89c9f731582",
-        "G03-html-practice-html-q15-f68850feb673"
-      ],
-      "eligible_variant_ids": [
-        "G03-html-practice-html-q1-eea4184844be",
-        "G03-html-practice-html-q2-aae75cddc48d",
-        "G03-html-practice-html-q4-8082ee20ea91",
-        "G03-html-practice-html-q5-a89c9f731582",
-        "G03-html-practice-html-q6-5cd8a117649b",
-        "G03-html-practice-html-q9-6430051dff96",
-        "G03-html-practice-html-q15-f68850feb673"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZWVhNDE4NDg0NGJlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1hYWU3NWNkZGM0OGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTgwODJlZTIwZWE5MSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtYTg5YzlmNzMxNTgyIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZjY4ODUwZmViNjczIl0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjNlZGQ4NjVlNWE0YjI5MzRlZTg4OThiMjE4NmY1NTM4MzAzNDZiNzViNjg1MzNjNTEzMzhjZmIwODk4YTFkNDIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiOGVkZDQ5MTZlMDhjMGRhNGZkNzVkZmU2MWVkMmQ4YmY2MTcwZWM2OTUzZGZmYjNlZTA1M2VkZjgzZDRmNzc4ZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "92bd4a938334c12acf97fb26641033f67f5114cf670656d76a4cb090d34d1f4a"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 14,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "定性·条件维",
+      "variant_id": "G03-html-practice-html-q1-eea4184844be",
+      "surface_id": "practice.html",
       "stem": "某工程采用灌注桩基础。判定灌注桩按成孔工法的分类，选出完整、能得分的作答。",
-      "model_answer": "灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查工艺要求。",
       "options": [
         {
           "text": "灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查要求。",
@@ -81,53 +56,50 @@
           "option_id": "G03-html-practice-html-q1-eea4184844be:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q1-eea4184844be",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q1",
-      "source_anchor": "kc:1A413030_091_0167:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-castinplace-pile-methods",
-      "skeleton_id": "g03-skel-灌注桩成孔四类分类",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查工艺要求。",
+      "rule_group": "定性·条件维",
       "content_sha256": "baf63138de9106f2ba3271d28ca25fb700e30a88099b286686daefd8ef95fa18",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "baf63138de9106f2ba3271d28ca25fb700e30a88099b286686daefd8ef95fa18",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q1",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "g03-fact-castinplace-pile-methods",
+        "skeleton_id": "g03-skel-灌注桩成孔四类分类",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_091_0167:0",
+        "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "baf63138de9106f2ba3271d28ca25fb700e30a88099b286686daefd8ef95fa18",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "灌注桩按成孔工法分泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔四类, 教材 kc:...091_0167:0 直引。三联 anchor。"
         },
-        "note": "灌注桩按成孔工法分泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔四类, 教材 kc:...091_0167:0 直引。三联 anchor。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "预制桩强度·条件维",
+      "variant_id": "G03-html-practice-html-q2-aae75cddc48d",
+      "surface_id": "practice.html",
       "stem": "预制混凝土桩的吊运与打桩，对桩身混凝土强度有何要求？选出数字准确的作答。",
-      "model_answer": "混凝土强度达设计≥70%可起吊、≥100%可运输和打桩；两点吊吊点距桩端0.2L。",
       "options": [
         {
           "text": "混凝土强度达设计值≥70%方可起吊、≥100%方可运输和打桩；两点吊吊点距桩端0.2L。",
@@ -166,53 +138,50 @@
           "option_id": "G03-html-practice-html-q2-aae75cddc48d:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q2-aae75cddc48d",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q2",
-      "source_anchor": "kc:1A413030_090_0165:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-precast-pile-strength",
-      "skeleton_id": "g03-skel-预制桩强度70-100",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "混凝土强度达设计≥70%可起吊、≥100%可运输和打桩；两点吊吊点距桩端0.2L。",
+      "rule_group": "预制桩强度·条件维",
       "content_sha256": "34bf492ff79f97a753945d39284fde9561258f5bda8f98a8475cb0bbe96a4219",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "34bf492ff79f97a753945d39284fde9561258f5bda8f98a8475cb0bbe96a4219",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q2",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "g03-fact-precast-pile-strength",
+        "skeleton_id": "g03-skel-预制桩强度70-100",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_090_0165:0",
+        "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "34bf492ff79f97a753945d39284fde9561258f5bda8f98a8475cb0bbe96a4219",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "预制桩强度达设计≥70%起吊/≥100%运输打桩, 两点吊吊点距端0.2L, 教材 kc:...090_0165:0 直引。"
         },
-        "note": "预制桩强度达设计≥70%起吊/≥100%运输打桩, 两点吊吊点距端0.2L, 教材 kc:...090_0165:0 直引。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "锤击方式·条件维",
+      "variant_id": "G03-html-practice-html-q4-8082ee20ea91",
+      "surface_id": "practice.html",
       "stem": "锤击法沉桩宜采用何种落锤方式？选出正确作答。",
-      "model_answer": "宜重锤低击或低锤重打，避免桩头损坏、桩身开裂。",
       "options": [
         {
           "text": "宜采用重锤低击或低锤重打，减小冲击峰值、保桩身完整。",
@@ -251,53 +220,50 @@
           "option_id": "G03-html-practice-html-q4-8082ee20ea91:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q4-8082ee20ea91",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q4",
-      "source_anchor": "exam:2017:第26题",
-      "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-hammer-driving-mode",
-      "skeleton_id": "g03-skel-锤击重锤低击",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "宜重锤低击或低锤重打，避免桩头损坏、桩身开裂。",
+      "rule_group": "锤击方式·条件维",
       "content_sha256": "403d2a4d08d39f0dd05cd2ab01ad18c77960ba56cc2ab6b1aab584fe59825af2",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "403d2a4d08d39f0dd05cd2ab01ad18c77960ba56cc2ab6b1aab584fe59825af2",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q4",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "g03-fact-hammer-driving-mode",
+        "skeleton_id": "g03-skel-锤击重锤低击",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2017:第26题",
+        "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "403d2a4d08d39f0dd05cd2ab01ad18c77960ba56cc2ab6b1aab584fe59825af2",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "锤击法沉桩宜重锤低击(低锤重打)减小冲击峰值保桩身, 真题 exam:2017:第26题 支持。"
         },
-        "note": "锤击法沉桩宜重锤低击(低锤重打)减小冲击峰值保桩身, 真题 exam:2017:第26题 支持。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "静压·终止·主体维",
+      "variant_id": "G03-html-practice-html-q5-a89c9f731582",
+      "surface_id": "practice.html",
       "stem": "静力压桩施工与终止沉桩控制，下列作答正确的是？",
-      "model_answer": "试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
       "options": [
         {
           "text": "试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
@@ -336,53 +302,50 @@
           "option_id": "G03-html-practice-html-q5-a89c9f731582:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q5-a89c9f731582",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q5",
-      "source_anchor": "kc:1A413030_091_0166:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-static-press-pile",
-      "skeleton_id": "g03-skel-静压桩终止沉桩控制",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
+      "rule_group": "静压·终止·主体维",
       "content_sha256": "35174eb3a64667da3427afc750afb566ddd40c41a34a53b9dbdb62973fd43228",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "35174eb3a64667da3427afc750afb566ddd40c41a34a53b9dbdb62973fd43228",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q5",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "g03-fact-static-press-pile",
+        "skeleton_id": "g03-skel-静压桩终止沉桩控制",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_091_0166:0",
+        "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "35174eb3a64667da3427afc750afb566ddd40c41a34a53b9dbdb62973fd43228",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "试压桩≥3根/不得边压边挖/终止沉桩摩擦桩标高为主端承桩压力为主, 教材 kc:...091_0166:0 直引。"
         },
-        "note": "试压桩≥3根/不得边压边挖/终止沉桩摩擦桩标高为主端承桩压力为主, 教材 kc:...091_0166:0 直引。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "泥浆护壁流程·程序维",
+      "variant_id": "G03-html-practice-html-q6-5cd8a117649b",
+      "surface_id": "practice.html",
       "stem": "泥浆护壁回转钻成孔灌注桩的施工流程，选出完整、不漏关键节点的作答。",
-      "model_answer": "场地平整→放线→泥浆池→埋设护筒→钻机就位→成孔→清孔→下钢筋笼→水下浇筑→成桩。",
       "options": [
         {
           "text": "平整放线→埋设护筒→钻机成孔→清孔→下钢筋笼→水下浇筑混凝土→成桩。",
@@ -421,53 +384,50 @@
           "option_id": "G03-html-practice-html-q6-5cd8a117649b:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q6-5cd8a117649b",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q6",
-      "source_anchor": "kc:1A413030_091_0168:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-castinplace-pile-methods",
-      "skeleton_id": "g03-skel-泥浆护壁回转钻流程",
-      "probe_role": "immediate_confirm",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "场地平整→放线→泥浆池→埋设护筒→钻机就位→成孔→清孔→下钢筋笼→水下浇筑→成桩。",
+      "rule_group": "泥浆护壁流程·程序维",
       "content_sha256": "5322dd7f71cd4ab6b90e0214d93e298f35b5682caed1e8f3bf087af54e686f7b",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "5322dd7f71cd4ab6b90e0214d93e298f35b5682caed1e8f3bf087af54e686f7b",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q6",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "g03-fact-castinplace-pile-methods",
+        "skeleton_id": "g03-skel-泥浆护壁回转钻流程",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A413030_091_0168:0",
+        "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "5322dd7f71cd4ab6b90e0214d93e298f35b5682caed1e8f3bf087af54e686f7b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "泥浆护壁回转钻成孔流程=放线→埋护筒→成孔→清孔→下钢筋笼→水下浇筑→成桩, 教材 kc:...091_0168:0 直引。三联 immediate_confirm(同灌注桩工法 fact)。"
         },
-        "note": "泥浆护壁回转钻成孔流程=放线→埋护筒→成孔→清孔→下钢筋笼→水下浇筑→成桩, 教材 kc:...091_0168:0 直引。三联 immediate_confirm(同灌注桩工法 fact)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "孔底沉渣·条件维",
+      "variant_id": "G03-html-practice-html-q7-9514db1cdf06",
+      "surface_id": "practice.html",
       "stem": "灌注桩孔底沉渣厚度按桩型控制，选出数值正确的作答。",
-      "model_answer": "端承型≤50mm、摩擦型≤100mm、抗拔及抗水平≤200mm。",
       "options": [
         {
           "text": "端承型桩≤50mm、摩擦型桩≤100mm、抗拔及抗水平受荷桩≤200mm。",
@@ -506,41 +466,38 @@
           "option_id": "G03-html-practice-html-q7-9514db1cdf06:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q7-9514db1cdf06",
-      "surface_id": "practice.html",
-      "source_index": 6,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "端承型≤50mm、摩擦型≤100mm、抗拔及抗水平≤200mm。",
+      "rule_group": "孔底沉渣·条件维",
       "content_sha256": "b3d602f4d66161fa81375b1d15c35f16b731ccb3671374f5278b8b6b2c30a276",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b3d602f4d66161fa81375b1d15c35f16b731ccb3671374f5278b8b6b2c30a276",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q7",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b3d602f4d66161fa81375b1d15c35f16b731ccb3671374f5278b8b6b2c30a276",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "超灌纠错·记录计算维",
+      "variant_id": "G03-html-practice-html-q8-aaa9020ac5f9",
+      "surface_id": "practice.html",
       "stem": "某水下灌注桩方案：灌注时桩顶混凝土面超过设计标高500mm即停灌。选出对该做法的正确判断与改正。",
-      "model_answer": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头混凝土才达标。",
       "options": [
         {
           "text": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头才达标。",
@@ -579,41 +536,38 @@
           "option_id": "G03-html-practice-html-q8-aaa9020ac5f9:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q8-aaa9020ac5f9",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头混凝土才达标。",
+      "rule_group": "超灌纠错·记录计算维",
       "content_sha256": "d3ab32367f82b1ddfa16eb2d1bb468cc8217ab813f7e264d63ca5877a882d02d",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "d3ab32367f82b1ddfa16eb2d1bb468cc8217ab813f7e264d63ca5877a882d02d",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q8",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "d3ab32367f82b1ddfa16eb2d1bb468cc8217ab813f7e264d63ca5877a882d02d",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "沉管成桩·程序维",
+      "variant_id": "G03-html-practice-html-q9-6430051dff96",
+      "surface_id": "practice.html",
       "stem": "沉管灌注桩除单打法外还有哪些工法？成桩关键步骤是什么？选出正确作答。",
-      "model_answer": "工法还包括复打法、反插法；成桩边振（锤击）边拔管并继续浇筑、下钢筋笼继续浇筑、成桩。",
       "options": [
         {
           "text": "工法还包括复打法、反插法；边振边拔管边继续浇筑→下钢筋笼继续浇筑→成桩。",
@@ -652,53 +606,50 @@
           "option_id": "G03-html-practice-html-q9-6430051dff96:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q9-6430051dff96",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q9",
-      "source_anchor": "kc:1A413030_092_0171:0",
-      "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-castinplace-pile-methods",
-      "skeleton_id": "g03-skel-沉管灌注桩工法",
-      "probe_role": "d1_probe",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "工法还包括复打法、反插法；成桩边振（锤击）边拔管并继续浇筑、下钢筋笼继续浇筑、成桩。",
+      "rule_group": "沉管成桩·程序维",
       "content_sha256": "6fe1c68436966aa132648c88acf811cad7438a447f20f7eb9025cea9e9d00fcd",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "6fe1c68436966aa132648c88acf811cad7438a447f20f7eb9025cea9e9d00fcd",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q9",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "g03-fact-castinplace-pile-methods",
+        "skeleton_id": "g03-skel-沉管灌注桩工法",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A413030_092_0171:0",
+        "source_sha256": "5618e3aa8bf12e24b573a605866cfa34a1a98633219e71cce68a236487aa501e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "6fe1c68436966aa132648c88acf811cad7438a447f20f7eb9025cea9e9d00fcd",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "沉管灌注桩除单打法外有复打法/反插法; 边振边拔管边浇筑→下钢筋笼→成桩, 教材 kc:...092_0171:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
         },
-        "note": "沉管灌注桩除单打法外有复打法/反插法; 边振边拔管边浇筑→下钢筋笼→成桩, 教材 kc:...092_0171:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "人工挖孔·程序维",
+      "variant_id": "G03-html-practice-html-q10-0dc4fb66e917",
+      "surface_id": "practice.html",
       "stem": "人工挖孔灌注桩的开挖间距与顺序，选出符合规范的作答。",
-      "model_answer": "桩距小于2.5m时应间隔开挖浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
       "options": [
         {
           "text": "桩距<2.5m时应间隔开挖并浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
@@ -737,41 +688,38 @@
           "option_id": "G03-html-practice-html-q10-0dc4fb66e917:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q10-0dc4fb66e917",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "桩距小于2.5m时应间隔开挖浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
+      "rule_group": "人工挖孔·程序维",
       "content_sha256": "b479ea8826c2b026b7b7d89281ac97ed23bb03e9fbc678fb57985dbd12b6a65a",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b479ea8826c2b026b7b7d89281ac97ed23bb03e9fbc678fb57985dbd12b6a65a",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q10",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b479ea8826c2b026b7b7d89281ac97ed23bb03e9fbc678fb57985dbd12b6a65a",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "桩底注浆·条件维",
+      "variant_id": "G03-html-practice-html-q11-7ea9a0a60e79",
+      "surface_id": "practice.html",
       "stem": "灌注桩桩底后注浆的终止控制，选出正确作答。",
-      "model_answer": "以注浆量为主控：注浆总量达设计值，或注浆量≥80%且注浆压力大于设计值时可终止。",
       "options": [
         {
           "text": "以注浆量为主控：注浆总量达设计值，或注浆量≥80%且压力大于设计值时终止。",
@@ -810,41 +758,38 @@
           "option_id": "G03-html-practice-html-q11-7ea9a0a60e79:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q11-7ea9a0a60e79",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "以注浆量为主控：注浆总量达设计值，或注浆量≥80%且注浆压力大于设计值时可终止。",
+      "rule_group": "桩底注浆·条件维",
       "content_sha256": "9d68184408697cf28b00d2dc5c722b84bf569702628bb93257011ac0aea9a59e",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "9d68184408697cf28b00d2dc5c722b84bf569702628bb93257011ac0aea9a59e",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q11",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "9d68184408697cf28b00d2dc5c722b84bf569702628bb93257011ac0aea9a59e",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "检测方法适用·主体维",
+      "variant_id": "G03-html-practice-html-q12-480eec804655",
+      "surface_id": "practice.html",
       "stem": "桩基检测方法与检测目的的匹配，选出正确作答。",
-      "model_answer": "承载力用静载或高应变；桩端持力层岩性用钻芯法；桩身完整性缺陷用低应变或声波透射；试验桩定单桩极限承载力。",
       "options": [
         {
           "text": "承载力用静载或高应变；持力层岩性用钻芯法；完整性缺陷用低应变或声波透射法。",
@@ -883,41 +828,38 @@
           "option_id": "G03-html-practice-html-q12-480eec804655:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q12-480eec804655",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "承载力用静载或高应变；桩端持力层岩性用钻芯法；桩身完整性缺陷用低应变或声波透射；试验桩定单桩极限承载力。",
+      "rule_group": "检测方法适用·主体维",
       "content_sha256": "be2d9c10a77ebc719245718c59d28ed1477eb561a1d8d3169b30399690ca6ba0",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "be2d9c10a77ebc719245718c59d28ed1477eb561a1d8d3169b30399690ca6ba0",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q12",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "be2d9c10a77ebc719245718c59d28ed1477eb561a1d8d3169b30399690ca6ba0",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "完整性分类·条件维",
+      "variant_id": "G03-html-practice-html-q13-151b2e98f9f7",
+      "surface_id": "practice.html",
       "stem": "桩身完整性分类Ⅰ–Ⅳ类，选出对Ⅱ、Ⅲ类描述正确的作答。",
-      "model_answer": "Ⅰ类完整；Ⅱ类有轻微缺陷、不影响承载力；Ⅲ类有明显缺陷、影响承载力；Ⅳ类严重缺陷。",
       "options": [
         {
           "text": "Ⅱ类有轻微缺陷但不影响桩身结构承载力；Ⅲ类有明显缺陷、影响承载力。",
@@ -956,41 +898,38 @@
           "option_id": "G03-html-practice-html-q13-151b2e98f9f7:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q13-151b2e98f9f7",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "Ⅰ类完整；Ⅱ类有轻微缺陷、不影响承载力；Ⅲ类有明显缺陷、影响承载力；Ⅳ类严重缺陷。",
+      "rule_group": "完整性分类·条件维",
       "content_sha256": "50afe6d643adb5ba7605d0c93b162f4637432addd4b1b4c1ae9740e43421e090",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "50afe6d643adb5ba7605d0c93b162f4637432addd4b1b4c1ae9740e43421e090",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q13",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "50afe6d643adb5ba7605d0c93b162f4637432addd4b1b4c1ae9740e43421e090",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "钻芯孔数·条件维",
+      "variant_id": "G03-html-practice-html-q14-00c69546d2bb",
+      "surface_id": "practice.html",
       "stem": "钻芯法检测的钻孔数量随桩径如何确定？选出正确作答。",
-      "model_answer": "桩径<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔；孔位距桩中心(0.15~0.25)D。",
       "options": [
         {
           "text": "桩径<1.2m钻1~2孔、1.2~1.6m钻2孔、>1.6m钻3孔；孔位距桩中心(0.15~0.25)D。",
@@ -1029,41 +968,38 @@
           "option_id": "G03-html-practice-html-q14-00c69546d2bb:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q14-00c69546d2bb",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "桩径<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔；孔位距桩中心(0.15~0.25)D。",
+      "rule_group": "钻芯孔数·条件维",
       "content_sha256": "b07b096ccd05aa3216a405abeb8903432c3d0c97cd455d4ff9dac1ec0aabed7d",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b07b096ccd05aa3216a405abeb8903432c3d0c97cd455d4ff9dac1ec0aabed7d",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q14",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b07b096ccd05aa3216a405abeb8903432c3d0c97cd455d4ff9dac1ec0aabed7d",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "G03-html-practice-html-q15-f68850feb673",
+      "surface_id": "practice.html",
       "stem": "甲级灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③接桩段断裂因混凝土质量差、防治为加强管理。选出最准确的诊断与补写。",
-      "model_answer": "三处都失分：超灌应0.8~1.0m；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；断裂应写五因(弯曲/障碍物/不直/偏心/强度不足)+具体防治。",
       "options": [
         {
           "text": "三处都不妥：超灌应0.8~1.0m；甲级灌注桩完整性≥30%即900×30%=270根；断裂应写五因+清障/垂直沉桩/接桩对中等具体防治。",
@@ -1102,48 +1038,54 @@
           "option_id": "G03-html-practice-html-q15-f68850feb673:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q15-f68850feb673",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q15",
-      "source_anchor": "exam:2016:第30题",
-      "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
-      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
-      "fact_id": "g03-fact-castinplace-pile-diagnosis",
-      "skeleton_id": "g03-skel-灌注桩诊断补写",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "三处都失分：超灌应0.8~1.0m；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；断裂应写五因(弯曲/障碍物/不直/偏心/强度不足)+具体防治。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "a7eb934b131a81210c8faf2510a5c968fa5e6db55d909da7c5bdcf1e20b4725e",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "a7eb934b131a81210c8faf2510a5c968fa5e6db55d909da7c5bdcf1e20b4725e",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q15",
+      "authoring_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "decision": {
+        "fact_id": "g03-fact-castinplace-pile-diagnosis",
+        "skeleton_id": "g03-skel-灌注桩诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2016:第30题",
+        "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "a7eb934b131a81210c8faf2510a5c968fa5e6db55d909da7c5bdcf1e20b4725e",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "诊断: ①超灌应0.8~1.0m ②甲级灌注桩完整性≥30%=270根 ③断裂五因+具体防治, 三处均正确, 真题 exam:2016:第30题 综合。工单: longest-option。"
         },
-        "note": "诊断: ①超灌应0.8~1.0m ②甲级灌注桩完整性≥30%=270根 ③断裂五因+具体防治, 三处均正确, 真题 exam:2016:第30题 综合。工单: longest-option。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
   ],
-  "published_lesson_sha256": "a9d219fcfd42434a65f8744178a00a9a79050805be8ea142df42836067ed48e9"
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (g03.codex.out, fatal_count=1, surface_anchors_all_fatal_free=true). 主控核: 5 surface 锚(q1/q2/q4/q5/q15)Codex 全 MINOR, 答案系二建标准桩基事实(灌注桩按成孔工法四类=泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔; 预制桩强度≥70%起吊/≥100%运输打桩/两点吊0.2L; 锤击宜重锤低击; 静压桩终止沉桩摩擦桩标高端承桩压力; 甲级灌注桩完整性抽检≥30%=270根/超灌0.8~1.0m), 教材 kc:1A413030_090~091 与真题 exam:2016/2017 直引。唯一 FATAL=q10(非展示, 正确项新增'相邻桩最小间距≥5m'), 排除不签。三联=灌注桩成孔工法 fact(q1四类分类/q6泥浆护壁回转钻流程/q9沉管工法)。工单: 部分正确项最长。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }

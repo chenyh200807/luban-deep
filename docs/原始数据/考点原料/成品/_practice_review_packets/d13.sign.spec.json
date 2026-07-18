@@ -1,0 +1,13 @@
+{
+  "pack_id": "D13",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (d13.codex.out, fatal_count=1, surface_anchors_all_fatal_free=true). 主控核: 5 surface 锚(q1/q2/q3/q4/q15)Codex 全 MINOR/none, 答案系二建标准事实(幕墙层间封堵≥100mm不燃材料+水平防火烟带; 承托板≥1.5mm镀锌钢板不得铝板; 上下层开口≥1.2m实体墙或挑檐≥1.0m), exam:2015:案例2 与 kc:1A413030_148_0286 直引。唯一 FATAL=q5(非展示, 复合'空腔≥200mm+楼板缝≥100mm'单锚覆盖不全), 各事实教材/真题均有原文=多源工单, 排除不签。三联=层间防火封堵 fact(q1封堵要素/q7承托板缝隙密封胶/q8水平防火烟带)。工单: 部分正确项偏长。",
+  "signed": [
+    {"variant_id":"D13-html-practice-html-q1-a3b5c73ae494","probe_role":"anchor","fact_id":"d13-fact-interfloor-firestop","skeleton_id":"d13-skel-封堵要素全枚举","source_anchor":"exam:2015:案例2","note":"幕墙与楼板间缝隙用不燃材料封堵厚度≥100mm+水平防火烟带+镀锌钢板承托+防火密封胶, 真题 exam:2015:案例2 支持。三联 anchor。"},
+    {"variant_id":"D13-html-practice-html-q2-753aa408cfc1","probe_role":"anchor","fact_id":"d13-fact-support-plate-material","skeleton_id":"d13-skel-承托板镀锌钢板不得铝板","source_anchor":"exam:2015:案例2","note":"防火层承托板应≥1.5mm镀锌钢板, 不得用铝板(铝熔点低), 真题直引。"},
+    {"variant_id":"D13-html-practice-html-q3-9fa02e489ab8","probe_role":"anchor","fact_id":"d13-fact-support-plate-thickness-unit","skeleton_id":"d13-skel-1.5mm单位辨析","source_anchor":"exam:2015:案例2","note":"承托板厚度1.5mm(毫米非米)镀锌钢板, 单位辨析题, 真题支持。"},
+    {"variant_id":"D13-html-practice-html-q4-b67400c5b10c","probe_role":"anchor","fact_id":"d13-fact-opening-vertical-separation","skeleton_id":"d13-skel-上下层开口实体墙挑檐","source_anchor":"kc:1A413030_148_0286:0","note":"上下层开口间设≥1.2m实体墙, 不足时防火挑檐宽≥1.0m且长≥开口宽, 教材 kc:...148_0286:0 直引。"},
+    {"variant_id":"D13-html-practice-html-q7-3cb18e9f15d4","probe_role":"immediate_confirm","fact_id":"d13-fact-interfloor-firestop","skeleton_id":"d13-skel-承托板缝隙防火密封胶","source_anchor":"exam:2015:案例2","note":"承托板与主体/幕墙结构间缝隙应用防火密封胶密封, 真题支持。三联 immediate_confirm(同层间封堵 fact)。"},
+    {"variant_id":"D13-html-practice-html-q8-601cc4b8b67e","probe_role":"d1_probe","fact_id":"d13-fact-interfloor-firestop","skeleton_id":"d13-skel-水平防火烟带耐火极限","source_anchor":"exam:2015:案例2","note":"层间封堵应形成水平防火烟带并满足耐火极限, 逐层截断, 真题支持。三联 d1_probe(同 fact, 第3独立 skeleton)。"},
+    {"variant_id":"D13-html-practice-html-q15-2ff7d0b4fec0","probe_role":"anchor","fact_id":"d13-fact-interfloor-firestop-diagnosis","skeleton_id":"d13-skel-层间封堵诊断补写","source_anchor":"exam:2015:案例2","note":"诊断: ①缺≥100mm与水平烟带 ②承托板应改镀锌钢板 ③缝隙应用防火密封胶, 三处均正确, 真题综合。工单: longest-option。"}
+  ]
+}

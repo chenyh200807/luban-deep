@@ -1,0 +1,13 @@
+{
+  "pack_id": "G03",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (g03.codex.out, fatal_count=1, surface_anchors_all_fatal_free=true). 主控核: 5 surface 锚(q1/q2/q4/q5/q15)Codex 全 MINOR, 答案系二建标准桩基事实(灌注桩按成孔工法四类=泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔; 预制桩强度≥70%起吊/≥100%运输打桩/两点吊0.2L; 锤击宜重锤低击; 静压桩终止沉桩摩擦桩标高端承桩压力; 甲级灌注桩完整性抽检≥30%=270根/超灌0.8~1.0m), 教材 kc:1A413030_090~091 与真题 exam:2016/2017 直引。唯一 FATAL=q10(非展示, 正确项新增'相邻桩最小间距≥5m'), 排除不签。三联=灌注桩成孔工法 fact(q1四类分类/q6泥浆护壁回转钻流程/q9沉管工法)。工单: 部分正确项最长。",
+  "signed": [
+    {"variant_id":"G03-html-practice-html-q1-eea4184844be","probe_role":"anchor","fact_id":"g03-fact-castinplace-pile-methods","skeleton_id":"g03-skel-灌注桩成孔四类分类","source_anchor":"kc:1A413030_091_0167:0","note":"灌注桩按成孔工法分泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔四类, 教材 kc:...091_0167:0 直引。三联 anchor。"},
+    {"variant_id":"G03-html-practice-html-q2-aae75cddc48d","probe_role":"anchor","fact_id":"g03-fact-precast-pile-strength","skeleton_id":"g03-skel-预制桩强度70-100","source_anchor":"kc:1A413030_090_0165:0","note":"预制桩强度达设计≥70%起吊/≥100%运输打桩, 两点吊吊点距端0.2L, 教材 kc:...090_0165:0 直引。"},
+    {"variant_id":"G03-html-practice-html-q4-8082ee20ea91","probe_role":"anchor","fact_id":"g03-fact-hammer-driving-mode","skeleton_id":"g03-skel-锤击重锤低击","source_anchor":"exam:2017:第26题","note":"锤击法沉桩宜重锤低击(低锤重打)减小冲击峰值保桩身, 真题 exam:2017:第26题 支持。"},
+    {"variant_id":"G03-html-practice-html-q5-a89c9f731582","probe_role":"anchor","fact_id":"g03-fact-static-press-pile","skeleton_id":"g03-skel-静压桩终止沉桩控制","source_anchor":"kc:1A413030_091_0166:0","note":"试压桩≥3根/不得边压边挖/终止沉桩摩擦桩标高为主端承桩压力为主, 教材 kc:...091_0166:0 直引。"},
+    {"variant_id":"G03-html-practice-html-q6-5cd8a117649b","probe_role":"immediate_confirm","fact_id":"g03-fact-castinplace-pile-methods","skeleton_id":"g03-skel-泥浆护壁回转钻流程","source_anchor":"kc:1A413030_091_0168:0","note":"泥浆护壁回转钻成孔流程=放线→埋护筒→成孔→清孔→下钢筋笼→水下浇筑→成桩, 教材 kc:...091_0168:0 直引。三联 immediate_confirm(同灌注桩工法 fact)。"},
+    {"variant_id":"G03-html-practice-html-q9-6430051dff96","probe_role":"d1_probe","fact_id":"g03-fact-castinplace-pile-methods","skeleton_id":"g03-skel-沉管灌注桩工法","source_anchor":"kc:1A413030_092_0171:0","note":"沉管灌注桩除单打法外有复打法/反插法; 边振边拔管边浇筑→下钢筋笼→成桩, 教材 kc:...092_0171:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"},
+    {"variant_id":"G03-html-practice-html-q15-f68850feb673","probe_role":"anchor","fact_id":"g03-fact-castinplace-pile-diagnosis","skeleton_id":"g03-skel-灌注桩诊断补写","source_anchor":"exam:2016:第30题","note":"诊断: ①超灌应0.8~1.0m ②甲级灌注桩完整性≥30%=270根 ③断裂五因+具体防治, 三处均正确, 真题 exam:2016:第30题 综合。工单: longest-option。"}
+  ]
+}

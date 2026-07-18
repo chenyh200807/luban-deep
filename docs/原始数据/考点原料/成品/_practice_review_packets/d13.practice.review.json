@@ -1,48 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "D13",
   "source_pack_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
   "source_bundle_sha256": "e4299c8bd9fc1ac5fe44ee55532f5ff9f17539ea71782920c2b7c1245455ae37",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        2,
-        3,
-        14
-      ],
-      "variant_ids": [
-        "D13-html-practice-html-q1-a3b5c73ae494",
-        "D13-html-practice-html-q2-753aa408cfc1",
-        "D13-html-practice-html-q3-9fa02e489ab8",
-        "D13-html-practice-html-q4-b67400c5b10c",
-        "D13-html-practice-html-q15-2ff7d0b4fec0"
-      ],
-      "eligible_variant_ids": [
-        "D13-html-practice-html-q1-a3b5c73ae494",
-        "D13-html-practice-html-q2-753aa408cfc1",
-        "D13-html-practice-html-q3-9fa02e489ab8",
-        "D13-html-practice-html-q4-b67400c5b10c",
-        "D13-html-practice-html-q7-3cb18e9f15d4",
-        "D13-html-practice-html-q8-601cc4b8b67e",
-        "D13-html-practice-html-q15-2ff7d0b4fec0"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTNiNWM3M2FlNDk0IiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03NTNhYTQwOGNmYzEiLCJEMTMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTlmYTAyZTQ4OWFiOCIsIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtYjY3NDAwYzViMTBjIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMmZmN2QwYjRmZWMwIl0sInBhY2tfaWQiOiJEMTMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjllYWRmOGZhNTAxZjkyMmQzZmUyOGZjYWIxNzliZmZhZmEyNjkxOTJhZDg1MGZhOTIxMjRmMmQ3MzA1ODQ5YmYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYTAyZTQzYWJjZjVlMTBlNmFkYzI1ODdhZjlhNmYxOTkxOTYzMTc0NzU1M2YwZmE5Zjg2OGRhOWUxZmRkZDkxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "a7164a69bdf4b57d8fea119ececb053cd013f8b63436b6b2d67924c7f53e54c8"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 15,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "层间封堵·内容清单",
+      "variant_id": "D13-html-practice-html-q1-a3b5c73ae494",
+      "surface_id": "practice.html",
       "stem": "幕墙与各层楼板间缝隙的防火封堵应满足哪些要求？选出要素最全、能得分的作答。",
-      "model_answer": "缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、楼层间形成水平防火烟带；防火层用≥1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。",
       "options": [
         {
           "text": "缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、形成水平防火烟带，1.5mm镀锌钢板承托、防火密封胶封缝。",
@@ -81,53 +56,50 @@
           "option_id": "D13-html-practice-html-q1-a3b5c73ae494:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q1-a3b5c73ae494",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q1",
-      "source_anchor": "exam:2015:案例2",
-      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "d13-fact-interfloor-firestop",
-      "skeleton_id": "d13-skel-封堵要素全枚举",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、楼层间形成水平防火烟带；防火层用≥1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。",
+      "rule_group": "层间封堵·内容清单",
       "content_sha256": "d84ca28687a44353767b97b73b23705607bad4d43db219d14e29d22a8f446f26",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "d84ca28687a44353767b97b73b23705607bad4d43db219d14e29d22a8f446f26",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q1",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "d13-fact-interfloor-firestop",
+        "skeleton_id": "d13-skel-封堵要素全枚举",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2015:案例2",
+        "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "d84ca28687a44353767b97b73b23705607bad4d43db219d14e29d22a8f446f26",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "幕墙与楼板间缝隙用不燃材料封堵厚度≥100mm+水平防火烟带+镀锌钢板承托+防火密封胶, 真题 exam:2015:案例2 支持。三联 anchor。"
         },
-        "note": "幕墙与楼板间缝隙用不燃材料封堵厚度≥100mm+水平防火烟带+镀锌钢板承托+防火密封胶, 真题 exam:2015:案例2 支持。三联 anchor。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "承托板材料·判断纠错",
+      "variant_id": "D13-html-practice-html-q2-753aa408cfc1",
+      "surface_id": "practice.html",
       "stem": "某幕墙防火层承托板采用 1.5mm 铝板。指出是否妥当并写正确做法，选出最到位的作答。",
-      "model_answer": "不妥。防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板(铝熔点低火中熔化使防火层垮塌)。",
       "options": [
         {
           "text": "不妥；防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板（铝熔点低火中熔化）。",
@@ -166,53 +138,50 @@
           "option_id": "D13-html-practice-html-q2-753aa408cfc1:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q2-753aa408cfc1",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q2",
-      "source_anchor": "exam:2015:案例2",
-      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "d13-fact-support-plate-material",
-      "skeleton_id": "d13-skel-承托板镀锌钢板不得铝板",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥。防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板(铝熔点低火中熔化使防火层垮塌)。",
+      "rule_group": "承托板材料·判断纠错",
       "content_sha256": "2f23bbe5252a08127b9d213cb7a945fc76a9c94476b00fa68041df05e2a6f0d7",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "2f23bbe5252a08127b9d213cb7a945fc76a9c94476b00fa68041df05e2a6f0d7",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q2",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "d13-fact-support-plate-material",
+        "skeleton_id": "d13-skel-承托板镀锌钢板不得铝板",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2015:案例2",
+        "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "2f23bbe5252a08127b9d213cb7a945fc76a9c94476b00fa68041df05e2a6f0d7",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "防火层承托板应≥1.5mm镀锌钢板, 不得用铝板(铝熔点低), 真题直引。"
         },
-        "note": "防火层承托板应≥1.5mm镀锌钢板, 不得用铝板(铝熔点低), 真题直引。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "承托板尺寸·数字陷阱",
+      "variant_id": "D13-html-practice-html-q3-9fa02e489ab8",
+      "surface_id": "practice.html",
       "stem": "关于幕墙防火构造承托板，下列写法数值与单位都正确、能得分的是？",
-      "model_answer": "钢质承托板厚度≥1.5mm（毫米）；写成1.5m是其1000倍，幕墙构造无1.5m厚承托板。",
       "options": [
         {
           "text": "防火层承托板应采用厚度≥1.5mm 的镀锌钢板，此处 1.5mm 是毫米，不是 1.5m。",
@@ -251,53 +220,50 @@
           "option_id": "D13-html-practice-html-q3-9fa02e489ab8:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q3-9fa02e489ab8",
-      "surface_id": "practice.html",
-      "source_index": 2,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q3",
-      "source_anchor": "exam:2015:案例2",
-      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "d13-fact-support-plate-thickness-unit",
-      "skeleton_id": "d13-skel-1.5mm单位辨析",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "钢质承托板厚度≥1.5mm（毫米）；写成1.5m是其1000倍，幕墙构造无1.5m厚承托板。",
+      "rule_group": "承托板尺寸·数字陷阱",
       "content_sha256": "2b1cdd526c07ea91c1f07cb128c2991565326152d521b5fd36ef2f2b8e06f339",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "2b1cdd526c07ea91c1f07cb128c2991565326152d521b5fd36ef2f2b8e06f339",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q3",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "d13-fact-support-plate-thickness-unit",
+        "skeleton_id": "d13-skel-1.5mm单位辨析",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2015:案例2",
+        "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "2b1cdd526c07ea91c1f07cb128c2991565326152d521b5fd36ef2f2b8e06f339",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "承托板厚度1.5mm(毫米非米)镀锌钢板, 单位辨析题, 真题支持。"
         },
-        "note": "承托板厚度1.5mm(毫米非米)镀锌钢板, 单位辨析题, 真题支持。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "防火分隔·条件维",
+      "variant_id": "D13-html-practice-html-q4-b67400c5b10c",
+      "surface_id": "practice.html",
       "stem": "上下层开口之间的防火分隔应满足什么？选出尺寸判据完整、能得分的作答。",
-      "model_answer": "上下层开口间实体墙高度≥1.2m；或设防火挑檐，宽度≥1.0m且长度≥开口宽度。",
       "options": [
         {
           "text": "上下层开口间应设高度≥1.2m 的实体墙；不足时设防火挑檐，宽度≥1.0m 且长度≥开口宽度。",
@@ -336,53 +302,50 @@
           "option_id": "D13-html-practice-html-q4-b67400c5b10c:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q4-b67400c5b10c",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q4",
-      "source_anchor": "kc:1A413030_148_0286:0",
-      "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "d13-fact-opening-vertical-separation",
-      "skeleton_id": "d13-skel-上下层开口实体墙挑檐",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "上下层开口间实体墙高度≥1.2m；或设防火挑檐，宽度≥1.0m且长度≥开口宽度。",
+      "rule_group": "防火分隔·条件维",
       "content_sha256": "3f1bfb05918d7e3383d6f7d1ad3aff42dacec24fddb6f8a9145206d2f656941b",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "3f1bfb05918d7e3383d6f7d1ad3aff42dacec24fddb6f8a9145206d2f656941b",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q4",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "d13-fact-opening-vertical-separation",
+        "skeleton_id": "d13-skel-上下层开口实体墙挑檐",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_148_0286:0",
+        "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "3f1bfb05918d7e3383d6f7d1ad3aff42dacec24fddb6f8a9145206d2f656941b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "上下层开口间设≥1.2m实体墙, 不足时防火挑檐宽≥1.0m且长≥开口宽, 教材 kc:...148_0286:0 直引。"
         },
-        "note": "上下层开口间设≥1.2m实体墙, 不足时防火挑檐宽≥1.0m且长≥开口宽, 教材 kc:...148_0286:0 直引。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "部位区分·条件维",
+      "variant_id": "D13-html-practice-html-q5-29b95dba321c",
+      "surface_id": "practice.html",
       "stem": "「200mm」和「100mm」分别指幕墙防火的哪个部位尺寸？选出对应正确的作答。",
-      "model_answer": "200mm是窗槛墙空腔上下沿矿物棉填塞高度；100mm是幕墙与楼板缝隙封堵岩棉/矿棉厚度，部位不同不可混。",
       "options": [
         {
           "text": "200mm 是窗槛墙空腔上下沿矿物棉填塞高度；100mm 是楼板缝隙封堵岩棉/矿棉厚度。",
@@ -421,41 +384,38 @@
           "option_id": "D13-html-practice-html-q5-29b95dba321c:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q5-29b95dba321c",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "200mm是窗槛墙空腔上下沿矿物棉填塞高度；100mm是幕墙与楼板缝隙封堵岩棉/矿棉厚度，部位不同不可混。",
+      "rule_group": "部位区分·条件维",
       "content_sha256": "ca8e3697418ca37da407666b57336efd467e70b4c8d44a25ce8802d3d5245172",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "ca8e3697418ca37da407666b57336efd467e70b4c8d44a25ce8802d3d5245172",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q5",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "ca8e3697418ca37da407666b57336efd467e70b4c8d44a25ce8802d3d5245172",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "防火分区·后果维",
+      "variant_id": "D13-html-practice-html-q6-0282e40dcdae",
+      "surface_id": "practice.html",
       "stem": "关于幕墙玻璃单元与防火分区的关系，下列正确、能得分的是？",
-      "model_answer": "同一幕墙玻璃单元不应跨越两个防火分区，否则火灾会沿幕墙串区、防火分区失效。",
       "options": [
         {
           "text": "同一幕墙玻璃单元不应跨越两个防火分区，否则火灾会沿幕墙在分区间蔓延、分区失效。",
@@ -494,41 +454,38 @@
           "option_id": "D13-html-practice-html-q6-0282e40dcdae:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q6-0282e40dcdae",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "同一幕墙玻璃单元不应跨越两个防火分区，否则火灾会沿幕墙串区、防火分区失效。",
+      "rule_group": "防火分区·后果维",
       "content_sha256": "7c73c5aed0e345e53cc2bac5b5567161356d8dd34e24e4daf02bb0962a29f61c",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "7c73c5aed0e345e53cc2bac5b5567161356d8dd34e24e4daf02bb0962a29f61c",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q6",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "7c73c5aed0e345e53cc2bac5b5567161356d8dd34e24e4daf02bb0962a29f61c",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "密封胶·采分点遗漏",
+      "variant_id": "D13-html-practice-html-q7-3cb18e9f15d4",
+      "surface_id": "practice.html",
       "stem": "某做法：防火层用1.5mm镀锌钢板承托、托住岩棉，承托板与主体结构间的缝隙未作处理。漏了什么？选出最准确的作答。",
-      "model_answer": "承托板与主体结构、幕墙结构之间的缝隙应采用防火密封胶密封，缝隙未处理会留下过火通道。",
       "options": [
         {
           "text": "漏了防火密封胶：承托板与主体结构、幕墙结构之间的缝隙应采用防火密封胶密封。",
@@ -567,53 +524,50 @@
           "option_id": "D13-html-practice-html-q7-3cb18e9f15d4:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q7-3cb18e9f15d4",
-      "surface_id": "practice.html",
-      "source_index": 6,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q7",
-      "source_anchor": "exam:2015:案例2",
-      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "d13-fact-interfloor-firestop",
-      "skeleton_id": "d13-skel-承托板缝隙防火密封胶",
-      "probe_role": "immediate_confirm",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "承托板与主体结构、幕墙结构之间的缝隙应采用防火密封胶密封，缝隙未处理会留下过火通道。",
+      "rule_group": "密封胶·采分点遗漏",
       "content_sha256": "725c2108fe16580657cca0814da10111025a430414a4bffda7930f7e17968736",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "725c2108fe16580657cca0814da10111025a430414a4bffda7930f7e17968736",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q7",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "d13-fact-interfloor-firestop",
+        "skeleton_id": "d13-skel-承托板缝隙防火密封胶",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2015:案例2",
+        "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "725c2108fe16580657cca0814da10111025a430414a4bffda7930f7e17968736",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "承托板与主体/幕墙结构间缝隙应用防火密封胶密封, 真题支持。三联 immediate_confirm(同层间封堵 fact)。"
         },
-        "note": "承托板与主体/幕墙结构间缝隙应用防火密封胶密封, 真题支持。三联 immediate_confirm(同层间封堵 fact)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "水平烟带·关键词缺失",
+      "variant_id": "D13-html-practice-html-q8-601cc4b8b67e",
+      "surface_id": "practice.html",
       "stem": "层间缝隙用不燃材料封堵≥100mm 后，为在楼层间起到隔离作用，还应写出什么关键要求？",
-      "model_answer": "应在楼层间形成水平防火烟带，并满足设计的耐火极限要求。",
       "options": [
         {
           "text": "应在楼层间形成水平防火烟带，并满足设计的耐火极限要求，把每层截断成独立空间。",
@@ -652,53 +606,50 @@
           "option_id": "D13-html-practice-html-q8-601cc4b8b67e:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q8-601cc4b8b67e",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q8",
-      "source_anchor": "exam:2015:案例2",
-      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "d13-fact-interfloor-firestop",
-      "skeleton_id": "d13-skel-水平防火烟带耐火极限",
-      "probe_role": "d1_probe",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "应在楼层间形成水平防火烟带，并满足设计的耐火极限要求。",
+      "rule_group": "水平烟带·关键词缺失",
       "content_sha256": "a8d9b81832d5bd1435e0e10c42cb3c682bc1f9b29445e438f5c03ac380507e9d",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "a8d9b81832d5bd1435e0e10c42cb3c682bc1f9b29445e438f5c03ac380507e9d",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q8",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "d13-fact-interfloor-firestop",
+        "skeleton_id": "d13-skel-水平防火烟带耐火极限",
+        "probe_role": "d1_probe",
+        "source_anchor": "exam:2015:案例2",
+        "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "a8d9b81832d5bd1435e0e10c42cb3c682bc1f9b29445e438f5c03ac380507e9d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "层间封堵应形成水平防火烟带并满足耐火极限, 逐层截断, 真题支持。三联 d1_probe(同 fact, 第3独立 skeleton)。"
         },
-        "note": "层间封堵应形成水平防火烟带并满足耐火极限, 逐层截断, 真题支持。三联 d1_probe(同 fact, 第3独立 skeleton)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "防雷·框架连主体",
+      "variant_id": "D13-html-practice-html-q9-35dff56d82a2",
+      "surface_id": "practice.html",
       "stem": "幕墙金属框架的防雷连接总要求是什么？选出能得分的作答。",
-      "model_answer": "幕墙金属框架应与主体结构防雷体系可靠连接，使雷电流经框架、主体泄放入地。",
       "options": [
         {
           "text": "幕墙金属框架应与主体结构的防雷体系可靠连接，雷电流经框架、主体连续泄放入地。",
@@ -737,41 +688,38 @@
           "option_id": "D13-html-practice-html-q9-35dff56d82a2:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q9-35dff56d82a2",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "幕墙金属框架应与主体结构防雷体系可靠连接，使雷电流经框架、主体泄放入地。",
+      "rule_group": "防雷·框架连主体",
       "content_sha256": "55a230efb60069f3ee66589c01375c2b1977445c7875a16b2f43e63837da4896",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "55a230efb60069f3ee66589c01375c2b1977445c7875a16b2f43e63837da4896",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q9",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "55a230efb60069f3ee66589c01375c2b1977445c7875a16b2f43e63837da4896",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "立柱柔性导线·条件维",
+      "variant_id": "D13-html-practice-html-q10-f04f4a515ba5",
+      "surface_id": "practice.html",
       "stem": "铝合金立柱有伸缩缝，防雷上如何保证上下柱电气连通？选出能得分的作答。",
-      "model_answer": "铝合金立柱每10m范围内宜用一根柔性导线连通上下柱，跨过伸缩缝保证电气连续。",
       "options": [
         {
           "text": "铝合金立柱每 10m 范围内宜用一根柔性导线连通上下柱，跨过伸缩缝保证电气连续。",
@@ -810,41 +758,38 @@
           "option_id": "D13-html-practice-html-q10-f04f4a515ba5:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q10-f04f4a515ba5",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "铝合金立柱每10m范围内宜用一根柔性导线连通上下柱，跨过伸缩缝保证电气连续。",
+      "rule_group": "立柱柔性导线·条件维",
       "content_sha256": "c0f542f371f91d77fba32cc877f82d31989ff0539e33f04b8681b6c887b776e5",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "c0f542f371f91d77fba32cc877f82d31989ff0539e33f04b8681b6c887b776e5",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q10",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "c0f542f371f91d77fba32cc877f82d31989ff0539e33f04b8681b6c887b776e5",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "均压环·程序维",
+      "variant_id": "D13-html-practice-html-q11-ab8eec74c58b",
+      "surface_id": "practice.html",
       "stem": "有均压环楼层，预埋件与均压环如何连接？选出能得分的作答。",
-      "model_answer": "预埋件用圆钢/扁钢与均压环焊接连通；避雷接地一般每三层与均压环连接。",
       "options": [
         {
           "text": "预埋件用圆钢/扁钢与均压环焊接连通；避雷接地一般每三层与均压环连接一道。",
@@ -883,41 +828,38 @@
           "option_id": "D13-html-practice-html-q11-ab8eec74c58b:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q11-ab8eec74c58b",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "预埋件用圆钢/扁钢与均压环焊接连通；避雷接地一般每三层与均压环连接。",
+      "rule_group": "均压环·程序维",
       "content_sha256": "a5ab700284e6b7e2d22de5dc7f244b5331e880f5a308c78acccc00a8f82788e4",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "a5ab700284e6b7e2d22de5dc7f244b5331e880f5a308c78acccc00a8f82788e4",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q11",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "a5ab700284e6b7e2d22de5dc7f244b5331e880f5a308c78acccc00a8f82788e4",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "除镀膜·采分点遗漏",
+      "variant_id": "D13-html-practice-html-q12-1627902f1c4b",
+      "surface_id": "practice.html",
       "stem": "在有镀膜层的构件上做防雷连接，应特别注意什么？选出能得分的作答。",
-      "model_answer": "有镀膜的构件上进行防雷连接应除去其镀膜层，让金属直接接触，保证电气连通。",
       "options": [
         {
           "text": "有镀膜的构件上进行防雷连接，应先除去连接处的镀膜层，使金属直接接触、电气连通。",
@@ -956,41 +898,38 @@
           "option_id": "D13-html-practice-html-q12-1627902f1c4b:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q12-1627902f1c4b",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "有镀膜的构件上进行防雷连接应除去其镀膜层，让金属直接接触，保证电气连通。",
+      "rule_group": "除镀膜·采分点遗漏",
       "content_sha256": "69f85b6c3e71711b7377b12ff44414679b5aeac0b1e777d96dde13bd248012a9",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "69f85b6c3e71711b7377b12ff44414679b5aeac0b1e777d96dde13bd248012a9",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q12",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "69f85b6c3e71711b7377b12ff44414679b5aeac0b1e777d96dde13bd248012a9",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "隐蔽验收·规范适用",
+      "variant_id": "D13-html-practice-html-q13-9c6de8e15544",
+      "surface_id": "practice.html",
       "stem": "关于幕墙防雷构造连接的验收，下列正确、能得分的是？",
-      "model_answer": "防雷构造连接必须进行隐蔽工程验收（连接后被遮蔽，须在覆盖前验收记录）。",
       "options": [
         {
           "text": "防雷构造连接必须进行隐蔽工程验收，在被后续构造遮蔽前完成验收并留记录。",
@@ -1029,41 +968,38 @@
           "option_id": "D13-html-practice-html-q13-9c6de8e15544:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q13-9c6de8e15544",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "防雷构造连接必须进行隐蔽工程验收（连接后被遮蔽，须在覆盖前验收记录）。",
+      "rule_group": "隐蔽验收·规范适用",
       "content_sha256": "66ef5fa78187ccbbfa17f6fe9a7aa4be9f4c247ec7843e18f803e29668b1b8ce",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "66ef5fa78187ccbbfa17f6fe9a7aa4be9f4c247ec7843e18f803e29668b1b8ce",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q13",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "66ef5fa78187ccbbfa17f6fe9a7aa4be9f4c247ec7843e18f803e29668b1b8ce",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "封堵选材·概念辨析",
+      "variant_id": "D13-html-practice-html-q14-0981c1e057eb",
+      "surface_id": "practice.html",
       "stem": "关于有机（可塑性）防火堵料的特性，下列正确、能得分的是？",
-      "model_answer": "有机防火堵料可塑性好、遇火发泡膨胀、水密气密、可重复使用，适合需经常更换电缆/管道的场合。",
       "options": [
         {
           "text": "有机防火堵料可塑性好、遇火发泡膨胀、水密气密，且可重复使用，适合常换电缆的场合。",
@@ -1102,41 +1038,38 @@
           "option_id": "D13-html-practice-html-q14-0981c1e057eb:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q14-0981c1e057eb",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "有机防火堵料可塑性好、遇火发泡膨胀、水密气密、可重复使用，适合需经常更换电缆/管道的场合。",
+      "rule_group": "封堵选材·概念辨析",
       "content_sha256": "2c60d39fae1dd63bbf5b9a25599dda68a41fb4915e20c3fdcbae8dc6981f8188",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "2c60d39fae1dd63bbf5b9a25599dda68a41fb4915e20c3fdcbae8dc6981f8188",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q14",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "2c60d39fae1dd63bbf5b9a25599dda68a41fb4915e20c3fdcbae8dc6981f8188",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "D13-html-practice-html-q15-2ff7d0b4fec0",
+      "surface_id": "practice.html",
       "stem": "某学生答层间封堵：①缝隙塞岩棉；②承托板用铝板；③承托板缝隙没提。选出最准确的诊断与补写。",
-      "model_answer": "三处都要补：①缝隙应不燃岩棉≥100mm+耐火极限+水平防火烟带；②承托板应≥1.5mm镀锌钢板不得铝板；③承托板与主体/幕墙缝隙应用防火密封胶密封。",
       "options": [
         {
           "text": "三处都失分：①缺≥100mm与水平烟带，②承托板应改≥1.5mm镀锌钢板不得铝板，③缝隙应用防火密封胶密封。",
@@ -1175,48 +1108,54 @@
           "option_id": "D13-html-practice-html-q15-2ff7d0b4fec0:option-4"
         }
       ],
-      "variant_id": "D13-html-practice-html-q15-2ff7d0b4fec0",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q15",
-      "source_anchor": "exam:2015:案例2",
-      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
-      "fact_id": "d13-fact-interfloor-firestop-diagnosis",
-      "skeleton_id": "d13-skel-层间封堵诊断补写",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "三处都要补：①缝隙应不燃岩棉≥100mm+耐火极限+水平防火烟带；②承托板应≥1.5mm镀锌钢板不得铝板；③承托板与主体/幕墙缝隙应用防火密封胶密封。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "d4ba03e6a413f222d6c92173697d88c1aa7fa9b666098a1050cef046da12ee75",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "d4ba03e6a413f222d6c92173697d88c1aa7fa9b666098a1050cef046da12ee75",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q15",
+      "authoring_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "decision": {
+        "fact_id": "d13-fact-interfloor-firestop-diagnosis",
+        "skeleton_id": "d13-skel-层间封堵诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2015:案例2",
+        "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "d4ba03e6a413f222d6c92173697d88c1aa7fa9b666098a1050cef046da12ee75",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T10:41:07+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T10:41:07+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "诊断: ①缺≥100mm与水平烟带 ②承托板应改镀锌钢板 ③缝隙应用防火密封胶, 三处均正确, 真题综合。工单: longest-option。"
         },
-        "note": "诊断: ①缺≥100mm与水平烟带 ②承托板应改镀锌钢板 ③缝隙应用防火密封胶, 三处均正确, 真题综合。工单: longest-option。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
   ],
-  "published_lesson_sha256": "e37f3ac7f93b9afe5f02608d5c070a200ac28204d60b213a2fea3907d8cfaaf2"
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (d13.codex.out, fatal_count=1, surface_anchors_all_fatal_free=true). 主控核: 5 surface 锚(q1/q2/q3/q4/q15)Codex 全 MINOR/none, 答案系二建标准事实(幕墙层间封堵≥100mm不燃材料+水平防火烟带; 承托板≥1.5mm镀锌钢板不得铝板; 上下层开口≥1.2m实体墙或挑檐≥1.0m), exam:2015:案例2 与 kc:1A413030_148_0286 直引。唯一 FATAL=q5(非展示, 复合'空腔≥200mm+楼板缝≥100mm'单锚覆盖不全), 各事实教材/真题均有原文=多源工单, 排除不签。三联=层间防火封堵 fact(q1封堵要素/q7承托板缝隙密封胶/q8水平防火烟带)。工单: 部分正确项偏长。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }
