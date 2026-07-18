@@ -1267,28 +1267,29 @@ def _load_practice_review_records(
             raise TransformError(f"practice review packet item drift: {pack_id}/{variant_id}")
         review = decision.get("review")
         review = review if isinstance(review, dict) else {}
-        if review.get("status") == "signed" or review.get("verdict") == "approved":
-            signatures = review.get("signatures")
-            roles = {
-                str(signature.get("role") or "")
-                for signature in signatures or []
-                if isinstance(signature, dict)
-            }
-            if (
-                not isinstance(signatures, list)
-                or len(signatures) != 2
-                or roles != {"teaching", "scoring"}
-                or any(
-                    not isinstance(signature, dict)
-                    or signature.get("reviewer_id") != "owner"
-                    or not str(signature.get("signed_at") or "").strip()
-                    for signature in signatures
+        if review.get("status") != "pending" or review.get("verdict") != "pending":
+            raise TransformError(
+                f"practice review packet has no verifiable owner confirmation: "
+                f"{pack_id}/{variant_id}"
+            )
+        if (
+            review.get("signatures") != []
+            or any((review.get("checks") or {}).values())
+            or any(
+                decision.get(field)
+                for field in (
+                    "fact_id",
+                    "skeleton_id",
+                    "probe_role",
+                    "source_anchor",
+                    "source_sha256",
                 )
-            ):
-                raise TransformError(
-                    f"practice review packet requires direct owner signatures: "
-                    f"{pack_id}/{variant_id}"
-                )
+            )
+        ):
+            raise TransformError(
+                f"practice review packet pending decision is not empty: "
+                f"{pack_id}/{variant_id}"
+            )
         records[variant_id] = decision
     if set(records) != set(compiled):
         raise TransformError(f"practice review packet coverage mismatch: {pack_id}")

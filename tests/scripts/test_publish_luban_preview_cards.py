@@ -191,21 +191,20 @@ def test_candidate_review_packets_are_complete_and_never_machine_signed(
 
 
 @pytest.mark.parametrize(
-    ("reviewer_id", "extra_reviewer_id", "accepted"),
+    ("reviewer_id", "extra_reviewer_id"),
     [
-        ("owner", "", True),
-        ("owner-delegated:claude-main-control:2026-07-16", "", False),
-        ("machine-reviewer", "", False),
-        ("owner", "machine-reviewer", False),
-        ("owner", "owner-delegated:claude-main-control:2026-07-16", False),
+        ("owner", ""),
+        ("owner-delegated:claude-main-control:2026-07-16", ""),
+        ("machine-reviewer", ""),
+        ("owner", "machine-reviewer"),
+        ("owner", "owner-delegated:claude-main-control:2026-07-16"),
     ],
 )
-def test_practice_review_loader_requires_direct_owner_signatures(
+def test_practice_review_loader_rejects_signatures_without_owner_confirmation(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     reviewer_id: str,
     extra_reviewer_id: str,
-    accepted: bool,
 ) -> None:
     packet_path = tmp_path / "n01.practice.review.json"
     packet_path.write_text(
@@ -275,11 +274,31 @@ def test_practice_review_loader_requires_direct_owner_signatures(
             }
         ],
     }
-    if accepted:
-        assert _mod._load_practice_review_records("N01", **kwargs)
-    else:
-        with pytest.raises(_mod.TransformError, match="direct owner signatures"):
-            _mod._load_practice_review_records("N01", **kwargs)
+    with pytest.raises(_mod.TransformError, match="no verifiable owner confirmation"):
+        _mod._load_practice_review_records("N01", **kwargs)
+
+
+def test_practice_review_loader_rejects_signatures_hidden_in_pending(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = _mod._practice_review_packet_path("N01")
+    packet = json.loads(source.read_text(encoding="utf-8"))
+    packet["items"][0]["decision"]["review"]["signatures"] = [
+        {
+            "role": "teaching",
+            "reviewer_id": "machine-reviewer",
+            "signed_at": "2026-07-18T00:00:00Z",
+        }
+    ]
+    packet_path = tmp_path / source.name
+    packet_path.write_text(json.dumps(packet), encoding="utf-8")
+    monkeypatch.setattr(
+        _mod, "_practice_review_packet_path", lambda _pack_id: packet_path
+    )
+    with pytest.raises(_mod.TransformError, match="pending decision is not empty"):
+        _mod._compile_practice_outputs(
+            "n01", _mod.STATIONS["n01"], finished_root=_mod.FINISHED
+        )
 
 
 @pytest.mark.parametrize("station_id", ["n01", "s05", "x01"])
