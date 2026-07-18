@@ -156,6 +156,14 @@
 .lr-play-tri { width: 0; height: 0; border-style: solid; border-width: 16rpx 0 16rpx 26rpx; border-color: transparent transparent transparent #fff; margin-left: 6rpx; }
 .lr-stage-hint { font-size: 24rpx; color: #9aa0a3; letter-spacing: 2rpx; margin-top: 17rpx; }
 
+/* 视频学习卡「进站学习」主按钮(owner 2026-07-18 两卡分离:学习动作归此卡)。
+   卡 padding:0 → 此行自带横向内衬对齐 head/route-line(28rpx)。 */
+.lr-lesson-cta { padding: 22rpx 28rpx 4rpx; }
+.lr-lesson-btn { width: 100%; }
+.lr-lesson-btn--muted { opacity: 0.5; }
+/* 站点旅程条内嵌视频卡(卡 padding:0),用横向 margin 对齐其余行 */
+.lr-lesson .lr-journey { margin: 18rpx 28rpx 4rpx; }
+
 /* 路线线 + 课程架(设计:route 行 11px 15px 4px;架 gap 9px/8px 15px 14px) */
 .lr-route-line { display: flex; align-items: center; justify-content: space-between; padding: 21rpx 28rpx 7rpx; }
 .lr-route-lit { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); }
@@ -191,6 +199,8 @@
 .lr-task-head { display: flex; gap: 26rpx; align-items: flex-start; }
 .lr-task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 11rpx; }
 .lr-task-title { font-size: 35rpx; font-weight: 800; line-height: 1.35; color: var(--pk-t1); }
+/* redirect 提示(当前站练习待签发,如实标注真正练的站名):朱竹色小字,与 cta 区分 */
+.lr-task-redirect { color: var(--pk-red); font-weight: 700; }
 /* 站点旅程环(conic-gradient;设计:62px 表/5px 弧宽):N/6 事实计数,
    取代旧掌握可信度环(产品红线:禁掌握百分比) */
 .lr-journey-ringbox { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 7rpx; }

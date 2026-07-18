@@ -220,6 +220,76 @@ function _practiceKindFor(packId, titleIdx) {
   return "none";
 }
 
+// lessons manifest 里首个已签发练习站(供给真值 = _practiceKindFor 同一 .retest 旗标)。
+// 排序稳定(pack_id 升序),纯投影,禁前端排掌握/优先级——只回答"哪个站真能开练"。
+function _firstRetestStation(titleIdx) {
+  var ids = Object.keys(_safeObj(titleIdx)).sort();
+  for (var i = 0; i < ids.length; i++) {
+    if (_safeObj(titleIdx[ids[i]]).retest === true) return ids[i];
+  }
+  return "";
+}
+
+// ── 置顶练题卡供给解析(owner 2026-07-18 两卡分离核心) ──
+// 练题卡=专门练题目的模块,主按钮永远练题,禁任何学习语义(不回落进站学习/先看讲解):
+//  1. 当前站(next_step 推荐站)练习池已签发 → 练当前站(retest forward);
+//  2. 未签发 → 路由到 lessons manifest 首个已签发站(供给真值单点 _practiceKindFor,
+//     禁前端自造第二处方),并在卡上如实标注真正练的站名(redirectNote);
+//  3. 极端全空(无任何已签发站,20 包上线后基本不触发) → 诚实降级(练题口吻,无学习语义)。
+// 注:review_due 走各自 canonical due 供给(_reviewDueEntry),不进本函数,亦不被 redirect
+// (redirect review 会绕开到期验证,是红队 A2/A5 明令禁止的 bypass)。
+function _buildForwardPractice(args) {
+  var a = _safeObj(args);
+  var titleIdx = _safeObj(a.titleIdx);
+  var preferId = _str(a.preferredPackId).toUpperCase();
+  var reason = _str(a.reason);
+  var isActiveIntent = a.isActiveIntent === true;
+  var sourceRef = _str(a.sourceRef);
+
+  var targetId = preferId;
+  var redirected = false;
+  if (_practiceKindFor(preferId, titleIdx) !== "retest") {
+    var alt = _firstRetestStation(titleIdx);
+    if (alt) {
+      targetId = alt;
+      redirected = true;
+    } else {
+      // 极端全空 → 诚实降级练题卡:无按钮、无学习语义,只说明练习正在签发。
+      var degradeMeta = _safeObj(titleIdx[preferId]);
+      var degraded = _retestTask(
+        degradeMeta.title || "你的薄弱点",
+        preferId,
+        reason,
+        "none",
+        "practice_active",
+      );
+      degraded.supplyNote = "练习题正在教研签发中，很快就能开练";
+      degraded.redirected = false;
+      degraded.redirectNote = "";
+      return degraded;
+    }
+  }
+  var meta = _safeObj(titleIdx[targetId]);
+  var task = _retestTask(
+    meta.title || "你的薄弱点",
+    targetId,
+    redirected ? "" : reason, // redirect 到别的站 → 原"为什么推荐"不再适用,清空
+    "retest",
+    "practice_active",
+  );
+  // 练题卡文案统一练题口吻(禁"先看讲解/进站学习"学习语义)。
+  task.cta = "把这一站的 5 道题做完，错了当场弄懂";
+  task.ctaLabel = "集中练习";
+  // 只有练当前站(未 redirect)且 next_step 为 practice_active 时才携带 active intent;
+  // redirect 到别的站 → 无对应 intent,走 probe-less forward(training_intent_id 空)。
+  task.training_intent_id = !redirected && isActiveIntent ? sourceRef : "";
+  task.redirected = redirected;
+  task.redirectNote = redirected
+    ? "当前站练习正在签发，先练已开放的「" + (meta.title || targetId) + "」"
+    : "";
+  return task;
+}
+
 // ── review(mode=review)供给/身份唯一裁决点(二轮红队 A3+A5) ──
 // 镜像服务端 exact resolver 的口径(review_due.py:要求 pack/probe 非空、
 // retest_available is True,否则拒绝):
@@ -251,28 +321,6 @@ function _reviewDueEntry(report, packId, probeId) {
   return null;
 }
 
-function _lessonTask(station) {
-  var s = _safeObj(station);
-  var available = s.green === true && s.card_hosted !== false;
-  return {
-    title: _str(s.title) || "最需要提分的考点",
-    reason: _str(s.reason) || "先学懂这一小节，再用五题确认",
-    cta: available ? "学这一小节，随后做 5 题" : "",
-    ctaLabel: available ? "继续学习" : "",
-    supplyNote: available ? "" : "这一节微课正在制作中",
-    task_type: "microlesson",
-    task_state: "learn_next",
-    action_kind: "lesson",
-    practice_kind: "",
-    estimated_minutes: 5,
-    concept: _str(s.title),
-    pack_id: _str(s.pack_id).toUpperCase(),
-    training_intent_id: "",
-    probe_id: "",
-    mode: "learn",
-  };
-}
-
 // homeDashboard.next_step 是学习首页唯一任务 authority。本函数只做协议到
 // 展示动作的翻译；lessons 仅回答该任务的内容/forward 题目供给是否已签发，
 // report.pack_review 仅回答 review(到期验证)供给是否已签发；不能在
@@ -292,19 +340,19 @@ function buildCanonicalLearningTask(args) {
   if (!packId) return null;
   var pack = _safeObj(titleIdx[packId]);
 
-  // 任务级公共派生:旅程轨道(6 步硬编码)+ 轻练旁按钮供给真值。
-  // 轻练供给唯一裁决点仍是 _practiceKindFor(禁页面层再判一次)。
+  // 任务级公共派生(owner 2026-07-18 两卡分离):置顶卡=专门练题模块,身份=练题。
+  // kicker 只声称练题/到期验证,永不出现学习语义;journey 已移到视频学习卡
+  // (它描述站点旅程,归学习模块),此处不再挂 journey。
+  // 轻练供给唯一裁决点仍是 task.practice_kind(源自 _practiceKindFor 单点,禁页面层再判)。
   // 红队 A2 收口:轻练只复用当前任务的 fact 语境,不是第二处方——
   // review_due(到期验证优先)下按钮隐藏且不可用,禁 probe-less forward 旁路
   // (否则可绕开到期验证并重开 fresh cycle 清掉 canonical review streak)。
   function _decorate(task) {
     if (!task) return task;
     var reviewDue = task.task_state === "review_due";
-    task.kicker = "今天最该完成"; // 真任务卡 kicker(browse 卡另有"从这里开始"口吻)
-    task.journey = _journeyFor(task.task_state);
+    task.kicker = reviewDue ? "到期验证" : "集中练习"; // 练题身份,禁学习语义
     task.light_practice_visible = !reviewDue;
-    task.light_practice_available =
-      !reviewDue && _practiceKindFor(packId, titleIdx) === "retest";
+    task.light_practice_available = !reviewDue && task.practice_kind === "retest";
     return task;
   }
 
@@ -324,39 +372,31 @@ function buildCanonicalLearningTask(args) {
     return _decorate(reviewTask);
   }
   if (mode === "practice_active") {
-    var practiceTask = _retestTask(
-      pack.title || "刚学内容",
-      packId,
-      _str(nextStep.reason),
-      _practiceKindFor(packId, titleIdx),
-      "practice_active",
+    // owner 2026-07-18:置顶练题卡永远练题——当前站练习池已签发则练当前站,
+    // 否则 redirect 到首个已签发站(_buildForwardPractice 单点裁决,禁第二处方)。
+    return _decorate(
+      _buildForwardPractice({
+        preferredPackId: packId,
+        titleIdx: titleIdx,
+        reason: _str(nextStep.reason),
+        isActiveIntent: true,
+        sourceRef: sourceRef,
+      }),
     );
-    practiceTask.training_intent_id = sourceRef;
-    return _decorate(practiceTask);
   }
   if (mode !== "learn_next") return null;
-  // owner 2026-07-18 拍板:学习主任务优先练教学视频后面的练习题
-  // (retest forward,633 池),主按钮统一「集中练习」;仅当该站练习池
-  // 未签发时才回落「进站看讲解」。供给真值仍由 _practiceKindFor 单点裁决,无第二处方。
-  if (_practiceKindFor(packId, titleIdx) === "retest") {
-    var learnPractice = _retestTask(
-      pack.title || "最需要提分的考点",
-      packId,
-      _str(nextStep.reason),
-      "retest",
-      "learn_next",
-    );
-    learnPractice.cta = "练教学视频后面的 5 题，错了当场弄懂";
-    learnPractice.ctaLabel = "集中练习";
-    return _decorate(learnPractice);
-  }
-  return _decorate(_lessonTask({
-    pack_id: packId,
-    title: pack.title || "即将开通",
-    reason: _str(nextStep.reason),
-    green: pack.green === true,
-    card_hosted: pack.card_hosted,
-  }));
+  // owner 2026-07-18 拍板:学习主任务=专门练题模块,主按钮统一「集中练习」永不进站学习;
+  // 当前站练习池已签发→练当前站,未签发→redirect 到已签发站(如实标注),全空→诚实降级。
+  // 学习动作(进站看讲解)已归其下的视频学习卡,不在本卡出现。
+  return _decorate(
+    _buildForwardPractice({
+      preferredPackId: packId,
+      titleIdx: titleIdx,
+      reason: _str(nextStep.reason),
+      isActiveIntent: false,
+      sourceRef: "",
+    }),
+  );
 }
 
 // ── 复习卡(10a改):只是到期状态视图,不是第二任务源 ──
@@ -397,32 +437,71 @@ function _buildBrowseTask(nextStation, titleIdx) {
   var s = _safeObj(nextStation);
   var packId = _str(s.pack_id).toUpperCase();
   if (!packId) return null;
-  // 供给真值单点:练习池已签发 → 集中练习(retest forward);否则进站看讲解。
-  var isRetest = _practiceKindFor(packId, titleIdx) === "retest";
+  // owner 2026-07-18:browse 兜底也是练题卡(专门练题,禁进站学习/先看讲解)。
+  // 供给真值单点:当前站练习池已签发→练当前站;未签发→redirect 到首个已签发站
+  // (如实标注);全空→诚实降级。journey 已移到视频学习卡,browse 卡不再挂 journey。
+  var targetId = packId;
+  var redirected = false;
+  var degraded = false;
+  if (_practiceKindFor(packId, titleIdx) !== "retest") {
+    var alt = _firstRetestStation(titleIdx);
+    if (alt) {
+      targetId = alt;
+      redirected = true;
+    } else {
+      degraded = true;
+    }
+  }
+  var meta = _safeObj(titleIdx[targetId]);
+  var title = _str(meta.title) || _str(s.title) || "最需要提分的考点";
+  if (degraded) {
+    return {
+      kicker: "从这里开始", // 推荐起点口吻,禁"今日任务"
+      title: (_str(s.title) || "最需要提分的考点") + " · 课后检验",
+      reason: "",
+      cta: "",
+      ctaLabel: "",
+      supplyNote: "练习题正在教研签发中，很快就能开练",
+      task_type: "light_practice",
+      task_state: "browse",
+      action_kind: "retest",
+      practice_kind: "none",
+      estimated_minutes: 2,
+      concept: _str(s.title),
+      pack_id: packId,
+      training_intent_id: "",
+      probe_id: "",
+      mode: "forward",
+      redirected: false,
+      redirectNote: "",
+      light_practice_visible: true,
+      light_practice_available: false,
+    };
+  }
   return {
     kicker: "从这里开始", // 推荐起点口吻,禁"今日任务"
-    title: _str(s.title) || "最需要提分的考点",
-    reason: _str(s.reason), // 群体理由(evidenceBacked=false),不伪装个性化证据
-    cta: isRetest
-      ? "从这一站的 5 题开始，错了当场弄懂"
-      : "先看这一站的讲解，点亮你的提分路线",
-    ctaLabel: isRetest ? "集中练习" : "进站学习",
+    title: title + " · 训练 5 题",
+    reason: "",
+    cta: "把这一站的 5 道题做完，错了当场弄懂",
+    ctaLabel: "集中练习",
     supplyNote: "",
-    task_type: isRetest ? "light_practice" : "microlesson",
+    task_type: "light_practice",
     task_state: "browse", // 非 review_due/practice_active:轻练走 probe-less forward
-    action_kind: isRetest ? "retest" : "lesson",
-    practice_kind: isRetest ? "retest" : "",
-    estimated_minutes: isRetest ? 2 : 5,
-    concept: _str(s.title),
-    pack_id: packId,
+    action_kind: "retest",
+    practice_kind: "retest",
+    estimated_minutes: 2,
+    concept: title,
+    pack_id: targetId,
     training_intent_id: "",
     probe_id: "",
-    mode: isRetest ? "forward" : "learn",
-    // 旅程 step1(动画讲懂=诚实的当前步):browse 无逐步完成证据,禁 done/进度线。
-    journey: _journeyFor("learn_next"),
+    mode: "forward",
+    redirected: redirected,
+    redirectNote: redirected
+      ? "当前站练习正在签发，先练已开放的「" + title + "」"
+      : "",
     // 轻练旁按钮:browse 永不 review_due → 可见;可用性=供给真值(retest)单点。
     light_practice_visible: true,
-    light_practice_available: isRetest,
+    light_practice_available: true,
   };
 }
 
@@ -504,6 +583,11 @@ function buildLearnViewModel(args) {
       fallbackUsed = true;
     }
   }
+
+  // ── 站点旅程条(owner 2026-07-18 两卡分离):journey 描述站点学习旅程,归视频
+  //    学习卡(下一站卡),从练题卡移出。current 步仍只由 next_step.mode 派生(处方,
+  //    非完成证据);day-0/fallback(mode 空/unavailable)→ 诚实落在 step1 动画讲懂。
+  if (nextStation) nextStation.journey = _journeyFor(_str(nextStep.mode));
 
   // ── 路线 X/40 ──
   var lit = _litCount(packs);

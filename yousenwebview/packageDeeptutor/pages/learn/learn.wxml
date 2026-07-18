@@ -111,28 +111,23 @@ module.exports = { daysTo: daysTo };
         <view class="pk-btn-ink lr-supply-retry" bindtap="retrySupply">重新加载</view>
       </view>
 
-      <!-- 练题卡(练题优先置顶):三层(标题/任务名/副文案)+ 站点旅程环 + 旅程轨道。
-           这就是"专门练题目的模块"——已签发站主按钮=「集中练习」(retest forward),
-           未签发站回落「进站学习」;⚡轻练旁按钮/站点旅程环/旅程轨道都在此卡。
+      <!-- 练题卡(置顶·专门练题模块 owner 2026-07-18 两卡分离):与学习彻底分离。
+           身份=练题(kicker「集中练习」/「到期验证」),主按钮「集中练习」永远练题——
+           当前站练习池已签发→练当前站(retest forward);未签发→redirect 到已签发站
+           (如实标注站名 redirectNote);全空→诚实降级。⚡轻练旁按钮不变。
+           此卡不再出现「进站学习」「先看讲解」任何学习语义,也不再挂站点旅程条
+           (旅程/进站学习已归其下的视频学习卡)。
            唯一渲染源 = vm.taskCard(= todayTask || browseTask):有 server next_step
            裁决时=真今日任务;day-0/首跑未完成/后端未部署时=browse 兜底卡(kicker
-           "从这里开始",不声称今日任务)。任何状态下页面都长成 10a 定稿,不塌成 hero。
-           首跑门卡仍在其上方=第一视觉;禁掌握百分比。 -->
+           "从这里开始",不声称今日任务)。首跑门卡仍在其上方=第一视觉;禁掌握百分比。 -->
       <view class="lr-task pk-card lr-rise lr-rise--d1" wx:if="{{!supplyError && vm.taskCard}}">
         <view class="lr-task-head">
           <view class="lr-task-main">
             <text class="pk-kicker">{{vm.taskCard.kicker}}</text>
             <text class="lr-task-title">{{vm.taskCard.title}}</text>
             <text class="pk-desc" wx:if="{{vm.taskCard.cta}}">{{vm.taskCard.cta}}</text>
-          </view>
-          <!-- 右上环:站点旅程 N/6(事实计数,不是掌握度) -->
-          <view class="lr-journey-ringbox" wx:if="{{vm.taskCard.journey}}">
-            <view class="lr-journey-ring" style="background: conic-gradient(var(--pk-grn) {{vm.taskCard.journey.ringPercent}}%, var(--pk-gauge) 0)">
-              <view class="lr-journey-ring-hole">
-                <text class="lr-journey-ring-num">{{vm.taskCard.journey.currentIndex}}<text class="lr-journey-ring-den">/{{vm.taskCard.journey.total}}</text></text>
-              </view>
-            </view>
-            <text class="lr-journey-ring-label">站点旅程</text>
+            <!-- redirect 提示:当前站练习待签发时如实标注真正练的站名(供给真值单点) -->
+            <text class="pk-desc lr-task-redirect" wx:if="{{vm.taskCard.redirectNote}}">{{vm.taskCard.redirectNote}}</text>
           </view>
         </view>
         <view class="lr-task-cta">
@@ -146,27 +141,6 @@ module.exports = { daysTo: daysTo };
         </view>
         <text class="pk-desc lr-supply-note" wx:if="{{vm.taskCard.supplyNote}}">{{vm.taskCard.supplyNote}}</text>
 
-        <!-- 旅程轨道(红队 A1 收口):流程说明,不是进度账本——前端无逐步完成证据,
-             禁 done 勾、禁跨未完成节点的进度线;只标 current(CTA 对应步)/空心/承诺虚环 -->
-        <view class="lr-journey" wx:if="{{vm.taskCard.journey}}">
-          <view class="lr-journey-head">
-            <text class="lr-journey-kicker">这一站会带你走完</text>
-            <text class="lr-journey-count">{{vm.taskCard.journey.currentIndex}}/{{vm.taskCard.journey.total}} 步</text>
-          </view>
-          <view class="lr-journey-track">
-            <view class="lr-jline"></view>
-            <view class="lr-journey-steps">
-              <view class="lr-jstep" wx:for="{{vm.taskCard.journey.steps}}" wx:key="label">
-                <view class="lr-jnode lr-jnode--{{item.state}}">
-                  <view wx:if="{{item.state === 'current'}}" class="lr-jnode-dot"></view>
-                </view>
-                <text class="lr-jlabel lr-jlabel--{{item.state}}">{{item.label}}</text>
-              </view>
-            </view>
-          </view>
-          <text class="lr-journey-foot">验证与抽查到期时会出现在这里 · 你只管来</text>
-        </view>
-
         <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.taskCard.reason}}">
           <text class="lr-why-label">为什么推荐</text>
           <text class="lr-why-chev">{{whyOpen ? '▾' : '▸'}}</text>
@@ -174,7 +148,9 @@ module.exports = { daysTo: daysTo };
         <text class="pk-desc lr-why-text" wx:if="{{whyOpen && vm.taskCard.reason}}">{{vm.taskCard.reason}}</text>
       </view>
 
-      <!-- 动画精讲卡(视频学习卡·练题卡下方):下一站 header + 宣纸舞台 + 横滑课程架(设计稿区块③) -->
+      <!-- 视频学习卡(动画精讲·练题卡下方 owner 2026-07-18 两卡分离):学习动作归此卡。
+           = 下一站 header + 宣纸舞台 + 「进站学习」主按钮 + 站点旅程条(从练题卡移入,
+           它叙述的是站点学习旅程) + 你的路线 + 课程架(设计稿区块③)。 -->
       <view class="lr-lesson pk-card lr-rise lr-rise--d2" wx:if="{{!supplyError}}">
         <!-- header -->
         <view class="lr-lesson-head" wx:if="{{vm.nextStation}}">
@@ -195,8 +171,9 @@ module.exports = { daysTo: daysTo };
           </view>
         </view>
 
-        <!-- 宣纸舞台(播放键)· 原色宣纸,不随主题变(设计:动画卡=原色宣纸舞台) -->
-        <view class="lr-stage" wx:if="{{vm.nextStation}}">
+        <!-- 宣纸舞台(播放键)· 原色宣纸,不随主题变(设计:动画卡=原色宣纸舞台)。
+             点击播放=进站学习(与「进站学习」主按钮同 handler goLesson)。 -->
+        <view class="lr-stage" wx:if="{{vm.nextStation}}" bindtap="goLesson">
           <text class="lr-stage-badge">{{vm.nextStation.card_hosted === false ? '制作中' : '旁白·开'}}</text>
           <view class="lr-stage-fs">
             <view class="lr-fs-corner"></view><view class="lr-fs-corner lr-fs-tr"></view>
@@ -208,6 +185,35 @@ module.exports = { daysTo: daysTo };
             <view class="lr-play-tri"></view>
           </view>
           <text class="lr-stage-hint">{{vm.nextStation.card_hosted === false ? '敬请期待' : '点击播放 · 讲懂 → 闯关'}}</text>
+        </view>
+
+        <!-- 「进站学习」主按钮(owner 2026-07-18:学习动作归视频卡,练题卡不再承担)。
+             card_hosted===false 时降级为「微课即将开通」不可点(learn.js 兜底诚实 toast)。 -->
+        <view class="lr-lesson-cta" wx:if="{{vm.nextStation}}">
+          <view class="pk-btn-ink lr-lesson-btn" wx:if="{{vm.nextStation.card_hosted !== false}}" bindtap="goLesson">进站学习</view>
+          <view class="pk-btn-ink lr-lesson-btn lr-lesson-btn--muted" wx:else>微课即将开通</view>
+        </view>
+
+        <!-- 站点旅程条(红队 A1 收口 + 两卡分离:从练题卡移入)。流程说明,不是进度账本——
+             前端无逐步完成证据,禁 done 勾、禁跨未完成节点的进度线;只标 current
+             (next_step.mode 对应步)/空心/承诺虚环。数据源=vm.nextStation.journey。 -->
+        <view class="lr-journey" wx:if="{{vm.nextStation.journey}}">
+          <view class="lr-journey-head">
+            <text class="lr-journey-kicker">这一站会带你走完</text>
+            <text class="lr-journey-count">{{vm.nextStation.journey.currentIndex}}/{{vm.nextStation.journey.total}} 步</text>
+          </view>
+          <view class="lr-journey-track">
+            <view class="lr-jline"></view>
+            <view class="lr-journey-steps">
+              <view class="lr-jstep" wx:for="{{vm.nextStation.journey.steps}}" wx:key="label">
+                <view class="lr-jnode lr-jnode--{{item.state}}">
+                  <view wx:if="{{item.state === 'current'}}" class="lr-jnode-dot"></view>
+                </view>
+                <text class="lr-jlabel lr-jlabel--{{item.state}}">{{item.label}}</text>
+              </view>
+            </view>
+          </view>
+          <text class="lr-journey-foot">验证与抽查到期时会出现在这里 · 你只管来</text>
         </view>
 
         <!-- 你的路线 + 完整地图 -->
