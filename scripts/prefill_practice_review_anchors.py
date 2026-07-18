@@ -117,8 +117,15 @@ def load_source_units(base_dir: Path, pack: str) -> tuple[list[dict], list[str]]
                         "text": text,
                         "source_file": rel,
                         "source_sha256": sha,
-                        # dedupe group: one candidate per textbook chunk
-                        "group": f"chunk:{chunk or point_id}",
+                        # dedupe group: one candidate per distinct 采分点 (point_id).
+                        # A single textbook chunk often carries multiple orthogonal
+                        # scoring points (e.g. 1A413030_107_0210 = 灰缝/斜槎/马牙槎);
+                        # grouping per-chunk masked the correct point for questions
+                        # whose fact was not the chunk's top-scoring one. Per-point
+                        # grouping surfaces each true textbook anchor as selectable;
+                        # the human gate still picks the right one and the sign
+                        # helper still resolves sha only from machine candidates.
+                        "group": point_id,
                     }
                 )
     else:
