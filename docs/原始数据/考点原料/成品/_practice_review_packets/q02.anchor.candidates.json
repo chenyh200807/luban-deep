@@ -1,0 +1,433 @@
+{
+  "machine_candidates_only": true,
+  "generated_at": "2026-07-18T04:14:08+00:00",
+  "generator": "scripts/prefill_practice_review_anchors.py",
+  "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
+  "pack_id": "Q02",
+  "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/q02.practice.review.json",
+  "score_threshold": 0.05,
+  "warnings": [],
+  "coverage": {
+    "total_items": 16,
+    "items_with_candidates": 16,
+    "items_empty_handed": 0
+  },
+  "items": [
+    {
+      "variant_id": "Q02-html-practice-html-q1-083c0ceecfe4",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A413030_095_0180",
+          "quote": "大体积混凝土水胶比不宜大于多少？ 总和不宜大于胶凝材料用量的 50%； ④ 水胶比不宜大于 0.45；",
+          "match_score": 0.24,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "kc:1A413030_095_0180:0",
+          "quote": "大体积混凝土配合比控制指标：大体积混凝土配合比要求：坍落度≤180mm，拌合水≤170kg/m³，粉煤灰≤50%，矿渣粉≤40%，总掺量≤50%，水胶比≤0.45。 ### 大体积混凝土施工 4. 大体积混凝土施工 大体积混凝土工程应符合《大体积混凝土施工标准》GB 50496—2018 的规定。",
+          "match_score": 0.1875,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "exam:2017:第10题",
+          "quote": "在大体积混凝土上养护的温控过程中，其降温速率一般不宜大于（ ）。 A. 1 ℃/d B. 1.5 ℃/d C. 2 ℃/d D. 2.5 ℃/d C 【解析】根据《大体积混凝土施工标准》GB 50496-2018，大体积混凝土养护期间的降温速率一般不宜大于2℃/d，以避免因温差过大产生裂缝。故选C。",
+          "match_score": 0.1818,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q2-1e7a2dd69e52",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_096_0181:0",
+          "quote": "大体积混凝土施工要点：大体积混凝土施工需注意： - 浇筑层厚：300~500mm - 入模温度：5~30℃ - 保湿养护时间：≥14d - 温升值：≤50℃ - 里表温差：≤25℃ - 降温速率：≤2.0℃/d - 拆保温时温差：≤20℃ ### 大体积混凝土施工要求 （1）大体积混凝土施工宜采用整体分层或推移式连续浇筑施工。 （2）当大体积混凝土施工设置水平施工缝时，位置",
+          "match_score": 0.5625,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "exam:2021:第13题",
+          "quote": "大体积混凝土拆除保温覆盖时，浇筑体表面与大气温差不应大于（）。 A.15℃ B.20℃ C.25℃ D.28℃ B 【解析】考察考点 1A415033 混凝土基础施工大体积混凝土拆除保温覆盖时混凝土浇筑体表面与大气温差不应大于 20℃。",
+          "match_score": 0.54,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2022:第(三)题",
+          "quote": "确定沉管灌注桩选用单打法成桩工艺，其成桩过程包括桩机就位、锤击（振动）沉管、上料等工作内容。 基础底板大体积混凝土浇筑方案确定了包括环境温度、底板表面与大气温差等多项温度控制指标；明确了温控检测点布置方式，要求沿底板厚度方向测温点间距不大500mm。 施工作业班组在一层层、板混凝土强度未达到拆模标准（见表3）情况下，进行了部分模板拆除：拆模后，发现梁底表面出现了夹渣、麻面等质量缺陷。监理工程师要求",
+          "match_score": 0.4375,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q3-f86ab99fac09",
+      "candidates": [
+        {
+          "source_anchor": "exam:2023:第16题",
+          "quote": "关于大体积混凝土基础施工要求的说法，正确的是（ ）。 A. 当采用跳仓法时，跳仓的最大分块单向尺不宜大于50m B. 混凝土整体连续浇筑时，浇筑层厚度宜为300~500mm C. 保湿养护持续时间不少于7d D. 当混凝土表面温度与环境最大温差小于30℃时，全部拆除保温盖层 B 大体积混凝土整体连续浇筑时，浇筑层厚度宜为300~500mm。A错：跳仓最大分块单向尺不宜大于40m。C错：保湿养护持续",
+          "match_score": 0.4542,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "kc:1A413030_104_0197:0",
+          "quote": "混凝土养护时间规定：混凝土养护时间：硅酸盐水泥类≥7d；抗渗/C60及以上≥14d；后浇带≥14d；大体积按方案定。 、构件特点、技术要求、施工操作等因素确定。 （2）混凝土的养护时间应符合下列规定： ① 采用硅酸盐水泥、普通硅酸盐水泥或矿渣硅酸盐水泥配制的混凝土，不应少于7d； ② 采用其他品种水",
+          "match_score": 0.4186,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "exam:2022:第15题",
+          "quote": "【问题】混凝土养护要求正确的是（ ）。 A.现场施工一般采用加热养护 B.矿渣硅酸盐水泥拌制的混凝土不少于14d C.在终凝后开始养护 D.有抗渗要求的不少于14d D 解析：专业语感大动脉，养护系列分4级。机理如下： - A错误：混凝土养护方法有自然养护和加热养护两大类。现场施工一般为自然养护。 - B错误：“普硅矿”水泥拌制的混凝土养护时间不少于7d，“火粉复”水泥拌制的混凝土养护时间不少于1",
+          "match_score": 0.4068,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q4-b844d305af66",
+      "candidates": [
+        {
+          "source_anchor": "exam:2021:第13题",
+          "quote": "大体积混凝土拆除保温覆盖时，浇筑体表面与大气温差不应大于（）。 A.15℃ B.20℃ C.25℃ D.28℃ B 【解析】考察考点 1A415033 混凝土基础施工大体积混凝土拆除保温覆盖时混凝土浇筑体表面与大气温差不应大于 20℃。",
+          "match_score": 0.615,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2019:第5题",
+          "quote": "交底，主要内容有：气瓶要防止暴晒；气瓶在楼层内滚动时应设置距离不得小于5m，气瓶离明火的距离不得小于8m；作业点离易燃物的距离不小于20m；气瓶内的气体要尽量用完，减少浪费。 外墙挤塑板保温 【参考答案】\\n\\n1. (1) 混凝土养护还有蓄热法、暖棚法、掺化学外加剂、加热、负温养护等方法。\\n\\n混凝土的中心温度与表面温度的差值不应大于25℃，表面温度与大气温度的差值不应大于20℃，温降梯度不得",
+          "match_score": 0.4,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2019:第2页",
+          "quote": "交底，主要内容有：气瓶要防止暴晒；气瓶在楼层内滚动时应设置距离不得小于5m，气瓶离明火的距离不得小于8m；作业点离易燃物的距离不小于20m；气瓶内的气体要尽量用完，减少浪费。 外墙挤塑板保温 【参考答案】\\n\\n1. (1) 混凝土养护还有蓄热法、暖棚法、掺化学外加剂、加热、负温养护等方法。\\n\\n混凝土的中心温度与表面温度的差值不应大于25℃，表面温度与大气温度的差值不应大于20℃，温降梯度不得",
+          "match_score": 0.4,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q5-0a5cc80bbeaf",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_095_0180:0",
+          "quote": "大体积混凝土配合比控制指标：大体积混凝土配合比要求：坍落度≤180mm，拌合水≤170kg/m³，粉煤灰≤50%，矿渣粉≤40%，总掺量≤50%，水胶比≤0.45。 ### 大体积混凝土施工 4. 大体积混凝土施工 大体积混凝土工程应符合《大体积混凝土施工标准》GB 50496—2018 的规定。",
+          "match_score": 0.3583,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "ca:1A413030_095_0180",
+          "quote": "大体积混凝土水胶比不宜大于多少？ 总和不宜大于胶凝材料用量的 50%； ④ 水胶比不宜大于 0.45；",
+          "match_score": 0.356,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "kc:1A413030_130_0249:1",
+          "quote": "防水混凝土配合比要求：防水混凝土胶凝材料总用量不宜小于 320kg/m³，水泥用量不宜小于 260kg/m³；水胶比不得大于 0.50，有侵蚀性介质时水胶比不宜大于 0.45；入泵坍落度宜控制在 120～160mm。 #### 1) 混凝土制备 （1）防水混凝土可通过调整配合比，或掺加外加剂、掺合料等措施配制而成，其抗渗等级不得小于 P6。其试配混凝土的抗渗等级应比设计要求提高 0.2MPa。",
+          "match_score": 0.3341,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q6-1d2b4271f6d9",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:案例一(一)背景资料",
+          "quote": "0.46（水泥:中砂:碎石:水），水泥用量400kg/m³。粉煤灰掺量20%（等量替换水泥），实测中砂含水率4%、碎石含水率1.2%。采用跳仓法施工方案，分别按1/3长度与1/3宽度分成9个浇筑区（见图1-1），每区混凝土浇筑时间3d，各区依次连续浇筑，同时按照规范要求设置测温点（见图1-2）。（资料中未说明条件及因素均视为符合要求） 1. 计算每立方米P6C35混凝土设计配合比的水泥、中砂、碎石",
+          "match_score": 0.5532,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "收合格；检查了外窗气密性能等有关安全和功能检测项目合格报告，观感质量符合要求。 【问题】 1. 计算每立方米P6C3混凝土设计配合比的水泥、中砂、碎石、水的用量？计算每立方P6C35混凝土施工 水泥:400kg, 中砂:680kg, 碎石:1120kg, 水:184kg; 施工配合比:水泥320kg, 中砂707.2kg, 碎石1142.4kg, 水143.36kg, 粉煤灰80kg 【解析】 (",
+          "match_score": 0.4359,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "kc:1A413030_130_0249:1",
+          "quote": "防水混凝土配合比要求：防水混凝土胶凝材料总用量不宜小于 320kg/m³，水泥用量不宜小于 260kg/m³；水胶比不得大于 0.50，有侵蚀性介质时水胶比不宜大于 0.45；入泵坍落度宜控制在 120～160mm。 #### 1) 混凝土制备 （1）防水混凝土可通过调整配合比，或掺加外加剂、掺合料等措施配制而成，其抗渗等级不得小于 P6。其试配混凝土的抗渗等级应比设计要求提高 0.2MPa。",
+          "match_score": 0.1881,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q7-ec9235dbfde4",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:案例一(一)背景资料",
+          "quote": "0.46（水泥:中砂:碎石:水），水泥用量400kg/m³。粉煤灰掺量20%（等量替换水泥），实测中砂含水率4%、碎石含水率1.2%。采用跳仓法施工方案，分别按1/3长度与1/3宽度分成9个浇筑区（见图1-1），每区混凝土浇筑时间3d，各区依次连续浇筑，同时按照规范要求设置测温点（见图1-2）。（资料中未说明条件及因素均视为符合要求） 1. 计算每立方米P6C35混凝土设计配合比的水泥、中砂、碎石",
+          "match_score": 0.5232,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "在施工至第33天时，对施工进度进行了检查，实际施工进度如网络图中实际进度前锋线所示，对进度有延误的工作采取了改进措施。 项目部对装饰装修工程门窗子分部进行过程验收中，检查了塑料门窗安装等各分项工程并验收合格；检查了外窗气密性能等有关安全和功能检测项目合格报告，观感质量符合要求。 【问题】 1. 计算每立方米P6C3混凝土设计配合比的水泥、中砂、碎石、水的用量？计算每立方P6C35混凝土施工 水泥:",
+          "match_score": 0.1116,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2023:第2题",
+          "quote": "方案，内容包括： 1. 袋装水泥堆放于仓库地面； 2. 浇筑板、墙、柱混凝土时可适当减小坍落度； 3. 室外露天采光井采用编织布覆盖固定； 4. 砌体每日砌筑高度不超过1.5m； 5. 抹灰基层涂刷水性涂料时，含水率不得大于10%。 项目主体结构完成后，总监理工程师组织施工单位项目负责人等 （1）表格内容： A-承载力；B-抗拉强度；C-配合比设计；D-粘接强度。 （2）还包括： ① 工艺改变；②",
+          "match_score": 0.0812,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q8-c47e11a4d38f",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_095_0180:0",
+          "quote": "大体积混凝土配合比控制指标：大体积混凝土配合比要求：坍落度≤180mm，拌合水≤170kg/m³，粉煤灰≤50%，矿渣粉≤40%，总掺量≤50%，水胶比≤0.45。 ### 大体积混凝土施工 4. 大体积混凝土施工 大体积混凝土工程应符合《大体积混凝土施工标准》GB 50496—2018 的规定。",
+          "match_score": 0.5042,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "ca:1A413030_095_0180",
+          "quote": "大体积混凝土水胶比不宜大于多少？ 总和不宜大于胶凝材料用量的 50%； ④ 水胶比不宜大于 0.45；",
+          "match_score": 0.352,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "kc:1A413030_130_0249:1",
+          "quote": "防水混凝土配合比要求：防水混凝土胶凝材料总用量不宜小于 320kg/m³，水泥用量不宜小于 260kg/m³；水胶比不得大于 0.50，有侵蚀性介质时水胶比不宜大于 0.45；入泵坍落度宜控制在 120～160mm。 #### 1) 混凝土制备 （1）防水混凝土可通过调整配合比，或掺加外加剂、掺合料等措施配制而成，其抗渗等级不得小于 P6。其试配混凝土的抗渗等级应比设计要求提高 0.2MPa。",
+          "match_score": 0.3085,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q9-8b435005502e",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A412010_043_0074:0",
+          "quote": "水泥性能对比：硅酸盐水泥和普通水泥：早期强度高、水化热大、抗冻性好；矿渣、火山灰、粉煤灰水泥：后期强度增长快、水化热小、耐蚀性好；复合水泥性能取决于混合材料。 -------|----------| | ① 凝结硬化快、早期强度高 | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | | ② 水化热大 | ✅ | ✅ | ❌ | ❌ | ❌ | ❌",
+          "match_score": 0.459,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "ca:1A412010_043_0074",
+          "quote": "下列哪种水泥具有较高的早期强度和较大的水化热？ | 主要特性 | 硅酸盐水泥 | 普通水泥 | 矿渣水泥 | 火山灰水泥 | 粉煤灰水泥 | 复合水泥 | |----------|--------",
+          "match_score": 0.3778,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "exam:2025:第11题",
+          "quote": "高层建筑施工中，采用泵送混凝土时适宜选用的水泥品种是（ ）。 A.硅酸盐水泥 B.普通硅酸盐水泥 C.矿渣硅酸盐水泥 D.火山灰质硅酸盐水泥 B 高层建筑采用泵送混凝土时，适宜选用普通硅酸盐水泥。硅酸盐水泥水化热大不宜用于大体积混凝土。",
+          "match_score": 0.3455,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q10-a3526c03cf6e",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A412010_049_0086:0",
+          "quote": "早强剂使用限制：早强剂适用于最低温度不低于 -5℃ 的环境；不宜用于大体积混凝土和蒸养混凝土。 ### (4) 早强剂 ① 早强剂主要成分有无机盐类、有机化合物类。工程实践中可采用两种或两种以上无机盐类早强剂或有机化合物类早强剂复合而成",
+          "match_score": 0.2444,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "kc:1A413030_131_0250:2",
+          "quote": "大体积防水混凝土施工控制：宜选低水化热水泥，掺减水剂、缓凝剂、粉煤灰、矿渣粉；设计龄期60d或90d；高温期入模温≤30℃；养护≥14d，后浇带≥28d。 管时，应定位准确、固定牢靠。 （4）大体积防水混凝土宜选用水化热低和凝结时间长的水泥，宜掺入减水剂、缓凝剂等外加剂和粉煤灰、磨细矿渣粉等掺合料。在设计许可的情况下，掺粉煤灰混凝土设计强",
+          "match_score": 0.2444,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "ca:1A413030_095_0180",
+          "quote": "大体积混凝土水胶比不宜大于多少？ 总和不宜大于胶凝材料用量的 50%； ④ 水胶比不宜大于 0.45；",
+          "match_score": 0.24,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q11-9e2dc452df3e",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_095_0180:0",
+          "quote": "大体积混凝土配合比控制指标：大体积混凝土配合比要求：坍落度≤180mm，拌合水≤170kg/m³，粉煤灰≤50%，矿渣粉≤40%，总掺量≤50%，水胶比≤0.45。 ### 大体积混凝土施工 4. 大体积混凝土施工 大体积混凝土工程应符合《大体积混凝土施工标准》GB 50496—2018 的规定。",
+          "match_score": 0.6889,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "kc:1A413030_130_0249:1",
+          "quote": "防水混凝土配合比要求：防水混凝土胶凝材料总用量不宜小于 320kg/m³，水泥用量不宜小于 260kg/m³；水胶比不得大于 0.50，有侵蚀性介质时水胶比不宜大于 0.45；入泵坍落度宜控制在 120～160mm。 #### 1) 混凝土制备 （1）防水混凝土可通过调整配合比，或掺加外加剂、掺合料等措施配制而成，其抗渗等级不得小于 P6。其试配混凝土的抗渗等级应比设计要求提高 0.2MPa。",
+          "match_score": 0.2841,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "ca:1A413030_095_0180",
+          "quote": "大体积混凝土水胶比不宜大于多少？ 总和不宜大于胶凝材料用量的 50%； ④ 水胶比不宜大于 0.45；",
+          "match_score": 0.2817,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q12-7bf59ea783fb",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_096_0181:0",
+          "quote": "大体积混凝土施工要点：大体积混凝土施工需注意： - 浇筑层厚：300~500mm - 入模温度：5~30℃ - 保湿养护时间：≥14d - 温升值：≤50℃ - 里表温差：≤25℃ - 降温速率：≤2.0℃/d - 拆保温时温差：≤20℃ ### 大体积混凝土施工要求 （1）大体积混凝土施工宜采用整体分层或推移式连续浇筑施工。 （2）当大体积混凝土施工设置水平施工缝时，位置",
+          "match_score": 0.58,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "exam:2023:第16题",
+          "quote": "关于大体积混凝土基础施工要求的说法，正确的是（ ）。 A. 当采用跳仓法时，跳仓的最大分块单向尺不宜大于50m B. 混凝土整体连续浇筑时，浇筑层厚度宜为300~500mm C. 保湿养护持续时间不少于7d D. 当混凝土表面温度与环境最大温差小于30℃时，全部拆除保温盖层 B 大体积混凝土整体连续浇筑时，浇筑层厚度宜为300~500mm。A错：跳仓最大分块单向尺不宜大于40m。C错：保湿养护持续",
+          "match_score": 0.4655,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2024:第13页",
+          "quote": "(3) 灌注桩顶部泛浆高度不应小于500mm；(4) 基坑内支撑的拆除顺序应与支撑结构的设计工况一致；(5) 应由建设方委托具备相应资质的第三方进行基坑监测。 3. A—技术；B—商务；C—工程；D—质量；E—质量。 4. 抗渗混凝土的最小受冻临界强度值：20MPa。 5. ①低温型灌浆料施工开始24h内的灌浆部位温度不低于-5℃；②灌浆施工过程中施工环境温度不低于0℃。 【解析】 1. 关键线路",
+          "match_score": 0.3509,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q13-3ace0b0cc94e",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:案例一(一)背景资料",
+          "quote": "0.46（水泥:中砂:碎石:水），水泥用量400kg/m³。粉煤灰掺量20%（等量替换水泥），实测中砂含水率4%、碎石含水率1.2%。采用跳仓法施工方案，分别按1/3长度与1/3宽度分成9个浇筑区（见图1-1），每区混凝土浇筑时间3d，各区依次连续浇筑，同时按照规范要求设置测温点（见图1-2）。（资料中未说明条件及因素均视为符合要求） 2. 写出正确的填充浇筑区A、B、C、D的先后浇筑顺序（如表示",
+          "match_score": 0.3956,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2023:第16题",
+          "quote": "关于大体积混凝土基础施工要求的说法，正确的是（ ）。 A. 当采用跳仓法时，跳仓的最大分块单向尺不宜大于50m B. 混凝土整体连续浇筑时，浇筑层厚度宜为300~500mm C. 保湿养护持续时间不少于7d D. 当混凝土表面温度与环境最大温差小于30℃时，全部拆除保温盖层 B 大体积混凝土整体连续浇筑时，浇筑层厚度宜为300~500mm。A错：跳仓最大分块单向尺不宜大于40m。C错：保湿养护持续",
+          "match_score": 0.3911,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2022:第(三)题",
+          "quote": "筋笼，继续浇筑混凝土及拔管；（1.0分） ③ 成桩。（1.0分） 2. (本小题5.0分) (1) 还包括： ① 混凝土浇筑体的温升值；（1.0分） ② 混凝土浇筑体里表温差；（1.0分） ③ 混凝土浇筑体降温速率。（1.0分） (2) 厚度方向布置点： 应至少布置表层、底层和中心温度测点，测点间距不宜大于500mm。（2.0分） 3. (本小题5.0分) (1) 容易出现：麻面、蜂窝、孔洞、露筋",
+          "match_score": 0.2689,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q14-babc1462d5d4",
+      "candidates": [
+        {
+          "source_anchor": "exam:2022:第(三)题",
+          "quote": "拔管；（1.0分）\\n③ 成桩。（1.0分）\\n\\n2. (本小题5.0分)\\n(1) 还包括：\\n① 混凝土浇筑体的温升值；（1.0分）\\n② 混凝土浇筑体里表温差；（1.0分）\\n③ 混凝土浇筑体降温速率。（1.0分）\\n(2) 厚度方向布置点：\\n应至少布置表层、底层和中心温度测点，测点间距不宜大于500mm。（2.0分）\\n\\n3. (本小题5.0分)\\n(1) 容易出现：麻面、蜂窝、孔洞",
+          "match_score": 0.4397,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "ca:1A413030_097_0182",
+          "quote": "关于大体积混凝土测温，下列说法错误的是？ 沿混凝土浇筑体厚度方向，应至少布置表层、底层和中心温度测点，测点间距不宜大于500mm； （5）保温养护效果及环境温度监测点数量应根据具体需要确定； （6）混凝土浇筑体表层温度，宜为混",
+          "match_score": 0.4034,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "kc:1A413030_097_0182:0",
+          "quote": "大体积混凝土测温要点：测点间距不宜大于500mm；每条轴线不少于4个测点；每昼夜测温不少于4次；每台班入模温度测量不少于2次。 ### 大体积混凝土测温要求 （1）测试区可选混凝土浇筑体平面应对称轴线的半条轴线，测试区内监测点应按平面分层布置； （2）测试区内，监测点",
+          "match_score": 0.2828,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q15-0d573fa65515",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_097_0182:0",
+          "quote": "大体积混凝土测温要点：测点间距不宜大于500mm；每条轴线不少于4个测点；每昼夜测温不少于4次；每台班入模温度测量不少于2次。 ### 大体积混凝土测温要求 （1）测试区可选混凝土浇筑体平面应对称轴线的半条轴线，测试区内监测点应按平面分层布置； （2）测试区内，监测点",
+          "match_score": 0.6759,
+          "source_file": "docs/原始数据/考点原料/_Q02_compiled_source.json",
+          "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05"
+        },
+        {
+          "source_anchor": "exam:2021:案例三",
+          "quote": "【背景资料】 某施工单位承建一高档住宅楼工程。钢筋混凝土剪力墙结构，地下2层，地上26层，建筑面积36000㎡。 施工单位项目部根据该工程特点，编制了施工期变形测量专项方案”，明确了建筑测量精度等级为等，规定了两类变形测量基准点设置均不少于4个。 首层楼板混凝土出现明显的塑态收缩现象，造成混凝土结构表面收缩裂缝。项目部质量专题会议分析其主要原因是骨料含泥量过大和水泥及掺合料的用量超出规范要求等，要",
+          "match_score": 0.2707,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2023:第16题",
+          "quote": "关于大体积混凝土基础施工要求的说法，正确的是（ ）。 A. 当采用跳仓法时，跳仓的最大分块单向尺不宜大于50m B. 混凝土整体连续浇筑时，浇筑层厚度宜为300~500mm C. 保湿养护持续时间不少于7d D. 当混凝土表面温度与环境最大温差小于30℃时，全部拆除保温盖层 B 大体积混凝土整体连续浇筑时，浇筑层厚度宜为300~500mm。A错：跳仓最大分块单向尺不宜大于40m。C错：保湿养护持续",
+          "match_score": 0.2626,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q16-d048c3ff4a5a",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:案例一(一)背景资料",
+          "quote": "0.46（水泥:中砂:碎石:水），水泥用量400kg/m³。粉煤灰掺量20%（等量替换水泥），实测中砂含水率4%、碎石含水率1.2%。采用跳仓法施工方案，分别按1/3长度与1/3宽度分成9个浇筑区（见图1-1），每区混凝土浇筑时间3d，各区依次连续浇筑，同时按照规范要求设置测温点（见图1-2）。（资料中未说明条件及因素均视为符合要求） 1. 计算每立方米P6C35混凝土设计配合比的水泥、中砂、碎石",
+          "match_score": 0.2477,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "收合格；检查了外窗气密性能等有关安全和功能检测项目合格报告，观感质量符合要求。 【问题】 1. 计算每立方米P6C3混凝土设计配合比的水泥、中砂、碎石、水的用量？计算每立方P6C35混凝土施工 水泥:400kg, 中砂:680kg, 碎石:1120kg, 水:184kg; 施工配合比:水泥320kg, 中砂707.2kg, 碎石1142.4kg, 水143.36kg, 粉煤灰80kg 【解析】 (",
+          "match_score": 0.2278,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        },
+        {
+          "source_anchor": "exam:2021:第13题",
+          "quote": "大体积混凝土拆除保温覆盖时，浇筑体表面与大气温差不应大于（）。 A.15℃ B.20℃ C.25℃ D.28℃ B 【解析】考察考点 1A415033 混凝土基础施工大体积混凝土拆除保温覆盖时混凝土浇筑体表面与大气温差不应大于 20℃。",
+          "match_score": 0.212,
+          "source_file": "docs/原始数据/考点原料/_Q02_exam_evidence.json",
+          "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e"
+        }
+      ]
+    }
+  ]
+}
