@@ -120,7 +120,7 @@ module.exports = {
 			          </view>
 			        </view>
 			        <view class="send-btn {{inputText ? 'on' : ''}}" bindtap="sendMessage" aria-role="button" aria-label="发送消息">
-			          <text class="send-icon">▶</text>
+			          <text class="send-icon">↑</text>
 			        </view>
 			      </view>
     </view>
@@ -313,9 +313,9 @@ module.exports = {
                 <text class="workflow-toggle-arrow" user-select>{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
               </view>
             </view>
-            <text class="workflow-card-sub" user-select wx:if="{{item.workflowSub}}">{{item.workflowSub}}</text>
+            <text class="workflow-card-sub" user-select wx:if="{{item.workflowExpanded && item.workflowSub}}">{{item.workflowSub}}</text>
             <text class="workflow-meta-text" user-select wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
-            <text class="workflow-card-count" user-select wx:if="{{item.workflowCountText}}">{{item.workflowCountText}}</text>
+            <text class="workflow-card-count" user-select wx:if="{{item.workflowExpanded && item.workflowCountText}}">{{item.workflowCountText}}</text>
             <view class="workflow-trace workflow-trace-inline" wx:if="{{item.workflowExpanded && item.workflowEntries.length}}">
               <view class="workflow-step" wx:for="{{item.workflowEntries}}" wx:key="id" wx:for-item="wf">
                 <view class="workflow-step-head">
@@ -489,7 +489,7 @@ module.exports = {
               </view>
 
               <!-- 核心结论/注意/要点高亮 -->
-              <view class="md-callout md-callout-{{b.variant}}" wx:elif="{{b.type==='callout'}}">
+              <view class="md-callout md-callout-{{b.variant}} {{b.content.length ? 'md-callout-has-body' : 'md-callout-bare'}}" wx:elif="{{b.type==='callout'}}">
                 <text class="callout-tag callout-tag-{{b.variant}}" user-select>{{b.label}}</text>
                 <rich-text class="callout-body md-richtext" user-select wx:if="{{b.content.length}}" nodes="{{b.nodes}}"></rich-text>
               </view>
@@ -578,7 +578,8 @@ module.exports = {
                 <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
                   <text class="bullet" user-select>·</text>
                   <view class="li-body">
-                    <text class="md-li-text" user-select>{{li.raw || li.text}}</text>
+                    <rich-text wx:if="{{li.nodes && li.nodes.length}}" class="md-li-rich md-richtext" user-select nodes="{{li.nodes}}"></rich-text>
+                    <text wx:else class="md-li-text" user-select>{{li.raw || li.text}}</text>
                   </view>
                 </view>
               </view>
@@ -588,7 +589,8 @@ module.exports = {
                 <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
                   <text class="ol-idx" user-select>{{li.index}}.</text>
                   <view class="li-body">
-                    <text class="md-li-text" user-select>{{li.raw || li.text}}</text>
+                    <rich-text wx:if="{{li.nodes && li.nodes.length}}" class="md-li-rich md-richtext" user-select nodes="{{li.nodes}}"></rich-text>
+                    <text wx:else class="md-li-text" user-select>{{li.raw || li.text}}</text>
                   </view>
                 </view>
               </view>
@@ -729,7 +731,7 @@ module.exports = {
 			          </view>
 			        </view>
 				        <view class="send-btn {{canStopStream ? 'stop' : (inputText ? 'on' : '')}}" bindtap="{{canStopStream ? 'stopStream' : 'sendMessage'}}" aria-role="button" aria-label="{{canStopStream ? '停止生成' : '发送消息'}}">
-				          <text class="send-icon">{{canStopStream ? '■' : '▶'}}</text>
+				          <text class="send-icon">{{canStopStream ? '■' : '↑'}}</text>
 			        </view>
 			      </view>
 		    </view>
