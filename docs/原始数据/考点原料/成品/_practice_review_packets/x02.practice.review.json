@@ -1,48 +1,23 @@
 {
-  "schema_version": "luban_compiled_practice.v3",
+  "schema": "luban_practice_review_packet.v1",
   "pack_id": "X02",
   "source_pack_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
   "source_bundle_sha256": "a38e55c013125f8881d796cc2c816dbaa39b8e8bbfc5f718efc436df26486fe0",
-  "surfaces": [
-    {
-      "surface_id": "practice.html",
-      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "format_kind": "ord_method",
-      "array_marker": "\\bQ\\s*=",
-      "presentation_order": [
-        0,
-        1,
-        2,
-        3,
-        15
-      ],
-      "variant_ids": [
-        "X02-html-practice-html-q1-d0d23e6eb29d",
-        "X02-html-practice-html-q2-acfd97194c1f",
-        "X02-html-practice-html-q3-959eccf4e18d",
-        "X02-html-practice-html-q4-89f738210457",
-        "X02-html-practice-html-q16-18d949db7562"
-      ],
-      "eligible_variant_ids": [
-        "X02-html-practice-html-q1-d0d23e6eb29d",
-        "X02-html-practice-html-q2-acfd97194c1f",
-        "X02-html-practice-html-q3-959eccf4e18d",
-        "X02-html-practice-html-q4-89f738210457",
-        "X02-html-practice-html-q5-e9ee6cd8eb1b",
-        "X02-html-practice-html-q15-2a68a3a2fd01",
-        "X02-html-practice-html-q16-18d949db7562"
-      ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZDBkMjNlNmViMjlkIiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1hY2ZkOTcxOTRjMWYiLCJYMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTk1OWVjY2Y0ZTE4ZCIsIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtODlmNzM4MjEwNDU3IiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMThkOTQ5ZGI3NTYyIl0sInBhY2tfaWQiOiJYMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBlMDRjMTc5YTlkNDYzMTI0M2IwODg5YzIxZmVmNDBhNzY4YzRkZjliNWMwN2QzYjM0N2I5OTFhYjgxNDkwM2IiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYmM3MmM1ZDM4NzZjODMwYTliZDlkYTdlNWY3ODhkYTY3MzJhOWEzYTEzZDAwMDliMTk1OTA5OGI1YWM3N2U5OCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "4ad867815cfb79f5a2cf0d4d549e94ab7be5419ad2e6154de089236e3d8eda42"
-    }
-  ],
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 16,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
   "items": [
     {
-      "answer_type": "single_choice",
-      "rule_group": "仓库间距·条件维",
+      "variant_id": "X02-html-practice-html-q1-d0d23e6eb29d",
+      "surface_id": "practice.html",
       "stem": "某工地把危险品仓库紧贴在建工程布置。指出不妥并写出正确做法，选出能得分的作答。",
-      "model_answer": "不妥：危险品仓库贴在建工程。正确做法：危险品仓库应远离现场，距在建工程≥15m；临时仓库则接近使用地点。",
       "options": [
         {
           "text": "不妥：危险品仓库贴在建工程。正确做法：危险品仓库远离现场、距在建工程≥15m（临时仓库才接近使用地点）。",
@@ -81,53 +56,50 @@
           "option_id": "X02-html-practice-html-q1-d0d23e6eb29d:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q1-d0d23e6eb29d",
-      "surface_id": "practice.html",
-      "source_index": 0,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q1",
-      "source_anchor": "kc:1A431011_012_0013:0",
-      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "x02-fact-warehouse-siting",
-      "skeleton_id": "x02-skel-仓库选址两类判别",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：危险品仓库贴在建工程。正确做法：危险品仓库应远离现场，距在建工程≥15m；临时仓库则接近使用地点。",
+      "rule_group": "仓库间距·条件维",
       "content_sha256": "ccee09fb4abd9d20a68ec8c119374b8a5237b09563a0cee8b6e9c629f4c0a877",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "ccee09fb4abd9d20a68ec8c119374b8a5237b09563a0cee8b6e9c629f4c0a877",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q1",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "x02-fact-warehouse-siting",
+        "skeleton_id": "x02-skel-仓库选址两类判别",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A431011_012_0013:0",
+        "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "ccee09fb4abd9d20a68ec8c119374b8a5237b09563a0cee8b6e9c629f4c0a877",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "普通仓库接近使用点/危险品仓库远离现场距在建≥15m, 教材 kc:...012_0013:0 直引。工单: 普通仓库原则略绝对化。"
         },
-        "note": "普通仓库接近使用点/危险品仓库远离现场距在建≥15m, 教材 kc:...012_0013:0 直引。工单: 普通仓库原则略绝对化。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "道路宽度·条件维",
+      "variant_id": "X02-html-practice-html-q2-acfd97194c1f",
+      "surface_id": "practice.html",
       "stem": "问：现场临时道路的宽度规格应满足哪些要求？按规格清单作答，选出列全能得分的一项。",
-      "model_answer": "主干道单行≥4m、双行≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。",
       "options": [
         {
           "text": "单行≥4m、双行≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。",
@@ -166,53 +138,50 @@
           "option_id": "X02-html-practice-html-q2-acfd97194c1f:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q2-acfd97194c1f",
-      "surface_id": "practice.html",
-      "source_index": 1,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q2",
-      "source_anchor": "kc:1A431011_012_0013:1",
-      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "x02-fact-road-width-system",
-      "skeleton_id": "x02-skel-道路宽度体系枚举",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "主干道单行≥4m、双行≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。",
+      "rule_group": "道路宽度·条件维",
       "content_sha256": "3c206f4d9e1ea7b044c657a4086436b2bc9591203cc6f8ea796a393562e3a468",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "3c206f4d9e1ea7b044c657a4086436b2bc9591203cc6f8ea796a393562e3a468",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q2",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "x02-fact-road-width-system",
+        "skeleton_id": "x02-skel-道路宽度体系枚举",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A431011_012_0013:1",
+        "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "3c206f4d9e1ea7b044c657a4086436b2bc9591203cc6f8ea796a393562e3a468",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "单行4m/双行6m/消防4m/木材场6m/回车场12×12/载重转弯15m, 教材 kc:...012_0013:1 逐项直引。工单: '不宜小于'简化为硬阈值。"
         },
-        "note": "单行4m/双行6m/消防4m/木材场6m/回车场12×12/载重转弯15m, 教材 kc:...012_0013:1 逐项直引。工单: '不宜小于'简化为硬阈值。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "道路错档·条件维",
+      "variant_id": "X02-html-practice-html-q3-959eccf4e18d",
+      "surface_id": "practice.html",
       "stem": "某工地木材场内运输通道宽4m（与现场消防车道同宽）。指出是否妥当并给正确做法。",
-      "model_answer": "不妥：木材场通道4m。正确做法：木材场通道≥6m（消防车道≥4m，但不能用消防车道4m套木材场）。",
       "options": [
         {
           "text": "不妥：木材场通道4m。正确做法：木材场通道≥6m；消防车道≥4m 是另一档，不能拿4m套木材场。",
@@ -251,53 +220,50 @@
           "option_id": "X02-html-practice-html-q3-959eccf4e18d:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q3-959eccf4e18d",
-      "surface_id": "practice.html",
-      "source_index": 2,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q3",
-      "source_anchor": "kc:1A431011_012_0013:1",
-      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "x02-fact-timber-vs-fire-lane",
-      "skeleton_id": "x02-skel-木材场通道错档改正",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：木材场通道4m。正确做法：木材场通道≥6m（消防车道≥4m，但不能用消防车道4m套木材场）。",
+      "rule_group": "道路错档·条件维",
       "content_sha256": "330f297e8867f8bb5210cd4f3ac13b9faa14aa51219cea56c37e94e50f44cbd2",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "330f297e8867f8bb5210cd4f3ac13b9faa14aa51219cea56c37e94e50f44cbd2",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q3",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "x02-fact-timber-vs-fire-lane",
+        "skeleton_id": "x02-skel-木材场通道错档改正",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A431011_012_0013:1",
+        "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "330f297e8867f8bb5210cd4f3ac13b9faa14aa51219cea56c37e94e50f44cbd2",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "木材场通道≥6m 与消防车道≥4m 分档, 教材 kc:...012_0013:1 直引, 4m 错档判断正确。"
         },
-        "note": "木材场通道≥6m 与消防车道≥4m 分档, 教材 kc:...012_0013:1 直引, 4m 错档判断正确。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "宿舍改错·条件维",
+      "variant_id": "X02-html-practice-html-q4-89f738210457",
+      "surface_id": "practice.html",
       "stem": "检查发现：某宿舍住18人、通道宽0.8m。指出不妥并写出正确做法，选出能得分的作答。",
-      "model_answer": "不妥：每间住18人、通道0.8m。正确做法：每间宿舍≤16人；通道≥0.9m（床铺≤2层、净高≥2.5m、人均≥2.5m²）。",
       "options": [
         {
           "text": "不妥：每间住18人、通道0.8m。正确做法：每间宿舍≤16人；通道宽度≥0.9m。",
@@ -336,53 +302,50 @@
           "option_id": "X02-html-practice-html-q4-89f738210457:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q4-89f738210457",
-      "surface_id": "practice.html",
-      "source_index": 3,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q4",
-      "source_anchor": "exam:2020:第1题",
-      "source_sha256": "453ddbbcd8c06d0c89e14fe27f05af8ecb9e8f52768c4170f2555046d62084fb",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "x02-fact-dorm-capacity-aisle",
-      "skeleton_id": "x02-skel-宿舍人数通道纠错",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：每间住18人、通道0.8m。正确做法：每间宿舍≤16人；通道≥0.9m（床铺≤2层、净高≥2.5m、人均≥2.5m²）。",
+      "rule_group": "宿舍改错·条件维",
       "content_sha256": "7fff6a36f1cca9adcf0adb099944ad971bd5fe94de738998403515daf2a9d2c3",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "7fff6a36f1cca9adcf0adb099944ad971bd5fe94de738998403515daf2a9d2c3",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q4",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "x02-fact-dorm-capacity-aisle",
+        "skeleton_id": "x02-skel-宿舍人数通道纠错",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2020:第1题",
+        "source_sha256": "453ddbbcd8c06d0c89e14fe27f05af8ecb9e8f52768c4170f2555046d62084fb",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "7fff6a36f1cca9adcf0adb099944ad971bd5fe94de738998403515daf2a9d2c3",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "18人→每间≤16人/0.8m→通道≥0.9m, 真题 exam:2020 解析逐字。"
         },
-        "note": "18人→每间≤16人/0.8m→通道≥0.9m, 真题 exam:2020 解析逐字。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "易燃库方向·后果维",
+      "variant_id": "X02-html-practice-html-q5-e9ee6cd8eb1b",
+      "surface_id": "practice.html",
       "stem": "某露天易燃材料仓库设在现场上风方向、消防通道宽5m。指出不妥并写出正确做法。",
-      "model_answer": "不妥：易燃仓库设上风向、通道5m。正确做法：应设下风向、水源充足处；消防通道≥6m；距明火≥30m、危险品间距≥10m。",
       "options": [
         {
           "text": "不妥：易燃仓库设上风向、通道5m。正确做法：设下风向、水源充足处；消防通道≥6m；距明火≥30m。",
@@ -421,53 +384,50 @@
           "option_id": "X02-html-practice-html-q5-e9ee6cd8eb1b:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q5-e9ee6cd8eb1b",
-      "surface_id": "practice.html",
-      "source_index": 4,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q5",
-      "source_anchor": "kc:1A437000_146_0235:0",
-      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "x02-fact-flammable-warehouse-fire-layout",
-      "skeleton_id": "x02-skel-易燃仓库场景改错",
-      "probe_role": "immediate_confirm",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：易燃仓库设上风向、通道5m。正确做法：应设下风向、水源充足处；消防通道≥6m；距明火≥30m、危险品间距≥10m。",
+      "rule_group": "易燃库方向·后果维",
       "content_sha256": "a8137b1b858cd349d86ca796b6e01b0cc8e90540babd31e8bb0ab44f15b79e5c",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "a8137b1b858cd349d86ca796b6e01b0cc8e90540babd31e8bb0ab44f15b79e5c",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q5",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "x02-fact-flammable-warehouse-fire-layout",
+        "skeleton_id": "x02-skel-易燃仓库场景改错",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A437000_146_0235:0",
+        "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "a8137b1b858cd349d86ca796b6e01b0cc8e90540babd31e8bb0ab44f15b79e5c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "露天易燃仓库下风向/水源/6m通道/30m明火距, 教材 kc:...146_0235:0 直引。三联 immediate_confirm(同易燃仓库 fact)。"
         },
-        "note": "露天易燃仓库下风向/水源/6m通道/30m明火距, 教材 kc:...146_0235:0 直引。三联 immediate_confirm(同易燃仓库 fact)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "仓库分区·条件维",
+      "variant_id": "X02-html-practice-html-q6-8a32c1db9f36",
+      "surface_id": "practice.html",
       "stem": "问：仓库与堆料场的防火分区应满足哪些要求？选出规格正确、能得分的作答。",
-      "model_answer": "每500m²设防火墙；可燃材料库单间≤30m²；易燃易爆品库单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
       "options": [
         {
           "text": "每500m²设防火墙；可燃材料库单间≤30m²；易燃易爆品库单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
@@ -506,41 +466,38 @@
           "option_id": "X02-html-practice-html-q6-8a32c1db9f36:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q6-8a32c1db9f36",
-      "surface_id": "practice.html",
-      "source_index": 5,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "每500m²设防火墙；可燃材料库单间≤30m²；易燃易爆品库单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
+      "rule_group": "仓库分区·条件维",
       "content_sha256": "74521b6251ea39f892a66c40d7bc137d69289283d0102703e98e13f5d72ebeaa",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "74521b6251ea39f892a66c40d7bc137d69289283d0102703e98e13f5d72ebeaa",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q6",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "74521b6251ea39f892a66c40d7bc137d69289283d0102703e98e13f5d72ebeaa",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "电气间距·条件维",
+      "variant_id": "X02-html-practice-html-q7-636b6a704988",
+      "surface_id": "practice.html",
       "stem": "问：易燃堆垛区的电气防火间距应满足哪些要求？选出规格正确、能得分的作答。",
-      "model_answer": "架空电力线与堆垛≥电杆高度×1.5；照明灯具距堆垛≥1m；开关箱/接线盒距堆垛≥1.5m；严禁使用碘钨灯。",
       "options": [
         {
           "text": "架空电力线与堆垛≥电杆高×1.5；照明灯具距堆垛≥1m；开关箱/接线盒≥1.5m；严禁使用碘钨灯。",
@@ -579,41 +536,38 @@
           "option_id": "X02-html-practice-html-q7-636b6a704988:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q7-636b6a704988",
-      "surface_id": "practice.html",
-      "source_index": 6,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "架空电力线与堆垛≥电杆高度×1.5；照明灯具距堆垛≥1m；开关箱/接线盒距堆垛≥1.5m；严禁使用碘钨灯。",
+      "rule_group": "电气间距·条件维",
       "content_sha256": "be711dc23a9aa14f92ec7cf54819591e8f934cdc8f33df813104265180e03b66",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "be711dc23a9aa14f92ec7cf54819591e8f934cdc8f33df813104265180e03b66",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q7",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "be711dc23a9aa14f92ec7cf54819591e8f934cdc8f33df813104265180e03b66",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "灭火器·条件维",
+      "variant_id": "X02-html-practice-html-q8-c64a60aaa7a5",
+      "surface_id": "practice.html",
       "stem": "问：施工现场临时设施的灭火器应如何配置？选出配置率正确、能得分的作答。",
-      "model_answer": "临建每100㎡配2只10L灭火器；木料间、油漆间每25㎡配1只；场地超1200㎡设太平桶、积水池、黄砂池。",
       "options": [
         {
           "text": "临建每100㎡配2只10L；木料间、油漆间每25㎡配1只；场地超1200㎡设太平桶、积水池、黄砂池。",
@@ -652,41 +606,38 @@
           "option_id": "X02-html-practice-html-q8-c64a60aaa7a5:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q8-c64a60aaa7a5",
-      "surface_id": "practice.html",
-      "source_index": 7,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "临建每100㎡配2只10L灭火器；木料间、油漆间每25㎡配1只；场地超1200㎡设太平桶、积水池、黄砂池。",
+      "rule_group": "灭火器·条件维",
       "content_sha256": "bbda34e1428320cdcf47b1ff2e6375036b2dc37b6fd60b9a94cc6e5949676e0e",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "bbda34e1428320cdcf47b1ff2e6375036b2dc37b6fd60b9a94cc6e5949676e0e",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q8",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "bbda34e1428320cdcf47b1ff2e6375036b2dc37b6fd60b9a94cc6e5949676e0e",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "材料验收·程序记录维",
+      "variant_id": "X02-html-practice-html-q9-1cec61174459",
+      "surface_id": "practice.html",
       "stem": "问：材料进场验收应做哪些工作？选出要素齐全、能得分的作答。",
-      "model_answer": "进场须凭证、数量、规格、外观验收；挂牌标识；建立收料台账。",
       "options": [
         {
           "text": "材料进场须进行凭证、数量、规格、外观验收；挂牌标识；建立收料台账。",
@@ -725,41 +676,38 @@
           "option_id": "X02-html-practice-html-q9-1cec61174459:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q9-1cec61174459",
-      "surface_id": "practice.html",
-      "source_index": 8,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "进场须凭证、数量、规格、外观验收；挂牌标识；建立收料台账。",
+      "rule_group": "材料验收·程序记录维",
       "content_sha256": "c697625430af66b51bd06e5f2cf32f514d2c40ffccec59f6b23931d244d6c03c",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "c697625430af66b51bd06e5f2cf32f514d2c40ffccec59f6b23931d244d6c03c",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q9",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "c697625430af66b51bd06e5f2cf32f514d2c40ffccec59f6b23931d244d6c03c",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "材料堆放·条件维",
+      "variant_id": "X02-html-practice-html-q10-21f280779765",
+      "surface_id": "practice.html",
       "stem": "某工地钢管露天码放高2.2m、直接堆在地面无遮盖。指出不妥并写出正确做法。",
-      "model_answer": "不妥：码放2.2m、露天无下垫上盖。正确做法：料具码放高度≤1.5m；库外材料应下垫上盖。",
       "options": [
         {
           "text": "不妥：码放2.2m、露天无遮盖。正确做法：料具码放高度≤1.5m；库外材料应下垫上盖（下垫防潮、上盖防雨）。",
@@ -798,41 +746,38 @@
           "option_id": "X02-html-practice-html-q10-21f280779765:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q10-21f280779765",
-      "surface_id": "practice.html",
-      "source_index": 9,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不妥：码放2.2m、露天无下垫上盖。正确做法：料具码放高度≤1.5m；库外材料应下垫上盖。",
+      "rule_group": "材料堆放·条件维",
       "content_sha256": "69121e92121d9947b6135637f8156dd6cbdda75e9214a3347a67933867d5d69c",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "69121e92121d9947b6135637f8156dd6cbdda75e9214a3347a67933867d5d69c",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q10",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "69121e92121d9947b6135637f8156dd6cbdda75e9214a3347a67933867d5d69c",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "不合格退场·程序后果维",
+      "variant_id": "X02-html-practice-html-q11-3607ac516ee3",
+      "surface_id": "practice.html",
       "stem": "进场材料验收不合格。问应如何处置？选出流程正确、能得分的作答。",
-      "model_answer": "不合格材料按流程退场：申请→审批→通知→见证退场→记录确认→报告提交；不得直接或降级使用。",
       "options": [
         {
           "text": "按退场流程处置：申请→审批→通知→见证退场→记录确认→报告提交，不得直接或降级使用。",
@@ -871,41 +816,38 @@
           "option_id": "X02-html-practice-html-q11-3607ac516ee3:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q11-3607ac516ee3",
-      "surface_id": "practice.html",
-      "source_index": 10,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "不合格材料按流程退场：申请→审批→通知→见证退场→记录确认→报告提交；不得直接或降级使用。",
+      "rule_group": "不合格退场·程序后果维",
       "content_sha256": "e47eff1bef5f8d0ea48880eb37989b67bf6e66e7ecfd8bd442415f787da63ba0",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "e47eff1bef5f8d0ea48880eb37989b67bf6e66e7ecfd8bd442415f787da63ba0",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q11",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e47eff1bef5f8d0ea48880eb37989b67bf6e66e7ecfd8bd442415f787da63ba0",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "工具式临设·辨析维",
+      "variant_id": "X02-html-practice-html-q12-71f66b8d19ce",
+      "surface_id": "practice.html",
       "stem": "问：下列哪一组属于工具式、定型化临时设施？选出分类正确、能得分的作答。",
-      "model_answer": "工具式定型化临设：标准化箱式房、定型化临边洞口防护、加工棚、构件化PVC围墙、装配式马道、可重复使用临时道路板。",
       "options": [
         {
           "text": "标准化箱式房、加工棚、构件化PVC围墙、装配式马道、可重复使用临时道路板（能拆能挪、反复使用）。",
@@ -944,41 +886,38 @@
           "option_id": "X02-html-practice-html-q12-71f66b8d19ce:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q12-71f66b8d19ce",
-      "surface_id": "practice.html",
-      "source_index": 11,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "工具式定型化临设：标准化箱式房、定型化临边洞口防护、加工棚、构件化PVC围墙、装配式马道、可重复使用临时道路板。",
+      "rule_group": "工具式临设·辨析维",
       "content_sha256": "bfdb244ed53fe17c7d384493e1b5e7aaf34c215976e16cc32a2e043513425298",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "bfdb244ed53fe17c7d384493e1b5e7aaf34c215976e16cc32a2e043513425298",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q12",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "bfdb244ed53fe17c7d384493e1b5e7aaf34c215976e16cc32a2e043513425298",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "仓库间距·辨析维",
+      "variant_id": "X02-html-practice-html-q13-863a2ef0026d",
+      "surface_id": "practice.html",
       "stem": "问：普通临时仓库与危险品仓库的布置原则分别是什么？选出都对的一项。",
-      "model_answer": "临时仓库应接近使用地点、方便取料；危险品仓库应远离现场，距在建工程≥15m。",
       "options": [
         {
           "text": "临时仓库接近使用地点、方便取料；危险品仓库远离现场、距在建工程≥15m。",
@@ -1017,41 +956,38 @@
           "option_id": "X02-html-practice-html-q13-863a2ef0026d:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q13-863a2ef0026d",
-      "surface_id": "practice.html",
-      "source_index": 12,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "临时仓库应接近使用地点、方便取料；危险品仓库应远离现场，距在建工程≥15m。",
+      "rule_group": "仓库间距·辨析维",
       "content_sha256": "0d013ccad52722c17eb143743c9ea00f4d6974a71d139a5ac561d611765f1f43",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "0d013ccad52722c17eb143743c9ea00f4d6974a71d139a5ac561d611765f1f43",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q13",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "0d013ccad52722c17eb143743c9ea00f4d6974a71d139a5ac561d611765f1f43",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "回车场转弯·条件维",
+      "variant_id": "X02-html-practice-html-q14-b7dd5118e780",
+      "surface_id": "practice.html",
       "stem": "问：为保证消防车进得去、倒得出，回车场和转弯半径应满足什么规格？",
-      "model_answer": "回车场不小于12m×12m；载重车（消防车）转弯半径≥15m。",
       "options": [
         {
           "text": "回车场不小于12m×12m；载重车（消防车）转弯半径≥15m。",
@@ -1090,41 +1026,38 @@
           "option_id": "X02-html-practice-html-q14-b7dd5118e780:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q14-b7dd5118e780",
-      "surface_id": "practice.html",
-      "source_index": 13,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "回车场不小于12m×12m；载重车（消防车）转弯半径≥15m。",
+      "rule_group": "回车场转弯·条件维",
       "content_sha256": "73707d6f1aaef16140ad0018897412480a3e7ecc27fba2d4cfe6748efe6ee096",
-      "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "73707d6f1aaef16140ad0018897412480a3e7ecc27fba2d4cfe6748efe6ee096",
-        "signatures": [],
-        "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
-      },
-      "eligible": false
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q14",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "73707d6f1aaef16140ad0018897412480a3e7ecc27fba2d4cfe6748efe6ee096",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "综合列要求·多维",
+      "variant_id": "X02-html-practice-html-q15-2a68a3a2fd01",
+      "surface_id": "practice.html",
       "stem": "问：现场临时设施、道路及材料堆场布置应满足哪些要求？按对象成组作答，选出列得最全的一项。",
-      "model_answer": "仓库：临时接近使用点、危险品距在建≥15m、易燃库下风向距明火≥30m；道路：单4双6消防4木材6回车12×12转弯15；消防分区：500墙可燃30易燃20疏散10；材料：验收挂牌台账、码放≤1.5m下垫上盖、不合格退场。",
       "options": [
         {
           "text": "仓库(临时近用点/危险品距在建≥15m/易燃库下风向≥30m)、道路(单4双6消防4木材6/回车12×12/转弯15)、消防分区(500墙/可燃30/易燃20/疏散10)、材料(验收挂牌台账/码放≤1.5m下垫上盖/不合格退场)。",
@@ -1163,53 +1096,50 @@
           "option_id": "X02-html-practice-html-q15-2a68a3a2fd01:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q15-2a68a3a2fd01",
-      "surface_id": "practice.html",
-      "source_index": 14,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q15",
-      "source_anchor": "kc:1A437000_146_0235:0",
-      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "x02-fact-flammable-warehouse-fire-layout",
-      "skeleton_id": "x02-skel-临设消防分组综合",
-      "probe_role": "d1_probe",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "仓库：临时接近使用点、危险品距在建≥15m、易燃库下风向距明火≥30m；道路：单4双6消防4木材6回车12×12转弯15；消防分区：500墙可燃30易燃20疏散10；材料：验收挂牌台账、码放≤1.5m下垫上盖、不合格退场。",
+      "rule_group": "综合列要求·多维",
       "content_sha256": "f57ef2d87be60937838a3cc81b858160561ddaa2d826e51122798ea96c75ec83",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "f57ef2d87be60937838a3cc81b858160561ddaa2d826e51122798ea96c75ec83",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q15",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "x02-fact-flammable-warehouse-fire-layout",
+        "skeleton_id": "x02-skel-临设消防分组综合",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A437000_146_0235:0",
+        "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "f57ef2d87be60937838a3cc81b858160561ddaa2d826e51122798ea96c75ec83",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "四组对象综合, 本锚支持易燃仓库核心组; 道路/防火分区/材料管理另有 kc:012_0013/147_0236 等源(复合多源工单, 待补齐 provenance)。三联 d1_probe(同 fact, 第3独立 skeleton)。"
         },
-        "note": "四组对象综合, 本锚支持易燃仓库核心组; 道路/防火分区/材料管理另有 kc:012_0013/147_0236 等源(复合多源工单, 待补齐 provenance)。三联 d1_probe(同 fact, 第3独立 skeleton)。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     },
     {
-      "answer_type": "single_choice",
-      "rule_group": "采分诊断·末题",
+      "variant_id": "X02-html-practice-html-q16-18d949db7562",
+      "surface_id": "practice.html",
       "stem": "某学生答易燃材料仓库列要求：'易燃仓库要放在通风好的地方，远离火源，配好灭火器就行。'选出最准确的诊断与正确补写。",
-      "model_answer": "失分：方向未点'下风向'、间距无数字、漏消防通道。补写：设下风向、水源充足；消防通道≥6m；距明火≥30m；危险品间距≥10m。",
       "options": [
         {
           "text": "失分在只写'通风好/远离火源'口号、无方向无数字。补写：设下风向、水源充足；消防通道≥6m；距明火≥30m；危险品间距≥10m。",
@@ -1248,48 +1178,54 @@
           "option_id": "X02-html-practice-html-q16-18d949db7562:option-4"
         }
       ],
-      "variant_id": "X02-html-practice-html-q16-18d949db7562",
-      "surface_id": "practice.html",
-      "source_index": 15,
-      "source_group": "Q",
-      "source_group_index": null,
-      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q16",
-      "source_anchor": "kc:1A437000_146_0235:0",
-      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
-      "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "x02-fact-flammable-warehouse-fire-layout",
-      "skeleton_id": "x02-skel-易燃仓库诊断补写",
-      "probe_role": "anchor",
-      "revoked": false,
-      "revocation_refs": [],
+      "model_answer": "失分：方向未点'下风向'、间距无数字、漏消防通道。补写：设下风向、水源充足；消防通道≥6m；距明火≥30m；危险品间距≥10m。",
+      "rule_group": "采分诊断·末题",
       "content_sha256": "42ee1e61bd6ef4a03664f5bc91737b182a20c858de25dc57f133316b0e8e1cb2",
-      "review": {
-        "status": "signed",
-        "verdict": "approved",
-        "reviewed_content_sha256": "42ee1e61bd6ef4a03664f5bc91737b182a20c858de25dc57f133316b0e8e1cb2",
-        "signatures": [
-          {
-            "role": "teaching",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q16",
+      "authoring_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
+      "decision": {
+        "fact_id": "x02-fact-flammable-warehouse-fire-layout",
+        "skeleton_id": "x02-skel-易燃仓库诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A437000_146_0235:0",
+        "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "42ee1e61bd6ef4a03664f5bc91737b182a20c858de25dc57f133316b0e8e1cb2",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T12:21:56+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
           },
-          {
-            "role": "scoring",
-            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T12:21:56+08:00"
-          }
-        ],
-        "checks": {
-          "source_verified": true,
-          "answer_verified": true,
-          "diagnosis_verified": true,
-          "longest_option_checked": true,
-          "template_leakage_checked": true
+          "note": "下风向/水源充足/消防通道≥6m/距明火≥30m/危险品间距≥10m, 教材 kc:...146_0235:0 逐项直引。三联 anchor。工单: 关系对象宜写全。"
         },
-        "note": "下风向/水源充足/消防通道≥6m/距明火≥30m/危险品间距≥10m, 教材 kc:...146_0235:0 逐项直引。三联 anchor。工单: 关系对象宜写全。"
-      },
-      "eligible": true
+        "revoked": false,
+        "revocation_refs": []
+      }
     }
   ],
-  "published_lesson_sha256": "06da9bbe1de8d634280e3cf042168451784b001209da8ad4416c5ea040e9156b"
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "codex-cross-model 2026-07-18 (x02.codex.out, fatal_count=1)。5 surface 锚全无 FATAL, 15/16 approve。唯一 FATAL=非展示 q8(把『大型临时设施总面积超1200㎡』主体改写为任意场地面积=真删限定致答案变错)**排除不签**。主控核: q1/q2/q3=kc:1A431011_012_0013 教材直引(危险品库15m/道路宽度体系/木材场6m vs 消防4m); q4=exam:2020 解析逐字(18人→≤16人/0.8m→≥0.9m); q16/q5/q15=kc:1A437000_146_0235 易燃仓库消防要求直引。三联承 Codex 方案: 易燃材料仓库消防布置 fact q16/q5/q15。工单: 16/16 正确项固定首位+13/16 最长(编译模板病, 上线前宜随机化); q15 需补道路/防火分区/材料管理多源锚; q2『不宜小于』被简化为硬阈值。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }
