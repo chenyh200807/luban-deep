@@ -102,7 +102,17 @@ def load_source_units(base_dir: Path, pack: str) -> tuple[list[dict], list[str]]
         rel = str(compiled_path.relative_to(REPO_ROOT)) if compiled_path.is_relative_to(REPO_ROOT) else str(compiled_path)
         data = json.loads(compiled_path.read_text(encoding="utf-8"))
         for unit in data.get("units", []):
-            chunk = (unit.get("source_ref") or {}).get("chunk_id", "")
+            # source_ref 两形兼容: 新式 dict {"chunk_id": ...};早期编译(如 Q02)
+            # 是字符串 "…/BOOK….json#chunk:<chunk_id>" — 取 #chunk: 尾段。
+            source_ref = unit.get("source_ref") or {}
+            if isinstance(source_ref, str):
+                chunk = (
+                    source_ref.rsplit("#chunk:", 1)[-1]
+                    if "#chunk:" in source_ref
+                    else ""
+                )
+            else:
+                chunk = source_ref.get("chunk_id", "")
             note = unit.get("note", "")
             for sp in unit.get("scoring_points", []):
                 point_id = sp.get("point_id") or (f"kc:{chunk}" if chunk else "")
@@ -117,8 +127,15 @@ def load_source_units(base_dir: Path, pack: str) -> tuple[list[dict], list[str]]
                         "text": text,
                         "source_file": rel,
                         "source_sha256": sha,
-                        # dedupe group: one candidate per textbook chunk
-                        "group": f"chunk:{chunk or point_id}",
+                        # dedupe group: one candidate per distinct 采分点 (point_id).
+                        # A single textbook chunk often carries multiple orthogonal
+                        # scoring points (e.g. 1A413030_107_0210 = 灰缝/斜槎/马牙槎);
+                        # grouping per-chunk masked the correct point for questions
+                        # whose fact was not the chunk's top-scoring one. Per-point
+                        # grouping surfaces each true textbook anchor as selectable;
+                        # the human gate still picks the right one and the sign
+                        # helper still resolves sha only from machine candidates.
+                        "group": point_id,
                     }
                 )
     else:

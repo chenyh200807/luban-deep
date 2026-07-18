@@ -1,0 +1,62 @@
+{
+  "pack_id": "Q02",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (q02.codex.out, fatal_count=5)。主控逐条核: q3 FATAL 证伪——其候选 exam:2023:第16题 的 analysis 逐字『C错：保湿养护持续时间不少于14d』(Codex 漏看解析), 且编译源 kc:1A413030_096_0181 亦有『保湿养护时间：≥14d』原文。q1/q16 复合题=失效模式#4: 四组措施(材料低水化热掺合料/配合比0.45限值/施工分层300~500/养护测温14d+四温控+布点≤500mm)与 320/80 换算+拆保温20℃ 全部包内有原文(kc:095_0180/096_0181+exam:2019案例一+exam:2021:13)=复合多源工单。非展示 q5(『公式-列式-数值-回判为必需四步』无包内阅卷规则锚)与 q7(候选截断)不入签发七题(保守省略, q7 事实『扣水』在 exam:2019 解析存在属召回缺口, 留待补录)。三联承 Codex 方案: 配合比换算与限值判断 fact q16/q6/q8。工单: 全包 16/16 正确项固定首位+8题最长(编译模板病)。",
+  "signed": [
+    {
+      "variant_id": "Q02-html-practice-html-q1-083c0ceecfe4",
+      "probe_role": "anchor",
+      "fact_id": "q02-fact-crack-prevention-four-groups",
+      "skeleton_id": "q02-skel-防裂四组措施骨架",
+      "source_anchor": "kc:1A413030_095_0180:0",
+      "note": "四组措施各有源: 配合比组=本锚 kc:...095_0180:0(0.45/170kg/180mm 等)直引; 材料组(低水化热掺合料)/施工组(分层300~500)/养护测温组(≥14d+四温控)=kc:...096_0181 及大体积防水控制原文(复合多源工单)。Codex FATAL 系复合题血统误判。"
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q2-1e7a2dd69e52",
+      "probe_role": "anchor",
+      "fact_id": "q02-fact-four-temp-limits",
+      "skeleton_id": "q02-skel-四温控指标数值",
+      "source_anchor": "kc:1A413030_096_0181:0",
+      "note": "温升≤50℃/里表≤25℃/降温≤2.0℃/d/拆保温≤20℃, 教材 kc:...096_0181:0 逐项直引。"
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q3-f86ab99fac09",
+      "probe_role": "anchor",
+      "fact_id": "q02-fact-curing-14d",
+      "skeleton_id": "q02-skel-养护7d不妥改正",
+      "source_anchor": "exam:2023:第16题",
+      "note": "大体积保湿养护≥14d, 本锚真题解析逐字『C错：保湿养护持续时间不少于14d』; 教材 kc:...096_0181『保湿养护时间：≥14d』同文。Codex FATAL 系漏看真题 analysis。"
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q4-b844d305af66",
+      "probe_role": "anchor",
+      "fact_id": "q02-fact-insulation-removal-20c",
+      "skeleton_id": "q02-skel-拆保温温差判定",
+      "source_anchor": "exam:2021:第13题",
+      "note": "拆保温时表面与大气温差≤20℃, 真题 exam:2021:第13题 原题直判(B)。"
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q16-d048c3ff4a5a",
+      "probe_role": "anchor",
+      "fact_id": "q02-fact-mix-conversion-and-limits",
+      "skeleton_id": "q02-skel-大体积综合诊断补写",
+      "source_anchor": "exam:2019:案例一(一)背景资料",
+      "note": "三诊断各有源: 320/80 换算=本锚 exam:2019 案例(20%等量替换400kg)+第1题答案; 拆保温≤20℃=exam:2021:13; 养护≥14d=exam:2023:16 解析+kc:096_0181。『补列式与回判』为答题方法表述(工单: 宜避免旁置阅卷口吻)。Codex FATAL 系复合题血统误判(失效模式#4)。三联 anchor。"
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q6-1d2b4271f6d9",
+      "probe_role": "immediate_confirm",
+      "fact_id": "q02-fact-mix-conversion-and-limits",
+      "skeleton_id": "q02-skel-配合比换算计算",
+      "source_anchor": "exam:2019:案例一(一)背景资料",
+      "note": "水泥 400×0.8=320kg/m³, 粉煤灰 400×20%=80kg/m³, 真题背景+答案逐字。三联 immediate_confirm(同换算限值 fact)。"
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q8-c47e11a4d38f",
+      "probe_role": "d1_probe",
+      "fact_id": "q02-fact-mix-conversion-and-limits",
+      "skeleton_id": "q02-skel-水胶比限值判断",
+      "source_anchor": "kc:1A413030_095_0180:0",
+      "note": "大体积水胶比≤0.45 限值判据, 教材 kc:...095_0180:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
+    }
+  ]
+}

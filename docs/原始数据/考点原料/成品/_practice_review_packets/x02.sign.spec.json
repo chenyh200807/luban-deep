@@ -1,0 +1,62 @@
+{
+  "pack_id": "X02",
+  "adversarial_gate_ref": "codex-cross-model 2026-07-18 (x02.codex.out, fatal_count=1)。5 surface 锚全无 FATAL, 15/16 approve。唯一 FATAL=非展示 q8(把『大型临时设施总面积超1200㎡』主体改写为任意场地面积=真删限定致答案变错)**排除不签**。主控核: q1/q2/q3=kc:1A431011_012_0013 教材直引(危险品库15m/道路宽度体系/木材场6m vs 消防4m); q4=exam:2020 解析逐字(18人→≤16人/0.8m→≥0.9m); q16/q5/q15=kc:1A437000_146_0235 易燃仓库消防要求直引。三联承 Codex 方案: 易燃材料仓库消防布置 fact q16/q5/q15。工单: 16/16 正确项固定首位+13/16 最长(编译模板病, 上线前宜随机化); q15 需补道路/防火分区/材料管理多源锚; q2『不宜小于』被简化为硬阈值。",
+  "signed": [
+    {
+      "variant_id": "X02-html-practice-html-q1-d0d23e6eb29d",
+      "probe_role": "anchor",
+      "fact_id": "x02-fact-warehouse-siting",
+      "skeleton_id": "x02-skel-仓库选址两类判别",
+      "source_anchor": "kc:1A431011_012_0013:0",
+      "note": "普通仓库接近使用点/危险品仓库远离现场距在建≥15m, 教材 kc:...012_0013:0 直引。工单: 普通仓库原则略绝对化。"
+    },
+    {
+      "variant_id": "X02-html-practice-html-q2-acfd97194c1f",
+      "probe_role": "anchor",
+      "fact_id": "x02-fact-road-width-system",
+      "skeleton_id": "x02-skel-道路宽度体系枚举",
+      "source_anchor": "kc:1A431011_012_0013:1",
+      "note": "单行4m/双行6m/消防4m/木材场6m/回车场12×12/载重转弯15m, 教材 kc:...012_0013:1 逐项直引。工单: '不宜小于'简化为硬阈值。"
+    },
+    {
+      "variant_id": "X02-html-practice-html-q3-959eccf4e18d",
+      "probe_role": "anchor",
+      "fact_id": "x02-fact-timber-vs-fire-lane",
+      "skeleton_id": "x02-skel-木材场通道错档改正",
+      "source_anchor": "kc:1A431011_012_0013:1",
+      "note": "木材场通道≥6m 与消防车道≥4m 分档, 教材 kc:...012_0013:1 直引, 4m 错档判断正确。"
+    },
+    {
+      "variant_id": "X02-html-practice-html-q4-89f738210457",
+      "probe_role": "anchor",
+      "fact_id": "x02-fact-dorm-capacity-aisle",
+      "skeleton_id": "x02-skel-宿舍人数通道纠错",
+      "source_anchor": "exam:2020:第1题",
+      "note": "18人→每间≤16人/0.8m→通道≥0.9m, 真题 exam:2020 解析逐字。"
+    },
+    {
+      "variant_id": "X02-html-practice-html-q16-18d949db7562",
+      "probe_role": "anchor",
+      "fact_id": "x02-fact-flammable-warehouse-fire-layout",
+      "skeleton_id": "x02-skel-易燃仓库诊断补写",
+      "source_anchor": "kc:1A437000_146_0235:0",
+      "note": "下风向/水源充足/消防通道≥6m/距明火≥30m/危险品间距≥10m, 教材 kc:...146_0235:0 逐项直引。三联 anchor。工单: 关系对象宜写全。"
+    },
+    {
+      "variant_id": "X02-html-practice-html-q5-e9ee6cd8eb1b",
+      "probe_role": "immediate_confirm",
+      "fact_id": "x02-fact-flammable-warehouse-fire-layout",
+      "skeleton_id": "x02-skel-易燃仓库场景改错",
+      "source_anchor": "kc:1A437000_146_0235:0",
+      "note": "露天易燃仓库下风向/水源/6m通道/30m明火距, 教材 kc:...146_0235:0 直引。三联 immediate_confirm(同易燃仓库 fact)。"
+    },
+    {
+      "variant_id": "X02-html-practice-html-q15-2a68a3a2fd01",
+      "probe_role": "d1_probe",
+      "fact_id": "x02-fact-flammable-warehouse-fire-layout",
+      "skeleton_id": "x02-skel-临设消防分组综合",
+      "source_anchor": "kc:1A437000_146_0235:0",
+      "note": "四组对象综合, 本锚支持易燃仓库核心组; 道路/防火分区/材料管理另有 kc:012_0013/147_0236 等源(复合多源工单, 待补齐 provenance)。三联 d1_probe(同 fact, 第3独立 skeleton)。"
+    }
+  ]
+}

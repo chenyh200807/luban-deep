@@ -1,0 +1,433 @@
+{
+  "machine_candidates_only": true,
+  "generated_at": "2026-07-18T03:53:08+00:00",
+  "generator": "scripts/prefill_practice_review_anchors.py",
+  "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
+  "pack_id": "Q01",
+  "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/q01.practice.review.json",
+  "score_threshold": 0.1,
+  "warnings": [],
+  "coverage": {
+    "total_items": 16,
+    "items_with_candidates": 16,
+    "items_empty_handed": 0
+  },
+  "items": [
+    {
+      "variant_id": "Q01-html-practice-html-q1-9752d199a392",
+      "candidates": [
+        {
+          "source_anchor": "exam:2022:第15题",
+          "quote": "【问题】混凝土养护要求正确的是（ ）。 A.现场施工一般采用加热养护 B.矿渣硅酸盐水泥拌制的混凝土不少于14d C.在终凝后开始养护 D.有抗渗要求的不少于14d D 解析：专业语感大动脉，养护系列分4级。机理如下： - A错误：混凝土养护方法有自然养护和加热养护两大类。现场施工一般为自然养护。 - B错误：“普硅矿”水泥拌制的混凝土养护时间不少于7d，“火粉复”水泥拌制的混凝土养护时间不少于1",
+          "match_score": 0.4836,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "kc:1A413030_104_0197:0",
+          "quote": "混凝土养护时间规定：混凝土养护时间：硅酸盐水泥类≥7d；抗渗/C60及以上≥14d；后浇带≥14d；大体积按方案定。 、构件特点、技术要求、施工操作等因素确定。 （2）混凝土的养护时间应符合下列规定： ① 采用硅酸盐水泥、普通硅酸盐水泥或矿渣硅酸盐水泥配制的混凝土，不应少于7d； ② 采用其他品种水",
+          "match_score": 0.4721,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "exam:2016:案例2",
+          "quote": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构 网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。 地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监 理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架 全部拆除。 “两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设 计要求，",
+          "match_score": 0.4148,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q2-4a84fcba6b1e",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_096_0181:0",
+          "quote": "大体积混凝土施工要点：大体积混凝土施工需注意： - 浇筑层厚：300~500mm - 入模温度：5~30℃ - 保湿养护时间：≥14d - 温升值：≤50℃ - 里表温差：≤25℃ - 降温速率：≤2.0℃/d - 拆保温时温差：≤20℃ ### 大体积混凝土施工要求 （1）大体积混凝土施工宜采用整体分层或推移式连续浇筑施工。 （2）当大体积混凝土施工设置水平施工缝时，位置",
+          "match_score": 0.5333,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "【背景资料】 某高级住宅工程，建筑面积8000m²，由3栋塔楼构成，地下2层（含车库），地上28层，底板厚度800mm，由A施工总承包单位承建。合同约定工程最终达到绿色建筑评价二星级。 工程开始施工正值冬季，A施工单位项目部编制了冬期施工专项方案，根据当地资源和气候情况对底板混凝土的养护采用综合蓄热法，对底板混凝土的测温方案和温差控制、温降梯度，及混凝土养护时间提出了控制指标要求。 项目部置顶了项",
+          "match_score": 0.3258,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "exam:2021:第13题",
+          "quote": "大体积混凝土拆除保温覆盖时，浇筑体表面与大气温差不应大于（）。 A.15℃ B.20℃ C.25℃ D.28℃ B 【解析】考察考点 1A415033 混凝土基础施工大体积混凝土拆除保温覆盖时混凝土浇筑体表面与大气温差不应大于 20℃。",
+          "match_score": 0.32,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q3-eac52d2ed42f",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "1) 混凝土养护还有蓄热法、暖棚法、掺化学外加剂、加热、负温养护等方法。 混凝土的中心温度与表面温度的差值不应大于25℃，表面温度与大气温度的差值不应大于20℃，温降梯度不得大于3℃/d，养护时间不应少于14d。 【解析】依据《混凝土结构施工规范》GB50666-2011，冬期施工混凝土养护除综合蓄热法外，还包括暖棚法、加热法、掺外加剂法等。温差控制是防止裂缝的关键，中心与表面温差≤25℃，表面与",
+          "match_score": 0.6769,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "exam:2019:第5题",
+          "quote": "8m；作业点离易燃物的距离不小于20m；气瓶内的气体要尽量用完，减少浪费。 外墙挤塑板保温 【参考答案】\\n\\n1. (1) 混凝土养护还有蓄热法、暖棚法、掺化学外加剂、加热、负温养护等方法。\\n\\n混凝土的中心温度与表面温度的差值不应大于25℃，表面温度与大气温度的差值不应大于20℃，温降梯度不得大于3℃/d，养护时间不应少于14d。\\n\\n2. (1) 项目风险管理程序还应包括：风险评估，风险",
+          "match_score": 0.6096,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "exam:2019:第2页",
+          "quote": "8m；作业点离易燃物的距离不小于20m；气瓶内的气体要尽量用完，减少浪费。 外墙挤塑板保温 【参考答案】\\n\\n1. (1) 混凝土养护还有蓄热法、暖棚法、掺化学外加剂、加热、负温养护等方法。\\n\\n混凝土的中心温度与表面温度的差值不应大于25℃，表面温度与大气温度的差值不应大于20℃，温降梯度不得大于3℃/d，养护时间不应少于14d。\\n\\n2. (1) 项目风险管理程序还应包括：风险评估，风险",
+          "match_score": 0.6096,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q4-c8005fb201fb",
+      "candidates": [
+        {
+          "source_anchor": "exam:2016:第30题",
+          "quote": "混凝土在高温施工环境下施工，可采取的措施有( )。 A. 在早间施工 B. 在晚间施工 C. 喷雾 D. 连续浇筑 E. 吹风 ABCD 【解析】超纲题目，【混凝土结构工程施工规范GB50666-2011】 三、案例分析题 【案例一】参考答案： 1. 不妥一：灌注指桩顶混凝土面超过设计标高 500mm。 正确做法：水下灌注时桩顶混凝土面标高到少要比设计标高超灌 0.8 到 1.0m。 不妥二：成桩",
+          "match_score": 0.2963,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "ca:1A438000_158_0306",
+          "quote": "混凝土浇筑入模温度的最高限值是多少？ 阳覆盖，并应洒水降温。 （6）混凝土浇筑入模温度不应高于 35℃。 （7）混凝土浇筑宜在早间或晚间进行，且宜连续浇筑。需要时，应在施工作业面采取挡风、遮阳、喷雾等措施。 （8）混凝",
+          "match_score": 0.2222,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "kc:1A438000_157_0305:1",
+          "quote": "混凝土入模温度控制：混凝土浇筑入模温度不应高于 35℃。 凝土输送管应进行遮阳覆盖，并应洒水降温。 （6）混凝土浇筑入模温度不应高于 35℃。 （7）混凝土浇筑宜在早间或晚间进行，且宜连续浇筑。需要时，应在施工作业面采取挡风、遮阳、喷雾等措施",
+          "match_score": 0.2222,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q5-36e34c0fa4d2",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "1) 混凝土养护还有蓄热法、暖棚法、掺化学外加剂、加热、负温养护等方法。 混凝土的中心温度与表面温度的差值不应大于25℃，表面温度与大气温度的差值不应大于20℃，温降梯度不得大于3℃/d，养护时间不应少于14d。 【解析】依据《混凝土结构施工规范》GB50666-2011，冬期施工混凝土养护除综合蓄热法外，还包括暖棚法、加热法、掺外加剂法等。温差控制是防止裂缝的关键，中心与表面温差≤25℃，表面与",
+          "match_score": 0.4815,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "exam:2019:第5题",
+          "quote": "n绿色建筑评价各等级的评价总得分标准是：一星级≥40分，二星级≥60分，三星级≥80分。\\n\\n【选项分析】\\n A. ✓ 本题为案例分析题，无选项，直接回答问题。\\n B. ✓ 本题为案 【参考答案】 1. (1) 混凝土养护还有蓄热法、暖棚法、掺化学外加剂、加热、负温养护等方法。 混凝土的中心温度与表面温度的差值不应大于25℃，表面温度与大气温度的差值不应大于20℃，温降梯度不得大于3℃/d，",
+          "match_score": 0.4685,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "exam:2019:第2页",
+          "quote": "n绿色建筑评价各等级的评价总得分标准是：一星级≥40分，二星级≥60分，三星级≥80分。\\n\\n【选项分析】\\n A. ✓ 本题为案例分析题，无选项，直接回答问题。\\n B. ✓ 本题为案 【参考答案】 1. (1) 混凝土养护还有蓄热法、暖棚法、掺化学外加剂、加热、负温养护等方法。 混凝土的中心温度与表面温度的差值不应大于25℃，表面温度与大气温度的差值不应大于20℃，温降梯度不得大于3℃/d，",
+          "match_score": 0.4685,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q6-8f708662653f",
+      "candidates": [
+        {
+          "source_anchor": "m35:Q3-1A433000:P8",
+          "quote": "不妥⑤:必须写出'养护7天不妥,应≥14天(不少于14d)'。改正值必须为14天 养护时间",
+          "match_score": 0.5545,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "exam:2022:第15题",
+          "quote": "【问题】混凝土养护要求正确的是（ ）。 A.现场施工一般采用加热养护 B.矿渣硅酸盐水泥拌制的混凝土不少于14d C.在终凝后开始养护 D.有抗渗要求的不少于14d D 解析：专业语感大动脉，养护系列分4级。机理如下： - A错误：混凝土养护方法有自然养护和加热养护两大类。现场施工一般为自然养护。 - B错误：“普硅矿”水泥拌制的混凝土养护时间不少于7d，“火粉复”水泥拌制的混凝土养护时间不少于1",
+          "match_score": 0.4836,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "kc:1A413030_104_0197:0",
+          "quote": "混凝土养护时间规定：混凝土养护时间：硅酸盐水泥类≥7d；抗渗/C60及以上≥14d；后浇带≥14d；大体积按方案定。 、构件特点、技术要求、施工操作等因素确定。 （2）混凝土的养护时间应符合下列规定： ① 采用硅酸盐水泥、普通硅酸盐水泥或矿渣硅酸盐水泥配制的混凝土，不应少于7d； ② 采用其他品种水",
+          "match_score": 0.4492,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q7-1316081b361b",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A411011_032_0057:0",
+          "quote": "裂缝控制两类策略：不允许裂缝 → 控制拉应力 ≤ ftk；允许裂缝 → 控制宽度 ≤ 规范限值。 ### 混凝土裂缝控制要求 （3）混凝土结构应从设计、材料、施工、维护各环节采取控制混凝土裂缝的措施。混凝土构件受力裂缝的计算应符合下列规定",
+          "match_score": 0.4723,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "kc:1A422000_029_0049:0",
+          "quote": "防水混凝土结构厚度：防水混凝土结构厚度不应小于 250mm。 ### 防水混凝土结构厚度要求 ② 防水混凝土结构厚度不应小于 250mm； ### 防水混凝土裂缝控制 ③ 防水混凝土的裂缝宽度不",
+          "match_score": 0.2423,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "kc:1A411011_025_0047:2",
+          "quote": "裂缝控制等级：混凝土裂缝控制分三级： 1. 不出现拉应力（预应力构件） 2. 有拉应力但≤抗拉强度 3. 允许裂缝但宽度≤允许值 次方成正比，此因素影响最大。 ##### 3）混凝土结构的裂缝控制 裂缝控制主要针对受弯构件（如混凝土梁）及受拉构件，裂缝控制分为三个等级： （1）构件不出出现拉应力。 （2）构件虽有拉",
+          "match_score": 0.1892,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q8-1217680a41d5",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_130_0249:2",
+          "quote": "防水混凝土浇筑要求：防水混凝土应分层连续浇筑，分层厚度不得大于 500mm，并应采用机械振捣，避免漏振、欠振和超振。 与养护 （1）防水混凝土应分层连续浇筑，分层厚度不得大于 500mm，并应采用机械振捣，避免漏振、欠振和超振。 （2）防水混凝土留设施工缝规定",
+          "match_score": 0.698,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "exam:2015:第26题",
+          "quote": "捣密实 C. 施工缝宜留置在受剪力较大部位 D. 养护时间不少于7 天 E. 冬期施工入模温度不应低于5℃ ABE 【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应 留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应 采用机械振捣，避免漏振、欠振和超振。防水混凝土冬期施工时，其入模温度不应低于5℃。防水混凝土 养护",
+          "match_score": 0.6807,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "ca:1A413030_095_0178",
+          "quote": "条形基础混凝土浇筑时，分层厚度宜为多少？ 平，标杆之间的距离约 3m。 ② 根据基础深度宜分段分层（300～500mm）连续浇筑混凝土，一般不留施工缝。各段层间应相互衔接，每段间浇筑长度控制在 2～3m，做到逐段逐层呈阶梯形向前推进。",
+          "match_score": 0.4719,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q9-6599e3f13c77",
+      "candidates": [
+        {
+          "source_anchor": "exam:2015:第26题",
+          "quote": "关于防水混凝土施工的说法，正确的有( )。 A. 连续性浇筑，少留施工缝 B. 宜采用高频机械分层振捣密实 C. 施工缝宜留置在受剪力较大部位 D. 养护时间不少于7 天 E. 冬期施工入模温度不应低于5℃ ABE 【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应 留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应",
+          "match_score": 0.463,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "kc:1A413030_131_0250:0",
+          "quote": "施工缝设置原则：水平施工缝应设在高出底板表面不小于300mm处；距孔洞边缘≥300mm；垂直施工缝避开地下水丰富区，宜结合变形缝。 ### 施工缝设置及防水构造 （1）墙体水平施工缝不应留在剪力最大处或底板与侧墙的交接处，应留在高出底板表面不小于 300mm 的墙",
+          "match_score": 0.3333,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "ca:1A413030_131_0250",
+          "quote": "关于施工缝的设置，下列说法错误的是？ 在剪力最大处或底板与侧墙的交接处，应留在高出底板表面不小于 300mm 的墙体上。墙体有预留孔洞时，施工缝距孔洞边缘不应小于 300mm。 （2）垂直施工缝应避开地下水和裂隙水较多的地段，",
+          "match_score": 0.2963,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q10-024627f3b2e3",
+      "candidates": [
+        {
+          "source_anchor": "exam:2015:第26题",
+          "quote": "关于防水混凝土施工的说法，正确的有( )。 A. 连续性浇筑，少留施工缝 B. 宜采用高频机械分层振捣密实 C. 施工缝宜留置在受剪力较大部位 D. 养护时间不少于7 天 E. 冬期施工入模温度不应低于5℃ ABE 【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应 留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应",
+          "match_score": 0.74,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "kc:1A438000_154_0302:0",
+          "quote": "防水工程冬期施工温度要求：混凝土入模温度≥5℃；水泥砂浆施工气温≥5℃；养护温度≥5℃；养护时间≥14d。 ### 防水工程 （1）防水混凝土的冬期施工，应符合下列规定： ① 混凝土入模温度不应低于 5℃； ② 混凝土养护宜采用蓄热法",
+          "match_score": 0.62,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "8m；作业点离易燃物的距离不小于20m；气瓶内的气体要尽量用完，减少浪费。 外墙挤塑板保温 1. (1) 混凝土养护还有蓄热法、暖棚法、掺化学外加剂、加热、负温养护等方法。 混凝土的中心温度与表面温度的差值不应大于25℃，表面温度与大气温度的差值不应大于20℃，温降梯度不得大于3℃/d，养护时间不应少于14d。 【解析】依据《混凝土结构施工规范》GB50666-2011，冬期施工混凝土养护除综合蓄",
+          "match_score": 0.58,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q11-89e88dc29d18",
+      "candidates": [
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题3",
+          "quote": "带 10d 后封闭等（应至少 28d 后封闭）。 2）后浇带混凝土施工的主要技术措施： （1）整理钢筋； （2）冲洗松动部分； （3）填充后浇带，可采用微膨胀混凝土； （4）强度等级比原结构强度提高一级； （5）保持至少 14d 的湿润养护。 根据《混凝土结构施工规范》GB50666-2011，后浇带模板不应独立支设，应与主体结构同步支撑；钢丝网应保留以防止漏浆；后浇带封闭时间应不少于 28 天，",
+          "match_score": 0.617,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "kc:1A413030_131_0250:2",
+          "quote": "大体积防水混凝土施工控制：宜选低水化热水泥，掺减水剂、缓凝剂、粉煤灰、矿渣粉；设计龄期60d或90d；高温期入模温≤30℃；养护≥14d，后浇带≥28d。 管时，应定位准确、固定牢靠。 （4）大体积防水混凝土宜选用水化热低和凝结时间长的水泥，宜掺入减水剂、缓凝剂等外加剂和粉煤灰、磨细矿渣粉等掺合料。在设计许可的情况下，掺粉煤灰混凝土设计强",
+          "match_score": 0.3792,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "exam:2016:案例2",
+          "quote": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构 网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。 地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监 理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架 全部拆除。 “两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设 计要求，",
+          "match_score": 0.3792,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q12-1650b8c1cc5f",
+      "candidates": [
+        {
+          "source_anchor": "exam:2021:第9题",
+          "quote": "跨度 6m、设计混凝土强度等级 C30 的板，拆除底模时的同条件养护标准立方体试块抗压强度值至少应达到()。 A.15N/mm2 B.18N/mm C.22.5N/mm2 D.30N/mm2 C 【解析】考察考点 1A415041 混凝土结构工程施工 30*75%=22.5N/mm2",
+          "match_score": 0.4826,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "exam:2016:案例2",
+          "quote": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构 网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。 地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监 理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架 全部拆除。 “两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设 计要求，",
+          "match_score": 0.2683,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "kc:1A436000_115_0189:1",
+          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 取应急措施；待修复或排除险情后，方可继续施工。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定：",
+          "match_score": 0.2283,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q13-3fe4f66949a3",
+      "candidates": [
+        {
+          "source_anchor": "exam:2016:第12题",
+          "quote": "下列砌体结构墙体裂缝现象中，主要原因不是地基不均匀下沉引起的是( )。 A. 纵墙两端出现斜裂缝 B. 裂缝通过窗口两个对角 C. 窗间墙出现水平裂缝 D. 窗间墙出现竖向裂缝 D 【解析】( 二) 因地基不均匀下沉引起的墙体裂缝 (1) 现象： 1) 在纵墙的两端出现斜裂缝，多数裂缝通过窗口的两个对角 2) 在窗间墙的上下对角处成对出现水平裂缝 3) 在纵墙中央的顶部和底部窗台处出现竖向裂缝",
+          "match_score": 0.5278,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "ca:1A434000_081_0130",
+          "quote": "下列哪一项不属于地基与基础工程的子分部工程？A. 地基 B. 基础 C. 主体结构 D. 地下防水 ### 9.4 工程质量验收管理 #### 9.4.1 地基基础工程质量验收 ##### 1. 地基与基础工程包括的内容 （1）地基与基础工程主要包括：地基、基础、基坑支护、地",
+          "match_score": 0.25,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "ca:1A413000_082_0153",
+          "quote": "下列哪一项不属于基坑危险报警的条件？ 急措施： 1. 基坑支护结构的位移值突然明显增大或基坑出现流沙、管涌、隆起或陷落等； 2. 基坑支护结构的支撑或锚杆体系出现过大变形、压曲、断裂、松弛或拔出的迹象； 3. 基坑周边建",
+          "match_score": 0.1944,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q14-1d4b5613b75d",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A411011_029_0053",
+          "quote": "下列哪种作用属于间接作用？ 间接作用**：在结构上引起附加变形和约束变形的其他作用，例如温度作用、混凝土收缩、徐变等。 （2）结构上的作用根据随时间变化的特性分为： - **永久作用**：代表值应采用标准值。 -",
+          "match_score": 0.1905,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "ca:1A412010_047_0082",
+          "quote": "下列关于混凝土强度等级的说法正确的是？ 值（单位为 MPa）表示。普通混凝土划分为 C20、C25、C30、C35、C40、C45、C50、C55、C60、C65、C70、C75 和 C80 共 13 个等级，C30 即表示混",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "kc:1A411011_029_0053:0",
+          "quote": "荷载分类三类：直接作用（荷载）包括永久作用、可变作用、偶然作用；间接作用包括温度作用、混凝土收缩、徐变等。 ）引起建筑结构失去平衡或破坏的外部作用主要有两类： - **直接作用**：施加在结构上的各种力，亦称为荷载。包括： - 永久作用（如结构自重、土压力、预加应力等） - 可变作用（如",
+          "match_score": 0.1587,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q15-bdd53df442bc",
+      "candidates": [
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题3",
+          "quote": "带 10d 后封闭等（应至少 28d 后封闭）。 2）后浇带混凝土施工的主要技术措施： （1）整理钢筋； （2）冲洗松动部分； （3）填充后浇带，可采用微膨胀混凝土； （4）强度等级比原结构强度提高一级； （5）保持至少 14d 的湿润养护。 根据《混凝土结构施工规范》GB50666-2011，后浇带模板不应独立支设，应与主体结构同步支撑；钢丝网应保留以防止漏浆；后浇带封闭时间应不少于 28 天，",
+          "match_score": 0.4352,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "exam:2015:第26题",
+          "quote": "关于防水混凝土施工的说法，正确的有( )。 A. 连续性浇筑，少留施工缝 B. 宜采用高频机械分层振捣密实 C. 施工缝宜留置在受剪力较大部位 D. 养护时间不少于7 天 E. 冬期施工入模温度不应低于5℃ ABE 【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应 留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应",
+          "match_score": 0.3489,
+          "source_file": "docs/原始数据/考点原料/_Q01_exam_evidence.json",
+          "source_sha256": "cef05c55c010cff4f65eedc59effc06cd125ac679bdd1f36798ca50f0d9aaf21"
+        },
+        {
+          "source_anchor": "m35:Q3-1A433000:P8",
+          "quote": "不妥⑤:必须写出'养护7天不妥,应≥14天(不少于14d)'。改正值必须为14天 养护时间",
+          "match_score": 0.3091,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    },
+    {
+      "variant_id": "Q01-html-practice-html-q16-2a6eb9424292",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_130_0249:1",
+          "quote": "防水混凝土配合比要求：防水混凝土胶凝材料总用量不宜小于 320kg/m³，水泥用量不宜小于 260kg/m³；水胶比不得大于 0.50，有侵蚀性介质时水胶比不宜大于 0.45；入泵坍落度宜控制在 120～160mm。 #### 1) 混凝土制备 （1）防水混凝土可通过调整配合比，或掺加外加剂、掺合料等措施配制而成，其抗渗等级不得小于 P6。其试配混凝土的抗渗等级应比设计要求提高 0.2MPa。",
+          "match_score": 0.5975,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "ca:1A413030_095_0180",
+          "quote": "大体积混凝土水胶比不宜大于多少？ 总和不宜大于胶凝材料用量的 50%； ④ 水胶比不宜大于 0.45；",
+          "match_score": 0.486,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        },
+        {
+          "source_anchor": "kc:1A413030_095_0180:0",
+          "quote": "大体积混凝土配合比控制指标：大体积混凝土配合比要求：坍落度≤180mm，拌合水≤170kg/m³，粉煤灰≤50%，矿渣粉≤40%，总掺量≤50%，水胶比≤0.45。 ### 大体积混凝土施工 4. 大体积混凝土施工 大体积混凝土工程应符合《大体积混凝土施工标准》GB 50496—2018 的规定。",
+          "match_score": 0.2725,
+          "source_file": "docs/原始数据/考点原料/_Q01_compiled_source.json",
+          "source_sha256": "c21422472eff5164044a7e527e92f6e13903c953e16919587874ce24ca3e4b21"
+        }
+      ]
+    }
+  ]
+}

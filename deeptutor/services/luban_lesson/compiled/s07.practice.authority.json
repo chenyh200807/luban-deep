@@ -24,9 +24,17 @@
         "S07-html-practice-html-q4-873b4f6c56e4",
         "S07-html-practice-html-q5-23669e801abb"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZDQ3YzVjMThiNzI1IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01OTI5YTVkZTAwODMiLCJTMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLThjYTYzYjYxOTg5NyIsIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtODczYjRmNmM1NmU0IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xNS0yMzY2OWU4MDFhYmIiXSwicGFja19pZCI6IlMwNyIsInByb2plY3Rpb25fZGlnZXN0IjoiOGY2OGM5MmJhNGU4NGRiNzZjNzE5Nzk2NzAyODZiMTUxM2Y0MGFlNjcxY2VkZmU4NGEzNjUxNDc2YzQyOTY2MiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "2518eed0e585eb60ba2b8f4621da03db959cc1f4aafd37d3b4045b07f6671e15"
+      "eligible_variant_ids": [
+        "S07-html-practice-html-q1-d47c5c18b725",
+        "S07-html-practice-html-q2-5929a5de0083",
+        "S07-html-practice-html-q3-8ca63b619897",
+        "S07-html-practice-html-q4-873b4f6c56e4",
+        "S07-html-practice-html-q5-23669e801abb",
+        "S07-html-practice-html-q8-6580f9a10675",
+        "S07-html-practice-html-q9-a1fb4b7a6269"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZDQ3YzVjMThiNzI1IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01OTI5YTVkZTAwODMiLCJTMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLThjYTYzYjYxOTg5NyIsIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtODczYjRmNmM1NmU0IiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xNS0yMzY2OWU4MDFhYmIiXSwicGFja19pZCI6IlMwNyIsInByb2plY3Rpb25fZGlnZXN0IjoiOTM4NmZlZmEwNDBkZmUyY2I0MmVmMTQ1OTQ4YmQ2NzEzZjQzMGRhYmUxYTM4YzdjODcwMDAwNGFiNDY3YjAwNiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJkMDZlMmFiMDdmOGFlNjc5N2JlNTRiYjgwMTExMDM4NWNjYzAxZGJlOWFlYzc0MGI4ZDc2MThhOTkxNTJkZDJjIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "53307a8c881d5bfba79c96bc36642838071b686f7bc7eaa57816e91ca0caccee"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_129_0207:1",
+      "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
       "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s07-fact-death-threshold-grade",
+      "skeleton_id": "s07-skel-死亡人数定级",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "c1abd5eaa18ded6304321455a348b837fbd2a335f3e0a01b74cd17958f341a80",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "死亡1人<3 落一般档, 教材 kc:...129_0207:1 三阈值表直引; 按给定维度定级=真题口径(exam:2016:案例2/exam:2017:案例三 参考答案先例)。工单: 题干宜写明损失轻微。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_129_0207:1",
+      "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
       "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s07-fact-accident-grade-thresholds",
+      "skeleton_id": "s07-skel-经济损失档判定",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "fe3d99023c02b031cb053798e338a8e05de1e3a91eabc76fec13019a348e47e4",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "3000万落较大档(1000万-5000万), 教材三阈值表直引, 相对干扰项唯一。三联 anchor。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:第17题",
+      "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
       "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s07-fact-first-report-target",
+      "skeleton_id": "s07-skel-现场第一报告对象",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "e7de19ceb74eb58d385af3dd85316e702d493dae269d5a39619d2972c8d98f4f",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "事故现场有关人员应立即报告本单位负责人, 真题 exam:2019:第17题 原题直判(D)。工单: 后续部门链宜另锚并限定事故类型。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2015:第19题",
+      "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
       "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s07-fact-30d-supplement-report",
+      "skeleton_id": "s07-skel-30日补报与报告内容",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "fdb441e53ce4202eec000dbd06343a50ce80eb5ba31cf05f561e574ccca09547",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "自事故发生之日起30日内伤亡变化及时补报, 真题 exam:2015:第19题 原题直判(D); 报告三项内容=exam:2016:案例2(复合多源工单)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -371,29 +427,41 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2017:案例三",
+      "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
       "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s07-fact-investigation-team",
+      "skeleton_id": "s07-skel-调查组组成清单",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "0fb90a31b67ffe896ec92b9c8c69421c56f1d6521d13e4121c65fb6da43be973",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "调查组成员清单, 真题 exam:2017:案例三 逐项支持, 相对干扰项唯一。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -517,29 +585,41 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_129_0207:1",
+      "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
       "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s07-fact-accident-grade-thresholds",
+      "skeleton_id": "s07-skel-重伤人数档判定",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "43e52db843fa82062ce050be740c9b91e8e56d2bbdd86270bc878fd2d0b05404",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "重伤60人落重大档(50-100), 教材三阈值表直引; 按给定维度定级=真题口径(同 q1 裁决)。三联 immediate_confirm(同三阈值 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -590,29 +670,41 @@
       "source_group": "POOL",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A436000_129_0207:1",
+      "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
       "source_html_sha256": "adfe659432e4f7d636d5b5c904de53ab44387be3b0e1283f6509b20b6c759ddf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "s07-fact-accident-grade-thresholds",
+      "skeleton_id": "s07-skel-临界数归档",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "99e36b005b59fe17894275cf7ce3f69032d91766bfb0faf611a8002669e6f617",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:23:44+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "≥30/10-30/3-10/<3 四临界数归档, 教材 kc:...129_0207:1 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -907,5 +999,5 @@
       "eligible": false
     }
   ],
-  "published_lesson_sha256": "27d585762f67d1462ad9060341135ea4abb4cfd39cba155df7ad09801b55ea2b"
+  "published_lesson_sha256": "f1b4a71c64a764a1a0885f2ae92b6c27cd4b8e52d03ea65478d5d21c899ccb5c"
 }

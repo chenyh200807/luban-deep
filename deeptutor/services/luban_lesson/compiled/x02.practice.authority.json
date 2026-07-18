@@ -24,9 +24,17 @@
         "X02-html-practice-html-q4-89f738210457",
         "X02-html-practice-html-q16-18d949db7562"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZDBkMjNlNmViMjlkIiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1hY2ZkOTcxOTRjMWYiLCJYMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTk1OWVjY2Y0ZTE4ZCIsIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtODlmNzM4MjEwNDU3IiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMThkOTQ5ZGI3NTYyIl0sInBhY2tfaWQiOiJYMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImIwMzc2MTUzYmMyYWU5MTRmMDNmOGQ5NjViOTU5MTFkMjE5NWJlNTUzNjI2Y2JlNzQwNjkzM2M5MDEyYTdkZmUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "1857ab8c70fa23e77a5a5cb7edfccec1991036e4e4a0ba669fd98f97af29dd3a"
+      "eligible_variant_ids": [
+        "X02-html-practice-html-q1-d0d23e6eb29d",
+        "X02-html-practice-html-q2-acfd97194c1f",
+        "X02-html-practice-html-q3-959eccf4e18d",
+        "X02-html-practice-html-q4-89f738210457",
+        "X02-html-practice-html-q5-e9ee6cd8eb1b",
+        "X02-html-practice-html-q15-2a68a3a2fd01",
+        "X02-html-practice-html-q16-18d949db7562"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZDBkMjNlNmViMjlkIiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1hY2ZkOTcxOTRjMWYiLCJYMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTk1OWVjY2Y0ZTE4ZCIsIlgwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtODlmNzM4MjEwNDU3IiwiWDAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMThkOTQ5ZGI3NTYyIl0sInBhY2tfaWQiOiJYMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBlMDRjMTc5YTlkNDYzMTI0M2IwODg5YzIxZmVmNDBhNzY4YzRkZjliNWMwN2QzYjM0N2I5OTFhYjgxNDkwM2IiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYmM3MmM1ZDM4NzZjODMwYTliZDlkYTdlNWY3ODhkYTY3MzJhOWEzYTEzZDAwMDliMTk1OTA5OGI1YWM3N2U5OCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "4ad867815cfb79f5a2cf0d4d549e94ab7be5419ad2e6154de089236e3d8eda42"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A431011_012_0013:0",
+      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
       "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x02-fact-warehouse-siting",
+      "skeleton_id": "x02-skel-仓库选址两类判别",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "ccee09fb4abd9d20a68ec8c119374b8a5237b09563a0cee8b6e9c629f4c0a877",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "ccee09fb4abd9d20a68ec8c119374b8a5237b09563a0cee8b6e9c629f4c0a877",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "普通仓库接近使用点/危险品仓库远离现场距在建≥15m, 教材 kc:...012_0013:0 直引。工单: 普通仓库原则略绝对化。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A431011_012_0013:1",
+      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
       "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x02-fact-road-width-system",
+      "skeleton_id": "x02-skel-道路宽度体系枚举",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "3c206f4d9e1ea7b044c657a4086436b2bc9591203cc6f8ea796a393562e3a468",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "3c206f4d9e1ea7b044c657a4086436b2bc9591203cc6f8ea796a393562e3a468",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "单行4m/双行6m/消防4m/木材场6m/回车场12×12/载重转弯15m, 教材 kc:...012_0013:1 逐项直引。工单: '不宜小于'简化为硬阈值。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A431011_012_0013:1",
+      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
       "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x02-fact-timber-vs-fire-lane",
+      "skeleton_id": "x02-skel-木材场通道错档改正",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "330f297e8867f8bb5210cd4f3ac13b9faa14aa51219cea56c37e94e50f44cbd2",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "330f297e8867f8bb5210cd4f3ac13b9faa14aa51219cea56c37e94e50f44cbd2",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "木材场通道≥6m 与消防车道≥4m 分档, 教材 kc:...012_0013:1 直引, 4m 错档判断正确。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2020:第1题",
+      "source_sha256": "453ddbbcd8c06d0c89e14fe27f05af8ecb9e8f52768c4170f2555046d62084fb",
       "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x02-fact-dorm-capacity-aisle",
+      "skeleton_id": "x02-skel-宿舍人数通道纠错",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "7fff6a36f1cca9adcf0adb099944ad971bd5fe94de738998403515daf2a9d2c3",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "7fff6a36f1cca9adcf0adb099944ad971bd5fe94de738998403515daf2a9d2c3",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "18人→每间≤16人/0.8m→通道≥0.9m, 真题 exam:2020 解析逐字。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -371,29 +427,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_146_0235:0",
+      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
       "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x02-fact-flammable-warehouse-fire-layout",
+      "skeleton_id": "x02-skel-易燃仓库场景改错",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a8137b1b858cd349d86ca796b6e01b0cc8e90540babd31e8bb0ab44f15b79e5c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a8137b1b858cd349d86ca796b6e01b0cc8e90540babd31e8bb0ab44f15b79e5c",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "露天易燃仓库下风向/水源/6m通道/30m明火距, 教材 kc:...146_0235:0 直引。三联 immediate_confirm(同易燃仓库 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1101,29 +1169,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_146_0235:0",
+      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
       "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x02-fact-flammable-warehouse-fire-layout",
+      "skeleton_id": "x02-skel-临设消防分组综合",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "f57ef2d87be60937838a3cc81b858160561ddaa2d826e51122798ea96c75ec83",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "f57ef2d87be60937838a3cc81b858160561ddaa2d826e51122798ea96c75ec83",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "四组对象综合, 本锚支持易燃仓库核心组; 道路/防火分区/材料管理另有 kc:012_0013/147_0236 等源(复合多源工单, 待补齐 provenance)。三联 d1_probe(同 fact, 第3独立 skeleton)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1174,30 +1254,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_146_0235:0",
+      "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089",
       "source_html_sha256": "dd1249680bef2aa613828c7252f7fd70525885af02525744c3c5355febb54554",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x02-fact-flammable-warehouse-fire-layout",
+      "skeleton_id": "x02-skel-易燃仓库诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "42ee1e61bd6ef4a03664f5bc91737b182a20c858de25dc57f133316b0e8e1cb2",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "42ee1e61bd6ef4a03664f5bc91737b182a20c858de25dc57f133316b0e8e1cb2",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T12:21:56+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "下风向/水源充足/消防通道≥6m/距明火≥30m/危险品间距≥10m, 教材 kc:...146_0235:0 逐项直引。三联 anchor。工单: 关系对象宜写全。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "07bdaed293f423ddf8269184597843d575c9e344da9937ca991c08e0ce620b26"
+  "published_lesson_sha256": "06da9bbe1de8d634280e3cf042168451784b001209da8ad4416c5ea040e9156b"
 }

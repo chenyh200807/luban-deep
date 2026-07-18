@@ -24,9 +24,17 @@
         "C07-html-practice-html-q4-3ff4600ca2e6",
         "C07-html-practice-html-q15-e2594578228f"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMWRiYzAxZGJkY2VjIiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iNGEzZmM2YTQ2ODkiLCJDMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLTVjOTkwNTdkOTBmOSIsIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtM2ZmNDYwMGNhMmU2IiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZTI1OTQ1NzgyMjhmIl0sInBhY2tfaWQiOiJDMDciLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjdiYWEzMGJiOGVkZmNlYjRkNTVmNTZlNDgzYTc2MzFjNGZjMDlkMTYwNDQzNmIwZGZmNWEyOTUxYTc2N2M0NmYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "62340a5c0d32b67f3ac414d89f92052ad0fa4db7a746a35fbf20e40d8486c014"
+      "eligible_variant_ids": [
+        "C07-html-practice-html-q1-1dbc01dbdcec",
+        "C07-html-practice-html-q2-b4a3fc6a4689",
+        "C07-html-practice-html-q3-5c99057d90f9",
+        "C07-html-practice-html-q4-3ff4600ca2e6",
+        "C07-html-practice-html-q9-16d06c3c7aef",
+        "C07-html-practice-html-q10-eef5eb0d8bee",
+        "C07-html-practice-html-q15-e2594578228f"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMWRiYzAxZGJkY2VjIiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iNGEzZmM2YTQ2ODkiLCJDMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLTVjOTkwNTdkOTBmOSIsIkMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtM2ZmNDYwMGNhMmU2IiwiQzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZTI1OTQ1NzgyMjhmIl0sInBhY2tfaWQiOiJDMDciLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImQ3ZjZlMTgyNjUzYmNjZTVlZjA4YTc3MWFlYWEyMjhmOGMxMTk5YTgwNGI2NjA5ODQ0ZDcyZjk4YmYyNDU4YTIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNzlkN2VjMWRmNWEzMGQ4MDFjNjNhN2Y4ZTk2NGY0NWFhZGUxNDVjMDM1OWZkMDA1OWFiN2ZjZWE5OTIxMDdjMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "40e0a0d718772d6d96ec625c3c7a51f5e76c8db6a11220d4212220105513b57b"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_109_0216:0",
+      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
       "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c07-fact-connection-methods",
+      "skeleton_id": "c07-skel-连接方法四类枚举",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "dd21f9f727d7a9539fe0f9a8f2ee7fcbe18704768830d7f6b4bf81065f940ba4",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "dd21f9f727d7a9539fe0f9a8f2ee7fcbe18704768830d7f6b4bf81065f940ba4",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "钢结构连接方法四类,教材直引(0.88)。工单:正确项恒首位且最长(template artifact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_109_0216:1",
+      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
       "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c07-fact-weld-joint-types",
+      "skeleton_id": "c07-skel-焊接接头七类枚举",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "9e2044e7f8cefecb701668c1d39e952b738ede2af6634f5bd88fd07d6b23771a",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "9e2044e7f8cefecb701668c1d39e952b738ede2af6634f5bd88fd07d6b23771a",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "焊接接头七类,教材直引(0.74)。工单:template artifact。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_110_0217:1",
+      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
       "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c07-fact-weld-environment",
+      "skeleton_id": "c07-skel-焊接环境数值",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "9187b4b8dbda2dd50ead87abc3f9c055d9e08b2c5af35162b65aeacf8fbbf771",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "9187b4b8dbda2dd50ead87abc3f9c055d9e08b2c5af35162b65aeacf8fbbf771",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "焊接环境4数值(≥-10℃/湿度≤90%/风速8/2)全对,教材直引(0.84)。工单:stem 限定数值,解析可补'低温需加热/防护'(另一采分点)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2021:第8题",
+      "source_sha256": "791136fd27f65d8b5d50025b05662596b560540dfbfef2f574a828c2efee81db",
       "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c07-fact-slag-inclusion-cause",
+      "skeleton_id": "c07-skel-夹渣成因",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "39c9d043682a6306fafc1560bf7d063b34085fec41674ce58aafca6aac07e561",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "39c9d043682a6306fafc1560bf7d063b34085fec41674ce58aafca6aac07e561",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "固体夹渣成因(电流小/速度快/熔渣未清),真题锚。工单:机理化括注宜另补教材锚。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -663,29 +719,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_110_0217:0",
+      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
       "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c07-fact-high-strength-bolt-install",
+      "skeleton_id": "c07-skel-冲钉数量下限",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "6d52245ce843c7363895d61504fb4356c0ac33fdf3d4bcbfcbfe68c9462f461f",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "6d52245ce843c7363895d61504fb4356c0ac33fdf3d4bcbfcbfe68c9462f461f",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "安装螺栓/冲钉数量下限+不得兼作,教材直引(0.79)。工单:荷载计算前提未列(不穷尽非反错)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -736,29 +804,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_110_0217:0",
+      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
       "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c07-fact-high-strength-bolt-install",
+      "skeleton_id": "c07-skel-兼作判断纠错",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "2a281aae25c1058f32bfbe8ae30793786f2fe6871ff552534f9b11f5b41cad03",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "2a281aae25c1058f32bfbe8ae30793786f2fe6871ff552534f9b11f5b41cad03",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "高强螺栓不得兼作安装螺栓,教材直引(0.68)。工单:正确做法可补荷载计算前提。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1101,30 +1181,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C07/P40_C07.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_110_0217:0",
+      "source_sha256": "261fb76659d851cc891684bdcb38db79e51fd6985696cc543cd602e4d693f467",
       "source_html_sha256": "f88b1e3f24f6c15dc1a2d938c2df68dada16f4d1dfba6fc1605191f470b575bb",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c07-fact-high-strength-bolt-install",
+      "skeleton_id": "c07-skel-五错诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "57a829dd4ba1060b891082b866d0fe9b9f0cb431bdc2b876304f057c6cfb0c21",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "57a829dd4ba1060b891082b866d0fe9b9f0cb431bdc2b876304f057c6cfb0c21",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-18T09:58:48+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "高强螺栓五错诊断(兼作/气割扩孔/摩擦面标记/终拧/…)。锚 kc:...110_0217:0 覆盖兼作+禁气割扩孔;摩擦面/终拧为多源。工单:复合题多源 provenance,非血统断(各事实均教材有据)。Codex '设计单位同意' FATAL 为幻觉,已否。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "965ac788bf92d59d8a0043a6d2f7fd3a78dab4c056d02798ffe8223814638d63"
+  "published_lesson_sha256": "a467488ce316b0368465a071c86e9bc2f933f4b00928f95dfb93fdba8057b796"
 }

@@ -1,0 +1,433 @@
+{
+  "machine_candidates_only": true,
+  "generated_at": "2026-07-18T03:53:12+00:00",
+  "generator": "scripts/prefill_practice_review_anchors.py",
+  "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
+  "pack_id": "X02",
+  "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/x02.practice.review.json",
+  "score_threshold": 0.1,
+  "warnings": [],
+  "coverage": {
+    "total_items": 16,
+    "items_with_candidates": 16,
+    "items_empty_handed": 0
+  },
+  "items": [
+    {
+      "variant_id": "X02-html-practice-html-q1-d0d23e6eb29d",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_012_0013:0",
+          "quote": "临时仓库布置要点：临时仓库应接近使用地点，危险品仓库需远离现场，距在建工程不小于15m。 临时仓库应接近使用地点，危险品仓库需远离现场，距在建工程不小于15m。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主",
+          "match_score": 0.5639,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "ca:1A431011_012_0013",
+          "quote": "关于施工现场临时仓库布置的说法，正确的是？ 关于施工现场临时仓库布置的说法，正确的是？ | grading_keywords=接近使用地点,远离道路边,危险品仓库,15m 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽",
+          "match_score": 0.5639,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A431011_012_0013:1",
+          "quote": "12m；载重车转弯半径≥15m。 主干道单行道≥4m，双行道≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4",
+          "match_score": 0.5525,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q2-acfd97194c1f",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_012_0013:1",
+          "quote": "12m；载重车转弯半径≥15m。 主干道单行道≥4m，双行道≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4",
+          "match_score": 0.6787,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A431011_012_0013:2",
+          "quote": "技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4m双行≥6m·消防车道≥4m·木材场通道≥6m·回车场12m×12m·载重车转弯半径≥15m)·临时房屋布置(宿舍床铺≤2层·净高≥2.5m·通道≥0.9m·人",
+          "match_score": 0.6787,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "ca:1A431011_012_0013",
+          "quote": "1010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4m双行≥6m·消防车道≥4m·木材场通道≥6m·回车场12m×12m·载重车转弯半径≥15m)·临时房屋布置(宿舍床铺≤2层·净高≥2.5m·通道≥0.9m·人均≥2.5m²·每",
+          "match_score": 0.6787,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q3-959eccf4e18d",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_012_0013:1",
+          "quote": "12m；载重车转弯半径≥15m。 主干道单行道≥4m，双行道≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4",
+          "match_score": 0.4167,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "ca:1A431011_012_0013",
+          "quote": "ing_keywords=接近使用地点,远离道路边,危险品仓库,15m 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4m双行≥6m·消防车道≥4m·木材场通道≥6m·回车场12m×12m·载重车转",
+          "match_score": 0.4167,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A431011_012_0013:0",
+          "quote": "接近使用地点，危险品仓库需远离现场，距在建工程不小于15m。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4m双行≥6m·消防车道≥4m·木材场通道≥6m·回车场12m×12m·载重车转弯半径≥1",
+          "match_score": 0.4037,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q4-89f738210457",
+      "candidates": [
+        {
+          "source_anchor": "exam:2020:第1题",
+          "quote": "标进行了逐一分析以便得到改善，评价分值如表5-2。 #### 表5-1 某办公楼工程建筑施工安全检查评分汇总表 | 工程名称 | 建筑面积（万㎡） | 结构类型 | 总计得分 | 安全管理 | 不妥之处及改正： (1) 不妥：个别宿舍住有18人； 改正：每间宿舍居住人员不得超过16人。 (2) 不妥：通道宽度0.8m； 改正：通道宽度不得小于0.9m。 (3) 不妥：窗户为封闭式窗户； 改正：现场",
+          "match_score": 0.4228,
+          "source_file": "docs/原始数据/考点原料/_X02_exam_evidence.json",
+          "source_sha256": "453ddbbcd8c06d0c89e14fe27f05af8ecb9e8f52768c4170f2555046d62084fb"
+        },
+        {
+          "source_anchor": "exam:2020:案例五",
+          "quote": "分项检查评分表无零分。\\n - 合格：汇总表得分值应在80分以下，70分及以上，且分项检查评分表无零分。\\n - 不合格：满足下列两个条件之一：①汇总表得分值不足70分；②有一分项检查评分表为零分。 【解析】 1. 不妥之处及改正： - ①个别宿舍住有18人：改正：每间宿舍居住人员不得超过16人。 - ②通道宽度0.8m：改正：通道宽度不得小于0.9m。 - ③窗户为封闭式窗户：改正：现场宿舍必须",
+          "match_score": 0.4079,
+          "source_file": "docs/原始数据/考点原料/_X02_exam_evidence.json",
+          "source_sha256": "453ddbbcd8c06d0c89e14fe27f05af8ecb9e8f52768c4170f2555046d62084fb"
+        },
+        {
+          "source_anchor": "ca:1A431011_012_0013",
+          "quote": "规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4m双行≥6m·消防车道≥4m·木材场通道≥6m·回车场12m×12m·载重车转弯半径≥15m)·临时房屋布置(宿舍床铺≤2层·净高≥2.5m·通道≥0.9m·人均≥2.5m²·每间≤16人). 这些'具体规格数值'是 X02 territory(X01 取其在平面上布置维度, ",
+          "match_score": 0.3632,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q5-e9ee6cd8eb1b",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A437000_146_0235",
+          "quote": "易燃材料露天仓库消防通道宽度应不小于多少米？ 易燃材料露天仓库消防通道宽度应不小于多少米？ | grading_keywords=6m,消防通道,下风方向,防火间距,30m 本体·registry support 1A437000-B026 存放易燃材料仓库消防(名实相符): 易燃材料仓库设下风向·水源充足处·消防通道宽≥6m·与明火区间距≥30m·危险品间距≥10m·与易燃易爆品间距≥30m. ",
+          "match_score": 0.5453,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A437000_146_0235:0",
+          "quote": "易燃材料仓库消防要求：易燃材料仓库应设在下风向、水源充足处；消防通道宽≥6m；与明火区间距≥30m；危险品间距≥10m，与易燃易爆品间距≥30m。 易燃材料仓库应设在下风向、水源充足处；消防通道宽≥6m；与明火区间距≥30m；危险品间距≥10m，与易燃易爆品间距≥30m。 本体·registry support 1A437000-B026 存放易燃材料仓库消防(名实相符): 易燃材料仓库设下风向·",
+          "match_score": 0.5335,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "exam:2017:问题1-5",
+          "quote": "之处3：仓库或堆料场严禁使用碘钨灯。 不妥之处4：电锯的开关箱距离堆场配电箱距离为30.5m（开关箱和配电箱的间距不得大于30m）。 不妥之处5：木模板堆场（可燃物）应与电锯距离至少10m。 不妥之处6：开关箱安装在电线杆上。 不妥之处7：电锯部位敞开，应采用密封式。 不妥之处8：未设置灭火器。 不妥之处9：未设置消防水箱、消防水桶、消防用水等。 （2）现场临时停电的顺序为：先开关箱→再分配电箱→",
+          "match_score": 0.3081,
+          "source_file": "docs/原始数据/考点原料/_X02_exam_evidence.json",
+          "source_sha256": "453ddbbcd8c06d0c89e14fe27f05af8ecb9e8f52768c4170f2555046d62084fb"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q6-8a32c1db9f36",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A437000_147_0236",
+          "quote": "？ | grading_keywords=500m²,30m²,20m²,10m,0.8m,1.5倍,1m,1.5m,严禁使用碘钨灯 本体·registry support 1A437000-B011 仓库与堆料场消防安全(名实相符): 仓库防火分区(易引起火灾仓库每500m²设防火墙·可燃材料库房单间≤30m²·易燃易爆品库房单间≤20m²·房门净宽≥0.8m·任一点到疏散门≤10m)·电气设备",
+          "match_score": 0.7271,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A437000_147_0236:0",
+          "quote": "仓库防火分区与面积限制：易引起火灾的仓库应按每500m²设防火墙；可燃材料库房单间≤30m²；易燃易爆品库房单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。 易引起火灾的仓库应按每500m²设防火墙；可燃材料库房单间≤30m²；易燃易爆品库房单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。 本体·registry support 1A437000-B011 仓库与堆料场消防",
+          "match_score": 0.7153,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A437000_147_0236:1",
+          "quote": "rt 1A437000-B011 仓库与堆料场消防安全(名实相符): 仓库防火分区(易引起火灾仓库每500m²设防火墙·可燃材料库房单间≤30m²·易燃易爆品库房单间≤20m²·房门净宽≥0.8m·任一点到疏散门≤10m)·电气设备防火间距(架空电力线与易燃堆垛≥电杆高×1.5·照明灯具与堆垛≥1m·开关箱接线盒距堆垛≥1.5m·严禁碘钨灯). 堆料场/仓库消防=X02材料堆场布置消防要求本体. ",
+          "match_score": 0.7153,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q7-636b6a704988",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A437000_147_0236:1",
+          "quote": "电气设备防火间距：架空电力线与易燃堆垛最小水平距离≥电杆高度×1.5；照明灯具与堆垛≥1m；开关箱/接线盒距堆垛≥1.5m；严禁使用碘钨灯。 架空电力线与易燃堆垛最小水平距离≥电杆高度×1.5；照明灯具与堆垛≥1m；开关箱/接线盒距堆垛≥1.5m；严禁使用碘钨灯。 本体·registry support 1A437000-B011 仓库与堆料场消防安全(名实相符): 仓库防火分区(易引起火灾仓库每",
+          "match_score": 0.72,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "ca:1A437000_147_0236",
+          "quote": ",1m,1.5m,严禁使用碘钨灯 本体·registry support 1A437000-B011 仓库与堆料场消防安全(名实相符): 仓库防火分区(易引起火灾仓库每500m²设防火墙·可燃材料库房单间≤30m²·易燃易爆品库房单间≤20m²·房门净宽≥0.8m·任一点到疏散门≤10m)·电气设备防火间距(架空电力线与易燃堆垛≥电杆高×1.5·照明灯具与堆垛≥1m·开关箱接线盒距堆垛≥1.5m·",
+          "match_score": 0.6877,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A437000_147_0236:0",
+          "quote": "散门≤10m。 本体·registry support 1A437000-B011 仓库与堆料场消防安全(名实相符): 仓库防火分区(易引起火灾仓库每500m²设防火墙·可燃材料库房单间≤30m²·易燃易爆品库房单间≤20m²·房门净宽≥0.8m·任一点到疏散门≤10m)·电气设备防火间距(架空电力线与易燃堆垛≥电杆高×1.5·照明灯具与堆垛≥1m·开关箱接线盒距堆垛≥1.5m·严禁碘钨灯). 堆",
+          "match_score": 0.6554,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q8-c64a60aaa7a5",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A437000_146_0233:0",
+          "quote": "临时设施灭火器配置标准：临时搭设建筑每100㎡配2只10L灭火器；木料间、油漆间等每25㎡配1只灭火器；大型临时设施超1200㎡需设太平桶、积水池、黄砂池。 临时搭设建筑每100㎡配2只10L灭火器；木料间、油漆间等每25㎡配1只灭火器；大型临时设施超1200㎡需设太平桶、积水池、黄砂池。 本体·临设消防器材配备(chunk leaf 1A437000-B060 消防器材的配备, 与 regist",
+          "match_score": 0.6193,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "ca:1A437000_146_0233",
+          "quote": "g_keywords=25m²,1只灭火器,木料间,油漆间,木工机具间 本体·临设消防器材配备(chunk leaf 1A437000-B060 消防器材的配备, 与 registry support 1A438000-B060 同suffix不同parent·留痕): 临时搭设建筑每100㎡配2只10L灭火器·木料间油漆间等每25㎡配1只·大型临时设施超1200㎡设太平桶/积水池/黄砂池. 临设",
+          "match_score": 0.6193,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "exam:2016:案例5",
+          "quote": "方案，按规定经专家论证后，报施工总承包单位总工程师、总监理 工程师、建设单位负责人签字批准实施。 在施工现场消防技术方案中，临时施工道路( 宽4 米) 与施工( 消防) 用主水管沿在建 筑住宅楼环状布置。消火栓设在施工道路内侧，距中线5 米，在建住宅楼外边线距道路中 线9 米。施工用水管计算中，现场 不妥之处一：消火栓设置在施工道路内侧，距路中线 5m。正确做法：消火栓距路边不应大于 2m。 不妥",
+          "match_score": 0.3237,
+          "source_file": "docs/原始数据/考点原料/_X02_exam_evidence.json",
+          "source_sha256": "453ddbbcd8c06d0c89e14fe27f05af8ecb9e8f52768c4170f2555046d62084fb"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q9-1cec61174459",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A438000_150_0241:0",
+          "quote": "材料进场验收三要素：材料进场必须进行凭证、数量、规格、外观验收，挂牌标识，建立收料台账。 材料进场必须进行凭证、数量、规格、外观验收，挂牌标识，建立收料台账。 本体·registry support 1A438000-B060 材料进场验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观·挂牌标识·建立收料台账)·材料堆放高度限制(料具码放高度≤1.5m·库外材料下垫上盖)·不合格材",
+          "match_score": 0.551,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A438000_150_0241:1",
+          "quote": "材料堆放高度限制：料具码放高度不得超过1.5米，库外材料应下垫上盖。 料具码放高度不得超过1.5米，库外材料应下垫上盖。 本体·registry support 1A438000-B060 材料进场验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观·挂牌标识·建立收料台账)·材料堆放高度限制(料具码放高度≤1.5m·库外材料下垫上盖)·不合格材料退场流程(申请→审批→通知→见证退场",
+          "match_score": 0.449,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A438000_150_0241:2",
+          "quote": "不合格材料处理流程：不合格材料退场需经申请→审批→通知→见证退场→记录确认→报告提交。 不合格材料退场需经申请→审批→通知→见证退场→记录确认→报告提交。 本体·registry support 1A438000-B060 材料进场验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观·挂牌标识·建立收料台账)·材料堆放高度限制(料具码放高度≤1.5m·库外材料下垫上盖)·不合格材料退",
+          "match_score": 0.449,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q10-21f280779765",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A438000_150_0241:1",
+          "quote": "材料堆放高度限制：料具码放高度不得超过1.5米，库外材料应下垫上盖。 料具码放高度不得超过1.5米，库外材料应下垫上盖。 本体·registry support 1A438000-B060 材料进场验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观·挂牌标识·建立收料台账)·材料堆放高度限制(料具码放高度≤1.5m·库外材料下垫上盖)·不合格材料退场流程(申请→审批→通知→见证退场",
+          "match_score": 0.3282,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A438000_150_0241:0",
+          "quote": "材料进场验收三要素：材料进场必须进行凭证、数量、规格、外观验收，挂牌标识，建立收料台账。 材料进场必须进行凭证、数量、规格、外观验收，挂牌标识，建立收料台账。 本体·registry support 1A438000-B060 材料进场验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观·挂牌标识·建立收料台账)·材料堆放高度限制(料具码放高度≤1.5m·库外材料下垫上盖)·不合格材",
+          "match_score": 0.3027,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A438000_150_0241:2",
+          "quote": "不合格材料处理流程：不合格材料退场需经申请→审批→通知→见证退场→记录确认→报告提交。 不合格材料退场需经申请→审批→通知→见证退场→记录确认→报告提交。 本体·registry support 1A438000-B060 材料进场验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观·挂牌标识·建立收料台账)·材料堆放高度限制(料具码放高度≤1.5m·库外材料下垫上盖)·不合格材料退",
+          "match_score": 0.3027,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q11-3607ac516ee3",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A438000_150_0241",
+          "quote": "ords=验收内容,挂牌标识,待检标识,复试合格后使用,严禁使用不合格材料 本体·registry support 1A438000-B060 材料进场验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观·挂牌标识·建立收料台账)·材料堆放高度限制(料具码放高度≤1.5m·库外材料下垫上盖)·不合格材料退场流程(申请→审批→通知→见证退场→记录确认→报告提交). 材料进场/堆放保管=",
+          "match_score": 0.4286,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A438000_150_0241:1",
+          "quote": "材料堆放高度限制：料具码放高度不得超过1.5米，库外材料应下垫上盖。 料具码放高度不得超过1.5米，库外材料应下垫上盖。 本体·registry support 1A438000-B060 材料进场验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观·挂牌标识·建立收料台账)·材料堆放高度限制(料具码放高度≤1.5m·库外材料下垫上盖)·不合格材料退场流程(申请→审批→通知→见证退场",
+          "match_score": 0.4127,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A438000_150_0241:2",
+          "quote": "场需经申请→审批→通知→见证退场→记录确认→报告提交。 本体·registry support 1A438000-B060 材料进场验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观·挂牌标识·建立收料台账)·材料堆放高度限制(料具码放高度≤1.5m·库外材料下垫上盖)·不合格材料退场流程(申请→审批→通知→见证退场→记录确认→报告提交). 材料进场/堆放保管=X02材料堆场布置本",
+          "match_score": 0.4127,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q12-71f66b8d19ce",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A437000_150_0295",
+          "quote": "下列不属于工具式定型化临时设施的是？ 下列不属于工具式定型化临时设施的是？ | grading_keywords=标准化箱式房,定型化临边洞口防护,构件化PVC绿色围墙,装配式临时道路 本体·工具式定型化临时设施(1A437000-B020/B028): 标准化箱式房·定型化临边洞口防护·加工棚·构件化PVC绿色围墙·预制装配式马道·可重复使用临时道路板=临设/加工棚/临时道路 类型(X02临设道",
+          "match_score": 0.7315,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A437000_150_0295:0",
+          "quote": "工具式定型化临时设施分类：包括标准化箱式房、定型化临边洞口防护、加工棚、构件化PVC绿色围墙、预制装配式马道、可重复使用临时道路板。 包括标准化箱式房、定型化临边洞口防护、加工棚、构件化PVC绿色围墙、预制装配式马道、可重复使用临时道路板。 本体·工具式定型化临时设施(1A437000-B020/B028): 标准化箱式房·定型化临边洞口防护·加工棚·构件化PVC绿色围墙·预制装配式马道·可重复使",
+          "match_score": 0.7027,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "exam:2021:案例题(一)",
+          "quote": "某工程项目经理部为贯彻落实《住房和城乡建设部等部门关于加快培育新时代建筑产业工人队伍的指导意见》（住建部等12部委2020年12月印发），要求在项目劳动用工管理中做了以下工作： 1. 要求分包单位与招用的建筑工人签订劳务合同； 2. 总包对农民工工资支付工作负总责，要求分包单位做好农民工工资发放工作； 3. 改善工人生活区居住环境，在集中生活区配套了食堂等必要生活设施，并开展物业管理。 项目经理部",
+          "match_score": 0.3192,
+          "source_file": "docs/原始数据/考点原料/_X02_exam_evidence.json",
+          "source_sha256": "453ddbbcd8c06d0c89e14fe27f05af8ecb9e8f52768c4170f2555046d62084fb"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q13-863a2ef0026d",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_012_0013:0",
+          "quote": "临时仓库布置要点：临时仓库应接近使用地点，危险品仓库需远离现场，距在建工程不小于15m。 临时仓库应接近使用地点，危险品仓库需远离现场，距在建工程不小于15m。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主",
+          "match_score": 0.617,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A431011_012_0013:1",
+          "quote": "12m；载重车转弯半径≥15m。 主干道单行道≥4m，双行道≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4",
+          "match_score": 0.5906,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A431011_012_0013:2",
+          "quote": "临时房屋布置要求：宿舍床铺≤2层，净高≥2.5m，通道≥0.9m，人均面积≥2.5m²，每间≤16人。 宿舍床铺≤2层，净高≥2.5m，通道≥0.9m，人均面积≥2.5m²，每间≤16人。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥1",
+          "match_score": 0.5906,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q14-b7dd5118e780",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A431011_012_0013:0",
+          "quote": "接近使用地点，危险品仓库需远离现场，距在建工程不小于15m。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4m双行≥6m·消防车道≥4m·木材场通道≥6m·回车场12m×12m·载重车转弯半径≥1",
+          "match_score": 0.5459,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A431011_012_0013:1",
+          "quote": "临时道路宽度标准：主干道单行道≥4m，双行道≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。 主干道单行道≥4m，双行道≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。 本体·临设技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): ",
+          "match_score": 0.5081,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A431011_012_0013:2",
+          "quote": "技术规格(1A431010-C11~C15/C23, primary 1A431040 territory·X01让渡规格数值给X02): 临时仓库布置(接近使用地点·危险品仓库远离现场距在建工程≥15m)·临时道路宽度标准(主干道单行≥4m双行≥6m·消防车道≥4m·木材场通道≥6m·回车场12m×12m·载重车转弯半径≥15m)·临时房屋布置(宿舍床铺≤2层·净高≥2.5m·通道≥0.9m·人",
+          "match_score": 0.5081,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q15-2a68a3a2fd01",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A437000_146_0235:0",
+          "quote": "易燃材料仓库消防要求：易燃材料仓库应设在下风向、水源充足处；消防通道宽≥6m；与明火区间距≥30m；危险品间距≥10m，与易燃易爆品间距≥30m。 易燃材料仓库应设在下风向、水源充足处；消防通道宽≥6m；与明火区间距≥30m；危险品间距≥10m，与易燃易爆品间距≥30m。 本体·registry support 1A437000-B026 存放易燃材料仓库消防(名实相符): 易燃材料仓库设下风向·",
+          "match_score": 0.2891,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A437000_147_0236:1",
+          "quote": "rt 1A437000-B011 仓库与堆料场消防安全(名实相符): 仓库防火分区(易引起火灾仓库每500m²设防火墙·可燃材料库房单间≤30m²·易燃易爆品库房单间≤20m²·房门净宽≥0.8m·任一点到疏散门≤10m)·电气设备防火间距(架空电力线与易燃堆垛≥电杆高×1.5·照明灯具与堆垛≥1m·开关箱接线盒距堆垛≥1.5m·严禁碘钨灯). 堆料场/仓库消防=X02材料堆场布置消防要求本体. ",
+          "match_score": 0.2837,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "ca:1A437000_147_0236",
+          "quote": "？ | grading_keywords=500m²,30m²,20m²,10m,0.8m,1.5倍,1m,1.5m,严禁使用碘钨灯 本体·registry support 1A437000-B011 仓库与堆料场消防安全(名实相符): 仓库防火分区(易引起火灾仓库每500m²设防火墙·可燃材料库房单间≤30m²·易燃易爆品库房单间≤20m²·房门净宽≥0.8m·任一点到疏散门≤10m)·电气设备",
+          "match_score": 0.2837,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    },
+    {
+      "variant_id": "X02-html-practice-html-q16-18d949db7562",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A437000_146_0235:0",
+          "quote": "易燃材料仓库消防要求：易燃材料仓库应设在下风向、水源充足处；消防通道宽≥6m；与明火区间距≥30m；危险品间距≥10m，与易燃易爆品间距≥30m。 易燃材料仓库应设在下风向、水源充足处；消防通道宽≥6m；与明火区间距≥30m；危险品间距≥10m，与易燃易爆品间距≥30m。 本体·registry support 1A437000-B026 存放易燃材料仓库消防(名实相符): 易燃材料仓库设下风向·",
+          "match_score": 0.5406,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "ca:1A437000_146_0235",
+          "quote": "易燃材料露天仓库消防通道宽度应不小于多少米？ 易燃材料露天仓库消防通道宽度应不小于多少米？ | grading_keywords=6m,消防通道,下风方向,防火间距,30m 本体·registry support 1A437000-B026 存放易燃材料仓库消防(名实相符): 易燃材料仓库设下风向·水源充足处·消防通道宽≥6m·与明火区间距≥30m·危险品间距≥10m·与易燃易爆品间距≥30m. ",
+          "match_score": 0.4934,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        },
+        {
+          "source_anchor": "kc:1A437000_147_0236:0",
+          "quote": "²设防火墙；可燃材料库房单间≤30m²；易燃易爆品库房单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。 本体·registry support 1A437000-B011 仓库与堆料场消防安全(名实相符): 仓库防火分区(易引起火灾仓库每500m²设防火墙·可燃材料库房单间≤30m²·易燃易爆品库房单间≤20m²·房门净宽≥0.8m·任一点到疏散门≤10m)·电气设备防火间距(架空电力",
+          "match_score": 0.2527,
+          "source_file": "docs/原始数据/考点原料/_X02_compiled_source.json",
+          "source_sha256": "2b7765a8f36b9a14908f0d402f807f67341bfb78891f9ee2914edc0e8fa28089"
+        }
+      ]
+    }
+  ]
+}
