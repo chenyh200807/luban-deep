@@ -68,6 +68,7 @@ if str(REPO) not in sys.path:
 from deeptutor.services.luban_lesson.practice_html import (
     build_practice_authority,
     compile_practice_surface,
+    compiled_practice_eligibility_summary,
     transform_compiled_practice_html,
 )
 from scripts.build_luban_pack_manifest import MANIFEST_PATH as PACK_MANIFEST_PATH
@@ -1088,6 +1089,48 @@ def _rewrite_hrefs(text: str, href_map: dict[str, str]) -> str:
     return text
 
 
+_PRACTICE_ENTRY_RE = re.compile(
+    r'<a\s+href="practice\d*\.html"([^>]*)>.*?</a>',
+    re.DOTALL,
+)
+# 降级文案：暖基调，不含"看穿/识破/揭穿/露馅"等挑短语气。
+PRACTICE_GATE_COPY = "练习题教研签发中·先看讲解打底"
+
+
+def _degrade_practice_entry(html: str) -> tuple[str, int]:
+    """把讲解页里可点的"做练习"入口降级为不可点的暖文案。
+
+    单一权威纪律：reachability 必须跟随 ``supply_ready``。供给尚未签发发布的
+    pack，其静态 H5 讲解页不得再放出可点练习入口——否则用户从直链页点进去
+    必然吃 ``practice_not_released``（见 practice_html.resolve_projection_receipt /
+    retest 路由）。这里只改练习入口锚点：保留原内联样式做视觉承接，去掉 href 与
+    交互、染灰，替换为教研签发中的暖文案（非"看穿/识破"类挑短语气）。
+
+    幂等：降级后页面不再含 ``practice*.html`` 锚点，重复运行为 no-op——因此
+    ``publish()`` 每次重发都会收敛到同一降级态，与 ``published_lesson_sha256``
+    保持一致。返回 (降级后 HTML, 命中锚点数)。
+    """
+    count = 0
+
+    def _replace(match: "re.Match[str]") -> str:
+        nonlocal count
+        count += 1
+        attrs = match.group(1)
+        style_match = re.search(r'style="([^"]*)"', attrs)
+        base_style = (style_match.group(1) if style_match else "").rstrip(";")
+        muted = (
+            (base_style + ";" if base_style else "")
+            + "background:rgba(148,163,184,.22);color:rgba(255,255,255,.72);"
+            + "box-shadow:none;cursor:default;text-decoration:none;"
+        )
+        return (
+            '<span data-luban-practice-gate="pending" '
+            f'style="{muted}">{PRACTICE_GATE_COPY}</span>'
+        )
+
+    return _PRACTICE_ENTRY_RE.sub(_replace, html), count
+
+
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -1424,6 +1467,17 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
     rendered_practice, authority = _compile_practice_outputs(
         station_id, st, finished_root=finished_root
     )
+    # Reachability gate（单一权威 = supply_ready）：供给尚未签发发布的 pack，
+    # 讲解页不得再放出可点练习入口。降级发生在算 published_lesson_sha256 之前，
+    # 于是 authority 记录的就是降级后 lesson.html 的 sha——运行时校验与 manifest
+    # 自然一致，无需二次登记。practice.html 仍托管（编译产物 receipt 单一权威闸
+    # 要求每个 compiled surface 都有内嵌 receipt 的 HTML 在场），但已无任何入口
+    # 指向它，且 runtime viewmodel / retest 路由各自 fail-closed。
+    if not compiled_practice_eligibility_summary(authority)["supply_ready"]:
+        rendered_teach = {
+            hosted_name: _degrade_practice_entry(text)[0]
+            for hosted_name, text in rendered_teach.items()
+        }
     authority["published_lesson_sha256"] = hashlib.sha256(
         rendered_teach["lesson.html"].encode("utf-8")
     ).hexdigest()
@@ -1627,6 +1681,49 @@ def write_variant_audit_packet(station_id: str) -> list[str]:
         return [str(path)]
 
 
+def apply_reachability_gate_to_hosted() -> list[str]:
+    """把 reachability gate 应用到已托管的存量卡片（source-independent 迁移）。
+
+    多数 finished 源在本仓不完整，无法整卡重发；但本 gate 只依赖已托管的
+    ``lesson*.html`` + 已签发 authority + manifest（都在仓内），可确定性重写：
+    对每个非 ``supply_ready`` 的注册 pack，降级其所有 ``lesson*.html`` 的练习入口，
+    并把 ``authority.published_lesson_sha256`` 重算到降级后的 ``lesson.html``（与
+    runtime ``load_compiled_practice`` / manifest 的 sha 校验保持一致）。
+    ``practice*.html`` 不动——编译 receipt 单一权威闸要求每个 compiled surface 都
+    有内嵌 receipt 的 HTML 在场；此处只切断入口，不改练习产物本身。最后刷新
+    manifest 让 ``authority_sha256`` 收敛。返回被改动的 pack 列表。
+    """
+    changed: list[str] = []
+    for sid in sorted(STATIONS):
+        authority_path = AUTHORITY_HOST / f"{sid}.practice.authority.json"
+        dst = HOST / sid
+        if not authority_path.is_file() or not (dst / "lesson.html").is_file():
+            continue
+        authority = json.loads(authority_path.read_text(encoding="utf-8"))
+        if compiled_practice_eligibility_summary(authority)["supply_ready"]:
+            continue
+        touched = False
+        for lesson in sorted(dst.glob("lesson*.html")):
+            original = lesson.read_text(encoding="utf-8")
+            degraded, hits = _degrade_practice_entry(original)
+            if hits and degraded != original:
+                lesson.write_text(degraded, encoding="utf-8")
+                touched = True
+        new_lesson_sha = _sha256(dst / "lesson.html")
+        if str(authority.get("published_lesson_sha256") or "") != new_lesson_sha:
+            authority["published_lesson_sha256"] = new_lesson_sha
+            authority_path.write_text(
+                json.dumps(authority, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            touched = True
+        if touched:
+            changed.append(sid)
+    if changed:
+        _refresh_pack_manifest()
+    return changed
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="发布注册的鲁班 finished 成品卡")
     parser.add_argument(
@@ -1657,8 +1754,22 @@ def main(argv: list[str]) -> int:
         help="审核包种类：practice=compiled 随堂练（默认）；variant=签发变体银行"
         "决策卡（仅与 --write-practice-audit-packet 联用）",
     )
+    parser.add_argument(
+        "--apply-reachability-gate",
+        action="store_true",
+        help="只把 reachability gate 应用到已托管存量卡片（降级非 supply_ready 包"
+        "讲解页的练习入口 + 重算 lesson sha + 刷新 manifest），零重编，source-independent",
+    )
     parser.add_argument("stations", nargs="*", help="可选站点 ID；缺省发布全部注册站点")
     args = parser.parse_args(argv)
+    if args.apply_reachability_gate:
+        if args.practice_only or args.check or args.write_practice_audit_packet:
+            parser.error(
+                "--apply-reachability-gate cannot combine with other modes"
+            )
+        changed = apply_reachability_gate_to_hosted()
+        print(f"reachability-gate: degraded {len(changed)} pack(s): {' '.join(changed)}")
+        return 0
     if args.check and not args.practice_only:
         parser.error("--check requires --practice-only")
     if args.write_practice_audit_packet and (args.practice_only or args.check):

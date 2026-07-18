@@ -432,6 +432,38 @@ def test_forward_receipt_drift_fails_closed_as_content_updated_retake(
     assert exc.value.detail == {"error": "content_updated_retake"}
 
 
+def test_forward_practice_not_released_is_distinct_from_content_updated(
+    monkeypatch,
+) -> None:
+    """资格未就绪(供给未签发发布)→ 独立 409 ``practice_not_released``。
+
+    绝不冒充 ``content_updated_retake``——前端据此给"练习还在签发中,先看讲解"
+    暖文案,而非误导性的"题目已更新,请重做"。"""
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+
+    def _build(*_args, **_kwargs):
+        raise PracticeHtmlInvalid("practice_not_released")
+
+    monkeypatch.setattr(router, "build_retest_items", _build)
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_items(
+                "F16",
+                mode="forward",
+                practice_surface="practice.html",
+                projection_receipt=_receipt_token(
+                    [f"F16-html-q{index}" for index in range(5)]
+                ),
+                current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+            )
+        )
+
+    assert exc.value.status_code == 409
+    assert exc.value.detail == {"error": "practice_not_released"}
+
+
 def test_forward_without_receipt_keeps_legacy_projection_shape(monkeypatch) -> None:
     """无 receipt 的旧路径不回归:不回显 receipt 字段,builder 收到空 receipt。"""
     items = [

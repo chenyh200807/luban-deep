@@ -267,6 +267,73 @@ def test_five_signed_anchors_do_not_bypass_seven_question_fact_triad_gate() -> N
     assert summary["supply_ready"] is False
 
 
+def _anchors_only_authority_file(
+    tmp_path: Path,
+) -> tuple[dict[str, object], Path, str]:
+    """构建一份"5 锚点已签发但不满 7 题三件套"的 authority 并落盘。
+
+    这类 authority 的 surface 有非空 ``projection_receipt``(5 锚点合格),
+    但 ``supply_ready`` 仍为 False(缺完整 fact 三件套)——正是 receipt 路径能
+    真实抵达资格闸的场景:receipt 身份校验通过,却因供给尚未发布而退出。
+    """
+    compiled = _compiled_n01_surface()
+    compiled["surface"]["published_practice_sha256"] = "4" * 64
+    selected_ids = set(compiled["surface"]["variant_ids"])
+    reviews = {
+        item["variant_id"]: _signed_review(item, index)
+        for index, item in enumerate(compiled["items"])
+        if item["variant_id"] in selected_ids
+    }
+    authority = build_practice_authority(
+        "N01",
+        source_pack_sha256="1" * 64,
+        source_bundle_sha256="2" * 64,
+        compiled_surfaces=[compiled],
+        review_records=reviews,
+    )
+    authority["published_lesson_sha256"] = "3" * 64
+    path = tmp_path / "n01.practice.authority.json"
+    path.write_text(json.dumps(authority, ensure_ascii=False), encoding="utf-8")
+    return authority, path, authority["surfaces"][0]["projection_receipt"]
+
+
+def test_projection_receipt_not_released_when_supply_not_signed(
+    tmp_path: Path,
+) -> None:
+    """资格未就绪(供给未签发发布)=独立 ``practice_not_released``,不冒充漂移。"""
+    authority, path, receipt = _anchors_only_authority_file(tmp_path)
+    # 前置:这份 authority 的 surface receipt 非空(5 锚点合格)但 supply_ready False。
+    assert receipt
+    assert compiled_practice_eligibility_summary(authority)["supply_ready"] is False
+
+    # 身份合法的 receipt 命中资格闸 → 独立错误码,绝不洗白成 content_updated_retake。
+    with pytest.raises(PracticeHtmlInvalid, match="^practice_not_released$"):
+        resolve_projection_receipt("N01", receipt, authority_path=path)
+
+
+def test_projection_receipt_drift_still_content_updated_on_unreleased_pack(
+    tmp_path: Path,
+) -> None:
+    """同一未发布 pack 上,真收据漂移(乱序)仍是 ``content_updated_retake``。
+
+    资格未就绪与收据漂移是正交的两条终态:分流不能把漂移也误报成"未发布"。
+    """
+    _authority, path, receipt = _anchors_only_authority_file(tmp_path)
+    reordered = decode_projection_receipt(receipt)
+    reordered["ordered_variant_ids"] = list(reversed(reordered["ordered_variant_ids"]))
+    reordered_receipt = (
+        base64.urlsafe_b64encode(
+            json.dumps(
+                reordered, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+        )
+        .decode("ascii")
+        .rstrip("=")
+    )
+    with pytest.raises(PracticeHtmlInvalid, match="^content_updated_retake$"):
+        resolve_projection_receipt("N01", reordered_receipt, authority_path=path)
+
+
 def test_projection_receipt_rejects_legacy_identity() -> None:
     with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
         decode_projection_receipt("1,0,1,0,1")
