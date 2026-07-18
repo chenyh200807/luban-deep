@@ -2951,3 +2951,147 @@
 .page.paper .workflow-step-badge-calc { color: #a07f2e; background: rgba(201, 159, 61, 0.14); }
 .page.paper:not(.light) .workflow-step-badge-calc { color: #e2b264; }
 .page.paper .workflow-step-badge-retry { color: var(--pk-warn); background: rgba(194, 101, 85, 0.12); }
+
+/* ════ 10d 对话面精修(2026-07-18,追加于 paper 收口层之后故同权重取胜) ════ */
+
+/* ① 处理摘要完成态 → 一行思考细条(10d):沙色左轨 + 紧凑行高 */
+.page.paper .workflow-card {
+  position: relative;
+  margin-top: 16rpx;
+  padding: 14rpx 18rpx 14rpx 24rpx;
+  border-radius: 16rpx;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  box-shadow: none;
+}
+.page.paper .workflow-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14rpx;
+  bottom: 14rpx;
+  width: 5rpx;
+  border-radius: 0 4rpx 4rpx 0;
+  background: var(--pk-sand);
+}
+.page.paper .workflow-card-head {
+  margin-bottom: 0;
+}
+.page.paper .workflow-card-label {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: var(--pk-t2);
+}
+.page.paper .workflow-card-badge {
+  padding: 3rpx 10rpx;
+  font-size: 18rpx;
+}
+.page.paper .workflow-card-sub {
+  margin-top: 10rpx;
+}
+.page.paper .workflow-meta-text {
+  margin-top: 6rpx;
+}
+
+/* ② 结论/要点/技巧 callout → 竹青左轨软卡(10d 步骤卡语言);警告=赭轨 */
+.page.paper .md-callout-conclusion,
+.page.paper .md-callout-highlight,
+.page.paper .md-callout-tip {
+  position: relative;
+  border: 1rpx solid rgba(72, 128, 106, 0.35);
+  border-left-width: 1rpx;
+  border-radius: 20rpx;
+  background: rgba(72, 128, 106, 0.05);
+  padding: 18rpx 22rpx 18rpx 28rpx;
+  overflow: hidden;
+}
+.page.paper .md-callout-warning {
+  position: relative;
+  border: 1rpx solid rgba(194, 101, 85, 0.35);
+  border-left-width: 1rpx;
+  border-radius: 20rpx;
+  background: rgba(194, 101, 85, 0.06);
+  padding: 18rpx 22rpx 18rpx 28rpx;
+  overflow: hidden;
+}
+.page.paper .md-callout-conclusion::before,
+.page.paper .md-callout-highlight::before,
+.page.paper .md-callout-tip::before,
+.page.paper .md-callout-warning::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16rpx;
+  bottom: 16rpx;
+  width: 6rpx;
+  border-radius: 0 4rpx 4rpx 0;
+  background: var(--pk-grn);
+}
+.page.paper .md-callout-warning::before {
+  background: var(--pk-warn);
+}
+.page.paper .callout-tag-conclusion,
+.page.paper .callout-tag-highlight,
+.page.paper .callout-tag-tip {
+  background: rgba(72, 128, 106, 0.14);
+  border: none;
+  color: var(--pk-grn);
+  border-radius: 999rpx;
+  padding: 4rpx 14rpx;
+}
+.page.paper .callout-tag-warning {
+  background: rgba(194, 101, 85, 0.14);
+  border: none;
+  color: var(--pk-warn);
+  border-radius: 999rpx;
+  padding: 4rpx 14rpx;
+}
+
+/* ③ 引用块 → 金句卡:宣纸点阵舞台 + 复制语义(10d 可背句块) */
+.page.paper .md-blockquote {
+  border-left: none;
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 18rpx;
+  padding: 18rpx 22rpx;
+  background-color: var(--pk-paper);
+  background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
+  background-size: 24rpx 24rpx;
+  color: var(--pk-t1);
+}
+.page.paper .md-blockquote .bq-line {
+  display: none;
+}
+
+/* ④ 发送钮 → 墨色圆钮(10d 输入坞) */
+.page.paper .send-btn {
+  border-radius: 50%;
+}
+.page.paper .send-icon {
+  font-size: 32rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* ⑤ 输入卡与列表节奏微调 */
+.page.paper .bottom-input-card {
+  border-radius: 28rpx;
+}
+
+/* ⑥ callout 裸章(无正文的小节标签):去卡壳只留胶囊;有正文才是软卡 */
+.page.paper .md-callout-bare {
+  border: none;
+  background: transparent;
+  padding: 8rpx 0 0;
+  box-shadow: none;
+}
+.page.paper .md-callout-bare::before {
+  display: none;
+}
+
+/* ⑦ 列表项 rich 渲染(加粗/行内码不再裸露 **) */
+.page.paper .md-li-rich {
+  display: block;
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: var(--pk-t1);
+}
