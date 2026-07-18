@@ -10,10 +10,10 @@
 ## Deviations
 
 ### 2026-07-18（五 tab 加载慢治本:学情快照 SWR 收权 · 分支 feat/luban-miniprogram-tab-swr-perf）
-- **[战役概要]** owner 报五大模块每 tab 都慢。根因=redirectTo 切 tab 全走 onLoad 冷启动 × `getLearningReport(100)`(后端 3-5s)被 learn/report/profile 三页独立裸拉 × report-cache 缓存孤岛只有 report 一个消费者。修法=快照组装收权(`utils/report-snapshot.js` 唯一 builder,report/learn 双合法写者,profile 只读)+`report-cache.readWithMeta`+统一策略(页面进入缓存秒渲染/age<60s 跳网络/子页返回 force 刷新)+history 归档切换走既有 SWR+preloadRule wifi→all+删 67K 零引用孤儿 canonical-taxonomy-members.js。全量 116/116 node 测试 PASS,新增 5 测试文件。叙事详见 methodology-log 同日条。
+- **[战役概要]** owner 报五大模块每 tab 都慢。根因=redirectTo 切 tab 全走 onLoad 冷启动 × `getLearningReport(100)`(后端 3-5s)被 learn/report/profile 三页独立裸拉 × report-cache 缓存孤岛只有 report 一个消费者。修法=快照组装收权(`utils/report-snapshot.js` 唯一 builder,report/learn 双合法写者经 `writeIfFresher` 写序守卫,profile 只读)+统一策略(页面进入缓存秒渲染+始终静默刷新)+history 归档切换走既有 SWR(apply 前 re-check tab 防串台)+preloadRule wifi→all+删 67K 零引用孤儿 canonical-taxonomy-members.js。第一轮 116/116 PASS 后过 high 档对抗 review(21 agent):**fresh-skip 门(age<60s 跳网络)四条 CONFIRMED 同根被整体删除**(钉死陈旧/降级快照+吞跨 tab 学习动作+时钟回拨永久压制),另修 history 串台竞态、report"正在刷新"撒谎横幅、builder 空对象归一化。叙事详见 methodology-log 同日条。
 - **[偏离 1:profile 弱网保守渲染]** 陈旧缓存命中且静默刷新失败(双接口全挂)时,保留已渲出的缓存 routeCard 而非按旧行为抹回 null——严格"照旧"会让弱网用户先看到卡再闪没,判定为回归;已用测试锁定(test_profile_route_card_cache.js c2 场景)。
 - **[偏离 2:learn 空态快照不上屏]** 缓存 hydrate 沿用 lessons 快通道的 `hasSupply` 门,空态快照不上屏(防闪空态),与任务书"命中即渲染"微偏离;report 无效时 builder 返回 null 天然不写缓存。
-- **[偏离 3:report 页 fresh-skip 终态文案]** fresh-skip 用非 cached 模式 hydrate,degradedHint 如实反映快照自身降级状态,不再显示"正在刷新"横幅(否则永久残留)。
+- **[偏离 3:report 页横幅诚实化]** 缓存 hydrate 后网络刷新失败时,「正在刷新，先显示上次学情快照」横幅原会因 `this.data.degradedHint ||` 短路而永久留存(main 既有病,review 发现 #5)——失败分支改为把该句替换成「网络暂时不稳，已显示上次学情快照」,真实降级提示保留。
 - **[偏离 4:死代码 reader 未删]** report.js 四个零生产调用方的旧串行 reader(`_loadOverview/_loadLearningBrain/_loadRadar/_loadMastery`)因 test_report_snapshot_dedupe/radar_authority/radar_fallback 三个测试直接调用而保留;删除需连带重写这三个测试的入口方式,留作独立清理工单。同类:learn posters 瘦身经核查放弃(stations.js:127 是真实消费者)。
 - **[已拦截的妥协]** report 页曾因只读测试约束保留与共享 builder"逐字等价的 fallback"(镜像 authority)——主控修 dedupe harness 映射真 report-snapshot 模块后删净,harness 内新增 readWithMeta stub 与常量。
 - **[残余风险]** learn/profile 对 report-cache/report-snapshot 用 try/catch 可选 require(存量测试 harness 对未知 require 直接 throw 所迫),生产恒存在、缺席时降级为原网络路径;根治需统一 harness 白名单。chat 页三项(200 条消息大 setData/流式 O(n²) 重解析/表格逐单元格 rich-text)与 history 分页虚拟化为后续独立工单;后端 read model 3-5s 本体是根本税,前端缓存只遮蔽不消除。DevTools 回归见提交后记录。
