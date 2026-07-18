@@ -13,14 +13,35 @@ var learnWxml = read("packageDeeptutor/pages/learn/learn.wxml");
 var learnVm = read("packageDeeptutor/utils/learn-view-model.js");
 
 assert(learnWxml.indexOf('bindtap="goTodayTask"') >= 0, "today task must own the primary action");
+// 10a fallback:任务卡唯一渲染源 = vm.taskCard(= todayTask || browseTask),
+// 让 day-0/首跑未完成/后端未部署等态下页面仍长成 10a 定稿(不塌成 hero+海报)。
+// 门不再挂 firstRunState(首跑卡仍在上方=第一视觉);禁掌握百分比不变。
 assert(
-  learnWxml.indexOf("firstRunState === 'hidden' && !supplyError && vm.todayTask") >= 0,
-  "first-run and canonical today task must be mutually exclusive",
+  learnWxml.indexOf("!supplyError && vm.taskCard") >= 0,
+  "task card must render from the single vm.taskCard source in any state (todayTask || browseTask)",
+);
+assert.strictEqual(
+  learnWxml.indexOf("vm.todayTask"),
+  -1,
+  "task card must not bind vm.todayTask directly; render source is the merged vm.taskCard",
 );
 assert(
   learnWxml.indexOf("!supplyError && firstRunState !== 'hidden'") >= 0 &&
     (learnWxml.match(/bindtap="openFirstRun"/g) || []).length === 1,
-  "first-run state must expose exactly one primary journey CTA",
+  "first-run state must expose exactly one primary journey CTA (first-run card stays as first visual)",
+);
+// browse 兜底卡不得声称"今日任务":kicker 由 view-model 派生("从这里开始"),
+// wxml 不再硬编码"今天最该完成"(那是真今日任务卡的 kicker,现由数据驱动)。
+assert(
+  learnWxml.indexOf("{{vm.taskCard.kicker}}") >= 0,
+  "task card kicker must be data-driven so browse never claims 今日任务",
+);
+assert(learnVm.indexOf("从这里开始") >= 0, "browse task must use a 推荐起点 kicker, not a 今日任务 claim");
+// 复习模块无到期时渲染诚实空态(10a改),而非整块消失。
+assert(
+  learnWxml.indexOf("!supplyError && !vm.reviewCard") >= 0 &&
+    learnWxml.indexOf("暂无到期考点") >= 0,
+  "review module must render an honest empty state when nothing is due (never vanish)",
 );
 // 10a改:复习卡是到期状态视图,点击必须复用任务卡同一 handler(goTodayTask),
 // 因此 canonical 路由入口恰好 2 处(任务卡主按钮 + 复习卡),不允许更多。
@@ -49,7 +70,7 @@ assert(learnJs.indexOf("快练准备中") >= 0, "light practice must degrade to 
 // 红队 A2:轻练按钮在 review_due(到期验证优先)必须隐藏,不给绕开路径;
 // 可见性由 view-model 单点裁决(light_practice_visible),页面/wxml 不重判。
 assert(
-  learnWxml.indexOf('wx:if="{{vm.todayTask.light_practice_visible}}"') >= 0,
+  learnWxml.indexOf('wx:if="{{vm.taskCard.light_practice_visible}}"') >= 0,
   "light practice button visibility must be gated by the view-model (hidden under review_due)",
 );
 // 旅程轨道:6 步硬编码于 view-model,禁不存在的步骤

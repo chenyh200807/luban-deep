@@ -110,7 +110,39 @@ var COPY = {
     doneTitlePrefix: "这 5 题已记下",
     doneDesc: "这次先记为已练过；是否稳定，等下一次换皮复测。",
   },
+  // 错后当场确认(变体判断题消费点1): 拿刚做错的考点，换个皮当场再确认一遍。
+  confirm: {
+    navTitle: "当场确认",
+    heroKicker: "刚才那个点，换身皮再看一眼",
+    heroTitle: "判断这句话妥不妥当",
+    loadingText: "正在给你抽题…",
+    emptyText: "这个考点的确认题即将开通，先去把它看清。",
+    doneTitlePrefix: "这几道确认题已记下",
+    doneDesc: "刚才的薄弱点已当场再练一遍；是否稳定，等下一次换皮复测。",
+  },
 };
+
+// 错后当场确认会话的 facts 解析。有界解码兜底(≤4 跳,同 parseBridgeReceipt
+// 的桥接教训):wx 各端对 navigateTo query 的解码行为不一致,DevTools 活体隔离
+// 实验证实整串 encodeURIComponent 后送达仍是 %2C,split(",") 拆不开 → 0 题断链。
+// 先把整串解码到不动点再拆,兼容已解码/单次编码/双重编码三形态。
+function parseConfirmFacts(query) {
+  var raw = String((query && query.confirm_facts) || "");
+  for (var i = 0; i < 4 && raw.indexOf("%") !== -1; i += 1) {
+    try {
+      var decoded = decodeURIComponent(raw);
+      if (decoded === raw) break;
+      raw = decoded;
+    } catch (e) {
+      break;
+    }
+  }
+  return raw
+    .split(",")
+    .map(function (fact) { return fact.trim(); })
+    .filter(function (fact) { return fact; })
+    .slice(0, 5);
+}
 
 Page({
   data: {
@@ -159,6 +191,12 @@ Page({
     wrongItems: [],      // 收据"再看一眼"清单(签发 correct_statement 逐字)
     ruleGroupCount: 0,   // 考法覆盖(去重 rule_group 数, 呈现层统计)
     textbookCount: 0,    // 翻出的教材原文句数(join 命中数, 呈现层统计)
+    // 错后当场确认(变体判断题消费点1)——纯导航态, 零第二权威
+    isConfirmSession: false,   // 本次已是 confirm 会话(禁再套娃)
+    confirmFacts: [],          // confirm 会话传入的错题 facts(URL query)
+    confirmFactsReady: [],     // 服务端 confirm_facts_ready(有 immediate_confirm 供给的 fact)
+    confirmEntryFacts: [],     // 收据里可当场确认的错题 facts(与 ready 交集)
+    showConfirmEntry: false,   // 收据是否亮「错题当场确认」入口
   },
 
   onLoad(query) {
@@ -174,6 +212,9 @@ Page({
     var bridgeRequested = String((query && query.presentation) || "") === "receipt";
     var probeId = String((query && query.probe_id) || "").trim();
     var trainingIntentId = String((query && query.training_intent_id) || "").trim();
+    // 错后当场确认会话: mode=forward&confirm_facts=f1,f2(客户端传的错题 facts, ≤5)。
+    var confirmFacts = parseConfirmFacts(query);
+    var isConfirmSession = mode === "forward" && confirmFacts.length > 0;
     var completionId =
       "retest_" +
       String(packId || "unknown") +
@@ -183,7 +224,7 @@ Page({
       Date.now() +
       "_" +
       Math.random().toString(16).slice(2, 10);
-    var copy = COPY[mode];
+    var copy = COPY[isConfirmSession ? "confirm" : mode];
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: statusBarHeight + 48,
@@ -191,6 +232,8 @@ Page({
       packId: packId,
       practiceSurface: practiceSurface,
       mode: mode,
+      isConfirmSession: isConfirmSession,
+      confirmFacts: confirmFacts,
       bridgeMode: bridgeRequested,
       bridgeProjectionReceipt: bridgeReceipt ? bridgeReceipt.projectionReceipt : "",
       bridgeAnswers: bridgeReceipt ? bridgeReceipt.answers : [],
@@ -457,6 +500,25 @@ Page({
     }
   },
 
+  // 错后当场确认(消费点1): 同页新会话 mode=forward&confirm_facts=错题facts;
+  // boolean 渲染/completion 全复用, 不建第二答题页。纯导航零第二权威。
+  goConfirmFacts: function () {
+    var packId = this.data.packId || "";
+    var facts = (this.data.confirmEntryFacts || []).slice(0, 5);
+    if (!packId || !facts.length) return;
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({
+        url:
+          "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
+          encodeURIComponent(String(packId)) +
+          // 逐 fact 编码后用字面逗号连接——整串 encodeURIComponent 会把分隔逗号
+          // 变成 %2C,接收端 split(",") 拆不开(DevTools 活体隔离实验证实断链)。
+          "&mode=forward&confirm_facts=" +
+          facts.map(function (f) { return encodeURIComponent(String(f)); }).join(","),
+      });
+    }
+  },
+
   continueAfterReceipt() {
     // Canonical receipt is already rendered on this page.  Do not hand a
     // terminal truth to another page through forgeable query parameters.
@@ -545,6 +607,23 @@ Page({
             }));
           }
         });
+        // 错后当场确认入口(消费点1): 错题 fact_id ∩ 服务端 confirm_facts_ready。
+        // 仅 forward 且非 confirm 会话本身(禁套娃); 供给闸不过时 ready 恒空 → 不亮。
+        var confirmEntryFacts = [];
+        if (that.data.mode === "forward" && !that.data.isConfirmSession) {
+          var readySet = {};
+          (that.data.confirmFactsReady || []).forEach(function (fact) {
+            if (fact) readySet[String(fact)] = true;
+          });
+          var seenFact = {};
+          wrong.forEach(function (item) {
+            var fact = String(item.fact_id || "");
+            if (fact && readySet[fact] && !seenFact[fact]) {
+              seenFact[fact] = true;
+              confirmEntryFacts.push(fact);
+            }
+          });
+        }
         telemetry.trackProductBehavior("learning_action_completed", {
           module: "practice",
           action: "complete",
@@ -569,6 +648,8 @@ Page({
           items: scoredItems,
           correctCount: serverCorrectCount,
           wrongItems: wrong,
+          confirmEntryFacts: confirmEntryFacts,
+          showConfirmEntry: confirmEntryFacts.length > 0,
           ruleGroupCount: Object.keys(groups).length,
           textbookCount: textbookCount,
           done: true,
@@ -591,11 +672,15 @@ Page({
         practiceSurface: this.data.practiceSurface,
         projectionReceipt: this.data.bridgeProjectionReceipt,
         probeId: this.data.probeId,
+        confirmFacts: this.data.confirmFacts,
       })
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var raw = Array.isArray(body.items) ? body.items : [];
         var practiceSource = String(body.practice_source || "signed_variant");
+        var confirmFactsReady = Array.isArray(body.confirm_facts_ready)
+          ? body.confirm_facts_ready.map(function (fact) { return String(fact || ""); })
+          : [];
         var projectionReceipt = String(body.projection_receipt || "").trim();
         var projectionDigest = String(body.projection_digest || "").trim();
         var pool = body.pool && body.pool.core_total ? body.pool : null;
@@ -611,6 +696,8 @@ Page({
             expected_ok: item.answer_type === "single_choice" ? null : Boolean(item.expected_ok),
             correct_statement: item.correct_statement,
             anchor: item.anchor,
+            fact_id: String(item.fact_id || ""),     // 错题→考点映射(错后当场确认入口据此判交集)
+            probe_role: String(item.probe_role || ""),
             textbook: item.textbook || null, // 教材原文并排卡(join 命中才有, 前端零造词)
             answered: false,
             correct: null,
@@ -652,6 +739,9 @@ Page({
         that.setData({
           pool: pool,
           practiceSource: practiceSource,
+          confirmFactsReady: confirmFactsReady,
+          showConfirmEntry: false,
+          confirmEntryFacts: [],
           dayIndex: Number(body.day_index || 0),
           selectionId: selectionId,
           completionId: restored.completionId || that.data.completionId,

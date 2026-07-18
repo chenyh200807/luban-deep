@@ -10,14 +10,17 @@ import pytest
 from deeptutor.services.luban_lesson.variant_eligibility import (
     VARIANT_DECISION_SCHEMA,
     VARIANT_REVIEW_PACKET_SCHEMA,
+    build_variant_probe_items,
     build_variant_review_packet,
     carry_variant_bank_decisions,
     decision_identity_sha256,
     eligible_variant_items,
+    resolve_variant_probe_items,
     resolve_variant_supply,
     review_signature_envelope_sha256,
     variant_content_sha256,
     variant_eligibility_summary,
+    variant_probe_supply_identity,
 )
 
 
@@ -695,3 +698,235 @@ def test_carry_drops_malformed_decision_blocks(tmp_path: Path) -> None:
     stats = carry_variant_bank_decisions(path, payload)
     assert stats == {"preserved": 1, "stale": 0, "dropped": 1}
     assert "decision" not in payload["variants"][0]
+
+
+# --------------------------------------------------- 消费投影（切片一：三纯函数）
+
+
+def _multi_fact_bank() -> dict[str, object]:
+    """两 fact 的就绪 bank：
+    - fact-A：immediate_confirm×2（不同 skeleton）+ d1_probe×1；
+    - fact-B：immediate_confirm×1 + d1_probe×1。
+    另加一个 extension 变体（永不服务）。
+    """
+    rows: list[dict[str, object]] = []
+
+    def _add(vid, fact, skel, role, ok=True):
+        v = _variant(vid, expected_ok=ok)
+        v["surface"] = f"{vid} 的题面"
+        v["decision"] = _signed_decision(
+            v, fact_id=fact, skeleton_id=skel, probe_role=role
+        )
+        rows.append(v)
+
+    _add("S05-A-ic-000", "fact-A", "skel-a1", "immediate_confirm")
+    _add("S05-A-ic-001", "fact-A", "skel-a2", "immediate_confirm", ok=False)
+    _add("S05-A-d1-000", "fact-A", "skel-a1", "d1_probe", ok=False)
+    _add("S05-B-ic-000", "fact-B", "skel-b1", "immediate_confirm")
+    _add("S05-B-d1-000", "fact-B", "skel-b1", "d1_probe", ok=False)
+    ext = _variant("S05-X-ext-000", rule_group="X-ext", extension=True)
+    ext["decision"] = _signed_decision(
+        ext, fact_id="fact-A", skeleton_id="skel-x", probe_role="immediate_confirm"
+    )
+    rows.append(ext)
+    return _signed_bank(rows)
+
+
+def test_probe_supply_identity_present_and_shifts_with_revocation(
+    tmp_path: Path,
+) -> None:
+    manifest = _write_supply_files(tmp_path, _bank_with_ready_fact())
+    identity = variant_probe_supply_identity("S05", manifest_path=manifest)
+    assert identity["kind"] == "signed_variant"
+    assert len(identity["digest"]) == 64
+    # 撤发一条 → 供给集合变 → digest 漂移（阻断过期变体池提交）。
+    (tmp_path / "_variant_blocklist.json").write_text(
+        json.dumps({"variants": [{"variant_id": "S05-B-send-000"}]}),
+        encoding="utf-8",
+    )
+    shifted = variant_probe_supply_identity("S05", manifest_path=manifest)
+    assert shifted["kind"] == "signed_variant"
+    assert shifted["digest"] != identity["digest"]
+
+
+def test_probe_supply_identity_empty_when_no_supply(tmp_path: Path) -> None:
+    # 未签发 bank → resolve None → 空 identity（与 retest_supply_identity 空态同形）。
+    bank = _bank_with_ready_fact()
+    bank["status"] = "candidate"
+    manifest = _write_supply_files(tmp_path, bank)
+    assert variant_probe_supply_identity("S05", manifest_path=manifest) == {
+        "kind": "",
+        "digest": "",
+    }
+
+
+def test_build_probe_items_filters_role(tmp_path: Path) -> None:
+    manifest = _write_supply_files(tmp_path, _multi_fact_bank())
+    ic = build_variant_probe_items(
+        "S05",
+        user_id="u1",
+        day_index=1,
+        probe_role="immediate_confirm",
+        manifest_path=manifest,
+    )
+    assert {row["variant_id"] for row in ic} == {
+        "S05-A-ic-000",
+        "S05-A-ic-001",
+        "S05-B-ic-000",
+    }
+    assert all(row["probe_role"] == "immediate_confirm" for row in ic)
+    # 消费面只透出题面 + 判分字段，不带治理 identity/review。
+    assert set(ic[0]) == {
+        "variant_id",
+        "rule_group",
+        "surface",
+        "correct_statement",
+        "anchor",
+        "fact_id",
+        "skeleton_id",
+        "probe_role",
+        "temptation",
+        "loss_reason",
+        "expected_ok",
+    }
+    d1 = build_variant_probe_items(
+        "S05",
+        user_id="u1",
+        day_index=1,
+        probe_role="d1_probe",
+        manifest_path=manifest,
+    )
+    assert {row["variant_id"] for row in d1} == {"S05-A-d1-000", "S05-B-d1-000"}
+
+
+def test_build_probe_items_filters_fact_intersection(tmp_path: Path) -> None:
+    manifest = _write_supply_files(tmp_path, _multi_fact_bank())
+    rows = build_variant_probe_items(
+        "S05",
+        user_id="u1",
+        day_index=1,
+        probe_role="immediate_confirm",
+        fact_ids=["fact-B"],
+        manifest_path=manifest,
+    )
+    assert {row["variant_id"] for row in rows} == {"S05-B-ic-000"}
+    # 错题落在非交集 fact → 如实空（confirm 入口不亮）。
+    assert (
+        build_variant_probe_items(
+            "S05",
+            user_id="u1",
+            day_index=1,
+            probe_role="immediate_confirm",
+            fact_ids=["fact-not-here"],
+            manifest_path=manifest,
+        )
+        == []
+    )
+
+
+def test_build_probe_items_per_fact_and_limit(tmp_path: Path) -> None:
+    manifest = _write_supply_files(tmp_path, _multi_fact_bank())
+    capped = build_variant_probe_items(
+        "S05",
+        user_id="u1",
+        day_index=1,
+        probe_role="immediate_confirm",
+        per_fact=1,
+        manifest_path=manifest,
+    )
+    # fact-A 两条 immediate_confirm，per_fact=1 → 每 fact 至多一条。
+    by_fact: dict[str, int] = {}
+    for row in capped:
+        by_fact[row["fact_id"]] = by_fact.get(row["fact_id"], 0) + 1
+    assert all(count <= 1 for count in by_fact.values())
+    limited = build_variant_probe_items(
+        "S05",
+        user_id="u1",
+        day_index=1,
+        probe_role="immediate_confirm",
+        limit=2,
+        manifest_path=manifest,
+    )
+    assert len(limited) == 2
+
+
+def test_build_probe_items_deterministic(tmp_path: Path) -> None:
+    manifest = _write_supply_files(tmp_path, _multi_fact_bank())
+    kwargs = dict(
+        user_id="u9",
+        day_index=42,
+        probe_role="immediate_confirm",
+        manifest_path=manifest,
+    )
+    assert build_variant_probe_items("S05", **kwargs) == build_variant_probe_items(
+        "S05", **kwargs
+    )
+
+
+def test_build_probe_items_rejects_anchor_role(tmp_path: Path) -> None:
+    manifest = _write_supply_files(tmp_path, _multi_fact_bank())
+    assert (
+        build_variant_probe_items(
+            "S05",
+            user_id="u1",
+            day_index=1,
+            probe_role="anchor",
+            manifest_path=manifest,
+        )
+        == []
+    )
+
+
+def test_build_probe_items_never_serves_extension(tmp_path: Path) -> None:
+    manifest = _write_supply_files(tmp_path, _multi_fact_bank())
+    rows = build_variant_probe_items(
+        "S05",
+        user_id="u1",
+        day_index=1,
+        probe_role="immediate_confirm",
+        manifest_path=manifest,
+    )
+    assert "S05-X-ext-000" not in {row["variant_id"] for row in rows}
+
+
+def test_build_probe_items_empty_without_blocklist(tmp_path: Path) -> None:
+    manifest = _write_supply_files(tmp_path, _multi_fact_bank())
+    (tmp_path / "_variant_blocklist.json").unlink()
+    assert (
+        build_variant_probe_items(
+            "S05",
+            user_id="u1",
+            day_index=1,
+            probe_role="immediate_confirm",
+            manifest_path=manifest,
+        )
+        == []
+    )
+
+
+def test_resolve_probe_items_exact_and_fail_closed(tmp_path: Path) -> None:
+    manifest = _write_supply_files(tmp_path, _multi_fact_bank())
+    rows = resolve_variant_probe_items(
+        "S05", ["S05-B-ic-000", "S05-A-d1-000"], manifest_path=manifest
+    )
+    assert rows is not None
+    assert [row["variant_id"] for row in rows] == ["S05-B-ic-000", "S05-A-d1-000"]
+    # 任一 id 缺失/不再 eligible → None。
+    assert (
+        resolve_variant_probe_items(
+            "S05", ["S05-B-ic-000", "S05-X-ext-000"], manifest_path=manifest
+        )
+        is None
+    )
+    assert (
+        resolve_variant_probe_items("S05", ["missing"], manifest_path=manifest) is None
+    )
+
+
+def test_resolve_probe_items_none_without_blocklist(tmp_path: Path) -> None:
+    manifest = _write_supply_files(tmp_path, _multi_fact_bank())
+    (tmp_path / "_variant_blocklist.json").unlink()
+    assert (
+        resolve_variant_probe_items("S05", ["S05-B-ic-000"], manifest_path=manifest)
+        is None
+    )

@@ -11,6 +11,7 @@ from deeptutor.services.learner_state.evidence_lifecycle import (
     is_canonical_luban_retest_terminal,
 )
 from deeptutor.services.learner_state.learner_signal import record_learner_signal
+from deeptutor.services.luban_lesson.practice_html import is_compiled_practice_pack
 from deeptutor.services.luban_lesson.read_model import (
     build_lesson_viewmodel,
     resolve_retest_items,
@@ -23,6 +24,10 @@ from deeptutor.services.luban_lesson.retest_selection import (
 from deeptutor.services.luban_lesson.review_due import (
     build_review_due_projection,
     resolve_due_review_probe,
+)
+from deeptutor.services.luban_lesson.variant_eligibility import (
+    resolve_variant_probe_items,
+    variant_probe_supply_identity,
 )
 
 SOURCE_FEATURE = "assessment_testset"
@@ -235,7 +240,21 @@ class RetestWritebackService:
         ]:
             raise ValueError("retest_selection_invalid")
         intent_id = normalized_probe if normalized_mode == "review" else str(training_intent_id or "").strip()
-        supply = retest_supply_identity(selection_pack, mode=normalized_mode)
+        # kind-aware 分派（单一权威红线）：按 selection token 的 supply_kind 决定
+        # 供给 identity，绝不重跑路由决策。signed_variant-on-compiled = 变体探针
+        # 消费（confirm/d1_probe），走 variant_probe_supply_identity（内含
+        # resolve_variant_supply 绿灯签发闸）；否则维持 retest_supply_identity
+        # （compiled_html 与 legacy signed-bank 路径逐字节不变）。
+        selection_supply_kind = str(selection.get("supply_kind") or "").strip()
+        is_variant_probe = (
+            selection_supply_kind == "signed_variant"
+            and is_compiled_practice_pack(selection_pack)
+        )
+        supply = (
+            variant_probe_supply_identity(selection_pack)
+            if is_variant_probe
+            else retest_supply_identity(selection_pack, mode=normalized_mode)
+        )
         if not verify_retest_selection(
             normalized_selection,
             user_id=normalized_user,
@@ -266,11 +285,20 @@ class RetestWritebackService:
             raise ValueError("retest_training_intent_mismatch")
 
         lesson = build_lesson_viewmodel(normalized_pack)
-        canonical_items = resolve_retest_items(
-            normalized_pack,
-            variant_ids=[item["variant_id"] for item in normalized_answers],
-            mode=normalized_mode,
-        )
+        if is_variant_probe:
+            # 变体探针 canonical 解析同一分派：精确解析当前仍 eligible 的变体行；
+            # 任一 id 缺失/漂移 → None → 视作空集 → answer_set_mismatch（fail-closed）。
+            resolved = resolve_variant_probe_items(
+                normalized_pack,
+                [item["variant_id"] for item in normalized_answers],
+            )
+            canonical_items = resolved if resolved is not None else []
+        else:
+            canonical_items = resolve_retest_items(
+                normalized_pack,
+                variant_ids=[item["variant_id"] for item in normalized_answers],
+                mode=normalized_mode,
+            )
         canonical_by_id = {
             str(item.get("variant_id") or "").strip(): dict(item)
             for item in canonical_items
@@ -409,6 +437,9 @@ class RetestWritebackService:
             concept_id = f"pack:{normalized_pack}:rule:{rule_group}"
             promotion_allowed = normalized_mode == "review"
             is_single_choice = item.get("answer_type") == "single_choice"
+            # 变体探针判断题（signed_variant-on-compiled）——canonical 行带 probe_role；
+            # 据此附加错后诊断文案，legacy signed-bank 判断题（无 probe_role）不受影响。
+            is_variant_probe_item = not is_single_choice and bool(item.get("probe_role"))
             selected_option = dict(item.get("selected_option") or {})
             correct_option = dict(item.get("correct_option") or {})
             scoring_authority = str(
@@ -492,6 +523,14 @@ class RetestWritebackService:
                     "fix": str(selected_option.get("fix") or ""),
                 }
                 if is_single_choice
+                else {
+                    # 变体探针判断题：错后诊断文案逐字来自已签发 decision（无 fix
+                    # 字段——不造）；legacy 判断题保持空 answer_feedback（零回归）。
+                    "correct_statement": str(item.get("correct_statement") or ""),
+                    "temptation": str(item.get("temptation") or ""),
+                    "loss_reason": str(item.get("loss_reason") or ""),
+                }
+                if is_variant_probe_item
                 else {},
                 "score_awarded": 1.0 if is_correct else 0.0,
                 "max_score": 1.0,
@@ -527,6 +566,11 @@ class RetestWritebackService:
                     ),
                 ],
             }
+            if is_variant_probe_item:
+                # additive：变体探针 fact/probe_role 溯源（gauntlet 同形 forward
+                # completion 靠 probe_role 区分；review d1_probe 场标记档位）。
+                payload["fact_id"] = str(item.get("fact_id") or "")
+                payload["probe_role"] = str(item.get("probe_role") or "")
             event = self._learner_state.append_memory_event(
                 normalized_user,
                 source_feature=SOURCE_FEATURE,
@@ -554,6 +598,13 @@ class RetestWritebackService:
                         "selected_option_id": str(selected_option.get("option_id") or ""),
                         "correct_option_id": str(correct_option.get("option_id") or ""),
                         "correct_statement": str(item.get("model_answer") or ""),
+                        "feedback": dict(payload["answer_feedback"]),
+                    }
+                )
+            elif is_variant_probe_item:
+                public_item.update(
+                    {
+                        "correct_statement": str(item.get("correct_statement") or ""),
                         "feedback": dict(payload["answer_feedback"]),
                     }
                 )
@@ -781,6 +832,15 @@ class RetestWritebackService:
                 {
                     "selected_option_id": str(payload.get("learner_answer") or ""),
                     "correct_option_id": str(payload.get("correct_answer") or ""),
+                    "correct_statement": str(feedback.get("correct_statement") or ""),
+                    "feedback": feedback,
+                }
+            )
+        elif payload.get("probe_role"):
+            # 变体探针判断题 replay：从持久化 payload 复原错后诊断文案。
+            feedback = dict(payload.get("answer_feedback") or {})
+            item.update(
+                {
                     "correct_statement": str(feedback.get("correct_statement") or ""),
                     "feedback": feedback,
                 }

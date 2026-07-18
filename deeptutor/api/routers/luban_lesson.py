@@ -43,6 +43,11 @@ from deeptutor.services.luban_lesson.review_due import (
     build_review_due_projection,
     resolve_due_review_probe,
 )
+from deeptutor.services.luban_lesson.variant_eligibility import (
+    build_variant_probe_items,
+    resolve_variant_supply,
+    variant_probe_supply_identity,
+)
 from deeptutor.services.session import get_sqlite_session_store
 
 router = secure_router(tags=["luban_lesson"])
@@ -161,6 +166,7 @@ async def retest_items(
     practice_surface: str = "",
     projection_receipt: str = "",
     probe_id: str = "",
+    confirm_facts: str = "",
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
     """题面投影（同一 endpoint / 同一 completion authority）：
@@ -183,6 +189,7 @@ async def retest_items(
         raise HTTPException(status_code=404, detail="retest not available")
     selection_probe = ""
     cycle_anchor = ""
+    review_state = ""
     if mode == "review":
         selection_probe = str(probe_id or "").strip()
         if not selection_probe:
@@ -208,6 +215,75 @@ async def retest_items(
         if due_probe is None:
             raise HTTPException(status_code=400, detail="retest_probe_not_due")
         cycle_anchor = str(due_probe.get("cycle_anchor") or "").strip()
+        review_state = str(due_probe.get("state") or "").strip()
+
+    # ---- 变体判断题消费接线（切片三，两点都 gate LUBAN_VARIANT_PROBE_ENABLED）----
+    # 供给唯一权威 = build_variant_probe_items → resolve_variant_supply（绿灯签发闸）；
+    # selection 以 variant_probe_supply_identity 签发（writeback 按 token 的 supply_kind
+    # 分派）。任一环不满足 → forward confirm 404 同形 / review 退 compiled MCQ 不空窗。
+    confirm_facts_raw = str(confirm_facts or "").strip()
+    # confirm_requested 折入旗标：关 = 忽略 confirm_facts 走现行 compiled forward
+    # （前端本就只在 confirm_facts_ready 非空时导航，旗标关时该字段恒空）。
+    confirm_requested = (
+        mode == "forward" and _variant_probe_enabled() and bool(confirm_facts_raw)
+    )
+    variant_items: list[dict] | None = None
+    variant_probe_role = ""
+    if _variant_probe_enabled():
+        if confirm_requested:
+            # 消费点1：错后当场确认（immediate_confirm；facts = 客户端传的错题 facts，≤5）。
+            facts = [f.strip() for f in confirm_facts_raw.split(",") if f.strip()][:5]
+            picked = build_variant_probe_items(
+                pack_id,
+                user_id=current_user.user_id,
+                day_index=day_index,
+                probe_role="immediate_confirm",
+                fact_ids=facts,
+                limit=5,
+            )
+            if picked:
+                variant_items, variant_probe_role = picked, "immediate_confirm"
+        elif mode == "review" and review_state in {"weak", "stable"}:
+            # 消费点2：D+3/D+7 抽查（d1_probe）；fresh(D+1 首验) 恒走 anchor MCQ。
+            picked = build_variant_probe_items(
+                pack_id,
+                user_id=current_user.user_id,
+                day_index=day_index,
+                probe_role="d1_probe",
+                limit=5,
+            )
+            if picked:
+                variant_items, variant_probe_role = picked, "d1_probe"
+
+    if variant_items is not None:
+        variant_supply = variant_probe_supply_identity(pack_id)
+        if not variant_supply.get("kind") or not variant_supply.get("digest"):
+            variant_items = None  # 供给闸不过 → 退（forward confirm 见下 404）
+    if confirm_requested and variant_items is None:
+        # confirm 请求了但无法服务（旗标关/供给空/无交集）→ 404 同形（fail-closed）。
+        raise HTTPException(status_code=404, detail="retest not available")
+    if variant_items is not None:
+        return {
+            "pack_id": pack_id.upper(),
+            "items": variant_items,
+            "day_index": day_index,
+            "mode": mode,
+            "selection_id": issue_retest_selection(
+                user_id=current_user.user_id,
+                pack_id=pack_id,
+                day_index=day_index,
+                mode=mode,
+                variant_ids=[str(item.get("variant_id") or "") for item in variant_items],
+                supply_kind=variant_supply["kind"],
+                supply_digest=variant_supply["digest"],
+                probe_id=selection_probe,
+                cycle_anchor=cycle_anchor,
+            ),
+            "pool": None,
+            "practice_source": "signed_variant",
+            "variant_probe_role": variant_probe_role,
+        }
+
     projection_receipt = str(projection_receipt or "").strip()
     try:
         items = build_retest_items(
@@ -262,6 +338,9 @@ async def retest_items(
         else retest_pool_meta(pack_id),
         "practice_source": "compiled_html" if compiled_forward else "signed_variant",
     }
+    if mode == "forward" and compiled_forward:
+        # 前端据此决定错后是否亮「当场确认」入口（旗标关/供给空 → 空列表 = 不亮）。
+        response["confirm_facts_ready"] = _confirm_facts_ready(pack_id)
     if projection_receipt:
         # 桥接契约：客户端要求响应 receipt 与桥接值逐字节相等（retest.js）。
         # 只回显、不重签——builder 解析成功即证明该 token 仍锚定当前供给。
@@ -325,6 +404,9 @@ async def retest_complete(
 # 关 = 空投影（fail-closed 空清单, 页面走诚实空态）, 不 404——路由形状稳定。
 _REVIEW_MODULE_FLAG = "LUBAN_REVIEW_MODULE_ENABLED"
 _LIGHT_PRACTICE_FLAG = "LUBAN_LIGHT_PRACTICE_ENABLED"
+# 变体判断题消费接线灰度(register-before-use: contracts/env_registry.yaml + .env.example)。
+# 关 = 两消费点全走现行为(confirm 入口不亮 / review 退 compiled MCQ)。
+_VARIANT_PROBE_FLAG = "LUBAN_VARIANT_PROBE_ENABLED"
 
 
 def _review_module_enabled() -> bool:
@@ -333,6 +415,27 @@ def _review_module_enabled() -> bool:
 
 def _light_practice_enabled() -> bool:
     return str(os.getenv(_LIGHT_PRACTICE_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _variant_probe_enabled() -> bool:
+    return str(os.getenv(_VARIANT_PROBE_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _confirm_facts_ready(pack_id: str) -> list[str]:
+    """immediate_confirm 变体供给就绪的 fact 集合（前端据此决定错后是否亮
+    「当场确认」入口）。供给唯一权威 = resolve_variant_supply（绿灯签发闸）；
+    旗标关 / 供给任一闸不过 → 空列表（fail-closed，入口不亮）。"""
+    if not _variant_probe_enabled():
+        return []
+    supply = resolve_variant_supply(pack_id)
+    if not supply:
+        return []
+    facts = supply.get("summary", {}).get("facts", {}) or {}
+    return sorted(
+        fact_id
+        for fact_id, entry in facts.items()
+        if int((entry or {}).get("immediate_confirm") or 0) >= 1
+    )
 
 
 def _exam_date_for(user_id: str) -> str:

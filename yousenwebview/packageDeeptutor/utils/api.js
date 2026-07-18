@@ -988,6 +988,14 @@ function getLubanRetestItems(packId, limit, mode, opts) {
   var practiceSurface = String((opts && opts.practiceSurface) || "").trim();
   var projectionReceipt = String((opts && opts.projectionReceipt) || "").trim();
   var probeId = String((opts && opts.probeId) || "").trim();
+  // 错后当场确认(变体判断题消费点1): forward 场传 completion 派生的错题 facts(≤5);
+  // 服务端据此走 immediate_confirm 变体供给。空/非 forward = 不传(现行为)。
+  var confirmFactsList = (opts && opts.confirmFacts) || [];
+  var confirmFacts = (Array.isArray(confirmFactsList) ? confirmFactsList : [])
+    .map(function (fact) { return String(fact || "").trim(); })
+    .filter(function (fact) { return fact; })
+    .slice(0, 5)
+    .join(",");
   return requestStateGet(
     "/api/v1/luban/lessons/" +
       encodeURIComponent(String(packId || "")) +
@@ -997,7 +1005,8 @@ function getLubanRetestItems(packId, limit, mode, opts) {
       m +
       (practiceSurface ? "&practice_surface=" + encodeURIComponent(practiceSurface) : "") +
       (projectionReceipt ? "&projection_receipt=" + encodeURIComponent(projectionReceipt) : "") +
-      (probeId ? "&probe_id=" + encodeURIComponent(probeId) : ""),
+      (probeId ? "&probe_id=" + encodeURIComponent(probeId) : "") +
+      (m === "forward" && confirmFacts ? "&confirm_facts=" + encodeURIComponent(confirmFacts) : ""),
     opts,
   );
 }
