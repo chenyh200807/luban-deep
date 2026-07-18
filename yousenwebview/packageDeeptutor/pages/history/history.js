@@ -595,12 +595,12 @@ Page({
     this._exitEditMode();
     this.setData({
       tab: tab,
-      loading: true,
-      groups: [],
-      totalCount: 0,
+      error: false,
       emptyState: _emptyState(tab, this.data.query),
     });
-    this._fetchFromServer(false);
+    // SWR：按 archived 维度选缓存 key；有缓存秒渲染（TTL 内不发请求，
+    // 过期则先渲染再后台刷新），无缓存才 loading + 全量 fetch。
+    this._loadWithCache();
   },
 
   // ── 打开对话 ─────────────────────────────────

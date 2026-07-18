@@ -11,10 +11,12 @@ const reportViewModel = require("../../utils/learning-report-view-model");
 const { buildCanonicalLearningTask } = require("../../utils/learn-view-model");
 const { buildReportHomeViewModel } = require("../../utils/report-home-view-model");
 const reportCache = require("../../utils/report-cache");
+// 快照组装唯一权威(生产运行时):utils/report-snapshot。缓存年龄阈值唯一权威:
+// reportCache.SNAPSHOT_MAX_AGE_MS / FRESH_MAX_AGE_MS(本地常量副本已删)。
+const reportSnapshot = require("../../utils/report-snapshot");
 const taxonomy = require("../../utils/taxonomy");
 
 const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
-const REPORT_SNAPSHOT_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";
 const ASSESSMENT_PENDING_TRAINING_ACTION_KEY =
   "deeptutor.report.pendingTrainingAction";
@@ -82,21 +84,6 @@ function _buildRadarDimensionsFromAssessment(data) {
             : "weak",
     };
   });
-}
-
-function _chapterMasteryFromRadar(dimensions) {
-  var mastery = {};
-  (Array.isArray(dimensions) ? dimensions : []).forEach(function (item) {
-    var name = _displayChapterName(
-      item && (item.name || item.label || item.key),
-    );
-    var value = Number(item && item.value);
-    mastery[name] = {
-      name: name,
-      mastery: Math.round((Number.isFinite(value) ? value : 0) * 100),
-    };
-  });
-  return mastery;
 }
 
 function _hasPositiveRadarSignal(dims) {
@@ -1143,24 +1130,6 @@ function _hasSnapshotData(value) {
   return Object.keys(value).length > 0;
 }
 
-function _isLearningReportPayload(value) {
-  var authority = value && value.authority;
-  var schemaVersion = Number(value && value.schema_version);
-  return (
-    value &&
-    typeof value === "object" &&
-    (schemaVersion === 1 || schemaVersion === 2) &&
-    authority &&
-    authority.read_model === "learning-report-read-model" &&
-    value.overview &&
-    typeof value.overview === "object" &&
-    value.freshness &&
-    typeof value.freshness === "object" &&
-    value.learning_brain &&
-    typeof value.learning_brain === "object"
-  );
-}
-
 function _snapshotValue(snapshot, key) {
   var value = snapshot && snapshot[key];
   return _hasSnapshotData(value) ? value : null;
@@ -1168,7 +1137,7 @@ function _snapshotValue(snapshot, key) {
 
 function _unwrapSnapshotItem(raw) {
   var value = api.unwrapResponse(raw);
-  return _isLearningReportPayload(value) ? value : null;
+  return reportSnapshot.isLearningReportPayload(value) ? value : null;
 }
 
 var _DEGRADED_SOURCE_LABELS = {
@@ -1191,18 +1160,6 @@ function _buildDegradedHint(sources) {
     return _DEGRADED_SOURCE_LABELS[name] || name;
   });
   return "部分数据降级：" + labels.join("、");
-}
-
-function _learningReportDegradedSources(report) {
-  var sources = Array.isArray(report && report.degraded_sources)
-    ? report.degraded_sources.slice()
-    : [];
-  if (report && report.freshness && report.freshness.window_truncated) {
-    sources.push("learning_report_window");
-  }
-  return sources.filter(function (item, index) {
-    return item && sources.indexOf(item) === index;
-  });
 }
 
 function _reportOptionalRead(promise, timeoutMs) {
@@ -1384,6 +1341,9 @@ Page({
   _radarImageSignature: "",
   _radarSignature: "",
   _reportSnapshot: null,
+  // 「页面进入 vs 子页返回」判别位:首个 onShow=页面进入(允许新鲜缓存跳过网络),
+  // 后续 onShow=子页返回(刚发生学习动作,强制刷新)。数据加载只由 onShow 触发。
+  _shownOnce: false,
 
   onLoad(options) {
     const windowInfo = helpers.getWindowInfo();
@@ -1485,6 +1445,8 @@ Page({
       this._syncExperienceSections();
       return;
     }
+    var reportFirstShow = !this._shownOnce;
+    this._shownOnce = true;
     this.setData({
       isGuestPreview: false,
       radarLoading: true,
@@ -1495,7 +1457,7 @@ Page({
       learningBrainError: false,
       learningBrainEmpty: false,
     });
-      this._loadReportPage();
+    this._loadReportPage({ freshSkip: reportFirstShow });
   },
 
   onHide() {
@@ -1535,61 +1497,16 @@ Page({
     const supportingReads = await Promise.all([lessonsPromise, homePromise]);
     const lessons = api.unwrapResponse(supportingReads[0]) || null;
     const homeDashboard = api.unwrapResponse(supportingReads[1]) || null;
-    const overview = report.overview || {};
-    const mastery = report.mastery || {};
-    const weakNodes = (
-      (report.learning_brain || {}).weak_points ||
-      [] ||
-      []
-    ).map(function (item) {
-      return {
-        name: item.display_title || item.claim || item.concept_id || "薄弱点",
-        mastery: 0,
-      };
-    });
-    return {
+    // 组装收权:快照形状由唯一 builder 组装(report 已过合法性检查,必返回非 null)。
+    return reportSnapshot.buildUnifiedReportSnapshot({
       report: report,
       homeDashboard: homeDashboard,
-      degraded:
-        Boolean(report.degraded) ||
-        _learningReportDegradedSources(report).length > 0,
-      degradedSources: _learningReportDegradedSources(report),
-      sourceStatus: report.source_status || {},
-      progress: {
-        today_done: overview.today_done || 0,
-        daily_target: overview.daily_target || 0,
-        streak_days: overview.streak_days || 0,
-      },
-      home: {
-        review: { due_today: overview.due_today_count || 0 },
-        mastery: {
-          weak_nodes: weakNodes.slice(
-            0,
-            overview.weak_node_count || weakNodes.length || 0,
-          ),
-        },
-        today: { hint: overview.focus_hint || "" },
-        today_focus: { title: overview.focus_hint || "" },
-        study_plan: report.study_plan || null,
-        progress_feedback: report.progress_feedback || null,
-      },
-      assessment: {
-        level: overview.learner_level || "",
-        chapter_mastery: _chapterMasteryFromRadar(
-          report.radar_dimensions || [],
-        ),
-        diagnostic_feedback: {
-          learner_profile: { study_tip: overview.study_tip || "" },
-        },
-      },
-      mastery: mastery,
-      learningBrain: report.learning_brain || {},
-      learnerFacing: report.learner_facing || {},
       lessons: lessons,
-    };
+    });
   },
 
-  async _loadReportPage() {
+  async _loadReportPage(options) {
+    var opts = options || {};
     var userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
     var generation = Number(this._reportLoadGeneration || 0) + 1;
     this._reportLoadGeneration = generation;
@@ -1597,8 +1514,31 @@ Page({
       var currentUserId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
       return !!userId && page._reportLoadGeneration === generation && currentUserId === userId;
     };
-    var cachedSnapshot = reportCache.read(userId, REPORT_SNAPSHOT_CACHE_MAX_AGE_MS);
+    // readWithMeta 带回快照年龄供「新鲜即跳过网络」判定;typeof 守卫兜底旧
+    // vm 测试 harness 的 report-cache stub(只有 read/write),行为与原 read 等价。
+    var cachedHit =
+      typeof reportCache.readWithMeta === "function"
+        ? reportCache.readWithMeta(userId, reportCache.SNAPSHOT_MAX_AGE_MS)
+        : null;
+    var cachedSnapshot = cachedHit
+      ? cachedHit.snapshot
+      : reportCache.read(userId, reportCache.SNAPSHOT_MAX_AGE_MS);
     if (cachedSnapshot && isCurrentRequest(this)) {
+      // 「新鲜即跳过网络」:仅页面进入(首个 onShow,opts.freshSkip=true)且快照
+      // 年龄 < FRESH_MAX_AGE_MS 时,以缓存为终态渲染并省掉网络重拉;
+      // 子页返回(后续 onShow,刚发生学习动作)不带 freshSkip,保持强制刷新。
+      if (
+        opts.freshSkip &&
+        cachedHit &&
+        cachedHit.ageMs < reportCache.FRESH_MAX_AGE_MS
+      ) {
+        this._reportSnapshot = cachedSnapshot;
+        // 非 cached hydrate:降级提示如实反映快照自身状态(不显示"正在刷新"),
+        // 且 _hydrateFromUnifiedReport 会清掉 radar/mastery/learningBrain 全部 loading 态。
+        this._hydrateFromUnifiedReport(cachedSnapshot, {});
+        this._syncExperienceSections();
+        return;
+      }
       this._reportSnapshot = cachedSnapshot;
       this._hydrateFromUnifiedReport(cachedSnapshot, { cached: true });
       this._syncExperienceSections();

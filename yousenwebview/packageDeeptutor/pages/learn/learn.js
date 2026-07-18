@@ -13,6 +13,22 @@ const flags = require("../../utils/flags");
 const surfaceTelemetry = require("../../utils/surface-telemetry");
 const { buildLearnViewModel } = require("../../utils/learn-view-model");
 
+// 学情快照 SWR 加速层(可选依赖):快照是「可丢弃的 UI 加速层」,canonical truth
+// 仍在服务端 read model。try/catch + 能力检查:存量学习页测试 harness 的 require
+// 白名单不含这两个模块(未知 require 直接 throw / 返回 {}),加速层缺席时必须
+// 静默降级为原无缓存路径,不得让加速层变成致命依赖。线上运行时两模块恒存在。
+var reportCache = null;
+var reportSnapshot = null;
+try { reportCache = require("../../utils/report-cache"); } catch (_) { reportCache = null; }
+try { reportSnapshot = require("../../utils/report-snapshot"); } catch (_) { reportSnapshot = null; }
+var snapshotLayerReady = Boolean(
+  reportCache &&
+    typeof reportCache.readWithMeta === "function" &&
+    typeof reportCache.write === "function" &&
+    reportSnapshot &&
+    typeof reportSnapshot.buildUnifiedReportSnapshot === "function",
+);
+
 // H2:Long Cang 只许 CDN 子集化,禁内嵌。子集托管后填此常量;
 // 空/失败 → 降级 'Kaiti SC', serif(paper-ink.wxss font-family 已兜底)。
 const LONG_CANG_FONT_URL = "";
@@ -52,8 +68,14 @@ Page({
     if (!this._requireAuth()) return;
     const firstRunSnapshot = this._syncFirstRunState();
     this._retryPendingFirstRun(firstRunSnapshot);
-    // 从站点/任务返回时刷新 canonical 投影。
-    if (!this.data.loading) this._load();
+    // 首个 onShow 紧跟 onLoad(_load 已由 onLoad 发起),不重复触发;
+    // 后续 onShow = 从站点/练习返回(刚发生学习动作),强制刷新 canonical 投影
+    // (force 绕过快照 fresh 跳过;并发安全由 _load 的单调 request epoch 保证)。
+    if (!this._shownOnce) {
+      this._shownOnce = true;
+    } else {
+      this._load({ force: true });
+    }
   },
 
   onHide() {
@@ -125,7 +147,8 @@ Page({
         }
         firstRunEntry.markDone(userId, pending);
         that.setData({ firstRunState: "hidden", firstRunProgress: 4 });
-        that._load();
+        // 首跑完成刚同步到服务端(学习动作落账),强制刷新绕过快照 fresh 门。
+        that._load({ force: true });
         return result;
       })
       .catch(function (error) {
@@ -159,7 +182,8 @@ Page({
 
   onPullDownRefresh() {
     var that = this;
-    this._load().then(function () {
+    // 用户显式下拉 = 必须真刷新,不许被快照 fresh 门吞掉。
+    this._load({ force: true }).then(function () {
       if (typeof wx !== "undefined" && wx.stopPullDownRefresh) wx.stopPullDownRefresh();
     });
   },
@@ -167,7 +191,8 @@ Page({
   retrySupply() {
     if (!this._requireAuth()) return;
     this.setData({ loading: true, supplyError: "" });
-    return this._load();
+    // 错误重试 = 用户显式要求重取,绕过快照 fresh 门(否则可能卡在 loading)。
+    return this._load({ force: true });
   },
 
   _requireAuth() {
@@ -195,7 +220,7 @@ Page({
     });
   },
 
-  _load() {
+  _load(opts) {
     var that = this;
     if (!this._requireAuth()) return Promise.resolve(null);
     // 红队 A4:单调 request epoch——onShow 静默刷新与下拉刷新可并发,
@@ -204,6 +229,31 @@ Page({
     var seq = (this._loadSeq || 0) + 1;
     this._loadSeq = seq;
     this._refreshing = true;
+    // ── 快照 SWR:tab redirectTo 冷启动的 3-5s 重 read model 等待期,先用
+    // 30min 内快照秒渲染整页(诚实旧投影,非发明数据;组装仍走唯一 builder)。
+    var cached = snapshotLayerReady
+      ? reportCache.readWithMeta(auth.getUserId(), reportCache.SNAPSHOT_MAX_AGE_MS)
+      : null;
+    if (cached && !this.data.vm) {
+      var cachedVm = buildLearnViewModel({
+        homeDashboard: cached.snapshot.homeDashboard || {},
+        report: cached.snapshot.report || {},
+        lessons: cached.snapshot.lessons || {},
+      });
+      // 与下方 lessons 快通道同一门:空态投影不上屏(宁等真数据,不闪空态)。
+      if (cachedVm.hasSupply) this.setData({ vm: cachedVm, loading: false, supplyError: "" });
+    }
+    // 新鲜(60s 内)即跳过三路网络请求;唯一豁免 = 显式 force(子页返回/下拉/
+    // 重试,刚发生学习动作或用户显式要求)。未上屏(无 vm)时不许跳过,防卡加载态。
+    if (
+      cached &&
+      cached.ageMs < reportCache.FRESH_MAX_AGE_MS &&
+      !(opts && opts.force) &&
+      this.data.vm
+    ) {
+      this._refreshing = false;
+      return Promise.resolve(this.data.vm);
+    }
     // 页面拥有 returnTo 语义；API 只清理过期 token 并返回错误，不能抢先跳默认登录。
     var opt = { silent: true, suppressAuthRedirect: true };
     var settle = function (p) {
@@ -255,6 +305,16 @@ Page({
         lessons: lessons,
       });
       that.setData({ vm: vm, loading: false, supplyError: "" });
+      // 第二合法写者(与学情页共用唯一组装权威 buildUnifiedReportSnapshot):
+      // report 无效(如 unwrap 出的空对象)时 builder 返回 null 即不写,防污染。
+      if (snapshotLayerReady) {
+        var snap = reportSnapshot.buildUnifiedReportSnapshot({
+          report: report,
+          homeDashboard: homeDashboard,
+          lessons: lessons,
+        });
+        if (snap) reportCache.write(auth.getUserId(), snap);
+      }
       return vm;
     }).catch(function (err) {
       if (seq !== that._loadSeq) return null;
