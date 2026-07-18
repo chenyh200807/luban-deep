@@ -339,6 +339,7 @@ def test_closed_forward_terminal_completes_workflow_without_claiming_verified() 
             "pack_id": "F16",
             "target_pack_id": "F16",
             "question_id": "q1",
+            "probe_role": "anchor",
             "is_correct": False,
             "score_awarded": 0.0,
             "max_score": 1.0,
