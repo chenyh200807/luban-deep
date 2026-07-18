@@ -79,12 +79,24 @@ function loadReportPage(stubs) {
       if (request === "../../utils/api") return stubs.api;
       if (request === "../../utils/report-cache") {
         return stubs.reportCache || {
+          SNAPSHOT_MAX_AGE_MS: 30 * 60 * 1000,
+          writeIfFresher: function (userId, snapshot) {
+            return this.write(userId, snapshot);
+          },
           read: function (userId, maxAgeMs) {
             if (!userId) return null;
             var cached = storage["deeptutor.report.unifiedSnapshot.v2:" + encodeURIComponent(userId)];
             if (!cached || cached.userId !== userId || !cached.cachedAt) return null;
             if (Date.now() - cached.cachedAt > maxAgeMs) return null;
             return cached.snapshot || null;
+          },
+          readWithMeta: function (userId, maxAgeMs) {
+            if (!userId) return null;
+            var cached = storage["deeptutor.report.unifiedSnapshot.v2:" + encodeURIComponent(userId)];
+            if (!cached || cached.userId !== userId || !cached.cachedAt) return null;
+            var ageMs = Date.now() - cached.cachedAt;
+            if (ageMs > maxAgeMs) return null;
+            return cached.snapshot ? { snapshot: cached.snapshot, ageMs: ageMs } : null;
           },
           write: function (userId, snapshot) {
             if (!userId) return false;
@@ -150,6 +162,13 @@ function loadReportPage(stubs) {
           path.join(__dirname, "../packageDeeptutor/utils/taxonomy.js"),
         );
       }
+      if (request === "../../utils/report-snapshot") {
+        // 快照组装唯一权威必须走真模块:report.js 不再保留等价 fallback,
+        // harness 映射假模块会让共享 builder 的收权测不到。
+        return require(
+          path.join(__dirname, "../packageDeeptutor/utils/report-snapshot.js"),
+        );
+      }
       return {};
     },
   };
@@ -179,9 +198,14 @@ function createPageInstance(pageDef) {
     path.join(__dirname, "../packageDeeptutor/pages/report/report.js"),
     "utf8",
   );
+  // schema 兼容不变量随组装收权迁至共享模块(report-snapshot.js 是唯一权威)。
+  var reportSnapshotSource = fs.readFileSync(
+    path.join(__dirname, "../packageDeeptutor/utils/report-snapshot.js"),
+    "utf8",
+  );
   assert(
-    reportSource.indexOf("schemaVersion === 1 || schemaVersion === 2") >= 0,
-    "yousen report page must accept learning-report schema v1 and v2 payloads",
+    reportSnapshotSource.indexOf("schemaVersion === 1 || schemaVersion === 2") >= 0,
+    "shared report-snapshot authority must accept learning-report schema v1 and v2 payloads",
   );
   assert(
     reportSource.indexOf("REPORT_UNIFIED_READ_TIMEOUT_MS = 8000") >= 0 &&

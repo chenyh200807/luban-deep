@@ -74,7 +74,7 @@
   "__usePrivacyCheck__": true,
   "preloadRule": {
     "pages/freeCourse/freeCourse": {
-      "network": "wifi",
+      "network": "all",
       "packages": [
         "packageDeeptutor"
       ]
