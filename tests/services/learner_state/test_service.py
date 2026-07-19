@@ -1444,6 +1444,52 @@ def test_learner_state_local_projection_fallback_does_not_touch_remote_projectio
     assert core_store.calls == []
 
 
+def test_read_snapshot_runs_one_seed_pass_and_keeps_fresh_projection_reads(tmp_path) -> None:
+    class CountingCoreStore(_CoreStoreStub):
+        def __init__(self) -> None:
+            super().__init__()
+            self.profile = {"user_id": "student_demo", "display_name": "远端学员"}
+            self.progress = {"completed_lessons": ["lesson-1"]}
+            self.memory_events = [
+                {
+                    "event_id": "event-1",
+                    "user_id": "student_demo",
+                    "source_feature": "guide",
+                    "source_id": "guide-1",
+                    "memory_kind": "progress",
+                    "payload_json": {},
+                    "dedupe_key": "guide-1",
+                    "created_at": "2026-07-19T00:00:00Z",
+                }
+            ]
+            self.read_calls = {"profile": 0, "progress": 0, "events": 0}
+
+        def read_profile(self, user_id: str):
+            self.read_calls["profile"] += 1
+            return super().read_profile(user_id)
+
+        def read_progress(self, user_id: str):
+            self.read_calls["progress"] += 1
+            return super().read_progress(user_id)
+
+        def read_memory_events(self, user_id: str, limit: int | None = 20):
+            self.read_calls["events"] += 1
+            return super().read_memory_events(user_id, limit=limit)
+
+    core_store = CountingCoreStore()
+    service = _make_service(tmp_path, core_store=core_store)
+    service.read_snapshot("student_demo", event_limit=100)
+    core_store.read_calls = {"profile": 0, "progress": 0, "events": 0}
+    service._remote_events_cache_invalidate("student_demo")
+
+    snapshot = service.read_snapshot("student_demo", event_limit=100)
+
+    assert snapshot.profile["display_name"] == "远端学员"
+    assert snapshot.progress["completed_lessons"] == ["lesson-1"]
+    assert [event.event_id for event in snapshot.memory_events] == ["event-1"]
+    assert core_store.read_calls == {"profile": 3, "progress": 2, "events": 1}
+
+
 def test_learner_state_non_production_falls_back_to_local_memory_events_when_remote_empty(tmp_path) -> None:
     core_store = _CoreStoreStub()
     service = _make_service(tmp_path, core_store=core_store)

@@ -646,6 +646,11 @@ class LearnerStateService:
     def list_memory_events(self, user_id: str, limit: int | None = 20) -> list[LearnerStateEvent]:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)
+        return self._list_memory_events_raw(normalized, limit=limit)
+
+    def _list_memory_events_raw(
+        self, normalized: str, *, limit: int | None = 20
+    ) -> list[LearnerStateEvent]:
         local_events = self._list_local_memory_events(normalized)
         if self._local_projection_fallback_enabled():
             if limit is None or limit < 0:
@@ -1649,10 +1654,13 @@ class LearnerStateService:
         self._ensure_seed_state(normalized)
         return LearnerStateSnapshot(
             user_id=normalized,
-            profile=self.read_profile(normalized),
-            summary=self.read_summary(normalized),
-            progress=self.read_progress(normalized),
-            memory_events=self.list_memory_events(normalized, limit=event_limit),
+            profile=self._read_profile_raw(normalized),
+            summary=self._read_summary_raw(normalized),
+            progress=self._read_progress_raw(normalized),
+            memory_events=self._list_memory_events_raw(
+                normalized,
+                limit=event_limit,
+            ),
             profile_updated_at=self._file_updated_at(normalized, "profile"),
             summary_updated_at=self._file_updated_at(normalized, "summary"),
             progress_updated_at=self._file_updated_at(normalized, "progress"),
