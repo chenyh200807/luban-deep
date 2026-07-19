@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 35472)
-Total output lines: 3325
-
 from __future__ import annotations
 
 import asyncio
@@ -1437,7 +1434,504 @@ class LearnerStateService:
         next_run_at = kwargs.get("next_run_at") or _default_next_heartbeat_run(reference=finished_at)
         failure_count = 0 if success else int(kwargs.get("failure_count", 0) or 0) + 1
         current_job = self._heartbeat_job_service._store.get_by_id(job_id)
-        if cur…5472 tokens truncated…mary = self.read_summary(normalized)
+        if current_job is None:
+            raise KeyError(f"heartbeat job not found: {job_id}")
+        recorded_at = _coerce_datetime(finished_at) or datetime.now(timezone.utc).astimezone()
+        normalized_result_json = _normalize_heartbeat_result_json(
+            job=current_job,
+            success=success,
+            result_json=result_json,
+            recorded_at=recorded_at,
+        )
+        job = self._heartbeat_job_service.mark_run(
+            job_id=job_id,
+            last_run_at=finished_at,
+            next_run_at=next_run_at,
+            last_result_json=normalized_result_json,
+            failure_count=failure_count,
+            status=str(kwargs.get("status") or "active"),
+        )
+        if job is None:
+            raise KeyError(f"heartbeat job not found: {job_id}")
+        self._enqueue_heartbeat_job_sync(job)
+        self.append_memory_event(
+            job.user_id,
+            source_feature="heartbeat",
+            source_id=job.job_id,
+            source_bot_id=job.bot_id,
+            memory_kind="heartbeat_delivery",
+            payload_json={
+                "job_id": job.job_id,
+                "delivery": dict(normalized_result_json.get("delivery") or {}),
+                "audit": dict(normalized_result_json.get("audit") or {}),
+                "success": bool(normalized_result_json.get("success", success)),
+                "failure_count": int(job.failure_count),
+                "next_run_at": _timestamp_to_iso(job.next_run_at),
+                "last_run_at": _timestamp_to_iso(job.last_run_at),
+            },
+            dedupe_key=(
+                f"heartbeat-delivery:{job.job_id}:"
+                f"{normalized_result_json.get('audit', {}).get('recorded_at') or _iso_now()}"
+            ),
+        )
+        arbitration_payload = dict(normalized_result_json.get("arbitration") or {})
+        if arbitration_payload:
+            self.append_memory_event(
+                job.user_id,
+                source_feature="heartbeat",
+                source_id=job.job_id,
+                source_bot_id=job.bot_id,
+                memory_kind="heartbeat_arbitration",
+                payload_json={
+                    "job_id": job.job_id,
+                    "winner_job_id": arbitration_payload.get("winner_job_id"),
+                    "winner_bot_id": arbitration_payload.get("winner_bot_id"),
+                    "suppressed_bot_ids": list(arbitration_payload.get("suppressed_bot_ids") or []),
+                    "reasons": list(arbitration_payload.get("reasons") or []),
+                    "decisions": list(arbitration_payload.get("decisions") or []),
+                    "recorded_at": normalized_result_json.get("recorded_at") or _iso_now(),
+                },
+                dedupe_key=(
+                    f"heartbeat-arbitration:{job.job_id}:"
+                    f"{arbitration_payload.get('winner_job_id') or 'none'}:"
+                    f"{normalized_result_json.get('recorded_at') or _iso_now()}"
+                ),
+            )
+        return job
+
+    def _enqueue_learning_plan_page_sync(
+        self,
+        *,
+        user_id: str,
+        page: LearningPlanPageRecord,
+        source_bot_id: str | None = None,
+    ) -> None:
+        generated_at = str(page.generated_at or _iso_now()).strip()
+        dedupe_key = f"learning-plan-page:{page.plan_id}:{page.page_index}:{page.page_status}:{generated_at}"
+        self._outbox_service.enqueue(
+            id=dedupe_key,
+            user_id=user_id,
+            event_type="learning_plan_page",
+            payload_json={
+                "plan_id": page.plan_id,
+                "page_index": page.page_index,
+                "page_status": page.page_status,
+                "html_content": page.html_content,
+                "error_message": page.error_message,
+                "generated_at": generated_at,
+                "updated_at": generated_at,
+                "source_feature": "guide",
+                "source_id": page.plan_id,
+                "source_bot_id": str(source_bot_id or "").strip() or None,
+                "memory_kind": "learning_plan_page",
+            },
+            dedupe_key=dedupe_key,
+        )
+
+    def _enqueue_heartbeat_job_sync(self, job: LearnerHeartbeatJob) -> None:
+        updated_at = _timestamp_to_iso(job.updated_at) or _iso_now()
+        dedupe_key = f"heartbeat-job:{job.job_id}:{updated_at}"
+        self._outbox_service.enqueue(
+            id=dedupe_key,
+            user_id=job.user_id,
+            event_type="heartbeat_job",
+            payload_json={
+                "job_id": job.job_id,
+                "source_feature": "heartbeat_job",
+                "source_id": job.job_id,
+                "source_bot_id": job.bot_id,
+                "memory_kind": "heartbeat_job",
+                "status": job.status,
+                "failure_count": int(job.failure_count),
+                "next_run_at": _timestamp_to_iso(job.next_run_at),
+                "last_run_at": _timestamp_to_iso(job.last_run_at),
+                "last_result_json": dict(job.last_result_json or {}),
+                "updated_at": updated_at,
+            },
+            dedupe_key=dedupe_key,
+        )
+
+    async def record_guide_completion(
+        self,
+        *,
+        user_id: str,
+        guide_id: str,
+        notebook_name: str,
+        summary: str,
+        knowledge_points: list[dict[str, Any]] | None = None,
+        source_bot_id: str | None = None,
+    ) -> LearnerStateEvent:
+        normalized = _normalize_user_id(user_id)
+        normalized_points = [
+            {
+                "knowledge_title": str(point.get("knowledge_title", "") or "").strip(),
+                "knowledge_summary": str(point.get("knowledge_summary", "") or "").strip(),
+                "user_difficulty": str(point.get("user_difficulty", "") or "").strip(),
+            }
+            for point in (knowledge_points or [])
+            if isinstance(point, dict)
+        ]
+        async with self._safe_lock(normalized):
+            progress = self.read_progress(normalized)
+            progress_patch = _build_guide_completion_progress_patch(
+                progress,
+                guide_id=guide_id,
+                knowledge_points=normalized_points,
+            )
+            if progress_patch:
+                if bool(getattr(self._core_store, "is_configured", False)):
+                    self.merge_progress_strict(normalized, progress_patch)
+                else:
+                    self.merge_progress(normalized, progress_patch)
+                profile_patch = _build_guide_completion_profile_patch(
+                    self.read_profile(normalized),
+                    notebook_name=notebook_name,
+                    knowledge_points=normalized_points,
+                )
+                if profile_patch:
+                    self.merge_profile(normalized, profile_patch)
+            current_summary = self.read_summary(normalized)
+            merged_summary = _merge_guide_completion_summary(
+                current_summary,
+                guide_id=guide_id,
+                notebook_name=notebook_name,
+                summary=str(summary or "").strip(),
+                knowledge_points=normalized_points,
+            )
+            if merged_summary != current_summary:
+                self.write_summary(normalized, merged_summary)
+            return self.record_guide_event(
+                user_id=normalized,
+                guide_id=guide_id,
+                source_bot_id=source_bot_id,
+                memory_kind="guide_completion",
+                payload_json={
+                    "guide_id": guide_id,
+                    "notebook_name": notebook_name,
+                    "summary": str(summary or "").strip(),
+                    "total_points": len(normalized_points),
+                    "knowledge_points": normalized_points,
+                },
+            )
+
+    async def record_notebook_writeback(
+        self,
+        *,
+        user_id: str,
+        notebook_id: str,
+        record_id: str,
+        operation: str,
+        title: str,
+        summary: str,
+        user_query: str,
+        record_type: str,
+        kb_name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        source_bot_id: str | None = None,
+    ) -> LearnerStateEvent:
+        normalized = _normalize_user_id(user_id)
+        async with self._safe_lock(normalized):
+            return self.record_notebook_event(
+                user_id=normalized,
+                notebook_id=notebook_id,
+                source_bot_id=source_bot_id,
+                memory_kind=f"notebook_{operation}",
+                payload_json={
+                    "notebook_id": notebook_id,
+                    "record_id": record_id,
+                    "operation": operation,
+                    "record_type": record_type,
+                    "title": title,
+                    "summary": summary,
+                    "user_query": user_query,
+                    "kb_name": kb_name,
+                    "metadata": dict(metadata or {}),
+                },
+            )
+
+    def read_snapshot(self, user_id: str, *, event_limit: int = 5) -> LearnerStateSnapshot:
+        normalized = _normalize_user_id(user_id)
+        self._ensure_seed_state(normalized)
+        return LearnerStateSnapshot(
+            user_id=normalized,
+            profile=self._read_profile_raw(normalized),
+            summary=self._read_summary_raw(normalized),
+            progress=self._read_progress_raw(normalized),
+            memory_events=self._list_memory_events_raw(
+                normalized,
+                limit=event_limit,
+            ),
+            profile_updated_at=self._file_updated_at(normalized, "profile"),
+            summary_updated_at=self._file_updated_at(normalized, "summary"),
+            progress_updated_at=self._file_updated_at(normalized, "progress"),
+            memory_events_updated_at=self._file_updated_at(normalized, "events"),
+        )
+
+    def build_context(
+        self,
+        user_id: str,
+        *,
+        language: str = "zh",
+        max_chars: int = 5000,
+    ) -> str:
+        snapshot = self.read_snapshot(user_id)
+        parts: list[str] = []
+
+        profile_text = self.render_profile_markdown(snapshot.profile, language=language)
+        if profile_text:
+            parts.append(f"### Student Profile\n{profile_text}")
+
+        summary_text = snapshot.summary.strip()
+        if summary_text:
+            parts.append(f"### Learner Summary\n{summary_text}")
+
+        progress_text = self.render_progress_markdown(snapshot.progress, language=language)
+        if progress_text:
+            parts.append(f"### Learner Progress\n{progress_text}")
+
+        goals_text = self.render_goals_markdown(self.read_goals(user_id), language=language)
+        if goals_text:
+            parts.append(f"### Learner Goals\n{goals_text}")
+
+        events_text = self.render_events_markdown(snapshot.memory_events, language=language)
+        if events_text:
+            parts.append(f"### Recent Memory Events\n{events_text}")
+
+        if not parts:
+            return ""
+
+        combined = "\n\n".join(parts)
+        if len(combined) > max_chars:
+            combined = combined[:max_chars].rstrip() + "\n...[truncated]"
+
+        if str(language).lower().startswith("zh"):
+            return (
+                "## 学员级长期状态\n"
+                "以下内容属于当前学员的长期状态真相，按需使用，不要外溢到其他学员。\n\n"
+                f"{combined}"
+            )
+        return (
+            "## Learner State\n"
+            "This is the authoritative long-term state for the current learner only.\n\n"
+            f"{combined}"
+        )
+
+    def build_compact_context(
+        self,
+        user_id: str,
+        *,
+        language: str = "zh",
+        max_chars: int = 1400,
+    ) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        profile = self._read_profile_raw(normalized)
+        summary = self._read_summary_raw(normalized)
+        progress = self._read_progress_raw(normalized)
+        if not profile or not summary.strip() or not progress:
+            self._ensure_seed_state(normalized)
+            profile = self._read_profile_raw(normalized)
+            summary = self._read_summary_raw(normalized)
+            progress = self._read_progress_raw(normalized)
+        segments = [
+            self._compact_profile_segment(profile, language=language),
+            self._compact_summary_segment(summary, language=language),
+            self._compact_progress_segment(progress, language=language),
+            self._compact_goals_segment(self.read_goals(normalized), language=language),
+        ]
+        segments = [segment for segment in segments if segment.get("content")]
+        return {
+            "user_id": normalized,
+            "language": language,
+            "budget_chars": max_chars,
+            "source_tags": [str(segment.get("source_tag", "")) for segment in segments],
+            "segments": segments,
+            "content": self._render_compact_segments(segments, language=language, max_chars=max_chars),
+        }
+
+    def build_context_candidates(
+        self,
+        user_id: str,
+        *,
+        query: str = "",
+        route: str = "",
+        language: str = "zh",
+        max_memory_hits: int = 5,
+    ) -> dict[str, Any]:
+        normalized = _normalize_user_id(user_id)
+        query_text = str(query or "").strip()
+        route_value = self._normalize_context_route(route=route, query=query_text)
+        compact = self.build_compact_context(normalized, language=language)
+        compiled_learning_truth = self.read_compiled_learning_truth(normalized)
+        learner_candidates = [dict(segment, score=1.0) for segment in list(compact.get("segments") or [])]
+        memory_candidates: list[dict[str, Any]] = []
+        if self._should_include_memory_hits(route_value=route_value, query=query_text):
+            memory_candidates = self._build_memory_hit_candidates(
+                normalized,
+                query=query_text,
+                language=language,
+                max_hits=max_memory_hits,
+            )
+        candidates = learner_candidates + memory_candidates
+        # Grading-to-Brain loop seam: surface the PersonalizationContextPack as a PROJECTION of the SAME
+        # compiled_learning_truth just read (one authority — NOT a second read / second recommender), so
+        # turn_runtime can inject it into the live turn. Degrades to empty claims when no truth exists.
+        # Fail-safe: this runs on EVERY turn — a PCP build error must NOT break context building / lose
+        # compiled_learning_truth; degrade to an empty PCP instead.
+        try:
+            personalization_context = build_personalization_context_pack(
+                user_id=normalized,
+                learning_brain=compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
+            )
+        except Exception as _pcp_exc:  # noqa: BLE001 — PCP is a view projection; never break the turn over it
+            logger.warning(
+                "build_context_candidates: PCP projection failed (%s); degrading to empty",
+                type(_pcp_exc).__name__,
+                exc_info=True,
+            )
+            personalization_context = {
+                "top_claims": [],
+                "next_best_action_candidates": [],
+                "source": "PersonalizationContextPack",
+                "schema_version": 1,
+            }
+        return {
+            "user_id": normalized,
+            "query": query_text,
+            "route": route_value,
+            "compact": compact,
+            "learner_candidates": learner_candidates,
+            "memory_candidates": memory_candidates,
+            "candidates": candidates,
+            "compiled_learning_truth": compiled_learning_truth,
+            "personalization_context": personalization_context,
+        }
+
+    def _summary_gate_decision(
+        self,
+        *,
+        user_id: str,
+        capability: str,
+        events: list[LearnerStateEvent] | None = None,
+    ) -> str:
+        """Battle2 S1-T1 gate: single authority = learner_memory_events ledger +
+        in-process cursor. fail-open: unknown cursor / scan errors -> run.
+
+        The evidence-scan branch is best-effort (commander ruling): correctness is
+        carried by the counter threshold + the guide*/notebook* capability branch;
+        an evidence event that lands after this refresh is picked up on the next
+        turn, bounded by the counter's N-1 substantive-turn staleness cap.
+
+        `events` lets the caller pass a single per-turn read of the local event
+        ledger, shared with `_build_summary_source`, so a substantive turn scans
+        the JSONL once instead of twice. None -> read on demand (unchanged
+        semantics for any standalone call)."""
+        state = self._summary_gate_states.get(user_id)
+        if state is None:
+            return "run_fail_open"  # restart / first sight: run now, rebuild cursor
+        cap = str(capability or "").strip().lower()
+        if cap.startswith("guide") or cap.startswith("notebook"):
+            return "run_capability"  # mirrors _should_skip_turn_writeback's never-skip set
+        if state.turns_since_run + 1 >= _SUMMARY_GATE_TURN_THRESHOLD:
+            return "run_counter"  # staleness cap: N-1 substantive turns PER WORKER (global: workers*(N-1))
+        try:
+            cutoff = _parse_iso(state.last_run_at)  # parse failure -> None -> all new
+            local_events = (
+                self._list_local_memory_events(user_id) if events is None else events
+            )
+            for event in reversed(local_events):
+                created = _parse_iso(event.created_at)
+                if cutoff is not None and created is not None and created <= cutoff:
+                    break
+                if event.memory_kind != "turn":
+                    return "run_evidence"  # grading/progress/learning evidence landed
+        except Exception:
+            return "run_fail_open"
+        return "skip_throttled"
+
+    def _build_summary_source(
+        self,
+        user_id: str,
+        *,
+        session_id: str,
+        capability: str,
+        timestamp: str,
+        language: str,
+        events: list[LearnerStateEvent] | None = None,
+    ) -> str:
+        """Battle2 S1-T2: compact summary-maintainer source (~4-5k tokens vs. the old
+        ~10k full-JSON dump). Reuses the existing compact segment renderers (single
+        rendering authority — no second renderer) and feeds the turn backlog accrued
+        since the last gate run instead of only the current turn.
+
+        `events` lets the caller pass the same per-turn read of the local event
+        ledger already consumed by `_summary_gate_decision`, so the turn scans the
+        JSONL once. None -> read on demand (unchanged standalone semantics)."""
+        profile = self._compact_profile_segment(self._read_profile_raw(user_id), language=language).get("content") or ""
+        progress = self._compact_progress_segment(self._read_progress_raw(user_id), language=language).get("content") or ""
+        state = self._summary_gate_states.get(user_id)
+        cutoff = _parse_iso(getattr(state, "last_run_at", "") or "") or _parse_iso(
+            self._file_updated_at(user_id, "summary") or ""
+        )
+        # [-8:] is the hard cap: a stale mtime fallback cutoff (restart during a long
+        # NO_CHANGE stretch — mtime does not move on NO_CHANGE) re-feeds at most 8
+        # old turns; unparseable timestamps count as new material (fail-open).
+        local_events = (
+            self._list_local_memory_events(user_id) if events is None else events
+        )
+        turns = [
+            event
+            for event in local_events
+            if event.memory_kind == "turn"
+            and (
+                cutoff is None
+                or (created := _parse_iso(event.created_at)) is None
+                or created > cutoff
+            )
+        ][-8:]
+        blocks: list[str] = []
+        for index, event in enumerate(turns):
+            payload = dict(event.payload_json or {})
+            # Current turn (recorded just before source build) gets the large budget;
+            # backlog turns get the small one — durable signal sits in the early text.
+            last = index == len(turns) - 1
+            user_text = str(payload.get("user_message") or "")[: (1000 if last else 240)]
+            assistant_text = str(payload.get("assistant_message") or "")[: (2000 if last else 320)]
+            blocks.append(f"[User]\n{user_text}\n[Assistant]\n{assistant_text}")
+        return (
+            f"[学员画像(压缩)]\n{profile}\n\n"
+            f"[学习进度(压缩)]\n{progress}\n\n"
+            f"[Session] {session_id or '(unknown)'}\n"
+            f"[Capability] {capability or 'chat'}\n"
+            f"[Timestamp] {timestamp or _iso_now()}\n\n"
+            "[自上次维护以来的对话增量]\n\n" + "\n\n".join(blocks)
+        )
+
+    async def refresh_from_turn(
+        self,
+        *,
+        user_id: str,
+        user_message: str,
+        assistant_message: str,
+        session_id: str = "",
+        capability: str = "",
+        language: str = "zh",
+        timestamp: str = "",
+        source_bot_id: str | None = None,
+    ) -> LearnerStateUpdateResult:
+        normalized = _normalize_user_id(user_id)
+        if not user_message.strip() or not assistant_message.strip():
+            summary = self.read_summary(normalized)
+            return LearnerStateUpdateResult(
+                content=summary,
+                changed=False,
+                updated_at=self._latest_updated_at(normalized),
+            )
+        if _should_skip_turn_writeback(
+            user_message=user_message,
+            assistant_message=assistant_message,
+            capability=capability,
+        ):
+            summary = self.read_summary(normalized)
             return LearnerStateUpdateResult(
                 content=summary,
                 changed=False,

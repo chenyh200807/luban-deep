@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 30445)
-Total output lines: 3090
-
 from __future__ import annotations
 
 import asyncio
@@ -1561,7 +1558,52 @@ def test_luban_retest_dedupe_has_stable_event_identity_across_service_instances(
     service_b = _make_service(tmp_path / "worker-b")
     kwargs = {
         "source_feature": "assessment_testset",
-        "source…445 tokens truncated…arning_truth"
+        "source_id": "completion-1:F16-v1",
+        "memory_kind": "learning_evidence",
+        "payload_json": {
+            "event_type": "learning_evidence",
+            "retest_completion_id": "completion-1",
+            "question_id": "F16-v1",
+        },
+        "dedupe_key": "luban_retest_item:student_demo:completion-1:F16-v1",
+    }
+
+    event_a = service_a.append_memory_event("student_demo", **kwargs)
+    event_b = service_b.append_memory_event("student_demo", **kwargs)
+
+    assert event_a.event_id == event_b.event_id
+
+
+def test_learning_evidence_append_auto_synthesizes_for_enabled_cohort(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED", "1")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+
+    service.append_memory_event(
+        "qa_auto_synthesis_user",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "turn_id": "turn-1",
+            "question_id": "case-1",
+            "question_type": "case",
+            "score_awarded": 0,
+            "max_score": 1,
+            "error_events": [
+                {"error_code": "E02", "concept_tag": "1A431050", "diagnosis": "漏写临时用电组织设计。"}
+            ],
+            "next_training_signal": {"concept": "1A431050", "focus": "施工临时用电"},
+            "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+        },
+        dedupe_key="turn-1",
+    )
+
+    compiled = service.read_compiled_learning_truth("qa_auto_synthesis_user")
+
+    assert compiled["subject"] == "construction_exam_learning_truth"
     assert compiled["observed_candidates"][0]["concept_id"] == "1A431050"
 
 
