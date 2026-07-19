@@ -72,13 +72,12 @@ def build_home_personalization_projection_from_learning_signal(
     payload: dict[str, Any],
     *,
     generated_at: datetime | None = None,
-    llm_topic_inferer: TopicInferer | None = None,
+    llm_topic_inferer: TopicInferer | None = infer_learning_topic_with_llm,
 ) -> dict[str, Any] | None:
-    signal = dict(payload.get("next_training_signal") or {}) if isinstance(payload.get("next_training_signal"), dict) else {}
     error = payload.get("error") if isinstance(payload.get("error"), dict) else {}
     topic = resolve_learning_topic_from_payload(
         payload,
-        llm_topic_inferer=llm_topic_inferer or infer_learning_topic_with_llm,
+        llm_topic_inferer=llm_topic_inferer,
     )
     explicit_label = _explicit_concept_label(payload)
     fallback_label = _fallback_concept_label_from_payload(payload)
@@ -512,6 +511,11 @@ def _projection_from_recent_learning_events(
         projection = build_home_personalization_projection_from_learning_signal(
             payload,
             generated_at=generated_at,
+            # A dashboard read may only project persisted evidence. Semantic
+            # inference belongs to the evidence write path; replaying LLM
+            # classification for every historical event makes GET latency and
+            # truth depend on a second, non-persisted authority.
+            llm_topic_inferer=None,
         )
         if is_canonical_home_personalization_projection(projection):
             return projection
