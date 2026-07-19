@@ -7,6 +7,33 @@ var PENDING_EVENTS_STORAGE_KEY = "deeptutor_surface_telemetry_pending_v1";
 var pendingEvents = null;
 var inFlightEventIds = {};
 
+// 投递背压（2026-07-19）：旧实现每次 track 全量重放 pending 队列且失败无退避，
+// 网络故障时单次 track 放大成最多 21 个请求，吃满 wx.request 10 并发槽位，
+// 饿死 lessons/dashboard 等业务请求（练习返回页白屏事故）。
+// 连续失败 >=2 次后指数退避；退避窗口内 track 只入队不发网。
+var BACKOFF_ACTIVATE_AFTER_FAILURES = 2;
+var BACKOFF_BASE_MS = 2000;
+var BACKOFF_MAX_MS = 60000;
+var consecutiveDeliveryFailures = 0;
+var deliveryBackoffUntilMs = 0;
+
+function registerDeliveryFailure() {
+  consecutiveDeliveryFailures += 1;
+  if (consecutiveDeliveryFailures >= BACKOFF_ACTIVATE_AFTER_FAILURES) {
+    var exponent = Math.min(
+      consecutiveDeliveryFailures - BACKOFF_ACTIVATE_AFTER_FAILURES,
+      5,
+    );
+    var delayMs = Math.min(BACKOFF_BASE_MS * Math.pow(2, exponent), BACKOFF_MAX_MS);
+    deliveryBackoffUntilMs = Date.now() + delayMs;
+  }
+}
+
+function registerDeliverySuccess() {
+  consecutiveDeliveryFailures = 0;
+  deliveryBackoffUntilMs = 0;
+}
+
 function currentOwnerId() {
   try {
     return String((auth && auth.getUserId && auth.getUserId()) || "").trim();
@@ -100,14 +127,36 @@ function deliverEvent(event, token) {
       },
       success: function (response) {
         delete inFlightEventIds[event.eventId];
+        var statusCode = (response && response.statusCode) || 0;
+        if (statusCode >= 400) {
+          var retryable =
+            statusCode === 401 ||
+            statusCode === 408 ||
+            statusCode === 429 ||
+            statusCode >= 500;
+          if (retryable) {
+            // 401=token 过期等新 token；429/5xx=服务端暂时不可用。保留在队列并退避。
+            registerDeliveryFailure();
+            return;
+          }
+          // 服务端明确终结拒收（400/403/422 等）：重发同一载荷无意义，
+          // 必须出队——否则事件永不出队，队列涨满后放大后续所有 track。
+          registerDeliverySuccess();
+          acknowledgePendingEvent(event.eventId);
+          return;
+        }
         var body = (response && response.data) || {};
         var durableFailure = body.product_behavior_status === "persistence_failed";
         if (!durableFailure && (body.accepted === true || body.status === "duplicate")) {
+          registerDeliverySuccess();
           acknowledgePendingEvent(event.eventId);
+          return;
         }
+        registerDeliveryFailure();
       },
       fail: function () {
         delete inFlightEventIds[event.eventId];
+        registerDeliveryFailure();
         persistPendingEvents();
       },
     });
@@ -141,6 +190,11 @@ function track(eventName, payload) {
   var event = buildEvent(eventName, data, Date.now());
   var token = auth.getToken();
   if (!token) {
+    enqueuePendingEvent(event);
+    return;
+  }
+  if (Date.now() < deliveryBackoffUntilMs) {
+    // 退避窗口内只入队不发网，把并发槽位让给业务请求。
     enqueuePendingEvent(event);
     return;
   }
