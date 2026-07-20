@@ -156,26 +156,7 @@
               <text class="rt-receipt-slash">/ {{total}}</text>
             </view>
           </view>
-          <view class="rt-receipt-rows">
-            <view class="rt-receipt-row">
-              <text class="rt-receipt-k">记录状态</text>
-              <text class="rt-receipt-v">{{receiptSyncText}}</text>
-            </view>
-            <view class="rt-receipt-row">
-              <text class="rt-receipt-k">学习状态</text>
-              <text class="rt-receipt-v">{{receiptStateText}}</text>
-            </view>
-            <view class="rt-receipt-row">
-              <text class="rt-receipt-k">考法覆盖</text>
-              <text class="rt-receipt-v">{{ruleGroupCount}} 种考法各来了一题</text>
-            </view>
-            <view class="rt-receipt-row" wx:if="{{textbookCount}}">
-              <text class="rt-receipt-k">教材原文</text>
-              <text class="rt-receipt-v">翻出 {{textbookCount}} 句阅卷认的原文</text>
-            </view>
-          </view>
-
-          <!-- 错题再看一眼(签发门道逐字, 不复述你的错) · 结构化裁决卡 -->
+          <!-- 错题再看一眼(签发门道逐字, 不复述你的错) · 结构化裁决卡(紧贴比分,先看门道再看统计) -->
           <view class="rt-review-list" wx:if="{{wrongItems.length}}">
             <text class="rt-review-label">这 {{wrongItems.length}} 道错题已写入学习证据，先把门道看清</text>
             <view class="rt-vcard warm" wx:for="{{wrongItems}}" wx:key="key">
@@ -212,6 +193,25 @@
                   </view>
                 </view>
               </view>
+            </view>
+          </view>
+
+          <view class="rt-receipt-rows">
+            <view class="rt-receipt-row">
+              <text class="rt-receipt-k">记录状态</text>
+              <text class="rt-receipt-v">{{receiptSyncText}}</text>
+            </view>
+            <view class="rt-receipt-row">
+              <text class="rt-receipt-k">学习状态</text>
+              <text class="rt-receipt-v">{{receiptStateText}}</text>
+            </view>
+            <view class="rt-receipt-row">
+              <text class="rt-receipt-k">考法覆盖</text>
+              <text class="rt-receipt-v">{{ruleGroupCount}} 种考法各来了一题</text>
+            </view>
+            <view class="rt-receipt-row" wx:if="{{textbookCount}}">
+              <text class="rt-receipt-k">教材原文</text>
+              <text class="rt-receipt-v">翻出 {{textbookCount}} 句阅卷认的原文</text>
             </view>
           </view>
 
