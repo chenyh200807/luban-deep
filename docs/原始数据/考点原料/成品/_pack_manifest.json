@@ -20,7 +20,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "a01.practice.authority.json",
-    "authority_sha256": "e81380e66425e7a9ed6185bc1b2138e07f11463220741b078a9c283f1a95e44a",
+    "authority_sha256": "1de8a2cfb37f52517ced9e170e98574dc65d23bce44eea20ac90858c1d8f5c92",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
