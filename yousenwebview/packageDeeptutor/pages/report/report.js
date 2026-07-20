@@ -1238,6 +1238,22 @@ Page({
       cells: [],
       counts: { stable: 0, watch: 0, reverify: 0, unlearned: 0, blue: 0 },
     },
+    // 掌握地图点格 → 该站六步进展全景(内联展开面板)。数据全部来自
+    // station_journey_projection(read model),经共用 buildStationJourneyPanorama
+    // 严格校验;缺 pack/校验不过 → ready=false 只显中性占位,前端零阶段推断。
+    stationJourneyPanel: {
+      open: false,
+      packId: "",
+      title: "",
+      stateLabel: "",
+      green: false,
+      ready: false,
+      placeholder: "",
+      statusText: "",
+      journeyState: "",
+      steps: [],
+      foot: "",
+    },
     // 风险档位词(非精确百分比)+ 主要差距 + 方向性趋势(不画假曲线)
     riskGearLabel: "待评估",
     riskGearTone: "none",
@@ -1762,7 +1778,9 @@ Page({
     this.setData({ diagFoldOpen: !this.data.diagFoldOpen });
   },
 
-  // 掌握地图点格深链:绿灯站回学习页对应站;未开通站如实说,不装可点
+  // 掌握地图点格 → 内联展开该站六步进展全景(与页面既有 toggle 折叠交互一致)。
+  // 六步全部来自服务端 station_journey_projection,经共用校验器投影;缺 pack/
+  // 校验不过只显中性占位,绝不猜阶段。green 站深链能力保留在面板内的「去这一站」。
   openMasteryCell(event) {
     var ds =
       event && event.currentTarget && event.currentTarget.dataset
@@ -1771,10 +1789,62 @@ Page({
     var packId = String(ds.packId || "").trim();
     if (!packId) return;
     helpers.vibrate("light");
-    if (!ds.green) {
-      wx.showToast({ title: "这一站即将开通", icon: "none", duration: 1400 });
+    var normalized = packId.toUpperCase();
+    var panel = this.data.stationJourneyPanel || {};
+    // 再点同一格 = 收起(toggle 语义,与 toggleDiagFold/toggleMasteryGroup 一致)。
+    if (panel.open && panel.packId === normalized) {
+      this.setData({ "stationJourneyPanel.open": false });
       return;
     }
+    var report =
+      (this._reportSnapshot && this._reportSnapshot.report) || {};
+    var panorama =
+      typeof reportViewModel.buildStationJourneyPanorama === "function"
+        ? reportViewModel.buildStationJourneyPanorama(report, normalized)
+        : null;
+    // view-model 缺席(旧构建产物)时也不猜:退回中性占位,不渲染假六步。
+    if (!panorama) {
+      panorama = {
+        packId: normalized,
+        ready: false,
+        placeholder: "正在核对服务端学习记录",
+        statusText: "",
+        journeyState: "",
+        steps: [],
+        foot: "",
+      };
+    }
+    this.setData({
+      stationJourneyPanel: {
+        open: true,
+        packId: panorama.packId,
+        title: String(ds.title || ""),
+        stateLabel: String(ds.stateLabel || ""),
+        green: ds.green === true || ds.green === "true",
+        ready: panorama.ready === true,
+        placeholder: panorama.placeholder,
+        statusText: panorama.statusText,
+        journeyState: panorama.journeyState,
+        steps: panorama.steps,
+        foot: panorama.foot,
+      },
+    });
+  },
+
+  // 收起六步全景面板(面板关闭键/遮罩)。
+  closeStationJourney() {
+    if (!(this.data.stationJourneyPanel && this.data.stationJourneyPanel.open))
+      return;
+    helpers.vibrate("light");
+    this.setData({ "stationJourneyPanel.open": false });
+  },
+
+  // 面板内深链:仅 green 站可跳到对应学习站,保留原掌握地图深链能力。
+  goStationFromPanorama() {
+    var panel = this.data.stationJourneyPanel || {};
+    var packId = String(panel.packId || "").trim();
+    if (!packId || !panel.green) return;
+    helpers.vibrate("light");
     wx.navigateTo({
       url:
         "/packageDeeptutor/pages/luban/station/station?pack_id=" +

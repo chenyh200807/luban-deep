@@ -59,7 +59,7 @@ assert(
 );
 assert(
   reportWxml.indexOf("先看结论 · 想深入再点开") >= 0 &&
-    reportWxml.indexOf("点任意格 · 深链学习站") >= 0,
+    reportWxml.indexOf("点任意格 · 看六步进展") >= 0,
   "report 10e diagnosis sheet should explain its read-then-drill affordances (header + map cell hint)",
 );
 

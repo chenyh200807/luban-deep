@@ -180,8 +180,15 @@ forbiddenWords.forEach(function (word) {
 // ── 数据读取:复用既有 API,pack_lifecycle 全景接入 ───────────
 assertIncludes(reportSource, "api.getLubanLessons", "map deep-link metadata should reuse the existing lessons API");
 assertIncludes(reportSource, "buildPackMasteryMap", "report page should hydrate the mastery map from the shared projection");
-assertIncludes(reportSource, "openMasteryCell", "report page should implement the cell deep link");
-assertIncludes(reportSource, "这一站即将开通", "non-green stations should get an honest toast instead of a broken link");
+assertIncludes(reportSource, "openMasteryCell", "report page should implement the cell tap → six-step panorama");
+// 点格 → 内联展开该站六步进展全景(单一权威 stationJourneyFor 校验);
+// 深链降级为面板内的绿灯专属 CTA,non-green 由 panel.green 门拦住,绝不产生死链。
+assertIncludes(reportSource, "buildStationJourneyPanorama", "cell tap must consume the shared per-station six-step derivation");
+assertIncludes(reportSource, "stationJourneyPanel", "cell tap must open the inline six-step panorama panel");
+assertIncludes(reportSource, "panel.green", "station deep-link must be gated on green so non-green never yields a broken link");
+assertIncludes(reportWxml, "lr-sjp-steps", "report wxml must render the inline six-step track");
+assertIncludes(viewModelSource, "正在核对服务端学习记录", "missing/degraded projection must derive a neutral placeholder, never a guessed stage");
+assertIncludes(reportWxml, "{{stationJourneyPanel.placeholder}}", "wxml must render the neutral placeholder when the panorama is not ready");
 
 // ── 保留的深入页与证据链契约(旧断言仍然成立的部分) ─────────
 assertIncludes(reportWxml, "真实作答证据", "attempt evidence cards should stay in the evidence detail");

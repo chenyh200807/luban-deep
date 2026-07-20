@@ -2763,6 +2763,111 @@
   color: var(--pk-t3);
 }
 
+/* 选中格:朱笔描边点缀,标出当前展开的是哪一站(纸墨主题,不引入新色系) */
+.lr-cell--active {
+  box-shadow: 0 0 0 3rpx var(--pk-accent-border, rgba(180, 92, 74, 0.55));
+}
+
+/* ── 每站六步进展全景(点格内联展开;六步语义复用学习页 journey 轨) ── */
+.lr-sjp {
+  margin-top: 6rpx;
+  border-radius: 20rpx;
+  background: rgba(38, 36, 31, 0.025);
+  border: 1rpx solid var(--pk-bd);
+  padding: 20rpx 22rpx 18rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+.report-page.paper:not(.light) .lr-sjp { background: rgba(255, 255, 255, 0.03); }
+.lr-sjp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+.lr-sjp-titles { display: flex; align-items: baseline; gap: 12rpx; min-width: 0; }
+.lr-sjp-pack {
+  font-size: 27rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lr-sjp-state { font-size: 22rpx; font-weight: 700; color: var(--pk-t3); flex-shrink: 0; }
+.lr-sjp-close {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-grn);
+  flex-shrink: 0;
+  padding: 4rpx 6rpx;
+}
+.lr-sjp-status { font-size: 23rpx; font-weight: 700; color: var(--pk-grn); }
+.lr-sjp-track { position: relative; }
+/* 轨道底线只表达六步次序,不表达完成比例;逐步状态来自服务端 projection */
+.lr-sjp-line {
+  position: absolute;
+  left: 8.33%;
+  right: 8.33%;
+  top: 15rpx;
+  height: 4rpx;
+  background: var(--pk-gauge);
+  border-radius: 2rpx;
+}
+.lr-sjp-steps { position: relative; display: flex; }
+.lr-sjp-step {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+}
+.lr-sjp-node {
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* current=墨色高亮;done/promise/future/not-needed/unavailable 只投影服务端状态 */
+.lr-sjp-node--current {
+  background: var(--pk-ink-btn);
+  box-shadow: 0 0 0 7rpx rgba(38, 36, 31, 0.09), 0 6rpx 15rpx rgba(38, 36, 31, 0.25);
+}
+.lr-sjp-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--pk-ink-btn-t); }
+.lr-sjp-node--done { background: var(--pk-grn); border: 3rpx solid var(--pk-grn); }
+.lr-sjp-node--not-needed { background: rgba(72, 128, 106, 0.06); border: 3rpx solid rgba(72, 128, 106, 0.4); }
+.lr-sjp-node--unavailable { background: var(--pk-card); border: 3rpx double var(--pk-t3); opacity: 0.58; }
+.lr-sjp-node--future { background: var(--pk-card); border: 3rpx solid var(--pk-bd); }
+/* promise(到期验证/后续抽查)=竹青虚环 = 系统的承诺(周期由服务端 due 裁决) */
+.lr-sjp-node--promise { background: rgba(72, 128, 106, 0.06); border: 3rpx dashed rgba(72, 128, 106, 0.55); }
+/* 步名 20rpx:6 列空间约束,与学习页 journey 同一 owner 审定例外(低于 24rpx 下限) */
+.lr-sjp-label { font-size: 20rpx; letter-spacing: 0.5rpx; line-height: 1.3; text-align: center; white-space: nowrap; }
+.lr-sjp-label--current { font-weight: 800; color: var(--pk-t1); }
+.lr-sjp-label--done { font-weight: 800; color: var(--pk-grn); }
+.lr-sjp-label--not-needed { font-weight: 700; color: var(--pk-grn); opacity: 0.72; }
+.lr-sjp-label--unavailable { font-weight: 700; color: var(--pk-t3); opacity: 0.65; }
+.lr-sjp-label--future { font-weight: 700; color: var(--pk-t3); }
+.lr-sjp-label--promise { font-weight: 700; color: var(--pk-grn); }
+.lr-sjp-note { margin-top: -6rpx; font-size: 17rpx; line-height: 1; white-space: nowrap; }
+.lr-sjp-note--not-needed { color: var(--pk-grn); }
+.lr-sjp-note--unavailable { color: var(--pk-t3); }
+.lr-sjp-foot { font-size: 23rpx; line-height: 1.6; color: var(--pk-t3); text-align: center; }
+.lr-sjp-placeholder { font-size: 24rpx; line-height: 1.6; color: var(--pk-t3); text-align: center; }
+.lr-sjp-cta {
+  align-self: center;
+  padding: 10rpx 26rpx;
+  border-radius: 999rpx;
+  background: var(--pk-ink-btn);
+  color: var(--pk-ink-btn-t);
+  font-size: 25rpx;
+  font-weight: 800;
+}
+
 /* ── ④ 趋势(方向性描述,不画假曲线) ── */
 .lr-trend-text {
   font-size: 26rpx;

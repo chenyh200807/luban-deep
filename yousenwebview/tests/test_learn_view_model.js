@@ -1160,4 +1160,40 @@ ok("browse absent when there is no station at all (empty inputs stay honest)", (
   assert.strictEqual(vm.taskCard, null);
 });
 
+// ── 六步旅程校验收权到共享 util:learn 页与学情页单一权威(禁第二套校验)。 ──
+const stationJourney = require("../packageDeeptutor/utils/station-journey");
+
+ok("station-journey is the single shared authority learn consumes (no second validator)", () => {
+  // learn 页 nextStation.journey 必须逐字段等于共享 stationJourneyFor 的输出。
+  const vm = buildLearnViewModel(FULL);
+  assert.deepStrictEqual(
+    vm.nextStation.journey,
+    stationJourney.stationJourneyFor(FULL.report, "N01"),
+    "learn journey must be exactly the shared validator output — one authority",
+  );
+});
+
+ok("journey fails quiet (never guesses) when the projection is degraded", () => {
+  const degraded = JSON.parse(JSON.stringify(FULL.report));
+  degraded.station_journey.degraded = true;
+  const j = buildLearnViewModel({
+    homeDashboard: FULL.homeDashboard,
+    lessons: FULL.lessons,
+    report: degraded,
+  }).nextStation.journey;
+  assert.strictEqual(j.available, false, "degraded projection must fail closed");
+  assert.strictEqual(j.currentStepId, "", "no current step invented under degrade");
+  // 直接对共享 util 断言,锁定 fail-quiet 契约。
+  assert.strictEqual(stationJourney.stationJourneyFor(degraded, "N01").available, false);
+});
+
+ok("journey fails quiet when the exact pack is absent from the projection", () => {
+  // 投影里没有该 pack(只有 N01),取 A01 必须 unknown,不借别站的进度。
+  assert.strictEqual(stationJourney.stationJourneyFor(FULL.report, "A01").available, false);
+  const j = stationJourney.stationJourneyFor(FULL.report, "A01");
+  assert.strictEqual(j.currentStepId, "");
+  assert.strictEqual(j.steps.length, 6, "still six canonical labels, all unknown/future state");
+  assert.ok(j.steps.every((s) => s.state === "future"), "absent pack shows no fabricated progress");
+});
+
 console.log("\nlearn-view-model: " + passed + " passed");

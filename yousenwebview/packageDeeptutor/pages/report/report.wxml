@@ -85,22 +85,58 @@
       <view class="lr-card lr-map-card">
         <view class="lr-card-head">
           <text class="lr-card-title">掌握地图 · {{masteryMap.packUniverse || 40}} 站全景</text>
-          <text class="lr-card-note">点任意格 · 深链学习站</text>
+          <text class="lr-card-note">点任意格 · 看六步进展</text>
         </view>
         <block wx:if="{{masteryMap.available}}">
           <view class="lr-map-grid">
             <view
               wx:for="{{masteryMap.cells}}"
               wx:key="packId"
-              class="lr-cell lr-cell--{{item.state}}"
+              class="lr-cell lr-cell--{{item.state}} {{stationJourneyPanel.open && stationJourneyPanel.packId === item.packId ? 'lr-cell--active' : ''}}"
               data-pack-id="{{item.packId}}"
               data-green="{{item.green}}"
+              data-title="{{item.title}}"
+              data-state-label="{{item.stateLabel}}"
               bindtap="openMasteryCell"
               aria-role="button"
-              aria-label="{{item.packId}} {{item.stateLabel}}"
+              aria-label="{{item.packId}} {{item.stateLabel}} · 查看六步进展"
             >
               <text wx:if="{{item.blueRing}}" class="lr-cell-bluecheck">✓</text>
             </view>
+          </view>
+
+          <!-- 点格 → 该站六步进展全景(内联展开,与页面折叠交互一致)。
+               六步来自服务端 station_journey_projection,ready=false 时只显中性占位。 -->
+          <view class="lr-sjp" wx:if="{{stationJourneyPanel.open}}">
+            <view class="lr-sjp-head">
+              <view class="lr-sjp-titles">
+                <text class="lr-sjp-pack">{{stationJourneyPanel.title || stationJourneyPanel.packId}}</text>
+                <text class="lr-sjp-state" wx:if="{{stationJourneyPanel.stateLabel}}">{{stationJourneyPanel.stateLabel}}</text>
+              </view>
+              <text class="lr-sjp-close" catchtap="closeStationJourney" aria-role="button" aria-label="收起六步进展">收起</text>
+            </view>
+            <block wx:if="{{stationJourneyPanel.ready}}">
+              <text class="lr-sjp-status">{{stationJourneyPanel.statusText}}</text>
+              <view class="lr-sjp-track">
+                <view class="lr-sjp-line"></view>
+                <view class="lr-sjp-steps">
+                  <view class="lr-sjp-step" wx:for="{{stationJourneyPanel.steps}}" wx:key="id">
+                    <view class="lr-sjp-node lr-sjp-node--{{item.state}}">
+                      <view wx:if="{{item.state === 'current'}}" class="lr-sjp-dot"></view>
+                    </view>
+                    <text class="lr-sjp-label lr-sjp-label--{{item.state}}">{{item.label}}</text>
+                    <text class="lr-sjp-note lr-sjp-note--{{item.state}}" wx:if="{{item.note}}">{{item.note}}</text>
+                  </view>
+                </view>
+              </view>
+              <text class="lr-sjp-foot">{{stationJourneyPanel.foot}}</text>
+              <view class="lr-sjp-cta" wx:if="{{stationJourneyPanel.green}}" catchtap="goStationFromPanorama" hover-class="lr-pressed" aria-role="button" aria-label="去这一站">
+                <text>去这一站 →</text>
+              </view>
+            </block>
+            <block wx:else>
+              <text class="lr-sjp-placeholder">{{stationJourneyPanel.placeholder}}</text>
+            </block>
           </view>
           <view class="lr-map-legend">
             <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--stable"></view><text>稳了 {{masteryMap.counts.stable}}</text></view>
