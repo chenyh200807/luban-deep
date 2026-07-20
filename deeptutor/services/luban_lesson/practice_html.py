@@ -1563,8 +1563,9 @@ def _project_practice_rows(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
     所有对外投影（换题选序与 receipt 桥接）共用本映射，避免第二份题面形状。
     """
-    return [
-        {
+    rows: list[dict[str, Any]] = []
+    for item in items:
+        row: dict[str, Any] = {
             "answer_type": "single_choice",
             "variant_id": item["variant_id"],
             "rule_group": item["rule_group"],
@@ -1582,8 +1583,14 @@ def _project_practice_rows(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "source_sha256": item["source_sha256"],
             "source_html_sha256": item["source_html_sha256"],
         }
-        for item in items
-    ]
+        # figure(可选)= 编译期从成品页绘制代码求值出的题给视觉面板
+        # {label, caption, els, h, w}——呈现层附件, 不入 content_sha256 身份;
+        # 无供给的题(模板分支形态站)缺省, 前端有才渲, 不臆造。
+        figure = item.get("figure")
+        if isinstance(figure, dict) and figure.get("els"):
+            row["figure"] = figure
+        rows.append(row)
+    return rows
 
 
 def compiled_practice_pool_meta(

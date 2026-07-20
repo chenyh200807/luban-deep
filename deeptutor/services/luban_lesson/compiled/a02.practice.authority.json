@@ -121,7 +121,106 @@
         },
         "note": "进场验收=凭证/数量规格/外观/挂牌待检/台账, 教材卡 ca:...150_0241(验收内容,挂牌标识,待检标识)直接覆盖。工单: 正确项最长+固定首位。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
-      "eligible": true
+      "eligible": true,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 6,
+            "w": 150,
+            "h": 22,
+            "bg": "#46627e",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "材料安检门"
+          },
+          {
+            "x": 8,
+            "top": 34,
+            "w": 36,
+            "h": 16,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "凭证"
+          },
+          {
+            "x": 48,
+            "top": 34,
+            "w": 36,
+            "h": 16,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "数量"
+          },
+          {
+            "x": 88,
+            "top": 34,
+            "w": 36,
+            "h": 16,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "规格"
+          },
+          {
+            "x": 128,
+            "top": 34,
+            "w": 36,
+            "h": 16,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "外观"
+          },
+          {
+            "x": 180,
+            "top": 16,
+            "w": 150,
+            "h": 24,
+            "bg": "#cf8a44",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "挂牌 + 收料台账"
+          }
+        ],
+        "h": 56,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -206,7 +305,61 @@
         },
         "note": "涉及安全/节能/环保材料须复验并经监理认可, 教材 kc:...151_0243:0 直引; 干扰项均绝对化错误。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
-      "eligible": true
+      "eligible": true,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 0,
+            "w": 130,
+            "h": 20,
+            "bg": "#23282b",
+            "bd": "1.5px solid #2f6db0",
+            "r": 5,
+            "fg": "#9fc7e0",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "主要材料 · 检验"
+          },
+          {
+            "x": 0,
+            "top": 28,
+            "w": 210,
+            "h": 20,
+            "bg": "#23282b",
+            "bd": "1.5px solid #cf8a44",
+            "r": 5,
+            "fg": "#e0b98a",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "涉安全节能环保 · 复验经监理"
+          },
+          {
+            "x": 0,
+            "top": 56,
+            "w": 150,
+            "h": 20,
+            "bg": "#23282b",
+            "bd": "1.5px solid #2c8a5b",
+            "r": 5,
+            "fg": "#7fbf95",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "关键试块 · 见证检验"
+          }
+        ],
+        "h": 76,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -291,7 +444,106 @@
         },
         "note": "普通钢筋复试五项(屈服/抗拉/伸长率/弯曲/重量偏差), 真题 exam:2016:第17题 解析逐项+kc:...152_0245:0 教材同文。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
-      "eligible": true
+      "eligible": true,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "屈服"
+          },
+          {
+            "x": 54,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "抗拉"
+          },
+          {
+            "x": 108,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "伸长"
+          },
+          {
+            "x": 162,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "弯曲"
+          },
+          {
+            "x": 216,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "重量"
+          },
+          {
+            "x": 0,
+            "top": 0,
+            "w": 120,
+            "h": 10,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#9fc7e0",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "普通钢筋 5 项"
+          }
+        ],
+        "h": 60,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -376,7 +628,106 @@
         },
         "note": "成型钢筋进场可免弯曲性能复验其余四项仍检, 真题 exam:2016:第17题 原题直判(B)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
-      "eligible": true
+      "eligible": true,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "屈服"
+          },
+          {
+            "x": 54,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "抗拉"
+          },
+          {
+            "x": 108,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "伸长"
+          },
+          {
+            "x": 162,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#23282b",
+            "bd": "1.5px dashed #b06a5f",
+            "r": 5,
+            "fg": "#e0a89f",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "弯曲免"
+          },
+          {
+            "x": 216,
+            "top": 8,
+            "w": 52,
+            "h": 44,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "重量"
+          },
+          {
+            "x": 0,
+            "top": 0,
+            "w": 150,
+            "h": 10,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#e0b98a",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "成型钢筋 · 弯曲免检"
+          }
+        ],
+        "h": 60,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -449,7 +800,76 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 8,
+            "w": 62,
+            "h": 40,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "胶砂强度"
+          },
+          {
+            "x": 66,
+            "top": 8,
+            "w": 62,
+            "h": 40,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "氯离子"
+          },
+          {
+            "x": 132,
+            "top": 8,
+            "w": 62,
+            "h": 40,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "安定性"
+          },
+          {
+            "x": 198,
+            "top": 8,
+            "w": 62,
+            "h": 40,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "凝结时间"
+          }
+        ],
+        "h": 52,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -522,7 +942,76 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 14,
+            "w": 64,
+            "h": 24,
+            "bg": "#23282b",
+            "bd": "1.5px solid #37402f",
+            "r": 5,
+            "fg": "#8b9398",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "碎石"
+          },
+          {
+            "x": 72,
+            "top": 14,
+            "w": 64,
+            "h": 24,
+            "bg": "#23282b",
+            "bd": "1.5px solid #37402f",
+            "r": 5,
+            "fg": "#8b9398",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "河砂"
+          },
+          {
+            "x": 144,
+            "top": 14,
+            "w": 78,
+            "h": 24,
+            "bg": "#cf4436",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "外加剂 ?"
+          },
+          {
+            "x": 162,
+            "top": 0,
+            "w": 44,
+            "h": 10,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#cf8a44",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "首检"
+          }
+        ],
+        "h": 52,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -595,7 +1084,76 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 2,
+            "w": 110,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#7fbf95",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "屋面保温材料"
+          },
+          {
+            "x": 0,
+            "top": 22,
+            "w": 72,
+            "h": 24,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "导热系数"
+          },
+          {
+            "x": 78,
+            "top": 22,
+            "w": 56,
+            "h": 24,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "密度"
+          },
+          {
+            "x": 140,
+            "top": 22,
+            "w": 72,
+            "h": 24,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "燃烧性能"
+          }
+        ],
+        "h": 52,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -668,7 +1226,76 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 2,
+            "w": 110,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#9fc7e0",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "墙体保温砌块"
+          },
+          {
+            "x": 0,
+            "top": 22,
+            "w": 72,
+            "h": 24,
+            "bg": "#2f6db0",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "导热系数"
+          },
+          {
+            "x": 78,
+            "top": 22,
+            "w": 64,
+            "h": 24,
+            "bg": "#2f6db0",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "抗压强度"
+          },
+          {
+            "x": 148,
+            "top": 22,
+            "w": 64,
+            "h": 24,
+            "bg": "#2f6db0",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "吸水率"
+          }
+        ],
+        "h": 52,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -741,7 +1368,61 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 0,
+            "w": 150,
+            "h": 22,
+            "bg": "#2f6db0",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "严寒·寒冷区"
+          },
+          {
+            "x": 0,
+            "top": 26,
+            "w": 100,
+            "h": 22,
+            "bg": "#23282b",
+            "bd": "1.5px solid #2f6db0",
+            "r": 5,
+            "fg": "#9fc7e0",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "传热系数"
+          },
+          {
+            "x": 106,
+            "top": 26,
+            "w": 100,
+            "h": 22,
+            "bg": "#23282b",
+            "bd": "1.5px solid #2f6db0",
+            "r": 5,
+            "fg": "#9fc7e0",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "气密性"
+          }
+        ],
+        "h": 58,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -826,7 +1507,76 @@
         },
         "note": "见证人由建设单位(项目监理机构)书面确认, 真题 exam:2017:第13题 B 错项否定直证。三联 immediate_confirm(同见证取样 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
-      "eligible": true
+      "eligible": true,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 8,
+            "w": 70,
+            "h": 36,
+            "bg": "#23282b",
+            "bd": "1.5px solid #2c8a5b",
+            "r": 5,
+            "fg": "#7fbf95",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "建设单位"
+          },
+          {
+            "x": 78,
+            "top": 20,
+            "w": 30,
+            "h": 12,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#cf8a44",
+            "fs": 14,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "→"
+          },
+          {
+            "x": 112,
+            "top": 8,
+            "w": 70,
+            "h": 36,
+            "bg": "#cf8a44",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "确认见证人"
+          },
+          {
+            "x": 190,
+            "top": 8,
+            "w": 48,
+            "h": 36,
+            "bg": "#23282b",
+            "bd": "1.5px dashed #b06a5f",
+            "r": 5,
+            "fg": "#e0a89f",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "监理?"
+          }
+        ],
+        "h": 54,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -899,7 +1649,76 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 8,
+            "w": 70,
+            "h": 36,
+            "bg": "#23282b",
+            "bd": "1.5px solid #cf8a44",
+            "r": 5,
+            "fg": "#e0b98a",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "见证人"
+          },
+          {
+            "x": 78,
+            "top": 20,
+            "w": 30,
+            "h": 12,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#cf8a44",
+            "fs": 14,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "→"
+          },
+          {
+            "x": 112,
+            "top": 8,
+            "w": 78,
+            "h": 36,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "填见证记录"
+          },
+          {
+            "x": 196,
+            "top": 8,
+            "w": 44,
+            "h": 36,
+            "bg": "#23282b",
+            "bd": "1.5px dashed #b06a5f",
+            "r": 5,
+            "fg": "#e0a89f",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "试验员?"
+          }
+        ],
+        "h": 54,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -984,7 +1803,61 @@
         },
         "note": "见证人填写记录/变更书面手续/与备案不符检测机构核实, 真题 exam:2019:第30题 直判; 现场内抽取另由 exam:2017:第13题 支持(复合多源工单)。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
-      "eligible": true
+      "eligible": true,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 2,
+            "w": 236,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#7fbf95",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "① 试样现场内抽取"
+          },
+          {
+            "x": 0,
+            "top": 20,
+            "w": 236,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#e0b98a",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "② 送检前通知见证人"
+          },
+          {
+            "x": 0,
+            "top": 38,
+            "w": 236,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#9fc7e0",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "③ 检测机构核实见证人"
+          }
+        ],
+        "h": 56,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1057,7 +1930,61 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 6,
+            "w": 112,
+            "h": 30,
+            "bg": "transparent",
+            "bd": "1.5px solid #2c8a5b",
+            "r": 5,
+            "fg": "#7fbf95",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "覆盖前·可见✓"
+          },
+          {
+            "x": 126,
+            "top": 6,
+            "w": 112,
+            "h": 30,
+            "bg": "transparent",
+            "bd": "1.5px dashed #b06a5f",
+            "r": 5,
+            "fg": "#e0a89f",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "覆盖后·补验✕"
+          },
+          {
+            "x": 0,
+            "top": 40,
+            "w": 236,
+            "h": 12,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#a8997a",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "隐检记录只在覆盖前那一下成立"
+          }
+        ],
+        "h": 54,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1130,7 +2057,91 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 8,
+            "w": 60,
+            "h": 4,
+            "bg": "#46627e",
+            "bd": "none",
+            "r": 2,
+            "fg": "#cdd2d5",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": ""
+          },
+          {
+            "x": 0,
+            "top": 12,
+            "w": 4,
+            "h": 34,
+            "bg": "#46627e",
+            "bd": "none",
+            "r": 0,
+            "fg": "#cdd2d5",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": ""
+          },
+          {
+            "x": 44,
+            "top": 20,
+            "w": 16,
+            "h": 16,
+            "bg": "transparent",
+            "bd": "2.5px solid #cf4436",
+            "r": 20,
+            "fg": "#cdd2d5",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": ""
+          },
+          {
+            "x": 34,
+            "top": 0,
+            "w": 60,
+            "h": 12,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#cf4436",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "连接点"
+          },
+          {
+            "x": 120,
+            "top": 16,
+            "w": 120,
+            "h": 24,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "必须隐蔽验收"
+          }
+        ],
+        "h": 56,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1203,7 +2214,91 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 0,
+            "w": 64,
+            "h": 88,
+            "bg": "#8a7a5c",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "墙体剖面"
+          },
+          {
+            "x": 74,
+            "top": 0,
+            "w": 150,
+            "h": 18,
+            "bg": "#23282b",
+            "bd": "1px solid #cf8a44",
+            "r": 5,
+            "fg": "#e0b98a",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "① 基层处理"
+          },
+          {
+            "x": 74,
+            "top": 23,
+            "w": 170,
+            "h": 18,
+            "bg": "#23282b",
+            "bd": "1px solid #2c8a5b",
+            "r": 5,
+            "fg": "#7fbf95",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "② 保温材料种类厚度"
+          },
+          {
+            "x": 74,
+            "top": 46,
+            "w": 150,
+            "h": 18,
+            "bg": "#23282b",
+            "bd": "1px solid #cf4436",
+            "r": 5,
+            "fg": "#e0a89f",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "③ 热桥部位处理"
+          },
+          {
+            "x": 74,
+            "top": 69,
+            "w": 120,
+            "h": 18,
+            "bg": "#23282b",
+            "bd": "1px solid #2f6db0",
+            "r": 5,
+            "fg": "#9fc7e0",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "④ 隔汽层"
+          }
+        ],
+        "h": 92,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1276,7 +2371,91 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 0,
+            "w": 236,
+            "h": 18,
+            "bg": "#294a37",
+            "bd": "none",
+            "r": 5,
+            "fg": "#bfe6cf",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "① 同条件养护试件（优先）"
+          },
+          {
+            "x": 20,
+            "top": 19,
+            "w": 60,
+            "h": 8,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#b3a692",
+            "fs": 8,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "▽ 不足"
+          },
+          {
+            "x": 0,
+            "top": 29,
+            "w": 236,
+            "h": 18,
+            "bg": "#4a3d1f",
+            "bd": "none",
+            "r": 5,
+            "fg": "#e0c489",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "② 回弹 + 取芯"
+          },
+          {
+            "x": 20,
+            "top": 48,
+            "w": 60,
+            "h": 8,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#b3a692",
+            "fs": 8,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "▽ 存疑"
+          },
+          {
+            "x": 0,
+            "top": 58,
+            "w": 236,
+            "h": 18,
+            "bg": "#4a221d",
+            "bd": "none",
+            "r": 5,
+            "fg": "#e8a99f",
+            "fs": 9.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "③ 钻芯法 · 有资质第三方"
+          }
+        ],
+        "h": 80,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1349,7 +2528,61 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 12,
+            "w": 74,
+            "h": 26,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "混凝土强度"
+          },
+          {
+            "x": 80,
+            "top": 12,
+            "w": 80,
+            "h": 26,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "钢筋保护层"
+          },
+          {
+            "x": 166,
+            "top": 12,
+            "w": 74,
+            "h": 26,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "位置尺寸偏差"
+          }
+        ],
+        "h": 52,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1422,7 +2655,106 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 20,
+            "w": 70,
+            "h": 34,
+            "bg": "#46627e",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "60t"
+          },
+          {
+            "x": 0,
+            "top": 56,
+            "w": 70,
+            "h": 12,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#9fc7e0",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "原检验批"
+          },
+          {
+            "x": 78,
+            "top": 28,
+            "w": 56,
+            "h": 18,
+            "bg": "#cf4436",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 9,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "扩大→"
+          },
+          {
+            "x": 78,
+            "top": 8,
+            "w": 150,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#e0b98a",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "认证钢筋·连续三批合格"
+          },
+          {
+            "x": 140,
+            "top": 20,
+            "w": 100,
+            "h": 34,
+            "bg": "#46627e",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "120t"
+          },
+          {
+            "x": 140,
+            "top": 56,
+            "w": 100,
+            "h": 12,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#e0a89f",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "抽样减半"
+          }
+        ],
+        "h": 72,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1495,7 +2827,121 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 0,
+            "w": 112,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#7fbf95",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "梁板·简支受弯"
+          },
+          {
+            "x": 6,
+            "top": 30,
+            "w": 100,
+            "h": 8,
+            "bg": "#8a7a5c",
+            "bd": "none",
+            "r": 2,
+            "fg": "#cdd2d5",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": ""
+          },
+          {
+            "x": 0,
+            "top": 44,
+            "w": 112,
+            "h": 16,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "必做结构性能检验"
+          },
+          {
+            "x": 40,
+            "top": 16,
+            "w": 30,
+            "h": 12,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#cf4436",
+            "fs": 12,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "↓"
+          },
+          {
+            "x": 126,
+            "top": 0,
+            "w": 112,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#9fc7e0",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "叠合板·预制底板"
+          },
+          {
+            "x": 132,
+            "top": 32,
+            "w": 100,
+            "h": 6,
+            "bg": "#7d94ab",
+            "bd": "none",
+            "r": 2,
+            "fg": "#cdd2d5",
+            "fs": 10,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": ""
+          },
+          {
+            "x": 126,
+            "top": 44,
+            "w": 112,
+            "h": 16,
+            "bg": "#2f6db0",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "可不做结构性能检验"
+          }
+        ],
+        "h": 70,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1568,7 +3014,91 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 16,
+            "w": 54,
+            "h": 24,
+            "bg": "#23282b",
+            "bd": "1.5px solid #cf8a44",
+            "r": 5,
+            "fg": "#e0b98a",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "申请"
+          },
+          {
+            "x": 60,
+            "top": 16,
+            "w": 54,
+            "h": 24,
+            "bg": "#23282b",
+            "bd": "1.5px solid #cf8a44",
+            "r": 5,
+            "fg": "#e0b98a",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "审批"
+          },
+          {
+            "x": 120,
+            "top": 16,
+            "w": 54,
+            "h": 24,
+            "bg": "#23282b",
+            "bd": "1.5px solid #cf8a44",
+            "r": 5,
+            "fg": "#e0b98a",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "见证退场"
+          },
+          {
+            "x": 180,
+            "top": 16,
+            "w": 54,
+            "h": 24,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 8.5,
+            "fw": "800",
+            "jc": "center",
+            "p": "0 4px",
+            "lab": "记录确认"
+          },
+          {
+            "x": 0,
+            "top": 0,
+            "w": 200,
+            "h": 12,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 5,
+            "fg": "#e0a89f",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 4px",
+            "lab": "不合格材料退场闭环"
+          }
+        ],
+        "h": 56,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1653,7 +3183,61 @@
         },
         "note": "见证取样: 见证人建设单位书面确认+试样现场内抽取, 真题 exam:2017:第13题 正误项直判; 见证记录由见证人员填写另有 exam:2023:案例一 佐证(复合多源工单)。三联 anchor。工单: 正确项远长于干扰项。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
       },
-      "eligible": true
+      "eligible": true,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 0,
+            "w": 238,
+            "h": 16,
+            "bg": "#0d0f11",
+            "bd": "1px solid #2c3236",
+            "r": 5,
+            "fg": "#8b9398",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "答题纸 · 见证取样（哪句能得分？）"
+          },
+          {
+            "x": 0,
+            "top": 22,
+            "w": 238,
+            "h": 16,
+            "bg": "#181b1e",
+            "bd": "1px dashed #37402f",
+            "r": 5,
+            "fg": "#6f787c",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "________________________"
+          },
+          {
+            "x": 0,
+            "top": 42,
+            "w": 238,
+            "h": 16,
+            "bg": "#181b1e",
+            "bd": "1px dashed #37402f",
+            "r": 5,
+            "fg": "#6f787c",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "________________________"
+          }
+        ],
+        "h": 64,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1726,7 +3310,61 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 0,
+            "w": 238,
+            "h": 16,
+            "bg": "#0d0f11",
+            "bd": "1px solid #2c3236",
+            "r": 5,
+            "fg": "#8b9398",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "答题纸 · 钢筋复试（哪句能得分？）"
+          },
+          {
+            "x": 0,
+            "top": 22,
+            "w": 238,
+            "h": 16,
+            "bg": "#181b1e",
+            "bd": "1px dashed #37402f",
+            "r": 5,
+            "fg": "#6f787c",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "________________________"
+          },
+          {
+            "x": 0,
+            "top": 42,
+            "w": 238,
+            "h": 16,
+            "bg": "#181b1e",
+            "bd": "1px dashed #37402f",
+            "r": 5,
+            "fg": "#6f787c",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "________________________"
+          }
+        ],
+        "h": 64,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1799,7 +3437,61 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 0,
+            "w": 238,
+            "h": 16,
+            "bg": "#0d0f11",
+            "bd": "1px solid #2c3236",
+            "r": 5,
+            "fg": "#8b9398",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "答题纸 · 实体强度（哪句能得分？）"
+          },
+          {
+            "x": 0,
+            "top": 22,
+            "w": 238,
+            "h": 16,
+            "bg": "#181b1e",
+            "bd": "1px dashed #37402f",
+            "r": 5,
+            "fg": "#6f787c",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "________________________"
+          },
+          {
+            "x": 0,
+            "top": 42,
+            "w": 238,
+            "h": 16,
+            "bg": "#181b1e",
+            "bd": "1px dashed #37402f",
+            "r": 5,
+            "fg": "#6f787c",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "________________________"
+          }
+        ],
+        "h": 64,
+        "w": 334,
+        "bg": "#23282b"
+      }
     },
     {
       "answer_type": "single_choice",
@@ -1872,7 +3564,61 @@
           "template_leakage_checked": false
         }
       },
-      "eligible": false
+      "eligible": false,
+      "figure": {
+        "label": "",
+        "caption": "",
+        "els": [
+          {
+            "x": 0,
+            "top": 0,
+            "w": 238,
+            "h": 16,
+            "bg": "#0d0f11",
+            "bd": "1px solid #2c3236",
+            "r": 5,
+            "fg": "#8b9398",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "答题纸 · 隐蔽验收（哪句能得分？）"
+          },
+          {
+            "x": 0,
+            "top": 22,
+            "w": 238,
+            "h": 16,
+            "bg": "#181b1e",
+            "bd": "1px dashed #37402f",
+            "r": 5,
+            "fg": "#6f787c",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "________________________"
+          },
+          {
+            "x": 0,
+            "top": 42,
+            "w": 238,
+            "h": 16,
+            "bg": "#181b1e",
+            "bd": "1px dashed #37402f",
+            "r": 5,
+            "fg": "#6f787c",
+            "fs": 9,
+            "fw": "800",
+            "jc": "flex-start",
+            "p": "0 8px",
+            "lab": "________________________"
+          }
+        ],
+        "h": 64,
+        "w": 334,
+        "bg": "#23282b"
+      }
     }
   ],
   "published_lesson_sha256": "4b97b32dcdc7ee15b3035883f2609247f463ce6328f79e4a6a970b61c55201df"
