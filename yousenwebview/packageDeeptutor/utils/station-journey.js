@@ -52,8 +52,9 @@ function _journeyStepHint(status, reason) {
   }
   // 复习模块暂不可用(到期验证/后续抽查降级):记录不丢,别让灰点像"永远不来"
   if (r === "review_projection_unavailable") return "复习安排稍后恢复 · 记录已保留";
-  // 还没到期:服务端 scheduled 排期步无 reason,沿用现有承诺句语义
-  if (_str(status) === "scheduled") return "到期后会出现 · 你只管来";
+  // 还没到期:服务端 scheduled 排期步无 reason。双信息=到期自动出现 + 现在不被挡,
+  // 可以直接继续学下一站(每站独立并行调度,后两格灰点不阻塞学下一站)。
+  if (_str(status) === "scheduled") return "到期自动出现 · 现在可以继续学下一站";
   return "";
 }
 
