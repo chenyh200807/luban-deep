@@ -570,9 +570,24 @@ Overlay 必须支持：
 （display arbitration，register-before-use 显式登记——不是第二练习处方）。
 
 1. 组合规则只存在这一份（`learner_state/home_next_step_projection.py`）：
-   `到期复（revalidation_queue 有 due probe）> 活跃练（training_intent 有
+   `到期复（pack 级到期投影有可兑付 due 条目）> 活跃练（training_intent 有
    active intent 且 target pack 可路由）> 下一学（路线上第一个 未学∧绿灯签发
    的站）> fallback（registry 静态序第一个绿灯站 + 群体理由）`。
+   **到期复候选源单一化（2026-07-20 双权威病收权）**：review_due 臂的候选
+   **唯一**来源 = 复习页同一 pack 级投影
+   （`luban_lesson/review_due.build_review_due_projection`，调度真值仍归
+   `revalidation_queue`）经 `list_redeemable_due_items`
+   （= `resolve_due_review_probe` exact-match 口径，资格判据不复制）过滤后的
+   条目——首页发出的 `source_ref`（probe_id）必然能被复习入口/completion
+   原样兑付，禁发兑付不了的死 CTA。弱点节点 queue
+   （`build_revalidation_queue_projection(learning_state=…)`）**不得**再作为
+   首页 review_due 臂的 decider（它的既有消费面 learning-report 不变）；
+   门控与 `/review-due` 路由同门（`LUBAN_REVIEW_MODULE_ENABLED`，
+   `review_due.review_module_enabled()` 同一 os.getenv 口径），事件读法同路由
+   （全量证据事件，非 snapshot 截断窗），`exam_date` 仍由 member profile 读侧
+   透传。投影不可用 → 臂空 + `skipped_intents` 诊断
+   `review_projection_unavailable`，不遮蔽 learn_next（fail-closed）。
+   不变式：复习页 due 含可兑付条目 ⟺ 首页在无更高优先级臂时必出 review_due。
    **禁前端/各 tab 再拼一次。** 活跃练的「可路由」= caller 传入的
    `green_lessons` read-model 行上 `绿灯 ∧ retest_available`（现有供给真值，
    禁造第二真值；缺字段与停发同形 fail-closed）。解析不出可路由 target 的
@@ -615,9 +630,11 @@ Overlay 必须支持：
    `prescription_outcome_read_model.requires_active_practice()`；其活跃集合为
    `assigned/in_progress/needs_followup`。closed canonical forward terminal 必须投影为
    workflow `completed`（原始 measurement `not_verified` 保持不变），不得再次进入
-   generic practice；`completed/not_verified/verified` 后续均交 `revalidation_queue`，
-   同一份 outcomes 必须同时传入 `revalidation_queue`（已验证抑制，与
-   learning-report 路径同口径）；claims 从 `read_compiled_learning_truth`
+   generic practice；`completed/not_verified/verified` 后续均交 `revalidation_queue`
+   （2026-07-20 起首页不再直调弱点节点 queue——到期复候选见上文第 1 条的
+   pack 级投影单一源，已验证抑制由 `pack_lifecycle_projection` 的
+   `last_review_status`/cycle anchor 语义在同一投影内承担，与复习页同口径）；
+   claims 从 `read_compiled_learning_truth`
    的 `weak_points` 读取（miss 时空列表如实降级，**不**跑在线 dry-run
    合成——此为对上文 cache-miss 回退条款在首页在线路径的显式最小偏离）。
 7. weak_points 聚合保真（同日）：`learning_synthesis` 的 L2 档聚合按

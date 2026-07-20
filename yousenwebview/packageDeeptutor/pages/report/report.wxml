@@ -130,6 +130,10 @@
                 </view>
               </view>
               <text class="lr-sjp-foot">{{stationJourneyPanel.foot}}</text>
+              <!-- 轻练确认重入口:仅服务端投影给出只读 confirm 重入字段时可见(fail-closed)。 -->
+              <view class="lr-sjp-cta" wx:if="{{stationJourneyPanel.confirmEntry.visible}}" catchtap="goConfirmFromPanorama" hover-class="lr-pressed" aria-role="button" aria-label="去确认错题">
+                <text>去确认错题 · 当场弄懂 →</text>
+              </view>
               <view class="lr-sjp-cta" wx:if="{{stationJourneyPanel.green}}" catchtap="goStationFromPanorama" hover-class="lr-pressed" aria-role="button" aria-label="去这一站">
                 <text>去这一站 →</text>
               </view>

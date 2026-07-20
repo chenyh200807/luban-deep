@@ -334,6 +334,75 @@ def test_projection_receipt_drift_still_content_updated_on_unreleased_pack(
         resolve_projection_receipt("N01", reordered_receipt, authority_path=path)
 
 
+def test_figure_is_presentation_attachment_outside_identity_and_projects_through(
+    tmp_path: Path,
+) -> None:
+    """题给图形合同:①不入 content_sha256 身份(签名裁决零触碰);②投影透传
+    {label, caption, els, h, w};③无 figure 的题投影不带键(前端有才渲)。"""
+    compiled = _compiled_n01_surface()
+    baseline = [dict(item) for item in compiled["items"]]
+    figure = {
+        "label": "题给:示例面板",
+        "caption": "看图判断",
+        "els": [{"x": 8, "top": 8, "w": 100, "h": 34, "bg": "#2f6db0", "lab": "示例"}],
+        "h": 96,
+        "w": 334,
+    }
+    first_selected = compiled["surface"]["variant_ids"][0]
+    for item in compiled["items"]:
+        if item["variant_id"] == first_selected:
+            item["figure"] = figure
+    # ① 身份稳定: figure 挂载前后 content_sha256 逐题一致
+    for before, after in zip(baseline, compiled["items"]):
+        assert before["content_sha256"] == after["content_sha256"]
+
+    compiled["surface"]["published_practice_sha256"] = "4" * 64
+    selected_ids = set(compiled["surface"]["variant_ids"])
+    reviews = {}
+    selected = [
+        (index, item)
+        for index, item in enumerate(compiled["items"])
+        if item["variant_id"] in selected_ids
+    ]
+    for selected_index, (index, item) in enumerate(selected):
+        reviews[item["variant_id"]] = _signed_review(
+            item,
+            index,
+            fact_id="N01-fact-triad" if selected_index == 0 else "",
+        )
+    extras = [
+        (index, item)
+        for index, item in enumerate(compiled["items"])
+        if item["variant_id"] not in selected_ids
+    ][:2]
+    for role, (index, item) in zip(("immediate_confirm", "d1_probe"), extras):
+        reviews[item["variant_id"]] = _signed_review(
+            item, index, fact_id="N01-fact-triad", probe_role=role
+        )
+    authority = build_practice_authority(
+        "N01",
+        source_pack_sha256="1" * 64,
+        source_bundle_sha256="2" * 64,
+        compiled_surfaces=[compiled],
+        review_records=reviews,
+    )
+    authority["published_lesson_sha256"] = "3" * 64
+    path = tmp_path / "n01.practice.authority.json"
+    path.write_text(json.dumps(authority, ensure_ascii=False), encoding="utf-8")
+
+    rows = resolve_projection_receipt(
+        "N01", authority["surfaces"][0]["projection_receipt"], authority_path=path
+    )
+    with_figure = [row for row in rows if "figure" in row]
+    # ② 透传: 挂了 figure 的题带完整面板; ③ 其余题不带键
+    assert [row["variant_id"] for row in with_figure] == [first_selected]
+    assert with_figure[0]["figure"] == figure
+    assert all("figure" not in row for row in rows if row["variant_id"] != first_selected)
+    # 答案键红线不因新字段松动
+    for row in rows:
+        assert "is_correct" not in json.dumps(row, ensure_ascii=False)
+
+
 def test_projection_receipt_rejects_legacy_identity() -> None:
     with pytest.raises(PracticeHtmlInvalid, match="content_updated_retake"):
         decode_projection_receipt("1,0,1,0,1")

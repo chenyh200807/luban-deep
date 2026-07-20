@@ -2035,6 +2035,42 @@ function toReportPageData(model) {
 // 掌握地图「按 pack 取六步」派生(学情页每站全景):复用共享 stationJourneyFor
 // 的严格校验——授权/schema/降级/6 步/顺序不过一律 fail-closed。绝不在前端猜阶段。
 // 服务端投影缺该 pack 或校验不过 → available=false + 中性占位「正在核对服务端学习记录」。
+// 轻练确认重入口(服务端投影只读消费):confirm 步透传了 confirm_facts/
+// confirm_anchor(仅 current+safe_confirm_available 时存在)才拼确认会话 URL。
+// 与回执现场 retest.js goConfirmFacts 同一 URL 形状:逐 fact encodeURIComponent
+// 后用字面逗号连接(整串编码会把分隔逗号变 %2C,接收端 split(",") 断链)。
+// retest 页确认会话的服务端 admission 复核不变——这里只是把同一合法入口再指一次。
+// 任何字段缺失/为空 → visible=false(fail-closed,绝不猜)。
+function _confirmReentryFor(steps, packId) {
+  var entry = { visible: false, facts: [], anchor: "", url: "" };
+  for (var i = 0; i < steps.length; i += 1) {
+    var step = steps[i] && typeof steps[i] === "object" ? steps[i] : {};
+    if (String(step.id || "") !== "immediate_confirm") continue;
+    var facts = Array.isArray(step.confirmFacts)
+      ? step.confirmFacts
+          .map(function (fact) { return String(fact == null ? "" : fact).trim(); })
+          .filter(function (fact) { return !!fact; })
+          .slice(0, 5)
+      : [];
+    var anchor = String(step.confirmAnchor == null ? "" : step.confirmAnchor).trim();
+    if (String(step.status || "") !== "current" || !facts.length || !anchor || !packId) {
+      return entry;
+    }
+    entry.visible = true;
+    entry.facts = facts;
+    entry.anchor = anchor;
+    entry.url =
+      "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
+      encodeURIComponent(packId) +
+      "&mode=forward&confirm_facts=" +
+      facts.map(function (fact) { return encodeURIComponent(fact); }).join(",") +
+      "&confirm_anchor=" +
+      encodeURIComponent(anchor);
+    return entry;
+  }
+  return entry;
+}
+
 function buildStationJourneyPanorama(report, packId) {
   var id = String(packId == null ? "" : packId).trim().toUpperCase();
   var journey = stationJourney.stationJourneyFor(report, id);
@@ -2050,6 +2086,10 @@ function buildStationJourneyPanorama(report, packId) {
     currentIndex: journey.currentIndex,
     total: journey.total,
     steps: ready ? journey.steps : [],
+    // 轻练确认重入口:仅就绪且 confirm 步携带服务端只读重入字段时可见。
+    confirmEntry: ready
+      ? _confirmReentryFor(journey.steps, id)
+      : { visible: false, facts: [], anchor: "", url: "" },
     // 未就绪一律中性文案,不带任何审视口吻;缺 pack 与降级同一占位。
     placeholder: ready ? "" : "正在核对服务端学习记录",
     // 就绪时的收束语随 journeyState 中性呈现,未就绪步骤不臆测。
