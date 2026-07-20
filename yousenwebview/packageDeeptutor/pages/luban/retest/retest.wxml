@@ -148,6 +148,22 @@
               <text class="rt-receipt-slash">/ {{total}}</text>
             </view>
           </view>
+          <!-- 错题再看一眼(签发门道逐字, 不复述你的错)——讲评紧贴比分,先看门道再看统计 -->
+          <view class="rt-review-list" wx:if="{{wrongItems.length}}">
+            <text class="rt-review-label">这 {{wrongItems.length}} 道错题已写入学习证据，先把门道看清</text>
+            <view class="rt-review-item" wx:for="{{wrongItems}}" wx:key="key">
+              <view class="rt-review-dot"></view>
+              <view class="rt-review-copy">
+                <text class="rt-review-text">{{item.correct_statement}}</text>
+                <!-- 四层错项诊断(全部服务端签发字段, 缺失整行隐藏) -->
+                <text class="rt-review-detail" wx:if="{{item.selectedOptionText}}">你选了：{{item.selectedOptionText}}</text>
+                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.temptation}}">为什么它看起来像对的：{{item.feedback.temptation}}</text>
+                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.loss_reason}}">考试为什么不给分：{{item.feedback.loss_reason}}</text>
+                <text class="rt-review-fix" wx:if="{{item.feedback && item.feedback.fix}}">下次这样答：{{item.feedback.fix}}</text>
+              </view>
+            </view>
+          </view>
+
           <view class="rt-receipt-rows">
             <view class="rt-receipt-row">
               <text class="rt-receipt-k">记录状态</text>
@@ -164,22 +180,6 @@
             <view class="rt-receipt-row" wx:if="{{textbookCount}}">
               <text class="rt-receipt-k">教材原文</text>
               <text class="rt-receipt-v">翻出 {{textbookCount}} 句阅卷认的原文</text>
-            </view>
-          </view>
-
-          <!-- 错题再看一眼(签发门道逐字, 不复述你的错) -->
-          <view class="rt-review-list" wx:if="{{wrongItems.length}}">
-            <text class="rt-review-label">这 {{wrongItems.length}} 道错题已写入学习证据，先把门道看清</text>
-            <view class="rt-review-item" wx:for="{{wrongItems}}" wx:key="key">
-              <view class="rt-review-dot"></view>
-              <view class="rt-review-copy">
-                <text class="rt-review-text">{{item.correct_statement}}</text>
-                <!-- 四层错项诊断(全部服务端签发字段, 缺失整行隐藏) -->
-                <text class="rt-review-detail" wx:if="{{item.selectedOptionText}}">你选了：{{item.selectedOptionText}}</text>
-                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.temptation}}">为什么它看起来像对的：{{item.feedback.temptation}}</text>
-                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.loss_reason}}">考试为什么不给分：{{item.feedback.loss_reason}}</text>
-                <text class="rt-review-fix" wx:if="{{item.feedback && item.feedback.fix}}">下次这样答：{{item.feedback.fix}}</text>
-              </view>
             </view>
           </view>
           <text class="rt-receipt-clean" wx:if="{{!wrongItems.length && total}}">本轮五题全对，已经记录；是否稳定，等下一次换皮验证。</text>
