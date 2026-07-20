@@ -11,7 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -445,9 +445,9 @@ class Component extends DCLogic {
   audioVersion="00a556dd00eedfff";
   DUR = 287.492;
   examTitle="卷材防水施工顺序与搭接方向"; examCode="F02"; examCat="案例·屋面防水";
-  posterSub="顺序·方向·搭接量·铺贴法·地下细部，逐关写全才得分"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 56 秒";
+  posterSub="顺序·方向·搭接量·铺贴法·地下细部，逐关写全才得分"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 47 秒";
   KNOWLEDGE="卷材防水施工顺序与搭接方向(F02,锚{2016第27题}ABCE/{2018第14题}A/{2025第13题}D/{2015案例2})。四关链:顺序→方向→搭接量→地下细部。①顺序:先做细部构造(阴阳角/泛水/管根/落水口)后大面铺贴;由屋面最低标高起、由低向高铺贴,上幅压下幅顺水(写反先大面后细部/由高向低=E06)。②方向:搭接缝顺流水方向、卷材宜平行屋脊;上下两层不得相互垂直铺贴(垂直=两层缝十字交叉漏点;逆流水/垂直=E07)。③搭接量:同层相邻短边搭接错缝≥500mm、长边及上下层错开≥1/3幅宽(记成50mm/1/2幅宽=M08)。④地下/细部:地下室卷材铺迎水面、外墙外侧满贴、外防内贴法先立面后平面;女儿墙泛水高度≥250mm、阴阳角基层做45度或圆弧、转角附加层平面立面均≥250mm、收头金属压条钉压密封下设鹰嘴滴水槽(漏附加层/收头=E02,泛水200/直角=M08)。条件:立面大坡面满粘、坡度>25%满粘+钉压、厚度<3mm严禁热熔(=E10)。采分纪律:顺序写理由、方向两词都写、搭接量两数配套、细部逐项列全。";
-    beats=[["b0",0.0,18.284,"破误区"],["b1",18.284,41.992,"顺序"],["b2",41.992,67.356,"方向"],["b3",67.356,88.568,"搭接量"],["b4",88.568,114.46,"铺贴法"],["b5",114.46,145.944,"地下细部"],["b6",145.944,173.948,"五关链"],["q0",173.948,203.072,"问答"],["q1",203.072,230.66,"问答"],["q2",230.66,256.976,"问答"],["q3",256.976,287.492,"问答"]];
+  beats=[["b0",0,18.284,"破误区"],["b1",18.284,41.992,"顺序"],["b2",41.992,67.356,"方向"],["b3",67.356,88.568,"搭接量"],["b4",88.568,114.46,"铺贴法"],["b5",114.46,145.944,"地下细部"],["b6",145.944,173.948,"五关链"],["q0",173.948,203.072,"问答"],["q1",203.072,230.66,"问答"],["q2",230.66,256.976,"问答"],["q3",256.976,287.492,"问答"]];
   keycards=[
     "三个坑：由高向低 / 搭接缝逆流水 / 上下层垂直",
     "关①顺序：先细部后大面、由低向高、上幅压下幅",
@@ -472,6 +472,7 @@ class Component extends DCLogic {
     { figLabel:"上下两层不垂直 · 防十字漏点", fig:"cross", q:"上下两层为啥不让垂直铺啊？垂直铺咋就漏了呢？", a:"两层的缝都是薄弱处。垂直一铺，上层缝横着、下层缝竖着，俩缝十字一交叉，那交点上下都是缝、谁也没盖住谁，水正好从这戳进去——这就叫十字漏点。两层平行错开铺，上层缝压在下层整幅上，缝缝错位，才堵得住。" },
     { figLabel:"女儿墙泛水 · 四件套写全", fig:"detail", q:"女儿墙泛水那几个数我老记反，阅卷到底咋写才给分啊？", a:"记四件套：一，泛水高度不小于二百五，别写二百；二，阴阳角基层抹圆弧或四十五度、不留直角；三，转角加附加层、平面立面都不小于二百五；四，收头金属压条钉压加密封、下口鹰嘴滴水槽。这四样一项一句，漏哪句扣哪句，数值千万别记反。" }
   ];
+  qaCue=[{answerStart:8.723},{answerStart:6.903},{answerStart:5.999},{answerStart:6.421}];
   askPresets=["顺序为什么先细部后大面？","搭接缝顺流水怎么判？","女儿墙泛水采分句怎么写全？"];
 
   componentDidMount(){
@@ -491,8 +492,8 @@ class Component extends DCLogic {
   speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
   pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
   webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
-  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
-  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  stopSpeak(){ this._audioStarted=false; try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true; this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false; this.webSpeak(text); } }
   setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
   toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
   loop(ts){ if(this._dead)return;
@@ -691,7 +692,7 @@ class Component extends DCLogic {
 
     const isQA=ai>=NB;
     let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
-    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q; qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ const qaElapsed=t-cur[1]; const cue=this.qaCue[ai-NB]||{answerStart:(cur[2]-cur[1])*.28}; qaLayerO=1; qa_so=this.eo(this.cl((qaElapsed-.15)/.6,0,1)); qa_sx=this.lp(-40,0,qa_so); qa_to=this.eo(this.cl((qaElapsed-(cue.answerStart-.18))/.75,0,1)); qa_ty=this.lp(24,0,qa_to); qaQ=it.q; qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
     const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
     const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
     const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
