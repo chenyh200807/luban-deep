@@ -227,14 +227,7 @@
 <div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
-/* ░░░ 母版骨架逻辑：随堂练 ░░░
-   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
-   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
-   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
-   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
-     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
-   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
-     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+/* 服务端判分收权：作者注释含答案键示例，发布时整块移除 */
 class Component extends DCLogic {
   SHOW_COUNT = 5;
   state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
@@ -243,51 +236,41 @@ class Component extends DCLogic {
   moreText="再练两组：① 降水选型——给不同开挖深度+土质(如深8m填土、深5m砂砾、深2.5m软土)，练「亮深度阀值表→代入工况→排除→定方法」，专治管井用错土、轻型用错深度；② 开挖控制数字——把分层3m/预留150~300/水位坑底500mm/高差1m 混着设错值，练判断纠错三段式(不妥+理由+正确数值)。";
   // ── 题库：降水分流·井点选型·管井·截水回灌·承压突涌·开挖方案·分层·预留·水位·超挖·采分诊断（≥15 题随机抽 5）──
   Q=[
-{ tag:"降水分流·条件维", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"题给：基坑深 4m · 软土 · 地下水丰富", figCaption:"深度过 3m 临界 · 该明排还是井点？", fig:"depthflow",
+{ tag:"降水分流·条件维",
+      typeHint:"单选 · 选出最完整、能得分的作答",
+      figLabel:"题给：基坑深 4m · 软土 · 地下水丰富",
+      figCaption:"深度过 3m 临界 · 该明排还是井点？",
+      fig:"depthflow",
       stem:"某基坑开挖深度 4m，场地为软土、地下水丰富。问降水方案怎么选，选出最完整、能得分的作答。",
-      model:"深度>3m 应井点降水；综合地质水文环境支护，危及周边截水回灌、有承压水验算突涌。",
-      opts:[
-        { t:"场地地下水丰富，宜采用集水明排：沿坑底开挖排水沟并设集水井，借重力汇水后抽排，经济适用。", ok:false, code:"E10", tempt:"一见地下水就想到最常见的集水明排。", lose:"深度 4m 已>3m，明排压不住；集水明排只适用≤3m 且软土。", fix:"深度>3m 应改井点降水，集水明排仅≤3m 软土。" },
-        { t:"不看深度直接选降水管井，管井出水量大、适应性强，任何土质基坑都能可靠降水。", ok:false, code:"E07", tempt:"觉得管井出水大、万能。", lose:"管井要求渗透系数较大（砂砾），软土/填土/黏土不宜；且未按深度分流。", fix:"先按深度分流用井点，再按渗透系数与土质选井点类型。" },
-        { t:"深度>3m 应采用井点降水；并综合地质、水文、环境、支护，危及周边时截水或回灌。", ok:true, fix:"先按深度分流定井点，再补综合因素与周边保护，判据链完整。", code:"" },
-        { t:"作答写明已采取降水措施、将水位降至开挖面以下即可，具体方法不必在方案中明确。", ok:false, code:"E02", tempt:"图省事、笼统写降水。", lose:"没有可判分的方法与依据，采分点全落空。", fix:"写明>3m 井点降水+综合因素+周边保护+承压水验算。" }
-      ] },
-{ tag:"井点选型·计算表达维", typeHint:"单选 · 亮阈值表→代入→排除→定方法", figLabel:"题给：降水深度 8m · 上部填土", figCaption:"轻型≤6 / 喷射8~20 / 真空>6 / 管井砂砾", fig:"ruler",
+      opts:[{"t": "场地地下水丰富，宜采用集水明排：沿坑底开挖排水沟并设集水井，借重力汇水后抽排，经济适用。"}, {"t": "不看深度直接选降水管井，管井出水量大、适应性强，任何土质基坑都能可靠降水。"}, {"t": "深度>3m 应采用井点降水；并综合地质、水文、环境、支护，危及周边时截水或回灌。"}, {"t": "作答写明已采取降水措施、将水位降至开挖面以下即可，具体方法不必在方案中明确。"}] },
+{ tag:"井点选型·计算表达维",
+      typeHint:"单选 · 亮阈值表→代入→排除→定方法",
+      figLabel:"题给：降水深度 8m · 上部填土",
+      figCaption:"轻型≤6 / 喷射8~20 / 真空>6 / 管井砂砾",
+      fig:"ruler",
       stem:"某基坑降水深度约 8m，场地上部为填土层。按降水深度与土质选井点，选出能得分的作答。",
-      model:"排除集水明排(>3m)、轻型(≤6m)、管井(填土不宜)，宜选喷射井点(降水深度 8~20m)。",
-      opts:[
-        { t:"宜选轻型井点，其构造简单、布置方便，单级布设即可满足本 8m 基坑的降水深度要求，较为稳妥。", ok:false, code:"M08", tempt:"轻型最常见、构造简单，顺手就选。", lose:"轻型井点降水深度≤6m（多级 6~10m 需分级），单级 8m 够不着。", fix:"8m 超轻型单级，应选喷射井点(8~20m)。" },
-        { t:"应选用降水管井，管井单井出水量大、对深度不敏感，用于 8m 填土基坑降水效率最高。", ok:false, code:"E07", tempt:"以为管井深度大、出水多就通用。", lose:"管井要求渗透系数较大（砂砾），填土渗透系数小、出水寥寥，不宜用管井。", fix:"填土不宜管井；按深度 8m 选喷射井点。" },
-        { t:"深 8m 超轻型≤6m、填土不宜管井，宜选喷射井点，其降水深度 8~20m 覆盖本工况。", ok:true, fix:"逐条卡深度与土质排除，落到喷射并回判 8m∈8~20m，判据完整。", code:"" },
-        { t:"可采用集水明排，沿坑底挖排水沟并设集水井将地下水引流抽走，明排亦可满足 8m 基坑降水。", ok:false, code:"E10", tempt:"明排看着简单便宜。", lose:"明排只适用≤3m 且软土；8m 深坑必须井点降水。", fix:"深 8m 用井点（喷射），不是集水明排。" }
-      ] },
-{ tag:"轻型井点·条件维", typeHint:"单选 · 记准降水深度数字", figLabel:"题给：轻型井点降水深度", figCaption:"单级？多级？范围是多少", fig:"ruler",
+      opts:[{"t": "宜选轻型井点，其构造简单、布置方便，单级布设即可满足本 8m 基坑的降水深度要求，较为稳妥。"}, {"t": "应选用降水管井，管井单井出水量大、对深度不敏感，用于 8m 填土基坑降水效率最高。"}, {"t": "深 8m 超轻型≤6m、填土不宜管井，宜选喷射井点，其降水深度 8~20m 覆盖本工况。"}, {"t": "可采用集水明排，沿坑底挖排水沟并设集水井将地下水引流抽走，明排亦可满足 8m 基坑降水。"}] },
+{ tag:"轻型井点·条件维",
+      typeHint:"单选 · 记准降水深度数字",
+      figLabel:"题给：轻型井点降水深度",
+      figCaption:"单级？多级？范围是多少",
+      fig:"ruler",
       stem:"关于轻型井点的降水深度，选出表述正确、能得分的作答。",
-      model:"轻型井点降水深度单级≤6m，多级可达 6~10m。",
-      opts:[
-        { t:"轻型井点单级降水深度≤6m，需要更深时采用多级轻型井点，可达 6~10m。", ok:true, fix:"分清单级≤6m 与多级 6~10m，数字与条件都齐。", code:"" },
-        { t:"轻型井点降水深度 8~20m，适用于较深基坑，是深层降水的主力方法。", ok:false, code:"M08", tempt:"把轻型和喷射的深度记混。", lose:"8~20m 是喷射井点的范围，轻型单级≤6m。", fix:"轻型单级≤6m、多级 6~10m；8~20m 是喷射。" },
-        { t:"轻型井点降水深度不受限制，加长井管即可任意加深，深基坑也能一级到位。", ok:false, code:"E07", tempt:"以为加管就能无限加深。", lose:"轻型受真空吸程限制，单级≤6m，不是不受限。", fix:"单级≤6m，更深需多级或改喷射/真空。" },
-        { t:"轻型井点降水深度>6m 且要求渗透系数>1e-6、管径≥200mm，用于大渗透系数土层。", ok:false, code:"E07", tempt:"把真空降水井管的参数安到轻型头上。", lose:">6m·渗透系数>1e-6·管径≥200 是真空降水井管的条件。", fix:"轻型单级≤6m；>6m 大渗透用真空降水井管。" }
-      ] },
-{ tag:"管井适用·真题陷阱", typeHint:"单选 · 找出不宜用于填土的降水方法", figLabel:"题给：填土 vs 砂砾 · 出水量", figCaption:"渗透大哗哗出水 / 渗透小出水寥寥", fig:"welltype",
+      opts:[{"t": "轻型井点单级降水深度≤6m，需要更深时采用多级轻型井点，可达 6~10m。"}, {"t": "轻型井点降水深度 8~20m，适用于较深基坑，是深层降水的主力方法。"}, {"t": "轻型井点降水深度不受限制，加长井管即可任意加深，深基坑也能一级到位。"}, {"t": "轻型井点降水深度>6m 且要求渗透系数>1e-6、管径≥200mm，用于大渗透系数土层。"}] },
+{ tag:"管井适用·真题陷阱",
+      typeHint:"单选 · 找出不宜用于填土的降水方法",
+      figLabel:"题给：填土 vs 砂砾 · 出水量",
+      figCaption:"渗透大哗哗出水 / 渗透小出水寥寥",
+      fig:"welltype",
       stem:"下列降水方法中，不宜用于填土、黏土等渗透系数较小土层的是（真题口径）。选出正确作答。",
-      model:"降水管井——要求渗透系数较大（砂砾层），填土/黏土渗透系数小、出水量不足，不宜用管井。",
-      opts:[
-        { t:"降水管井——它属重力排水、要求渗透系数较大的砂砾层，填土黏土渗透系数小不宜用。", ok:true, fix:"点出管井要砂砾、填土黏土不宜，正是真题采分句。", code:"" },
-        { t:"轻型井点——轻型井点靠真空抽吸，只能用于砂砾等大渗透土层，填土黏土一律不能用。", ok:false, code:"E07", tempt:"把不宜填土误安到轻型头上。", lose:"轻型井点适用渗透系数 1e-7~2e-4 的土层，恰能用于粉细砂等小渗透土，不是它。", fix:"不宜用于填土的是降水管井，不是轻型井点。" },
-        { t:"喷射井点——喷射井点降水深度大，只适合砂砾，遇到填土黏土就会淤堵不能使用。", ok:false, code:"E07", tempt:"觉得深层方法都挑砂砾。", lose:"题问的是不宜用于填土的降水管井；喷射不是标准答案。", fix:"标准答案是降水管井；喷射按深度 8~20m 选用。" },
-        { t:"集水明排——明排只在浅坑用，遇到填土黏土会塌沟，所以填土基坑不宜集水明排。", ok:false, code:"M03", tempt:"把明排的深度限制当成土质限制。", lose:"题眼是渗透系数较小土层不宜用的降水方法=管井，不是明排。", fix:"答降水管井：填土黏土渗透系数小不宜用管井。" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 揪出三处失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"填土用管井 + 回灌防突涌 + 分层5m", fig:"sheet",
+      opts:[{"t": "降水管井——它属重力排水、要求渗透系数较大的砂砾层，填土黏土渗透系数小不宜用。"}, {"t": "轻型井点——轻型井点靠真空抽吸，只能用于砂砾等大渗透土层，填土黏土一律不能用。"}, {"t": "喷射井点——喷射井点降水深度大，只适合砂砾，遇到填土黏土就会淤堵不能使用。"}, {"t": "集水明排——明排只在浅坑用，遇到填土黏土会塌沟，所以填土基坑不宜集水明排。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 揪出三处失分并给正确补写",
+      figLabel:"模拟学生作答（待诊断）",
+      figCaption:"填土用管井 + 回灌防突涌 + 分层5m",
+      fig:"sheet",
       stem:"某学生对填土层、深 6m、坑底有承压水的基坑降水开挖方案作答：①用降水管井；②承压水靠井点回灌控制；③分层开挖每层 5m。选出最准确的诊断与补写。",
-      model:"①填土不宜管井，应按深度选轻型(多级)/喷射；②回灌防沉降不防突涌，应验算突涌+钻孔减压/水平封底隔渗；③分层应≤3m。",
-      opts:[
-        { t:"该方案基本合理，仅分层 5m 略偏大、调整为 4m 即可，管井降水与回灌控制承压水的用法均无问题。", ok:false, code:"E07", tempt:"只盯着一处、放过了张冠李戴的两处。", lose:"漏诊填土用管井、回灌当防突涌两处硬伤；分层应≤3m 非 4m。", fix:"三处都要改：喷射/多级轻型、减压封底、分层≤3m。" },
-        { t:"三处都不妥：填土不宜管井应改喷射/多级轻型、回灌不防突涌应减压封底隔渗、分层5m超3m。", ok:true, fix:"逐条揪错并给正确方法/数值，正是判断纠错三段式。", code:"" },
-        { t:"只有承压水那条要改成加大管井抽水，其余管井降水、分层 5m 都符合规范无需调整。", ok:false, code:"E10", tempt:"以为加大抽水能治突涌。", lose:"填土不宜管井、分层5m超限也错；防突涌是减压/封底不是加大抽水。", fix:"改喷射/多级轻型、分层≤3m、减压封底防突涌。" },
-        { t:"把降水管井换成集水明排就全对了，明排简单又便宜，回灌和分层 5m 保持不变即可。", ok:false, code:"M10", tempt:"用明排简单的常识替代规范。", lose:"深 6m 不能用明排；回灌当防突涌、分层5m 也未纠。", fix:"深6m 用喷射/多级轻型、分层≤3m、减压封底防突涌。" }
-      ] }
+      opts:[{"t": "该方案基本合理，仅分层 5m 略偏大、调整为 4m 即可，管井降水与回灌控制承压水的用法均无问题。"}, {"t": "三处都不妥：填土不宜管井应改喷射/多级轻型、回灌不防突涌应减压封底隔渗、分层5m超3m。"}, {"t": "只有承压水那条要改成加大管井抽水，其余管井降水、分层 5m 都符合规范无需调整。"}, {"t": "把降水管井换成集水明排就全对了，明排简单又便宜，回灌和分层 5m 保持不变即可。"}] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
   codeMap={
@@ -370,15 +353,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"G01",cardId:"G01",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -512,7 +493,7 @@ class Component extends DCLogic {
       lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -555,9 +536,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"G01-html-practice-html-q1-aba98d47b38a","options":["G01-html-practice-html-q1-aba98d47b38a:option-1","G01-html-practice-html-q1-aba98d47b38a:option-2","G01-html-practice-html-q1-aba98d47b38a:option-3","G01-html-practice-html-q1-aba98d47b38a:option-4"]},{"variant_id":"G01-html-practice-html-q2-20fc8c298c2f","options":["G01-html-practice-html-q2-20fc8c298c2f:option-1","G01-html-practice-html-q2-20fc8c298c2f:option-2","G01-html-practice-html-q2-20fc8c298c2f:option-3","G01-html-practice-html-q2-20fc8c298c2f:option-4"]},{"variant_id":"G01-html-practice-html-q3-413c0fb7959f","options":["G01-html-practice-html-q3-413c0fb7959f:option-1","G01-html-practice-html-q3-413c0fb7959f:option-2","G01-html-practice-html-q3-413c0fb7959f:option-3","G01-html-practice-html-q3-413c0fb7959f:option-4"]},{"variant_id":"G01-html-practice-html-q4-1ec0542e7a80","options":["G01-html-practice-html-q4-1ec0542e7a80:option-1","G01-html-practice-html-q4-1ec0542e7a80:option-2","G01-html-practice-html-q4-1ec0542e7a80:option-3","G01-html-practice-html-q4-1ec0542e7a80:option-4"]},{"variant_id":"G01-html-practice-html-q15-ad73198f0e59","options":["G01-html-practice-html-q15-ad73198f0e59:option-1","G01-html-practice-html-q15-ad73198f0e59:option-2","G01-html-practice-html-q15-ad73198f0e59:option-3","G01-html-practice-html-q15-ad73198f0e59:option-4"]}];
+  __dtItems=[{"variant_id":"G01-html-practice-html-q1-aba98d47b38a","options":["G01-html-practice-html-q1-aba98d47b38a:option-1","G01-html-practice-html-q1-aba98d47b38a:option-2","G01-html-practice-html-q1-aba98d47b38a:option-3","G01-html-practice-html-q1-aba98d47b38a:option-4"]},{"variant_id":"G01-html-practice-html-q2-20fc8c298c2f","options":["G01-html-practice-html-q2-20fc8c298c2f:option-1","G01-html-practice-html-q2-20fc8c298c2f:option-2","G01-html-practice-html-q2-20fc8c298c2f:option-3","G01-html-practice-html-q2-20fc8c298c2f:option-4"]},{"variant_id":"G01-html-practice-html-q3-413c0fb7959f","options":["G01-html-practice-html-q3-413c0fb7959f:option-1","G01-html-practice-html-q3-413c0fb7959f:option-2","G01-html-practice-html-q3-413c0fb7959f:option-3","G01-html-practice-html-q3-413c0fb7959f:option-4"]},{"variant_id":"G01-html-practice-html-q4-1ec0542e7a80","options":["G01-html-practice-html-q4-1ec0542e7a80:option-1","G01-html-practice-html-q4-1ec0542e7a80:option-2","G01-html-practice-html-q4-1ec0542e7a80:option-3","G01-html-practice-html-q4-1ec0542e7a80:option-4"]},{"variant_id":"G01-html-practice-html-q15-ad73198f0e59","options":["G01-html-practice-html-q15-ad73198f0e59:option-1","G01-html-practice-html-q15-ad73198f0e59:option-2","G01-html-practice-html-q15-ad73198f0e59:option-3","G01-html-practice-html-q15-ad73198f0e59:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -568,8 +567,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -578,11 +577,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"G01",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYWJhOThkNDdiMzhhIiwiRzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yMGZjOGMyOThjMmYiLCJHMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQxM2MwZmI3OTU5ZiIsIkcwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWVjMDU0MmU3YTgwIiwiRzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYWQ3MzE5OGYwZTU5Il0sInBhY2tfaWQiOiJHMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjVmZDViYzA2ZWZiMmQ2M2ZhMGNmMDMwYWI5MDg3N2NiZmViNDU4MTVmZTI5ZTE1ZTU3NTAwZmI4YzZhNjk4NjQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZTZjYjRiNzBiNjJmMmZmOGI1MDM2NzM2NTM4MDc3NzQ2NjFkZjUxMjM5ZmUwM2RmODJhZThhOTY0YzEyMTlhNCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }

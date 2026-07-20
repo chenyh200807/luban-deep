@@ -234,51 +234,41 @@ class Component extends DCLogic {
   KNOWLEDGE="幕墙防火/防雷/层间封堵构造。防火：上下层开口间实体墙高度≥1.2m，或防火挑檐宽度≥1.0m且长度≥开口宽度；窗槛墙空腔上下沿矿物棉填塞高度≥200mm；同一玻璃单元不应跨越两个防火分区。层间封堵：幕墙与楼板/隔墙缝隙用不燃材料(岩棉/矿棉)封堵厚度≥100mm，满足耐火极限，形成水平防火烟带；防火层用厚度≥1.5mm镀锌钢板承托，不得铝板；承托板与主体/幕墙缝隙用防火密封胶密封。防雷：金属框架与主体结构防雷体系可靠连接；铝合金立柱每10m范围内宜一根柔性导线连通上下柱；预埋件圆钢/扁钢与均压环焊接连通，一般每三层与均压环连接；有镀膜构件防雷连接应除去镀膜层；防雷构造连接必须做隐蔽工程验收。封堵选材：有机防火堵料可塑性好、遇火发泡膨胀、水密气密、可重复使用。常见失分：1.5mm写成1.5m、承托用铝板、200与100混、漏水平烟带/密封胶、玻璃单元跨防火分区、说防雷不必隐蔽验收、立柱不设柔性导线、漏均压环焊接、漏除镀膜层、把有机堵料当不能重复使用。";
   moreText="没写全的，回讲解页对着采分句抄一遍：防火关——层间封堵五要素(不燃岩棉≥100·耐火极限·水平烟带·1.5mm镀锌钢板承托不得铝板·防火密封胶)、200(空腔)与100(楼板缝)别混、玻璃单元不跨分区；防雷关——框架连主体·立柱≤10m柔性导线·预埋件焊均压环每三层·有镀膜除膜·防雷连接隐蔽验收。";
   Q=[
-{ tag:"层间封堵·内容清单", typeHint:"单选 · 选出要素最全、能拿分的作答", figLabel:"题给：幕墙与楼板缝隙防火封堵", figCaption:"按要素逐条作答，别漏维", fig:"sealkit",
+{ tag:"层间封堵·内容清单",
+      typeHint:"单选 · 选出要素最全、能拿分的作答",
+      figLabel:"题给：幕墙与楼板缝隙防火封堵",
+      figCaption:"按要素逐条作答，别漏维",
+      fig:"sealkit",
       stem:"幕墙与各层楼板间缝隙的防火封堵应满足哪些要求？选出要素最全、能得分的作答。",
-      model:"缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、楼层间形成水平防火烟带；防火层用≥1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。",
-      opts:[
-        { t:"缝隙采用岩棉、矿棉等材料填塞封堵并保证密实，将缝隙全部塞满、确认不透火，即已满足幕墙与各层楼板间防火封堵的全部要求。", ok:false, code:"E02", tempt:"只记住「塞岩棉」这一件，觉得填满就完事。", lose:"漏了厚度≥100mm、水平防火烟带、钢板承托、防火密封胶整维要素。", fix:"补≥100mm、耐火极限、水平防火烟带、1.5mm镀锌钢板承托、防火密封胶。" },
-        { t:"缝隙采用合格防火材料进行封堵，达到设计要求的防火效果，具体的封堵构造做法由施工单位结合工程现场的实际情况灵活确定并组织实施到位。", ok:false, code:"E10", tempt:"「达到防火效果、灵活确定」听着稳妥不出错。", lose:"全是口号、无一条可判分要素，属以口号替代规范要求。", fix:"写死要素：不燃岩棉≥100mm+耐火极限+水平烟带+镀锌钢板承托+防火密封胶。" },
-        { t:"缝隙采用不燃岩棉封堵且厚度≥100mm，并在楼层间形成水平防火烟带，防火层下设承托板托住岩棉，承托板缝隙可不再作密封。", ok:false, code:"E02", tempt:"前面写对了两条，容易以为够了。", lose:"漏防火密封胶（承托板与主体/幕墙缝隙必须密封），且承托板材料厚度没点明。", fix:"补1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。" },
-        { t:"缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、形成水平防火烟带，1.5mm镀锌钢板承托、防火密封胶封缝。", ok:true, fix:"五要素全：不燃材料+厚度+耐火极限+水平烟带+钢板承托与密封胶，逐条列清才不漏维。", code:"" }
-      ] },
-{ tag:"承托板材料·判断纠错", typeHint:"单选 · 选出指错并给正确做法最到位的作答", figLabel:"题给：防火层承托板选材", figCaption:"铝 660℃熔 vs 钢 1500℃稳", fig:"steelalu",
+      opts:[{"t": "缝隙采用岩棉、矿棉等材料填塞封堵并保证密实，将缝隙全部塞满、确认不透火，即已满足幕墙与各层楼板间防火封堵的全部要求。"}, {"t": "缝隙采用合格防火材料进行封堵，达到设计要求的防火效果，具体的封堵构造做法由施工单位结合工程现场的实际情况灵活确定并组织实施到位。"}, {"t": "缝隙采用不燃岩棉封堵且厚度≥100mm，并在楼层间形成水平防火烟带，防火层下设承托板托住岩棉，承托板缝隙可不再作密封。"}, {"t": "缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、形成水平防火烟带，1.5mm镀锌钢板承托、防火密封胶封缝。"}] },
+{ tag:"承托板材料·判断纠错",
+      typeHint:"单选 · 选出指错并给正确做法最到位的作答",
+      figLabel:"题给：防火层承托板选材",
+      figCaption:"铝 660℃熔 vs 钢 1500℃稳",
+      fig:"steelalu",
       stem:"某幕墙防火层承托板采用 1.5mm 铝板。指出是否妥当并写正确做法，选出最到位的作答。",
-      model:"不妥。防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板(铝熔点低火中熔化使防火层垮塌)。",
-      opts:[
-        { t:"不妥；应将现有铝板承托层拆除，更换为钢板承托并重新安装固定，即可满足防火构造要求。", ok:false, code:"E03", tempt:"方向对——知道铝板不行、要换钢板。", lose:"「正确做法」缺关键数值与材料——没写≥1.5mm、没写镀锌钢板。", fix:"写死「≥1.5mm镀锌钢板承托，不得铝板」，纠错才给全分。" },
-        { t:"不妥；防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板（铝熔点低火中熔化）。", ok:true, fix:"指错+给正确材料与厚度+点明后果，纠错三段齐，正确做法带数值材料。", code:"" },
-        { t:"妥当；铝板同为金属材料，导热快且自重较轻，用作承托板托住岩棉并无不可，1.5mm 厚度亦已达标。", ok:false, code:"E10", tempt:"「金属都耐用、又轻」是想当然的常识。", lose:"防火层承托不得用铝——铝约660℃熔化，火灾中承托垮塌、岩棉坠落，防火层失效。", fix:"必须用≥1.5mm镀锌钢板，不得铝板。" },
-        { t:"不妥；应将铝板加厚至 2mm 以上以增强耐火能力，加厚后的铝板即可在火灾高温下托住防火层。", ok:false, code:"E07", tempt:"以为「加厚」就能解决耐火问题。", lose:"问题在材料不在厚度——铝熔点低，加多厚也会熔；混淆了材料与厚度。", fix:"换材料：用≥1.5mm镀锌钢板，不得用铝板。" }
-      ] },
-{ tag:"承托板尺寸·数字陷阱", typeHint:"单选 · 选出数值与单位都正确的作答", figLabel:"题给：防火构造关键尺寸", figCaption:"注意 m 与 mm 别混", fig:"sizebars",
+      opts:[{"t": "不妥；应将现有铝板承托层拆除，更换为钢板承托并重新安装固定，即可满足防火构造要求。"}, {"t": "不妥；防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板（铝熔点低火中熔化）。"}, {"t": "妥当；铝板同为金属材料，导热快且自重较轻，用作承托板托住岩棉并无不可，1.5mm 厚度亦已达标。"}, {"t": "不妥；应将铝板加厚至 2mm 以上以增强耐火能力，加厚后的铝板即可在火灾高温下托住防火层。"}] },
+{ tag:"承托板尺寸·数字陷阱",
+      typeHint:"单选 · 选出数值与单位都正确的作答",
+      figLabel:"题给：防火构造关键尺寸",
+      figCaption:"注意 m 与 mm 别混",
+      fig:"sizebars",
       stem:"关于幕墙防火构造承托板，下列写法数值与单位都正确、能得分的是？",
-      model:"钢质承托板厚度≥1.5mm（毫米）；写成1.5m是其1000倍，幕墙构造无1.5m厚承托板。",
-      opts:[
-        { t:"防火层承托板应采用厚度≥1.5mm 的镀锌钢板，此处 1.5mm 是毫米，不是 1.5m。", ok:true, fix:"数值+单位都点死(1.5mm毫米)，并主动排除1.5m单位陷阱。", code:"" },
-        { t:"防火层承托板应采用厚度≥1.5m 的钢板承托，如此厚度方能在火灾高温之下保持承托不变形。", ok:false, code:"M08", tempt:"顺手把 mm 写成 m，或以为越厚越保险。", lose:"单位错——1.5m 是 1.5mm 的 1000 倍，幕墙上没有 1.5m 厚的承托钢板。", fix:"写≥1.5mm（毫米），不是1.5m。" },
-        { t:"防火层承托板应采用厚度≥15mm 的钢板承托，足够的板厚才能托住岩棉并在火中不塌落、不变形。", ok:false, code:"M08", tempt:"和防火涂料 15mm 之类的数字串了。", lose:"承托板是≥1.5mm，不是15mm；数字记错同样丢分。", fix:"承托板厚度≥1.5mm镀锌钢板。" },
-        { t:"防火层承托板采用钢质材料并能托住岩棉即可，厚度不必写出具体数值，注明「钢板承托」即为完整。", ok:false, code:"E03", tempt:"知道要钢板，觉得材料对了就够。", lose:"漏关键数值≥1.5mm，阅卷缺数值不给该分。", fix:"补厚度≥1.5mm，写「≥1.5mm镀锌钢板承托」。" }
-      ] },
-{ tag:"防火分隔·条件维", typeHint:"单选 · 选出尺寸判据完整正确的作答", figLabel:"题给：上下层开口防火分隔", figCaption:"实体墙或挑檐，二选一达标", fig:"sizebars",
+      opts:[{"t": "防火层承托板应采用厚度≥1.5mm 的镀锌钢板，此处 1.5mm 是毫米，不是 1.5m。"}, {"t": "防火层承托板应采用厚度≥1.5m 的钢板承托，如此厚度方能在火灾高温之下保持承托不变形。"}, {"t": "防火层承托板应采用厚度≥15mm 的钢板承托，足够的板厚才能托住岩棉并在火中不塌落、不变形。"}, {"t": "防火层承托板采用钢质材料并能托住岩棉即可，厚度不必写出具体数值，注明「钢板承托」即为完整。"}] },
+{ tag:"防火分隔·条件维",
+      typeHint:"单选 · 选出尺寸判据完整正确的作答",
+      figLabel:"题给：上下层开口防火分隔",
+      figCaption:"实体墙或挑檐，二选一达标",
+      fig:"sizebars",
       stem:"上下层开口之间的防火分隔应满足什么？选出尺寸判据完整、能得分的作答。",
-      model:"上下层开口间实体墙高度≥1.2m；或设防火挑檐，宽度≥1.0m且长度≥开口宽度。",
-      opts:[
-        { t:"上下层开口间实体墙高度≥1.2m 即为达标，防火挑檐属可选装饰构件，不参与防火判定，可不设置。", ok:false, code:"E02", tempt:"记住了实体墙1.2m一条，以为够了。", lose:"漏了「实体墙不足时用防火挑檐≥1.0m替代」这条替代路径。", fix:"补：实体墙不足1.2m时设防火挑檐宽≥1.0m且长≥开口宽。" },
-        { t:"上下层开口间应设高度≥1.2m 的实体墙；不足时设防火挑檐，宽度≥1.0m 且长度≥开口宽度。", ok:true, fix:"实体墙1.2m与挑檐1.0m二选一、挑檐还要长≥开口宽，判据全。", code:"" },
-        { t:"上下层开口之间应做好防火分隔构造，留足安全距离，防止火焰经由外窗向上蔓延至上一层开口。", ok:false, code:"E10", tempt:"「留足距离、防蔓延」方向对、听着没错。", lose:"全是口号无数值——没写实体墙≥1.2m、挑檐≥1.0m。", fix:"写死实体墙≥1.2m 或挑檐≥1.0m 且长≥开口宽。" },
-        { t:"上下层开口间实体墙高度≥1.0m，或设防火挑檐宽度≥1.2m 且长度不限，二者满足其一即为合格。", ok:false, code:"M08", tempt:"记得有1.2和1.0俩数、随手对调了。", lose:"数值张冠李戴——实体墙是≥1.2m、挑檐是≥1.0m且长≥开口宽，反了。", fix:"实体墙≥1.2m、挑檐≥1.0m且长≥开口宽，别对调。" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 揪出失分并给正确补写，训练采分句输出", figLabel:"模拟学生作答（待诊断）", figCaption:"看着答了三条，能拿几分？", fig:"sheet",
+      opts:[{"t": "上下层开口间实体墙高度≥1.2m 即为达标，防火挑檐属可选装饰构件，不参与防火判定，可不设置。"}, {"t": "上下层开口间应设高度≥1.2m 的实体墙；不足时设防火挑檐，宽度≥1.0m 且长度≥开口宽度。"}, {"t": "上下层开口之间应做好防火分隔构造，留足安全距离，防止火焰经由外窗向上蔓延至上一层开口。"}, {"t": "上下层开口间实体墙高度≥1.0m，或设防火挑檐宽度≥1.2m 且长度不限，二者满足其一即为合格。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 揪出失分并给正确补写，训练采分句输出",
+      figLabel:"模拟学生作答（待诊断）",
+      figCaption:"看着答了三条，能拿几分？",
+      fig:"sheet",
       stem:"某学生答层间封堵：①缝隙塞岩棉；②承托板用铝板；③承托板缝隙没提。选出最准确的诊断与补写。",
-      model:"三处都要补：①缝隙应不燃岩棉≥100mm+耐火极限+水平防火烟带；②承托板应≥1.5mm镀锌钢板不得铝板；③承托板与主体/幕墙缝隙应用防火密封胶密封。",
-      opts:[
-        { t:"该作答基本可行：岩棉封堵、承托板均已具备，缝隙细小可忽略，仅将铝板更换为钢板即可得到满分。", ok:false, code:"E02", tempt:"抓到铝板一处错，以为改这一处就够。", lose:"漏诊①缺≥100mm与水平防火烟带、③缝隙未用防火密封胶，两处失分没揪出。", fix:"三处都要补：厚度/水平烟带、镀锌钢板、防火密封胶。" },
-        { t:"承托板采用铝板并无不妥且自重较轻，主要问题在于岩棉塞得不够密实，将岩棉填塞密实即为合格。", ok:false, code:"E10", tempt:"把注意力放在「塞密实」这种常识上。", lose:"方向全错——铝板必须换镀锌钢板；且漏水平烟带与防火密封胶。", fix:"承托板改≥1.5mm镀锌钢板，补≥100mm/水平烟带/防火密封胶。" },
-        { t:"三处都失分：①缺≥100mm与水平烟带，②承托板应改≥1.5mm镀锌钢板不得铝板，③缝隙应用防火密封胶密封。", ok:true, fix:"逐条揪失分并补上采分句，正是「会写答案」——三句都要落纸。", code:"" },
-        { t:"仅属表达不规范：将「塞岩棉」改写为「不燃材料封堵」即可得分，所涉及的尺寸与承托板材料实际上均已答对，无须再补。", ok:false, code:"E03", tempt:"以为只是措辞问题、内容都对。", lose:"内容真缺——没≥100mm、没水平烟带、承托板还是错的铝板，不止措辞。", fix:"补数值(≥100mm)、水平烟带、镀锌钢板承托、防火密封胶。" }
-      ] }
+      opts:[{"t": "该作答基本可行：岩棉封堵、承托板均已具备，缝隙细小可忽略，仅将铝板更换为钢板即可得到满分。"}, {"t": "承托板采用铝板并无不妥且自重较轻，主要问题在于岩棉塞得不够密实，将岩棉填塞密实即为合格。"}, {"t": "三处都失分：①缺≥100mm与水平烟带，②承托板应改≥1.5mm镀锌钢板不得铝板，③缝隙应用防火密封胶密封。"}, {"t": "仅属表达不规范：将「塞岩棉」改写为「不燃材料封堵」即可得分，所涉及的尺寸与承托板材料实际上均已答对，无须再补。"}] }
   ];
   codeMap={
     E02:{label:"采分点遗漏",advice:"层间封堵五要素、防雷四要素逐条写，缺一扣一。"},
@@ -357,15 +347,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"D13",cardId:"D13",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -480,7 +468,7 @@ class Component extends DCLogic {
       lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -523,9 +511,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"D13-html-practice-html-q1-f196ec9bf371","options":["D13-html-practice-html-q1-f196ec9bf371:option-1","D13-html-practice-html-q1-f196ec9bf371:option-2","D13-html-practice-html-q1-f196ec9bf371:option-3","D13-html-practice-html-q1-f196ec9bf371:option-4"]},{"variant_id":"D13-html-practice-html-q2-8731158f9009","options":["D13-html-practice-html-q2-8731158f9009:option-1","D13-html-practice-html-q2-8731158f9009:option-2","D13-html-practice-html-q2-8731158f9009:option-3","D13-html-practice-html-q2-8731158f9009:option-4"]},{"variant_id":"D13-html-practice-html-q3-fb2ecdf90653","options":["D13-html-practice-html-q3-fb2ecdf90653:option-1","D13-html-practice-html-q3-fb2ecdf90653:option-2","D13-html-practice-html-q3-fb2ecdf90653:option-3","D13-html-practice-html-q3-fb2ecdf90653:option-4"]},{"variant_id":"D13-html-practice-html-q4-2d4088f977f1","options":["D13-html-practice-html-q4-2d4088f977f1:option-1","D13-html-practice-html-q4-2d4088f977f1:option-2","D13-html-practice-html-q4-2d4088f977f1:option-3","D13-html-practice-html-q4-2d4088f977f1:option-4"]},{"variant_id":"D13-html-practice-html-q15-5ec84ba4a21d","options":["D13-html-practice-html-q15-5ec84ba4a21d:option-1","D13-html-practice-html-q15-5ec84ba4a21d:option-2","D13-html-practice-html-q15-5ec84ba4a21d:option-3","D13-html-practice-html-q15-5ec84ba4a21d:option-4"]}];
+  __dtItems=[{"variant_id":"D13-html-practice-html-q1-f196ec9bf371","options":["D13-html-practice-html-q1-f196ec9bf371:option-1","D13-html-practice-html-q1-f196ec9bf371:option-2","D13-html-practice-html-q1-f196ec9bf371:option-3","D13-html-practice-html-q1-f196ec9bf371:option-4"]},{"variant_id":"D13-html-practice-html-q2-8731158f9009","options":["D13-html-practice-html-q2-8731158f9009:option-1","D13-html-practice-html-q2-8731158f9009:option-2","D13-html-practice-html-q2-8731158f9009:option-3","D13-html-practice-html-q2-8731158f9009:option-4"]},{"variant_id":"D13-html-practice-html-q3-fb2ecdf90653","options":["D13-html-practice-html-q3-fb2ecdf90653:option-1","D13-html-practice-html-q3-fb2ecdf90653:option-2","D13-html-practice-html-q3-fb2ecdf90653:option-3","D13-html-practice-html-q3-fb2ecdf90653:option-4"]},{"variant_id":"D13-html-practice-html-q4-2d4088f977f1","options":["D13-html-practice-html-q4-2d4088f977f1:option-1","D13-html-practice-html-q4-2d4088f977f1:option-2","D13-html-practice-html-q4-2d4088f977f1:option-3","D13-html-practice-html-q4-2d4088f977f1:option-4"]},{"variant_id":"D13-html-practice-html-q15-5ec84ba4a21d","options":["D13-html-practice-html-q15-5ec84ba4a21d:option-1","D13-html-practice-html-q15-5ec84ba4a21d:option-2","D13-html-practice-html-q15-5ec84ba4a21d:option-3","D13-html-practice-html-q15-5ec84ba4a21d:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -536,8 +542,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -546,11 +552,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"D13",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjE5NmVjOWJmMzcxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04NzMxMTU4ZjkwMDkiLCJEMTMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZiMmVjZGY5MDY1MyIsIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmQ0MDg4Zjk3N2YxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtNWVjODRiYTRhMjFkIl0sInBhY2tfaWQiOiJEMTMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6Ijg5ODc2MzY2YTI2YTYzZjcwMGZmNjk1NDY0MTM1MDRlN2VlZmE0YWFmYzU3MWUxZGUyYTI2ZTg4MTA0OTdkZDciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYTAyZTQzYWJjZjVlMTBlNmFkYzI1ODdhZjlhNmYxOTkxOTYzMTc0NzU1M2YwZmE5Zjg2OGRhOWUxZmRkZDkxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }

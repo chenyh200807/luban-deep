@@ -76,6 +76,26 @@ class LubanPreviewLessonViewedRequest(BaseModel):
     entryTicket: str = Field(default="", max_length=256)
 
 
+class LubanPracticeSubmitAnswer(BaseModel):
+    variant_id: str = Field(min_length=1, max_length=128)
+    selected_option_id: str = Field(min_length=1, max_length=160)
+
+
+class LubanPracticeSubmitRequest(BaseModel):
+    """公开练习页交卷体——只描述「学员看到了哪套题、选了哪些选项」。
+
+    页面不携带、也不上报任何对错判断；判分与逐项解析由服务端
+    ``RetestWritebackService.complete()`` 唯一签发。
+    """
+
+    contextId: str = Field(max_length=80)
+    entryTicket: str = Field(default="", max_length=256)
+    practiceSurface: str = Field(default="practice.html", max_length=40)
+    projectionReceipt: str = Field(min_length=1, max_length=4096)
+    completionId: str = Field(min_length=8, max_length=80)
+    answers: list[LubanPracticeSubmitAnswer] = Field(min_length=5, max_length=5)
+
+
 class LubanPreviewTurnStream(BaseModel):
     transport: str = "websocket"
     url: str = _STREAM_URL
@@ -286,6 +306,141 @@ async def ask_luban_preview(payload: LubanPreviewAskRequest) -> LubanPreviewAskR
         session_id=session_id,
         turn_id=turn_id,
         stream=LubanPreviewTurnStream(ticket=stream_ticket, turn_id=turn_id),
+    )
+
+
+def _practice_submit_day_index() -> int:
+    """§9-D2 同一口径：'天'按服务端 UTC+8 日历日折算，客户端不自算。"""
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime.now(timezone(timedelta(hours=8)))
+    return now.year * 1000 + now.timetuple().tm_yday
+
+
+def _grade_practice_submission(
+    payload: LubanPracticeSubmitRequest, card: PublishedCardContext, *, user_id: str
+) -> dict[str, object]:
+    """薄适配器同步内核：归一化 → 收据解析 → 服务端自签 selection → 唯一判分 seam。
+
+    本函数零判分、零证据语义：题集身份由 ``resolve_projection_receipt``（经
+    ``build_retest_items``）裁决，答案键只存在于编译 authority sidecar，判分与
+    学习证据仅由 ``RetestWritebackService.complete()`` 提交。selection 在同一
+    请求内签发并立即被 seam 校验，客户端拿不到、也伪造不了第二种判分入口。
+    """
+    from deeptutor.services.learner_state.service import get_learner_state_service
+    from deeptutor.services.luban_lesson import (
+        build_retest_items,
+        retest_supply_identity,
+    )
+    from deeptutor.services.luban_lesson.practice_html import PracticeHtmlInvalid
+    from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
+    from deeptutor.services.luban_lesson.retest_writeback import (
+        RetestCompletionInProgress,
+        RetestIdempotencyConflict,
+        RetestWritebackService,
+    )
+
+    surface_id = str(payload.practiceSurface or "").strip() or "practice.html"
+    day_index = _practice_submit_day_index()
+    try:
+        items = build_retest_items(
+            card.pack_id,
+            user_id=user_id,
+            day_index=day_index,
+            mode="forward",
+            practice_surface=surface_id,
+            projection_receipt=str(payload.projectionReceipt or "").strip(),
+        )
+    except PracticeHtmlInvalid as exc:
+        code = str(exc)
+        if code in ("content_updated_retake", "practice_not_released"):
+            raise HTTPException(status_code=409, detail={"error": code}) from exc
+        raise HTTPException(status_code=404, detail="practice not found") from exc
+    variant_ids = [str(item.get("variant_id") or "") for item in items]
+    if not items or sorted(variant_ids) != sorted(
+        answer.variant_id for answer in payload.answers
+    ):
+        raise HTTPException(
+            status_code=400, detail="practice_submit_answer_set_mismatch"
+        )
+    supply = retest_supply_identity(card.pack_id, mode="forward")
+    if not supply.get("kind") or not supply.get("digest"):
+        raise HTTPException(status_code=404, detail="practice not found")
+    selection_id = issue_retest_selection(
+        user_id=user_id,
+        pack_id=card.pack_id,
+        day_index=day_index,
+        mode="forward",
+        variant_ids=variant_ids,
+        supply_kind=supply["kind"],
+        supply_digest=supply["digest"],
+    )
+    try:
+        return RetestWritebackService(
+            learner_state_service=get_learner_state_service(),
+        ).complete(
+            user_id=user_id,
+            completion_id=f"h5:{payload.completionId.strip()}",
+            selection_id=selection_id,
+            pack_id=card.pack_id,
+            mode="forward",
+            day_index=day_index,
+            answers=[
+                {
+                    "variant_id": answer.variant_id,
+                    "selected_option_id": answer.selected_option_id,
+                }
+                for answer in payload.answers
+            ],
+        )
+    except RetestIdempotencyConflict as exc:
+        raise HTTPException(
+            status_code=409, detail="practice completion conflict"
+        ) from exc
+    except RetestCompletionInProgress as exc:
+        raise HTTPException(
+            status_code=409, detail="practice completion in progress"
+        ) from exc
+    except ValueError as exc:
+        code = str(exc)
+        if code in ("luban_review_module_disabled", "luban_light_practice_disabled"):
+            # 灰度未开 = 练习记录暂未开放（诚实终态），不是用户数据问题。
+            raise HTTPException(
+                status_code=409, detail={"error": "practice_not_released"}
+            ) from exc
+        raise HTTPException(status_code=400, detail=code) from exc
+
+
+@router.post(
+    "/practice-submit",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "luban_preview_practice_submit",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
+async def submit_luban_preview_practice(
+    payload: LubanPracticeSubmitRequest,
+) -> dict[str, object]:
+    """公开练习页唯一交卷入口——鉴权/归一化/转发，判分不在此处发生。
+
+    entryTicket 是小程序站点签发的短时 capability（同 ai-ask / lesson-viewed），
+    绑定 learner + pack；无票 / 过期一律 401 fail-closed，公开页拿不到答案键，
+    也没有本地判分可退化。
+    """
+    card = await asyncio.to_thread(_resolve_published_card, payload.contextId)
+    if card is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="当前教学卡暂未开放练习判分。",
+        )
+    user_id = await _resolve_entry_user(ticket=payload.entryTicket, card=card)
+    return await asyncio.to_thread(
+        _grade_practice_submission, payload, card, user_id=user_id
     )
 
 

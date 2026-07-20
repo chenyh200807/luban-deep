@@ -227,14 +227,7 @@
 <div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
-/* ░░░ 母版骨架逻辑：随堂练 ░░░
-   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
-   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
-   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
-   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
-     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
-   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
-     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+/* 服务端判分收权：作者注释含答案键示例，发布时整块移除 */
 class Component extends DCLogic {
   // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
   //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
@@ -245,51 +238,41 @@ class Component extends DCLogic {
   moreText="补两道：① {2019} 节拍 3/3/9/6/6 · 等步距异节奏、K=gcd=3、队数 1/1/3/2/2=9，练判型理由+K+拆队绑定工序；② {2015} 等节奏「不能连续作业」辨析，练「选项错+理由(K=t必连续无空闲)+正确表述」三段式。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
-{ tag:"判型·条件维", typeHint:"单选 · 选出最完整、最能拿分的作答", figLabel:"题给：四道工序流水节拍", figCaption:"基础3 结构3 砌筑6 装修3（月）· 类型你来判", fig:"bars",
+{ tag:"判型·条件维",
+      typeHint:"单选 · 选出最完整、最能拿分的作答",
+      figLabel:"题给：四道工序流水节拍",
+      figCaption:"基础3 结构3 砌筑6 装修3（月）· 类型你来判",
+      fig:"bars",
       stem:"某工程四个施工过程的流水节拍为 3、3、6、3 个月。判定流水组织类型，选出最完整、能得分的作答。",
-      model:"判型：节拍不全相等但成倍数（6=2×3）· 等步距异节奏流水；流水步距取各节拍最大公约数。",
-      opts:[
-        { t:"节拍不全相等但均成倍数（6=2×3），判「等步距异节奏流水」，步距取各节拍最大公约数。", ok:true, fix:"判据链写全：先点成倍数、再定类型、并指向 K=最大公约数，三件齐。", code:"" },
-        { t:"节拍 3、3、6、3 不全相等、看着无规律，判为「无节奏流水」，用大差法逐段求步距。", ok:false, code:"E05", tempt:"看 3、3、6、3 不全等，第一反应「无规律·无节奏」。", lose:"漏了「成倍数·等步距异节奏」这档；判型错是地基错，K/队数/工期连锁全错。", fix:"先看成不成倍数：本题成倍数，应判等步距异节奏。" },
-        { t:"四个里三个节拍都是 3，判为「等节奏流水」，流水步距 K=t=3 个月、各段连续施工。", ok:false, code:"E07", tempt:"四个里三个都是 3，像等节奏。", lose:"等节奏要求所有节拍全等，而 6≠3，条件不成立。", fix:"等节奏须全部节拍相等；本题有 6，应判等步距异节奏。" },
-        { t:"节拍不同不必先判型，直接取最大节拍 6 当步距把队伍排开施工，省去判型这步。", ok:false, code:"E02", tempt:"想省事，跳过判型直接取步距开干。", lose:"判型是采分地基，跳过=丢判据分，且 K 取最大节拍本身就错。", fix:"先写「成倍数·等步距异节奏」，再据型取 K=最大公约数。" }
-      ] },
-{ tag:"步距K·计算表达维", typeHint:"单选 · 选出可得分的算式与依据", figLabel:"题给：各节拍", figCaption:"3、3、6、3（月）· K = ？", fig:"gcd",
+      opts:[{"t": "节拍不全相等但均成倍数（6=2×3），判「等步距异节奏流水」，步距取各节拍最大公约数。"}, {"t": "节拍 3、3、6、3 不全相等、看着无规律，判为「无节奏流水」，用大差法逐段求步距。"}, {"t": "四个里三个节拍都是 3，判为「等节奏流水」，流水步距 K=t=3 个月、各段连续施工。"}, {"t": "节拍不同不必先判型，直接取最大节拍 6 当步距把队伍排开施工，省去判型这步。"}] },
+{ tag:"步距K·计算表达维",
+      typeHint:"单选 · 选出可得分的算式与依据",
+      figLabel:"题给：各节拍",
+      figCaption:"3、3、6、3（月）· K = ？",
+      fig:"gcd",
       stem:"承上题（已判等步距异节奏，节拍 3、3、6、3）。求流水步距 K，写出可得分的算式与依据。",
-      model:"K = 各节拍最大公约数 gcd(3,6)=3 个月。",
-      opts:[
-        { t:"步距要能排开工序，取各节拍「最大值」：K=6 个月，按最长的砌筑节拍定步距。", ok:false, code:"E09", tempt:"怕步距小排不开，想用最长工序节拍当步距。", lose:"K 取最大节拍会让队排稀、施工段空等，违反 K=最大公约数。", fix:"据型 K=gcd(3,6)=3，不是最大节拍。" },
-        { t:"折中处理时取各节拍「平均值」：K=(3+3+6+3)÷4=3.75 个月，认为这样能兼顾各工序不排稀。", ok:false, code:"E09", tempt:"平均看着「折中又公平」。", lose:"流水步距没有平均口径，3.75 非整数无法让各段整数个 K 咬合。", fix:"用最大公约数 3，不是平均值。" },
-        { t:"步距取各节拍「最小值」保证咬合：K=3 个月，用最短节拍定步距最紧凑。", ok:false, code:"E07", tempt:"数值 3 恰好正确，极易顺手就选。", lose:"数值对、依据错——最小值等于 gcd 只是本题巧合；阅卷看依据词「最大公约数」，写「最小节拍」不给判据分。", fix:"必须写「K=最大公约数 gcd(3,6)=3」，不能写「取最小节拍」。" },
-        { t:"等步距异节奏，流水步距 K 取各节拍「最大公约数」：K=gcd(3,3,6,3)=3 个月。", ok:true, fix:"依据词「最大公约数」+算式+数值带单位，换组数据也不会错。", code:"" }
-      ] },
-{ tag:"队数·计算表达维", typeHint:"单选 · 选出可得分的列式与依据", figLabel:"题给：各工序节拍（K=3）", figCaption:"基础3 结构3 砌筑6 装修3 · 需几个专业队？", fig:"rows",
+      opts:[{"t": "步距要能排开工序，取各节拍「最大值」：K=6 个月，按最长的砌筑节拍定步距。"}, {"t": "折中处理时取各节拍「平均值」：K=(3+3+6+3)÷4=3.75 个月，认为这样能兼顾各工序不排稀。"}, {"t": "步距取各节拍「最小值」保证咬合：K=3 个月，用最短节拍定步距最紧凑。"}, {"t": "等步距异节奏，流水步距 K 取各节拍「最大公约数」：K=gcd(3,3,6,3)=3 个月。"}] },
+{ tag:"队数·计算表达维",
+      typeHint:"单选 · 选出可得分的列式与依据",
+      figLabel:"题给：各工序节拍（K=3）",
+      figCaption:"基础3 结构3 砌筑6 装修3 · 需几个专业队？",
+      fig:"rows",
       stem:"承上题（等步距异节奏，K=3，节拍 3、3、6、3）。需要多少个专业施工队？写出可得分的列式与依据。",
-      model:"各工序队数=节拍÷K=1+1+2+1=5 个；成倍节拍拆队，队数>工序数。",
-      opts:[
-        { t:"四个施工过程就设 4 个专业队，每个过程配 1 个队依次施工，队数等于工序数。", ok:false, code:"E07", tempt:"直觉「几道工序就几个队」，等节奏时确实如此。", lose:"成倍节拍未拆队：砌筑 6=2K 应拆 2 队，漏拆少 1 队。", fix:"队数=节拍÷K 求和=5，队数>工序数。" },
-        { t:"把节拍数当队数：砌筑 6 设 6 个队、其余每过程各设 3 个队，共 6+3+3+3=15 个队。", ok:false, code:"E09", tempt:"把「节拍数」直接当「队数」摆。", lose:"队数=节拍÷K，不是节拍本身，严重高估。", fix:"节拍÷K：6÷3=2 队、3÷3=1 队，合计 5 队。" },
-        { t:"队数=总节拍÷K=(3+3+6+3)÷3=5 个队，用总节拍一次除以步距求出队数。", ok:false, code:"E07", tempt:"数值 5 正确，算式看着也「成立」。", lose:"数值对、口径错——「总节拍÷K」掩盖拆队归属，阅卷要求队数落到具体工序（砌筑拆 2）。", fix:"写成 1+1+2+1=5，标明砌筑拆 2 队、队数>工序数。" },
-        { t:"各工序队数=节拍÷K=1+1+2+1=5 个专业队；成倍节拍要拆队，队数大于工序数。", ok:true, fix:"逐工序÷K、求和、点明拆队与队数>工序数，砌筑拆 2 队归属清楚。", code:"" }
-      ] },
-{ tag:"工期·计算表达维", typeHint:"单选 · 选出可得分的工期算式与依据", figLabel:"题给：M=2 段，N′=5 队，K=3", figCaption:"5 队 2 段对角咬合 · 总工期 T = ？", fig:"gantt",
+      opts:[{"t": "四个施工过程就设 4 个专业队，每个过程配 1 个队依次施工，队数等于工序数。"}, {"t": "把节拍数当队数：砌筑 6 设 6 个队、其余每过程各设 3 个队，共 6+3+3+3=15 个队。"}, {"t": "队数=总节拍÷K=(3+3+6+3)÷3=5 个队，用总节拍一次除以步距求出队数。"}, {"t": "各工序队数=节拍÷K=1+1+2+1=5 个专业队；成倍节拍要拆队，队数大于工序数。"}] },
+{ tag:"工期·计算表达维",
+      typeHint:"单选 · 选出可得分的工期算式与依据",
+      figLabel:"题给：M=2 段，N′=5 队，K=3",
+      figCaption:"5 队 2 段对角咬合 · 总工期 T = ？",
+      fig:"gantt",
       stem:"承上题（等步距异节奏，K=3 个月，施工段 M=2，拆队后专业队 N′=5）。求总工期 T，写出可得分的算式与依据。",
-      model:"T=(M+N′−1)×K=(2+5−1)×3=18 个月，体现搭接、带单位。",
-      opts:[
-        { t:"总工期就是各工序节拍相加：T=3+3+6+3=15 个月，把四道工序时间累加起来。", ok:false, code:"E09", tempt:"以为把工序节拍加起来就是工期。", lose:"机械相加不体现搭接，也没展开多施工段与拆队。", fix:"T=(M+N′−1)×K=(2+5−1)×3=18 个月。" },
-        { t:"总工期=节拍在两个施工段上全摆开=(3+3+6+3)×2=30 个月。", ok:false, code:"E09", tempt:"两段就乘 2，看着「全做完」。", lose:"那是不搭接、一段段死等的算法；流水搭接后只 18 个月。", fix:"体现搭接 T=(2+5−1)×3=18 个月，不是 30。" },
-        { t:"总工期体现搭接：T=(M+N′−1)×K=(2+5−1)×3=18 个月。", ok:true, fix:"用拆队后队数 N′=5、施工段 M=2，体现搭接并带单位，公式与数值齐。", code:"" },
-        { t:"总工期=(M+N′−1)×K=(2+4−1)×3=15 个月（按 4 道工序算）。", ok:false, code:"E07", tempt:"公式对，但把 N′ 当成了 4 道工序。", lose:"N′ 是拆队后总队数 5，不是工序数 4；用错连锁错。", fix:"N′=5，T=(2+5−1)×3=18 个月。" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 工期数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"总工期 18 与标准答案数值一致，但…", fig:"sheet",
+      opts:[{"t": "总工期就是各工序节拍相加：T=3+3+6+3=15 个月，把四道工序时间累加起来。"}, {"t": "总工期=节拍在两个施工段上全摆开=(3+3+6+3)×2=30 个月。"}, {"t": "总工期体现搭接：T=(M+N′−1)×K=(2+5−1)×3=18 个月。"}, {"t": "总工期=(M+N′−1)×K=(2+4−1)×3=15 个月（按 4 道工序算）。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 工期数值蒙对，诊断失分并给正确补写",
+      figLabel:"模拟学生作答（待诊断）",
+      figCaption:"总工期 18 与标准答案数值一致，但…",
+      fig:"sheet",
       stem:"某学生作答：①K 取最大节拍=6 个月；②设 4 个专业队；③总工期=3+3+6+6=18 个月。其总工期 18 恰与标准答案一致。选出最准确的诊断与补写。",
-      model:"判型理由缺、K 取最大节拍（应 gcd=3）、未拆队（应 5 队）、工期机械相加未体现搭接；补写四句：成倍数·等步距异节奏／K=gcd(3,6)=3／队数 1+1+2+1=5／T=(2+5−1)×3=18 个月。",
-      opts:[
-        { t:"三步算出工期 18，与标准答案数值一致，判型 K 队数也都对，作答正确可给满分。", ok:false, code:"E07", tempt:"只看末位数字，数值对就以为全对——最危险的误判。", lose:"工期是机械相加 3+3+6+6 碰巧得 18，判型/K/队数全错且未体现搭接；阅卷看过程采分。", fix:"判型/K/队数都要重写，工期按 (2+5−1)×3 体现搭接。" },
-        { t:"判型理由缺、K 应取 gcd=3、未拆队应 5 队、工期系机械相加碰巧得 18；四处都要补写。", ok:true, fix:"四处失分全揪出，补写即可上答题纸的四句采分句——这就是「会写答案」。", code:"" },
-        { t:"只是总工期写法不够规范，把 K 从 6 改成 3 就行，判型和队数其余都正确无误。", ok:false, code:"E02", tempt:"抓到 K 错一处，就以为只此一错。", lose:"漏诊「判型理由缺失」和「未拆队（4 应 5）」两处失分。", fix:"判型理由、拆队 5 队、搭接工期三处都要补，不止改 K。" },
-        { t:"K 应取平均节拍 3.75 而非 6，队数与工期按 3.75 重算即可，其余判型思路都没问题。", ok:false, code:"E07", tempt:"看出 K=6 错了，却把它纠成了另一个错。", lose:"诊断方向本身错：K 是最大公约数 3，不是平均 3.75，用错 K 重算只会连锁错。", fix:"K=gcd(3,6)=3，按 K=3 重算队数 5、工期 18。" }
-      ] }
+      opts:[{"t": "三步算出工期 18，与标准答案数值一致，判型 K 队数也都对，作答正确可给满分。"}, {"t": "判型理由缺、K 应取 gcd=3、未拆队应 5 队、工期系机械相加碰巧得 18；四处都要补写。"}, {"t": "只是总工期写法不够规范，把 K 从 6 改成 3 就行，判型和队数其余都正确无误。"}, {"t": "K 应取平均节拍 3.75 而非 6，队数与工期按 3.75 重算即可，其余判型思路都没问题。"}] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
   codeMap={
@@ -369,15 +352,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"N02",cardId:"N02",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -441,7 +422,7 @@ class Component extends DCLogic {
       lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -484,9 +465,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"N02-html-practice-html-q1-f0ad516c7201","options":["N02-html-practice-html-q1-f0ad516c7201:option-1","N02-html-practice-html-q1-f0ad516c7201:option-2","N02-html-practice-html-q1-f0ad516c7201:option-3","N02-html-practice-html-q1-f0ad516c7201:option-4"]},{"variant_id":"N02-html-practice-html-q2-813072d92c5a","options":["N02-html-practice-html-q2-813072d92c5a:option-1","N02-html-practice-html-q2-813072d92c5a:option-2","N02-html-practice-html-q2-813072d92c5a:option-3","N02-html-practice-html-q2-813072d92c5a:option-4"]},{"variant_id":"N02-html-practice-html-q3-578780f341e5","options":["N02-html-practice-html-q3-578780f341e5:option-1","N02-html-practice-html-q3-578780f341e5:option-2","N02-html-practice-html-q3-578780f341e5:option-3","N02-html-practice-html-q3-578780f341e5:option-4"]},{"variant_id":"N02-html-practice-html-q4-49ae2a47bd94","options":["N02-html-practice-html-q4-49ae2a47bd94:option-1","N02-html-practice-html-q4-49ae2a47bd94:option-2","N02-html-practice-html-q4-49ae2a47bd94:option-3","N02-html-practice-html-q4-49ae2a47bd94:option-4"]},{"variant_id":"N02-html-practice-html-q6-461d5405fa34","options":["N02-html-practice-html-q6-461d5405fa34:option-1","N02-html-practice-html-q6-461d5405fa34:option-2","N02-html-practice-html-q6-461d5405fa34:option-3","N02-html-practice-html-q6-461d5405fa34:option-4"]}];
+  __dtItems=[{"variant_id":"N02-html-practice-html-q1-f0ad516c7201","options":["N02-html-practice-html-q1-f0ad516c7201:option-1","N02-html-practice-html-q1-f0ad516c7201:option-2","N02-html-practice-html-q1-f0ad516c7201:option-3","N02-html-practice-html-q1-f0ad516c7201:option-4"]},{"variant_id":"N02-html-practice-html-q2-813072d92c5a","options":["N02-html-practice-html-q2-813072d92c5a:option-1","N02-html-practice-html-q2-813072d92c5a:option-2","N02-html-practice-html-q2-813072d92c5a:option-3","N02-html-practice-html-q2-813072d92c5a:option-4"]},{"variant_id":"N02-html-practice-html-q3-578780f341e5","options":["N02-html-practice-html-q3-578780f341e5:option-1","N02-html-practice-html-q3-578780f341e5:option-2","N02-html-practice-html-q3-578780f341e5:option-3","N02-html-practice-html-q3-578780f341e5:option-4"]},{"variant_id":"N02-html-practice-html-q4-49ae2a47bd94","options":["N02-html-practice-html-q4-49ae2a47bd94:option-1","N02-html-practice-html-q4-49ae2a47bd94:option-2","N02-html-practice-html-q4-49ae2a47bd94:option-3","N02-html-practice-html-q4-49ae2a47bd94:option-4"]},{"variant_id":"N02-html-practice-html-q6-461d5405fa34","options":["N02-html-practice-html-q6-461d5405fa34:option-1","N02-html-practice-html-q6-461d5405fa34:option-2","N02-html-practice-html-q6-461d5405fa34:option-3","N02-html-practice-html-q6-461d5405fa34:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -497,8 +496,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -507,11 +506,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"N02",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjBhZDUxNmM3MjAxIiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04MTMwNzJkOTJjNWEiLCJOMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTU3ODc4MGYzNDFlNSIsIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDlhZTJhNDdiZDk0IiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi00NjFkNTQwNWZhMzQiXSwicGFja19pZCI6Ik4wMiIsInByb2plY3Rpb25fZGlnZXN0IjoiNGRlYTJjNTYwZmVjYzMxODQ3YTRmMzQ1NWFjYWI1NTQ1NDNjYTk3MmQ4NWE2NmU5YzY1NGUyYzFhNTA0NTM5YiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiIwOGY2ZWZkYTUyNGI1OTM1ZGEyMmI2ZGM2ZTJmOTVkMWViMjdkN2Y4MTBhOTEyNTcwZWZlNjg3ZTI0MmMxNWRkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }
