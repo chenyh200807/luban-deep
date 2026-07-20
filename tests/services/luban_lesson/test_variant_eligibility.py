@@ -20,6 +20,7 @@ from deeptutor.services.luban_lesson.variant_eligibility import (
     review_signature_envelope_sha256,
     variant_content_sha256,
     variant_eligibility_summary,
+    variant_probe_fact_ids,
     variant_probe_supply_identity,
 )
 
@@ -930,3 +931,137 @@ def test_resolve_probe_items_none_without_blocklist(tmp_path: Path) -> None:
         resolve_variant_probe_items("S05", ["S05-B-ic-000"], manifest_path=manifest)
         is None
     )
+
+
+# ---------------------------------------------------------------- compiled v3 分支
+# 六步第 4/6 步供给收权（2026-07-20）：compiled 注册 pack 的 confirm/d1_probe
+# 供给唯一 authority = compiled v3 per-Pack artifact（复用 practice_html._eligible
+# 同一谓词 + complete_fact_ids 三件套收窄），禁回退 legacy signed bank——镜像
+# read_model.build_retest_items 复测先例。以下测试全部消费真实 repo 签发工件。
+
+
+def _compiled_complete_facts(pack_id: str) -> frozenset[str]:
+    from deeptutor.services.luban_lesson.practice_html import (
+        compiled_practice_eligibility_summary,
+        load_compiled_practice,
+    )
+
+    authority = load_compiled_practice(pack_id)
+    assert authority is not None
+    return frozenset(
+        compiled_practice_eligibility_summary(authority)["complete_fact_ids"]
+    )
+
+
+def test_compiled_pack_probe_facts_come_from_v3_artifact_not_bank() -> None:
+    # N01 是仓库里带决策块 legacy bank 的 compiled pack——默认（生产）路径必须
+    # 只认 compiled artifact 的 complete facts，bank 不再是 decider（禁回退）。
+    expected = _compiled_complete_facts("N01")
+    assert expected
+    assert variant_probe_fact_ids("N01", probe_role="immediate_confirm") == expected
+    assert variant_probe_fact_ids("N01", probe_role="d1_probe") == expected
+
+
+def test_compiled_probe_supply_covers_all_registered_packs() -> None:
+    # 供给-消费断链验收：凡 compiled 工件 complete_fact 非空的站，双 role 皆非空。
+    from deeptutor.services.luban_lesson.practice_html import is_compiled_practice_pack
+    from deeptutor.services.luban_lesson.read_model import _MANIFEST_PATH
+
+    manifest = json.loads(_MANIFEST_PATH.read_text(encoding="utf-8"))
+    compiled_packs = [
+        str(pack["pack_id"])
+        for pack in manifest["packs"]
+        if is_compiled_practice_pack(str(pack["pack_id"]))
+    ]
+    assert len(compiled_packs) >= 40
+    for pack_id in compiled_packs:
+        expected = _compiled_complete_facts(pack_id)
+        assert expected, f"{pack_id} 无 complete fact 三件套"
+        assert (
+            variant_probe_fact_ids(pack_id, probe_role="immediate_confirm") == expected
+        ), pack_id
+        assert (
+            variant_probe_fact_ids(pack_id, probe_role="d1_probe") == expected
+        ), pack_id
+
+
+def test_compiled_probe_consumption_rows_are_mcq_without_answer_key() -> None:
+    rows = build_variant_probe_items(
+        "N01", user_id="u1", day_index=3, probe_role="immediate_confirm"
+    )
+    assert rows
+    for row in rows:
+        # 复用 _project_practice_rows 同一消费映射 + probe_role；发题前绝不
+        # 下发 is_correct / temptation / loss_reason / fix 答案面。
+        assert row["answer_type"] == "single_choice"
+        assert row["probe_role"] == "immediate_confirm"
+        assert row["stem"] and row["surface"] == row["stem"]
+        assert row["fact_id"] in _compiled_complete_facts("N01")
+        for option in row["options"]:
+            assert set(option) == {"option_id", "text"}
+    # 确定性选序：同 (user, day) 幂等。
+    assert rows == build_variant_probe_items(
+        "N01", user_id="u1", day_index=3, probe_role="immediate_confirm"
+    )
+    # anchor 首验归 compiled MCQ 主线，探针通道拒发。
+    assert (
+        build_variant_probe_items(
+            "N01", user_id="u1", day_index=3, probe_role="anchor"
+        )
+        == []
+    )
+    # 错题 facts 与供给无交集 → 如实空（confirm 入口不亮）。
+    assert (
+        build_variant_probe_items(
+            "N01",
+            user_id="u1",
+            day_index=3,
+            probe_role="immediate_confirm",
+            fact_ids=["fact-not-here"],
+        )
+        == []
+    )
+
+
+def test_compiled_probe_canonical_resolution_returns_scoring_rows() -> None:
+    rows = build_variant_probe_items(
+        "N01", user_id="u1", day_index=3, probe_role="d1_probe"
+    )
+    assert rows
+    canonical = resolve_variant_probe_items(
+        "N01", [row["variant_id"] for row in rows]
+    )
+    assert canonical is not None
+    for row in canonical:
+        # writeback 判分需要 authority 原行（options.is_correct 恰一真 +
+        # probe_role/fact_id 证据字段），镜像 resolve_compiled_practice_items。
+        assert row["answer_type"] == "single_choice"
+        assert row["probe_role"] == "d1_probe"
+        assert sum(1 for option in row["options"] if option.get("is_correct")) == 1
+    # 任一 id 缺失 → None（fail-closed，writeback 拒收）。
+    assert resolve_variant_probe_items("N01", ["missing"]) is None
+
+
+def test_compiled_probe_supply_identity_signed() -> None:
+    identity = variant_probe_supply_identity("N01")
+    assert identity["kind"] == "signed_variant"
+    assert len(identity["digest"]) == 64
+
+
+def test_compiled_pack_pending_governance_fails_closed_no_bank_fallback(
+    pendingize_pack,
+) -> None:
+    # 治理层整体回退 pending（合成合法世界态）→ 供给闸整体 fail-closed；
+    # N01 的 legacy bank 依然在盘上，但绝不回退去读它（禁半开）。
+    pendingize_pack("N01")
+    assert resolve_variant_supply("N01") is None
+    assert variant_probe_fact_ids("N01", probe_role="immediate_confirm") == frozenset()
+    assert variant_probe_fact_ids("N01", probe_role="d1_probe") == frozenset()
+    assert (
+        build_variant_probe_items(
+            "N01", user_id="u1", day_index=3, probe_role="immediate_confirm"
+        )
+        == []
+    )
+    assert resolve_variant_probe_items("N01", ["any-id"]) is None
+    assert variant_probe_supply_identity("N01") == {"kind": "", "digest": ""}

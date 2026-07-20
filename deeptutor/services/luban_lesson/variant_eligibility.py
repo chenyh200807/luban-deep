@@ -36,6 +36,9 @@ from pathlib import Path
 import re
 from typing import Any
 
+# 经模块属性调用 compiled 侧函数（而非 from-import 绑定符号），使测试夹具
+# （conftest.pendingize_pack）patch ``practice_html`` 命名空间即可同时覆盖本模块。
+from deeptutor.services.luban_lesson import practice_html as _practice_html
 from deeptutor.services.luban_lesson.practice_html import (
     _canonical_sha256,
     _eligible,
@@ -563,16 +566,63 @@ def carry_variant_bank_decisions(
     return stats
 
 
+def _resolve_compiled_probe_supply(pack_id: str) -> dict[str, Any] | None:
+    """compiled v3 per-Pack artifact 的 confirm/d1 供给分支。
+
+    资格谓词完全复用 ``practice_html``（``load_compiled_practice`` 的
+    digest/registration/公开投影 sha 全链校验 + ``_eligible`` + fact 三件套
+    ``compiled_practice_eligibility_summary``），零平行判定。供给 facts 收窄到
+    ``complete_fact_ids``（anchor/immediate_confirm/d1_probe 三 role 齐且骨架
+    互异）——三件套不齐的 fact 不发探针，防撤发后半开。
+
+    fail-closed：工件缺失/校验失败/``supply_ready`` 假/complete fact 空 → None
+    （与 legacy bank 缺失同形，不泄漏存在性）。
+    """
+    try:
+        practice = _practice_html.load_compiled_practice(pack_id)
+    except _practice_html.PracticeHtmlInvalid:
+        return None
+    if practice is None:
+        return None
+    summary = _practice_html.compiled_practice_eligibility_summary(practice)
+    complete = set(summary.get("complete_fact_ids") or [])
+    if not summary.get("supply_ready") or not complete:
+        return None
+    items = [
+        dict(item)
+        for item in practice.get("items") or []
+        if _eligible(item)
+        and str(item.get("probe_role") or "") in VARIANT_PROBE_ROLES
+        and str(item.get("fact_id") or "") in complete
+    ]
+    if not items:
+        return None
+    return {
+        "pack_id": pack_id,
+        "source_pack_sha256": str(practice.get("source_pack_sha256") or ""),
+        "items": items,
+        "summary": summary,
+    }
+
+
 def resolve_variant_supply(
     pack_id: str, *, manifest_path: Path | None = None
 ) -> dict[str, Any] | None:
-    """经 canonical 绿灯签发闸 ``_load_green_signed_bank``
-    （projection_green + manifest sha + signed 三重 fail-closed，
-    对抗审查二轮 B2 唯一 gateway）+ ``_variant_blocklist`` 解析一个 pack
-    的变体资格供给；任一闸不过 → None（与缺失同形，不泄漏存在性）。"""
+    """一个 pack 的变体探针资格供给唯一 gateway。
+
+    - compiled 注册 pack（``is_compiled_practice_pack``，仅默认 manifest 生效，
+      镜像 ``read_model.build_retest_items`` 复测先例）：v3 per-Pack artifact 是
+      唯一资格 authority，**禁回退 signed bank**——工件任一闸不过 → None，
+      绝不半开。
+    - 仅无 compiled authority 的 legacy pack 走原 signed bank 路径：canonical
+      绿灯签发闸 ``_load_green_signed_bank``（projection_green + manifest sha +
+      signed 三重 fail-closed，对抗审查二轮 B2 唯一 gateway）+
+      ``_variant_blocklist``；任一闸不过 → None（与缺失同形，不泄漏存在性）。"""
     normalized = str(pack_id or "").strip().upper()
     if not normalized:
         return None
+    if manifest_path is None and _practice_html.is_compiled_practice_pack(normalized):
+        return _resolve_compiled_probe_supply(normalized)
     path = manifest_path or _MANIFEST_PATH
     bank = _load_green_signed_bank(normalized, manifest_path=path)
     blocked = _variant_blocklist(path.parent)
@@ -608,7 +658,14 @@ _PROBE_ITEM_FIELDS = (
 
 
 def _project_probe_item(item: dict[str, Any]) -> dict[str, Any]:
-    row: dict[str, Any] = {key: str(item.get(key) or "") for key in _PROBE_ITEM_FIELDS}
+    if str(item.get("answer_type") or "") == "single_choice":
+        # compiled MCQ 探针复用 ``_project_practice_rows`` 同一消费映射（单选
+        # 绝不下发 is_correct/temptation/loss_reason 答案面；错后诊断经
+        # writeback answer_feedback 回传），只额外携带 probe_role 供消费路由。
+        row = _practice_html._project_practice_rows([item])[0]
+        row["probe_role"] = str(item.get("probe_role") or "")
+        return row
+    row = {key: str(item.get(key) or "") for key in _PROBE_ITEM_FIELDS}
     row["expected_ok"] = bool(item.get("expected_ok"))
     return row
 
@@ -674,7 +731,7 @@ def build_variant_probe_items(
     per_fact: int = 2,
     manifest_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """从绿灯变体供给投影一组消费题面（判断题）。
+    """从绿灯变体供给投影一组消费题面（compiled pack = MCQ；legacy bank = 判断题）。
 
     - 供给唯一权威 = ``resolve_variant_supply``（绿灯签发闸）；缺失/空 → ``[]``。
     - 只取指定 ``probe_role``（immediate_confirm / d1_probe）；``fact_ids`` 给定时
@@ -726,6 +783,10 @@ def resolve_variant_probe_items(
 
     completion 绝不重跑选题算法——只按 id 精确解析。任一 id 缺失/不再 eligible
     （撤发、签后漂移、供给闸不过）→ ``None``（fail-closed，writeback 拒收）。
+
+    compiled MCQ 探针返回 authority 原行拷贝（writeback 判分需要
+    options.is_correct，镜像 ``resolve_compiled_practice_items`` canonical 口径）；
+    judgment 变体保持消费投影（expected_ok 即判分锚）。
     """
     wanted = [str(item or "").strip() for item in variant_ids]
     if not wanted or len(wanted) > 10 or len(set(wanted)) != len(wanted):
@@ -740,7 +801,13 @@ def resolve_variant_probe_items(
     selected = [by_id.get(variant_id) for variant_id in wanted]
     if any(item is None for item in selected):
         return None
-    return [_project_probe_item(item) for item in selected if item is not None]
+    return [
+        dict(item)
+        if str(item.get("answer_type") or "") == "single_choice"
+        else _project_probe_item(item)
+        for item in selected
+        if item is not None
+    ]
 
 
 __all__ = [
