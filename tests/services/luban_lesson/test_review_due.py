@@ -8,6 +8,7 @@ import pytest
 from deeptutor.services.luban_lesson.review_due import (
     ReviewHorizonUnavailable,
     build_review_due_projection,
+    list_redeemable_due_items,
     resolve_due_review_probe,
     resolve_review_exam_date,
 )
@@ -173,6 +174,39 @@ def test_exact_due_probe_resolution_requires_cycle_and_available_supply() -> Non
     assert resolve_due_review_probe(
         projection, pack_id="F16", probe_id="without-supply"
     ) is None
+
+
+def test_list_redeemable_due_items_delegates_exact_probe_criteria() -> None:
+    # 首页 review_due 臂候选 = 本列表（收权 2026-07-20）：资格判据不复制，
+    # 逐条委托 resolve_due_review_probe——首页发出的 probe 必可被复习入口兑付。
+    projection = {
+        "due": [
+            {
+                "pack_id": "F16",
+                "probe_id": "without-cycle",
+                "cycle_anchor": "",
+                "retest_available": True,
+            },
+            {
+                "pack_id": "F16",
+                "probe_id": "without-supply",
+                "cycle_anchor": "cycle-1",
+                "retest_available": False,
+            },
+            {
+                "pack_id": "N01",
+                "probe_id": "canonical-n01",
+                "cycle_anchor": "cycle-2",
+                "retest_available": True,
+            },
+            "not-a-dict",
+        ]
+    }
+
+    redeemable = list_redeemable_due_items(projection)
+    assert [item["probe_id"] for item in redeemable] == ["canonical-n01"]
+    # 空投影 / 无 due 键 → 空列表（不异常）。
+    assert list_redeemable_due_items({}) == []
 
 
 def test_learned_yesterday_due_today_learned_today_not_due(pendingize_pack):
