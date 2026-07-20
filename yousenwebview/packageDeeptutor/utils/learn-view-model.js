@@ -186,6 +186,37 @@ var JOURNEY_STATUSES = {
   future: "future",
 };
 
+// 灰点分语义:未就绪步骤的服务端 reason → 一句暖提示,让"等我做/等系统/还没到期"
+// 可区分。纯 reason→文案映射(零业务推导);未识别 reason 一律 fail-quiet 不猜。
+// reason 词汇表权威 = station_journey_projection.py(只读)。文案红线:禁看穿/识破/
+// 揭穿/露馅等审视语气,基调=帮你变强、暖。current/completed 步不需要提示(已有主态)。
+function _journeyStepHint(status, reason) {
+  var r = _str(reason);
+  // 等系统:错因讲评内容尚未生成
+  if (r === "feedback_unavailable") return "讲评生成中 · 稍后回来看";
+  // 等系统:本站确认练习供给未开 / 供给投影降级
+  if (r === "safe_confirm_unavailable" || r === "confirm_supply_projection_unavailable") {
+    return "本站确认练习准备中";
+  }
+  // 复习模块暂不可用(到期验证/后续抽查降级):记录不丢,别让灰点像"永远不来"
+  if (r === "review_projection_unavailable") return "复习安排稍后恢复 · 记录已保留";
+  // 还没到期:服务端 scheduled 排期步无 reason,沿用现有承诺句语义
+  if (_str(status) === "scheduled") return "到期后会出现 · 你只管来";
+  return "";
+}
+
+// 六条 hint 不堆叠:只投一条对学员最有行动意义的。优先当前步自身提示(如排期中),
+// 否则按步序取首个非空提示(讲评/确认/复习等待)。
+function _pickJourneyHint(steps, currentIndex) {
+  var current = currentIndex > 0 ? _safeObj(steps[currentIndex - 1]) : {};
+  if (_str(current.hint)) return _str(current.hint);
+  for (var i = 0; i < steps.length; i += 1) {
+    var h = _str(_safeObj(steps[i]).hint);
+    if (h) return h;
+  }
+  return "";
+}
+
 function _unknownJourney() {
   return {
     available: false,
@@ -194,8 +225,9 @@ function _unknownJourney() {
     journeyState: "unavailable",
     currentIndex: 0,
     total: JOURNEY_STEPS.length,
+    hint: "",
     steps: JOURNEY_STEPS.map(function (step) {
-      return { id: step.id, label: step.label, status: "unknown", state: "future" };
+      return { id: step.id, label: step.label, status: "unknown", state: "future", hint: "" };
     }),
   };
 }
@@ -256,6 +288,19 @@ function _stationJourneyFor(report, packId) {
     : _str(currentRaw.status) === "scheduled"
     ? "下一步：" + JOURNEY_STEPS[currentIndex - 1].label + " · 待排期"
     : "当前：" + JOURNEY_STEPS[currentIndex - 1].label;
+  var mappedSteps = rawSteps.map(function (raw, index) {
+    var status = _str(raw.status);
+    return {
+      id: JOURNEY_STEPS[index].id,
+      label: JOURNEY_STEPS[index].label,
+      status: status,
+      state: JOURNEY_STATUSES[status],
+      note: status === "not_applicable" ? "无需" : status === "unavailable" ? "暂不可用" : "",
+      // 灰点分语义:completed 步不给提示(已是明确态),其余步按服务端 reason 映射
+      hint: status === "completed" ? "" : _journeyStepHint(status, raw.reason),
+      blocking: raw.blocking === true,
+    };
+  });
   return {
     available: true,
     statusText: statusText,
@@ -263,17 +308,8 @@ function _stationJourneyFor(report, packId) {
     currentIndex: journeyState === "completed" ? JOURNEY_STEPS.length : currentIndex,
     journeyState: journeyState,
     total: JOURNEY_STEPS.length,
-    steps: rawSteps.map(function (raw, index) {
-      var status = _str(raw.status);
-      return {
-        id: JOURNEY_STEPS[index].id,
-        label: JOURNEY_STEPS[index].label,
-        status: status,
-        state: JOURNEY_STATUSES[status],
-        note: status === "not_applicable" ? "无需" : status === "unavailable" ? "暂不可用" : "",
-        blocking: raw.blocking === true,
-      };
-    }),
+    hint: _pickJourneyHint(mappedSteps, currentIndex),
+    steps: mappedSteps,
   };
 }
 
