@@ -1812,8 +1812,13 @@ Page({
         journeyState: "",
         steps: [],
         foot: "",
+        confirmEntry: { visible: false, facts: [], anchor: "", url: "" },
       };
     }
+    var confirmEntry =
+      panorama.confirmEntry && panorama.confirmEntry.visible === true
+        ? panorama.confirmEntry
+        : { visible: false, facts: [], anchor: "", url: "" };
     this.setData({
       stationJourneyPanel: {
         open: true,
@@ -1827,8 +1832,27 @@ Page({
         journeyState: panorama.journeyState,
         steps: panorama.steps,
         foot: panorama.foot,
+        // 轻练确认重入口:服务端投影只读字段驱动,url 由共用 view-model 拼好。
+        confirmEntry: confirmEntry,
       },
     });
+  },
+
+  // 轻练确认重入口:把回执现场那个合法确认会话入口(mode=forward&confirm_facts
+  // &confirm_anchor)在学情全景里再指一次。数据全部来自服务端 station_journey
+  // 投影只读字段;retest 页 admission 服务端复核不变。fail-closed:
+  // confirmEntry 不可见 / url 缺失一律不跳,绝不本地拼 facts。
+  goConfirmFromPanorama() {
+    var panel = this.data.stationJourneyPanel || {};
+    var entry = panel.confirmEntry || {};
+    var url = String(entry.url || "").trim();
+    if (entry.visible !== true || !url) return;
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
+    helpers.vibrate("light");
+    wx.navigateTo({ url: url });
   },
 
   // 收起六步全景面板(面板关闭键/遮罩)。

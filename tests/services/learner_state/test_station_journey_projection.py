@@ -157,6 +157,74 @@ def test_wrong_answer_projects_diagnosis_and_safe_confirmation() -> None:
     assert journey["current_step_id"] == "immediate_confirm"
 
 
+def test_actionable_confirm_exposes_reentry_facts_and_anchor() -> None:
+    """confirm=current 时投影暴露重入口只读字段:错题∩供给交集 + forward 锚。
+
+    交集必须只含本轮错题命中的 fact(供给超集不得泄进来),锚必须是本轮
+    forward canonical terminal event_id(retest 确认会话 confirm_anchor 输入)。
+    """
+    projection = project_station_journeys(
+        events=_completion("forward", at="2026-07-18T09:00:00+08:00"),
+        pack_lifecycle=_lifecycle(),
+        pack_review=_review(),
+        confirm_fact_resolver=lambda _pack: {"fact-n01", "fact-unrelated-supply"},
+    )
+    confirm = next(
+        step
+        for step in projection["packs"]["N01"]["steps"]
+        if step["id"] == "immediate_confirm"
+    )
+    assert confirm["status"] == "current"
+    assert confirm["reason"] == "safe_confirm_available"
+    assert confirm["confirm_facts"] == ["fact-n01"]
+    assert confirm["confirm_anchor"] == "terminal_forward"
+
+
+def test_non_actionable_confirm_steps_never_carry_reentry_fields() -> None:
+    """非 current 的 confirm 步(unavailable/not_applicable/completed)不得
+    出现 confirm_facts/confirm_anchor——客户端缺字段一律 fail-closed 不亮 CTA。
+    """
+    # unavailable:供给空
+    unavailable = project_station_journeys(
+        events=_completion("forward", at="2026-07-18T09:00:00+08:00"),
+        pack_lifecycle=_lifecycle(),
+        pack_review=_review(),
+        confirm_fact_resolver=lambda _pack: set(),
+    )
+    # not_applicable:全对
+    all_correct = project_station_journeys(
+        events=_completion("forward", at="2026-07-18T09:00:00+08:00", correct=True),
+        pack_lifecycle=_lifecycle(),
+        pack_review=_review(),
+        confirm_fact_resolver=lambda _pack: {"fact-n01"},
+    )
+    # completed:同轮已有 canonical confirm terminal
+    forward = _completion("forward", at="2026-07-18T09:00:00+08:00")
+    confirm_events = _completion(
+        "confirm",
+        at="2026-07-18T09:20:00+08:00",
+        correct=True,
+        probe_role="immediate_confirm",
+        cycle_anchor="terminal_forward",
+    )
+    completed = project_station_journeys(
+        events=forward + confirm_events,
+        pack_lifecycle=_lifecycle(),
+        pack_review=_review(),
+        confirm_fact_resolver=lambda _pack: {"fact-n01"},
+    )
+    expected = {"unavailable": unavailable, "not_applicable": all_correct, "completed": completed}
+    for status, projection in expected.items():
+        confirm = next(
+            step
+            for step in projection["packs"]["N01"]["steps"]
+            if step["id"] == "immediate_confirm"
+        )
+        assert confirm["status"] == status
+        assert "confirm_facts" not in confirm
+        assert "confirm_anchor" not in confirm
+
+
 def test_missing_fact_or_safe_supply_is_unavailable_but_non_blocking() -> None:
     projection = project_station_journeys(
         events=_completion(
