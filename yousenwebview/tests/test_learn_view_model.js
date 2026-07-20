@@ -731,6 +731,65 @@ ok("journey rejects contradictory completed and duplicate-current shapes", () =>
   }).nextStation.journey.available, false);
 });
 
+ok("server-legal multi-actionable shapes validate: confirm current + due scheduled/current", () => {
+  // 服务端真实合法形状(实跑投影证实):轻练确认 current 时到期验证 scheduled
+  // 同在;D1 到期后甚至 due current 同在。current_step_id = 步序第一个
+  // actionable。旧规则 actionable 必须唯一会把这两个真形状 fail-close 成
+  // 「进度暂不可用」,正是重入口目标态 —— 校验对齐服务端合同,非放松。
+  ["scheduled", "current"].forEach((dueStatus) => {
+    const j = journeyWithSteps({
+      practice: { status: "completed", blocking: false },
+      diagnosis: { status: "completed", reason: "canonical_feedback_ready" },
+      immediate_confirm: { status: "current", reason: "safe_confirm_available" },
+      due_validation: { status: dueStatus },
+    }, "immediate_confirm");
+    assert.strictEqual(j.available, true, "due=" + dueStatus + " must not fail closed");
+    assert.strictEqual(j.currentStepId, "immediate_confirm");
+    assert.strictEqual(j.statusText, "当前：轻练确认");
+  });
+  // 但 current_step_id 不指向第一个 actionable 步 → 仍 fail-closed。
+  const skipped = journeyWithSteps({
+    practice: { status: "completed", blocking: false },
+    diagnosis: { status: "completed", reason: "canonical_feedback_ready" },
+    immediate_confirm: { status: "current", reason: "safe_confirm_available" },
+    due_validation: { status: "scheduled" },
+  }, "due_validation");
+  assert.strictEqual(skipped.available, false, "current_step_id must be the first actionable step");
+});
+
+ok("confirm reentry fields pass through read-only and fail closed otherwise", () => {
+  const withFields = journeyWithSteps({
+    practice: { status: "completed", blocking: false },
+    diagnosis: { status: "completed", reason: "canonical_feedback_ready" },
+    immediate_confirm: {
+      status: "current",
+      reason: "safe_confirm_available",
+      confirm_facts: ["fact-n01", " fact-2 ", ""],
+      confirm_anchor: "terminal_forward",
+    },
+    due_validation: { status: "scheduled" },
+  }, "immediate_confirm");
+  assert.deepStrictEqual(withFields.steps[3].confirmFacts, ["fact-n01", "fact-2"],
+    "facts pass through cleaned, order preserved, empties dropped");
+  assert.strictEqual(withFields.steps[3].confirmAnchor, "terminal_forward");
+  // 字段缺失 / anchor 空 / reason 不符 → 不带字段(消费端 fail-closed 不亮 CTA)。
+  [
+    { status: "current", reason: "safe_confirm_available" },
+    { status: "current", reason: "safe_confirm_available", confirm_facts: [], confirm_anchor: "terminal_forward" },
+    { status: "current", reason: "safe_confirm_available", confirm_facts: ["fact-n01"], confirm_anchor: "" },
+    { status: "current", reason: "brand_new_reason", confirm_facts: ["fact-n01"], confirm_anchor: "terminal_forward" },
+  ].forEach((patch, index) => {
+    const j = journeyWithSteps({
+      practice: { status: "completed", blocking: false },
+      diagnosis: { status: "completed", reason: "canonical_feedback_ready" },
+      immediate_confirm: patch,
+      due_validation: { status: "scheduled" },
+    }, "immediate_confirm");
+    assert.strictEqual("confirmFacts" in j.steps[3], false, "no facts leak, case " + index);
+    assert.strictEqual("confirmAnchor" in j.steps[3], false, "no anchor leak, case " + index);
+  });
+});
+
 ok("journey authority/schema/pack mismatch each fails closed", () => {
   [
     { authority: "wrong" },

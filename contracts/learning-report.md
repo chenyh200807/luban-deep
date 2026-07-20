@@ -244,6 +244,8 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
   - `evidence_lifecycle.canonical_retest_episode_records` 是唯一 episode binding：confirm facts 必须是本轮错题 facts 的非空子集，且 confirm terminal 的签名 parent `cycle_anchor` 必须等于该 forward terminal；同 fact 的旧设备迟交不得吸附到新 episode。v3 review 的 `cycle_anchor` 必须逐次精确绑定当前 terminal。旧版无 anchor review 只在完整 legacy episode 内兼容，不能挂到 v3 episode。
   - pack `journey_state=active|completed|unavailable`；只有 active 允许非空 `current_step_id`，且该步必须是 `current|scheduled`。排程不可用时不得把 unavailable 步骤称为“当前”。
   - 五题全对时 diagnosis/confirm=`not_applicable`；有错但历史 `fact_id` 或当前安全供给不足时 confirm=`unavailable` 且 non-blocking，禁止按当前题库回填猜测。
+  - 轻练确认重入口（只读字段）：仅当 `immediate_confirm` 步为 `current` 且 `reason=safe_confirm_available` 时，该步附带 `confirm_facts`（本轮错题 facts ∩ 安全供给 facts，排序去重，即投影判定 current 所用的同一交集）与 `confirm_anchor`（本轮 forward canonical terminal `event_id`）。二者只用于客户端把回执现场同一合法确认会话入口再指一次（`mode=forward&confirm_facts=…&confirm_anchor=…`），不是第二签发权威；retest 确认会话的服务端 admission 复核不因此放松。其他状态下不得出现这两个字段；客户端字段缺失/为空一律 fail-closed 不显示入口，禁止本地拼 facts。
+  - 客户端 active 一致性校验以服务端合同为准：`current_step_id` = 步序第一个 `current|scheduled` 步；合法投影允许多个 actionable 步并存（如 confirm `current` 与 due_validation `scheduled|current` 同在），仅 lesson/practice 为当前步（周期未开）时 actionable 必须唯一。
   - `completed` 只表示对应 episode 已有 canonical terminal/receipt，不表示 mastered；讲评完成只表示服务端已签发 canonical feedback，不声称用户已阅读。
   - learner events 不可用、authority/schema/pack 不匹配时客户端必须显示 unavailable，不得用 `next_step.mode`、本地点击或缓存零值猜 1/2/5。
 
