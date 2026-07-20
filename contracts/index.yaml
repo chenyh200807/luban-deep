@@ -73,7 +73,7 @@ http_routes:
   - {prefix: /api/v1/learner-signal, reason: "Learner subjective signal write adapter; records learning_evidence with source_feature=learner_signal and does not enter compiler truth."}
   - {prefix: /api/v1/lesson-progress, reason: "学-evidence (lesson_viewed) write adapter (融合计划 §2.1): records learning_evidence with source_feature=luban_lesson, evidence_level=exposed, progress_countable=false; stays OUT of the synthesis whitelist and never promotes mastery (M0)."}
   - {prefix: /api/v1/learning-brain, reason: "Learning-brain QA (dev-gated)."}
-  - {prefix: /api/v1/luban-preview, reason: "Hosted Luban card bridge; it resolves only published card-hosted packs, requires a short-lived station capability, streams through the single /api/v1/ws authority, and may only delegate lesson_viewed to the existing learner-evidence writer (never mastery)."}
+  - {prefix: /api/v1/luban-preview, reason: "Hosted Luban card bridge; it resolves only published card-hosted packs, requires a short-lived station capability, streams through the single /api/v1/ws authority, and may only delegate lesson_viewed to the existing learner-evidence writer (never mastery). practice-submit is a thin adapter: public practice pages embed a zero-answer-key projection, the projection receipt pins the seen question set, a server-issued signed selection is minted in-request, and grading plus every learning-evidence append stay solely inside RetestWritebackService.complete()."}
   - {prefix: /api/v1/luban, reason: "Luban lesson runtime: authenticated signed-pack projections plus canonical retest completion adapter; item answers are server-rescored and only the fat RetestWritebackService may commit terminal learning evidence and station_completed."}
   - {prefix: /api/v1/member, reason: "Member console: profile / progress / goals / wallet."}
   - {prefix: /api/v1/memory, reason: "Learner memory read models."}
@@ -670,6 +670,9 @@ domains:
       - tests/services/luban_lesson/test_retest_writeback.py
       - tests/services/luban_lesson/test_retest_selection.py
       - tests/api/test_luban_retest_complete_endpoint.py
+      # 公开练习页服务端判分收权：H5 交卷薄适配器 + 公开页零答案键防回归门
+      - tests/api/test_luban_preview_practice_submit.py
+      - tests/scripts/test_luban_practice_public_no_answer_key.py
       # 复习模块(双轮 §6)——到期收权 revalidation_queue 的域测试
       - tests/services/luban_lesson/test_review_due.py
       # Battle1 W4-T3 model-tiering: consolidation_model split on protected agent/memory.py.

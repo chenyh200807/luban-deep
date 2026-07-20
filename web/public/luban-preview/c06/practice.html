@@ -227,14 +227,7 @@
 <div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
-/* ░░░ 母版骨架逻辑：随堂练 ░░░
-   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
-   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
-   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
-   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
-     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
-   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
-     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+/* 服务端判分收权：作者注释含答案键示例，发布时整块移除 */
 class Component extends DCLogic {
   // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
   //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
@@ -244,46 +237,41 @@ class Component extends DCLogic {
   KNOWLEDGE="砌体留槎与构造柱。留槎:能同时砌就同时砌(转角交接不留直槎、错缝搭接);不能同时砌留斜槎——抗震8度及以上必斜槎、非抗震可直槎但须加拉结筋;普通砖斜槎水平投影≥高2/3、多孔砖长高比≥1/2、空心砖斜槎高不宜大于1.2m。构造柱:马牙槎从柱脚先退后进(先进后退错)、沿高≤300mm、凹凸60mm、每500mm设拉结钢筋;施工顺序先绑钢筋→砌墙→浇柱(先砌墙后浇柱)、砖柱不得包心砌法。填充墙:化学植筋须实体检测、连接构造须经设计同意、严禁任意剔凿、顶部最后3皮待下部砌完14d后顶砌;小砌块龄期≥28d、单排孔搭接≥块长1/2、竖向灰缝饱满度≥90%。临时洞口:净宽≤1m、距交接面≥500mm、过梁封口、预埋拉结筋、9度须设计确认。";
   moreText="薄弱点补练:① 斜槎尺寸普通砖2/3 vs 多孔砖1/2 别记混;② 构造柱先砌墙后浇柱 + 马牙槎先退后进;③ 临时洞口净宽≤1m、距交接面≥500mm 逐条指错;④ 填充墙顶砌14d 时机与化学植筋实体检测。";
   Q=[
-{ tag:"留槎形式·条件维", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"题给：抗震设防 8 度的砖墙临时间断", figCaption:"8 度设防 · 该留斜槎还是直槎？", fig:"ruler8",
-      stem:"抗震设防烈度 8 度地区，砖墙砌筑临时间断处应如何留槎？选出最完整、能得分的作答。", model:"抗震设防 8 度及以上，临时间断处应留斜槎，不得留直槎。",
-      opts:[
-        { t:"抗震设防 8 度及以上，临时间断处应留斜槎，不得留直槎。", ok:true, fix:"点明‘8度及以上必留斜槎、不得直槎’，条件与做法齐，是采分句。", code:"" },
-        { t:"8 度地区临时间断处可留直槎，将接口清理干净、后砌时对齐即可。", ok:false, code:"E10", tempt:"觉得清理干净就不影响咬合。", lose:"抗震 8 度及以上禁留直槎，留直槎即判不妥。", fix:"应留斜槎，不得留直槎。" },
-        { t:"沿墙加设拉结筋补强后，8 度地区亦可留直槎并满足抗震要求。", ok:false, code:"E11", tempt:"把‘非抗震直槎加拉结筋’迁移到抗震区。", lose:"加拉结筋是非抗震直槎的做法，8 度及以上必须斜槎，拉结筋替代不了。", fix:"8 度及以上必留斜槎。" },
-        { t:"临时间断处留出斜槎即可，斜槎长度不作具体尺寸要求。", ok:false, code:"M08", tempt:"以为留了斜槎就够。", lose:"斜槎有尺寸要求，普通砖水平投影须≥高 2/3，不写尺寸丢分。", fix:"留斜槎且普通砖水平投影≥高 2/3。" }
-      ] },
-{ tag:"斜槎尺寸·记忆维", typeHint:"单选 · 选出数值正确的作答", figLabel:"题给：普通实心砖留斜槎", figCaption:"普通砖斜槎长度看哪个比值？", fig:"ratio",
-      stem:"普通实心砖砌体留斜槎，斜槎长度应满足什么要求？", model:"普通砖斜槎水平投影长度不应小于斜槎高度的 2/3。",
-      opts:[
-        { t:"普通砖斜槎的水平投影长度不应小于斜槎高度的 2/3。", ok:true, fix:"普通砖认准 2/3，写清‘水平投影≥高 2/3’即得分。", code:"" },
-        { t:"普通砖斜槎的水平投影长度不应小于斜槎高度的 1/2。", ok:false, code:"M08", tempt:"把多孔砖 1/2 用到了普通砖上。", lose:"普通砖是 2/3、多孔砖才 1/2，两个数字混淆。", fix:"普通砖水平投影≥高 2/3。" },
-        { t:"留斜槎时按砌筑操作顺势放坡即可，不必核对具体投影长度。", ok:false, code:"E03", tempt:"觉得凭手感留即可。", lose:"缺‘≥2/3 高’关键数值，采分句不成立。", fix:"补‘水平投影≥高 2/3’。" },
-        { t:"普通砖斜槎高度不应大于 1.2m 即为合格。", ok:false, code:"E07", tempt:"把空心砖斜槎高 1.2m 套到普通砖。", lose:"1.2m 是空心砖斜槎高度限值，不是普通砖的投影比。", fix:"普通砖看水平投影≥高 2/3。" }
-      ] },
-{ tag:"斜槎尺寸·记忆维", typeHint:"单选 · 选出数值正确的作答", figLabel:"题给：多孔砖留斜槎", figCaption:"多孔砖斜槎看哪个比值？", fig:"ratio",
-      stem:"多孔砖砌体留斜槎，斜槎应满足什么要求？", model:"多孔砖斜槎的长高比不应小于 1/2。",
-      opts:[
-        { t:"多孔砖斜槎的水平投影不应小于高度的 2/3。", ok:false, code:"M08", tempt:"把普通砖 2/3 用到了多孔砖。", lose:"多孔砖是长高比≥1/2，普通砖才 2/3，数字混淆。", fix:"多孔砖长高比≥1/2。" },
-        { t:"多孔砖不能留斜槎，只能同时砌筑或留直槎。", ok:false, code:"E10", tempt:"以为多孔砖不许斜槎。", lose:"多孔砖同样可留斜槎，只是比值取 1/2。", fix:"多孔砖可留斜槎，长高比≥1/2。" },
-        { t:"留斜槎即可满足要求，长高比取值不影响验收。", ok:false, code:"E03", tempt:"以为留了就行。", lose:"缺‘长高比≥1/2’关键数值。", fix:"补‘长高比≥1/2’。" },
-        { t:"多孔砖斜槎的长高比不应小于 1/2。", ok:true, fix:"多孔砖认准 1/2，写‘长高比≥1/2’即得分。", code:"" }
-      ] },
-{ tag:"留槎形式·条件维", typeHint:"单选 · 选出最完整的作答", figLabel:"题给：非抗震区、不能同时砌", figCaption:"非抗震留直槎还要做什么？", fig:"zhixie",
-      stem:"非抗震设防地区，砖墙临时间断处不能留斜槎时可否留直槎？如何处理？", model:"非抗震区可留直槎，但应沿墙加设拉结钢筋。",
-      opts:[
-        { t:"非抗震区可留直槎，将接口清理干净即可，无需其他处理措施。", ok:false, code:"E02", tempt:"以为非抗震区就随便留。", lose:"漏了‘加设拉结筋’，采分点遗漏。", fix:"留直槎须沿墙加设拉结钢筋。" },
-        { t:"无论是否抗震，一律不得留直槎，只能留斜槎。", ok:false, code:"E10", tempt:"把抗震区规则扩大化。", lose:"非抗震区允许留直槎(加拉结筋)，一律禁止是规范适用错误。", fix:"非抗震区可留直槎，但须加拉结筋。" },
-        { t:"非抗震留直槎加拉结筋，8 度区同样加拉结筋后即可留直槎。", ok:false, code:"E11", tempt:"把做法迁移到抗震区。", lose:"8 度及以上必留斜槎，拉结筋替代不了。", fix:"8 度及以上必斜槎，不能靠拉结筋留直槎。" },
-        { t:"非抗震设防地区可留直槎，但应沿墙加设拉结钢筋。", ok:true, fix:"‘可直槎’要连着‘加拉结筋’一起写，两句才满分。", code:"" }
-      ] },
-{ tag:"采分诊断·采分句输出", typeHint:"单选 · 把作答补成完整采分句", figLabel:"临时洞口案例（补写采分句）", figCaption:"只写‘净宽1.2m不妥’够不够？", fig:"sheet",
-      stem:"临时洞口案例，考生只写‘洞口净宽 1.2m 不妥、应改小’。要拿全采分，应如何补写完整采分句？", model:"净宽应≤1m；距交接面应≥500mm；上设过梁或挑砖封口；并预埋拉结筋。",
-      opts:[
-        { t:"在原句之后补写‘洞口尺寸要再小一点、注意位置’等定性说明即可覆盖采分，不必给出具体数值。", ok:false, code:"E02", tempt:"以为定性说明就够。", lose:"没给具体数值和位置，采分句不成立。", fix:"写≤1m、距交接面≥500mm等具体值。" },
-        { t:"净宽不应大于 1m(1.2m 改为≤1m)；侧边距交接面不应小于 500mm；上设过梁或挑砖封口；并预埋拉结筋。", ok:true, fix:"给出具体数值+位置+封口+拉结筋，才是完整采分句。", code:"" },
-        { t:"在作答中补写‘净宽≤1m’一句即为完整采分句，距交接面、封口与拉结筋等内容不必展开。", ok:false, code:"E03", tempt:"抓住净宽一项。", lose:"漏距交接面、封口、拉结筋。", fix:"补距交接面≥500mm、过梁封口、拉结筋。" },
-        { t:"补写：洞口净宽不应大于 1m；侧边距交接面不应小于 300mm；并在洞口两侧预埋拉结筋。", ok:false, code:"M08", tempt:"距离数值记小了。", lose:"距交接面应≥500mm，不是 300mm。", fix:"距交接面≥500mm。" }
-      ] }
+{ tag:"留槎形式·条件维",
+      typeHint:"单选 · 选出最完整、能得分的作答",
+      figLabel:"题给：抗震设防 8 度的砖墙临时间断",
+      figCaption:"8 度设防 · 该留斜槎还是直槎？",
+      fig:"ruler8",
+      stem:"抗震设防烈度 8 度地区，砖墙砌筑临时间断处应如何留槎？选出最完整、能得分的作答。",
+      opts:[{"t": "抗震设防 8 度及以上，临时间断处应留斜槎，不得留直槎。"}, {"t": "8 度地区临时间断处可留直槎，将接口清理干净、后砌时对齐即可。"}, {"t": "沿墙加设拉结筋补强后，8 度地区亦可留直槎并满足抗震要求。"}, {"t": "临时间断处留出斜槎即可，斜槎长度不作具体尺寸要求。"}] },
+{ tag:"斜槎尺寸·记忆维",
+      typeHint:"单选 · 选出数值正确的作答",
+      figLabel:"题给：普通实心砖留斜槎",
+      figCaption:"普通砖斜槎长度看哪个比值？",
+      fig:"ratio",
+      stem:"普通实心砖砌体留斜槎，斜槎长度应满足什么要求？",
+      opts:[{"t": "普通砖斜槎的水平投影长度不应小于斜槎高度的 2/3。"}, {"t": "普通砖斜槎的水平投影长度不应小于斜槎高度的 1/2。"}, {"t": "留斜槎时按砌筑操作顺势放坡即可，不必核对具体投影长度。"}, {"t": "普通砖斜槎高度不应大于 1.2m 即为合格。"}] },
+{ tag:"斜槎尺寸·记忆维",
+      typeHint:"单选 · 选出数值正确的作答",
+      figLabel:"题给：多孔砖留斜槎",
+      figCaption:"多孔砖斜槎看哪个比值？",
+      fig:"ratio",
+      stem:"多孔砖砌体留斜槎，斜槎应满足什么要求？",
+      opts:[{"t": "多孔砖斜槎的水平投影不应小于高度的 2/3。"}, {"t": "多孔砖不能留斜槎，只能同时砌筑或留直槎。"}, {"t": "留斜槎即可满足要求，长高比取值不影响验收。"}, {"t": "多孔砖斜槎的长高比不应小于 1/2。"}] },
+{ tag:"留槎形式·条件维",
+      typeHint:"单选 · 选出最完整的作答",
+      figLabel:"题给：非抗震区、不能同时砌",
+      figCaption:"非抗震留直槎还要做什么？",
+      fig:"zhixie",
+      stem:"非抗震设防地区，砖墙临时间断处不能留斜槎时可否留直槎？如何处理？",
+      opts:[{"t": "非抗震区可留直槎，将接口清理干净即可，无需其他处理措施。"}, {"t": "无论是否抗震，一律不得留直槎，只能留斜槎。"}, {"t": "非抗震留直槎加拉结筋，8 度区同样加拉结筋后即可留直槎。"}, {"t": "非抗震设防地区可留直槎，但应沿墙加设拉结钢筋。"}] },
+{ tag:"采分诊断·采分句输出",
+      typeHint:"单选 · 把作答补成完整采分句",
+      figLabel:"临时洞口案例（补写采分句）",
+      figCaption:"只写‘净宽1.2m不妥’够不够？",
+      fig:"sheet",
+      stem:"临时洞口案例，考生只写‘洞口净宽 1.2m 不妥、应改小’。要拿全采分，应如何补写完整采分句？",
+      opts:[{"t": "在原句之后补写‘洞口尺寸要再小一点、注意位置’等定性说明即可覆盖采分，不必给出具体数值。"}, {"t": "净宽不应大于 1m(1.2m 改为≤1m)；侧边距交接面不应小于 500mm；上设过梁或挑砖封口；并预埋拉结筋。"}, {"t": "在作答中补写‘净宽≤1m’一句即为完整采分句，距交接面、封口与拉结筋等内容不必展开。"}, {"t": "补写：洞口净宽不应大于 1m；侧边距交接面不应小于 300mm；并在洞口两侧预埋拉结筋。"}] }
   ];
   codeMap={
     E02:{label:"采分点遗漏",advice:"留槎形式/尺寸/拉结筋/顺序逐项写全，缺一扣一。"},
@@ -369,15 +357,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"C06",cardId:"C06",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -473,7 +459,7 @@ class Component extends DCLogic {
     }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -516,9 +502,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"C06-html-practice-html-q1-70cb991e6e11","options":["C06-html-practice-html-q1-70cb991e6e11:option-1","C06-html-practice-html-q1-70cb991e6e11:option-2","C06-html-practice-html-q1-70cb991e6e11:option-3","C06-html-practice-html-q1-70cb991e6e11:option-4"]},{"variant_id":"C06-html-practice-html-q2-8852f4bfc13d","options":["C06-html-practice-html-q2-8852f4bfc13d:option-1","C06-html-practice-html-q2-8852f4bfc13d:option-2","C06-html-practice-html-q2-8852f4bfc13d:option-3","C06-html-practice-html-q2-8852f4bfc13d:option-4"]},{"variant_id":"C06-html-practice-html-q3-a0c105bea82f","options":["C06-html-practice-html-q3-a0c105bea82f:option-1","C06-html-practice-html-q3-a0c105bea82f:option-2","C06-html-practice-html-q3-a0c105bea82f:option-3","C06-html-practice-html-q3-a0c105bea82f:option-4"]},{"variant_id":"C06-html-practice-html-q4-9392bb287fc2","options":["C06-html-practice-html-q4-9392bb287fc2:option-1","C06-html-practice-html-q4-9392bb287fc2:option-2","C06-html-practice-html-q4-9392bb287fc2:option-3","C06-html-practice-html-q4-9392bb287fc2:option-4"]},{"variant_id":"C06-html-practice-html-q16-0f022e9e1016","options":["C06-html-practice-html-q16-0f022e9e1016:option-1","C06-html-practice-html-q16-0f022e9e1016:option-2","C06-html-practice-html-q16-0f022e9e1016:option-3","C06-html-practice-html-q16-0f022e9e1016:option-4"]}];
+  __dtItems=[{"variant_id":"C06-html-practice-html-q1-70cb991e6e11","options":["C06-html-practice-html-q1-70cb991e6e11:option-1","C06-html-practice-html-q1-70cb991e6e11:option-2","C06-html-practice-html-q1-70cb991e6e11:option-3","C06-html-practice-html-q1-70cb991e6e11:option-4"]},{"variant_id":"C06-html-practice-html-q2-8852f4bfc13d","options":["C06-html-practice-html-q2-8852f4bfc13d:option-1","C06-html-practice-html-q2-8852f4bfc13d:option-2","C06-html-practice-html-q2-8852f4bfc13d:option-3","C06-html-practice-html-q2-8852f4bfc13d:option-4"]},{"variant_id":"C06-html-practice-html-q3-a0c105bea82f","options":["C06-html-practice-html-q3-a0c105bea82f:option-1","C06-html-practice-html-q3-a0c105bea82f:option-2","C06-html-practice-html-q3-a0c105bea82f:option-3","C06-html-practice-html-q3-a0c105bea82f:option-4"]},{"variant_id":"C06-html-practice-html-q4-9392bb287fc2","options":["C06-html-practice-html-q4-9392bb287fc2:option-1","C06-html-practice-html-q4-9392bb287fc2:option-2","C06-html-practice-html-q4-9392bb287fc2:option-3","C06-html-practice-html-q4-9392bb287fc2:option-4"]},{"variant_id":"C06-html-practice-html-q16-0f022e9e1016","options":["C06-html-practice-html-q16-0f022e9e1016:option-1","C06-html-practice-html-q16-0f022e9e1016:option-2","C06-html-practice-html-q16-0f022e9e1016:option-3","C06-html-practice-html-q16-0f022e9e1016:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -529,8 +533,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -539,11 +543,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"C06",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzBjYjk5MWU2ZTExIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ODUyZjRiZmMxM2QiLCJDMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwYzEwNWJlYTgyZiIsIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtOTM5MmJiMjg3ZmMyIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMGYwMjJlOWUxMDE2Il0sInBhY2tfaWQiOiJDMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBkODczZGI1NDcyYTNiMzE3OTU3MTU1ZDA0MmNjNTFjNWUzNGY0MmM4Njk3NTRlYzM3Y2U3ZjE4Njk1ODAyNTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZGY1YWM3MzAzOTE0YjEyZGNhMzg5ZTBmYjU1YTZkMmY3MzgzMjc5Y2NlZjk5N2E5YjNkZTU2MDRjMTA1ODg4MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }

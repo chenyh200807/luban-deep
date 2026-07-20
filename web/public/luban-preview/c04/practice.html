@@ -235,51 +235,41 @@ class Component extends DCLogic {
   moreText="补两个方向：① 同案关联——梁跨＞10m 应编模板专项方案、＞18m 专家论证，长度＞4m 的梁板设计无要求时按 1/1000~3/1000 起拱，常与拆模同案出现；② 把「口头申请全拆预应力顶板」案例完整写一遍三段式：不妥之处 + 理由 + 四前置条件（张拉后拆 / 试件达标 / 技术负责人批准 / 灌浆≥C30）。";
   // ── 题库 ≥15：侧模 · 底模表 · 换算 · 边界 · 快拆 · 顺序 · 程序 · 安全 · 预应力 · 综合诊断 ──
   Q=[
-{ tag:"侧模判据·条件维", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"剖面：柱侧模 vs 板底模", figCaption:"左：柱两侧薄板；右：板底带立杆 · 判据你来配", fig:"sect",
+{ tag:"侧模判据·条件维",
+      typeHint:"单选 · 选出最完整、能得分的作答",
+      figLabel:"剖面：柱侧模 vs 板底模",
+      figCaption:"左：柱两侧薄板；右：板底带立杆 · 判据你来配",
+      fig:"sect",
       stem:"梁、柱、墙的侧模板要拆除，拆除条件怎么写才能得分？",
-      model:"不承重侧模：混凝土强度保证其表面、棱角不因拆模受损即可拆除；墙体大模板常温达 1N/mm² 即可拆除。",
-      opts:[
-        { t:"梁、柱、墙的侧模板与底模判据一致，均须按构件类型和跨度查强度百分率表，达到对应百分率后方可拆除。", ok:false, code:"E07", tempt:"底模那张表太出名，顺手就往侧模上套。", lose:"百分率表只管承重的底模及支架；侧模不承重，判据是表面棱角。", fix:"侧模看「表面、棱角不因拆模受损」，墙体大模板 1N/mm²。" },
-        { t:"不承重侧模只要混凝土强度保证表面、棱角不因拆模受损即可拆；墙体大模板常温达 1N/mm² 即可拆。", ok:true, fix:"侧模判据两件套：表面棱角不受损 + 大模板 1N/mm²，别沾百分率表。", code:"" },
-        { t:"侧模拆除时混凝土强度保证其表面不粘模即可，对棱角无专门要求，常温条件下即可安排拆除。", ok:false, code:"E02", tempt:"记住了「表面」，忘了「棱角」。", lose:"判据是「表面、棱角」两个词都得有，漏「棱角」就漏采分词。", fix:"写全「表面、棱角不因拆模受损」。" },
-        { t:"各类模板包括承重底模在内，混凝土强度达到 1N/mm² 即可统一安排拆除，无须按构件类型分别掌握。", ok:false, code:"E10", tempt:"1N/mm² 这个数好记，容易当万能阈值。", lose:"1N/mm² 只适用于墙体大模板（侧模）；底模按它拆就是重大安全事故级错误。", fix:"1N/mm² 仅限墙体大模板；底模按构件×跨度查表。" }
-      ] },
-{ tag:"底模强度表·条件维", typeHint:"单选 · 选出全表写对的作答", figLabel:"底模强度表（待填）", figCaption:"板 / 梁拱壳 / 悬臂 · 三行分档", fig:"table",
+      opts:[{"t": "梁、柱、墙的侧模板与底模判据一致，均须按构件类型和跨度查强度百分率表，达到对应百分率后方可拆除。"}, {"t": "不承重侧模只要混凝土强度保证表面、棱角不因拆模受损即可拆；墙体大模板常温达 1N/mm² 即可拆。"}, {"t": "侧模拆除时混凝土强度保证其表面不粘模即可，对棱角无专门要求，常温条件下即可安排拆除。"}, {"t": "各类模板包括承重底模在内，混凝土强度达到 1N/mm² 即可统一安排拆除，无须按构件类型分别掌握。"}] },
+{ tag:"底模强度表·条件维",
+      typeHint:"单选 · 选出全表写对的作答",
+      figLabel:"底模强度表（待填）",
+      figCaption:"板 / 梁拱壳 / 悬臂 · 三行分档",
+      fig:"table",
       stem:"底模及支架拆除时的混凝土强度要求，怎么写才完整、能得分？",
-      model:"按构件类型+跨度：板 ≤2m→50%、2~8m→75%、＞8m→100%；梁拱壳 ≤8m→75%、＞8m→100%；悬臂构件一律 100%。",
-      opts:[
-        { t:"不区分构件类型与跨度：板不论 ≤2m、2~8m 还是＞8m，梁拱壳不论 ≤8m 还是＞8m，连同悬臂构件在内，均达到设计强度后方可拆除。", ok:false, code:"E02", tempt:"「达到设计强度」听着最保险。", lose:"漏掉构件×跨度分档——2m 内的板 50% 就能拆，全按 100% 是把表整个丢了。", fix:"写全按构件类型+跨度查表的三行档位。" },
-        { t:"查表时板和梁拱壳的底模不论具体跨度大小，均统一按设计强度的 75% 掌握，只有跨度特别大的构件才需要达到 100% 后方可拆除底模。", ok:false, code:"M08", tempt:"75% 是表里最常见的档，容易当成通用值。", lose:"档值因构件与跨度而异：≤2m 板只要 50%，＞8m 就要 100%，「统一 75%」数字错。", fix:"板 50/75/100 三档、梁拱壳 75/100 两档，断点 2m、8m。" },
-        { t:"按构件类型加跨度查表：板 ≤2m 取 50%、2~8m 取 75%、＞8m 取 100%；梁拱壳 ≤8m 取 75%、＞8m 取 100%；悬臂构件一律 100%。", ok:true, fix:"构件三类 + 断点 2m/8m + 档值 50/75/100，全表一句写齐。", code:"" },
-        { t:"按构件类型加跨度查表：板 ≤2m 取 50%、2~8m 取 75%、＞8m 取 100%；梁拱壳 ≤8m 取 75%、＞8m 取 100%；悬臂构件与梁拱壳一致取 75%。", ok:false, code:"M08", tempt:"悬臂看着和梁差不多，顺手套 75%。", lose:"悬臂构件无支撑一侧最危险，规范要求一律 100%——2024 年真题错项原型。", fix:"悬臂构件不论跨度，一律达到 100% 方可拆。" }
-      ] },
-{ tag:"强度换算·计算表达维", typeHint:"单选 · 选出可得分的算式与依据", figLabel:"题给：6m 板 · C30", figCaption:"落哪档？最低强度 = ？", fig:"calc",
+      opts:[{"t": "不区分构件类型与跨度：板不论 ≤2m、2~8m 还是＞8m，梁拱壳不论 ≤8m 还是＞8m，连同悬臂构件在内，均达到设计强度后方可拆除。"}, {"t": "查表时板和梁拱壳的底模不论具体跨度大小，均统一按设计强度的 75% 掌握，只有跨度特别大的构件才需要达到 100% 后方可拆除底模。"}, {"t": "按构件类型加跨度查表：板 ≤2m 取 50%、2~8m 取 75%、＞8m 取 100%；梁拱壳 ≤8m 取 75%、＞8m 取 100%；悬臂构件一律 100%。"}, {"t": "按构件类型加跨度查表：板 ≤2m 取 50%、2~8m 取 75%、＞8m 取 100%；梁拱壳 ≤8m 取 75%、＞8m 取 100%；悬臂构件与梁拱壳一致取 75%。"}] },
+{ tag:"强度换算·计算表达维",
+      typeHint:"单选 · 选出可得分的算式与依据",
+      figLabel:"题给：6m 板 · C30",
+      figCaption:"落哪档？最低强度 = ？",
+      fig:"calc",
       stem:"某现浇楼板跨度 6m、混凝土 C30。拆底模时同条件养护试块强度至少应达到多少？写出可得分的算式与依据。",
-      model:"6m 板落 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块代表值≥22.5 方可拆底模。",
-      opts:[
-        { t:"6m 板跨度已较大，应从严按 100% 掌握：30×100%=30N/mm²，混凝土达到 30N/mm² 后方可拆除底模。", ok:false, code:"M08", tempt:"「从严总没错」的心态，直接取顶格。", lose:"档位判错：6m 落 2~8m 档取 75%；100% 是＞8m 档，白白压工期还丢档位分。", fix:"6m 属 2~8m 档，30×75%=22.5N/mm²。" },
-        { t:"6m 板属 2~8m 档取 75%：30×75%=22.5N/mm²，以标准养护试块强度达到 22.5 为准方可拆除底模。", ok:false, code:"E07", tempt:"数值 22.5 全对，试块口径看着无所谓。", lose:"拆模看「同条件养护」试块——它才代表现场构件真实强度；写「标养」依据词错。", fix:"改成「同条件养护试块强度≥22.5N/mm²」。" },
-        { t:"6m 板未超过 8m，属小跨度档按 50% 控制：30×50%=15N/mm²，试块强度达到 15 即可拆除底模。", ok:false, code:"M08", tempt:"记混了断点，把 8m 内全当 50% 档。", lose:"50% 只给 ≤2m 的板；6m 在 2~8m 档要 75%，15 就拆属过早拆除。", fix:"2~8m 档取 75%，最低 22.5N/mm²。" },
-        { t:"6m 板属 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块强度≥22.5 方可拆底模。", ok:true, fix:"档位依据 + 算式 + 数值带单位 + 同条件养护，四件齐。", code:"" }
-      ] },
-{ tag:"边界辨析·条件维", typeHint:"单选 · 8m 整跨落哪档？", figLabel:"题给：梁 · 跨度恰为 8m", figCaption:"8m 是「≤8m」还是「＞8m」？", fig:"table",
+      opts:[{"t": "6m 板跨度已较大，应从严按 100% 掌握：30×100%=30N/mm²，混凝土达到 30N/mm² 后方可拆除底模。"}, {"t": "6m 板属 2~8m 档取 75%：30×75%=22.5N/mm²，以标准养护试块强度达到 22.5 为准方可拆除底模。"}, {"t": "6m 板未超过 8m，属小跨度档按 50% 控制：30×50%=15N/mm²，试块强度达到 15 即可拆除底模。"}, {"t": "6m 板属 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块强度≥22.5 方可拆底模。"}] },
+{ tag:"边界辨析·条件维",
+      typeHint:"单选 · 8m 整跨落哪档？",
+      figLabel:"题给：梁 · 跨度恰为 8m",
+      figCaption:"8m 是「≤8m」还是「＞8m」？",
+      fig:"table",
       stem:"某现浇混凝土梁跨度恰好为 8m。拆底模时强度百分率应取多少？选出依据正确的作答。",
-      model:"梁 8m 属「≤8m」档取 75%；只有跨度超过 8m 才取 100%。",
-      opts:[
-        { t:"梁跨度 8m 正处分界值，应从严掌握归入「大于 8m」档取 100%，达设计强度后方可拆除。", ok:false, code:"M08", tempt:"边界值「从严」听着稳妥。", lose:"表的口径是「＞8m 才 100%」，8m 本身仍在 ≤8m 档，从严反而档位错。", fix:"8m 取 75%；写明「超过 8m 才 100%」。" },
-        { t:"梁按板的档位掌握：8m 恰落板的 2~8m 档取 75%，档位判定依据引用板的跨度分档表。", ok:false, code:"E07", tempt:"数值 75% 碰对了，依据却引错行。", lose:"梁拱壳只有 8m 一个断点，没有 2m 档；引「板 2~8m」是构件行张冠李戴。", fix:"写「梁拱壳 ≤8m→75%」，别引板的档。" },
-        { t:"跨度 8m 的悬挑梁与普通梁一致，取 75% 即可拆除底模，悬臂与否并不影响档位取值。", ok:false, code:"M08", tempt:"都叫梁，容易忽略悬臂特殊。", lose:"悬臂构件一律 100%，与跨度无关；「悬臂 75%」是 2024 真题经典错项。", fix:"悬臂一律 100%；普通梁 8m 才是 75%。" },
-        { t:"梁跨度 8m 属「不超过 8m」档，取设计强度的 75%；超过 8m 才取 100%。", ok:true, fix:"边界值归属：8m 本身在 ≤8m 档内，档位分界记「超过」二字。", code:"" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"三句话 · 几处失分？", fig:"sheet",
+      opts:[{"t": "梁跨度 8m 正处分界值，应从严掌握归入「大于 8m」档取 100%，达设计强度后方可拆除。"}, {"t": "梁按板的档位掌握：8m 恰落板的 2~8m 档取 75%，档位判定依据引用板的跨度分档表。"}, {"t": "跨度 8m 的悬挑梁与普通梁一致，取 75% 即可拆除底模，悬臂与否并不影响档位取值。"}, {"t": "梁跨度 8m 属「不超过 8m」档，取设计强度的 75%；超过 8m 才取 100%。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 诊断失分并给正确补写",
+      figLabel:"模拟学生作答（待诊断）",
+      figCaption:"三句话 · 几处失分？",
+      fig:"sheet",
       stem:"某学生作答拆模条件题：①所有模板达 1N/mm² 即可拆；②顺序按施工方案执行；③经监理同意后拆除。选出最准确的诊断与补写。",
-      model:"三处全失分：①1N/mm² 仅限墙体大模板侧模，底模须按构件×跨度查表；②顺序须写成对句「后支先拆、先支后拆；非承重先、承重后」；③程序须填申请+试块达标+技术负责人批准。",
-      opts:[
-        { t:"作答基本正确：三句话覆盖了强度、顺序、程序三个方面，结构完整可以给分。", ok:false, code:"E07", tempt:"三句话确实每句沾了一个门槛。", lose:"沾边≠采分：数值张冠李戴、顺序口号化、主体错位，三句全是失分句。", fix:"逐句替换为查表句、成对句、三步程序句。" },
-        { t:"三处都失分：1N/mm² 仅限墙体大模板，底模须查表；顺序须写成对句；程序须技术负责人批准。", ok:true, fix:"逐句诊断、逐句补写——把三句空话换成三句采分句，这就是会写答案。", code:"" },
-        { t:"只有第①句存在问题，把 1N/mm² 统一改为「达到设计强度的 75%」即可得分，第②③句无须修改。", ok:false, code:"M08", tempt:"抓到 1N/mm² 眼熟的错，想一改了之。", lose:"「统一 75%」还是数字错（应按构件×跨度分档），且②口号化、③主体错都没诊出来。", fix:"①按构件×跨度查表；②补成对句；③技术负责人批准。" },
-        { t:"第③句主体错应改为技术负责人，第①②句表述虽简略但方向正确，不影响得分。", ok:false, code:"E02", tempt:"诊出了主体错，觉得其余「意思到了」。", lose:"漏诊①的通用阈值错误和②的口号化——阅卷不给「方向分」，只认采分词。", fix:"三句都要重写：查表句 + 成对句 + 程序句。" }
-      ] }
+      opts:[{"t": "作答基本正确：三句话覆盖了强度、顺序、程序三个方面，结构完整可以给分。"}, {"t": "三处都失分：1N/mm² 仅限墙体大模板，底模须查表；顺序须写成对句；程序须技术负责人批准。"}, {"t": "只有第①句存在问题，把 1N/mm² 统一改为「达到设计强度的 75%」即可得分，第②③句无须修改。"}, {"t": "第③句主体错应改为技术负责人，第①②句表述虽简略但方向正确，不影响得分。"}] }
   ];
   // ── 错因码库（deeptutor/contracts/error_codes 已注册 E/M 码，勿自造）──
   codeMap={
@@ -360,15 +350,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"C04",cardId:"C04",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -489,7 +477,7 @@ class Component extends DCLogic {
       lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -532,9 +520,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"C04-html-practice-html-q1-42d9eca247e1","options":["C04-html-practice-html-q1-42d9eca247e1:option-1","C04-html-practice-html-q1-42d9eca247e1:option-2","C04-html-practice-html-q1-42d9eca247e1:option-3","C04-html-practice-html-q1-42d9eca247e1:option-4"]},{"variant_id":"C04-html-practice-html-q2-ec4c52a11d33","options":["C04-html-practice-html-q2-ec4c52a11d33:option-1","C04-html-practice-html-q2-ec4c52a11d33:option-2","C04-html-practice-html-q2-ec4c52a11d33:option-3","C04-html-practice-html-q2-ec4c52a11d33:option-4"]},{"variant_id":"C04-html-practice-html-q3-f9c7755968bb","options":["C04-html-practice-html-q3-f9c7755968bb:option-1","C04-html-practice-html-q3-f9c7755968bb:option-2","C04-html-practice-html-q3-f9c7755968bb:option-3","C04-html-practice-html-q3-f9c7755968bb:option-4"]},{"variant_id":"C04-html-practice-html-q4-7919150be099","options":["C04-html-practice-html-q4-7919150be099:option-1","C04-html-practice-html-q4-7919150be099:option-2","C04-html-practice-html-q4-7919150be099:option-3","C04-html-practice-html-q4-7919150be099:option-4"]},{"variant_id":"C04-html-practice-html-q16-9e7403065dc9","options":["C04-html-practice-html-q16-9e7403065dc9:option-1","C04-html-practice-html-q16-9e7403065dc9:option-2","C04-html-practice-html-q16-9e7403065dc9:option-3","C04-html-practice-html-q16-9e7403065dc9:option-4"]}];
+  __dtItems=[{"variant_id":"C04-html-practice-html-q1-42d9eca247e1","options":["C04-html-practice-html-q1-42d9eca247e1:option-1","C04-html-practice-html-q1-42d9eca247e1:option-2","C04-html-practice-html-q1-42d9eca247e1:option-3","C04-html-practice-html-q1-42d9eca247e1:option-4"]},{"variant_id":"C04-html-practice-html-q2-ec4c52a11d33","options":["C04-html-practice-html-q2-ec4c52a11d33:option-1","C04-html-practice-html-q2-ec4c52a11d33:option-2","C04-html-practice-html-q2-ec4c52a11d33:option-3","C04-html-practice-html-q2-ec4c52a11d33:option-4"]},{"variant_id":"C04-html-practice-html-q3-f9c7755968bb","options":["C04-html-practice-html-q3-f9c7755968bb:option-1","C04-html-practice-html-q3-f9c7755968bb:option-2","C04-html-practice-html-q3-f9c7755968bb:option-3","C04-html-practice-html-q3-f9c7755968bb:option-4"]},{"variant_id":"C04-html-practice-html-q4-7919150be099","options":["C04-html-practice-html-q4-7919150be099:option-1","C04-html-practice-html-q4-7919150be099:option-2","C04-html-practice-html-q4-7919150be099:option-3","C04-html-practice-html-q4-7919150be099:option-4"]},{"variant_id":"C04-html-practice-html-q16-9e7403065dc9","options":["C04-html-practice-html-q16-9e7403065dc9:option-1","C04-html-practice-html-q16-9e7403065dc9:option-2","C04-html-practice-html-q16-9e7403065dc9:option-3","C04-html-practice-html-q16-9e7403065dc9:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -545,8 +551,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -555,11 +561,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"C04",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDJkOWVjYTI0N2UxIiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lYzRjNTJhMTFkMzMiLCJDMDQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWY5Yzc3NTU5NjhiYiIsIkMwNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNzkxOTE1MGJlMDk5IiwiQzA0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtOWU3NDAzMDY1ZGM5Il0sInBhY2tfaWQiOiJDMDQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjRhMTVjMzk1YTNiMWJjZjM0NTljZDAzZTljZDgyY2Y0M2ZlMjEzMGMyMDkxMzhlODVkMDkyMTNjNzE2ZTRkZTYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWFiZmRiZDdiN2U5OTE3ZDM5ZDc3OTc3N2NmNWJlZTMxYjY4NjExYzgyNjFmMmExYzFlODMwZGEzOGVhMWJkMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }

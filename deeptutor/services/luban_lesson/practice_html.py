@@ -656,10 +656,416 @@ def _replace_array(text: str, marker: str, blocks: list[str]) -> str:
     return text[: start + 1] + rendered + text[end - 1 :]
 
 
+# ── 公开页嵌入数据的字段分级（register-before-embed，未分级字段 fail-closed）──
+# 答案真值字段绝不进入公开 HTML；判分与逐项解析只能由服务端
+# ``RetestWritebackService.complete()`` 判定后下发。
+_PRACTICE_BLOCK_ANSWER_FIELDS = frozenset({"model", "c", "ana"})
+# 纯呈现字段（题面/图形数据），逐字保留：泄露面为零、删了会破版式。
+_PRACTICE_BLOCK_PRESENTATION_FIELDS = frozenset(
+    {
+        "tag",
+        "typeHint",
+        "stem",
+        "opts",
+        "ep",
+        "topic",
+        "fig",
+        "figLabel",
+        "figCaption",
+        "figItems",
+        "figKnown",
+        "figData",
+        "figLines",
+        "sheet",
+        "diag",
+        "dep",
+        "diagBg",
+        "diagLines",
+        "deathVal",
+        "deathColor",
+        "injuryVal",
+        "injuryColor",
+        "lossVal",
+        "lossColor",
+    }
+)
+
+
+# 发布自检（fail-closed）：任何「字段: 字面量」形态的答案真值都不得出现在公开
+# 投影里。viewmodel 属性读（``tempt:o.tempt``）不带字面量、不匹配。独立副本
+# tripwire 见 tests/scripts/test_luban_practice_public_no_answer_key.py。
+_PRACTICE_PUBLIC_LEAK_PATTERNS: dict[str, re.Pattern[str]] = {
+    "boolean_answer_key": re.compile(r"\bok2?\s*:\s*(?:true|false)"),
+    "keycard": re.compile(r"keycard"),
+    "answer_prose_field": re.compile(r"\b(?:model|tempt|lose|fix|why)\s*:\s*[\"'`]"),
+    "bank_correct_index": re.compile(r"\bc\s*:\s*\d"),
+    "bank_analysis_payload": re.compile(r"\bana\s*:\s*\[\s*\{\s*[\"'`A-Za-z_$]"),
+    "is_correct_literal": re.compile(r"\bis_correct\b\s*[\"']?\s*:"),
+}
+# 母版作者注释里带 ``ok:true`` 等答案键示例（教作者怎么写题），公开页整块移除。
+_PRACTICE_AUTHORING_COMMENT_LEAK_RE = re.compile(
+    r"/\*(?:(?!\*/).)*?\bok2?\s*:\s*(?:true|false)(?:(?!\*/).)*?\*/", re.S
+)
+
+
+def _top_level_fields(block: str) -> list[tuple[str, int]]:
+    """JS 对象字面量 depth-1 的 (key, key_start) 序列（引号/注释/嵌套安全）。"""
+    fields: list[tuple[str, int]] = []
+    quote = ""
+    escaped = False
+    line_comment = False
+    block_comment = False
+    brace = bracket = paren = 0
+    prev_sig = ""
+    index = 0
+    length = len(block)
+    while index < length:
+        char = block[index]
+        nxt = block[index + 1] if index + 1 < length else ""
+        if line_comment:
+            if char in "\r\n":
+                line_comment = False
+            index += 1
+            continue
+        if block_comment:
+            if char == "*" and nxt == "/":
+                block_comment = False
+                index += 2
+            else:
+                index += 1
+            continue
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = ""
+            index += 1
+            continue
+        if char in {'"', "'", "`"}:
+            quote = char
+            prev_sig = char
+            index += 1
+            continue
+        if char == "/" and nxt == "/":
+            line_comment = True
+            index += 2
+            continue
+        if char == "/" and nxt == "*":
+            block_comment = True
+            index += 2
+            continue
+        if char in "{}[]()":
+            if char == "{":
+                brace += 1
+            elif char == "}":
+                brace -= 1
+            elif char == "[":
+                bracket += 1
+            elif char == "]":
+                bracket -= 1
+            elif char == "(":
+                paren += 1
+            else:
+                paren -= 1
+            prev_sig = char
+            index += 1
+            continue
+        if brace == 1 and bracket == 0 and paren == 0 and prev_sig in {"{", ","}:
+            key = re.match(r"[A-Za-z_$][\w$]*\s*:", block[index:])
+            if key is not None:
+                fields.append((key.group(0).split(":", 1)[0].strip(), index))
+                prev_sig = ":"
+                index += key.end()
+                continue
+        if not char.isspace():
+            prev_sig = char
+        index += 1
+    return fields
+
+
+def _sanitize_practice_block(
+    block: str, item: dict[str, Any], *, format_kind: str
+) -> str:
+    """把源题块重建成「零答案键」公开投影块。
+
+    选项文本直接取自签发 authority item（与服务端判分同一行、同一序），
+    呈现字段逐字保留，答案字段删除；未分级新字段 fail-closed 拒发布，
+    杜绝未来新增字段静默把答案真值带回公开页。
+    """
+    fields = _top_level_fields(block)
+    keys = [key for key, _ in fields]
+    if "opts" not in keys or len(keys) != len(set(keys)):
+        raise PracticeHtmlInvalid("practice_publish_block_shape_invalid")
+    if _field(block, "stem") != str(item.get("stem") or ""):
+        raise PracticeHtmlInvalid("practice_publish_block_item_mismatch")
+    close = block.rfind("}")
+    parts: list[str] = []
+    for position, (key, start) in enumerate(fields):
+        end = fields[position + 1][1] if position + 1 < len(fields) else close
+        segment = block[start:end].rstrip().rstrip(",").rstrip()
+        if key == "opts":
+            if format_kind == "bank_drawn":
+                rendered = json.dumps(
+                    [str(option["text"]) for option in item["options"]],
+                    ensure_ascii=False,
+                )
+            else:
+                rendered = json.dumps(
+                    [{"t": str(option["text"])} for option in item["options"]],
+                    ensure_ascii=False,
+                )
+            parts.append(f"opts:{rendered}")
+        elif key == "ana" and format_kind == "bank_drawn":
+            # a02 播放器渲染路径读 ``cur.ana[actual]``：保形状、清内容。
+            parts.append("ana:" + json.dumps([{} for _ in item["options"]]))
+        elif key in _PRACTICE_BLOCK_ANSWER_FIELDS:
+            continue
+        elif key in _PRACTICE_BLOCK_PRESENTATION_FIELDS:
+            parts.append(segment)
+        else:
+            raise PracticeHtmlInvalid(f"practice_publish_field_unclassified:{key}")
+    return "{ " + ",\n      ".join(parts) + " }"
+
+
+_PRACTICE_BRIDGE_TEMPLATE = """
+__DT_ORDER_METHODS__  __dtItems=__DT_ITEMS_JSON__;
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      const sourceIndex=Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+      const item=exactItems[i];
+      return item&&Number.isInteger(sourceIndex)&&item.options[sourceIndex]
+        ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
+    });
+  }
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent(__DT_PACK_JSON__)+'&practice_surface='+encodeURIComponent(__DT_SURFACE_JSON__)+'&projection_receipt='+encodeURIComponent(__DT_RECEIPT_JSON__)+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:__DT_PACK_JSON__,entryTicket:ticket,practiceSurface:__DT_SURFACE_JSON__,projectionReceipt:__DT_RECEIPT_JSON__,completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
+  setState(patch,...args){
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
+    }
+    return super.setState(patch,...args);
+  }
+"""
+
+
 def transform_compiled_practice_html(
     pack_id: str, *, surface: dict[str, Any], items: list[dict[str, Any]], html: str
 ) -> str:
-    """把 public 投影限定为 sidecar 同五题，并注入统一证据桥。"""
+    """把 public 投影收敛为「零答案键题面 + 服务端判分桥」。
+
+    嵌入数据只保留呈现字段与安全投影选项文本（``_sanitize_practice_block``）；
+    本地判分/逐题揭底路径被覆写为「收集作答 → 交卷 → 渲染服务端判定」。
+    判分唯一权威始终是 ``RetestWritebackService.complete()``。
+    """
     format_kind = str(surface.get("format_kind") or "")
     presentation_ids = [str(item or "") for item in surface.get("variant_ids") or []]
     if len(items) != PRACTICE_LIMIT and len(presentation_ids) == PRACTICE_LIMIT:
@@ -670,18 +1076,37 @@ def transform_compiled_practice_html(
     if format_kind == "bank_drawn":
         for group, marker in (("A", r"\bconst\s+A\s*="), ("Dg", r"\bconst\s+Dg\s*=")):
             source_blocks = _top_level_objects(_array_after(html, marker))
-            indexes = [
-                int(item["source_group_index"])
-                for item in items
-                if item.get("source_group") == group
+            group_items = [
+                item for item in items if item.get("source_group") == group
             ]
-            html = _replace_array(html, marker, [source_blocks[index] for index in indexes])
+            html = _replace_array(
+                html,
+                marker,
+                [
+                    _sanitize_practice_block(
+                        source_blocks[int(item["source_group_index"])],
+                        item,
+                        format_kind=format_kind,
+                    )
+                    for item in group_items
+                ],
+            )
         order_methods = "  shuffle(a){ return a.slice(); }\n"
     else:
         marker = str(surface.get("array_marker") or "")
         source_blocks = _top_level_objects(_array_after(html, marker))
-        indexes = [int(item["source_index"]) for item in items]
-        html = _replace_array(html, marker, [source_blocks[index] for index in indexes])
+        html = _replace_array(
+            html,
+            marker,
+            [
+                _sanitize_practice_block(
+                    source_blocks[int(item["source_index"])],
+                    item,
+                    format_kind=format_kind,
+                )
+                for item in items
+            ],
+        )
         if format_kind == "ord_method":
             order_methods = (
                 "  pickOrder(){ return [0,1,2,3,4]; }\n"
@@ -694,6 +1119,11 @@ def transform_compiled_practice_html(
             order_methods = ""
 
     html = re.sub(r"\bSHOW_COUNT\s*=\s*\d+\s*;", "SHOW_COUNT = 5;", html)
+    if len(re.findall(r"\brenderVals\s*\(\)\s*\{", html)) != 1:
+        raise PracticeHtmlInvalid("practice_html_render_vals_not_unique")
+    html = re.sub(
+        r"\brenderVals\s*\(\)\s*\{", "__dtBaseRenderVals(){", html, count=1
+    )
     pack_js = json.dumps(str(pack_id or "").strip().upper(), ensure_ascii=False)
     surface_js = json.dumps(str(surface.get("surface_id") or ""), ensure_ascii=False)
     projection_receipt_js = json.dumps(
@@ -710,39 +1140,13 @@ def transform_compiled_practice_html(
         ensure_ascii=False,
         separators=(",", ":"),
     )
-    bridge = f"""
-{order_methods}  __dtEvidenceAnswers(){{
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{{}});
-    const exactItems={evidence_items_js};
-    return [0,1,2,3,4].map(i=>{{
-      const selected=Number(source[i]);
-      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
-      const sourceIndex=Array.isArray(permutation)&&Number.isInteger(selected)
-        ?Number(permutation[selected]):selected;
-      const item=exactItems[i];
-      return item&&Number.isInteger(sourceIndex)&&item.options[sourceIndex]
-        ?{{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}}:null;
-    }});
-  }}
-  __dtRedirectEvidence(onFailure){{
-    const answers=this.__dtEvidenceAnswers();
-    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
-    const wxm=window.wx&&window.wx.miniProgram;
-    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
-    if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent({pack_js})+'&practice_surface='+encodeURIComponent({surface_js})+'&projection_receipt='+encodeURIComponent({projection_receipt_js})+'&answers='+encodeURIComponent(JSON.stringify(answers));
-    wxm.redirectTo({{url:url,fail:onFailure}});
-    return true;
-  }}
-  setState(patch,...args){{
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){{
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
-    }}
-    return super.setState(patch,...args);
-  }}
-"""
+    bridge = (
+        _PRACTICE_BRIDGE_TEMPLATE.replace("__DT_ORDER_METHODS__", order_methods)
+        .replace("__DT_ITEMS_JSON__", evidence_items_js)
+        .replace("__DT_PACK_JSON__", pack_js)
+        .replace("__DT_SURFACE_JSON__", surface_js)
+        .replace("__DT_RECEIPT_JSON__", projection_receipt_js)
+    )
     close = re.search(r"\n}\s*</script>\s*</body>", html)
     if close is None:
         raise PracticeHtmlInvalid("practice_html_component_close_missing")
@@ -762,6 +1166,12 @@ def transform_compiled_practice_html(
         ("满分——采分点抓得稳", "本轮 5 题全对"),
     ):
         html = html.replace(old, new)
+    html = _PRACTICE_AUTHORING_COMMENT_LEAK_RE.sub(
+        "/* 服务端判分收权：作者注释含答案键示例，发布时整块移除 */", html
+    )
+    for leak_name, leak_pattern in _PRACTICE_PUBLIC_LEAK_PATTERNS.items():
+        if leak_pattern.search(html):
+            raise PracticeHtmlInvalid(f"practice_publish_answer_leak:{leak_name}")
     return html
 
 
