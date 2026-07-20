@@ -2058,7 +2058,7 @@ function buildStationJourneyPanorama(report, packId) {
           ? "已完成步骤仍保留，后续排期恢复后会自动更新"
           : journey.journeyState === "completed"
           ? "这一站本轮闭环已经完成"
-          : "验证与抽查到期时会出现在这里 · 你只管来")
+          : "验证与抽查到期会自动出现在这里 · 不耽误你先去学下一站")
       : "",
   };
 }
