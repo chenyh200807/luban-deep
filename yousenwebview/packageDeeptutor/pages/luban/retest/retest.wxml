@@ -59,8 +59,16 @@
           <!-- 当前题卡(单题聚焦) -->
           <view class="rt-card pk-card">
             <view class="rt-card-head">
-              <text class="pk-kicker">第 {{currentIndex + 1}} 题</text>
+              <view class="rt-card-head-left">
+                <text class="pk-kicker">第 {{currentIndex + 1}} 题</text>
+                <!-- 考法坐标 chip(签发 rule_group 逐字, 有才亮) -->
+                <text class="rt-tag" wx:if="{{items[currentIndex].rule_group}}">{{items[currentIndex].rule_group}}</text>
+              </view>
               <text class="rt-card-hint" wx:if="{{!items[currentIndex].answered}}">同一个考点 · 换了身皮</text>
+            </view>
+            <!-- 进度条(呈现层: 当前题位/总题数) -->
+            <view class="rt-bar">
+              <view class="rt-bar-fill" style="width: {{total ? (currentIndex + 1) / total * 100 : 0}}%"></view>
             </view>
             <text class="rt-surface">{{items[currentIndex].stem || items[currentIndex].surface}}</text>
 
@@ -75,7 +83,7 @@
                 data-option-id="{{option.option_id}}"
                 bindtap="onOptionTap"
               >
-                <text class="rt-choice-letter">{{index + 1}}</text>
+                <text class="rt-choice-letter">{{option.letter}}</text>
                 <text>{{option.text}}</text>
               </view>
             </view>
@@ -167,18 +175,53 @@
             </view>
           </view>
 
-          <!-- 错题再看一眼(签发门道逐字, 不复述你的错) -->
+          <!-- 错题再看一眼(签发门道逐字, 不复述你的错) · 结构化裁决卡 -->
           <view class="rt-review-list" wx:if="{{wrongItems.length}}">
             <text class="rt-review-label">这 {{wrongItems.length}} 道错题已写入学习证据，先把门道看清</text>
-            <view class="rt-review-item" wx:for="{{wrongItems}}" wx:key="key">
-              <view class="rt-review-dot"></view>
-              <view class="rt-review-copy">
-                <text class="rt-review-text">{{item.correct_statement}}</text>
-                <!-- 四层错项诊断(全部服务端签发字段, 缺失整行隐藏) -->
-                <text class="rt-review-detail" wx:if="{{item.selectedOptionText}}">你选了：{{item.selectedOptionText}}</text>
-                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.temptation}}">为什么它看起来像对的：{{item.feedback.temptation}}</text>
-                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.loss_reason}}">考试为什么不给分：{{item.feedback.loss_reason}}</text>
-                <text class="rt-review-fix" wx:if="{{item.feedback && item.feedback.fix}}">下次这样答：{{item.feedback.fix}}</text>
+            <view class="rt-vcard warm" wx:for="{{wrongItems}}" wx:key="key">
+              <view class="rt-vcard-head">
+                <view class="rt-vmark warm"><text>✕</text></view>
+                <text class="rt-vcard-truth">{{item.correct_statement}}</text>
+              </view>
+              <!-- 四层错项诊断(全部服务端签发字段, 缺失整行隐藏) -->
+              <view class="rt-vrow" wx:if="{{item.selectedOptionText}}">
+                <text class="rt-vlabel pick">你选了</text>
+                <text class="rt-vtext">{{item.selectedOptionText}}</text>
+              </view>
+              <view class="rt-vrow" wx:if="{{item.feedback && item.feedback.temptation}}">
+                <text class="rt-vlabel bait">为什么它看起来像对的</text>
+                <text class="rt-vtext">{{item.feedback.temptation}}</text>
+              </view>
+              <view class="rt-vrow" wx:if="{{item.feedback && item.feedback.loss_reason}}">
+                <text class="rt-vlabel loss">考试为什么不给分</text>
+                <text class="rt-vtext">{{item.feedback.loss_reason}}</text>
+              </view>
+              <view class="rt-vrow" wx:if="{{item.feedback && item.feedback.fix}}">
+                <text class="rt-vlabel fix">下次这样答</text>
+                <text class="rt-vtext fix">{{item.feedback.fix}}</text>
+              </view>
+              <!-- 教材原文并排卡(join 命中才有, 逐字透传, 与答题视图同构) -->
+              <view class="rt-book rt-vbook" wx:if="{{item.textbook}}">
+                <view class="rt-book-spine"></view>
+                <view class="rt-book-body">
+                  <text class="rt-book-kicker">教材原文 · 阅卷认的这句</text>
+                  <text class="rt-book-quote">{{item.textbook.quote}}</text>
+                  <view class="rt-book-foot">
+                    <text class="rt-book-label" wx:if="{{item.textbook.label}}">{{item.textbook.label}}</text>
+                    <text class="rt-book-page" wx:if="{{item.textbook.page_num}}">教材 P{{item.textbook.page_num}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 答对的题(同源签发门道, 竹青卡收拢) -->
+          <view class="rt-right-list" wx:if="{{rightItems.length}}">
+            <text class="rt-review-label">答对的 {{rightItems.length}} 题 · 把门道再过一眼</text>
+            <view class="rt-vcard good" wx:for="{{rightItems}}" wx:key="key">
+              <view class="rt-vcard-head">
+                <view class="rt-vmark good"><text>✓</text></view>
+                <text class="rt-vcard-truth">{{item.correct_statement}}</text>
               </view>
             </view>
           </view>

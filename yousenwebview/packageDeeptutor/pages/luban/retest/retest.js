@@ -190,6 +190,7 @@ Page({
     currentIndex: 0,
     showReceipt: false,
     wrongItems: [],      // 收据"再看一眼"清单(签发 correct_statement 逐字)
+    rightItems: [],      // 收据"答对"清单(同源签发门道, 呈现层)
     ruleGroupCount: 0,   // 考法覆盖(去重 rule_group 数, 呈现层统计)
     textbookCount: 0,    // 翻出的教材原文句数(join 命中数, 呈现层统计)
     // 错后当场确认(变体判断题消费点1)——纯导航态, 零第二权威
@@ -332,13 +333,16 @@ Page({
       var groups = {};
       var textbookCount = 0;
       var wrong = [];
+      var right = [];
       all.forEach(function (it) {
         if (it.rule_group) groups[it.rule_group] = true;
         if (it.textbook) textbookCount += 1;
         if (it.answered && it.correct === false) wrong.push(it);
+        if (it.answered && it.correct === true) right.push(it);
       });
       this.setData({
         wrongItems: wrong,
+        rightItems: right,
         ruleGroupCount: Object.keys(groups).length,
         textbookCount: textbookCount,
       });
@@ -605,6 +609,7 @@ Page({
         var groups = {};
         var textbookCount = 0;
         var wrong = [];
+        var right = [];
         scoredItems.forEach(function (item) {
           if (item.rule_group) groups[item.rule_group] = true;
           if (item.textbook) textbookCount += 1;
@@ -612,6 +617,8 @@ Page({
             wrong.push(Object.assign({}, item, {
               selectedOptionText: that._selectedOptionText(item),
             }));
+          } else if (item.correct === true) {
+            right.push(item);
           }
         });
         // 错后当场确认入口(消费点1): 错题 fact_id ∩ 服务端 confirm_facts_ready。
@@ -655,6 +662,7 @@ Page({
           items: scoredItems,
           correctCount: serverCorrectCount,
           wrongItems: wrong,
+          rightItems: right,
           confirmEntryFacts: confirmEntryFacts,
           showConfirmEntry: confirmEntryFacts.length > 0,
           ruleGroupCount: Object.keys(groups).length,
@@ -715,7 +723,10 @@ Page({
             answer_type: item.answer_type || "boolean",
             surface: item.surface,
             stem: item.stem || item.surface,
-            options: Array.isArray(item.options) ? item.options : [],
+            // letter 是纯呈现层座位号(A/B/C/D), option_id 才是回传身份
+            options: (Array.isArray(item.options) ? item.options : []).map(function (option, optionIdx) {
+              return Object.assign({ letter: String.fromCharCode(65 + optionIdx) }, option);
+            }),
             expected_ok: item.answer_type === "single_choice" ? null : Boolean(item.expected_ok),
             correct_statement: item.correct_statement,
             anchor: item.anchor,
@@ -779,6 +790,7 @@ Page({
           currentIndex: Math.max(0, (bridgedItems ? bridgedItems.length : restoredCount || 1) - 1),
           showReceipt: false,
           wrongItems: [],
+          rightItems: [],
           ruleGroupCount: 0,
           textbookCount: 0,
           loading: false,
