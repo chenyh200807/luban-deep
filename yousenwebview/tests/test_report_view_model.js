@@ -459,6 +459,102 @@ assert.strictEqual(yousenVm.buildStationJourneyPanorama(null, "").placeholder, "
   });
 });
 
+// ── 轻练确认重入口:服务端投影只读字段 → 面板 confirmEntry(fail-closed) ──
+// 有错题且供给覆盖的真实服务端形状:confirm current(带 confirm_facts/
+// confirm_anchor)+ due_validation scheduled 同在(服务端合法多 actionable)。
+var confirmJourneyReport = {
+  schema_version: 2,
+  station_journey: {
+    authority: "station_journey_projection.read_model",
+    schema_version: 1,
+    degraded: false,
+    packs: {
+      N01: {
+        pack_id: "N01",
+        journey_state: "active",
+        current_step_id: "immediate_confirm",
+        steps: [
+          { id: "lesson", status: "completed", reason: "lesson_viewed" },
+          { id: "practice", status: "completed" },
+          { id: "diagnosis", status: "completed", reason: "canonical_feedback_ready" },
+          {
+            id: "immediate_confirm",
+            status: "current",
+            reason: "safe_confirm_available",
+            confirm_facts: ["fact-n01", "fact x"],
+            confirm_anchor: "terminal_forward",
+          },
+          { id: "due_validation", status: "scheduled" },
+          { id: "followup", status: "future" },
+        ],
+      },
+    },
+  },
+};
+
+// 双树 vm 派生逐字节一致(单一权威)。
+assert.deepStrictEqual(
+  wxVm.buildStationJourneyPanorama(confirmJourneyReport, "N01"),
+  yousenVm.buildStationJourneyPanorama(confirmJourneyReport, "N01"),
+);
+
+var confirmPanorama = yousenVm.buildStationJourneyPanorama(confirmJourneyReport, "N01");
+assert.strictEqual(
+  confirmPanorama.ready,
+  true,
+  "server-legal multi-actionable shape (confirm current + due scheduled) must not fail closed",
+);
+assert.strictEqual(confirmPanorama.currentStepId, "immediate_confirm");
+assert.strictEqual(confirmPanorama.confirmEntry.visible, true, "panel CTA must appear");
+assert.deepStrictEqual(confirmPanorama.confirmEntry.facts, ["fact-n01", "fact x"]);
+assert.strictEqual(confirmPanorama.confirmEntry.anchor, "terminal_forward");
+// URL 与回执现场 retest.js goConfirmFacts 同形:逐 fact 编码 + 字面逗号连接。
+assert.strictEqual(
+  confirmPanorama.confirmEntry.url,
+  "/packageDeeptutor/pages/luban/retest/retest?pack_id=N01" +
+    "&mode=forward&confirm_facts=fact-n01,fact%20x" +
+    "&confirm_anchor=terminal_forward",
+  "confirm session url must byte-match the receipt-scene entry shape",
+);
+
+// fail-closed:字段缺失/空/状态不符 → 不亮 CTA,绝不猜。
+function confirmReportWith(patch) {
+  var clone = JSON.parse(JSON.stringify(confirmJourneyReport));
+  var step = clone.station_journey.packs.N01.steps[3];
+  Object.keys(patch).forEach(function (key) {
+    if (patch[key] === undefined) delete step[key];
+    else step[key] = patch[key];
+  });
+  return clone;
+}
+[
+  confirmReportWith({ confirm_facts: undefined }),
+  confirmReportWith({ confirm_facts: [] }),
+  confirmReportWith({ confirm_facts: ["", "  "] }),
+  confirmReportWith({ confirm_anchor: undefined }),
+  confirmReportWith({ confirm_anchor: "" }),
+  confirmReportWith({ reason: "some_new_reason" }),
+].forEach(function (broken, index) {
+  var p = yousenVm.buildStationJourneyPanorama(broken, "N01");
+  assert.strictEqual(
+    p.confirmEntry.visible,
+    false,
+    "missing/empty reentry fields must fail closed, case " + index,
+  );
+  assert.strictEqual(p.confirmEntry.url, "", "no url may be fabricated, case " + index);
+});
+// confirm 非 current(unavailable)→ 即使字段被伪造塞入也不亮。
+var notCurrent = confirmReportWith({ status: "unavailable", reason: "safe_confirm_unavailable" });
+notCurrent.station_journey.packs.N01.current_step_id = "due_validation";
+assert.strictEqual(
+  yousenVm.buildStationJourneyPanorama(notCurrent, "N01").confirmEntry.visible,
+  false,
+  "non-current confirm step must never light the reentry CTA",
+);
+// 未就绪(降级)→ confirmEntry 同步 fail-closed。
+assert.strictEqual(degradedPanorama.confirmEntry.visible, false);
+assert.strictEqual(degradedPanorama.confirmEntry.url, "");
+
 // 报表页必须消费共享派生并以内联展开面板渲染(不新起 overlay 体系)。
 assert(
   source.indexOf("buildStationJourneyPanorama") >= 0 &&
@@ -470,6 +566,14 @@ assert(
   wxmlSource.indexOf("stationJourneyPanel") >= 0 &&
     wxmlSource.indexOf("lr-sjp-steps") >= 0,
   "report wxml must render the inline six-step panorama panel",
+);
+// 轻练确认重入口:面板 CTA 必须接线(js handler + wxml 可见性门 + 暖文案)。
+assert(
+  source.indexOf("goConfirmFromPanorama") >= 0 &&
+    wxmlSource.indexOf("goConfirmFromPanorama") >= 0 &&
+    wxmlSource.indexOf("stationJourneyPanel.confirmEntry.visible") >= 0 &&
+    wxmlSource.indexOf("去确认错题 · 当场弄懂") >= 0,
+  "report page must wire the confirm reentry CTA behind the server-projected visibility gate",
 );
 // 掌握地图 wxml 不得再宣称审视口吻;点格提示改为看六步进展。
 assert.strictEqual(

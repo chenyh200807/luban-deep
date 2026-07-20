@@ -192,7 +192,8 @@ def _project_pack(
                 except Exception:
                     supply_projection_failed = True
                     ready_facts = set()
-            actionable = bool(wrong_facts & ready_facts)
+            actionable_facts = sorted(wrong_facts & ready_facts)
+            actionable = bool(actionable_facts)
             confirm_step = _step(
                 "immediate_confirm",
                 "current" if actionable else "unavailable",
@@ -206,6 +207,14 @@ def _project_pack(
                     else "safe_confirm_unavailable"
                 ),
             )
+            if actionable and base_ref:
+                # 轻练确认重入口(只读):回执现场之外重建同一合法确认会话所需
+                # 的最小输入——本轮错题 facts ∩ 安全供给 facts(本投影判定
+                # current 时已算出的同一交集,零第二权威)+ 本轮 forward
+                # canonical terminal(retest 确认会话 confirm_anchor 输入,
+                # 服务端 admission 仍逐项复核,此处不签发任何新事实)。
+                confirm_step["confirm_facts"] = actionable_facts
+                confirm_step["confirm_anchor"] = base_ref
 
     due_state = _clean(due.get("state"))
     successful_reviews = [

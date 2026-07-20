@@ -125,10 +125,18 @@ function stationJourneyFor(report, packId) {
   var unavailableCount = rawSteps.filter(function (raw) {
     return _str(_safeObj(raw).status) === "unavailable";
   }).length;
+  // active 一致性对齐服务端合同:current_step_id = 步序第一个 current|scheduled。
+  // 服务端合法形状允许多个 actionable 并存(如 轻练确认 current + 到期验证
+  // scheduled/current 同在,后者到期自动接棒);仅周期未开时(当前步是
+  // 动画讲懂/训练 5 题)actionable 必须唯一——后段步骤伪造 current 仍 fail-closed。
+  var firstActionableId = actionableSteps.length
+    ? _str(_safeObj(actionableSteps[0]).id)
+    : "";
   if (
     (journeyState === "active" &&
       (currentIndex <= 0 ||
-        actionableSteps.length !== 1 ||
+        firstActionableId !== currentStepId ||
+        (currentIndex <= 2 && actionableSteps.length !== 1) ||
         ["current", "scheduled"].indexOf(_str(currentRaw.status)) < 0)) ||
     (journeyState !== "active" && currentStepId) ||
     (journeyState === "completed" &&
@@ -145,7 +153,7 @@ function stationJourneyFor(report, packId) {
     : "当前：" + JOURNEY_STEPS[currentIndex - 1].label;
   var mappedSteps = rawSteps.map(function (raw, index) {
     var status = _str(raw.status);
-    return {
+    var mapped = {
       id: JOURNEY_STEPS[index].id,
       label: JOURNEY_STEPS[index].label,
       status: status,
@@ -155,6 +163,24 @@ function stationJourneyFor(report, packId) {
       hint: status === "completed" ? "" : _journeyStepHint(status, raw.reason),
       blocking: raw.blocking === true,
     };
+    // 轻练确认重入口只读透传:仅 current+safe_confirm_available 且服务端两字段
+    // 齐全时携带(facts 非空字符串数组 + anchor 非空)。任何缺失/其他状态一律不
+    // 带字段 → 消费端(学情全景 CTA)fail-closed 不亮不猜。零客户端推导。
+    if (
+      mapped.id === "immediate_confirm" &&
+      status === "current" &&
+      _str(raw.reason) === "safe_confirm_available"
+    ) {
+      var confirmFacts = _safeArr(raw.confirm_facts)
+        .map(function (fact) { return _str(fact).trim(); })
+        .filter(function (fact) { return !!fact; });
+      var confirmAnchor = _str(raw.confirm_anchor).trim();
+      if (confirmFacts.length && confirmAnchor) {
+        mapped.confirmFacts = confirmFacts;
+        mapped.confirmAnchor = confirmAnchor;
+      }
+    }
+    return mapped;
   });
   return {
     available: true,
