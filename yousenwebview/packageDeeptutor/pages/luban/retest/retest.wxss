@@ -33,8 +33,14 @@
 
 /* ── 题卡(单题聚焦) ── */
 .rt-card { padding: 30rpx 30rpx 34rpx; display: flex; flex-direction: column; gap: 22rpx; }
-.rt-card-head { display: flex; align-items: baseline; justify-content: space-between; }
+.rt-card-head { display: flex; align-items: center; justify-content: space-between; }
+.rt-card-head-left { display: flex; align-items: center; gap: 14rpx; }
 .rt-card-hint { font-size: 21rpx; color: var(--pk-t3); }
+/* 考法坐标 chip(签发 rule_group): 竹青软底胶囊, 对照 practice 富页的题型标 */
+.rt-tag { font-size: 20rpx; font-weight: 700; color: var(--pk-grn); background: var(--pk-accent-soft); border: 1rpx solid var(--pk-accent-border); border-radius: 999rpx; padding: 4rpx 16rpx; }
+/* 进度条: 环底轨 + 墨色填充(答到第几题) */
+.rt-bar { height: 8rpx; border-radius: 999rpx; background: var(--pk-gauge); overflow: hidden; }
+.rt-bar-fill { height: 100%; border-radius: 999rpx; background: var(--pk-t1); transition: width .3s ease-out; }
 .rt-surface { font-size: 32rpx; line-height: 1.75; color: var(--pk-t1); font-family: "Songti SC", "Noto Serif CJK SC", serif; }
 
 .rt-choices { display: flex; gap: 18rpx; margin-top: 6rpx; }
@@ -43,9 +49,11 @@
 .rt-choice.not-ok { border-color: var(--pk-warn); color: var(--pk-warn); }
 .rt-choice-press { transform: scale(0.97); opacity: .85; }
 .rt-choices.mcq { flex-direction: column; }
-.rt-choice.mcq-option { flex: none; width: 100%; box-sizing: border-box; height: auto; min-height: 92rpx; justify-content: flex-start; text-align: left; padding: 20rpx 22rpx; gap: 16rpx; font-size: 25rpx; line-height: 1.55; font-weight: 500; }
-.rt-choice.mcq-option.selected { border-color: var(--pk-grn); background: var(--pk-gauge); }
-.rt-choice-letter { width: 42rpx; height: 42rpx; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--pk-paper); background: var(--pk-t2); font-size: 22rpx; font-weight: 800; }
+.rt-choice.mcq-option { flex: none; width: 100%; box-sizing: border-box; height: auto; min-height: 92rpx; justify-content: flex-start; text-align: left; padding: 20rpx 22rpx; gap: 16rpx; font-size: 25rpx; line-height: 1.55; font-weight: 500; align-items: flex-start; background: var(--pk-card); }
+/* 选中态用墨(主选择语义), 不用竹青——竹青是"答对"信号, 判分权在服务端 */
+.rt-choice.mcq-option.selected { border-color: var(--pk-t1); background: var(--pk-gauge); box-shadow: 0 4rpx 14rpx var(--pk-shadow); }
+.rt-choice.mcq-option.selected .rt-choice-letter { background: var(--pk-t1); }
+.rt-choice-letter { width: 44rpx; height: 44rpx; border-radius: 12rpx; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--pk-paper); background: var(--pk-t2); font-size: 23rpx; font-weight: 800; margin-top: 2rpx; }
 .rt-pending { display: flex; flex-direction: column; gap: 18rpx; padding-top: 6rpx; font-size: 23rpx; line-height: 1.6; color: var(--pk-t2); }
 
 /* ── 印章反馈(答后滑入, 只动 transform/opacity) ── */
@@ -97,14 +105,28 @@
 .rt-receipt-k { flex-shrink: 0; font-size: 22rpx; color: var(--pk-t3); letter-spacing: 2rpx; }
 .rt-receipt-v { font-size: 25rpx; color: var(--pk-t1); }
 
-.rt-review-list { display: flex; flex-direction: column; gap: 14rpx; padding: 20rpx 22rpx; border-radius: 14rpx; background: var(--pk-gauge); }
-.rt-review-label { font-size: 23rpx; color: var(--pk-t2); }
-.rt-review-item { display: flex; gap: 14rpx; align-items: flex-start; }
-.rt-review-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--pk-warn); flex-shrink: 0; margin-top: 14rpx; }
-.rt-review-copy { flex: 1; display: flex; flex-direction: column; gap: 8rpx; }
-.rt-review-text { font-size: 25rpx; line-height: 1.7; color: var(--pk-t1); }
-.rt-review-detail { font-size: 22rpx; line-height: 1.6; color: var(--pk-t2); }
-.rt-review-fix { font-size: 22rpx; line-height: 1.6; color: var(--pk-grn); }
+.rt-review-list, .rt-right-list { display: flex; flex-direction: column; gap: 16rpx; }
+.rt-review-label { font-size: 23rpx; color: var(--pk-t2); padding: 0 4rpx; }
+
+/* ── 结构化裁决卡(对照 practice 富页 ✓/✕ 卡, 纸墨化) ──
+ * 左轨色 = 裁决语义: 赭红=失分 / 竹青=得分; 内容全部签发字段逐字。 */
+.rt-vcard { border-radius: 14rpx; border: 2rpx solid var(--pk-bd); border-left-width: 8rpx; background: var(--pk-card); padding: 22rpx 24rpx; display: flex; flex-direction: column; gap: 14rpx; }
+.rt-vcard.warm { border-left-color: var(--pk-warn); }
+.rt-vcard.good { border-left-color: var(--pk-grn); }
+.rt-vcard-head { display: flex; gap: 14rpx; align-items: flex-start; }
+.rt-vmark { width: 40rpx; height: 40rpx; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22rpx; font-weight: 800; color: var(--pk-paper); margin-top: 4rpx; }
+.rt-vmark.warm { background: var(--pk-warn); }
+.rt-vmark.good { background: var(--pk-grn); }
+.rt-vcard-truth { flex: 1; font-size: 26rpx; line-height: 1.7; font-weight: 700; color: var(--pk-t1); }
+.rt-vrow { display: flex; flex-direction: column; gap: 4rpx; padding-left: 54rpx; }
+.rt-vlabel { font-size: 21rpx; font-weight: 800; letter-spacing: 1rpx; }
+.rt-vlabel.pick { color: var(--pk-t3); }
+.rt-vlabel.bait { color: var(--pk-t2); }
+.rt-vlabel.loss { color: var(--pk-warn); }
+.rt-vlabel.fix { color: var(--pk-grn); }
+.rt-vtext { font-size: 23rpx; line-height: 1.65; color: var(--pk-t2); }
+.rt-vtext.fix { color: var(--pk-t1); font-weight: 600; }
+.rt-vbook { margin-left: 54rpx; }
 .rt-receipt-clean { font-size: 25rpx; color: var(--pk-grn); }
 
 .rt-stamp-row { display: flex; align-items: center; gap: 20rpx; }
