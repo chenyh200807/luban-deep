@@ -487,6 +487,85 @@ def test_public_projection_contains_only_compiled_questions_and_server_bridge() 
             assert '"稳了"' not in html
             assert "采分点都拿到了" not in html
             assert "满分——采分点抓得稳" not in html
+            # 服务端判分收权：公开页零答案键 + 交卷/结果渲染只走服务端。
+            for leak_name, leak_pattern in (
+                practice_html._PRACTICE_PUBLIC_LEAK_PATTERNS.items()
+            ):
+                assert not leak_pattern.search(html), (
+                    f"{pack_id}/{surface['surface_id']}: {leak_name}"
+                )
+            assert "__dtSubmitRound" in html
+            assert "__dtBaseRenderVals(){" in html
+            assert "/api/v1/luban-preview/practice-submit" in html
+            assert "__dtOverlayResult" in html
+
+
+def test_sanitize_block_strips_answer_truth_and_rebuilds_options_from_authority() -> None:
+    block = (
+        '{ tag:"验收层级", typeHint:"单选", fig:"steps", figLabel:"四级",\n'
+        '  stem:"验收分几级？",\n'
+        '  model:"四级，自下而上。",\n'
+        '  opts:[\n'
+        '    { t:"三级，自上而下。", ok:false, code:"E06", tempt:"顺手", lose:"倒装", fix:"自下而上" },\n'
+        '    { t:"四级，自下而上。", ok:true, fix:"三件齐", code:"" }\n'
+        "  ] }"
+    )
+    item = {
+        "stem": "验收分几级？",
+        "options": [
+            {"option_id": "v1:option-1", "text": "三级，自上而下。"},
+            {"option_id": "v1:option-2", "text": "四级，自下而上。"},
+        ],
+    }
+    sanitized = practice_html._sanitize_practice_block(
+        block, item, format_kind="q_direct"
+    )
+    assert '"t": "三级，自上而下。"' in sanitized or '"t":"三级，自上而下。"' in sanitized.replace(" ", "")
+    assert "tag:" in sanitized and "fig:" in sanitized and "stem:" in sanitized
+    for leak_pattern in practice_html._PRACTICE_PUBLIC_LEAK_PATTERNS.values():
+        assert not leak_pattern.search(sanitized)
+
+
+def test_sanitize_block_fails_closed_on_unclassified_field() -> None:
+    block = (
+        '{ tag:"t", stem:"s", secret_answer:"D",\n'
+        '  opts:[ { t:"a", ok:true, code:"" }, { t:"b", ok:false, code:"" } ] }'
+    )
+    item = {
+        "stem": "s",
+        "options": [
+            {"option_id": "v1:option-1", "text": "a"},
+            {"option_id": "v1:option-2", "text": "b"},
+        ],
+    }
+    with pytest.raises(
+        PracticeHtmlInvalid, match="practice_publish_field_unclassified:secret_answer"
+    ):
+        practice_html._sanitize_practice_block(block, item, format_kind="q_direct")
+
+
+def test_sanitize_bank_block_neutralizes_correct_index_and_analysis() -> None:
+    block = (
+        '{ ep:"覆盖关", topic:"划分", fig:"divide", stem:"按什么划分？",\n'
+        '  opts:["按工程量","按工种"], c:1,\n'
+        '  ana:[ { s:"错", why:"张冠李戴", lose:"归错类", fix:"按工种" },\n'
+        '        { s:"对", fix:"四类齐" } ] }'
+    )
+    item = {
+        "stem": "按什么划分？",
+        "options": [
+            {"option_id": "v1:option-1", "text": "按工程量"},
+            {"option_id": "v1:option-2", "text": "按工种"},
+        ],
+    }
+    sanitized = practice_html._sanitize_practice_block(
+        block, item, format_kind="bank_drawn"
+    )
+    # ``cur.ana[actual]`` 渲染路径保形状：ana 保留为等长空对象数组。
+    assert "ana:[{}, {}]" in sanitized or "ana:[{},{}]" in sanitized.replace(" ", "")
+    assert '"按工程量"' in sanitized and '"按工种"' in sanitized
+    for leak_pattern in practice_html._PRACTICE_PUBLIC_LEAK_PATTERNS.values():
+        assert not leak_pattern.search(sanitized)
 
 
 def test_format_adapters_and_multi_surface_resolution_are_data_driven(

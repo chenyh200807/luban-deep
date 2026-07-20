@@ -238,51 +238,41 @@ class Component extends DCLogic {
   KNOWLEDGE="大体积混凝土温控案例题作答。措施题四组:①材料·降热源(宜矿渣/火山灰/粉煤灰/复合低水化热水泥、忌硅酸盐;掺粉煤灰、磨细矿渣粉;缓凝剂适用、早强剂不宜)②配合比·控总热(水胶比≤0.45;粉煤灰≤50%、矿渣粉≤40%、总掺量≤50%;拌合水≤170kg/m³、坍落度≤180mm;防水大体积龄期60d/90d)③施工(整体分层/推移式连续浇筑层厚300~500mm;入模5~30℃、高温期大体积≤30℃;跳仓分块单向≤40m;严禁加水)④养护测温(保湿养护≥14d;温升≤50℃、里表温差≤25℃、降温速率≤2.0℃/d、拆保温温差≤20℃;测点表/底/中心、间距≤500mm、表层取表面下50mm处;每轴≥4点、每昼夜≥4次、入模每台班≥2次)。判断纠错三段式:不妥+理由+正确做法带数值;陷阱:养护7d应≥14d、拆保温25℃应20℃(25℃是里表)。计算四步链:亮公式、代入列式、数值结论带单位、回判规范;等量替换水泥=400×(1−20%)=320、粉煤灰=80;扣骨料含水率(中砂4%碎石1.2%,实际加水=设计水−骨料带入水);回判水胶比≤0.45。失分:口号化(E04)、整组漏(E02)、数值缺(E03)、阈值混(E07)、只写得数(E02/E09)、规范口径搬错(E10)。";
   moreText="补两道方向：① 给 2.0m 厚底板写完整测温方案——层位（表/底/中心、表层取表面下50mm）、间距（≤500mm）、频次（轴4·昼夜4·台班2）全嵌数值；② 交底纠错：「降温速率≤3℃/d、坍落度≤200mm」——按三段式找不妥并给正确数值（≤2.0℃/d、≤180mm）。";
   Q=[
-{ tag:"措施·四组骨架", typeHint:"单选 · 选出骨架完整、能得分的作答", figLabel:"图示：措施题的答题骨架（该补哪几组？）", figCaption:"底板剖面芯热表凉 · 措施从几组下手？", fig:"groups",
+{ tag:"措施·四组骨架",
+      typeHint:"单选 · 选出骨架完整、能得分的作答",
+      figLabel:"图示：措施题的答题骨架（该补哪几组？）",
+      figCaption:"底板剖面芯热表凉 · 措施从几组下手？",
+      fig:"groups",
       stem:"案例问：底板大体积混凝土为防止温度裂缝，应从哪些方面采取技术措施？选出骨架完整、能得分的作答。",
-      model:"按四组作答：材料·降热源／配合比·控总热／施工·控入模分层／养护测温·控温差，每组句里嵌数值。",
-      opts:[
-        { t:"加强混凝土的保温保湿养护，严格控制里表温差，防止底板出现温度裂缝。", ok:false, code:"E02", tempt:"养护和温差确实是核心，看着已经答到点上了。", lose:"只沾养护测温一组的边，材料、配合比、施工三组整组漏。", fix:"四组逐组扫：材料、配合比、施工、养护测温各写一句。" },
-        { t:"从材料、配合比、施工、养护测温四个方面分别采取措施，每组写明具体做法并带数值。", ok:true, fix:"四组组名先立骨架，再逐组填「动作+数值」，这就是满分结构。", code:"" },
-        { t:"施工中应当精心组织、加强管理，严格按照规范和专项方案落实各项温控要求，确保工程质量。", ok:false, code:"E04", tempt:"句句都「对」，考场一紧张最爱这么写。", lose:"口号化表达，没有一个可判分的动作和数值。", fix:"落成动作+数值，如「保湿养护≥14d、里表温差≤25℃」。" },
-        { t:"选用低水化热水泥并掺粉煤灰、磨细矿渣粉，从源头减少水化热，避免温升过高。", ok:false, code:"E02", tempt:"材料组答得很专业，容易以为这就够了。", lose:"只有材料一组，配合比、施工、养护测温三组全漏。", fix:"材料句之外，另外三组各补一句带数值的措施。" }
-      ] },
-{ tag:"温控四指标·条件维", typeHint:"单选 · 选出指标齐全且数值方向正确的作答", figLabel:"图示：四个温控阀门（数值待填）", figCaption:"四个指标各限多少？方向别反", fig:"gauges",
+      opts:[{"t": "加强混凝土的保温保湿养护，严格控制里表温差，防止底板出现温度裂缝。"}, {"t": "从材料、配合比、施工、养护测温四个方面分别采取措施，每组写明具体做法并带数值。"}, {"t": "施工中应当精心组织、加强管理，严格按照规范和专项方案落实各项温控要求，确保工程质量。"}, {"t": "选用低水化热水泥并掺粉煤灰、磨细矿渣粉，从源头减少水化热，避免温升过高。"}] },
+{ tag:"温控四指标·条件维",
+      typeHint:"单选 · 选出指标齐全且数值方向正确的作答",
+      figLabel:"图示：四个温控阀门（数值待填）",
+      figCaption:"四个指标各限多少？方向别反",
+      fig:"gauges",
       stem:"案例问：大体积混凝土施工的温控指标有哪些？选出指标齐全、能得分的作答。",
-      model:"①温升值≤50℃ ②里表温差≤25℃ ③降温速率≤2.0℃/d ④拆除保温覆盖时表面与大气温差≤20℃。",
-      opts:[
-        { t:"控制混凝土浇筑体的温升值不超过50℃，并加强测温监控，发现温升过快及时处理。", ok:false, code:"E02", tempt:"温升是最出名的指标，答了就觉得答完了。", lose:"四指标漏三：里表温差、降温速率、拆保温温差全没写。", fix:"四个一起写：≤50℃、≤25℃、≤2.0℃/d、≤20℃。" },
-        { t:"温升值≤50℃、里表温差≤20℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤25℃。", ok:false, code:"E07", tempt:"四个指标都在，乍一看很齐全。", lose:"20℃与25℃方向写反：里表是25℃、拆保温才是20℃。", fix:"里表温差≤25℃（剖面里），拆保温温差≤20℃（表面到大气）。" },
-        { t:"温升值、里表温差、降温速率、拆保温温差四项指标都应控制在规范允许范围之内。", ok:false, code:"E03", tempt:"四项名目全点到了，像是踩全了。", lose:"关键词缺失——四项全没数值，采分眼正是那四个数。", fix:"补数值：≤50℃、≤25℃、≤2.0℃/d、≤20℃。" },
-        { t:"温升值≤50℃、里表温差≤25℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤20℃。", ok:true, fix:"四指标齐、数值方向全对：50、25、2.0、20 一串背。", code:"" }
-      ] },
-{ tag:"判断纠错·养护时间", typeHint:"单选 · 选出能拿全分的三段式作答", figLabel:"题给：技术交底片段（找不妥）", figCaption:"这句交底妥不妥？三段式作答", fig:"sheet7",
+      opts:[{"t": "控制混凝土浇筑体的温升值不超过50℃，并加强测温监控，发现温升过快及时处理。"}, {"t": "温升值≤50℃、里表温差≤20℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤25℃。"}, {"t": "温升值、里表温差、降温速率、拆保温温差四项指标都应控制在规范允许范围之内。"}, {"t": "温升值≤50℃、里表温差≤25℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤20℃。"}] },
+{ tag:"判断纠错·养护时间",
+      typeHint:"单选 · 选出能拿全分的三段式作答",
+      figLabel:"题给：技术交底片段（找不妥）",
+      figCaption:"这句交底妥不妥？三段式作答",
+      fig:"sheet7",
       stem:"技术交底写明：「底板混凝土浇筑后保湿养护7d」。指出不妥之处并改正，选出能拿全分的作答。",
-      model:"不妥之处：保湿养护7d。理由：大体积混凝土保湿养护时间应≥14d。正确做法：保湿养护不少于14d。",
-      opts:[
-        { t:"保湿养护7d不妥，大体积混凝土水化热大、收缩持续时间长，应当适当延长养护时间。", ok:false, code:"E03", tempt:"指出了不妥、也讲了道理，看着挺完整。", lose:"「适当延长」没有14d——正确数值才是采分眼。", fix:"补上「应≥14d」这个数。" },
-        { t:"保湿养护7d符合要求：采用硅酸盐水泥的混凝土养护不得少于7d，交底并无不妥之处。", ok:false, code:"E10", tempt:"7d确实是一般混凝土的常见口径，很眼熟。", lose:"把一般混凝土7d错套到大体积，大体积应≥14d。", fix:"大体积/防水混凝土保湿养护≥14d。" },
-        { t:"不妥：养护方式错误。理由：大体积混凝土应蓄水养护而非覆盖养护。正确做法：改为蓄水养护14d。", ok:false, code:"E05", tempt:"也是三段式也有14d，格式很像满分。", lose:"题干挑的是时间7d，不是方式；自设靶子答非所问。", fix:"紧扣题干数值纠错：7d改为≥14d。" },
-        { t:"不妥：保湿养护7d；理由：大体积混凝土保湿养护应≥14d；正确做法：养护不少于14d。", ok:true, fix:"三段式齐全且带正确数值14d，这是纠错题的满分格式。", code:"" }
-      ] },
-{ tag:"判断纠错·拆保温", typeHint:"单选 · 分清俩温差，选出能得分的作答", figLabel:"图示：俩温差的位置（一里一外）", figCaption:"里表温差在剖面里 · 拆保温看表面到大气", fig:"mirror",
+      opts:[{"t": "保湿养护7d不妥，大体积混凝土水化热大、收缩持续时间长，应当适当延长养护时间。"}, {"t": "保湿养护7d符合要求：采用硅酸盐水泥的混凝土养护不得少于7d，交底并无不妥之处。"}, {"t": "不妥：养护方式错误。理由：大体积混凝土应蓄水养护而非覆盖养护。正确做法：改为蓄水养护14d。"}, {"t": "不妥：保湿养护7d；理由：大体积混凝土保湿养护应≥14d；正确做法：养护不少于14d。"}] },
+{ tag:"判断纠错·拆保温",
+      typeHint:"单选 · 分清俩温差，选出能得分的作答",
+      figLabel:"图示：俩温差的位置（一里一外）",
+      figCaption:"里表温差在剖面里 · 拆保温看表面到大气",
+      fig:"mirror",
       stem:"技术交底写明：「拆除保温覆盖时，浇筑体表面与大气温差不大于25℃」。判断并选出能得分的作答。",
-      model:"不妥。理由：拆保温时表面与大气温差应≤20℃（25℃是里表温差限值，二者勿混）。正确做法：温差≤20℃方可拆除。",
-      opts:[
-        { t:"不妥：25℃是里表温差限值；拆保温时表面与大气温差应≤20℃，达标后方可拆除。", ok:true, fix:"点破「25℃是里表的」并给出20℃，两个数都落位。", code:"" },
-        { t:"妥当：拆除保温覆盖时该温差限值就是25℃，与里表温差的控制要求一致，交底数值并无问题。", ok:false, code:"E07", tempt:"25℃这个数在本考点确实存在，容易对上号。", lose:"把里表温差25℃错套到拆保温，拆保温限值是20℃。", fix:"拆保温≤20℃（表面到大气），25℃是剖面里的里表温差。" },
-        { t:"不妥：只要保湿养护满14d即可拆除保温覆盖，不必再对温差另提数值要求。", ok:false, code:"E10", tempt:"「满14d就能拆」符合到点拆模的直觉。", lose:"拆保温看的是温差条件不是天数，不查温差表面急冷开裂。", fix:"写明「表面与大气温差≤20℃方可拆除」。" },
-        { t:"不妥：拆保温时的温差限值偏大，应从严控制，待温差再小一些时拆除更为稳妥。", ok:false, code:"E03", tempt:"方向判对了（25偏大），感觉已经答中。", lose:"没给出20℃这个正确数值，纠错不带数等于半句。", fix:"补上「应≤20℃」。" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 给学生答卷做诊断，选最准确的补写方向", figLabel:"模拟学生答卷（待诊断）", figCaption:"三行作答 · 哪几处在丢分？", fig:"diag",
+      opts:[{"t": "不妥：25℃是里表温差限值；拆保温时表面与大气温差应≤20℃，达标后方可拆除。"}, {"t": "妥当：拆除保温覆盖时该温差限值就是25℃，与里表温差的控制要求一致，交底数值并无问题。"}, {"t": "不妥：只要保湿养护满14d即可拆除保温覆盖，不必再对温差另提数值要求。"}, {"t": "不妥：拆保温时的温差限值偏大，应从严控制，待温差再小一些时拆除更为稳妥。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 给学生答卷做诊断，选最准确的补写方向",
+      figLabel:"模拟学生答卷（待诊断）",
+      figCaption:"三行作答 · 哪几处在丢分？",
+      fig:"diag",
       stem:"学生作答：①措施——加强养护、控制温差；②养护7d后拆除保温；③水泥=320kg/m³。选出最准确的诊断与补写方向。",
-      model:"三处都要补：①措施口号化且整组漏——按四组补句带数值；②7d应≥14d，且拆保温须查表面与大气温差≤20℃；③补算式400×(1−20%)=320、粉煤灰80kg/m³并回判水胶比≤0.45。",
-      opts:[
-        { t:"三处都失分：措施按四组补句带数值；养护应≥14d且拆保温查温差≤20℃；计算补列式与回判。", ok:true, fix:"三处逐一按采分句补写——这就是「会写答案」的收官动作。", code:"" },
-        { t:"③水泥320kg/m³与标准数值完全一致，说明计算已经掌握，只需把①②的表述略作润色即可。", ok:false, code:"E07", tempt:"数值对就以为计算过关——最危险的误判。", lose:"320无列式无回判照丢过程分；①②是硬伤不是润色问题。", fix:"三处都按采分句重写。" },
-        { t:"主要问题在②：7d应改为不少于14d；①的方向正确、③的数值无误，均可保留原样。", ok:false, code:"E02", tempt:"抓到7d这个最显眼的错，就以为只此一处。", lose:"漏诊①口号化整组漏、③缺算式回判两处失分。", fix:"三处逐一补写，不止改7d。" },
-        { t:"问题在于表述不够规范流畅，建议使用规范术语重新组织语言，使卷面更加整洁。", ok:false, code:"E04", tempt:"「表述不规范」是万能评语，怎么说都不错。", lose:"诊断本身口号化——没指出漏组、漏数值、漏算式哪一处。", fix:"按四组、四指标、四步链逐项对照找漏。" }
-      ] }
+      opts:[{"t": "三处都失分：措施按四组补句带数值；养护应≥14d且拆保温查温差≤20℃；计算补列式与回判。"}, {"t": "③水泥320kg/m³与标准数值完全一致，说明计算已经掌握，只需把①②的表述略作润色即可。"}, {"t": "主要问题在②：7d应改为不少于14d；①的方向正确、③的数值无误，均可保留原样。"}, {"t": "问题在于表述不够规范流畅，建议使用规范术语重新组织语言，使卷面更加整洁。"}] }
   ];
   codeMap={
     E02:{label:"采分点遗漏",advice:"四组、四指标、三频次、四步链——逐项对照清单查漏，别整组丢。"},
@@ -361,15 +351,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"Q02",cardId:"Q02",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -500,7 +488,7 @@ class Component extends DCLogic {
       lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:324,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -543,9 +531,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"Q02-html-practice-html-q1-2ee93b76d576","options":["Q02-html-practice-html-q1-2ee93b76d576:option-1","Q02-html-practice-html-q1-2ee93b76d576:option-2","Q02-html-practice-html-q1-2ee93b76d576:option-3","Q02-html-practice-html-q1-2ee93b76d576:option-4"]},{"variant_id":"Q02-html-practice-html-q2-bdf6a72816e9","options":["Q02-html-practice-html-q2-bdf6a72816e9:option-1","Q02-html-practice-html-q2-bdf6a72816e9:option-2","Q02-html-practice-html-q2-bdf6a72816e9:option-3","Q02-html-practice-html-q2-bdf6a72816e9:option-4"]},{"variant_id":"Q02-html-practice-html-q3-b43d41f5737d","options":["Q02-html-practice-html-q3-b43d41f5737d:option-1","Q02-html-practice-html-q3-b43d41f5737d:option-2","Q02-html-practice-html-q3-b43d41f5737d:option-3","Q02-html-practice-html-q3-b43d41f5737d:option-4"]},{"variant_id":"Q02-html-practice-html-q4-bfb29285340d","options":["Q02-html-practice-html-q4-bfb29285340d:option-1","Q02-html-practice-html-q4-bfb29285340d:option-2","Q02-html-practice-html-q4-bfb29285340d:option-3","Q02-html-practice-html-q4-bfb29285340d:option-4"]},{"variant_id":"Q02-html-practice-html-q16-c02651c51c2c","options":["Q02-html-practice-html-q16-c02651c51c2c:option-1","Q02-html-practice-html-q16-c02651c51c2c:option-2","Q02-html-practice-html-q16-c02651c51c2c:option-3","Q02-html-practice-html-q16-c02651c51c2c:option-4"]}];
+  __dtItems=[{"variant_id":"Q02-html-practice-html-q1-2ee93b76d576","options":["Q02-html-practice-html-q1-2ee93b76d576:option-1","Q02-html-practice-html-q1-2ee93b76d576:option-2","Q02-html-practice-html-q1-2ee93b76d576:option-3","Q02-html-practice-html-q1-2ee93b76d576:option-4"]},{"variant_id":"Q02-html-practice-html-q2-bdf6a72816e9","options":["Q02-html-practice-html-q2-bdf6a72816e9:option-1","Q02-html-practice-html-q2-bdf6a72816e9:option-2","Q02-html-practice-html-q2-bdf6a72816e9:option-3","Q02-html-practice-html-q2-bdf6a72816e9:option-4"]},{"variant_id":"Q02-html-practice-html-q3-b43d41f5737d","options":["Q02-html-practice-html-q3-b43d41f5737d:option-1","Q02-html-practice-html-q3-b43d41f5737d:option-2","Q02-html-practice-html-q3-b43d41f5737d:option-3","Q02-html-practice-html-q3-b43d41f5737d:option-4"]},{"variant_id":"Q02-html-practice-html-q4-bfb29285340d","options":["Q02-html-practice-html-q4-bfb29285340d:option-1","Q02-html-practice-html-q4-bfb29285340d:option-2","Q02-html-practice-html-q4-bfb29285340d:option-3","Q02-html-practice-html-q4-bfb29285340d:option-4"]},{"variant_id":"Q02-html-practice-html-q16-c02651c51c2c","options":["Q02-html-practice-html-q16-c02651c51c2c:option-1","Q02-html-practice-html-q16-c02651c51c2c:option-2","Q02-html-practice-html-q16-c02651c51c2c:option-3","Q02-html-practice-html-q16-c02651c51c2c:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -556,8 +562,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -566,11 +572,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"Q02",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMmVlOTNiNzZkNTc2IiwiUTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iZGY2YTcyODE2ZTkiLCJRMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWI0M2Q0MWY1NzM3ZCIsIlEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtYmZiMjkyODUzNDBkIiwiUTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzAyNjUxYzUxYzJjIl0sInBhY2tfaWQiOiJRMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImZkYjBmNmE5ZWFlZjNhMGY4YmJkOTNkN2M2NzMyMTI1ZjkxMzEzMTgzMjRkMWVmNjAxZGRiMzNiYTcyNDI1MzYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNTRjMzE0ODJhODg3NTg0NmMzNjU2NmJkNzkzZTMxODkxNWRjYTFjY2U3YWRjNjhlZWQyY2VlNGI3MTYyZTQ4YiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }

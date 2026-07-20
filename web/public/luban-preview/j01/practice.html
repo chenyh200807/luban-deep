@@ -235,51 +235,43 @@ class Component extends DCLogic {
   KNOWLEDGE="危大工程专项方案与专家论证。判档(条件维):基坑≥3m/模板≥5m/起重≥10kN/脚手架≥24m·危大,编专项方案;深基坑≥5m/模板≥8m或跨≥18m/起重≥100kN/脚手架落地≥50m/幕墙≥50m·超过一定规模,除编方案还须专家论证。编制主体(主体维):施工总承包单位组织编制;起重安拆/深基坑/附着升降脚手架等专业工程可由专业承包单位编制。前置程序(程序维):先施工单位审核、再总监理工程师审查,方可组织论证,顺序不可颠倒。组织(主体维):超规模由施工总承包单位组织召开论证会。方案八项(记录维):工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施;模板支撑另加计算书及相关施工图纸。专家组(主体维+记录维):5人以上、与本工程无利害关系,参建各方人员不得以专家身份参加(回避),报告须签字。论证内容三项(记录维):完整可行/计算书验算依据施工图符合规范/满足现场实际确保安全;非经济性、非分包资质。实施(后果维):公示、编制人交底,不得擅自修改,确需修改须重新审核/论证。需单独编专项方案的工程:深基坑支护/降水/土方开挖/模板及支撑体系/建筑幕墙安装。";
   moreText="补两道：① 给「建设单位组织论证、专家 4 人」的场景，把「组织主体=施工总承包单位 + 专家 5 人以上 + 参建方回避」一次写全，专治漏回避；② 给「方案编制后直接论证、未经总监审查」的场景，练前置程序箭头链：施工单位审核 · 总监理工程师审查 · 专家论证，补齐程序维。";
   Q=[
-{ tag:"判档·条件维", typeHint:"单选 · 选出最完整、能得分的作答", fig:"depth", dep:4, figLabel:"题给：基坑开挖深度", figCaption:"基坑开挖深度 4m · 判档？",
+{ tag:"判档·条件维",
+      typeHint:"单选 · 选出最完整、能得分的作答",
+      fig:"depth",
+      dep:4,
+      figLabel:"题给：基坑开挖深度",
+      figCaption:"基坑开挖深度 4m · 判档？",
       stem:"某工程基坑开挖深度 4m。就危大工程判定，选出最完整、能得分的作答。",
-      model:"开挖深度 4m（≥3m）属危险性较大的分部分项工程，应编制专项施工方案；未达 5m，尚不需专家论证。",
-      opts:[
-        { t:"开挖深度 4m 已超过 3m，应判为超过一定规模的危险性较大的分部分项工程，除编制专项施工方案外，还须组织专家论证后方可施工。", ok:false, code:"E10", tempt:"看到「超过 3m」就直接联想到最严的专家论证。", lose:"混档：3m 是危大线、5m 才是超规模论证线，4m 未达论证档。", fix:"4m 达危大应编方案；未达 5m，不需论证。" },
-        { t:"此类深 4m 的基坑可按一般分部分项工程管理，施工中加强临边防护与变形监测即可，不必单独编制专项施工方案。", ok:false, code:"E02", tempt:"当成一般「注意安全」的施工问题。", lose:"漏掉「达危大·编专项方案」这一核心采分点。", fix:"应写「达 3m 属危大，须编制专项施工方案」。" },
-        { t:"基坑开挖深度 4m，达到 3m 及以上，属危险性较大的分部分项工程，应编制专项施工方案（未达 5m，暂不需专家论证）。", ok:true, fix:"阈值 3m + 「危大·编专项方案」结论 + 说明未到论证档，判档链完整。", code:"" },
-        { t:"由于 4m 尚未达到 5m 的起算线，该基坑不属于危险性较大的分部分项工程，无需编制专项施工方案。", ok:false, code:"M08", tempt:"把 5m 当成危大起算线。", lose:"记错阈值：危大基坑起算 3m 不是 5m，4m 已属危大。", fix:"危大基坑≥3m，4m 已属危大，须编专项方案。" }
-      ] },
-{ tag:"判档·条件维", typeHint:"单选 · 选出最完整、能得分的作答", fig:"depth", dep:6, figLabel:"题给：深基坑开挖深度", figCaption:"深基坑开挖深度 6m · 判档？",
+      opts:[{"t": "开挖深度 4m 已超过 3m，应判为超过一定规模的危险性较大的分部分项工程，除编制专项施工方案外，还须组织专家论证后方可施工。"}, {"t": "此类深 4m 的基坑可按一般分部分项工程管理，施工中加强临边防护与变形监测即可，不必单独编制专项施工方案。"}, {"t": "基坑开挖深度 4m，达到 3m 及以上，属危险性较大的分部分项工程，应编制专项施工方案（未达 5m，暂不需专家论证）。"}, {"t": "由于 4m 尚未达到 5m 的起算线，该基坑不属于危险性较大的分部分项工程，无需编制专项施工方案。"}] },
+{ tag:"判档·条件维",
+      typeHint:"单选 · 选出最完整、能得分的作答",
+      fig:"depth",
+      dep:6,
+      figLabel:"题给：深基坑开挖深度",
+      figCaption:"深基坑开挖深度 6m · 判档？",
       stem:"某深基坑开挖深度 6m。就危大工程判定，选出最完整、能得分的作答。",
-      model:"深基坑 6m（≥5m）属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
-      opts:[
-        { t:"本基坑开挖深度 6m 属危险性较大的分部分项工程，编制专项施工方案并履行完相应的审批签字手续后即可组织施工。", ok:false, code:"E02", tempt:"答对了危大档，但停在编方案。", lose:"漏了「超规模·还应专家论证」，只答半档。", fix:"6m≥5m 属超规模，除编方案外还应组织专家论证。" },
-        { t:"深基坑开挖深度 6m，达到 5m 及以上，属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。", ok:true, fix:"阈值 5m + 「超规模」定性 + 「编方案 + 专家论证」两件事写全。", code:"" },
-        { t:"该工程属超过一定规模的危大工程，应由建设单位组织召开专家论证会对专项施工方案进行论证。", ok:false, code:"E07", tempt:"知道要论证，但组织主体张冠李戴。", lose:"论证会应由施工总承包单位组织，不是建设单位。", fix:"超规模应由施工总承包单位组织召开专家论证会。" },
-        { t:"开挖深度 6m 尚未超过 8m 的界限，不属于超过一定规模的危大工程，不需要组织专家论证。", ok:false, code:"M08", tempt:"把模板支撑 8m 的阈值套到深基坑上。", lose:"混阈值：深基坑超规模线是 5m，6m 已达。", fix:"深基坑≥5m 即超规模，6m 应论证。" }
-      ] },
-{ tag:"混档辨析·条件维", typeHint:"单选 · 选出最准确的判断与纠正", fig:"depth", figLabel:"题给：判断对错", figCaption:"「基坑一过 3m 就要专家论证」对吗？",
+      opts:[{"t": "本基坑开挖深度 6m 属危险性较大的分部分项工程，编制专项施工方案并履行完相应的审批签字手续后即可组织施工。"}, {"t": "深基坑开挖深度 6m，达到 5m 及以上，属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。"}, {"t": "该工程属超过一定规模的危大工程，应由建设单位组织召开专家论证会对专项施工方案进行论证。"}, {"t": "开挖深度 6m 尚未超过 8m 的界限，不属于超过一定规模的危大工程，不需要组织专家论证。"}] },
+{ tag:"混档辨析·条件维",
+      typeHint:"单选 · 选出最准确的判断与纠正",
+      fig:"depth",
+      figLabel:"题给：判断对错",
+      figCaption:"「基坑一过 3m 就要专家论证」对吗？",
       stem:"有人说：「基坑只要开挖深度超过 3m，就必须组织专家论证。」选出最准确的判断与纠正。",
-      model:"说法错误。3m 是危大线（编专项方案），5m 才是超规模线（专家论证）；3～5m 之间只需编方案、不需论证。",
-      opts:[
-        { t:"错误。开挖深度达 3m 属危大、应编专项方案；达 5m 才属超规模、才需专家论证。3～5m 之间编方案不论证。", ok:true, fix:"两条线两档说清楚，纠正到位。", code:"" },
-        { t:"正确。开挖深度只要超过 3m 即属危大工程，凡属危险性较大的分部分项工程，一律都应组织专家论证后方可进行施工。", ok:false, code:"E10", tempt:"以为「危大」和「要论证」是一回事。", lose:"危大不等于超规模；只有超规模档才论证。", fix:"3m 编方案、5m 才论证，别把两档并成一档。" },
-        { t:"错误。真正的论证起算线应是开挖深度超过 2m，凡达到 2m 的基坑均必须组织专家论证。", ok:false, code:"E07", tempt:"记了个更小的数当阈值。", lose:"阈值错且档次错，论证是 5m 档不是 2m。", fix:"论证是超规模 5m 档。" },
-        { t:"该说法涉及的只是施工方案的编制与审批问题，与是否需要组织专家论证之间并没有直接关系。", ok:false, code:"E05", tempt:"回避了「档次」这个考点。", lose:"答非所问，没判两条线。", fix:"要点明 3m 危大、5m 超规模两档。" }
-      ] },
-{ tag:"编制主体·主体维", typeHint:"单选 · 选出能得分的作答", fig:"subject", figLabel:"题给：谁来组织编制专项方案", figCaption:"总承包 / 监理 / 建设 · 谁编？",
+      opts:[{"t": "错误。开挖深度达 3m 属危大、应编专项方案；达 5m 才属超规模、才需专家论证。3～5m 之间编方案不论证。"}, {"t": "正确。开挖深度只要超过 3m 即属危大工程，凡属危险性较大的分部分项工程，一律都应组织专家论证后方可进行施工。"}, {"t": "错误。真正的论证起算线应是开挖深度超过 2m，凡达到 2m 的基坑均必须组织专家论证。"}, {"t": "该说法涉及的只是施工方案的编制与审批问题，与是否需要组织专家论证之间并没有直接关系。"}] },
+{ tag:"编制主体·主体维",
+      typeHint:"单选 · 选出能得分的作答",
+      fig:"subject",
+      figLabel:"题给：谁来组织编制专项方案",
+      figCaption:"总承包 / 监理 / 建设 · 谁编？",
       stem:"某超规模危大工程需编制专项施工方案。该方案应由谁组织编制？选出能得分的作答。",
-      model:"专项施工方案由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
-      opts:[
-        { t:"由施工单位负责编制专项方案，编制完成后报送项目监理机构与建设单位备案，即视为履行了编制程序。", ok:false, code:"E06", tempt:"顺口写「施工单位」，感觉没错。", lose:"「施工单位」含糊，阅卷要「施工总承包单位」才给主体分。", fix:"应写「施工总承包单位组织编制」。" },
-        { t:"应由建设单位作为工程总负责方组织编制，编制完成后再交施工单位照此组织实施。", ok:false, code:"E06", tempt:"觉得建设单位是甲方、负总责。", lose:"编制主体是施工总承包单位，不是建设单位。", fix:"施工总承包单位组织编制。" },
-        { t:"由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。", ok:true, fix:"精确到「施工总承包单位」，并补专业分包可编的情形，主体写全。", code:"" },
-        { t:"应当由项目监理单位负责编制专项方案，完成后交施工单位组织实施并对现场安全负责。", ok:false, code:"E06", tempt:"把监理的「审查」误当「编制」。", lose:"监理是审查方不是编制方，主体错。", fix:"施工总承包单位编、总监理工程师审查。" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 数值可能蒙对，诊断失分并给正确补写", fig:"sheet", figLabel:"真题 · 模拟学生作答（待诊断）", figCaption:"记得「专家 5 人」，但漏了要害",
+      opts:[{"t": "由施工单位负责编制专项方案，编制完成后报送项目监理机构与建设单位备案，即视为履行了编制程序。"}, {"t": "应由建设单位作为工程总负责方组织编制，编制完成后再交施工单位照此组织实施。"}, {"t": "由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。"}, {"t": "应当由项目监理单位负责编制专项方案，完成后交施工单位组织实施并对现场安全负责。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 数值可能蒙对，诊断失分并给正确补写",
+      fig:"sheet",
+      figLabel:"真题 · 模拟学生作答（待诊断）",
+      figCaption:"记得「专家 5 人」，但漏了要害",
       stem:"真题背景：基坑深 7.6m，基坑支护专业施工单位编制方案并履行审批签字后，组织「包括总承包单位技术负责人在内的 5 名专家」论证。学生答：「论证不妥。专家应有 5 人，够了。让施工单位再仔细检查方案。」选出最准确的诊断与补写。",
-      model:"漏点：①未指出参建方人员（总包技术负责人）不得当专家（回避）②「5 人够了」应为「5 人以上」③「再检查方案」答非所问。补写：不妥在组织含总承包单位技术负责人在内的 5 名专家论证；专家应为 5 人以上，且本项目参建各方人员不得以专家身份参加。",
-      opts:[
-        { t:"漏了核心不妥：总包技术负责人属参建方、不得当专家（回避）；「5 人够了」应为「5 人以上」；「再检查方案」答非所问。补写：专家应为 5 人以上，且参建各方人员不得以专家身份参加论证。", ok:true, fix:"三处失分全揪出，补写即可上答题纸——这就是「会写答案」。", code:"" },
-        { t:"学生的作答方向基本正确：专家 5 人已符合论证的人数要求，「再仔细检查方案」也有必要，只需再补充说明专项方案应当经过总监理工程师审查这道程序，诊断即告完整。", ok:false, code:"E08", tempt:"只看「5 人」和「检查」，觉得方向对。", lose:"没抓题干埋点：参建方技术负责人当专家（回避）才是第一失分点。", fix:"应先指出参建方不得当专家、且专家 5 人以上。" },
-        { t:"本题失分只是人数写法一处问题：把「专家应有 5 人」的表述改为「5 人以上」，或者把专家人数增加到 6 人，这份作答就已经完整，可以得到全部分数。", ok:false, code:"E10", tempt:"抓到人数一处就以为只此一错。", lose:"漏诊回避（核心）+「5 人以上」表述 + 答非所问。", fix:"核心是回避，且应写「5 人以上」。" },
-        { t:"本题应诊断为方案编制主体错误：深基坑支护工程的专项方案不应由基坑支护专业施工单位编制，应改由建设单位组织编制，并按更正后的主体重新履行编制程序。", ok:false, code:"E05", tempt:"往编制主体上带偏。", lose:"本题失分在专家组回避与人数，编制主体非本问考点。", fix:"按回避 + 5 人以上诊断并补写。" }
-      ] }
+      opts:[{"t": "漏了核心不妥：总包技术负责人属参建方、不得当专家（回避）；「5 人够了」应为「5 人以上」；「再检查方案」答非所问。补写：专家应为 5 人以上，且参建各方人员不得以专家身份参加论证。"}, {"t": "学生的作答方向基本正确：专家 5 人已符合论证的人数要求，「再仔细检查方案」也有必要，只需再补充说明专项方案应当经过总监理工程师审查这道程序，诊断即告完整。"}, {"t": "本题失分只是人数写法一处问题：把「专家应有 5 人」的表述改为「5 人以上」，或者把专家人数增加到 6 人，这份作答就已经完整，可以得到全部分数。"}, {"t": "本题应诊断为方案编制主体错误：深基坑支护工程的专项方案不应由基坑支护专业施工单位编制，应改由建设单位组织编制，并按更正后的主体重新履行编制程序。"}] }
   ];
   codeMap={
     E02:{label:"采分点遗漏",advice:"档次/主体/专家/内容/后果逐维写全，缺一维扣一维。"},
@@ -359,15 +351,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"J01",cardId:"J01",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -453,7 +443,7 @@ class Component extends DCLogic {
       lines.forEach((l,i)=>els.push(D({x:0,top:6+i*29,w:320,h:24,bg:i<2?"#fffdf8":"#faf3f1",bd:"1px dashed "+(i<2?"#d8ccaa":"#cf4436"),r:6,fg:i<2?"#23282b":"#a3271c",fs:11,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l}))); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -497,9 +487,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"J01-html-practice-html-q1-14f4ec3e062a","options":["J01-html-practice-html-q1-14f4ec3e062a:option-1","J01-html-practice-html-q1-14f4ec3e062a:option-2","J01-html-practice-html-q1-14f4ec3e062a:option-3","J01-html-practice-html-q1-14f4ec3e062a:option-4"]},{"variant_id":"J01-html-practice-html-q2-c07a303bd42b","options":["J01-html-practice-html-q2-c07a303bd42b:option-1","J01-html-practice-html-q2-c07a303bd42b:option-2","J01-html-practice-html-q2-c07a303bd42b:option-3","J01-html-practice-html-q2-c07a303bd42b:option-4"]},{"variant_id":"J01-html-practice-html-q3-a0b06c9f9fab","options":["J01-html-practice-html-q3-a0b06c9f9fab:option-1","J01-html-practice-html-q3-a0b06c9f9fab:option-2","J01-html-practice-html-q3-a0b06c9f9fab:option-3","J01-html-practice-html-q3-a0b06c9f9fab:option-4"]},{"variant_id":"J01-html-practice-html-q4-83b6a518c6dd","options":["J01-html-practice-html-q4-83b6a518c6dd:option-1","J01-html-practice-html-q4-83b6a518c6dd:option-2","J01-html-practice-html-q4-83b6a518c6dd:option-3","J01-html-practice-html-q4-83b6a518c6dd:option-4"]},{"variant_id":"J01-html-practice-html-q16-673ec10c7375","options":["J01-html-practice-html-q16-673ec10c7375:option-1","J01-html-practice-html-q16-673ec10c7375:option-2","J01-html-practice-html-q16-673ec10c7375:option-3","J01-html-practice-html-q16-673ec10c7375:option-4"]}];
+  __dtItems=[{"variant_id":"J01-html-practice-html-q1-14f4ec3e062a","options":["J01-html-practice-html-q1-14f4ec3e062a:option-1","J01-html-practice-html-q1-14f4ec3e062a:option-2","J01-html-practice-html-q1-14f4ec3e062a:option-3","J01-html-practice-html-q1-14f4ec3e062a:option-4"]},{"variant_id":"J01-html-practice-html-q2-c07a303bd42b","options":["J01-html-practice-html-q2-c07a303bd42b:option-1","J01-html-practice-html-q2-c07a303bd42b:option-2","J01-html-practice-html-q2-c07a303bd42b:option-3","J01-html-practice-html-q2-c07a303bd42b:option-4"]},{"variant_id":"J01-html-practice-html-q3-a0b06c9f9fab","options":["J01-html-practice-html-q3-a0b06c9f9fab:option-1","J01-html-practice-html-q3-a0b06c9f9fab:option-2","J01-html-practice-html-q3-a0b06c9f9fab:option-3","J01-html-practice-html-q3-a0b06c9f9fab:option-4"]},{"variant_id":"J01-html-practice-html-q4-83b6a518c6dd","options":["J01-html-practice-html-q4-83b6a518c6dd:option-1","J01-html-practice-html-q4-83b6a518c6dd:option-2","J01-html-practice-html-q4-83b6a518c6dd:option-3","J01-html-practice-html-q4-83b6a518c6dd:option-4"]},{"variant_id":"J01-html-practice-html-q16-673ec10c7375","options":["J01-html-practice-html-q16-673ec10c7375:option-1","J01-html-practice-html-q16-673ec10c7375:option-2","J01-html-practice-html-q16-673ec10c7375:option-3","J01-html-practice-html-q16-673ec10c7375:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -510,8 +518,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -520,11 +528,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"J01",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMTRmNGVjM2UwNjJhIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1jMDdhMzAzYmQ0MmIiLCJKMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwYjA2YzlmOWZhYiIsIkowMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtODNiNmE1MThjNmRkIiwiSjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNjczZWMxMGM3Mzc1Il0sInBhY2tfaWQiOiJKMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjZjN2QwZWM0MWRlMDllYmViNWMwNjIyZjQ4OTUwZmY4YTRhMTkxNmRjNjcwMDIxNTNkOWUxMThjYzBjMzdiOWMiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNTRlMzZhMmVhMTliOWFlNjA5ODg5OTJkMzkzN2E2ZWFjMGQ0OWNlMjI5NGNkZjg1MDlmMzgzZDhlODAzYTQzNyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }

@@ -227,51 +227,41 @@ class Component extends DCLogic {
   KNOWLEDGE="文明/绿色/环保施工措施(X03)。三子轴:①文明施工;②绿色施工四节一环保;③环境保护技术。采分口径:【文明施工】六化(围挡大门标牌标准化/材料码放整齐/安全设施规范/生活设施整洁/职工行为文明/工作生活秩序)+施工区与办公生活区隔离+在建工程严禁住人;围挡=可循环可拆卸标准化定型材料、高度不得低于1.8m(有机类/无机类是干扰项);五牌一图挂主入口内侧(工程概况/管理名单及监督电话/消防保卫/安全生产/文明施工/环境保护牌+施工总平面图)。【绿色施工】评价按基本规定→指标→要素→批次→阶段→单位工程;四节:节材(商混/预拌砂浆/高强钢筋高性能混凝土/非木质替代模板)、节水(冲洗用水设循环装置/抽水>50万m³回灌)、节能(节能设备/临时照明最低照度/太阳能地热可再生能源,≠建筑节能工程围护验收)、节地(临设最小面积/红线外荒地废地/道路永临结合/绿化代替硬化=节地非节材)。【环境保护】扬尘=源头覆盖固化绿化物料篷盖→路径自动喷淋+雾炮→出口冲洗池沉淀池车辆冲洗;噪声=低噪声设备→隔声屏罩→封闭木工房→优化工艺;夜间光污染=办夜间施工许可证公告居民/灯加灯罩透光集中/电焊遮挡防弧光;污水泥浆=泥浆池封闭容器收集未处理不得随意排放/雨水回收冲厕洗车降尘/污水排放领临时排水许可证由市政管理部门发证;建筑垃圾=堆放不宜高于3m超3m须稳定性验算/分类计量建台账未分类不得运出/分类收集→级配回填就地粉碎→再生骨料(装配式≤200t每万㎡)。真题:{2015第29题}绿色施工辨识ABDE(降低机械满载率方向相反陷阱)、{2016第18题}文明施工错误说法D、{2017第16题}绿化代替硬化=节地B、{2020第16题}污水许可市政D、{2024第27题}围挡ABC、{2025案例三}建筑垃圾减量化。错因:E02采分点遗漏、E04口号化表达、E07概念混淆、E10规范适用错误、M04选项陷阱、M08规范数字混淆。";
   moreText="按薄弱点回三集精讲：文明施工漏项→上集「六化·分区·五牌一图」；四节归类混→中集「材水能地」；扬尘噪声污水固废漏动作→下集「源头减·路径拦·末端资源化」。综合写措施再练：文明+绿色组织+扬尘噪声光污水+四节+建筑垃圾五组齐、每条落到可执行动作。";
   Q=[
-{ tag:"文明施工·辨析", typeHint:"单选 · 选出文明施工「错误」说法（真题 2016 第18题型）", figLabel:"施工现场分区示意", figCaption:"施工区 / 办公生活区 · 说法对不对？", fig:"zone",
+{ tag:"文明施工·辨析",
+      typeHint:"单选 · 选出文明施工「错误」说法（真题 2016 第18题型）",
+      figLabel:"施工现场分区示意",
+      figCaption:"施工区 / 办公生活区 · 说法对不对？",
+      fig:"zone",
       stem:"关于施工现场文明施工，下列说法中错误的是哪一项？",
-      model:"办公区与生活区宜分区域设置（不是「必须分开设置」）；施工区与办公生活区划分清晰并隔离防护，在建工程内严禁住人。",
-      opts:[
-        { t:"「办公区与生活区必须分开设置」——现场必须把办公区和生活区拆成两处独立区域，否则违规。", ok:true, fix:"规范口径是「宜分区域设置」，不是「必须分开」；这句把柔性要求写成刚性，正是要挑出的错误说法。", code:"" },
-        { t:"施工现场的施工区与办公、生活区应划分清晰，并采取相应的隔离防护措施。", ok:false, code:"E07", tempt:"这句是对的，看着「像有问题」就想选，其实是标准采分句。", lose:"这是文明施工正确要求，选它就等于把对的当错的，判型方向反了。", fix:"这是正确说法，题目要选错误的那句「必须分开设置」。" },
-        { t:"在建工程内严禁住人，不得安排任何施工作业人员或管理人员在其中住宿。", ok:false, code:"E07", tempt:"太短，怀疑「是不是漏条件」。", lose:"这是明确的强制正确要求，选它即误判。", fix:"这是正确采分句，错误说法是「办公区生活区必须分开设置」。" },
-        { t:"施工现场应实行封闭管理、设置封闭围挡，做到场容场貌整洁有序，各类材料、构件码放整齐稳固。", ok:false, code:"E07", tempt:"内容多，容易觉得「哪里不严谨」。", lose:"这是文明施工六化的正确表述，选它即误判。", fix:"正确说法，错误的是「必须分开设置」那句。" }
-      ] },
-{ tag:"文明施工·六化", typeHint:"单选 · 选出最完整、能得分的文明施工措施", figLabel:"文明施工现场对象", figCaption:"围挡 / 分区 / 挂牌 · 哪个写全了", fig:"worksite",
+      opts:[{"t": "「办公区与生活区必须分开设置」——现场必须把办公区和生活区拆成两处独立区域，否则违规。"}, {"t": "施工现场的施工区与办公、生活区应划分清晰，并采取相应的隔离防护措施。"}, {"t": "在建工程内严禁住人，不得安排任何施工作业人员或管理人员在其中住宿。"}, {"t": "施工现场应实行封闭管理、设置封闭围挡，做到场容场貌整洁有序，各类材料、构件码放整齐稳固。"}] },
+{ tag:"文明施工·六化",
+      typeHint:"单选 · 选出最完整、能得分的文明施工措施",
+      figLabel:"文明施工现场对象",
+      figCaption:"围挡 / 分区 / 挂牌 · 哪个写全了",
+      fig:"worksite",
       stem:"背景要求「写出该工程的文明施工措施」。下列作答中，最完整、能拿分的是哪一项？",
-      model:"封闭管理设标准化围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。",
-      opts:[
-        { t:"加强现场文明施工管理，落实文明施工责任制，做到现场文明有序、干净整洁、面貌良好，营造良好施工环境，全面创建文明工地。", ok:false, code:"E04", tempt:"话说得很「全面」，读着顺，像总结陈词。", lose:"全是口号，没有一条落到围挡/分区/挂牌等可判分动作，阅卷不给分。", fix:"落到动作：标准化围挡、施工区÷生活区隔离、在建工程严禁住人、挂五牌一图。" },
-        { t:"设置封闭围挡，并做到各类材料码放整齐、现场干净整洁，以上两项即构成完整的文明施工措施方案。", ok:false, code:"E02", tempt:"写了围挡和码放两条，感觉「有具体措施了」。", lose:"漏了分区隔离、在建工程严禁住人、五牌一图等采分点，只答两条不全。", fix:"补分区隔离、在建工程严禁住人、五牌一图挂内侧。" },
-        { t:"配齐灭火器材与消防水源、严格组织动火审批、做好职业病防护和食堂饮食卫生，以保障现场文明施工。", ok:false, code:"E07", tempt:"消防、卫生听着都属于「现场管理」，容易混进来。", lose:"消防防火属安全生产、职业卫生属安全卫生，都不是文明施工本体，串了考点。", fix:"文明施工只答围挡/分区/严禁住人/六化/五牌一图。" },
-        { t:"设标准化封闭围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。", ok:true, fix:"围挡+分区隔离+严禁住人+六化+五牌一图都落到可执行动作，采分点齐。", code:"" }
-      ] },
-{ tag:"围挡·规范数字", typeHint:"单选 · 选出围挡的材料与高度采分句（真题 2024 第27题型）", figLabel:"围挡标准 · 高度标尺", figCaption:"材料类型 + 高度 · 哪句可得分", fig:"fence",
+      opts:[{"t": "加强现场文明施工管理，落实文明施工责任制，做到现场文明有序、干净整洁、面貌良好，营造良好施工环境，全面创建文明工地。"}, {"t": "设置封闭围挡，并做到各类材料码放整齐、现场干净整洁，以上两项即构成完整的文明施工措施方案。"}, {"t": "配齐灭火器材与消防水源、严格组织动火审批、做好职业病防护和食堂饮食卫生，以保障现场文明施工。"}, {"t": "设标准化封闭围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。"}] },
+{ tag:"围挡·规范数字",
+      typeHint:"单选 · 选出围挡的材料与高度采分句（真题 2024 第27题型）",
+      figLabel:"围挡标准 · 高度标尺",
+      figCaption:"材料类型 + 高度 · 哪句可得分",
+      fig:"fence",
       stem:"关于施工现场（生活区/通用）围挡的设置，选出材料与高度都写对、能得分的一项。",
-      model:"围挡采用可循环、可拆卸、标准化定型材料，高度不得低于 1.8m。",
-      opts:[
-        { t:"围挡采用可循环、可拆卸、标准化定型材料，高度不得低于 1.8m。", ok:true, fix:"材料三个词（可循环/可拆卸/标准化定型）+ 高度 1.8m，本源料语境的采分句。", code:"" },
-        { t:"围挡按材料成分分为有机类围挡和无机类围挡两种，高度不得低于 1.8m。", ok:false, code:"M04", tempt:"「有机类/无机类」听着像专业分类，真题里也出现过这个词。", lose:"有机类/无机类是真题干扰项，围挡按可循环/可拆卸/标准化定型分，不按成分分。", fix:"材料写「可循环、可拆卸、标准化定型」，不是有机/无机类。" },
-        { t:"围挡采用可拆卸的标准化定型材料，高度不得低于 2.5m。", ok:false, code:"M08", tempt:"2.5m 是常听到的围挡数字，顺手就填。", lose:"2.5m 是市区主要路段场容围挡（另属 X01）；本源料语境围挡高度是不低于 1.8m，数字串档。", fix:"本题高度写「不得低于 1.8m」，2.5m 是市区主路场容的另一考点。" },
-        { t:"围挡应做到牢固美观、能挡住施工现场不外露，高度可结合现场实际情况综合确定。", ok:false, code:"E10", tempt:"觉得「牢固美观、能挡住」就达到目的了。", lose:"没有材料类型、没有明确高度数值，缺规范阈值不能判分。", fix:"补齐：可循环/可拆卸/标准化定型材料 + 高度不得低于 1.8m。" }
-      ] },
-{ tag:"文明施工·五牌一图", typeHint:"单选 · 选出五牌一图列举完整的一项", figLabel:"主入口内侧 · 挂牌墙", figCaption:"六块牌 + 一张图 · 哪项没漏牌", fig:"plates",
+      opts:[{"t": "围挡采用可循环、可拆卸、标准化定型材料，高度不得低于 1.8m。"}, {"t": "围挡按材料成分分为有机类围挡和无机类围挡两种，高度不得低于 1.8m。"}, {"t": "围挡采用可拆卸的标准化定型材料，高度不得低于 2.5m。"}, {"t": "围挡应做到牢固美观、能挡住施工现场不外露，高度可结合现场实际情况综合确定。"}] },
+{ tag:"文明施工·五牌一图",
+      typeHint:"单选 · 选出五牌一图列举完整的一项",
+      figLabel:"主入口内侧 · 挂牌墙",
+      figCaption:"六块牌 + 一张图 · 哪项没漏牌",
+      fig:"plates",
       stem:"施工现场主入口内侧应挂设「五牌一图」。选出列举完整、能得分的一项。",
-      model:"工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工牌、环境保护牌 + 施工总平面图，挂主入口内侧。",
-      opts:[
-        { t:"工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌，再加施工总平面图，即为内容齐全的五牌一图。", ok:false, code:"E02", tempt:"名字叫「五牌」，凑够五个就以为齐了。", lose:"漏了文明施工牌、环境保护牌——恰恰是最爱漏的两块采分牌。", fix:"补文明施工牌、环境保护牌，六块牌 + 一图。" },
-        { t:"五牌一图应挂设在工地大门外侧的显眼位置，以便于过往行人和监管部门随时查看监督。", ok:false, code:"E10", tempt:"觉得「越显眼越好」，挂外面路人都能看到。", lose:"规范要求挂主入口内侧，挂外侧位置错。", fix:"五牌一图挂主入口内侧。" },
-        { t:"工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工牌、环境保护牌，加施工总平面图。", ok:true, fix:"六块牌 + 一张图齐全，最爱漏的文明施工牌、环境保护牌都写上了。", code:"" },
-        { t:"挂设工程概况牌和施工总平面图两项，其余各牌根据建设单位要求另行增设，核心为概况与平面图。", ok:false, code:"E02", tempt:"觉得概况牌和总平面图「信息最全」，够用。", lose:"漏了管理名单、消防保卫、安全生产、文明施工、环境保护五块牌。", fix:"六块牌一块不能少，加施工总平面图。" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 诊断作答缺哪几组，给出正确补写（采分句输出训练）", figLabel:"模拟学生作答（待诊断）", figCaption:"写了文明+扬尘两组 · 缺什么", fig:"sheet",
+      opts:[{"t": "工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌，再加施工总平面图，即为内容齐全的五牌一图。"}, {"t": "五牌一图应挂设在工地大门外侧的显眼位置，以便于过往行人和监管部门随时查看监督。"}, {"t": "工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工牌、环境保护牌，加施工总平面图。"}, {"t": "挂设工程概况牌和施工总平面图两项，其余各牌根据建设单位要求另行增设，核心为概况与平面图。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 诊断作答缺哪几组，给出正确补写（采分句输出训练）",
+      figLabel:"模拟学生作答（待诊断）",
+      figCaption:"写了文明+扬尘两组 · 缺什么",
+      fig:"sheet",
       stem:"某学生就「综合环保措施」作答：①设标准化围挡、施工区与生活区隔离；②现场洒水降尘、车辆冲洗池。请诊断其失分并选出最准确的补写。",
-      model:"已写文明施工、扬尘两组但扬尘漏源头覆盖；缺绿色施工组织、噪声、光污染、污水泥浆、四节、建筑垃圾多组。补写：扬尘加源头裸土覆盖篷盖；补噪声（低噪设备/隔声/封闭/工艺）、污水泥浆（封闭收集未处理不排）、四节（材水能地）、建筑垃圾（不宜高于3m/台账/再生骨料）。",
-      opts:[
-        { t:"该生两条措施均已写出具体动作：①标准化围挡、施工区与生活区隔离；②现场洒水降尘、设车辆冲洗池，方向正确、条条落到可执行动作，按综合环保措施的采分口径可以直接给满分。", ok:false, code:"E02", tempt:"看到有围挡、冲洗池等具体动作，就以为采分点够了。", lose:"综合写措施要五组齐，只写文明+扬尘两组，漏噪声/污水/四节/建筑垃圾一大片。", fix:"补噪声、污水泥浆、四节、建筑垃圾等各组措施。" },
-        { t:"文明与扬尘方向对但扬尘漏源头覆盖；且缺噪声、污水泥浆、四节、建筑垃圾等多组——扬尘补源头覆盖，另补噪声/污水/四节/建筑垃圾各组的可执行动作。", ok:true, fix:"既揪出扬尘缺环节，又补齐缺失的几组措施，条条落到动作，这才是会写答案。", code:"" },
-        { t:"该作答的问题只在文字表述不够书面规范，将「洒水降尘」改写为「采取抑尘措施」即可达到要求，内容层面无需再作补充。", ok:false, code:"E04", tempt:"以为问题在措辞，改得「书面」一点就行。", lose:"改口号反而更空；真问题是缺组和扬尘缺源头环节，不是措辞。", fix:"扬尘补源头覆盖，并补噪声/污水/四节/建筑垃圾各组动作。" },
-        { t:"在原作答基础上补写一句「加强绿色施工管理、做好节能环保」，即可将绿色施工与四节内容全部概括进去，无需再逐条展开补写。", ok:false, code:"E04", tempt:"想用一句总括话「省事」地补上四节和绿色。", lose:"一句口号补不了采分点，四节要逐节落到材/水/能/地的具体做法。", fix:"四节逐节写：商混、循环装置、节能设备、绿化代替硬化等可执行动作。" }
-      ] }
+      opts:[{"t": "该生两条措施均已写出具体动作：①标准化围挡、施工区与生活区隔离；②现场洒水降尘、设车辆冲洗池，方向正确、条条落到可执行动作，按综合环保措施的采分口径可以直接给满分。"}, {"t": "文明与扬尘方向对但扬尘漏源头覆盖；且缺噪声、污水泥浆、四节、建筑垃圾等多组——扬尘补源头覆盖，另补噪声/污水/四节/建筑垃圾各组的可执行动作。"}, {"t": "该作答的问题只在文字表述不够书面规范，将「洒水降尘」改写为「采取抑尘措施」即可达到要求，内容层面无需再作补充。"}, {"t": "在原作答基础上补写一句「加强绿色施工管理、做好节能环保」，即可将绿色施工与四节内容全部概括进去，无需再逐条展开补写。"}] }
   ];
   codeMap={
     E02:{label:"采分点遗漏",advice:"综合写措施五组齐（文明/组织/污染/四节/固废）；每类污染的分步措施逐条写，缺一扣一。"},
@@ -347,15 +337,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"X03",cardId:"X03",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -471,7 +459,7 @@ class Component extends DCLogic {
       els.push(D({x:2,top:70,w:326,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"只写两组 · 缺几组？扬尘缺哪一环？"})); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -514,9 +502,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"X03-html-practice-html-q1-392b2c69dc20","options":["X03-html-practice-html-q1-392b2c69dc20:option-1","X03-html-practice-html-q1-392b2c69dc20:option-2","X03-html-practice-html-q1-392b2c69dc20:option-3","X03-html-practice-html-q1-392b2c69dc20:option-4"]},{"variant_id":"X03-html-practice-html-q2-889e43029c6d","options":["X03-html-practice-html-q2-889e43029c6d:option-1","X03-html-practice-html-q2-889e43029c6d:option-2","X03-html-practice-html-q2-889e43029c6d:option-3","X03-html-practice-html-q2-889e43029c6d:option-4"]},{"variant_id":"X03-html-practice-html-q3-5435fcbead15","options":["X03-html-practice-html-q3-5435fcbead15:option-1","X03-html-practice-html-q3-5435fcbead15:option-2","X03-html-practice-html-q3-5435fcbead15:option-3","X03-html-practice-html-q3-5435fcbead15:option-4"]},{"variant_id":"X03-html-practice-html-q4-a50ad1e7b1b6","options":["X03-html-practice-html-q4-a50ad1e7b1b6:option-1","X03-html-practice-html-q4-a50ad1e7b1b6:option-2","X03-html-practice-html-q4-a50ad1e7b1b6:option-3","X03-html-practice-html-q4-a50ad1e7b1b6:option-4"]},{"variant_id":"X03-html-practice-html-q16-3c13f34dbc94","options":["X03-html-practice-html-q16-3c13f34dbc94:option-1","X03-html-practice-html-q16-3c13f34dbc94:option-2","X03-html-practice-html-q16-3c13f34dbc94:option-3","X03-html-practice-html-q16-3c13f34dbc94:option-4"]}];
+  __dtItems=[{"variant_id":"X03-html-practice-html-q1-392b2c69dc20","options":["X03-html-practice-html-q1-392b2c69dc20:option-1","X03-html-practice-html-q1-392b2c69dc20:option-2","X03-html-practice-html-q1-392b2c69dc20:option-3","X03-html-practice-html-q1-392b2c69dc20:option-4"]},{"variant_id":"X03-html-practice-html-q2-889e43029c6d","options":["X03-html-practice-html-q2-889e43029c6d:option-1","X03-html-practice-html-q2-889e43029c6d:option-2","X03-html-practice-html-q2-889e43029c6d:option-3","X03-html-practice-html-q2-889e43029c6d:option-4"]},{"variant_id":"X03-html-practice-html-q3-5435fcbead15","options":["X03-html-practice-html-q3-5435fcbead15:option-1","X03-html-practice-html-q3-5435fcbead15:option-2","X03-html-practice-html-q3-5435fcbead15:option-3","X03-html-practice-html-q3-5435fcbead15:option-4"]},{"variant_id":"X03-html-practice-html-q4-a50ad1e7b1b6","options":["X03-html-practice-html-q4-a50ad1e7b1b6:option-1","X03-html-practice-html-q4-a50ad1e7b1b6:option-2","X03-html-practice-html-q4-a50ad1e7b1b6:option-3","X03-html-practice-html-q4-a50ad1e7b1b6:option-4"]},{"variant_id":"X03-html-practice-html-q16-3c13f34dbc94","options":["X03-html-practice-html-q16-3c13f34dbc94:option-1","X03-html-practice-html-q16-3c13f34dbc94:option-2","X03-html-practice-html-q16-3c13f34dbc94:option-3","X03-html-practice-html-q16-3c13f34dbc94:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -527,8 +533,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -537,11 +543,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"X03",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzkyYjJjNjlkYzIwIiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ODllNDMwMjljNmQiLCJYMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTU0MzVmY2JlYWQxNSIsIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtYTUwYWQxZTdiMWI2IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtM2MxM2YzNGRiYzk0Il0sInBhY2tfaWQiOiJYMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjcwOGM5ZDIxODg3YWI4NTg3ZmYyM2M1NmI3YjNjOTlhYWVjYzE2MjUwNGUxN2MxNjIzZTljNTAzODkyZjZiODYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjVkZDBmN2ZjOTBlYjYxZGJlZmZmYjgzY2NhNzQ1Y2QzOWYzMmFkYWY5N2E5NzZjMDA3ZDNjODJkN2NjZmVmZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }

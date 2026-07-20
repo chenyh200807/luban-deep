@@ -227,14 +227,7 @@
 <div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
-/* ░░░ 母版骨架逻辑：随堂练 ░░░
-   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
-   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
-   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
-   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
-     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
-   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
-     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+/* 服务端判分收权：作者注释含答案键示例，发布时整块移除 */
 class Component extends DCLogic {
   // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
   //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
@@ -245,53 +238,43 @@ class Component extends DCLogic {
   moreText="再练两组：① 只给「已完成量×单价、计划量、实际单价」不直接给三值，先自己求 BCWP/BCWS/ACWP 再套四公式，练「先提三值」这一步；② 换一组三值让 CV<0、SPI<1（成本超支、进度滞后），练方向判读不判反——正数、大于1才是好。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
-{ tag:"三值构成·概念维", typeHint:"单选 · 选出定义最准确、能得分的作答", figLabel:"三个基本参数（量×价 来源各不同）", figCaption:"BCWP / BCWS / ACWP 谁用预算价、谁用实际价、谁用计划量", fig:"mix",
+{ tag:"三值构成·概念维",
+      typeHint:"单选 · 选出定义最准确、能得分的作答",
+      figLabel:"三个基本参数（量×价 来源各不同）",
+      figCaption:"BCWP / BCWS / ACWP 谁用预算价、谁用实际价、谁用计划量",
+      fig:"mix",
       stem:"挣值法三个基本参数中，BCWP（挣值）的构成式是哪一个？选出定义准确的作答。",
-      model:"BCWP（已完成工作预算成本／挣值）= 已完成工程量 × 预算单价。",
-      opts:[
-        { t:"BCWP = 已完成工程量 × 预算单价（已完成的量，按预算价计），即挣得的价值标尺。", ok:true, fix:"量取「已完成」、价取「预算」，BCWP 是把已干的活按预算价折算的挣值。", code:"" },
-        { t:"BCWP = 已完成工程量 × 实际单价（已完成的量，按实际花的价计），反映实际挣得。", ok:false, code:"E07", tempt:"「已完成」对了，顺手把价也配成「实际」。", lose:"价用错：已完成量×实际单价是 ACWP，不是 BCWP；BCWP 必须用预算单价隔离价格波动。", fix:"BCWP=已完成量×预算单价；已完成量×实际单价那是 ACWP。" },
-        { t:"BCWP = 计划工程量 × 预算单价（计划的量，按预算价计），代表计划应挣的价值。", ok:false, code:"E07", tempt:"「预算价」对了，量却配成「计划」。", lose:"量用错：计划量×预算单价是 BCWS，不是 BCWP；BCWP 的量必须是「已完成」。", fix:"BCWP=已完成量×预算单价；计划量×预算单价那是 BCWS。" },
-        { t:"BCWP = 计划工程量 × 实际单价（计划的量，按实际价计），综合计划与实际。", ok:false, code:"E07", tempt:"把「计划」「实际」拼在一起，看着「兼顾两头」。", lose:"量和价全错，且这个组合不对应任何一个基本参数，纯干扰项。", fix:"BCWP=已完成量×预算单价，量取已完成、价取预算，不掺计划量或实际价。" }
-      ] },
-{ tag:"三值构成·概念维", typeHint:"单选 · 选出定义最准确、能得分的作答", figLabel:"三个基本参数（量×价 来源各不同）", figCaption:"ACWP 用哪种量、哪种价？", fig:"mix",
+      opts:[{"t": "BCWP = 已完成工程量 × 预算单价（已完成的量，按预算价计），即挣得的价值标尺。"}, {"t": "BCWP = 已完成工程量 × 实际单价（已完成的量，按实际花的价计），反映实际挣得。"}, {"t": "BCWP = 计划工程量 × 预算单价（计划的量，按预算价计），代表计划应挣的价值。"}, {"t": "BCWP = 计划工程量 × 实际单价（计划的量，按实际价计），综合计划与实际。"}] },
+{ tag:"三值构成·概念维",
+      typeHint:"单选 · 选出定义最准确、能得分的作答",
+      figLabel:"三个基本参数（量×价 来源各不同）",
+      figCaption:"ACWP 用哪种量、哪种价？",
+      fig:"mix",
       stem:"ACWP（已完成工作实际成本）的构成式是哪一个？选出定义准确的作答。",
-      model:"ACWP = 已完成工程量 × 实际单价（已经花出去的钱）。",
-      opts:[
-        { t:"ACWP = 已完成工程量 × 预算单价，按预算价核算已完成部分的成本。", ok:false, code:"E07", tempt:"「已完成」对了，价却配成「预算」。", lose:"价用错：已完成量×预算单价是 BCWP（挣值），不是 ACWP；ACWP 必须用实际单价。", fix:"ACWP=已完成量×实际单价；已完成量×预算单价那是 BCWP。" },
-        { t:"ACWP = 计划工程量 × 实际单价，按实际价核算原计划工程量的成本。", ok:false, code:"E07", tempt:"「实际价」对了，量却配成「计划」。", lose:"量用错：ACWP 的量是「已完成」，不是「计划」；计划量×任何价都不是 ACWP。", fix:"ACWP=已完成量×实际单价，量取已完成、不取计划量。" },
-        { t:"ACWP = 预算总成本，即项目开工前编制的全部预算金额。", ok:false, code:"E07", tempt:"「实际成本」听着像个总额，误当预算总账。", lose:"ACWP 是到检查点「已完成部分」的实际支出，不是全项目预算总额。", fix:"ACWP=已完成量×实际单价，只算已干部分的实际花费。" },
-        { t:"ACWP = 已完成工程量 × 实际单价，就是已完成部分实际花出去的钱。", ok:true, fix:"量取「已完成」、价取「实际」，ACWP 是真金白银的实际支出。", code:"" }
-      ] },
-{ tag:"三值代入·背景提取维", typeHint:"单选 · 选出三值代入位置正确的作答", figLabel:"题给三值（第20周末）", figCaption:"BCWP=6370 · ACWP=6240 · BCWS=5340（万元）", fig:"threevals",
+      opts:[{"t": "ACWP = 已完成工程量 × 预算单价，按预算价核算已完成部分的成本。"}, {"t": "ACWP = 计划工程量 × 实际单价，按实际价核算原计划工程量的成本。"}, {"t": "ACWP = 预算总成本，即项目开工前编制的全部预算金额。"}, {"t": "ACWP = 已完成工程量 × 实际单价，就是已完成部分实际花出去的钱。"}] },
+{ tag:"三值代入·背景提取维",
+      typeHint:"单选 · 选出三值代入位置正确的作答",
+      figLabel:"题给三值（第20周末）",
+      figCaption:"BCWP=6370 · ACWP=6240 · BCWS=5340（万元）",
+      fig:"threevals",
       stem:"第20周末检查：挣值 BCWP=6370 万元、已完成实际成本 ACWP=6240 万元、计划值 BCWS=5340 万元。下列把三值放入指标公式，哪一组位置正确？",
-      model:"CV=BCWP−ACWP=6370−6240；SV=BCWP−BCWS=6370−5340，三值各归其位不互换。",
-      opts:[
-        { t:"CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340，三值按定义各归其位。", ok:true, fix:"BCWP 恒作被减数/分子，ACWP 配成本、BCWS 配进度，位置不互换。", code:"" },
-        { t:"CV=ACWP−BCWP=6240−6370、SV=BCWS−BCWP=5340−6370，用实际/计划减挣值。", ok:false, code:"E09", tempt:"记成「实际减挣值」，被减数减数顺序反了。", lose:"被减数减数颠倒会让 CV=−130、SV=−1030，方向整个判反成超支延误。", fix:"CV=BCWP−ACWP、SV=BCWP−BCWS，挣值 BCWP 永远作被减数。" },
-        { t:"CV=BCWP−BCWS=6370−5340、SV=BCWP−ACWP=6370−6240，成本用计划、进度用实际。", ok:false, code:"E07", tempt:"记得都用 BCWP 减，却把 ACWP 和 BCWS 的分工调换了。", lose:"成本偏差要减实际 ACWP、进度偏差要减计划 BCWS；两者互换后 CV/SV 全错。", fix:"成本 CV 减 ACWP、进度 SV 减 BCWS，别把两个减数换位置。" },
-        { t:"把 BCWS 与 ACWP 互换代入：CV=BCWP−BCWS、CPI=BCWP/BCWS，成本一律配计划值。", ok:false, code:"E08", tempt:"题干数字多，没读清哪个是实际、哪个是计划就代入。", lose:"BCWS(计划)与 ACWP(实际)互换，成本侧四指标系统性全错。", fix:"先认清 ACWP=实际、BCWS=计划；成本侧一律用 ACWP。" }
-      ] },
-{ tag:"成本偏差CV·计算判读维", typeHint:"单选 · 选出可得分的算式+方向", figLabel:"成本侧：挣值 vs 实际", figCaption:"CV = BCWP − ACWP = ? → 成本状态？", fig:"metric",
+      opts:[{"t": "CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340，三值按定义各归其位。"}, {"t": "CV=ACWP−BCWP=6240−6370、SV=BCWS−BCWP=5340−6370，用实际/计划减挣值。"}, {"t": "CV=BCWP−BCWS=6370−5340、SV=BCWP−ACWP=6370−6240，成本用计划、进度用实际。"}, {"t": "把 BCWS 与 ACWP 互换代入：CV=BCWP−BCWS、CPI=BCWP/BCWS，成本一律配计划值。"}] },
+{ tag:"成本偏差CV·计算判读维",
+      typeHint:"单选 · 选出可得分的算式+方向",
+      figLabel:"成本侧：挣值 vs 实际",
+      figCaption:"CV = BCWP − ACWP = ? → 成本状态？",
+      fig:"metric",
       figData:{op:"−",a:["挣值 6370","#2c8a5b"],b:["实花 6240","#cf4436"],res:"CV = +130 万",div:"0",good:true,loLab:"＜0 超支",hiLab:"＞0 节支"},
       stem:"已知 BCWP=6370 万元、ACWP=6240 万元。求成本偏差 CV 并判读成本状态，选出能得分的作答。",
-      model:"CV=BCWP−ACWP=6370−6240=130 万元；CV>0 → 成本节支。",
-      opts:[
-        { t:"CV=ACWP−BCWP=6240−6370=−130 万元，CV<0，成本超支。", ok:false, code:"E09", tempt:"「实际花的减挣的」听着顺，算出负数就判超支。", lose:"被减数减数反了，把节支的项目判成超支——方向彻底错。", fix:"CV=BCWP−ACWP=+130 万元，挣的减花的、正数是节支。" },
-        { t:"CV=BCWP−ACWP=6370−6240=130 万元，CV>0，说明成本超支了 130 万。", ok:false, code:"E07", tempt:"算式对、结果对，却把「正数」的方向记反了。", lose:"数值对但方向判反：CV>0 是节支不是超支，方向分丢光。", fix:"CV>0 → 成本节支；正数是省钱，不是超支。" },
-        { t:"CV=BCWP−ACWP=6370−6240=130 万元，CV>0，成本节支。", ok:true, fix:"公式+代入+结果 130 万元+方向「节支」四件齐，偏差带万元。", code:"" },
-        { t:"CV=BCWP−ACWP=6370−6240=130，成本控制得不错，比预期好。", ok:false, code:"E04", tempt:"结果对，用「控制得不错」口语带过。", lose:"没写规范判读词「节支」、结果漏「万元」单位，口号化不给分。", fix:"补规范词与单位：CV=130 万元，CV>0 → 成本节支。" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"结论方向对，但过程有问题…", fig:"sheet",
+      opts:[{"t": "CV=ACWP−BCWP=6240−6370=−130 万元，CV<0，成本超支。"}, {"t": "CV=BCWP−ACWP=6370−6240=130 万元，CV>0，说明成本超支了 130 万。"}, {"t": "CV=BCWP−ACWP=6370−6240=130 万元，CV>0，成本节支。"}, {"t": "CV=BCWP−ACWP=6370−6240=130，成本控制得不错，比预期好。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 数值蒙对，诊断失分并给正确补写",
+      figLabel:"模拟学生作答（待诊断）",
+      figCaption:"结论方向对，但过程有问题…",
+      fig:"sheet",
       figLines:["① CV = ACWP − BCWP = 6240 − 6370 = −130","② 成本超支 130 万元","③ 只算了成本，没算进度 SV/SPI"],
       stem:"某学生作答如图：①CV 写成 ACWP−BCWP=−130；②判成本超支；③未算进度。选出最准确的诊断与补写。",
-      model:"CV 被减数减数颠倒（应 BCWP−ACWP=+130 万元，成本节支）、方向随之判反、且漏算进度 SV=1030 万元/SPI≈1.19（进度提前）；三处都要补。",
-      opts:[
-        { t:"计算与方向均无问题，学生的 CV 算式和成本超支判断本身都成立、不用改，只是漏了进度部分，把 SV、SPI 补齐就是满分作答。", ok:false, code:"E09", tempt:"只盯着「漏进度」，没发现 CV 公式本身写反。", lose:"CV=ACWP−BCWP 已经颠倒、成本超支判反；只补进度仍是错的。", fix:"先纠 CV=BCWP−ACWP=+130 万元（节支），再补进度侧。" },
-        { t:"CV 被减数减数颠倒致方向判反（应=BCWP−ACWP=+130 万元、成本节支），且漏算进度 SV=1030 万元、SPI≈1.19（进度提前），三处都要补。", ok:true, fix:"揪出「公式颠倒→方向反」和「漏进度侧」两类失分，补写即成满分采分句。", code:"" },
-        { t:"CV 算出 −130、判定成本超支，这一步的结论并没有错，无须改动；诊断时只需提醒学生补写一句「进度提前」，整份作答即可视为完整。", ok:false, code:"E07", tempt:"把颠倒得到的 −130/超支当成正确结论。", lose:"−130/超支正是公式颠倒造成的错误方向，不是正确结论。", fix:"CV 应=+130 万元、成本节支；方向要改回来。" },
-        { t:"该学生的思路完全正确：CV 用实际减挣值更直观，据此判定成本超支也顺理成章，这份三步作答无须再作修改，可以直接给予满分。", ok:false, code:"E07", tempt:"被「实际减挣值更直观」的错觉带偏。", lose:"CV 定义就是 BCWP−ACWP，颠倒即错，且方向判反、漏进度，远非满分。", fix:"CV=BCWP−ACWP=+130 万元、成本节支，并补齐进度侧。" }
-      ] }
+      opts:[{"t": "计算与方向均无问题，学生的 CV 算式和成本超支判断本身都成立、不用改，只是漏了进度部分，把 SV、SPI 补齐就是满分作答。"}, {"t": "CV 被减数减数颠倒致方向判反（应=BCWP−ACWP=+130 万元、成本节支），且漏算进度 SV=1030 万元、SPI≈1.19（进度提前），三处都要补。"}, {"t": "CV 算出 −130、判定成本超支，这一步的结论并没有错，无须改动；诊断时只需提醒学生补写一句「进度提前」，整份作答即可视为完整。"}, {"t": "该学生的思路完全正确：CV 用实际减挣值更直观，据此判定成本超支也顺理成章，这份三步作答无须再作修改，可以直接给予满分。"}] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码 E01–E12，勿自造）──
   codeMap={
@@ -373,15 +356,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"E05",cardId:"E05",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -453,7 +434,7 @@ class Component extends DCLogic {
       lines.forEach((l,i)=>{ els.push(D({x:2,top:6+i*29,w:328,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11.5,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -496,9 +477,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"E05-html-practice-html-q1-368ca609e03b","options":["E05-html-practice-html-q1-368ca609e03b:option-1","E05-html-practice-html-q1-368ca609e03b:option-2","E05-html-practice-html-q1-368ca609e03b:option-3","E05-html-practice-html-q1-368ca609e03b:option-4"]},{"variant_id":"E05-html-practice-html-q2-b7eff7104a83","options":["E05-html-practice-html-q2-b7eff7104a83:option-1","E05-html-practice-html-q2-b7eff7104a83:option-2","E05-html-practice-html-q2-b7eff7104a83:option-3","E05-html-practice-html-q2-b7eff7104a83:option-4"]},{"variant_id":"E05-html-practice-html-q3-a27747a1aaaf","options":["E05-html-practice-html-q3-a27747a1aaaf:option-1","E05-html-practice-html-q3-a27747a1aaaf:option-2","E05-html-practice-html-q3-a27747a1aaaf:option-3","E05-html-practice-html-q3-a27747a1aaaf:option-4"]},{"variant_id":"E05-html-practice-html-q4-65ed25e57b8f","options":["E05-html-practice-html-q4-65ed25e57b8f:option-1","E05-html-practice-html-q4-65ed25e57b8f:option-2","E05-html-practice-html-q4-65ed25e57b8f:option-3","E05-html-practice-html-q4-65ed25e57b8f:option-4"]},{"variant_id":"E05-html-practice-html-q16-c4d93d1c98c8","options":["E05-html-practice-html-q16-c4d93d1c98c8:option-1","E05-html-practice-html-q16-c4d93d1c98c8:option-2","E05-html-practice-html-q16-c4d93d1c98c8:option-3","E05-html-practice-html-q16-c4d93d1c98c8:option-4"]}];
+  __dtItems=[{"variant_id":"E05-html-practice-html-q1-368ca609e03b","options":["E05-html-practice-html-q1-368ca609e03b:option-1","E05-html-practice-html-q1-368ca609e03b:option-2","E05-html-practice-html-q1-368ca609e03b:option-3","E05-html-practice-html-q1-368ca609e03b:option-4"]},{"variant_id":"E05-html-practice-html-q2-b7eff7104a83","options":["E05-html-practice-html-q2-b7eff7104a83:option-1","E05-html-practice-html-q2-b7eff7104a83:option-2","E05-html-practice-html-q2-b7eff7104a83:option-3","E05-html-practice-html-q2-b7eff7104a83:option-4"]},{"variant_id":"E05-html-practice-html-q3-a27747a1aaaf","options":["E05-html-practice-html-q3-a27747a1aaaf:option-1","E05-html-practice-html-q3-a27747a1aaaf:option-2","E05-html-practice-html-q3-a27747a1aaaf:option-3","E05-html-practice-html-q3-a27747a1aaaf:option-4"]},{"variant_id":"E05-html-practice-html-q4-65ed25e57b8f","options":["E05-html-practice-html-q4-65ed25e57b8f:option-1","E05-html-practice-html-q4-65ed25e57b8f:option-2","E05-html-practice-html-q4-65ed25e57b8f:option-3","E05-html-practice-html-q4-65ed25e57b8f:option-4"]},{"variant_id":"E05-html-practice-html-q16-c4d93d1c98c8","options":["E05-html-practice-html-q16-c4d93d1c98c8:option-1","E05-html-practice-html-q16-c4d93d1c98c8:option-2","E05-html-practice-html-q16-c4d93d1c98c8:option-3","E05-html-practice-html-q16-c4d93d1c98c8:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -509,8 +508,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -519,11 +518,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"E05",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzY4Y2E2MDllMDNiIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iN2VmZjcxMDRhODMiLCJFMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEyNzc0N2ExYWFhZiIsIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjVlZDI1ZTU3YjhmIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzRkOTNkMWM5OGM4Il0sInBhY2tfaWQiOiJFMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjE4YjVlMzg0NGM4YjVmOGYwM2Y4NDQxNDMxNDIyYTlkYmEzYWVhYTU4MmViN2VhZDdmZmM2MGVkNzIzMzBiN2UiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYzZkYTg0MDU4NzA2NzFmOThhZjJjN2JhNzdkNDI3OTEyODFiZjYwMzcyYmM0NjdkYmRhNzYwNzczYTMyYTMxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }
