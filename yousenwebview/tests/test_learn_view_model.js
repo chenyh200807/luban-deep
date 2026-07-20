@@ -625,7 +625,7 @@ ok("hint: review_projection_unavailable → 复习安排稍后恢复(记录不�
   assert.strictEqual(j.steps[4].hint, "复习安排稍后恢复 · 记录已保留");
 });
 
-ok("hint: scheduled 步 → 到期后会出现 · 你只管来(当前步自身提示优先)", () => {
+ok("hint: scheduled 步 → 到期自动出现 · 现在可以继续学下一站(当前步自身提示优先)", () => {
   const j = journeyWithSteps({
     practice: { status: "completed" },
     diagnosis: { status: "not_applicable", reason: "all_correct" },
@@ -634,8 +634,8 @@ ok("hint: scheduled 步 → 到期后会出现 · 你只管来(当前步自身�
     followup: { status: "future" },
   }, "due_validation");
   assert.strictEqual(j.available, true);
-  assert.strictEqual(j.steps[4].hint, "到期后会出现 · 你只管来");
-  assert.strictEqual(j.hint, "到期后会出现 · 你只管来");
+  assert.strictEqual(j.steps[4].hint, "到期自动出现 · 现在可以继续学下一站");
+  assert.strictEqual(j.hint, "到期自动出现 · 现在可以继续学下一站");
 });
 
 ok("hint fail-quiet: 未识别 reason 一律不出提示(不猜业务状态)", () => {
