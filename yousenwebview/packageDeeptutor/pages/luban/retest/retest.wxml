@@ -72,6 +72,23 @@
             </view>
             <text class="rt-surface">{{items[currentIndex].stem || items[currentIndex].surface}}</text>
 
+            <!-- 题给面板(编译期从成品页绘制代码求值的签发数据; 无供给整块不渲) -->
+            <view class="rt-fig" wx:if="{{items[currentIndex].figure}}">
+              <text class="rt-fig-label" wx:if="{{items[currentIndex].figure.label}}">{{items[currentIndex].figure.label}}</text>
+              <view class="rt-fig-board" style="background: {{items[currentIndex].figure.bg}}; height: {{items[currentIndex].figure.height}}rpx;">
+                <view
+                  class="rt-fig-el"
+                  wx:for="{{items[currentIndex].figure.els}}"
+                  wx:for-item="el"
+                  wx:key="index"
+                  style="{{el.style}}"
+                >
+                  <text wx:if="{{el.lab}}">{{el.lab}}</text>
+                </view>
+              </view>
+              <text class="rt-fig-caption" wx:if="{{items[currentIndex].figure.caption}}">{{items[currentIndex].figure.caption}}</text>
+            </view>
+
             <view class="rt-choices mcq" wx:if="{{items[currentIndex].answer_type === 'single_choice'}}">
               <view
                 wx:for="{{items[currentIndex].options}}"

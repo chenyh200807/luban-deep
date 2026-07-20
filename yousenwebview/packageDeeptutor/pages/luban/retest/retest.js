@@ -123,6 +123,44 @@ var COPY = {
   },
 };
 
+// ── 题给面板呈现层 ──
+// 服务端签发 figure = 编译期从成品页绘制代码求值出的元素列表(334px 坐标系)。
+// 这里只做纯几何缩放(px→rpx)与样式拼装, 零造词零改数; 无 figure 的题不渲。
+// 画板可用宽 = 750 - 页内边距48 - 题卡内边距60 - 面板内边距40 - 边框≈8 = 594rpx
+var FIG_BOARD_RPX = 594;
+
+function _figureViewModel(figure) {
+  if (!figure || !Array.isArray(figure.els) || !figure.els.length) return null;
+  var w = Number(figure.w) > 0 ? Number(figure.w) : 334;
+  var k = FIG_BOARD_RPX / w;
+  var scale = function (value) { return Math.round((Number(value) || 0) * k * 10) / 10; };
+  var els = [];
+  for (var i = 0; i < figure.els.length; i += 1) {
+    var el = figure.els[i] || {};
+    var style =
+      "left:" + scale(el.x) + "rpx;top:" + scale(el.top) + "rpx;" +
+      "width:" + scale(el.w) + "rpx;height:" + scale(el.h) + "rpx;";
+    if (el.bg && el.bg !== "transparent") style += "background:" + el.bg + ";";
+    if (el.bd && el.bd !== "none") style += "border:" + el.bd + ";";
+    if (el.r) style += "border-radius:" + scale(el.r) + "rpx;";
+    if (el.fg) style += "color:" + el.fg + ";";
+    if (el.fs) style += "font-size:" + scale(el.fs) + "rpx;";
+    if (el.fw) style += "font-weight:" + el.fw + ";";
+    if (el.ta) style += "text-align:" + el.ta + ";";
+    if (el.jc) style += "justify-content:" + el.jc + ";";
+    if (el.ai) style += "align-items:" + el.ai + ";";
+    if (el.p && el.p !== "0") style += "padding:" + el.p + ";";
+    els.push({ style: style, lab: String(el.lab || "") });
+  }
+  return {
+    label: String(figure.label || ""),
+    caption: String(figure.caption || ""),
+    bg: String(figure.bg || "#ffffff"),
+    height: Math.round((Number(figure.h) || 100) * k),
+    els: els,
+  };
+}
+
 // 错后当场确认会话的 facts 解析。有界解码兜底(≤4 跳,同 parseBridgeReceipt
 // 的桥接教训):wx 各端对 navigateTo query 的解码行为不一致,DevTools 活体隔离
 // 实验证实整串 encodeURIComponent 后送达仍是 %2C,split(",") 拆不开 → 0 题断链。
@@ -733,6 +771,7 @@ Page({
             fact_id: String(item.fact_id || ""),     // 错题→考点映射(错后当场确认入口据此判交集)
             probe_role: String(item.probe_role || ""),
             textbook: item.textbook || null, // 教材原文并排卡(join 命中才有, 前端零造词)
+            figure: _figureViewModel(item.figure), // 题给面板(签发才渲, 纯几何缩放)
             answered: false,
             correct: null,
             chosenOk: null,

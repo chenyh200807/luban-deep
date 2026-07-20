@@ -41,6 +41,12 @@
 /* 进度条: 环底轨 + 墨色填充(答到第几题) */
 .rt-bar { height: 8rpx; border-radius: 999rpx; background: var(--pk-gauge); overflow: hidden; }
 .rt-bar-fill { height: 100%; border-radius: 999rpx; background: var(--pk-t1); transition: width .3s ease-out; }
+/* 题给面板: 图形=内容插图(保留成品页原配色, 不受 UI 四色纪律约束), 外框纸墨 */
+.rt-fig { display: flex; flex-direction: column; gap: 12rpx; border: 2rpx solid var(--pk-bd); border-radius: 14rpx; padding: 18rpx 20rpx; background: var(--pk-card); }
+.rt-fig-label { font-size: 21rpx; font-weight: 700; color: var(--pk-t2); letter-spacing: 1rpx; }
+.rt-fig-board { position: relative; width: 594rpx; border-radius: 10rpx; overflow: hidden; }
+.rt-fig-el { position: absolute; display: flex; align-items: center; justify-content: center; box-sizing: border-box; line-height: 1.25; overflow: hidden; }
+.rt-fig-caption { font-size: 21rpx; color: var(--pk-t3); text-align: center; }
 .rt-surface { font-size: 32rpx; line-height: 1.75; color: var(--pk-t1); font-family: "Songti SC", "Noto Serif CJK SC", serif; }
 
 .rt-choices { display: flex; gap: 18rpx; margin-top: 6rpx; }

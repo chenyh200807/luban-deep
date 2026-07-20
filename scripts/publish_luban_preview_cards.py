@@ -58,6 +58,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import urllib.parse
@@ -1396,6 +1397,36 @@ def _build_practice_review_packet(authority: dict[str, object]) -> dict[str, obj
     }
 
 
+_FIG_EXTRACTOR = REPO / "scripts" / "extract_practice_fig_els.js"
+
+
+def _practice_figures(practice_source: Path) -> dict[int, dict[str, object]]:
+    """编译期求值题给图形(figFor/fig(name) → 元素列表), 按 source_index 归位。
+
+    图形是呈现层附件: 不进 item content_sha256 白名单(身份稳定, 签名裁决零
+    触碰)。求值器确定性(常量算术, 无 Date/random), --check 复算一致。node
+    缺失按构建环境损坏 fail-closed——绝不静默丢图形量产半份 authority。
+    """
+    try:
+        proc = subprocess.run(
+            ["node", str(_FIG_EXTRACTOR), str(practice_source)],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except FileNotFoundError as exc:
+        raise TransformError("node runtime missing for fig extraction") from exc
+    if proc.returncode != 0:
+        raise TransformError(
+            f"fig extraction failed: {practice_source.name}: {proc.stderr.strip()[:200]}"
+        )
+    # stderr 有内容=显式 SKIP(如 S07 模板分支形态), 透传告知但不阻断。
+    if proc.stderr.strip():
+        print(f"  fig-extract note {practice_source.name}: {proc.stderr.strip()[:160]}")
+    figures = json.loads(proc.stdout)
+    return {int(key): value for key, value in figures.items()}
+
+
 def _compile_practice_outputs(
     station_id: str, st: Station, *, finished_root: Path
 ) -> tuple[dict[str, str], dict[str, object]]:
@@ -1425,6 +1456,12 @@ def _compile_practice_outputs(
             source_path=logical_source,
             source_html_sha256=_sha256(practice_source),
         )
+        # 题给图形按 source_index 归位到 item(呈现层附件, 不入内容身份哈希)。
+        figures = _practice_figures(practice_source)
+        for item in compiled["items"]:
+            figure = figures.get(int(item.get("source_index", -1)))
+            if figure:
+                item["figure"] = figure
         source_texts[hosted_name] = source_text
         compiled_surfaces.append(compiled)
     source_pack_sha256 = _pack_source_sha(pack_id)
