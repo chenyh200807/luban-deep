@@ -1,0 +1,118 @@
+{
+ "pack_id": "G03",
+ "adversarial_gate_ref": "fable-adjudication 2026-07-20 G03 冲突修正重签(owner指令40包全上线,教研裁决权owner-delegated按2026教材仲裁): 前轮 sign_g03 重裁定位两病灶(超灌2016官答旧口径0.8~1.0m与2026教材'高于设计桩顶标高1m以上'相悖=A级共同病灶; q15③预制桩断裂五因拼装灌注桩场景+零锚)。本轮改源 P40_G03.practice.dc.html(q8/q15/KNOWLEDGE/moreText/双fig)按2026教材口径重编,教材原文第一手核验(chunk 1A413030_091_0169 page91 / 1A434000_071_0110 page71 逐字,见 fix_g03.log 对照表); 编译库按 jury issue#6 拆锚+S02同法补两采分点(kc:1A413030_091_0169:1 / kc:1A434000_071_0110:2,均带repair_note)。其余12行沿用 2026-07-20 sign_g03.log 逐题终局裁决(variant_id 未变)。anchor 均为该题机器候选(零编造)。",
+ "signed": [
+  {
+   "variant_id": "G03-html-practice-html-q1-a5069fbe7083",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-bored-pile-typology",
+   "skeleton_id": "g03-skel-成孔工法四类定性",
+   "source_anchor": "kc:1A413030_091_0167:0",
+   "note": "灌注桩成孔工法四类定性。教材0167逐字'可分为泥浆护壁灌注桩、沉管灌注桩、长螺旋钻孔压灌桩和干作业（机械、人工）成孔灌注桩等'。正确项四类与教材一致;三干扰项(仅两类/按受力性状/照搬预制桩)确误。沿用 2026-07-20 sign_g03 重裁 SIGNABLE 结论。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q2-8c691c527a8d",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-precast-strength-thresholds",
+   "skeleton_id": "g03-skel-预制桩70-100吊运打",
+   "source_anchor": "kc:1A413030_090_0165:0",
+   "note": "预制桩强度阈值。教材0165①②逐字:≥70%起吊/≥100%运输打桩/两点吊0.2L。数值三连全对;干扰项(70/100倒置、75/90、经验掌握)确误。沿用重裁 SIGNABLE。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q4-1867683ad625",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-hammer-drop-mode",
+   "skeleton_id": "g03-skel-重锤低击真题",
+   "source_anchor": "exam:2017:第26题",
+   "note": "锤击落锤方式。真题 exam:2017:第26题官答 BD=重锤低击/低锤重打,解析同口径;教材本包无此条,真题锚独立成立且与2026教材无冲突。沿用重裁 SIGNABLE。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q5-6742026d87de",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-static-press-termination",
+   "skeleton_id": "g03-skel-静压终止标高压力",
+   "source_anchor": "kc:1A413030_091_0166:0",
+   "note": "静压终止标准。核心判分眼(摩擦桩标高为主/端承桩压力为主)教材0166⑧a逐字;干扰项1为主辅对调。辅助采分句'试压桩≥3根/不得边压边挖'教材0165静压①③逐字为真(第一手核对),其候选点0165:1本轮已进q5 TOP_K=5候选,核心眼仍签0166:0。沿用重裁 SIGNABLE(带拆锚记录)。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q6-f235160114d8",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-slurry-wall-process",
+   "skeleton_id": "g03-skel-护壁流程护筒清孔",
+   "source_anchor": "kc:1A413030_091_0168:0",
+   "note": "泥浆护壁成孔流程。教材0168完整流程逐字支撑正确项(护筒/清孔两易漏节点齐)。工单(沿用):正确项省略下笼后二次清孔节点;干扰项2'先下笼后清孔'指完全跳过首次清孔仍确误,但与二次清孔工序有表述混淆风险。备用位可签。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q7-0c0075bd0b2e",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-sediment-thickness",
+   "skeleton_id": "g03-skel-沉渣50-100-200",
+   "source_anchor": "kc:1A413030_091_0169:0",
+   "note": "孔底沉渣三档。教材0169逐字(端承≤50/摩擦≤100/抗拔抗水平≤200mm)。沿用重裁备用可签。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q8-a8a5bec0b9cc",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-overcast-height-2026",
+   "skeleton_id": "g03-skel-超灌纠错500mm",
+   "source_anchor": "kc:1A413030_091_0169:1",
+   "note": "超灌纠错(2026-07-20 冲突修正后新裁)。教材 page91 chunk 0169 ⑧逐字'水下混凝土超灌高度应高于设计桩顶标高 1m 以上，充盈系数不应小于 1'。正确项已改为2026教材口径'高于设计桩顶标高1m以上';2016案例1官答0.8~1.0m旧口径降级为M08干扰项并在解析注明新旧口径(authority-ladder 教材>历史官答,owner-delegated 仲裁)。锚为拆锚修复后的独立超灌采分点(候选rank3,repair_note在编译库)。前轮NO-GO病灶已治,SIGNABLE。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q9-3dfec01f94ce",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-immersed-tube-methods",
+   "skeleton_id": "g03-skel-沉管复打反插续浇",
+   "source_anchor": "kc:1A413030_092_0171:0",
+   "note": "沉管工法+成桩步骤。教材0171逐字+exam:2022:第(三)题官答双证(复打法/反插法;边振边拔→下笼继续浇→成桩)。沿用重裁备用可签。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q10-bd097c720984",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-manual-dug-pile-spacing",
+   "skeleton_id": "g03-skel-挖孔间隔5m先中后周",
+   "source_anchor": "kc:1A413030_092_0172:0",
+   "note": "人工挖孔间距顺序。教材0172逐字(<2.5m间隔开挖浇筑/最小≥5m/先中间后周边)。沿用重裁备用可签。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q11-66c7323d8d73",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-post-grouting-control",
+   "skeleton_id": "g03-skel-注浆量主控80",
+   "source_anchor": "kc:1A413030_092_0170:0",
+   "note": "桩底注浆终止控制。教材0170逐字(以注浆量为主;总量达设计 或 ≥80%且压力>设计值)。沿用重裁备用可签。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q12-81340bfc439c",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-pile-testing-eyes",
+   "skeleton_id": "g03-skel-方法目的匹配",
+   "source_anchor": "kc:1A413030_092_0173:0",
+   "note": "检测方法-目的匹配。教材0173方法汇总五连全覆盖+0174逐字+exam:2021:第14题(钻芯法=A)旁证。jury issue#1(高应变也可判完整性)为工单级非fatal——选项未写'只能',配对法与教材口径一致。三件套 anchor。沿用重裁 SIGNABLE。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q13-e3d20b4a2a14",
+   "probe_role": "immediate_confirm",
+   "fact_id": "g03-fact-pile-testing-eyes",
+   "skeleton_id": "g03-skel-完整性II-III分界",
+   "source_anchor": "kc:1A413030_093_0174:1",
+   "note": "完整性Ⅱ/Ⅲ分界。教材0174:1逐字(Ⅱ轻微不影响/Ⅲ明显影响承载力)。三件套 immediate_confirm,第2独立skeleton。沿用重裁 SIGNABLE。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q14-2880cbbb0da6",
+   "probe_role": "d1_probe",
+   "fact_id": "g03-fact-pile-testing-eyes",
+   "skeleton_id": "g03-skel-钻芯孔数分档",
+   "source_anchor": "kc:1A413030_093_0174:2",
+   "note": "钻芯孔数分档。教材0174:2逐字+数值复核(<1.2m为1~2孔/1.2~1.6m为2孔/>1.6m为3孔,孔位0.15~0.25D)。三件套 d1_probe,第3独立skeleton。沿用重裁 SIGNABLE。"
+  },
+  {
+   "variant_id": "G03-html-practice-html-q15-cf892847c628",
+   "probe_role": "anchor",
+   "fact_id": "g03-fact-pile-diagnosis-composite",
+   "skeleton_id": "g03-skel-诊断超灌抽检坍孔",
+   "source_anchor": "kc:1A413030_091_0169:1",
+   "note": "复合诊断末题(2026-07-20 双病灶修复后新裁)。①超灌:正确项改2026教材口径'高于设计桩顶标高1m以上',主锚即该教材逐字采分点(候选rank1);0.8~1.0m旧口径降级为E08干扰项内错误成分并在解析点破。②甲级完整性≥30%且≥20根,900×30%=270根,exam:2016官答逐字支持、教材无冲突(前轮已裁无病)。③前轮预制桩'断裂五因'拼装错误已整段替换为泥浆护壁灌注桩坍孔病谱,教材 page71 chunk 1A434000_071_0110 '原因分析'六条逐字支撑(泥浆比重/水头/护筒埋深/进尺等,已按S02同法补独立采分点 kc:1A434000_071_0110:2+repair_note;该点rank7未进本题TOP_K=5候选,单锚按G01-q15先例取首要判分眼超灌教材点)。场景已改'甲级泥浆护壁灌注桩',病谱-场景自洽。前轮三重阻断全部解除,SIGNABLE。工单:正确项偏长(诊断题固有,同G01-q15口径)。"
+  }
+ ]
+}

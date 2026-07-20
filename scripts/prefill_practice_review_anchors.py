@@ -36,7 +36,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_BASE_DIR = REPO_ROOT / "docs" / "原始数据" / "考点原料"
 PACKETS_SUBDIR = Path("成品") / "_practice_review_packets"
 DEFAULT_THRESHOLD = 0.25  # min match_score for a candidate to count as "像样"
-TOP_K = 3
+TOP_K = 5  # 2026-07-20 3→5: B02/S01 实测真锚以 0.004 分差被挤出 top3,加宽召回(仍 provenance 硬门)
 MAX_QUOTE_LEN = 200
 
 _CJK_RE = re.compile(r"[一-鿿]")

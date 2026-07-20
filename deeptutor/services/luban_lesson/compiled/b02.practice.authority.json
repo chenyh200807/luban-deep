@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "B02",
   "source_pack_sha256": "5386e2fa881ff36c29700b42e04c11dff17b6b4d0c41f19d832b24e0d4f7cd39",
-  "source_bundle_sha256": "cc868d99f07e5f8cdf4df6e9931bdae94c5f22be904cc54c68c35ab4ae5e2b90",
+  "source_bundle_sha256": "a6306000784f3986604ae0c9a6973a83f2b8a4ff8aa4a3e1b1076d23c32475b5",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -20,13 +20,19 @@
       "variant_ids": [
         "B02-html-practice-html-q1-dc22990f1c95",
         "B02-html-practice-html-q2-8f70a9b74ad5",
-        "B02-html-practice-html-q3-b8c928169e40",
-        "B02-html-practice-html-q4-40d9ef03bcab",
+        "B02-html-practice-html-q3-6a140c0a38c3",
+        "B02-html-practice-html-q4-817b50177da8",
         "B02-html-practice-html-q5-e68bd3e889d0"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZGMyMjk5MGYxYzk1IiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ZjcwYTliNzRhZDUiLCJCMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWI4YzkyODE2OWU0MCIsIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDBkOWVmMDNiY2FiIiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNS1lNjhiZDNlODg5ZDAiXSwicGFja19pZCI6IkIwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiYjEyYWEyNDJiYTExNDM3MjhhOGI5M2M4Yzg3MDI5OTk2ZjVmZWE0Y2UyZDIzZWEwMzRhZjhlYjgwOTk5YzdmOCIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "e7fb61672e16ac9033a01628f683328a2315f804cf825fb7e565b463760b3043"
+      "eligible_variant_ids": [
+        "B02-html-practice-html-q1-dc22990f1c95",
+        "B02-html-practice-html-q2-8f70a9b74ad5",
+        "B02-html-practice-html-q3-6a140c0a38c3",
+        "B02-html-practice-html-q4-817b50177da8",
+        "B02-html-practice-html-q5-e68bd3e889d0"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZGMyMjk5MGYxYzk1IiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ZjcwYTliNzRhZDUiLCJCMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTZhMTQwYzBhMzhjMyIsIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtODE3YjUwMTc3ZGE4IiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNS1lNjhiZDNlODg5ZDAiXSwicGFja19pZCI6IkIwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiOTYxODg1NTZjY2FjMDA3OWVhNDVhMDkzNDZhZjQxNmIxZmJkY2Q1NGY5Yzk0NWFjODFhZjgzYWU5MjFiZGI5YiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJkNTI5MmM0NzYyNTdmODA2YTQ4ZWIwZjhiOGZjOGZhY2RhZWM4ZTcyNjgxNTdhZTliZDIwY2QxMmUyN2MwNzhlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "ff30abe5d612945d4062077536d97b2292b82778505f729ab931ec37e3c9bbae"
     },
     {
       "surface_id": "practice2.html",
@@ -48,9 +54,17 @@
         "B02-html-practice2-html-q4-31ac34948254",
         "B02-html-practice2-html-q5-2e0179d5fbe9"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXExLWExNmJlYjg1MTJmMCIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXEyLTU2MDFhN2I1NGZjOSIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXEzLTFjZDMxMzkzNzk5MyIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXE0LTMxYWMzNDk0ODI1NCIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXE1LTJlMDE3OWQ1ZmJlOSJdLCJwYWNrX2lkIjoiQjAyIiwicHJvamVjdGlvbl9kaWdlc3QiOiIyNWY0Mjk5YzE1ZmQzMWVkYzZhMzgwMWE2YTcxYmQwMmUyZGQwYjJkNjk3N2I2OWQxYjM2OTFhOGQ4ZDgyY2Q0Iiwic2NoZW1hIjoibHViYW5fcHJhY3RpY2VfcHJvamVjdGlvbl9yZWNlaXB0LnYxIiwic291cmNlX2RpZ2VzdCI6IjZjZmViZjgwNGU3ODdkN2Y2ZjQyYWI0ZWMxNzBhMzM2MzVmYzA0MWI0ZmMzN2FkMWUyZjNjNGEyYjViYzhlY2UiLCJzdXJmYWNlX2lkIjoicHJhY3RpY2UyLmh0bWwifQ",
-      "published_practice_sha256": "b9de8f1fa62e6353025aec87593d88fa3d1876e83b684ff83794ce14a19b1c88"
+      "eligible_variant_ids": [
+        "B02-html-practice2-html-q1-a16beb8512f0",
+        "B02-html-practice2-html-q2-5601a7b54fc9",
+        "B02-html-practice2-html-q3-1cd313937993",
+        "B02-html-practice2-html-q4-31ac34948254",
+        "B02-html-practice2-html-q5-2e0179d5fbe9",
+        "B02-html-practice2-html-q6-2b560a059d74",
+        "B02-html-practice2-html-q16-1f8abfd02855"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXExLWExNmJlYjg1MTJmMCIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXEyLTU2MDFhN2I1NGZjOSIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXEzLTFjZDMxMzkzNzk5MyIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXE0LTMxYWMzNDk0ODI1NCIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXE1LTJlMDE3OWQ1ZmJlOSJdLCJwYWNrX2lkIjoiQjAyIiwicHJvamVjdGlvbl9kaWdlc3QiOiJiNmY2MDIzODBlZTRlYTRkZjJiZjdjNGQwNjVhOWJlNjdjY2YzNzZkMzg5NDMyMjRlNzM2MGJjM2IzY2Q3ZjBmIiwic2NoZW1hIjoibHViYW5fcHJhY3RpY2VfcHJvamVjdGlvbl9yZWNlaXB0LnYxIiwic291cmNlX2RpZ2VzdCI6ImQ1MDJiN2M4YmZiNTJmZTYwNGNjM2M3OGQxODVlNjI5OTBjNjQ1OTlhZjNlZDc0MTI2OTNmZWFlN2U2MDNjNjYiLCJzdXJmYWNlX2lkIjoicHJhY3RpY2UyLmh0bWwifQ",
+      "published_practice_sha256": "5beb1d1f22bfbeaddfaface102964555ac25f757de61ea9200bda3ee1fbf11c7"
     }
   ],
   "items": [
@@ -103,29 +117,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "exam:2021:第5题",
+      "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
+      "fact_id": "b02-fact-special-plan-content-weida",
+      "skeleton_id": "b02-skel-方案内容七项列举",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "43625456509b322bb6c18ac51b5f2d8cbf17412b4eade6f2bfbd0846365207e1",
+      "content_sha256": "f71c0e1ae1d30c7852516cc36248839d04d54562c262e460170a2cfe339b41ae",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "43625456509b322bb6c18ac51b5f2d8cbf17412b4eade6f2bfbd0846365207e1",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "f71c0e1ae1d30c7852516cc36248839d04d54562c262e460170a2cfe339b41ae",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "partial锚(W3裁决):危大≥5m须专家论证半锚忠实(2021真题第5题:开挖6m基坑须论证)。七项内容列举真源kc:1A413000_076_0146:0(0.35)仍在TOP_K=5外,内容半无机器候选可签,诚实标注。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -176,29 +202,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "exam:2022:第19题",
+      "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
+      "fact_id": "b02-fact-special-plan-procedure",
+      "skeleton_id": "b02-skel-方案编制论证程序",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ce80f9f3e19de62d3b96baf32e5e7bac90ecc08024b7ef343dc753f1c25b76cb",
+      "content_sha256": "88a275870782a3d1d73271cd9be0b2e6e976856c5d73e1d46a3dce15acaad2ed",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "ce80f9f3e19de62d3b96baf32e5e7bac90ecc08024b7ef343dc753f1c25b76cb",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "88a275870782a3d1d73271cd9be0b2e6e976856c5d73e1d46a3dce15acaad2ed",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "partial锚(W3裁决):危大专家论证半锚忠实(2022真题第19题)。编制主体'施工单位编制报监理审批'编译库无原子采分点,程序半按管理常识+真题语境支撑,诚实标注。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -213,16 +251,16 @@
           "temptation": "土钉墙常见就直接套用。",
           "loss_reason": "土钉墙限二三级，用于一级越界。",
           "fix": "一级用排桩/地连墙/型钢搅拌墙。",
-          "option_id": "B02-html-practice-html-q3-b8c928169e40:option-1"
+          "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-1"
         },
         {
           "text": "支护类型的确定与安全等级并无关联，按工程造价最低的方案选定支护结构即可。",
           "is_correct": false,
           "source_error_code": "E01",
           "temptation": "只顾省造价。",
-          "loss_reason": "忽略安全等级这道首轮筛选。",
-          "fix": "先按安全等级筛，一级用排桩/地连墙。",
-          "option_id": "B02-html-practice-html-q3-b8c928169e40:option-2"
+          "loss_reason": "忽略安全等级对应的适用条件。",
+          "fix": "按适用条件筛，一级用排桩/地连墙。",
+          "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-2"
         },
         {
           "text": "安全等级一级宜选灌注桩排桩、地下连续墙或型钢水泥土搅拌墙等刚度大的支护结构。",
@@ -231,7 +269,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "一级对应排桩/地连墙/型钢搅拌墙，刚度大控制变形。",
-          "option_id": "B02-html-practice-html-q3-b8c928169e40:option-3"
+          "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-3"
         },
         {
           "text": "安全等级一级的基坑宜选用水泥土重力式围护墙，依靠墙体自重挡土，受力明确、稳定可靠。",
@@ -240,111 +278,135 @@
           "temptation": "重力墙听着稳当。",
           "loss_reason": "重力墙属二三级、且限淤泥质≤7m。",
           "fix": "一级用排桩/地连墙等；重力墙限二三级。",
-          "option_id": "B02-html-practice-html-q3-b8c928169e40:option-4"
+          "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-4"
         }
       ],
-      "variant_id": "B02-html-practice-html-q3-b8c928169e40",
+      "variant_id": "B02-html-practice-html-q3-6a140c0a38c3",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "exam:2022:第30题",
+      "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
+      "fact_id": "b02-fact-level1-support-selection",
+      "skeleton_id": "b02-skel-一级支护选型直问",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "303213aafc4e4357da5ade07c2985bc4de620ab648905eba75b8e9a2966ea3ae",
+      "content_sha256": "7b6333f0127ac28d004dab3b0d7ba280e36aa89d53ed8fe6899f41fe72d001dd",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "303213aafc4e4357da5ade07c2985bc4de620ab648905eba75b8e9a2966ea3ae",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "7b6333f0127ac28d004dab3b0d7ba280e36aa89d53ed8fe6899f41fe72d001dd",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "2022真题第30题原题:一级适用灌注桩排桩/地下连续墙/型钢水泥土搅拌墙,土钉墙不适用。忠实。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
       "rule_group": "支护选型·条件维",
       "stem": "关于基坑支护选型的依据，选出最完整、能得分的作答。",
-      "model_answer": "按土层、地下水位、开挖深度、周边环境+安全等级综合确定，安全等级仅首轮筛选。",
+      "model_answer": "选型应综合考虑基坑深度、土的性状及地下水条件、周边环境、施工工艺可行性、场地与工期等因素（JGJ 120）。",
       "options": [
         {
           "text": "支护选型按安全等级对号入座即可完成，一级选用排桩、二三级选用土钉墙，其余条件不必逐项核对。",
           "is_correct": false,
           "source_error_code": "E01",
           "temptation": "以为安全等级单因子定死。",
-          "loss_reason": "忽略土层/水位/深度/周边，选型不封闭。",
-          "fix": "安全等级是首轮筛选，还需综合四要素。",
-          "option_id": "B02-html-practice-html-q4-40d9ef03bcab:option-1"
+          "loss_reason": "漏基坑深度/土性水文/周边环境等因素，选型不封闭。",
+          "fix": "应综合基坑深度、土性及地下水、周边环境等因素。",
+          "option_id": "B02-html-practice-html-q4-817b50177da8:option-1"
         },
         {
-          "text": "支护选型仅按开挖深度一项确定，深基坑选排桩、浅基坑选土钉墙，一律照此执行。",
+          "text": "支护选型仅按开挖深度一项确定即可，深基坑一律选用排桩支护、浅基坑一律选用土钉墙，其他条件不必考虑。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "以为深度单因子决定。",
-          "loss_reason": "漏安全等级/土层/周边多因子。",
-          "fix": "综合安全等级 + 土层水位深度周边。",
-          "option_id": "B02-html-practice-html-q4-40d9ef03bcab:option-2"
+          "loss_reason": "漏土性地下水/周边环境/工艺可行性多因子。",
+          "fix": "深度之外还须综合土性水文、周边环境等因素。",
+          "option_id": "B02-html-practice-html-q4-817b50177da8:option-2"
         },
         {
-          "text": "支护选型应以造价与工期最省作为比选标准，土层与地下水位情况不属于选型依据。",
+          "text": "支护选型应以造价与工期最省作为唯一比选标准，土层与地下水位情况均不属于选型依据。",
           "is_correct": false,
           "source_error_code": "E01",
           "temptation": "只算经济账。",
-          "loss_reason": "漏土层、水位等技术依据。",
-          "fix": "选型先看安全等级 + 土层水位深度周边。",
-          "option_id": "B02-html-practice-html-q4-40d9ef03bcab:option-3"
+          "loss_reason": "否认土性及地下水这一明确选型因素。",
+          "fix": "经济仅是综合因素之一，土性水文是明确依据。",
+          "option_id": "B02-html-practice-html-q4-817b50177da8:option-3"
         },
         {
-          "text": "支护选型应综合土层、地下水位、开挖深度、周边环境和安全等级确定，安全等级只是首轮筛选。",
+          "text": "支护选型应综合考虑基坑深度、土的性状及地下水条件、周边环境的承受能力、施工工艺可行性等因素确定。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "五要素综合 + 点明安全等级为首轮筛选，最稳。",
-          "option_id": "B02-html-practice-html-q4-40d9ef03bcab:option-4"
+          "fix": "扣住 JGJ 120 综合因素：深度、土性水文、周边环境、工艺可行性。",
+          "option_id": "B02-html-practice-html-q4-817b50177da8:option-4"
         }
       ],
-      "variant_id": "B02-html-practice-html-q4-40d9ef03bcab",
+      "variant_id": "B02-html-practice-html-q4-817b50177da8",
       "surface_id": "practice.html",
       "source_index": 3,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A422000_032_0053:1",
+      "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
+      "fact_id": "b02-fact-support-selection-factors",
+      "skeleton_id": "b02-skel-选型依据列举",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e12b91180d6f86161a5370332d2ec198f07bf0b5afacd809c2631b030cc10e34",
+      "content_sha256": "4055c01ca9b4bd59b5ab1a774e9c88570386ce6e39bf9fbf933eff4301ddb323",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "e12b91180d6f86161a5370332d2ec198f07bf0b5afacd809c2631b030cc10e34",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "4055c01ca9b4bd59b5ab1a774e9c88570386ce6e39bf9fbf933eff4301ddb323",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "W1治愈:教材仲裁命中2026教材p32 JGJ 120—2012'支护结构选型时应综合考虑'七因素,补采分点逐字quote;卡端q4已按七因素口径改写(去'安全等级=首轮筛选'合成断言)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -395,29 +457,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413000_080_0151:1",
+      "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
+      "fact_id": "b02-fact-gravity-wall-applicability",
+      "skeleton_id": "b02-skel-淤泥质二级场景选型",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "691a0880b6fcc366b0a7cf557c5f928096803f72299d33d6ecf260f6e1a0241c",
+      "content_sha256": "7ec731cb8f82cdeb32f4bce8d3631daa43ed1b1d0296643d439db4ff556ab204",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "691a0880b6fcc366b0a7cf557c5f928096803f72299d33d6ecf260f6e1a0241c",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "7ec731cb8f82cdeb32f4bce8d3631daa43ed1b1d0296643d439db4ff556ab204",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "W2治愈:TOP_K=5召回真源(rank4/0.3315,前轮top3截断0.336)。水泥土重力式围护墙适用淤泥质土、深度不宜大于7m,与题干6m二级场景对齐。忠实。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -470,17 +544,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "74323c92aab6d51c3d24c1083cb1ea35f28f3904469cf15fe3cfd2a9fc1549a6",
+      "content_sha256": "ab5b873d009b4c361f7d0486dd80385984c3f1321d8db8a677c92022700e7292",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "74323c92aab6d51c3d24c1083cb1ea35f28f3904469cf15fe3cfd2a9fc1549a6",
+        "reviewed_content_sha256": "ab5b873d009b4c361f7d0486dd80385984c3f1321d8db8a677c92022700e7292",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -543,17 +617,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b6b479c26244c86755966e22574060a036638118678d9448b93f18e8641be014",
+      "content_sha256": "6098d650c5ba06f9ba47028c3742a4557910f00e1db61dab65563b3e29bb263f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "b6b479c26244c86755966e22574060a036638118678d9448b93f18e8641be014",
+        "reviewed_content_sha256": "6098d650c5ba06f9ba47028c3742a4557910f00e1db61dab65563b3e29bb263f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -616,17 +690,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9e9f8c91999cf8a7ce3c7c8dc93f90f0c38e298cf73fb8ab040deca64e4b4a23",
+      "content_sha256": "a2fcf4623066a4f6b46fd936b5599b8a241c9a2fba530b3071719dbf413c99ef",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "9e9f8c91999cf8a7ce3c7c8dc93f90f0c38e298cf73fb8ab040deca64e4b4a23",
+        "reviewed_content_sha256": "a2fcf4623066a4f6b46fd936b5599b8a241c9a2fba530b3071719dbf413c99ef",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -689,17 +763,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a8614a7635f4faafd4d4c4c4b43a2d8e6e408de2af1a2962c0640cc9a9f2a52c",
+      "content_sha256": "7d74b25aba82e790003790bb8c09fda8153f5c9da7f7d797591c7e3bbe6434c6",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "a8614a7635f4faafd4d4c4c4b43a2d8e6e408de2af1a2962c0640cc9a9f2a52c",
+        "reviewed_content_sha256": "7d74b25aba82e790003790bb8c09fda8153f5c9da7f7d797591c7e3bbe6434c6",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -762,17 +836,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3aef3480da3299d6efd5d79ede8a857be2aa4bd848776940acdd9eaf9152f863",
+      "content_sha256": "c679aba52d3763121917b1b03173739831294464b06b2e70d0f298325810105f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "3aef3480da3299d6efd5d79ede8a857be2aa4bd848776940acdd9eaf9152f863",
+        "reviewed_content_sha256": "c679aba52d3763121917b1b03173739831294464b06b2e70d0f298325810105f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -835,17 +909,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8c5e5c1e1084ecb7988551f55869528b00140c9b045a90c24988acaa5bc1e398",
+      "content_sha256": "531437abe02198c3305c1b25095eaf911e3aab252badc9d4968da3d824ebef47",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "8c5e5c1e1084ecb7988551f55869528b00140c9b045a90c24988acaa5bc1e398",
+        "reviewed_content_sha256": "531437abe02198c3305c1b25095eaf911e3aab252badc9d4968da3d824ebef47",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -908,17 +982,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "74eb5757b6ab509e2e59adecf752df088982a526bac841c5e72408dda4dfb44a",
+      "content_sha256": "53d66bf9326cded81049fb15522643ccfbe9fb42835b2e899a11fc31d20e3f74",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "74eb5757b6ab509e2e59adecf752df088982a526bac841c5e72408dda4dfb44a",
+        "reviewed_content_sha256": "53d66bf9326cded81049fb15522643ccfbe9fb42835b2e899a11fc31d20e3f74",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -981,17 +1055,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0e10c21ed04310f83aa40ff16dac33d88720e65ca8e2f6d02f1e14ac4f67a0c0",
+      "content_sha256": "cfbe07cdeff0fa2c80b5c148d4b4d6bcadbefd818ea9b23c5e717e8edbbcd387",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "0e10c21ed04310f83aa40ff16dac33d88720e65ca8e2f6d02f1e14ac4f67a0c0",
+        "reviewed_content_sha256": "cfbe07cdeff0fa2c80b5c148d4b4d6bcadbefd818ea9b23c5e717e8edbbcd387",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1054,17 +1128,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "29d9ccc6a21ba29119ec5278d5403182e5e60b0818811c5e1755ea2d9ecbdd86",
+      "content_sha256": "bcdbc0e4c504ea5468ace0ee8152937cbf3edd3db0380d79d81b5d41e16e4773",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "29d9ccc6a21ba29119ec5278d5403182e5e60b0818811c5e1755ea2d9ecbdd86",
+        "reviewed_content_sha256": "bcdbc0e4c504ea5468ace0ee8152937cbf3edd3db0380d79d81b5d41e16e4773",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1127,17 +1201,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "60112023fa1947dc7567c86b160495f8a7c702eaaffb572c5ac0ef22d875e933",
+      "content_sha256": "7f04e6b85e74e9f62a3b4fbc19515bdb7b34a0365a6c714c010c5edb9843c59c",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "60112023fa1947dc7567c86b160495f8a7c702eaaffb572c5ac0ef22d875e933",
+        "reviewed_content_sha256": "7f04e6b85e74e9f62a3b4fbc19515bdb7b34a0365a6c714c010c5edb9843c59c",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1200,17 +1274,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q16",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6aef07023276f03bb207b86aa443b2b0a1eed5c8e545a5448079862429dd2d64",
+      "source_html_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "18121919cc2703b9cbbce346b72f7571134187bc21da6bf4d6235580575790b8",
+      "content_sha256": "0540190a93288face8cc8392eb823bf7230ccbc7118927eb4dbd25a380a006d3",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "18121919cc2703b9cbbce346b72f7571134187bc21da6bf4d6235580575790b8",
+        "reviewed_content_sha256": "0540190a93288face8cc8392eb823bf7230ccbc7118927eb4dbd25a380a006d3",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1271,29 +1345,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:第7题",
+      "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
       "source_html_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "b02-fact-dewatering-method-selection",
+      "skeleton_id": "b02-skel-砂砾大渗透选管井",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "8c7ce06ad4423f02ae091ca9f26657a8a18b980f5393d88085b521a1898d94d9",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "8c7ce06ad4423f02ae091ca9f26657a8a18b980f5393d88085b521a1898d94d9",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "2019真题第7题解析:降水管井适用渗透系数较大砂砾层。忠实。三件套fact成员(anchor)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1344,29 +1430,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:第7题",
+      "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
       "source_html_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "b02-fact-dewatering-method-selection",
+      "skeleton_id": "b02-skel-填土渗透小不宜管井",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "74ce0a204347ad91870820edfd880aabff7789868175c4f15d8cf8a7e4698515",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "74ce0a204347ad91870820edfd880aabff7789868175c4f15d8cf8a7e4698515",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "2019真题第7题原题:不宜用于填土的降水方法=降水管井,宜轻型/喷射/电渗。忠实。同fact异skeleton。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1417,29 +1515,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413000_082_0155:1",
+      "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
       "source_html_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "b02-fact-jetwell-depth-range",
+      "skeleton_id": "b02-skel-降深15m选喷射",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "4e0824f647765c128b4a9d15cba6af9231e7fd8e9a29c3bdcbb5ebd7e31b68a0",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "4e0824f647765c128b4a9d15cba6af9231e7fd8e9a29c3bdcbb5ebd7e31b68a0",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "喷射井点降水深度8~20m,15m落界内。忠实。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1490,29 +1600,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413000_082_0155:0",
+      "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
       "source_html_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "b02-fact-lightwell-depth-limit",
+      "skeleton_id": "b02-skel-轻型井点降深数字",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "1f8462d940ae53900baefafe6d4bdfce4d9123d3cbd50637b618ce72ea2ff924",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "1f8462d940ae53900baefafe6d4bdfce4d9123d3cbd50637b618ce72ea2ff924",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "轻型井点降水深度≤6m、多级6~10m。忠实。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1563,29 +1685,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413000_084_0157:2",
+      "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
       "source_html_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "b02-fact-water-level-500mm",
+      "skeleton_id": "b02-skel-水位控制标高",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "6dcb93636a3c49ec1d86a7b64545cea69defaa4bf94206306305fced2d4b7529",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "6dcb93636a3c49ec1d86a7b64545cea69defaa4bf94206306305fced2d4b7529",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "水位降至坑底以下500mm以上且持续至基础施工完成。忠实(0.6051全包最高分)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1636,29 +1770,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413000_082_0154:0",
+      "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
       "source_html_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "b02-fact-dewatering-method-selection",
+      "skeleton_id": "b02-skel-明排适用边界",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "fcff776b5e775ee618b11745f3aafb4b2a6631a427b99cefb25dbaa08a021fa6",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "fcff776b5e775ee618b11745f3aafb4b2a6631a427b99cefb25dbaa08a021fa6",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "降水方案选择三原则:深度≤3m且软土→集水明排,>3m→井点。q6明排边界=同一选型事实的边界侧。忠实。三件套immediate_confirm。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -2366,30 +2512,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A422000_033_0055:4",
+      "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
       "source_html_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "b02-fact-dewatering-method-selection",
+      "skeleton_id": "b02-skel-降水方案综合诊断",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "f18c0a0cda17093fae443768e894c95e80d8ece1ddd0429e8c7d587daa1c9f1c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "f18c0a0cda17093fae443768e894c95e80d8ece1ddd0429e8c7d587daa1c9f1c",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:45:01+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "综合诊断三处失分,签首要判分眼=降水方法选型(轻型≤6m不够,宜管井/喷射;锚JGJ120地下水控制方法条款)。周边保护/监测主体两处教材支撑(kc:1A413000_083_0156:1、kc:1A413000_081_0152系)未进本题TOP_K候选,按G01/G03单锚先例记录于note,守零编造红线。三件套d1_probe。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "8d5284811af555e6072324b6646542323257ce869f91d25153b75454fe8f3ae5"
+  "published_lesson_sha256": "f9522edce096cb40f77a99414e1cd4020104356ea21304652fa7bc32e5f51c37"
 }

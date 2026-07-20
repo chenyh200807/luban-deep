@@ -1,0 +1,142 @@
+{
+ "pack_id": "S01",
+ "adversarial_gate_ref": "fable-cross-session + textbook arbitration 2026-07-20: 编译截断病三修(_S01_compiled_source.json repair_note x4)——T1 表3.4-1拆模分档漏抽逐字回填(2026教材 chunk 1A413030_099_0185)+kc:1A436000_115_0189:1 quote a-d细则回填; T4 kc:1A436000_009_0012:0 statement 50m论证门补全; T2 步距仲裁=2026教材全三卷无『立杆步距≤Xm』数值限值, practice2 q1 改锚垫板构造(kc:1A436000_112_0185:4, 教材1A436000_112_0185(1)逐字), 严禁按2m反向编造。15投影+拆除三件套逐题引文已回教材原文核对(fix_s01.log checkpoint 1-5)。",
+ "signed": [
+  {
+   "variant_id": "S01-html-practice-html-q1-053cee5462ee",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-luodi-50m-lunzheng-gate",
+   "skeleton_id": "s01-skel-40m编案不论证",
+   "source_anchor": "kc:1A436000_009_0012:0",
+   "note": "落地脚手架50m及以上属超一定规模须专家论证(教材直引,2026-07-20修复statement截断后); 24m起编专项方案半边靠 kc:1A436000_008_0011:0(同为本题机器候选)。40m=编案不论证。"
+  },
+  {
+   "variant_id": "S01-html-practice-html-q2-728c8d7a3d3b",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-mbzj-lunzheng-8m18m",
+   "skeleton_id": "s01-skel-模板支撑四阈值任一",
+   "source_anchor": "kc:1A436000_009_0012:0",
+   "note": "模板支撑高≥8m/跨≥18m/总荷载≥15kN/m²/线荷载≥20kN/m任一即超一定规模须论证, 教材直引。"
+  },
+  {
+   "variant_id": "S01-html-practice-html-q3-e0c3b346898f",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-weida-bianan-thresholds",
+   "skeleton_id": "s01-skel-编案门3m5m24m10kN",
+   "source_anchor": "kc:1A436000_008_0011:0",
+   "note": "危大编案门=基坑≥3m/模板支架≥5m/落地脚手架≥24m/吊装单件≥10kN, 教材直引。"
+  },
+  {
+   "variant_id": "S01-html-practice-html-q4-389eeeae4e0f",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-chaimu-fendang-75",
+   "skeleton_id": "s01-skel-梁6m跨75",
+   "source_anchor": "kc:1A413030_099_0187:1",
+   "note": "表3.4-1: 梁拱壳跨≤8m须达75%。6m梁→75%。教材表格逐字(2026-07-20补抽分档采分点后)。"
+  },
+  {
+   "variant_id": "S01-html-practice-html-q15-d99a0723feac",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-scoring-diagnosis-up",
+   "skeleton_id": "s01-skel-诊断16m论证门加分档100",
+   "source_anchor": "kc:1A413030_099_0187:1",
+   "note": "诊断末题: 底模一律75%错(跨>8m及悬臂须100%, 表3.4-1直引); 16m≥8m论证门半边靠 kc:1A436000_009_0012:0(同为本题机器候选)。复合诊断单锚溯源足(S02 q17先例)。"
+  },
+  {
+   "variant_id": "S01-html-practice2-html-q1-7d07babe4a3d",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-dianban-50-200",
+   "skeleton_id": "s01-skel-垫板30x150违规",
+   "source_anchor": "kc:1A436000_112_0185:4",
+   "note": "垫板厚≥50mm/宽≥200mm/长≥2跨, 教材1A436000_112_0185(1)逐字; 实测30/150违规。原步距2m判分眼教材无源已改题(T2仲裁)。"
+  },
+  {
+   "variant_id": "S01-html-practice2-html-q2-a40484831b45",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-saodigan-200mm",
+   "skeleton_id": "s01-skel-扫地杆350颠倒",
+   "source_anchor": "kc:1A436000_112_0185:2",
+   "note": "纵向扫地杆距底端≤200mm+横向在纵向下方, 教材直引; 350mm+颠倒双违规。"
+  },
+  {
+   "variant_id": "S01-html-practice2-html-q3-868c066e2109",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-free-height-2step-4m",
+   "skeleton_id": "s01-skel-自由高5m超4m",
+   "source_anchor": "kc:1A436000_005_0006:0",
+   "note": "一次搭设≤最上层连墙件2步且自由高≤4m, 教材直引; 5m违规。"
+  },
+  {
+   "variant_id": "S01-html-practice2-html-q4-6c9a4f7d2886",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-lianqiangjian-rigid",
+   "skeleton_id": "s01-skel-柔性钢筋违规",
+   "source_anchor": "kc:1A413030_121_0229:1",
+   "note": "连墙件应采用能承受压力和拉力的刚性构件(教材直引); 仅用钢筋柔性拉接违规。"
+  },
+  {
+   "variant_id": "S01-html-practice2-html-q15-4acb6ec051d4",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-chaichu-order",
+   "skeleton_id": "s01-skel-诊断拆除方向加随层拆",
+   "source_anchor": "kc:1A436000_006_0007:0",
+   "note": "诊断末题: 自上而下按步逐层/先外后内/连墙件随层同步严禁整层拆/悬臂超2步拉结, 教材1A436000_006_0007逐字。三联anchor。"
+  },
+  {
+   "variant_id": "S01-html-practice2-html-q11-5fc69b2766f1",
+   "probe_role": "immediate_confirm",
+   "fact_id": "s01-fact-chaichu-order",
+   "skeleton_id": "s01-skel-拆除总顺序口诀",
+   "source_anchor": "kc:1A436000_006_0007:0",
+   "note": "拆除总顺序=自上而下·先外后内·逐层同步·严禁交叉, 教材直引。三联immediate_confirm。"
+  },
+  {
+   "variant_id": "S01-html-practice2-html-q12-135565c63ff2",
+   "probe_role": "d1_probe",
+   "fact_id": "s01-fact-chaichu-order",
+   "skeleton_id": "s01-skel-连墙件随层拆时机",
+   "source_anchor": "kc:1A436000_006_0007:0",
+   "note": "连墙件随架体逐层同步拆/严禁先整层拆/悬臂段超2步临时拉结, 教材直引。三联d1_probe, skeleton与anchor/confirm互异。"
+  },
+  {
+   "variant_id": "S01-html-practice3-html-q1-f311ddc91759",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-mbzj-baozheng-items",
+   "skeleton_id": "s01-skel-保证项目6项",
+   "source_anchor": "kc:1A436000_107_0174:0",
+   "note": "模板支架保证项目=方案/基础/构造/稳定/荷载/交底与验收, 教材直引。"
+  },
+  {
+   "variant_id": "S01-html-practice3-html-q2-18ac847eb932",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-zhijiachaichu-yiban",
+   "skeleton_id": "s01-skel-支架拆除归一般",
+   "source_anchor": "kc:1A436000_107_0174:0",
+   "note": "支架拆除属一般项目, 教材直引(同锚不同skeleton)。"
+  },
+  {
+   "variant_id": "S01-html-practice3-html-q3-afe468e0891d",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-yanshou-4elements",
+   "skeleton_id": "s01-skel-验收四要素",
+   "source_anchor": "kc:1A436000_006_0008:0",
+   "note": "验收四要素=材料/支承固定/搭设质量/技术资料, 教材直引。"
+  },
+  {
+   "variant_id": "S01-html-practice3-html-q4-7fbcc8d360eb",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-jiancha-5nodes-6m",
+   "skeleton_id": "s01-skel-支撑架6m一查",
+   "source_anchor": "kc:1A436000_113_0186:0",
+   "note": "五阶段检查节点, 支撑架每2~4步或≤6m, 教材1A436000_113_0186逐字。"
+  },
+  {
+   "variant_id": "S01-html-practice3-html-q14-a5ffd07b57d0",
+   "probe_role": "anchor",
+   "fact_id": "s01-fact-scoring-diagnosis-down",
+   "skeleton_id": "s01-skel-诊断归类加卸料平台",
+   "source_anchor": "kc:1A436000_107_0174:0",
+   "note": "诊断末题: 支架拆除归一般项目(直引); 卸料平台严禁固定作业脚手架半边靠 kc:1A436000_006_0007:1(教材1A436000_006_0007(8)逐字, 同为本题机器候选)。复合诊断单锚溯源足。"
+  }
+ ]
+}

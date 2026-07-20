@@ -1,11 +1,11 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-20T09:41:28+00:00",
+  "generated_at": "2026-07-20T11:42:18+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "B02",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/b02.practice.review.json",
-  "score_threshold": 0.12,
+  "score_threshold": 0.25,
   "warnings": [],
   "coverage": {
     "total_items": 32,
@@ -21,7 +21,7 @@
           "quote": "危大工程判定标准：开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。 开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。",
           "match_score": 0.4853,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2021:第5题",
@@ -34,6 +34,20 @@
           "source_anchor": "exam:2017:问题1-5",
           "quote": "，经查，火灾是因为临时用电布置和刨花堆放不当引起。部分木工堆场临时用电现场布置剖面示意图见图 5。 【问题】 1、背景资料中，需要进行专家论证的专项施工方案有哪些?排桩支护结构方式还有哪些？ 2、指出图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 1、（1）需要进行专家论证的专项施工方案有：土方开挖、基坑支护、基坑降水、人工挖孔灌注桩、核心筒爬模。 （2",
           "match_score": 0.4727,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2017:第2题",
+          "quote": "负责人组织对工程进行检查验收，施工单位分别填写了《单位工程竣工验收记录表》中的“验收记录”、“验收结论”、“综合验收结论”。“综合验收结论”为“合格”。参加验收单位人员分别进行了签字。政府质量监督部门认为一些做法不妥，要求改正。 【问题】 1. 背景资料中，需要进行专家论证的专项施工方案有哪些？排桩支护结构方式还有哪些？ （1）需要进行专家论证的专项施工方案有：土方开挖、基坑支护、基坑降水、人工挖",
+          "match_score": 0.4636,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2017:案例五",
+          "quote": "【问题】 1、背景资料中，需要进行专家论证的专项施工方案有哪些?排桩支护结构方式还有哪些？ 2、指出图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 【解析】本题考查的是建筑工程安全管理、专项施工方案论证、临时用电规范、混凝土强度检测及工程验收流程。根据《危险性较大的分部分项工程安全管理规定》，需专家论证的专项方案包括：深基坑、高大模板、起重吊装等。临时用",
+          "match_score": 0.4545,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
@@ -62,11 +76,25 @@
           "match_score": 0.44,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2017:问题1-5",
+          "quote": "承包人提供的相关文件、资料、证件等。经有关主管部门（市政、交通、环保等）同意后，方可进行断路施工。 （2）施工单位做好相关的保护、防护方案和防护措施； （3）夜间施工，施工单位还应当申领夜间施工许可证； （4）事先公告附近居民（事先告示）； （5）设有标志。 【解析】本题考查的是专项施工方案论证、临时用电安全、混凝土强度检测及工程验收流程。关键点在于：1）专家论证范围包括深基坑、高大模板等；2）临",
+          "match_score": 0.44,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2021:第5题",
+          "quote": "需要进行专家论证的危险性较大的分部分项工程有（） A.开挖深度 6m 的基坑工程 B.搭设跨度 15m 的模板支撑工程 C.双机抬吊单件起重量为 150kN 的起重吊装工程 D.搭设高度 40m 的落地式钢管脚手架工程 E.施工高度 60m 的建筑幕墙安装工程 A.E 【解析】考察考点 1A431022 危险性较大的分部分项工程安全管理的有关规定 选项 A，开挖深度超过 5m(含 5m)的基坑(槽",
+          "match_score": 0.4283,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
     {
-      "variant_id": "B02-html-practice-html-q3-b8c928169e40",
+      "variant_id": "B02-html-practice-html-q3-6a140c0a38c3",
       "candidates": [
         {
           "source_anchor": "exam:2022:第30题",
@@ -80,40 +108,47 @@
           "quote": "安全等级为三级的支护结构是否必须进行水平位移监测？ 一级",
           "match_score": 0.36,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "kc:1A422000_027_0047:0",
           "quote": "基坑监测要求：安全等级为一级或二级的支护结构，必须进行水平位移和沉降监测。 安全等级为一级或二级的支护结构，必须进行水平位移和沉降监测。",
           "match_score": 0.3333,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "exam:2020:第20题",
+          "quote": "基坑开挖深度8m，基坑侧壁安全等级为一级，基坑支护结构形式宜选（ ）。 A. 水泥土墙 B. 原状土放坡 C. 土钉墙 D. 排桩 D 解析：深度8m属深基坑，安全等级一级要求高，排桩稳定性好，适合此类条件。",
+          "match_score": 0.2982,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "ca:1A422000_032_0054",
+          "quote": "地下连续墙的墙体厚度通常有哪些选项？ 600mm",
+          "match_score": 0.25,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
     {
-      "variant_id": "B02-html-practice-html-q4-40d9ef03bcab",
+      "variant_id": "B02-html-practice-html-q4-817b50177da8",
       "candidates": [
         {
-          "source_anchor": "kc:1A413000_081_0152:0",
-          "quote": "基坑监测实施条件：当基坑设计安全等级为一、二级，或开挖深度≥5m，或地质环境复杂时，必须实施监测。 当基坑设计安全等级为一、二级，或开挖深度≥5m，或地质环境复杂时，必须实施监测。",
-          "match_score": 0.2162,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_anchor": "exam:2020:案例五",
+          "quote": "。检查过程依据标准JGJ59的相关内容进行。项目安全总监也全程参加，检测结果如表5-1。 #### 表5-1 某办公楼工程建筑施工安全检查评分汇总表 | 工程名称 | 建筑面积（万m²） | 结构类型 | 总计得分 | 检查项目内容及分值 | |---|---|---|---|---| | 办公楼 | (A) | 框架结构 | | 安全管理 10 | 文明施工 15 | 脚手架 10 | 基坑工程",
+          "match_score": 0.3609,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         },
         {
-          "source_anchor": "ca:1A413000_082_0154",
-          "quote": "某基坑开挖深度为 4m，位于软土地区，地下水丰富，应如何选择降水方案？ 集水明排",
-          "match_score": 0.1935,
+          "source_anchor": "kc:1A422000_032_0053:1",
+          "quote": "支护结构选型综合因素：支护结构选型时，应综合考虑基坑深度，土的性状及地下水条件，基坑周边环境对基坑变形的承受能力及支护结构失效的后果，主体地下结构和基础形式及其施工方法、基坑平面尺寸及形状，支护结构施工工艺的可行性，施工场地条件及施工季节，经济指标、环保性能和施工工期。 支护结构选型时，应综合考虑下列因素：① 基坑深度；② 土的性状及地下水条件；③ 基坑周边环境对基坑变形的承受能力及支护结构失效的",
+          "match_score": 0.3551,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "ca:1A413000_081_0152",
-          "quote": "下列哪项不属于必须实施基坑监测的条件？ 安全等级",
-          "match_score": 0.1905,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -132,7 +167,7 @@
           "quote": "下列哪项属于超过一定规模的危大工程？ A. 搭设高度 7m 的混凝土模板支撑工程 B. 起重量 250kN 的起重机械安装工程 C. 施工高度 45m 的建筑幕墙安装工程 D. 开挖深度 16m 的人工挖孔桩工程 5m",
           "match_score": 0.3368,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2019:第2题",
@@ -140,6 +175,13 @@
           "match_score": 0.3362,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "kc:1A413000_080_0151:1",
+          "quote": "水泥土重力式围护墙：适用于淤泥质土、淤泥基坑，深度不宜大于7m；应连续搭接施工，顶部设钢筋混凝土压顶板；成桩后16h内完成钢管/钢筋插入。 适用于淤泥质土、淤泥基坑，深度不宜大于7m；应连续搭接施工，顶部设钢筋混凝土压顶板；成桩后16h内完成钢管/钢筋插入。",
+          "match_score": 0.3315,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -151,21 +193,35 @@
           "quote": "地下连续墙导墙施工要求：导墙厚度不应小于200mm，高度不应小于1.2m，顶面应高于地面100mm且高于地下水位0.5m以上，底部应进入原状土200mm以上。 导墙厚度不应小于200mm，高度不应小于1.2m，顶面应高于地面100mm且高于地下水位0.5m以上，底部应进入原状土200mm以上。",
           "match_score": 0.5917,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "kc:1A422000_032_0054:0",
           "quote": "地下连续墙墙体厚度：地下连续墙的墙体厚度宜根据成槽机的规格，选取 600mm、800mm、1000mm 或 1200mm。 地下连续墙的墙体厚度宜根据成槽机的规格，选取 600mm、800mm、1000mm 或 1200mm。",
           "match_score": 0.375,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "ca:1A422000_032_0054",
           "quote": "地下连续墙的墙体厚度通常有哪些选项？ 600mm",
           "match_score": 0.3625,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "exam:2023:第25题",
+          "quote": "关于地下连续墙施工要求，正确的有（ ）。 A. 下连续墙单元槽段长度宜为 8*10m B. 导墙高度不应小于 1.0m C. 应设置现浇钢筋混凝土导墙 D. 水下混凝土应采用导管法连续浇筑 E. 混凝土达到设计强度后方可进行墙底注浆 CDE 【解析】A 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。",
+          "match_score": 0.3528,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": "等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 错误之一：泛水高度为 200mm。正确做法：泛水高度至少为 250mm。 错误之二：阴阳角基层卷材防水为直角形式。 正确做法：阴阳角基层卷材做成 45 度角或圆弧型。 错误之三：女儿墙泛水处防水层没有做附加层。 正确做法：女儿墙泛水处的防水层下应增设附加层，附加层在平面和立面的宽度均不应小于 25",
+          "match_score": 0.3361,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
@@ -177,7 +233,7 @@
           "quote": "灌注桩排桩施工顺序：灌注桩排桩应采取间隔成桩的施工顺序，已完成浇筑混凝土的桩与邻桩间距应大于4倍桩径，或间隔施工时间应大于36h。 灌注桩排桩应采取间隔成桩的施工顺序，已完成浇筑混凝土的桩与邻桩间距应大于4倍桩径，或间隔施工时间应大于36h。",
           "match_score": 0.6652,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2024:第13页",
@@ -192,6 +248,13 @@
           "match_score": 0.2598,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2024:案例题（二）",
+          "quote": "节点2→4: D - 节点4→6: E - 节点6→8: H - 节点1→3: B - 节点3→7: F - 节点7→8: I - 节点1→4: C - 节点4→7: G 图2 项目网络进度计划图（局部）公司技术部门在审核基坑专项施工方案时，提出以下内容存在不妥之处，要求修改： (1) 灌注桩桩身设计强度等级C20，采用水下灌注时提高一个等级； (2) 高压旋喷桩截水帷幕与灌注桩排桩净距小 1. ",
+          "match_score": 0.2598,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
@@ -203,7 +266,7 @@
           "quote": "土钉墙施工原则：土钉墙施工必须遵循“超前支护，分层分段，逐层施作，限时封闭，严禁超挖”的原则。 土钉墙施工必须遵循“超前支护，分层分段，逐层施作，限时封闭，严禁超挖”的原则。",
           "match_score": 0.7576,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2021:第11题",
@@ -217,7 +280,14 @@
           "quote": "关于土钉墙施工，下列说法错误的是？ 超前支护",
           "match_score": 0.5,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "exam:2019:第27题",
+          "quote": "基坑土钉墙施工需遵循的原则有（ ）。 A. 同步支护 B. 分层分段 C. 多层施作 D. 限时封闭 E. 严禁超挖 BDE 基坑土钉墙施工需遵循的原则：分层分段、限时封闭、严禁超挖。A同步支护和C多层施作不是土钉墙施工原则。",
+          "match_score": 0.4884,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
@@ -229,7 +299,7 @@
           "quote": "土钉墙坡比限制：土钉墙、预应力锚杆复合土钉墙的坡比（墙面垂直高度与水平宽度的比值）不宜大于1:0.2。 土钉墙、预应力锚杆复合土钉墙的坡比（墙面垂直高度与水平宽度的比值）不宜大于1:0.2。",
           "match_score": 0.5593,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2021:第11题",
@@ -243,7 +313,21 @@
           "quote": "关于土钉墙的构造要求，下列说法错误的是？ 坡比",
           "match_score": 0.2579,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "kc:1A413000_078_0149:2",
+          "quote": "喷射混凝土厚度与强度：土钉墙高度不大于12m时，喷射混凝土面层厚度80～100mm，设计强度等级不低于C20。 土钉墙高度不大于12m时，喷射混凝土面层厚度80～100mm，设计强度等级不低于C20。",
+          "match_score": 0.2537,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "exam:2022:第(三)题",
+          "quote": "拔管；（1.0分）\\n③ 成桩。（1.0分）\\n\\n2. (本小题5.0分)\\n(1) 还包括：\\n① 混凝土浇筑体的温升值；（1.0分）\\n② 混凝土浇筑体里表温差；（1.0分）\\n③ 混凝土浇筑体降温速率。（1.0分）\\n(2) 厚度方向布置点：\\n应至少布置表层、底层和中心温度测点，测点间距不宜大于500mm。（2.0分）\\n\\n3. (本小题5.0分)\\n(1) 容易出现：麻面、蜂窝、孔洞",
+          "match_score": 0.2537,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
@@ -255,7 +339,7 @@
           "quote": "土钉墙施工原则：土钉墙施工必须遵循“超前支护，分层分段，逐层施作，限时封闭，严禁超挖”的原则。 土钉墙施工必须遵循“超前支护，分层分段，逐层施作，限时封闭，严禁超挖”的原则。",
           "match_score": 0.5152,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2019:第27题",
@@ -281,21 +365,14 @@
           "quote": "锚杆布置关键参数：锚杆上下排垂直间距不宜小于 2.0m，水平间距不宜小于 1.5m；锚固体上覆土层厚度不宜小于 4.0m；倾角宜为 15°～25°，不应大于 45°，不应小于 10°。 锚杆上下排垂直间距不宜小于 2.0m，水平间距不宜小于 1.5m；锚固体上覆土层厚度不宜小于 4.0m；倾角宜为 15°～25°，不应大于 45°，不应小于 10°。",
           "match_score": 0.6161,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "ca:1A422000_033_0055",
           "quote": "关于锚杆布置的规定，下列说法正确的是？ 垂直间距",
           "match_score": 0.315,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "exam:2015:案例2",
-          "quote": " 测项目进行了见证取样或抽样检查。 事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度 不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小 于 1.5m",
-          "match_score": 0.2403,
-          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
-          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -307,21 +384,7 @@
           "quote": "锚杆张拉要求：锚固段强度≥15MPa且达设计强度75%后方可张拉；正式张拉至1.05~1.10倍设计值，岩层/砂土保持10min，黏性土保持15min。 锚固段强度≥15MPa且达设计强度75%后方可张拉；正式张拉至1.05~1.10倍设计值，岩层/砂土保持10min，黏性土保持15min。",
           "match_score": 0.6306,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "kc:1A413000_078_0149:3",
-          "quote": "注浆压力与终止条件：注浆压力应控制在2MPa以内，注浆总量达到设计要求或注浆量达到80%以上，压力达到2MPa可终止注浆。 注浆压力应控制在2MPa以内，注浆总量达到设计要求或注浆量达到80%以上，压力达到2MPa可终止注浆。",
-          "match_score": 0.16,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "exam:2017:第2题",
-          "quote": "度的平均值：（28.5+31+32）/3=30.8（35×88%=30.8），小于设计要求的混凝土强度等级值88%，为不合格；2）钻芯检测的三个芯样的抗压强度的最小值：28.5>35×80%=28，不小于设计要求的混凝土强度等级值80%，为合格；但因平均值不达标，整体判定为不合格。 依据GB50204-2015《混凝土结构验收规范》，钻芯法检测需由第三方独立完成，且判定标准为平均值≥设计强度×88",
-          "match_score": 0.1424,
-          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
-          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -333,21 +396,7 @@
           "quote": "地下连续墙的墙体厚度通常有哪些选项？ 600mm",
           "match_score": 0.25,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "ca:1A413000_077_0148",
-          "quote": "下列关于地下连续墙施工要求的说法中，错误的是？ 导墙厚度",
-          "match_score": 0.2083,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "kc:1A422000_032_0054:0",
-          "quote": "地下连续墙墙体厚度：地下连续墙的墙体厚度宜根据成槽机的规格，选取 600mm、800mm、1000mm 或 1200mm。 地下连续墙的墙体厚度宜根据成槽机的规格，选取 600mm、800mm、1000mm 或 1200mm。",
-          "match_score": 0.2083,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -373,7 +422,21 @@
           "quote": "下列哪项属于超过一定规模的危大工程？ A. 搭设高度 7m 的混凝土模板支撑工程 B. 起重量 250kN 的起重机械安装工程 C. 施工高度 45m 的建筑幕墙安装工程 D. 开挖深度 16m 的人工挖孔桩工程 5m",
           "match_score": 0.3737,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地 ≥ 50m 或附着 ≥ 150m 或悬挑 ≥ 20m - 幕墙：",
+          "match_score": 0.3568,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "kc:1A413000_083_0156:0",
+          "quote": "真空降水井管适用条件：适用于渗透系数 > 1×10⁻⁶ cm/s 的土层，降水深度 > 6m，管径 ≥ 200mm，水平间距 ≤ 25m。 适用于渗透系数 > 1×10⁻⁶ cm/s 的土层，降水深度 > 6m，管径 ≥ 200mm，水平间距 ≤ 25m。",
+          "match_score": 0.35,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -385,21 +448,7 @@
           "quote": "锚杆张拉要求：锚固段强度≥15MPa且达设计强度75%后方可张拉；正式张拉至1.05~1.10倍设计值，岩层/砂土保持10min，黏性土保持15min。 锚固段强度≥15MPa且达设计强度75%后方可张拉；正式张拉至1.05~1.10倍设计值，岩层/砂土保持10min，黏性土保持15min。",
           "match_score": 0.5917,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "exam:2024:案例题（二）",
-          "quote": "(1) B→E→I；(2) 工作A的总时差为2周；工作F的总时差为3周。(3) ①工期索赔成立；②工期索赔不成立。 2. (1) 排桩混凝土灌注桩身混凝土强度不应低于C25。(2) 应先施工灌注桩，后施工截水帷幕。(3) 灌注桩顶部泛浆高度不应小于500mm。(4) 基坑内支撑的拆除顺序应与支撑结构的设计工况一致。(5) 应由建设方委托具备相应资质的第三方进行基坑监测。 3. A—技术；B—商务；",
-          "match_score": 0.2167,
-          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
-          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
-        },
-        {
-          "source_anchor": "exam:2024:第13页",
-          "quote": "C、D、E、F、G、H、I。 公司技术部门在审核基坑专项施工方案时，提出以下内容存在不妥之处，要求修改： （1）灌注桩桩身设计强度等级C20，采用水下灌注时提高一个等级； （2）高压旋喷桩截水帷幕与灌注桩排桩净距小于200mm，先施工截水帷幕，后施工灌注桩； （3）灌注桩顶部泛浆高度不大于300mm，节约混凝土用量； （4）基坑内支撑的拆除顺序根据现场施工情况调整； （5）项目部委托具备相应 1.",
-          "match_score": 0.2167,
-          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
-          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -411,21 +460,14 @@
           "quote": "浅基坑支护类型：斜柱支撑：适用于大型浅基坑；水平锚拉：适用于大面深基坑；型钢桩横挡板：适用于低水位黏性土；短桩横隔板：适用于宽基坑；临时挡土墙：适用于宽基坑；挡土灌注桩：适用于邻近建筑的浅基坑。 斜柱支撑：适用于大型浅基坑；水平锚拉：适用于大面深基坑；型钢桩横挡板：适用于低水位黏性土；短桩横隔板：适用于宽基坑；临时挡土墙：适用于宽基坑；挡土灌注桩：适用于邻近建筑的浅基坑。",
           "match_score": 0.3443,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "ca:1A413000_076_0147",
           "quote": "下列哪种支护方式适用于地下水位较低、深度稍大的黏性土层？ 型钢桩横挡板支撑",
           "match_score": 0.3333,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "ca:1A422000_032_0053",
-          "quote": "基坑支护设计使用期限不应小于多少年？ 一年",
-          "match_score": 0.1667,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -451,7 +493,7 @@
           "quote": "下列关于真空降水井管的说法中，正确的是？ 渗透系数",
           "match_score": 0.2857,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -478,6 +520,20 @@
           "match_score": 0.3103,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "ca:1A413000_083_0156",
+          "quote": "下列关于真空降水井管的说法中，正确的是？ 渗透系数",
+          "match_score": 0.2857,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "ca:1A413000_082_0155",
+          "quote": "下列关于轻型井点的说法，错误的是？ 轻型井点",
+          "match_score": 0.2667,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -489,19 +545,26 @@
           "quote": "喷射井点技术参数：喷射井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的土层，降水深度 8～20m。设备简单，排水量大，施工快，费用低，适用于碎石土和黄土。 喷射井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的土层，降水深度 8～20m。设备简单，排水量大，施工快，费用",
           "match_score": 0.36,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "kc:1A413000_082_0155:0",
           "quote": "轻型井点技术参数：轻型井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的土层，降水深度 ≤6m。管径 38～55mm，长度 6～9m，水平间距 0.8～1.6m，排距 ≤20m。多级轻型井点可达到 6～10m 深度。 轻型井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的",
           "match_score": 0.32,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2021:第5题",
           "quote": "22 危险性较大的分部分项工程安全管理的有关规定 选项 A，开挖深度超过 5m(含 5m)的基坑(槽)的土方开挖、支护、降水工程。 选项 B，混凝土模板支撑工程搭设高度 8m 及以上;搭设跨度 18m 及以上施工总荷载(设计值)15kN/m2 及以上或集中线荷载(设计值)20kN/m 及以上。 选项 C，1 采用非常规起重设备、方法，且单件起吊重量在 100kN 及以上的起重吊装工程 2 起重量 ",
           "match_score": 0.3,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2016:案例3",
+          "quote": "【背景资料】某新建工程，建筑面积15000m2，地下二层，地上五层，钢筋混凝土框架 结构采用800mm 厚钢筋混凝土筏板基础，建筑总高20m。建设单位与某施工总承包单位 签订了总承包合同。施工总承包单位将建设工程的基坑工程分包给了建设单位指定的专业 分包单位。 施工总承包单位项目经理部成立了安全生产领导小组，并配备了3 名土建类专业安全 员，项目经理部对现场的施工安全危险源进行了分辩识别。编制了项",
+          "match_score": 0.26,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
@@ -515,7 +578,7 @@
           "quote": "轻型井点技术参数：轻型井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的土层，降水深度 ≤6m。管径 38～55mm，长度 6～9m，水平间距 0.8～1.6m，排距 ≤20m。多级轻型井点可达到 6～10m 深度。 轻型井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的",
           "match_score": 0.4842,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2023:第25题",
@@ -530,6 +593,20 @@
           "match_score": 0.3474,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2025:第25题",
+          "quote": "降水深度（地面以下）大于6米的降水技术有（ ） A.轻型井点 B.多级轻型井点 C.降水管井 D.喷射井点 E.真空降水管井 BCDE 【解析】降水深度大于6米时，可采用多级轻型井点、降水管井、喷射井点、真空降水管井等技术。",
+          "match_score": 0.2842,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "ca:1A413000_082_0155",
+          "quote": "下列关于轻型井点的说法，错误的是？ 轻型井点",
+          "match_score": 0.28,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -541,7 +618,7 @@
           "quote": "地下水位以下挖土降水要求：在地下水位以下挖土，应将水位降低至坑底以下500mm以上，且降水工作应持续到基础施工完成。 在地下水位以下挖土，应将水位降低至坑底以下500mm以上，且降水工作应持续到基础施工完成。",
           "match_score": 0.6051,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2024:第13页",
@@ -556,6 +633,20 @@
           "match_score": 0.3714,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2024:案例题（二）",
+          "quote": "【背景资料】某商品住宅项目，地下2层，地上12~18层，装配式剪力墙结构，总建筑面积8.4万平方米。施工总承包单位中标后组建项目部进场施工。项目部编制了网络进度计划，如图2所示。施工过程中发生了以下事件：①由于设计变更，致使工作E工程量增加，作业时间延长2周；②施工单位的施工机械出现故障，需订购零部件替换，致使工作G作业时间延长1周。 #### 图--2 双代号网络图： - 节点1→2: A - ",
+          "match_score": 0.3714,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "exam:2016:案例1",
+          "quote": "【背景资料】某综合楼工程，地下三层，地上二十层，总建筑面积68000m2。地基基础 设计等级为甲级，灌注桩筏板基础，现浇钢筋混凝土框架- 剪力墙结构，建设单位与施工 单位按照《建设工程施工合同( 示范文本)》(GF—2013—0201) 签订了施工合同，约定竣工 时需向建设单位移交变形测量报告，部分主要材料由建设单位采购提供。施工单位委托第 三方测量单位进行施工阶段的建筑变形测量。 基础桩设计桩径",
+          "match_score": 0.3571,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
@@ -567,21 +658,28 @@
           "quote": "降水方案选择三原则：降水方案选择应综合考虑地质、水文、环境、支护设计等因素。基本原则：1）深度≤3m且软土→集水明排；2）深度>3m→井点降水；3）危及周边安全→截水或回灌；4）承压水→验算突涌，必要时封底或减压。 降水方案选择应综合考虑地质、水文、环境、支护设计等因素。基本原则：1）深度≤3m且软土→集水明排；2）深度>3m→井点降水；3）危及周边安全→截水或回灌；4）承压水→验算突涌，必要时封",
           "match_score": 0.3622,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "kc:1A436000_008_0011:0",
           "quote": "危大工程判定标准：开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。 开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。",
           "match_score": 0.3618,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "kc:1A413000_084_0157:0",
           "quote": "深基坑开挖分层厚度控制：深基坑开挖时，分层厚度宜控制在3m以内。 深基坑开挖时，分层厚度宜控制在3m以内。",
           "match_score": 0.3368,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "exam:2016:案例3",
+          "quote": "【背景资料】某新建工程，建筑面积15000m2，地下二层，地上五层，钢筋混凝土框架 结构采用800mm 厚钢筋混凝土筏板基础，建筑总高20m。建设单位与某施工总承包单位 签订了总承包合同。施工总承包单位将建设工程的基坑工程分包给了建设单位指定的专业 分包单位。 施工总承包单位项目经理部成立了安全生产领导小组，并配备了3 名土建类专业安全 员，项目经理部对现场的施工安全危险源进行了分辩识别。编制了项",
+          "match_score": 0.3,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
@@ -593,21 +691,35 @@
           "quote": "截水帷幕关键参数：截水帷幕渗透系数宜 < 1.0×10⁻⁶ cm/s，应插入不透水层或结合井点降水使用。 截水帷幕渗透系数宜 < 1.0×10⁻⁶ cm/s，应插入不透水层或结合井点降水使用。",
           "match_score": 0.5333,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "kc:1A413000_083_0156:0",
           "quote": "真空降水井管适用条件：适用于渗透系数 > 1×10⁻⁶ cm/s 的土层，降水深度 > 6m，管径 ≥ 200mm，水平间距 ≤ 25m。 适用于渗透系数 > 1×10⁻⁶ cm/s 的土层，降水深度 > 6m，管径 ≥ 200mm，水平间距 ≤ 25m。",
           "match_score": 0.4,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "kc:1A413000_082_0155:0",
           "quote": "轻型井点技术参数：轻型井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的土层，降水深度 ≤6m。管径 38～55mm，长度 6～9m，水平间距 0.8～1.6m，排距 ≤20m。多级轻型井点可达到 6～10m 深度。 轻型井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的",
           "match_score": 0.3875,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "kc:1A413000_082_0155:1",
+          "quote": "喷射井点技术参数：喷射井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的土层，降水深度 8～20m。设备简单，排水量大，施工快，费用低，适用于碎石土和黄土。 喷射井点适用于渗透系数 $1 \\times 10^{-7} \\sim 2 \\times 10^{-4}$ cm/s 的土层，降水深度 8～20m。设备简单，排水量大，施工快，费用",
+          "match_score": 0.3795,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "exam:2017:问题1-5",
+          "quote": "，经查，火灾是因为临时用电布置和刨花堆放不当引起。部分木工堆场临时用电现场布置剖面示意图见图 5。 【问题】 1、背景资料中，需要进行专家论证的专项施工方案有哪些?排桩支护结构方式还有哪些？ 2、指出图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 1、（1）需要进行专家论证的专项施工方案有：土方开挖、基坑支护、基坑降水、人工挖孔灌注桩、核心筒爬模。 （2",
+          "match_score": 0.2984,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
@@ -619,21 +731,7 @@
           "quote": "井点回灌技术原理：通过回灌井点将抽出的地下水重新注入地基，维持原地下水位平衡，防止周边沉降。 通过回灌井点将抽出的地下水重新注入地基，维持原地下水位平衡，防止周边沉降。",
           "match_score": 0.4211,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "ca:1A413000_083_0156",
-          "quote": "下列关于真空降水井管的说法中，正确的是？ 渗透系数",
-          "match_score": 0.1429,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "ca:1A413000_082_0155",
-          "quote": "下列关于轻型井点的说法，错误的是？ 轻型井点",
-          "match_score": 0.1333,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -645,21 +743,35 @@
           "quote": "深基坑开挖分层厚度控制：深基坑开挖时，分层厚度宜控制在3m以内。 深基坑开挖时，分层厚度宜控制在3m以内。",
           "match_score": 0.5211,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "kc:1A413000_084_0157:1",
           "quote": "基坑开挖预留土层厚度：人工挖土时，预留150～300mm土层；机械挖土时，预留200～300mm土层人工挖除。 人工挖土时，预留150～300mm土层；机械挖土时，预留200～300mm土层人工挖除。",
           "match_score": 0.4,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "ca:1A413000_084_0157",
           "quote": "关于深基坑开挖的说法，正确的是？ 分层厚度",
           "match_score": 0.3706,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "kc:1A436000_008_0011:0",
+          "quote": "危大工程判定标准：开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。 开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。",
+          "match_score": 0.3412,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "exam:2016:案例3",
+          "quote": "m 厚钢筋混凝土筏板基础，建筑总高20m。建设单位与某施工总承包单位 签订了总承包合同。施工总承包单位将建设工程的基坑工程分包给了建设单位指定的专业 分包单位。 施工总承包单位项目经理部成立了安全生产领导小组，并配备了3 名土建类专业安全 员，项目经理部对现场的施工安全危险源进行了分辩识别。编制了项目现场防汛应急救援 预案，按规定履行了审批手续，并要求专业分包单位按照应急救援预案进行一次应急演练。",
+          "match_score": 0.3382,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
@@ -671,21 +783,14 @@
           "quote": "基坑开挖关键控制点：基坑土方开挖必须与设计工况一致，严禁超挖；软土基坑高差≤1m；土方开挖不得损坏支护结构、降水设施和工程桩。 基坑土方开挖必须与设计工况一致，严禁超挖；软土基坑高差≤1m；土方开挖不得损坏支护结构、降水设施和工程桩。",
           "match_score": 0.3542,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "ca:1A413000_084_0157",
           "quote": "关于深基坑开挖的说法，正确的是？ 分层厚度",
           "match_score": 0.2941,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "exam:2017:问题1-5",
-          "quote": "，经查，火灾是因为临时用电布置和刨花堆放不当引起。部分木工堆场临时用电现场布置剖面示意图见图 5。 【问题】 1、背景资料中，需要进行专家论证的专项施工方案有哪些?排桩支护结构方式还有哪些？ 2、指出图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 1、（1）需要进行专家论证的专项施工方案有：土方开挖、基坑支护、基坑降水、人工挖孔灌注桩、核心筒爬模。 （2",
-          "match_score": 0.2157,
-          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
-          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -697,14 +802,14 @@
           "quote": "基坑监测实施条件：当基坑设计安全等级为一、二级，或开挖深度≥5m，或地质环境复杂时，必须实施监测。 当基坑设计安全等级为一、二级，或开挖深度≥5m，或地质环境复杂时，必须实施监测。",
           "match_score": 0.5095,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "ca:1A413000_081_0152",
           "quote": "下列哪项不属于必须实施基坑监测的条件？ 安全等级",
           "match_score": 0.3333,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         },
         {
           "source_anchor": "exam:2016:案例1",
@@ -712,6 +817,13 @@
           "match_score": 0.29,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地 ≥ 50m 或附着 ≥ 150m 或悬挑 ≥ 20m - 幕墙：",
+          "match_score": 0.2645,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -724,20 +836,6 @@
           "match_score": 0.3171,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
-        },
-        {
-          "source_anchor": "kc:1A413000_072_0139:0",
-          "quote": "变形监测对象：施工期间必须进行变形监测的对象包括：安全等级一、二级基坑；甲级地基或软弱地基上的乙级地基；长大跨度或体形狭长结构；重要基础设施；设计或施工要求监测的其他对象。 施工期间必须进行变形监测的对象包括：安全等级一、二级基坑；甲级地基或软弱地基上的乙级地基；长大跨度或体形狭长结构；重要基础设施；设计或施工要求监测的其他对象。",
-          "match_score": 0.2,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "ca:1A413000_072_0139",
-          "quote": "下列哪些对象在施工期间必须进行变形监测？（多选） 一级、二级基坑",
-          "match_score": 0.1923,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
         }
       ]
     },
@@ -764,6 +862,20 @@
           "match_score": 0.3488,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
+        },
+        {
+          "source_anchor": "ca:1A413000_081_0152",
+          "quote": "下列哪项不属于必须实施基坑监测的条件？ 安全等级",
+          "match_score": 0.2857,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "exam:2016:案例1",
+          "quote": "【背景资料】某综合楼工程，地下三层，地上二十层，总建筑面积68000m2。地基基础 设计等级为甲级，灌注桩筏板基础，现浇钢筋混凝土框架- 剪力墙结构，建设单位与施工 单位按照《建设工程施工合同( 示范文本)》(GF—2013—0201) 签订了施工合同，约定竣工 时需向建设单位移交变形测量报告，部分主要材料由建设单位采购提供。施工单位委托第 三方测量单位进行施工阶段的建筑变形测量。 基础桩设计桩径",
+          "match_score": 0.2558,
+          "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
+          "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
         }
       ]
     },
@@ -775,21 +887,7 @@
           "quote": "基坑危险报警七项条件：当出现以下任一情况时，必须立即报警并采取应急措施：①位移突增或流沙/管涌/隆起/陷落；②支撑/锚杆过大变形、压曲、断裂、松弛或拔出；③周边建筑出现危害性裂缝；④地面突发裂缝或下陷；⑤管线变形突增或泄漏；⑥冻土区温度显著上升导致冻融变形；⑦其他危险情况。 当出现以下任一情况时，必须立即报警并采取应急措施：①位移突增或流沙/管涌/隆起/陷落；②支撑/锚杆过大变形、压曲、断裂、松弛",
           "match_score": 0.4348,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "ca:1A437000_134_0216",
-          "quote": "下列关于基坑监测点布置的说法中，错误的是？ 围护墙",
-          "match_score": 0.2381,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "ca:1A413000_082_0153",
-          "quote": "下列哪一项不属于基坑危险报警的条件？ 位移值突然增大",
-          "match_score": 0.2174,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     },
@@ -802,20 +900,6 @@
           "match_score": 0.3492,
           "source_file": "docs/原始数据/考点原料/_B02_exam_evidence.json",
           "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7"
-        },
-        {
-          "source_anchor": "ca:1A436000_110_0181",
-          "quote": "某基坑出现严重流沙，应如何处理？ 流沙",
-          "match_score": 0.2143,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
-        },
-        {
-          "source_anchor": "kc:1A413000_082_0154:0",
-          "quote": "降水方案选择三原则：降水方案选择应综合考虑地质、水文、环境、支护设计等因素。基本原则：1）深度≤3m且软土→集水明排；2）深度>3m→井点降水；3）危及周边安全→截水或回灌；4）承压水→验算突涌，必要时封底或减压。 降水方案选择应综合考虑地质、水文、环境、支护设计等因素。基本原则：1）深度≤3m且软土→集水明排；2）深度>3m→井点降水；3）危及周边安全→截水或回灌；4）承压水→验算突涌，必要时封",
-          "match_score": 0.127,
-          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
         }
       ]
     },
@@ -841,7 +925,14 @@
           "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地 ≥ 50m 或附着 ≥ 150m 或悬挑 ≥ 20m - 幕墙：",
           "match_score": 0.3152,
           "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
-          "source_sha256": "bbbcbfd1aac609ae4f359a46d629b86a621f1965b0e0ac485a66b1eb676e2cb5"
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
+        },
+        {
+          "source_anchor": "kc:1A422000_033_0055:4",
+          "quote": "地下水控制方法：基坑降水可用管井、真空井点、喷射井点；水位应低于坑底0.5m；真空井点间距0.8～2.0m；喷射井点间距1.5～3.0m；深度>6m时可用多级井点，高差4～5m。 基坑降水可用管井、真空井点、喷射井点；水位应低于坑底0.5m；真空井点间距0.8～2.0m；喷射井点间距1.5～3.0m；深度>6m时可用多级井点，高差4～5m。",
+          "match_score": 0.2667,
+          "source_file": "docs/原始数据/考点原料/_B02_compiled_source.json",
+          "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe"
         }
       ]
     }

@@ -175,7 +175,9 @@ def test_exact_due_probe_resolution_requires_cycle_and_available_supply() -> Non
     ) is None
 
 
-def test_learned_yesterday_due_today_learned_today_not_due():
+def test_learned_yesterday_due_today_learned_today_not_due(pendingize_pack):
+    # F16 于 2026-07-20 补题批签发;fail-closed 断言改用合成 pending 世界态守约。
+    pendingize_pack("F16")
     out = build_review_due_projection(
         user_id="u1",
         events=[
@@ -336,10 +338,12 @@ def test_station_without_matching_terminal_is_not_a_completion():
     assert out["learned_count"] == 0
 
 
-def test_variantless_green_pack_marks_retest_unavailable():
-    """无变体池的绿灯站照常到期, 但 retest_available=False——客户端据此
-    fail-closed 隐藏'换皮'承诺句(F05 为 wave1 如实跳过建池的绿灯站:
-    其 pack 自检把机械扣分判断收归 R7 🔴, 结构性无池, 是本断言的稳定 fixture)。"""
+def test_variantless_green_pack_marks_retest_unavailable(pendingize_pack):
+    """无可签发复测供给的绿灯站照常到期, 但 retest_available=False——客户端据此
+    fail-closed 隐藏'换皮'承诺句(F05 曾是 wave1 结构性无池的稳定 fixture;
+    2026-07-20 补题批签发后改用合成 pending 世界态保住同一契约:到期调度与
+    复测供给正交, 供给未签发时绝不承诺换皮复测)。"""
+    pendingize_pack("F05")
     out = build_review_due_projection(
         user_id="u1",
         events=_completion_pair("2026-07-03T09:00:00+08:00", "F05", completion_id="cmp_f05_1"),

@@ -241,8 +241,8 @@ class Component extends DCLogic {
   SHOW_COUNT = 5;
   state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
   examTitle="桩基施工与质量问题";
-  KNOWLEDGE="桩基施工与质量问题(合并练习,覆盖预制桩/灌注桩/桩基检测)。预制桩:强度≥70%起吊、≥100%运输打桩;沉桩先深后浅、先大后小、先长后短、先密后疏,密集桩群从中间向四周;锤击宜重锤低击或低锤重打;静压试压桩≥3根、不得边压边挖;终止摩擦桩以标高为主、端承桩以压力为主;断桩五因(弯曲/障碍物/不直/偏心/强度不足)+防治(清障/查桩身/垂直沉桩/接桩对中/防运输损伤)。灌注桩:四工法(泥浆护壁/沉管/长螺旋钻孔压灌/干作业);泥浆护壁流程平整→放线→浆池→护筒→成孔→清孔→下钢筋笼→浇筑→成桩;沉渣端承≤50/摩擦≤100/抗拔≤200mm;坍落度180~220;超灌0.8~1.0m(凿浮浆);充盈系数≥1;沉管边振边拔续浇+单打/复打/反插;挖孔桩距<2.5m隔开挖、最小≥5m、先中间后周边;桩底注浆以注浆量为主(总量达设计或≥80%且压力>设计);干作业孔底虚土≤100mm超则二次投钻/勺钻/压力灌浆;泥浆护壁坍孔四防(护壁效果/水头压力/钻进参数/孔口处理)。检测:5法(静载/钻芯/低应变/高应变/声波透射);承载力静载或高应变、持力层钻芯、缺陷低应变/声波透射;低应变/声波透射前置强度≥70%且≥15MPa、钻芯龄期≥28d;完整性Ⅰ完整/Ⅱ轻微不影响/Ⅲ明显影响/Ⅳ严重;钻芯孔数<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔;承载力甲级静载≥1%且≥3根(<50根≥2根);完整性≥20%且≥10根、每承台≥1根,甲级或可靠性低灌注桩≥30%且≥20根。";
-  moreText="按薄弱轴补练：预制桩(强度70/100·沉桩四先四后·重锤低击·静压终止·断桩五因)、灌注桩(四工法·护壁流程·沉渣50/100/200·超灌0.8~1.0m·沉管单打复打反插·挖孔≥5m·桩底注浆·虚土坍孔)、桩基检测(5法适用·前置强度·完整性Ⅰ-Ⅳ·钻芯孔数·抽检比例)。每错项对着「正确补这句」抄进答题纸，纠错型先照抄题干不妥、再写正确做法、数字写准。";
+  KNOWLEDGE="桩基施工与质量问题(合并练习,覆盖预制桩/灌注桩/桩基检测)。预制桩:强度≥70%起吊、≥100%运输打桩;沉桩先深后浅、先大后小、先长后短、先密后疏,密集桩群从中间向四周;锤击宜重锤低击或低锤重打;静压试压桩≥3根、不得边压边挖;终止摩擦桩以标高为主、端承桩以压力为主;断桩五因(弯曲/障碍物/不直/偏心/强度不足)+防治(清障/查桩身/垂直沉桩/接桩对中/防运输损伤)。灌注桩:四工法(泥浆护壁/沉管/长螺旋钻孔压灌/干作业);泥浆护壁流程平整→放线→浆池→护筒→成孔→清孔→下钢筋笼→浇筑→成桩;沉渣端承≤50/摩擦≤100/抗拔≤200mm;坍落度180~220;超灌高度应高于设计桩顶标高1m以上(凿浮浆;2016官答曾用0.8~1.0m旧口径,现行2026教材为准);充盈系数≥1;沉管边振边拔续浇+单打/复打/反插;挖孔桩距<2.5m隔开挖、最小≥5m、先中间后周边;桩底注浆以注浆量为主(总量达设计或≥80%且压力>设计);干作业孔底虚土≤100mm超则二次投钻/勺钻/压力灌浆;泥浆护壁坍孔成因(泥浆比重不够/水头高度不足或承压水/护筒埋置太浅/进尺过快空转/冲击锥撞击孔壁/炸药量过大)与四防(护壁效果/水头压力/钻进参数/孔口处理,孔口坍塌回填砂黏土至坍孔位置以上1~2m)。检测:5法(静载/钻芯/低应变/高应变/声波透射);承载力静载或高应变、持力层钻芯、缺陷低应变/声波透射;低应变/声波透射前置强度≥70%且≥15MPa、钻芯龄期≥28d;完整性Ⅰ完整/Ⅱ轻微不影响/Ⅲ明显影响/Ⅳ严重;钻芯孔数<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔;承载力甲级静载≥1%且≥3根(<50根≥2根);完整性≥20%且≥10根、每承台≥1根,甲级或可靠性低灌注桩≥30%且≥20根。";
+  moreText="按薄弱轴补练：预制桩(强度70/100·沉桩四先四后·重锤低击·静压终止·断桩五因)、灌注桩(四工法·护壁流程·沉渣50/100/200·超灌1m以上·沉管单打复打反插·挖孔≥5m·桩底注浆·虚土坍孔)、桩基检测(5法适用·前置强度·完整性Ⅰ-Ⅳ·钻芯孔数·抽检比例)。每错项对着「正确补这句」抄进答题纸，纠错型先照抄题干不妥、再写正确做法、数字写准。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
 { tag:"定性·条件维", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"题给：灌注桩成孔工法", figCaption:"按成孔工艺分类 · 你来定性", fig:"gongfa",
@@ -281,14 +281,14 @@ class Component extends DCLogic {
         { t:"试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。", ok:true, fix:"试压桩根数、不得边压边挖、终止标准按桩型，三项齐，得分。", code:"" },
         { t:"只要压桩力大于机架配重即可终止，无须另行设置试压桩加以验证。", ok:false, code:"E02", tempt:"只盯压桩力。", lose:"漏试压桩要求；最大压桩力还应小于机架配重×0.9。", fix:"补试压桩≥3根，压桩力<(机架+配重)×0.9。" }
       ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 揪出全部失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"甲级灌注桩900根 · 超灌+抽检+断桩", fig:"sheet",
-      stem:"甲级灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③接桩段断裂因混凝土质量差、防治为加强管理。选出最准确的诊断与补写。",
-      model:"三处都失分：超灌应0.8~1.0m；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；断裂应写五因(弯曲/障碍物/不直/偏心/强度不足)+具体防治。",
+{ tag:"采分诊断·末题", typeHint:"单选 · 揪出全部失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"甲级泥浆护壁灌注桩900根 · 超灌+抽检+坍孔", fig:"sheet",
+      stem:"某甲级泥浆护壁灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③成孔坍孔因运气不好、防治为加强管理。选出最准确的诊断与补写。",
+      model:"三处都失分：超灌应高于设计桩顶标高1m以上；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；坍孔应从泥浆比重不够、水头高度不足、护筒埋置太浅、进尺过快等找原因，防治写优质泥浆、升高护筒增大水头、控制进尺。",
       opts:[
-        { t:"作答基本正确：超灌500mm已经达标，20%抽检180根也属合规，断裂归因于混凝土质量差也说得通，可判给分。", ok:false, code:"E05", tempt:"只看有没有作答、没核对采分点。", lose:"三处全错还判对，超灌不足、甲级应30%、断裂空话。", fix:"三处都要改：0.8~1.0m、30%·270根、五因+具体防治。" },
-        { t:"只有完整性抽检比例这一处有误、应改为30%，其余超灌500mm达标与断裂归因质量差两处均无问题，可予以保留。", ok:false, code:"E02", tempt:"抓到抽检一处就收手。", lose:"漏诊超灌不足与断裂口号化两处失分。", fix:"超灌改0.8~1.0m、断裂写五因+具体防治，不止改抽检。" },
-        { t:"三处都不妥：超灌应0.8~1.0m；甲级灌注桩完整性≥30%即900×30%=270根；断裂应写五因+清障/垂直沉桩/接桩对中等具体防治。", ok:true, fix:"超灌、抽检、断桩三处全揪出并补写采分句，这就是会写答案。", code:"" },
-        { t:"断裂原因已经写到位、无须再作改动，主要问题在于超灌不足，只需改成超灌2m、完整性抽检仍按20%比例执行即可。", ok:false, code:"E08", tempt:"以为断裂归因已到位。", lose:"断裂归因质量差是口号未提五因，且超灌2m/抽检20%仍错。", fix:"断裂写五因+防治；超灌0.8~1.0m；甲级抽检30%·20根。" }
+        { t:"作答基本正确：超灌500mm已经达标，20%抽检180根也属合规，坍孔归因于运气不好也情有可原，可判给分。", ok:false, code:"E05", tempt:"只看有没有作答、没核对采分点。", lose:"三处全错还判对，超灌不足、甲级应30%、坍孔归因空话。", fix:"三处都要改：超灌1m以上、30%·270根、坍孔按泥浆/水头/护筒/进尺找原因加具体防治。" },
+        { t:"只有完整性抽检比例这一处有误、应改为30%，其余超灌500mm达标与坍孔归因运气两处均无问题，可予以保留。", ok:false, code:"E02", tempt:"抓到抽检一处就收手。", lose:"漏诊超灌不足与坍孔口号化两处失分。", fix:"超灌改1m以上、坍孔写泥浆比重/水头/护筒/进尺具体成因加防治，不止改抽检。" },
+        { t:"三处都不妥：超灌应高于设计桩顶标高1m以上；甲级完整性≥30%即900×30%=270根；坍孔从泥浆比重、水头、护筒埋深、进尺找原因并补具体防治。", ok:true, fix:"超灌、抽检、坍孔三处全揪出并补写采分句，这就是会写答案。", code:"" },
+        { t:"坍孔成因已经写到位、无须再作改动，主要问题在超灌不足，只需改成超灌0.8~1.0m，完整性抽检仍按20%执行即可。", ok:false, code:"E08", tempt:"超灌0.8~1.0m是背过的老官答口径。", lose:"坍孔归因运气是空话未提泥浆/水头/护筒/进尺；0.8~1.0m是2016官答旧口径，现行教材要求1m以上；甲级抽检也不是20%。", fix:"坍孔写具体成因加防治；超灌1m以上；甲级抽检30%且≥20根。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
@@ -447,7 +447,7 @@ class Component extends DCLogic {
     else if(type==="chaoguan"){ figH=64; els.push(D({x:4,top:6,w:56,h:18,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"写500"}));
       els.push(D({x:64,top:6,w:70,h:18,bg:"#c17a70",r:4,fg:"#fff",fs:10,lab:"0.5m ✕"}));
       els.push(D({x:4,top:34,w:56,h:18,fg:"#2c8a5b",fs:11,ta:"left",jc:"flex-start",lab:"超灌"}));
-      els.push(D({x:64,top:34,w:180,h:18,bg:"#5fa07a",r:4,fg:"#fff",fs:10,lab:"0.8~1.0m 凿浮浆"})); }
+      els.push(D({x:64,top:34,w:180,h:18,bg:"#5fa07a",r:4,fg:"#fff",fs:10,lab:"高于桩顶1m以上 凿浮浆"})); }
     else if(type==="chenguan"){ figH=72; const t=[["单打法","#2f6db0"],["复打法","#cf8a44"],["反插法","#2c8a5b"]];
       t.forEach((p,i)=>els.push(chip(4+i*106,4,100,p[0],p[1])));
       els.push(D({x:4,top:40,w:314,h:20,fg:"#cf8a44",fs:11,ta:"left",jc:"flex-start",lab:"关键：边振边拔管边继续浇"})); }
@@ -467,7 +467,7 @@ class Component extends DCLogic {
         const offs=p[2]===2?[[-r*0.4,0],[r*0.4,0]]:[[0,-r*0.4],[-r*0.4,r*0.35],[r*0.4,r*0.35]];
         offs.forEach(o=>els.push(D({x:cx+o[0]-3,top:56-dia+r+o[1]-3,w:6,h:6,bg:"#2b2620",r:3})));
         els.push(D({x:cx-52,top:62,w:104,h:12,fg:"#6b6358",fs:9.5,lab:p[0]})); els.push(D({x:cx-52,top:76,w:104,h:12,fg:"#2c8a5b",fs:11,lab:p[2]===2?"1~2/2 孔":"3 孔"})); }); }
-    else if(type==="sheet"){ figH=98; const lines=["① 超灌 500mm 即可","② 完整性 20% 抽检 = 180 根","③ 断裂因混凝土质量差，加强管理"];
+    else if(type==="sheet"){ figH=98; const lines=["① 超灌 500mm 即可","② 完整性 20% 抽检 = 180 根","③ 坍孔因运气不好，加强管理"];
       lines.forEach((l,i)=>els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l}))); }
     return {els,figH};
   }
@@ -516,7 +516,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"G03-html-practice-html-q1-a5069fbe7083","options":["G03-html-practice-html-q1-a5069fbe7083:option-1","G03-html-practice-html-q1-a5069fbe7083:option-2","G03-html-practice-html-q1-a5069fbe7083:option-3","G03-html-practice-html-q1-a5069fbe7083:option-4"]},{"variant_id":"G03-html-practice-html-q2-8c691c527a8d","options":["G03-html-practice-html-q2-8c691c527a8d:option-1","G03-html-practice-html-q2-8c691c527a8d:option-2","G03-html-practice-html-q2-8c691c527a8d:option-3","G03-html-practice-html-q2-8c691c527a8d:option-4"]},{"variant_id":"G03-html-practice-html-q4-1867683ad625","options":["G03-html-practice-html-q4-1867683ad625:option-1","G03-html-practice-html-q4-1867683ad625:option-2","G03-html-practice-html-q4-1867683ad625:option-3","G03-html-practice-html-q4-1867683ad625:option-4"]},{"variant_id":"G03-html-practice-html-q5-6742026d87de","options":["G03-html-practice-html-q5-6742026d87de:option-1","G03-html-practice-html-q5-6742026d87de:option-2","G03-html-practice-html-q5-6742026d87de:option-3","G03-html-practice-html-q5-6742026d87de:option-4"]},{"variant_id":"G03-html-practice-html-q15-4f582e57e491","options":["G03-html-practice-html-q15-4f582e57e491:option-1","G03-html-practice-html-q15-4f582e57e491:option-2","G03-html-practice-html-q15-4f582e57e491:option-3","G03-html-practice-html-q15-4f582e57e491:option-4"]}];
+    const exactItems=[{"variant_id":"G03-html-practice-html-q1-a5069fbe7083","options":["G03-html-practice-html-q1-a5069fbe7083:option-1","G03-html-practice-html-q1-a5069fbe7083:option-2","G03-html-practice-html-q1-a5069fbe7083:option-3","G03-html-practice-html-q1-a5069fbe7083:option-4"]},{"variant_id":"G03-html-practice-html-q2-8c691c527a8d","options":["G03-html-practice-html-q2-8c691c527a8d:option-1","G03-html-practice-html-q2-8c691c527a8d:option-2","G03-html-practice-html-q2-8c691c527a8d:option-3","G03-html-practice-html-q2-8c691c527a8d:option-4"]},{"variant_id":"G03-html-practice-html-q4-1867683ad625","options":["G03-html-practice-html-q4-1867683ad625:option-1","G03-html-practice-html-q4-1867683ad625:option-2","G03-html-practice-html-q4-1867683ad625:option-3","G03-html-practice-html-q4-1867683ad625:option-4"]},{"variant_id":"G03-html-practice-html-q5-6742026d87de","options":["G03-html-practice-html-q5-6742026d87de:option-1","G03-html-practice-html-q5-6742026d87de:option-2","G03-html-practice-html-q5-6742026d87de:option-3","G03-html-practice-html-q5-6742026d87de:option-4"]},{"variant_id":"G03-html-practice-html-q15-cf892847c628","options":["G03-html-practice-html-q15-cf892847c628:option-1","G03-html-practice-html-q15-cf892847c628:option-2","G03-html-practice-html-q15-cf892847c628:option-3","G03-html-practice-html-q15-cf892847c628:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -533,7 +533,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTUwNjlmYmU3MDgzIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04YzY5MWM1MjdhOGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTE4Njc2ODNhZDYyNSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtNjc0MjAyNmQ4N2RlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtNGY1ODJlNTdlNDkxIl0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjAwZDU1M2U0NTMwZGE4YzgxYmQ3M2ZjNzMzNTkyY2IxYjAzNDJlOGJmODdmODg3NjVkOTJkNjc1ZDc0NzEzM2QiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("G03")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTUwNjlmYmU3MDgzIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04YzY5MWM1MjdhOGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTE4Njc2ODNhZDYyNSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtNjc0MjAyNmQ4N2RlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtY2Y4OTI4NDdjNjI4Il0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjJhODY1MGVmMzE2MmRjYjMzYjQ1OTUyNTA5NDVjN2FkNTlkNjQ1MzM0NWFlODJiOTBjZWFlZDc1YzA1YjNkY2MiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZWQ5ZWI2NWQ5Yjg4MTA1ZDQ2NzkwNjE3OGIwNDJhYTg0OTQ1ZDE3YmViNjhkYzQ4ODhlYWVlNjA0NzA3MTgxMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

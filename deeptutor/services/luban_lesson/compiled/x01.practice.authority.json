@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "X01",
   "source_pack_sha256": "173b2bf67a0ef36794281518e3511873105f84b371f22cd23c2d0661240a94ef",
-  "source_bundle_sha256": "ac9a3a15b8d151df931c8851f70deb4034d2ed40c052597ae2f585cb7cb4c409",
+  "source_bundle_sha256": "c7dc51577b3118bb3419fc53f1134b1095044af026816e15d4714cf85eb3feab",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -19,14 +19,22 @@
       ],
       "variant_ids": [
         "X01-html-practice-html-q1-b608d651fee7",
-        "X01-html-practice-html-q2-f2e36e2dd9cb",
-        "X01-html-practice-html-q3-ef4a05a25618",
+        "X01-html-practice-html-q2-085e71543b9d",
+        "X01-html-practice-html-q3-f35fa7aacd3e",
         "X01-html-practice-html-q4-1e48ebca11c5",
-        "X01-html-practice-html-q15-1f0149dd70b5"
+        "X01-html-practice-html-q15-d9636803396c"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjYwOGQ2NTFmZWU3IiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mMmUzNmUyZGQ5Y2IiLCJYMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWVmNGEwNWEyNTYxOCIsIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWU0OGViY2ExMWM1IiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtMWYwMTQ5ZGQ3MGI1Il0sInBhY2tfaWQiOiJYMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImEzNzQwNjk2NTAwOTYwZGE5OTY2MDhjODg4MWI1NTU3MWM0OWYwNTczODZlZmRiMmFlYmFmMjA1ODMzODllNTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "aecf014c560d5fd5fbad35e3d6729cf60230642a902f331288047536492e25b3"
+      "eligible_variant_ids": [
+        "X01-html-practice-html-q1-b608d651fee7",
+        "X01-html-practice-html-q2-085e71543b9d",
+        "X01-html-practice-html-q3-f35fa7aacd3e",
+        "X01-html-practice-html-q4-1e48ebca11c5",
+        "X01-html-practice-html-q10-3d4ed285fc02",
+        "X01-html-practice-html-q14-8ebb154eff21",
+        "X01-html-practice-html-q15-d9636803396c"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjYwOGQ2NTFmZWU3IiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wODVlNzE1NDNiOWQiLCJYMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWYzNWZhN2FhY2QzZSIsIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWU0OGViY2ExMWM1IiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZDk2MzY4MDMzOTZjIl0sInBhY2tfaWQiOiJYMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjM0Mzc2ZTE1ZWM5YzJlY2UxY2IyMGY4YjVjNTNiMWIwMDdhZjI1OGFlZGU2ZTdmNTBkNjNjNDM1NTk1ZDU3M2YiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZDk4ZTEzYzcwOTYxYTJmMjNmOGEwYTVlMmU3OTE0NDQwMGI3ZDQ3YzRjOTg0NWVmY2ZlMDFlZjc2NzM3YTc0YiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "25c1a833d9dfedb99e6373b9f5b583e963eed38507f4e9366bb949f34d35d4af"
     }
   ],
   "items": [
@@ -79,175 +87,211 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A431011_011_0012:1",
+      "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "fact_id": "x01-fact-layout-design-principles",
+      "skeleton_id": "x01-skel-设计原则七条枚举",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b47aafc66ed6d787372cc954b15b1e4162177edece37fd9da8147052edf72bad",
+      "content_sha256": "60170eb99bb89331b16eed339e3f15e518cddb8e046817a82e8dcbe04f95cc71",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b47aafc66ed6d787372cc954b15b1e4162177edece37fd9da8147052edf72bad",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "60170eb99bb89331b16eed339e3f15e518cddb8e046817a82e8dcbe04f95cc71",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "施工总平面图设计原则七条。教材0012逐字七条((1)占地少/(2)合理组织运输减少二次搬运/(3)减少相互干扰/(4)利用既有设施/(5)分区设置/(6)节能环保安全消防/(7)遵守规定)与正确项七条口径零损失对应;前轮终裁已核'(减少二次搬运)挂运输合理'与教材原文(2)一致。三干扰项(E04口号/E02单条/E07施工顺序原则)确误。前轮判可签级,本轮未动,variant_id 未变。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
       "rule_group": "图内容·记录表达维",
       "stem": "施工总平面布置图应包含哪些内容？选出最完整、能得分的作答。",
-      "model_answer": "地形状况、拟建建构筑物位置、加工运输储存设施、临时道路及办公生活用房、安全消防环保设施、周边既有建筑环境。",
+      "model_answer": "教材五条：施工用地范围内的地形状况；全部拟建建（构）筑物和其他基础设施的位置；加工、运输、储存、供电、供水供热、排水排污设施以及临时施工道路和办公、生活用房；安全、消防、保卫和环保设施；相邻地上、地下既有建（构）筑物及相关环境。",
       "options": [
         {
-          "text": "应含：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路及办公生活用房、安全消防环保设施、周边既有建筑环境。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "六项齐全，正是补全题的给分点。",
-          "option_id": "X01-html-practice-html-q2-f2e36e2dd9cb:option-1"
-        },
-        {
-          "text": "应含：拟建建构筑物位置、临时道路及办公生活用房等主要要素，将场内各主要设施的名称与所在位置在图上逐一标注清楚完整。",
+          "text": "应含：全部拟建建（构）筑物的位置、临时施工道路及办公生活用房、加工储存设施、材料堆场等场内主要布置要素，并将场内各主要设施的名称、所在位置与占地范围在图上逐一标注清楚，保持图面完整、要素表达到位、便于现场各方随时查阅使用。",
           "is_correct": false,
           "source_error_code": "E02",
-          "temptation": "这几项确实都属图内容，像答对了。",
-          "loss_reason": "漏地形状况、加工运输储存设施、安全消防环保、周边既有环境等项。",
-          "fix": "补齐六项，尤其地形/加工运储/安全消防环保/周边环境。",
-          "option_id": "X01-html-practice-html-q2-f2e36e2dd9cb:option-2"
+          "temptation": "列出的几项确实都属图内容，看着像答全了。",
+          "loss_reason": "漏地形状况、供电供水供热排水排污设施、安全消防保卫环保设施、周边既有环境等多条。",
+          "fix": "按教材五条清单补齐，尤其供电供水排水排污与保卫、周边环境。",
+          "option_id": "X01-html-practice-html-q2-085e71543b9d:option-1"
         },
         {
-          "text": "应含：建筑物的平面尺寸、标高、轴线定位以及主要结构做法，在图纸上逐项标注清楚并保持完整。",
+          "text": "应含：建筑物的平面尺寸、标高、轴线定位以及基础、墙体等主要结构做法，连同各部位的节点详图与构造要求，一并在图纸上逐项标注清楚，保持图纸内容完整、表达深度满足现场施工的需要。",
           "is_correct": false,
           "source_error_code": "E08",
           "temptation": "觉得图上就该标尺寸做法。",
           "loss_reason": "那是施工图内容，不是布置图布置要素，答错文件。",
-          "fix": "布置图要素是六项设施/环境，不是尺寸标高做法。",
-          "option_id": "X01-html-practice-html-q2-f2e36e2dd9cb:option-3"
+          "fix": "布置图要素是教材五条设施/环境清单，不是尺寸标高做法。",
+          "option_id": "X01-html-practice-html-q2-085e71543b9d:option-2"
         },
         {
-          "text": "重点表达围挡与大门的位置，其余临时设施待施工阶段确定后再行补充，图上可暂不体现相关内容。",
+          "text": "应含：施工用地范围内的地形状况；全部拟建建（构）筑物及其他基础设施的位置；加工、运输、储存、供电、供水供热、排水排污设施及临时施工道路、办公生活用房；安全、消防、保卫、环保设施；相邻地上、地下既有建（构）筑物及相关环境。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "教材五条清单，第三条的供电供水排水排污、第四条的保卫最容易漏。",
+          "option_id": "X01-html-practice-html-q2-085e71543b9d:option-3"
+        },
+        {
+          "text": "重点表达围挡与大门等场界要素的位置，加工储存、供电供水、办公生活等其余临时设施待相应施工阶段确定后再行补入，布置图上可暂不体现相关内容，避免图面要素过多影响现场读图效率。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "以为围挡大门最重要、其余可省。",
-          "loss_reason": "漏加工运储/办公生活/安全消防环保等大项，内容不全。",
-          "fix": "六项都要在图上体现，不能只画围挡大门。",
-          "option_id": "X01-html-practice-html-q2-f2e36e2dd9cb:option-4"
+          "loss_reason": "漏加工运储供电供水排水排污、办公生活、安全消防保卫环保等大项，内容不全。",
+          "fix": "五条内容都要在图上体现，不能只画围挡大门。",
+          "option_id": "X01-html-practice-html-q2-085e71543b9d:option-4"
         }
       ],
-      "variant_id": "X01-html-practice-html-q2-f2e36e2dd9cb",
+      "variant_id": "X01-html-practice-html-q2-085e71543b9d",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A431011_011_0012:0",
+      "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "fact_id": "x01-fact-siteplan-content-list",
+      "skeleton_id": "x01-skel-图内容五条最全作答",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c776cf27100548c0b1589e8cb2ac0fcd28c1344acae6d4c80400bc54b35c6261",
+      "content_sha256": "7c0fac487fddfb753b413aceafae386f1dc3d4d6dfd9dbae1116718da12df542",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "c776cf27100548c0b1589e8cb2ac0fcd28c1344acae6d4c80400bc54b35c6261",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "7c0fac487fddfb753b413aceafae386f1dc3d4d6dfd9dbae1116718da12df542",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "施工总平面布置图内容。锚为本轮修复后的教材五条清单原文逐字((3)含供电、供水供热、排水排污,(4)含保卫,repair_note在编译源);正确项五条口径与教材(1)~(5)逐条一致,不再用卡片'六项'压缩句;E02漏项干扰lose点名漏地形/供电供水排污/保卫/周边环境=真采分点回填。机器候选rank1(0.8167)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
       "rule_group": "图内容辨识·记录表达维",
       "stem": "下列哪一项不属于施工总平面布置图应表达的内容？选出正确判断。",
-      "model_answer": "混凝土配合比设计属施工技术文件，不属于平面布置图内容；图内容为地形/建筑位置/加工运储/临路办公/安全消防环保/周边环境六项。",
+      "model_answer": "混凝土配合比设计属施工技术文件，不属于平面布置图内容；图内容为教材五条：地形状况、拟建建（构）筑物及基础设施位置、加工运储供电供水排水排污设施及临路办公生活用房、安全消防保卫环保设施、周边既有环境。",
       "options": [
         {
-          "text": "周边既有建筑环境 —— 不属于；既有建筑并非本工程施工对象，无需纳入布置图表达。",
+          "text": "周边既有建筑环境 —— 不属于；相邻既有建筑并非本工程的施工对象，无需纳入本布置图中表达。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "觉得既有建筑与本工程无关。",
-          "loss_reason": "周边既有建筑环境正是六项之一，必须画。",
+          "loss_reason": "相邻既有建（构）筑物及环境正是教材清单第五条，必须画。",
           "fix": "周边既有环境属图内容；不属于的是配合比设计。",
-          "option_id": "X01-html-practice-html-q3-ef4a05a25618:option-1"
+          "option_id": "X01-html-practice-html-q3-f35fa7aacd3e:option-1"
         },
         {
-          "text": "混凝土配合比设计 —— 不属于；它是施工技术文件，平面布置图只表达六项布置要素。",
+          "text": "混凝土配合比设计 —— 不属于；它是施工技术文件，不在布置图应表达的教材五条内容之列。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "配合比是技术文件，抓住「布置图只表达布置要素」即可判「不属于」。",
-          "option_id": "X01-html-practice-html-q3-ef4a05a25618:option-2"
+          "option_id": "X01-html-practice-html-q3-f35fa7aacd3e:option-2"
         },
         {
           "text": "加工运输储存设施 —— 不属于；此类设施属临时性布置，布置图仅表达永久性建筑。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "以为临时设施不入图。",
-          "loss_reason": "加工运输储存设施是图内容核心一项。",
+          "loss_reason": "加工、运输、储存设施与供电供水排水排污同列清单第三条。",
           "fix": "加工运储属图内容；配合比设计才不属于。",
-          "option_id": "X01-html-practice-html-q3-ef4a05a25618:option-3"
+          "option_id": "X01-html-practice-html-q3-f35fa7aacd3e:option-3"
         },
         {
           "text": "临时道路及办公生活用房 —— 不属于；生活区内容可另行单独成图，无需在本图表达。",
           "is_correct": false,
           "source_error_code": "E08",
           "temptation": "觉得生活区可分开画。",
-          "loss_reason": "临时道路办公生活用房属图内容六项之一。",
+          "loss_reason": "临时施工道路和办公、生活用房同属清单第三条，须在图上表达。",
           "fix": "办公生活属图内容；不属于的是配合比设计。",
-          "option_id": "X01-html-practice-html-q3-ef4a05a25618:option-4"
+          "option_id": "X01-html-practice-html-q3-f35fa7aacd3e:option-4"
         }
       ],
-      "variant_id": "X01-html-practice-html-q3-ef4a05a25618",
+      "variant_id": "X01-html-practice-html-q3-f35fa7aacd3e",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A431011_011_0012:0",
+      "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "fact_id": "x01-fact-siteplan-content-list",
+      "skeleton_id": "x01-skel-图内容不属于辨识",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "eaeaebe25b69c02d3f6fa877aa54eb9f807e6ce2157c921bc072d4ce26213fd5",
+      "content_sha256": "1996e619e2e8b002d4549c0dc26fb25e532ee26d74a6fa0d83feff39d0a306d4",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "eaeaebe25b69c02d3f6fa877aa54eb9f807e6ce2157c921bc072d4ce26213fd5",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "1996e619e2e8b002d4549c0dc26fb25e532ee26d74a6fa0d83feff39d0a306d4",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "不属于图内容辨识。'只表达六项'自铸全称已废,改'不在布置图应表达的教材五条内容之列';正确判断(混凝土配合比设计=施工技术文件,不在教材五条清单)成立;三干扰lose逐条定位教材清单第三/五条原文。锚=修复后教材五条清单逐字,机器候选在列。与q2同fact不同skeleton(最全作答vs反向辨识),均anchor,不占三件套。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A431011_011_0012:2",
+      "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "fact_id": "x01-fact-gate-layout",
+      "skeleton_id": "x01-skel-大门数量三因素",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "38f4dc2c28dc1e2405afe48de2131c1a57d7adf6107e147878f9ba31d103e792",
+      "content_sha256": "a985d4c493610f6e8451d27294499655ccb51bb4106f8c522bc7e93a5b661f0f",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "38f4dc2c28dc1e2405afe48de2131c1a57d7adf6107e147878f9ba31d103e792",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "a985d4c493610f6e8451d27294499655ccb51bb4106f8c522bc7e93a5b661f0f",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "大门布置。教材0012逐字'宜考虑设置两个以上大门。大门位置应考虑周边路网情况、转弯半径和坡度限制,大门的高度和宽度应满足车辆运输需要';正确项数量+三因素齐;E07干扰4m/6m道路宽度经chunk 012_0013原文证实为真实规格(埋错真实)。前轮判可签级,本轮未动,variant_id 未变。机器候选rank1。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -373,17 +429,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0bba3347e61aed35ef300968398aa04df78d820d9db2b73eaa5641e0ba9ea89b",
+      "content_sha256": "2d9ebe3f18b2dad958b696c5a02611086835a880408a9ba51cd95c607e06d2ee",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "0bba3347e61aed35ef300968398aa04df78d820d9db2b73eaa5641e0ba9ea89b",
+        "reviewed_content_sha256": "2d9ebe3f18b2dad958b696c5a02611086835a880408a9ba51cd95c607e06d2ee",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -446,17 +502,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3c878c12025a63597d8ea02990b66b18aad54a28e4bd954e0549e2b14fdcc6f3",
+      "content_sha256": "646fd950e38ee2941d312dcb0c6697c8a68c1e963a59f9d0e0b7a20abffcad93",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "3c878c12025a63597d8ea02990b66b18aad54a28e4bd954e0549e2b14fdcc6f3",
+        "reviewed_content_sha256": "646fd950e38ee2941d312dcb0c6697c8a68c1e963a59f9d0e0b7a20abffcad93",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -519,17 +575,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7840cb7f4a9ef25f7e195a5a4ada09afc70039241d8458283cb17be17af58dba",
+      "content_sha256": "dee5ae34c8c8f99a87f0927563e913805c87b7342f7469334a6f04aee0f96903",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "7840cb7f4a9ef25f7e195a5a4ada09afc70039241d8458283cb17be17af58dba",
+        "reviewed_content_sha256": "dee5ae34c8c8f99a87f0927563e913805c87b7342f7469334a6f04aee0f96903",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -592,17 +648,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "157df41e69b70cabf051700bd9c661f67637f1642a0cdb337da6dd0b9a1395ab",
+      "content_sha256": "5d876e960a548eba2e01a837be7b800b39ad33cca0a5bce6e93bcd4b69ce241d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "157df41e69b70cabf051700bd9c661f67637f1642a0cdb337da6dd0b9a1395ab",
+        "reviewed_content_sha256": "5d876e960a548eba2e01a837be7b800b39ad33cca0a5bce6e93bcd4b69ce241d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -665,17 +721,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "fd285bf782b4c7d3788f1382b5397dc45920344ffae355262373e69b99457087",
+      "content_sha256": "b0348a003b57a7c8bb7f2ccbb83359f225a043e2449dab880f93cc73c935cdb6",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "fd285bf782b4c7d3788f1382b5397dc45920344ffae355262373e69b99457087",
+        "reviewed_content_sha256": "b0348a003b57a7c8bb7f2ccbb83359f225a043e2449dab880f93cc73c935cdb6",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -691,74 +747,86 @@
       "answer_type": "single_choice",
       "rule_group": "围挡高度·条件维",
       "stem": "关于施工现场围挡高度，选出正确、能得分的作答。",
-      "model_answer": "市区主要路段≥2.5m；一般路段≥1.8m；距路口 20m 内 0.8m 以上为通透性围挡。",
+      "model_answer": "市区主要路段≥2.5m；一般路段≥1.8m；距交通路口 20m 范围内占据道路施工设置的围挡，其 0.8m 以上部分应为通透性围挡。",
       "options": [
         {
           "text": "全场围挡统一按照 1.8m 以上的高度进行砌筑，各路段高度保持完全一致，便于施工作业与竣工整体验收。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "统一高度省事。",
-          "loss_reason": "未分路段：市区主路段应≥2.5m，且路口要通透。",
-          "fix": "市区≥2.5m/一般≥1.8m/路口 20m 内通透，分三档。",
-          "option_id": "X01-html-practice-html-q10-95e6c5fa98c8:option-1"
+          "loss_reason": "未分路段：市区主要路段应≥2.5m，且路口占道围挡要通透。",
+          "fix": "市区≥2.5m/一般≥1.8m/路口 20m 内占道围挡通透，分三档。",
+          "option_id": "X01-html-practice-html-q10-3d4ed285fc02:option-1"
         },
         {
-          "text": "市区主要路段围挡≥2.5m；一般路段≥1.8m；距路口 20m 内 0.8m 以上部分为通透性围挡。",
+          "text": "市区主要路段围挡≥2.5m；一般路段≥1.8m；距路口 20m 内占据道路施工设置的围挡，0.8m 以上部分为通透性围挡。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "三档分开写：市区 2.5、一般 1.8、路口通透，一档不漏。",
-          "option_id": "X01-html-practice-html-q10-95e6c5fa98c8:option-2"
+          "fix": "三档分开写：市区 2.5、一般 1.8、路口占道通透，限定词「占据道路施工设置」别丢。",
+          "option_id": "X01-html-practice-html-q10-3d4ed285fc02:option-2"
         },
         {
-          "text": "围挡高度越高越有利于安全防护，路口段更应加高至 3m，将视线完全遮挡以防外界干扰。",
+          "text": "围挡高度越高越有利于现场安全防护与扬尘控制，路口段围挡更应统一加高至 3m 以上，将视线完全遮挡，以防外界干扰场内施工作业。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "觉得越高越挡得严越好。",
-          "loss_reason": "路口应通透留视距，一堵到顶反成盲区隐患。",
-          "fix": "路口 20m 内 0.8m 以上通透，不是越高越好。",
-          "option_id": "X01-html-practice-html-q10-95e6c5fa98c8:option-3"
+          "loss_reason": "路口 20m 内占道围挡应通透留视距，一堵到顶反成盲区隐患。",
+          "fix": "路口 20m 内占道围挡 0.8m 以上通透，不是越高越好。",
+          "option_id": "X01-html-practice-html-q10-3d4ed285fc02:option-3"
         },
         {
-          "text": "市区主要路段围挡设置为 2.5m 以上，采用实体封闭形式，有效遮挡施工扬尘即可满足要求。",
+          "text": "市区主要路段围挡设置为 2.5m 以上，采用实体封闭形式，有效遮挡施工扬尘即可满足现场全部要求。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "记住 2.5m 一档。",
-          "loss_reason": "漏一般路段 1.8m 与路口通透两档，不全。",
-          "fix": "补一般路段≥1.8m、路口 20m 内通透两档。",
-          "option_id": "X01-html-practice-html-q10-95e6c5fa98c8:option-4"
+          "loss_reason": "漏一般路段 1.8m 与路口占道围挡通透两档，不全。",
+          "fix": "补一般路段≥1.8m、路口 20m 内占道围挡通透两档。",
+          "option_id": "X01-html-practice-html-q10-3d4ed285fc02:option-4"
         }
       ],
-      "variant_id": "X01-html-practice-html-q10-95e6c5fa98c8",
+      "variant_id": "X01-html-practice-html-q10-3d4ed285fc02",
       "surface_id": "practice.html",
       "source_index": 9,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A431011_013_0014:0",
+      "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "fact_id": "x01-fact-fence-height-tiers",
+      "skeleton_id": "x01-skel-围挡三档分档",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5ec296916ffc045048806cb54c5e29cd691227a5da6dbbeeb030c2adeb97da18",
+      "content_sha256": "f3bb23884289521739d857c78486d6142ecec596dedf94aa27ac2854f2e380b5",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "5ec296916ffc045048806cb54c5e29cd691227a5da6dbbeeb030c2adeb97da18",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "f3bb23884289521739d857c78486d6142ecec596dedf94aa27ac2854f2e380b5",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "围挡高度三档(fact三件套immediate_confirm腿)。正确项与教材0014修复后原文逐字对应: 市区主要路段≥2.5m/一般≥1.8m/距路口20m内占据道路施工设置的围挡0.8m以上通透——限定词本轮回填,不再过度普遍化。干扰项M08不分路段/E07路口加高反通透/E03漏两档均确误。机器候选rank1(0.7889)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -811,17 +879,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0a24289c11f80be419ceb54d9bb858ead76deeb90d3d0faf638dea027cd46156",
+      "content_sha256": "b17a00eb7ab4c12a3443e09700c881e7e1a9fc8d00b96f86d9c159feeeab1222",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "0a24289c11f80be419ceb54d9bb858ead76deeb90d3d0faf638dea027cd46156",
+        "reviewed_content_sha256": "b17a00eb7ab4c12a3443e09700c881e7e1a9fc8d00b96f86d9c159feeeab1222",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -884,17 +952,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "83712b319163e82eb75f0738db098f2b4dfedfb336bcda2fa3ad3906fa0d4545",
+      "content_sha256": "559b0a36f6b8cce0fb8ee6ef6a29cbfd55b9d460e627d365117415b489f13369",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "83712b319163e82eb75f0738db098f2b4dfedfb336bcda2fa3ad3906fa0d4545",
+        "reviewed_content_sha256": "559b0a36f6b8cce0fb8ee6ef6a29cbfd55b9d460e627d365117415b489f13369",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -957,17 +1025,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5750971fdc8d6352c404eda0d88844cec541f080bbe6886b0f6bd0bfd54c3a28",
+      "content_sha256": "6912e0805785c329f22ac33cd37cf5026d84ea2157285f6a1b9cbed18ed6d94f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "5750971fdc8d6352c404eda0d88844cec541f080bbe6886b0f6bd0bfd54c3a28",
+        "reviewed_content_sha256": "6912e0805785c329f22ac33cd37cf5026d84ea2157285f6a1b9cbed18ed6d94f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -982,108 +1050,120 @@
     {
       "answer_type": "single_choice",
       "rule_group": "判断纠错·围挡",
-      "stem": "某工地全场围挡统一设为 1.8m、路口也一堵到顶。指出不妥并改正，选出最规范的作答。",
-      "model_answer": "不妥：围挡未分路段、路口不通透。正确：市区主要路段≥2.5m、一般路段≥1.8m、距路口 20m 内 0.8m 以上通透性围挡。",
+      "stem": "市区某工地沿主要路段施工，部分围挡在交通路口旁占道设置。现场把全场围挡统一设为 1.8m、路口段也一堵到顶。指出不妥并改正，选出最规范的作答。",
+      "model_answer": "不妥：市区主要路段围挡未达 2.5m、路口占道围挡未通透。正确：市区主要路段≥2.5m、一般路段≥1.8m、距交通路口 20m 范围内占据道路施工设置的围挡，其 0.8m 以上部分采用通透性围挡。",
       "options": [
         {
-          "text": "不妥：围挡未分路段且路口不通透。正确做法：市区主要路段≥2.5m、一般路段≥1.8m、路口 20m 内 0.8m 以上通透性围挡。",
+          "text": "不妥：市区主要路段未达 2.5m、路口占道围挡不通透。正确做法：市区主要路段≥2.5m、一般路段≥1.8m、路口 20m 内占道围挡 0.8m 以上通透。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "三段式齐：指不妥 + 理由 + 带数值分档的正确做法。",
-          "option_id": "X01-html-practice-html-q14-8f2e39b504c3:option-1"
+          "fix": "三段式齐：指不妥 + 理由 + 带数值分档的正确做法，占道限定别丢。",
+          "option_id": "X01-html-practice-html-q14-8ebb154eff21:option-1"
         },
         {
-          "text": "不妥：围挡设置不够规范合理。正确做法：对现场围挡进行全面梳理与优化提升，加强日常管理，确保整体布置规范有序。",
+          "text": "不妥：围挡设置不够规范合理。正确做法：对现场围挡进行全面梳理与优化提升，加强巡查与日常管理，确保围挡整体布置规范有序。",
           "is_correct": false,
           "source_error_code": "E04",
           "temptation": "「不规范/加强管理」像点出了问题。",
           "loss_reason": "没给具体数值与分档，口号化纠错不得分。",
-          "fix": "正确做法要带市区 2.5 / 一般 1.8 / 路口通透具体档。",
-          "option_id": "X01-html-practice-html-q14-8f2e39b504c3:option-2"
+          "fix": "正确做法要带市区 2.5 / 一般 1.8 / 路口占道通透具体档。",
+          "option_id": "X01-html-practice-html-q14-8ebb154eff21:option-2"
         },
         {
-          "text": "不妥：围挡整体高度偏矮、防护不足。正确做法：全场围挡统一加高至 2.5m 以上，路口段一并加高处理，遮挡愈严密则防护效果愈好。",
+          "text": "不妥：围挡整体高度偏矮、安全防护能力不足。正确做法：全场围挡统一加高至 2.5m 以上，路口段围挡一并加高处理，遮挡愈严密，则现场整体安全防护效果愈好。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "抓住「矮」就想加高。",
-          "loss_reason": "仍未分路段，且路口应通透而非加高，数字混淆。",
-          "fix": "分市区 2.5 / 一般 1.8 / 路口通透三档，路口不加高。",
-          "option_id": "X01-html-practice-html-q14-8f2e39b504c3:option-3"
+          "loss_reason": "仍未分路段，且路口占道围挡应通透而非加高，数字混淆。",
+          "fix": "分市区 2.5 / 一般 1.8 / 路口占道通透三档，路口不加高。",
+          "option_id": "X01-html-practice-html-q14-8ebb154eff21:option-3"
         },
         {
-          "text": "不妥：路口段围挡未做通透处理。正确做法：将距路口 20m 范围内改为通透性围挡，其余路段维持 1.8m 现状不变。",
+          "text": "不妥：路口段围挡未做通透处理。正确做法：将距路口 20m 内占道设置的围挡改为通透性围挡，其余路段维持 1.8m 现状不变。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "抓住路口一处。",
-          "loss_reason": "漏改「未分路段」：市区应 2.5m，只补一处不全。",
-          "fix": "路口通透之外，还要分市区 2.5、一般 1.8。",
-          "option_id": "X01-html-practice-html-q14-8f2e39b504c3:option-4"
+          "loss_reason": "漏改「市区主要路段不达标」：市区应≥2.5m，只补一处不全。",
+          "fix": "路口占道通透之外，市区主要路段还要提到 2.5m。",
+          "option_id": "X01-html-practice-html-q14-8ebb154eff21:option-4"
         }
       ],
-      "variant_id": "X01-html-practice-html-q14-8f2e39b504c3",
+      "variant_id": "X01-html-practice-html-q14-8ebb154eff21",
       "surface_id": "practice.html",
       "source_index": 13,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A431011_013_0014:0",
+      "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "fact_id": "x01-fact-fence-height-tiers",
+      "skeleton_id": "x01-skel-围挡纠错三段式",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6155f7cf84b10aab46d9fc60ffed5be9974fc4251fc996e4c2f165422680c0c2",
+      "content_sha256": "8b545483aad6c06ec031b55a1feeca9773bcfc7d5c5f77cff2c854a0fce29311",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "6155f7cf84b10aab46d9fc60ffed5be9974fc4251fc996e4c2f165422680c0c2",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "8b545483aad6c06ec031b55a1feeca9773bcfc7d5c5f77cff2c854a0fce29311",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "围挡判断纠错三段式(fact三件套d1_probe腿)。本轮stem补市区+主要路段+路口占道场景前提,'统一1.8m'才构成教材可判的不妥;正确做法带占道限定与分档数值,教材0014逐字支撑。三skeleton互异(分档作答/纠错三段式/末题综合诊断)。机器候选rank1。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
       "rule_group": "采分诊断·末题",
-      "stem": "某学生作答施工平面布置：①各区标了名字、写「布置合理」；②大门设 1 个；③围挡统一 1.8m。选出最准确的诊断与补写。",
-      "model_answer": "三处失分：布置理由口号化(应写因果)、大门应≥2 个、围挡应分路段。补写：各区补因果理由 / 大门宜≥2 个并考虑路网转弯半径坡度 / 围挡市区 2.5、一般 1.8、路口通透。",
+      "stem": "市区某项目沿主要路段施工、围挡在路口占道设置。某学生作答其施工平面布置：①各区标了名字、写「布置合理」；②大门设 1 个；③围挡统一 1.8m。选出最准确的诊断与补写。",
+      "model_answer": "三处失分：布置理由口号化(应写因果)、大门应≥2 个并考虑路网转弯半径坡度、市区主要路段围挡应≥2.5m 且路口 20m 内占据道路施工设置的围挡 0.8m 以上通透。逐处补写采分句。",
       "options": [
         {
-          "text": "三处作答方向均属正确，仅在表述详细程度上有所欠缺，适当扩充作答篇幅、增强语言组织的条理与顺畅程度即可得分。",
+          "text": "三处作答方向均属正确，仅在表述的详细程度上有所欠缺，适当扩充各处作答篇幅、增强语言组织的条理性与表达顺畅程度，即可获得阅卷老师认可得分。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "觉得方向对就是小毛病。",
-          "loss_reason": "三处均为采分点错误(口号/单门/不分路段)，非详略问题。",
-          "fix": "逐处改：补因果理由、大门≥2、围挡分路段。",
-          "option_id": "X01-html-practice-html-q15-1f0149dd70b5:option-1"
+          "loss_reason": "三处均为采分点错误(口号/单门/市区围挡不达标)，非详略问题。",
+          "fix": "逐处改：补因果理由、大门≥2、围挡按市区分档改。",
+          "option_id": "X01-html-practice-html-q15-d9636803396c:option-1"
         },
         {
           "text": "仅②大门数量一处失分，将大门数量调整为 2 个即可；①布置理由与③围挡高度两处作答均无问题，不必再改动。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "只抓到大门一处。",
-          "loss_reason": "漏诊「布置理由口号化」和「围挡不分路段」两处。",
+          "loss_reason": "漏诊「布置理由口号化」和「市区围挡不达标」两处。",
           "fix": "三处都要改，不止大门。",
-          "option_id": "X01-html-practice-html-q15-1f0149dd70b5:option-2"
+          "option_id": "X01-html-practice-html-q15-d9636803396c:option-2"
         },
         {
-          "text": "三处都失分：①布置理由口号化应补因果、②大门应设≥2 个、③围挡应分路段(市区 2.5 / 一般 1.8 / 路口通透)，逐处补写。",
+          "text": "三处都失分：①布置理由口号化应补因果、②大门应设≥2 个、③市区主要路段围挡应≥2.5m、路口占道围挡 0.8m 以上应通透，逐处补写。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "三处失分全揪出，逐处补上采分句——这就是「会写答案」。",
-          "option_id": "X01-html-practice-html-q15-1f0149dd70b5:option-3"
+          "option_id": "X01-html-practice-html-q15-d9636803396c:option-3"
         },
         {
           "text": "该生整体作答思路清晰、要点齐全、表达规范，属于合理且符合题目要求的规范答案，评分时可以给予较高的分数。",
@@ -1092,39 +1172,51 @@
           "temptation": "末位看着像完成了。",
           "loss_reason": "实为三处采分点错误，判「合理」即被口号误导。",
           "fix": "三处失分需逐一补采分句，非合理答案。",
-          "option_id": "X01-html-practice-html-q15-1f0149dd70b5:option-4"
+          "option_id": "X01-html-practice-html-q15-d9636803396c:option-4"
         }
       ],
-      "variant_id": "X01-html-practice-html-q15-1f0149dd70b5",
+      "variant_id": "X01-html-practice-html-q15-d9636803396c",
       "surface_id": "practice.html",
       "source_index": 14,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "65db8abbdebbcf83cc543d57eabbb8e53a5f5d5458961a0f1873f9459e723192",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A431011_013_0014:0",
+      "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
+      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "fact_id": "x01-fact-fence-height-tiers",
+      "skeleton_id": "x01-skel-围挡三处采分诊断",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ec29aa72ef20050449b1faa9e4703d0983110d8fdd560ea271fc141cc4d24623",
+      "content_sha256": "7b6a4363ee92dfc9e642206c05240153041d4a0d7203ecc909f58c902c0a2908",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "ec29aa72ef20050449b1faa9e4703d0983110d8fdd560ea271fc141cc4d24623",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "7b6a4363ee92dfc9e642206c05240153041d4a0d7203ecc909f58c902c0a2908",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:46:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "采分诊断末题(投影第5锚+围挡fact三件套anchor腿)。本轮stem补'市区某项目沿主要路段施工、围挡在路口占道设置'场景前提,正确项③改'市区主要路段应≥2.5m、路口占道围挡0.8m以上应通透'=教材忠实(锚quote修复后含'占据道路施工设置的'限定原文);①口号化补因果/②大门≥2另有教材0012支撑(见q1/q4锚)。机器候选rank1。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "19654dd512f3e88a86513958ea8b46a2c9a2dc625233504203051a3c163820c1"
+  "published_lesson_sha256": "999c85a8878f0193c133f8be44ecce88307e3e4e723e2d2282417e4fb128a416"
 }

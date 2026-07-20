@@ -1149,11 +1149,13 @@ def test_due_review_accepts_only_server_rescored_compiled_canonical_supply(
 
 
 def test_non_f16_unreviewed_compiled_surface_fails_closed_before_write(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, pendingize_pack
 ) -> None:
-    from deeptutor.services.luban_lesson.practice_html import (
-        load_compiled_practice as real_load_compiled_practice,
-    )
+    """未签发 compiled surface 的作答必须在任何写入前 fail-closed。
+
+    2026-07-20 全语料签发后 X01 已签,改用合成 pending 夹具(重置 review)守住
+    同一契约:未签发 ⇒ resolve 出空题集 ⇒ 答卷集合不匹配 ⇒ 零事件写入。
+    """
     from deeptutor.services.luban_lesson.read_model import (
         build_lesson_viewmodel as real_build_lesson_viewmodel,
     )
@@ -1163,7 +1165,7 @@ def test_non_f16_unreviewed_compiled_surface_fails_closed_before_write(
 
     monkeypatch.setattr(module, "resolve_retest_items", real_resolve_retest_items)
     monkeypatch.setattr(module, "build_lesson_viewmodel", real_build_lesson_viewmodel)
-    authority = real_load_compiled_practice("X01")
+    authority = pendingize_pack("X01")
     assert authority is not None
     wanted = set(authority["surfaces"][0]["variant_ids"])
     items = [item for item in authority["items"] if item["variant_id"] in wanted]

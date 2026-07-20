@@ -2,10 +2,10 @@
   "schema": "luban_practice_review_packet.v1",
   "pack_id": "S01",
   "source_pack_sha256": "13429caa1bd32a20f6708c393980b39566a92425793a2d15e9f841689edf2b13",
-  "source_bundle_sha256": "70e799665b961d60ddb787431b583bd6b285a84b5ef0a93d4f4629d6cbbc9122",
+  "source_bundle_sha256": "49de2e60ad47766972fd4b8afcecb43ff4252faa2b2ce1a369994a97ebbf16c2",
   "compiled_schema_version": "luban_compiled_practice.v3",
   "candidate_count": 41,
-  "eligible_count": 0,
+  "eligible_count": 17,
   "human_gate": {
     "required_roles": [
       "teaching",
@@ -62,23 +62,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q1",
       "authoring_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-luodi-50m-lunzheng-gate",
+        "skeleton_id": "s01-skel-40m编案不论证",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_009_0012:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "85e305f4dad9b9c1a8a84ddc722e973bb9a81c7dffe033c2a26d77d1f7e82457",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "落地脚手架50m及以上属超一定规模须专家论证(教材直引,2026-07-20修复statement截断后); 24m起编专项方案半边靠 kc:1A436000_008_0011:0(同为本题机器候选)。40m=编案不论证。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -132,23 +144,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q2",
       "authoring_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-mbzj-lunzheng-8m18m",
+        "skeleton_id": "s01-skel-模板支撑四阈值任一",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_009_0012:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "8b4bee75f335519d2f8f301d892a82652fdcb9177a581704ab376e0bd7fdcd3b",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "模板支撑高≥8m/跨≥18m/总荷载≥15kN/m²/线荷载≥20kN/m任一即超一定规模须论证, 教材直引。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -202,23 +226,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q3",
       "authoring_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-weida-bianan-thresholds",
+        "skeleton_id": "s01-skel-编案门3m5m24m10kN",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_008_0011:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "00792d47a157e2486b300b9c4d215c6e093b4e8ef141a467eae117942c3fc726",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "危大编案门=基坑≥3m/模板支架≥5m/落地脚手架≥24m/吊装单件≥10kN, 教材直引。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -272,23 +308,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q4",
       "authoring_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-chaimu-fendang-75",
+        "skeleton_id": "s01-skel-梁6m跨75",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_099_0187:1",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "781f75b77b0498b77c5c89487429f050d8fe962b2a3c78c8009541fa75149254",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "表3.4-1: 梁拱壳跨≤8m须达75%。6m梁→75%。教材表格逐字(2026-07-20补抽分档采分点后)。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -972,93 +1020,117 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q15",
       "authoring_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-scoring-diagnosis-up",
+        "skeleton_id": "s01-skel-诊断16m论证门加分档100",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_099_0187:1",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "e2c9318a953ddf863b63b1077b7c37273383f67094cb9698168467037dbc3001",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "诊断末题: 底模一律75%错(跨>8m及悬臂须100%, 表3.4-1直引); 16m≥8m论证门半边靠 kc:1A436000_009_0012:0(同为本题机器候选)。复合诊断单锚溯源足(S02 q17先例)。"
         },
         "revoked": false,
         "revocation_refs": []
       }
     },
     {
-      "variant_id": "S01-html-practice2-html-q1-0786f260879b",
+      "variant_id": "S01-html-practice2-html-q1-7d07babe4a3d",
       "surface_id": "practice2.html",
-      "stem": "检查双排脚手架，量得立杆步距 2.3m。判断是否违规并给依据，选出能得分的作答。",
+      "stem": "检查双排脚手架，立杆底部木垫板实测厚 30mm、宽 150mm。判断是否违规并给依据，选出能得分的作答。",
       "options": [
         {
-          "text": "实测步距 2.3m 与限值 2m 相差不大，属正常施工偏差，可判定合格。",
+          "text": "实测垫板厚 30mm、宽 150mm 与限值相差不大，属正常施工偏差，可判定合格。",
           "is_correct": false,
           "source_error_code": "M08",
-          "temptation": "觉得差 0.3m「差不多」。",
-          "loss_reason": "步距是硬阈值，2.3m>2m 即违规，「差不多」丢分。",
-          "fix": "步距>2m 即违规，须≤2m。",
-          "option_id": "S01-html-practice2-html-q1-0786f260879b:option-1"
+          "temptation": "觉得差一二十毫米「差不多」。",
+          "loss_reason": "垫板厚≥50mm、宽≥200mm 是硬阈值，30/150 都不够，「差不多」丢分。",
+          "fix": "厚≥50mm、宽≥200mm，不足即违规。",
+          "option_id": "S01-html-practice2-html-q1-7d07babe4a3d:option-1"
         },
         {
-          "text": "立杆步距不超过 3m 即符合要求，实测 2.3m 在限值以内，判定合格。",
+          "text": "木垫板厚度不小于 25mm 即符合要求，实测 30mm 在限值以内，判定合格。",
           "is_correct": false,
           "source_error_code": "M08",
-          "temptation": "把别的构造数值记成 3m。",
-          "loss_reason": "步距阈值是 2m，不是 3m，数值记混。",
-          "fix": "立杆步距应≤2m。",
-          "option_id": "S01-html-practice2-html-q1-0786f260879b:option-2"
+          "temptation": "把垫板厚度限值记小了。",
+          "loss_reason": "垫板厚度阈值是 50mm，不是 25mm，数值记混。",
+          "fix": "垫板应厚≥50mm、宽≥200mm。",
+          "option_id": "S01-html-practice2-html-q1-7d07babe4a3d:option-2"
         },
         {
-          "text": "步距是否合格应视架体整体稳定状况而定，与具体数值大小并无关系。",
+          "text": "垫板尺寸是否合格应视架体整体稳定状况而定，与具体数值大小并无关系。",
           "is_correct": false,
           "source_error_code": "E01",
           "temptation": "以为凭整体感觉判。",
-          "loss_reason": "步距有明确阈值 2m，须比数值，非凭感觉。",
-          "fix": "按阈值判：步距应≤2m。",
-          "option_id": "S01-html-practice2-html-q1-0786f260879b:option-3"
+          "loss_reason": "垫板有明确阈值（厚50mm/宽200mm/长2跨），须比数值，非凭感觉。",
+          "fix": "按阈值判：厚≥50mm、宽≥200mm。",
+          "option_id": "S01-html-practice2-html-q1-7d07babe4a3d:option-3"
         },
         {
-          "text": "立杆步距应≤2m，实测 2.3m 超限，判违规，应将步距调整至≤2m。",
+          "text": "垫板应厚≥50mm、宽≥200mm；实测 30/150mm 超限判违规，应更换。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "阈值 2m + 实测比对 + 违规结论齐。",
-          "option_id": "S01-html-practice2-html-q1-0786f260879b:option-4"
+          "fix": "阈值 50mm/200mm + 实测比对 + 违规结论齐。",
+          "option_id": "S01-html-practice2-html-q1-7d07babe4a3d:option-4"
         }
       ],
-      "model_answer": "立杆步距应≤2m，实测 2.3m>2m，判违规，应调整步距至不大于 2m。",
-      "rule_group": "搭设·步距",
-      "content_sha256": "d667d460738b5dab2a6b3049c02de67f3956298e5587f6439b99817c1345822f",
+      "model_answer": "垫板应厚≥50mm、宽≥200mm、长不少于 2 跨；实测 30mm/150mm 均超限，判违规，应更换合规垫板。",
+      "rule_group": "搭设·垫板",
+      "content_sha256": "f77106d2cc7d689e4f13cca368bb5918354c0acc5dcbb5f06dbf891965a60fa3",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q1",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-dianban-50-200",
+        "skeleton_id": "s01-skel-垫板30x150违规",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_112_0185:4",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "d667d460738b5dab2a6b3049c02de67f3956298e5587f6439b99817c1345822f",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "f77106d2cc7d689e4f13cca368bb5918354c0acc5dcbb5f06dbf891965a60fa3",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "垫板厚≥50mm/宽≥200mm/长≥2跨, 教材1A436000_112_0185(1)逐字; 实测30/150违规。原步距2m判分眼教材无源已改题(T2仲裁)。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1108,34 +1180,46 @@
       ],
       "model_answer": "纵向扫地杆距底端应≤200mm，实测 350mm 超限；且横向扫地杆应在纵向下方，本例上下颠倒，均违规。",
       "rule_group": "搭设·扫地杆",
-      "content_sha256": "776b6254602e340a070ce25318dbdc7817da87c78be85e24aa08c60ab418155e",
+      "content_sha256": "1657497f0227775e9b314505c494e8c43142fae1be9c52e875cbee6a20efcfb6",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q2",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-saodigan-200mm",
+        "skeleton_id": "s01-skel-扫地杆350颠倒",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_112_0185:2",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "776b6254602e340a070ce25318dbdc7817da87c78be85e24aa08c60ab418155e",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "1657497f0227775e9b314505c494e8c43142fae1be9c52e875cbee6a20efcfb6",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "纵向扫地杆距底端≤200mm+横向在纵向下方, 教材直引; 350mm+颠倒双违规。"
         },
         "revoked": false,
         "revocation_refs": []
       }
     },
     {
-      "variant_id": "S01-html-practice2-html-q3-cdb1e3f80632",
+      "variant_id": "S01-html-practice2-html-q3-868c066e2109",
       "surface_id": "practice2.html",
       "stem": "搭设作业中，架体一次搭设的自由高度达 5m（超出最上层连墙件以上多步）。判断违规，选出能得分的作答。",
       "options": [
@@ -1146,7 +1230,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "2 步 + 4m 两条限值都写、并给违规结论。",
-          "option_id": "S01-html-practice2-html-q3-cdb1e3f80632:option-1"
+          "option_id": "S01-html-practice2-html-q3-868c066e2109:option-1"
         },
         {
           "text": "一次搭设自由高度的规范限值为 6m，实测 5m 尚在限值以内，应当判定符合要求、不属违规。",
@@ -1155,7 +1239,7 @@
           "temptation": "把别的限值记成 6m。",
           "loss_reason": "自由高度限值是 4m，5m 已超，6m 是记错的数。",
           "fix": "自由高度应≤4m，5m 违规。",
-          "option_id": "S01-html-practice2-html-q3-cdb1e3f80632:option-2"
+          "option_id": "S01-html-practice2-html-q3-868c066e2109:option-2"
         },
         {
           "text": "搭设完成后再补设连墙件即可满足要求，一次搭设的自由高度本身不受限制。",
@@ -1164,41 +1248,53 @@
           "temptation": "觉得事后补救就行。",
           "loss_reason": "一次搭设有 2 步/4m 硬限，防的是搭设中失稳。",
           "fix": "一次搭设≤最上连墙件上 2 步、自由高≤4m。",
-          "option_id": "S01-html-practice2-html-q3-cdb1e3f80632:option-3"
+          "option_id": "S01-html-practice2-html-q3-868c066e2109:option-3"
         },
         {
-          "text": "自由高度可按两步步距折算，2.3m×2=4.6m 未超折算限值，应判定合格。",
+          "text": "只要不超过最上层连墙件以上 2 步即可，自由高度的米数不另设上限，应判定合格。",
           "is_correct": false,
           "source_error_code": "M08",
-          "temptation": "想用步距凑算。",
-          "loss_reason": "自由高度限值直接是 4m，且实测 5m 已超，凑算无意义。",
-          "fix": "自由高度≤4m，实测 5m 违规。",
-          "option_id": "S01-html-practice2-html-q3-cdb1e3f80632:option-4"
+          "temptation": "只记了 2 步、丢了 4m。",
+          "loss_reason": "2 步与 4m 双限并行，实测 5m 已超 4m 即违规。",
+          "fix": "2 步 + 4m 双限都要查，5m 违规。",
+          "option_id": "S01-html-practice2-html-q3-868c066e2109:option-4"
         }
       ],
       "model_answer": "一次搭设高度不应超过最上层连墙件以上 2 步，且自由高度不应大于 4m；实测 5m 超限，违规。",
       "rule_group": "搭设·一次搭设自由高",
-      "content_sha256": "e1e12ba16b05aa88f373a4b365751e4ed78cb76850eae665963c5baac7051539",
+      "content_sha256": "8e01246bc13ccc3d275cfc72c7cf314aa8dbcd4bbc0790533cbe4210aa74b976",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q3",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-free-height-2step-4m",
+        "skeleton_id": "s01-skel-自由高5m超4m",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_005_0006:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "e1e12ba16b05aa88f373a4b365751e4ed78cb76850eae665963c5baac7051539",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "8e01246bc13ccc3d275cfc72c7cf314aa8dbcd4bbc0790533cbe4210aa74b976",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "一次搭设≤最上层连墙件2步且自由高≤4m, 教材直引; 5m违规。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1248,27 +1344,39 @@
       ],
       "model_answer": "连墙件应刚性、能承压承拉，严禁仅用钢筋柔性连墙件；本例用柔性钢筋违规，应改刚性连墙件。",
       "rule_group": "连墙件·刚性",
-      "content_sha256": "c128f7d6a8ce36087e2616210e25e15844ab4b9e65b1c02097fc06ea52fcc6a4",
+      "content_sha256": "905784e37d6733791f0ec159b00a7bb3564e8241a85ba95631a09524b55de2e6",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q4",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-lianqiangjian-rigid",
+        "skeleton_id": "s01-skel-柔性钢筋违规",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_121_0229:1",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "c128f7d6a8ce36087e2616210e25e15844ab4b9e65b1c02097fc06ea52fcc6a4",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "905784e37d6733791f0ec159b00a7bb3564e8241a85ba95631a09524b55de2e6",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "连墙件应采用能承受压力和拉力的刚性构件(教材直引); 仅用钢筋柔性拉接违规。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1318,9 +1426,9 @@
       ],
       "model_answer": "连墙件间距水平≤3跨、竖向≤3步、竖向≤4m；转角及开口端应增设。",
       "rule_group": "连墙件·间距",
-      "content_sha256": "2056fede1f7d1d0d19e59b2b4c37e3a0ec778ed5608b43d01d082101974141d4",
+      "content_sha256": "3f8f850082106528a14c8f819850ba0c187df32e1dbc6b9acd44730f1469f317",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q5",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -1330,7 +1438,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "2056fede1f7d1d0d19e59b2b4c37e3a0ec778ed5608b43d01d082101974141d4",
+          "reviewed_content_sha256": "3f8f850082106528a14c8f819850ba0c187df32e1dbc6b9acd44730f1469f317",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1388,9 +1496,9 @@
       ],
       "model_answer": "24m 以上的双排脚手架必须采用刚性连墙件与建筑主体可靠连接，严禁使用柔性连墙件。",
       "rule_group": "连墙件·24m双排",
-      "content_sha256": "45c43226110f5e77ca39269b9611613938087eb23dbe085052cc9e9a0ccfb526",
+      "content_sha256": "44da731969d0b75603ce083cbcc1a28abce3a8b0be1474b7e06b993f071918cd",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q6",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -1400,7 +1508,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "45c43226110f5e77ca39269b9611613938087eb23dbe085052cc9e9a0ccfb526",
+          "reviewed_content_sha256": "44da731969d0b75603ce083cbcc1a28abce3a8b0be1474b7e06b993f071918cd",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1458,9 +1566,9 @@
       ],
       "model_answer": "连墙件缺失致防倾覆失效，属脚手架重大事故隐患，应立即停用整改、补设刚性连墙件。",
       "rule_group": "连墙件·缺失定性",
-      "content_sha256": "b09587d1fa3d1f487670fdf84ae23611688b7978ba2e38ccb32bd8aa83bc748e",
+      "content_sha256": "87beb28412cd28793b6be1f7cffb6eb1c9f5c955a8682f0e76dc08472dc91d03",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q7",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -1470,7 +1578,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "b09587d1fa3d1f487670fdf84ae23611688b7978ba2e38ccb32bd8aa83bc748e",
+          "reviewed_content_sha256": "87beb28412cd28793b6be1f7cffb6eb1c9f5c955a8682f0e76dc08472dc91d03",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1528,9 +1636,9 @@
       ],
       "model_answer": "剪刀撑倾角 45°~60°，一道剪刀撑跨 4~6 跨、宽 6~9m，24m 为分界（≤24m 局部、>24m 连续设置）。",
       "rule_group": "剪刀撑·角度宽度",
-      "content_sha256": "970d41bf50e780c52dd15c0f1ad299762894305a80f54ac8f9ec7c2503d73eea",
+      "content_sha256": "e635ac6df548f9b130208ecdac7852d2f19faee73b9949a9b25f7fd4aba42d88",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q8",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -1540,7 +1648,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "970d41bf50e780c52dd15c0f1ad299762894305a80f54ac8f9ec7c2503d73eea",
+          "reviewed_content_sha256": "e635ac6df548f9b130208ecdac7852d2f19faee73b9949a9b25f7fd4aba42d88",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1598,9 +1706,9 @@
       ],
       "model_answer": "支撑脚手架独立架体高宽比≤3.0；高宽比过大重心高、抗倾覆力矩小，易整体倾覆。",
       "rule_group": "高宽比",
-      "content_sha256": "46b35f47c0376fbe6a07cec843f5fd083bc3281f56edc2c4ff129d34f3834848",
+      "content_sha256": "130445b020f9f8d465b42560686bc32578520c916f7c30c795fa90c945ad7321",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q9",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -1610,7 +1718,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "46b35f47c0376fbe6a07cec843f5fd083bc3281f56edc2c4ff129d34f3834848",
+          "reviewed_content_sha256": "130445b020f9f8d465b42560686bc32578520c916f7c30c795fa90c945ad7321",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1668,9 +1776,9 @@
       ],
       "model_answer": "可调底座/托撑螺杆插入立杆的长度应≥150mm，伸出长度受限（如 φ48.3 立杆伸出≤500mm），过长偏心受压易局部压屈。",
       "rule_group": "可调底座/托撑",
-      "content_sha256": "d8f6f05fb0e14bf7c191766345760ca101819ce30d2ab8a3905afaae3c1478c0",
+      "content_sha256": "135c91498e070c075b9d55b9f8137cefd19a0266911ef1ccfbcc87fdf918066c",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q10",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -1680,7 +1788,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "d8f6f05fb0e14bf7c191766345760ca101819ce30d2ab8a3905afaae3c1478c0",
+          "reviewed_content_sha256": "135c91498e070c075b9d55b9f8137cefd19a0266911ef1ccfbcc87fdf918066c",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1738,27 +1846,39 @@
       ],
       "model_answer": "拆除应自上而下、先外后内、逐层同步进行，严禁上下同时交叉作业。",
       "rule_group": "拆除·顺序方向",
-      "content_sha256": "b9d50947232fc3eac1c119079f901eb212b68b56696e962b1a2b3fa528bace06",
+      "content_sha256": "8edd0a208521aeb01cf9e06b66fcfedbd67cec97bf1f8f669c6f83571b38ca98",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q11",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-chaichu-order",
+        "skeleton_id": "s01-skel-拆除总顺序口诀",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A436000_006_0007:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "b9d50947232fc3eac1c119079f901eb212b68b56696e962b1a2b3fa528bace06",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "8edd0a208521aeb01cf9e06b66fcfedbd67cec97bf1f8f669c6f83571b38ca98",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "拆除总顺序=自上而下·先外后内·逐层同步·严禁交叉, 教材直引。三联immediate_confirm。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1808,27 +1928,39 @@
       ],
       "model_answer": "连墙件应随架体逐层同步拆除，严禁先将连墙件整层拆除；悬臂段超 2 步应加临时拉结。",
       "rule_group": "拆除·连墙件随层拆",
-      "content_sha256": "56d4a7deb1da992b3d473c99e8955bb56cbdd12d2fcc0c0a8a1a039c2abac59a",
+      "content_sha256": "7ba594cc8aba5cd30f2f3ad2c9b9aa3b7f0d4094872ed5b2b0dab3ebced0f79d",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q12",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-chaichu-order",
+        "skeleton_id": "s01-skel-连墙件随层拆时机",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A436000_006_0007:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "56d4a7deb1da992b3d473c99e8955bb56cbdd12d2fcc0c0a8a1a039c2abac59a",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "7ba594cc8aba5cd30f2f3ad2c9b9aa3b7f0d4094872ed5b2b0dab3ebced0f79d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "连墙件随架体逐层同步拆/严禁先整层拆/悬臂段超2步临时拉结, 教材直引。三联d1_probe, skeleton与anchor/confirm互异。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1878,9 +2010,9 @@
       ],
       "model_answer": "纵向水平杆宜设在立杆内侧；对接接头交错、错开≥500mm、距主节点≤1/3跨；搭接≥1m、用 3 个旋转扣件、端头伸出≥100mm。",
       "rule_group": "搭设·纵向水平杆",
-      "content_sha256": "2cae1a04f6be1e8aa14b3f50e3370b4bee6934b654a9d9d6ed37c4c034555f36",
+      "content_sha256": "40721213df4cdf348a9980bcb3257e0046e4fdb8924fdbcff90d1b8b5a248510",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q13",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -1890,7 +2022,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "2cae1a04f6be1e8aa14b3f50e3370b4bee6934b654a9d9d6ed37c4c034555f36",
+          "reviewed_content_sha256": "40721213df4cdf348a9980bcb3257e0046e4fdb8924fdbcff90d1b8b5a248510",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -1948,27 +2080,39 @@
       ],
       "model_answer": "方向错（应自上而下、先外后内）、连墙件拆除时机错（应随架体逐层同步拆、严禁先整层拆）；补写：自上而下、先外后内、逐层同步、严禁交叉；连墙件随层同步拆、悬臂段超2步加拉结。",
       "rule_group": "采分诊断·末题",
-      "content_sha256": "03bf4774e975f21636c46450fffd78ec1f118f700bc4904776fe3360180d07a6",
+      "content_sha256": "be29d30e9473470d89bcbbe5601a866ec853e63370756e4bfb70eb7f92550faf",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q15",
-      "authoring_sha256": "05497ebf8ca93c87701264332c2b9830185324b6e82e11e3c84390be2cc94088",
+      "authoring_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-chaichu-order",
+        "skeleton_id": "s01-skel-诊断拆除方向加随层拆",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_006_0007:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "03bf4774e975f21636c46450fffd78ec1f118f700bc4904776fe3360180d07a6",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "be29d30e9473470d89bcbbe5601a866ec853e63370756e4bfb70eb7f92550faf",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "诊断末题: 自上而下按步逐层/先外后内/连墙件随层同步严禁整层拆/悬臂超2步拉结, 教材1A436000_006_0007逐字。三联anchor。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -2022,23 +2166,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q1",
       "authoring_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-mbzj-baozheng-items",
+        "skeleton_id": "s01-skel-保证项目6项",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_107_0174:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "b6fff4f856fcf233c0c0329a68619404de24db6215d23accceae4a1fa5d0966b",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "模板支架保证项目=方案/基础/构造/稳定/荷载/交底与验收, 教材直引。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -2092,23 +2248,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q2",
       "authoring_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-zhijiachaichu-yiban",
+        "skeleton_id": "s01-skel-支架拆除归一般",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_107_0174:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "65d3d1d1821f31fde47b67890c1aa63143cb99c19d40cd5cf935ef42a2b6462c",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "支架拆除属一般项目, 教材直引(同锚不同skeleton)。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -2162,23 +2330,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q3",
       "authoring_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-yanshou-4elements",
+        "skeleton_id": "s01-skel-验收四要素",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_006_0008:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "02a94526966a7fd7ce5e7809bf1fd895ceb5d4a664e0b59546614c1311677e09",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "验收四要素=材料/支承固定/搭设质量/技术资料, 教材直引。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -2232,23 +2412,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q4",
       "authoring_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-jiancha-5nodes-6m",
+        "skeleton_id": "s01-skel-支撑架6m一查",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_113_0186:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "a8c3af0b02b6ca22da88c9802dc0ee343a030269d55ec68fa5439991b00afe6a",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "五阶段检查节点, 支撑架每2~4步或≤6m, 教材1A436000_113_0186逐字。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -2862,27 +3054,48 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q14",
       "authoring_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "s01-fact-scoring-diagnosis-down",
+        "skeleton_id": "s01-skel-诊断归类加卸料平台",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A436000_107_0174:0",
+        "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "91bfb5ab7054407fef4be49028e937bd8823b7960501cbf831cc688c081df08e",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:50:46+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "诊断末题: 支架拆除归一般项目(直引); 卸料平台严禁固定作业脚手架半边靠 kc:1A436000_006_0007:1(教材1A436000_006_0007(8)逐字, 同为本题机器候选)。复合诊断单锚溯源足。"
         },
         "revoked": false,
         "revocation_refs": []
       }
     }
-  ]
+  ],
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "fable-cross-session + textbook arbitration 2026-07-20: 编译截断病三修(_S01_compiled_source.json repair_note x4)——T1 表3.4-1拆模分档漏抽逐字回填(2026教材 chunk 1A413030_099_0185)+kc:1A436000_115_0189:1 quote a-d细则回填; T4 kc:1A436000_009_0012:0 statement 50m论证门补全; T2 步距仲裁=2026教材全三卷无『立杆步距≤Xm』数值限值, practice2 q1 改锚垫板构造(kc:1A436000_112_0185:4, 教材1A436000_112_0185(1)逐字), 严禁按2m反向编造。15投影+拆除三件套逐题引文已回教材原文核对(fix_s01.log checkpoint 1-5)。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }

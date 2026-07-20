@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "G03",
   "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
-  "source_bundle_sha256": "b3d65a5e34b089f76daa11b3ebad88713681c855c001b1509117ef8b5c718c54",
+  "source_bundle_sha256": "1dcd42a5a57ee741f53ec3bce57cef04bd0b73a3b8a06d69a8f610a435253118",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -22,11 +22,26 @@
         "G03-html-practice-html-q2-8c691c527a8d",
         "G03-html-practice-html-q4-1867683ad625",
         "G03-html-practice-html-q5-6742026d87de",
-        "G03-html-practice-html-q15-4f582e57e491"
+        "G03-html-practice-html-q15-cf892847c628"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTUwNjlmYmU3MDgzIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04YzY5MWM1MjdhOGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTE4Njc2ODNhZDYyNSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtNjc0MjAyNmQ4N2RlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtNGY1ODJlNTdlNDkxIl0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjAwZDU1M2U0NTMwZGE4YzgxYmQ3M2ZjNzMzNTkyY2IxYjAzNDJlOGJmODdmODg3NjVkOTJkNjc1ZDc0NzEzM2QiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "e7d10436624bb9d25a7a74a2b36f3cdf1885c59abb88a4db856ebe587ba143fc"
+      "eligible_variant_ids": [
+        "G03-html-practice-html-q1-a5069fbe7083",
+        "G03-html-practice-html-q2-8c691c527a8d",
+        "G03-html-practice-html-q4-1867683ad625",
+        "G03-html-practice-html-q5-6742026d87de",
+        "G03-html-practice-html-q6-f235160114d8",
+        "G03-html-practice-html-q7-0c0075bd0b2e",
+        "G03-html-practice-html-q8-a8a5bec0b9cc",
+        "G03-html-practice-html-q9-3dfec01f94ce",
+        "G03-html-practice-html-q10-bd097c720984",
+        "G03-html-practice-html-q11-66c7323d8d73",
+        "G03-html-practice-html-q12-81340bfc439c",
+        "G03-html-practice-html-q13-e3d20b4a2a14",
+        "G03-html-practice-html-q14-2880cbbb0da6",
+        "G03-html-practice-html-q15-cf892847c628"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTUwNjlmYmU3MDgzIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04YzY5MWM1MjdhOGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTE4Njc2ODNhZDYyNSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtNjc0MjAyNmQ4N2RlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtY2Y4OTI4NDdjNjI4Il0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjJhODY1MGVmMzE2MmRjYjMzYjQ1OTUyNTA5NDVjN2FkNTlkNjQ1MzM0NWFlODJiOTBjZWFlZDc1YzA1YjNkY2MiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZWQ5ZWI2NWQ5Yjg4MTA1ZDQ2NzkwNjE3OGIwNDJhYTg0OTQ1ZDE3YmViNjhkYzQ4ODhlYWVlNjA0NzA3MTgxMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "94389e10285044fc87df4ba6fc171d8a2b53658ec31ed6c5c52a24cc2d551ca4"
     }
   ],
   "items": [
@@ -79,29 +94,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_091_0167:0",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-bored-pile-typology",
+      "skeleton_id": "g03-skel-成孔工法四类定性",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d2152beec8839de6411ed0e2049664e80e5f9f9e4de8530eeec116a2a994b69d",
+      "content_sha256": "81bcf71bc9783208fd422a7770a13250c8d68a15f6ad15ae99b2ffefe7cad689",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "d2152beec8839de6411ed0e2049664e80e5f9f9e4de8530eeec116a2a994b69d",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "81bcf71bc9783208fd422a7770a13250c8d68a15f6ad15ae99b2ffefe7cad689",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "灌注桩成孔工法四类定性。教材0167逐字'可分为泥浆护壁灌注桩、沉管灌注桩、长螺旋钻孔压灌桩和干作业（机械、人工）成孔灌注桩等'。正确项四类与教材一致;三干扰项(仅两类/按受力性状/照搬预制桩)确误。沿用 2026-07-20 sign_g03 重裁 SIGNABLE 结论。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +179,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_090_0165:0",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-precast-strength-thresholds",
+      "skeleton_id": "g03-skel-预制桩70-100吊运打",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "396ce1780cfa84918202acb44c38f8b7338c77e21279eebd40233d19d6ebf582",
+      "content_sha256": "7ea0b70b9f4d041726ecd5b38f617d9e3122adaaf928e6efc55270f47d60775e",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "396ce1780cfa84918202acb44c38f8b7338c77e21279eebd40233d19d6ebf582",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "7ea0b70b9f4d041726ecd5b38f617d9e3122adaaf928e6efc55270f47d60775e",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "预制桩强度阈值。教材0165①②逐字:≥70%起吊/≥100%运输打桩/两点吊0.2L。数值三连全对;干扰项(70/100倒置、75/90、经验掌握)确误。沿用重裁 SIGNABLE。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +264,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "exam:2017:第26题",
+      "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-hammer-drop-mode",
+      "skeleton_id": "g03-skel-重锤低击真题",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ef725c9610da391c7307e038f22678c8a52395bc311a669801ea41b22514d292",
+      "content_sha256": "a8bb3beee3475170e4a798bab00a51255b5e19bba4ba28715e15819eb7590d1e",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "ef725c9610da391c7307e038f22678c8a52395bc311a669801ea41b22514d292",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "a8bb3beee3475170e4a798bab00a51255b5e19bba4ba28715e15819eb7590d1e",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "锤击落锤方式。真题 exam:2017:第26题官答 BD=重锤低击/低锤重打,解析同口径;教材本包无此条,真题锚独立成立且与2026教材无冲突。沿用重裁 SIGNABLE。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +349,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_091_0166:0",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-static-press-termination",
+      "skeleton_id": "g03-skel-静压终止标高压力",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "57a7b224cc66d3a0d8810467b530a596d8d5692cfa1bf4fc2f2892771eb4ab98",
+      "content_sha256": "392a5a91d01fd2a71f991dfd6ba3579f0b3a44449aee0650824304cd8e4670ef",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "57a7b224cc66d3a0d8810467b530a596d8d5692cfa1bf4fc2f2892771eb4ab98",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "392a5a91d01fd2a71f991dfd6ba3579f0b3a44449aee0650824304cd8e4670ef",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "静压终止标准。核心判分眼(摩擦桩标高为主/端承桩压力为主)教材0166⑧a逐字;干扰项1为主辅对调。辅助采分句'试压桩≥3根/不得边压边挖'教材0165静压①③逐字为真(第一手核对),其候选点0165:1本轮已进q5 TOP_K=5候选,核心眼仍签0166:0。沿用重裁 SIGNABLE(带拆锚记录)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -371,29 +434,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_091_0168:0",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-slurry-wall-process",
+      "skeleton_id": "g03-skel-护壁流程护筒清孔",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3d20e8f7af489f7e20d18d7d553b8ce4f116345fab5f622e02a08cba89552de1",
+      "content_sha256": "6b81b0a228285c428f565d508395e9eaf9c42320c1d9b9b3f374f59b43070cea",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "3d20e8f7af489f7e20d18d7d553b8ce4f116345fab5f622e02a08cba89552de1",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "6b81b0a228285c428f565d508395e9eaf9c42320c1d9b9b3f374f59b43070cea",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "泥浆护壁成孔流程。教材0168完整流程逐字支撑正确项(护筒/清孔两易漏节点齐)。工单(沿用):正确项省略下笼后二次清孔节点;干扰项2'先下笼后清孔'指完全跳过首次清孔仍确误,但与二次清孔工序有表述混淆风险。备用位可签。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -444,35 +519,47 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_091_0169:0",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-sediment-thickness",
+      "skeleton_id": "g03-skel-沉渣50-100-200",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "870229fa0962b80d396438e43728516aa949bffb95d315451d686d19a8fafae5",
+      "content_sha256": "3b8702d439a6fe1355e849c558a28932a04e2a3464edd22964ca9000487fce01",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "870229fa0962b80d396438e43728516aa949bffb95d315451d686d19a8fafae5",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "3b8702d439a6fe1355e849c558a28932a04e2a3464edd22964ca9000487fce01",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "孔底沉渣三档。教材0169逐字(端承≤50/摩擦≤100/抗拔抗水平≤200mm)。沿用重裁备用可签。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
       "rule_group": "超灌纠错·记录计算维",
       "stem": "某水下灌注桩方案：灌注时桩顶混凝土面超过设计标高500mm即停灌。选出对该做法的正确判断与改正。",
-      "model_answer": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头混凝土才达标。",
+      "model_answer": "不妥。水下混凝土超灌高度应高于设计桩顶标高1m以上，凿除浮浆后桩头混凝土才达标。",
       "options": [
         {
           "text": "妥当。桩顶混凝土面超过设计标高500mm已留有余量，凿除桩头浮浆后即可满足设计标高要求。",
@@ -480,66 +567,78 @@
           "source_error_code": "E05",
           "temptation": "觉得超了就行、500有余量。",
           "loss_reason": "未指出不妥，超灌不足、浮浆凿除后桩顶会低于设计标高。",
-          "fix": "应判不妥，超灌0.8~1.0m。",
-          "option_id": "G03-html-practice-html-q8-0a3812d1717a:option-1"
+          "fix": "应判不妥，超灌高度应高于设计桩顶标高1m以上。",
+          "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-1"
         },
         {
-          "text": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头才达标。",
+          "text": "不妥。水下混凝土超灌高度应高于设计桩顶标高1m以上，凿除浮浆后桩头才达标。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "指出不妥+写准0.8~1.0m+点出凿浮浆，三段齐，得分。",
-          "option_id": "G03-html-practice-html-q8-0a3812d1717a:option-2"
+          "fix": "指出不妥+写准高于设计桩顶标高1m以上+点出凿浮浆，三段齐，得分。注：2016年官答曾用0.8~1.0m口径，现行教材以1m以上为准。",
+          "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-2"
         },
         {
           "text": "不妥，应适当加大超灌高度，但具体超灌多少可结合现场浮浆情况确定。",
           "is_correct": false,
           "source_error_code": "E03",
           "temptation": "指出了不妥却不敢写数。",
-          "loss_reason": "正确做法漏0.8~1.0m具体数字，阅卷不给该分。",
-          "fix": "补写超灌0.8~1.0m。",
-          "option_id": "G03-html-practice-html-q8-0a3812d1717a:option-3"
+          "loss_reason": "正确做法漏写1m以上这一具体数值，阅卷不给该分。",
+          "fix": "补写超灌高度应高于设计桩顶标高1m以上。",
+          "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-3"
         },
         {
-          "text": "不妥，水下灌注桩顶混凝土面应超灌至少2m以上，以确保桩头质量。",
+          "text": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头才达标。",
           "is_correct": false,
           "source_error_code": "M08",
-          "temptation": "以为超得越多越保险。",
-          "loss_reason": "超灌过高浪费且非规范值，规范0.8~1.0m。",
-          "fix": "超灌0.8~1.0m即可。",
-          "option_id": "G03-html-practice-html-q8-0a3812d1717a:option-4"
+          "temptation": "老真题官答就是0.8~1.0m，背得熟。",
+          "loss_reason": "这是2016年官答旧口径，现行教材要求高于设计桩顶标高1m以上，0.8m达不到下限。",
+          "fix": "按现行教材写：超灌高度应高于设计桩顶标高1m以上。",
+          "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q8-0a3812d1717a",
+      "variant_id": "G03-html-practice-html-q8-a8a5bec0b9cc",
       "surface_id": "practice.html",
       "source_index": 7,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_091_0169:1",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-overcast-height-2026",
+      "skeleton_id": "g03-skel-超灌纠错500mm",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ce0f341ba140b3971bc64d21e55ffd47d26674ac77ef8d87baa22d6a452ca703",
+      "content_sha256": "70f48aef16ce90bc47a7ac5577c154993ec1b62e2aec9b25c48a7ab154bd18fd",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "ce0f341ba140b3971bc64d21e55ffd47d26674ac77ef8d87baa22d6a452ca703",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "70f48aef16ce90bc47a7ac5577c154993ec1b62e2aec9b25c48a7ab154bd18fd",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "超灌纠错(2026-07-20 冲突修正后新裁)。教材 page91 chunk 0169 ⑧逐字'水下混凝土超灌高度应高于设计桩顶标高 1m 以上，充盈系数不应小于 1'。正确项已改为2026教材口径'高于设计桩顶标高1m以上';2016案例1官答0.8~1.0m旧口径降级为M08干扰项并在解析注明新旧口径(authority-ladder 教材>历史官答,owner-delegated 仲裁)。锚为拆锚修复后的独立超灌采分点(候选rank3,repair_note在编译库)。前轮NO-GO病灶已治,SIGNABLE。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -590,29 +689,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_092_0171:0",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-immersed-tube-methods",
+      "skeleton_id": "g03-skel-沉管复打反插续浇",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "43402391b69ab6541e94d416d178b52bfacb5a9b811935db75fa1fb6912f8d4c",
+      "content_sha256": "f387331ea68eec0b2bffe98113a80a55feca8a57607a0bfa4bf5fb3ed74387fa",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "43402391b69ab6541e94d416d178b52bfacb5a9b811935db75fa1fb6912f8d4c",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "f387331ea68eec0b2bffe98113a80a55feca8a57607a0bfa4bf5fb3ed74387fa",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "沉管工法+成桩步骤。教材0171逐字+exam:2022:第(三)题官答双证(复打法/反插法;边振边拔→下笼继续浇→成桩)。沿用重裁备用可签。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -663,29 +774,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_092_0172:0",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-manual-dug-pile-spacing",
+      "skeleton_id": "g03-skel-挖孔间隔5m先中后周",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "bc329e4f5f1a00f43d8d28df5949876276f1ca251d0fc1b5b138feddfc1179fc",
+      "content_sha256": "2338c16b57df6d800dea403fd0e418ec5a507961edbcacefac5156402747ac15",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "bc329e4f5f1a00f43d8d28df5949876276f1ca251d0fc1b5b138feddfc1179fc",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "2338c16b57df6d800dea403fd0e418ec5a507961edbcacefac5156402747ac15",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "人工挖孔间距顺序。教材0172逐字(<2.5m间隔开挖浇筑/最小≥5m/先中间后周边)。沿用重裁备用可签。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -736,29 +859,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_092_0170:0",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-post-grouting-control",
+      "skeleton_id": "g03-skel-注浆量主控80",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5e78e8d1367f234069e23bdc1b090c77dc2f5f74ebc02a8304cb8cf50659a7b8",
+      "content_sha256": "c055736d5d6f61b7a560df7e730aa05eb452c3307777051df2a366331bcc3f5a",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "5e78e8d1367f234069e23bdc1b090c77dc2f5f74ebc02a8304cb8cf50659a7b8",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "c055736d5d6f61b7a560df7e730aa05eb452c3307777051df2a366331bcc3f5a",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "桩底注浆终止控制。教材0170逐字(以注浆量为主;总量达设计 或 ≥80%且压力>设计值)。沿用重裁备用可签。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -809,29 +944,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_092_0173:0",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-pile-testing-eyes",
+      "skeleton_id": "g03-skel-方法目的匹配",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c0d0495cff2a6e3f84bdb147903f4931ea3c33ca07b0a0884939a13182c8b7ed",
+      "content_sha256": "2d92bcb83b644483684719fcddffb3e64f7c87bbe41c826501550071592576bc",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "c0d0495cff2a6e3f84bdb147903f4931ea3c33ca07b0a0884939a13182c8b7ed",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "2d92bcb83b644483684719fcddffb3e64f7c87bbe41c826501550071592576bc",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "检测方法-目的匹配。教材0173方法汇总五连全覆盖+0174逐字+exam:2021:第14题(钻芯法=A)旁证。jury issue#1(高应变也可判完整性)为工单级非fatal——选项未写'只能',配对法与教材口径一致。三件套 anchor。沿用重裁 SIGNABLE。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -882,29 +1029,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_093_0174:1",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-pile-testing-eyes",
+      "skeleton_id": "g03-skel-完整性II-III分界",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3dab15e8ed39eba410bb5347e25367344f316ab3a826364e12a837ed937ff187",
+      "content_sha256": "b1b6182a3b6760e377e81a4fa81656f27fc1a7001b2a613c85c1e1f941980a50",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "3dab15e8ed39eba410bb5347e25367344f316ab3a826364e12a837ed937ff187",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "b1b6182a3b6760e377e81a4fa81656f27fc1a7001b2a613c85c1e1f941980a50",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "完整性Ⅱ/Ⅲ分界。教材0174:1逐字(Ⅱ轻微不影响/Ⅲ明显影响承载力)。三件套 immediate_confirm,第2独立skeleton。沿用重裁 SIGNABLE。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -955,103 +1114,127 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_093_0174:2",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-pile-testing-eyes",
+      "skeleton_id": "g03-skel-钻芯孔数分档",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d8ff1324ef85dbb1ea51449168f80517c8c56fa3279fa47735d388fb8ac4f843",
+      "content_sha256": "fab0996c6af0aefbda881a9ef3860140d90370f0543736cc2430a1482b2b8936",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "d8ff1324ef85dbb1ea51449168f80517c8c56fa3279fa47735d388fb8ac4f843",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "fab0996c6af0aefbda881a9ef3860140d90370f0543736cc2430a1482b2b8936",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "钻芯孔数分档。教材0174:2逐字+数值复核(<1.2m为1~2孔/1.2~1.6m为2孔/>1.6m为3孔,孔位0.15~0.25D)。三件套 d1_probe,第3独立skeleton。沿用重裁 SIGNABLE。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
       "rule_group": "采分诊断·末题",
-      "stem": "甲级灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③接桩段断裂因混凝土质量差、防治为加强管理。选出最准确的诊断与补写。",
-      "model_answer": "三处都失分：超灌应0.8~1.0m；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；断裂应写五因(弯曲/障碍物/不直/偏心/强度不足)+具体防治。",
+      "stem": "某甲级泥浆护壁灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③成孔坍孔因运气不好、防治为加强管理。选出最准确的诊断与补写。",
+      "model_answer": "三处都失分：超灌应高于设计桩顶标高1m以上；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；坍孔应从泥浆比重不够、水头高度不足、护筒埋置太浅、进尺过快等找原因，防治写优质泥浆、升高护筒增大水头、控制进尺。",
       "options": [
         {
-          "text": "作答基本正确：超灌500mm已经达标，20%抽检180根也属合规，断裂归因于混凝土质量差也说得通，可判给分。",
+          "text": "作答基本正确：超灌500mm已经达标，20%抽检180根也属合规，坍孔归因于运气不好也情有可原，可判给分。",
           "is_correct": false,
           "source_error_code": "E05",
           "temptation": "只看有没有作答、没核对采分点。",
-          "loss_reason": "三处全错还判对，超灌不足、甲级应30%、断裂空话。",
-          "fix": "三处都要改：0.8~1.0m、30%·270根、五因+具体防治。",
-          "option_id": "G03-html-practice-html-q15-4f582e57e491:option-1"
+          "loss_reason": "三处全错还判对，超灌不足、甲级应30%、坍孔归因空话。",
+          "fix": "三处都要改：超灌1m以上、30%·270根、坍孔按泥浆/水头/护筒/进尺找原因加具体防治。",
+          "option_id": "G03-html-practice-html-q15-cf892847c628:option-1"
         },
         {
-          "text": "只有完整性抽检比例这一处有误、应改为30%，其余超灌500mm达标与断裂归因质量差两处均无问题，可予以保留。",
+          "text": "只有完整性抽检比例这一处有误、应改为30%，其余超灌500mm达标与坍孔归因运气两处均无问题，可予以保留。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "抓到抽检一处就收手。",
-          "loss_reason": "漏诊超灌不足与断裂口号化两处失分。",
-          "fix": "超灌改0.8~1.0m、断裂写五因+具体防治，不止改抽检。",
-          "option_id": "G03-html-practice-html-q15-4f582e57e491:option-2"
+          "loss_reason": "漏诊超灌不足与坍孔口号化两处失分。",
+          "fix": "超灌改1m以上、坍孔写泥浆比重/水头/护筒/进尺具体成因加防治，不止改抽检。",
+          "option_id": "G03-html-practice-html-q15-cf892847c628:option-2"
         },
         {
-          "text": "三处都不妥：超灌应0.8~1.0m；甲级灌注桩完整性≥30%即900×30%=270根；断裂应写五因+清障/垂直沉桩/接桩对中等具体防治。",
+          "text": "三处都不妥：超灌应高于设计桩顶标高1m以上；甲级完整性≥30%即900×30%=270根；坍孔从泥浆比重、水头、护筒埋深、进尺找原因并补具体防治。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "超灌、抽检、断桩三处全揪出并补写采分句，这就是会写答案。",
-          "option_id": "G03-html-practice-html-q15-4f582e57e491:option-3"
+          "fix": "超灌、抽检、坍孔三处全揪出并补写采分句，这就是会写答案。",
+          "option_id": "G03-html-practice-html-q15-cf892847c628:option-3"
         },
         {
-          "text": "断裂原因已经写到位、无须再作改动，主要问题在于超灌不足，只需改成超灌2m、完整性抽检仍按20%比例执行即可。",
+          "text": "坍孔成因已经写到位、无须再作改动，主要问题在超灌不足，只需改成超灌0.8~1.0m，完整性抽检仍按20%执行即可。",
           "is_correct": false,
           "source_error_code": "E08",
-          "temptation": "以为断裂归因已到位。",
-          "loss_reason": "断裂归因质量差是口号未提五因，且超灌2m/抽检20%仍错。",
-          "fix": "断裂写五因+防治；超灌0.8~1.0m；甲级抽检30%·20根。",
-          "option_id": "G03-html-practice-html-q15-4f582e57e491:option-4"
+          "temptation": "超灌0.8~1.0m是背过的老官答口径。",
+          "loss_reason": "坍孔归因运气是空话未提泥浆/水头/护筒/进尺；0.8~1.0m是2016官答旧口径，现行教材要求1m以上；甲级抽检也不是20%。",
+          "fix": "坍孔写具体成因加防治；超灌1m以上；甲级抽检30%且≥20根。",
+          "option_id": "G03-html-practice-html-q15-cf892847c628:option-4"
         }
       ],
-      "variant_id": "G03-html-practice-html-q15-4f582e57e491",
+      "variant_id": "G03-html-practice-html-q15-cf892847c628",
       "surface_id": "practice.html",
       "source_index": 14,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "f76c2737c6579ecaf62eab1aaba8645594058fdb2593aab1036a4b8d12261327",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_091_0169:1",
+      "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "fact_id": "g03-fact-pile-diagnosis-composite",
+      "skeleton_id": "g03-skel-诊断超灌抽检坍孔",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c283c9359e43a6df42c8d627a05e9f43c4dd8e131b31060b3dd8d5687c25b63f",
+      "content_sha256": "5243936161cabf98bc438c941ed734f009839f3f2d0630fb873b0c8e37ada152",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "c283c9359e43a6df42c8d627a05e9f43c4dd8e131b31060b3dd8d5687c25b63f",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "5243936161cabf98bc438c941ed734f009839f3f2d0630fb873b0c8e37ada152",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:27:46+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "复合诊断末题(2026-07-20 双病灶修复后新裁)。①超灌:正确项改2026教材口径'高于设计桩顶标高1m以上',主锚即该教材逐字采分点(候选rank1);0.8~1.0m旧口径降级为E08干扰项内错误成分并在解析点破。②甲级完整性≥30%且≥20根,900×30%=270根,exam:2016官答逐字支持、教材无冲突(前轮已裁无病)。③前轮预制桩'断裂五因'拼装错误已整段替换为泥浆护壁灌注桩坍孔病谱,教材 page71 chunk 1A434000_071_0110 '原因分析'六条逐字支撑(泥浆比重/水头/护筒埋深/进尺等,已按S02同法补独立采分点 kc:1A434000_071_0110:2+repair_note;该点rank7未进本题TOP_K=5候选,单锚按G01-q15先例取首要判分眼超灌教材点)。场景已改'甲级泥浆护壁灌注桩',病谱-场景自洽。前轮三重阻断全部解除,SIGNABLE。工单:正确项偏长(诊断题固有,同G01-q15口径)。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "0d2f76910565816ceda5ab6158a5a17d7755368d67d837bfe9696e586d226496"
+  "published_lesson_sha256": "a9d219fcfd42434a65f8744178a00a9a79050805be8ea142df42836067ed48e9"
 }

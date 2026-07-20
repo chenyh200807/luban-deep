@@ -1,0 +1,62 @@
+{
+ "pack_id": "X01",
+ "adversarial_gate_ref": "fable-adjudication 2026-07-20 X01 编译源冒充病修复重签(owner指令40包全上线,教研裁决权owner-delegated): 前轮 sign_x01 重裁 NO-GO(对旧编译世代)定位三病灶——kc:1A431011_011_0012:0 用knowledge_card压缩句'六项'冒充教材quote(教材原文为五条清单,(3)含供电、供水供热、排水排污,(4)含保卫,自铸计数)/kc:1A431011_013_0014:0 删'占据道路施工设置的'限定词/题面继承病(q2漏真采分点,q3'只表达六项'自铸全称,q10/q14/q15围挡过度普遍化+无市区前提)。本轮: 编译源两点改教材原文逐字+repair_note(FINAL_CLEANED_BOOK2026-222-382_fixed.json sha 3b92d0f8 与source_ref一致,第一手回原书核对,见 fix_x01.log); 改题 q2/q3/q10/q14/q15+KNOWLEDGE+codeMap+fivelist fig 全按教材五条/占道限定/市区场景前提重编(对照表见 fix_x01.log); q1/q4 前轮已判可签级未动。anchor 均为该题机器候选 rank1 或 TOP_K 内(零编造),引文修复后编译源与教材原文双核逐字一致。",
+ "signed": [
+  {
+   "variant_id": "X01-html-practice-html-q1-b608d651fee7",
+   "probe_role": "anchor",
+   "fact_id": "x01-fact-layout-design-principles",
+   "skeleton_id": "x01-skel-设计原则七条枚举",
+   "source_anchor": "kc:1A431011_011_0012:1",
+   "note": "施工总平面图设计原则七条。教材0012逐字七条((1)占地少/(2)合理组织运输减少二次搬运/(3)减少相互干扰/(4)利用既有设施/(5)分区设置/(6)节能环保安全消防/(7)遵守规定)与正确项七条口径零损失对应;前轮终裁已核'(减少二次搬运)挂运输合理'与教材原文(2)一致。三干扰项(E04口号/E02单条/E07施工顺序原则)确误。前轮判可签级,本轮未动,variant_id 未变。"
+  },
+  {
+   "variant_id": "X01-html-practice-html-q2-085e71543b9d",
+   "probe_role": "anchor",
+   "fact_id": "x01-fact-siteplan-content-list",
+   "skeleton_id": "x01-skel-图内容五条最全作答",
+   "source_anchor": "kc:1A431011_011_0012:0",
+   "note": "施工总平面布置图内容。锚为本轮修复后的教材五条清单原文逐字((3)含供电、供水供热、排水排污,(4)含保卫,repair_note在编译源);正确项五条口径与教材(1)~(5)逐条一致,不再用卡片'六项'压缩句;E02漏项干扰lose点名漏地形/供电供水排污/保卫/周边环境=真采分点回填。机器候选rank1(0.8167)。"
+  },
+  {
+   "variant_id": "X01-html-practice-html-q3-f35fa7aacd3e",
+   "probe_role": "anchor",
+   "fact_id": "x01-fact-siteplan-content-list",
+   "skeleton_id": "x01-skel-图内容不属于辨识",
+   "source_anchor": "kc:1A431011_011_0012:0",
+   "note": "不属于图内容辨识。'只表达六项'自铸全称已废,改'不在布置图应表达的教材五条内容之列';正确判断(混凝土配合比设计=施工技术文件,不在教材五条清单)成立;三干扰lose逐条定位教材清单第三/五条原文。锚=修复后教材五条清单逐字,机器候选在列。与q2同fact不同skeleton(最全作答vs反向辨识),均anchor,不占三件套。"
+  },
+  {
+   "variant_id": "X01-html-practice-html-q4-1e48ebca11c5",
+   "probe_role": "anchor",
+   "fact_id": "x01-fact-gate-layout",
+   "skeleton_id": "x01-skel-大门数量三因素",
+   "source_anchor": "kc:1A431011_011_0012:2",
+   "note": "大门布置。教材0012逐字'宜考虑设置两个以上大门。大门位置应考虑周边路网情况、转弯半径和坡度限制,大门的高度和宽度应满足车辆运输需要';正确项数量+三因素齐;E07干扰4m/6m道路宽度经chunk 012_0013原文证实为真实规格(埋错真实)。前轮判可签级,本轮未动,variant_id 未变。机器候选rank1。"
+  },
+  {
+   "variant_id": "X01-html-practice-html-q15-d9636803396c",
+   "probe_role": "anchor",
+   "fact_id": "x01-fact-fence-height-tiers",
+   "skeleton_id": "x01-skel-围挡三处采分诊断",
+   "source_anchor": "kc:1A431011_013_0014:0",
+   "note": "采分诊断末题(投影第5锚+围挡fact三件套anchor腿)。本轮stem补'市区某项目沿主要路段施工、围挡在路口占道设置'场景前提,正确项③改'市区主要路段应≥2.5m、路口占道围挡0.8m以上应通透'=教材忠实(锚quote修复后含'占据道路施工设置的'限定原文);①口号化补因果/②大门≥2另有教材0012支撑(见q1/q4锚)。机器候选rank1。"
+  },
+  {
+   "variant_id": "X01-html-practice-html-q10-3d4ed285fc02",
+   "probe_role": "immediate_confirm",
+   "fact_id": "x01-fact-fence-height-tiers",
+   "skeleton_id": "x01-skel-围挡三档分档",
+   "source_anchor": "kc:1A431011_013_0014:0",
+   "note": "围挡高度三档(fact三件套immediate_confirm腿)。正确项与教材0014修复后原文逐字对应: 市区主要路段≥2.5m/一般≥1.8m/距路口20m内占据道路施工设置的围挡0.8m以上通透——限定词本轮回填,不再过度普遍化。干扰项M08不分路段/E07路口加高反通透/E03漏两档均确误。机器候选rank1(0.7889)。"
+  },
+  {
+   "variant_id": "X01-html-practice-html-q14-8ebb154eff21",
+   "probe_role": "d1_probe",
+   "fact_id": "x01-fact-fence-height-tiers",
+   "skeleton_id": "x01-skel-围挡纠错三段式",
+   "source_anchor": "kc:1A431011_013_0014:0",
+   "note": "围挡判断纠错三段式(fact三件套d1_probe腿)。本轮stem补市区+主要路段+路口占道场景前提,'统一1.8m'才构成教材可判的不妥;正确做法带占道限定与分档数值,教材0014逐字支撑。三skeleton互异(分档作答/纠错三段式/末题综合诊断)。机器候选rank1。"
+  }
+ ]
+}

@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "A01",
   "source_pack_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
-  "source_bundle_sha256": "5d4fb08dd1d2d66b2f188909c099631d9288f0497708ae5c2255c576031898e2",
+  "source_bundle_sha256": "708dc8b7b3805af0819d3e15e0863474bf6a0d0bf3522e328984801d88a48c0e",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -22,11 +22,20 @@
         "A01-html-practice-html-q2-ecc97aac95bb",
         "A01-html-practice-html-q3-0280b26aee14",
         "A01-html-practice-html-q4-2492e71aec61",
-        "A01-html-practice-html-q16-4729976dca0a"
+        "A01-html-practice-html-q16-df2b9af492a9"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTk3ZjZiNjBjMDhlIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lY2M5N2FhYzk1YmIiLCJBMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTAyODBiMjZhZWUxNCIsIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMjQ5MmU3MWFlYzYxIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNDcyOTk3NmRjYTBhIl0sInBhY2tfaWQiOiJBMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImZjYmUxZDFkNTkxZjkxMzA3NmQ0YTljNGU0ODAyYTMwYjBiMGZiOGM2MmExZGI1MmZiYjRmYzA1ODhiYjFhNjEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "f52daf10d3a6fe7df5984bf383d51e2c855dc81bd943d6ec0088fec97f720f10"
+      "eligible_variant_ids": [
+        "A01-html-practice-html-q1-a97f6b60c08e",
+        "A01-html-practice-html-q2-ecc97aac95bb",
+        "A01-html-practice-html-q3-0280b26aee14",
+        "A01-html-practice-html-q4-2492e71aec61",
+        "A01-html-practice-html-q7-be8b3a182637",
+        "A01-html-practice-html-q8-bbc54d254fac",
+        "A01-html-practice-html-q9-1640e9d7a152",
+        "A01-html-practice-html-q16-df2b9af492a9"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTk3ZjZiNjBjMDhlIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lY2M5N2FhYzk1YmIiLCJBMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTAyODBiMjZhZWUxNCIsIkEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMjQ5MmU3MWFlYzYxIiwiQTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZGYyYjlhZjQ5MmE5Il0sInBhY2tfaWQiOiJBMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjhhZmRhMjY0NWFkY2IwMGZiZDQxNjE2ZjFkZjFkN2ExYjgxZDlkZTkzZjllMDc0NWMwYWZkZmNjMTRhNGMwOTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYTUxMmI5NDk2MzJmYWE1NzY4ZDU1NjY2MmI1YTBmNGZmNWZhMjYwYmUyOGU5ZmNjNjBmMTVkNzliOWQzYWQ0YyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "e2c3aa65511c9b71fbaa7048406b0c930b18df51be46196d871219c7771985ef"
     }
   ],
   "items": [
@@ -79,29 +88,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A422000_021_0029:1",
+      "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
+      "fact_id": "a01-fact-acceptance-hierarchy",
+      "skeleton_id": "a01-skel-四级顺序自下而上",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8fd3ace8f733d4366c2ce926a9740fa81181b75212eaafdbc366bf4e6f2477dd",
+      "content_sha256": "5e4a6d003d90b76c21b78b3cbce1e61210e89e5a6b6722be3b923abf46d63bfa",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "8fd3ace8f733d4366c2ce926a9740fa81181b75212eaafdbc366bf4e6f2477dd",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "5e4a6d003d90b76c21b78b3cbce1e61210e89e5a6b6722be3b923abf46d63bfa",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "建筑工程质量验收=检验批→分项工程→分部工程→单位工程四级, 自下而上逐级累积。教材 kc:1A422000_021_0029:1 statement 直引(施工质量验收分为:检验批→分项→分部→单位)。工单: 机器最高分候选 kc:...086_0142(节能工程属单位工程一个分部)语义与本题四级层级无关, 已弃用取层级锚。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +173,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "m35:Q18-1A434000:P6",
+      "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
+      "fact_id": "a01-fact-inspection-lot-division",
+      "skeleton_id": "a01-skel-检验批划分条件补全",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "aab75e4583880453cb966cc73f7fff1a3e4c647d4a5c66365d0498ce11e666dd",
+      "content_sha256": "de44eb05f8ea36c318994b2b7106091d732d9afc8f6cf33282c862ec7625ac7a",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "aab75e4583880453cb966cc73f7fff1a3e4c647d4a5c66365d0498ce11e666dd",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "de44eb05f8ea36c318994b2b7106091d732d9afc8f6cf33282c862ec7625ac7a",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "检验批可按工程量、楼层、施工段、变形缝划分(题干已给楼层, 补其余三项)。锚 m35:Q18-1A434000:P6(compiled_source 内编译采分点)statement 列举 工程量/施工段/变形缝, 与 GB50300 检验批标准划分条件一致。工单: 此为 m35 采分点非 raw kc; raw 层级锚 kc:...021_0029:1 仅列工程量/楼层/施工段(缺变形缝), 故取更全的 m35 点。正确项 vs 干扰项(主要工种/材料/工艺/设备=分项工程那套)辨析正确。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +258,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "m35:Q18-1A434000:P5",
+      "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
+      "fact_id": "a01-fact-subitem-division",
+      "skeleton_id": "a01-skel-分项工程划分条件",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "83b7cb53193deeef72cb8665dd8f11039d925fdce9d7cbe829da1319dea42af2",
+      "content_sha256": "26027230e44d508c78b13d12f8178fb0ad3f4c69b0c6df47d28e2fa866c09386",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "83b7cb53193deeef72cb8665dd8f11039d925fdce9d7cbe829da1319dea42af2",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "26027230e44d508c78b13d12f8178fb0ad3f4c69b0c6df47d28e2fa866c09386",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "分项工程按主要工种、材料、施工工艺、设备类别划分。锚 m35:Q18-1A434000:P5 statement 逐项列举四类, 比 kc:...021_0029:1(工种/材料/工艺, 缺设备类别)更全。工单: m35 采分点; 干扰项把检验批那套(工程量/楼层/施工段/变形缝)搬来串档, 辨析正确。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +343,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A422000_045_0071:1",
+      "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
+      "fact_id": "a01-fact-lot-acceptance-standard",
+      "skeleton_id": "a01-skel-主控全合格一般80",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ab94f626dbcdcb65e17ac7a39b6ba3415249cca9d105ac322db1cf8a5ffb18e3",
+      "content_sha256": "d32501590ba0785dca3a85734a8d33582f0969d161d74835b3c6013701c08926",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "ab94f626dbcdcb65e17ac7a39b6ba3415249cca9d105ac322db1cf8a5ffb18e3",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "d32501590ba0785dca3a85734a8d33582f0969d161d74835b3c6013701c08926",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "检验批合格标准: 主控项目全部合格(否决项), 一般项目合格率≥80% 且最大偏差不超规定值。教材 kc:1A422000_045_0071:1 statement 直引(主控项目全部合格; 一般项目合格率≥80%)。工单: 干扰候选 kc:...067_0100(砂浆饱满度80/90%)语义偏移, 已弃。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -373,17 +430,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "77390ee53998bba48f5c48e0dcf97b56fca81f3bb0abc2b8d973aed8f8c66d3e",
+      "content_sha256": "6e260ce40746fb6d9d7e89195ac98f904fb4232f1822387c0758f39a26dd12a8",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "77390ee53998bba48f5c48e0dcf97b56fca81f3bb0abc2b8d973aed8f8c66d3e",
+        "reviewed_content_sha256": "6e260ce40746fb6d9d7e89195ac98f904fb4232f1822387c0758f39a26dd12a8",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -446,17 +503,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "17ead8abb817a978ae20b309809e76c4f8fb3e6fdea6e3792d059c437042e314",
+      "content_sha256": "f57e92313d572ba9464710e40cdba486bac1543538ed233e13213ee75c9eb685",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "17ead8abb817a978ae20b309809e76c4f8fb3e6fdea6e3792d059c437042e314",
+        "reviewed_content_sha256": "f57e92313d572ba9464710e40cdba486bac1543538ed233e13213ee75c9eb685",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -517,29 +574,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A434020_085_0136:0",
+      "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
+      "fact_id": "a01-fact-structural-entity-inspection",
+      "skeleton_id": "a01-skel-实体检验内容四项",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c74bb0e1924a29fa4d8fbb62ce53ea4cef896bdb048ece3851763825efa42d71",
+      "content_sha256": "61fff31eed1e75a474d5058645fdb03910535dfbd08358f4a82585f4d8d1b4ba",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "c74bb0e1924a29fa4d8fbb62ce53ea4cef896bdb048ece3851763825efa42d71",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "61fff31eed1e75a474d5058645fdb03910535dfbd08358f4a82585f4d8d1b4ba",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "结构实体检验内容=混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目(四项)。教材 kc:1A434020_085_0136:0 statement 逐字直引。三件套 anchor。工单: 干扰项漏两项(E02)或混入见证取样/隐蔽记录(E07)辨析正确。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -590,29 +659,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A434020_085_0136:1",
+      "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
+      "fact_id": "a01-fact-structural-entity-inspection",
+      "skeleton_id": "a01-skel-实体检验组织主体",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "4c1188c115b1e55e1c744f91d2d898ad06204c43b68dc010676ba660a0d0fc72",
+      "content_sha256": "73845aae41bcd8526b0831c5477a8e55f36c2a2021d6c827c830f44f3e0e993d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "4c1188c115b1e55e1c744f91d2d898ad06204c43b68dc010676ba660a0d0fc72",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "73845aae41bcd8526b0831c5477a8e55f36c2a2021d6c827c830f44f3e0e993d",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "结构实体检验由监理单位组织、施工单位实施、监理见证, 施工单位编专项方案报监理审批。教材 kc:1A434020_085_0136:1 statement 逐字直引。三件套 immediate_confirm(同结构实体检验 fact, skeleton 异于 q7)。工单: 干扰项把组织主体答反(施工自组织/建设组织)辨析正确。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -663,74 +744,86 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A434020_085_0136:2",
+      "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
+      "fact_id": "a01-fact-structural-entity-inspection",
+      "skeleton_id": "a01-skel-混凝土强度检验方法",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7e8cbdb3ff4735de9f974cd95f50fa30cb1c989cffa7c044fcf2714bd0c357ed",
+      "content_sha256": "4f7fb0458ed950463067656defdee0205e65ba5ee4cec8d4a4badcfe02bd4650",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "7e8cbdb3ff4735de9f974cd95f50fa30cb1c989cffa7c044fcf2714bd0c357ed",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "4f7fb0458ed950463067656defdee0205e65ba5ee4cec8d4a4badcfe02bd4650",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "结构实体混凝土强度检验: 优先采用同条件养护试件法; 试件不足或不满足时采用回弹—取芯法。教材 kc:1A434020_085_0136:2 statement 逐字直引。三件套 d1_probe(同 fact, 第3独立 skeleton)。工单: 干扰项把回弹钻芯当首选(E06)或称两法等效(E07)辨析正确。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
       "rule_group": "强度合格判定·计算维",
       "stem": "某 C35 构件钻芯，三芯样抗压代表值 28.5、31、32 MPa。写出可得分的合格判定依据与结论。",
-      "model_answer": "依据「平均值≥设计×88%=30.8、最小值≥设计×80%=28」；平均(28.5+31+32)/3=30.8 恰为临界、最小 28.5>28，临界是否合格以评分细则为准。",
+      "model_answer": "依据「平均值≥设计×88%=30.8、最小值≥设计×80%=28」；平均(28.5+31+32)/3=30.5＜30.8、最小 28.5>28，平均线不达标，判不合格。",
       "options": [
         {
-          "text": "依据「平均值须≥设计强度 35」判定；平均(28.5+31+32)/3=30.8＜35，故代表值不足、直接判不合格。",
+          "text": "依据「平均值须≥设计强度 35」判定；平均(28.5+31+32)/3=30.5＜35，故代表值不足、直接判不合格。",
           "is_correct": false,
           "source_error_code": "E10",
           "temptation": "直接拿平均和设计强度 35 比大小。",
-          "loss_reason": "判据错——应比设计×88% / ×80% 双阈值，不是比设计值本身。",
+          "loss_reason": "判据错——应比设计×88% / ×80% 双阈值，不是比设计值本身，结论蒙对也拿不到过程分。",
           "fix": "套平均≥35×88%、最小≥35×80% 双阈值。",
-          "option_id": "A01-html-practice-html-q10-80997d09c9c0:option-1"
+          "option_id": "A01-html-practice-html-q10-b907f97c8385:option-1"
         },
         {
-          "text": "依据「平均值≥设计×88%=30.8」判定；平均 30.8 已达标，故构件合格，最小值不再单独设限。",
+          "text": "依据「平均值≥设计×88%=30.8」判定；平均(28.5+31+32)/3=30.5＜30.8 不达标，故判不合格，最小值不再单独核对。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "套了 88% 平均线就以为完事。",
-          "loss_reason": "漏最小值≥设计×80% 这条独立门槛，判据不全。",
-          "fix": "补最小值≥28 这条，双条件都要满足。",
-          "option_id": "A01-html-practice-html-q10-80997d09c9c0:option-2"
+          "loss_reason": "漏最小值≥设计×80% 这条独立门槛，判据不全、过程丢分。",
+          "fix": "补最小值≥28 这条，双条件都要写全。",
+          "option_id": "A01-html-practice-html-q10-b907f97c8385:option-2"
         },
         {
-          "text": "依据「平均值≥设计×88%=30.8、最小值≥设计×80%=28」；平均(28.5+31+32)/3=30.8 恰为临界、最小 28.5>28，临界判定以评分细则为准。",
+          "text": "依据「平均值≥设计×88%=30.8、最小值≥设计×80%=28」；平均(28.5+31+32)/3=30.5＜30.8、最小 28.5>28，平均线不达标，判不合格。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "两阈值都套 + 代入算 + 点明临界，不擅自拍板。",
-          "option_id": "A01-html-practice-html-q10-80997d09c9c0:option-3"
+          "fix": "两阈值都套 + 代入算 + 双线回判，平均线不达标即不合格。",
+          "option_id": "A01-html-practice-html-q10-b907f97c8385:option-3"
         },
         {
-          "text": "依据「平均值≥设计×80%=28、最小值≥设计×88%=30.8」；平均30.8>28、最小28.5<30.8，故判不合格。",
+          "text": "依据「平均值≥设计×80%=28、最小值≥设计×88%=30.8」；平均30.5>28、最小28.5<30.8，故判不合格。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "两阈值记得，却把 88% / 80% 对调了。",
-          "loss_reason": "平均对应 88%、最小对应 80%，数值配反、结论也带偏。",
+          "loss_reason": "平均对应 88%、最小对应 80%，数值配反，失分线归因全错、判据分拿不到。",
           "fix": "平均≥88%（30.8）、最小≥80%（28），别对调。",
-          "option_id": "A01-html-practice-html-q10-80997d09c9c0:option-4"
+          "option_id": "A01-html-practice-html-q10-b907f97c8385:option-4"
         }
       ],
-      "variant_id": "A01-html-practice-html-q10-80997d09c9c0",
+      "variant_id": "A01-html-practice-html-q10-b907f97c8385",
       "surface_id": "practice.html",
       "source_index": 9,
       "source_group": "Q",
@@ -738,17 +831,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "df1a5c90b8ed61b2bd109e87375873601c35bf5f7e06e0baa1624cc5e5548627",
+      "content_sha256": "ec2c413a8c42b375ed4fd40cf23acf59595df732328b446ae1083b15bcf5a752",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "df1a5c90b8ed61b2bd109e87375873601c35bf5f7e06e0baa1624cc5e5548627",
+        "reviewed_content_sha256": "ec2c413a8c42b375ed4fd40cf23acf59595df732328b446ae1083b15bcf5a752",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -811,17 +904,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "21a9c2d461c4a0bd17c863b69e0477e968042984f48e5df6f3e9aab821e67139",
+      "content_sha256": "52a884d4d86c6b77230addff60cf030b55a872bd29f04d04181394f12d0e8fc0",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "21a9c2d461c4a0bd17c863b69e0477e968042984f48e5df6f3e9aab821e67139",
+        "reviewed_content_sha256": "52a884d4d86c6b77230addff60cf030b55a872bd29f04d04181394f12d0e8fc0",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -884,17 +977,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "098569e674b0f4aa3e68054949002dfac089763acf31564eb8cc152d10a4dc85",
+      "content_sha256": "1ca6c028224ab0d444d576faa3be21bf277ebbdace893a684d05e8b14251c935",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "098569e674b0f4aa3e68054949002dfac089763acf31564eb8cc152d10a4dc85",
+        "reviewed_content_sha256": "1ca6c028224ab0d444d576faa3be21bf277ebbdace893a684d05e8b14251c935",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -957,17 +1050,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5ce3b577f80b526a2f4cb6d232051ca65b12c2ea6b7a1d51ed8be80f2cfb9074",
+      "content_sha256": "7bb2a79c5fb7317c7671fb3da334a14221ad1b4a6a2c79301523f4b29f3e9d6b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "5ce3b577f80b526a2f4cb6d232051ca65b12c2ea6b7a1d51ed8be80f2cfb9074",
+        "reviewed_content_sha256": "7bb2a79c5fb7317c7671fb3da334a14221ad1b4a6a2c79301523f4b29f3e9d6b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1030,17 +1123,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "81ddf2450c9fcfaef09dbe855e6cfc226bf2a31b76e6053ff3136a6fddc6f974",
+      "content_sha256": "4a188797e6a15ff5c81789232b703c1e2e32687b473dd475954d9de1e93e5cc7",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "81ddf2450c9fcfaef09dbe855e6cfc226bf2a31b76e6053ff3136a6fddc6f974",
+        "reviewed_content_sha256": "4a188797e6a15ff5c81789232b703c1e2e32687b473dd475954d9de1e93e5cc7",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1103,17 +1196,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "74b4a14d8d55e37d06adfcd9c1f8774f246fa5b602559374f9f0dd17a00c1115",
+      "content_sha256": "110759881ea994de4f4949434bd56c5f88cbd4a14823657888fa6e06affe2192",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "74b4a14d8d55e37d06adfcd9c1f8774f246fa5b602559374f9f0dd17a00c1115",
+        "reviewed_content_sha256": "110759881ea994de4f4949434bd56c5f88cbd4a14823657888fa6e06affe2192",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1129,34 +1222,34 @@
       "answer_type": "single_choice",
       "rule_group": "采分诊断·末题",
       "stem": "某学生答：① 实体检验测混凝土强度；② 由施工单位组织；③ 平均(28.5+31+32)/3=30.5＜35，不合格。选出最准确的诊断与补写。",
-      "model_answer": "三处失分：实体检验漏钢筋保护层 / 尺寸偏差 / 合同约定项目；组织应为监理组织、施工实施；判定未套 88%/80% 双阈值（平均应 30.8=临界、最小 28.5>28），且平均算错为 30.5。",
+      "model_answer": "三处失分：实体检验漏钢筋保护层 / 尺寸偏差 / 合同约定项目；组织应为监理组织、施工实施；判定判据错——30.5 算术没错，但不能拿设计值 35 直接比，应套 88%/80% 双阈值（平均 30.5＜35×88%=30.8 不合格、最小 28.5>35×80%=28 合格）。",
       "options": [
         {
           "text": "结论「不合格」与参考答案一致，据此认为实体检验内容、组织主体与判定过程三处均书写无误、并无任何失分点，可按满分给分、判定结论也无需重新复核或修改。",
           "is_correct": false,
           "source_error_code": "E07",
           "temptation": "只看末位结论，一致就以为全对。",
-          "loss_reason": "内容漏三项、组织答反、判据没套阈值且平均算错，过程全丢分。",
+          "loss_reason": "内容漏三项、组织答反、判据没套 88%/80% 双阈值，过程全丢分。",
           "fix": "内容 / 组织 / 判据三处都要重写。",
-          "option_id": "A01-html-practice-html-q16-4729976dca0a:option-1"
+          "option_id": "A01-html-practice-html-q16-df2b9af492a9:option-1"
         },
         {
-          "text": "三处失分：实体检验漏钢筋保护层 / 尺寸偏差 / 合同约定项目；组织应为监理组织、施工实施；判定未套 88%/80% 双阈值（平均应 30.8=临界、最小 28.5>28），且平均算错为 30.5。",
+          "text": "三处失分：实体检验漏钢筋保护层 / 尺寸偏差 / 合同约定项目；组织应为监理组织、施工实施；判定判据错——30.5 算术没错，但不能拿 35 直接比，应套 88%/80% 双阈值（平均 30.5＜30.8 不合格、最小 28.5>28 合格）。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
           "fix": "漏项 + 主体 + 判据三处全揪出，补齐即上答题纸。",
-          "option_id": "A01-html-practice-html-q16-4729976dca0a:option-2"
+          "option_id": "A01-html-practice-html-q16-df2b9af492a9:option-2"
         },
         {
           "text": "仅组织主体一处失分（组织应为监理、实施应为施工），实体检验四项内容与强度判定过程均书写正确无误，只需修改组织主体这一处即可，其余内容与判定均无需改动。",
           "is_correct": false,
           "source_error_code": "E02",
           "temptation": "抓到组织错一处就以为只此一错。",
-          "loss_reason": "漏诊实体检验三项缺失、判据未套双阈值且平均算错。",
+          "loss_reason": "漏诊实体检验三项缺失、判据未套 88%/80% 双阈值。",
           "fix": "补实体四项 + 88%/80% 双阈值判定。",
-          "option_id": "A01-html-practice-html-q16-4729976dca0a:option-3"
+          "option_id": "A01-html-practice-html-q16-df2b9af492a9:option-3"
         },
         {
           "text": "两处失分：组织应改为监理组织、施工实施；强度判定应按平均≥设计×80%、最小≥设计×88% 重新代入计算，实体检验四项内容书写完整、无需改动。",
@@ -1165,39 +1258,51 @@
           "temptation": "揪出两处、却把阈值配反又漏了内容。",
           "loss_reason": "88%/80% 对调，且漏诊实体检验三项缺失。",
           "fix": "平均≥88%、最小≥80%，并补实体四项。",
-          "option_id": "A01-html-practice-html-q16-4729976dca0a:option-4"
+          "option_id": "A01-html-practice-html-q16-df2b9af492a9:option-4"
         }
       ],
-      "variant_id": "A01-html-practice-html-q16-4729976dca0a",
+      "variant_id": "A01-html-practice-html-q16-df2b9af492a9",
       "surface_id": "practice.html",
       "source_index": 15,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A01/P40_A01.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "dc79a1225ca694c86cdab34b60eeb4229a93f07dfd5e4931cee53be34a6c7d94",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A434020_085_0136:0",
+      "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5",
+      "source_html_sha256": "d2818ee58a9307e57d080905398c316db3ea3595b26704d32ffb10243d8027e0",
+      "fact_id": "a01-fact-entity-inspection-diagnosis",
+      "skeleton_id": "a01-skel-实体检验三处诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "46fbbf61477ddc44b2e5116f364bbd17345cb76e125df585d69af5253dd0d33d",
+      "content_sha256": "c8111afb4d6b95fd7d9950beecaba366ceb9a65fd90b02a743e0a218d77581df",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "46fbbf61477ddc44b2e5116f364bbd17345cb76e125df585d69af5253dd0d33d",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "c8111afb4d6b95fd7d9950beecaba366ceb9a65fd90b02a743e0a218d77581df",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:22:31+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "诊断题(2026-07-20 修源后重裁): 学生答实体检验测混凝土强度(漏三项)+组织主体答反+判定判据错(拿35直接比)。修复: 原版把学生正确算术30.5诬为'平均算错', 已按2017真题金标改为'30.5算术没错、错在判据未套88%/80%双阈值(平均30.5<35×88%=30.8不合格、最小28.5>28合格)'。锚 kc:1A434020_085_0136:0(结构实体检验内容四项)直接支撑诊断第1处(漏钢筋保护层/尺寸偏差/合同约定项目), prefill --threshold 0.12 复召回(match 0.239)。诊断第3处 88%/80% 双阈值属 GB50204 外部规范, 不在 A01 compiled_source, 仅作题内作答内容不据此签锚(维持前轮诚实不锚处置)。独立 fact 防止与 q7/q8/q9 三件套串组。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "01381301d9cb3868134a672800cf2370f965b5633b82e0c96ca11218c1a09d36"
+  "published_lesson_sha256": "a7d7a29cf3f14e29bd7d4b3223803fca4ca092baea968033f590ef683f3156c2"
 }

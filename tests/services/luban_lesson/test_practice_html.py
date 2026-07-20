@@ -355,7 +355,8 @@ def test_all_registered_finished_practices_compile_full_private_pools_and_five_q
     assert len(pack_ids) == 40
     assert all(authority is not None for authority in authorities)
     assert sum(len(authority["surfaces"]) for authority in authorities if authority) == 43
-    assert sum(len(authority["items"]) for authority in authorities if authority) == 633
+    # 641 = 633 + 2026-07-20 补题批(C02/N02/F16/F02 各 6→8)。
+    assert sum(len(authority["items"]) for authority in authorities if authority) == 641
     for authority in authorities:
         assert authority is not None
         assert len({item["variant_id"] for item in authority["items"]}) == len(
@@ -395,10 +396,15 @@ def test_compiled_and_unavailable_pack_sets_are_exact() -> None:
 
 @pytest.mark.parametrize("pack_id", ["A01", "X01", "G03"])
 def test_conflict_packs_remain_default_denied_until_exact_human_signatures(
-    pack_id: str,
+    pack_id: str, pendingize_pack
 ) -> None:
-    """已知内容冲突包(blocklist 命中)在 S1b 裁决前必须整包默认拒发。"""
-    canonical = load_compiled_practice(pack_id)
+    """人审签名不齐的包必须整包默认拒发。
+
+    历史上 A01/X01/G03 是真实的内容冲突 pending 包;2026-07-20 补题批后全语料
+    签发,改用合成 pending 夹具(同三包的真实 authority 重置 review)守住同一
+    fail-closed 契约:review 全 pending ⇒ 零 eligible ⇒ 投影拒发。
+    """
+    canonical = pendingize_pack(pack_id)
     assert canonical is not None
     assert canonical["schema_version"] == "luban_compiled_practice.v3"
     assert all(item["eligible"] is False for item in canonical["items"])
@@ -483,7 +489,9 @@ def test_public_projection_contains_only_compiled_questions_and_server_bridge() 
             assert "满分——采分点抓得稳" not in html
 
 
-def test_format_adapters_and_multi_surface_resolution_are_data_driven() -> None:
+def test_format_adapters_and_multi_surface_resolution_are_data_driven(
+    pendingize_pack,
+) -> None:
     a02 = load_compiled_practice("A02")
     s07 = load_compiled_practice("S07")
     s01 = load_compiled_practice("S01")
@@ -501,6 +509,12 @@ def test_format_adapters_and_multi_surface_resolution_are_data_driven() -> None:
         == "practice2.html"
         for variant_id in second_ids
     )
+    # 2026-07-20 全语料签发后 practice2 已释放:多面解析必须精确出第二面题集。
+    resolved = resolve_compiled_practice_items("S01", surface_id="practice2.html")
+    assert resolved is not None
+    assert [row["variant_id"] for row in resolved] == second_ids
+    # fail-closed 契约不随世界态消失:合成 pending 世界态下同一面仍整体拒发。
+    pendingize_pack("S01")
     with pytest.raises(PracticeHtmlInvalid, match="selection_insufficient"):
         resolve_compiled_practice_items("S01", surface_id="practice2.html")
 

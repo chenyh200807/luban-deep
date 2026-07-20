@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "F02",
   "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
-  "source_bundle_sha256": "27cc596b0ac956798c41c712393a38bca088d6cb93df3e52ba38ac00e030ae8a",
+  "source_bundle_sha256": "d3e90edc6531a8ab36148bdc9da8e8a7594ff5f17eb934205c066b0de497ffc4",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html",
-      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
+      "source_html_sha256": "c90767c92d4d2078069bc57d243b6db07f33b1235c0fefb808d18887db4259b6",
       "format_kind": "q_direct",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -24,9 +24,18 @@
         "F02-html-practice-html-q4-d649932926b5",
         "F02-html-practice-html-q6-c063c068d1c4"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzQyMjEyY2QxNTgyIiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzg0MTE5MzRiZDMiLCJGMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTdlNmNmOWE1NTIwMSIsIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDY0OTkzMjkyNmI1IiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1jMDYzYzA2OGQxYzQiXSwicGFja19pZCI6IkYwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiZTQwNTEyNTU3ODE4ZTIxZDY4ZTdmN2FlMGZmZTgwY2M4NTYyNzllNGI3NGU2MzhhMzExYWExYWU0NGM0ZTZlYSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "38cced83ec7dae628375fa27d177968368c95a41be2742bfd79c4c26c2eeb705"
+      "eligible_variant_ids": [
+        "F02-html-practice-html-q1-742212cd1582",
+        "F02-html-practice-html-q2-8c8411934bd3",
+        "F02-html-practice-html-q3-7e6cf9a55201",
+        "F02-html-practice-html-q4-d649932926b5",
+        "F02-html-practice-html-q5-920d4b8af544",
+        "F02-html-practice-html-q6-c063c068d1c4",
+        "F02-html-practice-html-q7-875595f655ed",
+        "F02-html-practice-html-q8-56c0ba314741"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzQyMjEyY2QxNTgyIiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzg0MTE5MzRiZDMiLCJGMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTdlNmNmOWE1NTIwMSIsIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDY0OTkzMjkyNmI1IiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1jMDYzYzA2OGQxYzQiXSwicGFja19pZCI6IkYwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiNGM4NjBjMmMyM2Q0ODM3OWQzYTdhMTRkMWQ2NDczOWI2MGJkZTI1MzBmN2EzOWY1ZTU1MjAzMDQ0OTYxMzU1MSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI5NjllNzA5MDk2NDQzMDY1N2EwZTZkM2YzZTM3NmFiNmJlM2I5OWExYzRmMzY0NDhhN2JmYmRkYTJiZjU0Zjg2Iiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "5f7ac7dbae43169e87eba65b1482daafa64c2f16df79e6fa8e13198f88c243e5"
     }
   ],
   "items": [
@@ -79,29 +88,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "ca:1A413030_123_0234",
+      "source_sha256": "b35a394d397482d250d2b0cfe21b2921db06e315d5dd0e07a5f22cb9c0d97bba",
+      "source_html_sha256": "c90767c92d4d2078069bc57d243b6db07f33b1235c0fefb808d18887db4259b6",
+      "fact_id": "f02-fact-roll-order-low-to-high",
+      "skeleton_id": "f02-skel-铺贴顺序起始方向",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "aa4b066a437ceed7a2c0f2824b23879aa8c68731b799eb345316effb78276190",
+      "content_sha256": "9462b28b2dd724a091b2c9275ddfa2e8fd198fd68767b753c90503153b14188d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "aa4b066a437ceed7a2c0f2824b23879aa8c68731b799eb345316effb78276190",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "9462b28b2dd724a091b2c9275ddfa2e8fd198fd68767b753c90503153b14188d",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "先做细部构造加强后大面、由屋面最低标高由低向高、上幅压下幅,教材 ca:1A413030_123_0234(先细部后大面积·由低向高铺贴·搭接缝顺流水)忠实。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +173,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "exam:2016:第27题",
+      "source_sha256": "b90b29d75537f1b682824244206d5d5df1d183fcf02d161e9729b3f7a229b91e",
+      "source_html_sha256": "c90767c92d4d2078069bc57d243b6db07f33b1235c0fefb808d18887db4259b6",
+      "fact_id": "f02-fact-lap-direction",
+      "skeleton_id": "f02-skel-搭接缝方向铺贴方向",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b125935da2dc574c27a92d96ea57ac128f1463d7965ff4f43886b8a69fde47f3",
+      "content_sha256": "1db6f2d2ea81c43b78651c833f9ea577801510fca45cc0728eb0107ee53577e9",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b125935da2dc574c27a92d96ea57ac128f1463d7965ff4f43886b8a69fde47f3",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "1db6f2d2ea81c43b78651c833f9ea577801510fca45cc0728eb0107ee53577e9",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "搭接缝顺流水、卷材宜平行屋脊、上下两层不得相互垂直,真题 exam:2016:第27题(平行屋脊+上下层不垂直+搭接顺流水)逐字支持。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +258,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A422000_029_0049:0",
+      "source_sha256": "b35a394d397482d250d2b0cfe21b2921db06e315d5dd0e07a5f22cb9c0d97bba",
+      "source_html_sha256": "c90767c92d4d2078069bc57d243b6db07f33b1235c0fefb808d18887db4259b6",
+      "fact_id": "f02-fact-lap-offset-values",
+      "skeleton_id": "f02-skel-搭接错缝数值",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a8a5cdc2665780da5f6a593317de7b586c1da5d1ee8ccfdae63a322884e49d6d",
+      "content_sha256": "34d4304f2f0a80c8bc764550dc39c0aed36ce92c15c4669df89d458abb81ed02",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "a8a5cdc2665780da5f6a593317de7b586c1da5d1ee8ccfdae63a322884e49d6d",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "34d4304f2f0a80c8bc764550dc39c0aed36ce92c15c4669df89d458abb81ed02",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "同层相邻两幅短边搭接错缝≥500mm、上下两层及长边错开≥1/3幅宽,教材 kc:1A422000_029_0049:0 逐字命中。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +343,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "ca:1A422000_041_0065",
+      "source_sha256": "b35a394d397482d250d2b0cfe21b2921db06e315d5dd0e07a5f22cb9c0d97bba",
+      "source_html_sha256": "c90767c92d4d2078069bc57d243b6db07f33b1235c0fefb808d18887db4259b6",
+      "fact_id": "f02-fact-slope-method-heat",
+      "skeleton_id": "f02-skel-坡度铺贴法热熔条件",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d84610d01a81e0959751decc0ddb6560849ca6e6e5b63dbb1f7d43fe374e783a",
+      "content_sha256": "79b27904dbaa8bbb9ae6d2784e0bcc5d9ed3ae949784ec1725ee72caf07a742a",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "d84610d01a81e0959751decc0ddb6560849ca6e6e5b63dbb1f7d43fe374e783a",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "79b27904dbaa8bbb9ae6d2784e0bcc5d9ed3ae949784ec1725ee72caf07a742a",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "坡度>25%满粘+钉压、厚度<3mm严禁热熔(即≥3mm可热熔),教材 ca:1A422000_041_0065 支持;热熔温度180~200℃另见 ca:1A413030_123_0234。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -371,29 +428,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "exam:2018:第14题",
+      "source_sha256": "b90b29d75537f1b682824244206d5d5df1d183fcf02d161e9729b3f7a229b91e",
+      "source_html_sha256": "c90767c92d4d2078069bc57d243b6db07f33b1235c0fefb808d18887db4259b6",
+      "fact_id": "f02-fact-lap-direction",
+      "skeleton_id": "f02-skel-地下卷材迎水面满贴",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b27e71014b9b24aafdab8115352a694a9710bba5ff71a85590a4bd34cd0be15e",
+      "content_sha256": "e0178649bbd5895d610771f84b6b62486e5182657cb029fcaf194fde17e68274",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b27e71014b9b24aafdab8115352a694a9710bba5ff71a85590a4bd34cd0be15e",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "e0178649bbd5895d610771f84b6b62486e5182657cb029fcaf194fde17e68274",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "卷材铺迎水面、外墙外侧满贴、双层不得相互垂直,真题 exam:2018:第14题 逐字支持;与 q2 共享'上下层不垂直'fact(lap-direction),q7 补 d1_probe 后三件套闭合。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -444,30 +513,212 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "62761328ee4c5b1c0f76c8964c40ca3aa73f55036a9c93ff491071fe1b5ba16d",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "exam:2015:案例2",
+      "source_sha256": "b90b29d75537f1b682824244206d5d5df1d183fcf02d161e9729b3f7a229b91e",
+      "source_html_sha256": "c90767c92d4d2078069bc57d243b6db07f33b1235c0fefb808d18887db4259b6",
+      "fact_id": "f02-fact-parapet-flashing-detail",
+      "skeleton_id": "f02-skel-女儿墙泛水细部诊断",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "fd8e86146bf682bfd1f360d6fc55fa5d3e82c10d745cf64a14ecb93b472b3bb7",
+      "content_sha256": "51c59f7780d6cd40ba28b6027d6a95be6243add0931ab934bb614ede8491c5e1",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "fd8e86146bf682bfd1f360d6fc55fa5d3e82c10d745cf64a14ecb93b472b3bb7",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "51c59f7780d6cd40ba28b6027d6a95be6243add0931ab934bb614ede8491c5e1",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "泛水≥250、阴阳角45度或圆弧、附加层平立面≥250、收头鹰嘴滴水槽,真题 exam:2015:案例2 四错逐字命中正确项。"
       },
-      "eligible": false
+      "eligible": true
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "方向·场景变式",
+      "stem": "某坡屋面铺贴双层高聚物改性沥青卷材，施工班组就搭接缝朝向与上下两层排布提出方案。关于搭接方向与层间关系，选出符合规范、能得分的作答。",
+      "model_answer": "搭接缝应顺流水方向搭接；卷材宜平行屋脊铺贴；上下两层卷材不得相互垂直铺贴。",
+      "options": [
+        {
+          "text": "上下两层卷材相互垂直交叉铺贴以增强整体防水，搭接缝顺流水方向，卷材平行屋脊铺贴。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为两层垂直交叉像编织、结合更牢固。",
+          "loss_reason": "上下两层垂直使层间缝十字交叉成漏点，规范规定不得相互垂直。",
+          "fix": "上下两层卷材不得相互垂直铺贴。",
+          "option_id": "F02-html-practice-html-q7-875595f655ed:option-1"
+        },
+        {
+          "text": "卷材垂直屋脊方向铺贴，搭接缝逆流水方向搭接，上下两层平行同向排布不作交叉限制。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得缝口逆水顶紧、垂直屋脊排水更快。",
+          "loss_reason": "逆流水成迎水缝易倒灌、垂直屋脊使缝逆坡，方向概念相反。",
+          "fix": "顺流水方向搭接、平行屋脊铺贴。",
+          "option_id": "F02-html-practice-html-q7-875595f655ed:option-2"
+        },
+        {
+          "text": "卷材平行屋脊铺贴、上下两层不得垂直，搭接缝朝向依现场排水坡向自行确定即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "记住平行屋脊与不垂直，方向以为够了。",
+          "loss_reason": "漏写搭接缝须顺流水方向搭接，只给定性、关键词缺失。",
+          "fix": "补写搭接缝顺流水方向搭接。",
+          "option_id": "F02-html-practice-html-q7-875595f655ed:option-3"
+        },
+        {
+          "text": "搭接缝顺流水方向搭接，卷材宜平行屋脊铺贴，上下两层卷材不得相互垂直铺贴。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "顺流水 + 平行屋脊 + 上下层不垂直，方向三要件全。",
+          "option_id": "F02-html-practice-html-q7-875595f655ed:option-4"
+        }
+      ],
+      "variant_id": "F02-html-practice-html-q7-875595f655ed",
+      "surface_id": "practice.html",
+      "source_index": 6,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q7",
+      "source_anchor": "exam:2016:第27题",
+      "source_sha256": "b90b29d75537f1b682824244206d5d5df1d183fcf02d161e9729b3f7a229b91e",
+      "source_html_sha256": "c90767c92d4d2078069bc57d243b6db07f33b1235c0fefb808d18887db4259b6",
+      "fact_id": "f02-fact-lap-direction",
+      "skeleton_id": "f02-skel-搭接方向场景变式判断",
+      "probe_role": "d1_probe",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "1ce134b1850d8475e01c762516e44bf250d46bde27f03f228ce7f185bab375b5",
+      "review": {
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "1ce134b1850d8475e01c762516e44bf250d46bde27f03f228ce7f185bab375b5",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          }
+        ],
+        "checks": {
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "补编 d1_probe:双层卷材坡屋面场景变式,判断搭接缝顺流水方向+卷材宜平行屋脊铺贴+上下两层不得相互垂直,断言逐字取 exam:2016:第27题(ABCE:平行屋脊搭接缝顺流方向/上下两层不得垂直);与 q2(anchor 搭接缝方向铺贴方向)、q5(immediate_confirm 地下迎水面满贴)三 skeleton 互异,闭合 f02-fact-lap-direction 三件套。"
+      },
+      "eligible": true
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "搭接量·地下即时确认",
+      "stem": "地下工程双层铺贴防水卷材。关于同层短边搭接错缝距离与上下两层接缝错开量，选出数值与口径都能得分的作答。",
+      "model_answer": "同层相邻两幅短边搭接错缝距离≥500mm；上下两层及相邻两幅接缝错开≥1/3 幅宽，且不得相互垂直。",
+      "options": [
+        {
+          "text": "同层相邻两幅短边搭接错缝距离≥50mm，上下两层及相邻两幅接缝错开≥1/2幅宽。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数值记个大概，50mm、半幅宽顺口。",
+          "loss_reason": "短边应≥500mm（差十倍）、错开应≥1/3幅宽，规范数字混淆。",
+          "fix": "短边≥500mm、错开≥1/3幅宽。",
+          "option_id": "F02-html-practice-html-q8-56c0ba314741:option-1"
+        },
+        {
+          "text": "同层相邻两幅短边搭接错缝距离≥500mm，上下两层及相邻两幅接缝错开≥1/3幅宽。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "短边≥500mm + 错开≥1/3幅宽，数值口径配套齐。",
+          "option_id": "F02-html-practice-html-q8-56c0ba314741:option-2"
+        },
+        {
+          "text": "同层短边搭接错缝距离≥500mm，上下两层与相邻两幅接缝可彼此对齐、无须另行错开铺贴。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记住500，以为上下层与长边可对齐。",
+          "loss_reason": "漏上下两层及长边错开≥1/3幅宽，且对齐做法错误。",
+          "fix": "补上下两层及长边错开≥1/3幅宽。",
+          "option_id": "F02-html-practice-html-q8-56c0ba314741:option-3"
+        },
+        {
+          "text": "相邻两幅短边、长边接缝均错缝铺贴、彼此避开不落在同一直线上，具体数值不作规定。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道要错缝，懒得写具体数值。",
+          "loss_reason": "只写定性、不给≥500mm与≥1/3幅宽数值，关键数值缺失。",
+          "fix": "必带数值：短边≥500mm、错开≥1/3幅宽。",
+          "option_id": "F02-html-practice-html-q8-56c0ba314741:option-4"
+        }
+      ],
+      "variant_id": "F02-html-practice-html-q8-56c0ba314741",
+      "surface_id": "practice.html",
+      "source_index": 7,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F02/P40_F02.practice.dc.html#Q8",
+      "source_anchor": "kc:1A422000_029_0049:0",
+      "source_sha256": "b35a394d397482d250d2b0cfe21b2921db06e315d5dd0e07a5f22cb9c0d97bba",
+      "source_html_sha256": "c90767c92d4d2078069bc57d243b6db07f33b1235c0fefb808d18887db4259b6",
+      "fact_id": "f02-fact-lap-offset-values",
+      "skeleton_id": "f02-skel-地下双层短边错缝数值",
+      "probe_role": "immediate_confirm",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "96dc9a2e5ef4bda6ec2045af1d53e266eea3225444b6d5f2cbd5303c204a396e",
+      "review": {
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "96dc9a2e5ef4bda6ec2045af1d53e266eea3225444b6d5f2cbd5303c204a396e",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T19:24:47+08:00"
+          }
+        ],
+        "checks": {
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "补编 immediate_confirm:地下双层卷材同层短边搭接错缝≥500mm、上下两层及相邻两幅接缝错开≥1/3幅宽且不得垂直,断言逐字取 kc:1A422000_029_0049:0(同层相邻两幅短边搭接错缝距离不应小于500mm;双层铺贴上下两层和相邻两幅接缝错开至少1/3幅宽且不应互相垂直);与 q3(anchor 搭接错缝数值)同 fact,即时确认支撑。"
+      },
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "9f12dcc8739e86469c753ddacfcd8bd85e6a915588d1cd9d4920b0e83c2ec9a8"
+  "published_lesson_sha256": "8832f02bdadda723b6dcba22385543b4bf98554fc8c7623f7e8d733578b87832"
 }

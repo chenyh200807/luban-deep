@@ -1,6 +1,6 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-20T09:51:48+00:00",
+  "generated_at": "2026-07-20T11:50:26+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "S01",
@@ -11,33 +11,47 @@
   ],
   "coverage": {
     "total_items": 41,
-    "items_with_candidates": 39,
-    "items_empty_handed": 2
+    "items_with_candidates": 41,
+    "items_empty_handed": 0
   },
   "items": [
     {
       "variant_id": "S01-html-practice-html-q1-053cee5462ee",
       "candidates": [
         {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 150m、悬挑式脚手架分段架体搭设高度 ≥ 20m - 幕墙安装 ≥ 50m - 钢结构安装跨度 ≥ 36m（网架和索膜 ≥ 60m） - 人工挖孔桩开挖深度 ≥ 16m - 大型结构整体顶升、平移、转体 ≥ 1000kN ### 超过一定规模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5",
+          "match_score": 0.2615,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
           "source_anchor": "kc:1A436000_124_0198:1",
           "quote": "安全防护棚搭设要求：安全防护棚高度：非机动车≥3m，机动车≥4m；高度＞24m 且用木板时需双层，间距≥700mm，总高≥4m；竹笆/木板双层搭设，间距≥700mm；单层木板厚度≥50mm。 | （2）交叉作业时，坠落半径内应设置安全防护棚或安全防护网等安全隔离措施。当尚未设置安全隔离措施时，应设置警戒隔离区，人员严禁进入隔离区。 （3）处于起重机臂架回转",
           "match_score": 0.2269,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_008_0011:0",
           "quote": "危大工程判定标准：开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。 险性较大的分部分项工程安全管理的有关规定 #### 1. 危大工程管理 （1）建设单位在申请办理安全监督手续时，应当提供危险性较大的分部分项工程清单和安全管理措施。施工单位、监理单位应",
           "match_score": 0.1942,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:0",
           "quote": "脚手架可调底座/托撑螺杆插入长度：可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于150mm；当插入的立杆钢管直径为42mm时，伸出长度不应大于200mm；当插入的立杆钢管直径为48.3mm及以上时，伸出长度不应大于500mm。 离应大于一个楼层高度，并应有制动和定位功能。 （6）脚手架可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并",
           "match_score": 0.1673,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "m35:Q10-1A422000:P3",
+          "quote": "C 处填“不得用于25米及以上的建设工程”(必须含“25米及以上”) 脚手架",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -46,24 +60,38 @@
       "candidates": [
         {
           "source_anchor": "kc:1A436000_009_0012:0",
-          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地 ≥ ### 超过一定规模的危大工程范围 #### 1）深基坑工程",
-          "match_score": 0.4186,
+          "quote": "体 ≥ 1000kN ### 超过一定规模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5m（含 5m）的基坑（槽）的土方开挖、支护、降水工程。 #### 2）模板工程及支撑体系 （1）各类工具式模板工程：包括滑模、爬模、飞模、隧道模等工程。 （2）混凝土模板支撑工程：搭设高度 8m 及以上；搭设跨度 18m 及以上；施工总荷载（设计值）15kN/m² 及以上；或集中线荷载（设计值）20",
+          "match_score": 0.5492,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_120_0228:0",
           "quote": "脚手架安全等级划分：脚手架安全等级依据搭设高度和荷载标准值划分。当支撑脚手架搭设高度>8m或荷载>15kN/m²时，安全等级为Ⅰ级；否则为Ⅱ级。 ### 3.4.6 常用施工脚手架 #### 1. 常用施工脚手架分类 （1）脚手架包括作业脚手架和支撑脚手架。作业脚手架包括落地作业脚手架、悬挑脚手",
           "match_score": 0.2156,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_007_0010:2",
           "quote": "模板工程重大隐患：模板支架地基承载力不足、施工荷载超设计值、混凝土强度未达标时拆除，均为重大隐患。 ④ 出现基坑坍塌风险预兆且未及时处理。 #### （3）模板工程及支撑体系有下列情形之一的，应判定为重大事故隐患： ① 模板支架的地基基础承载力和变形不满足设计要求； ② 模板",
           "match_score": 0.178,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_123_0197",
+          "quote": "关于悬挑式操作平台的规定，下列说法正确的是？ 应稳定可靠，承载力应符合设计要求。 （2）悬挑式操作平台的悬挑长度不宜大于 5m，均布荷载不应大于 5.5kN/m²，集中荷载不应大于 15kN，悬挑梁应锚固固定。 （3）采用斜拉方式",
+          "match_score": 0.1556,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_123_0197:0",
+          "quote": "悬挑式操作平台关键参数：悬挑长度不宜大于5m，均布荷载≤5.5kN/m²，集中荷载≤15kN，吊环≥4个，钢丝绳夹≥4个。 10m²，高度不宜大于 5m，高宽比不应大于 2:1，施工荷载不应大于 1.5kN/m²。 （2）移动式操作平台的轮子与平台架体连接应牢固，立柱底端离地面不得大于 80mm，行走轮",
+          "match_score": 0.1556,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -75,21 +103,35 @@
           "quote": "危大工程判定标准：开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。 险性较大的分部分项工程安全管理的有关规定 #### 1. 危大工程管理 （1）建设单位在申请办理安全监督手续时，应当提供危险性较大的分部分项工程清单和安全管理措施。施工单位、监理单位应",
           "match_score": 0.475,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_009_0012:0",
-          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地 ≥ ### 超过一定规模的危大工程范围 #### 1）深基坑工程",
-          "match_score": 0.33,
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 1",
+          "match_score": 0.3417,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_009_0012",
           "quote": "下列哪项属于超过一定规模的危大工程？ A. 搭设高度 7m 的混凝土模板支撑工程 B. 起重量 250kN 的起重机械安装工程 C. 施工高度 45m 的建筑幕墙安装工程 D. 开挖深度 16m 的人工挖孔桩工程 模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5m（含 5m）的基坑（槽）的土方开挖、支护、降水工程。 #### 2）模板工程及支撑体系 （1）各类工具式模板工程：包括",
           "match_score": 0.2483,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A413030_121_0229:2",
+          "quote": "剪刀撑设置要求：剪刀撑宽度4~6跨（≥6m，≤9m），倾角45°~60°；24m以下每隔15m设一道，由底至顶连续；24m及以上全外侧连续设置。 应大于 4m。 （4）作业脚手架的纵向外侧立面上应设置竖向剪刀撑，并应符合下列规定： ① 每道剪刀撑的宽度应为 4～6 跨，且不应小于 6m，也不应大于 9m；剪刀撑斜杆与水平面的倾",
+          "match_score": 0.155,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_123_0197",
+          "quote": "关于悬挑式操作平台的规定，下列说法正确的是？ 应稳定可靠，承载力应符合设计要求。 （2）悬挑式操作平台的悬挑长度不宜大于 5m，均布荷载不应大于 5.5kN/m²，集中荷载不应大于 15kN，悬挑梁应锚固固定。 （3）采用斜拉方式",
+          "match_score": 0.155,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -97,25 +139,39 @@
       "variant_id": "S01-html-practice-html-q4-389eeeae4e0f",
       "candidates": [
         {
-          "source_anchor": "kc:1A436000_115_0189:1",
-          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 取应急措施；待修复或排除险情后，方可继续施工。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定：",
-          "match_score": 0.1922,
+          "source_anchor": "kc:1A413030_099_0187:1",
+          "quote": "底模及支架拆除混凝土强度分档：板跨度≤2m须达设计强度的50%、跨度>2m且≤8m须达75%、跨度>8m须达100%；梁、拱、壳跨度≤8m须达75%、跨度>8m须达100%；悬臂构件一律须达100%，方可拆除底模及支架。 （1）底模及支架拆除时的混凝土强度应符合表 3.4-1 的规定。 表 3.4-1 底模及支架拆除时的混凝土强度要求 构件类型 构件跨度（m） 达到设计的混凝土立方体抗压强度标准值",
+          "match_score": 0.4333,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "体 ≥ 1000kN ### 超过一定规模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5m（含 5m）的基坑（槽）的土方开挖、支护、降水工程。 #### 2）模板工程及支撑体系 （1）各类工具式模板工程：包括滑模、爬模、飞模、隧道模等工程。 （2）混凝土模板支撑工程：搭设高度 8m 及以上；搭设跨度 18m 及以上；施工总荷载（设计值）15kN/m² 及以上；或集中线荷载（设计值）20",
+          "match_score": 0.2824,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_115_0189:1",
+          "quote": "法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定： a. 不承重的侧模板，包括梁、柱、墙的侧模板，只要混凝土强度能保证其表面及棱角不因拆除模板而受损，即可进行拆除。 b. 承重模板，包括梁、板等水平结构构件的底模，应在与结构同条件养护的试块强度达到规定",
+          "match_score": 0.2608,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A413030_099_0187",
           "quote": "某工程采用快拆支架体系，跨度为6m的梁，拆模时如何确定混凝土强度？ ### 模板拆除顺序 （3）模板的拆除顺序：一般按后支先拆、先支后拆，先拆除非承重部分后拆除承重部分的拆除顺序进行。 （4）快拆支架体系的支架立杆间距不应大于 2m。拆模时应保",
           "match_score": 0.1686,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_009_0012",
           "quote": "下列哪项属于超过一定规模的危大工程？ A. 搭设高度 7m 的混凝土模板支撑工程 B. 起重量 250kN 的起重机械安装工程 C. 施工高度 45m 的建筑幕墙安装工程 D. 开挖深度 16m 的人工挖孔桩工程 模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5m（含 5m）的基坑（槽）的土方开挖、支护、降水工程。 #### 2）模板工程及支撑体系 （1）各类工具式模板工程：包括",
           "match_score": 0.1275,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -123,25 +179,32 @@
       "variant_id": "S01-html-practice-html-q5-e4ece4b95fab",
       "candidates": [
         {
-          "source_anchor": "kc:1A436000_115_0189:1",
-          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 取应急措施；待修复或排除险情后，方可继续施工。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定：",
-          "match_score": 0.2513,
+          "source_anchor": "kc:1A413030_099_0187:1",
+          "quote": "底模及支架拆除混凝土强度分档：板跨度≤2m须达设计强度的50%、跨度>2m且≤8m须达75%、跨度>8m须达100%；梁、拱、壳跨度≤8m须达75%、跨度>8m须达100%；悬臂构件一律须达100%，方可拆除底模及支架。 （1）底模及支架拆除时的混凝土强度应符合表 3.4-1 的规定。 表 3.4-1 底模及支架拆除时的混凝土强度要求 构件类型 构件跨度（m） 达到设计的混凝土立方体抗压强度标准值",
+          "match_score": 0.4154,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_115_0189:1",
+          "quote": "法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定： a. 不承重的侧模板，包括梁、柱、墙的侧模板，只要混凝土强度能保证其表面及棱角不因拆除模板而受损，即可进行拆除。 b. 承重模板，包括梁、板等水平结构构件的底模，应在与结构同条件养护的试块强度达到规定",
+          "match_score": 0.2872,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "体 ≥ 1000kN ### 超过一定规模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5m（含 5m）的基坑（槽）的土方开挖、支护、降水工程。 #### 2）模板工程及支撑体系 （1）各类工具式模板工程：包括滑模、爬模、飞模、隧道模等工程。 （2）混凝土模板支撑工程：搭设高度 8m 及以上；搭设跨度 18m 及以上；施工总荷载（设计值）15kN/m² 及以上；或集中线荷载（设计值）20",
+          "match_score": 0.2077,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A421000_015_0021:1",
           "quote": "限制使用的施工设备：限制使用门式钢管支撑架；限制使用龙门架、井架物料提升机（限高25m）；限制使用轮扣式脚手架（限高15m双排、8m满堂）；限制使用扣件式钢管卸料平台（限高10m）。 ）禁止使用三点式安全带。可使用五点式安全带替代。 ### 限制使用的施工设备 （1）限制使用门式钢管支撑架，其不得用于搭设满堂承重支撑架体系。可使用承插型盘扣式钢管支撑架、钢管柱梁",
           "match_score": 0.2,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
-        },
-        {
-          "source_anchor": "kc:1A436000_009_0012:0",
-          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地 ≥ ### 超过一定规模的危大工程范围 #### 1）深基坑工程",
-          "match_score": 0.1359,
-          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -149,11 +212,18 @@
       "variant_id": "S01-html-practice-html-q6-32ab19a5c78b",
       "candidates": [
         {
-          "source_anchor": "kc:1A436000_115_0189:1",
-          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 取应急措施；待修复或排除险情后，方可继续施工。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定：",
-          "match_score": 0.1833,
+          "source_anchor": "kc:1A413030_099_0187:1",
+          "quote": "底模及支架拆除混凝土强度分档：板跨度≤2m须达设计强度的50%、跨度>2m且≤8m须达75%、跨度>8m须达100%；梁、拱、壳跨度≤8m须达75%、跨度>8m须达100%；悬臂构件一律须达100%，方可拆除底模及支架。 （1）底模及支架拆除时的混凝土强度应符合表 3.4-1 的规定。 表 3.4-1 底模及支架拆除时的混凝土强度要求 构件类型 构件跨度（m） 达到设计的混凝土立方体抗压强度标准值",
+          "match_score": 0.5167,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_115_0189:1",
+          "quote": "法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定： a. 不承重的侧模板，包括梁、柱、墙的侧模板，只要混凝土强度能保证其表面及棱角不因拆除模板而受损，即可进行拆除。 b. 承重模板，包括梁、板等水平结构构件的底模，应在与结构同条件养护的试块强度达到规定",
+          "match_score": 0.2167,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -161,25 +231,39 @@
       "variant_id": "S01-html-practice-html-q7-a8026f02ef98",
       "candidates": [
         {
+          "source_anchor": "kc:1A413030_099_0187:1",
+          "quote": "底模及支架拆除混凝土强度分档：板跨度≤2m须达设计强度的50%、跨度>2m且≤8m须达75%、跨度>8m须达100%；梁、拱、壳跨度≤8m须达75%、跨度>8m须达100%；悬臂构件一律须达100%，方可拆除底模及支架。 （1）底模及支架拆除时的混凝土强度应符合表 3.4-1 的规定。 表 3.4-1 底模及支架拆除时的混凝土强度要求 构件类型 构件跨度（m） 达到设计的混凝土立方体抗压强度标准值",
+          "match_score": 0.3286,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
           "source_anchor": "ca:1A413030_099_0187",
           "quote": "某工程采用快拆支架体系，跨度为6m的梁，拆模时如何确定混凝土强度？ ### 模板拆除顺序 （3）模板的拆除顺序：一般按后支先拆、先支后拆，先拆除非承重部分后拆除承重部分的拆除顺序进行。 （4）快拆支架体系的支架立杆间距不应大于 2m。拆模时应保",
           "match_score": 0.3071,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_099_0187:0",
           "quote": "模板拆除顺序：模板拆除遵循‘后支先拆、先支后拆’和‘非承重先拆、承重后拆’的原则。快拆支架体系中，立杆间距≤2m，拆模时需保留立杆并顶托支承楼板。 ### 模板拆除顺序 （3）模板的拆除顺序：一般按后支先拆、先支后拆，先拆除非承重部分后拆除承重部分的拆除顺序进行。 （4）快拆支架体系",
           "match_score": 0.3071,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_121_0195:2",
           "quote": "防护栏杆构造要求：防护栏杆由横杆、立杆、挡脚板组成： - 上杆高1.2m - 立杆间距≤2m - 挡脚板≥180mm - 可承受1kN任意方向外力 - 应张挂密目式安全立网 ）坠落高度在基准面2m及以上进行临边作业时，应在临空一侧设置防护栏杆，并应采取密目式安全立网或工具式栏板封闭。 （2）施工的楼梯口、楼梯平台和梯段边，应安装防护栏杆；外设楼梯口、楼梯平台",
           "match_score": 0.2071,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A413030_121_0229",
+          "quote": "关于脚手架可调底座和可调托撑调节螺杆的插入长度，下列说法正确的是？ 节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并应符合下列规定： ① 当插入的立杆钢管直径为 42mm 时，伸出长度不应大于 200mm； ② 当插",
+          "match_score": 0.1643,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -188,24 +272,31 @@
       "candidates": [
         {
           "source_anchor": "kc:1A436000_115_0189:1",
-          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 取应急措施；待修复或排除险情后，方可继续施工。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定：",
-          "match_score": 0.3704,
+          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定： a. 不承重的侧模板，包括梁、柱、墙的侧模板，只要混凝土强度能保证其表面及棱角不因拆除模板而受损，即",
+          "match_score": 0.463,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_099_0187:0",
           "quote": "模板拆除顺序：模板拆除遵循‘后支先拆、先支后拆’和‘非承重先拆、承重后拆’的原则。快拆支架体系中，立杆间距≤2m，拆模时需保留立杆并顶托支承楼板。 ### 模板拆除顺序 （3）模板的拆除顺序：一般按后支先拆、先支后拆，先拆除非承重部分后拆除承重部分的拆除顺序进行。 （4）快拆支架体系",
           "match_score": 0.1852,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A413030_099_0187",
           "quote": "某工程采用快拆支架体系，跨度为6m的梁，拆模时如何确定混凝土强度？ ### 模板拆除顺序 （3）模板的拆除顺序：一般按后支先拆、先支后拆，先拆除非承重部分后拆除承重部分的拆除顺序进行。 （4）快拆支架体系的支架立杆间距不应大于 2m。拆模时应保",
           "match_score": 0.1667,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_122_0196",
+          "quote": "下列关于悬空作业安全规定的说法中，正确的是？ 2m 及以上高处搭设与拆除柱模板及悬挑结构的模板时，应设置操作平台； （3）在进行高处拆模作业时应配置登高用具或搭设支架。 #### 3) 绑扎钢筋和预应力张拉的悬空作业应符合的规定",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -214,17 +305,17 @@
       "candidates": [
         {
           "source_anchor": "kc:1A436000_009_0012:0",
-          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地 ≥ ### 超过一定规模的危大工程范围 #### 1）深基坑工程",
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 1",
           "match_score": 0.1429,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_008_0011",
           "quote": "下列哪项不属于危险性较大的分部分项工程？ 危大工程范围 ##### 1）基坑支护、降水工程 （1）开挖深度超过 3m（含 3m）的基坑（槽）的土方开挖、支护、降水工程。 （2）开挖深度虽未超过 3m，但地质条件、周围环境和地",
           "match_score": 0.1356,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -236,21 +327,35 @@
           "quote": "安全防护棚搭设要求：安全防护棚高度：非机动车≥3m，机动车≥4m；高度＞24m 且用木板时需双层，间距≥700mm，总高≥4m；竹笆/木板双层搭设，间距≥700mm；单层木板厚度≥50mm。 | （2）交叉作业时，坠落半径内应设置安全防护棚或安全防护网等安全隔离措施。当尚未设置安全隔离措施时，应设置警戒隔离区，人员严禁进入隔离区。 （3）处于起重机臂架回转",
           "match_score": 0.3286,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 1",
+          "match_score": 0.3071,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A413030_121_0229",
           "quote": "关于脚手架可调底座和可调托撑调节螺杆的插入长度，下列说法正确的是？ 节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并应符合下列规定： ① 当插入的立杆钢管直径为 42mm 时，伸出长度不应大于 200mm； ② 当插",
           "match_score": 0.2357,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_008_0011:0",
           "quote": "危大工程判定标准：开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。 险性较大的分部分项工程安全管理的有关规定 #### 1. 危大工程管理 （1）建设单位在申请办理安全监督手续时，应当提供危险性较大的分部分项工程清单和安全管理措施。施工单位、监理单位应",
           "match_score": 0.2357,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_112_0185:4",
+          "quote": "钢管脚手架垫板构造：底座、垫板均应准确地放在定位线上；垫板应采用长度不少于2跨、厚度不小于50mm、宽度不小于200mm的木垫板。 #### 3. 钢管脚手架的搭设 （1）底座、垫板均应准确地放在定位线上；垫板应采用长度不少于 2 跨、厚度不小于 50mm、宽度不小于 200mm 的木垫板。",
+          "match_score": 0.2261,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -262,21 +367,28 @@
           "quote": "关于模板安装高度超过3.0m时的安全要求，下列说法正确的是？ 的基本要求： ① 模板工程安装高度超过 3.0m，必须搭设脚手架，除操作人员外，脚手架下不得站其他人。 ② 模板安装高度在 2m 及以上时，临边作业安全防护应符合标准规定。 ③ 施",
           "match_score": 0.583,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_115_0189:0",
           "quote": "模板安装高度超3m必须搭设脚手架：模板工程安装高度超过3.0m时，必须搭设脚手架，除操作人员外，脚手架下不得站其他人。 点 #### （1）模板工程施工安全控制要点 （1）保证模板安装施工安全的基本要求： ① 模板工程安装高度超过 3.0m，必须搭设脚手架，除操作人员外，脚手架下不得站其他人。 ②",
           "match_score": 0.5383,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "50m、悬挑式脚手架分段架体搭设高度 ≥ 20m - 幕墙安装 ≥ 50m - 钢结构安装跨度 ≥ 36m（网架和索膜 ≥ 60m） - 人工挖孔桩开挖深度 ≥ 16m - 大型结构整体顶升、平移、转体 ≥ 1000kN ### 超过一定规模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5m（含 5m）的基坑（槽）的土方开挖、支护、降水工程。 #### 2）模板工程及支撑体系 （1）各类",
+          "match_score": 0.1638,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "m35:Q2-1A436000-罚则:P1",
           "quote": "不妥1+正确做法:坠落高度超过2m不能使用梯子攀登,应设置'操作平台'(必须写出'操作平台'五字) 操作平台",
           "match_score": 0.1235,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -284,52 +396,89 @@
       "variant_id": "S01-html-practice-html-q13-b4ff2a24e3fb",
       "candidates": [
         {
+          "source_anchor": "kc:1A413030_099_0187:1",
+          "quote": "底模及支架拆除混凝土强度分档：板跨度≤2m须达设计强度的50%、跨度>2m且≤8m须达75%、跨度>8m须达100%；梁、拱、壳跨度≤8m须达75%、跨度>8m须达100%；悬臂构件一律须达100%，方可拆除底模及支架。 （1）底模及支架拆除时的混凝土强度应符合表 3.4-1 的规定。 表 3.4-1 底模及支架拆除时的混凝土强度要求 构件类型 构件跨度（m） 达到设计的混凝土立方体抗压强度标准值",
+          "match_score": 0.2966,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
           "source_anchor": "kc:1A436000_007_0010:2",
           "quote": "模板工程重大隐患：模板支架地基承载力不足、施工荷载超设计值、混凝土强度未达标时拆除，均为重大隐患。 ④ 出现基坑坍塌风险预兆且未及时处理。 #### （3）模板工程及支撑体系有下列情形之一的，应判定为重大事故隐患： ① 模板支架的地基基础承载力和变形不满足设计要求； ② 模板",
           "match_score": 0.1328,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_009_0012:0",
-          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地 ≥ ### 超过一定规模的危大工程范围 #### 1）深基坑工程",
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 1",
           "match_score": 0.1241,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
     {
       "variant_id": "S01-html-practice-html-q14-1d2fff419e34",
-      "candidates": []
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_099_0187:1",
+          "quote": "底模及支架拆除混凝土强度分档：板跨度≤2m须达设计强度的50%、跨度>2m且≤8m须达75%、跨度>8m须达100%；梁、拱、壳跨度≤8m须达75%、跨度>8m须达100%；悬臂构件一律须达100%，方可拆除底模及支架。 （1）底模及支架拆除时的混凝土强度应符合表 3.4-1 的规定。 表 3.4-1 底模及支架拆除时的混凝土强度要求 构件类型 构件跨度（m） 达到设计的混凝土立方体抗压强度标准值",
+          "match_score": 0.2557,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        }
+      ]
     },
     {
       "variant_id": "S01-html-practice-html-q15-d99a0723feac",
-      "candidates": []
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_099_0187:1",
+          "quote": "底模及支架拆除混凝土强度分档：板跨度≤2m须达设计强度的50%、跨度>2m且≤8m须达75%、跨度>8m须达100%；梁、拱、壳跨度≤8m须达75%、跨度>8m须达100%；悬臂构件一律须达100%，方可拆除底模及支架。 （1）底模及支架拆除时的混凝土强度应符合表 3.4-1 的规定。 表 3.4-1 底模及支架拆除时的混凝土强度要求 构件类型 构件跨度（m） 达到设计的混凝土立方体抗压强度标准值",
+          "match_score": 0.2319,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 1",
+          "match_score": 0.1585,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        }
+      ]
     },
     {
-      "variant_id": "S01-html-practice2-html-q1-0786f260879b",
+      "variant_id": "S01-html-practice2-html-q1-7d07babe4a3d",
       "candidates": [
+        {
+          "source_anchor": "kc:1A436000_112_0185:4",
+          "quote": "钢管脚手架垫板构造：底座、垫板均应准确地放在定位线上；垫板应采用长度不少于2跨、厚度不小于50mm、宽度不小于200mm的木垫板。 #### 3. 钢管脚手架的搭设 （1）底座、垫板均应准确地放在定位线上；垫板应采用长度不少于 2 跨、厚度不小于 50mm、宽度不小于 200mm 的木垫板。",
+          "match_score": 0.2717,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
         {
           "source_anchor": "ca:1A413030_121_0229",
           "quote": "关于脚手架可调底座和可调托撑调节螺杆的插入长度，下列说法正确的是？ 节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并应符合下列规定： ① 当插入的立杆钢管直径为 42mm 时，伸出长度不应大于 200mm； ② 当插",
-          "match_score": 0.2038,
+          "match_score": 0.2358,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:0",
           "quote": "脚手架可调底座/托撑螺杆插入长度：可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于150mm；当插入的立杆钢管直径为42mm时，伸出长度不应大于200mm；当插入的立杆钢管直径为48.3mm及以上时，伸出长度不应大于500mm。 离应大于一个楼层高度，并应有制动和定位功能。 （6）脚手架可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并",
-          "match_score": 0.2038,
+          "match_score": 0.2358,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
-          "source_anchor": "ca:1A413030_099_0187",
-          "quote": "某工程采用快拆支架体系，跨度为6m的梁，拆模时如何确定混凝土强度？ ### 模板拆除顺序 （3）模板的拆除顺序：一般按后支先拆、先支后拆，先拆除非承重部分后拆除承重部分的拆除顺序进行。 （4）快拆支架体系的支架立杆间距不应大于 2m。拆模时应保",
-          "match_score": 0.1904,
+          "source_anchor": "kc:1A436000_112_0185:2",
+          "quote": "扫地杆设置要求：纵向扫地杆距底端≤200mm，横向扫地杆在纵向下方，均用直角扣件固定。 间距不应大于纵距的 1/2。 （6）脚手架必须设置纵、横向扫地杆。纵向扫地杆应采用直角扣件固定在距钢管底端不大于 200mm 处的立杆上。横向扫地杆应采用直角扣件固定在紧靠纵向扫地杆下",
+          "match_score": 0.1487,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -341,47 +490,75 @@
           "quote": "扫地杆设置要求：纵向扫地杆距底端≤200mm，横向扫地杆在纵向下方，均用直角扣件固定。 间距不应大于纵距的 1/2。 （6）脚手架必须设置纵、横向扫地杆。纵向扫地杆应采用直角扣件固定在距钢管底端不大于 200mm 处的立杆上。横向扫地杆应采用直角扣件固定在紧靠纵向扫地杆下",
           "match_score": 0.4164,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A413030_121_0229",
           "quote": "关于脚手架可调底座和可调托撑调节螺杆的插入长度，下列说法正确的是？ 节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并应符合下列规定： ① 当插入的立杆钢管直径为 42mm 时，伸出长度不应大于 200mm； ② 当插",
           "match_score": 0.2382,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:0",
           "quote": "脚手架可调底座/托撑螺杆插入长度：可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于150mm；当插入的立杆钢管直径为42mm时，伸出长度不应大于200mm；当插入的立杆钢管直径为48.3mm及以上时，伸出长度不应大于500mm。 离应大于一个楼层高度，并应有制动和定位功能。 （6）脚手架可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并",
           "match_score": 0.2382,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_112_0185:4",
+          "quote": "钢管脚手架垫板构造：底座、垫板均应准确地放在定位线上；垫板应采用长度不少于2跨、厚度不小于50mm、宽度不小于200mm的木垫板。 #### 3. 钢管脚手架的搭设 （1）底座、垫板均应准确地放在定位线上；垫板应采用长度不少于 2 跨、厚度不小于 50mm、宽度不小于 200mm 的木垫板。",
+          "match_score": 0.2304,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_112_0185:1",
+          "quote": "纵向水平杆搭设规范：纵向水平杆应在立杆内侧，长度≥3跨；接头错开≥500mm，距主节点≤1/3纵距；搭接长度≥1m，设3个旋转扣件，端部距离≥100mm。 定在作业脚手架上。严禁在作业脚手架上悬挂起重设备。 （3）纵向水平杆应设置在立杆内侧，其长度不应小于 3 跨。 （4）纵向水平杆接长应采用对接扣件连接或搭接。纵向水平杆的对接扣件应交错布",
+          "match_score": 0.1764,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
     {
-      "variant_id": "S01-html-practice2-html-q3-cdb1e3f80632",
+      "variant_id": "S01-html-practice2-html-q3-868c066e2109",
       "candidates": [
         {
           "source_anchor": "kc:1A436000_005_0006:0",
           "quote": "脚手架搭设高度限制：落地脚手架一次搭设高度不得超过最上层连墙件2步，且自由高度不应大于4m。 构工程施工同步，一次搭设高度不应超过最上层连墙件 2 步，且自由高度不应大于 4m； ② 剪刀撑、斜撑杆等加固杆件应随架体同步搭设； ③ 构件组装类脚手架的搭设应自一端向另一端延伸，应",
           "match_score": 0.461,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_123_0197:2",
           "quote": "落地式操作平台要点：高度≤15m，高宽比≤3:1，荷载≤2.0kN/m²，必须与主体刚性连接，不得与脚手架连接，需设连墙件（≤4m），设水平剪刀撑。 刀撑或斜撑； （5）操作平台应从底层第一步水平杆起逐层设置连墙件，且连墙件间隔不应大于 4m，并应设置水平剪刀撑。 #### 3）悬挑式操作平台的规定 （1）悬挑式操作平台设置应符",
           "match_score": 0.3712,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:2",
           "quote": "剪刀撑设置要求：剪刀撑宽度4~6跨（≥6m，≤9m），倾角45°~60°；24m以下每隔15m设一道，由底至顶连续；24m及以上全外侧连续设置。 应大于 4m。 （4）作业脚手架的纵向外侧立面上应设置竖向剪刀撑，并应符合下列规定： ① 每道剪刀撑的宽度应为 4～6 跨，且不应小于 6m，也不应大于 9m；剪刀撑斜杆与水平面的倾",
           "match_score": 0.3593,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_008_0011:0",
+          "quote": "危大工程判定标准：开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。 险性较大的分部分项工程安全管理的有关规定 #### 1. 危大工程管理 （1）建设单位在申请办理安全监督手续时，应当提供危险性较大的分部分项工程清单和安全管理措施。施工单位、监理单位应",
+          "match_score": 0.3356,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_123_0197:1",
+          "quote": "移动式操作平台限制：面积≤10m²，高度≤5m，高宽比≤2:1，施工荷载≤1.5kN/m²，行走轮承载力≥5kN，制动矩≥2.5N·m。 #### 1）移动式操作平台的规定 （1）移动式操作平台面积不宜大于 10m²，高度不宜大于 5m，高宽比不应大于 2:1，施工荷载不应大于 1.5kN/m²。 （2）移动式操作",
+          "match_score": 0.2761,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -393,14 +570,14 @@
           "quote": "连墙件设置要求：高度24m以上双排脚手架必须采用刚性连墙件与建筑物可靠连接。 m。 （8）对高度 24m 以上的双排脚手架，必须采用刚性连墙件与建筑物可靠连接。 （9）剪刀撑应随立杆、纵向和横向水平杆等同步设置，各底层斜杆下端均必须支承在垫块或垫板上。 ##",
           "match_score": 0.1379,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:1",
           "quote": "连墙件布置要求：连墙件应采用刚性构件，水平间距≤3跨，竖向间距≤3步，连墙点之上悬臂高度≤2步；转角、开口端需增设，竖向间距≤4m。 立杆连接稳固。 （3）作业脚手架应按设计计算和构造要求设置连墙件，并应符合下列要求： ① 连墙件应采用能承受压力和拉力的刚性构件，并应与工程结构和架体连接牢固； ② 连墙点的水平间",
           "match_score": 0.1207,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -412,21 +589,35 @@
           "quote": "连墙件布置要求：连墙件应采用刚性构件，水平间距≤3跨，竖向间距≤3步，连墙点之上悬臂高度≤2步；转角、开口端需增设，竖向间距≤4m。 立杆连接稳固。 （3）作业脚手架应按设计计算和构造要求设置连墙件，并应符合下列要求： ① 连墙件应采用能承受压力和拉力的刚性构件，并应与工程结构和架体连接牢固； ② 连墙点的水平间",
           "match_score": 0.5227,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_123_0197:2",
           "quote": "落地式操作平台要点：高度≤15m，高宽比≤3:1，荷载≤2.0kN/m²，必须与主体刚性连接，不得与脚手架连接，需设连墙件（≤4m），设水平剪刀撑。 刀撑或斜撑； （5）操作平台应从底层第一步水平杆起逐层设置连墙件，且连墙件间隔不应大于 4m，并应设置水平剪刀撑。 #### 3）悬挑式操作平台的规定 （1）悬挑式操作平台设置应符",
           "match_score": 0.2795,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_124_0198:1",
           "quote": "安全防护棚搭设要求：安全防护棚高度：非机动车≥3m，机动车≥4m；高度＞24m 且用木板时需双层，间距≥700mm，总高≥4m；竹笆/木板双层搭设，间距≥700mm；单层木板厚度≥50mm。 | （2）交叉作业时，坠落半径内应设置安全防护棚或安全防护网等安全隔离措施。当尚未设置安全隔离措施时，应设置警戒隔离区，人员严禁进入隔离区。 （3）处于起重机臂架回转",
           "match_score": 0.2159,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_126_0200:2",
+          "quote": "电动冲击夯安全要求：必须装有漏电保护装置，操作人员戴绝缘手套、穿绝缘鞋，严禁冒雨作业。 绕，且不得张拉过紧，应保持有 3～4m 的余量。 （10）电动冲击夯应装有漏电保护装置，操作人员必须戴绝缘手套，穿绝缘鞋。作业时，电缆线不应拉得过紧，应经常检查线头安装，不得松动及引起漏电",
+          "match_score": 0.2,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_008_0011:0",
+          "quote": "危大工程判定标准：开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。 险性较大的分部分项工程安全管理的有关规定 #### 1. 危大工程管理 （1）建设单位在申请办理安全监督手续时，应当提供危险性较大的分部分项工程清单和安全管理措施。施工单位、监理单位应",
+          "match_score": 0.2,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -438,21 +629,35 @@
           "quote": "连墙件设置要求：高度24m以上双排脚手架必须采用刚性连墙件与建筑物可靠连接。 m。 （8）对高度 24m 以上的双排脚手架，必须采用刚性连墙件与建筑物可靠连接。 （9）剪刀撑应随立杆、纵向和横向水平杆等同步设置，各底层斜杆下端均必须支承在垫块或垫板上。 ##",
           "match_score": 0.6309,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:2",
           "quote": "剪刀撑设置要求：剪刀撑宽度4~6跨（≥6m，≤9m），倾角45°~60°；24m以下每隔15m设一道，由底至顶连续；24m及以上全外侧连续设置。 应大于 4m。 （4）作业脚手架的纵向外侧立面上应设置竖向剪刀撑，并应符合下列规定： ① 每道剪刀撑的宽度应为 4～6 跨，且不应小于 6m，也不应大于 9m；剪刀撑斜杆与水平面的倾",
           "match_score": 0.3509,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_124_0198:1",
           "quote": "安全防护棚搭设要求：安全防护棚高度：非机动车≥3m，机动车≥4m；高度＞24m 且用木板时需双层，间距≥700mm，总高≥4m；竹笆/木板双层搭设，间距≥700mm；单层木板厚度≥50mm。 | （2）交叉作业时，坠落半径内应设置安全防护棚或安全防护网等安全隔离措施。当尚未设置安全隔离措施时，应设置警戒隔离区，人员严禁进入隔离区。 （3）处于起重机臂架回转",
           "match_score": 0.3382,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_008_0011:0",
+          "quote": "危大工程判定标准：开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。 险性较大的分部分项工程安全管理的有关规定 #### 1. 危大工程管理 （1）建设单位在申请办理安全监督手续时，应当提供危险性较大的分部分项工程清单和安全管理措施。施工单位、监理单位应",
+          "match_score": 0.3382,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "m35:Q10-1A422000:P3",
+          "quote": "C 处填“不得用于25米及以上的建设工程”(必须含“25米及以上”) 脚手架",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -464,7 +669,7 @@
           "quote": "脚手架工程重大隐患：脚手架地基不稳、连墙件缺失、防倾覆装置失效，均构成重大事故隐患。 爬升时，混凝土强度未达到设计或规范要求。 #### （4）脚手架工程有下列情形之一的，应判定为重大事故隐患： ① 脚手架工程的地基基础承载力和变形不满足设计要求； ② 未设置连墙件",
           "match_score": 0.2459,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -476,21 +681,35 @@
           "quote": "剪刀撑设置要求：剪刀撑宽度4~6跨（≥6m，≤9m），倾角45°~60°；24m以下每隔15m设一道，由底至顶连续；24m及以上全外侧连续设置。 应大于 4m。 （4）作业脚手架的纵向外侧立面上应设置竖向剪刀撑，并应符合下列规定： ① 每道剪刀撑的宽度应为 4～6 跨，且不应小于 6m，也不应大于 9m；剪刀撑斜杆与水平面的倾",
           "match_score": 0.5116,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_098_0184:3",
           "quote": "剪刀撑设置要求：每道竖向剪刀撑宽度 6～9m，倾角 45°～60°，设置应均匀对称。 宽比不应大于 3.0。 ⑤ 模板支撑脚手架应设置竖向和水平剪刀撑，并应符合下列规定： a. 剪刀撑的设置应均匀、对称； b. 每道竖向剪刀撑的宽度应为 6～9m，剪刀撑斜杆的倾角应",
           "match_score": 0.3965,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_005_0006:1",
           "quote": "剪刀撑设置要求：每道竖向剪刀撑宽度为6～9m，斜杆倾角应在45°～60°之间。 承结构可靠连接；应在立杆底部设置纵向扫地杆，并应间断设置水平剪刀撑或水平斜撑杆。 （7）临街作业脚手架的外侧立面、转角处应采取有效硬防护措施。 （8）支撑脚手架独立架体高宽比不应大于",
           "match_score": 0.364,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_112_0185:3",
+          "quote": "连墙件设置要求：高度24m以上双排脚手架必须采用刚性连墙件与建筑物可靠连接。 m。 （8）对高度 24m 以上的双排脚手架，必须采用刚性连墙件与建筑物可靠连接。 （9）剪刀撑应随立杆、纵向和横向水平杆等同步设置，各底层斜杆下端均必须支承在垫块或垫板上。 ##",
+          "match_score": 0.214,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_117_0191:0",
+          "quote": "钢结构安全通道宽度要求：钢结构施工的平面安全通道宽度不宜小于 600mm，且两侧应设置安全护栏或防护钢丝绳。 挂梯应预先与钢柱可靠连接，并应随柱起吊。 #### （4）安全通道安全要求： ① 钢结构安装所需的平面安全通道应分层连续搭设。 ② 钢结构施工的平面安全通道宽度不宜小于 600mm，",
+          "match_score": 0.1988,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -502,21 +721,35 @@
           "quote": "关于模板支撑脚手架的高宽比，下列说法正确的是？ 最不利的工况计算确定支撑层数。 ④ 模板支撑脚手架独立架体高宽比不应大于 3.0。 ⑤ 模板支撑脚手架应设置竖向和水平剪刀撑，并应符合下列规定： a. 剪刀撑的设置应均匀、对称；",
           "match_score": 0.4981,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_098_0184:2",
           "quote": "模板支撑脚手架高宽比：模板支撑脚手架独立架体高宽比不应大于 3.0。 最不利的工况计算确定支撑层数。 ④ 模板支撑脚手架独立架体高宽比不应大于 3.0。 ⑤ 模板支撑脚手架应设置竖向和水平剪刀撑，并应符合下列规定： a. 剪刀撑的设置应均匀、对称；",
           "match_score": 0.4849,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_005_0006:2",
           "quote": "脚手架高宽比：支撑脚手架独立架体高宽比不应大于3.0。 面、转角处应采取有效硬防护措施。 （8）支撑脚手架独立架体高宽比不应大于 3.0。 （9）支撑脚手架应设置竖向和水平剪刀撑，并应符合下列规定： ① 剪刀撑的设置应均匀、对称； ②",
           "match_score": 0.4585,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A413030_098_0184:3",
+          "quote": "剪刀撑设置要求：每道竖向剪刀撑宽度 6～9m，倾角 45°～60°，设置应均匀对称。 宽比不应大于 3.0。 ⑤ 模板支撑脚手架应设置竖向和水平剪刀撑，并应符合下列规定： a. 剪刀撑的设置应均匀、对称； b. 每道竖向剪刀撑的宽度应为 6～9m，剪刀撑斜杆的倾角应",
+          "match_score": 0.4189,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_115_0189",
+          "quote": "关于模板安装高度超过3.0m时的安全要求，下列说法正确的是？ 的基本要求： ① 模板工程安装高度超过 3.0m，必须搭设脚手架，除操作人员外，脚手架下不得站其他人。 ② 模板安装高度在 2m 及以上时，临边作业安全防护应符合标准规定。 ③ 施",
+          "match_score": 0.3528,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -528,21 +761,35 @@
           "quote": "脚手架可调底座/托撑螺杆插入长度：可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于150mm；当插入的立杆钢管直径为42mm时，伸出长度不应大于200mm；当插入的立杆钢管直径为48.3mm及以上时，伸出长度不应大于500mm。 离应大于一个楼层高度，并应有制动和定位功能。 （6）脚手架可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并",
           "match_score": 0.5204,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A413030_121_0229",
           "quote": "关于脚手架可调底座和可调托撑调节螺杆的插入长度，下列说法正确的是？ 节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并应符合下列规定： ① 当插入的立杆钢管直径为 42mm 时，伸出长度不应大于 200mm； ② 当插",
           "match_score": 0.3833,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_112_0185:1",
           "quote": "纵向水平杆搭设规范：纵向水平杆应在立杆内侧，长度≥3跨；接头错开≥500mm，距主节点≤1/3纵距；搭接长度≥1m，设3个旋转扣件，端部距离≥100mm。 定在作业脚手架上。严禁在作业脚手架上悬挂起重设备。 （3）纵向水平杆应设置在立杆内侧，其长度不应小于 3 跨。 （4）纵向水平杆接长应采用对接扣件连接或搭接。纵向水平杆的对接扣件应交错布",
           "match_score": 0.1889,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_121_0195",
+          "quote": "关于临边作业防护栏杆设置，下列说法正确的是？ 口短边边长大于或等于500mm时，应在临空一侧设置高度不小于1.2m的防护栏杆，并应采用密目式安全立网或工具式栏板封闭，设置挡脚板。 ② 当非竖向洞口短边边长为25～500mm时，应采用",
+          "match_score": 0.163,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_121_0195:1",
+          "quote": "洞口作业分类与防护：根据洞口尺寸不同，采取不同防护措施： - <500mm：封堵 - ≥500mm：设1.2m栏杆+挡脚板 - 25~500mm：承重盖板 - 500~1500mm：盖板或栏杆 - ≥1500mm：设栏杆+安全平网 ### 3. 临边与洞口作业安全防范措施 #### 1）临边作业 （1）坠落高度在基准面2m及以上进行临边作业时，应在临空一侧设置防护栏杆，并应",
+          "match_score": 0.15,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -554,21 +801,35 @@
           "quote": "下列关于脚手架拆除作业的说法中，正确的是？ （12）脚手架的拆除作业应符合下列规定： ① 架体拆除应按自上而下的顺序按步逐层进行，不应上下同时作业。 ② 同层杆件和构配件应按先外后内的顺序拆除；剪刀撑、斜撑杆等加固杆件应在拆卸至",
           "match_score": 0.4375,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_006_0007:0",
           "quote": "脚手架拆除顺序口诀：脚手架拆除必须遵循‘自上而下、先外后内、逐层同步、严禁交叉’的原则。 撑杆等加固杆件应在拆卸至该部位杆件时拆除。 ③ 作业脚手架连墙件应随架体逐层、同步拆除，不应先将连墙件整层或数层拆除后再拆架体。 ④ 作业脚手架拆除作业过程中，当架体悬臂段高度超过2",
           "match_score": 0.4375,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_130_0208:0",
           "quote": "高处作业防物体打击要点：高处拆除作业严禁上下同时进行；拆卸材料必须运至地面，严禁抛掷；安全通道上方需设置抗穿透防护设施。 ### 3. 物体打击事故预防管理 （1）在高处安装构件、部件、设施时，应采取可靠的临时固定措施或防坠措施。 （2）在高处拆除或拆卸作业时",
           "match_score": 0.1875,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_130_0208",
+          "quote": "下列关于高处作业中防止物体打击的说法错误的是？ 的临时固定措施或防坠措施。 （2）在高处拆除或拆卸作业时，严禁上下同时进行。拆卸的施工材料、机具、构件、配件等，应运至地面，严禁抛掷。 （3）安全通道上方应搭设防护设施，防护设施应具备抗高处坠",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_004_0005:0",
+          "quote": "脚手架专项施工方案要求：必须编制专项施工方案并经审批；修改后须重新审批；实施前必须进行安全技术交底。 （1）脚手架搭设和拆除作业以前，应根据工程特点编制脚手架专项施工方案，并应经审批后实施。需要修改时，修改后的方案应经审批后实施。 （2）脚手架搭设和拆除作业前，应将脚手架专项施工方案向施",
+          "match_score": 0.125,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -580,21 +841,35 @@
           "quote": "脚手架拆除顺序口诀：脚手架拆除必须遵循‘自上而下、先外后内、逐层同步、严禁交叉’的原则。 撑杆等加固杆件应在拆卸至该部位杆件时拆除。 ③ 作业脚手架连墙件应随架体逐层、同步拆除，不应先将连墙件整层或数层拆除后再拆架体。 ④ 作业脚手架拆除作业过程中，当架体悬臂段高度超过2",
           "match_score": 0.5852,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_005_0006:0",
           "quote": "脚手架搭设高度限制：落地脚手架一次搭设高度不得超过最上层连墙件2步，且自由高度不应大于4m。 构工程施工同步，一次搭设高度不应超过最上层连墙件 2 步，且自由高度不应大于 4m； ② 剪刀撑、斜撑杆等加固杆件应随架体同步搭设； ③ 构件组装类脚手架的搭设应自一端向另一端延伸，应",
           "match_score": 0.4167,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:1",
           "quote": "连墙件布置要求：连墙件应采用刚性构件，水平间距≤3跨，竖向间距≤3步，连墙点之上悬臂高度≤2步；转角、开口端需增设，竖向间距≤4m。 立杆连接稳固。 （3）作业脚手架应按设计计算和构造要求设置连墙件，并应符合下列要求： ① 连墙件应采用能承受压力和拉力的刚性构件，并应与工程结构和架体连接牢固； ② 连墙点的水平间",
           "match_score": 0.3907,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_130_0210:0",
+          "quote": "基坑与临时支撑安全要点：土方开挖严禁超挖；边坡需截水排水；临时支撑不得与脚手架连接；施工荷载不得超过设计值；使用中严禁拆除构件。 顺序、方法应与设计工况相一致，严禁超挖。 （2）边坡坡顶、基坑顶部及底部应采取截水或排水措施。 （3）吊装作业时，对未形成稳定体系的部分，应采取临时固定措施。对临时固定的构件，应在",
+          "match_score": 0.3778,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_006_0007",
+          "quote": "下列关于脚手架拆除作业的说法中，正确的是？ （12）脚手架的拆除作业应符合下列规定： ① 架体拆除应按自上而下的顺序按步逐层进行，不应上下同时作业。 ② 同层杆件和构配件应按先外后内的顺序拆除；剪刀撑、斜撑杆等加固杆件应在拆卸至",
+          "match_score": 0.3778,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -606,21 +881,35 @@
           "quote": "纵向水平杆搭设规范：纵向水平杆应在立杆内侧，长度≥3跨；接头错开≥500mm，距主节点≤1/3纵距；搭接长度≥1m，设3个旋转扣件，端部距离≥100mm。 定在作业脚手架上。严禁在作业脚手架上悬挂起重设备。 （3）纵向水平杆应设置在立杆内侧，其长度不应小于 3 跨。 （4）纵向水平杆接长应采用对接扣件连接或搭接。纵向水平杆的对接扣件应交错布",
           "match_score": 0.5597,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:0",
           "quote": "脚手架可调底座/托撑螺杆插入长度：可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于150mm；当插入的立杆钢管直径为42mm时，伸出长度不应大于200mm；当插入的立杆钢管直径为48.3mm及以上时，伸出长度不应大于500mm。 离应大于一个楼层高度，并应有制动和定位功能。 （6）脚手架可调底座和可调托撑调节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并",
           "match_score": 0.2339,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_121_0195:1",
           "quote": "洞口作业分类与防护：根据洞口尺寸不同，采取不同防护措施： - <500mm：封堵 - ≥500mm：设1.2m栏杆+挡脚板 - 25~500mm：承重盖板 - 500~1500mm：盖板或栏杆 - ≥1500mm：设栏杆+安全平网 ### 3. 临边与洞口作业安全防范措施 #### 1）临边作业 （1）坠落高度在基准面2m及以上进行临边作业时，应在临空一侧设置防护栏杆，并应",
           "match_score": 0.2,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_121_0195",
+          "quote": "关于临边作业防护栏杆设置，下列说法正确的是？ 口短边边长大于或等于500mm时，应在临空一侧设置高度不小于1.2m的防护栏杆，并应采用密目式安全立网或工具式栏板封闭，设置挡脚板。 ② 当非竖向洞口短边边长为25～500mm时，应采用",
+          "match_score": 0.1726,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A413030_121_0229",
+          "quote": "关于脚手架可调底座和可调托撑调节螺杆的插入长度，下列说法正确的是？ 节螺杆插入脚手架立杆内的长度不应小于 150mm，且调节螺杆伸出长度应经计算确定，并应符合下列规定： ① 当插入的立杆钢管直径为 42mm 时，伸出长度不应大于 200mm； ② 当插",
+          "match_score": 0.1677,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -632,21 +921,28 @@
           "quote": "脚手架搭设高度限制：落地脚手架一次搭设高度不得超过最上层连墙件2步，且自由高度不应大于4m。 构工程施工同步，一次搭设高度不应超过最上层连墙件 2 步，且自由高度不应大于 4m； ② 剪刀撑、斜撑杆等加固杆件应随架体同步搭设； ③ 构件组装类脚手架的搭设应自一端向另一端延伸，应",
           "match_score": 0.3921,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:1",
           "quote": "连墙件布置要求：连墙件应采用刚性构件，水平间距≤3跨，竖向间距≤3步，连墙点之上悬臂高度≤2步；转角、开口端需增设，竖向间距≤4m。 立杆连接稳固。 （3）作业脚手架应按设计计算和构造要求设置连墙件，并应符合下列要求： ① 连墙件应采用能承受压力和拉力的刚性构件，并应与工程结构和架体连接牢固； ② 连墙点的水平间",
           "match_score": 0.3472,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_006_0007:0",
           "quote": "脚手架拆除顺序口诀：脚手架拆除必须遵循‘自上而下、先外后内、逐层同步、严禁交叉’的原则。 撑杆等加固杆件应在拆卸至该部位杆件时拆除。 ③ 作业脚手架连墙件应随架体逐层、同步拆除，不应先将连墙件整层或数层拆除后再拆架体。 ④ 作业脚手架拆除作业过程中，当架体悬臂段高度超过2",
           "match_score": 0.2674,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_006_0007",
+          "quote": "下列关于脚手架拆除作业的说法中，正确的是？ （12）脚手架的拆除作业应符合下列规定： ① 架体拆除应按自上而下的顺序按步逐层进行，不应上下同时作业。 ② 同层杆件和构配件应按先外后内的顺序拆除；剪刀撑、斜撑杆等加固杆件应在拆卸至",
+          "match_score": 0.121,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -658,21 +954,35 @@
           "quote": "下列哪项不属于“模板支架”检查评定的保证项目？ ### （5）“模板支架”检查评定保证项目应包括： - 施工方案 - 支架基础 - 支架构造 - 支架稳定 - 施工荷载 - 交底与验收 一般项目应包括： - 杆件连接 - 底座与",
           "match_score": 0.4226,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_107_0174:0",
           "quote": "模板支架检查项目：模板支架检查评定保证项目包括：施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收；一般项目包括：杆件连接、底座与托撑、构件材质、支架拆除。 ### （5）“模板支架”检查评定保证项目应包括： - 施工方案 - 支架基础 - 支架构造 - 支架稳定 - 施工荷载 - 交底与验收 一",
           "match_score": 0.383,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_009_0012",
           "quote": "下列哪项属于超过一定规模的危大工程？ A. 搭设高度 7m 的混凝土模板支撑工程 B. 起重量 250kN 的起重机械安装工程 C. 施工高度 45m 的建筑幕墙安装工程 D. 开挖深度 16m 的人工挖孔桩工程 模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5m（含 5m）的基坑（槽）的土方开挖、支护、降水工程。 #### 2）模板工程及支撑体系 （1）各类工具式模板工程：包括",
           "match_score": 0.3792,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "体 ≥ 1000kN ### 超过一定规模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5m（含 5m）的基坑（槽）的土方开挖、支护、降水工程。 #### 2）模板工程及支撑体系 （1）各类工具式模板工程：包括滑模、爬模、飞模、隧道模等工程。 （2）混凝土模板支撑工程：搭设高度 8m 及以上；搭设跨度 18m 及以上；施工总荷载（设计值）15kN/m² 及以上；或集中线荷载（设计值）20",
+          "match_score": 0.366,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_113_0186:0",
+          "quote": "脚手架检查阶段：脚手架搭设过程中需在以下五个阶段进行检查：①基础完工后及搭设前；②首层水平杆搭设后；③每搭设一个楼层高度；④悬挑结构固定后；⑤支撑架高度每2~4步或≤6m。 ### 5. 钢管脚手架的检查验收 （1）脚手架搭设过程中，应在下列阶段进行检查，检查合格后方可使用；不合格应进行整改，整改合格后方可使用：",
+          "match_score": 0.366,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -684,21 +994,35 @@
           "quote": "下列哪项不属于“模板支架”检查评定的保证项目？ ### （5）“模板支架”检查评定保证项目应包括： - 施工方案 - 支架基础 - 支架构造 - 支架稳定 - 施工荷载 - 交底与验收 一般项目应包括： - 杆件连接 - 底座与",
           "match_score": 0.5273,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_107_0174:0",
           "quote": "模板支架检查项目：模板支架检查评定保证项目包括：施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收；一般项目包括：杆件连接、底座与托撑、构件材质、支架拆除。 ### （5）“模板支架”检查评定保证项目应包括： - 施工方案 - 支架基础 - 支架构造 - 支架稳定 - 施工荷载 - 交底与验收 一",
           "match_score": 0.5172,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_106_0173",
           "quote": "根据《建筑施工安全检查标准》JGJ 59—2011，下列哪一项不属于‘安全管理’检查评定的保证项目？ 目和一般项目。 （1）“安全管理”检查评定保证项目应包括：安全生产责任制、施工组织设计及专项施工方案、安全技术交底、安全检查、安全教育、应急救援。一般项目应包括：分包单位安全管理、持证上岗、生",
           "match_score": 0.1639,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_106_0173:0",
+          "quote": "安全检查标准 - 保证项目与一般项目：《建筑施工安全检查标准》JGJ 59—2011 中，安全检查分为保证项目和一般项目。保证项目是必须满足的核心要求，如安全管理中的安全生产责任制、施工组织设计等；一般项目为辅助性要求，如持证上岗、安全标志等。 ### 11.2.3 安全检查标准 《建筑施工安全检查标准》JGJ 59—2011 规定安全检查内容中包括保证项目和一般项目，确定了检查评分方法。",
+          "match_score": 0.1639,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_007_0010:2",
+          "quote": "模板工程重大隐患：模板支架地基承载力不足、施工荷载超设计值、混凝土强度未达标时拆除，均为重大隐患。 ④ 出现基坑坍塌风险预兆且未及时处理。 #### （3）模板工程及支撑体系有下列情形之一的，应判定为重大事故隐患： ① 模板支架的地基基础承载力和变形不满足设计要求； ② 模板",
+          "match_score": 0.1311,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -710,21 +1034,28 @@
           "quote": "脚手架验收四要素：脚手架验收必须检查：材料与构配件质量、搭设场地与支承固定、架体搭设质量、技术资料完整性。 ### 脚手架检查与验收 （1）脚手架材料、构配件质量现场检验应采用随机抽样的方法进行外观质量、实测实量检验。 （2）附着式升降脚手架支座及",
           "match_score": 0.4286,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_006_0008",
           "quote": "下列哪项不属于脚手架验收的内容？ 构配件质量； ② 搭设场地、支承结构件的固定； ③ 架体搭设质量； ④ 专项施工方案、产品合格证、使用说明及检测报告、检查记录、测试记录等技术资料。",
           "match_score": 0.3095,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_113_0186:0",
           "quote": "脚手架检查阶段：脚手架搭设过程中需在以下五个阶段进行检查：①基础完工后及搭设前；②首层水平杆搭设后；③每搭设一个楼层高度；④悬挑结构固定后；⑤支撑架高度每2~4步或≤6m。 ### 5. 钢管脚手架的检查验收 （1）脚手架搭设过程中，应在下列阶段进行检查，检查合格后方可使用；不合格应进行整改，整改合格后方可使用：",
           "match_score": 0.1429,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_113_0186:1",
+          "quote": "脚手架定期检查内容：脚手架定期检查包括：①主要杆件无缺失松动、无变形；②场地无积水、立杆不松动悬空；③防护设施齐全有效；④附着式升降架各装置正常；⑤悬挑支承结构稳固。 就位后，应进行验收，验收不合格的，不得使用。 （3）脚手架定期检查的主要内容 ① 主要受力杆件、剪刀撑等加固杆件和连墙件应无缺失、无松动，架体应无明显变形； ② 场地应无积水，立杆底端",
+          "match_score": 0.1429,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -736,21 +1067,35 @@
           "quote": "脚手架检查阶段：脚手架搭设过程中需在以下五个阶段进行检查：①基础完工后及搭设前；②首层水平杆搭设后；③每搭设一个楼层高度；④悬挑结构固定后；⑤支撑架高度每2~4步或≤6m。 ### 5. 钢管脚手架的检查验收 （1）脚手架搭设过程中，应在下列阶段进行检查，检查合格后方可使用；不合格应进行整改，整改合格后方可使用：",
           "match_score": 0.5872,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 150m、悬挑式脚手架分段架体搭设高度 ≥ 20m - 幕墙安装 ≥ 50m - 钢结构安装跨度 ≥ ",
+          "match_score": 0.3897,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_009_0012",
           "quote": "下列哪项属于超过一定规模的危大工程？ A. 搭设高度 7m 的混凝土模板支撑工程 B. 起重量 250kN 的起重机械安装工程 C. 施工高度 45m 的建筑幕墙安装工程 D. 开挖深度 16m 的人工挖孔桩工程 模的危大工程范围 #### 1）深基坑工程 开挖深度超过 5m（含 5m）的基坑（槽）的土方开挖、支护、降水工程。 #### 2）模板工程及支撑体系 （1）各类工具式模板工程：包括",
           "match_score": 0.3538,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_121_0229:2",
           "quote": "剪刀撑设置要求：剪刀撑宽度4~6跨（≥6m，≤9m），倾角45°~60°；24m以下每隔15m设一道，由底至顶连续；24m及以上全外侧连续设置。 应大于 4m。 （4）作业脚手架的纵向外侧立面上应设置竖向剪刀撑，并应符合下列规定： ① 每道剪刀撑的宽度应为 4～6 跨，且不应小于 6m，也不应大于 9m；剪刀撑斜杆与水平面的倾",
           "match_score": 0.3359,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A413030_099_0187",
+          "quote": "某工程采用快拆支架体系，跨度为6m的梁，拆模时如何确定混凝土强度？ ### 模板拆除顺序 （3）模板的拆除顺序：一般按后支先拆、先支后拆，先拆除非承重部分后拆除承重部分的拆除顺序进行。 （4）快拆支架体系的支架立杆间距不应大于 2m。拆模时应保",
+          "match_score": 0.3197,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -762,21 +1107,35 @@
           "quote": "悬挑式操作平台关键参数：悬挑长度不宜大于5m，均布荷载≤5.5kN/m²，集中荷载≤15kN，吊环≥4个，钢丝绳夹≥4个。 10m²，高度不宜大于 5m，高宽比不应大于 2:1，施工荷载不应大于 1.5kN/m²。 （2）移动式操作平台的轮子与平台架体连接应牢固，立柱底端离地面不得大于 80mm，行走轮",
           "match_score": 0.6093,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_123_0197",
           "quote": "关于悬挑式操作平台的规定，下列说法正确的是？ 应稳定可靠，承载力应符合设计要求。 （2）悬挑式操作平台的悬挑长度不宜大于 5m，均布荷载不应大于 5.5kN/m²，集中荷载不应大于 15kN，悬挑梁应锚固固定。 （3）采用斜拉方式",
           "match_score": 0.4748,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 150m、悬挑式脚手架分段架体搭设高度 ≥ 20m - 幕墙安装 ≥ 50m - 钢结构安装跨度 ≥ ",
+          "match_score": 0.3445,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_123_0197:2",
           "quote": "落地式操作平台要点：高度≤15m，高宽比≤3:1，荷载≤2.0kN/m²，必须与主体刚性连接，不得与脚手架连接，需设连墙件（≤4m），设水平剪刀撑。 刀撑或斜撑； （5）操作平台应从底层第一步水平杆起逐层设置连墙件，且连墙件间隔不应大于 4m，并应设置水平剪刀撑。 #### 3）悬挑式操作平台的规定 （1）悬挑式操作平台设置应符",
           "match_score": 0.3017,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_123_0197:1",
+          "quote": "移动式操作平台限制：面积≤10m²，高度≤5m，高宽比≤2:1，施工荷载≤1.5kN/m²，行走轮承载力≥5kN，制动矩≥2.5N·m。 #### 1）移动式操作平台的规定 （1）移动式操作平台面积不宜大于 10m²，高度不宜大于 5m，高宽比不应大于 2:1，施工荷载不应大于 1.5kN/m²。 （2）移动式操作",
+          "match_score": 0.2262,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -788,21 +1147,35 @@
           "quote": "移动式操作平台限制：面积≤10m²，高度≤5m，高宽比≤2:1，施工荷载≤1.5kN/m²，行走轮承载力≥5kN，制动矩≥2.5N·m。 #### 1）移动式操作平台的规定 （1）移动式操作平台面积不宜大于 10m²，高度不宜大于 5m，高宽比不应大于 2:1，施工荷载不应大于 1.5kN/m²。 （2）移动式操作",
           "match_score": 0.5649,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_123_0197:0",
           "quote": "悬挑式操作平台关键参数：悬挑长度不宜大于5m，均布荷载≤5.5kN/m²，集中荷载≤15kN，吊环≥4个，钢丝绳夹≥4个。 10m²，高度不宜大于 5m，高宽比不应大于 2:1，施工荷载不应大于 1.5kN/m²。 （2）移动式操作平台的轮子与平台架体连接应牢固，立柱底端离地面不得大于 80mm，行走轮",
           "match_score": 0.527,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_123_0197:2",
           "quote": "落地式操作平台要点：高度≤15m，高宽比≤3:1，荷载≤2.0kN/m²，必须与主体刚性连接，不得与脚手架连接，需设连墙件（≤4m），设水平剪刀撑。 刀撑或斜撑； （5）操作平台应从底层第一步水平杆起逐层设置连墙件，且连墙件间隔不应大于 4m，并应设置水平剪刀撑。 #### 3）悬挑式操作平台的规定 （1）悬挑式操作平台设置应符",
           "match_score": 0.4081,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_123_0197",
+          "quote": "关于悬挑式操作平台的规定，下列说法正确的是？ 应稳定可靠，承载力应符合设计要求。 （2）悬挑式操作平台的悬挑长度不宜大于 5m，均布荷载不应大于 5.5kN/m²，集中荷载不应大于 15kN，悬挑梁应锚固固定。 （3）采用斜拉方式",
+          "match_score": 0.3514,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 1",
+          "match_score": 0.2946,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -814,21 +1187,35 @@
           "quote": "落地式操作平台要点：高度≤15m，高宽比≤3:1，荷载≤2.0kN/m²，必须与主体刚性连接，不得与脚手架连接，需设连墙件（≤4m），设水平剪刀撑。 刀撑或斜撑； （5）操作平台应从底层第一步水平杆起逐层设置连墙件，且连墙件间隔不应大于 4m，并应设置水平剪刀撑。 #### 3）悬挑式操作平台的规定 （1）悬挑式操作平台设置应符",
           "match_score": 0.58,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_123_0197",
           "quote": "关于悬挑式操作平台的规定，下列说法正确的是？ 应稳定可靠，承载力应符合设计要求。 （2）悬挑式操作平台的悬挑长度不宜大于 5m，均布荷载不应大于 5.5kN/m²，集中荷载不应大于 15kN，悬挑梁应锚固固定。 （3）采用斜拉方式",
           "match_score": 0.29,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_123_0197:0",
           "quote": "悬挑式操作平台关键参数：悬挑长度不宜大于5m，均布荷载≤5.5kN/m²，集中荷载≤15kN，吊环≥4个，钢丝绳夹≥4个。 10m²，高度不宜大于 5m，高宽比不应大于 2:1，施工荷载不应大于 1.5kN/m²。 （2）移动式操作平台的轮子与平台架体连接应牢固，立柱底端离地面不得大于 80mm，行走轮",
           "match_score": 0.275,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_123_0197:1",
+          "quote": "移动式操作平台限制：面积≤10m²，高度≤5m，高宽比≤2:1，施工荷载≤1.5kN/m²，行走轮承载力≥5kN，制动矩≥2.5N·m。 #### 1）移动式操作平台的规定 （1）移动式操作平台面积不宜大于 10m²，高度不宜大于 5m，高宽比不应大于 2:1，施工荷载不应大于 1.5kN/m²。 （2）移动式操作",
+          "match_score": 0.275,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 1",
+          "match_score": 0.2725,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -840,21 +1227,35 @@
           "quote": "脚手架使用禁令：严禁将支撑脚手架、缆风绳、混凝土输送泵管、卸料平台及大型设备的支承件固定在作业脚手架上；严禁在作业脚手架上悬挂起重设备。 霜后上架作业应采取有效的防滑措施，雪天应清除积雪。 （8）严禁将支撑脚手架、缆风绳、混凝土输送泵管、卸料平台及大型设备的支承件等固定在作业脚手架上。严禁在作业脚手架上悬挂起重设备。",
           "match_score": 0.26,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_112_0185:1",
           "quote": "纵向水平杆搭设规范：纵向水平杆应在立杆内侧，长度≥3跨；接头错开≥500mm，距主节点≤1/3纵距；搭接长度≥1m，设3个旋转扣件，端部距离≥100mm。 定在作业脚手架上。严禁在作业脚手架上悬挂起重设备。 （3）纵向水平杆应设置在立杆内侧，其长度不应小于 3 跨。 （4）纵向水平杆接长应采用对接扣件连接或搭接。纵向水平杆的对接扣件应交错布",
           "match_score": 0.2,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_123_0197:2",
           "quote": "落地式操作平台要点：高度≤15m，高宽比≤3:1，荷载≤2.0kN/m²，必须与主体刚性连接，不得与脚手架连接，需设连墙件（≤4m），设水平剪刀撑。 刀撑或斜撑； （5）操作平台应从底层第一步水平杆起逐层设置连墙件，且连墙件间隔不应大于 4m，并应设置水平剪刀撑。 #### 3）悬挑式操作平台的规定 （1）悬挑式操作平台设置应符",
           "match_score": 0.18,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_121_0195:3",
+          "quote": "攀登作业安全规定：同一梯子不得两人同时作业； - 超过3m宜设护笼； - 超过8m必须设梯间平台； - 操作层严禁架设梯子。 栏杆应张挂密目式安全立网或其他材料封闭。 #### 4. 攀登作业的安全防范措施 （1）同一梯子上不得两人同时作业。在通道处使用梯子作业时，应有专人监护或设置围栏。脚手架操作层上严禁架",
+          "match_score": 0.16,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_113_0186",
+          "quote": "下列哪一项不属于脚手架搭设过程中必须进行检查的阶段？ 格后方可使用；不合格应进行整改，整改合格后方可使用： ① 基础完工后及脚手架搭设前； ② 首层水平杆搭设后； ③ 作业脚手架每搭设一个楼层高度； ④ 悬挑脚手架悬挑结构搭设固定后； ⑤",
+          "match_score": 0.16,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -866,21 +1267,35 @@
           "quote": "脚手架使用禁令：严禁将支撑脚手架、缆风绳、混凝土输送泵管、卸料平台及大型设备的支承件固定在作业脚手架上；严禁在作业脚手架上悬挂起重设备。 霜后上架作业应采取有效的防滑措施，雪天应清除积雪。 （8）严禁将支撑脚手架、缆风绳、混凝土输送泵管、卸料平台及大型设备的支承件等固定在作业脚手架上。严禁在作业脚手架上悬挂起重设备。",
           "match_score": 0.44,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_112_0185:1",
           "quote": "纵向水平杆搭设规范：纵向水平杆应在立杆内侧，长度≥3跨；接头错开≥500mm，距主节点≤1/3纵距；搭接长度≥1m，设3个旋转扣件，端部距离≥100mm。 定在作业脚手架上。严禁在作业脚手架上悬挂起重设备。 （3）纵向水平杆应设置在立杆内侧，其长度不应小于 3 跨。 （4）纵向水平杆接长应采用对接扣件连接或搭接。纵向水平杆的对接扣件应交错布",
           "match_score": 0.18,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A436000_118_0192:1",
           "quote": "脚手架上砍砖方向：在脚手架上砍砖时，必须向内打碎砖，严禁向架外砍砖。 作业人员在脚手架上施工时，应符合下列规定： ① 在脚手架上砍砖时，应向内将碎砖打在脚手板上，不得向架外砍砖； ② 在脚手架上堆普通砖、多孔砖不得超过 3 层，空心砖或砌块不得超过",
           "match_score": 0.14,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_118_0192:2",
+          "quote": "脚手架上禁止行为：不得在卸料平台、脚手架、施工升降机、物料提升机出入口进行块材切割、打凿加工；不得站在墙顶操作和行走。 平台上、脚手架上、施工升降机、物料提升机出入口位置进行块材的切割、打凿加工。不得站在墙顶操作和行走。工作完毕应将墙上和脚手架上多余的材料、工具清理干净。 （5）作业楼层的周围应进行封",
+          "match_score": 0.14,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_113_0186",
+          "quote": "下列哪一项不属于脚手架搭设过程中必须进行检查的阶段？ 格后方可使用；不合格应进行整改，整改合格后方可使用： ① 基础完工后及脚手架搭设前； ② 首层水平杆搭设后； ③ 作业脚手架每搭设一个楼层高度； ④ 悬挑脚手架悬挑结构搭设固定后； ⑤",
+          "match_score": 0.14,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -892,21 +1307,35 @@
           "quote": "限制使用的施工设备：限制使用门式钢管支撑架；限制使用龙门架、井架物料提升机（限高25m）；限制使用轮扣式脚手架（限高15m双排、8m满堂）；限制使用扣件式钢管卸料平台（限高10m）。 ）禁止使用三点式安全带。可使用五点式安全带替代。 ### 限制使用的施工设备 （1）限制使用门式钢管支撑架，其不得用于搭设满堂承重支撑架体系。可使用承插型盘扣式钢管支撑架、钢管柱梁",
           "match_score": 0.5545,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A421000_015_0021",
           "quote": "下列关于施工现场禁止和限制使用的设备及材料的说法中，错误的是？ ### 禁止使用的施工设备 （1）禁止使用竹（木）脚手架。可使用承插型盘扣式钢管脚手架、扣件式非悬挑钢管脚手架等替代。 （2）禁止使用手动吊篮（现场组装）。可使用电动作业吊篮",
           "match_score": 0.1527,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "m35:Q10-1A422000:P2",
           "quote": "B 处填“禁止”(龙门架、井架物料提升机的淘汰类型为“禁止”) 龙门架",
           "match_score": 0.14,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "kN/m 及以上。 （3）承重支撑体系：用于钢结构安装等满堂支撑体系，承受单点集中荷载 7kN 及以上。 #### 3）起重吊装及起重机械安装拆卸工程 （1）采用非常规起重设备、方法，且单件起吊重量在 100kN 及以上的起重吊装工程。 （2）起重量 300kN 及以上，或搭设总高度 200m 及以上，或搭设基础标高在 200m 及以上的起重机械安装和拆卸工程。 #### 4）脚手架工程 （1）搭",
+          "match_score": 0.1386,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A421000_015_0021:0",
+          "quote": "禁止使用的施工设备：禁止使用竹（木）脚手架、手动吊篮（现场组装）、三点式安全带。 ### 禁止使用的施工设备 （1）禁止使用竹（木）脚手架。可使用承插型盘扣式钢管脚手架、扣件式非悬挑钢管脚手架等替代。 （2）禁",
+          "match_score": 0.1373,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -914,25 +1343,39 @@
       "variant_id": "S01-html-practice3-html-q11-49b0769439d0",
       "candidates": [
         {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "危大工程判定标准：超过一定规模的危大工程需满足以下任一条件： - 深基坑：开挖深度 ≥ 5m - 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 1",
+          "match_score": 0.3731,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
           "source_anchor": "kc:1A436000_123_0197:2",
           "quote": "落地式操作平台要点：高度≤15m，高宽比≤3:1，荷载≤2.0kN/m²，必须与主体刚性连接，不得与脚手架连接，需设连墙件（≤4m），设水平剪刀撑。 刀撑或斜撑； （5）操作平台应从底层第一步水平杆起逐层设置连墙件，且连墙件间隔不应大于 4m，并应设置水平剪刀撑。 #### 3）悬挑式操作平台的规定 （1）悬挑式操作平台设置应符",
           "match_score": 0.3596,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A413030_098_0184",
           "quote": "关于模板支撑脚手架的高宽比，下列说法正确的是？ 最不利的工况计算确定支撑层数。 ④ 模板支撑脚手架独立架体高宽比不应大于 3.0。 ⑤ 模板支撑脚手架应设置竖向和水平剪刀撑，并应符合下列规定： a. 剪刀撑的设置应均匀、对称；",
           "match_score": 0.3519,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_098_0184:2",
           "quote": "模板支撑脚手架高宽比：模板支撑脚手架独立架体高宽比不应大于 3.0。 最不利的工况计算确定支撑层数。 ④ 模板支撑脚手架独立架体高宽比不应大于 3.0。 ⑤ 模板支撑脚手架应设置竖向和水平剪刀撑，并应符合下列规定： a. 剪刀撑的设置应均匀、对称；",
           "match_score": 0.325,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A436000_123_0197",
+          "quote": "关于悬挑式操作平台的规定，下列说法正确的是？ 应稳定可靠，承载力应符合设计要求。 （2）悬挑式操作平台的悬挑长度不宜大于 5m，均布荷载不应大于 5.5kN/m²，集中荷载不应大于 15kN，悬挑梁应锚固固定。 （3）采用斜拉方式",
+          "match_score": 0.3192,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -944,21 +1387,35 @@
           "quote": "脚手架检查评分表分类：脚手架检查评分表共8类：扣件式、门式、碗扣式、承插型盘扣式、满堂、悬挑式、附着式升降、高处作业吊篮。 目应包括：综合治理、公示标牌、生活设施、社区服务。 （3）脚手架检查评分表分为“扣件式钢管脚手架检查评分表”“门式钢管脚手架检查评分表”“碗扣式钢管脚手架检查评分表”“承插型盘扣式钢管",
           "match_score": 0.5516,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A421000_015_0021:1",
           "quote": "限制使用的施工设备：限制使用门式钢管支撑架；限制使用龙门架、井架物料提升机（限高25m）；限制使用轮扣式脚手架（限高15m双排、8m满堂）；限制使用扣件式钢管卸料平台（限高10m）。 ）禁止使用三点式安全带。可使用五点式安全带替代。 ### 限制使用的施工设备 （1）限制使用门式钢管支撑架，其不得用于搭设满堂承重支撑架体系。可使用承插型盘扣式钢管支撑架、钢管柱梁",
           "match_score": 0.3875,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_009_0012:0",
+          "quote": "板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m - 承重支撑：单点荷载 ≥ 7kN - 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m - 脚手架：落地式钢管脚手架搭设高度 ≥ 50m、附着式升降脚手架提升高度 ≥ 150m、悬挑式脚手架分段架体搭设高度 ≥ 20m - 幕墙安装 ≥ 50m - 钢结构安装跨度 ≥ ",
+          "match_score": 0.3656,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "kc:1A413030_120_0228:0",
           "quote": "脚手架安全等级划分：脚手架安全等级依据搭设高度和荷载标准值划分。当支撑脚手架搭设高度>8m或荷载>15kN/m²时，安全等级为Ⅰ级；否则为Ⅱ级。 ### 3.4.6 常用施工脚手架 #### 1. 常用施工脚手架分类 （1）脚手架包括作业脚手架和支撑脚手架。作业脚手架包括落地作业脚手架、悬挑脚手",
           "match_score": 0.3593,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "ca:1A422000_033_0055",
+          "quote": "关于锚杆布置的规定，下列说法正确的是？ ### (8) 锚杆布置应符合以下规定： ① 锚杆上下排垂直间距不宜小于 2.0m，水平间距不宜小于 1.5m； ② 锚杆锚固体上覆土层厚度不宜小于 4.0m； ③ 锚杆倾角宜为",
+          "match_score": 0.3404,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     },
@@ -970,21 +1427,28 @@
           "quote": "模板支架检查项目：模板支架检查评定保证项目包括：施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收；一般项目包括：杆件连接、底座与托撑、构件材质、支架拆除。 ### （5）“模板支架”检查评定保证项目应包括： - 施工方案 - 支架基础 - 支架构造 - 支架稳定 - 施工荷载 - 交底与验收 一",
           "match_score": 0.2759,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "ca:1A436000_107_0174",
           "quote": "下列哪项不属于“模板支架”检查评定的保证项目？ ### （5）“模板支架”检查评定保证项目应包括： - 施工方案 - 支架基础 - 支架构造 - 支架稳定 - 施工荷载 - 交底与验收 一般项目应包括： - 杆件连接 - 底座与",
           "match_score": 0.2545,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         },
         {
           "source_anchor": "m35:Q10-1A422000:P3",
           "quote": "C 处填“不得用于25米及以上的建设工程”(必须含“25米及以上”) 脚手架",
           "match_score": 0.1429,
           "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
-          "source_sha256": "ef00478c147f0f0cfa3bb4c83fa14bf318bf13b49e45a17c7dfedcc6d16a0f0d"
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
+        },
+        {
+          "source_anchor": "kc:1A436000_006_0007:1",
+          "quote": "脚手架使用禁令：严禁将支撑脚手架、缆风绳、混凝土输送泵管、卸料平台及大型设备的支承件固定在作业脚手架上；严禁在作业脚手架上悬挂起重设备。 霜后上架作业应采取有效的防滑措施，雪天应清除积雪。 （8）严禁将支撑脚手架、缆风绳、混凝土输送泵管、卸料平台及大型设备的支承件等固定在作业脚手架上。严禁在作业脚手架上悬挂起重设备。",
+          "match_score": 0.1351,
+          "source_file": "docs/原始数据/考点原料/_S01_compiled_source.json",
+          "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a"
         }
       ]
     }
