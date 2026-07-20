@@ -228,7 +228,7 @@ class Component extends DCLogic {
   SHOW_COUNT = 5;
   state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
   examTitle="渗漏治理诊断";
-  KNOWLEDGE="渗漏治理诊断（施工缝/裂缝/穿墙/流淌/起鼓/女儿墙）。判分主线=先按部位诊断→回溯成因→对症治理，不混答。①施工缝渗漏成因：未清理干净粘结不良、接槎明显、钢筋密集浇捣不密实。②防水混凝土裂缝治理：及时保湿养护+多道设防刚柔结合+确保防水层保护层质量。③管道穿墙治理流程：清理管道表面→设止水环（延长渗径）→振捣密实→避免振动→灌浆堵漏。④卷材流淌分三级：严重拆除重铺、中等切割法/局部切除重铺/钉钉子法、轻微不渗漏可不治。⑤卷材起鼓按100mm分档：<100mm抽气灌胶法；≥100mm斜十字割开、清理、吹干、重贴方形卷材。⑥山墙女儿墙成因=收口/压条脱落/滴水线破损/拉结不牢/钝角，治理五步=清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口。相邻背景（非主判分眼）：堵漏灌浆材料分类、外墙淋水检验。常见失分：只背防水没做好不诊断部位、治理方法张冠李戴、穿墙漏止水环、流淌不分级、起鼓漏100mm分档、女儿墙漏烤干与封口。";
+  KNOWLEDGE="渗漏治理诊断（施工缝/裂缝/穿墙/流淌/起鼓/女儿墙）。判分主线=先按部位诊断→回溯成因→对症治理，不混答。①施工缝渗漏成因：未清理干净粘结不良、接槎明显、钢筋密集浇捣不密实。②防水混凝土裂缝治理：及时保湿养护+多道设防刚柔结合+确保防水层保护层质量。③管道穿墙治理流程：清理管道表面→设止水环→振捣密实→避免振动→灌浆堵漏。④卷材流淌分三级：严重拆除重铺、中等切割法/局部切除重铺/钉钉子法、轻微不渗漏可不治。⑤卷材起鼓按100mm分档：<100mm抽气灌胶法；≥100mm斜十字割开、清理、吹干、重贴方形卷材。⑥山墙女儿墙成因=收口/压条脱落/滴水线破损/拉结不牢/钝角，治理五步=清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口。相邻背景（非主判分眼）：堵漏灌浆材料分类、外墙淋水检验。常见失分：只背防水没做好不诊断部位、治理方法张冠李戴、穿墙漏止水环、流淌不分级、起鼓漏100mm分档、女儿墙漏烤干与封口。";
   moreText="补练方向：① 混凝土基体与节点侧（施工缝三成因 / 裂缝多道设防刚柔结合 / 穿墙止水环五步）——练部位诊断 + 程序箭头链写全；② 卷材柔性层侧（流淌三级三法 / 起鼓 100mm 分档 / 女儿墙成因五项加治理五步）——练分级分档 + 判断纠错三段式。回看讲解上/下集，再抽 5 道过一遍。";
   Q=[
 { tag:"裂缝治理·记录维", typeHint:"单选 · 选出措施最完整能得分的作答", figLabel:"图示：多道设防 · 刚柔结合", figCaption:"刚性混凝土自防水 + 柔性卷材/涂膜 + 保护层", fig:"layers",
@@ -258,14 +258,14 @@ class Component extends DCLogic {
         { t:"先灌浆堵漏封住渗水，再回过头来清理管道表面、补设止水环并振捣密实。", ok:false, code:"E06", tempt:"以为先把水堵住再收拾其他，顺手。", lose:"止水环、振捣需在灌浆前，顺序颠倒，程序错误。", fix:"按清理→止水环→振捣密实→避免振动→灌浆堵漏的顺序。" },
         { t:"直接套用卷材流淌治理里的切割法、钉钉子法来处理管道穿墙的渗漏部位。", ok:false, code:"E07", tempt:"记了不少治理法，随手抓一个套上。", lose:"切割法/钉钉子法是卷材流淌治理，用于穿墙属张冠李戴。", fix:"穿墙用清理→止水环→振捣→避振→灌浆堵漏。" }
       ] },
-{ tag:"穿墙治理·概念", typeHint:"单选 · 选出止水环作用表述准确的", figLabel:"图示：止水环延长渗径", figCaption:"水沿管壁的渗径被拉长、受阻", fig:"pipe",
-      stem:"穿墙管处为何要设置止水环？选出表述准确的作答。",
-      model:"止水环沿管壁延长水的渗径、增加渗流阻力，阻断水沿管壁渗入。",
+{ tag:"穿墙治理·概念", typeHint:"单选 · 选出对止水环表述准确的", figLabel:"图示：穿墙管上的止水环", figCaption:"止水构件 · 设于灌浆堵漏之前", fig:"pipe",
+      stem:"穿墙管渗漏治理中设置的止水环，选出对它表述准确的作答。",
+      model:"止水环是设在穿墙管上的止水构件，在清理管面后设置，先于振捣密实与灌浆堵漏。",
       opts:[
-        { t:"认为止水环是用来固定管道、防止管道在使用中晃动移位的支架构件。", ok:false, code:"M03", tempt:"'环'像个卡箍，容易当成固定件。", lose:"止水环功能是止水延长渗径，非固定支架，概念错误。", fix:"止水环延长渗径、增加渗流阻力止水。" },
-        { t:"止水环沿管壁延长水的渗径、增加渗流阻力，从而阻断水沿管壁渗入。", ok:true, fix:"点明'延长渗径、增加阻力'的机理，是采分句。", code:"" },
-        { t:"认为设不设止水环影响都不大，关键是把灌浆量灌足便能堵住渗漏。", ok:false, code:"E02", tempt:"觉得灌浆足够就够，忽略止水环。", lose:"漏掉止水环这一关键采分句。", fix:"必须设止水环延长渗径，再灌浆堵漏。" },
-        { t:"认为止水环其实就是管道外面包裹的保温层，起隔热保温作用。", ok:false, code:"E07", tempt:"和管道保温层长得像，容易混。", lose:"止水环是止水构件，非保温层，概念混淆。", fix:"止水环延长渗径止水，不是保温。" }
+        { t:"认为止水环是用来固定管道、防止管道在使用与检修中晃动移位的支架构件。", ok:false, code:"M03", tempt:"'环'像个卡箍，容易当成固定件。", lose:"止水环是止水构件，非固定支架，概念错误。", fix:"止水环是设在穿墙管上的止水构件。" },
+        { t:"止水环是设在穿墙管上的止水构件，应在振捣密实、灌浆堵漏之前设置。", ok:true, fix:"构件与位次都对：清理管面→设止水环→振捣密实→避免振动→灌浆堵漏。", code:"" },
+        { t:"认为设不设止水环影响都不大，关键是把灌浆量灌足便能堵住渗漏。", ok:false, code:"E02", tempt:"觉得灌浆足够就够，忽略止水环。", lose:"漏掉设置止水环这一关键采分句。", fix:"必须先设止水环，再灌浆堵漏。" },
+        { t:"认为止水环其实就是穿墙管外面包裹的保温层，起隔热保温作用。", ok:false, code:"E07", tempt:"和管道保温层长得像，容易混。", lose:"止水环是止水构件，非保温层，概念混淆。", fix:"止水环是止水构件，不是保温层。" }
       ] },
 { tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答的失分并给正确补写", figLabel:"图示：学生作答（待诊断）", figCaption:"穿墙渗漏 · 只写灌浆堵漏", fig:"sheet",
       stem:"某学生答管道穿墙渗漏『哪漏堵哪，灌浆把它堵死』。选出最准确的诊断与补写。",
@@ -431,7 +431,7 @@ class Component extends DCLogic {
       els.push(D({x:118,top:8,w:88,h:84,bg:"#b9a88a",r:4}));
       els.push(D({x:16,top:44,w:296,h:20,bg:"#6f7679",r:4,fg:"#e7eaeb",fs:9,jc:"flex-end",p:"0 8px 0 0",lab:"穿墙管"}));
       els.push(D({x:154,top:22,w:14,h:60,bg:"#2c8a5b",r:2}));
-      els.push(D({x:150,top:2,w:120,h:14,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"止水环 · 延长渗径"})); }
+      els.push(D({x:150,top:2,w:120,h:14,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"止水环 · 设于穿墙管"})); }
     else if(type==="flow"){ figH=104;
       const rows=[["严重","#cf4436","拆除重铺",44],["中等","#cf8a44","切割/局部切除重铺/钉钉子",22],["轻微","#2c8a5b","不渗漏可不治",6]];
       rows.forEach((r,i)=>{ const y=6+i*32;
@@ -536,7 +536,7 @@ class Component extends DCLogic {
   ord(){ return [0,1,2,3,4]; }
   __dtEvidenceAnswers(){
     const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"F05-html-practice-html-q3-faf7f765deab","options":["F05-html-practice-html-q3-faf7f765deab:option-1","F05-html-practice-html-q3-faf7f765deab:option-2","F05-html-practice-html-q3-faf7f765deab:option-3","F05-html-practice-html-q3-faf7f765deab:option-4"]},{"variant_id":"F05-html-practice-html-q4-545fce94a454","options":["F05-html-practice-html-q4-545fce94a454:option-1","F05-html-practice-html-q4-545fce94a454:option-2","F05-html-practice-html-q4-545fce94a454:option-3","F05-html-practice-html-q4-545fce94a454:option-4"]},{"variant_id":"F05-html-practice-html-q5-3110c18f72a7","options":["F05-html-practice-html-q5-3110c18f72a7:option-1","F05-html-practice-html-q5-3110c18f72a7:option-2","F05-html-practice-html-q5-3110c18f72a7:option-3","F05-html-practice-html-q5-3110c18f72a7:option-4"]},{"variant_id":"F05-html-practice-html-q6-29096bc484ef","options":["F05-html-practice-html-q6-29096bc484ef:option-1","F05-html-practice-html-q6-29096bc484ef:option-2","F05-html-practice-html-q6-29096bc484ef:option-3","F05-html-practice-html-q6-29096bc484ef:option-4"]},{"variant_id":"F05-html-practice-html-q16-865ae327e250","options":["F05-html-practice-html-q16-865ae327e250:option-1","F05-html-practice-html-q16-865ae327e250:option-2","F05-html-practice-html-q16-865ae327e250:option-3","F05-html-practice-html-q16-865ae327e250:option-4"]}];
+    const exactItems=[{"variant_id":"F05-html-practice-html-q3-faf7f765deab","options":["F05-html-practice-html-q3-faf7f765deab:option-1","F05-html-practice-html-q3-faf7f765deab:option-2","F05-html-practice-html-q3-faf7f765deab:option-3","F05-html-practice-html-q3-faf7f765deab:option-4"]},{"variant_id":"F05-html-practice-html-q4-545fce94a454","options":["F05-html-practice-html-q4-545fce94a454:option-1","F05-html-practice-html-q4-545fce94a454:option-2","F05-html-practice-html-q4-545fce94a454:option-3","F05-html-practice-html-q4-545fce94a454:option-4"]},{"variant_id":"F05-html-practice-html-q5-3110c18f72a7","options":["F05-html-practice-html-q5-3110c18f72a7:option-1","F05-html-practice-html-q5-3110c18f72a7:option-2","F05-html-practice-html-q5-3110c18f72a7:option-3","F05-html-practice-html-q5-3110c18f72a7:option-4"]},{"variant_id":"F05-html-practice-html-q6-eba80fc7c590","options":["F05-html-practice-html-q6-eba80fc7c590:option-1","F05-html-practice-html-q6-eba80fc7c590:option-2","F05-html-practice-html-q6-eba80fc7c590:option-3","F05-html-practice-html-q6-eba80fc7c590:option-4"]},{"variant_id":"F05-html-practice-html-q16-865ae327e250","options":["F05-html-practice-html-q16-865ae327e250:option-1","F05-html-practice-html-q16-865ae327e250:option-2","F05-html-practice-html-q16-865ae327e250:option-3","F05-html-practice-html-q16-865ae327e250:option-4"]}];
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -553,7 +553,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F05")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTMtZmFmN2Y3NjVkZWFiIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xNC01NDVmY2U5NGE0NTQiLCJGMDUtaHRtbC1wcmFjdGljZS1odG1sLXE1LTMxMTBjMThmNzJhNyIsIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTYtMjkwOTZiYzQ4NGVmIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtODY1YWUzMjdlMjUwIl0sInBhY2tfaWQiOiJGMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjA3ZTQ4ZjU0YjE0NWY2MWU4ZmQ3MGRiYTdjNjZlNWU1YjRlZWZiMjRiMGZiZjNmZWY5YjliN2FiYzljYmM2ZjciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F05")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTMtZmFmN2Y3NjVkZWFiIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xNC01NDVmY2U5NGE0NTQiLCJGMDUtaHRtbC1wcmFjdGljZS1odG1sLXE1LTMxMTBjMThmNzJhNyIsIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTYtZWJhODBmYzdjNTkwIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtODY1YWUzMjdlMjUwIl0sInBhY2tfaWQiOiJGMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjdlNWZhNzkzY2UzOGY5NGFiODkzYzZiNjUxNzZkOGUzMDM5YTYxNmVkNzQ0NzZiMzg0MGY2MjhjODdiMjNkMWUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNzI5Mjc4MjllNjA5ZmI1ZTg0Nzk0NTYwZTg3ODhjMGJiMGIwNjNkZjYyNDIzYjIwNDM5MmU0YTE4YWYzOTgzNCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

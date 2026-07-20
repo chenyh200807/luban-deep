@@ -1,6 +1,6 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-20T09:10:10+00:00",
+  "generated_at": "2026-07-20T11:22:00+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "C02",
@@ -8,8 +8,8 @@
   "score_threshold": 0.25,
   "warnings": [],
   "coverage": {
-    "total_items": 6,
-    "items_with_candidates": 6,
+    "total_items": 8,
+    "items_with_candidates": 8,
     "items_empty_handed": 0
   },
   "items": [
@@ -46,6 +46,20 @@
           "source_anchor": "kc:1A435000_042_0057:0",
           "quote": "工程预付款计算：工程预付款 = 合同价 × 预付款比例 = 660 × 20% = 132 万元 同价为 660 万元，主要材料及构件占合同价的 60%，工程预付款为合同价的 20%，工程进度每月按实际完成产值支付。工程 5 月完工，按照工程结算款支付。每月完成产值见表 7.2-3。",
           "match_score": 0.3488,
+          "source_file": "docs/原始数据/考点原料/_C02_compiled_source.json",
+          "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45"
+        },
+        {
+          "source_anchor": "kc:1A435000_043_0058:0",
+          "quote": "工程预付款计算：工程预付款 = 合同价 × 预付款比例 ### 工程预付款、进度款及结算款计算 #### 分析与答案： (1) 工程预付款 = 660 × 20% = 132.00 万元",
+          "match_score": 0.3255,
+          "source_file": "docs/原始数据/考点原料/_C02_compiled_source.json",
+          "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45"
+        },
+        {
+          "source_anchor": "ca:1A435000_042_0057",
+          "quote": "根据案例背景，计算工程预付款、起扣点、各月进度款及最终结算款。 元，主要材料及构件占合同价的 60%，工程预付款为合同价的 20%，工程进度每月按实际完成产值支付。工程 5 月完工，按照工程结算款支付。每月完成产值见表 7.2-3。 #### 表",
+          "match_score": 0.295,
           "source_file": "docs/原始数据/考点原料/_C02_compiled_source.json",
           "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45"
         }
@@ -119,6 +133,20 @@
           "match_score": 0.4036,
           "source_file": "docs/原始数据/考点原料/_C02_compiled_source.json",
           "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45"
+        },
+        {
+          "source_anchor": "exam:2021:案例题（四）",
+          "quote": "【背景资料】某新建住宅楼工程，建筑面积 25000m²，装配式钢筋混凝土结构。建设单位编制了招标工程量清单等招标文件，其中部分条款内容为：本工程实行施工总承包模式，承包范围为土建、电气等全部工程内容，质量标准为合格，开工前业主向承包商支付合同工程造价的 25%作为预付备料款，保修金为总价的 3%。经公开招投标，某施工总承包单位以 12500 万元中标。其中：工地总成本 9200 万元，公司管理费按",
+          "match_score": 0.3778,
+          "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
+          "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
+        },
+        {
+          "source_anchor": "exam:2021:案例题（四）答案",
+          "quote": "【背景资料】某新建住宅楼工程，建筑面积 25000m²，装配式钢筋混凝土结构。建设单位编制了招标工程量清单等招标文件，其中部分条款内容为：本工程实行施工总承包模式，承包范围为土建、电气等全部工程内容，质量标准为合格，开工前业主向承包商支付合同工程造价的 25%作为预付备料款，保修金为总价的 3%。经公开招投标，某施工总承包单位以 12500 万元中标。其中：工地总成本 9200 万元，公司管理费按",
+          "match_score": 0.3778,
+          "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
+          "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
         }
       ]
     },
@@ -129,6 +157,86 @@
           "source_anchor": "exam:2019:第1题",
           "quote": "\\n\\n(2) 3月份支付的工程款750×0.97=727.50(万元)。\\n\\n4月份应当支付的工程款1000×0.97=970.000万元。\\n\\n5月份累计完成工程的工程款为：180+500+750+1000+1400=3830万元＞起扣点3480万元\\n\\n因此5月不仅仅扣除质保金还应当扣回预付款。\\n\\n则5月份应当支付的工程款为：1400-1400×3%-(3830-3480)×60%",
           "match_score": 0.3604,
+          "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
+          "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
+        }
+      ]
+    },
+    {
+      "variant_id": "C02-html-practice-html-q7-72e2f6f82400",
+      "candidates": [
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "建设工程施工合同（示范文本）》（GF-2017-0201）规定的优先顺序进行解释。 施工合同中包含以下工程价款主要内容： (1) 工程中标价为5800万元，暂列金额为580万元，主要材料所占比重为60%； (2) 工程预付款为工程造价的20%； (3) 工程进度款逐月计算； (4) 工程质量保证金3%在每月工程进度款中扣除质保期满后返还。 工程1-5月份完成产值如表4所示： | 月份 | 1 | ",
+          "match_score": 0.3223,
+          "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
+          "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
+        },
+        {
+          "source_anchor": "exam:2022:第17页",
+          "quote": "3.00%=2736.00万元。（1.0分）\\n(4) 规费：(48000+7200+2736) ×2.20%=1274.59万元。（1.0分）\\n(5) 税金：(48000+7200+2736 【解析】 1. 不妥之处及理由： (1) 质量保修金为5%：根据相关规定，质量保修金不得超过工程价款结算总额的3%，因此该比例过高。 (2) 履约保证金为15%：履约保证金一般不超过中标合同金额的10%，",
+          "match_score": 0.3223,
+          "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
+          "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
+        },
+        {
+          "source_anchor": "kc:1A435000_044_0059:0",
+          "quote": "质量保证金上限：累计预留的质量保证金或以担保保函替代的金额不得超过工程结算总价的3%。 向发包人索赔。 （5）发包人应按合同约定质量保证的方式预留质量保证金，累计预留的质量保证金或以担保保函替代保证金的保函金额不得超过工程结算总价的 3%。 （6）缺陷责任期内，因承包人原因",
+          "match_score": 0.2904,
+          "source_file": "docs/原始数据/考点原料/_C02_compiled_source.json",
+          "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45"
+        },
+        {
+          "source_anchor": "exam:2022:第(四)题",
+          "quote": "2.20%=1274.59万元。（1.0分）\\n(5) 税金：(48000+7200+2736 【参考答案】 1. (本小题8.0分) (1) 不妥之一：质量保修金为5%。 理由：质量保修金不得超过工程价款结算总额的3%。（1.0分） (2) 不妥之二：履约保证金为15%； 理由：履约保证金不超过中标合同金额的10%（1.0分） (3) 不妥之三：钢材指定采购本市钢厂的产品； 理由：建设单位不得指",
+          "match_score": 0.29,
+          "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
+          "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
+        },
+        {
+          "source_anchor": "exam:2024:第(四)题",
+          "quote": "全等管理责任，应对招标文件中要求的技术标准、质量、投标有效期等作出实质性响应，中标单位不得违法分包，如将工程分包给个人等。工程竣工验收后6个月内完成结算，工程结算据实调整。 某施工单位工程中标造价为7782.60万元。其中：分部分项工程费为6000.00万元，措施项目费为600.00万元（按分部分项工程费的10%计取），其他项目费为400.00万元，暂列金额为297.00万元，专业分包暂估价为10",
+          "match_score": 0.2685,
+          "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
+          "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
+        }
+      ]
+    },
+    {
+      "variant_id": "C02-html-practice-html-q8-d04dc9544381",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A435000_044_0059:0",
+          "quote": "质量保证金上限：累计预留的质量保证金或以担保保函替代的金额不得超过工程结算总价的3%。 向发包人索赔。 （5）发包人应按合同约定质量保证的方式预留质量保证金，累计预留的质量保证金或以担保保函替代保证金的保函金额不得超过工程结算总价的 3%。 （6）缺陷责任期内，因承包人原因",
+          "match_score": 0.6145,
+          "source_file": "docs/原始数据/考点原料/_C02_compiled_source.json",
+          "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45"
+        },
+        {
+          "source_anchor": "ca:1A435000_044_0059",
+          "quote": "关于竣工结算中质量保证金的说法，正确的是？ 证金或以担保保函替代保证金的保函金额不得超过工程结算总价的 3%。 （6）缺陷责任期内，因承包人原因造成的缺陷或（和）损坏，承包人应负责维修，并承担鉴定及维修费用。承包人拒绝维修或未",
+          "match_score": 0.5613,
+          "source_file": "docs/原始数据/考点原料/_C02_compiled_source.json",
+          "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45"
+        },
+        {
+          "source_anchor": "exam:2022:第17页",
+          "quote": "、等级、技术标准等内容。地砖由A、B、C三地供应，相关信息如表4。 | 序号 | 货源地 | 【参考答案】\\n1. (本小题8.0分)\\n(1) 不妥之一：质量保修金为5%。\\n理由：质量保修金不得超过工程价款结算总额的3%。（1.0分）\\n(2) 不妥之二：履约保证金为15%；\\n理由：履约保证金不超过中标合同金额的10%（1.0分）\\n(3) 不妥之三：钢材指定采购本市钢厂的产品；\\n理由：建",
+          "match_score": 0.4773,
+          "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
+          "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
+        },
+        {
+          "source_anchor": "exam:2022:第(四)题",
+          "quote": "、等级、技术标准等内容。地砖由A、B、C三地供应，相关信息如表4。 #### 表4 地砖供应 【参考答案】\\n1. (本小题8.0分)\\n(1) 不妥之一：质量保修金为5%。\\n理由：质量保修金不得超过工程价款结算总额的3%。（1.0分）\\n(2) 不妥之二：履约保证金为15%；\\n理由：履约保证金不超过中标合同金额的10%（1.0分）\\n(3) 不妥之三：钢材指定采购本市钢厂的产品；\\n理由：建",
+          "match_score": 0.4587,
+          "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
+          "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "TY-201909001）修改意见达成一致签订了施工合同。确认包括投标函、中标通知书等合同文件按照《建设工程施工合同（示范文本）》（GF-2017-0201）规定的优先顺序进行解释。 施工合同中包含以下工程价款主要内容： (1) 工程中标价为5800万元，暂列金额为580万元，主要材料所占比重为60%； (2) 工程预付款为工程造价的20%； (3) 工程进度款逐月计算； (4) 工程质量保证金3",
+          "match_score": 0.4307,
           "source_file": "docs/原始数据/考点原料/_C02_exam_evidence.json",
           "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63"
         }

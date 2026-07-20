@@ -296,11 +296,14 @@ class Component extends DCLogic {
     vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
     this.setState({order:this.pickOrder(),optOrder:this.pickOptOrders()});
   }
-  pickOrder(){ const idx=this.Q.map((_,i)=>i);
-    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
-    const last=this.Q.length-1; const k=idx.indexOf(last); if(k>=0){ idx.splice(k,1); idx.push(last); }
-    return idx.slice(0, Math.min(this.SHOW_COUNT||6, idx.length)); }
-  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||6, this.Q.length)); }
+  diagIndex(){ const i=this.Q.findIndex(q=>q.tag&&q.tag.indexOf("诊断")>=0); return i>=0?i:this.Q.length-1; }
+  pickOrder(){ const diag=this.diagIndex(); const rest=this.Q.map((_,i)=>i).filter(i=>i!==diag);
+    for(let i=rest.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=rest[i]; rest[i]=rest[j]; rest[j]=t; }
+    const take=Math.max(0,Math.min((this.SHOW_COUNT||6)-1, rest.length));
+    return rest.slice(0, take).concat([diag]); }
+  fallbackOrder(){ const diag=this.diagIndex(); const rest=this.Q.map((_,i)=>i).filter(i=>i!==diag);
+    const take=Math.max(0,Math.min((this.SHOW_COUNT||6)-1, rest.length));
+    return rest.slice(0, take).concat([diag]); }
   pickOptOrders(){ const m={}; this.Q.forEach((q,qidx)=>{ const idx=q.opts.map((_,i)=>i);
     for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i];idx[i]=idx[j];idx[j]=t; }
     if(idx.length && idx[0]===0 && Math.random()<0.75){ const s=1+Math.floor(Math.random()*(idx.length-1)); const t=idx[0];idx[0]=idx[s];idx[s]=t; }
@@ -506,7 +509,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F16")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYxNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjE2MDc0NWUwNjVlIiwiRjE2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1kODdlZTlhMzMyNTYiLCJGMTYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWRhYmQwNWViOTFiNiIsIkYxNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDBmMGYyZDkyNWVjIiwiRjE2LWh0bWwtcHJhY3RpY2UtaHRtbC1xNi0wYjI2ZjFkZWRhZWYiXSwicGFja19pZCI6IkYxNiIsInByb2plY3Rpb25fZGlnZXN0IjoiNzVkZmNmODdhM2QwMjdlMWQxZjBlNGFkNGU3NmYyZTFiMTUxNGJkMTRmNzJkNGIwZTVlNGY1ZDQ2MDU4MjE5NyIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F16")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYxNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjE2MDc0NWUwNjVlIiwiRjE2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1kODdlZTlhMzMyNTYiLCJGMTYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWRhYmQwNWViOTFiNiIsIkYxNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDBmMGYyZDkyNWVjIiwiRjE2LWh0bWwtcHJhY3RpY2UtaHRtbC1xNi0wYjI2ZjFkZWRhZWYiXSwicGFja19pZCI6IkYxNiIsInByb2plY3Rpb25fZGlnZXN0IjoiNTE1NmIzYzViZGNkYWE0YmQ0NmI0YmFiNDVjMjJjZTQ1YTVlNTAxMGUxMjBkODI2MDJiYmE3YTEyOWNmNTcwMCIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJhNjI1YjYzMTc5YWIzOTE5NTgwMTkxODI3N2QzMmE1MzAyNzY5MDkyMWZiNWIxODNmYWMwYmJjOGUzODYzN2VkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

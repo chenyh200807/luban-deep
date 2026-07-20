@@ -1,0 +1,70 @@
+{
+    "pack_id": "S02",
+    "adversarial_gate_ref": "codex-cross-model + textbook arbitration 2026-07-20: q2 blocker resolved by repairing _S02_compiled_source.json kc:1A436000_009_0012:0 (恢复『采用非常规起重设备、方法，且』限定, 教材原文逐字回填自 2026教材 chunk 1A436000_009_0012, 对齐建质〔2018〕37号); 2026-07-20 二轮(verify_fix_batch.log §12 CONFIRMED): q1/q3 卡端仍教修复前旧错规则——q1 重构为锚普通档条款『采用起重机械进行安装的工程』(kc:1A436000_008_0011:0 同步教材逐字修复, 10kN 无限定压缩句降为干扰项), q3 重构为非常规方法(双机抬吊)+单件320kN≥100kN 吊装口径(300kN 安拆口径降为干扰项); q2 微文本(model/解析)同步口径调和, 正确项未动; 其余 q4/q6/q7/q8/q17 沿用前轮探针核验结论",
+    "signed": [
+        {
+            "variant_id": "S02-html-practice-html-q1-50f09cba8426",
+            "probe_role": "anchor",
+            "fact_id": "s02-fact-weida-crane-install-clause",
+            "skeleton_id": "s02-skel-起重机械安装即危大",
+            "source_anchor": "kc:1A436000_008_0011:0",
+            "note": "常规塔吊吊装80kN构件: 属危大工程, 判据=教材危大范围普通档『（2）采用起重机械进行安装的工程』(kc:1A436000_008_0011:0, 2026-07-20 教材逐字修复后直引); 未达超危大吊装档『非常规起重设备、方法且单件≥100kN』故不需专家论证。旧正确项『单件≥10kN即属危大』因教材10kN档带非常规限定, 已降为M03干扰项并在解析教辨。"
+        },
+        {
+            "variant_id": "S02-html-practice-html-q2-e2fb7cb17c23",
+            "probe_role": "anchor",
+            "fact_id": "s02-fact-lunzheng-nonconventional-100kn",
+            "skeleton_id": "s02-skel-非常规100kn论证前置",
+            "source_anchor": "kc:1A436000_009_0012:0",
+            "note": "超一定规模起重吊装=『采用非常规起重设备、方法，且单件起吊重量在100kN及以上』; 常规设备150kN不触发专家论证但属危大须专项方案。教材原文直引(2026-07-20修复采分点后, repair_note in _S02_compiled_source.json)。 2026-07-20 二轮: 仅微文本口径调和(model引『采用起重机械进行安装的工程』条款/300kN干扰项解析改安拆口径), 正确项文字未动, 沿用前轮裁决。"
+        },
+        {
+            "variant_id": "S02-html-practice-html-q3-4fd6335982ef",
+            "probe_role": "anchor",
+            "fact_id": "s02-fact-chaoweida-diaozhuang-nonconv-100kn",
+            "skeleton_id": "s02-skel-非常规100kn吊装口径",
+            "source_anchor": "kc:1A436000_009_0012:0",
+            "note": "双机抬吊320kN构件: 题干明示非常规起重方法, 判据=『采用非常规起重设备、方法，且单件起吊重量在100kN及以上的起重吊装工程』(kc:1A436000_009_0012:0 修复后教材逐字直引), 320≥100 属超危大须专家论证; 300kN 档为起重机械安装拆卸工程口径, 不适用构件吊装, 已降为M03干扰项教口径辨析。"
+        },
+        {
+            "variant_id": "S02-html-practice-html-q4-db858af17b5b",
+            "probe_role": "anchor",
+            "fact_id": "s02-fact-hoist-90pct-liftcheck",
+            "skeleton_id": "s02-skel-起吊90先吊离检查",
+            "source_anchor": "kc:1A436000_125_0199:2",
+            "note": "起吊达额定90%及以上先吊离200~500mm检查, 教材直引。"
+        },
+        {
+            "variant_id": "S02-html-practice-html-q17-4ea34f3f27c0",
+            "probe_role": "anchor",
+            "fact_id": "s02-fact-scoring-diagnosis",
+            "skeleton_id": "s02-skel-采分诊断补写",
+            "source_anchor": "kc:1A436000_125_0199:2",
+            "note": "诊断末题补写起吊90%吊离检查等采分句, 教材直引。"
+        },
+        {
+            "variant_id": "S02-html-practice-html-q6-0edb60cf41ba",
+            "probe_role": "anchor",
+            "fact_id": "s02-fact-crane-weather-redline",
+            "skeleton_id": "s02-skel-6级风停露天",
+            "source_anchor": "kc:1A436000_125_0199:3",
+            "note": "6级及以上大风停塔机露天作业, 教材直引。三联anchor。"
+        },
+        {
+            "variant_id": "S02-html-practice-html-q7-419250f2d3e2",
+            "probe_role": "immediate_confirm",
+            "fact_id": "s02-fact-crane-weather-redline",
+            "skeleton_id": "s02-skel-安拆风速9ms",
+            "source_anchor": "kc:1A436000_130_0211:0",
+            "note": "大型起重机械安拆风速>9.0m/s停止, 教材直引。三联immediate_confirm。"
+        },
+        {
+            "variant_id": "S02-html-practice-html-q8-ab02aded8a88",
+            "probe_role": "d1_probe",
+            "fact_id": "s02-fact-crane-weather-redline",
+            "skeleton_id": "s02-skel-气象红线动词判别",
+            "source_anchor": "kc:1A436000_130_0211:0",
+            "note": "露天看风级/安拆看风速的动词判别, 教材直引。三联d1_probe。"
+        }
+    ]
+}

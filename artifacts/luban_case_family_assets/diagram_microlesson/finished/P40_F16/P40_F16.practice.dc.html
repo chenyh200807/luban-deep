@@ -259,6 +259,24 @@ class Component extends DCLogic {
         { t:"作答基本上没有什么大的问题，只是在末尾漏掉了「重做保护层」这样的一处小毛病，只要在收尾的时候补上一句重做保护层就可以了，前面分档与割补这两个部分的其余内容均属正确、并不需要再作任何改动。", ok:false, code:"E02", tempt:"末尾漏保护层最显眼，抓到一处就以为诊断完了。", lose:"漏诊①不分档（一律抽气灌胶）和②割开直接贴（漏放气/擦干/清旧胶）两处大失分。", fix:"三处一起补：分档、割补中段四步、保护层+究因。" },
         { t:"三处失分：①不分档，≥100mm 大鼓不能只抽气灌胶；②割开直接贴，漏放气、擦干、清旧胶、烘烤剥离；③「压实即完工」漏重做保护层、漏究因。补写：＜100mm 抽气灌胶、≥100mm 割补；割开→放气→擦干→清旧胶→烘烤剥离→重贴方形卷材→压实→重做保护层；并保证基层平整干燥、排气孔通畅。", ok:true, fix:"逐处指漏+给可抄的正确采分句——这就是「会看答案→会写答案」。", code:"" },
         { t:"主要错误在于治法选错了：起鼓本应当改用钉钉子法来重新固定住卷材，只要把这三行作答按照钉钉子法的处置思路重新加以固定、并且从头到尾整体重新改写一遍，便可以纠正其中所出现的全部失分之处了。", ok:false, code:"M03", tempt:"看出「治法有问题」，却往姐妹病害的药方上纠。", lose:"诊断方向本身错：钉钉子法治流淌不治起鼓，照此重写全盘皆错。", fix:"起鼓就按 100mm 分档+割补八环诊断补写。" }
+      ] },
+    { tag:"关键环节·作用判别", typeHint:"单选 · 判别割补工序中该环节的作用", figLabel:"题给：割补工序中的喷灯烘烤环节", figCaption:"烘烤旧卷材槎口这一下 · 为的到底是什么？", fig:"cutpatch",
+      stem:"屋面卷材起鼓用割补法处理，工序中有一步「用喷灯烘烤旧卷材槎口」。选出该步骤作用表述正确的一项。",
+      model:"喷灯烘烤旧卷材槎口，是为了将旧卷材分层剥开、除去旧胶结材料，之后再重贴新卷材。",
+      opts:[
+        { t:"烘烤旧卷材槎口是为了把旧卷材分层剥开、除去旧胶结材料，为随后重贴新卷材做好基面。", ok:true, fix:"烘烤=分层剥开+除旧胶，与真题工序原文一致，正是判分眼。", code:"" },
+        { t:"烘烤旧卷材槎口是为了替代擦干水分那一步，靠高温把基层残留水汽直接烤干后即可重贴。", ok:false, code:"E07", tempt:"烘烤会发热，容易联想成烘干水分、省去擦干一步。", lose:"擦干水分与烘烤槎口是各自独立的工序，烘烤作用是分层剥开除旧胶，不能顶替擦干。", fix:"擦干水分单列一步，烘烤槎口另有其用——分层剥开、除去旧胶结材料。" },
+        { t:"烘烤是把新卷材直接热熔焊到基层上的收尾动作，槎口一经烤实，割补处理即告全部完成。", ok:false, code:"E10", tempt:"热熔焊接是防水常见工艺，套到这一步显得顺理成章。", lose:"烘烤针对的是旧卷材槎口、用于剥离除胶，其后仍需重贴新卷材、压实刮平、重做保护层。", fix:"烘烤只作用于旧卷材槎口剥离；其后还有重贴、压实、重做保护层三环。" },
+        { t:"烘烤等同于末环的重做保护层工序，槎口烤实、表面烤平即可交工，无需再另设保护层。", ok:false, code:"E02", tempt:"「烤平收面」听着像收尾，容易与重做保护层混成一步。", lose:"重做保护层是割补末环、独立一步；烘烤槎口处在工序中段，二者不可相互顶替。", fix:"烘烤槎口在中段、重做保护层在末环，两步各自独立、不可合并。" }
+      ] },
+    { tag:"工序乱序·纠错", typeHint:"单选 · 八环步骤都在，只有一项先后全对", figLabel:"题给：四份割补工序默写（步骤同、顺序各异）", figCaption:"步骤一个不少 · 先后却各排各的 · 哪份全对？", fig:"chain",
+      stem:"四名施工员默写起鼓割补法八环工序，所列步骤相同、仅先后顺序不同。选出顺序完全正确的一项。",
+      model:"割开鼓泡→放出气体→擦干水分→清除旧胶结料→喷灯烘烤槎口分层剥开→重贴新卷材→压实刮平→重做保护层。",
+      opts:[
+        { t:"割开鼓泡→擦干水分→放出气体→清除旧胶结料→喷灯烘烤槎口分层剥开→重贴新卷材→压实刮平→重做保护层。", ok:false, code:"E10", tempt:"擦干、放气都紧接割开，先后看着差不太多。", lose:"应先放出气体、再擦干水分，此项把放气与擦干两步次序颠倒。", fix:"割开后先放气、再擦干，这个先后不能倒。" },
+        { t:"割开鼓泡→放出气体→擦干水分→清除旧胶结料→喷灯烘烤槎口分层剥开→重贴新卷材→压实刮平→重做保护层。", ok:true, fix:"放气→擦干→清旧胶→烘烤剥离→重贴→压实→重做保护层，八环先后全对。", code:"" },
+        { t:"割开鼓泡→放出气体→擦干水分→喷灯烘烤槎口分层剥开→清除旧胶结料→重贴新卷材→压实刮平→重做保护层。", ok:false, code:"E10", tempt:"烘烤、清旧胶都属清理动作，前后调一下像无所谓。", lose:"应先清除旧胶结料、再喷灯烘烤槎口分层剥开，此项把两步次序颠倒。", fix:"先清旧胶、后烘烤剥离，先后不可互换。" },
+        { t:"割开鼓泡→放出气体→擦干水分→清除旧胶结料→喷灯烘烤槎口分层剥开→压实刮平→重贴新卷材→重做保护层。", ok:false, code:"E10", tempt:"压实、重贴都在收尾段，位置换一换看着还行。", lose:"应先重贴新卷材、再压实刮平，此项把重贴与压实两步次序颠倒。", fix:"先重贴新卷材、后压实刮平，不能先压后贴。" }
       ] }
   ];
   codeMap={
@@ -277,11 +295,14 @@ class Component extends DCLogic {
     vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
     this.setState({order:this.pickOrder(),optOrder:this.pickOptOrders()});
   }
-  pickOrder(){ const idx=this.Q.map((_,i)=>i);
-    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
-    const last=this.Q.length-1; const k=idx.indexOf(last); if(k>=0){ idx.splice(k,1); idx.push(last); }
-    return idx.slice(0, Math.min(this.SHOW_COUNT||6, idx.length)); }
-  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||6, this.Q.length)); }
+  diagIndex(){ const i=this.Q.findIndex(q=>q.tag&&q.tag.indexOf("诊断")>=0); return i>=0?i:this.Q.length-1; }
+  pickOrder(){ const diag=this.diagIndex(); const rest=this.Q.map((_,i)=>i).filter(i=>i!==diag);
+    for(let i=rest.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=rest[i]; rest[i]=rest[j]; rest[j]=t; }
+    const take=Math.max(0,Math.min((this.SHOW_COUNT||6)-1, rest.length));
+    return rest.slice(0, take).concat([diag]); }
+  fallbackOrder(){ const diag=this.diagIndex(); const rest=this.Q.map((_,i)=>i).filter(i=>i!==diag);
+    const take=Math.max(0,Math.min((this.SHOW_COUNT||6)-1, rest.length));
+    return rest.slice(0, take).concat([diag]); }
   pickOptOrders(){ const m={}; this.Q.forEach((q,qidx)=>{ const idx=q.opts.map((_,i)=>i);
     for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i];idx[i]=idx[j];idx[j]=t; }
     if(idx.length && idx[0]===0 && Math.random()<0.75){ const s=1+Math.floor(Math.random()*(idx.length-1)); const t=idx[0];idx[0]=idx[s];idx[s]=t; }

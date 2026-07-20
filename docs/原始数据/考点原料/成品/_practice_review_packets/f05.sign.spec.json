@@ -1,0 +1,70 @@
+{
+ "pack_id": "F05",
+ "adversarial_gate_ref": "FIXED+SIGNED 2026-07-20 主控修源重裁: 前轮 fable 对抗核验裁 F05 NO-GO——唯一阻断 q6(穿墙治理·概念)正确项'止水环延长渗径、增加渗流阻力'在 F05 编译源+真题零命中(sign_f05.log)。本轮回教材原始数据仲裁(2026教材 第一次清洗+第二次加强 全部13个 FINAL_CLEANED/v3 JSON python 逐字符检索): '渗径'全教材0次; '渗流'命中全在地基处理章与防水无关; '止水环'命中全在 FINAL_CLEANED_BOOK2026-222-382(_fixed) content_blocks[116](=chunk 1A434000_075_0117 书源), 全部只作五步工序构件('③穿墙管设置止水环。④混凝土终凝前不得振动穿墙管。⑤对穿墙管渗漏处进行灌浆堵漏处理'), 零机理表述→教材无法补采分点。修法=改题: q6 正确项改为源内事实'止水环是设在穿墙管上的止水构件,应在振捣密实、灌浆堵漏之前设置'(逐点回 kc:1A434000_075_0117:1 五步序+教材'穿墙管设置止水环'), stem 由问机理改问构件定位, 3干扰项埋错保留(M03支架/E02只灌浆/E07保温层)且 lose/fix 解析清除全部'延长渗径/渗流阻力'字样, KNOWLEDGE/figLabel/figCaption/pipe图SVG标注同步去机理化(全文件渗径渗流=0次)。反可猜性: 选项长度[34,32,30,29] band±35% OK, 正确项非严格最长, 正确位维持存储位1(全包分布{0:4,1:4,2:4,3:4}不动), 无口语破绽词。q6 换新 variant_id eba80fc7c590, prefill 0.12 重召回 kc:1A434000_075_0117:1(match 0.2542)为真实机器候选。其余4投影+女儿墙三件套锚沿用前轮已核可裁决(sign_f05.log 记录: 7题在 NO-q6 test spec 下全部通过 per-item 可溯源门)。仲裁全证据: scratchpad fix_f05.log。",
+ "signed": [
+  {
+   "variant_id": "F05-html-practice-html-q3-faf7f765deab",
+   "probe_role": "anchor",
+   "fact_id": "f05-fact-crack-multiline-defense",
+   "skeleton_id": "f05-skel-裂缝治理三件",
+   "source_anchor": "kc:1A434000_075_0117:0",
+   "note": "防水混凝土裂缝渗漏治理三件=及时保湿养护+多道设防刚柔结合+确保防水层保护层质量。锚 kc:1A434000_075_0117:0 quote 直引('混凝土浇筑后必须及时保湿养护;应设置多道设防、刚柔结合的防水层;确保防水层保护层质量'), match 0.5082 机器首选。干扰项漏采分句(E02)/止水环张冠李戴(E07)/口号化(E04)辨析正确。"
+  },
+  {
+   "variant_id": "F05-html-practice-html-q4-545fce94a454",
+   "probe_role": "anchor",
+   "fact_id": "f05-fact-crack-multiline-defense",
+   "skeleton_id": "f05-skel-刚柔结合概念",
+   "source_anchor": "kc:1A434000_075_0117:0",
+   "note": "'多道设防、刚柔结合'概念题: 正确项=刚性混凝土自防水与柔性卷材/涂膜多道叠合冗余, 是教材关键句'应设置多道设防、刚柔结合的防水层'(kc:1A434000_075_0117:0 quote 逐字含)的定义级 gloss。工单: 本题默认阈值空手, prefill 0.12 召回该锚(match 0.1887); 干扰项(单道做厚M03/抹灰顺序E07/同料多刷E02)均明确错, 单选唯一正确。同 crack fact 与 q3 并列 anchor(skeleton 互异), 不与三件套串组。"
+  },
+  {
+   "variant_id": "F05-html-practice-html-q5-3110c18f72a7",
+   "probe_role": "anchor",
+   "fact_id": "f05-fact-pipe-through-wall",
+   "skeleton_id": "f05-skel-穿墙五步程序",
+   "source_anchor": "kc:1A434000_075_0117:1",
+   "note": "管道穿墙渗漏治理五步程序=清理管道表面→设置止水环→振捣密实→避免振动→灌浆堵漏。锚 kc:1A434000_075_0117:1 quote 逐字直引五步链, match 0.5357 机器首选。干扰项只灌浆(E02)/顺序颠倒(E06)/流淌方法张冠李戴(E07)辨析正确。"
+  },
+  {
+   "variant_id": "F05-html-practice-html-q6-eba80fc7c590",
+   "probe_role": "anchor",
+   "fact_id": "f05-fact-pipe-through-wall",
+   "skeleton_id": "f05-skel-止水环构件定位",
+   "source_anchor": "kc:1A434000_075_0117:1",
+   "note": "改题重裁(前轮 NO-GO 病灶): 原正确项'延长渗径、增加渗流阻力'机理经教材原始数据仲裁零支撑(渗径全教材0次), 已改为源内事实'止水环是设在穿墙管上的止水构件,应在振捣密实、灌浆堵漏之前设置'——逐点回源: '设在穿墙管上'=教材 content_blocks[116]'③穿墙管设置止水环'逐字; '先于振捣/灌浆'=锚 kc:1A434000_075_0117:1 五步序(设置止水环在振捣密实、灌浆堵漏之前)。prefill 重召回该锚 match 0.2542 真实机器候选。skeleton(构件定位辨析)异于 q5(五步程序排序)与 q16(诊断补写); 三题同 pipe fact 全 anchor 不成三件套。干扰项埋错与解析一致且解析零机理残留。"
+  },
+  {
+   "variant_id": "F05-html-practice-html-q16-865ae327e250",
+   "probe_role": "anchor",
+   "fact_id": "f05-fact-pipe-through-wall",
+   "skeleton_id": "f05-skel-穿墙采分补写",
+   "source_anchor": "kc:1A434000_075_0117:1",
+   "note": "采分诊断末题: 学生答穿墙渗漏'哪漏堵哪灌浆堵死', 诊断=漏前置流程, 补写=清理管面→设止水环→振捣密实→避免振动→灌浆堵漏。锚 kc:1A434000_075_0117:1 quote 逐字支撑补写五步(match 0.3485)。干扰项给分过宽(E02)/只调顺序(E06)/裂缝措施混淆(E07)辨析正确。"
+  },
+  {
+   "variant_id": "F05-html-practice-html-q11-a6f2d5c9f1d9",
+   "probe_role": "anchor",
+   "fact_id": "f05-fact-parapet-wall-leak",
+   "skeleton_id": "f05-skel-女儿墙成因诊断",
+   "source_anchor": "ca:1A434000_077_0120",
+   "note": "山墙女儿墙渗漏成因诊断=收口/压条脱落、滴水线破损、拉结不牢、钝角等收头薄弱处失效。锚 ca:1A434000_077_0120('某项目山墙出现渗漏,请分析可能的原因并提出治理措施'含 grading_keywords)match 0.4364 机器首选, 直支成因维。三件套 anchor(parapet fact)。干扰项防水层笼统返工(E08)/施工缝成因错搬(E07)/单条成因(E02)辨析正确。"
+  },
+  {
+   "variant_id": "F05-html-practice-html-q12-174fb79dbb06",
+   "probe_role": "immediate_confirm",
+   "fact_id": "f05-fact-parapet-wall-leak",
+   "skeleton_id": "f05-skel-女儿墙治理五步",
+   "source_anchor": "kc:1A434000_077_0120:0",
+   "note": "女儿墙治理五步=清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口(+修复压顶砂浆)。锚 kc:1A434000_077_0120:0 quote 逐字直引五步(match 0.6364)。三件套 immediate_confirm(同 parapet fact, skeleton 治理程序维异于 q11 成因维)。干扰项省步(E06)/笼统重做(E02)/抽气灌胶误用(E07)辨析正确。"
+  },
+  {
+   "variant_id": "F05-html-practice-html-q15-39783533e6f3",
+   "probe_role": "d1_probe",
+   "fact_id": "f05-fact-parapet-wall-leak",
+   "skeleton_id": "f05-skel-女儿墙采分补写",
+   "source_anchor": "ca:1A434000_077_0120",
+   "note": "采分诊断: 学生答女儿墙渗漏'重新做防水'——诊断成因未写+五步全缺, 补写成因(收口/压条/滴水线/钝角)+治理五步。锚 ca:1A434000_077_0120 match 0.3636, 成因+治理双维直支诊断补写。三件套 d1_probe(同 parapet fact, 第3独立 skeleton=诊断补写维)。干扰项酌情给分(E04)/只差材料(E02)/流淌起鼓错搬(E07)辨析正确。"
+  }
+ ]
+}

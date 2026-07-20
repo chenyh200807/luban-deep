@@ -363,8 +363,17 @@ def test_hosted_reachability_gate_follows_supply_ready_for_whole_corpus() -> Non
             checked_ready += 1
         else:
             checked_gated += 1
-    assert checked_gated, "expected at least one gated (non-supply_ready) pack"
-    assert checked_ready, "expected at least one supply_ready pack"
+    # 覆盖对账：走过的包数必须等于"有托管讲解页的 authority"总数（防 glob 空转
+    # 假绿）。2026-07-20 补题批后全语料 40 包 supply_ready，gated 计数允许为 0
+    # ——不再钉"至少一个 pending 包"的旧世界态；方向二（非 supply_ready 不得留
+    # 活链）由上面的分支在未来任何 gated 包出现时继续生效。
+    hosted_total = sum(
+        1
+        for authority_path in _mod.AUTHORITY_HOST.glob("*.practice.authority.json")
+        if (_mod.HOST / authority_path.name.split(".", 1)[0] / "lesson.html").is_file()
+    )
+    assert checked_ready + checked_gated == hosted_total
+    assert checked_ready >= 40, "expected the fully signed 40-pack corpus to be live"
 
 
 def test_rewrite_hrefs_handles_html_and_x_dc_script_links() -> None:

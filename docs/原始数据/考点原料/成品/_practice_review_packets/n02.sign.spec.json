@@ -1,12 +1,14 @@
 {
   "pack_id": "N02",
-  "adversarial_gate_ref": "opus-adjudication 2026-07-20 全量清尾批(owner指令);逐题引文回原文核对+计算复算(K=gcd=3/队数1+1+2+1=5/T=(2+5-1)*3=18 全部复算通过);待 fable 对抗核验",
+  "adversarial_gate_ref": "opus-adjudication 2026-07-20 N02补编2题达 eligible=8+typing三件套(owner指令40包全上线);逐题引文回原文核对+计算复算(K=gcd(3,3,6,3)=3/队数1+1+2+1=5/砌筑6=2K拆2队/T=(2+5-1)*3=18 全部复算通过);q7队数变式+q8步距整除关系均锚 exam:2023 与教材kc:1A433000_054_0081:0;待 fable 对抗核验",
   "signed": [
     {"variant_id":"N02-html-practice-html-q1-f0ad516c7201","probe_role":"anchor","fact_id":"n02-fact-multiple-rhythm-typing","skeleton_id":"n02-skel-判型成倍数等步距异节奏","source_anchor":"exam:2023:第1题","note":"节拍3,3,6,3成倍数(6=2×3)判等步距异节奏流水,步距取最大公约数。真题exam:2023:第1题'流水步距:3个月;专业队数:5个'支持。复算:gcd(3,3,6,3)=3 ✓"},
     {"variant_id":"N02-html-practice-html-q2-813072d92c5a","probe_role":"anchor","fact_id":"n02-fact-step-gcd","skeleton_id":"n02-skel-步距最大公约数","source_anchor":"kc:1A433000_054_0081:0","note":"K=各节拍最大公约数gcd(3,3,6,3)=3个月。教材kc:1A433000_054_0081:0异节奏大差法支持成倍节拍取gcd。复算K=3 ✓"},
     {"variant_id":"N02-html-practice-html-q3-578780f341e5","probe_role":"anchor","fact_id":"n02-fact-team-count","skeleton_id":"n02-skel-队数节拍除步距","source_anchor":"exam:2023:第2题","note":"各工序队数=节拍÷K=1+1+2+1=5,成倍节拍拆队队数>工序数。真题exam:2023:第2题'专业对数:1+1+2+1=5个'逐字支持。复算=5 ✓"},
     {"variant_id":"N02-html-practice-html-q4-49ae2a47bd94","probe_role":"anchor","fact_id":"n02-fact-total-duration","skeleton_id":"n02-skel-工期搭接公式","source_anchor":"exam:2023:第2题","note":"T=(M+N'-1)×K=(2+5-1)×3=18个月。真题exam:2023:第2题'总工期:(2+5-1)×3=18个月'逐字支持。复算=18 ✓"},
     {"variant_id":"N02-html-practice-html-q6-461d5405fa34","probe_role":"anchor","fact_id":"n02-fact-scoring-diagnosis","skeleton_id":"n02-skel-采分诊断四句补写","source_anchor":"exam:2023:第2题","note":"诊断题:学生K取6应gcd=3/4队应5队/工期3+3+6+6=18机械相加碰巧;四处补写。真题exam:2023:第2题支持标准链。复算:学生3+3+6+6=18(碰巧),真值(2+5-1)×3=18 ✓"},
-    {"variant_id":"N02-html-practice-html-q5-499b7942872a","probe_role":"immediate_confirm","fact_id":"n02-fact-multiple-rhythm-typing","skeleton_id":"n02-skel-参数三体系","source_anchor":"exam:2021:案例二背景","note":"参数体系:工艺(过程数/段数)+时间(节拍/步距/工期)+空间(施工段/施工层)。真题exam:2021:案例二背景逐字支持。此为唯一非投影池题,尝试作三件套成员。"}
+    {"variant_id":"N02-html-practice-html-q5-499b7942872a","probe_role":"immediate_confirm","fact_id":"n02-fact-multiple-rhythm-typing","skeleton_id":"n02-skel-参数三体系","source_anchor":"exam:2021:案例二背景","note":"参数体系:工艺(过程数/段数)+时间(节拍/步距/工期)+空间(施工段/施工层)。真题exam:2021:案例二背景逐字支持。typing fact 的 immediate_confirm(骨架≠判型/队数)。"},
+    {"variant_id":"N02-html-practice-html-q7-adab1cfd1339","probe_role":"d1_probe","fact_id":"n02-fact-multiple-rhythm-typing","skeleton_id":"n02-skel-队数拆队概念-d1probe","source_anchor":"exam:2023:第2题","note":"补编d1_probe:成倍节拍拆队,砌筑6=2K须拆2个专业队,队数=1+1+2+1=5>工序数4。真题exam:2023:第2题'专业对数:1+1+2+1=5个'逐字支持。复算gcd(3,3,6,3)=3、队数5 ✓。补齐typing三件套(anchor q1判型/immediate q5参数/d1 q7队数,三skeleton互异)使 fact complete。"},
+    {"variant_id":"N02-html-practice-html-q8-e0a2aa8d96e2","probe_role":"anchor","fact_id":"n02-fact-step-gcd","skeleton_id":"n02-skel-步距整除关系","source_anchor":"kc:1A433000_054_0081:0","note":"补编anchor:步距K与各节拍整除关系,K=gcd(3,3,6,3)=3,每个节拍都是K的整数倍(3=1K、6=2K),倍数即该工序专业队数。教材kc:1A433000_054_0081:0异节奏大差法支持成倍节拍取gcd。复算K=3 ✓。"}
   ]
 }

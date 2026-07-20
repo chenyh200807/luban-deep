@@ -174,7 +174,10 @@ def main(argv: list[str]) -> int:
     }
 
     # ---- validate supply_ready in memory before writing ----
-    _validate_supply_ready(pack, packet)
+    summary = _validate_supply_ready(pack, packet)
+    # 2026-07-20 修:盖章后同步重算 packet 顶层 eligible_count(此前恒为 pending 时的 0,
+    # 造成 packet 内部不一致,PR#533 曾需外科手术修数据)。
+    packet["eligible_count"] = int(summary["eligible_question_count"])
 
     packet_path.write_text(
         json.dumps(packet, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
@@ -226,6 +229,7 @@ def _validate_supply_ready(pack: str, packet: dict) -> None:
         f"complete_facts={summary['complete_fact_count']} "
         f"anchors_ready={summary['anchors_ready']}"
     )
+    return summary
 
 
 if __name__ == "__main__":

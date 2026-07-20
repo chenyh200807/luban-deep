@@ -290,7 +290,7 @@ class Component extends DCLogic {
   componentDidMount(){
     if(!this._shuffled){
       // 打散正确项位置（源数据正确项恒在 index0）→ 分布 C/D/B/A/C/D，评分靠 .ok 不受影响
-      const perms=[[1,3,0,2],[1,2,3,0],[2,0,1,3],[0,1,2,3],[1,3,0,2],[2,1,3,0]];
+      const perms=[[1,3,0,2],[1,2,3,0],[2,0,1,3],[0,1,2,3],[1,3,0,2],[2,1,3,0],[0,1,2,3],[0,1,2,3]];
       this.Q.forEach((q,qi)=>{ const p=perms[qi]; if(p&&q.opts&&q.opts.length===p.length) q.opts=p.map(i=>q.opts[i]); });
       this._shuffled=true;
     }
@@ -515,7 +515,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzQyMjEyY2QxNTgyIiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzg0MTE5MzRiZDMiLCJGMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTdlNmNmOWE1NTIwMSIsIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDY0OTkzMjkyNmI1IiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1jMDYzYzA2OGQxYzQiXSwicGFja19pZCI6IkYwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiZTQwNTEyNTU3ODE4ZTIxZDY4ZTdmN2FlMGZmZTgwY2M4NTYyNzllNGI3NGU2MzhhMzExYWExYWU0NGM0ZTZlYSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("F02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzQyMjEyY2QxNTgyIiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzg0MTE5MzRiZDMiLCJGMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTdlNmNmOWE1NTIwMSIsIkYwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZDY0OTkzMjkyNmI1IiwiRjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi1jMDYzYzA2OGQxYzQiXSwicGFja19pZCI6IkYwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiNGM4NjBjMmMyM2Q0ODM3OWQzYTdhMTRkMWQ2NDczOWI2MGJkZTI1MzBmN2EzOWY1ZTU1MjAzMDQ0OTYxMzU1MSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI5NjllNzA5MDk2NDQzMDY1N2EwZTZkM2YzZTM3NmFiNmJlM2I5OWExYzRmMzY0NDhhN2JmYmRkYTJiZjU0Zjg2Iiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }

@@ -63,10 +63,12 @@ def test_custom_manifest_without_compiled_capability_cannot_guess_practice_url(
     assert vm["practice_url"] == ""
 
 
-def test_pending_compiled_pack_hides_practice_consumer_url(monkeypatch):
+def test_pending_compiled_pack_hides_practice_consumer_url(monkeypatch, pendingize_pack):
+    """合成 pending 世界态(2026-07-20 全语料签发后 F16 已签,夹具重置 review):
+    未签发 pack 的讲解卡照常可达,但练习消费 URL 必须隐藏(fail-closed)。"""
     monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+    authority = pendingize_pack("F16")
     vm = build_lesson_viewmodel("F16")
-    authority = load_compiled_practice("F16")
     assert authority is not None
     assert vm["card_url"] == (
         "https://cdn.example.com/luban/f16/lesson.html?v="
@@ -220,9 +222,11 @@ def test_episode_detail_selects_the_exact_published_page(monkeypatch):
     ],
 )
 def test_pending_episode_practice_surfaces_remain_hidden(
-    monkeypatch, pack_id, episode_index, expected_file
+    monkeypatch, pendingize_pack, pack_id, episode_index, expected_file
 ):
+    """合成 pending 世界态:未签发 pack 的任何教学集都不得暴露练习入口。"""
     monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+    pendingize_pack(pack_id)
 
     vm = build_lesson_viewmodel(pack_id, episode_index=episode_index)
 
@@ -400,8 +404,10 @@ def test_real_manifest_green_packs_all_project():
 
 @pytest.mark.parametrize("pack_id", ["A01", "X01", "G03"])
 def test_pending_v3_pack_never_advertises_light_practice_or_retest(
-    pack_id: str,
+    pack_id: str, pendingize_pack
 ) -> None:
+    """合成 pending 世界态:v3 未签发 pack 绝不对外宣传轻练/复测供给。"""
+    pendingize_pack(pack_id)
     rows = {row["pack_id"]: row for row in list_green_lessons()}
     vm = build_lesson_viewmodel(pack_id)
 
@@ -424,8 +430,13 @@ def test_real_manifest_has_mandatory_variant_revocation_authority():
 
 
 @pytest.mark.parametrize("pack_id", ["A01", "X01", "G03"])
-def test_pending_candidate_pack_never_falls_back_to_signed_bank(pack_id: str) -> None:
+def test_pending_candidate_pack_never_falls_back_to_signed_bank(
+    pack_id: str, pendingize_pack
+) -> None:
+    """合成 pending 世界态:candidate 供给不得回退到任何 signed bank。"""
     from deeptutor.services.luban_lesson import build_retest_items
+
+    pendingize_pack(pack_id)
 
     for mode in ("forward", "review"):
         assert build_retest_items(
@@ -439,14 +450,17 @@ def test_pending_candidate_pack_never_falls_back_to_signed_bank(pack_id: str) ->
 
 @pytest.mark.parametrize("pack_id", ["A01", "X01", "G03"])
 def test_compiled_artifact_is_same_supply_identity_for_forward_and_review(
-    pack_id: str,
+    pack_id: str, pendingize_pack
 ) -> None:
+    """合成 pending 世界态:forward/review 共用同一 compiled supply identity,
+    未签发时两种 mode 同形拒发(空题集),identity 仍指向同一 artifact。"""
     from deeptutor.services.luban_lesson import (
         build_retest_items,
         resolve_retest_items,
         retest_supply_identity,
     )
 
+    pendingize_pack(pack_id)
     assert build_retest_items(
         pack_id,
         user_id=f"qa_eval_{pack_id.lower()}_exact_selection",

@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "S02",
   "source_pack_sha256": "32aa09500e3ba31c5b064058c1b51892f7976e8d069b5ff497d07f1a061cf1ab",
-  "source_bundle_sha256": "a1cc35df9e33e1068a4c4a24b7c7292c40471e3be6d15ba5753c9d4b5453eb7f",
+  "source_bundle_sha256": "0a45b149d6fcbf1489bf996a67711d26aa0b95b1d5d5186e31e1910a33307cb5",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -18,96 +18,117 @@
         16
       ],
       "variant_ids": [
-        "S02-html-practice-html-q1-b9701135f982",
-        "S02-html-practice-html-q2-00a791b9b0ac",
-        "S02-html-practice-html-q3-c311ae707eb3",
+        "S02-html-practice-html-q1-50f09cba8426",
+        "S02-html-practice-html-q2-e2fb7cb17c23",
+        "S02-html-practice-html-q3-4fd6335982ef",
         "S02-html-practice-html-q4-db858af17b5b",
         "S02-html-practice-html-q17-4ea34f3f27c0"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjk3MDExMzVmOTgyIiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wMGE3OTFiOWIwYWMiLCJTMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWMzMTFhZTcwN2ViMyIsIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZGI4NThhZjE3YjViIiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTctNGVhMzRmM2YyN2MwIl0sInBhY2tfaWQiOiJTMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjYyZTc0MzYzMGU1OWI4NTEzMDkzOTQzZGFhMjNhYThmMDc1NWY1OTJlM2Q1Yjc0YzFmMmE5YTBjOGU5MTg1ODEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "b173085f46e9c9745e876268b6ab7e6d3d10420c87d917e8837be0ff8692924d"
+      "eligible_variant_ids": [
+        "S02-html-practice-html-q1-50f09cba8426",
+        "S02-html-practice-html-q2-e2fb7cb17c23",
+        "S02-html-practice-html-q3-4fd6335982ef",
+        "S02-html-practice-html-q4-db858af17b5b",
+        "S02-html-practice-html-q6-0edb60cf41ba",
+        "S02-html-practice-html-q7-419250f2d3e2",
+        "S02-html-practice-html-q8-ab02aded8a88",
+        "S02-html-practice-html-q17-4ea34f3f27c0"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNTBmMDljYmE4NDI2IiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lMmZiN2NiMTdjMjMiLCJTMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTRmZDYzMzU5ODJlZiIsIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZGI4NThhZjE3YjViIiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTctNGVhMzRmM2YyN2MwIl0sInBhY2tfaWQiOiJTMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImVjZjg1OWU2MjdmZjdhMTNlYjNhNTUyMzU4YTlkY2UyMGNlZGFjNGQ3NzQxN2ZkZjJhN2M5MjU5MDA4NjhhNTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmIyYjY1N2FmMzBjYjAzZDNkNGNhN2Q1YTdiODE0MGQyMjdmOTQ3MjJhMTIzZjQ3ZWYzNmVmZDM0MmIyZTBjOCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "c8c2692858d970eef37bef80dd8485b27571dd6baac0e7c9a3c55d31c829ddd3"
     }
   ],
   "items": [
     {
       "answer_type": "single_choice",
-      "rule_group": "危大判定·门槛",
-      "stem": "某工程一构件单件起吊重量 80kN，用塔式起重机吊装。关于危大等级，选出能得分的作答。",
-      "model_answer": "起重吊装单件≥10kN 即属危大工程，须编专项施工方案；80≥10，属危大（未达 100kN，不需专家论证）。",
+      "rule_group": "危大判定·普通档条款",
+      "stem": "某工程用常规塔式起重机吊装单件重 80kN 的构件。关于危大等级，选出能得分的作答。",
+      "model_answer": "「采用起重机械进行安装的工程」即属危大工程，须编专项施工方案；常规设备且 80kN 未达超危大吊装档「非常规起重设备、方法且单件≥100kN」，不需专家论证。",
       "options": [
         {
           "text": "单件起吊重量 80kN 未达到 100kN，因而不属于危大工程，按一般吊装作业组织施工即可，无需编制专项施工方案。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "记成「起重吊装够 100kN 才算危大」。",
-          "loss_reason": "把超危大论证线 100kN 当成危大下限——危大门槛是 10kN。",
-          "fix": "≥10kN 即属危大，80kN 早已达标。",
-          "option_id": "S02-html-practice-html-q1-b9701135f982:option-1"
+          "loss_reason": "100kN 是超危大吊装档口径（且前置「非常规起重设备、方法」）；危大档不比它——采用起重机械进行安装的工程即属危大。",
+          "fix": "塔吊安装作业即属危大，须专项方案。",
+          "option_id": "S02-html-practice-html-q1-50f09cba8426:option-1"
         },
         {
-          "text": "起重吊装单件起吊重量≥10kN 即属危大工程，须编专项施工方案；80kN 已超 10kN，属危大工程。",
+          "text": "本工程采用起重机械（塔式起重机）进行安装，属于危大工程，须编制专项施工方案；未达超危大标准，不需专家论证。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "引门槛 10kN + 结论「属危大」+ 须专项方案，三件齐。",
-          "option_id": "S02-html-practice-html-q1-b9701135f982:option-2"
+          "fix": "引「采用起重机械进行安装的工程」条款 + 结论「属危大」+ 须专项方案，三件齐。",
+          "option_id": "S02-html-practice-html-q1-50f09cba8426:option-2"
+        },
+        {
+          "text": "起重吊装单件起吊重量 10kN 及以上即属危大工程，据此本题 80kN 属于危大工程，应编制专项施工方案。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把 10kN 档记成不带前提的通用门槛。",
+          "loss_reason": "教材 10kN 档带「采用非常规起重设备、方法，且」限定，常规塔吊不落此条；结论碰巧同向，判据引错条款不得分。",
+          "fix": "常规塔吊按「采用起重机械进行安装的工程」判危大。",
+          "option_id": "S02-html-practice-html-q1-50f09cba8426:option-3"
         },
         {
           "text": "该构件 80kN 已属危大工程，除编制专项施工方案外，还应当组织专家论证后方可实施吊装。",
           "is_correct": false,
           "source_error_code": "M08",
           "temptation": "一见危大就联想到专家论证。",
-          "loss_reason": "专家论证要「非常规且单件≥100kN」（或总重≥300/高≥200），80kN 够不到。",
+          "loss_reason": "超危大吊装档=「非常规起重设备、方法」且单件≥100kN，常规设备与 80kN 两个要件都不满足。",
           "fix": "属危大编专项方案即可，不需专家论证。",
-          "option_id": "S02-html-practice-html-q1-b9701135f982:option-3"
-        },
-        {
-          "text": "此类起吊属常见吊装作业，重点在于加强现场安全管理与旁站监督，不必专门判定危大工程等级。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "图省事跳过判等级。",
-          "loss_reason": "不判危大等级=丢结论采分，且漏专项方案。",
-          "fix": "明确 ≥10kN 属危大、须专项方案。",
-          "option_id": "S02-html-practice-html-q1-b9701135f982:option-4"
+          "option_id": "S02-html-practice-html-q1-50f09cba8426:option-4"
         }
       ],
-      "variant_id": "S02-html-practice-html-q1-b9701135f982",
+      "variant_id": "S02-html-practice-html-q1-50f09cba8426",
       "surface_id": "practice.html",
       "source_index": 0,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A436000_008_0011:0",
+      "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
+      "fact_id": "s02-fact-weida-crane-install-clause",
+      "skeleton_id": "s02-skel-起重机械安装即危大",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "1e4db751f5203d96646287f9bc2293ce83d4f979454baced2ffcb49b9cfb36a4",
+      "content_sha256": "858b2bf791dac635e5407f8225d5fe565f2ea1be9839e9a1f31fc30ca7ec320b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "1e4db751f5203d96646287f9bc2293ce83d4f979454baced2ffcb49b9cfb36a4",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "858b2bf791dac635e5407f8225d5fe565f2ea1be9839e9a1f31fc30ca7ec320b",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "常规塔吊吊装80kN构件: 属危大工程, 判据=教材危大范围普通档『（2）采用起重机械进行安装的工程』(kc:1A436000_008_0011:0, 2026-07-20 教材逐字修复后直引); 未达超危大吊装档『非常规起重设备、方法且单件≥100kN』故不需专家论证。旧正确项『单件≥10kN即属危大』因教材10kN档带非常规限定, 已降为M03干扰项并在解析教辨。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
       "rule_group": "危大判定·两层门槛",
       "stem": "某常规塔式起重机吊装，单件起吊重量 150kN。是否需要专家论证？选出能得分的作答。",
-      "model_answer": "150≥10 属危大须专项方案；但专家论证须「非常规设备/方法」，常规设备的 150kN 够不到，不需论证。",
+      "model_answer": "常规塔机吊装属「采用起重机械进行安装的工程」，属危大须专项方案；专家论证须「非常规起重设备、方法且单件≥100kN」，常规设备的 150kN 够不到，不需论证。",
       "options": [
         {
           "text": "单件起吊重量 150kN 已超过 100kN 的专家论证门槛，应当组织专家论证后方可实施本次吊装作业。",
@@ -116,7 +137,7 @@
           "temptation": "只比 100kN 数字，忽略「非常规设备/方法」前置。",
           "loss_reason": "专家论证前置是非常规设备，常规 150kN 不触发论证。",
           "fix": "属危大编专项方案，常规设备不需论证。",
-          "option_id": "S02-html-practice-html-q2-00a791b9b0ac:option-1"
+          "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-1"
         },
         {
           "text": "150kN 属危大须专项方案；但为常规设备、未达「非常规且≥100kN」，不需专家论证。",
@@ -124,17 +145,17 @@
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "两阶写清：先 ≥10 判危大，再核「非常规+100/300/200」判论证。",
-          "option_id": "S02-html-practice-html-q2-00a791b9b0ac:option-2"
+          "fix": "两阶写清：先判危大（起重机械安装即属），再核「非常规且单件≥100kN」判论证。",
+          "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-2"
         },
         {
           "text": "起吊重量 150kN 尚未达到 300kN，该吊装不属于危大工程，无需编制专项施工方案。",
           "is_correct": false,
           "source_error_code": "M08",
-          "temptation": "拿总重 300kN 门槛去比单件。",
-          "loss_reason": "混淆单件与总重口径；单件 ≥10 已属危大。",
-          "fix": "单件 150≥10，属危大。",
-          "option_id": "S02-html-practice-html-q2-00a791b9b0ac:option-3"
+          "temptation": "拿安拆 300kN 门槛来判吊装。",
+          "loss_reason": "300kN 是起重机械安装拆卸工程口径，不是吊装判危大的门槛；起重机械吊装本身即属危大。",
+          "fix": "起重机械吊装即属危大，须专项方案。",
+          "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-3"
         },
         {
           "text": "为保证施工工期可先行组织起吊，专项施工方案在作业期间同步补办完善手续。",
@@ -143,111 +164,135 @@
           "temptation": "赶工期，先干后补。",
           "loss_reason": "危大须先编专项方案并审批，漏方案=重大失分。",
           "fix": "属危大，先编专项方案再作业。",
-          "option_id": "S02-html-practice-html-q2-00a791b9b0ac:option-4"
+          "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-4"
         }
       ],
-      "variant_id": "S02-html-practice-html-q2-00a791b9b0ac",
+      "variant_id": "S02-html-practice-html-q2-e2fb7cb17c23",
       "surface_id": "practice.html",
       "source_index": 1,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A436000_009_0012:0",
+      "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
+      "fact_id": "s02-fact-lunzheng-nonconventional-100kn",
+      "skeleton_id": "s02-skel-非常规100kn论证前置",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "47bbea2a25f0e16e9f1fb4722062b4e359a107fcd1433ae525a29c8e114c0e13",
+      "content_sha256": "c33ccef23415e07b791f6215751a0d8c8cc6498f84e3c67c7fcf30098c5fbad9",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "47bbea2a25f0e16e9f1fb4722062b4e359a107fcd1433ae525a29c8e114c0e13",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "c33ccef23415e07b791f6215751a0d8c8cc6498f84e3c67c7fcf30098c5fbad9",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "超一定规模起重吊装=『采用非常规起重设备、方法，且单件起吊重量在100kN及以上』; 常规设备150kN不触发专家论证但属危大须专项方案。教材原文直引(2026-07-20修复采分点后, repair_note in _S02_compiled_source.json)。 2026-07-20 二轮: 仅微文本口径调和(model引『采用起重机械进行安装的工程』条款/300kN干扰项解析改安拆口径), 正确项文字未动, 沿用前轮裁决。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
       "rule_group": "危大判定·超危大",
-      "stem": "双机抬吊一构件，构件总重 320kN。判定危大等级，选出能得分的作答。",
-      "model_answer": "总重≥300kN 达超危大，须专家论证（并编专项方案）。",
+      "stem": "某构件重 320kN，常规单机无法满足要求，采用双机抬吊的非常规起重方法吊装。判定危大等级，选出能得分的作答。",
+      "model_answer": "「采用非常规起重设备、方法，且单件起吊重量在 100kN 及以上的起重吊装工程」属超危大——本题非常规方法（双机抬吊）+ 单件 320kN≥100kN，专项方案须专家论证；300kN 档是起重机械安装拆卸口径，不能拿来判吊装。",
       "options": [
         {
-          "text": "双机抬吊时每台起重机各分担 160kN，均未达到 300kN 门槛，因此不需要组织专家论证。",
+          "text": "构件重量 320kN 已达到 300kN 及以上，该吊装属于超过一定规模的危大工程，应当组织专家论证后实施。",
           "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "按每台分担去规避总重门槛。",
-          "loss_reason": "总重口径按构件总重 320 算，已≥300kN。",
-          "fix": "总重≥300kN，须专家论证。",
-          "option_id": "S02-html-practice-html-q3-c311ae707eb3:option-1"
+          "source_error_code": "M03",
+          "temptation": "拿 300kN 去套一切「大重量」场景。",
+          "loss_reason": "300kN 是起重机械安装和拆卸工程的口径，不适用于构件吊装；吊装超危大判据=非常规方法且单件≥100kN。结论碰巧同向，判据引错口径不得分。",
+          "fix": "答「非常规方法+单件 320≥100kN」这条吊装口径。",
+          "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-1"
         },
         {
-          "text": "构件总重 320kN≥300kN，达超危大工程，须组织专家论证（并编专项方案）。",
+          "text": "采用非常规起重方法（双机抬吊）且单件起吊重量 320kN≥100kN，属超危大工程，专项方案须组织专家论证。",
           "is_correct": true,
           "source_error_code": "",
           "temptation": "",
           "loss_reason": "",
-          "fix": "抓「总重≥300kN」这条独立论证门槛。",
-          "option_id": "S02-html-practice-html-q3-c311ae707eb3:option-2"
+          "fix": "吊装超危大两要件：非常规设备/方法 + 单件≥100kN，双要件写齐。",
+          "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-2"
         },
         {
-          "text": "该吊装属危大工程，依规编制专项施工方案并履行审批即可，不必再组织专家论证。",
+          "text": "双机抬吊时每台起重机仅分担约 160kN，按单机荷载判定未达超危大论证标准，不需要组织专家论证。",
           "is_correct": false,
           "source_error_code": "M08",
-          "temptation": "停在危大档、忘了超危大总重档。",
-          "loss_reason": "总重≥300 已进超危大论证档。",
-          "fix": "须专家论证，不止专项方案。",
-          "option_id": "S02-html-practice-html-q3-c311ae707eb3:option-3"
+          "temptation": "按每台分担把重量摊薄。",
+          "loss_reason": "单件起吊重量按被吊构件整体计=320kN，不按每台分担拆算；非常规方法且 320≥100kN，须论证。",
+          "fix": "单件按构件整体 320kN 计，超危大须论证。",
+          "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-3"
         },
         {
-          "text": "双机抬吊属灵活的特殊工艺，可按现场实际组织实施，不受单机门槛数值的约束。",
+          "text": "该吊装属危大工程，依规编制专项施工方案并履行审批手续后即可实施，不必再组织专家论证。",
           "is_correct": false,
-          "source_error_code": "M04",
-          "temptation": "把「灵活」当成免检理由。",
-          "loss_reason": "抬吊不改门槛，总重≥300 照样论证。",
-          "fix": "总重≥300kN 须论证。",
-          "option_id": "S02-html-practice-html-q3-c311ae707eb3:option-4"
+          "source_error_code": "M08",
+          "temptation": "停在危大档、忘了超危大档。",
+          "loss_reason": "非常规方法+单件≥100kN 已进超危大档，专项方案还须专家论证。",
+          "fix": "须专家论证，不止专项方案。",
+          "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-4"
         }
       ],
-      "variant_id": "S02-html-practice-html-q3-c311ae707eb3",
+      "variant_id": "S02-html-practice-html-q3-4fd6335982ef",
       "surface_id": "practice.html",
       "source_index": 2,
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A436000_009_0012:0",
+      "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
+      "fact_id": "s02-fact-chaoweida-diaozhuang-nonconv-100kn",
+      "skeleton_id": "s02-skel-非常规100kn吊装口径",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "efebb38ef630bd4ce79e49ff3d255d9aef289c20873c54bd05c6edcd58b0e539",
+      "content_sha256": "f37590e73951c74102d1184e1571532bb8fc5b272bb81570c8b7baeeff6542ad",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "efebb38ef630bd4ce79e49ff3d255d9aef289c20873c54bd05c6edcd58b0e539",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "f37590e73951c74102d1184e1571532bb8fc5b272bb81570c8b7baeeff6542ad",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "双机抬吊320kN构件: 题干明示非常规起重方法, 判据=『采用非常规起重设备、方法，且单件起吊重量在100kN及以上的起重吊装工程』(kc:1A436000_009_0012:0 修复后教材逐字直引), 320≥100 属超危大须专家论证; 300kN 档为起重机械安装拆卸工程口径, 不适用构件吊装, 已降为M03干扰项教口径辨析。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +343,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A436000_125_0199:2",
+      "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
+      "fact_id": "s02-fact-hoist-90pct-liftcheck",
+      "skeleton_id": "s02-skel-起吊90先吊离检查",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b0b200b6bf40adfa33d1b8a7d2157a8dcaabe3c19c216206685410ce65593d60",
+      "content_sha256": "9c57e2da152cc909b8a4fa5aacd4abab0b04915971989a799afd8ad0d4e4654e",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "b0b200b6bf40adfa33d1b8a7d2157a8dcaabe3c19c216206685410ce65593d60",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "9c57e2da152cc909b8a4fa5aacd4abab0b04915971989a799afd8ad0d4e4654e",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "起吊达额定90%及以上先吊离200~500mm检查, 教材直引。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -373,17 +430,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ae1b14a00eb691a62f2f322ccc8a859762ad91954388af6c4a870f293678232d",
+      "content_sha256": "fbfbd406f7c28d685082e3f3bbaabd030c33cc03f69bd7f3d5ef0ee028305a89",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "ae1b14a00eb691a62f2f322ccc8a859762ad91954388af6c4a870f293678232d",
+        "reviewed_content_sha256": "fbfbd406f7c28d685082e3f3bbaabd030c33cc03f69bd7f3d5ef0ee028305a89",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -444,29 +501,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A436000_125_0199:3",
+      "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
+      "fact_id": "s02-fact-crane-weather-redline",
+      "skeleton_id": "s02-skel-6级风停露天",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "31734986d7f75d08c6c5c3b68c070e737273a2668c5eea98e31b20eb12a67f3f",
+      "content_sha256": "9e027ee0852e69bb09bf38d5e54ecf3cf0cc2d82a5e9975440fda2ac45b10bca",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "31734986d7f75d08c6c5c3b68c070e737273a2668c5eea98e31b20eb12a67f3f",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "9e027ee0852e69bb09bf38d5e54ecf3cf0cc2d82a5e9975440fda2ac45b10bca",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "6级及以上大风停塔机露天作业, 教材直引。三联anchor。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -517,29 +586,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A436000_130_0211:0",
+      "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
+      "fact_id": "s02-fact-crane-weather-redline",
+      "skeleton_id": "s02-skel-安拆风速9ms",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c684866b27f331568d7e58bdcf15e630cceb241827d020dcef6191a813e22492",
+      "content_sha256": "fc6a664ca4db825b2c5c8c549b01b6d45e0264873f85b04e544bf44bb62ef2b3",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "c684866b27f331568d7e58bdcf15e630cceb241827d020dcef6191a813e22492",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "fc6a664ca4db825b2c5c8c549b01b6d45e0264873f85b04e544bf44bb62ef2b3",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "大型起重机械安拆风速>9.0m/s停止, 教材直引。三联immediate_confirm。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -590,29 +671,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A436000_130_0211:0",
+      "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
+      "fact_id": "s02-fact-crane-weather-redline",
+      "skeleton_id": "s02-skel-气象红线动词判别",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8d947ef6445b6ebd5778fab9e89abab8345dd6708fb5707e927e3b4730cbd09c",
+      "content_sha256": "100f83392ab5fc3776ced3204098e20667a4179dfe51c89d26045c45a82b71e4",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "8d947ef6445b6ebd5778fab9e89abab8345dd6708fb5707e927e3b4730cbd09c",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "100f83392ab5fc3776ced3204098e20667a4179dfe51c89d26045c45a82b71e4",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "露天看风级/安拆看风速的动词判别, 教材直引。三联d1_probe。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -665,17 +758,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "05f06dc6270d11941a3e13c0e07ed519a9918cc7887338711f7f50c57710f042",
+      "content_sha256": "e8f2e698516e90ef50aa55864d24274355f66c66c6a65cb05487684af68e0928",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "05f06dc6270d11941a3e13c0e07ed519a9918cc7887338711f7f50c57710f042",
+        "reviewed_content_sha256": "e8f2e698516e90ef50aa55864d24274355f66c66c6a65cb05487684af68e0928",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -738,17 +831,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f15d8c5ad2e150bc40b9209fe3a69c97dcdcd4fbae5d070167797ced37dfb72c",
+      "content_sha256": "af8b4638a8a0881614b28e7bd6d059e8f32bbb1b107da6390bb103e0acd19f1e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "f15d8c5ad2e150bc40b9209fe3a69c97dcdcd4fbae5d070167797ced37dfb72c",
+        "reviewed_content_sha256": "af8b4638a8a0881614b28e7bd6d059e8f32bbb1b107da6390bb103e0acd19f1e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -811,17 +904,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "fbd170ecae51d769abad76f60267d9ebd624688e7c2103c570f8603d11307547",
+      "content_sha256": "4d1d7e9fc8df97145fd01b929469380f3f3073e656aba827865d1387b787376e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "fbd170ecae51d769abad76f60267d9ebd624688e7c2103c570f8603d11307547",
+        "reviewed_content_sha256": "4d1d7e9fc8df97145fd01b929469380f3f3073e656aba827865d1387b787376e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -884,17 +977,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6fff8882b882237a00806bc138a81bd0ef3ecf7eb9390dc1bfd5ce87e410d998",
+      "content_sha256": "1fa673af641ec923608cac983efe9e26e9164f3586fcdff22868dde92edbd758",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6fff8882b882237a00806bc138a81bd0ef3ecf7eb9390dc1bfd5ce87e410d998",
+        "reviewed_content_sha256": "1fa673af641ec923608cac983efe9e26e9164f3586fcdff22868dde92edbd758",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -957,17 +1050,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "37224fd64721e14a472466f429314204fee761c52e0e8d6ef0275278c5256f95",
+      "content_sha256": "0441578f2ecfe1abc5d1395eeaeeedc3c506cceed0f2f5c3d8fb0fbb0893d406",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "37224fd64721e14a472466f429314204fee761c52e0e8d6ef0275278c5256f95",
+        "reviewed_content_sha256": "0441578f2ecfe1abc5d1395eeaeeedc3c506cceed0f2f5c3d8fb0fbb0893d406",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1030,17 +1123,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "bf8b06342aff4b2968180f4ed5c56f5c72758ae45eb78eb066c3d16697539980",
+      "content_sha256": "2005b4fb343df693cbac12b1f7729bd6ec9c60293ce7fa97d3717187ed4ba73d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "bf8b06342aff4b2968180f4ed5c56f5c72758ae45eb78eb066c3d16697539980",
+        "reviewed_content_sha256": "2005b4fb343df693cbac12b1f7729bd6ec9c60293ce7fa97d3717187ed4ba73d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1103,17 +1196,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ee85d273ae15fd901976c9f6cfa3d5fd250b033d8a374cc7d785155bc7bdfffc",
+      "content_sha256": "23d1dceef2af9e72d7643ee46214597a5b717f273480f32ee4d70e4faa83001b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "ee85d273ae15fd901976c9f6cfa3d5fd250b033d8a374cc7d785155bc7bdfffc",
+        "reviewed_content_sha256": "23d1dceef2af9e72d7643ee46214597a5b717f273480f32ee4d70e4faa83001b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1174,29 +1267,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q17",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A436000_125_0199:2",
+      "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
+      "fact_id": "s02-fact-scoring-diagnosis",
+      "skeleton_id": "s02-skel-采分诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "22f5beb7a2ad205296def2dcf975441496211ddb63f111512674a727c8fb1f76",
+      "content_sha256": "6ff11c74e1aa671d9013fa1c42e2a3eacf0347647eeeda7eff0c892d5fa47420",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "22f5beb7a2ad205296def2dcf975441496211ddb63f111512674a727c8fb1f76",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "6ff11c74e1aa671d9013fa1c42e2a3eacf0347647eeeda7eff0c892d5fa47420",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T20:37:09+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "诊断末题补写起吊90%吊离检查等采分句, 教材直引。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1249,17 +1354,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q18",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "da7cb9caa511f45bbe79097fa7014854ecc5d4dc1579c3633232fb9db4737b30",
+      "content_sha256": "597f18ae9e5e5386a893f803d2f8651d5c67e908134a9e350897568e575379df",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "da7cb9caa511f45bbe79097fa7014854ecc5d4dc1579c3633232fb9db4737b30",
+        "reviewed_content_sha256": "597f18ae9e5e5386a893f803d2f8651d5c67e908134a9e350897568e575379df",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1322,17 +1427,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q19",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3ff2940331a455d9a2ac29087c7b8c0f0decfdb351cdd6a6a3f1a9b0bce7b95f",
+      "content_sha256": "5307f92ec1e713592a5c40edc5a56de0adc09ab183cd0c233c8d50a61bde74a9",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "3ff2940331a455d9a2ac29087c7b8c0f0decfdb351cdd6a6a3f1a9b0bce7b95f",
+        "reviewed_content_sha256": "5307f92ec1e713592a5c40edc5a56de0adc09ab183cd0c233c8d50a61bde74a9",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1395,17 +1500,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q20",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "fdf9af1192786b1a231627df36dd5c430d8b939ff23873dedb13d54a2966a3a7",
+      "source_html_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5a25be099d4f572a84494d2824e57d858dec2a559f4ec201f50e2ca056e8499c",
+      "content_sha256": "f6e8ab9bdd1f18c20d9d9834f8fd6c42f05e05ceb1e2ce3dc81c8878fff4eae8",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "5a25be099d4f572a84494d2824e57d858dec2a559f4ec201f50e2ca056e8499c",
+        "reviewed_content_sha256": "f6e8ab9bdd1f18c20d9d9834f8fd6c42f05e05ceb1e2ce3dc81c8878fff4eae8",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1418,5 +1523,5 @@
       "eligible": false
     }
   ],
-  "published_lesson_sha256": "c39fe59373858a24d7bdeaddeb80d15699c9e7a5cab2da93af901a70b2cbb9a5"
+  "published_lesson_sha256": "80565f60aa854c02308fa0fa40f416f9945f0409e081ef5de61b99ea32f56a24"
 }

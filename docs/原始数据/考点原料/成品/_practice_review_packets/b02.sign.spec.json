@@ -1,0 +1,102 @@
+{
+  "pack_id": "B02",
+  "adversarial_gate_ref": "codex-cross-model + textbook arbitration 2026-07-20: 前轮NO-GO两病灶治愈 — W1(q4支护选型依据全库无源)以教材仲裁补采分点 kc:1A422000_032_0053:1(2026教材167-221v3 p32, JGJ 120—2012 支护选型七因素逐字)+卡端q4按JGJ120口径改写; W2(q5真源被TOP_K=3挤出)由 prefill TOP_K=5 召回 kc:1A413000_080_0151:1(rank4/0.3315)。q1/q2 按前轮W3裁决以危大半锚partial签发,note诚实标注。其余8投影沿用前轮逐题忠实裁决(sign_b02.log)。",
+  "signed": [
+    {
+      "variant_id": "B02-html-practice-html-q1-dc22990f1c95",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-special-plan-content-weida",
+      "skeleton_id": "b02-skel-方案内容七项列举",
+      "source_anchor": "exam:2021:第5题",
+      "note": "partial锚(W3裁决):危大≥5m须专家论证半锚忠实(2021真题第5题:开挖6m基坑须论证)。七项内容列举真源kc:1A413000_076_0146:0(0.35)仍在TOP_K=5外,内容半无机器候选可签,诚实标注。"
+    },
+    {
+      "variant_id": "B02-html-practice-html-q2-8f70a9b74ad5",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-special-plan-procedure",
+      "skeleton_id": "b02-skel-方案编制论证程序",
+      "source_anchor": "exam:2022:第19题",
+      "note": "partial锚(W3裁决):危大专家论证半锚忠实(2022真题第19题)。编制主体'施工单位编制报监理审批'编译库无原子采分点,程序半按管理常识+真题语境支撑,诚实标注。"
+    },
+    {
+      "variant_id": "B02-html-practice-html-q3-6a140c0a38c3",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-level1-support-selection",
+      "skeleton_id": "b02-skel-一级支护选型直问",
+      "source_anchor": "exam:2022:第30题",
+      "note": "2022真题第30题原题:一级适用灌注桩排桩/地下连续墙/型钢水泥土搅拌墙,土钉墙不适用。忠实。"
+    },
+    {
+      "variant_id": "B02-html-practice-html-q4-817b50177da8",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-support-selection-factors",
+      "skeleton_id": "b02-skel-选型依据列举",
+      "source_anchor": "kc:1A422000_032_0053:1",
+      "note": "W1治愈:教材仲裁命中2026教材p32 JGJ 120—2012'支护结构选型时应综合考虑'七因素,补采分点逐字quote;卡端q4已按七因素口径改写(去'安全等级=首轮筛选'合成断言)。"
+    },
+    {
+      "variant_id": "B02-html-practice-html-q5-e68bd3e889d0",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-gravity-wall-applicability",
+      "skeleton_id": "b02-skel-淤泥质二级场景选型",
+      "source_anchor": "kc:1A413000_080_0151:1",
+      "note": "W2治愈:TOP_K=5召回真源(rank4/0.3315,前轮top3截断0.336)。水泥土重力式围护墙适用淤泥质土、深度不宜大于7m,与题干6m二级场景对齐。忠实。"
+    },
+    {
+      "variant_id": "B02-html-practice2-html-q1-a16beb8512f0",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-dewatering-method-selection",
+      "skeleton_id": "b02-skel-砂砾大渗透选管井",
+      "source_anchor": "exam:2019:第7题",
+      "note": "2019真题第7题解析:降水管井适用渗透系数较大砂砾层。忠实。三件套fact成员(anchor)。"
+    },
+    {
+      "variant_id": "B02-html-practice2-html-q2-5601a7b54fc9",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-dewatering-method-selection",
+      "skeleton_id": "b02-skel-填土渗透小不宜管井",
+      "source_anchor": "exam:2019:第7题",
+      "note": "2019真题第7题原题:不宜用于填土的降水方法=降水管井,宜轻型/喷射/电渗。忠实。同fact异skeleton。"
+    },
+    {
+      "variant_id": "B02-html-practice2-html-q3-1cd313937993",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-jetwell-depth-range",
+      "skeleton_id": "b02-skel-降深15m选喷射",
+      "source_anchor": "kc:1A413000_082_0155:1",
+      "note": "喷射井点降水深度8~20m,15m落界内。忠实。"
+    },
+    {
+      "variant_id": "B02-html-practice2-html-q4-31ac34948254",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-lightwell-depth-limit",
+      "skeleton_id": "b02-skel-轻型井点降深数字",
+      "source_anchor": "kc:1A413000_082_0155:0",
+      "note": "轻型井点降水深度≤6m、多级6~10m。忠实。"
+    },
+    {
+      "variant_id": "B02-html-practice2-html-q5-2e0179d5fbe9",
+      "probe_role": "anchor",
+      "fact_id": "b02-fact-water-level-500mm",
+      "skeleton_id": "b02-skel-水位控制标高",
+      "source_anchor": "kc:1A413000_084_0157:2",
+      "note": "水位降至坑底以下500mm以上且持续至基础施工完成。忠实(0.6051全包最高分)。"
+    },
+    {
+      "variant_id": "B02-html-practice2-html-q6-2b560a059d74",
+      "probe_role": "immediate_confirm",
+      "fact_id": "b02-fact-dewatering-method-selection",
+      "skeleton_id": "b02-skel-明排适用边界",
+      "source_anchor": "kc:1A413000_082_0154:0",
+      "note": "降水方案选择三原则:深度≤3m且软土→集水明排,>3m→井点。q6明排边界=同一选型事实的边界侧。忠实。三件套immediate_confirm。"
+    },
+    {
+      "variant_id": "B02-html-practice2-html-q16-1f8abfd02855",
+      "probe_role": "d1_probe",
+      "fact_id": "b02-fact-dewatering-method-selection",
+      "skeleton_id": "b02-skel-降水方案综合诊断",
+      "source_anchor": "kc:1A422000_033_0055:4",
+      "note": "综合诊断三处失分,签首要判分眼=降水方法选型(轻型≤6m不够,宜管井/喷射;锚JGJ120地下水控制方法条款)。周边保护/监测主体两处教材支撑(kc:1A413000_083_0156:1、kc:1A413000_081_0152系)未进本题TOP_K候选,按G01/G03单锚先例记录于note,守零编造红线。三件套d1_probe。"
+    }
+  ]
+}

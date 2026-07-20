@@ -2,10 +2,10 @@
   "schema": "luban_practice_review_packet.v1",
   "pack_id": "C02",
   "source_pack_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
-  "source_bundle_sha256": "bceba530e453c4b19e22004c110daeba91eda69adc4c9f2d6b2a493b4cfc65de",
+  "source_bundle_sha256": "ec14c95505f305db67699911b063806fba7b333e302a1521d043370ef21497b2",
   "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 6,
-  "eligible_count": 0,
+  "candidate_count": 8,
+  "eligible_count": 8,
   "human_gate": {
     "required_roles": [
       "teaching",
@@ -58,27 +58,39 @@
       ],
       "model_answer": "综合单价是不含增值税的税前全费用价（含人材机+管理费+利润+风险），增值税在最末按税率整体计提一次，单价内不重复计税。",
       "rule_group": "计价口径·综合单价",
-      "content_sha256": "ba4b0ba1ebbe0910d86724df631ff41e506a38ad558045384eecc34ea7c54473",
+      "content_sha256": "fa6cbe4ab83a61a878a3f74e948e3f27d1897b454fcfc816553b55a203f0cad7",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q1",
-      "authoring_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
+      "authoring_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "c02-fact-comprehensive-unit-price-taxfree",
+        "skeleton_id": "c02-skel-综合单价口径计税",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A432002_035_0046:0",
+        "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "ba4b0ba1ebbe0910d86724df631ff41e506a38ad558045384eecc34ea7c54473",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "fa6cbe4ab83a61a878a3f74e948e3f27d1897b454fcfc816553b55a203f0cad7",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "综合单价为不含增值税税前全费用价(含人材机+管理+利润+风险),税最末整体计提一次。教材 kc:1A432002_035_0046:0 statement 逐字直引。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -128,27 +140,39 @@
       ],
       "model_answer": "预付款 =（合同价−暂列金额）× 预付比例 =（5800−580）×20% = 1044 万元；基数先扣暂列金。",
       "rule_group": "预付款·计算表达维",
-      "content_sha256": "f7b497886849ef9c26e26d4679baf1cd3fcf08a8b06e5317669f6437d54fb7aa",
+      "content_sha256": "820596468bdcbed24afe00458e76e43dd022e56464f2e90fb7a6cbc393ee3b47",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q2",
-      "authoring_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
+      "authoring_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "c02-fact-advance-payment-base-deduct-provisional",
+        "skeleton_id": "c02-skel-预付款先扣暂列金",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2019:第1题",
+        "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "f7b497886849ef9c26e26d4679baf1cd3fcf08a8b06e5317669f6437d54fb7aa",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "820596468bdcbed24afe00458e76e43dd022e56464f2e90fb7a6cbc393ee3b47",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "预付款=(5800-580)×20%=1044,基数先扣暂列金。exam:2019:第1题 官方解「预付款为(5800-580)×20%=1044.00」逐字直引。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -198,27 +222,39 @@
       ],
       "model_answer": "起扣点 = 合同价基数 − 预付款 ÷ 主要材料占比 = 5220 − 1044÷60% = 3480 万元，累计达此值才扣回预付款。",
       "rule_group": "起扣点·计算表达维",
-      "content_sha256": "fb9d3d698ea60eede2d89f215c5804beac68b2e4d640cdb60e4682da25c23b0e",
+      "content_sha256": "774bf28eedee13a52dda3706c8c40a7861ecb775df5faad39497f3e5392d795c",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q3",
-      "authoring_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
+      "authoring_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "c02-fact-recovery-point-formula",
+        "skeleton_id": "c02-skel-起扣点公式基数减预付款除占比",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2019:第1题",
+        "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "fb9d3d698ea60eede2d89f215c5804beac68b2e4d640cdb60e4682da25c23b0e",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "774bf28eedee13a52dda3706c8c40a7861ecb775df5faad39497f3e5392d795c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "起扣点=基数-预付款÷占比=5220-1044÷60%=3480。exam:2019:第1题 官方解「起扣点为：(5800-580)-1044/60%=3480.00」逐字直引;教材 kc:1A435000_043_0058:1 亦证公式结构。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -268,27 +304,39 @@
       ],
       "model_answer": "5 月累计 = 180+500+750+1000+1400 = 3830 万元 ＞ 起扣点 3480 万元，故 5 月除扣 3% 质保金外，还应扣回预付款。",
       "rule_group": "逐月累计·条件维",
-      "content_sha256": "6e90d2ec454bbaa77ba4c898a5afd005a24692f9350c4a0cb63845b809cc06ac",
+      "content_sha256": "351d8b6ded8d8bde3720bd75dec4607c3d4c52554ec80209bcc4919017729205",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q4",
-      "authoring_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
+      "authoring_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "c02-fact-cumulative-vs-recovery-point",
+        "skeleton_id": "c02-skel-逐月累计判扣回两刀",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2019:第1题",
+        "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "6e90d2ec454bbaa77ba4c898a5afd005a24692f9350c4a0cb63845b809cc06ac",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "351d8b6ded8d8bde3720bd75dec4607c3d4c52554ec80209bcc4919017729205",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "累计3830＞起扣点3480,5月除扣3%质保金外还扣回预付款。exam:2019:第1题 官方解「累计…=3830万元＞起扣点3480万元…5月不仅仅扣除质保金还应当扣回预付款」逐字直引。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -338,27 +386,39 @@
       ],
       "model_answer": "累计预留质保金（或保函）不得超过工程结算总价的 3%，以结算总价为基数；逐月按 3% 扣、累计不超结算总价 3%。题面 5% 是诱饵。",
       "rule_group": "质保金·后果维",
-      "content_sha256": "695d992a11d93247052224374d545dce89bf466f9a3cb2c34837cdd3c2ef8a43",
+      "content_sha256": "581bf328e4b26ea377c2a077622e603cf83c4aa62cb2ad6c015c27015ce71019",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q5",
-      "authoring_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
+      "authoring_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "c02-fact-retention-money-cap",
+        "skeleton_id": "c02-skel-质保金上限结算总价3",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A435000_044_0059:0",
+        "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "695d992a11d93247052224374d545dce89bf466f9a3cb2c34837cdd3c2ef8a43",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "581bf328e4b26ea377c2a077622e603cf83c4aa62cb2ad6c015c27015ce71019",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "累计预留质保金不得超过工程结算总价3%,以结算总价为基数。教材 kc:1A435000_044_0059:0「…不得超过工程结算总价的 3%」逐字直引。retention fact 三件套的 immediate_confirm 一员。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -408,31 +468,216 @@
       ],
       "model_answer": "① 基数未扣暂列金（应（5800−580）×20%=1044）；② 起扣点公式写反（应 5220−1044÷60%=3480）；③ 应列累计 3830＞3480、5 月扣回预付款。补写四步：（5800−580）×20%=1044；5220−1044÷60%=3480；累计3830＞3480；5月除3%质保外扣回预付款。",
       "rule_group": "采分诊断·末题",
-      "content_sha256": "dae887f05c04ff747bc76c58b7c75f9119388403645ef83d2fb155312a479e7b",
+      "content_sha256": "96a0d4f59524ac39e4a67cfe6258762b2578fa7a24d820ede8a5f8aa858eaefd",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q6",
-      "authoring_sha256": "c6a747dd4c617d5c9ccfda81cfc2f9c95186d86de419d4523b352b22e26d2a4e",
+      "authoring_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "c02-fact-scoring-diagnosis",
+        "skeleton_id": "c02-skel-采分诊断三处补写",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2019:第1题",
+        "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "dae887f05c04ff747bc76c58b7c75f9119388403645ef83d2fb155312a479e7b",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "96a0d4f59524ac39e4a67cfe6258762b2578fa7a24d820ede8a5f8aa858eaefd",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "诊断三处(基数未扣暂列/起扣点公式反/漏列累计)均由 exam:2019:第1题 官方解逐字支撑。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C02-html-practice-html-q7-72e2f6f82400",
+      "surface_id": "practice.html",
+      "stem": "某工程合同价 5000 万元，竣工结算总价 6000 万元，合同约定预留质量保证金。计算累计预留质保金的上限金额，选出基数与上限比例都正确、能得分的作答。",
+      "options": [
+        {
+          "text": "累计预留质保金上限 = 结算总价 × 5% = 6000 × 5% = 300 万元，按 5% 比例对结算总价计提封顶。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把常听到的 5% 当成质保金封顶比例。",
+          "loss_reason": "规范钉死累计质保金不超 3%，写 5% 属规范值适用错误。",
+          "fix": "上限比例是结算总价的 3%，6000×3%=180，不是 5%。",
+          "option_id": "C02-html-practice-html-q7-72e2f6f82400:option-1"
+        },
+        {
+          "text": "累计预留质保金上限 = 合同价 × 3% = 5000 × 3% = 150 万元，以合同价作为计提基数封顶。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "顺手拿合同价 5000 当质保金计提基数。",
+          "loss_reason": "质保金以工程结算总价为基数，用合同价基数错、连锁数值错。",
+          "fix": "基数是结算总价 6000，6000×3%=180，不是合同价 5000。",
+          "option_id": "C02-html-practice-html-q7-72e2f6f82400:option-2"
+        },
+        {
+          "text": "累计预留质保金上限 = 结算总价 × 3% = 6000 × 3% = 180 万元，以结算总价为基数、上限不超 3%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "基数取结算总价、上限 3%，公式与列式数值都对。",
+          "option_id": "C02-html-practice-html-q7-72e2f6f82400:option-3"
+        },
+        {
+          "text": "累计预留质保金上限按结算总价的 3% 控制即可，此处只写不超 3% 这一句封顶口径就算作答。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道 3%，说一句就想交卷。",
+          "loss_reason": "没写基数、没列式、没算出数值，过程与结果分都丢。",
+          "fix": "写全：结算总价 6000×3%=180 万元，基数是结算总价。",
+          "option_id": "C02-html-practice-html-q7-72e2f6f82400:option-4"
+        }
+      ],
+      "model_answer": "累计预留质保金上限 = 工程结算总价 × 3% = 6000 × 3% = 180 万元，以结算总价为基数、上限不超 3%。",
+      "rule_group": "质保金上限·计算表达维",
+      "content_sha256": "12b67129c76b9f2c789804bc7efcac112ff9c94e5193845730590f6c74d24a33",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q7",
+      "authoring_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "decision": {
+        "fact_id": "c02-fact-retention-money-cap",
+        "skeleton_id": "c02-skel-质保金上限数值代入结算总价3pct",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A435000_044_0059:0",
+        "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "12b67129c76b9f2c789804bc7efcac112ff9c94e5193845730590f6c74d24a33",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "新补编。数值代入型:结算总价6000×3%=180万,基数=结算总价、上限3%。规则源 kc:1A435000_044_0059:0「累计预留的质量保证金…不得超过工程结算总价的3%」;算例数值(合同价5000/结算总价6000)为题给算例、非事实断言,复算 6000×3%=180、5000×3%=150、6000×5%=300 自洽。retention fact 三件套 anchor 员,skeleton 与 q5/q8 互异。锚出自本题机器候选(match 0.2904,top5内)回原文核对。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "C02-html-practice-html-q8-d04dc9544381",
+      "surface_id": "practice.html",
+      "stem": "承包人拟以银行保函替代现金质量保证金。关于该保函金额的上限，选出符合规范、能得分的作答。",
+      "options": [
+        {
+          "text": "改用银行保函替代现金后即不再受 3% 约束，保函金额可由发包人按需另行约定为更高比例。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为换成保函就跳出了质保金比例限制。",
+          "loss_reason": "保函替代不改变上限，仍受结算总价 3% 约束，放开比例是概念错。",
+          "fix": "保函金额同样不超结算总价 3%，替代形式变、上限不变。",
+          "option_id": "C02-html-practice-html-q8-d04dc9544381:option-1"
+        },
+        {
+          "text": "以担保保函替代保证金的，其保函金额不得超过合同价的 3%，以合同价为计提基数封顶。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "把保函上限的基数顺手写成合同价。",
+          "loss_reason": "基数应是工程结算总价，写合同价属背景信息提取错。",
+          "fix": "保函金额以结算总价为基数、不超 3%，不是合同价。",
+          "option_id": "C02-html-practice-html-q8-d04dc9544381:option-2"
+        },
+        {
+          "text": "以担保保函替代保证金的，其保函金额可达工程结算总价的 10%，与履约担保的上限保持一致。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把履约担保的 10% 上限套到质保保函上。",
+          "loss_reason": "质保保函上限是 3%、10% 是履约担保值，规范值张冠李戴。",
+          "fix": "质保保函不超结算总价 3%，10% 是履约担保、别混。",
+          "option_id": "C02-html-practice-html-q8-d04dc9544381:option-3"
+        },
+        {
+          "text": "以担保保函替代保证金的，保函金额同样不超过工程结算总价的 3%，以结算总价为基数。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明保函替代上限仍是结算总价 3%、基数不变，规范与口径都对。",
+          "option_id": "C02-html-practice-html-q8-d04dc9544381:option-4"
+        }
+      ],
+      "model_answer": "以担保保函替代保证金的，保函金额同样不得超过工程结算总价的 3%，以结算总价为基数，与现金预留质保金上限一致。",
+      "rule_group": "质保金·保函替代维",
+      "content_sha256": "5d86fa8e92db14b5e5301c556e24f5e18e59d9dc4491d3c4bb083d9e3d7fbcdd",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q8",
+      "authoring_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "decision": {
+        "fact_id": "c02-fact-retention-money-cap",
+        "skeleton_id": "c02-skel-质保金保函替代上限同结算总价3pct",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A435000_044_0059:0",
+        "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "5d86fa8e92db14b5e5301c556e24f5e18e59d9dc4491d3c4bb083d9e3d7fbcdd",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T19:23:24+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "新补编。保函替代迁移型:以担保保函替代保证金的,保函金额同样不超工程结算总价3%、基数不变。规则源 kc:1A435000_044_0059:0「累计预留的质量保证金或以担保保函替代…不得超过工程结算总价的3%」逐字支撑;10%干扰=履约担保值(pack已载质保≤3%/履约≤10%)。retention fact 三件套 d1_probe 员,skeleton 与 q5/q7 互异。锚出自本题机器候选(match 0.6145,#1)回原文核对。"
         },
         "revoked": false,
         "revocation_refs": []
       }
     }
-  ]
+  ],
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "opus-adjudication 2026-07-20 清尾批(owner指令);逐题引文回原文核对。原6题<7 eligible且缺三件套→本次补编2道单选题(q7/q8)锚定质保金上限事实 kc:1A435000_044_0059:0,凑齐 retention fact 完整三件套(anchor q7 + immediate_confirm q5 + d1_probe q8,3 skeleton互异)且 eligible=8,supply_ready 达成。8题锚全部教材/考试为真无编造;算例 6000×3%=180、5000×3%=150、6000×5%=300 均 python 复算通过。待 fable 对抗核验。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
 }
