@@ -1,0 +1,399 @@
+{
+  "machine_candidates_only": true,
+  "generated_at": "2026-07-20T09:42:05+00:00",
+  "generator": "scripts/prefill_practice_review_anchors.py",
+  "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
+  "pack_id": "A01",
+  "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/a01.practice.review.json",
+  "score_threshold": 0.12,
+  "warnings": [
+    "[A01] exam_evidence 不存在: /Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/docs/原始数据/考点原料/_A01_exam_evidence.json — 降级只用 compiled_source"
+  ],
+  "coverage": {
+    "total_items": 16,
+    "items_with_candidates": 15,
+    "items_empty_handed": 1
+  },
+  "items": [
+    {
+      "variant_id": "A01-html-practice-html-q1-a97f6b60c08e",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434020_086_0142:0",
+          "quote": "建筑节能工程级别：建筑节能工程是单位工程的一个分部工程。 ### 9.4.4 节能工程质量验收 #### 1. 建筑节能分部工程 （1）建筑节能工程为单位工程的一个分部工程。建筑节能子分部工程和分项工程划分见表 9.4-5。",
+          "match_score": 0.3158,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434020_086_0142",
+          "quote": "建筑节能工程属于哪个级别的工程？ # 9.4.4 节能工程质量验收 #### 1. 建筑节能分部工程 （1）建筑节能工程为单位工程的一个分部工程。建筑节能子分部工程和分项工程划分见表 9.4-5。",
+          "match_score": 0.2927,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A422000_021_0029:1",
+          "quote": "施工质量验收层级：施工质量验收分为：检验批 → 分项工程 → 分部工程 → 单位工程。检验批按工程量、楼层、施工段划分；分项工程按工种、材料、工艺划分；分部工程按专业性质、工程部位划分；单位工程为独立使用功能的建筑。 验收范围 施工质量验收包括单位工程、分部工程、分项工程和检验批施工质量验收，并应符合下列规定： ① 检验批应根据施工组织、质量控制和专业验收需要，按工程量、楼层、施工段划分。 ②",
+          "match_score": 0.2742,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q2-ecc97aac95bb",
+      "candidates": [
+        {
+          "source_anchor": "m35:Q18-1A434000:P6",
+          "quote": "检验批划分条件还有(列举型):'工程量''施工段''变形缝'(题干已给楼层,需补其余) 工程量",
+          "match_score": 0.5484,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A422000_021_0029:1",
+          "quote": "施工质量验收层级：施工质量验收分为：检验批 → 分项工程 → 分部工程 → 单位工程。检验批按工程量、楼层、施工段划分；分项工程按工种、材料、工艺划分；分部工程按专业性质、工程部位划分；单位工程为独立使用功能的建筑。 验收范围 施工质量验收包括单位工程、分部工程、分项工程和检验批施工质量验收，并应符合下列规定： ① 检验批应根据施工组织、质量控制和专业验收需要，按工程量、楼层、施工段划分。 ②",
+          "match_score": 0.2143,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "m35:Q18-1A434000:P5",
+          "quote": "分项工程划分条件还有(列举型):'主要工种''材料''施工工艺''设备类别'(题干已给工种,需补其余) 材料",
+          "match_score": 0.1944,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q3-0280b26aee14",
+      "candidates": [
+        {
+          "source_anchor": "m35:Q18-1A434000:P5",
+          "quote": "分项工程划分条件还有(列举型):'主要工种''材料''施工工艺''设备类别'(题干已给工种,需补其余) 材料",
+          "match_score": 0.5,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A422000_021_0029:1",
+          "quote": "施工质量验收层级：施工质量验收分为：检验批 → 分项工程 → 分部工程 → 单位工程。检验批按工程量、楼层、施工段划分；分项工程按工种、材料、工艺划分；分部工程按专业性质、工程部位划分；单位工程为独立使用功能的建筑。 验收范围 施工质量验收包括单位工程、分部工程、分项工程和检验批施工质量验收，并应符合下列规定： ① 检验批应根据施工组织、质量控制和专业验收需要，按工程量、楼层、施工段划分。 ②",
+          "match_score": 0.2973,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A433000_059_0089:2",
+          "quote": "单位工程进度计划内容：单位工程进度计划内容包括：工程设计情况、单位工程进度计划、分阶段进度计划、准备工作计划、劳动力需用量计划、材料设备计划、机械机具计划、施工方案及流水段划分、经济指标要求。 （1）施工进度计划按编制对象的不同可分为：施工总进度计划、单位工程进度计划、分阶段工程（或专项工程）进度计划、分部分项工程进度计划四种。 （2）施工总进度计划：施工总进度计划是以一个建设项目或",
+          "match_score": 0.1892,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q4-2492e71aec61",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A422000_045_0071:1",
+          "quote": "工程质量验收合格标准：技术资料完整；见证取样结果满足设计；抽样检验结果符合设计；主控项目全部合格；一般项目合格率≥80%。 检验，每种取 0.1m³ 检验燃烧性能。 #### 5. 工程质量验收 （1）工程质量验收应符合下列要求： ① 技术资料应完整； ② 所用装修材料或产品的见证取样检验结果，应满足设计要",
+          "match_score": 0.496,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434000_067_0100",
+          "quote": "下列关于砖砌体工程主控项目的说法，正确的是？ 控项目 **1）砖砌体工程主控项目** （1）砖和砂浆的强度等级必须符合设计要求。 （2）砌体灰缝砂浆应密实饱满，砖墙水平灰缝的砂浆饱满度不得低于 80%，砖柱水平灰缝和竖向灰缝的饱",
+          "match_score": 0.37,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A434000_067_0100:0",
+          "quote": "砖砌体砂浆饱满度要求：砖墙水平灰缝的砂浆饱满度不得低于80%，砖柱水平灰缝和竖向灰缝的饱满度不得低于90%。 法、皮数杆、灰缝（包括：宽度、瞎缝、假缝、透明缝、通缝等）、砂浆饱满度、砂浆粘结状况、块材的含水率、留槎、接槎、洞口、脚手眼、标高、轴线位置、平整度、垂直度、封顶及砌体中钢筋品种、规格、数量",
+          "match_score": 0.3,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q5-79ee266de01d",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434020_082_0131:0",
+          "quote": "地基与基础验收实体条件：地基与基础验收前必须满足：施工孔洞镶堵密实、模板拆除清理、标高轴线弹出、技术资料整改完成、管道预埋测试完成、质量问题整改闭环。 1）工程实体 （1）地基与基础分部工程验收前，基础墙面上的施工孔洞须按规定镶堵密实，并作隐蔽工程验收记录；未经验收不得进行回填土分项工程的施工，对确需分阶段进行地基与基础分部工程质量验收",
+          "match_score": 0.2,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434020_084_0135",
+          "quote": "下列哪项不属于主体结构验收所需的工程实体条件？ #### 1）工程实体 （1）主体分部验收前，墙面上的施工孔洞须按规定镶堵密实，并作隐蔽工程验收记录。未经验收不得进行装饰装修工程的施工，对确需分阶段进行主体分部工程质量验收时，建设",
+          "match_score": 0.1857,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A422000_021_0029:0",
+          "quote": "屋面工程保护措施：每道工序完成后应及时采取保护措施；伸出屋面的管道、设备或预埋件应在保温层和防水层施工前安设完毕；屋面保温层和防水层完工后，不得进行凿孔、打洞或重物冲击等有损屋面的作业。 ### 屋面工程及施工质量验收 #### (10) 屋面工程 屋面工程应符合下列规定： ① 每道工序完成后应及时采取保护措施；",
+          "match_score": 0.1571,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q6-44411fdef9a9",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A422000_020_0028:3",
+          "quote": "见证检验要求：对涉及结构安全、节能、环境保护和主要使用功能的试块、试件及材料，应按规定进行见证检验。见证检验应在建设单位或者监理单位的监督下现场取样、送检，检测试样应具有真实性和代表性。 节能、环境保护和主要使用功能的试块、试件及材料，应按规定进行见证检验。见证检验应在建设单位或者监理单位的监督下现场取样、送检，检测试样应具有真实性和代表性。 （6）施工工序间的衔接，应符",
+          "match_score": 0.3182,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "m35:Q4-1A434000-罚则:P1",
+          "quote": "不妥1:见证记录应由'见证人员'记录与制作,而非'试验员'。正确做法须写出'见证人员'记录取样/现场检测并制作见证记录(由建设单位委派或监理人员担任见证)。近义不算,须点明记录主体错误 见证人员",
+          "match_score": 0.254,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A431011_020_0023:1",
+          "quote": "见证送样责任主体：见证人员由建设单位或监理单位派出，负责全过程记录并签字确认；提供试样的单位对样品的真实性、代表性和符合性负责。 ### 试样标识与见证送样 #### （9）试样应有唯一性标识，并应符合下列规定： ① 试样应按照取样时间顺序连续编号，不得空号、重号；",
+          "match_score": 0.2121,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q7-be8b3a182637",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A434020_085_0136",
+          "quote": "下列哪项不属于结构实体检验的内容？ 构安全的有代表性的部位应进行结构实体检验。结构实体检验应包括混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差以及合同约定的项目；必要时可检验其他项目。 （2）结构实体检验应由监理单位组织施工",
+          "match_score": 0.6863,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A434020_085_0136:2",
+          "quote": "混凝土强度检验方法：优先采用同条件养护试件法；若无法获取或强度不足，可采用回弹－取芯法。 构安全的有代表性的部位应进行结构实体检验。结构实体检验应包括混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差以及合同约定的项目；必要时可检验其他项目。 （2）结构实体检验应由监理单位组织施工",
+          "match_score": 0.6667,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A434020_085_0136:0",
+          "quote": "结构实体检验内容：结构实体检验必须包含：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差，以及合同约定项目。 ### 3. 结构实体检验组织 （1）对涉及混凝土结构安全的有代表性的部位应进行结构实体检验。结构实体检验应包括混凝土强度、钢筋保护层厚度、结构",
+          "match_score": 0.6471,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q8-bbc54d254fac",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434020_085_0136:1",
+          "quote": "结构实体检验实施主体：结构实体检验由监理单位组织施工单位实施，监理见证全过程。专项方案需监理审批。 约定的项目；必要时可检验其他项目。 （2）结构实体检验应由监理单位组织施工单位实施，并见证实施过程。施工单位应制订结构实体检验专项方案，并经监理单位审核批准后实施。除结构位置与尺寸偏差外",
+          "match_score": 0.54,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434020_085_0136",
+          "quote": "下列哪项不属于结构实体检验的内容？ 构安全的有代表性的部位应进行结构实体检验。结构实体检验应包括混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差以及合同约定的项目；必要时可检验其他项目。 （2）结构实体检验应由监理单位组织施工",
+          "match_score": 0.26,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A434020_085_0136:2",
+          "quote": "混凝土强度检验方法：优先采用同条件养护试件法；若无法获取或强度不足，可采用回弹－取芯法。 构安全的有代表性的部位应进行结构实体检验。结构实体检验应包括混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差以及合同约定的项目；必要时可检验其他项目。 （2）结构实体检验应由监理单位组织施工",
+          "match_score": 0.26,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q9-1640e9d7a152",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434020_085_0136:2",
+          "quote": "混凝土强度检验方法：优先采用同条件养护试件法；若无法获取或强度不足，可采用回弹－取芯法。 构安全的有代表性的部位应进行结构实体检验。结构实体检验应包括混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差以及合同约定的项目；必要时可检验其他项目。 （2）结构实体检验应由监理单位组织施工",
+          "match_score": 0.4531,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q10-80997d09c9c0",
+      "candidates": []
+    },
+    {
+      "variant_id": "A01-html-practice-html-q11-4c3247046a4e",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A434020_085_0137",
+          "quote": "主体结构分部工程验收应由谁组织？ ### 4. 主体结构分部工程验收组织 （1）分部工程应由总监理工程师（或建设单位项目负责人）组织施工单位项目负责人和项目技术负责人等进行验收。 （2）设计单位项目负责人和施工单位技术、质",
+          "match_score": 0.7115,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A434020_085_0137:0",
+          "quote": "主体结构验收组织：由总监理工程师或建设单位项目负责人组织，施工单位项目负责人、技术负责人参加。 ### 4. 主体结构分部工程验收组织 （1）分部工程应由总监理工程师（或建设单位项目负责人）组织施工单位项目负责人和项目技术负责人等进行验收。 （2）设计单位项目负责人和施工单位技术、质",
+          "match_score": 0.7037,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434020_083_0132",
+          "quote": "地基与基础分部工程验收前，施工单位需完成哪些准备工作？ 基础分部（子分部）施工完成后，施工单位应组织相关人员检查，在自检合格的基础上报监理机构项目总监理工程师（建设单位项目负责人）。 （2）地基与基础分部工程验收前，施工单位应将分部工程的质量",
+          "match_score": 0.3538,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q12-90a0ca46ab17",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434020_083_0134:0",
+          "quote": "主体结构组成：主体结构由七类子分部工程构成：混凝土结构、砌体结构、钢结构、钢管混凝土结构、型钢混凝土结构、铝合金结构、木结构。 ### 9.4.2 主体结构工程质量验收 #### 1. 主体结构包括的内容 主体结构主要包括：混凝土结构、砌体结构、钢结构、钢管混凝土结构、型",
+          "match_score": 0.587,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434020_083_0134",
+          "quote": "下列哪一项不属于主体结构的组成部分？ #### 1. 主体结构包括的内容 主体结构主要包括：混凝土结构、砌体结构、钢结构、钢管混凝土结构、型钢混凝土结构、铝合金结构、木结构等子分部工程，详见表 9.4-2。",
+          "match_score": 0.5435,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434020_085_0137",
+          "quote": "主体结构分部工程验收应由谁组织？ ### 4. 主体结构分部工程验收组织 （1）分部工程应由总监理工程师（或建设单位项目负责人）组织施工单位项目负责人和项目技术负责人等进行验收。 （2）设计单位项目负责人和施工单位技术、质",
+          "match_score": 0.1522,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q13-c6388eef34bf",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434020_088_0146:0",
+          "quote": "单位工程验收合格五条标准：单位工程验收合格需满足五个条件：① 所含分部工程全部合格；② 质量控制资料完整；③ 安全、节能、环保及主要功能资料完整；④ 主要功能抽查符合规范；⑤ 观感质量达标。 业验收规范的规定； （5）观感质量应符合要求。 ### 单位工程验收不合格处理 （1）当工程质量控制资料部分缺失时，应委托有资质的检测机构按有关标准进行相应的实体检验或抽样试验。 （2",
+          "match_score": 0.6,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434020_087_0144",
+          "quote": "下列哪项不属于建筑节能工程质量验收合格的必要条件？ 质量验收合格，应符合下列规定： 1. 建筑节能各分项工程应全部合格。 2. 质量控制资料应完整。 3. 外墙节能构造现场实体检验结果应对照图纸进行核查，并符合要求。 4. 建筑外窗气密性",
+          "match_score": 0.2769,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A434020_087_0144:0",
+          "quote": "建筑节能工程验收条件：建筑节能工程验收需满足：①各分项工程全部合格；②质量控制资料完整；③外墙节能构造实体检验合格；④外窗气密性检测合格；⑤设备系统节能检测合格；⑥太阳能系统检测合格。 部合格。 2. 质量控制资料应完整。 3. 外墙节能构造现场实体检验结果应对照图纸进行核查，并符合要求。 4. 建筑外窗气密性能现场实体检测结果应对照图纸进行核查，并符合要求。 5. 建筑",
+          "match_score": 0.2462,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q14-07ec50aed755",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434020_087_0145:0",
+          "quote": "单位工程竣工验收流程：单位工程竣工验收流程：施工单位自检 → 监理组织预验收 → 发现问题由施工单位整改 → 预验收通过 → 施工单位提交竣工报告 → 建设单位组织正式验收。 ### 单位工程竣工验收 #### 1. 责任单位竣工验收要求 1. 勘察单位应编制勘察工程质量检查报告，按规定程序审批后向建设单位提交；",
+          "match_score": 0.4267,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A422000_021_0029:2",
+          "quote": "竣工验收程序：竣工验收程序：勘察单位提交检查报告 → 设计单位提交检查报告 → 施工单位提交竣工报告 → 监理单位组织预验收并提交评估报告 → 建设单位组织正式验收。 能要求的分部工程及单位工程，严禁验收。 #### (5) 竣工验收程序 单位工程完工后，各相关单位应按下列要求进行工程竣工验收： ① 勘察单位应编制勘察工程质量检查报告，按规定程序审",
+          "match_score": 0.321,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434020_087_0145",
+          "quote": "某项目在竣工预验收阶段发现存在质量问题，应如何处理？ 负责人、项目技术负责人参加。 3. 存在施工质量问题时，应由施工单位整改。 4. 预验收通过后，由施工单位向建设单位提交工程竣工报告，申请工程竣工验收。 5. 建设单位收到工程竣工报告后，应由",
+          "match_score": 0.3143,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q15-716115798367",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434020_088_0146:1",
+          "quote": "单位工程验收不合格处理原则：当工程质量控制资料缺失时，可委托检测机构进行实体检验或抽样试验；若经返修或加固后仍不满足安全或重要使用要求，则严禁验收。 范的规定； （5）观感质量应符合要求。 ### 单位工程验收不合格处理 （1）当工程质量控制资料部分缺失时，应委托有资质的检测机构按有关标准进行相应的实体检验或抽样试验。 （2）经返",
+          "match_score": 0.52,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A434020_088_0146:0",
+          "quote": "单位工程验收合格五条标准：单位工程验收合格需满足五个条件：① 所含分部工程全部合格；② 质量控制资料完整；③ 安全、节能、环保及主要功能资料完整；④ 主要功能抽查符合规范；⑤ 观感质量达标。 业验收规范的规定； （5）观感质量应符合要求。 ### 单位工程验收不合格处理 （1）当工程质量控制资料部分缺失时，应委托有资质的检测机构按有关标准进行相应的实体检验或抽样试验。 （2",
+          "match_score": 0.2667,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A434020_087_0144:0",
+          "quote": "建筑节能工程验收条件：建筑节能工程验收需满足：①各分项工程全部合格；②质量控制资料完整；③外墙节能构造实体检验合格；④外窗气密性检测合格；⑤设备系统节能检测合格；⑥太阳能系统检测合格。 部合格。 2. 质量控制资料应完整。 3. 外墙节能构造现场实体检验结果应对照图纸进行核查，并符合要求。 4. 建筑外窗气密性能现场实体检测结果应对照图纸进行核查，并符合要求。 5. 建筑",
+          "match_score": 0.1333,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    },
+    {
+      "variant_id": "A01-html-practice-html-q16-4729976dca0a",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434020_085_0136:0",
+          "quote": "结构实体检验内容：结构实体检验必须包含：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差，以及合同约定项目。 ### 3. 结构实体检验组织 （1）对涉及混凝土结构安全的有代表性的部位应进行结构实体检验。结构实体检验应包括混凝土强度、钢筋保护层厚度、结构",
+          "match_score": 0.239,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "ca:1A434020_085_0136",
+          "quote": "下列哪项不属于结构实体检验的内容？ 构安全的有代表性的部位应进行结构实体检验。结构实体检验应包括混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差以及合同约定的项目；必要时可检验其他项目。 （2）结构实体检验应由监理单位组织施工",
+          "match_score": 0.2074,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        },
+        {
+          "source_anchor": "kc:1A434020_085_0136:2",
+          "quote": "混凝土强度检验方法：优先采用同条件养护试件法；若无法获取或强度不足，可采用回弹－取芯法。 构安全的有代表性的部位应进行结构实体检验。结构实体检验应包括混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差以及合同约定的项目；必要时可检验其他项目。 （2）结构实体检验应由监理单位组织施工",
+          "match_score": 0.1976,
+          "source_file": "docs/原始数据/考点原料/_A01_compiled_source.json",
+          "source_sha256": "ef69b13a996e59cd2b2730d853f72e73d04bac604c3d60088d49c19be36e81e5"
+        }
+      ]
+    }
+  ]
+}

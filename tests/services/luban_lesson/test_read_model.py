@@ -215,8 +215,8 @@ def test_episode_detail_selects_the_exact_published_page(monkeypatch):
     [
         ("B02", 2, "practice2.html"),
         ("S01", 3, "practice3.html"),
-        # D14 只有一份通用随堂练，三集都明确复用同一份成品练习。
-        ("D14", 3, "practice.html"),
+        # A01 只有一份通用随堂练，两集都明确复用同一份成品练习。
+        ("A01", 2, "practice.html"),
     ],
 )
 def test_pending_episode_practice_surfaces_remain_hidden(
@@ -398,7 +398,7 @@ def test_real_manifest_green_packs_all_project():
         assert vm["content_sha256"]
 
 
-@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
+@pytest.mark.parametrize("pack_id", ["A01", "X01", "G03"])
 def test_pending_v3_pack_never_advertises_light_practice_or_retest(
     pack_id: str,
 ) -> None:
@@ -423,7 +423,7 @@ def test_real_manifest_has_mandatory_variant_revocation_authority():
     ) is not None
 
 
-@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
+@pytest.mark.parametrize("pack_id", ["A01", "X01", "G03"])
 def test_pending_candidate_pack_never_falls_back_to_signed_bank(pack_id: str) -> None:
     from deeptutor.services.luban_lesson import build_retest_items
 
@@ -437,7 +437,7 @@ def test_pending_candidate_pack_never_falls_back_to_signed_bank(pack_id: str) ->
         ) == []
 
 
-@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
+@pytest.mark.parametrize("pack_id", ["A01", "X01", "G03"])
 def test_compiled_artifact_is_same_supply_identity_for_forward_and_review(
     pack_id: str,
 ) -> None:

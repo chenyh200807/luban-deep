@@ -1,1278 +1,1383 @@
 {
- "schema": "luban_practice_review_packet.v1",
- "pack_id": "S05",
- "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
- "source_bundle_sha256": "76e6779f219506f06b68e9ae0ec27dfedabacb6c79fef8488ce6e782df8d5dab",
- "compiled_schema_version": "luban_compiled_practice.v3",
- "candidate_count": 18,
- "eligible_count": 0,
- "human_gate": {
-  "required_roles": [
-   "teaching",
-   "scoring"
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "S05",
+  "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
+  "source_bundle_sha256": "76e6779f219506f06b68e9ae0ec27dfedabacb6c79fef8488ce6e782df8d5dab",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 18,
+  "eligible_count": 8,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "S05-html-practice-html-q1-cfd3abfd9761",
+      "surface_id": "practice.html",
+      "stem": "施工现场临时用电必须采用哪几大系统？选出最完整、能得分的作答。",
+      "options": [
+        {
+          "text": "设置三级配电系统，将总配电箱、分配电箱、开关箱逐级配齐，即已满足临时用电系统要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "三级配电最常被记住，容易以为写这一条就够。",
+          "loss_reason": "漏了 TN-S 接零与二级漏电保护两大系统，系统不完整。",
+          "fix": "补 TN-S 接零保护系统 + 二级剩余电流动作保护系统。",
+          "option_id": "S05-html-practice-html-q1-cfd3abfd9761:option-1"
+        },
+        {
+          "text": "采用两级配电系统与一级漏电保护装置，并以大地兼作保护零线导体实现接零保护。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记成了「两级／一级」，还把大地当零线。",
+          "loss_reason": "应是三级配电、二级漏保，且严禁利用大地作零线导体。",
+          "fix": "三级配电 + TN-S 接零（PE 线独立）+ 二级漏保。",
+          "option_id": "S05-html-practice-html-q1-cfd3abfd9761:option-2"
+        },
+        {
+          "text": "三级配电系统、TN-S 接零保护系统、二级剩余电流（漏电）动作保护系统，三者缺一不可。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三块一块儿写全，正是阅卷分开给分的三个采分点。",
+          "option_id": "S05-html-practice-html-q1-cfd3abfd9761:option-3"
+        },
+        {
+          "text": "配置三级配电系统与 TN-C 接零保护系统，在总配电箱处设置一级剩余电流动作保护装置。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "知道要接零、要三级，顺手写成 TN-C。",
+          "loss_reason": "应为 TN-S（PE 与 N 分开），且漏保是二级不是一级。",
+          "fix": "TN-S 接零 + 二级漏保（总箱 + 末级开关箱各一级）。",
+          "option_id": "S05-html-practice-html-q1-cfd3abfd9761:option-4"
+        }
+      ],
+      "model_answer": "三级配电系统 + TN-S 接零保护系统 + 二级剩余电流（漏电）动作保护系统，三者缺一不可。",
+      "rule_group": "三大系统·架构",
+      "content_sha256": "7dc794558a3b6f0f58f8835ba6221581046219fdd6d38411812c2bbcb783a7dd",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q1",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "s05-fact-three-systems",
+        "skeleton_id": "s05-skel-三大系统缺一不可",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A431011_015_0016:0",
+        "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "7dc794558a3b6f0f58f8835ba6221581046219fdd6d38411812c2bbcb783a7dd",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "施工现场临时用电必须采用三级配电系统、TN-S接零保护系统、二级剩余电流动作保护系统, 教材 kc:1A431011_015_0016:0 逐字直引; 干扰项(两级配电+一级漏保/大地兼作保护零线/TN-C)均确错(教材同 chunk『严禁利用大地作导体』)。历史退批 fact 与本题无涉。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q2-523fb4878071",
+      "surface_id": "practice.html",
+      "stem": "三级配电系统由哪三级配电装置组成？选出正确的作答。",
+      "options": [
+        {
+          "text": "总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级直接接用电设备。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三级装置顺序写全并点明「不得越级」，归类到位。",
+          "option_id": "S05-html-practice-html-q2-523fb4878071:option-1"
+        },
+        {
+          "text": "总配电箱、开关箱两级配电装置，线路自总配电箱直接引至开关箱，省去分配电箱一级。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得两级也能供上电，省一级更省事。",
+          "loss_reason": "少了分配电箱这一级，违反三级配电要求。",
+          "fix": "必须总配电箱、分配电箱、开关箱三级齐全。",
+          "option_id": "S05-html-practice-html-q2-523fb4878071:option-2"
+        },
+        {
+          "text": "总配电箱、分配电箱、开关箱、末端插座箱四级配电装置，逐级增设配电层级。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为加得越多越安全。",
+          "loss_reason": "标准是三级配电，多加一级并非规范要求、概念混淆。",
+          "fix": "三级配电即总、分、开三级，不是四级。",
+          "option_id": "S05-html-practice-html-q2-523fb4878071:option-3"
+        },
+        {
+          "text": "配电室、配电柜、配电盘三级配电层级，按固定式室内配电方式组织临时用电。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把固定式室内配电层级套到临时用电上。",
+          "loss_reason": "临时用电三级是总配电箱、分配电箱、开关箱，规范套错。",
+          "fix": "总配电箱、分配电箱、开关箱三级配电装置。",
+          "option_id": "S05-html-practice-html-q2-523fb4878071:option-4"
+        }
+      ],
+      "model_answer": "总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级。",
+      "rule_group": "三级配电装置·架构",
+      "content_sha256": "d61c7479b7a5275852b8716c4275adcd101c436d1791b0016d956e00b85f6f7f",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q2",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "s05-fact-three-level-distribution",
+        "skeleton_id": "s05-skel-三级配电装置组成",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A431011_014_0015:1",
+        "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "d61c7479b7a5275852b8716c4275adcd101c436d1791b0016d956e00b85f6f7f",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "总配电箱、分配电箱、开关箱三级配电装置, 教材 kc:1A431011_014_0015:1 逐字直引。工单: 正确项附加『不得越级直接接用电设备』超引文字面, 系三级配电制度必然含义且不使选项变错, 非 fatal; 建议教材线补原文分片回填。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q3-155a719c59e8",
+      "surface_id": "practice.html",
+      "stem": "现场瓷砖切割机与砂浆搅拌机共用一个开关箱。此做法不妥，选出正确做法。",
+      "options": [
+        {
+          "text": "两台设备实行分时段错峰作业、保证不同时使用同一开关箱，即不违反一机一闸的配置管理规定。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "觉得「不同时用」就等于不共用。",
+          "loss_reason": "一机一闸是硬性配置要求，与是否同时使用无关。",
+          "fix": "每台设备专用开关箱，严禁 2 台及以上共用（含插座）。",
+          "option_id": "S05-html-practice-html-q3-155a719c59e8:option-1"
+        },
+        {
+          "text": "为两台设备分别加装剩余电流动作保护器后，可继续共用一个开关箱实现合规运行。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为加了漏保就能共用一箱。",
+          "loss_reason": "漏保解决不了共用问题，仍违反一机一闸。",
+          "fix": "每台设备必须专用开关箱，不得共用（含插座）。",
+          "option_id": "S05-html-practice-html-q3-155a719c59e8:option-2"
+        },
+        {
+          "text": "将两台设备分别接入同一开关箱的两条独立回路，一箱两路分开控制即视为专用。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "以为分回路就等于专用。",
+          "loss_reason": "仍是一个开关箱控多台，漏了「专用开关箱」关键词。",
+          "fix": "每台设备各自专用开关箱，严禁 2 台及以上共用。",
+          "option_id": "S05-html-practice-html-q3-155a719c59e8:option-3"
+        },
+        {
+          "text": "每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "专用开关箱 + 严禁 2 台及以上 + 含插座，判据带全才拿满分。",
+          "option_id": "S05-html-practice-html-q3-155a719c59e8:option-4"
+        }
+      ],
+      "model_answer": "每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
+      "rule_group": "一机一闸·管理",
+      "content_sha256": "2255efb8b4bd0dd62c323b8562da7408b47fc398491dd004e09374a4959c28ba",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q3",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "s05-fact-one-device-one-switchbox",
+        "skeleton_id": "s05-skel-专用开关箱严禁共用",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A431011_014_0015:2",
+        "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "2255efb8b4bd0dd62c323b8562da7408b47fc398491dd004e09374a4959c28ba",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "每台用电设备应有各自专用开关箱、不得同箱直接控制2台及以上(含插座), 教材 kc:1A431011_014_0015:2 逐字直引(含『含插座』); exam:2023:第1题 正确做法② 旁证。fact_id 沿用变体银行线命名先例。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q4-2a0299bb956d",
+      "surface_id": "practice.html",
+      "stem": "某开关箱使用插头插座与配电箱进线端连接。此做法不妥，选出正确做法。",
+      "options": [
+        {
+          "text": "进线端选用防水防尘的工业连接器插头插座连接，防护等级达到规定要求即可用于电源进线。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为换成高防护插头就合规。",
+          "loss_reason": "进线端本身就严禁插头插座活动连接，与防护等级无关。",
+          "fix": "进线端严禁插头插座活动连接，须固定连接。",
+          "option_id": "S05-html-practice-html-q4-2a0299bb956d:option-1"
+        },
+        {
+          "text": "将插头插座连接处以绝缘胶布逐层缠牢加以固定，即视为达到可靠连接的要求。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用「缠牢」的常识替代规范。",
+          "loss_reason": "缠胶布仍是活动连接，未达固定可靠连接要求。",
+          "fix": "进线端严禁插头插座活动连接，应固定连接。",
+          "option_id": "S05-html-practice-html-q4-2a0299bb956d:option-2"
+        },
+        {
+          "text": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应采用固定可靠的连接方式。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出「进线端」「严禁插头插座活动连接」两个关键词，判据齐。",
+          "option_id": "S05-html-practice-html-q4-2a0299bb956d:option-3"
+        },
+        {
+          "text": "电源进线端可采用插头插座连接，出线端采用固定连接，进出两端分别处理即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把进线端和出线端要求记反。",
+          "loss_reason": "恰恰是进线端严禁插头插座活动连接。",
+          "fix": "电源进线端严禁插头插座活动连接。",
+          "option_id": "S05-html-practice-html-q4-2a0299bb956d:option-4"
+        }
+      ],
+      "model_answer": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应固定可靠连接。",
+      "rule_group": "进线端·管理",
+      "content_sha256": "85639595e7d4ba569d14ade4a6f3fb1fd02507987d654a4959d40bb779cb5909",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q4",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "s05-fact-no-plug-socket-inlet",
+        "skeleton_id": "s05-skel-进线端严禁插头插座",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2023:第1题",
+        "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "85639595e7d4ba569d14ade4a6f3fb1fd02507987d654a4959d40bb779cb5909",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "配电箱、开关箱电源进线端严禁采用插头和插座做活动连接, 真题 exam:2023:第1题 正确做法③ 逐字直引(唯一机器候选)。『应采用固定可靠连接』为该禁令的自然改正表述, 不构成第二断言。fact_id 沿用变体银行线命名先例。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q5-e75342234659",
+      "surface_id": "practice.html",
+      "stem": "关于动力与照明配电的设置，选出正确的作答。",
+      "options": [
+        {
+          "text": "动力与照明可共用同一开关箱统一控制，只要总容量不超过箱体额定值即符合要求。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为省线、不超容量就能合用。",
+          "loss_reason": "动力开关箱与照明开关箱必须分设，不得合用。",
+          "fix": "动力开关箱与照明开关箱必须分设。",
+          "option_id": "S05-html-practice-html-q5-e75342234659:option-1"
+        },
+        {
+          "text": "动力配电箱与照明配电箱宜分设；合并时须分路配电；动力开关箱与照明开关箱必须分设。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "宜分设 + 合并须分路 + 开关箱必分设，层次写全。",
+          "option_id": "S05-html-practice-html-q5-e75342234659:option-2"
+        },
+        {
+          "text": "动力配电箱与照明配电箱必须共箱设置，以便于集中管理；分设反而增加箱体数量、不利维护。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把「宜分设」记反成「必须共箱」。",
+          "loss_reason": "配电箱宜分设，开关箱必须分设，方向记反。",
+          "fix": "配电箱宜分设、开关箱必分设。",
+          "option_id": "S05-html-practice-html-q5-e75342234659:option-3"
+        },
+        {
+          "text": "照明回路可直接自动力开关箱引出一路供电，不必再为照明单独设置开关箱。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "觉得从动力箱分一路更方便。",
+          "loss_reason": "漏了「动力/照明开关箱必须分设」关键要求。",
+          "fix": "照明须单设开关箱，动力照明开关箱分设。",
+          "option_id": "S05-html-practice-html-q5-e75342234659:option-4"
+        }
+      ],
+      "model_answer": "动力配电箱与照明配电箱宜分别设置；合并设置时应分路配电；动力开关箱与照明开关箱必须分设。",
+      "rule_group": "动力照明分设·管理",
+      "content_sha256": "cedbba6f4ae298803aa6f1fa48703e57609bf250c2cc2dcceb575cf6db01dc6c",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q5",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "cedbba6f4ae298803aa6f1fa48703e57609bf250c2cc2dcceb575cf6db01dc6c",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q6-b6f04fcf0ec0",
+      "surface_id": "practice.html",
+      "stem": "施工现场临时用电正常送电（合闸）的顺序是？选出正确的作答。",
+      "options": [
+        {
+          "text": "送电顺序：开关箱 → 分配电箱 → 总配电箱，自末端设备侧逐级向电源侧合闸。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "把停电顺序套到送电上。",
+          "loss_reason": "这是停电顺序；送电应总→分→开，顺序颠倒。",
+          "fix": "送电：总配电箱→分配电箱→开关箱。",
+          "option_id": "S05-html-practice-html-q6-b6f04fcf0ec0:option-1"
+        },
+        {
+          "text": "送电顺序：总配电箱 → 分配电箱 → 开关箱，从大到小逐级合闸送电。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "送电从总到分到开，方向写对、逐级点明。",
+          "option_id": "S05-html-practice-html-q6-b6f04fcf0ec0:option-2"
+        },
+        {
+          "text": "送电顺序：分配电箱 → 总配电箱 → 开关箱，先合中间一级、再合两端配电箱。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "记成从中间一级先送。",
+          "loss_reason": "顺序错乱，送电必须自总箱起逐级向下。",
+          "fix": "送电：总→分→开，不能从中间起。",
+          "option_id": "S05-html-practice-html-q6-b6f04fcf0ec0:option-3"
+        },
+        {
+          "text": "送电不分先后顺序，三级配电箱同时合闸送电，以缩短全场送电作业时间。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "以为同时合闸更快。",
+          "loss_reason": "送电有严格顺序，不得同时或随意合闸。",
+          "fix": "送电必须总→分→开逐级进行。",
+          "option_id": "S05-html-practice-html-q6-b6f04fcf0ec0:option-4"
+        }
+      ],
+      "model_answer": "送电顺序：总配电箱 → 分配电箱 → 开关箱（从大到小逐级送电）。",
+      "rule_group": "送电顺序·程序",
+      "content_sha256": "92859486809b79227c6afd22061fa7c750d094afad8a6af26cec2aa3c70e7560",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q6",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "92859486809b79227c6afd22061fa7c750d094afad8a6af26cec2aa3c70e7560",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q7-69d81c27eff7",
+      "surface_id": "practice.html",
+      "stem": "正常情况下，现场临时配电系统停电（拉闸）的顺序是？选出正确的作答。",
+      "options": [
+        {
+          "text": "停电顺序：总配电箱 → 分配电箱 → 开关箱，先断开总配电箱、一次性切除全场作业电源。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得先断总箱一把切最干净。",
+          "loss_reason": "先断总箱时开关箱仍带负荷，拉闸拉弧；这是送电顺序。",
+          "fix": "停电：开关箱→分配电箱→总配电箱。",
+          "option_id": "S05-html-practice-html-q7-69d81c27eff7:option-1"
+        },
+        {
+          "text": "停电顺序：分配电箱 → 开关箱 → 总配电箱，先切中间一级、再依次切除两端电源。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "记成从中间一级先停。",
+          "loss_reason": "顺序错乱，停电必须从末端开关箱起。",
+          "fix": "停电：开→分→总，从末端起。",
+          "option_id": "S05-html-practice-html-q7-69d81c27eff7:option-2"
+        },
+        {
+          "text": "停电顺序与送电顺序相同：总配电箱 → 分配电箱 → 开关箱，两套操作共用一个顺序。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "图省事记成停送同序。",
+          "loss_reason": "停送电顺序相反，停电从末端开始。",
+          "fix": "送电总→分→开；停电开→分→总。",
+          "option_id": "S05-html-practice-html-q7-69d81c27eff7:option-3"
+        },
+        {
+          "text": "停电顺序：开关箱 → 分配电箱 → 总配电箱，从末端先停、逐级向总箱，防带负荷拉弧。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "停电从末端起 + 点明防带负荷拉弧，方向与理由齐。",
+          "option_id": "S05-html-practice-html-q7-69d81c27eff7:option-4"
+        }
+      ],
+      "model_answer": "停电顺序：开关箱 → 分配电箱 → 总配电箱（从末端开始，防带负荷拉闸拉弧）。",
+      "rule_group": "停电顺序·程序",
+      "content_sha256": "f48ba72ffa1653dbf32bf026831a1064b46a1f3921e6bd765cc7e82604d20e4f",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q7",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "f48ba72ffa1653dbf32bf026831a1064b46a1f3921e6bd765cc7e82604d20e4f",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q8-cc21f97146e7",
+      "surface_id": "practice.html",
+      "stem": "在金属容器（如锅炉、储罐）内作业时，照明行灯的供电电压上限应为多少？选出可得分的作答。",
+      "options": [
+        {
+          "text": "金属容器内照明电压不得大于 36V，按潮湿场所安全电压档执行。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把 36V 这一常见档位套到金属容器。",
+          "loss_reason": "36V 是潮湿/隧道档，金属容器须降到 12V。",
+          "fix": "金属容器/锅炉内 ≤12V。",
+          "option_id": "S05-html-practice-html-q8-cc21f97146e7:option-1"
+        },
+        {
+          "text": "金属容器内照明电压不得大于 24V，较一般场所降低一档即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "只降一档到 24V，以为够了。",
+          "loss_reason": "24V 是易触及带电体档，金属容器要再降到 12V。",
+          "fix": "金属容器/锅炉内 ≤12V，不是 24V。",
+          "option_id": "S05-html-practice-html-q8-cc21f97146e7:option-2"
+        },
+        {
+          "text": "金属容器、锅炉内照明电压不得大于 12V，取安全电压最低一档。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "对照场所=金属容器，取 12V 最低档，判据链完整。",
+          "option_id": "S05-html-practice-html-q8-cc21f97146e7:option-3"
+        },
+        {
+          "text": "金属容器内可使用 220V 灯具照明，但须加装剩余电流保护器。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为加漏保就能用 220V。",
+          "loss_reason": "金属容器内必须用安全电压 12V，不能用 220V。",
+          "fix": "金属容器内 ≤12V 安全电压照明。",
+          "option_id": "S05-html-practice-html-q8-cc21f97146e7:option-4"
+        }
+      ],
+      "model_answer": "金属容器/锅炉内照明电压不得大于 12V（安全电压最低档）。",
+      "rule_group": "安全电压·条件维",
+      "content_sha256": "848482c07f930e9567e915c1938a883b93503eaf7eb0a19b6cb7215dd0631396",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q8",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "s05-fact-safety-voltage-application",
+        "skeleton_id": "s05-skel-金属容器锅炉12V场景",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2016:第13题",
+        "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "848482c07f930e9567e915c1938a883b93503eaf7eb0a19b6cb7215dd0631396",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "金属容器内照明电压不得超过12V, 真题 exam:2016:第13题(答案C)题面+解析逐字直证; 教材 kc:1A431011_015_0016:2 同表旁证(与 q9 共享同一采分点)。三件套 immediate_confirm(同安全电压应用 fact, 单场景条件维 skeleton)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q9-413717805b15",
+      "surface_id": "practice.html",
+      "stem": "下列安全电压限值与场所的对应，哪一项完全正确？",
+      "options": [
+        {
+          "text": "潮湿/隧道/人防 ≤24V；易触及带电体 ≤36V；金属容器/锅炉内 ≤12V。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把 36V 与 24V 两档对调。",
+          "loss_reason": "潮湿/隧道是 36V、易触及是 24V，档位调错。",
+          "fix": "潮湿/隧道 36V、易触及 24V、金属容器 12V。",
+          "option_id": "S05-html-practice-html-q9-413717805b15:option-1"
+        },
+        {
+          "text": "潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤24V。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "金属容器顺手也写成 24V。",
+          "loss_reason": "金属容器/锅炉内须 ≤12V，不是 24V。",
+          "fix": "金属容器/锅炉内 ≤12V。",
+          "option_id": "S05-html-practice-html-q9-413717805b15:option-2"
+        },
+        {
+          "text": "上述特殊场所照明电压统一执行 ≤36V 的限值，各类场所均按同一门槛控制。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "图好记用一个门槛套所有场所。",
+          "loss_reason": "漏了 24V、12V 两档，采分点不全。",
+          "fix": "分三档：36V / 24V / 12V 对应不同场所。",
+          "option_id": "S05-html-practice-html-q9-413717805b15:option-3"
+        },
+        {
+          "text": "潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三档场所一一对应正确，条件维不张冠李戴。",
+          "option_id": "S05-html-practice-html-q9-413717805b15:option-4"
+        }
+      ],
+      "model_answer": "潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
+      "rule_group": "安全电压分档·条件维",
+      "content_sha256": "70250ae9e319ce9aed4bfd8e06a55bcd6788ae1b88c1d38cc60073dd07d3911d",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q9",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "s05-fact-safety-voltage-application",
+        "skeleton_id": "s05-skel-安全电压三档全表对应",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A431011_015_0016:2",
+        "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "70250ae9e319ce9aed4bfd8e06a55bcd6788ae1b88c1d38cc60073dd07d3911d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "潮湿/隧道/人防≤36V、易触及带电体≤24V、金属容器/锅炉≤12V, 教材 kc:1A431011_015_0016:2 逐字全表直引。三件套 anchor。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q10-71b997e0e31f",
+      "surface_id": "practice.html",
+      "stem": "关于手持式照明灯具（行灯）的供电要求，选出完整正确的作答。",
+      "options": [
+        {
+          "text": "手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "电压 + 双绕组隔离变压器 + 金属容器内严禁，三点齐。",
+          "option_id": "S05-html-practice-html-q10-71b997e0e31f:option-1"
+        },
+        {
+          "text": "手持灯具电压不得超过 36V，采用普通变压器将电压降至该值供电即已满足全部供电要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住 36V 电压值。",
+          "loss_reason": "漏了「双绕组型安全隔离变压器」这一关键器件。",
+          "fix": "须用双绕组型安全隔离变压器供电。",
+          "option_id": "S05-html-practice-html-q10-71b997e0e31f:option-2"
+        },
+        {
+          "text": "手持灯具电压不得超过 36V，可采用自耦变压器降压供电，接线简单且运行可靠。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为自耦变压器也能降压用。",
+          "loss_reason": "自耦变压器无电气隔离，必须用双绕组隔离变压器。",
+          "fix": "必须用双绕组型安全隔离变压器。",
+          "option_id": "S05-html-practice-html-q10-71b997e0e31f:option-3"
+        },
+        {
+          "text": "手持灯具电压不得超过 36V，在此电压下于金属容器内照明使用亦属安全范围。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为 36V 在金属容器里也安全。",
+          "loss_reason": "金属容器内严禁手持灯具、且须 12V 照明。",
+          "fix": "金属容器内严禁使用手持灯具。",
+          "option_id": "S05-html-practice-html-q10-71b997e0e31f:option-4"
+        }
+      ],
+      "model_answer": "手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
+      "rule_group": "手持灯具·条件维",
+      "content_sha256": "72020b4402de33ad8f4329c6c5369be4ab446234f04a766772011a4f8daef877",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q10",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "72020b4402de33ad8f4329c6c5369be4ab446234f04a766772011a4f8daef877",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q11-69e222135867",
+      "surface_id": "practice.html",
+      "stem": "特殊环境（湿度大于 75%、有积水）作业未采用安全电压照明。此情形应如何定性？",
+      "options": [
+        {
+          "text": "属一般安全问题，经记录后限期整改即可，期间不影响继续作业。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为只是普通违规、可缓改。",
+          "loss_reason": "这是重大事故隐患，定性偏轻。",
+          "fix": "应定性为重大事故隐患，立即整改。",
+          "option_id": "S05-html-practice-html-q11-69e222135867:option-1"
+        },
+        {
+          "text": "属重大事故隐患，必须立即整改为安全电压（对应场所限值）照明。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出「重大事故隐患」定性 + 整改方向，后果维到位。",
+          "option_id": "S05-html-practice-html-q11-69e222135867:option-2"
+        },
+        {
+          "text": "属日常防护范畴，注意用电安全并加强现场管理即可正常作业。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "用「加强管理」的口号带过。",
+          "loss_reason": "口号化、未定性也无可判分措施。",
+          "fix": "定性重大事故隐患 + 改用安全电压照明。",
+          "option_id": "S05-html-practice-html-q11-69e222135867:option-3"
+        },
+        {
+          "text": "为灯具加装剩余电流保护器后，可继续使用 220V 照明作业。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为加漏保就可用常规电压。",
+          "loss_reason": "特殊潮湿场所必须用安全电压，加漏保不替代。",
+          "fix": "须用安全电压照明，属重大隐患须整改。",
+          "option_id": "S05-html-practice-html-q11-69e222135867:option-4"
+        }
+      ],
+      "model_answer": "属重大事故隐患，应立即整改为安全电压照明。",
+      "rule_group": "重大隐患·后果维",
+      "content_sha256": "fca388c1306410980353908e3562f50facad049ca963dffb20250983e37140f8",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q11",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "s05-fact-safety-voltage-application",
+        "skeleton_id": "s05-skel-特殊环境未用安全电压属重大隐患",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A436000_007_0010:0",
+        "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "fca388c1306410980353908e3562f50facad049ca963dffb20250983e37140f8",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "特殊环境(湿度>75%、积水)未使用安全电压照明属重大事故隐患, 教材 kc:1A436000_007_0010:0 逐字直引。三件套 d1_probe(同安全电压应用 fact 的后果定性维, 第3独立 skeleton)。干扰项『加漏保后可继续220V照明』确错。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q12-e70be6b0eac8",
+      "surface_id": "practice.html",
+      "stem": "电缆直接埋地敷设时，埋设深度应满足什么要求？选出可得分的作答。",
+      "options": [
+        {
+          "text": "电缆直接埋地敷设深度不应小于 0.5m，浅埋利于减少土方并便于日后检修。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记成了 0.5m，觉得浅埋省事。",
+          "loss_reason": "直接埋地深度须 ≥0.7m，数字记错。",
+          "fix": "直接埋地敷设深度 ≥0.7m。",
+          "option_id": "S05-html-practice-html-q12-e70be6b0eac8:option-1"
+        },
+        {
+          "text": "电缆直接埋地敷设深度不应小于 0.7m，穿越处应加保护套管并设警示标识。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "0.7m 阈值 + 保护措施，条件维带全。",
+          "option_id": "S05-html-practice-html-q12-e70be6b0eac8:option-2"
+        },
+        {
+          "text": "电缆沿地面明敷并全程加盖木板保护，即可替代埋地敷设的深度要求。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为盖木板就等于保护。",
+          "loss_reason": "要求直接埋地 ≥0.7m，明敷不合规。",
+          "fix": "电缆直接埋地敷设 ≥0.7m。",
+          "option_id": "S05-html-practice-html-q12-e70be6b0eac8:option-3"
+        },
+        {
+          "text": "电缆按埋地方式敷设即可，具体深度依据现场土质与开挖条件确定。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "只答「埋地」不给深度。",
+          "loss_reason": "漏了「≥0.7m」这一关键数值。",
+          "fix": "直接埋地深度不应小于 0.7m。",
+          "option_id": "S05-html-practice-html-q12-e70be6b0eac8:option-4"
+        }
+      ],
+      "model_answer": "电缆直接埋地敷设深度不应小于 0.7m，穿越道路等处应加保护套管并设警示。",
+      "rule_group": "电缆埋地·条件维",
+      "content_sha256": "c1d816679b217145135ff1dac7ba6b952f0a03614524789381e4b1aff0ddb2c6",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q12",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "c1d816679b217145135ff1dac7ba6b952f0a03614524789381e4b1aff0ddb2c6",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q13-41d536efd2ec",
+      "surface_id": "practice.html",
+      "stem": "五芯电缆中，N 线（工作零线）与 PE 线（保护零线）的标识色分别是？选出正确的作答。",
+      "options": [
+        {
+          "text": "N 线为蓝色，PE 线为黄绿双色，二者颜色不得混用或挪作他用。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "N 蓝、PE 黄绿对应正确，并点明不得挪用。",
+          "option_id": "S05-html-practice-html-q13-41d536efd2ec:option-1"
+        },
+        {
+          "text": "N 线为黄绿双色，PE 线为蓝色，按接零保护系统惯用配色执行。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把 N 与 PE 的颜色对调。",
+          "loss_reason": "应是 N 蓝、PE 黄绿，颜色记反。",
+          "fix": "N 线=蓝色、PE 线=黄绿双色。",
+          "option_id": "S05-html-practice-html-q13-41d536efd2ec:option-2"
+        },
+        {
+          "text": "N 线为黑色，PE 线为绿色，能够与相线颜色明确区分即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "随手写成黑、绿也能区分。",
+          "loss_reason": "N 是蓝色、PE 是黄绿双色，颜色错。",
+          "fix": "N=蓝色、PE=黄绿双色。",
+          "option_id": "S05-html-practice-html-q13-41d536efd2ec:option-3"
+        },
+        {
+          "text": "N 线与 PE 线的颜色不作强制规定，由现场统一标注加以区分。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为现场自定就行。",
+          "loss_reason": "标识色是强制规定，N 蓝 PE 黄绿。",
+          "fix": "N=蓝色、PE=黄绿双色（强制）。",
+          "option_id": "S05-html-practice-html-q13-41d536efd2ec:option-4"
+        }
+      ],
+      "model_answer": "N 线=蓝色；PE 线=黄绿双色。二者不得混用或挪作他用。",
+      "rule_group": "标识色·条件维",
+      "content_sha256": "5d2b8c36285853488f4f17e0c85fb8ca374bae93249c4c881b6a745a264c2b9c",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q13",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "5d2b8c36285853488f4f17e0c85fb8ca374bae93249c4c881b6a745a264c2b9c",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q14-7b84c2b178f5",
+      "surface_id": "practice.html",
+      "stem": "配电箱、开关箱的金属箱门与箱体之间应采用什么连接？选出正确的作答。",
+      "options": [
+        {
+          "text": "金属箱门与箱体之间应采用多股编织铜带进行连接，截面越大、质地越软效果越好。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为编织带更软更导电。",
+          "loss_reason": "规范要求单股铜线连接，材料记错。",
+          "fix": "金属箱门与箱体连接用单股铜线。",
+          "option_id": "S05-html-practice-html-q14-7b84c2b178f5:option-1"
+        },
+        {
+          "text": "金属箱门与箱体之间应用单股铜线做电气连接（跨接），保证箱门可靠接地。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "单股铜线跨接、点明可靠接地，材料与目的齐。",
+          "option_id": "S05-html-practice-html-q14-7b84c2b178f5:option-2"
+        },
+        {
+          "text": "金属箱门与箱体经合页金属接触即可自然导通，无需另行设置跨接连接线。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为合页接触就够。",
+          "loss_reason": "合页接触不可靠，须专设单股铜线跨接。",
+          "fix": "须用单股铜线做电气跨接。",
+          "option_id": "S05-html-practice-html-q14-7b84c2b178f5:option-3"
+        },
+        {
+          "text": "金属箱门与箱体之间应设塑料绝缘条隔离，避免箱门带电以提高安全性。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为隔开绝缘更安全。",
+          "loss_reason": "箱门须可靠接地而非绝缘隔离，概念反了。",
+          "fix": "用单股铜线跨接使箱门可靠接地。",
+          "option_id": "S05-html-practice-html-q14-7b84c2b178f5:option-4"
+        }
+      ],
+      "model_answer": "金属箱门与箱体之间应采用软铜线（单股铜线）做电气连接（跨接）。",
+      "rule_group": "箱门连接·条件维",
+      "content_sha256": "6384f232f17aa2e714dcde042ecf3b7a43495a83f1062eeb3634f7b8dc37a772",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q14",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "6384f232f17aa2e714dcde042ecf3b7a43495a83f1062eeb3634f7b8dc37a772",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q15-1f24bad13a7c",
+      "surface_id": "practice.html",
+      "stem": "关于电工上岗与用电设备的安装拆除，选出正确的作答。",
+      "options": [
+        {
+          "text": "电工经企业内部培训并熟悉操作后即可上岗；用电设备可由熟练工人自行拆除。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用「有经验/熟练」替代持证。",
+          "loss_reason": "电工须持证上岗，拆除须电工完成。",
+          "fix": "电工持证上岗，用电设备拆除由电工完成。",
+          "option_id": "S05-html-practice-html-q15-1f24bad13a7c:option-1"
+        },
+        {
+          "text": "用电设备的拆除应由现场安全员完成并负责监督，其对安全的把握更为专业。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得安全员更懂安全、可代劳。",
+          "loss_reason": "拆除应由电工完成，主体写错。",
+          "fix": "用电设备拆除应由电工完成（非安全员）。",
+          "option_id": "S05-html-practice-html-q15-1f24bad13a7c:option-2"
+        },
+        {
+          "text": "电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "持证上岗 + 拆除由电工完成，主体两点齐。",
+          "option_id": "S05-html-practice-html-q15-1f24bad13a7c:option-3"
+        },
+        {
+          "text": "电工须持证上岗；用电设备的安装拆除属机械作业范畴，可由机操工兼任完成。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓住持证一点，漏了拆除主体。",
+          "loss_reason": "漏「拆除由电工完成」这一采分点。",
+          "fix": "用电设备安装拆除均应由电工完成。",
+          "option_id": "S05-html-practice-html-q15-1f24bad13a7c:option-4"
+        }
+      ],
+      "model_answer": "电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
+      "rule_group": "电工持证·主体维",
+      "content_sha256": "f71e9c07b3d210780d654864a356ab6350b5ab506e71740e5e26ad2bcd27408b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q15",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "f71e9c07b3d210780d654864a356ab6350b5ab506e71740e5e26ad2bcd27408b",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q16-0473406d7fe0",
+      "surface_id": "practice.html",
+      "stem": "某工程临时用电总容量 50kW 以上，且进入装饰装修阶段。用电文件应如何编制？选出正确的作答。",
+      "options": [
+        {
+          "text": "总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "50kW 组织设计 + 装饰阶段补方案，两项齐。",
+          "option_id": "S05-html-practice-html-q16-0473406d7fe0:option-1"
+        },
+        {
+          "text": "总容量 50kW 以上编制用电组织设计后，装饰装修阶段继续沿用原设计执行、不必再另行编制。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "以为一份组织设计管到底。",
+          "loss_reason": "漏识别装饰阶段用电变化，须补编单项方案。",
+          "fix": "装饰装修阶段应补编单项施工用电方案。",
+          "option_id": "S05-html-practice-html-q16-0473406d7fe0:option-2"
+        },
+        {
+          "text": "装饰装修阶段补充编制单项施工用电方案即可，总容量大小不影响文件编制要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住补方案，漏了 50kW 门槛。",
+          "loss_reason": "漏「50kW 及以上编用电组织设计」采分点。",
+          "fix": "50kW 及以上须编用电组织设计。",
+          "option_id": "S05-html-practice-html-q16-0473406d7fe0:option-3"
+        },
+        {
+          "text": "编制一份涵盖临时用电内容的防火防雷专项方案即可，无需再单独编制用电文件。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "用防火防雷方案冒充用电文件。",
+          "loss_reason": "须编用电组织设计 + 单项用电方案，文件套错。",
+          "fix": "50kW+ 编用电组织设计、装饰阶段补单项用电方案。",
+          "option_id": "S05-html-practice-html-q16-0473406d7fe0:option-4"
+        }
+      ],
+      "model_answer": "总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
+      "rule_group": "组织设计·主体维",
+      "content_sha256": "78ba6c96527a282784400ab43f8d3f9b52baaf51b29000a3b14c988aa6404ef5",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q16",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "78ba6c96527a282784400ab43f8d3f9b52baaf51b29000a3b14c988aa6404ef5",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q17-d820bcd74e8d",
+      "surface_id": "practice.html",
+      "stem": "关于堆料场临时用电布置（综合纠错），选出各项均正确的作答。",
+      "options": [
+        {
+          "text": "开关箱与配电箱间距不得大于 30m；堆料场采用碘钨灯照明以增强照度。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得堆场大、碘钨灯亮更好用。",
+          "loss_reason": "仓库堆料场严禁碘钨灯（高温易燃）。",
+          "fix": "仓库堆料场严禁使用碘钨灯。",
+          "option_id": "S05-html-practice-html-q17-d820bcd74e8d:option-1"
+        },
+        {
+          "text": "开关箱与配电箱间距不得大于 50m；仓库、堆料场严禁使用碘钨灯照明。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把间距记成 50m。",
+          "loss_reason": "开关箱与配电箱间距须 ≤30m，数字错。",
+          "fix": "开关箱与配电箱间距 ≤30m。",
+          "option_id": "S05-html-practice-html-q17-d820bcd74e8d:option-2"
+        },
+        {
+          "text": "开关箱与配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯照明。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "30m 间距 + 严禁碘钨灯，综合纠错两点齐。",
+          "option_id": "S05-html-practice-html-q17-d820bcd74e8d:option-3"
+        },
+        {
+          "text": "开关箱靠近用电设备布置、与配电箱间距不设硬性限值；碘钨灯移离堆垛后使用。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "以为就近就行、灯挪远即可。",
+          "loss_reason": "漏 30m 间距硬指标，且堆料场严禁碘钨灯。",
+          "fix": "间距 ≤30m，仓库堆料场严禁碘钨灯。",
+          "option_id": "S05-html-practice-html-q17-d820bcd74e8d:option-4"
+        }
+      ],
+      "model_answer": "开关箱与其控制的固定式配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯。",
+      "rule_group": "堆场综合·条件维",
+      "content_sha256": "e94bcbc1d37383a027b1fb845f3889e1421e8472f6a2489df19d648f561935d5",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q17",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e94bcbc1d37383a027b1fb845f3889e1421e8472f6a2489df19d648f561935d5",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "S05-html-practice-html-q18-236101054350",
+      "surface_id": "practice.html",
+      "stem": "案例：现场做法有①装饰阶段仅按原组织设计用电、②切割机与搅拌机共用一开关箱、③开关箱用插头插座与配电箱连接。某学生只答「②共用不妥，应分开」。选出最准确的诊断与补写。",
+      "options": [
+        {
+          "text": "学生已指出②共用开关箱不妥且改正方向正确，作答与采分要求基本相符，本题可按大部分得分处理、无需再补写。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "看方向对就以为差不多。",
+          "loss_reason": "漏诊①③两处不妥，②改正也缺判据，失分严重。",
+          "fix": "补①装饰补方案、③进线端禁插接，②补专用开关箱判据。",
+          "option_id": "S05-html-practice-html-q18-236101054350:option-1"
+        },
+        {
+          "text": "仅需将②中的「应分开」补写为「专用开关箱」即告完整；①按原用电组织设计用电与③采用插头插座连接的做法均无不妥、不必再作答。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "以为只有②一处不妥。",
+          "loss_reason": "①装饰未补方案、③插头插座连接都是不妥，审题漏项。",
+          "fix": "①③均不妥，须一并指出并改正。",
+          "option_id": "S05-html-practice-html-q18-236101054350:option-2"
+        },
+        {
+          "text": "本题重点为③进线端插头插座连接不妥并给出改正；①装饰阶段用电与②共用开关箱做法符合规范、无需改动。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "抓到③却把①②当合规。",
+          "loss_reason": "②共用开关箱、①装饰未补方案同样不妥，判断反了。",
+          "fix": "①②③三处都不妥，逐条指出并给判据。",
+          "option_id": "S05-html-practice-html-q18-236101054350:option-3"
+        },
+        {
+          "text": "②改正缺规范判据（应写专用开关箱、严禁 2 台及以上含插座）；还漏诊①装饰阶段补方案、③进线端禁插头插座，三处均须补。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "半命中项补判据 + 补齐两处漏诊，指漏到具体采分句。",
+          "option_id": "S05-html-practice-html-q18-236101054350:option-4"
+        }
+      ],
+      "model_answer": "②改正缺判据（应写专用开关箱、严禁2台及以上含插座）；漏诊①装饰阶段应补编单项用电方案、③进线端严禁插头插座活动连接，三处都要补。",
+      "rule_group": "采分诊断·末题",
+      "content_sha256": "7c39d4a4c634844872b12db42cd3aa67dedfd5260da06e27bacb971e026b8bab",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q18",
+      "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "decision": {
+        "fact_id": "s05-fact-2023-tempelec-case-diagnosis",
+        "skeleton_id": "s05-skel-2023案例三处漏诊补写",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2023:第1题",
+        "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "7c39d4a4c634844872b12db42cd3aa67dedfd5260da06e27bacb971e026b8bab",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:57:43+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "2023 案例临电三处不妥(①仅按组织设计/②共用开关箱/③进线端插接)+正确做法①②③, 真题 exam:2023:第1题 全文逐字直证正确项三断言。①『装饰装修施工阶段应补充编制单项施工用电方案』为真题正确做法①原文——与历史退批 fact s05-fact-below-50kw-measures(50kW以下逆命题)无涉, 重裁结论: 本断言锚成立。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
   ],
-  "machine_must_not_sign": true
- },
- "items": [
-  {
-   "variant_id": "S05-html-practice-html-q1-cfd3abfd9761",
-   "surface_id": "practice.html",
-   "stem": "施工现场临时用电必须采用哪几大系统？选出最完整、能得分的作答。",
-   "options": [
-    {
-     "text": "设置三级配电系统，将总配电箱、分配电箱、开关箱逐级配齐，即已满足临时用电系统要求。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "三级配电最常被记住，容易以为写这一条就够。",
-     "loss_reason": "漏了 TN-S 接零与二级漏电保护两大系统，系统不完整。",
-     "fix": "补 TN-S 接零保护系统 + 二级剩余电流动作保护系统。",
-     "option_id": "S05-html-practice-html-q1-cfd3abfd9761:option-1"
-    },
-    {
-     "text": "采用两级配电系统与一级漏电保护装置，并以大地兼作保护零线导体实现接零保护。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "记成了「两级／一级」，还把大地当零线。",
-     "loss_reason": "应是三级配电、二级漏保，且严禁利用大地作零线导体。",
-     "fix": "三级配电 + TN-S 接零（PE 线独立）+ 二级漏保。",
-     "option_id": "S05-html-practice-html-q1-cfd3abfd9761:option-2"
-    },
-    {
-     "text": "三级配电系统、TN-S 接零保护系统、二级剩余电流（漏电）动作保护系统，三者缺一不可。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "三块一块儿写全，正是阅卷分开给分的三个采分点。",
-     "option_id": "S05-html-practice-html-q1-cfd3abfd9761:option-3"
-    },
-    {
-     "text": "配置三级配电系统与 TN-C 接零保护系统，在总配电箱处设置一级剩余电流动作保护装置。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "知道要接零、要三级，顺手写成 TN-C。",
-     "loss_reason": "应为 TN-S（PE 与 N 分开），且漏保是二级不是一级。",
-     "fix": "TN-S 接零 + 二级漏保（总箱 + 末级开关箱各一级）。",
-     "option_id": "S05-html-practice-html-q1-cfd3abfd9761:option-4"
-    }
-   ],
-   "model_answer": "三级配电系统 + TN-S 接零保护系统 + 二级剩余电流（漏电）动作保护系统，三者缺一不可。",
-   "rule_group": "三大系统·架构",
-   "content_sha256": "7dc794558a3b6f0f58f8835ba6221581046219fdd6d38411812c2bbcb783a7dd",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q1",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "7dc794558a3b6f0f58f8835ba6221581046219fdd6d38411812c2bbcb783a7dd",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q2-523fb4878071",
-   "surface_id": "practice.html",
-   "stem": "三级配电系统由哪三级配电装置组成？选出正确的作答。",
-   "options": [
-    {
-     "text": "总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级直接接用电设备。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "三级装置顺序写全并点明「不得越级」，归类到位。",
-     "option_id": "S05-html-practice-html-q2-523fb4878071:option-1"
-    },
-    {
-     "text": "总配电箱、开关箱两级配电装置，线路自总配电箱直接引至开关箱，省去分配电箱一级。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "觉得两级也能供上电，省一级更省事。",
-     "loss_reason": "少了分配电箱这一级，违反三级配电要求。",
-     "fix": "必须总配电箱、分配电箱、开关箱三级齐全。",
-     "option_id": "S05-html-practice-html-q2-523fb4878071:option-2"
-    },
-    {
-     "text": "总配电箱、分配电箱、开关箱、末端插座箱四级配电装置，逐级增设配电层级。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "以为加得越多越安全。",
-     "loss_reason": "标准是三级配电，多加一级并非规范要求、概念混淆。",
-     "fix": "三级配电即总、分、开三级，不是四级。",
-     "option_id": "S05-html-practice-html-q2-523fb4878071:option-3"
-    },
-    {
-     "text": "配电室、配电柜、配电盘三级配电层级，按固定式室内配电方式组织临时用电。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "把固定式室内配电层级套到临时用电上。",
-     "loss_reason": "临时用电三级是总配电箱、分配电箱、开关箱，规范套错。",
-     "fix": "总配电箱、分配电箱、开关箱三级配电装置。",
-     "option_id": "S05-html-practice-html-q2-523fb4878071:option-4"
-    }
-   ],
-   "model_answer": "总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级。",
-   "rule_group": "三级配电装置·架构",
-   "content_sha256": "d61c7479b7a5275852b8716c4275adcd101c436d1791b0016d956e00b85f6f7f",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q2",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "d61c7479b7a5275852b8716c4275adcd101c436d1791b0016d956e00b85f6f7f",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q3-155a719c59e8",
-   "surface_id": "practice.html",
-   "stem": "现场瓷砖切割机与砂浆搅拌机共用一个开关箱。此做法不妥，选出正确做法。",
-   "options": [
-    {
-     "text": "两台设备实行分时段错峰作业、保证不同时使用同一开关箱，即不违反一机一闸的配置管理规定。",
-     "is_correct": false,
-     "source_error_code": "M10",
-     "temptation": "觉得「不同时用」就等于不共用。",
-     "loss_reason": "一机一闸是硬性配置要求，与是否同时使用无关。",
-     "fix": "每台设备专用开关箱，严禁 2 台及以上共用（含插座）。",
-     "option_id": "S05-html-practice-html-q3-155a719c59e8:option-1"
-    },
-    {
-     "text": "为两台设备分别加装剩余电流动作保护器后，可继续共用一个开关箱实现合规运行。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "以为加了漏保就能共用一箱。",
-     "loss_reason": "漏保解决不了共用问题，仍违反一机一闸。",
-     "fix": "每台设备必须专用开关箱，不得共用（含插座）。",
-     "option_id": "S05-html-practice-html-q3-155a719c59e8:option-2"
-    },
-    {
-     "text": "将两台设备分别接入同一开关箱的两条独立回路，一箱两路分开控制即视为专用。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "以为分回路就等于专用。",
-     "loss_reason": "仍是一个开关箱控多台，漏了「专用开关箱」关键词。",
-     "fix": "每台设备各自专用开关箱，严禁 2 台及以上共用。",
-     "option_id": "S05-html-practice-html-q3-155a719c59e8:option-3"
-    },
-    {
-     "text": "每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "专用开关箱 + 严禁 2 台及以上 + 含插座，判据带全才拿满分。",
-     "option_id": "S05-html-practice-html-q3-155a719c59e8:option-4"
-    }
-   ],
-   "model_answer": "每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
-   "rule_group": "一机一闸·管理",
-   "content_sha256": "2255efb8b4bd0dd62c323b8562da7408b47fc398491dd004e09374a4959c28ba",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q3",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "2255efb8b4bd0dd62c323b8562da7408b47fc398491dd004e09374a4959c28ba",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q4-2a0299bb956d",
-   "surface_id": "practice.html",
-   "stem": "某开关箱使用插头插座与配电箱进线端连接。此做法不妥，选出正确做法。",
-   "options": [
-    {
-     "text": "进线端选用防水防尘的工业连接器插头插座连接，防护等级达到规定要求即可用于电源进线。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "以为换成高防护插头就合规。",
-     "loss_reason": "进线端本身就严禁插头插座活动连接，与防护等级无关。",
-     "fix": "进线端严禁插头插座活动连接，须固定连接。",
-     "option_id": "S05-html-practice-html-q4-2a0299bb956d:option-1"
-    },
-    {
-     "text": "将插头插座连接处以绝缘胶布逐层缠牢加以固定，即视为达到可靠连接的要求。",
-     "is_correct": false,
-     "source_error_code": "M10",
-     "temptation": "用「缠牢」的常识替代规范。",
-     "loss_reason": "缠胶布仍是活动连接，未达固定可靠连接要求。",
-     "fix": "进线端严禁插头插座活动连接，应固定连接。",
-     "option_id": "S05-html-practice-html-q4-2a0299bb956d:option-2"
-    },
-    {
-     "text": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应采用固定可靠的连接方式。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "点出「进线端」「严禁插头插座活动连接」两个关键词，判据齐。",
-     "option_id": "S05-html-practice-html-q4-2a0299bb956d:option-3"
-    },
-    {
-     "text": "电源进线端可采用插头插座连接，出线端采用固定连接，进出两端分别处理即可。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "把进线端和出线端要求记反。",
-     "loss_reason": "恰恰是进线端严禁插头插座活动连接。",
-     "fix": "电源进线端严禁插头插座活动连接。",
-     "option_id": "S05-html-practice-html-q4-2a0299bb956d:option-4"
-    }
-   ],
-   "model_answer": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应固定可靠连接。",
-   "rule_group": "进线端·管理",
-   "content_sha256": "85639595e7d4ba569d14ade4a6f3fb1fd02507987d654a4959d40bb779cb5909",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q4",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "85639595e7d4ba569d14ade4a6f3fb1fd02507987d654a4959d40bb779cb5909",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q5-e75342234659",
-   "surface_id": "practice.html",
-   "stem": "关于动力与照明配电的设置，选出正确的作答。",
-   "options": [
-    {
-     "text": "动力与照明可共用同一开关箱统一控制，只要总容量不超过箱体额定值即符合要求。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "以为省线、不超容量就能合用。",
-     "loss_reason": "动力开关箱与照明开关箱必须分设，不得合用。",
-     "fix": "动力开关箱与照明开关箱必须分设。",
-     "option_id": "S05-html-practice-html-q5-e75342234659:option-1"
-    },
-    {
-     "text": "动力配电箱与照明配电箱宜分设；合并时须分路配电；动力开关箱与照明开关箱必须分设。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "宜分设 + 合并须分路 + 开关箱必分设，层次写全。",
-     "option_id": "S05-html-practice-html-q5-e75342234659:option-2"
-    },
-    {
-     "text": "动力配电箱与照明配电箱必须共箱设置，以便于集中管理；分设反而增加箱体数量、不利维护。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "把「宜分设」记反成「必须共箱」。",
-     "loss_reason": "配电箱宜分设，开关箱必须分设，方向记反。",
-     "fix": "配电箱宜分设、开关箱必分设。",
-     "option_id": "S05-html-practice-html-q5-e75342234659:option-3"
-    },
-    {
-     "text": "照明回路可直接自动力开关箱引出一路供电，不必再为照明单独设置开关箱。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "觉得从动力箱分一路更方便。",
-     "loss_reason": "漏了「动力/照明开关箱必须分设」关键要求。",
-     "fix": "照明须单设开关箱，动力照明开关箱分设。",
-     "option_id": "S05-html-practice-html-q5-e75342234659:option-4"
-    }
-   ],
-   "model_answer": "动力配电箱与照明配电箱宜分别设置；合并设置时应分路配电；动力开关箱与照明开关箱必须分设。",
-   "rule_group": "动力照明分设·管理",
-   "content_sha256": "cedbba6f4ae298803aa6f1fa48703e57609bf250c2cc2dcceb575cf6db01dc6c",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q5",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "cedbba6f4ae298803aa6f1fa48703e57609bf250c2cc2dcceb575cf6db01dc6c",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q6-b6f04fcf0ec0",
-   "surface_id": "practice.html",
-   "stem": "施工现场临时用电正常送电（合闸）的顺序是？选出正确的作答。",
-   "options": [
-    {
-     "text": "送电顺序：开关箱 → 分配电箱 → 总配电箱，自末端设备侧逐级向电源侧合闸。",
-     "is_correct": false,
-     "source_error_code": "E06",
-     "temptation": "把停电顺序套到送电上。",
-     "loss_reason": "这是停电顺序；送电应总→分→开，顺序颠倒。",
-     "fix": "送电：总配电箱→分配电箱→开关箱。",
-     "option_id": "S05-html-practice-html-q6-b6f04fcf0ec0:option-1"
-    },
-    {
-     "text": "送电顺序：总配电箱 → 分配电箱 → 开关箱，从大到小逐级合闸送电。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "送电从总到分到开，方向写对、逐级点明。",
-     "option_id": "S05-html-practice-html-q6-b6f04fcf0ec0:option-2"
-    },
-    {
-     "text": "送电顺序：分配电箱 → 总配电箱 → 开关箱，先合中间一级、再合两端配电箱。",
-     "is_correct": false,
-     "source_error_code": "E06",
-     "temptation": "记成从中间一级先送。",
-     "loss_reason": "顺序错乱，送电必须自总箱起逐级向下。",
-     "fix": "送电：总→分→开，不能从中间起。",
-     "option_id": "S05-html-practice-html-q6-b6f04fcf0ec0:option-3"
-    },
-    {
-     "text": "送电不分先后顺序，三级配电箱同时合闸送电，以缩短全场送电作业时间。",
-     "is_correct": false,
-     "source_error_code": "M10",
-     "temptation": "以为同时合闸更快。",
-     "loss_reason": "送电有严格顺序，不得同时或随意合闸。",
-     "fix": "送电必须总→分→开逐级进行。",
-     "option_id": "S05-html-practice-html-q6-b6f04fcf0ec0:option-4"
-    }
-   ],
-   "model_answer": "送电顺序：总配电箱 → 分配电箱 → 开关箱（从大到小逐级送电）。",
-   "rule_group": "送电顺序·程序",
-   "content_sha256": "92859486809b79227c6afd22061fa7c750d094afad8a6af26cec2aa3c70e7560",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q6",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "92859486809b79227c6afd22061fa7c750d094afad8a6af26cec2aa3c70e7560",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q7-69d81c27eff7",
-   "surface_id": "practice.html",
-   "stem": "正常情况下，现场临时配电系统停电（拉闸）的顺序是？选出正确的作答。",
-   "options": [
-    {
-     "text": "停电顺序：总配电箱 → 分配电箱 → 开关箱，先断开总配电箱、一次性切除全场作业电源。",
-     "is_correct": false,
-     "source_error_code": "E06",
-     "temptation": "觉得先断总箱一把切最干净。",
-     "loss_reason": "先断总箱时开关箱仍带负荷，拉闸拉弧；这是送电顺序。",
-     "fix": "停电：开关箱→分配电箱→总配电箱。",
-     "option_id": "S05-html-practice-html-q7-69d81c27eff7:option-1"
-    },
-    {
-     "text": "停电顺序：分配电箱 → 开关箱 → 总配电箱，先切中间一级、再依次切除两端电源。",
-     "is_correct": false,
-     "source_error_code": "E06",
-     "temptation": "记成从中间一级先停。",
-     "loss_reason": "顺序错乱，停电必须从末端开关箱起。",
-     "fix": "停电：开→分→总，从末端起。",
-     "option_id": "S05-html-practice-html-q7-69d81c27eff7:option-2"
-    },
-    {
-     "text": "停电顺序与送电顺序相同：总配电箱 → 分配电箱 → 开关箱，两套操作共用一个顺序。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "图省事记成停送同序。",
-     "loss_reason": "停送电顺序相反，停电从末端开始。",
-     "fix": "送电总→分→开；停电开→分→总。",
-     "option_id": "S05-html-practice-html-q7-69d81c27eff7:option-3"
-    },
-    {
-     "text": "停电顺序：开关箱 → 分配电箱 → 总配电箱，从末端先停、逐级向总箱，防带负荷拉弧。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "停电从末端起 + 点明防带负荷拉弧，方向与理由齐。",
-     "option_id": "S05-html-practice-html-q7-69d81c27eff7:option-4"
-    }
-   ],
-   "model_answer": "停电顺序：开关箱 → 分配电箱 → 总配电箱（从末端开始，防带负荷拉闸拉弧）。",
-   "rule_group": "停电顺序·程序",
-   "content_sha256": "f48ba72ffa1653dbf32bf026831a1064b46a1f3921e6bd765cc7e82604d20e4f",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q7",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "f48ba72ffa1653dbf32bf026831a1064b46a1f3921e6bd765cc7e82604d20e4f",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q8-cc21f97146e7",
-   "surface_id": "practice.html",
-   "stem": "在金属容器（如锅炉、储罐）内作业时，照明行灯的供电电压上限应为多少？选出可得分的作答。",
-   "options": [
-    {
-     "text": "金属容器内照明电压不得大于 36V，按潮湿场所安全电压档执行。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "把 36V 这一常见档位套到金属容器。",
-     "loss_reason": "36V 是潮湿/隧道档，金属容器须降到 12V。",
-     "fix": "金属容器/锅炉内 ≤12V。",
-     "option_id": "S05-html-practice-html-q8-cc21f97146e7:option-1"
-    },
-    {
-     "text": "金属容器内照明电压不得大于 24V，较一般场所降低一档即可。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "只降一档到 24V，以为够了。",
-     "loss_reason": "24V 是易触及带电体档，金属容器要再降到 12V。",
-     "fix": "金属容器/锅炉内 ≤12V，不是 24V。",
-     "option_id": "S05-html-practice-html-q8-cc21f97146e7:option-2"
-    },
-    {
-     "text": "金属容器、锅炉内照明电压不得大于 12V，取安全电压最低一档。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "对照场所=金属容器，取 12V 最低档，判据链完整。",
-     "option_id": "S05-html-practice-html-q8-cc21f97146e7:option-3"
-    },
-    {
-     "text": "金属容器内可使用 220V 灯具照明，但须加装剩余电流保护器。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "以为加漏保就能用 220V。",
-     "loss_reason": "金属容器内必须用安全电压 12V，不能用 220V。",
-     "fix": "金属容器内 ≤12V 安全电压照明。",
-     "option_id": "S05-html-practice-html-q8-cc21f97146e7:option-4"
-    }
-   ],
-   "model_answer": "金属容器/锅炉内照明电压不得大于 12V（安全电压最低档）。",
-   "rule_group": "安全电压·条件维",
-   "content_sha256": "848482c07f930e9567e915c1938a883b93503eaf7eb0a19b6cb7215dd0631396",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q8",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "848482c07f930e9567e915c1938a883b93503eaf7eb0a19b6cb7215dd0631396",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q9-413717805b15",
-   "surface_id": "practice.html",
-   "stem": "下列安全电压限值与场所的对应，哪一项完全正确？",
-   "options": [
-    {
-     "text": "潮湿/隧道/人防 ≤24V；易触及带电体 ≤36V；金属容器/锅炉内 ≤12V。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "把 36V 与 24V 两档对调。",
-     "loss_reason": "潮湿/隧道是 36V、易触及是 24V，档位调错。",
-     "fix": "潮湿/隧道 36V、易触及 24V、金属容器 12V。",
-     "option_id": "S05-html-practice-html-q9-413717805b15:option-1"
-    },
-    {
-     "text": "潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤24V。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "金属容器顺手也写成 24V。",
-     "loss_reason": "金属容器/锅炉内须 ≤12V，不是 24V。",
-     "fix": "金属容器/锅炉内 ≤12V。",
-     "option_id": "S05-html-practice-html-q9-413717805b15:option-2"
-    },
-    {
-     "text": "上述特殊场所照明电压统一执行 ≤36V 的限值，各类场所均按同一门槛控制。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "图好记用一个门槛套所有场所。",
-     "loss_reason": "漏了 24V、12V 两档，采分点不全。",
-     "fix": "分三档：36V / 24V / 12V 对应不同场所。",
-     "option_id": "S05-html-practice-html-q9-413717805b15:option-3"
-    },
-    {
-     "text": "潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "三档场所一一对应正确，条件维不张冠李戴。",
-     "option_id": "S05-html-practice-html-q9-413717805b15:option-4"
-    }
-   ],
-   "model_answer": "潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
-   "rule_group": "安全电压分档·条件维",
-   "content_sha256": "70250ae9e319ce9aed4bfd8e06a55bcd6788ae1b88c1d38cc60073dd07d3911d",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q9",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "70250ae9e319ce9aed4bfd8e06a55bcd6788ae1b88c1d38cc60073dd07d3911d",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q10-71b997e0e31f",
-   "surface_id": "practice.html",
-   "stem": "关于手持式照明灯具（行灯）的供电要求，选出完整正确的作答。",
-   "options": [
-    {
-     "text": "手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "电压 + 双绕组隔离变压器 + 金属容器内严禁，三点齐。",
-     "option_id": "S05-html-practice-html-q10-71b997e0e31f:option-1"
-    },
-    {
-     "text": "手持灯具电压不得超过 36V，采用普通变压器将电压降至该值供电即已满足全部供电要求。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "只记住 36V 电压值。",
-     "loss_reason": "漏了「双绕组型安全隔离变压器」这一关键器件。",
-     "fix": "须用双绕组型安全隔离变压器供电。",
-     "option_id": "S05-html-practice-html-q10-71b997e0e31f:option-2"
-    },
-    {
-     "text": "手持灯具电压不得超过 36V，可采用自耦变压器降压供电，接线简单且运行可靠。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "以为自耦变压器也能降压用。",
-     "loss_reason": "自耦变压器无电气隔离，必须用双绕组隔离变压器。",
-     "fix": "必须用双绕组型安全隔离变压器。",
-     "option_id": "S05-html-practice-html-q10-71b997e0e31f:option-3"
-    },
-    {
-     "text": "手持灯具电压不得超过 36V，在此电压下于金属容器内照明使用亦属安全范围。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "以为 36V 在金属容器里也安全。",
-     "loss_reason": "金属容器内严禁手持灯具、且须 12V 照明。",
-     "fix": "金属容器内严禁使用手持灯具。",
-     "option_id": "S05-html-practice-html-q10-71b997e0e31f:option-4"
-    }
-   ],
-   "model_answer": "手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
-   "rule_group": "手持灯具·条件维",
-   "content_sha256": "72020b4402de33ad8f4329c6c5369be4ab446234f04a766772011a4f8daef877",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q10",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "72020b4402de33ad8f4329c6c5369be4ab446234f04a766772011a4f8daef877",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q11-69e222135867",
-   "surface_id": "practice.html",
-   "stem": "特殊环境（湿度大于 75%、有积水）作业未采用安全电压照明。此情形应如何定性？",
-   "options": [
-    {
-     "text": "属一般安全问题，经记录后限期整改即可，期间不影响继续作业。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "以为只是普通违规、可缓改。",
-     "loss_reason": "这是重大事故隐患，定性偏轻。",
-     "fix": "应定性为重大事故隐患，立即整改。",
-     "option_id": "S05-html-practice-html-q11-69e222135867:option-1"
-    },
-    {
-     "text": "属重大事故隐患，必须立即整改为安全电压（对应场所限值）照明。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "点出「重大事故隐患」定性 + 整改方向，后果维到位。",
-     "option_id": "S05-html-practice-html-q11-69e222135867:option-2"
-    },
-    {
-     "text": "属日常防护范畴，注意用电安全并加强现场管理即可正常作业。",
-     "is_correct": false,
-     "source_error_code": "E04",
-     "temptation": "用「加强管理」的口号带过。",
-     "loss_reason": "口号化、未定性也无可判分措施。",
-     "fix": "定性重大事故隐患 + 改用安全电压照明。",
-     "option_id": "S05-html-practice-html-q11-69e222135867:option-3"
-    },
-    {
-     "text": "为灯具加装剩余电流保护器后，可继续使用 220V 照明作业。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "以为加漏保就可用常规电压。",
-     "loss_reason": "特殊潮湿场所必须用安全电压，加漏保不替代。",
-     "fix": "须用安全电压照明，属重大隐患须整改。",
-     "option_id": "S05-html-practice-html-q11-69e222135867:option-4"
-    }
-   ],
-   "model_answer": "属重大事故隐患，应立即整改为安全电压照明。",
-   "rule_group": "重大隐患·后果维",
-   "content_sha256": "fca388c1306410980353908e3562f50facad049ca963dffb20250983e37140f8",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q11",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "fca388c1306410980353908e3562f50facad049ca963dffb20250983e37140f8",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q12-e70be6b0eac8",
-   "surface_id": "practice.html",
-   "stem": "电缆直接埋地敷设时，埋设深度应满足什么要求？选出可得分的作答。",
-   "options": [
-    {
-     "text": "电缆直接埋地敷设深度不应小于 0.5m，浅埋利于减少土方并便于日后检修。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "记成了 0.5m，觉得浅埋省事。",
-     "loss_reason": "直接埋地深度须 ≥0.7m，数字记错。",
-     "fix": "直接埋地敷设深度 ≥0.7m。",
-     "option_id": "S05-html-practice-html-q12-e70be6b0eac8:option-1"
-    },
-    {
-     "text": "电缆直接埋地敷设深度不应小于 0.7m，穿越处应加保护套管并设警示标识。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "0.7m 阈值 + 保护措施，条件维带全。",
-     "option_id": "S05-html-practice-html-q12-e70be6b0eac8:option-2"
-    },
-    {
-     "text": "电缆沿地面明敷并全程加盖木板保护，即可替代埋地敷设的深度要求。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "以为盖木板就等于保护。",
-     "loss_reason": "要求直接埋地 ≥0.7m，明敷不合规。",
-     "fix": "电缆直接埋地敷设 ≥0.7m。",
-     "option_id": "S05-html-practice-html-q12-e70be6b0eac8:option-3"
-    },
-    {
-     "text": "电缆按埋地方式敷设即可，具体深度依据现场土质与开挖条件确定。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "只答「埋地」不给深度。",
-     "loss_reason": "漏了「≥0.7m」这一关键数值。",
-     "fix": "直接埋地深度不应小于 0.7m。",
-     "option_id": "S05-html-practice-html-q12-e70be6b0eac8:option-4"
-    }
-   ],
-   "model_answer": "电缆直接埋地敷设深度不应小于 0.7m，穿越道路等处应加保护套管并设警示。",
-   "rule_group": "电缆埋地·条件维",
-   "content_sha256": "c1d816679b217145135ff1dac7ba6b952f0a03614524789381e4b1aff0ddb2c6",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q12",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "c1d816679b217145135ff1dac7ba6b952f0a03614524789381e4b1aff0ddb2c6",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q13-41d536efd2ec",
-   "surface_id": "practice.html",
-   "stem": "五芯电缆中，N 线（工作零线）与 PE 线（保护零线）的标识色分别是？选出正确的作答。",
-   "options": [
-    {
-     "text": "N 线为蓝色，PE 线为黄绿双色，二者颜色不得混用或挪作他用。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "N 蓝、PE 黄绿对应正确，并点明不得挪用。",
-     "option_id": "S05-html-practice-html-q13-41d536efd2ec:option-1"
-    },
-    {
-     "text": "N 线为黄绿双色，PE 线为蓝色，按接零保护系统惯用配色执行。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "把 N 与 PE 的颜色对调。",
-     "loss_reason": "应是 N 蓝、PE 黄绿，颜色记反。",
-     "fix": "N 线=蓝色、PE 线=黄绿双色。",
-     "option_id": "S05-html-practice-html-q13-41d536efd2ec:option-2"
-    },
-    {
-     "text": "N 线为黑色，PE 线为绿色，能够与相线颜色明确区分即可。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "随手写成黑、绿也能区分。",
-     "loss_reason": "N 是蓝色、PE 是黄绿双色，颜色错。",
-     "fix": "N=蓝色、PE=黄绿双色。",
-     "option_id": "S05-html-practice-html-q13-41d536efd2ec:option-3"
-    },
-    {
-     "text": "N 线与 PE 线的颜色不作强制规定，由现场统一标注加以区分。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "以为现场自定就行。",
-     "loss_reason": "标识色是强制规定，N 蓝 PE 黄绿。",
-     "fix": "N=蓝色、PE=黄绿双色（强制）。",
-     "option_id": "S05-html-practice-html-q13-41d536efd2ec:option-4"
-    }
-   ],
-   "model_answer": "N 线=蓝色；PE 线=黄绿双色。二者不得混用或挪作他用。",
-   "rule_group": "标识色·条件维",
-   "content_sha256": "5d2b8c36285853488f4f17e0c85fb8ca374bae93249c4c881b6a745a264c2b9c",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q13",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "5d2b8c36285853488f4f17e0c85fb8ca374bae93249c4c881b6a745a264c2b9c",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q14-7b84c2b178f5",
-   "surface_id": "practice.html",
-   "stem": "配电箱、开关箱的金属箱门与箱体之间应采用什么连接？选出正确的作答。",
-   "options": [
-    {
-     "text": "金属箱门与箱体之间应采用多股编织铜带进行连接，截面越大、质地越软效果越好。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "以为编织带更软更导电。",
-     "loss_reason": "规范要求单股铜线连接，材料记错。",
-     "fix": "金属箱门与箱体连接用单股铜线。",
-     "option_id": "S05-html-practice-html-q14-7b84c2b178f5:option-1"
-    },
-    {
-     "text": "金属箱门与箱体之间应用单股铜线做电气连接（跨接），保证箱门可靠接地。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "单股铜线跨接、点明可靠接地，材料与目的齐。",
-     "option_id": "S05-html-practice-html-q14-7b84c2b178f5:option-2"
-    },
-    {
-     "text": "金属箱门与箱体经合页金属接触即可自然导通，无需另行设置跨接连接线。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "以为合页接触就够。",
-     "loss_reason": "合页接触不可靠，须专设单股铜线跨接。",
-     "fix": "须用单股铜线做电气跨接。",
-     "option_id": "S05-html-practice-html-q14-7b84c2b178f5:option-3"
-    },
-    {
-     "text": "金属箱门与箱体之间应设塑料绝缘条隔离，避免箱门带电以提高安全性。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "以为隔开绝缘更安全。",
-     "loss_reason": "箱门须可靠接地而非绝缘隔离，概念反了。",
-     "fix": "用单股铜线跨接使箱门可靠接地。",
-     "option_id": "S05-html-practice-html-q14-7b84c2b178f5:option-4"
-    }
-   ],
-   "model_answer": "金属箱门与箱体之间应采用软铜线（单股铜线）做电气连接（跨接）。",
-   "rule_group": "箱门连接·条件维",
-   "content_sha256": "6384f232f17aa2e714dcde042ecf3b7a43495a83f1062eeb3634f7b8dc37a772",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q14",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "6384f232f17aa2e714dcde042ecf3b7a43495a83f1062eeb3634f7b8dc37a772",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q15-1f24bad13a7c",
-   "surface_id": "practice.html",
-   "stem": "关于电工上岗与用电设备的安装拆除，选出正确的作答。",
-   "options": [
-    {
-     "text": "电工经企业内部培训并熟悉操作后即可上岗；用电设备可由熟练工人自行拆除。",
-     "is_correct": false,
-     "source_error_code": "M10",
-     "temptation": "用「有经验/熟练」替代持证。",
-     "loss_reason": "电工须持证上岗，拆除须电工完成。",
-     "fix": "电工持证上岗，用电设备拆除由电工完成。",
-     "option_id": "S05-html-practice-html-q15-1f24bad13a7c:option-1"
-    },
-    {
-     "text": "用电设备的拆除应由现场安全员完成并负责监督，其对安全的把握更为专业。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "觉得安全员更懂安全、可代劳。",
-     "loss_reason": "拆除应由电工完成，主体写错。",
-     "fix": "用电设备拆除应由电工完成（非安全员）。",
-     "option_id": "S05-html-practice-html-q15-1f24bad13a7c:option-2"
-    },
-    {
-     "text": "电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "持证上岗 + 拆除由电工完成，主体两点齐。",
-     "option_id": "S05-html-practice-html-q15-1f24bad13a7c:option-3"
-    },
-    {
-     "text": "电工须持证上岗；用电设备的安装拆除属机械作业范畴，可由机操工兼任完成。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "抓住持证一点，漏了拆除主体。",
-     "loss_reason": "漏「拆除由电工完成」这一采分点。",
-     "fix": "用电设备安装拆除均应由电工完成。",
-     "option_id": "S05-html-practice-html-q15-1f24bad13a7c:option-4"
-    }
-   ],
-   "model_answer": "电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
-   "rule_group": "电工持证·主体维",
-   "content_sha256": "f71e9c07b3d210780d654864a356ab6350b5ab506e71740e5e26ad2bcd27408b",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q15",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "f71e9c07b3d210780d654864a356ab6350b5ab506e71740e5e26ad2bcd27408b",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q16-0473406d7fe0",
-   "surface_id": "practice.html",
-   "stem": "某工程临时用电总容量 50kW 以上，且进入装饰装修阶段。用电文件应如何编制？选出正确的作答。",
-   "options": [
-    {
-     "text": "总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "50kW 组织设计 + 装饰阶段补方案，两项齐。",
-     "option_id": "S05-html-practice-html-q16-0473406d7fe0:option-1"
-    },
-    {
-     "text": "总容量 50kW 以上编制用电组织设计后，装饰装修阶段继续沿用原设计执行、不必再另行编制。",
-     "is_correct": false,
-     "source_error_code": "E05",
-     "temptation": "以为一份组织设计管到底。",
-     "loss_reason": "漏识别装饰阶段用电变化，须补编单项方案。",
-     "fix": "装饰装修阶段应补编单项施工用电方案。",
-     "option_id": "S05-html-practice-html-q16-0473406d7fe0:option-2"
-    },
-    {
-     "text": "装饰装修阶段补充编制单项施工用电方案即可，总容量大小不影响文件编制要求。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "只记住补方案，漏了 50kW 门槛。",
-     "loss_reason": "漏「50kW 及以上编用电组织设计」采分点。",
-     "fix": "50kW 及以上须编用电组织设计。",
-     "option_id": "S05-html-practice-html-q16-0473406d7fe0:option-3"
-    },
-    {
-     "text": "编制一份涵盖临时用电内容的防火防雷专项方案即可，无需再单独编制用电文件。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "用防火防雷方案冒充用电文件。",
-     "loss_reason": "须编用电组织设计 + 单项用电方案，文件套错。",
-     "fix": "50kW+ 编用电组织设计、装饰阶段补单项用电方案。",
-     "option_id": "S05-html-practice-html-q16-0473406d7fe0:option-4"
-    }
-   ],
-   "model_answer": "总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
-   "rule_group": "组织设计·主体维",
-   "content_sha256": "78ba6c96527a282784400ab43f8d3f9b52baaf51b29000a3b14c988aa6404ef5",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q16",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "78ba6c96527a282784400ab43f8d3f9b52baaf51b29000a3b14c988aa6404ef5",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q17-d820bcd74e8d",
-   "surface_id": "practice.html",
-   "stem": "关于堆料场临时用电布置（综合纠错），选出各项均正确的作答。",
-   "options": [
-    {
-     "text": "开关箱与配电箱间距不得大于 30m；堆料场采用碘钨灯照明以增强照度。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "觉得堆场大、碘钨灯亮更好用。",
-     "loss_reason": "仓库堆料场严禁碘钨灯（高温易燃）。",
-     "fix": "仓库堆料场严禁使用碘钨灯。",
-     "option_id": "S05-html-practice-html-q17-d820bcd74e8d:option-1"
-    },
-    {
-     "text": "开关箱与配电箱间距不得大于 50m；仓库、堆料场严禁使用碘钨灯照明。",
-     "is_correct": false,
-     "source_error_code": "M08",
-     "temptation": "把间距记成 50m。",
-     "loss_reason": "开关箱与配电箱间距须 ≤30m，数字错。",
-     "fix": "开关箱与配电箱间距 ≤30m。",
-     "option_id": "S05-html-practice-html-q17-d820bcd74e8d:option-2"
-    },
-    {
-     "text": "开关箱与配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯照明。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "30m 间距 + 严禁碘钨灯，综合纠错两点齐。",
-     "option_id": "S05-html-practice-html-q17-d820bcd74e8d:option-3"
-    },
-    {
-     "text": "开关箱靠近用电设备布置、与配电箱间距不设硬性限值；碘钨灯移离堆垛后使用。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "以为就近就行、灯挪远即可。",
-     "loss_reason": "漏 30m 间距硬指标，且堆料场严禁碘钨灯。",
-     "fix": "间距 ≤30m，仓库堆料场严禁碘钨灯。",
-     "option_id": "S05-html-practice-html-q17-d820bcd74e8d:option-4"
-    }
-   ],
-   "model_answer": "开关箱与其控制的固定式配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯。",
-   "rule_group": "堆场综合·条件维",
-   "content_sha256": "e94bcbc1d37383a027b1fb845f3889e1421e8472f6a2489df19d648f561935d5",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q17",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "e94bcbc1d37383a027b1fb845f3889e1421e8472f6a2489df19d648f561935d5",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "S05-html-practice-html-q18-236101054350",
-   "surface_id": "practice.html",
-   "stem": "案例：现场做法有①装饰阶段仅按原组织设计用电、②切割机与搅拌机共用一开关箱、③开关箱用插头插座与配电箱连接。某学生只答「②共用不妥，应分开」。选出最准确的诊断与补写。",
-   "options": [
-    {
-     "text": "学生已指出②共用开关箱不妥且改正方向正确，作答与采分要求基本相符，本题可按大部分得分处理、无需再补写。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "看方向对就以为差不多。",
-     "loss_reason": "漏诊①③两处不妥，②改正也缺判据，失分严重。",
-     "fix": "补①装饰补方案、③进线端禁插接，②补专用开关箱判据。",
-     "option_id": "S05-html-practice-html-q18-236101054350:option-1"
-    },
-    {
-     "text": "仅需将②中的「应分开」补写为「专用开关箱」即告完整；①按原用电组织设计用电与③采用插头插座连接的做法均无不妥、不必再作答。",
-     "is_correct": false,
-     "source_error_code": "E05",
-     "temptation": "以为只有②一处不妥。",
-     "loss_reason": "①装饰未补方案、③插头插座连接都是不妥，审题漏项。",
-     "fix": "①③均不妥，须一并指出并改正。",
-     "option_id": "S05-html-practice-html-q18-236101054350:option-2"
-    },
-    {
-     "text": "本题重点为③进线端插头插座连接不妥并给出改正；①装饰阶段用电与②共用开关箱做法符合规范、无需改动。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "抓到③却把①②当合规。",
-     "loss_reason": "②共用开关箱、①装饰未补方案同样不妥，判断反了。",
-     "fix": "①②③三处都不妥，逐条指出并给判据。",
-     "option_id": "S05-html-practice-html-q18-236101054350:option-3"
-    },
-    {
-     "text": "②改正缺规范判据（应写专用开关箱、严禁 2 台及以上含插座）；还漏诊①装饰阶段补方案、③进线端禁插头插座，三处均须补。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "半命中项补判据 + 补齐两处漏诊，指漏到具体采分句。",
-     "option_id": "S05-html-practice-html-q18-236101054350:option-4"
-    }
-   ],
-   "model_answer": "②改正缺判据（应写专用开关箱、严禁2台及以上含插座）；漏诊①装饰阶段应补编单项用电方案、③进线端严禁插头插座活动连接，三处都要补。",
-   "rule_group": "采分诊断·末题",
-   "content_sha256": "7c39d4a4c634844872b12db42cd3aa67dedfd5260da06e27bacb971e026b8bab",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q18",
-   "authoring_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "7c39d4a4c634844872b12db42cd3aa67dedfd5260da06e27bacb971e026b8bab",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "Fable 主控全量重裁 2026-07-20 (owner 清尾令, 签发权 owner-delegated)。历史: 2026-07-16 变体银行线终轮 REFUTED + 异源对抗退批(编译管道病), 后经修复重编译, 本 packet content_sha256 与 authority 18/18 全对齐、无陈旧血统。历史退批「无有效锚」fact 清单逐条对照: S05 唯一登记项 s05-fact-below-50kw-measures(『50kW 以下编制措施即可』逆命题, 仅挂 exam:2018:第17题, 该题只证『50kW 及以上应编制用电组织设计』正命题)——本次投影 5 题与三件套 3 题均不探该逆命题断言; q18① 装饰阶段补编单项方案由 exam:2023:第1题 正确做法① 逐字直证, 与被退批 fact 无涉, 历史退批 fact 在本签发集内零暴露。本轮裁决: 教材源 _S05_compiled_source.json 6 unit 15 采分点全文通读, kc 引文逐字核对; 真题 _S05_exam_evidence.json 41 条中 exam:2023:第1题(临电①②③不妥+正确做法)与 exam:2016:第13题(金属容器12V, 答案C)逐字核对。数值复核: 36/24/12V 三档、TN-S(非TN-C)、『二级剩余电流动作保护』口径、湿度>75% 均教材逐字; 签发集内无 30mA/0.1s、隔离距离类断言, 未引外部规范越权仲裁(authority-ladder)。三件套按 C06 概念级 fact 先例取 s05-fact-safety-voltage-application(教材采分点 statement 原题名『安全特低电压应用』), q8/q9 共享同一采分点 kc:1A431011_015_0016:2, q11 为同一应用规则后果维, 分组诚实; 与变体银行线按子断言拆分 fact 的命名差异已显式记录。工单(非阻断): (1) q2 正确项『不得越级直接接用电设备』超出 kc 引文字面(三级配电制度必然含义, 不使选项变错), 建议教材线补『逐级配电』原文分片回填; (2) q1/q8/q9/q11 正确项并列最长/持平(差≤2字), 正确项位置分布 3/1/4/3/3/4/2/4 无恒位模板; (3) 未签 q14(箱门单股铜线)与 JGJ46 通说『编织软铜线』口径张力, 本包真题 exam:2020:第15题 载答案A, 移交编译线复核真题答案键。",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
   }
- ]
 }

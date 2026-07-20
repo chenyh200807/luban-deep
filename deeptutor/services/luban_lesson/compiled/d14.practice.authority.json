@@ -24,9 +24,18 @@
         "D14-html-practice-html-q4-6d0980f3a1b8",
         "D14-html-practice-html-q16-81bcaf7123e6"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDRlNGQ1NDFjNDc5IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00Y2E2NzdmZWNjMmYiLCJEMTQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWI0MWEyYWQxMGFhNyIsIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNmQwOTgwZjNhMWI4IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtODFiY2FmNzEyM2U2Il0sInBhY2tfaWQiOiJEMTQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjQ1ZjE4Yzk3YTUxNmNhMWM5NzdjYWZkNGJmYTY5NGM4MWRlOTQyMzgzMWFhOWQwYTY4MWU2ZDkwMjc0OTk1YTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "39ba291254c207b4334dd5eb9633da24cb0ab8702cc93d0aa002c3688ccef385"
+      "eligible_variant_ids": [
+        "D14-html-practice-html-q1-44e4d541c479",
+        "D14-html-practice-html-q2-4ca677fecc2f",
+        "D14-html-practice-html-q3-b41a2ad10aa7",
+        "D14-html-practice-html-q4-6d0980f3a1b8",
+        "D14-html-practice-html-q6-6fa91fc40768",
+        "D14-html-practice-html-q8-11e90142fc80",
+        "D14-html-practice-html-q9-35b59fc2fead",
+        "D14-html-practice-html-q16-81bcaf7123e6"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDRlNGQ1NDFjNDc5IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00Y2E2NzdmZWNjMmYiLCJEMTQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWI0MWEyYWQxMGFhNyIsIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNmQwOTgwZjNhMWI4IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtODFiY2FmNzEyM2U2Il0sInBhY2tfaWQiOiJEMTQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImZkNTgxNTFmMjdlZWZkMmI4Y2VjNjYxYjM3ODE3YTNmZTQ0YmVlNGU3NzZmYThkZTM1NDlmOWY3ZDYxNzNiNDAiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWY0NDBhYTc2Y2EwODNiOGVmMzFhYTEzZmYxOGE0NDlmZTI2N2FjMDdjN2NjNTI2NDBjM2RhZmFhNDRiODc3NSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "a1eaa8a89963e6a0ec8dbd90bbb02bd297d887f9385de4e5e60698f65b859811"
     }
   ],
   "items": [
@@ -79,29 +88,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_139_0268:0",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-ceiling-keel-spacing",
+      "skeleton_id": "d14-skel-主次龙骨间距构造",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "df3b5c9db8be7d0cdfa11d5bfd7c108105239b9e349b7ea1acc2fbd064d51a3f",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "df3b5c9db8be7d0cdfa11d5bfd7c108105239b9e349b7ea1acc2fbd064d51a3f",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "主龙骨≤1200mm/悬臂≤300mm/接头错开;次龙骨≤600mm/不搭接/洞口设附加龙骨, 教材 kc:1A413030_139_0268:0(主龙骨)+:1(次龙骨)同 chunk 逐字忠实。正确项 option-4 集齐主次间距+悬臂+接头+洞口四件。工单: 正确项系四项最完整选项(倾向最长), 但错误干扰项各有硬伤(主次张冠李戴/漏项/搭接), 单选唯一正确。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +173,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_138_0267:0",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-hanger-overlength",
+      "skeleton_id": "d14-skel-吊杆超长反支撑转换层",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "233abda047100e4639fec1704b8fda85cff522083bb67aa118dc9e23348379b1",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "233abda047100e4639fec1704b8fda85cff522083bb67aa118dc9e23348379b1",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "吊杆>1500mm设反支撑/>2500mm设钢结构转换层/遇梁风管横担/不直接吊挂设备/灯具风口附加龙骨, 教材 kc:1A413030_138_0267:0 逐字忠实(正确项未列预埋杆件焊接=真子集不使其变错)。⚠️源库标签污染=吊顶内容误挂地基 leaf 1A413022, compiled_source 已取作吊顶本体留痕, 不影响采分事实。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +258,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_139_0268:2",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-gypsum-board-fixing",
+      "skeleton_id": "d14-skel-石膏板中间向四周固定",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "f7d2094b45758bb103344adb942f62af16495b39077afb5dbd1ce253e3d373e2",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "f7d2094b45758bb103344adb942f62af16495b39077afb5dbd1ce253e3d373e2",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "从中间向四周自由固定/长边沿纵向铺设/螺钉间距150~170mm/钉眼防锈/双层板接缝错开, 教材 kc:1A413030_139_0268:2 逐字忠实。正确项 option-3 四件齐, E07(方向反)/E02(漏项)/E04(只刷漆)干扰项均有硬伤。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +343,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A434000_078_0124:0",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-ceiling-anticrack",
+      "skeleton_id": "d14-skel-顶棚防裂五点",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "34f9cc517e610249d9984c5165d224f344cfa9856cc63e87b7b3f97738ecf86b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "34f9cc517e610249d9984c5165d224f344cfa9856cc63e87b7b3f97738ecf86b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "石膏板顶棚防裂5要点=吊筋间距≤1200mm/拼缝错缝不密拼/螺钉固定牢固/转角加强/嵌缝饱满, 教材 kc:1A434000_078_0124:0 逐字忠实。工单: 本题正确项 option-1(首位), 与 q1/q3 正确项非首位并列=本包正确项位置分散(非'恒首位'模板病, 健康)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -444,29 +501,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_140_0272:1",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-slab-floor-hollowing",
+      "skeleton_id": "d14-skel-石材浸湿晾干防空鼓",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "bf6d557a151fe134dc63a4956d56b550ecfd931b3c1102a4f745aa1820290295",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "bf6d557a151fe134dc63a4956d56b550ecfd931b3c1102a4f745aa1820290295",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "大理石、花岗石铺设前应浸湿、晾干, 防止吸水导致空鼓, 教材 kc:1A413030_140_0272:1 逐字忠实。三件套 d1_probe(同地面板块湿贴防空鼓 fact, 次日以石材浸湿预处理复探, 第3独立 skeleton)。工单: 正确项 option-2 含完整流程+浸湿预处理(倾向最完整最长), 干扰项各有顺序颠倒/漏项/当瓷砖泡透硬伤。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -590,29 +659,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_140_0273:0",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-slab-floor-hollowing",
+      "skeleton_id": "d14-skel-瓷砖浸砖在铺浆前",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "1c2b7ea24534ec2251df3945ea900b304594ea549daa174d354dd95bf63cfa7c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "1c2b7ea24534ec2251df3945ea900b304594ea549daa174d354dd95bf63cfa7c",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "瓷砖面层流程=基层→放线→浸砖→铺砂浆→铺砖→养护→勾缝, 浸砖在铺砂浆前防未浸砖致空鼓, 教材 kc:1A413030_140_0273:0 逐字忠实(chunk note='未浸砖致空鼓')。三件套 immediate_confirm(同地面板块湿贴防空鼓 fact, 以瓷砖浸砖预处理正查)。skeleton 与 q9/q6 互异。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -663,29 +744,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A434000_078_0123:0",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-slab-floor-hollowing",
+      "skeleton_id": "d14-skel-空鼓防治五点",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "ca15c91a6a76f30c3c26a344e5f3d2fc606dc79eb8499bebea5fa9d05625167e",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "ca15c91a6a76f30c3c26a344e5f3d2fc606dc79eb8499bebea5fa9d05625167e",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "板块类地面空鼓防治5要点=基层清理干净/水泥基粘结材料/油性防护石材用界面剂+背砂/大面积设伸缩缝/养护到位, 教材 kc:1A434000_078_0123:0 逐字忠实。三件套 anchor(地面板块湿贴防空鼓 fact 的病因与治法)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1174,30 +1267,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A422000_043_0069:0",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-decoration-defect-diagnosis",
+      "skeleton_id": "d14-skel-三子域采分诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "3e06f9840e244db50eb741d72d37d10a6edbe3eaad23b4f6b316b71a892d5256",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "3e06f9840e244db50eb741d72d37d10a6edbe3eaad23b4f6b316b71a892d5256",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:19+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "综合诊断题:三处硬伤=①次龙骨不得搭接(应断开对接+洞口附加龙骨,锚 kc:1A413030_139_0268:1)②瓷砖须浸砖在铺砂浆前+空鼓按五断点治(锚 kc:1A413030_140_0273/kc:1A434000_078_0123)③砌体门窗严禁射钉(签发锚 kc:1A422000_043_0069:0 逐字'在砌体上安装门窗严禁用射钉固定')。为复合诊断题, 无单一采分点权威, 取三伏笔中判分眼最窄最不可撼动的'砌体禁射钉'作签发锚, 其余两 fact 已在 q1/q8/q9 各自成锚, 交叉可溯。q16 原空手, 经 prefill --threshold 0.12 放宽后 kc:1A422000_043_0069:0(0.1837) 为最强候选。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "aa458a1ef00493aa75f300992e7d8b4063ded0d6dd9b35faca0d948e9598d0a3"
+  "published_lesson_sha256": "7d3473f21cc8a3b15cec1798e247222243f9eb3769dcf4a13d42a639c2a69f4e"
 }

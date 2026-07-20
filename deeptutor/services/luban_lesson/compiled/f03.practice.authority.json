@@ -24,9 +24,18 @@
         "F03-html-practice-html-q4-5436a7f644e1",
         "F03-html-practice-html-q15-add11dbc2a8d"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTFlOGMzN2QzMDk1IiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03OWM2MjlmYjEyMjYiLCJGMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTNhZDJiZmRiYWRjMCIsIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNTQzNmE3ZjY0NGUxIiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYWRkMTFkYmMyYThkIl0sInBhY2tfaWQiOiJGMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjZmNGEwYmUyOWU4YjNjNjM5ZjFkMjY0NDhlZDE3NDFhYjkwNDJlNzZhNjhhNjgyZGRhOTliNzdlNDMwODUwN2YiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "aef9b9d2da6496b8c9dd9d0fa94938c1ca98e980721b6386d65a0728989877d6"
+      "eligible_variant_ids": [
+        "F03-html-practice-html-q1-a1e8c37d3095",
+        "F03-html-practice-html-q2-79c629fb1226",
+        "F03-html-practice-html-q3-3ad2bfdbadc0",
+        "F03-html-practice-html-q4-5436a7f644e1",
+        "F03-html-practice-html-q10-2d6fe403e5c8",
+        "F03-html-practice-html-q11-defc7bbb052d",
+        "F03-html-practice-html-q12-6dd197458378",
+        "F03-html-practice-html-q15-add11dbc2a8d"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTFlOGMzN2QzMDk1IiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03OWM2MjlmYjEyMjYiLCJGMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTNhZDJiZmRiYWRjMCIsIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNTQzNmE3ZjY0NGUxIiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYWRkMTFkYmMyYThkIl0sInBhY2tfaWQiOiJGMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImEwNDgyNWY2YTMwYTZjODA0MDE5YjIxMGZmYzcxOTA1NDFiN2MwOTc2Yjk0OTIwYjM4N2JlMzYyNmZkNDMwOGUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiOGE0MTQyNmYzMjk0ZmE0N2E3ZmNkODhhZTliNDcwYjZiOTAzNGYxMDMzZDJlYjA0NDJhNmJjNDkyMjg2NjQ1MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "e11fae66967b88f09590b9e2f32ee94ee01dd57282edcd9db2a52d50f113aede"
     }
   ],
   "items": [
@@ -79,29 +88,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_122_0230:0",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
       "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f03-fact-roof-grade-tiers",
+      "skeleton_id": "f03-skel-屋面三级各级道数",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "1af87cdf8911a0a6d2eb8b3b54fda74f011f933f39aea376c620ca92c1bf182d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "1af87cdf8911a0a6d2eb8b3b54fda74f011f933f39aea376c620ca92c1bf182d",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "平屋面防水分一/二/三级三级; 一级≥3道(卷材≥1道)·二级≥2道·三级≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。工单: 正确项恒非首位(选项2), template artifact 需全包扫。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +173,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_122_0230:0",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
       "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f03-fact-roof-level1-layers",
+      "skeleton_id": "f03-skel-屋面一级3道卷材1道",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "b7783982e487ff6c799161435a3af12f619bcb9091b10cb7a55c86bf4ad4d779",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "b7783982e487ff6c799161435a3af12f619bcb9091b10cb7a55c86bf4ad4d779",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "屋面一级防水≥3道其中卷材防水层≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +258,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_122_0230:2",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
       "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f03-fact-roof-basic-principle",
+      "skeleton_id": "f03-skel-屋面以防为主年限20附加层",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "7d70ba640e36d4fb494c23759ac9b3ae88998832f41d7d4da204979bb67f5575",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "7d70ba640e36d4fb494c23759ac9b3ae88998832f41d7d4da204979bb67f5575",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "屋面防水以防为主以排为辅·设计年限≥20年·天沟檐沟变形缝泛水设附加层, 教材 kc:1A413030_122_0230:2 直引。投影 anchor。正确项(年限口径‘工作年限’与教材‘设计年限’同指20年)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +343,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2020:第12题",
+      "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
       "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f03-fact-inverted-roof-order",
+      "skeleton_id": "f03-skel-倒置式自下而上层序",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "205a1e3593ae81fac2770259ea8a3c8c52e93e969ab7fee9068dbe7adde068ef",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "205a1e3593ae81fac2770259ea8a3c8c52e93e969ab7fee9068dbe7adde068ef",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "倒置式屋面自下而上=结构层→找坡层→找平层→防水层→保温层→保护层, 真题 exam:2020:第12题 答案B(①④⑤⑥②③)+口诀‘结构找坡再找平,防水保温后保护’逐字支持。投影 anchor。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -736,29 +793,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_130_0247:0",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
       "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f03-fact-underground-structure-method",
+      "skeleton_id": "f03-skel-地下一级3道P8",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "8f2b751c5685540dcebede59aa91503b162660ed223d0cd337c7c48c1c6c0e66",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "8f2b751c5685540dcebede59aa91503b162660ed223d0cd337c7c48c1c6c0e66",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "地下一级防水≥3道·防水混凝土1道应选·外设≥2道(卷材或涂料≥1道)·抗渗≥P8, 教材 kc:1A413030_130_0247:0 直引。三件套 anchor(地下主体结构防水做法 fact)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -809,29 +878,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_130_0247:1",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
       "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f03-fact-underground-structure-method",
+      "skeleton_id": "f03-skel-地下三级1道P6",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "24440c7a4584bf3c6ee93b4e0cc04d436fcc22f0c432f3172481f960c9008676",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "24440c7a4584bf3c6ee93b4e0cc04d436fcc22f0c432f3172481f960c9008676",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "地下三级防水≥1道·防水混凝土1道应选·外设不作要求·抗渗≥P6, 教材 kc:1A413030_130_0247:1 直引。三件套 immediate_confirm(同地下主体结构防水做法 fact, skeleton 异于 q10)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -882,29 +963,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_130_0249:0",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
       "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f03-fact-underground-structure-method",
+      "skeleton_id": "f03-skel-防水混凝土试配P8到P10",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "04843f66b7e42156528da5446f77f345f5414da036ddd9f492e20ec0a2e96c6b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "04843f66b7e42156528da5446f77f345f5414da036ddd9f492e20ec0a2e96c6b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "防水混凝土试配抗渗比设计提高0.2MPa(设计P8则试配P10), 教材 kc:1A413030_130_0249:0 直引。三件套 d1_probe(同 fact 之防水混凝土自防水采分点, 第3独立 skeleton)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1101,30 +1194,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_133_0256:0",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
       "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f03-fact-indoor-waterproof-height",
+      "skeleton_id": "f03-skel-室内翻起三档诊断",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "2f1bf1e830ec79a6de35099d9ec6254e0a3a6be6c21e499949c4f0f6d1a73c79",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "2f1bf1e830ec79a6de35099d9ec6254e0a3a6be6c21e499949c4f0f6d1a73c79",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:02+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "室内防水翻起 淋浴区≥2000mm·盥洗用水处≥1200mm·其他泛水≥250mm, 教材 kc:1A413030_133_0256:0 直引; 诊断末题正确项=淋浴1800偏低改≥2000/盥洗补≥1200/其他250对。投影 anchor。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "4af66559a31a97fc960bf9823580cfd2baa54461bc2b29499946951e545991fb"
+  "published_lesson_sha256": "38b7c4259451136733770ac666aa790906852a91ecfc9b5215c266e10b554f13"
 }

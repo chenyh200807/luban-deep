@@ -1,0 +1,438 @@
+{
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "N02",
+  "source_pack_sha256": "272cacd10a5be6faa88e13c85a79cfd5570cde2e4bf03de07beaee99af40effd",
+  "source_bundle_sha256": "e5e16177ddab5b2495739cd0f5ce1e94b56ab0ded9b59327b616e78736c191f6",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 6,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "N02-html-practice-html-q1-f0ad516c7201",
+      "surface_id": "practice.html",
+      "stem": "某工程四个施工过程的流水节拍为 3、3、6、3 个月。判定流水组织类型，选出最完整、能得分的作答。",
+      "options": [
+        {
+          "text": "节拍不全相等但均成倍数（6=2×3），判「等步距异节奏流水」，步距取各节拍最大公约数。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "判据链写全：先点成倍数、再定类型、并指向 K=最大公约数，三件齐。",
+          "option_id": "N02-html-practice-html-q1-f0ad516c7201:option-1"
+        },
+        {
+          "text": "节拍 3、3、6、3 不全相等、看着无规律，判为「无节奏流水」，用大差法逐段求步距。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "看 3、3、6、3 不全等，第一反应「无规律·无节奏」。",
+          "loss_reason": "漏了「成倍数·等步距异节奏」这档；判型错是地基错，K/队数/工期连锁全错。",
+          "fix": "先看成不成倍数：本题成倍数，应判等步距异节奏。",
+          "option_id": "N02-html-practice-html-q1-f0ad516c7201:option-2"
+        },
+        {
+          "text": "四个里三个节拍都是 3，判为「等节奏流水」，流水步距 K=t=3 个月、各段连续施工。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "四个里三个都是 3，像等节奏。",
+          "loss_reason": "等节奏要求所有节拍全等，而 6≠3，条件不成立。",
+          "fix": "等节奏须全部节拍相等；本题有 6，应判等步距异节奏。",
+          "option_id": "N02-html-practice-html-q1-f0ad516c7201:option-3"
+        },
+        {
+          "text": "节拍不同不必先判型，直接取最大节拍 6 当步距把队伍排开施工，省去判型这步。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "想省事，跳过判型直接取步距开干。",
+          "loss_reason": "判型是采分地基，跳过=丢判据分，且 K 取最大节拍本身就错。",
+          "fix": "先写「成倍数·等步距异节奏」，再据型取 K=最大公约数。",
+          "option_id": "N02-html-practice-html-q1-f0ad516c7201:option-4"
+        }
+      ],
+      "model_answer": "判型：节拍不全相等但成倍数（6=2×3）· 等步距异节奏流水；流水步距取各节拍最大公约数。",
+      "rule_group": "判型·条件维",
+      "content_sha256": "da3581d5e61b30f082ff51ed38ef3949873de98e588d35ab690a4fb2c9813678",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N02/P40_N02.practice.dc.html#Q1",
+      "authoring_sha256": "3b3e17aca88aa74f0281819197dce1b1993a5e8605976b15e1f8cb5ffddb850b",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "da3581d5e61b30f082ff51ed38ef3949873de98e588d35ab690a4fb2c9813678",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "N02-html-practice-html-q2-813072d92c5a",
+      "surface_id": "practice.html",
+      "stem": "承上题（已判等步距异节奏，节拍 3、3、6、3）。求流水步距 K，写出可得分的算式与依据。",
+      "options": [
+        {
+          "text": "步距要能排开工序，取各节拍「最大值」：K=6 个月，按最长的砌筑节拍定步距。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "怕步距小排不开，想用最长工序节拍当步距。",
+          "loss_reason": "K 取最大节拍会让队排稀、施工段空等，违反 K=最大公约数。",
+          "fix": "据型 K=gcd(3,6)=3，不是最大节拍。",
+          "option_id": "N02-html-practice-html-q2-813072d92c5a:option-1"
+        },
+        {
+          "text": "折中处理时取各节拍「平均值」：K=(3+3+6+3)÷4=3.75 个月，认为这样能兼顾各工序不排稀。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "平均看着「折中又公平」。",
+          "loss_reason": "流水步距没有平均口径，3.75 非整数无法让各段整数个 K 咬合。",
+          "fix": "用最大公约数 3，不是平均值。",
+          "option_id": "N02-html-practice-html-q2-813072d92c5a:option-2"
+        },
+        {
+          "text": "步距取各节拍「最小值」保证咬合：K=3 个月，用最短节拍定步距最紧凑。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值 3 恰好正确，极易顺手就选。",
+          "loss_reason": "数值对、依据错——最小值等于 gcd 只是本题巧合；阅卷看依据词「最大公约数」，写「最小节拍」不给判据分。",
+          "fix": "必须写「K=最大公约数 gcd(3,6)=3」，不能写「取最小节拍」。",
+          "option_id": "N02-html-practice-html-q2-813072d92c5a:option-3"
+        },
+        {
+          "text": "等步距异节奏，流水步距 K 取各节拍「最大公约数」：K=gcd(3,3,6,3)=3 个月。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "依据词「最大公约数」+算式+数值带单位，换组数据也不会错。",
+          "option_id": "N02-html-practice-html-q2-813072d92c5a:option-4"
+        }
+      ],
+      "model_answer": "K = 各节拍最大公约数 gcd(3,6)=3 个月。",
+      "rule_group": "步距K·计算表达维",
+      "content_sha256": "fccf66d8af8b234ea50e85acb8e199ece33c2eb7004fdb0c009b9dc4bc48b1e9",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N02/P40_N02.practice.dc.html#Q2",
+      "authoring_sha256": "3b3e17aca88aa74f0281819197dce1b1993a5e8605976b15e1f8cb5ffddb850b",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "fccf66d8af8b234ea50e85acb8e199ece33c2eb7004fdb0c009b9dc4bc48b1e9",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "N02-html-practice-html-q3-578780f341e5",
+      "surface_id": "practice.html",
+      "stem": "承上题（等步距异节奏，K=3，节拍 3、3、6、3）。需要多少个专业施工队？写出可得分的列式与依据。",
+      "options": [
+        {
+          "text": "四个施工过程就设 4 个专业队，每个过程配 1 个队依次施工，队数等于工序数。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "直觉「几道工序就几个队」，等节奏时确实如此。",
+          "loss_reason": "成倍节拍未拆队：砌筑 6=2K 应拆 2 队，漏拆少 1 队。",
+          "fix": "队数=节拍÷K 求和=5，队数>工序数。",
+          "option_id": "N02-html-practice-html-q3-578780f341e5:option-1"
+        },
+        {
+          "text": "把节拍数当队数：砌筑 6 设 6 个队、其余每过程各设 3 个队，共 6+3+3+3=15 个队。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "把「节拍数」直接当「队数」摆。",
+          "loss_reason": "队数=节拍÷K，不是节拍本身，严重高估。",
+          "fix": "节拍÷K：6÷3=2 队、3÷3=1 队，合计 5 队。",
+          "option_id": "N02-html-practice-html-q3-578780f341e5:option-2"
+        },
+        {
+          "text": "队数=总节拍÷K=(3+3+6+3)÷3=5 个队，用总节拍一次除以步距求出队数。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值 5 正确，算式看着也「成立」。",
+          "loss_reason": "数值对、口径错——「总节拍÷K」掩盖拆队归属，阅卷要求队数落到具体工序（砌筑拆 2）。",
+          "fix": "写成 1+1+2+1=5，标明砌筑拆 2 队、队数>工序数。",
+          "option_id": "N02-html-practice-html-q3-578780f341e5:option-3"
+        },
+        {
+          "text": "各工序队数=节拍÷K=1+1+2+1=5 个专业队；成倍节拍要拆队，队数大于工序数。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "逐工序÷K、求和、点明拆队与队数>工序数，砌筑拆 2 队归属清楚。",
+          "option_id": "N02-html-practice-html-q3-578780f341e5:option-4"
+        }
+      ],
+      "model_answer": "各工序队数=节拍÷K=1+1+2+1=5 个；成倍节拍拆队，队数>工序数。",
+      "rule_group": "队数·计算表达维",
+      "content_sha256": "9c3ea421e608f1a727b6492a656a754f5de9f3d5a2189021561beb849ce97ad8",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N02/P40_N02.practice.dc.html#Q3",
+      "authoring_sha256": "3b3e17aca88aa74f0281819197dce1b1993a5e8605976b15e1f8cb5ffddb850b",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "9c3ea421e608f1a727b6492a656a754f5de9f3d5a2189021561beb849ce97ad8",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "N02-html-practice-html-q4-49ae2a47bd94",
+      "surface_id": "practice.html",
+      "stem": "承上题（等步距异节奏，K=3 个月，施工段 M=2，拆队后专业队 N′=5）。求总工期 T，写出可得分的算式与依据。",
+      "options": [
+        {
+          "text": "总工期就是各工序节拍相加：T=3+3+6+3=15 个月，把四道工序时间累加起来。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "以为把工序节拍加起来就是工期。",
+          "loss_reason": "机械相加不体现搭接，也没展开多施工段与拆队。",
+          "fix": "T=(M+N′−1)×K=(2+5−1)×3=18 个月。",
+          "option_id": "N02-html-practice-html-q4-49ae2a47bd94:option-1"
+        },
+        {
+          "text": "总工期=节拍在两个施工段上全摆开=(3+3+6+3)×2=30 个月。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "两段就乘 2，看着「全做完」。",
+          "loss_reason": "那是不搭接、一段段死等的算法；流水搭接后只 18 个月。",
+          "fix": "体现搭接 T=(2+5−1)×3=18 个月，不是 30。",
+          "option_id": "N02-html-practice-html-q4-49ae2a47bd94:option-2"
+        },
+        {
+          "text": "总工期体现搭接：T=(M+N′−1)×K=(2+5−1)×3=18 个月。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "用拆队后队数 N′=5、施工段 M=2，体现搭接并带单位，公式与数值齐。",
+          "option_id": "N02-html-practice-html-q4-49ae2a47bd94:option-3"
+        },
+        {
+          "text": "总工期=(M+N′−1)×K=(2+4−1)×3=15 个月（按 4 道工序算）。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "公式对，但把 N′ 当成了 4 道工序。",
+          "loss_reason": "N′ 是拆队后总队数 5，不是工序数 4；用错连锁错。",
+          "fix": "N′=5，T=(2+5−1)×3=18 个月。",
+          "option_id": "N02-html-practice-html-q4-49ae2a47bd94:option-4"
+        }
+      ],
+      "model_answer": "T=(M+N′−1)×K=(2+5−1)×3=18 个月，体现搭接、带单位。",
+      "rule_group": "工期·计算表达维",
+      "content_sha256": "b5cdcec07b523d1c35c4498bb4ecfd6b21a2cd5b3bf762f37ee2a3ad9ba5aaef",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N02/P40_N02.practice.dc.html#Q4",
+      "authoring_sha256": "3b3e17aca88aa74f0281819197dce1b1993a5e8605976b15e1f8cb5ffddb850b",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b5cdcec07b523d1c35c4498bb4ecfd6b21a2cd5b3bf762f37ee2a3ad9ba5aaef",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "N02-html-practice-html-q5-499b7942872a",
+      "surface_id": "practice.html",
+      "stem": "组织流水施工要确定哪几类参数？选出归类完整、能得分的作答。",
+      "options": [
+        {
+          "text": "工艺参数：施工过程数、施工段数；时间参数：节拍、步距、工期；空间参数：施工段、施工层。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三体系齐全、各参数归类正确，正是真题给分点。",
+          "option_id": "N02-html-practice-html-q5-499b7942872a:option-1"
+        },
+        {
+          "text": "组织流水施工时只需确定时间参数，即流水节拍、流水步距与总工期三项，将这三项计算完备即可满足要求。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "流水题最常算的就是节拍/步距/工期，容易只答这一类。",
+          "loss_reason": "漏了工艺参数与空间参数两类，采分点遗漏。",
+          "fix": "补工艺参数（过程数、段数）与空间参数（施工段、施工层）。",
+          "option_id": "N02-html-practice-html-q5-499b7942872a:option-2"
+        },
+        {
+          "text": "把流水节拍、流水步距也归进工艺参数，与施工过程数、施工段数一起算工艺安排。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得节拍/步距也算「工艺」上的安排。",
+          "loss_reason": "节拍/步距/工期属时间参数，归错体系。",
+          "fix": "时间参数=节拍/步距/工期；工艺参数=过程数/段数。",
+          "option_id": "N02-html-practice-html-q5-499b7942872a:option-3"
+        },
+        {
+          "text": "流水施工的参数主要就是施工过程数、施工段数这两个工艺量，其余按现场情况灵活定即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住了工艺参数。",
+          "loss_reason": "漏时间参数与空间参数，三缺二。",
+          "fix": "补全时间参数（节拍/步距/工期）与空间参数（施工段/施工层）。",
+          "option_id": "N02-html-practice-html-q5-499b7942872a:option-4"
+        }
+      ],
+      "model_answer": "工艺参数（施工过程数、施工段数）／时间参数（流水节拍 t、流水步距 K、工期 T）／空间参数（施工段、施工层）。",
+      "rule_group": "参数体系·条件维",
+      "content_sha256": "cc7a8ac107139a142d4a55480175842bfdb2999cb874aa1f80b4cff4377f223a",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N02/P40_N02.practice.dc.html#Q5",
+      "authoring_sha256": "3b3e17aca88aa74f0281819197dce1b1993a5e8605976b15e1f8cb5ffddb850b",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "cc7a8ac107139a142d4a55480175842bfdb2999cb874aa1f80b4cff4377f223a",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "N02-html-practice-html-q6-461d5405fa34",
+      "surface_id": "practice.html",
+      "stem": "某学生作答：①K 取最大节拍=6 个月；②设 4 个专业队；③总工期=3+3+6+6=18 个月。其总工期 18 恰与标准答案一致。选出最准确的诊断与补写。",
+      "options": [
+        {
+          "text": "三步算出工期 18，与标准答案数值一致，判型 K 队数也都对，作答正确可给满分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只看末位数字，数值对就以为全对——最危险的误判。",
+          "loss_reason": "工期是机械相加 3+3+6+6 碰巧得 18，判型/K/队数全错且未体现搭接；阅卷看过程采分。",
+          "fix": "判型/K/队数都要重写，工期按 (2+5−1)×3 体现搭接。",
+          "option_id": "N02-html-practice-html-q6-461d5405fa34:option-1"
+        },
+        {
+          "text": "判型理由缺、K 应取 gcd=3、未拆队应 5 队、工期系机械相加碰巧得 18；四处都要补写。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四处失分全揪出，补写即可上答题纸的四句采分句——这就是「会写答案」。",
+          "option_id": "N02-html-practice-html-q6-461d5405fa34:option-2"
+        },
+        {
+          "text": "只是总工期写法不够规范，把 K 从 6 改成 3 就行，判型和队数其余都正确无误。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到 K 错一处，就以为只此一错。",
+          "loss_reason": "漏诊「判型理由缺失」和「未拆队（4 应 5）」两处失分。",
+          "fix": "判型理由、拆队 5 队、搭接工期三处都要补，不止改 K。",
+          "option_id": "N02-html-practice-html-q6-461d5405fa34:option-3"
+        },
+        {
+          "text": "K 应取平均节拍 3.75 而非 6，队数与工期按 3.75 重算即可，其余判型思路都没问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "看出 K=6 错了，却把它纠成了另一个错。",
+          "loss_reason": "诊断方向本身错：K 是最大公约数 3，不是平均 3.75，用错 K 重算只会连锁错。",
+          "fix": "K=gcd(3,6)=3，按 K=3 重算队数 5、工期 18。",
+          "option_id": "N02-html-practice-html-q6-461d5405fa34:option-4"
+        }
+      ],
+      "model_answer": "判型理由缺、K 取最大节拍（应 gcd=3）、未拆队（应 5 队）、工期机械相加未体现搭接；补写四句：成倍数·等步距异节奏／K=gcd(3,6)=3／队数 1+1+2+1=5／T=(2+5−1)×3=18 个月。",
+      "rule_group": "采分诊断·末题",
+      "content_sha256": "e79a48bfe71864b2035eff4cec24bec067513bacdc3ccb0f2a9e38ad8dc74e39",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N02/P40_N02.practice.dc.html#Q6",
+      "authoring_sha256": "3b3e17aca88aa74f0281819197dce1b1993a5e8605976b15e1f8cb5ffddb850b",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e79a48bfe71864b2035eff4cec24bec067513bacdc3ccb0f2a9e38ad8dc74e39",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
+  ]
+}

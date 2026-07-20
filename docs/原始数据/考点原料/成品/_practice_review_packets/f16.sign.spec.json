@@ -1,0 +1,11 @@
+{
+  "pack_id": "F16",
+  "adversarial_gate_ref": "opus-adjudication 2026-07-20 全量清尾批(owner指令); 逐题引文回原文核对(compiled_source + exam_evidence); 待 fable 对抗核验。注: F16 练习卷仅6题, 投影消耗5题当anchor, 结构上无法同时满足 len(eligible)>=7 + 完整三件套, 见 note。",
+  "signed": [
+    {"variant_id":"F16-html-practice-html-q1-b160745e065e","probe_role":"anchor","fact_id":"f16-fact-起鼓分档处置","skeleton_id":"f16-skel-分档抽气灌胶vs割补","source_anchor":"kc:1A434000_076_0119:0","note":"起鼓按100mm直径分档: <100mm抽气灌胶法; ≥100mm割开清理吹干重贴。教材 kc:1A434000_076_0119:0 原文 verbatim 支撑正确项(Ø80抽气灌胶/Ø160割补)。工单: 正确项恒次位、干扰项数字混淆(300mm)为template artifact。"},
+    {"variant_id":"F16-html-practice-html-q2-d87ee9a33256","probe_role":"anchor","fact_id":"f16-fact-割补工序八环","skeleton_id":"f16-skel-工序箭头链","source_anchor":"exam:2017:案例二","note":"割补八环工序(割开→放气→擦干→清旧胶→烘烤剥离→重贴→压实→重做保护层)。真题 exam:2017:案例二 workflow文本(用刀割开/放出气体/擦干水分/清除旧胶结料/喷灯烘烤/重贴/压实/重做保护层)实证在 _F16_exam_evidence.json, 支撑正确项。"},
+    {"variant_id":"F16-html-practice-html-q3-dabd05eb91b6","probe_role":"anchor","fact_id":"f16-fact-割补工序八环","skeleton_id":"f16-skel-三段式纠错漏步","source_anchor":"exam:2017:案例二","note":"三段式纠错: 割开后直接贴不妥, 漏放气/擦干/清旧胶/烘烤剥离。同割补工序 fact, 依 exam:2017:案例二 workflow evidence 判漏步。skeleton 与 q2 互异(三段式纠错 vs 工序箭头链)。"},
+    {"variant_id":"F16-html-practice-html-q4-40f0f2d925ec","probe_role":"anchor","fact_id":"f16-fact-施工过程检查清单","skeleton_id":"f16-skel-检验清单枚举","source_anchor":"kc:1A434000_068_0104:0","note":"屋面施工过程检查清单(基层平整干燥/排气孔/铺贴方向/搭接长度/泛水高度/保护层/材料相容性/防潮防火)。教材 kc:1A434000_068_0104:0 原文 verbatim 枚举支撑正确项, 基层平整干燥+排气孔直指起鼓根因。"},
+    {"variant_id":"F16-html-practice-html-q6-0b26f1dedaef","probe_role":"anchor","fact_id":"f16-fact-采分诊断补写","skeleton_id":"f16-skel-采分诊断三处失分","source_anchor":"kc:1A434000_076_0119:0","note":"末题采分诊断: 三处失分(不分档/割开直接贴/缺保护层)+补写。核心分档锚 kc:1A434000_076_0119:0(verbatim分档), 综合工序+检验。工单: 正确项偏长(采分句完整所致)。"}
+  ]
+}

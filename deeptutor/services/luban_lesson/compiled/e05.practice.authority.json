@@ -24,9 +24,18 @@
         "E05-html-practice-html-q4-65ed25e57b8f",
         "E05-html-practice-html-q16-c4d93d1c98c8"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzY4Y2E2MDllMDNiIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iN2VmZjcxMDRhODMiLCJFMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEyNzc0N2ExYWFhZiIsIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjVlZDI1ZTU3YjhmIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzRkOTNkMWM5OGM4Il0sInBhY2tfaWQiOiJFMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImY2NDZjN2IwODhmZDllYjc1YWM1NGMyMTJmNjMwYjg3MWQzM2E1M2U0NGQwZjA5ZjRjYjI1ODBmOWE2MGJlODciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmNmZWJmODA0ZTc4N2Q3ZjZmNDJhYjRlYzE3MGEzMzYzNWZjMDQxYjRmYzM3YWQxZTJmM2M0YTJiNWJjOGVjZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "092a81a08436a7c846ee983b6a6cdc041bb8ee26f463a5d5de6862b07a0d3776"
+      "eligible_variant_ids": [
+        "E05-html-practice-html-q1-368ca609e03b",
+        "E05-html-practice-html-q2-b7eff7104a83",
+        "E05-html-practice-html-q3-a27747a1aaaf",
+        "E05-html-practice-html-q4-65ed25e57b8f",
+        "E05-html-practice-html-q6-c5a0b2262ef0",
+        "E05-html-practice-html-q7-576365500963",
+        "E05-html-practice-html-q8-bdad94d68d2c",
+        "E05-html-practice-html-q16-c4d93d1c98c8"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzY4Y2E2MDllMDNiIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iN2VmZjcxMDRhODMiLCJFMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEyNzc0N2ExYWFhZiIsIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjVlZDI1ZTU3YjhmIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzRkOTNkMWM5OGM4Il0sInBhY2tfaWQiOiJFMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjE4YjVlMzg0NGM4YjVmOGYwM2Y4NDQxNDMxNDIyYTlkYmEzYWVhYTU4MmViN2VhZDdmZmM2MGVkNzIzMzBiN2UiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYzZkYTg0MDU4NzA2NzFmOThhZjJjN2JhNzdkNDI3OTEyODFiZjYwMzcyYmM0NjdkYmRhNzYwNzczYTMyYTMxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "de6c8be2a8f5877d0c740e008f48cd556c07952e3a217e619ecf5455a19a2d2a"
     }
   ],
   "items": [
@@ -79,29 +88,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A435020_095_0156:0",
+      "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
       "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "e05-fact-bcwp-构成式",
+      "skeleton_id": "e05-skel-bcwp构成式单选",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a06fc353b288677592a660afaef5f0b032353ffcc8bda84d57432495db904733",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a06fc353b288677592a660afaef5f0b032353ffcc8bda84d57432495db904733",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "BCWP=已完成工程量×预算单价, 教材 kc:1A435020_095_0156:0 三大核心成本值逐字直引(量取已完成/价取预算)。正确项忠实, 无数值复算。工单: 正确项恒首位=template artifact。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +173,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A435020_095_0156:0",
+      "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
       "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "e05-fact-acwp-构成式",
+      "skeleton_id": "e05-skel-acwp构成式单选",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "ae962dea5052f99eec6c665907d4e0310796ee7b49d180ce4d1820d997ae7526",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "ae962dea5052f99eec6c665907d4e0310796ee7b49d180ce4d1820d997ae7526",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "ACWP=已完成工程量×实际单价, 教材 kc:1A435020_095_0156:0 逐字直引(量取已完成/价取实际)。3 个干扰项(预算价/计划量/预算总成本)均可证伪。工单: 正确项在末位。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +258,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A435020_095_0156",
+      "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
       "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "e05-fact-三值代入位置",
+      "skeleton_id": "e05-skel-三值代入四公式定位",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "8ae7afcae4aef33774d178a7b87b7866ca7e29ae3beb9120818c71d54c243e06",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "8ae7afcae4aef33774d178a7b87b7866ca7e29ae3beb9120818c71d54c243e06",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "考三值代入位置: CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340, BCWP 恒作被减数。数值与场景直引教材EP ca:1A435020_095_0156(第20周末 BCWP6370/ACWP6240/BCWS5340)。位置规则原句另见 kc:1A435020_095_0156:1, 但该 point 未进本题机器候选, 故锚挂含同数值的 EP 候选(provenance 可溯)。复算 6370−6240=130、6370−5340=1030 位置正确。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +343,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A435020_095_0156:1",
+      "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
       "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "e05-fact-cv计算判读",
+      "skeleton_id": "e05-skel-cv偏差计算判读",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "2b1ec7b44293864d8ae2f6954d86334e97001bb3fed126df3d36265ab1d5548b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "2b1ec7b44293864d8ae2f6954d86334e97001bb3fed126df3d36265ab1d5548b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "CV=BCWP−ACWP=6370−6240=130 万元, CV>0→成本节支, 教材 kc:1A435020_095_0156:1 逐字直引(CV=BCWP-ACWP / CV>0节支)。复算 6370−6240=130✅ >0→节支✅。数值背景取自EP ca:1A435020_095_0156。干扰项覆盖颠倒(E09)/方向反(E07)/漏单位判读词(E04)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -444,29 +501,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A435020_095_0156",
+      "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
       "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "e05-fact-绩效指数除法判读",
+      "skeleton_id": "e05-skel-绩效指数-cpi计算判读",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a2a644008f29e6faf1a9842285cd1a167ad75c5801e2accc7b65a3518c15788e",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a2a644008f29e6faf1a9842285cd1a167ad75c5801e2accc7b65a3518c15788e",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "三件套 immediate_confirm(同绩效指数 fact, 当日即时确认)。CPI=BCWP/ACWP=6370/6240≈1.02, CPI>1→成本节支, 无量纲; 数值取教材EP ca:1A435020_095_0156(要求算成本绩效指数CPI)。复算 6370÷6240=1.0208≈1.02✅。干扰项含分子分母颠倒(E09)/方向反(E07)/硬加万元单位(E03)。skeleton 与 q7/q8 互异。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -517,29 +586,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A435020_096_0157",
+      "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
       "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "e05-fact-绩效指数除法判读",
+      "skeleton_id": "e05-skel-绩效指数-spi计算判读",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "341d7d593b410518ecbfcaa9905966a8ce83e36c2f942d86a3df10d465fe6104",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "341d7d593b410518ecbfcaa9905966a8ce83e36c2f942d86a3df10d465fe6104",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "三件套 anchor。SPI=BCWP/BCWS=6370/5340≈1.19, SPI>1→进度提前, 指数无量纲不带单位; 教材EP ca:1A435020_096_0157(求SPI判进度, grading 1.19/进度提前)直支。复算 6370÷5340=1.1929≈1.19✅。fact=绩效指数为除法比值/>1为好/无量纲(CPI、SPI 同构)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -590,29 +671,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A435020_096_0157",
+      "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
       "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "e05-fact-绩效指数除法判读",
+      "skeleton_id": "e05-skel-绩效指数-spi单问变式",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "d7303af9a66e5f7789a2b4cc8a2105e312ed7cdcac009bf1eb104296229c2508",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "d7303af9a66e5f7789a2b4cc8a2105e312ed7cdcac009bf1eb104296229c2508",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "三件套 d1_probe(同 fact, D1 隔日再探, 变式=仅给两值+指数用除法非减法陷阱)。SPI=BCWP/BCWS=6370/5340≈1.19→进度提前, 无量纲; 教材EP ca:1A435020_096_0157 直支。复算≈1.19✅。干扰项含误判条件不足(E08)/指数当减法算成SV(E07)/加单位(E03)。skeleton 与 q7/q6 互异。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1174,30 +1267,42 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A435020_095_0156:1",
+      "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
       "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "e05-fact-cv颠倒采分诊断",
+      "skeleton_id": "e05-skel-cv颠倒诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "30f1dcab5c45530ad3daae66e3aa014ed8e1b69279b21c59c754ce34df7cb99d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "30f1dcab5c45530ad3daae66e3aa014ed8e1b69279b21c59c754ce34df7cb99d",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:19:21+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "采分诊断末题: 学生 CV=ACWP−BCWP=−130 判超支(被减数颠倒)+漏进度; 正解 CV=BCWP−ACWP=+130 万元成本节支, 补 SV=6370−5340=1030、SPI≈1.19 进度提前。教材 kc:1A435020_095_0156:1 定 CV=BCWP-ACWP 方向为权威。复算 +130 节支✅ / SV1030✅ / SPI 6370÷5340≈1.19✅。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
-  "published_lesson_sha256": "da7f0ff9cf0419e262e55758e8eede9097bcb1d580039f5ab1833b071f3cf349"
+  "published_lesson_sha256": "dc4ceac316abcdf769192164efdec148343839ea1c19646ceaefa7571dffdd40"
 }

@@ -1,0 +1,14 @@
+{
+  "pack_id": "F03",
+  "adversarial_gate_ref": "opus-adjudication 2026-07-20 全量清尾批(owner指令); 逐题正确项引文回 _F03_compiled_source.json / _F03_exam_evidence.json 核对(8/8 True, 见 sign_f03.log); 每锚均为该题 machine candidate; 待 fable 对抗核验",
+  "signed": [
+    {"variant_id":"F03-html-practice-html-q1-a1e8c37d3095","probe_role":"anchor","fact_id":"f03-fact-roof-grade-tiers","skeleton_id":"f03-skel-屋面三级各级道数","source_anchor":"kc:1A413030_122_0230:0","note":"平屋面防水分一/二/三级三级; 一级≥3道(卷材≥1道)·二级≥2道·三级≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。工单: 正确项恒非首位(选项2), template artifact 需全包扫。"},
+    {"variant_id":"F03-html-practice-html-q2-79c629fb1226","probe_role":"anchor","fact_id":"f03-fact-roof-level1-layers","skeleton_id":"f03-skel-屋面一级3道卷材1道","source_anchor":"kc:1A413030_122_0230:0","note":"屋面一级防水≥3道其中卷材防水层≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。"},
+    {"variant_id":"F03-html-practice-html-q3-3ad2bfdbadc0","probe_role":"anchor","fact_id":"f03-fact-roof-basic-principle","skeleton_id":"f03-skel-屋面以防为主年限20附加层","source_anchor":"kc:1A413030_122_0230:2","note":"屋面防水以防为主以排为辅·设计年限≥20年·天沟檐沟变形缝泛水设附加层, 教材 kc:1A413030_122_0230:2 直引。投影 anchor。正确项(年限口径‘工作年限’与教材‘设计年限’同指20年)。"},
+    {"variant_id":"F03-html-practice-html-q4-5436a7f644e1","probe_role":"anchor","fact_id":"f03-fact-inverted-roof-order","skeleton_id":"f03-skel-倒置式自下而上层序","source_anchor":"exam:2020:第12题","note":"倒置式屋面自下而上=结构层→找坡层→找平层→防水层→保温层→保护层, 真题 exam:2020:第12题 答案B(①④⑤⑥②③)+口诀‘结构找坡再找平,防水保温后保护’逐字支持。投影 anchor。"},
+    {"variant_id":"F03-html-practice-html-q15-add11dbc2a8d","probe_role":"anchor","fact_id":"f03-fact-indoor-waterproof-height","skeleton_id":"f03-skel-室内翻起三档诊断","source_anchor":"kc:1A413030_133_0256:0","note":"室内防水翻起 淋浴区≥2000mm·盥洗用水处≥1200mm·其他泛水≥250mm, 教材 kc:1A413030_133_0256:0 直引; 诊断末题正确项=淋浴1800偏低改≥2000/盥洗补≥1200/其他250对。投影 anchor。"},
+    {"variant_id":"F03-html-practice-html-q10-2d6fe403e5c8","probe_role":"anchor","fact_id":"f03-fact-underground-structure-method","skeleton_id":"f03-skel-地下一级3道P8","source_anchor":"kc:1A413030_130_0247:0","note":"地下一级防水≥3道·防水混凝土1道应选·外设≥2道(卷材或涂料≥1道)·抗渗≥P8, 教材 kc:1A413030_130_0247:0 直引。三件套 anchor(地下主体结构防水做法 fact)。"},
+    {"variant_id":"F03-html-practice-html-q11-defc7bbb052d","probe_role":"immediate_confirm","fact_id":"f03-fact-underground-structure-method","skeleton_id":"f03-skel-地下三级1道P6","source_anchor":"kc:1A413030_130_0247:1","note":"地下三级防水≥1道·防水混凝土1道应选·外设不作要求·抗渗≥P6, 教材 kc:1A413030_130_0247:1 直引。三件套 immediate_confirm(同地下主体结构防水做法 fact, skeleton 异于 q10)。"},
+    {"variant_id":"F03-html-practice-html-q12-6dd197458378","probe_role":"d1_probe","fact_id":"f03-fact-underground-structure-method","skeleton_id":"f03-skel-防水混凝土试配P8到P10","source_anchor":"kc:1A413030_130_0249:0","note":"防水混凝土试配抗渗比设计提高0.2MPa(设计P8则试配P10), 教材 kc:1A413030_130_0249:0 直引。三件套 d1_probe(同 fact 之防水混凝土自防水采分点, 第3独立 skeleton)。"}
+  ]
+}

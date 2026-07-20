@@ -1,6 +1,6 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-16T06:09:10+00:00",
+  "generated_at": "2026-07-20T09:10:10+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "S05",
@@ -14,7 +14,7 @@
   },
   "items": [
     {
-      "variant_id": "S05-html-practice-html-q1-7a030fba2679",
+      "variant_id": "S05-html-practice-html-q1-cfd3abfd9761",
       "candidates": [
         {
           "source_anchor": "kc:1A431011_015_0016:0",
@@ -26,7 +26,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q2-f519771940de",
+      "variant_id": "S05-html-practice-html-q2-523fb4878071",
       "candidates": [
         {
           "source_anchor": "kc:1A431011_014_0015:1",
@@ -36,15 +36,15 @@
           "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
         },
         {
-          "source_anchor": "exam:2017:问题1-5",
-          "quote": "筒爬模施工，结构施工用胶合板模板。施工中，木工堆场发生火灾。紧急情况下值班电工及时断开了总配电箱开关，经查，火灾是因为临时用电布置和刨花堆放不当引起。部分木工堆场临时用电现场布置剖面示意图见图 5。 【问题】 1、背景资料中，需要进行专家论证的专项施工方案有哪些?排桩支护结构方式还有哪些？ 2、指出图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 1、（1",
-          "match_score": 0.2619,
-          "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
-          "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
+          "source_anchor": "kc:1A431011_014_0015:2",
+          "quote": "开关箱控制原则：每台用电设备应有各自专用的开关箱，不得用同一个开关箱直接控制 2 台及以上用电设备（含插座）。 每台用电设备应有各自专用的开关箱，不得用同一个开关箱直接控制 2 台及以上用电设备（含插座）。 本体·临时用电管理(电缆埋地/三级配电装置/一机一闸/动力照明分设/电工持证)",
+          "match_score": 0.2857,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
         },
         {
-          "source_anchor": "exam:2017:第2题",
-          "quote": "之处4：电锯的开关箱距离堆场配电箱距离为30.5m（开关箱和配电箱的间距不得大于30m）。 不妥之处5：木模板堆场（可燃物）应与电锯距离至少10m。 不妥之处6：开关箱安装在电线杆上。 不妥之处7：电锯部位敞开，应采用密封式。 不妥之处8：未设置灭火器。 不妥之处9：未设置消防水箱、消防水桶、消防用水等。 停电顺序：先开关箱→再分配电箱→最后总配电箱。 依据JGJ46-2005《施工现场临时用电安",
+          "source_anchor": "exam:2017:问题1-5",
+          "quote": "筒爬模施工，结构施工用胶合板模板。施工中，木工堆场发生火灾。紧急情况下值班电工及时断开了总配电箱开关，经查，火灾是因为临时用电布置和刨花堆放不当引起。部分木工堆场临时用电现场布置剖面示意图见图 5。 【问题】 1、背景资料中，需要进行专家论证的专项施工方案有哪些?排桩支护结构方式还有哪些？ 2、指出图 5 中措施做法的不妥之处。正常情况下，现场临时配电系统停电的顺序是什么？ 3、对需要市 1、（1",
           "match_score": 0.2619,
           "source_file": "docs/原始数据/考点原料/_S05_exam_evidence.json",
           "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212"
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q3-0f0b0a35e964",
+      "variant_id": "S05-html-practice-html-q3-155a719c59e8",
       "candidates": [
         {
           "source_anchor": "exam:2023:第1题",
@@ -78,7 +78,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q4-eadc2e921fdd",
+      "variant_id": "S05-html-practice-html-q4-2a0299bb956d",
       "candidates": [
         {
           "source_anchor": "exam:2023:第1题",
@@ -90,7 +90,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q5-3cf1bf9e075a",
+      "variant_id": "S05-html-practice-html-q5-e75342234659",
       "candidates": [
         {
           "source_anchor": "kc:1A431011_014_0015:3",
@@ -102,7 +102,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q6-0ae0fb217a3e",
+      "variant_id": "S05-html-practice-html-q6-b6f04fcf0ec0",
       "candidates": [
         {
           "source_anchor": "exam:2017:第2题",
@@ -128,7 +128,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q7-0489481a3d23",
+      "variant_id": "S05-html-practice-html-q7-69d81c27eff7",
       "candidates": [
         {
           "source_anchor": "exam:2017:第2题",
@@ -154,7 +154,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q8-28a1673bd44c",
+      "variant_id": "S05-html-practice-html-q8-cc21f97146e7",
       "candidates": [
         {
           "source_anchor": "exam:2016:第13题",
@@ -173,7 +173,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q9-64e2d711dabb",
+      "variant_id": "S05-html-practice-html-q9-413717805b15",
       "candidates": [
         {
           "source_anchor": "kc:1A431011_015_0016:2",
@@ -192,12 +192,19 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q10-78a3ee8c26fc",
+      "variant_id": "S05-html-practice-html-q10-71b997e0e31f",
       "candidates": [
         {
           "source_anchor": "kc:1A436000_130_0209:0",
           "quote": "特殊场所照明安全电压：手持式灯具供电电压不得超过36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。 手持式灯具供电电压不得超过36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。 外延·触电事故预防/特殊场所照明安全电压(手持灯具≤36V/双绕组隔离变压器)",
           "match_score": 0.7421,
+          "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
+          "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
+        },
+        {
+          "source_anchor": "ca:1A436000_130_0209",
+          "quote": "下列关于施工现场照明用电的说法正确的是？ 下列关于施工现场照明用电的说法正确的是？ 外延·触电事故预防/特殊场所照明安全电压(手持灯具≤36V/双绕组隔离变压器)",
+          "match_score": 0.5188,
           "source_file": "docs/原始数据/考点原料/_S05_compiled_source.json",
           "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083"
         },
@@ -211,7 +218,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q11-d51599b6f90c",
+      "variant_id": "S05-html-practice-html-q11-69e222135867",
       "candidates": [
         {
           "source_anchor": "kc:1A436000_007_0010:0",
@@ -223,7 +230,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q12-1f366c5d96dc",
+      "variant_id": "S05-html-practice-html-q12-e70be6b0eac8",
       "candidates": [
         {
           "source_anchor": "kc:1A431011_014_0015:0",
@@ -235,7 +242,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q13-3fd433be684f",
+      "variant_id": "S05-html-practice-html-q13-41d536efd2ec",
       "candidates": [
         {
           "source_anchor": "exam:2019:第14题",
@@ -247,7 +254,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q14-5a611c806f07",
+      "variant_id": "S05-html-practice-html-q14-7b84c2b178f5",
       "candidates": [
         {
           "source_anchor": "exam:2020:第15题",
@@ -259,7 +266,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q15-1d792fda5d90",
+      "variant_id": "S05-html-practice-html-q15-1f24bad13a7c",
       "candidates": [
         {
           "source_anchor": "exam:2018:第17题",
@@ -285,7 +292,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q16-bdac9de7a1bc",
+      "variant_id": "S05-html-practice-html-q16-0473406d7fe0",
       "candidates": [
         {
           "source_anchor": "exam:2018:第17题",
@@ -304,7 +311,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q17-b5f758614bd0",
+      "variant_id": "S05-html-practice-html-q17-d820bcd74e8d",
       "candidates": [
         {
           "source_anchor": "exam:2017:问题1-5",
@@ -330,7 +337,7 @@
       ]
     },
     {
-      "variant_id": "S05-html-practice-html-q18-38770f84494a",
+      "variant_id": "S05-html-practice-html-q18-236101054350",
       "candidates": [
         {
           "source_anchor": "exam:2023:第1题",

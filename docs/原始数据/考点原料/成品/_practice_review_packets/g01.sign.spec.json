@@ -1,0 +1,70 @@
+{
+ "pack_id": "G01",
+ "adversarial_gate_ref": "opus-adjudication 2026-07-20 全量清尾批(owner指令); 逐题引文回 _G01_compiled_source.json / _G01_exam_evidence.json 核对; anchor 均为该题机器候选(零编造); 数值锚(降水深度/分层/预留/水位)全核; 待 fable 对抗核验。",
+ "signed": [
+  {
+   "variant_id": "G01-html-practice-html-q1-aba98d47b38a",
+   "probe_role": "anchor",
+   "fact_id": "g01-fact-dewater-scheme-selection",
+   "skeleton_id": "g01-skel-降水方案深度分流",
+   "source_anchor": "kc:1A413000_082_0154:0",
+   "note": "降水方案选择三原则: 深度≤3m且软土→集水明排; 深度>3m→井点降水; 危及周边→截水/回灌; 承压水→验算突涌。正确项'深度>3m井点降水+综合地质水文环境支护'直引 kc:082_0154:0。工单: 正确项恒居第三位且偏完整(template artifact)。"
+  },
+  {
+   "variant_id": "G01-html-practice-html-q2-20fc8c298c2f",
+   "probe_role": "anchor",
+   "fact_id": "g01-fact-jet-wellpoint-depth",
+   "skeleton_id": "g01-skel-井点选型8m填土喷射",
+   "source_anchor": "kc:1A413000_082_0155:1",
+   "note": "喷射井点降水深度8~20m、适用碎石土黄土。正确项'深8m超轻型≤6m、填土不宜管井→喷射(8~20m覆盖)'的核心采分句直引 kc:082_0155:1。轻型排除由 :0 支撑但答案正锚为喷射参数。工单: template artifact。"
+  },
+  {
+   "variant_id": "G01-html-practice-html-q3-413c0fb7959f",
+   "probe_role": "anchor",
+   "fact_id": "g01-fact-light-wellpoint-depth",
+   "skeleton_id": "g01-skel-轻型井点单级多级深度",
+   "source_anchor": "kc:1A413000_082_0155:0",
+   "note": "轻型井点降水深度≤6m、多级轻型井点可达6~10m。正确项'单级≤6m、多级6~10m'逐字直引 kc:082_0155:0。工单: 正确项居首位(template artifact)。"
+  },
+  {
+   "variant_id": "G01-html-practice-html-q4-1ec0542e7a80",
+   "probe_role": "anchor",
+   "fact_id": "g01-fact-tube-well-not-for-fill",
+   "skeleton_id": "g01-skel-管井不宜填土真题",
+   "source_anchor": "exam:2019:第7题",
+   "note": "真题 exam:2019:第7题='不宜用于填土土质的降水方法是→B 降水管井, 不宜用于渗透系数较小的填土、黏土层'逐字。正确项'降水管井要砂砾、填土黏土不宜'即真题采分句。工单: 正确项居首位(template artifact)。"
+  },
+  {
+   "variant_id": "G01-html-practice-html-q15-ad73198f0e59",
+   "probe_role": "anchor",
+   "fact_id": "g01-fact-dewater-diagnosis-composite",
+   "skeleton_id": "g01-skel-降水诊断三处纠错",
+   "source_anchor": "kc:1A413000_082_0155:0",
+   "note": "复合诊断末题(深6m填土+承压水): ①填土不宜管井应改喷射/多级轻型 ②回灌防沉降不防突涌应验算+减压/封底 ③分层5m超应≤3m。首要采分眼prong①'改多级轻型(6m∈6~10m)'直引本体 kc:082_0155:0(优于外延 033_0055 与真空 083_0156)。②③另有本体采分点(083_0156:2 回灌 / 084_0157:0 分层)支撑但单锚取井点选型本体。工单: 正确项偏长(诊断题固有)+居第二位。"
+  },
+  {
+   "variant_id": "G01-html-practice-html-q9-2a2749517ef5",
+   "probe_role": "anchor",
+   "fact_id": "g01-fact-deep-excavation-earthwork",
+   "skeleton_id": "g01-skel-分层厚度3m",
+   "source_anchor": "kc:1A413000_084_0157:0",
+   "note": "深基坑分层开挖每层厚度宜≤3m, 直引 kc:084_0157:0。三件套 anchor(深基坑土方开挖 fact, chunk 084_0157 采分点:0)。工单: 正确项居第二位。"
+  },
+  {
+   "variant_id": "G01-html-practice-html-q10-80da5c905a97",
+   "probe_role": "immediate_confirm",
+   "fact_id": "g01-fact-deep-excavation-earthwork",
+   "skeleton_id": "g01-skel-预留土层数值",
+   "source_anchor": "kc:1A413000_084_0157:1",
+   "note": "预留土层: 人工挖土150~300mm/机械挖土200~300mm由人工挖除, 直引 kc:084_0157:1。三件套 immediate_confirm(同深基坑土方开挖 fact, 第2独立 skeleton)。工单: 正确项居首位。"
+  },
+  {
+   "variant_id": "G01-html-practice-html-q11-80b3b9adfcbb",
+   "probe_role": "d1_probe",
+   "fact_id": "g01-fact-deep-excavation-earthwork",
+   "skeleton_id": "g01-skel-水位降至坑底500",
+   "source_anchor": "kc:1A413000_084_0157:2",
+   "note": "地下水位以下挖土: 水位降至坑底以下500mm以上且降水持续到基础施工完成, 直引 kc:084_0157:2。三件套 d1_probe(同深基坑土方开挖 fact, 第3独立 skeleton)。工单: 正确项居第二位。"
+  }
+ ]
+}
