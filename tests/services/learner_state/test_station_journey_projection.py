@@ -487,3 +487,31 @@ def test_unavailable_event_source_fails_closed_without_pack_progress() -> None:
     )
     assert projection["degraded"] is True
     assert projection["packs"] == {}
+
+
+def test_wrong_fact_with_real_compiled_probe_supply_enters_confirm_current() -> None:
+    """六步第 4 步供给收权集成锚（2026-07-20）：真实 resolver 链
+    （variant_probe_fact_ids → compiled v3 per-Pack artifact）对 compiled pack
+    必须能把「有错题且供给覆盖」投影成 immediate_confirm current——
+    此前该链只认 legacy bank，40 个 compiled 站里 38 个供给面为空。"""
+    from deeptutor.services.luban_lesson.variant_eligibility import (
+        variant_probe_fact_ids,
+    )
+
+    facts = variant_probe_fact_ids("N01", probe_role="immediate_confirm")
+    assert facts  # compiled 工件 fact 三件套已签发上线
+    projection = project_station_journeys(
+        events=_completion(
+            "forward", at="2026-07-18T09:00:00+08:00", fact_id=sorted(facts)[0]
+        ),
+        pack_lifecycle=_lifecycle(),
+        pack_review=_review(),
+        confirm_fact_resolver=lambda pack: variant_probe_fact_ids(
+            pack, probe_role="immediate_confirm"
+        ),
+    )
+    journey = projection["packs"]["N01"]
+    statuses = {step["id"]: step["status"] for step in journey["steps"]}
+    assert statuses["immediate_confirm"] == "current"
+    assert journey["current_step_id"] == "immediate_confirm"
+    assert projection["degraded"] is False
