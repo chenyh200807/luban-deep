@@ -6,12 +6,12 @@
 <script src="./support.js"></script>
 </head>
 <body>
-<audio data-luban-prewarm preload="auto" src="audio/down/b0.mp3?v=881bcfd50718caca" aria-hidden="true" style="display:none"></audio>
+<audio data-luban-prewarm preload="auto" src="audio/down/b0.mp3?v=01caf911a8c6d444" aria-hidden="true" style="display:none"></audio>
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -153,14 +153,14 @@
       <!-- ░░ BEAT 4 · 强度合格双阈值标尺 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
         <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">C35 强度判定 · 平均≥88% 且 最小≥80%</div>
-        <div style="position:absolute;left:16px;right:16px;top:82px;text-align:center;font-size:11px;font-weight:800;color:#23282b;opacity:{{ b4_dataO }};">三芯样 28.5 · 31 · 32 → 平均 30.8 · 最小 28.5</div>
+        <div style="position:absolute;left:16px;right:16px;top:82px;text-align:center;font-size:11px;font-weight:800;color:#23282b;opacity:{{ b4_dataO }};">三芯样 28.5 · 31 · 32 → 平均 30.5 · 最小 28.5</div>
         <div style="position:absolute;left:16px;top:126px;font-size:10px;font-weight:800;color:#2f6db0;opacity:{{ b4_avgTrack }};">平均值 ≥ 设计×88% = 30.8</div>
         <div style="position:absolute;left:60px;top:150px;width:280px;height:16px;background:#e6e2d4;border-radius:8px;opacity:{{ b4_avgTrack }};"></div>
-        <div style="position:absolute;left:60px;top:150px;height:16px;width:{{ b4_avgFillW }}px;background:#2c8a5b;border-radius:8px;opacity:{{ b4_avgTrack }};"></div>
+        <div style="position:absolute;left:60px;top:150px;height:16px;width:{{ b4_avgFillW }}px;background:#cf4436;border-radius:8px;opacity:{{ b4_avgTrack }};"></div>
         <div style="position:absolute;left:250px;top:144px;width:2.5px;height:28px;background:#ffd24a;opacity:{{ b4_avgTrack }};"></div>
         <div style="position:absolute;left:232px;top:174px;font-size:8.5px;font-weight:800;color:#a98a12;opacity:{{ b4_avgTrack }};">88%线=30.8</div>
         <div style="position:absolute;left:{{ b4_avgProbeX }}px;top:118px;transform:translateX(-50%);opacity:{{ b4_avgProbe }};">
-          <div style="background:#cf4436;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:9px;white-space:nowrap;box-shadow:2px 2px 0 rgba(0,0,0,.12);">平均 30.8 · 临界</div>
+          <div style="background:#cf4436;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:9px;white-space:nowrap;box-shadow:2px 2px 0 rgba(0,0,0,.12);">平均 30.5 · 不达标</div>
           <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #cf4436;margin:0 auto;"></div>
         </div>
         <div style="position:absolute;left:16px;top:210px;font-size:10px;font-weight:800;color:#2c8a5b;opacity:{{ b4_minTrack }};">最小值 ≥ 设计×80% = 28</div>
@@ -172,7 +172,7 @@
           <div style="background:#2c8a5b;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:9px;white-space:nowrap;box-shadow:2px 2px 0 rgba(0,0,0,.12);">最小 28.5 · 过</div>
           <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #2c8a5b;margin:0 auto;"></div>
         </div>
-        <div style="position:absolute;left:20px;right:20px;top:296px;font-size:10px;font-weight:700;color:#8a6d3a;line-height:1.5;text-align:center;opacity:{{ b4_noteO }};">平均值正好压在临界线上 · 是否合格按评分细则 / 教研裁定，公式数值先摆对</div>
+        <div style="position:absolute;left:20px;right:20px;top:296px;font-size:10px;font-weight:700;color:#8a6d3a;line-height:1.5;text-align:center;opacity:{{ b4_noteO }};">平均 30.5 ＜ 30.8，平均线不达标 → 判不合格 · 公式、代入、回判写全才是采分句</div>
       </div>
 
       <!-- ░░ BEAT 5 · 分部验收组织人员 ░░ -->
@@ -294,7 +294,7 @@
         <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:346px;">
           <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:9.5px;font-weight:800;color:#2f6db0;">实体四项：强度·保护层·尺寸偏差·合同约定</div>
           <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:9.5px;font-weight:800;color:#cf4436;">监理组织 · 施工实施 · 监理见证 · 方案报审批</div>
-          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:9.5px;font-weight:800;color:#2c8a5b;">平均≥设计×88% 且 最小≥设计×80%（临界按细则）</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:9.5px;font-weight:800;color:#2c8a5b;">平均≥设计×88% 且 最小≥设计×80%（两条同时满足）</div>
           <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:9.5px;font-weight:800;color:#cf8a44;">不合格分岔：返工/委托检测/加固/严禁验收</div>
           <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:9.5px;font-weight:800;color:#23282b;">竣工六步：自检·预验收·整改·通过·报告·正式验收</div>
         </div>
@@ -460,18 +460,18 @@
 class Component extends DCLogic {
   state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askRawResponse:"", askBlocks:[], askQuestion:"", askHistory:[], askWorkflowEntries:[], askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowExpanded:false, askWorkflowToggleText:"查看处理摘要", askWorkflowActive:false, askStreaming:false, askError:"", fs:false, ctrlHidden:false, muted:false };
   audioBase="audio/down/";
-  audioVersion="881bcfd50718caca";
-  DUR = 304.312;
+  audioVersion="01caf911a8c6d444";
+  DUR = 310.848;
   examTitle="检验批·验收程序（下）"; examCode="A01 · 下"; examCat="案例·质量验收";
-  posterSub="实体检验 · 组织人员 · 不合格分支 · 竣工程序"; posterMeta="点击播放 · 8 幕精讲 + 4 追问 · 约 5 分 52 秒";
-  KNOWLEDGE="检验批/分部分项工程质量验收程序（下集：结构实体检验+验收组织人员+不合格处理与竣工程序）。①结构实体检验=对验收链的独立复核，四内容：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目（只答强度漏三项是采分点遗漏）。②组织：监理单位组织、施工单位实施、监理见证全过程，施工编专项方案报监理审批（答成施工单位组织=概念混淆）。③强度方法：优先同条件养护试件法，试件不足时才回弹—取芯法（直接钻芯跳过首选=程序顺序错）。④合格判定：平均值≥设计值×88%且最小值≥设计值×80%两条同时满足；C35三芯样28.5/31/32→平均30.8=35×88%临界、最小28.5>35×80%=28，临界取舍以评分细则/教研裁定为准，不替判。⑤分部验收：总监理工程师（或建设单位项目负责人）组织，施工单位项目负责人、技术负责人参加；地基基础/主体结构分部还须设计单位项目负责人+施工单位技术、质量部门负责人；主体结构=七子分部。⑥不合格处理是决策分支：返工返修→重新验收、资料缺→委托检测补证、加固后重评、仍不满足安全→严禁验收（只会返工=迁移失败）。⑦单位工程合格五条：分部全合格+质控资料完整+安全节能环保资料完整+主要功能抽查合格+观感质量达标。⑧程序：地基五步（施工自评→设计认可→监理核定→业主验收→政府监督），竣工六步（施工自检→监理预验收→施工整改→预验收通过→提交竣工报告→建设单位组织正式验收），五方主体（建设/施工/监理/设计/勘察）。数值口径以GB50300/真题为准。上集讲四级层级+合格判定+隐蔽与见证。";
-    beats=[["b0",0.0,20.9,"破误区"],["b1",20.9,42.28,"实体四项"],["b2",42.28,62.124,"谁组织"],["b3",62.124,82.712,"强度方法"],["b4",82.712,113.932,"合格判定"],["b5",113.932,137.904,"验收组织"],["b6",137.904,165.14,"不合格分支"],["b7",165.14,196.168,"竣工程序"],["q0",196.168,221.428,"问答"],["q1",221.428,244.744,"问答"],["q2",244.744,277.012,"问答"],["q3",277.012,304.312,"问答"]];
+  posterSub="实体检验 · 组织人员 · 不合格分支 · 竣工程序"; posterMeta="点击播放 · 8 幕精讲 + 4 追问 · 约 5 分 11 秒";
+  KNOWLEDGE="检验批/分部分项工程质量验收程序（下集：结构实体检验+验收组织人员+不合格处理与竣工程序）。①结构实体检验=对验收链的独立复核，四内容：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目（只答强度漏三项是采分点遗漏）。②组织：监理单位组织、施工单位实施、监理见证全过程，施工编专项方案报监理审批（答成施工单位组织=概念混淆）。③强度方法：优先同条件养护试件法，试件不足时才回弹—取芯法（直接钻芯跳过首选=程序顺序错）。④合格判定：平均值≥设计值×88%且最小值≥设计值×80%两条同时满足；C35三芯样28.5/31/32→平均(28.5+31+32)/3=30.5＜35×88%=30.8平均线不达标判不合格、最小28.5>35×80%=28合格（两条须同时满足，一条不满足即不合格）。⑤分部验收：总监理工程师（或建设单位项目负责人）组织，施工单位项目负责人、技术负责人参加；地基基础/主体结构分部还须设计单位项目负责人+施工单位技术、质量部门负责人；主体结构=七子分部。⑥不合格处理是决策分支：返工返修→重新验收、资料缺→委托检测补证、加固后重评、仍不满足安全→严禁验收（只会返工=迁移失败）。⑦单位工程合格五条：分部全合格+质控资料完整+安全节能环保资料完整+主要功能抽查合格+观感质量达标。⑧程序：地基五步（施工自评→设计认可→监理核定→业主验收→政府监督），竣工六步（施工自检→监理预验收→施工整改→预验收通过→提交竣工报告→建设单位组织正式验收），五方主体（建设/施工/监理/设计/勘察）。数值口径以GB50300/真题为准。上集讲四级层级+合格判定+隐蔽与见证。";
+    beats=[["b0",0.0,20.9,"破误区"],["b1",20.9,42.28,"实体四项"],["b2",42.28,62.124,"谁组织"],["b3",62.124,82.712,"强度方法"],["b4",82.712,117.364,"合格判定"],["b5",117.364,141.336,"验收组织"],["b6",141.336,168.572,"不合格分支"],["b7",168.572,199.6,"竣工程序"],["q0",199.6,224.86,"问答"],["q1",224.86,248.176,"问答"],["q2",248.176,283.548,"问答"],["q3",283.548,310.848,"问答"]];
   keycards=[
     "实体检验只测强度？谁施工谁验收？先划掉",
     "实体四项：强度·保护层·尺寸偏差·合同约定",
     "监理组织 · 施工实施 · 监理见证 · 方案报审批",
     "强度：同条件养护试件优先 · 不足才回弹取芯",
-    "平均≥设计×88% 且 最小≥设计×80%（临界待细则）",
+    "平均≥设计×88% 且 最小≥设计×80%（同时满足）",
     "分部：总监组织 · 参加人员齐 · 主体七子分部",
     "不合格是分岔：返工/委托检测/加固/严禁验收",
     "竣工六步：自检·预验收·整改·通过·报告·正式验收"
@@ -481,7 +481,7 @@ class Component extends DCLogic {
     "实体检验，是对前面那套验收的独立复核，测的是结果。它有固定四件套：一，混凝土强度；二，钢筋保护层厚度；三，结构位置与尺寸偏差；四，合同约定的项目。只答混凝土强度，后三项一漏，采分点就丢。四项，一个都不能少。",
     "再说谁来组织。实体检验由监理单位组织、施工单位实施、监理全过程见证；施工单位得先编专项方案、报监理审批。记住哈，不是谁施工谁验收——组织和见证在监理，实施在施工，答反了就是概念混淆，直接丢分。",
     "测混凝土强度，方法有先后。优先用同条件养护试件法；试件取不到、或者强度不满足时，才退一步用回弹—取芯法。这俩是「先首选、不足才兜底」的顺序，不是并列。上来就直接回弹钻芯、跳过同条件试件，顺序错，扣分。",
-    "来看这道真题的判定。C35 构件，三个芯样二十八点五、三十一、三十二。规矩是两条同时满足：平均值大于等于设计乘百分之八十八、最小值大于等于设计乘百分之八十。三十五乘八十八是三十点八，乘八十是二十八。算出来平均正好三十点八、卡在临界线上，最小二十八点五过线。这临界到底算不算合格，按评分细则和教研裁定走，咱把公式和数值摆对，不自己拍板。",
+    "来看这道真题的判定。C35 构件，三个芯样二十八点五、三十一、三十二。规矩是两条同时满足：平均值大于等于设计乘百分之八十八、最小值大于等于设计乘百分之八十。三十五乘八十八是三十点八，乘八十是二十八。算出来平均是三十点五，没够到三十点八这条线；最小二十八点五过线。两条得同时满足，平均线不达标，这个部位就得判不合格。答题纸上把公式、代入、回判写全，分才稳。",
     "分部工程谁验收？由总监理工程师，或者建设单位项目负责人组织；施工单位项目负责人、技术负责人参加。要是地基与基础、主体结构这种分部，还得加上设计单位项目负责人、施工单位技术和质量部门负责人。顺带记一句，主体结构是七个子分部，数量别记错。",
     "验收不合格，是不是就得拆了返工？不是哈。先看合格门槛——单位工程合格看五条。过不了，是个决策分岔：返工返修的重新验收、多数能救回来；资料缺的委托有资质机构做实体检验补证；加固后重新评估。只有经返修或加固后，仍不满足安全、重要使用要求的，才走最后一档——严禁验收。别一上来就「拆了重来」。",
     "最后把程序链串起来。地基与基础分部：施工自评、设计认可、监理核定、业主验收、政府监督，五步。单位工程竣工：施工自检、监理预验收、施工整改、预验收通过、提交竣工报告、建设单位组织正式验收，六步；建设、施工、监理、设计、勘察五方一起参加。程序顺序别倒，监理预验收在建设单位正式验收之前。"
@@ -489,7 +489,7 @@ class Component extends DCLogic {
   qa=[
     { figLabel:"实体检验四件套 · 缺一扣一", fig:"four", q:"老师，实体检验除了混凝土强度，还测啥来着？我老记不全。", a:"记这四件套哈：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目。答的时候顺着编号一项项写，最容易漏的就是后头俩——尺寸偏差和合同约定项目。四项写全，这道就不丢采分点。" },
     { figLabel:"监理组织·施工实施·监理见证", fig:"roles", q:"那实体检验到底谁组织啊？不是施工方自己测嘛？", a:"不是自己测哈。组织和见证在监理，实施在施工——监理单位组织、施工单位实施、监理全过程见证，专项方案还得施工编、报监理审批。你要答成「施工单位组织」，那就是概念混淆、组织主体答反，扣分。" },
-    { figLabel:"双阈值标尺 · 平均压临界线", fig:"ruler", q:"那个 C35，三个芯样算出来平均正好三十点八，到底算不算合格啊？", a:"先把两条阈值摆对：平均值得大于等于设计乘八十八、也就是三十点八；最小值大于等于设计乘八十、也就是二十八。你这平均正好三十点八、压在临界线上，最小二十八点五过线。临界这一下算不算，得看评分细则、教研裁定，咱不替它拍板——把公式、数值、临界这情况点明白，分就到位了。" },
+    { figLabel:"双阈值标尺 · 平均线不达标", fig:"ruler", q:"那个 C35，三个芯样算出来平均是三十点五，差一点没够三十点八，是不是就不合格了？", a:"对喽。先把两条阈值摆对：平均值得大于等于设计乘八十八、也就是三十点八；最小值大于等于设计乘八十、也就是二十八。你这平均三十点五，比三十点八差了零点三，平均线不达标；最小二十八点五虽然过线也救不回来——两条得同时满足，所以判不合格。把公式、代入、回判这条链写全，分就到位了。" },
     { figLabel:"闸门分岔 · 严禁验收在最末", fig:"branch", q:"验收要是不合格，是不是就得拆了返工重来啊？", a:"多数救得回来哈。不合格是个分岔：返工返修完重新验收；资料缺了委托有资质机构做实体检验补证；加固后重新评估。只有经返修或加固后，还是不满足安全和重要使用要求的，才到最后一档——严禁验收。别只会「拆了重来」，得答出这几档分支。" }
   ];
   askPresets=["实体检验四项怎么记全？","强度合格双阈值咋判？","不合格处理有哪几档？"];
@@ -646,9 +646,9 @@ class Component extends DCLogic {
       els.push(D({x:0,top:26,w:246,h:14,fg:"#e0c08a",fs:8,jc:"flex-start",lab:"方案：施工编 · 报监理审批（非谁施工谁验收）"})); }
     else if(it.fig==="ruler"){ h=44;
       els.push(D({x:0,top:2,w:34,h:14,fg:"#9fc7e0",fs:8,jc:"flex-start",lab:"平均"}));
-      els.push(D({x:36,top:2,w:114,h:14,bg:"#2c8a5b",r:3,fg:"#fff",fs:7.5,jc:"flex-end",lab:"30.8 "}));
+      els.push(D({x:36,top:2,w:100,h:14,bg:"#cf4436",r:3,fg:"#fff",fs:7.5,jc:"flex-end",lab:"30.5 "}));
       els.push(D({x:149,top:-1,w:2,h:20,bg:"#ffd24a"}));
-      els.push(D({x:150,top:-11,w:90,h:9,fg:"#ffd24a",fs:7.5,jc:"flex-start",lab:"88%线=30.8 临界"}));
+      els.push(D({x:150,top:-11,w:104,h:9,fg:"#ffd24a",fs:7.5,jc:"flex-start",lab:"88%线=30.8 · 不达标"}));
       els.push(D({x:0,top:24,w:34,h:14,fg:"#9fd3b4",fs:8,jc:"flex-start",lab:"最小"}));
       els.push(D({x:36,top:24,w:104,h:14,bg:"#2c8a5b",r:3,fg:"#fff",fs:7.5,jc:"flex-end",lab:"28.5 "}));
       els.push(D({x:120,top:21,w:2,h:20,bg:"#ffd24a"}));
@@ -688,7 +688,7 @@ class Component extends DCLogic {
     if(A(2)){ v.b2_tgtO=W(0,.16); v.b2_orgO=W(.18,.36); v.b2_impO=W(.36,.52); v.b2_witO=W(.52,.66); v.b2_docO=W(.66,.8); v.b2_badO=W(.82,1); }
     if(A(3)){ v.b3_n1O=W(0,.24); v.b3_condO=W(.28,.44); v.b3_n2O=W(.46,.66); v.b3_badO=W(.72,.94); }
     if(A(4)){ v.b4_dataO=W(0,.2); v.b4_avgTrack=W(.22,.38);
-      const ap=W(.38,.56); v.b4_avgProbe=ap; v.b4_avgProbeX=this.lp(60,250,ap); v.b4_avgFillW=Math.max(0,v.b4_avgProbeX-60);
+      const ap=W(.38,.56); v.b4_avgProbe=ap; v.b4_avgProbeX=this.lp(60,239,ap); v.b4_avgFillW=Math.max(0,v.b4_avgProbeX-60);
       v.b4_minTrack=W(.5,.64);
       const mp=W(.64,.82); v.b4_minProbe=mp; v.b4_minProbeX=this.lp(60,228,mp); v.b4_minFillW=Math.max(0,v.b4_minProbeX-60);
       v.b4_noteO=W(.86,1); }

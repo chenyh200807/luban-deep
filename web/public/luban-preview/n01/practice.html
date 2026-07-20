@@ -239,51 +239,42 @@ class Component extends DCLogic {
   moreText="补两道方向：① 两条并列关键线路的图（并列最长全列 + 总工期带算式单位），专治漏第二条；② 甲方原因延误但未超总时差的判读（责任 + 时差两步链 + 工期费用分开判），专治只看责任方下结论。都可以点问鲁班要同型题。";
   // ── 题库（16 道；教学网络与讲解一致：两条关键线路 11=11，E/G 非关键 TF=3）──
   Q=[
-{ tag:"判据·条件维", typeHint:"单选 · 选出判据最完整、能得分的作答", figLabel:"双代号网络图 · 三条路径", figCaption:"路① 11 个月 · 路② 11 个月 · 路③ 8 个月", fig:"paths",
+{ tag:"判据·条件维",
+      typeHint:"单选 · 选出判据最完整、能得分的作答",
+      figLabel:"双代号网络图 · 三条路径",
+      figCaption:"路① 11 个月 · 路② 11 个月 · 路③ 8 个月",
+      fig:"paths",
       stem:"双代号网络计划中，如何判定关键工作与关键线路？选出判据最完整、能得分的作答。",
-      model:"关键工作是总时差最小的工作；关键线路由全部关键工作组成，其工期等于网络计划的计算工期（最长路径）。",
-      opts:[
-        { t:"持续时间最长的那道工作所在的线路就是关键线路，抓住最大的那项工作即可判定。", ok:false, code:"E07", tempt:"「最长」二字看着眼熟，容易把单个工作的长短当判据。", lose:"判据错位：关键看的是路径总长/总时差，不是某道工作自己长不长。", fix:"关键工作=总时差最小；关键线路=最长路径=计算工期。" },
-        { t:"关键工作是总时差最小的工作；关键线路由全部关键工作组成，工期等于计算工期。", ok:true, fix:"判据两句齐：总时差最小 + 工期=计算工期，落到哪条线路都能判。", code:"" },
-        { t:"总时差为零的工作是关键工作，且一个网络图里关键线路只会有一条，找到即可。", ok:false, code:"E07", tempt:"「TF=0」这半句是对的，顺手就选了。", lose:"后半句错：并列最长路径可有两条及以上，「只有一条」是典型误区。", fix:"关键线路可能不止一条，并列最长的全部是关键线路。" },
-        { t:"图中最长的线路是关键线路，据此原则判定即可，无须再写具体判据与线路。", ok:false, code:"E04", tempt:"方向对，觉得写个原则就算答了。", lose:"口号化表达：不落总时差判据、不落具体线路，阅卷无从给分。", fix:"写判据句并落到具体线路：关键线路为①→②→④→⑥（节点连续）。" }
-      ] },
-{ tag:"全列·记录维", typeHint:"单选 · 选出能拿全分的关键线路作答", figLabel:"路径长度清单", figCaption:"两条路径并列最长（11 = 11）", fig:"twopaths",
+      opts:[{"t": "持续时间最长的那道工作所在的线路就是关键线路，抓住最大的那项工作即可判定。"}, {"t": "关键工作是总时差最小的工作；关键线路由全部关键工作组成，工期等于计算工期。"}, {"t": "总时差为零的工作是关键工作，且一个网络图里关键线路只会有一条，找到即可。"}, {"t": "图中最长的线路是关键线路，据此原则判定即可，无须再写具体判据与线路。"}] },
+{ tag:"全列·记录维",
+      typeHint:"单选 · 选出能拿全分的关键线路作答",
+      figLabel:"路径长度清单",
+      figCaption:"两条路径并列最长（11 = 11）",
+      fig:"twopaths",
       stem:"某网络计划经计算：路①（①→②→④→⑥）= 11 个月，路②（①→③→④→⑥）= 11 个月，路③ = 8 个月。写出关键线路，选出能拿全分的作答。",
-      model:"关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥（并列最长，工期相等，均为 11 个月）。",
-      opts:[
-        { t:"关键线路为 ①→②→④→⑥，共 11 个月，取其中一条最长路径作答即可。", ok:false, code:"E02", tempt:"算出 11 就急着写，一条看着已经「答上了」。", lose:"漏掉并列的另一条关键线路，漏一条丢一条的分。", fix:"补上第二条：和 ①→③→④→⑥，两条并列最长全列出。" },
-        { t:"本网络计划中最长的路径即为关键线路，其总持续时间为 11 个月。", ok:false, code:"E04", tempt:"判据没错，感觉写了就有分。", lose:"没落到具体线路（节点序列），口号化表达不得分。", fix:"落到具体节点序列，且两条并列的都写。" },
-        { t:"关键线路有两条：①→④→⑥ 和 ①→③→⑥，两条工期相等均为最长。", ok:false, code:"E03", tempt:"知道要写两条，随手把节点写「顺」了。", lose:"节点跳号、线路不连续，阅卷按错线路处理。", fix:"逐节点连续写：①→②→④→⑥ 和 ①→③→④→⑥。" },
-        { t:"关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥，并列最长、工期相等。", ok:true, fix:"并列最长全部列出、节点连续，这正是历年两条关键线路题的给分点。", code:"" }
-      ] },
-{ tag:"总工期·计算表达维", typeHint:"单选 · 选出可得分的总工期写法", figLabel:"关键线路与各工作持续时间", figCaption:"沿关键线路：3、4、4（个月）", fig:"twopaths",
+      opts:[{"t": "关键线路为 ①→②→④→⑥，共 11 个月，取其中一条最长路径作答即可。"}, {"t": "本网络计划中最长的路径即为关键线路，其总持续时间为 11 个月。"}, {"t": "关键线路有两条：①→④→⑥ 和 ①→③→⑥，两条工期相等均为最长。"}, {"t": "关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥，并列最长、工期相等。"}] },
+{ tag:"总工期·计算表达维",
+      typeHint:"单选 · 选出可得分的总工期写法",
+      figLabel:"关键线路与各工作持续时间",
+      figCaption:"沿关键线路：3、4、4（个月）",
+      fig:"twopaths",
       stem:"承上题（关键线路 ①→②→④→⑥，各工作持续 3、4、4 个月）。写总工期，选出可得分的写法。",
-      model:"总工期 T =（沿关键线路）3+4+4 = 11 个月；线路、算式、单位三件齐。",
-      opts:[
-        { t:"总工期沿关键线路①→②→④→⑥求和：T = 3+4+4 = 11 个月。", ok:true, fix:"线路 + 算式 + 单位三件齐全，过程分结果分都稳。", code:"" },
-        { t:"总工期为 11，由图中数据直接得出，不必再抄线路和算式占篇幅。", ok:false, code:"E03", tempt:"数算对了，觉得写个结果最利索。", lose:"只写数字不给线路算式单位，过程采分点全丢。", fix:"补全：沿关键线路 T=3+4+4=11 个月。" },
-        { t:"总工期沿路③①→②→⑤→⑥求和：T = 3+2+3 = 8 个月。", ok:false, code:"E09", tempt:"随手挑了条看着顺的路径求和。", lose:"沿非关键线路求和，总工期算错，属计算错误。", fix:"必须沿最长路径（关键线路）求和：3+4+4=11 个月。" },
-        { t:"总工期沿关键线路求和：T = 3+4+4 = 11，算式与线路都已写明。", ok:false, code:"E03", tempt:"就差一个字，极容易看漏。", lose:"漏单位：11 是 11 个月还是 11 天？漏单位压线扣分。", fix:"数值后补单位：= 11 个月。" }
-      ] },
-{ tag:"虚工作·程序维", typeHint:"单选 · 选出处理逻辑正确的作答", figLabel:"题给：新增紧前关系", figCaption:"F 须 B、C 均完成才能开始 · 原图缺一环", fig:"virt",
+      opts:[{"t": "总工期沿关键线路①→②→④→⑥求和：T = 3+4+4 = 11 个月。"}, {"t": "总工期为 11，由图中数据直接得出，不必再抄线路和算式占篇幅。"}, {"t": "总工期沿路③①→②→⑤→⑥求和：T = 3+2+3 = 8 个月。"}, {"t": "总工期沿关键线路求和：T = 3+4+4 = 11，算式与线路都已写明。"}] },
+{ tag:"虚工作·程序维",
+      typeHint:"单选 · 选出处理逻辑正确的作答",
+      figLabel:"题给：新增紧前关系",
+      figCaption:"F 须 B、C 均完成才能开始 · 原图缺一环",
+      fig:"virt",
       stem:"题干新增：工作 F 必须等 B、C 均完成后才能开始，但原图中 F 只与 C 相接。正确的处理是？",
-      model:"原图逻辑不全，应在 B 的完成节点与 F 的开始节点之间增加一个虚工作（虚箭线，只表达逻辑关系），再在调整后的图上计算关键线路。",
-      opts:[
-        { t:"图是题目给定的依据，按原图直接计算关键线路与总工期即可，不必改动。", ok:false, code:"E08", tempt:"觉得「题给的图不会有错」，直接开算省事。", lose:"没提取题干新增的紧前关系，在错图上算，线路工期全盘错。", fix:"先补虚工作校正逻辑，再算。" },
-        { t:"把工作 F 移到 B 之后串联布置，让 B 做完再做 F，即可满足新增关系。", ok:false, code:"E07", tempt:"「等 B 完成」听着像要排到 B 后面。", lose:"改串联改变了原网络逻辑（F 与 C 的关系被破坏），表达方式错。", fix:"用虚箭线补逻辑，不改动既有工作关系。" },
-        { t:"在 B 完成节点与 F 开始节点间增加一个虚工作表达该逻辑，再在调整后的图上计算。", ok:true, fix:"先校逻辑补虚工作、后计算，程序与画法都对。", code:"" },
-        { t:"增加一项持续时间 1 个月的联系工作连接 B 与 F，把等待时间也算进去。", ok:false, code:"E07", tempt:"觉得「连接工作」总得占点时间才真实。", lose:"虚工作只表达逻辑、不占时间资源；加了时长会把工期算长。", fix:"补的是虚工作：持续时间为 0，仅表达逻辑。" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", diag:true, figLabel:"模拟学生作答（待诊断）", figCaption:"三处作答 · 哪些能得分？", fig:"sheet",
+      opts:[{"t": "图是题目给定的依据，按原图直接计算关键线路与总工期即可，不必改动。"}, {"t": "把工作 F 移到 B 之后串联布置，让 B 做完再做 F，即可满足新增关系。"}, {"t": "在 B 完成节点与 F 开始节点间增加一个虚工作表达该逻辑，再在调整后的图上计算。"}, {"t": "增加一项持续时间 1 个月的联系工作连接 B 与 F，把等待时间也算进去。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 诊断失分并给正确补写",
+      diag:true,
+      figLabel:"模拟学生作答（待诊断）",
+      figCaption:"三处作答 · 哪些能得分？",
+      fig:"sheet",
       stem:"学生作答：①关键线路为 ①→②→⑤→⑥；②总时差是 3 和 3；③事件系甲方责任，故工期索赔成立。已知正确关键线路为 ①→②→④→⑥ 和 ①→③→④→⑥，E、G 总时差各 3 个月且延误未超时差。选出最准确的诊断与补写。",
-      model:"三处都要改：①线路求错（选了 8 个月的非最长路径）且漏并列第二条；②时差数值未绑定工作名；③索赔只看责任、未比时差——延误未超时差，不影响总工期，工期索赔不成立。线路是地基，地基错后面判读连锁错。",
-      opts:[
-        { t:"③的结论虽然简略但方向大体可取，①②两处只是书写不够规范，阅卷时酌情都能得到分数。", ok:false, code:"E07", tempt:"觉得「意思到了就有分」。", lose:"①是计算错误不是书写问题；③结论本身就错（应为不成立），不是简略。", fix:"逐处对照判据改写，别用「酌情」安慰自己。" },
-        { t:"三处作答中只有①关键线路需要改正，②③按学生原答保留即可，其中数值毕竟都是对的。", ok:false, code:"E02", tempt:"抓到最明显的一处就收手。", lose:"漏诊②不绑定、③错判据两处失分点。", fix:"②补工作名与单位；③补「延误未超时差、不影响总工期、不成立」。" },
-        { t:"①线路选错且漏并列一条；②数值没绑定工作名；③只看责任漏比时差，结论应为不成立——三处都要补写。", ok:true, fix:"三处失分全揪出，且点明「线路是地基、地基错判读连锁错」——这就是会写答案。", code:"" },
-        { t:"①应当改为 ①→③→④→⑥ 这一条即可；②③两处的写法在阅卷中通常不会被扣分。", ok:false, code:"E09", tempt:"改了一条像是修正了计算。", lose:"并列关键线路要两条全列，只写一条仍漏分；②③明确属扣分写法。", fix:"两条全列：①→②→④→⑥ 和 ①→③→④→⑥，②③同步补写。" }
-      ] }
+      opts:[{"t": "③的结论虽然简略但方向大体可取，①②两处只是书写不够规范，阅卷时酌情都能得到分数。"}, {"t": "三处作答中只有①关键线路需要改正，②③按学生原答保留即可，其中数值毕竟都是对的。"}, {"t": "①线路选错且漏并列一条；②数值没绑定工作名；③只看责任漏比时差，结论应为不成立——三处都要补写。"}, {"t": "①应当改为 ①→③→④→⑥ 这一条即可；②③两处的写法在阅卷中通常不会被扣分。"}] }
   ];
   // ── 错因码库（ERROR_CODE_REGISTRY 注册码，勿自造）──
   codeMap={
@@ -368,15 +359,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"N01",cardId:"N01",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -498,7 +487,7 @@ class Component extends DCLogic {
       lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:330,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -541,9 +530,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"N01-html-practice-html-q1-279218eaba74","options":["N01-html-practice-html-q1-279218eaba74:option-1","N01-html-practice-html-q1-279218eaba74:option-2","N01-html-practice-html-q1-279218eaba74:option-3","N01-html-practice-html-q1-279218eaba74:option-4"]},{"variant_id":"N01-html-practice-html-q2-63817dfe8bf9","options":["N01-html-practice-html-q2-63817dfe8bf9:option-1","N01-html-practice-html-q2-63817dfe8bf9:option-2","N01-html-practice-html-q2-63817dfe8bf9:option-3","N01-html-practice-html-q2-63817dfe8bf9:option-4"]},{"variant_id":"N01-html-practice-html-q3-ab48a6966a1a","options":["N01-html-practice-html-q3-ab48a6966a1a:option-1","N01-html-practice-html-q3-ab48a6966a1a:option-2","N01-html-practice-html-q3-ab48a6966a1a:option-3","N01-html-practice-html-q3-ab48a6966a1a:option-4"]},{"variant_id":"N01-html-practice-html-q4-3be2f0735c4d","options":["N01-html-practice-html-q4-3be2f0735c4d:option-1","N01-html-practice-html-q4-3be2f0735c4d:option-2","N01-html-practice-html-q4-3be2f0735c4d:option-3","N01-html-practice-html-q4-3be2f0735c4d:option-4"]},{"variant_id":"N01-html-practice-html-q16-f0a517ec43e7","options":["N01-html-practice-html-q16-f0a517ec43e7:option-1","N01-html-practice-html-q16-f0a517ec43e7:option-2","N01-html-practice-html-q16-f0a517ec43e7:option-3","N01-html-practice-html-q16-f0a517ec43e7:option-4"]}];
+  __dtItems=[{"variant_id":"N01-html-practice-html-q1-279218eaba74","options":["N01-html-practice-html-q1-279218eaba74:option-1","N01-html-practice-html-q1-279218eaba74:option-2","N01-html-practice-html-q1-279218eaba74:option-3","N01-html-practice-html-q1-279218eaba74:option-4"]},{"variant_id":"N01-html-practice-html-q2-63817dfe8bf9","options":["N01-html-practice-html-q2-63817dfe8bf9:option-1","N01-html-practice-html-q2-63817dfe8bf9:option-2","N01-html-practice-html-q2-63817dfe8bf9:option-3","N01-html-practice-html-q2-63817dfe8bf9:option-4"]},{"variant_id":"N01-html-practice-html-q3-ab48a6966a1a","options":["N01-html-practice-html-q3-ab48a6966a1a:option-1","N01-html-practice-html-q3-ab48a6966a1a:option-2","N01-html-practice-html-q3-ab48a6966a1a:option-3","N01-html-practice-html-q3-ab48a6966a1a:option-4"]},{"variant_id":"N01-html-practice-html-q4-3be2f0735c4d","options":["N01-html-practice-html-q4-3be2f0735c4d:option-1","N01-html-practice-html-q4-3be2f0735c4d:option-2","N01-html-practice-html-q4-3be2f0735c4d:option-3","N01-html-practice-html-q4-3be2f0735c4d:option-4"]},{"variant_id":"N01-html-practice-html-q16-f0a517ec43e7","options":["N01-html-practice-html-q16-f0a517ec43e7:option-1","N01-html-practice-html-q16-f0a517ec43e7:option-2","N01-html-practice-html-q16-f0a517ec43e7:option-3","N01-html-practice-html-q16-f0a517ec43e7:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -554,8 +561,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -564,11 +571,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"N01",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMjc5MjE4ZWFiYTc0IiwiTjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi02MzgxN2RmZThiZjkiLCJOMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWFiNDhhNjk2NmExYSIsIk4wMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtM2JlMmYwNzM1YzRkIiwiTjAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtZjBhNTE3ZWM0M2U3Il0sInBhY2tfaWQiOiJOMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImE3YzhiMzljOWMxMjMwNzQ4MTE2MmUxMmNiNjFlZjlhMWVhNzI1OTU3ZjgzYWU5ZmJhYjVkMGQ3ZGYxNzIxN2MiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNThiYWFmYWQ2NzNkZDMyMTc3NmMyMmNkMTVlODQwY2JiYjU1YTYwN2YwZmFjOGJjMDQ4MmRlNzljN2IwODcxYSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }

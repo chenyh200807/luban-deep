@@ -126,10 +126,10 @@
         <div style="position:absolute;left:24px;right:24px;top:140px;border:1.5px dashed #cf4436;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#cf4436;opacity:{{ a4_badO }};">平均值直接比 35 → 跳过双阈值</div>
         <div style="position:absolute;left:132px;top:132px;z-index:20;color:#cf4436;border:3px solid #cf4436;border-radius:8px;padding:2px 12px;font-size:16px;font-weight:900;letter-spacing:2px;transform-origin:50% 50%;opacity:{{ a4_bx }};transform:scale({{ a4_bs }}) rotate(-12deg);">淘汰 ✗</div>
         <div style="position:absolute;left:24px;top:186px;width:{{ a4_l1W }}px;height:4px;background:#2f6db0;border-radius:2px;"></div>
-        <div style="position:absolute;left:24px;right:24px;top:194px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#2f6db0;line-height:1.5;opacity:{{ a4_f1O }};">平均值 = <b>30.8</b>MPa（三芯样均值）　线：35×88% = <b>30.8</b> · 命中 ✓</div>
+        <div style="position:absolute;left:24px;right:24px;top:194px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#2f6db0;line-height:1.5;opacity:{{ a4_f1O }};">平均值 = <b>30.5</b>MPa（三芯样均值）　线：35×88% = <b>30.8</b> · 未达 ✗</div>
         <div style="position:absolute;left:24px;top:244px;width:{{ a4_l2W }}px;height:4px;background:#2c8a5b;border-radius:2px;"></div>
         <div style="position:absolute;left:24px;right:24px;top:252px;background:#fff;border:1.5px solid #a9cdb8;border-left:5px solid #2c8a5b;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#2c8a5b;line-height:1.5;opacity:{{ a4_f2O }};">最小值 = <b>28.5</b>　线：35×80% = <b>28</b> · 高于 ✓</div>
-        <div style="position:absolute;left:24px;right:24px;top:302px;background:#fff;border:1.5px solid #dddacb;border-left:5px solid #cf8a44;border-radius:9px;padding:6px 10px;font-size:10px;font-weight:700;color:#6b5f49;line-height:1.45;opacity:{{ a4_critO }};">30.8 恰为临界 · 官方给分看评分细则或教研裁定，但双阈值链必须写在答题纸上</div>
+        <div style="position:absolute;left:24px;right:24px;top:302px;background:#fff;border:1.5px solid #dddacb;border-left:5px solid #cf8a44;border-radius:9px;padding:6px 10px;font-size:10px;font-weight:700;color:#6b5f49;line-height:1.45;opacity:{{ a4_critO }};">平均 30.5 ＜ 30.8，平均线不达标 → 判不合格 · 双阈值链和回判结论必须写在答题纸上</div>
       </div>
 
       <!-- ░░ BEAT 5 · 重排：原答案保留块迁移 · 三段采分句装配 ░░ -->
@@ -293,7 +293,7 @@ class Component extends DCLogic {
   DUR = 236.548;
   examTitle="结构实体检验答案诊断"; examCode="A01"; examCat="案例·作答层";
   posterSub="先扫答题纸，再补三格：内容清单 · 组织主体 · 判定依据"; posterMeta="点击播放 · 8 幕精讲 + 3 追问 · 约 3 分 57 秒";
-  KNOWLEDGE="检验批验收·案例题作答层(A01,真题锚{2017·案例·问4})。本层只训练把知识写成阅卷友好的采分句,采分点从A01知识层派生,不新增官方判分权威。学生样本:只写“还要测钢筋保护层,由施工单位组织;平均值小于35所以不合格”,典型问题=清单不全+组织主体错位+判定依据错误。内容清单:结构实体检验除混凝土强度外,还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目(漏项=E02采分点遗漏)。组织主体:由监理单位组织、施工单位实施、监理见证全过程,施工单位编制专项方案报监理审批(写施工单位组织=E07概念混淆,“谁施工谁验收”是错误心智)。判定依据:C35实体强度应满足平均值不小于设计值88%且最小值不小于设计值80%,不能直接拿平均值比35(=E10规范适用错误);本题芯样28.5/31/32MPa,平均值30.8MPa,35×88%=30.8MPa恰为临界,最小值28.5MPa>35×80%=28MPa;临界取舍以评分细则或教研裁定为准,只指漏不替官方定分。改写结构:先编号写检验内容,再写监理组织、施工实施、监理见证,最后亮双阈值判据、代入平均值和最小值并回判。作答纪律:按内容清单、组织主体、判定依据三格自检,禁口号化表达(E04)。记忆钩:扫答案,补三格。";
+  KNOWLEDGE="检验批验收·案例题作答层(A01,真题锚{2017·案例·问4})。本层只训练把知识写成阅卷友好的采分句,采分点从A01知识层派生,不新增官方判分权威。学生样本:只写“还要测钢筋保护层,由施工单位组织;平均值小于35所以不合格”,典型问题=清单不全+组织主体错位+判定依据错误。内容清单:结构实体检验除混凝土强度外,还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目(漏项=E02采分点遗漏)。组织主体:由监理单位组织、施工单位实施、监理见证全过程,施工单位编制专项方案报监理审批(写施工单位组织=E07概念混淆,“谁施工谁验收”是错误心智)。判定依据:C35实体强度应满足平均值不小于设计值88%且最小值不小于设计值80%,不能直接拿平均值比35(=E10规范适用错误);本题芯样28.5/31/32MPa,平均值(28.5+31+32)/3=30.5MPa<35×88%=30.8MPa平均线不达标判不合格,最小值28.5MPa>35×80%=28MPa合格;两条须同时满足,一条不满足即不合格。改写结构:先编号写检验内容,再写监理组织、施工实施、监理见证,最后亮双阈值判据、代入平均值和最小值并回判。作答纪律:按内容清单、组织主体、判定依据三格自检,禁口号化表达(E04)。记忆钩:扫答案,补三格。";
   beats=[["b0",0,22.604,"扫缺口"],["b1",22.604,44.44,"判命中"],["b2",44.44,63.036,"补清单"],["b3",63.036,83.792,"改主体"],["b4",83.792,117.916,"双阈值"],["b5",117.916,147.504,"重排"],["b6",147.504,169.172,"再扫描"],["b7",169.172,182.776,"收官"],["q0",182.776,200.836,"问答"],["q1",200.836,216.616,"问答"],["q2",216.616,236.548,"问答"]];
   keycards=[
     "这不是背答案，是扫缺口",
@@ -310,7 +310,7 @@ class Component extends DCLogic {
     "第一笔，扫答案。钢筋保护层这个词不是完全错，它是部分命中；问题是它只写了一个项目。由施工单位组织这一句，主体错了。平均值比三十五小，所以不合格，这一句更危险，因为它直接拿平均强度去比设计值，跳过了实体强度的双阈值。",
     "结构实体检验不是只写混凝土强度。学生写保护层，只补到了一格。答题纸上还要看见结构位置与尺寸偏差，再看见合同约定项目。这里的动作不是把“项目很多”写得更响，而是把漏掉的工程对象逐项放回采分槽。",
     "第二格看主体。施工单位当然参与，但它在这条链里是实施主体，不是组织主体。要写成监理单位组织，施工单位实施，监理见证全过程。你看白板上，施工单位组织这条箭头退出，监理组织这条箭头才是阅卷要扫到的主体动作。",
-    "第三格是判定依据。C35 这里不能直接拿平均值和三十五比。实体强度要看两条线：平均值不小于设计值的百分之八十八，最小值不小于设计值的百分之八十。本题三个芯样算平均值是三十点八，三十五乘百分之八十八也是三十点八；最小值二十八点五，也高于三十五乘百分之八十的二十八。临界怎么给官方分，要看评分细则或教研裁定，但你的答题纸必须把这条双阈值链写出来。",
+    "第三格是判定依据。C35 这里不能直接拿平均值和三十五比。实体强度要看两条线：平均值不小于设计值的百分之八十八，最小值不小于设计值的百分之八十。本题三个芯样算平均值是三十点五，没达到三十五乘百分之八十八的三十点八；最小值二十八点五，高于三十五乘百分之八十的二十八。平均线不达标，判定就是不合格，你的答题纸必须把这条双阈值链和回判结论写出来。",
     "现在才进入改写。第一段，结构实体检验除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。第二段，由监理单位组织，施工单位实施，监理见证全过程。第三段，强度按平均值不小于设计值百分之八十八、最小值不小于设计值百分之八十回判。这样写，不是更啰嗦，而是每一格都能被扫描到。",
     "最后扫一遍成品答案。内容清单命中，主体链命中，判定依据命中。你真正要带走的不是一段死记答案，而是一个作答动作：看到结构实体检验案例，先扫自己的答题纸，问三格齐不齐。内容清单有没有完整，组织主体有没有写对，计算判据有没有亮出来。",
     "记住哈，检验批验收作答层就一句话：扫答案，补三格。内容清单、组织主体、判定依据，少一格都不是完整采分句。现在进闯关，按答题纸扫描来练。"
@@ -318,7 +318,7 @@ class Component extends DCLogic {
   qa=[
     { figLabel:"实体检验四件套 · 清单补完整", fig:"fouritem", q:"老师，我写了钢筋保护层，这块能拿分不？", a:"能拿一点方向分，但不稳。因为这只命中保护层，漏了结构位置与尺寸偏差和合同约定项目。主观题不是看你有没有碰到熟词，而是看清单有没有补完整。" },
     { figLabel:"组织 · 实施 · 见证", fig:"orgchain", q:"那我直接写施工单位组织，咋就不行呢？", a:"因为你把实施主体写成组织主体了。施工单位实施检验，但组织要写监理单位，过程还要有监理见证。主体错位，阅卷会直接扣。" },
-    { figLabel:"88% / 80% 双阈值", fig:"dualthr", q:"整明白了，但平均值这块我能不能直接跟 C35 比？", a:"不能。实体强度不是直接比设计值，而是平均值看百分之八十八，最小值看百分之八十。你可以不替官方抢判临界分，但公式、代入、回判这条链必须写。" }
+    { figLabel:"88% / 80% 双阈值", fig:"dualthr", q:"整明白了，但平均值这块我能不能直接跟 C35 比？", a:"不能。实体强度不是直接比设计值，而是平均值看百分之八十八，最小值看百分之八十。本题平均三十点五没到三十点八，平均线不达标就是不合格——公式、代入、回判这条链必须写全。" }
   ];
   qaCue=[{answerStart:4.58},{answerStart:4.58},{answerStart:6.14}];
   askPresets=["实体检验四项清单咋写全？","组织主体那句怎么改才对？","88%和80%的判定链怎么写？"];
@@ -391,7 +391,7 @@ class Component extends DCLogic {
       els.push(D({x:172,top:18,w:76,h:18,bg:"#46627e",bd:"1px solid #3fa06a",r:2,fg:"#9fd3b4",fs:8,lab:"监理见证"}));
       els.push(D({x:0,top:44,w:248,h:10,fg:"#9fd3b4",fs:8.5,jc:"flex-start",lab:"✓ 组织、实施、见证三个角色拆清"})); }
     else if(it.fig==="dualthr"){ h=58;
-      els.push(D({x:0,top:2,w:248,h:14,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"平均值 30.8 ↔ 35×88% = 30.8（临界）"}));
+      els.push(D({x:0,top:2,w:248,h:14,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"平均值 30.5 ＜ 35×88% = 30.8（不达标）"}));
       els.push(D({x:0,top:20,w:248,h:14,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"最小值 28.5 ＞ 35×80% = 28"}));
       els.push(D({x:0,top:40,w:248,h:12,fg:"#e0a89f",fs:8.5,jc:"flex-start",lab:"✗ 直接拿平均值比 35 = 跳过双阈值"})); }
     return {els,h};

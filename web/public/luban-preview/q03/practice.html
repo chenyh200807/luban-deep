@@ -227,14 +227,7 @@
 <div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
-/* ░░░ 母版骨架逻辑：随堂练 ░░░
-   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
-   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
-   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
-   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
-     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
-   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
-     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+/* 服务端判分收权：作者注释含答案键示例，发布时整块移除 */
 class Component extends DCLogic {
   // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
   //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
@@ -245,51 +238,41 @@ class Component extends DCLogic {
   moreText="再补两道：① 拿一张拆模后的混凝土墙逐图命名（麻面/露筋/蜂窝/孔洞），练“对号入座+成因归三侧”；② 拿填充墙交接裂缝真题，练“部位（柱边/梁底/洞口）+措施带数值（2φ6@500、14d）”三段式，将“口号化措施”改写成带数值采分句。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
-{ tag:"表面缺陷·识别", typeHint:"单选 · 选出把四缺陷对号入座、能得分的作答", figLabel:"题给：拆模后四种表面缺陷", figCaption:"形貌各不同 · 你来逐一命名", fig:"defectID",
+{ tag:"表面缺陷·识别",
+      typeHint:"单选 · 选出把四缺陷对号入座、能得分的作答",
+      figLabel:"题给：拆模后四种表面缺陷",
+      figCaption:"形貌各不同 · 你来逐一命名",
+      fig:"defectID",
       stem:"地下室墙板拆模后出现四种表面缺陷。选出把它们对号入座、能得分的作答。",
-      model:"密布小凹点且钢筋不露=麻面；钢筋外露无保护层=露筋；石子成堆缺砂浆空隙连片=蜂窝；局部贯穿大洞=孔洞。",
-      opts:[
-        { t:"四种表面缺陷本质相同，都是振捣不实引起的，一律按蜂窝对待、成因统一写作漏振欠振即可完成命名。", ok:false, code:"E07", tempt:"觉得四种只是轻重不同、都怪振捣。", lose:"麻面主因在模板、露筋在保护层，一律叫蜂窝命名就错。", fix:"按形貌分别命名：麻面/露筋/蜂窝/孔洞。" },
-        { t:"密布小凹点=麻面、钢筋外露=露筋、石子成堆缺砂浆=蜂窝、局部贯穿大洞=孔洞，按形貌逐一命名。", ok:true, fix:"四种形貌逐一对应命名，是识别题的采分地基。", code:"" },
-        { t:"凡属凹陷类的表面缺陷都一并算作孔洞，表面密布的小凹点也归到孔洞里一起上报，无需再细分名称。", ok:false, code:"E07", tempt:"都是凹进去的，笼统归孔洞。", lose:"麻面是表面密布小凹点、孔洞是局部贯穿大洞，深浅范围完全不同。", fix:"密布小凹点是麻面，贯穿大洞才是孔洞。" },
-        { t:"无需先行逐一命名，直接写出加强振捣、加强养护等防治措施，就能覆盖四种缺陷的处理要求。", ok:false, code:"E05", tempt:"想跳过识别直接答措施。", lose:"识别命名是采分地基，跳过=丢识别分。", fix:"先逐图命名，再对应写成因与措施。" }
-      ] },
-{ tag:"表面缺陷·成因", typeHint:"单选 · 选出麻面成因分析能得分的作答", figLabel:"题给：成因三侧归类", figCaption:"麻面——该归哪一侧？", fig:"cause",
+      opts:[{"t": "四种表面缺陷本质相同，都是振捣不实引起的，一律按蜂窝对待、成因统一写作漏振欠振即可完成命名。"}, {"t": "密布小凹点=麻面、钢筋外露=露筋、石子成堆缺砂浆=蜂窝、局部贯穿大洞=孔洞，按形貌逐一命名。"}, {"t": "凡属凹陷类的表面缺陷都一并算作孔洞，表面密布的小凹点也归到孔洞里一起上报，无需再细分名称。"}, {"t": "无需先行逐一命名，直接写出加强振捣、加强养护等防治措施，就能覆盖四种缺陷的处理要求。"}] },
+{ tag:"表面缺陷·成因",
+      typeHint:"单选 · 选出麻面成因分析能得分的作答",
+      figLabel:"题给：成因三侧归类",
+      figCaption:"麻面——该归哪一侧？",
+      fig:"cause",
       stem:"构件拆模后表面出现麻面（密布小凹点、钢筋未外露）。选出成因分析能得分的作答。",
-      model:"模板不光滑/接缝不严漏浆/浇筑前未湿润/隔离剂涂刷不匀，表面缺浆形成麻面。",
-      opts:[
-        { t:"模板表面不光滑、接缝不严漏浆、浇筑前未湿润、隔离剂涂刷不匀，表面缺浆形成麻面。", ok:true, fix:"四个成因都落在模板与缺浆，正是麻面采分点。", code:"" },
-        { t:"麻面是由钢筋保护层垫块漏放、钢筋紧贴模板造成的，本质上属于保护层厚度不足的问题。", ok:false, code:"E07", tempt:"把麻面和露筋的成因搞混。", lose:"垫块漏放导致的是露筋不是麻面；麻面钢筋并未外露。", fix:"麻面主因在模板与缺浆，露筋才是保护层不足。" },
-        { t:"麻面是由混凝土内部石子成堆、砂浆包裹不足造成的，本质上属于本体密实度不够的问题。", ok:false, code:"E07", tempt:"把麻面当蜂窝的成因来答。", lose:"石子成堆缺砂浆是蜂窝；麻面是表面缺浆、非内部离析。", fix:"麻面归模板/缺浆，蜂窝才归振捣离析。" },
-        { t:"麻面主要是施工不认真、现场管理不到位造成的，加强现场管理、严格把关就能确保质量。", ok:false, code:"E04", tempt:"口号化、好写。", lose:"只喊加强管理没写具体成因（模板/漏浆/湿润/隔离剂），拿不到采分。", fix:"写清模板不光滑·接缝漏浆·未湿润·隔离剂不匀。" }
-      ] },
-{ tag:"表面缺陷·成因", typeHint:"单选 · 选出蜂窝/孔洞成因能得分的作答", figLabel:"题给：成因三侧归类", figCaption:"蜂窝/孔洞——该归哪一侧？", fig:"cause",
+      opts:[{"t": "模板表面不光滑、接缝不严漏浆、浇筑前未湿润、隔离剂涂刷不匀，表面缺浆形成麻面。"}, {"t": "麻面是由钢筋保护层垫块漏放、钢筋紧贴模板造成的，本质上属于保护层厚度不足的问题。"}, {"t": "麻面是由混凝土内部石子成堆、砂浆包裹不足造成的，本质上属于本体密实度不够的问题。"}, {"t": "麻面主要是施工不认真、现场管理不到位造成的，加强现场管理、严格把关就能确保质量。"}] },
+{ tag:"表面缺陷·成因",
+      typeHint:"单选 · 选出蜂窝/孔洞成因能得分的作答",
+      figLabel:"题给：成因三侧归类",
+      figCaption:"蜂窝/孔洞——该归哪一侧？",
+      fig:"cause",
       stem:"构件出现蜂窝（石子成堆、空隙连片）与孔洞（局部贯穿）。选出成因分析能得分的作答。",
-      model:"自由倾落过高致离析、漏振欠振、钢筋过密下料困难混凝土未振实，形成蜂窝孔洞。",
-      opts:[
-        { t:"蜂窝孔洞是由模板接缝漏浆、隔离剂涂刷不匀造成表面缺浆而形成的，与振捣离析并无关系。", ok:false, code:"E07", tempt:"套用麻面的模板成因。", lose:"模板漏浆致麻面；蜂窝孔洞主因是振捣离析与配筋过密。", fix:"蜂窝孔洞归布料/振捣/配筋，不是模板缺浆。" },
-        { t:"蜂窝孔洞是养护不到位、后期强度不足被压出来的，只要加强后期养护就能有效避免。", ok:false, code:"E10", tempt:"把成因往养护上推。", lose:"养护影响强度/收缩，蜂窝孔洞是浇筑振捣阶段的密实度问题。", fix:"成因写离析·漏振·配筋过密，不是养护。" },
-        { t:"自由倾落过高致离析、漏振欠振、钢筋过密下料困难混凝土未振实，形成蜂窝、孔洞。", ok:true, fix:"离析·漏振·配筋过密都是宆窝孔洞的采分成因。", code:"" },
-        { t:"蜂窝的成因就是振捣不实这一条，作答时把这一句写清楚就已经算完整了。", ok:false, code:"E02", tempt:"只答一条省事。", lose:"漏了离析、下料过厚、配筋过密等采分点。", fix:"补齐离析·下料过厚·钢筋过密等成因。" }
-      ] },
-{ tag:"缺陷治理·工艺顺序", typeHint:"单选 · 选出工艺顺序正确能得分的作答", figLabel:"题给：孔洞治理工艺六步", figCaption:"后三步是采分关键 · 顺序不能乱", fig:"process",
+      opts:[{"t": "蜂窝孔洞是由模板接缝漏浆、隔离剂涂刷不匀造成表面缺浆而形成的，与振捣离析并无关系。"}, {"t": "蜂窝孔洞是养护不到位、后期强度不足被压出来的，只要加强后期养护就能有效避免。"}, {"t": "自由倾落过高致离析、漏振欠振、钢筋过密下料困难混凝土未振实，形成蜂窝、孔洞。"}, {"t": "蜂窝的成因就是振捣不实这一条，作答时把这一句写清楚就已经算完整了。"}] },
+{ tag:"缺陷治理·工艺顺序",
+      typeHint:"单选 · 选出工艺顺序正确能得分的作答",
+      figLabel:"题给：孔洞治理工艺六步",
+      figCaption:"后三步是采分关键 · 顺序不能乱",
+      fig:"process",
       stem:"孔洞缺陷需按工艺流程治理。选出流程顺序正确、能得分的作答。",
-      model:"清理表面→支设模板→洒水湿润→涂混凝土界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。",
-      opts:[
-        { t:"先浇筑高一强度等级的细石混凝土把整个孔洞填筑密实，再回头去清理表面、支设模板，最后洒水湿润并养护。", ok:false, code:"E06", tempt:"觉得先填上要紧、顺序无所谓。", lose:"先浇后清、乱序=程序错，界面没处理浇了也白搭。", fix:"必须先清理→支模→湿润→界面剂→再浇筑→养护。" },
-        { t:"清理表面→支设模板→洒水湿润→涂界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。", ok:true, fix:"六步顺序正确、界面剂与高一强度与养护一个不漏。", code:"" },
-        { t:"先清理表面，再支设模板，接着浇筑混凝土，随后进行保温保湿养护，整个治理流程到此就算全部完成。", ok:false, code:"E03", tempt:"看着步骤挺全。", lose:"漏了洒水湿润、涂界面剂两个关键采分词。", fix:"补洒水湿润与涂混凝土界面剂两步。" },
-        { t:"按清理、支模、洒水湿润、涂界面剂、浇筑密实、养护的次序施工，养护满2天后即可拆模交工。", ok:false, code:"E10", tempt:"顺序对，只是养护天数随手填。", lose:"养护应不少于7天，写2天规范数值错。", fix:"保温保湿养护不少于7天。" }
-      ] },
-{ tag:"采分诊断·末题", typeHint:"单选 · 诊断三条治标作答并给出正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"三条都只写了现象→处置，到底差在哪儿", fig:"diagnose",
+      opts:[{"t": "先浇筑高一强度等级的细石混凝土把整个孔洞填筑密实，再回头去清理表面、支设模板，最后洒水湿润并养护。"}, {"t": "清理表面→支设模板→洒水湿润→涂界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。"}, {"t": "先清理表面，再支设模板，接着浇筑混凝土，随后进行保温保湿养护，整个治理流程到此就算全部完成。"}, {"t": "按清理、支模、洒水湿润、涂界面剂、浇筑密实、养护的次序施工，养护满2天后即可拆模交工。"}] },
+{ tag:"采分诊断·末题",
+      typeHint:"单选 · 诊断三条治标作答并给出正确补写",
+      figLabel:"模拟学生作答（待诊断）",
+      figCaption:"三条都只写了现象→处置，到底差在哪儿",
+      fig:"diagnose",
       stem:"某学生对空鼓/裂缝/渗漏三问作答：①空鼓归师傅手艺、敲掉重贴；②墙裂渗水，做完防水层就行；③填充墙裂缝，抹层灰盖上。选出最准确的诊断与补写。",
-      model:"三条均为治标：空鼓应清基层·浸砖·界面剂+背砂；渗漏应保湿养护治收缩+多道设防刚柔结合、穿墙管加止水环；填充墙应设2φ6@500拉结、下部墙砌完14d后砌顶、洞口加强网片。三处都需补规范措施。",
-      opts:[
-        { t:"三条思路其实都是对的，只是写得简单了一些，作答时只要再补充一些文字描述、把话讲全，就能够拿到满分。", ok:false, code:"E07", tempt:"以为方向对只是简略。", lose:"三条全是治标、方向就错，不是简略问题，阅卷看规范措施。", fix:"三处成因与措施都要重写，非补字数。" },
-        { t:"其实只有填充墙那一条需要补上2φ6@500与14d，空鼓和渗漏这两条在我看来其实并没有什么问题。", ok:false, code:"E02", tempt:"只抓到一处。", lose:"空鼓漏界面处理、渗漏漏养护与多道设防，两处也失分。", fix:"空鼓与渗漏同样要补规范措施。" },
-        { t:"空鼓补做防水层、渗漏敲除重贴、填充墙把钢筋加密到间距200mm，这样处理之后三处就都能得到解决。", ok:false, code:"E10", tempt:"看似都在加措施。", lose:"措施张冠李戴且间距应≤500mm不是200mm，规范/对象错。", fix:"对症：空鼓清基层浸砖、渗漏养护+多道设防、填充塙2φ6@500。" },
-        { t:"三条都只答了治标：空鼓应清基层浸砖界面剂背砂、渗漏应养护治收缩加多道设防、填充墙应2φ6@500加14d后砌，均需补规范措施。", ok:true, fix:"三处治标全揪出，对症补写就是上答题纸的采分句。", code:"" }
-      ] }
+      opts:[{"t": "三条思路其实都是对的，只是写得简单了一些，作答时只要再补充一些文字描述、把话讲全，就能够拿到满分。"}, {"t": "其实只有填充墙那一条需要补上2φ6@500与14d，空鼓和渗漏这两条在我看来其实并没有什么问题。"}, {"t": "空鼓补做防水层、渗漏敲除重贴、填充墙把钢筋加密到间距200mm，这样处理之后三处就都能得到解决。"}, {"t": "三条都只答了治标：空鼓应清基层浸砖界面剂背砂、渗漏应养护治收缩加多道设防、填充墙应2φ6@500加14d后砌，均需补规范措施。"}] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
   codeMap={
@@ -372,15 +355,13 @@ class Component extends DCLogic {
       c={q:q,opts:opts,mine:mine,sub:!!(state.revealed||(state.sub&&state.sub[questionIndex]))};
     }
     const currentQuestion=c.q||{};
-    const correctOption=Array.isArray(currentQuestion.opts)&&typeof currentQuestion.c==="number"
-      ?currentQuestion.opts[currentQuestion.c]:"";
-    const correctText=correctOption&&typeof correctOption==="object"
-      ?(correctOption.t||correctOption.text||correctOption.label||""):correctOption;
+    // 公开练习页只带题面（题干/选项/我的选择）进问答上下文；答案真值只存在于
+    // 服务端判分权威，页面上没有、也绝不能拼装任何“正确答案”字段。
     let contextLine="";
     if(typeof this.ctxLine==="function"){ try{ contextLine=String(this.ctxLine()||""); }catch(_){ contextLine=""; } }
-    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）")+(c.sub?" ｜ 已对答案":" ｜ 未对答案");
+    if(!contextLine)contextLine="题干："+String(currentQuestion.stem||currentQuestion.q||"").slice(0,180)+" ｜ 我的选择："+String(c.mine||"（还没作答）");
     const payload={contextId:"Q03",cardId:"Q03",question:userQ,entryTicket:entryTicket,
-      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),keycard:String(currentQuestion.model||currentQuestion.ans||currentQuestion.correct||correctText||"").slice(0,160),coach:String(c.opts||"").slice(0,320)},
+      currentScene:{id:"practice-"+(questionIndex+1),label:String(currentQuestion.tag||currentQuestion.topic||currentQuestion.ep||"当前练习").slice(0,80),coach:String(c.opts||"").slice(0,320)},
       currentCaption:{speaker:"学员作答",text:contextLine.slice(0,260)},time:0};
     let rawResponse="",lastSeq=0,completed=false,reconnects=0;
     const self=this;
@@ -496,7 +477,7 @@ class Component extends DCLogic {
       lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
     return {els,figH};
   }
-  renderVals(){
+  __dtBaseRenderVals(){
     const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
@@ -539,9 +520,27 @@ class Component extends DCLogic {
   pickOrder(){ return [0,1,2,3,4]; }
   fallbackOrder(){ return [0,1,2,3,4]; }
   ord(){ return [0,1,2,3,4]; }
-  __dtEvidenceAnswers(){
-    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
-    const exactItems=[{"variant_id":"Q03-html-practice-html-q1-0facc4f21e1f","options":["Q03-html-practice-html-q1-0facc4f21e1f:option-1","Q03-html-practice-html-q1-0facc4f21e1f:option-2","Q03-html-practice-html-q1-0facc4f21e1f:option-3","Q03-html-practice-html-q1-0facc4f21e1f:option-4"]},{"variant_id":"Q03-html-practice-html-q2-6bf945a6d23d","options":["Q03-html-practice-html-q2-6bf945a6d23d:option-1","Q03-html-practice-html-q2-6bf945a6d23d:option-2","Q03-html-practice-html-q2-6bf945a6d23d:option-3","Q03-html-practice-html-q2-6bf945a6d23d:option-4"]},{"variant_id":"Q03-html-practice-html-q3-a02b863f0e52","options":["Q03-html-practice-html-q3-a02b863f0e52:option-1","Q03-html-practice-html-q3-a02b863f0e52:option-2","Q03-html-practice-html-q3-a02b863f0e52:option-3","Q03-html-practice-html-q3-a02b863f0e52:option-4"]},{"variant_id":"Q03-html-practice-html-q4-7b527784302d","options":["Q03-html-practice-html-q4-7b527784302d:option-1","Q03-html-practice-html-q4-7b527784302d:option-2","Q03-html-practice-html-q4-7b527784302d:option-3","Q03-html-practice-html-q4-7b527784302d:option-4"]},{"variant_id":"Q03-html-practice-html-q16-5ca8e9bcfa1d","options":["Q03-html-practice-html-q16-5ca8e9bcfa1d:option-1","Q03-html-practice-html-q16-5ca8e9bcfa1d:option-2","Q03-html-practice-html-q16-5ca8e9bcfa1d:option-3","Q03-html-practice-html-q16-5ca8e9bcfa1d:option-4"]}];
+  __dtItems=[{"variant_id":"Q03-html-practice-html-q1-0facc4f21e1f","options":["Q03-html-practice-html-q1-0facc4f21e1f:option-1","Q03-html-practice-html-q1-0facc4f21e1f:option-2","Q03-html-practice-html-q1-0facc4f21e1f:option-3","Q03-html-practice-html-q1-0facc4f21e1f:option-4"]},{"variant_id":"Q03-html-practice-html-q2-6bf945a6d23d","options":["Q03-html-practice-html-q2-6bf945a6d23d:option-1","Q03-html-practice-html-q2-6bf945a6d23d:option-2","Q03-html-practice-html-q2-6bf945a6d23d:option-3","Q03-html-practice-html-q2-6bf945a6d23d:option-4"]},{"variant_id":"Q03-html-practice-html-q3-a02b863f0e52","options":["Q03-html-practice-html-q3-a02b863f0e52:option-1","Q03-html-practice-html-q3-a02b863f0e52:option-2","Q03-html-practice-html-q3-a02b863f0e52:option-3","Q03-html-practice-html-q3-a02b863f0e52:option-4"]},{"variant_id":"Q03-html-practice-html-q4-7b527784302d","options":["Q03-html-practice-html-q4-7b527784302d:option-1","Q03-html-practice-html-q4-7b527784302d:option-2","Q03-html-practice-html-q4-7b527784302d:option-3","Q03-html-practice-html-q4-7b527784302d:option-4"]},{"variant_id":"Q03-html-practice-html-q16-5ca8e9bcfa1d","options":["Q03-html-practice-html-q16-5ca8e9bcfa1d:option-1","Q03-html-practice-html-q16-5ca8e9bcfa1d:option-2","Q03-html-practice-html-q16-5ca8e9bcfa1d:option-3","Q03-html-practice-html-q16-5ca8e9bcfa1d:option-4"]}];
+  __dtQuestionAt(i){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)&&state.drawn[i])return state.drawn[i];
+    if(typeof this.qAt==='function'){ try{ const q=this.qAt(i); if(q)return q; }catch(_){ } }
+    const bank=Array.isArray(this.Q)?this.Q:(Array.isArray(this.POOL)?this.POOL:[]);
+    return bank[i]||{};
+  }
+  __dtOptionTextAt(i,optionId){
+    const meta=this.__dtItems[i];
+    const index=meta?meta.options.indexOf(String(optionId||'')):-1;
+    if(index<0)return '';
+    const q=this.__dtQuestionAt(i);
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const option=opts[index];
+    const text=option&&typeof option==='object'?(option.t||option.text||''):(option||'');
+    return String(text||'');
+  }
+  __dtEvidenceAnswers(picksOverride){
+    const source=Array.isArray(picksOverride)?picksOverride:(Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{}));
+    const exactItems=this.__dtItems;
     return [0,1,2,3,4].map(i=>{
       const selected=Number(source[i]);
       const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
@@ -552,8 +551,8 @@ class Component extends DCLogic {
         ?{variant_id:item.variant_id,selected_option_id:item.options[sourceIndex]}:null;
     });
   }
-  __dtRedirectEvidence(onFailure){
-    const answers=this.__dtEvidenceAnswers();
+  __dtRedirectEvidence(onFailure,answersInput){
+    const answers=Array.isArray(answersInput)?answersInput:this.__dtEvidenceAnswers();
     if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)) return false;
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
@@ -562,11 +561,186 @@ class Component extends DCLogic {
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
+  submit(){
+    const state=this.state||{};
+    if(Array.isArray(state.drawn)){
+      if(!(Number(state.sel)>=0))return;
+      const picks=(Array.isArray(state.picks)?state.picks:[]).slice();
+      const index=Number(state.idx)||0;
+      picks[index]=Number(state.sel);
+      if(index+1>=state.drawn.length){ this.setState({picks}); this.__dtSubmitRound(picks); }
+      else this.setState({picks,idx:index+1,sel:-1,revealed:false});
+      if(typeof this.scrollTop==='function')this.scrollTop();
+      return;
+    }
+    if(typeof this.hasSel==='function'&&!this.hasSel())return;
+    const qi=Number(state.qi)||0;
+    const total=typeof this.qCount==='function'?this.qCount():5;
+    if(qi<total-1)this.setState({qi:qi+1});
+    else this.__dtSubmitRound(null);
+  }
+  renderVals(){
+    const vals=this.__dtBaseRenderVals();
+    const state=this.state||{};
+    if(vals&&typeof vals==='object'){
+      const isBank=Array.isArray(state.drawn);
+      const index=Number(isBank?state.idx:state.qi)||0;
+      const total=isBank?(state.drawn.length||5):(typeof this.qCount==='function'?this.qCount():5);
+      const revealed=!!(state.revealed||(state.sub&&state.sub[index]));
+      if(!revealed){
+        const label=index>=total-1?'交卷 · 看服务端判分':'下一题';
+        if(typeof vals.btnLabel==='string'&&!vals.btnDisabled)vals.btnLabel=label;
+        if(typeof vals.submitLabel==='string'&&!vals.submitDisabled)vals.submitLabel=label;
+      }
+    }
+    return vals;
+  }
+  __dtSubmitRound(picksOverride){
+    if(this.__dtRound&&(this.__dtRound.state==='pending'||this.__dtRound.state==='done'))return;
+    const answers=this.__dtEvidenceAnswers(picksOverride);
+    if(answers.length!==5||answers.some(v=>!v||!v.variant_id||!v.selected_option_id)){
+      this.__dtOverlayMessage('答题数据不完整','本轮作答没有收集完整，请重新练一轮。',[['重新开始',function(){window.location.reload();}]]);
+      return;
+    }
+    const self=this;
+    if(this.__dtRedirectEvidence(function(){ self.__dtServerSubmit(answers); },answers))return;
+    this.__dtServerSubmit(answers);
+  }
+  async __dtServerSubmit(answers){
+    const ticket=String(window.__lubanCardEntryTicket||'').trim();
+    const self=this;
+    if(!ticket){
+      this.__dtOverlayMessage('学习身份已过期','公开预览页无法判分。请返回小程序重新打开这一站后再交卷，判定与解析由服务端签发。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!this.__dtRound)this.__dtRound={id:'h5-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),answers:answers};
+    this.__dtRound.state='pending';
+    this.__dtOverlayLoading();
+    let response,data;
+    try{
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"Q03",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMGZhY2M0ZjIxZTFmIiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi02YmY5NDVhNmQyM2QiLCJRMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwMmI4NjNmMGU1MiIsIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtN2I1Mjc3ODQzMDJkIiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNWNhOGU5YmNmYTFkIl0sInBhY2tfaWQiOiJRMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjZmY2I3YWVlM2ZiMDhkNWZkNzI3N2MzNjlhMTA0MzllZjdjMTdiZDIwMGZiYWY1NjA0N2M1YjQ2N2EwMDNmYmUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMzZhMTU0OGJhYjM4OTU5NDhjZWRmYjJiYzAxNzA5Y2Y4MDYwY2MwZTYyMzUxMzFhZmVkMGJiZTQ3MDBjYmM3MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      data=await response.json().catch(function(){ return {}; });
+    }catch(_){
+      this.__dtRound.state='failed';
+      this.__dtOverlayMessage('网络不稳，判分还没完成','你的作答仍在本页；重试会使用同一份答卷，不会重复计分。',[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    if(!response.ok){
+      this.__dtRound.state='failed';
+      const detail=data&&data.detail;
+      const code=detail&&typeof detail==='object'?String(detail.error||''):'';
+      if(response.status===401){
+        this.__dtOverlayMessage('学习身份已过期','请返回小程序重新打开这一站后再交卷。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      if(code==='content_updated_retake'){
+        this.__dtOverlayMessage('题目内容已更新','这套题在你作答期间完成了内容更新，需要刷新后按新题集重新作答。',[['刷新重做',function(){window.location.reload();}]]);
+        return;
+      }
+      if(code==='practice_not_released'){
+        this.__dtOverlayMessage('练习判分暂未开放','这一站的练习还在签发中，先回讲解页巩固；开放后即可服务端判分。',[['我知道了',function(){self.__dtHideOverlay();}]]);
+        return;
+      }
+      this.__dtOverlayMessage('判分暂时不可用',String(typeof detail==='string'&&detail?detail:'服务端暂时无法判分，稍后重试即可；重试不会重复计分。'),[['重试判分',function(){self.__dtServerSubmit(self.__dtRound.answers);}],['先回题目',function(){self.__dtHideOverlay();}]]);
+      return;
+    }
+    this.__dtRound.state='done';
+    this.__dtOverlayResult(data||{});
+  }
+  __dtOverlayRoot(){
+    let root=document.getElementById('dt-server-verdict');
+    if(!root){
+      root=document.createElement('div');
+      root.id='dt-server-verdict';
+      root.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1e8;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  __dtHideOverlay(){ const root=document.getElementById('dt-server-verdict'); if(root)root.style.display='none'; }
+  __dtEl(tag,css,text){ const el=document.createElement(tag); if(css)el.style.cssText=css; if(text!=null)el.textContent=String(text); return el; }
+  __dtOverlayShell(){
+    const root=this.__dtOverlayRoot();
+    root.innerHTML='';
+    root.style.display='block';
+    root.scrollTop=0;
+    const wrap=this.__dtEl('div','max-width:560px;margin:0 auto;padding-bottom:44px;font-family:inherit;color:#23282b;');
+    root.appendChild(wrap);
+    return wrap;
+  }
+  __dtButtons(buttons){
+    const bar=this.__dtEl('div','display:flex;gap:10px;justify-content:center;padding:18px 16px;flex-wrap:wrap;');
+    const self=this;
+    (buttons||[]).forEach(function(entry){
+      const btn=self.__dtEl('button','min-width:132px;padding:12px 18px;border:none;border-radius:999px;background:#cf4436;color:#fff;font-size:14px;font-weight:800;cursor:pointer;');
+      btn.textContent=String(entry[0]);
+      btn.onclick=function(){ try{ entry[1](); }catch(_){ } };
+      bar.appendChild(btn);
+    });
+    return bar;
+  }
+  __dtOverlayLoading(){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:120px 24px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:16px;font-weight:900;','鲁班服务端判分中…'));
+    box.appendChild(this.__dtEl('div','margin-top:10px;font-size:12.5px;color:#8a8f92;','正在核对签发题集并写入学习记录，请稍候'));
+    wrap.appendChild(box);
+  }
+  __dtOverlayMessage(title,body,buttons){
+    const wrap=this.__dtOverlayShell();
+    const box=this.__dtEl('div','padding:96px 24px 8px;text-align:center;');
+    box.appendChild(this.__dtEl('div','font-size:17px;font-weight:900;',title));
+    box.appendChild(this.__dtEl('div','margin-top:12px;font-size:13px;line-height:1.7;color:#3a4145;',body));
+    wrap.appendChild(box);
+    wrap.appendChild(this.__dtButtons(buttons||[]));
+  }
+  __dtRow(label,text,color){
+    const row=this.__dtEl('div','margin-top:8px;font-size:12.5px;line-height:1.65;color:#3a4145;');
+    row.appendChild(this.__dtEl('span','font-weight:900;color:'+color+';margin-right:6px;',label+' ·'));
+    row.appendChild(document.createTextNode(String(text)));
+    return row;
+  }
+  __dtOverlayResult(result){
+    const wrap=this.__dtOverlayShell();
+    const score=(result&&result.score)||{};
+    const total=Number(score.question_count)||5;
+    const good=Number(score.correct_count)||0;
+    const head=this.__dtEl('div','padding:26px 18px 6px;text-align:center;');
+    head.appendChild(this.__dtEl('div','font-size:12px;letter-spacing:.2em;color:#8a8f92;font-weight:800;','服务端判分 · 本轮结果'));
+    head.appendChild(this.__dtEl('div','font-size:54px;font-weight:900;line-height:1.25;color:'+(good>=total?'#2c8a5b':(good>=3?'#cf8a44':'#cf4436'))+';',good+' / '+total));
+    head.appendChild(this.__dtEl('div','font-size:12px;color:#8a8f92;','判定与逐项解析由服务端签发，学习记录已计入小程序学情'));
+    wrap.appendChild(head);
+    const byId={};
+    (Array.isArray(result&&result.items)?result.items:[]).forEach(function(item){ byId[String(item.variant_id||'')]=item; });
+    const self=this;
+    this.__dtItems.forEach(function(meta,i){
+      const item=byId[meta.variant_id]||{};
+      const q=self.__dtQuestionAt(i);
+      const ok=item.is_correct===true;
+      const card=self.__dtEl('div','margin:12px 14px;padding:14px;border:1.5px solid '+(ok?'#bfd8c9':'#e0b7b0')+';border-radius:12px;background:#fffdf6;');
+      card.appendChild(self.__dtEl('div','font-size:13px;font-weight:900;color:'+(ok?'#2c8a5b':'#cf4436')+';','第 '+(i+1)+' 题 · '+(ok?'✓ 得分':'✕ 漏分')));
+      card.appendChild(self.__dtEl('div','margin-top:6px;font-size:13px;font-weight:700;line-height:1.6;',String(q.stem||'')));
+      const mine=self.__dtOptionTextAt(i,item.selected_option_id);
+      const right=self.__dtOptionTextAt(i,item.correct_option_id);
+      if(mine)card.appendChild(self.__dtRow('我的选择',mine,ok?'#2c8a5b':'#cf4436'));
+      if(!ok&&right)card.appendChild(self.__dtRow('正确答案',right,'#2c8a5b'));
+      if(item.correct_statement)card.appendChild(self.__dtRow('采分句',String(item.correct_statement),'#23282b'));
+      const feedback=(item.feedback&&typeof item.feedback==='object')?item.feedback:{};
+      if(!ok&&feedback.temptation)card.appendChild(self.__dtRow('诱因',String(feedback.temptation),'#8a6d3b'));
+      if(!ok&&feedback.loss_reason)card.appendChild(self.__dtRow('丢分点',String(feedback.loss_reason),'#b23b2e'));
+      if(feedback.fix)card.appendChild(self.__dtRow(ok?'要点':'怎么改',String(feedback.fix),'#1f6f47'));
+      wrap.appendChild(card);
+    });
+    wrap.appendChild(this.__dtButtons([['再练一轮',function(){window.location.reload();}]]));
+  }
   setState(patch,...args){
-    const done=patch&&(patch.finished===true||patch.phase==='result');
-    if(done){
-      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
-      if(this.__dtRedirectEvidence(fallback)) return;
+    if(patch&&(patch.finished===true||patch.phase==='result')){
+      const clean=Object.assign({},patch);
+      delete clean.finished;
+      if(clean.phase==='result')delete clean.phase;
+      if(Object.keys(clean).length)super.setState(clean,...args);
+      this.__dtSubmitRound(null);
+      return;
     }
     return super.setState(patch,...args);
   }
