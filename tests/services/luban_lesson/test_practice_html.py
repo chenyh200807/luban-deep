@@ -393,7 +393,7 @@ def test_compiled_and_unavailable_pack_sets_are_exact() -> None:
     assert unavailable == {"E01"}
 
 
-@pytest.mark.parametrize("pack_id", ["A01", "F03", "G03"])
+@pytest.mark.parametrize("pack_id", ["A01", "X01", "G03"])
 def test_conflict_packs_remain_default_denied_until_exact_human_signatures(
     pack_id: str,
 ) -> None:

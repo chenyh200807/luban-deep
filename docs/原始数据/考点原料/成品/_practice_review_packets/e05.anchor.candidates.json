@@ -1,0 +1,411 @@
+{
+  "machine_candidates_only": true,
+  "generated_at": "2026-07-20T09:10:10+00:00",
+  "generator": "scripts/prefill_practice_review_anchors.py",
+  "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
+  "pack_id": "E05",
+  "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/e05.practice.review.json",
+  "score_threshold": 0.25,
+  "warnings": [],
+  "coverage": {
+    "total_items": 16,
+    "items_with_candidates": 15,
+    "items_empty_handed": 1
+  },
+  "items": [
+    {
+      "variant_id": "E05-html-practice-html-q1-368ca609e03b",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A435020_095_0156:0",
+          "quote": "挣值法三大核心成本值：BCWP = 已完成工程量 × 预算单价 BCWS = 计划工程量 × 预算单价 ACWP = 已完成工程量 × 实际单价 BCWP = 已完成工程量 × 预算单价 BCWS = 计划工程量 × 预算单价 ACWP = 已完成工程量 × 实际单价 本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 t",
+          "match_score": 0.561,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 territory): 三个基本参数 BCWP=已完成工程量×预算单价 / BCWS=计划工程量×预算单价 / ACWP=已",
+          "match_score": 0.561,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_096_0158:0",
+          "quote": "赢得值法三要素：赢得值法使用三项成本值：已完成工作预算成本（BCWP）、计划完成工作预算成本（BCWS）、已完成工作实际成本（ACWP）。 赢得值法使用三项成本值：已完成工作预算成本（BCWP）、计划完成工作预算成本（BCWS）、已完成工作实际成本（ACWP）。 本体·赢得值法三要素(1A435020-B015): 赢得值法使用三项成本值=已完成工作预算成本(BCWP)/计划完成工作预算成本(BC",
+          "match_score": 0.5587,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q2-b7eff7104a83",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "I,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 territory): 三个基本参数 BCWP=已完成工程量×预算单价 / BCWS=计划工程量×预算单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0节支/CV<0超支); ",
+          "match_score": 0.4826,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:0",
+          "quote": "挣值法三大核心成本值：BCWP = 已完成工程量 × 预算单价 BCWS = 计划工程量 × 预算单价 ACWP = 已完成工程量 × 实际单价 BCWP = 已完成工程量 × 预算单价 BCWS = 计划工程量 × 预算单价 ACWP = 已完成工程量 × 实际单价 本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 t",
+          "match_score": 0.4674,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:1",
+          "quote": "= BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 territory): 三个基本参数 BCWP=已完成工程量×预算单价 / BCWS=计划工程量×预算单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACW",
+          "match_score": 0.4674,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q3-a27747a1aaaf",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primar",
+          "match_score": 0.496,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_097_0160",
+          "quote": "、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV,CPI,SPI,成本节约,进度提前 本体·support 1A435020-B017 赢得值法(挣值法)核心概念(名实相符): 三个基本成本值=已完成工作预算成本(BCWP)/计划完成工作预算成本(BCWS)/已完成工作实际成本(ACWP); 四个评价指标 CV=BCWP-ACWP / SV=BC",
+          "match_score": 0.454,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_097_0160:0",
+          "quote": "35020-B017 赢得值法(挣值法)核心概念(名实相符): 三个基本成本值=已完成工作预算成本(BCWP)/计划完成工作预算成本(BCWS)/已完成工作实际成本(ACWP); 四个评价指标 CV=BCWP-ACWP / SV=BCWP-BCWS / CPI=BCWP/ACWP / SPI=BCWP/BCWS. 赢得值法核心概念=E05本体. EP含某工程第20周末BCWP6370/ACWP62",
+          "match_score": 0.44,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q4-65ed25e57b8f",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primar",
+          "match_score": 0.4071,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_097_0160",
+          "quote": "40 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV,CPI,SPI,成本节约,进度提前 本体·support 1A435020-B017 赢得值法(挣",
+          "match_score": 0.3821,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:1",
+          "quote": "成本与进度偏差判断规则：CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 本体·挣值法三个",
+          "match_score": 0.3214,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q5-72c30a95bccf",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_096_0157",
+          "quote": "已知某工程 BCWP=6370 万元，BCWS=5340 万元，求其 SPI 值，并判断进度状态。 已知某工程 BCWP=6370 万元，BCWS=5340 万元，求其 SPI 值，并判断进度状态。 | grading_keywords=SPI,BCWP,BCWS,进度提前,1.19 本体·进度绩效指数 SPI(1A435020-B018): SPI=BCWP/BCWS; SPI>1进度提前 / ",
+          "match_score": 0.4893,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primar",
+          "match_score": 0.4321,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_097_0160",
+          "quote": "40 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV,CPI,SPI,成本节约,进度提前 本体·support 1A435020-B017 赢得值法(挣",
+          "match_score": 0.4321,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q6-c5a0b2262ef0",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primar",
+          "match_score": 0.4283,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_097_0160",
+          "quote": "40 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV,CPI,SPI,成本节约,进度提前 本体·support 1A435020-B017 赢得值法(挣",
+          "match_score": 0.3362,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:1",
+          "quote": "划工程量×预算单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0节支/CV<0超支); 进度偏差 SV=BCWP-BCWS(SV>0提前/SV<0延误); 费用绩效指数 CPI=BCWP/ACWP(CPI>1节支/CPI<1超支); 进度绩效指数 SPI=BCWP/BCWS(SPI>1提前/SPI<1延误). 公式+偏差方向判读=E05判分核心眼(R",
+          "match_score": 0.3164,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q7-576365500963",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_096_0157",
+          "quote": "已知某工程 BCWP=6370 万元，BCWS=5340 万元，求其 SPI 值，并判断进度状态。 已知某工程 BCWP=6370 万元，BCWS=5340 万元，求其 SPI 值，并判断进度状态。 | grading_keywords=SPI,BCWP,BCWS,进度提前,1.19 本体·进度绩效指数 SPI(1A435020-B018): SPI=BCWP/BCWS; SPI>1进度提前 / ",
+          "match_score": 0.56,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primar",
+          "match_score": 0.4425,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_097_0160",
+          "quote": "40 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV,CPI,SPI,成本节约,进度提前 本体·support 1A435020-B017 赢得值法(挣",
+          "match_score": 0.3625,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q8-bdad94d68d2c",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_096_0157",
+          "quote": "已知某工程 BCWP=6370 万元，BCWS=5340 万元，求其 SPI 值，并判断进度状态。 已知某工程 BCWP=6370 万元，BCWS=5340 万元，求其 SPI 值，并判断进度状态。 | grading_keywords=SPI,BCWP,BCWS,进度提前,1.19 本体·进度绩效指数 SPI(1A435020-B018): SPI=BCWP/BCWS; SPI>1进度提前 / ",
+          "match_score": 0.5406,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_097_0160",
+          "quote": "40 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV,CPI,SPI,成本节约,进度提前 本体·support 1A435020-B017 赢得值法(挣",
+          "match_score": 0.5292,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primar",
+          "match_score": 0.4198,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q9-4af4463ad833",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A435020_095_0156:2",
+          "quote": "算单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0节支/CV<0超支); 进度偏差 SV=BCWP-BCWS(SV>0提前/SV<0延误); 费用绩效指数 CPI=BCWP/ACWP(CPI>1节支/CPI<1超支); 进度绩效指数 SPI=BCWP/BCWS(SPI>1提前/SPI<1延误). 公式+偏差方向判读=E05判分核心眼(R5采分眼=公",
+          "match_score": 0.3806,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0节支/CV<0超支); 进度偏差 SV=BCWP-BCWS(SV>0提前/SV<0延误); 费用绩效指数 CPI=BCWP/ACWP(CPI>1节支/CPI<1超支); 进度绩效指数 SPI=BCWP/BCWS(SPI>1提前/SPI<1延误). 公式+偏差方向判读=E05判分核心眼(R5采分眼=公式正确+方向判读). 逐",
+          "match_score": 0.3806,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:0",
+          "quote": "单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0节支/CV<0超支); 进度偏差 SV=BCWP-BCWS(SV>0提前/SV<0延误); 费用绩效指数 CPI=BCWP/ACWP(CPI>1节支/CPI<1超支); 进度绩效指数 SPI=BCWP/BCWS(SPI>1提前/SPI<1延误). 公式+偏差方向判读=E05判分核心眼(R5采分眼=公式",
+          "match_score": 0.365,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q10-74210d5347fd",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成",
+          "match_score": 0.3262,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_097_0160:1",
+          "quote": "成本与进度偏差计算：CV = BCWP - ACWP；SV = BCWP - BCWS；CPI = BCWP / ACWP；SPI = BCWP / BCWS CV = BCWP - ACWP；SV = BCWP - BCWS；CPI = BCWP / ACWP；SPI = BCWP / BCWS 本体·support 1A435020-B017 赢得值法(挣值法)核心概念(名实相符): 三个基本",
+          "match_score": 0.3215,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:0",
+          "quote": " 计划工程量 × 预算单价 ACWP = 已完成工程量 × 实际单价 本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 territory): 三个基本参数 BCWP=已完成工程量×预算单价 / BCWS=计划工程量×预算单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0节",
+          "match_score": 0.3175,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q11-fd776e873c08",
+      "candidates": []
+    },
+    {
+      "variant_id": "E05-html-practice-html-q12-125dd241d942",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primar",
+          "match_score": 0.318,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_097_0160",
+          "quote": "40 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV,CPI,SPI,成本节约,进度提前 本体·support 1A435020-B017 赢得值法(挣",
+          "match_score": 0.304,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:1",
+          "quote": "成本与进度偏差判断规则：CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 本体·挣值法三个",
+          "match_score": 0.29,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q13-c03dc700cc30",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A435020_095_0156:0",
+          "quote": "挣值法三大核心成本值：BCWP = 已完成工程量 × 预算单价 BCWS = 计划工程量 × 预算单价 ACWP = 已完成工程量 × 实际单价 BCWP = 已完成工程量 × 预算单价 BCWS = 计划工程量 × 预算单价 ACWP = 已完成工程量 × 实际单价 本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 t",
+          "match_score": 0.4622,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:1",
+          "quote": "= BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 territory): 三个基本参数 BCWP=已完成工程量×预算单价 / BCWS=计划工程量×预算单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACW",
+          "match_score": 0.4622,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:2",
+          "quote": "WP / BCWS - SPI > 1：提前 - SPI < 1：延误 本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 territory): 三个基本参数 BCWP=已完成工程量×预算单价 / BCWS=计划工程量×预算单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0",
+          "match_score": 0.4622,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q14-92472b7c1d53",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primar",
+          "match_score": 0.3188,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:1",
+          "quote": "成本与进度偏差判断规则：CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 本体·挣值法三个",
+          "match_score": 0.2884,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_097_0160",
+          "quote": "某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV",
+          "match_score": 0.2884,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q15-14d59e799591",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "状况。 某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误 本体·挣值法三个基本参数+四个评价指标(primar",
+          "match_score": 0.4533,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_097_0160",
+          "quote": "40 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV,CPI,SPI,成本节约,进度提前 本体·support 1A435020-B017 赢得值法(挣",
+          "match_score": 0.4174,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:1",
+          "quote": "成本与进度偏差判断规则：CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 本体·挣值法三个",
+          "match_score": 0.3754,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    },
+    {
+      "variant_id": "E05-html-practice-html-q16-c4d93d1c98c8",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A435020_095_0156:1",
+          "quote": "成本与进度偏差判断规则：CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 CV = BCWP - ACWP - CV > 0：成本节支 - CV < 0：成本超支 SV = BCWP - BCWS - SV > 0：进度提前 - SV < 0：进度延误 本体·挣值法三个",
+          "match_score": 0.2969,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "ca:1A435020_095_0156",
+          "quote": "完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0节支/CV<0超支); 进度偏差 SV=BCWP-BCWS(SV>0提前/SV<0延误); 费用绩效指数 CPI=BCWP/ACWP(CPI>1节支/CPI<1超支); 进度绩效指数 SPI=BCWP/BCWS(SPI>1提前/SPI<1延误). 公式+偏差方向判读=E05判分核心眼(R5采分眼=公式正确+方向判读). 逐",
+          "match_score": 0.275,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        },
+        {
+          "source_anchor": "kc:1A435020_095_0156:0",
+          "quote": "单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0节支/CV<0超支); 进度偏差 SV=BCWP-BCWS(SV>0提前/SV<0延误); 费用绩效指数 CPI=BCWP/ACWP(CPI>1节支/CPI<1超支); 进度绩效指数 SPI=BCWP/BCWS(SPI>1提前/SPI<1延误). 公式+偏差方向判读=E05判分核心眼(R5采分眼=公式",
+          "match_score": 0.2641,
+          "source_file": "docs/原始数据/考点原料/_E05_compiled_source.json",
+          "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd"
+        }
+      ]
+    }
+  ]
+}

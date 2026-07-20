@@ -1,0 +1,1243 @@
+{
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "D14",
+  "source_pack_sha256": "11ecd47be950ed09d72b3d93cf11e5f5ab29922f408099a9c4861442ea4a2fc0",
+  "source_bundle_sha256": "16900a43d8eadb137d2ea780ebe801895ae8a617ed4209b370217f95260d51d1",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 16,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "D14-html-practice-html-q1-44e4d541c479",
+      "surface_id": "practice.html",
+      "stem": "暗龙骨吊顶的主、次龙骨，选出间距与构造要求完整、能得分的作答。",
+      "options": [
+        {
+          "text": "主龙骨间距≤600mm、悬臂段≤300mm且接头错开；次龙骨间距≤1200mm、不得搭接，洞口周边设附加龙骨。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "主次间距数值记得，却把谁密谁疏记反。",
+          "loss_reason": "主≤1200、次≤600，此项主次值张冠李戴。",
+          "fix": "主龙骨≤1200、次龙骨≤600，别记反。",
+          "option_id": "D14-html-practice-html-q1-44e4d541c479:option-1"
+        },
+        {
+          "text": "主龙骨间距≤1200mm即可满足要求，悬臂长度、接头位置以及次龙骨与洞口等构造均属细节，作答时无需逐项写明。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住主间距一个数就下笔。",
+          "loss_reason": "漏悬臂≤300、接头错开、次≤600不搭接、洞口附加龙骨。",
+          "fix": "补悬臂≤300、次≤600不搭接、洞口设附加龙骨。",
+          "option_id": "D14-html-practice-html-q1-44e4d541c479:option-2"
+        },
+        {
+          "text": "次龙骨可搭接加长以增强刚度、间距≤600mm；主龙骨间距≤1200mm、悬臂段≤300mm，洞口周边无需额外处理。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为搭接更结实、洞口不用管。",
+          "loss_reason": "次龙骨不得搭接、洞口必须设附加龙骨，两处均错。",
+          "fix": "次龙骨不得搭接，洞口周边设附加龙骨。",
+          "option_id": "D14-html-practice-html-q1-44e4d541c479:option-3"
+        },
+        {
+          "text": "主龙骨间距≤1200mm、悬臂段≤300mm且接头错开；次龙骨间距≤600mm、不得搭接，洞口周边设附加龙骨。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "主次间距、悬臂、接头、洞口四件齐，正是采分点。",
+          "option_id": "D14-html-practice-html-q1-44e4d541c479:option-4"
+        }
+      ],
+      "model_answer": "主龙骨间距≤1200mm、悬臂≤300mm、接头错开；次龙骨间距≤600mm、不得搭接，洞口周边设附加龙骨。",
+      "rule_group": "吊顶·龙骨参数",
+      "content_sha256": "df3b5c9db8be7d0cdfa11d5bfd7c108105239b9e349b7ea1acc2fbd064d51a3f",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q1",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "d14-fact-ceiling-keel-spacing",
+        "skeleton_id": "d14-skel-主次龙骨间距构造",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_139_0268:0",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "df3b5c9db8be7d0cdfa11d5bfd7c108105239b9e349b7ea1acc2fbd064d51a3f",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "主龙骨≤1200mm/悬臂≤300mm/接头错开;次龙骨≤600mm/不搭接/洞口设附加龙骨, 教材 kc:1A413030_139_0268:0(主龙骨)+:1(次龙骨)同 chunk 逐字忠实。正确项 option-4 集齐主次间距+悬臂+接头+洞口四件。工单: 正确项系四项最完整选项(倾向最长), 但错误干扰项各有硬伤(主次张冠李戴/漏项/搭接), 单选唯一正确。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q2-4ca677fecc2f",
+      "surface_id": "practice.html",
+      "stem": "某吊顶吊杆较长，并遇梁、风管。选出吊杆超长处理与吊挂构造完整、能得分的作答。",
+      "options": [
+        {
+          "text": "吊杆超长时按比例加密吊杆、多吊几根即可保证牢固，遇梁、风管处避开布置，不必另设反支撑或钢结构转换层。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把超长稳定问题当成数量问题。",
+          "loss_reason": "吊杆超长是侧向失稳，加密解决不了，须设反支撑/转换层。",
+          "fix": ">1500反支撑、>2500转换层，不是加密。",
+          "option_id": "D14-html-practice-html-q2-4ca677fecc2f:option-1"
+        },
+        {
+          "text": "吊杆>1500mm一律设钢结构转换层，2500mm 仅作参考、两道门槛不必区分；遇梁风管设横担、灯具风口设附加龙骨。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "记得有个门槛，却把两道并成一道。",
+          "loss_reason": "混淆两道门槛：>1500反支撑、>2500才转换层。",
+          "fix": "分清 1500 反支撑、2500 转换层两道门槛。",
+          "option_id": "D14-html-practice-html-q2-4ca677fecc2f:option-2"
+        },
+        {
+          "text": "吊杆>1500mm设反支撑，>2500mm设钢结构转换层；遇梁风管设横担、不得吊挂于设备、灯具风口设附加龙骨。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两道门槛+横担+不吊挂设备+灯口附加龙骨，全写才拿满。",
+          "option_id": "D14-html-practice-html-q2-4ca677fecc2f:option-3"
+        },
+        {
+          "text": "吊杆遇梁、风管时直接吊挂在设备上就近固定，绕开障碍走线即可，无需另设横担与附加龙骨。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "就近固定看着省事。",
+          "loss_reason": "不得直接吊挂于设备，遇梁风管应设横担。",
+          "fix": "遇梁风管设横担，不得吊挂于设备。",
+          "option_id": "D14-html-practice-html-q2-4ca677fecc2f:option-4"
+        }
+      ],
+      "model_answer": "吊杆>1500mm设反支撑，>2500mm设钢结构转换层；遇梁、风管处设横担，不得直接吊挂于设备，灯具风口设附加龙骨。",
+      "rule_group": "吊顶·吊杆超长",
+      "content_sha256": "233abda047100e4639fec1704b8fda85cff522083bb67aa118dc9e23348379b1",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q2",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "d14-fact-hanger-overlength",
+        "skeleton_id": "d14-skel-吊杆超长反支撑转换层",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_138_0267:0",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "233abda047100e4639fec1704b8fda85cff522083bb67aa118dc9e23348379b1",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "吊杆>1500mm设反支撑/>2500mm设钢结构转换层/遇梁风管横担/不直接吊挂设备/灯具风口附加龙骨, 教材 kc:1A413030_138_0267:0 逐字忠实(正确项未列预埋杆件焊接=真子集不使其变错)。⚠️源库标签污染=吊顶内容误挂地基 leaf 1A413022, compiled_source 已取作吊顶本体留痕, 不影响采分事实。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q3-b41a2ad10aa7",
+      "surface_id": "practice.html",
+      "stem": "纸面石膏板罩面板的固定，选出方向与要求完整、能得分的作答。",
+      "options": [
+        {
+          "text": "从板四边先固定牢再向中间收拢、长边沿纵向铺，螺钉间距150-170mm、钉眼防锈、双层板接缝错开。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得先钉牢四边更稳。",
+          "loss_reason": "方向反了：应从中间向四周自由固定，让板释放变形。",
+          "fix": "从中间向四周固定，不是从四边向中间。",
+          "option_id": "D14-html-practice-html-q3-b41a2ad10aa7:option-1"
+        },
+        {
+          "text": "从板中间向四周自由固定即可，至于钉距取值、钉眼是否防锈、双层是否错缝等均属操作细节，作答无需写明。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住固定方向一条。",
+          "loss_reason": "漏钉距150-170、钉眼防锈、双层错缝三处采分。",
+          "fix": "补钉距150-170、防锈、双层错缝。",
+          "option_id": "D14-html-practice-html-q3-b41a2ad10aa7:option-2"
+        },
+        {
+          "text": "从板中间向四周自由固定、长边沿纵向铺，螺钉间距150-170mm、钉眼防锈、双层板接缝错开。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "固定方向+钉距+防锈+错缝四件齐，缺一扣一。",
+          "option_id": "D14-html-practice-html-q3-b41a2ad10aa7:option-3"
+        },
+        {
+          "text": "顶棚裂缝主要靠面层修饰：重新刮腻子、刷漆找平即可，罩面板固定方式与骨架并不影响开裂。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "把裂缝当表面问题。",
+          "loss_reason": "口号化、避开固定与骨架，裂缝根子在固定与骨架。",
+          "fix": "回到中间向四周固定+防裂五点，不是只刷漆。",
+          "option_id": "D14-html-practice-html-q3-b41a2ad10aa7:option-4"
+        }
+      ],
+      "model_answer": "从板中间向四周自由固定，长边沿纵向铺设，螺钉间距150-170mm，钉眼防锈，双层板接缝错开。",
+      "rule_group": "吊顶·石膏板固定",
+      "content_sha256": "f7d2094b45758bb103344adb942f62af16495b39077afb5dbd1ce253e3d373e2",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q3",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "d14-fact-gypsum-board-fixing",
+        "skeleton_id": "d14-skel-石膏板中间向四周固定",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_139_0268:2",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "f7d2094b45758bb103344adb942f62af16495b39077afb5dbd1ce253e3d373e2",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "从中间向四周自由固定/长边沿纵向铺设/螺钉间距150~170mm/钉眼防锈/双层板接缝错开, 教材 kc:1A413030_139_0268:2 逐字忠实。正确项 option-3 四件齐, E07(方向反)/E02(漏项)/E04(只刷漆)干扰项均有硬伤。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q4-6d0980f3a1b8",
+      "surface_id": "practice.html",
+      "stem": "某石膏板顶棚出现裂缝。选出防裂原因与措施完整、能得分的作答。",
+      "options": [
+        {
+          "text": "从五点治理：吊筋间距≤1200、拼缝错缝且不密拼、螺钉固定牢固、转角加强、嵌缝饱满。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "吊筋·错缝·螺钉·转角·嵌缝五点全写，对应五个断点。",
+          "option_id": "D14-html-practice-html-q4-6d0980f3a1b8:option-1"
+        },
+        {
+          "text": "裂缝铲除后重新刮腻子、刷两遍乳胶漆找平，把面层做光做平，顶棚就不会再从拼缝里开裂。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "把裂缝当面层问题。",
+          "loss_reason": "口号化治标，没回到骨架、缝、钉、角、嵌缝。",
+          "fix": "按防裂五点治理，不是只刷漆。",
+          "option_id": "D14-html-practice-html-q4-6d0980f3a1b8:option-2"
+        },
+        {
+          "text": "主要保证吊筋间距≤1200、螺钉固定牢固这两条即可，拼缝、转角、嵌缝等其余各项按现场情况把握。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记两点就下笔。",
+          "loss_reason": "漏拼缝错缝不密拼、转角加强、嵌缝饱满三点。",
+          "fix": "补错缝不密拼、转角加强、嵌缝饱满。",
+          "option_id": "D14-html-practice-html-q4-6d0980f3a1b8:option-3"
+        },
+        {
+          "text": "裂缝多出在拼缝处，将板材密拼、缝隙挤紧不留缝，应力就不会从拼缝处集中而开裂。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为密拼更严实。",
+          "loss_reason": "应拼缝错缝、不密拼；密拼反而应力集中开裂。",
+          "fix": "拼缝要错缝、不密拼。",
+          "option_id": "D14-html-practice-html-q4-6d0980f3a1b8:option-4"
+        }
+      ],
+      "model_answer": "按防裂五点：吊筋间距≤1200、拼缝错缝不密拼、螺钉固定牢固、转角加强、嵌缝饱满。",
+      "rule_group": "吊顶·顶棚防裂",
+      "content_sha256": "34f9cc517e610249d9984c5165d224f344cfa9856cc63e87b7b3f97738ecf86b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q4",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "d14-fact-ceiling-anticrack",
+        "skeleton_id": "d14-skel-顶棚防裂五点",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A434000_078_0124:0",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "34f9cc517e610249d9984c5165d224f344cfa9856cc63e87b7b3f97738ecf86b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "石膏板顶棚防裂5要点=吊筋间距≤1200mm/拼缝错缝不密拼/螺钉固定牢固/转角加强/嵌缝饱满, 教材 kc:1A434000_078_0124:0 逐字忠实。工单: 本题正确项 option-1(首位), 与 q1/q3 正确项非首位并列=本包正确项位置分散(非'恒首位'模板病, 健康)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q5-62765ed7069e",
+      "surface_id": "practice.html",
+      "stem": "暗龙骨吊顶施工工序，选出顺序正确、能得分的作答。",
+      "options": [
+        {
+          "text": "放线、画分档线、安装水电管线、装主龙骨、装副龙骨、装罩面板、最后压条；水电先于骨架。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "水电先于主副龙骨、罩面板压条收尾，顺序全对。",
+          "option_id": "D14-html-practice-html-q5-62765ed7069e:option-1"
+        },
+        {
+          "text": "放线、画分档线、装主龙骨、装副龙骨、装罩面板成型后，随后再穿水电管线、最后压条收口。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为先搭架封板、再穿管方便。",
+          "loss_reason": "水电管线应先于骨架，后穿会破坏已成型骨架。",
+          "fix": "水电管线排在主、副龙骨前。",
+          "option_id": "D14-html-practice-html-q5-62765ed7069e:option-2"
+        },
+        {
+          "text": "放线、装主龙骨、装罩面板、装副龙骨、穿水电管线、最后压条，边装边调整逐步成型。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "凭印象排顺序。",
+          "loss_reason": "罩面板排到副龙骨前、水电放最后，多处颠倒。",
+          "fix": "副龙骨在罩面板前、水电在骨架前。",
+          "option_id": "D14-html-practice-html-q5-62765ed7069e:option-3"
+        },
+        {
+          "text": "先装龙骨再封板即可，放线、画分档线、压条等属次要步骤，作答时可省略、不逐项写明。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住“搭架封板”主干。",
+          "loss_reason": "漏放线/分档线/压条，且未点水电顺序。",
+          "fix": "放线分档线在前、压条收尾、水电先于骨架都要写。",
+          "option_id": "D14-html-practice-html-q5-62765ed7069e:option-4"
+        }
+      ],
+      "model_answer": "放线→画龙骨分档线→安装水电管线→主龙骨→副龙骨→罩面板→压条；水电管线先于骨架。",
+      "rule_group": "吊顶·工序排序",
+      "content_sha256": "fb6c2311723d209ba81d90a5eb4337ab15f8c75cf63a734637a27e5f866eab72",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q5",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "fb6c2311723d209ba81d90a5eb4337ab15f8c75cf63a734637a27e5f866eab72",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q6-6fa91fc40768",
+      "surface_id": "practice.html",
+      "stem": "石材楼地面施工，选出流程与铺前预处理完整、能得分的作答。",
+      "options": [
+        {
+          "text": "先铺砂浆再放线、试拼，石材干铺压实即可，铺前浸湿反而打滑、不必进行，铺后自然干透。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得干铺压实更牢、放线可后补。",
+          "loss_reason": "顺序颠倒且漏浸湿；干石材吸水会致空鼓。",
+          "fix": "先放线试拼后铺浆，铺前浸湿晾干。",
+          "option_id": "D14-html-practice-html-q6-6fa91fc40768:option-1"
+        },
+        {
+          "text": "流程为基层处理、放线、试拼、铺砂浆、铺石材、养护、勾缝；铺设前石材浸湿晾干，防吸水空鼓。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "流程+浸湿晾干防空鼓，主干与预处理都齐。",
+          "option_id": "D14-html-practice-html-q6-6fa91fc40768:option-2"
+        },
+        {
+          "text": "流程取基层处理、铺砂浆、铺石材、勾缝即可，试拼与养护按现场情况省略，铺前浸湿处理也不必写明。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记主干四步。",
+          "loss_reason": "漏试拼、养护，且未写浸湿防空鼓。",
+          "fix": "补试拼、养护、铺前浸湿晾干。",
+          "option_id": "D14-html-practice-html-q6-6fa91fc40768:option-3"
+        },
+        {
+          "text": "石材与瓷砖一样先浸水泡透再铺，铺贴完成后无需养护、自然阴干即可交付。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把石材当瓷砖处理。",
+          "loss_reason": "石材是浸湿晾干（非泡透），铺后仍需养护。",
+          "fix": "石材浸湿晾干、铺后养护。",
+          "option_id": "D14-html-practice-html-q6-6fa91fc40768:option-4"
+        }
+      ],
+      "model_answer": "基层处理→放线→试拼→铺砂浆→铺石材→养护→勾缝；铺设前浸湿晾干防吸水空鼓。",
+      "rule_group": "地面·石材流程",
+      "content_sha256": "bf6d557a151fe134dc63a4956d56b550ecfd931b3c1102a4f745aa1820290295",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q6",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "d14-fact-slab-floor-hollowing",
+        "skeleton_id": "d14-skel-石材浸湿晾干防空鼓",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A413030_140_0272:1",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "bf6d557a151fe134dc63a4956d56b550ecfd931b3c1102a4f745aa1820290295",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "大理石、花岗石铺设前应浸湿、晾干, 防止吸水导致空鼓, 教材 kc:1A413030_140_0272:1 逐字忠实。三件套 d1_probe(同地面板块湿贴防空鼓 fact, 次日以石材浸湿预处理复探, 第3独立 skeleton)。工单: 正确项 option-2 含完整流程+浸湿预处理(倾向最完整最长), 干扰项各有顺序颠倒/漏项/当瓷砖泡透硬伤。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q7-24f368d49f8b",
+      "surface_id": "practice.html",
+      "stem": "石材楼地面的观感与勾缝要求，选出能得分的作答。",
+      "options": [
+        {
+          "text": "浅色石材铺贴宜用白水泥，避免灰水泥影响观感；勾缝清晰、顺直、平整、深浅一致。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "白水泥+勾缝顺直平整深浅一致，正是观感采分。",
+          "option_id": "D14-html-practice-html-q7-24f368d49f8b:option-1"
+        },
+        {
+          "text": "浅色石材用普通灰水泥即可、水泥颜色并不影响观感；勾缝只要填满不漏、无需强求顺直与深浅一致。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为水泥颜色无所谓。",
+          "loss_reason": "浅色石材应用白水泥，勾缝还需顺直平整深浅一致。",
+          "fix": "浅色用白水泥、勾缝顺直平整深浅一致。",
+          "option_id": "D14-html-practice-html-q7-24f368d49f8b:option-2"
+        },
+        {
+          "text": "浅色石材铺贴宜用白水泥即可，至于勾缝方面的各项质量要求，作答时不必逐项细写。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答白水泥一条。",
+          "loss_reason": "漏勾缝清晰顺直平整深浅一致的采分。",
+          "fix": "补勾缝顺直、平整、深浅一致。",
+          "option_id": "D14-html-practice-html-q7-24f368d49f8b:option-3"
+        },
+        {
+          "text": "为增强观感，浅色石材面层可刷防酸剂改色、拼缝改用彩色勾缝剂并适当拉宽处理。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "臆造改色做法。",
+          "loss_reason": "无锚编造，与浅色用白水泥、勾缝顺直深浅一致不符。",
+          "fix": "按浅色用白水泥、勾缝顺直深浅一致作答。",
+          "option_id": "D14-html-practice-html-q7-24f368d49f8b:option-4"
+        }
+      ],
+      "model_answer": "浅色石材宜用白水泥（避免灰水泥影响观感）；勾缝清晰、顺直、平整、光滑、深浅一致。",
+      "rule_group": "地面·石材观感",
+      "content_sha256": "6a6e998d82418c0a842d298fda8d99041b50d62765204afc87e070f4fd51cfe3",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q7",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "6a6e998d82418c0a842d298fda8d99041b50d62765204afc87e070f4fd51cfe3",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q8-11e90142fc80",
+      "surface_id": "practice.html",
+      "stem": "瓷砖楼地面施工，选出流程与浸砖处理正确、能得分的作答。",
+      "options": [
+        {
+          "text": "先铺砂浆再把干燥瓷砖压上去，浸砖处理放到铺贴完成后再补水养护，如此顺序施工反而更省工快捷。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "以为铺完补水一样。",
+          "loss_reason": "浸砖必须在铺砂浆前，否则干砖抢砂浆水导致空鼓。",
+          "fix": "浸砖排在铺砂浆前。",
+          "option_id": "D14-html-practice-html-q8-11e90142fc80:option-1"
+        },
+        {
+          "text": "流程取基层、放线、铺砂浆、铺砖、勾缝即可，浸砖与清脱模剂等预处理按现场情况省略。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "省掉预处理。",
+          "loss_reason": "漏浸砖、清脱模剂、阴干，易空鼓。",
+          "fix": "补浸砖（铺浆前）、清脱模剂、浸泡阴干。",
+          "option_id": "D14-html-practice-html-q8-11e90142fc80:option-2"
+        },
+        {
+          "text": "流程为基层、放线、浸砖、铺砂浆、铺砖、养护、勾缝；浸砖在铺砂浆前，先清脱模剂、浸泡、阴干。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "浸砖在铺浆前+清脱模剂阴干，顺序与预处理齐。",
+          "option_id": "D14-html-practice-html-q8-11e90142fc80:option-3"
+        },
+        {
+          "text": "瓷砖与竹木地板一样架空铺设、无需浸砖与铺砂浆，直接卡扣拼装即可成活。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把瓷砖当竹木。",
+          "loss_reason": "瓷砖是湿贴、需浸砖铺砂浆，非架空。",
+          "fix": "瓷砖湿贴、浸砖在铺砂浆前。",
+          "option_id": "D14-html-practice-html-q8-11e90142fc80:option-4"
+        }
+      ],
+      "model_answer": "基层处理→放线→浸砖→铺砂浆→铺砖→养护→勾缝；浸砖在铺砂浆前，先清脱模剂、浸泡、阴干。",
+      "rule_group": "地面·瓷砖浸砖",
+      "content_sha256": "1c2b7ea24534ec2251df3945ea900b304594ea549daa174d354dd95bf63cfa7c",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q8",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "d14-fact-slab-floor-hollowing",
+        "skeleton_id": "d14-skel-瓷砖浸砖在铺浆前",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A413030_140_0273:0",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "1c2b7ea24534ec2251df3945ea900b304594ea549daa174d354dd95bf63cfa7c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "瓷砖面层流程=基层→放线→浸砖→铺砂浆→铺砖→养护→勾缝, 浸砖在铺砂浆前防未浸砖致空鼓, 教材 kc:1A413030_140_0273:0 逐字忠实(chunk note='未浸砖致空鼓')。三件套 immediate_confirm(同地面板块湿贴防空鼓 fact, 以瓷砖浸砖预处理正查)。skeleton 与 q9/q6 互异。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q9-35b59fc2fead",
+      "surface_id": "practice.html",
+      "stem": "板块地面出现空鼓，选出原因与防治措施完整、能得分的作答。",
+      "options": [
+        {
+          "text": "空鼓处就把空的板块敲掉返工重铺，同时加强现场管理、严格保证施工质量即可解决。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "以为整改动作＝原因分析。",
+          "loss_reason": "口号化，未落到基层/材料/界面/伸缩缝/养护五断点。",
+          "fix": "按五断点写原因与措施。",
+          "option_id": "D14-html-practice-html-q9-35b59fc2fead:option-1"
+        },
+        {
+          "text": "主要是基层没清理干净、养护不到位这两条原因，其余粘结材料与界面处理等因素均属次要、可不展开细说。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答两条。",
+          "loss_reason": "漏水泥基粘结、界面剂+背砂、伸缩缝三处。",
+          "fix": "补粘结材料、界面剂+背砂、伸缩缝。",
+          "option_id": "D14-html-practice-html-q9-35b59fc2fead:option-2"
+        },
+        {
+          "text": "空鼓是水泥标号不够所致，换成高标号纯水泥、粘结层抹厚一点压实，板块就不会再空。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为加厚纯水泥更牢。",
+          "loss_reason": "纯水泥收缩更大反空鼓；应水泥基粘结+界面处理+伸缩缝。",
+          "fix": "用水泥基粘结材料并设伸缩缝。",
+          "option_id": "D14-html-practice-html-q9-35b59fc2fead:option-3"
+        },
+        {
+          "text": "从五处防治：基层清理干净、用水泥基粘结材料、油性防护石材用界面剂+背砂、设伸缩缝、养护到位。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "基层/材料/界面/伸缩缝/养护五断点各修一处。",
+          "option_id": "D14-html-practice-html-q9-35b59fc2fead:option-4"
+        }
+      ],
+      "model_answer": "基层清理干净、用水泥基粘结材料、油性防护石材界面剂+背砂、大面积设伸缩缝、养护到位。",
+      "rule_group": "地面·板块空鼓",
+      "content_sha256": "ca15c91a6a76f30c3c26a344e5f3d2fc606dc79eb8499bebea5fa9d05625167e",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q9",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "d14-fact-slab-floor-hollowing",
+        "skeleton_id": "d14-skel-空鼓防治五点",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A434000_078_0123:0",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "ca15c91a6a76f30c3c26a344e5f3d2fc606dc79eb8499bebea5fa9d05625167e",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "板块类地面空鼓防治5要点=基层清理干净/水泥基粘结材料/油性防护石材用界面剂+背砂/大面积设伸缩缝/养护到位, 教材 kc:1A434000_078_0123:0 逐字忠实。三件套 anchor(地面板块湿贴防空鼓 fact 的病因与治法)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q10-e57205870f2c",
+      "surface_id": "practice.html",
+      "stem": "竹木地板施工，选出构造与关键尺寸完整、能得分的作答。",
+      "options": [
+        {
+          "text": "竹木地板可按瓷砖湿贴工艺处理：基层浸砖、铺砂浆、把地板压上去压实，再统一养护并勾缝，全程无需木搁栅与毛地板。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把竹木当湿贴板块。",
+          "loss_reason": "竹木是搁栅架空、非湿贴，无浸砖铺砂浆。",
+          "fix": "竹木走搁栅、毛地板开槽、面板。",
+          "option_id": "D14-html-practice-html-q10-e57205870f2c:option-1"
+        },
+        {
+          "text": "铺木搁栅再钉面板即可，毛地板开槽、面板离墙、铺装方向等均属操作细节，作答时可省略。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "省掉毛地板与尺寸。",
+          "loss_reason": "漏毛地板开槽1/3约200、离墙10、方向。",
+          "fix": "补毛地板开槽1/3约200、离墙10、由内向外顺光。",
+          "option_id": "D14-html-practice-html-q10-e57205870f2c:option-2"
+        },
+        {
+          "text": "毛地板开槽越深越好、槽深宜取板厚1/2、开槽间距约50mm，面板紧贴墙铺不留伸缩缝。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为槽深、缝小更稳。",
+          "loss_reason": "槽深应1/3、间距约200、离墙10mm，数值全错。",
+          "fix": "槽深1/3、约200mm、离墙10mm。",
+          "option_id": "D14-html-practice-html-q10-e57205870f2c:option-3"
+        },
+        {
+          "text": "木搁栅→毛地板→面板；整张毛地板开槽槽深1/3、垂直搁栅、约200mm；面板离墙10mm、由内向外、顺光。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "搁栅/开槽1/3约200/离墙10/方向全齐。",
+          "option_id": "D14-html-practice-html-q10-e57205870f2c:option-4"
+        }
+      ],
+      "model_answer": "基层→木搁栅→毛地板→面板；整张毛地板开槽（槽深板厚1/3、垂直搁栅、约200mm）；面板离墙10mm、由内向外、顺光顺行走方向。",
+      "rule_group": "地面·竹木地板",
+      "content_sha256": "fac8d139882bfba5ab168ae19866af3fb3e85e66cf92ef94b6ce483398ef4b53",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q10",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "fac8d139882bfba5ab168ae19866af3fb3e85e66cf92ef94b6ce483398ef4b53",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q11-d69d008331d3",
+      "surface_id": "practice.html",
+      "stem": "地毯楼地面施工，选出工艺与关键尺寸完整、能得分的作答。",
+      "options": [
+        {
+          "text": "把地毯直接铺平、四周用胶水粘牢固定即可，裁剪余量、倒刺板间距与衬垫尺寸等数据都不必记，撑子拉伸这道工序也可以从简省去。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为铺平粘牢就行。",
+          "loss_reason": "漏裁+20、倒刺板8-10、衬垫10、撑子拉伸。",
+          "fix": "补裁+20、倒刺板8-10、衬垫10、撑子拉伸。",
+          "option_id": "D14-html-practice-html-q11-d69d008331d3:option-1"
+        },
+        {
+          "text": "裁剪比施工面长20mm；倒刺板距踢脚8-10mm；衬垫离倒刺板约10mm；先固定长边、撑子拉伸、接长缝合或烫带。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "裁+20/刺板8-10/衬垫10/撑子拉伸全齐。",
+          "option_id": "D14-html-practice-html-q11-d69d008331d3:option-2"
+        },
+        {
+          "text": "裁剪按施工面等长下料、倒刺板紧贴踢脚零间距布置、衬垫盖住倒刺板整面满铺，最后沿四周收边压实固定。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为贴紧铺满更牢。",
+          "loss_reason": "应裁长20mm、倒刺板距踢脚8-10、衬垫离倒刺板约10。",
+          "fix": "裁+20、倒刺板8-10、衬垫离倒刺板10。",
+          "option_id": "D14-html-practice-html-q11-d69d008331d3:option-3"
+        },
+        {
+          "text": "地毯与瓷砖一样满铺砂浆湿贴，压实养护后再沿四周收边固定即可交付投入使用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把地毯当湿贴。",
+          "loss_reason": "地毯非湿贴，靠倒刺板+衬垫+撑子拉伸。",
+          "fix": "地毯用倒刺板、衬垫、撑子拉伸，非砂浆湿贴。",
+          "option_id": "D14-html-practice-html-q11-d69d008331d3:option-4"
+        }
+      ],
+      "model_answer": "裁剪长度比施工面长20mm；倒刺板距踢脚8-10mm；衬垫离倒刺板约10mm；先固定长边、撑子拉伸、接长缝合或烫带。",
+      "rule_group": "地面·地毯",
+      "content_sha256": "86bb039949ba746c832c3d8e956222dab26a91ecf78e515f12d2001d7d4d6c4b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q11",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "86bb039949ba746c832c3d8e956222dab26a91ecf78e515f12d2001d7d4d6c4b",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q12-29e4d467b914",
+      "surface_id": "practice.html",
+      "stem": "在砌体墙上安装门窗，选出固定方式正确、能得分的作答。",
+      "options": [
+        {
+          "text": "砌体上安装门窗用射钉固定又快又牢，较膨胀螺栓明显省工省时，施工中应推荐优先采用此法。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为射钉快又牢。",
+          "loss_reason": "砌体严禁射钉，此项反向。",
+          "fix": "砌体严禁射钉固定。",
+          "option_id": "D14-html-practice-html-q12-29e4d467b914:option-1"
+        },
+        {
+          "text": "只要墙体足够厚实，砌体上用射钉固定门窗即无问题，只有薄墙才需另想固定办法。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "拿常识替规范、按墙厚判断。",
+          "loss_reason": "规范对砌体一律严禁射钉，与厚薄无关。",
+          "fix": "砌体一律严禁射钉，不看厚薄。",
+          "option_id": "D14-html-practice-html-q12-29e4d467b914:option-2"
+        },
+        {
+          "text": "门窗固定禁用射钉仅指木门窗，铝合金窗与塑钢窗在砌体上仍可采用射钉固定。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为按窗材料区分。",
+          "loss_reason": "禁令针对砌体基层，与门窗材料无关。",
+          "fix": "在砌体上一律严禁射钉。",
+          "option_id": "D14-html-practice-html-q12-29e4d467b914:option-3"
+        },
+        {
+          "text": "砌体上安装门窗严禁用射钉固定；砌体握裹力不足，射钉会破坏基层导致框体松动、密封失效。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出严禁射钉+砌体基层原因，禁令写到位。",
+          "option_id": "D14-html-practice-html-q12-29e4d467b914:option-4"
+        }
+      ],
+      "model_answer": "砌体上安装门窗严禁用射钉固定；砌体握裹力不足，射钉破坏基层致框松动、密封失效。",
+      "rule_group": "门窗·固定禁令",
+      "content_sha256": "a088d648c80a9c63882191cb515e61db37d18f1b2e0016749a71828ec2cf9fe4",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q12",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "a088d648c80a9c63882191cb515e61db37d18f1b2e0016749a71828ec2cf9fe4",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q13-aaa319b8d902",
+      "surface_id": "practice.html",
+      "stem": "门窗节能存在问题，选出按可检测指标排查、能得分的作答。",
+      "options": [
+        {
+          "text": "门窗节能不好就是密封差、整体质量不过关，换一批更好的门窗、把胶打密实就能解决问题。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "以为写“密封不好”就够。",
+          "loss_reason": "口号化，未落到可检测指标。",
+          "fix": "落到类型、传热系数、气密性、露点、透射比五指标。",
+          "option_id": "D14-html-practice-html-q13-aaa319b8d902:option-1"
+        },
+        {
+          "text": "按五个可检测指标排查：类型不符、传热系数超标、气密性差、中空玻璃露点高、可见光透射比不符。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五个指标一条对应一个可查性能，全写才拿分。",
+          "option_id": "D14-html-practice-html-q13-aaa319b8d902:option-2"
+        },
+        {
+          "text": "主要查传热系数与气密性这两项即可，中空玻璃露点、可见光透射比、类型是否相符等均属次要、可不排查。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "只记两项。",
+          "loss_reason": "漏类型不符、露点、透射比三项。",
+          "fix": "五项都查：类型、传热系数、气密、露点、透射比。",
+          "option_id": "D14-html-practice-html-q13-aaa319b8d902:option-3"
+        },
+        {
+          "text": "门窗节能主要排查混凝土的抗压强度、抗渗等级与坍落度等指标是否达标合格。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "套用混凝土指标。",
+          "loss_reason": "抗压/抗渗/坍落度非门窗节能指标，张冠李戴。",
+          "fix": "门窗节能查传热系数、气密性、露点、透射比等。",
+          "option_id": "D14-html-practice-html-q13-aaa319b8d902:option-4"
+        }
+      ],
+      "model_answer": "从五指标查：类型不符、传热系数超标、气密性差、中空玻璃露点高、可见光透射比不符。",
+      "rule_group": "门窗·节能性能",
+      "content_sha256": "678033e2c15959c225c013c53c48ab77f1bbc9fdcd8a2472db1dd1a9ead0e58f",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q13",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "678033e2c15959c225c013c53c48ab77f1bbc9fdcd8a2472db1dd1a9ead0e58f",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q14-1e2658f141e3",
+      "surface_id": "practice.html",
+      "stem": "施工现场节能查验与外窗检测，选出对象与项目完整、能得分的作答。",
+      "options": [
+        {
+          "text": "查验墙体材料、保温材料、门窗、采暖制冷、照明设备，门窗为必查项、不符设计不得使用；外窗检测气密、水密、抗风压。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "查验五类对象+门窗必查+外窗三项检测，全齐。",
+          "option_id": "D14-html-practice-html-q14-1e2658f141e3:option-1"
+        },
+        {
+          "text": "节能查验主要查保温材料本身是否达标即可，门窗、采暖制冷系统与照明设备等一律抽查或免检，无需逐项列为必查对象。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为只查保温材料。",
+          "loss_reason": "门窗是必查项，采暖制冷、照明也在查验对象内。",
+          "fix": "门窗必查，五类对象都查。",
+          "option_id": "D14-html-practice-html-q14-1e2658f141e3:option-2"
+        },
+        {
+          "text": "外窗检测主要查抗震等级、耐火极限、隔声量这三项安全与物理性能指标是否满足要求。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "套用其他检测项。",
+          "loss_reason": "外窗查气密、水密、抗风压，非抗震/耐火/隔声。",
+          "fix": "外窗检测气密性、水密性、抗风压性能。",
+          "option_id": "D14-html-practice-html-q14-1e2658f141e3:option-3"
+        },
+        {
+          "text": "现场节能查验只做书面资料核查，材料设备是否符合设计要求不必到现场查验实物。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为查资料即可。",
+          "loss_reason": "现场应查验实物材料设备，不符设计不得使用。",
+          "fix": "现场查验实物、不符设计不得使用。",
+          "option_id": "D14-html-practice-html-q14-1e2658f141e3:option-4"
+        }
+      ],
+      "model_answer": "查验对象含墙体材料、保温材料、门窗、采暖制冷系统、照明设备，门窗必查、不符设计不得用；外窗检测气密性、水密性、抗风压性能。",
+      "rule_group": "门窗·节能查验",
+      "content_sha256": "205fa497f30e465ab92b2b7fcea975586b9c747072173747591f0b54dbdb3a72",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q14",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "205fa497f30e465ab92b2b7fcea975586b9c747072173747591f0b54dbdb3a72",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q15-414edd0dd695",
+      "surface_id": "practice.html",
+      "stem": "关于门窗在建筑体系中的归属，选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "门窗洞口周边设有过梁，门窗便随过梁一同归入承重的结构受力构件（结构体系）。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "因洞口有过梁就归结构。",
+          "loss_reason": "过梁是结构，门窗本身属围护，不能混为一体。",
+          "fix": "门窗属围护体系，过梁才是结构。",
+          "option_id": "D14-html-practice-html-q15-414edd0dd695:option-1"
+        },
+        {
+          "text": "门、窗与外墙一样属于围护体系，不属于承重的结构体系（柱、梁等骨架）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "明确门窗属围护、不承重，判断题直接给分。",
+          "option_id": "D14-html-practice-html-q15-414edd0dd695:option-2"
+        },
+        {
+          "text": "门窗既承重又起围护作用，应归入结构与围护并存的混合体系，两边都算。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "含糊两头占。",
+          "loss_reason": "门窗不承重，明确属围护体系。",
+          "fix": "门窗属围护体系，不承重。",
+          "option_id": "D14-html-practice-html-q15-414edd0dd695:option-3"
+        },
+        {
+          "text": "门窗属于装饰装修部分，与结构或围护的体系划分无关，无需判定其归属。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "回避判断。",
+          "loss_reason": "题问体系归属，应答围护体系。",
+          "fix": "明确答门窗属围护体系。",
+          "option_id": "D14-html-practice-html-q15-414edd0dd695:option-4"
+        }
+      ],
+      "model_answer": "门、窗属于围护体系，不属于结构体系（承重骨架）。",
+      "rule_group": "门窗·体系归属",
+      "content_sha256": "1bcd85c54d78d2803af64264cd6621b43c3d40e5a1b0a6ff9d4dc1cc097c9ec6",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q15",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "1bcd85c54d78d2803af64264cd6621b43c3d40e5a1b0a6ff9d4dc1cc097c9ec6",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D14-html-practice-html-q16-81bcaf7123e6",
+      "surface_id": "practice.html",
+      "stem": "某生答装饰质量：①吊顶次龙骨搭接加长更结实；②地面瓷砖直接干铺、空鼓了敲掉重铺；③砌体门窗用射钉固定又快又牢。选出最准确的诊断与补写。",
+      "options": [
+        {
+          "text": "只有第③条错，射钉改为膨胀螺栓固定即可；①次龙骨搭接加长更结实、②瓷砖直接干铺、空鼓后敲掉重铺，两处均无问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只抓到射钉一处。",
+          "loss_reason": "漏诊次龙骨不得搭接、瓷砖须浸砖+空鼓五断点两处。",
+          "fix": "三处都要改，不止射钉。",
+          "option_id": "D14-html-practice-html-q16-81bcaf7123e6:option-1"
+        },
+        {
+          "text": "三条都属施工质量差，只需加强现场管理、按规范施工、切实保证质量即可，无需逐条纠正指出。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "笼统喊口号。",
+          "loss_reason": "未落到各采分点（搭接/浸砖/空鼓/射钉），不得分。",
+          "fix": "逐条纠：不搭接、浸砖在前、五断点、禁射钉。",
+          "option_id": "D14-html-practice-html-q16-81bcaf7123e6:option-2"
+        },
+        {
+          "text": "三处都错：次龙骨应不搭接、断开对接并洞口附加龙骨；瓷砖须浸砖（铺浆前）、空鼓按五断点治；砌体门窗严禁射钉。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三子域三处硬伤全揪出并补正确采分句。",
+          "option_id": "D14-html-practice-html-q16-81bcaf7123e6:option-3"
+        },
+        {
+          "text": "①与②的作答均无误，仅第③条射钉需补注明：用于混凝土墙可以、用于砌体墙则不行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只部分纠③。",
+          "loss_reason": "①次龙骨搭接、②瓷砖干铺+敲掉重铺仍未纠。",
+          "fix": "①不搭接洞口附加；②浸砖在前、空鼓五断点；③砌体禁射钉。",
+          "option_id": "D14-html-practice-html-q16-81bcaf7123e6:option-4"
+        }
+      ],
+      "model_answer": "三处全错：次龙骨不得搭接（应断开对接、洞口附加龙骨）；瓷砖须浸砖在铺砂浆前、空鼓按界面五断点防治；砌体门窗严禁射钉。",
+      "rule_group": "综合·采分诊断",
+      "content_sha256": "3e06f9840e244db50eb741d72d37d10a6edbe3eaad23b4f6b316b71a892d5256",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q16",
+      "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
+      "decision": {
+        "fact_id": "d14-fact-decoration-defect-diagnosis",
+        "skeleton_id": "d14-skel-三子域采分诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A422000_043_0069:0",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "3e06f9840e244db50eb741d72d37d10a6edbe3eaad23b4f6b316b71a892d5256",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:19+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "综合诊断题:三处硬伤=①次龙骨不得搭接(应断开对接+洞口附加龙骨,锚 kc:1A413030_139_0268:1)②瓷砖须浸砖在铺砂浆前+空鼓按五断点治(锚 kc:1A413030_140_0273/kc:1A434000_078_0123)③砌体门窗严禁射钉(签发锚 kc:1A422000_043_0069:0 逐字'在砌体上安装门窗严禁用射钉固定')。为复合诊断题, 无单一采分点权威, 取三伏笔中判分眼最窄最不可撼动的'砌体禁射钉'作签发锚, 其余两 fact 已在 q1/q8/q9 各自成锚, 交叉可溯。q16 原空手, 经 prefill --threshold 0.12 放宽后 kc:1A422000_043_0069:0(0.1837) 为最强候选。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
+  ],
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "opus-adjudication 2026-07-20 全量清尾批(owner指令);逐题引文回 _D14_compiled_source.json 采分点原文核对;5 surface 锚全教材忠实, 三件套取地面板块湿贴防空鼓 fact(q9/q8/q6);q16 无候选经 prefill --threshold 0.12 放宽后拿到 kc:1A422000_043_0069:0 单锚;待 fable 对抗核验",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
+}

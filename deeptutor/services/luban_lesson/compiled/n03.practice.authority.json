@@ -24,9 +24,17 @@
         "N03-html-practice-html-q4-49ae2a47bd94",
         "N03-html-practice-html-q6-988dcc45afab"
       ],
-      "eligible_variant_ids": [],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtOTZhMTA4MGM3ODFhIiwiTjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wZWI3Y2YwMWUyZTkiLCJOMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWJkYWYxYzQ0ZjhiYyIsIk4wMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDlhZTJhNDdiZDk0IiwiTjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi05ODhkY2M0NWFmYWIiXSwicGFja19pZCI6Ik4wMyIsInByb2plY3Rpb25fZGlnZXN0IjoiZjFkYjE3NTU5MzIzMDJiNWY2MDkyNDk0OTQ0ZDI5ZTg4ZmZiMTcwZmI5ZjA4ZWI0MzcwNTgxZDVkMjkxZTEyYSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI2Y2ZlYmY4MDRlNzg3ZDdmNmY0MmFiNGVjMTcwYTMzNjM1ZmMwNDFiNGZjMzdhZDFlMmYzYzRhMmI1YmM4ZWNlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "b0a54b5a0d1cc6e763999c16880fe92a112ca44ff963d51d9200f9ef88b1f4ae"
+      "eligible_variant_ids": [
+        "N03-html-practice-html-q1-96a1080c781a",
+        "N03-html-practice-html-q2-0eb7cf01e2e9",
+        "N03-html-practice-html-q3-bdaf1c44f8bc",
+        "N03-html-practice-html-q4-49ae2a47bd94",
+        "N03-html-practice-html-q6-988dcc45afab",
+        "N03-html-practice-html-q14-f318a76d28d9",
+        "N03-html-practice-html-q15-8f2328daa71d"
+      ],
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtOTZhMTA4MGM3ODFhIiwiTjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wZWI3Y2YwMWUyZTkiLCJOMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWJkYWYxYzQ0ZjhiYyIsIk4wMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDlhZTJhNDdiZDk0IiwiTjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi05ODhkY2M0NWFmYWIiXSwicGFja19pZCI6Ik4wMyIsInByb2plY3Rpb25fZGlnZXN0IjoiZWM5YjU3OWM2ZjFhODE5NjgwYmI2YzNmYjEwMmMxZThmMjhmYWIzY2RlNzk2MWU5ZjA4NDg3NmJjYTgyZmEyMyIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJkN2QzMmJhNTE3NDg0MTI0NDlmMDk0NDhjOTgyZDIwNDcxOGJkZDkwZWM3OWMyZGJlNTk4NjRjMzc1ZmIzZGRmIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "9cf6f1bf2252a2df9ba03bb8cafc38f72118ec8bd5e711f81a66e4339218e7fb"
     }
   ],
   "items": [
@@ -79,29 +87,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q1",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2023:第1题",
+      "source_sha256": "dca8012efcb34f3c2317272cd2e98da4a0ee59b277bac16b5e6a540329cebdbf",
       "source_html_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "n03-fact-判型成倍数等步距异节奏",
+      "skeleton_id": "n03-skel-判型选型",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "43751476afc56f14fa841043f348ceb25450958ff653cae1e2feb7151ffafeef",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "43751476afc56f14fa841043f348ceb25450958ff653cae1e2feb7151ffafeef",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "节拍3、3、6、3不全等但成倍数(6=2×3)→判等步距异节奏,步距取最大公约数。真题 exam:2023:第1题 即本场景同源(围护3/基础3/上部6/装饰3),原文『成倍节拍流水步距为最大公约数3个月』直接支持判型。正确项opt-4。工单:正确项恒末位(template artifact),部分最长项倾向。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -152,29 +172,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q2",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2023:第1题",
+      "source_sha256": "dca8012efcb34f3c2317272cd2e98da4a0ee59b277bac16b5e6a540329cebdbf",
       "source_html_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "n03-fact-步距最大公约数",
+      "skeleton_id": "n03-skel-步距计算",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "88e1b9f2537b5e1e5623ed108419c4e5504376f2c410cb3c6e279ee3877dfb8b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "88e1b9f2537b5e1e5623ed108419c4e5504376f2c410cb3c6e279ee3877dfb8b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "等步距异节奏 K=gcd(3,3,6,3)=3个月。真题 exam:2023:第1题 原文『成倍节拍流水步距为最大公约数3个月』逐字支持。正确项opt-2(依据词=最大公约数)。工单:opt-4数值3正确但依据错(最小值)为设计干扰,非泄露。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -225,29 +257,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q3",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2023:第2题",
+      "source_sha256": "dca8012efcb34f3c2317272cd2e98da4a0ee59b277bac16b5e6a540329cebdbf",
       "source_html_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "n03-fact-成倍节拍拆队队数",
+      "skeleton_id": "n03-skel-队数计算",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "7729eddb9aed2e94f71283001edd9a197d53fd703971ef207b32154c00178ecb",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "7729eddb9aed2e94f71283001edd9a197d53fd703971ef207b32154c00178ecb",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "队数=节拍÷K=3/3+3/3+6/3+3/3=1+1+2+1=5个,成倍节拍拆队队数>过程数。真题 exam:2023:第2题 ANS『专业对数:1+1+2+1=5个』逐字支持。正确项opt-1。三件套anchor(同fact成倍节拍拆队队数)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -298,29 +342,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q4",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2023:第2题",
+      "source_sha256": "dca8012efcb34f3c2317272cd2e98da4a0ee59b277bac16b5e6a540329cebdbf",
       "source_html_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "n03-fact-工期搭接公式",
+      "skeleton_id": "n03-skel-工期计算",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "1614e6867db4848dcdf4a0c2950b757a19adce93e33e296f02db1e89680feb9c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "1614e6867db4848dcdf4a0c2950b757a19adce93e33e296f02db1e89680feb9c",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "T=(M+N′−1)×K=(2+5−1)×3=18个月,M=2施工段,N′=5拆队后队数。真题 exam:2023:第2题 ANS『总工期:(2+5-1)×3=18个月』逐字支持。正确项opt-3。工单:正确项偏长。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -444,29 +500,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2023:第2题",
+      "source_sha256": "dca8012efcb34f3c2317272cd2e98da4a0ee59b277bac16b5e6a540329cebdbf",
       "source_html_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "n03-fact-成倍节拍采分诊断",
+      "skeleton_id": "n03-skel-采分诊断补写",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "27d0cc9761c92b3cb51623ceb2c22ba55bb0f0482246ead75d2ec8bf73b35985",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "27d0cc9761c92b3cb51623ceb2c22ba55bb0f0482246ead75d2ec8bf73b35985",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "学生3+3+6+6=18机械相加碰巧得18;正确诊断=判型理由缺+K应取gcd=3(非最大节拍6)+未拆队应5队+工期机械相加未体现搭接,四处补写。诊断基准=真题 exam:2023:第2题 完整正解(步距3/队数5/工期18)。正确项opt-2。末题采分诊断。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1028,29 +1096,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:第2题",
+      "source_sha256": "dca8012efcb34f3c2317272cd2e98da4a0ee59b277bac16b5e6a540329cebdbf",
       "source_html_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "n03-fact-成倍节拍拆队队数",
+      "skeleton_id": "n03-skel-队数变式",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "0f3ad7c10aac4a5028e4be0bf6c9a7999ca92660dc5f442bf4d577f78adb8794",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "0f3ad7c10aac4a5028e4be0bf6c9a7999ca92660dc5f442bf4d577f78adb8794",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "节拍3、3、9、6、6成倍节拍,K=gcd=3,队数=节拍÷K=1+1+3+2+2=9个。真题 exam:2019:第2题 原文即本场景同源『工作队数量为1、1、3、2、2,合计9』逐字支持。正确项opt-3。三件套immediate_confirm(同fact成倍节拍拆队队数,skeleton队数变式异于q3)。"
       },
-      "eligible": false
+      "eligible": true
     },
     {
       "answer_type": "single_choice",
@@ -1101,29 +1181,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2023:第2题",
+      "source_sha256": "dca8012efcb34f3c2317272cd2e98da4a0ee59b277bac16b5e6a540329cebdbf",
       "source_html_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "n03-fact-成倍节拍拆队队数",
+      "skeleton_id": "n03-skel-采分句输出",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "b8b4d0605a62b51e3e745d1510f9150bf4cd2e510e9b4f84bf19c826983c46b4",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "b8b4d0605a62b51e3e745d1510f9150bf4cd2e510e9b4f84bf19c826983c46b4",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+            "signed_at": "2026-07-20T17:42:32+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "节拍3、3、6、3成倍节拍四步采分句:①判型成倍数→等步距异节奏 ②K=gcd(3,6)=3 ③队数1+1+2+1=5拆队 ④T=(2+5−1)×3=18。真题 exam:2023:第2题 完整4段ANS逐字支持。正确项opt-2。三件套d1_probe(同fact成倍节拍拆队队数,skeleton采分句输出异于q3/q14)。"
       },
-      "eligible": false
+      "eligible": true
     }
   ],
   "published_lesson_sha256": "c0199fb15afae49f3d3170fbb965618c21399f5d5cb7b4fe3f0b8a8f76f77e28"

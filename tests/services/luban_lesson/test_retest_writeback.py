@@ -1163,7 +1163,7 @@ def test_non_f16_unreviewed_compiled_surface_fails_closed_before_write(
 
     monkeypatch.setattr(module, "resolve_retest_items", real_resolve_retest_items)
     monkeypatch.setattr(module, "build_lesson_viewmodel", real_build_lesson_viewmodel)
-    authority = real_load_compiled_practice("S05")
+    authority = real_load_compiled_practice("X01")
     assert authority is not None
     wanted = set(authority["surfaces"][0]["variant_ids"])
     items = [item for item in authority["items"] if item["variant_id"] in wanted]
@@ -1179,7 +1179,7 @@ def test_non_f16_unreviewed_compiled_surface_fails_closed_before_write(
     with pytest.raises(ValueError, match="retest_answer_set_mismatch"):
         _complete(
             _service(learner),
-            pack_id="S05",
+            pack_id="X01",
             answers=answers,
             training_intent_id="",
         )

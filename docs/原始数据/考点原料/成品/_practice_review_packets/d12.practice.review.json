@@ -1,0 +1,1243 @@
+{
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "D12",
+  "source_pack_sha256": "701c192b8452c27afb6af58d3c7054eeda3e8a2a4f2ef0526df840650a01b8fc",
+  "source_bundle_sha256": "99834e4e6ebcb1f5f850fb282cfdbd47bf75611501821d820c5990a27bf49847",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 16,
+  "eligible_count": 0,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "D12-html-practice-html-q1-b44639ddbf68",
+      "surface_id": "practice.html",
+      "stem": "饰面板工程按面层材料如何分类？选出完整、能得分的作答。",
+      "options": [
+        {
+          "text": "饰面板按面层材料仅分为石材、瓷板两类，其余材料板并入这两类统一表述。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住最常见的石材、瓷板两类。",
+          "loss_reason": "漏了金属/木质/玻璃/塑料四类，采分点整维遗漏。",
+          "fix": "补全六类：石材、瓷板、金属、木质、玻璃、塑料饰面板工程。",
+          "option_id": "D12-html-practice-html-q1-b44639ddbf68:option-1"
+        },
+        {
+          "text": "按面层材料分石材、瓷板、金属、木质、玻璃、塑料，并将石材幕墙、玻璃幕墙列为饰面板。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得挂在墙上的板都算饰面板。",
+          "loss_reason": "幕墙工程另成体系，混入饰面板属概念混淆。",
+          "fix": "饰面板六类不含幕墙；幕墙单独分类，别掺进来。",
+          "option_id": "D12-html-practice-html-q1-b44639ddbf68:option-2"
+        },
+        {
+          "text": "按面层材料分为石材、瓷板、金属、木质、玻璃、塑料饰面板工程，共六类。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六类一字不落、别混入幕墙板，正是分类采分点。",
+          "option_id": "D12-html-practice-html-q1-b44639ddbf68:option-3"
+        },
+        {
+          "text": "按材料分好几类，主要有石头的、瓷的、金属的、木头的等常见几种材料板。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "意思对但用口语词代替规范名。",
+          "loss_reason": "缺规范类名（瓷板/木质/塑料饰面板工程），关键词缺失。",
+          "fix": "用规范名：石材、瓷板、金属、木质、玻璃、塑料饰面板工程。",
+          "option_id": "D12-html-practice-html-q1-b44639ddbf68:option-4"
+        }
+      ],
+      "model_answer": "按面层材料分：石材、瓷板、金属、木质、玻璃、塑料饰面板工程（六类）。",
+      "rule_group": "饰面板分类·记录表达维",
+      "content_sha256": "8253d86324544eb40cd1e9e7bb76f808a43ee6ea8db43c2c55d94edfc776661c",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q1",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "d12-fact-facing-panel-material-classification",
+        "skeleton_id": "d12-skel-饰面板六类分类",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_144_0279:0",
+        "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "8253d86324544eb40cd1e9e7bb76f808a43ee6ea8db43c2c55d94edfc776661c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "饰面板按面层材料分石材、瓷板、金属、木质、玻璃、塑料六类, 教材 kc:1A413030_144_0279:0 逐字直引。工单: 正确项恒非首位(此题在option-3)、六类正确项相对最完整=template 倾向, 记 template_leakage note。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q2-8ba2b7daaf3c",
+      "surface_id": "practice.html",
+      "stem": "墙柱面石材饰面板施工方法及其配套要求，选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "墙柱面石材可分干挂、干粘、湿贴三种方法，明确选定其中一种之后即按常规工序组织现场施工。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答方法名，觉得配套要求不重要。",
+          "loss_reason": "漏了干挂六面防护、湿贴铲除背网等配套采分点。",
+          "fix": "补配套：干挂工厂加工挂件＋六面防护，湿贴铲除背网。",
+          "option_id": "D12-html-practice-html-q2-8ba2b7daaf3c:option-1"
+        },
+        {
+          "text": "墙柱面石材采用干挂石材幕墙做法，以龙骨挂装、打胶密封收口，认为板材悬空干挂后无需再做六面防护处理。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把干挂饰面板当成石材幕墙。",
+          "loss_reason": "干挂饰面板≠石材幕墙，且干挂石材需六面防护，概念混淆。",
+          "fix": "干挂饰面板用工厂加工挂件＋六面防护，别当幕墙。",
+          "option_id": "D12-html-practice-html-q2-8ba2b7daaf3c:option-2"
+        },
+        {
+          "text": "石材可以挂装上墙，也可以粘贴或直接贴实，只要把背面处理和防护都做到位即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "意思沾边但没点名方法与配套。",
+          "loss_reason": "缺干挂/干粘/湿贴、六面防护、铲背网等关键词。",
+          "fix": "点名三法＋六面防护＋铲除背网。",
+          "option_id": "D12-html-practice-html-q2-8ba2b7daaf3c:option-3"
+        },
+        {
+          "text": "墙柱面石材分干挂（短槽/背槽/背栓）、干粘、湿贴三法；干挂工厂加工挂件做六面防护，湿贴应铲除背网。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三法＋干挂六面防护＋湿贴铲背网，配套写全才满分。",
+          "option_id": "D12-html-practice-html-q2-8ba2b7daaf3c:option-4"
+        }
+      ],
+      "model_answer": "分干挂（短槽/背槽/背栓）、干粘、湿贴三法；干挂用工厂加工挂件并做六面防护，湿贴应铲除背网。",
+      "rule_group": "石材三法·条件程序维",
+      "content_sha256": "a527960569b069ec8ac61be117260d087c89df146b77232e2bfa55cea1ac44c6",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q2",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "d12-fact-stone-panel-three-methods",
+        "skeleton_id": "d12-skel-石材三法配套",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_144_0279:3",
+        "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "a527960569b069ec8ac61be117260d087c89df146b77232e2bfa55cea1ac44c6",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "墙柱面石材分干挂(短槽/背槽/背栓)/干粘/湿贴三法, 干挂工厂加工挂件+六面防护, 湿贴铲除背网, 教材 kc:1A413030_144_0279:3 逐字直引。与 q3 共享同一采分点:3(方法与薄型块材同段), 各取语义半, 均真实。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q3-264727cab7d9",
+      "surface_id": "practice.html",
+      "stem": "石材薄型小规格块材可否采用粘贴法？其尺寸门槛与粘贴厚度如何？选出能得分的作答。",
+      "options": [
+        {
+          "text": "石材块材一律可以采用粘贴法施工，只要粘结剂饱满、基层处理到位即可牢固，不受厚度与边长等尺寸门槛限制。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为粘贴法通用、不看尺寸。",
+          "loss_reason": "忽略尺寸门槛，超规格石材粘贴易脱落，规范适用错误。",
+          "fix": "只有厚≤10mm、边长<40cm 的薄型块材才可粘贴。",
+          "option_id": "D12-html-practice-html-q3-264727cab7d9:option-1"
+        },
+        {
+          "text": "厚度≤10mm 且边长<40cm 的薄型小规格块材方可粘贴，粘贴厚度 8~10mm，超规格改干挂。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两道门槛（≤10mm、<40cm）＋粘贴厚 8~10mm，缺一不可。",
+          "option_id": "D12-html-practice-html-q3-264727cab7d9:option-2"
+        },
+        {
+          "text": "小规格薄块材可以采用粘贴法，注意避免选用过厚或过大的板材，确保粘结牢固、不空鼓脱落即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对但没给具体数值。",
+          "loss_reason": "缺≤10mm、<40cm、8~10mm 具体门槛，关键词缺失。",
+          "fix": "写全厚≤10mm、边长<40cm、粘贴厚 8~10mm。",
+          "option_id": "D12-html-practice-html-q3-264727cab7d9:option-3"
+        },
+        {
+          "text": "厚度≤10mm 且边长<40cm 可粘贴，粘贴厚度取 3~8mm 与饰面砖一致。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把粘结剂 3~8mm 套到石材粘贴厚度上。",
+          "loss_reason": "薄型块材粘贴厚度是 8~10mm，3~8mm 是饰面砖粘结剂厚度，数值混淆。",
+          "fix": "薄型块材粘贴厚 8~10mm，别与饰面砖粘结剂 3~8mm 混。",
+          "option_id": "D12-html-practice-html-q3-264727cab7d9:option-4"
+        }
+      ],
+      "model_answer": "厚≤10mm 且边长<40cm 的薄型小规格块材方可粘贴，粘贴厚度 8~10mm；超规格须改干挂。",
+      "rule_group": "薄型块材·条件维",
+      "content_sha256": "32f03d0479c9b00f4b3b7647f4e50417cc88b681b76ce23761171e28180d7c6d",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q3",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "d12-fact-thin-block-paste-threshold",
+        "skeleton_id": "d12-skel-薄型块材粘贴门槛",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_144_0279:3",
+        "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "32f03d0479c9b00f4b3b7647f4e50417cc88b681b76ce23761171e28180d7c6d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "薄型小规格块材(≤10mm厚,<40cm边长)可粘贴、粘贴厚8~10mm、超规格改干挂, 教材 kc:1A413030_144_0279:3 逐字直引。工单: 干扰项 M08 用饰面砖粘结剂3~8mm 混石材粘贴厚8~10mm=同包 kc:...145_0280:1 真值对撞, 数值门槛忠实。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q4-8690062adc2e",
+      "surface_id": "practice.html",
+      "stem": "饰面板工程施工准备阶段应做哪些检验与处理？选出完整、能得分的作答。",
+      "options": [
+        {
+          "text": "后置埋件做拉拔力检验合格，金属饰面板防雷装置与主体可靠接通，基层清理干净并检查合格后即可施工。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住埋件和防雷，漏了防碱。",
+          "loss_reason": "漏湿作业法石板防碱封闭，采分点遗漏。",
+          "fix": "补上湿作业法石板背面侧面防碱封闭。",
+          "option_id": "D12-html-practice-html-q4-8690062adc2e:option-1"
+        },
+        {
+          "text": "后置埋件做拉拔力检验合格；湿作业法石板背面侧面防碱封闭；金属饰面板防雷装置与主体可靠接通。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "拉拔力＋防碱封闭＋防雷接通三件写全，防碱最易漏。",
+          "option_id": "D12-html-practice-html-q4-8690062adc2e:option-2"
+        },
+        {
+          "text": "湿作业法石板背面侧面应做防酸封闭与防辐射处理，后置埋件也要做拉拔力检验合格后使用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把防碱错记成防酸/防辐射。",
+          "loss_reason": "是防碱封闭（防泛碱），不是防酸/防辐射，规范适用错误。",
+          "fix": "湿作业石板做防碱封闭，别写防酸/防辐射。",
+          "option_id": "D12-html-practice-html-q4-8690062adc2e:option-3"
+        },
+        {
+          "text": "上墙前把埋件、封闭、接地这些准备工作都做到位，经检验合格之后再组织上墙施工。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "笼统带过没点名。",
+          "loss_reason": "缺后置埋件拉拔力、防碱封闭、防雷接通关键词。",
+          "fix": "点名拉拔力检验＋防碱封闭＋防雷接通。",
+          "option_id": "D12-html-practice-html-q4-8690062adc2e:option-4"
+        }
+      ],
+      "model_answer": "后置埋件做拉拔力检验合格；湿作业法石板背面、侧面做防碱封闭；金属饰面板防雷装置与主体可靠接通。",
+      "rule_group": "施工准备·记录条件维",
+      "content_sha256": "167fdf545e2925d331bd3583f1840ea41d2f6aa20e6f3e5e26adc1ae9548cf6c",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q4",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "d12-fact-construction-prep-checks",
+        "skeleton_id": "d12-skel-施工准备三检",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_144_0279:1",
+        "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "167fdf545e2925d331bd3583f1840ea41d2f6aa20e6f3e5e26adc1ae9548cf6c",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "施工准备: 后置埋件拉拔力检验合格、湿作业法石板防碱封闭、金属饰面板防雷接通, 教材 kc:1A413030_144_0279:1 逐字直引。工单: 干扰项防酸/防辐射系防碱同音干扰, 教材口径为防碱。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q5-b68b99b39b11",
+      "surface_id": "practice.html",
+      "stem": "饰面板工程材料进场应复验哪些项目？选出完整、能得分的作答。",
+      "options": [
+        {
+          "text": "室内花岗石放射性、人造木板甲醛释放量、水泥基粘结料粘结强度、外墙陶瓷板吸水率、严寒地区陶瓷板抗冻性。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "放射性/甲醛/粘结强度/吸水率/抗冻性按材料对应写全。",
+          "option_id": "D12-html-practice-html-q5-b68b99b39b11:option-1"
+        },
+        {
+          "text": "室内花岗石仅需复验放射性一项，其余各类材料只要出厂合格证与检验报告齐全便无须再逐项进场复验。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住放射性一项。",
+          "loss_reason": "漏甲醛、粘结强度、吸水率、抗冻性，采分点遗漏。",
+          "fix": "补全甲醛/粘结强度/吸水率/抗冻性。",
+          "option_id": "D12-html-practice-html-q5-b68b99b39b11:option-2"
+        },
+        {
+          "text": "进场复验保温材料的导热系数与燃烧性能、玻璃幕墙板的力学性能，以及建筑门窗的抗风压与气密性等项目内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把饰面板复验和保温/幕墙复验搞混。",
+          "loss_reason": "复验对象错，属概念混淆。",
+          "fix": "饰面板复验放射性/甲醛/粘结强度/吸水率/抗冻性。",
+          "option_id": "D12-html-practice-html-q5-b68b99b39b11:option-3"
+        },
+        {
+          "text": "进场时把放射性、甲醛这类有害物指标以及其余各项性能都统一复验一遍即完成检验。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "意思到了但没点全项目名。",
+          "loss_reason": "缺粘结强度/吸水率/抗冻性等具体项，关键词缺失。",
+          "fix": "逐项点名五项复验内容。",
+          "option_id": "D12-html-practice-html-q5-b68b99b39b11:option-4"
+        }
+      ],
+      "model_answer": "室内花岗石放射性、人造木板甲醛释放量、水泥基粘结料粘结强度、外墙陶瓷板吸水率、严寒地区陶瓷板抗冻性。",
+      "rule_group": "饰面板复验·记录表达维",
+      "content_sha256": "274ff2bd2871816f1f597d8ebe8aceb4f3a3ff843effea56fa8407720a4ec042",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q5",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "274ff2bd2871816f1f597d8ebe8aceb4f3a3ff843effea56fa8407720a4ec042",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q6-a7d1673006d1",
+      "surface_id": "practice.html",
+      "stem": "饰面砖工程材料进场应复验哪些项目？选出完整、能得分的作答。",
+      "options": [
+        {
+          "text": "室内瓷质砖放射性、水泥基粘结材料与外墙砖拉伸粘结强度、外墙陶瓷砖吸水率、严寒寒冷地区外墙砖抗冻性。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "外墙砖‘拉伸粘结强度’是招牌漏项，务必先写上。",
+          "option_id": "D12-html-practice-html-q6-a7d1673006d1:option-1"
+        },
+        {
+          "text": "室内瓷质砖放射性、外墙陶瓷砖吸水率、严寒寒冷地区外墙砖抗冻性，这三项复验合格即认为进场检验齐全无遗漏。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "看着挺全，却正好漏了拉伸粘结强度。",
+          "loss_reason": "漏‘拉伸粘结强度’——外墙砖核心采分点，经典丢分。",
+          "fix": "补‘水泥基粘结材料与外墙砖拉伸粘结强度’。",
+          "option_id": "D12-html-practice-html-q6-a7d1673006d1:option-2"
+        },
+        {
+          "text": "进场复验砌块的抗压强度、砌筑砂浆强度，以及砖的放射性、吸水率与抗冻性等项目内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把饰面砖复验和砌体材料复验混。",
+          "loss_reason": "复验对象错，概念混淆。",
+          "fix": "饰面砖复验放射性/拉伸粘结强度/吸水率/抗冻性。",
+          "option_id": "D12-html-practice-html-q6-a7d1673006d1:option-3"
+        },
+        {
+          "text": "把砖的放射性、粘结、吸水、抗冻等各项都逐一检测，确认合格之后方可投入使用。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "‘粘结’含糊带过。",
+          "loss_reason": "‘拉伸粘结强度’未点名，关键词缺失。",
+          "fix": "写全‘拉伸粘结强度’，不能只写‘粘结’。",
+          "option_id": "D12-html-practice-html-q6-a7d1673006d1:option-4"
+        }
+      ],
+      "model_answer": "室内瓷质砖放射性、水泥基粘结材料与外墙砖的拉伸粘结强度、外墙陶瓷砖吸水率、严寒寒冷地区外墙砖抗冻性。",
+      "rule_group": "饰面砖复验·记录表达维",
+      "content_sha256": "9b0ad3fa8b06c745bc2b371530ae8f69649c4fc41f9565f408c044590e579d81",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q6",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "9b0ad3fa8b06c745bc2b371530ae8f69649c4fc41f9565f408c044590e579d81",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q7-41956cfb5ed8",
+      "surface_id": "practice.html",
+      "stem": "饰面砖粘贴时粘结剂厚度及调整规定如何？选出能得分的作答。",
+      "options": [
+        {
+          "text": "粘结剂厚度 3~8mm，若超过调整期发现不平，可再振动找平后重新固定。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "想着不平就再振一下找平。",
+          "loss_reason": "超调整期振动会破坏初凝结晶成假粘，程序顺序错误。",
+          "fix": "超过调整期严禁振动，只能在调整期内微调。",
+          "option_id": "D12-html-practice-html-q7-41956cfb5ed8:option-1"
+        },
+        {
+          "text": "粘结剂随抹灰层一道抹厚约 20mm，抹平后把砖贴上去压实即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把粘结剂当抹灰层随手抹厚。",
+          "loss_reason": "粘结剂 3~8mm 非抹灰层厚度，概念混淆。",
+          "fix": "粘结剂厚度 3~8mm，不是 20mm 抹灰层。",
+          "option_id": "D12-html-practice-html-q7-41956cfb5ed8:option-2"
+        },
+        {
+          "text": "粘结剂只抹薄薄一层，趁其未干时把砖的位置调整妥当并压实固定。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对但没给数值和禁振规定。",
+          "loss_reason": "缺 3~8mm、超时禁振关键词。",
+          "fix": "写 3~8mm、调整期内微调、超时严禁振动。",
+          "option_id": "D12-html-practice-html-q7-41956cfb5ed8:option-3"
+        },
+        {
+          "text": "粘结剂厚度控制在 3~8mm；调整期内可微调，超过调整期严禁振动。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "3~8mm＋超时严禁振动，两个采分点都写上。",
+          "option_id": "D12-html-practice-html-q7-41956cfb5ed8:option-4"
+        }
+      ],
+      "model_answer": "粘结剂厚度 3~8mm；调整期内可微调，超过调整期严禁振动（超时振动＝假粘）。",
+      "rule_group": "粘贴工艺·条件程序维",
+      "content_sha256": "79080b983fe9538c11f53746eb9ce5cd865820a1af897c58b75a03650aac7a1b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q7",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "d12-fact-tile-paste-craft",
+        "skeleton_id": "d12-skel-粘结剂厚度调整",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_145_0280:1",
+        "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "79080b983fe9538c11f53746eb9ce5cd865820a1af897c58b75a03650aac7a1b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "饰面砖粘结剂厚度3~8mm、调整期内可微调、超时严禁振动, 教材 kc:1A413030_145_0280:1 逐字直引。三件套 anchor(饰面砖粘贴工艺 fact)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q8-a50b85529ab2",
+      "surface_id": "practice.html",
+      "stem": "饰面砖粘贴的排版与填缝顺序应如何？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "清理基层之后直接上墙粘贴，等全部贴完再统一填缝即可，无需事先安排排版。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "图快，跳过排版直接贴。",
+          "loss_reason": "漏排砖分格弹线（排版策划）采分点。",
+          "fix": "粘贴前必须先排砖、分格、弹线。",
+          "option_id": "D12-html-practice-html-q8-a50b85529ab2:option-1"
+        },
+        {
+          "text": "先排砖、分格、弹线，随后填缝时先垂直缝再水平缝一次勾平。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "填缝顺序凭感觉写反。",
+          "loss_reason": "填缝应先水平后垂直，顺序颠倒扣分。",
+          "fix": "填缝先水平缝后垂直缝。",
+          "option_id": "D12-html-practice-html-q8-a50b85529ab2:option-2"
+        },
+        {
+          "text": "上墙前先对排布做一个大致规划，贴完后把缝隙都填塞严实即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "含糊带过没点名。",
+          "loss_reason": "缺排砖分格弹线、先水平后垂直关键词。",
+          "fix": "点名排砖分格弹线、填缝先水平后垂直。",
+          "option_id": "D12-html-practice-html-q8-a50b85529ab2:option-3"
+        },
+        {
+          "text": "粘贴前先排砖、分格、弹线，做好总体排版策划；填缝先水平缝后垂直缝。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "排砖分格弹线＋填缝先水平后垂直，顺序写清。",
+          "option_id": "D12-html-practice-html-q8-a50b85529ab2:option-4"
+        }
+      ],
+      "model_answer": "粘贴前先排砖、分格、弹线（总体排版策划）；填缝先水平缝后垂直缝。",
+      "rule_group": "粘贴程序·程序维",
+      "content_sha256": "7a0cbf304b1b945699ba1230e20fbdb91631fbbff2c39dd131563e1081926e2d",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q8",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "d12-fact-tile-paste-craft",
+        "skeleton_id": "d12-skel-排版填缝顺序",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A413030_145_0280:1",
+        "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "7a0cbf304b1b945699ba1230e20fbdb91631fbbff2c39dd131563e1081926e2d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "粘贴前排砖、分格、弹线(总体排版策划); 填缝先水平缝后垂直缝, 教材 kc:1A413030_145_0280:1 逐字直引。三件套 immediate_confirm(同饰面砖粘贴工艺 fact, 独立 skeleton)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q9-a793939c925a",
+      "surface_id": "practice.html",
+      "stem": "抗震设防烈度 7 度地区，满粘法外墙饰面砖粘贴工程高度限值为多少？选出能得分的作答。",
+      "options": [
+        {
+          "text": "抗震设防 7 度地区，满粘法外墙饰面砖粘贴工程高度不应大于 54m，超高改其他工艺。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把别处条文的 54m 套过来。",
+          "loss_reason": "满粘法限值是 100m，54m 属规范数字混淆。",
+          "fix": "限值是 100m，不是 24/50/54m。",
+          "option_id": "D12-html-practice-html-q9-a793939c925a:option-1"
+        },
+        {
+          "text": "满粘法外墙饰面砖是有明确高度限制的，一旦超过相应高度便不能再满粘，须改用别的施工工艺。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道有限制但说不出具体数。",
+          "loss_reason": "缺‘不大于 100m’具体数值，关键词缺失。",
+          "fix": "写明‘高度不应大于 100m’。",
+          "option_id": "D12-html-practice-html-q9-a793939c925a:option-2"
+        },
+        {
+          "text": "抗震设防 7 度地区，满粘法外墙饰面砖粘贴工程高度不应大于 100m，超高改其他工艺。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "记准 100m、超高改工艺，别写别的数。",
+          "option_id": "D12-html-practice-html-q9-a793939c925a:option-3"
+        },
+        {
+          "text": "外墙饰面砖无论建筑多高均可采用满粘法施工，只要粘结牢固即可，不设高度限制。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为满粘法通用不限高。",
+          "loss_reason": "抗震 7 度满粘法有 100m 限值，规范适用错误。",
+          "fix": "抗震 7 度满粘法外墙饰面砖≤100m。",
+          "option_id": "D12-html-practice-html-q9-a793939c925a:option-4"
+        }
+      ],
+      "model_answer": "抗震设防 7 度地区，满粘法外墙饰面砖粘贴工程高度不应大于 100m，超高须改其他工艺。",
+      "rule_group": "满粘法高度·条件维",
+      "content_sha256": "817f6e843565e1912bfadb4b9703d4af74d4032b7222998a73c21dee7b3f7eef",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q9",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "817f6e843565e1912bfadb4b9703d4af74d4032b7222998a73c21dee7b3f7eef",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q10-05380c163c84",
+      "surface_id": "practice.html",
+      "stem": "饰面砖施工前为减少资源损耗（绿色施工）应做什么？选出能得分的作答。",
+      "options": [
+        {
+          "text": "饰面砖施工前应进行总体排版策划，合理排布减少切割损耗，属绿色施工措施。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "‘总体排版策划、减少损耗’是绿色施工采分句。",
+          "option_id": "D12-html-practice-html-q10-05380c163c84:option-1"
+        },
+        {
+          "text": "饰面砖施工前主要确定粘贴方法与材料品种，切割损耗则依据现场经验加以控制。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只谈方法材料，漏排版策划。",
+          "loss_reason": "漏‘总体排版策划、减少损耗’采分点。",
+          "fix": "补‘施工前进行总体排版策划、减少损耗’。",
+          "option_id": "D12-html-practice-html-q10-05380c163c84:option-2"
+        },
+        {
+          "text": "施工前做好安全技术交底与机械设备进场，即视为绿色施工的主要措施内容。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把安全/机械当绿色施工措施。",
+          "loss_reason": "本问采分点是排版策划减少损耗，答非所问。",
+          "fix": "绿色施工此处指‘总体排版策划、减少损耗’。",
+          "option_id": "D12-html-practice-html-q10-05380c163c84:option-3"
+        },
+        {
+          "text": "施工前对砖的铺贴方式作简单规划，尽量节省材料便属于绿色施工。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "口语带过。",
+          "loss_reason": "缺‘总体排版策划’‘减少资源损耗’规范表述。",
+          "fix": "用规范表述‘总体排版策划、减少资源损耗’。",
+          "option_id": "D12-html-practice-html-q10-05380c163c84:option-4"
+        }
+      ],
+      "model_answer": "饰面砖施工前应进行总体排版策划，合理排布减少切割损耗（绿色施工措施）。",
+      "rule_group": "排版策划·程序维",
+      "content_sha256": "93dc69048236cf7d5dca186c8001546d45e8ad13f4c10333d74ea8054b73946b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q10",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "93dc69048236cf7d5dca186c8001546d45e8ad13f4c10333d74ea8054b73946b",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q11-56cd47130edb",
+      "surface_id": "practice.html",
+      "stem": "墙面饰面砖采用水泥砂浆粘贴，按现行口径是否妥当？选出能得分的作答。",
+      "options": [
+        {
+          "text": "妥当；墙面饰面砖水泥砂浆粘贴属限制类工艺，25m 及以下部位仍可按常规做法正常使用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "沿用旧‘限制·25m 以下可用’口径。",
+          "loss_reason": "新规已升级为禁止使用，旧口径被覆盖，规范适用错误。",
+          "fix": "按现行口径：水泥砂浆粘贴属禁止工艺，应改薄贴。",
+          "option_id": "D12-html-practice-html-q11-56cd47130edb:option-1"
+        },
+        {
+          "text": "不妥；水泥砂浆粘贴质量不稳定、容易空鼓，应加强施工管理并做好养护之后再使用。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "指出不妥却不给正确工艺。",
+          "loss_reason": "漏‘禁止工艺＋改薄贴’正确做法，只指不妥不得分。",
+          "fix": "补‘属禁止使用工艺，应改用粘结剂薄贴’。",
+          "option_id": "D12-html-practice-html-q11-56cd47130edb:option-2"
+        },
+        {
+          "text": "不妥；墙面饰面砖水泥砂浆粘贴已列入禁止使用的施工工艺，应改用粘结剂薄贴等工艺。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "‘已列入禁止使用工艺＋改薄贴’是三段式正确做法。",
+          "option_id": "D12-html-practice-html-q11-56cd47130edb:option-3"
+        },
+        {
+          "text": "不妥，这种传统做法现行规范已经不再允许，需要更换一种新的工艺来铺贴。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对但没点名。",
+          "loss_reason": "缺‘禁止使用工艺’‘粘结剂薄贴’关键词。",
+          "fix": "点名‘禁止使用工艺’并写‘改用粘结剂薄贴’。",
+          "option_id": "D12-html-practice-html-q11-56cd47130edb:option-4"
+        }
+      ],
+      "model_answer": "不妥。墙面饰面砖水泥砂浆粘贴已列入禁止使用的施工工艺，应改用粘结剂薄贴等工艺。",
+      "rule_group": "禁用工艺·条件后果维",
+      "content_sha256": "68c39ba73dc436225d26418807dba9720c460ecd34295bd1a33afda84cfd42d8",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q11",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "68c39ba73dc436225d26418807dba9720c460ecd34295bd1a33afda84cfd42d8",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q12-bb14e9264381",
+      "surface_id": "practice.html",
+      "stem": "外墙块料空鼓防治应从哪些方面采取措施？选出完整、能得分的作答。",
+      "options": [
+        {
+          "text": "基层清理干净、选用水泥基粘结材料、养护到位，把这三条落实到位即可有效防止外墙块料空鼓发生。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "写了三条觉得够了。",
+          "loss_reason": "漏‘界面剂＋背砂’和‘设伸缩缝’两条，采分点遗漏。",
+          "fix": "补界面剂＋背砂、大面积设伸缩缝两条。",
+          "option_id": "D12-html-practice-html-q12-bb14e9264381:option-1"
+        },
+        {
+          "text": "基层清理干净；用水泥基粘结材料；油性防护石材用界面剂＋背砂；大面积铺贴设伸缩缝；养护到位。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "基层/材料/界面剂背砂/伸缩缝/养护五条逐条写。",
+          "option_id": "D12-html-practice-html-q12-bb14e9264381:option-2"
+        },
+        {
+          "text": "加强现场管理、全面提高工人操作水平、发现空鼓及时敲掉重贴，切实确保工程质量达标。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "套‘加强管理、敲掉重贴’的万能口号。",
+          "loss_reason": "全是口号、无可判分措施，口号化 0 分。",
+          "fix": "改写基层/材料/界面剂背砂/伸缩缝/养护五条实措施。",
+          "option_id": "D12-html-practice-html-q12-bb14e9264381:option-3"
+        },
+        {
+          "text": "把基层、材料、构造、养护这几个方面都逐一注意到位，空鼓现象自然会随之减少。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "维度点到但没具体措施。",
+          "loss_reason": "缺界面剂＋背砂、伸缩缝等具体关键词。",
+          "fix": "每维给出具体做法（界面剂＋背砂、设伸缩缝等）。",
+          "option_id": "D12-html-practice-html-q12-bb14e9264381:option-4"
+        }
+      ],
+      "model_answer": "基层清理干净；用水泥基粘结材料；油性防护石材用界面剂＋背砂；大面积铺贴设伸缩缝；养护到位。",
+      "rule_group": "空鼓防治·措施多维",
+      "content_sha256": "d3ed5f532eca05927b37a44ee895c7f7f143878e761ec1da5df5abcbdc6da67a",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q12",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "d3ed5f532eca05927b37a44ee895c7f7f143878e761ec1da5df5abcbdc6da67a",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q13-d6989b942e72",
+      "surface_id": "practice.html",
+      "stem": "用‘措施维度’作答外墙饰面砖空鼓防治时，如何处理人员、机械等维度？选出能得分的作答。",
+      "options": [
+        {
+          "text": "人材机法环等六维都要逐一写满：加强人员管理、机械设备到位、加强现场环境管理，每一维度都补齐写上。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "以为‘六维写满’更全更稳。",
+          "loss_reason": "人员/机械维无采分点，硬塞成口号化反而扣分。",
+          "fix": "只写有采分点的维，删掉‘加强人员管理’等口号。",
+          "option_id": "D12-html-practice-html-q13-d6989b942e72:option-1"
+        },
+        {
+          "text": "只写养护到位这一条便足够，其余维度都属凑数，写多了反而显得杂乱。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "走另一个极端，只写一条。",
+          "loss_reason": "漏基层/材料/界面剂背砂/伸缩缝多维，采分点遗漏。",
+          "fix": "有采分点的五六条都要写全。",
+          "option_id": "D12-html-practice-html-q13-d6989b942e72:option-2"
+        },
+        {
+          "text": "按维度把该注意的内容都写上，重点维度多写几句，次要维度也顺带写一句。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "含糊没落到具体措施。",
+          "loss_reason": "缺基层清理、界面剂＋背砂、伸缩缝等关键词。",
+          "fix": "逐维给出具体可判分措施。",
+          "option_id": "D12-html-practice-html-q13-d6989b942e72:option-3"
+        },
+        {
+          "text": "在基层、材料、粘结工艺、构造(伸缩缝)、养护、检验等有采分点的维写实措施，人员/机械维不硬凑。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "有采分点才写，宁缺人机维也不凑口号。",
+          "option_id": "D12-html-practice-html-q13-d6989b942e72:option-4"
+        }
+      ],
+      "model_answer": "只在有采分点的维（基层/材料/粘结工艺/构造伸缩缝/养护/检验）写实措施；人员、机械维无采分点，不硬凑口号。",
+      "rule_group": "措施维度·防口号化",
+      "content_sha256": "e88fc45f2246c4769b6c79db5fd0226bac153cfae4db29eaee9dee5869ce8897",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q13",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "e88fc45f2246c4769b6c79db5fd0226bac153cfae4db29eaee9dee5869ce8897",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q14-6e3254ecfc15",
+      "surface_id": "practice.html",
+      "stem": "地面瓷砖铺设‘基底处理→放线→浸砖’之后的工艺流程应如何？选出正确、能得分的作答。",
+      "options": [
+        {
+          "text": "浸砖后依次：铺结合层砂浆→铺砖→养护→检查验收→勾缝→成品保护；浸砖在铺砂浆前不可颠倒。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "后段养护/检查验收/勾缝/成品保护补全，顺序不颠倒。",
+          "option_id": "D12-html-practice-html-q14-6e3254ecfc15:option-1"
+        },
+        {
+          "text": "浸砖后先铺结合层砂浆，铺砖之前再补浸一次砖找水，随后依次铺砖、养护、勾缝并检查验收成品。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "想着铺前再浸一下更保险。",
+          "loss_reason": "浸砖应在铺结合层砂浆之前，颠倒顺序程序错误。",
+          "fix": "浸砖在铺砂浆前，铺砂浆后直接铺砖，不再颠倒。",
+          "option_id": "D12-html-practice-html-q14-6e3254ecfc15:option-2"
+        },
+        {
+          "text": "浸砖后铺结合层砂浆、将砖铺设到位，随后勾缝完成便可交付下一道工序施工。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "补到铺砖就以为完了。",
+          "loss_reason": "漏养护、检查验收、成品保护后段，采分点遗漏。",
+          "fix": "补养护→检查验收→勾缝→成品保护后段。",
+          "option_id": "D12-html-practice-html-q14-6e3254ecfc15:option-3"
+        },
+        {
+          "text": "浸砖之后把砂浆铺上、将砖摆放到位，后面各道工序按正常流程逐步完成即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "笼统带过没点名后段。",
+          "loss_reason": "缺养护/检查验收/勾缝/成品保护关键词。",
+          "fix": "点名后段各工序名称。",
+          "option_id": "D12-html-practice-html-q14-6e3254ecfc15:option-4"
+        }
+      ],
+      "model_answer": "浸砖→铺结合层砂浆→铺砖→养护→检查验收→勾缝→成品保护；浸砖须在铺砂浆前，不可颠倒。",
+      "rule_group": "地面工序·程序维",
+      "content_sha256": "27929f69ae201a257681969c437309acbaa8f310d37dc0916b17e36c68f49698",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q14",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "27929f69ae201a257681969c437309acbaa8f310d37dc0916b17e36c68f49698",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q15-2935ec938cfd",
+      "surface_id": "practice.html",
+      "stem": "技术交底：‘粘结剂随抹灰层一道抹厚约 20mm 后贴砖’。用三段式指出不妥并改正，选出能得分的作答。",
+      "options": [
+        {
+          "text": "不妥：粘结剂抹得过厚。正确做法：应把粘结剂适当抹薄一些之后，再按要求进行贴砖压实操作。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "指出太厚也给了方向。",
+          "loss_reason": "正确做法无 3~8mm 数值，关键词缺失只得半分。",
+          "fix": "正确做法必须写明 3~8mm。",
+          "option_id": "D12-html-practice-html-q15-2935ec938cfd:option-1"
+        },
+        {
+          "text": "不妥：粘结剂抹厚 20mm，这样粘贴很容易造成空鼓、开裂甚至整块脱落等质量问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只指不妥并说后果。",
+          "loss_reason": "缺‘正确做法’一段，采分点遗漏。",
+          "fix": "补正确做法：控制在 3~8mm、超时严禁振动。",
+          "option_id": "D12-html-practice-html-q15-2935ec938cfd:option-2"
+        },
+        {
+          "text": "不妥：粘结剂抹厚 20mm。理由：粘结剂厚度应为 3~8mm，不是抹灰层。正确做法：控制在 3~8mm、超时严禁振动。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "不妥＋理由＋正确做法带数值 3~8mm，三段齐。",
+          "option_id": "D12-html-practice-html-q15-2935ec938cfd:option-3"
+        },
+        {
+          "text": "妥当：抹灰层 20mm 厚度较为合适，把结合层垫得厚一些之后再贴砖，反而更加牢固可靠。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把粘结剂当抹灰层，以为越厚越牢。",
+          "loss_reason": "粘结剂 3~8mm 非抹灰层，判断方向就错。",
+          "fix": "应判不妥，粘结剂厚 3~8mm。",
+          "option_id": "D12-html-practice-html-q15-2935ec938cfd:option-4"
+        }
+      ],
+      "model_answer": "不妥：粘结剂随抹灰层抹厚 20mm。理由：饰面砖粘结剂厚度应为 3~8mm，非抹灰层厚度。正确做法：控制在 3~8mm，调整期内微调、超时严禁振动。",
+      "rule_group": "判断纠错·采分句输出",
+      "content_sha256": "07b25bd0e98ef93901009003c08c48dfc594d16e249c8d18e108366f62a26a13",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q15",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "d12-fact-tile-paste-craft",
+        "skeleton_id": "d12-skel-三段式纠错20mm",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A413030_145_0280:1",
+        "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "07b25bd0e98ef93901009003c08c48dfc594d16e249c8d18e108366f62a26a13",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "三段式判错纠正: 粘结剂随抹灰抹厚20mm 不妥, 饰面砖粘结剂厚度应3~8mm(非抹灰层)、超时严禁振动, 教材 kc:1A413030_145_0280:1 逐字直引。三件套 d1_probe(同饰面砖粘贴工艺 fact, 第3独立 skeleton)。工单: 正确项偏长。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D12-html-practice-html-q16-300386be76cf",
+      "surface_id": "practice.html",
+      "stem": "某学生答外墙饰面砖空鼓防治：‘加强现场管理、提高工人责任心、空鼓的敲掉重贴’。选出最准确的诊断与补写。",
+      "options": [
+        {
+          "text": "作答基本到位，加强现场管理与敲掉重贴均属于有效措施，只需在末尾再补写一句养护到位这一条便可给满分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把口号当有效措施，只想补一句。",
+          "loss_reason": "‘加强管理/敲掉重贴’是口号非采分措施，诊断方向错。",
+          "fix": "整体口号化需重写五要点，不是补一句。",
+          "option_id": "D12-html-practice-html-q16-300386be76cf:option-1"
+        },
+        {
+          "text": "作答口号化、无可判分措施，且漏空鼓五要点；应改写基层清理、水泥基粘结、界面剂＋背砂、伸缩缝、养护。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "识破口号化＋补五要点实措施，就是‘会写答案’。",
+          "option_id": "D12-html-practice-html-q16-300386be76cf:option-2"
+        },
+        {
+          "text": "只是漏了养护这一条，把养护补写上去，其余作答内容都算正确可以给分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为只差一条。",
+          "loss_reason": "漏基层/材料/界面剂背砂/伸缩缝多条，且原文全是口号。",
+          "fix": "五要点几乎全漏，需整体改写实措施。",
+          "option_id": "D12-html-practice-html-q16-300386be76cf:option-3"
+        },
+        {
+          "text": "方向是对的，只要把这些措施写得再具体一些、不要过于笼统，便能够得分。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "含糊指出笼统但没给内容。",
+          "loss_reason": "未点名应补哪五条采分措施，指导无落点。",
+          "fix": "明确补基层/材料/界面剂背砂/伸缩缝/养护五条。",
+          "option_id": "D12-html-practice-html-q16-300386be76cf:option-4"
+        }
+      ],
+      "model_answer": "全是口号无可判分措施(E04)，且漏空鼓五要点；应改写：基层清理干净、水泥基粘结材料、界面剂＋背砂、大面积设伸缩缝、养护到位。",
+      "rule_group": "采分诊断·末题",
+      "content_sha256": "3d2123fc51bb6470130851b7a263d5f5c96986e352ec499a82e654243f2662cb",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q16",
+      "authoring_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "decision": {
+        "fact_id": "d12-fact-tile-hollowing-five-points",
+        "skeleton_id": "d12-skel-空鼓诊断补五要点",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A434000_078_0123:0",
+        "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "3d2123fc51bb6470130851b7a263d5f5c96986e352ec499a82e654243f2662cb",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-20T17:19:59+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "空鼓防治五要点(基层清理/水泥基粘结/界面剂+背砂/伸缩缝/养护), 教材 kc:1A434000_078_0123:0 逐字直引, 正确项 option-2 补写句与源五点逐字一致。⚠️工单(provenance-borrow): 此为地面空鼓真锚(leaf 1A434000-B011, tier=full)借力外墙饰面砖空鼓诊断; compiled_source note 明示'编译库内无饰面砖板专门空鼓防治锚, 墙面砖空鼓防治原理同源借力'。锚真实存在且五要点逐字支撑正确项, 非编造锚; 记借力工单待编译库补外墙饰面砖专门空鼓锚后回锚。q16 系固定投影面(presentation_order index15)必须签 anchor, 其两候选均为该借力锚, 取:0(五点陈述)优于 ca(问句)。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
+  ],
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "opus-adjudication 2026-07-20 全量清尾批(owner指令);逐题引文回原文核对(_D12_compiled_source.json scoring_points 逐条比对, 8 锚全部教材/借力锚逐字忠实);待 fable 对抗核验",
+    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  }
+}

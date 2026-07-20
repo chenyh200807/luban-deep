@@ -1,0 +1,12 @@
+{
+  "pack_id": "C02",
+  "adversarial_gate_ref": "opus-adjudication 2026-07-20 全量清尾批(owner指令);逐题引文回原文核对;待 fable 对抗核验。注:6题锚全部教材/考试为真无编造,但供给闸 supply_ready 结构性无法满足(仅6题<gate要求7 eligible;三件套需2道非anchor题但仅q5可用)——如实 NO-GO,详见 scratchpad/sign_c02.log。",
+  "signed": [
+    {"variant_id":"C02-html-practice-html-q1-6a5429224580","probe_role":"anchor","fact_id":"c02-fact-comprehensive-unit-price-taxfree","skeleton_id":"c02-skel-综合单价口径计税","source_anchor":"kc:1A432002_035_0046:0","note":"综合单价为不含增值税税前全费用价(含人材机+管理+利润+风险),税最末整体计提一次。教材 kc:1A432002_035_0046:0 statement 逐字直引。"},
+    {"variant_id":"C02-html-practice-html-q2-b80a345f8d5b","probe_role":"anchor","fact_id":"c02-fact-advance-payment-base-deduct-provisional","skeleton_id":"c02-skel-预付款先扣暂列金","source_anchor":"exam:2019:第1题","note":"预付款=(5800-580)×20%=1044,基数先扣暂列金。exam:2019:第1题 官方解「预付款为(5800-580)×20%=1044.00」逐字直引。"},
+    {"variant_id":"C02-html-practice-html-q3-c3d4bb34920f","probe_role":"anchor","fact_id":"c02-fact-recovery-point-formula","skeleton_id":"c02-skel-起扣点公式基数减预付款除占比","source_anchor":"exam:2019:第1题","note":"起扣点=基数-预付款÷占比=5220-1044÷60%=3480。exam:2019:第1题 官方解「起扣点为：(5800-580)-1044/60%=3480.00」逐字直引;教材 kc:1A435000_043_0058:1 亦证公式结构。"},
+    {"variant_id":"C02-html-practice-html-q4-fdfa0d44d95e","probe_role":"anchor","fact_id":"c02-fact-cumulative-vs-recovery-point","skeleton_id":"c02-skel-逐月累计判扣回两刀","source_anchor":"exam:2019:第1题","note":"累计3830＞起扣点3480,5月除扣3%质保金外还扣回预付款。exam:2019:第1题 官方解「累计…=3830万元＞起扣点3480万元…5月不仅仅扣除质保金还应当扣回预付款」逐字直引。"},
+    {"variant_id":"C02-html-practice-html-q6-01bd53b75f48","probe_role":"anchor","fact_id":"c02-fact-scoring-diagnosis","skeleton_id":"c02-skel-采分诊断三处补写","source_anchor":"exam:2019:第1题","note":"诊断三处(基数未扣暂列/起扣点公式反/漏列累计)均由 exam:2019:第1题 官方解逐字支撑。"},
+    {"variant_id":"C02-html-practice-html-q5-568d6a5fd4b9","probe_role":"immediate_confirm","fact_id":"c02-fact-retention-money-cap","skeleton_id":"c02-skel-质保金上限结算总价3","source_anchor":"kc:1A435000_044_0059:0","note":"累计预留质保金不得超过工程结算总价3%,以结算总价为基数。教材 kc:1A435000_044_0059:0「…不得超过工程结算总价的 3%」逐字直引。注:此题未投影,单独充数亦无法补足三件套(缺 anchor 同 fact + d1_probe)。"}
+  ]
+}

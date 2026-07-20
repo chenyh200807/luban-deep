@@ -1,0 +1,70 @@
+{
+ "pack_id": "A01",
+ "adversarial_gate_ref": "BLOCKED 2026-07-20 fable对抗核验: q16 源资产算术错误((28.5+31+32)/3=30.5,源写30.8'恰为临界'),签发会教错;q16为投影题不可剔除,须修 P40_A01 源资产(含同病教学题)后重编译重裁。其余7行锚裁决有效可复用。 | 原ref: opus-adjudication 2026-07-20 全量清尾批(owner指令);逐题引文回 _A01_compiled_source.json 核对;纯教材锚(A01 无真题证据文件, 降级 compiled_source);待 fable 对抗核验。裁决要点:(1) 五投影(q1/q2/q3/q4/q16)全签 anchor, 各持独立 fact 防误组三件套;(2) q1 弃最高分候选 kc:...086_0142(节能工程语义错), 取层级锚 kc:...021_0029:1;(3) q2/q3 采 m35 编译采分点(工程量/施工段/变形缝 与 主要工种/材料/施工工艺/设备类别), 均 GB50300 标准划分条件且忠于 compiled_source, 比 raw kc 更全;(4) q16 空手, 经 prefill --threshold 0.12 放宽召回 kc:...136:0(检验内容), 直命中诊断第1处, 88%/80% 强度评定阈值属 GB50204 外部非本包源, 记 note 不阻断;(5) 三件套取结构实体检验 fact(q7 内容/q8 组织/q9 强度方法), 三 skeleton 互异, 全逐字忠于 kc:...136:0/1/2。",
+ "signed": [
+  {
+   "variant_id": "A01-html-practice-html-q1-a97f6b60c08e",
+   "probe_role": "anchor",
+   "fact_id": "a01-fact-acceptance-hierarchy",
+   "skeleton_id": "a01-skel-四级顺序自下而上",
+   "source_anchor": "kc:1A422000_021_0029:1",
+   "note": "建筑工程质量验收=检验批→分项工程→分部工程→单位工程四级, 自下而上逐级累积。教材 kc:1A422000_021_0029:1 statement 直引(施工质量验收分为:检验批→分项→分部→单位)。工单: 机器最高分候选 kc:...086_0142(节能工程属单位工程一个分部)语义与本题四级层级无关, 已弃用取层级锚。"
+  },
+  {
+   "variant_id": "A01-html-practice-html-q2-ecc97aac95bb",
+   "probe_role": "anchor",
+   "fact_id": "a01-fact-inspection-lot-division",
+   "skeleton_id": "a01-skel-检验批划分条件补全",
+   "source_anchor": "m35:Q18-1A434000:P6",
+   "note": "检验批可按工程量、楼层、施工段、变形缝划分(题干已给楼层, 补其余三项)。锚 m35:Q18-1A434000:P6(compiled_source 内编译采分点)statement 列举 工程量/施工段/变形缝, 与 GB50300 检验批标准划分条件一致。工单: 此为 m35 采分点非 raw kc; raw 层级锚 kc:...021_0029:1 仅列工程量/楼层/施工段(缺变形缝), 故取更全的 m35 点。正确项 vs 干扰项(主要工种/材料/工艺/设备=分项工程那套)辨析正确。"
+  },
+  {
+   "variant_id": "A01-html-practice-html-q3-0280b26aee14",
+   "probe_role": "anchor",
+   "fact_id": "a01-fact-subitem-division",
+   "skeleton_id": "a01-skel-分项工程划分条件",
+   "source_anchor": "m35:Q18-1A434000:P5",
+   "note": "分项工程按主要工种、材料、施工工艺、设备类别划分。锚 m35:Q18-1A434000:P5 statement 逐项列举四类, 比 kc:...021_0029:1(工种/材料/工艺, 缺设备类别)更全。工单: m35 采分点; 干扰项把检验批那套(工程量/楼层/施工段/变形缝)搬来串档, 辨析正确。"
+  },
+  {
+   "variant_id": "A01-html-practice-html-q4-2492e71aec61",
+   "probe_role": "anchor",
+   "fact_id": "a01-fact-lot-acceptance-standard",
+   "skeleton_id": "a01-skel-主控全合格一般80",
+   "source_anchor": "kc:1A422000_045_0071:1",
+   "note": "检验批合格标准: 主控项目全部合格(否决项), 一般项目合格率≥80% 且最大偏差不超规定值。教材 kc:1A422000_045_0071:1 statement 直引(主控项目全部合格; 一般项目合格率≥80%)。工单: 干扰候选 kc:...067_0100(砂浆饱满度80/90%)语义偏移, 已弃。"
+  },
+  {
+   "variant_id": "A01-html-practice-html-q16-4729976dca0a",
+   "probe_role": "anchor",
+   "fact_id": "a01-fact-entity-inspection-diagnosis",
+   "skeleton_id": "a01-skel-实体检验三处诊断补写",
+   "source_anchor": "kc:1A434020_085_0136:0",
+   "note": "诊断题: 学生答实体检验测混凝土强度(漏三项)+组织主体答反+判据未套阈值。锚 kc:1A434020_085_0136:0(结构实体检验内容四项)直接支撑诊断第1处(漏钢筋保护层/尺寸偏差/合同约定项目)。工单: 本题空手, 经 prefill --threshold 0.12 放宽召回该锚(match 0.239); 诊断第3处 88%/80% 混凝土强度评定双阈值属 GB50204 外部规范, 不在 A01 compiled_source, 仅作题内作答内容不据此签锚, 已 flag(anchor 只锚已核实的检验内容部分, 不编造阈值锚)。独立 fact 防止与 q7/q8/q9 三件套串组。"
+  },
+  {
+   "variant_id": "A01-html-practice-html-q7-be8b3a182637",
+   "probe_role": "anchor",
+   "fact_id": "a01-fact-structural-entity-inspection",
+   "skeleton_id": "a01-skel-实体检验内容四项",
+   "source_anchor": "kc:1A434020_085_0136:0",
+   "note": "结构实体检验内容=混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目(四项)。教材 kc:1A434020_085_0136:0 statement 逐字直引。三件套 anchor。工单: 干扰项漏两项(E02)或混入见证取样/隐蔽记录(E07)辨析正确。"
+  },
+  {
+   "variant_id": "A01-html-practice-html-q8-bbc54d254fac",
+   "probe_role": "immediate_confirm",
+   "fact_id": "a01-fact-structural-entity-inspection",
+   "skeleton_id": "a01-skel-实体检验组织主体",
+   "source_anchor": "kc:1A434020_085_0136:1",
+   "note": "结构实体检验由监理单位组织、施工单位实施、监理见证, 施工单位编专项方案报监理审批。教材 kc:1A434020_085_0136:1 statement 逐字直引。三件套 immediate_confirm(同结构实体检验 fact, skeleton 异于 q7)。工单: 干扰项把组织主体答反(施工自组织/建设组织)辨析正确。"
+  },
+  {
+   "variant_id": "A01-html-practice-html-q9-1640e9d7a152",
+   "probe_role": "d1_probe",
+   "fact_id": "a01-fact-structural-entity-inspection",
+   "skeleton_id": "a01-skel-混凝土强度检验方法",
+   "source_anchor": "kc:1A434020_085_0136:2",
+   "note": "结构实体混凝土强度检验: 优先采用同条件养护试件法; 试件不足或不满足时采用回弹—取芯法。教材 kc:1A434020_085_0136:2 statement 逐字直引。三件套 d1_probe(同 fact, 第3独立 skeleton)。工单: 干扰项把回弹钻芯当首选(E06)或称两法等效(E07)辨析正确。"
+  }
+ ]
+}

@@ -1,0 +1,159 @@
+{
+  "machine_candidates_only": true,
+  "generated_at": "2026-07-20T09:10:10+00:00",
+  "generator": "scripts/prefill_practice_review_anchors.py",
+  "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
+  "pack_id": "F16",
+  "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/f16.practice.review.json",
+  "score_threshold": 0.25,
+  "warnings": [],
+  "coverage": {
+    "total_items": 6,
+    "items_with_candidates": 6,
+    "items_empty_handed": 0
+  },
+  "items": [
+    {
+      "variant_id": "F16-html-practice-html-q1-b160745e065e",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A434000_076_0119:0",
+          "quote": "卷材起鼓治理方法：直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。 直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。 本体·屋面卷材起鼓割补治理(按直径分档处置): 直径<100mm 用抽气灌胶法; ≥100mm 需(斜十字形)割开、清理、吹干、重贴(新贴方形卷材). EP grading_keywords=抽气灌胶法/斜十字形割开/100m",
+          "match_score": 0.43,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        },
+        {
+          "source_anchor": "ca:1A434000_076_0119",
+          "quote": "关于卷材起鼓的治理，下列说法正确的是？ 关于卷材起鼓的治理，下列说法正确的是？ | grading_keywords=抽气灌胶法,斜十字形割开,100mm,新贴方形卷材 本体·屋面卷材起鼓割补治理(按直径分档处置): 直径<100mm 用抽气灌胶法; ≥100mm 需(斜十字形)割开、清理、吹干、重贴(新贴方形卷材). EP grading_keywords=抽气灌胶法/斜十字形割开/100mm/",
+          "match_score": 0.43,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        }
+      ]
+    },
+    {
+      "variant_id": "F16-html-practice-html-q2-d87ee9a33256",
+      "candidates": [
+        {
+          "source_anchor": "exam:2017:案例二",
+          "quote": "形缝等。 3. 保温材料：导热系数、燃烧性能、密度、抗压强度或压缩强度；粘结材料：粘结强度；增强材料：力学性能、抗腐蚀性能。 4. ①用刀将鼓泡卷材割开，放出鼓泡内气体，擦干水分，清除旧胶结料；②再用喷灯烘烤旧卷材槎口，并分层剥开，除去旧胶结材料后；③随后依次或者按顺序将旧卷材分片重新粘贴好，再新贴新卷材；④再依次或者按顺序将旧卷材分片重新粘贴好，再新贴新卷材；⑤周边压实刮平；⑥重做保护层。 【解",
+          "match_score": 0.5488,
+          "source_file": "docs/原始数据/考点原料/_F16_exam_evidence.json",
+          "source_sha256": "889e43a15c48cadacd1790d356a070eb73e422bc836e423d2ce3c108e6966552"
+        },
+        {
+          "source_anchor": "kc:1A434000_076_0119:0",
+          "quote": "卷材起鼓治理方法：直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。 直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。 本体·屋面卷材起鼓割补治理(按直径分档处置): 直径<100mm 用抽气灌胶法; ≥100mm 需(斜十字形)割开、清理、吹干、重贴(新贴方形卷材). EP grading_keywords=抽气灌胶法/斜十字形割开/100m",
+          "match_score": 0.4534,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        },
+        {
+          "source_anchor": "ca:1A434000_076_0119",
+          "quote": "关于卷材起鼓的治理，下列说法正确的是？ 关于卷材起鼓的治理，下列说法正确的是？ | grading_keywords=抽气灌胶法,斜十字形割开,100mm,新贴方形卷材 本体·屋面卷材起鼓割补治理(按直径分档处置): 直径<100mm 用抽气灌胶法; ≥100mm 需(斜十字形)割开、清理、吹干、重贴(新贴方形卷材). EP grading_keywords=抽气灌胶法/斜十字形割开/100mm/",
+          "match_score": 0.4534,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        }
+      ]
+    },
+    {
+      "variant_id": "F16-html-practice-html-q3-dabd05eb91b6",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A434000_076_0119",
+          "quote": "关于卷材起鼓的治理，下列说法正确的是？ 关于卷材起鼓的治理，下列说法正确的是？ | grading_keywords=抽气灌胶法,斜十字形割开,100mm,新贴方形卷材 本体·屋面卷材起鼓割补治理(按直径分档处置): 直径<100mm 用抽气灌胶法; ≥100mm 需(斜十字形)割开、清理、吹干、重贴(新贴方形卷材). EP grading_keywords=抽气灌胶法/斜十字形割开/100mm/",
+          "match_score": 0.3767,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        },
+        {
+          "source_anchor": "exam:2017:案例二",
+          "quote": "：力学性能、抗腐蚀性能。 4. ①用刀将鼓泡卷材割开，放出鼓泡内气体，擦干水分，清除旧胶结料；②再用喷灯烘烤旧卷材槎口，并分层剥开，除去旧胶结材料后；③随后依次或者按顺序将旧卷材分片重新粘贴好，再新贴新卷材；④再依次或者按顺序将旧卷材分片重新粘贴好，再新贴新卷材；⑤周边压实刮平；⑥重做保护层。 【解析】 1. 根据《建筑工程施工质量验收统一标准》GB50300-2013，项目质量计划应由企业组织管",
+          "match_score": 0.3625,
+          "source_file": "docs/原始数据/考点原料/_F16_exam_evidence.json",
+          "source_sha256": "889e43a15c48cadacd1790d356a070eb73e422bc836e423d2ce3c108e6966552"
+        },
+        {
+          "source_anchor": "ca:1A413030_131_0252",
+          "quote": "keywords=5℃,-10℃,满粘,倒槎,300～500mm,1/3～1/2,150mm,100mm,50mm,70mm 相邻施工背景·卷材防水层施工(割补重贴·搭接封严依据): 搭接 改性沥青150mm/合成高分子100mm; 双层错开1/3~1/2幅宽不垂直铺贴; 环境温度 冷粘自粘≥5℃/热熔焊接≥-10℃. 标🔵相邻(割补重贴新卷材时的搭接封严依据, 非起鼓割补主判分眼; 与 F02 ",
+          "match_score": 0.3596,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        }
+      ]
+    },
+    {
+      "variant_id": "F16-html-practice-html-q4-40f0f2d925ec",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A434000_068_0104",
+          "quote": "屋面施工过程中，以下哪项不属于必须检查的内容？ 屋面施工过程中，以下哪项不属于必须检查的内容？ | grading_keywords=基层状况,铺贴方向,搭接长度,泛水高度,排气孔,保护层,材料相容性,基层平整干燥,防潮防火 本体·屋面工程施工过程检查与检验(检验闭环判分眼): 施工过程需检查 基层状况/铺贴方向/搭接长度/泛水高度/**排气孔**/保护层/材料相容性/**基层平整干燥**/防潮防",
+          "match_score": 0.4286,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        },
+        {
+          "source_anchor": "kc:1A434000_068_0104:0",
+          "quote": "容性、基层平整干燥、防潮防火措施。 施工过程需检查：基层状况、铺贴方向、搭接长度、泛水高度、排气孔、保护层、材料相容性、基层平整干燥、防潮防火措施。 本体·屋面工程施工过程检查与检验(检验闭环判分眼): 施工过程需检查 基层状况/铺贴方向/搭接长度/泛水高度/**排气孔**/保护层/材料相容性/**基层平整干燥**/防潮防火措施. 是起鼓成因(排气孔缺失/基层不干燥→水汽鼓胀)+割补后检查的本体检",
+          "match_score": 0.4167,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        }
+      ]
+    },
+    {
+      "variant_id": "F16-html-practice-html-q5-bfd0e9457f44",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A434000_076_0119",
+          "quote": "关于卷材起鼓的治理，下列说法正确的是？ 关于卷材起鼓的治理，下列说法正确的是？ | grading_keywords=抽气灌胶法,斜十字形割开,100mm,新贴方形卷材 本体·屋面卷材起鼓割补治理(按直径分档处置): 直径<100mm 用抽气灌胶法; ≥100mm 需(斜十字形)割开、清理、吹干、重贴(新贴方形卷材). EP grading_keywords=抽气灌胶法/斜十字形割开/100mm/",
+          "match_score": 0.4151,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        },
+        {
+          "source_anchor": "kc:1A434000_076_0119:0",
+          "quote": "卷材起鼓治理方法：直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。 直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。 本体·屋面卷材起鼓割补治理(按直径分档处置): 直径<100mm 用抽气灌胶法; ≥100mm 需(斜十字形)割开、清理、吹干、重贴(新贴方形卷材). EP grading_keywords=抽气灌胶法/斜十字形割开/100m",
+          "match_score": 0.3959,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        },
+        {
+          "source_anchor": "ca:1A413030_131_0252",
+          "quote": "关于卷材防水层施工，下列说法正确的是？ 关于卷材防水层施工，下列说法正确的是？ | grading_keywords=5℃,-10℃,满粘,倒槎,300～500mm,1/3～1/2,150mm,100mm,50mm,70mm 相邻施工背景·卷材防水层施工(割补重贴·搭接封严依据): 搭接 改性沥青150mm/合成高分子100mm; 双层错开1/3~1/2幅宽不垂直铺贴; 环境温度 冷粘自粘≥5℃/",
+          "match_score": 0.3629,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        }
+      ]
+    },
+    {
+      "variant_id": "F16-html-practice-html-q6-0b26f1dedaef",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A434000_076_0119",
+          "quote": "关于卷材起鼓的治理，下列说法正确的是？ 关于卷材起鼓的治理，下列说法正确的是？ | grading_keywords=抽气灌胶法,斜十字形割开,100mm,新贴方形卷材 本体·屋面卷材起鼓割补治理(按直径分档处置): 直径<100mm 用抽气灌胶法; ≥100mm 需(斜十字形)割开、清理、吹干、重贴(新贴方形卷材). EP grading_keywords=抽气灌胶法/斜十字形割开/100mm/",
+          "match_score": 0.4534,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        },
+        {
+          "source_anchor": "kc:1A434000_076_0119:0",
+          "quote": "卷材起鼓治理方法：直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。 直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。 本体·屋面卷材起鼓割补治理(按直径分档处置): 直径<100mm 用抽气灌胶法; ≥100mm 需(斜十字形)割开、清理、吹干、重贴(新贴方形卷材). EP grading_keywords=抽气灌胶法/斜十字形割开/100m",
+          "match_score": 0.4342,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        },
+        {
+          "source_anchor": "ca:1A413030_131_0252",
+          "quote": "keywords=5℃,-10℃,满粘,倒槎,300～500mm,1/3～1/2,150mm,100mm,50mm,70mm 相邻施工背景·卷材防水层施工(割补重贴·搭接封严依据): 搭接 改性沥青150mm/合成高分子100mm; 双层错开1/3~1/2幅宽不垂直铺贴; 环境温度 冷粘自粘≥5℃/热熔焊接≥-10℃. 标🔵相邻(割补重贴新卷材时的搭接封严依据, 非起鼓割补主判分眼; 与 F02 ",
+          "match_score": 0.367,
+          "source_file": "docs/原始数据/考点原料/_F16_compiled_source.json",
+          "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90"
+        }
+      ]
+    }
+  ]
+}
