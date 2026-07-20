@@ -77,14 +77,15 @@ assert.strictEqual(station.indexOf("isF16"), -1, "compiled practice capability m
 assert.strictEqual(station.indexOf("TIER_PRACTICE"), -1, "lesson/practice navigation must stay inside the finished card");
 assert.strictEqual(station.indexOf("postLessonProgress"), -1, "station shell must not duplicate the card evidence bridge");
 assert.strictEqual(stationWxml.indexOf("st-footer"), -1, "native fallback must not intercept finished-card touches");
-// Reachability gate: F16 is not yet supply_ready (only cohort-1/N01 is signed), so its
-// static H5 lesson must NOT expose a live "做练习" CTA — otherwise a direct-link visitor
-// clicks through into a guaranteed practice_not_released. The lesson degrades to the
-// warm teaching-release copy instead; the practice.html consumer wiring below is still
-// verified so the entry lights up correctly once F16 is signed and re-published.
-assert.strictEqual(f16Lesson.indexOf('href="practice.html"'), -1, "F16 (not yet supply_ready) lesson must be reachability-gated, not expose a live practice CTA");
-assert.ok(f16Lesson.indexOf('data-luban-practice-gate="pending"') >= 0, "gated lesson must carry the pending practice marker");
-assert.ok(f16Lesson.indexOf('练习题教研签发中') >= 0, "gated lesson must show the warm teaching-release copy");
+// Reachability gate: F16 became supply_ready in the 2026-07-20 40/40 signing campaign,
+// so its lesson must now expose the live practice CTA with no pending gate residue —
+// a signed pack still carrying the gate would silently hide real supply. The
+// not-supply_ready gating mechanics (pending marker + warm copy) are covered at the
+// publisher level in tests/scripts/test_publish_luban_preview_cards.py, so this file
+// no longer hardcodes any pack as "not yet signed".
+assert.ok(f16Lesson.indexOf('href="practice.html"') >= 0, "F16 (supply_ready) lesson must expose the live practice CTA");
+assert.strictEqual(f16Lesson.indexOf('data-luban-practice-gate="pending"'), -1, "signed lesson must not carry the pending practice marker");
+assert.strictEqual(f16Lesson.indexOf('练习题教研签发中'), -1, "signed lesson must not show the teaching-release gate copy");
 assert.ok(f16Practice.indexOf("__dtRedirectEvidence") >= 0, "the fifth answer must bridge automatically into canonical learner evidence");
 assert.strictEqual(f16Practice.indexOf("保存学习证据 · 查看正式收据"), -1, "the user must not choose whether a completed practice is recorded");
 assert.ok(f16Practice.indexOf("patch.finished===true||patch.phase==='result'") >= 0, "the local result transition must be intercepted by the evidence bridge");
