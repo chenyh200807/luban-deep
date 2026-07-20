@@ -5,7 +5,9 @@
 
 ```
 下一步 = 第一个非空项:
-  1) 到期复: revalidation_queue 有 due probe   →「回炉：XX 再看一眼就稳了」
+  1) 到期复: pack 级到期投影（luban_lesson/review_due.build_review_due_projection，
+     调度真值仍归 revalidation_queue）有**可兑付** due 条目
+     →「回炉：XX 再看一眼就稳了」
   2) 活跃练: training_intent 有 active intent
      且 target pack 可路由（绿灯 ∧ retest_available 供给真值）
      →「练：你漏的采分点，换个题面」
@@ -21,6 +23,17 @@
 下一优先级臂；被跳过的 intent 不静默丢——保留在 ``skipped_intents``
 diagnostic 里（仅诊断，非第二处方）。供给真值 = caller 传入的
 ``green_lessons`` read-model 行（``retest_available``），本模块不造第二真值。
+
+**到期复候选源单一化（2026-07-20 双权威病收权）**：``review_due_items`` 必须是
+复习页同一投影（``build_review_due_projection``）经 ``list_redeemable_due_items``
+（= ``resolve_due_review_probe`` exact-match 口径）过滤后的条目——首页发出的
+``source_ref``（probe_id）必然能被复习入口原样兑付。弱点节点 queue
+（``build_revalidation_queue_projection(learning_state=…)``）不再是本臂的
+decider（QA 6a127781 死证：只有 fresh 到期、无弱点节点的用户复习页有货、
+首页却出 learn_next；且弱点 probe 与 pack 级 probe 铸造不同源，前端
+exact-match 永远兑付不了）。caller 侧投影不可用时传
+``review_due_unavailable=True``：臂空、落 ``skipped_intents`` 诊断，
+不遮蔽 learn_next（fail-closed 不 fail-open）。
 
 **推荐起点一致性（2026-07-18，A01 冲突包 owner 阻塞事件治本）**：下一学/
 fallback 两臂「推荐一个起点」时，必须偏好 ``retest_available``（= compiled
@@ -73,10 +86,11 @@ def _text(value: Any) -> str:
 
 def build_home_next_step_projection(
     *,
-    revalidation_items: list[dict[str, Any]] | None,
+    review_due_items: list[dict[str, Any]] | None,
     active_training_intents: list[dict[str, Any]] | None,
     pack_lifecycle: dict[str, Any] | None,
     green_lessons: list[dict[str, Any]] | None,
+    review_due_unavailable: bool = False,
 ) -> dict[str, Any]:
     """确定性仲裁；所有输入由 caller 提供（本模块不读任何存储）。"""
     green = [item for item in list(green_lessons or []) if isinstance(item, dict) and _text(item.get("pack_id"))]
@@ -101,23 +115,36 @@ def build_home_next_step_projection(
             step["skipped_stations"] = list(skipped_stations)
         return step
 
-    for item in list(revalidation_items or []):
-        if not isinstance(item, dict):
-            continue
-        intent = item.get("intent") if isinstance(item.get("intent"), dict) else {}
-        label = _text(intent.get("concept_label")) or _text(intent.get("error_label")) or "薄弱点"
-        target_pack_id = _text(
-            item.get("target_pack_id") or intent.get("target_pack_id") or intent.get("concept_id")
-        ).upper()
-        if target_pack_id not in green_ids:
-            target_pack_id = ""
-        return {
-            "mode": MODE_REVIEW,
-            "source_authority": "revalidation_queue",
-            "source_ref": _text(item.get("probe_id")),
-            "target_pack_id": target_pack_id,
-            "reason": f"到期复验：{label} 再看一眼就稳了",
-        }
+    # 投影不可用 ≠ 无到期（fail-closed 不 fail-open）：臂空落下一臂，且不静默
+    # 丢——保留诊断（仅诊断，非第二处方）。
+    if review_due_unavailable:
+        skipped_intents.append(
+            {
+                "training_intent_id": "",
+                "target_pack_id": "",
+                "skip_reason": "review_projection_unavailable",
+            }
+        )
+    else:
+        for item in list(review_due_items or []):
+            if not isinstance(item, dict):
+                continue
+            # 条目形状 = review_due 投影 due 行（pack_id/title/probe_id），caller
+            # 已按 resolve_due_review_probe 口径过滤为可兑付；这里只做形状防御。
+            pack_id = _text(item.get("pack_id")).upper()
+            probe_id = _text(item.get("probe_id"))
+            if not pack_id or not probe_id:
+                continue
+            label = _text(item.get("title")) or "薄弱点"
+            return _with_diagnostics(
+                {
+                    "mode": MODE_REVIEW,
+                    "source_authority": "revalidation_queue",
+                    "source_ref": probe_id,
+                    "target_pack_id": pack_id,
+                    "reason": f"到期复验：{label} 再看一眼就稳了",
+                }
+            )
 
     for intent in list(active_training_intents or []):
         if not isinstance(intent, dict) or not intent:
