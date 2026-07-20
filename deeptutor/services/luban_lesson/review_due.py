@@ -4,9 +4,14 @@
 只把 ``pack_lifecycle_projection`` 的 terminal-only review facts 桥接为 candidates，
 再委托 ``revalidation_queue`` 决定到期。``exam_date_iso`` 仍只是地平线透传口；
 本模块不保存 due、不维护间隔常量，也不解释 item/本机状态。
+
+本投影是「到期复习」候选的**唯一**读侧真值：复习页（GET /review-due）、report
+``pack_review`` 与首页 next_step 的 review_due 臂都必须从这里派生——首页不得
+用弱点节点另铸第二套 due 候选（2026-07-20 双权威病收权）。
 """
 from __future__ import annotations
 
+import os
 from typing import Any, Iterable
 
 from deeptutor.services.learner_state.pack_lifecycle_projection import (
@@ -21,6 +26,17 @@ from deeptutor.services.luban_lesson.read_model import (
     build_lesson_viewmodel,
     list_green_lessons,
 )
+
+_REVIEW_MODULE_FLAG = "LUBAN_REVIEW_MODULE_ENABLED"
+
+
+def review_module_enabled() -> bool:
+    """复习面总旗标读点（与 /review-due 路由同一 os.getenv 口径）。
+
+    首页 review_due 臂必须与复习页同门：旗标关时复习页 due 恒空，首页发
+    review_due CTA 只会是兑付不了的死卡。
+    """
+    return str(os.getenv(_REVIEW_MODULE_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 class ReviewHorizonUnavailable(RuntimeError):
@@ -159,9 +175,33 @@ def resolve_due_review_probe(
     return None
 
 
+def list_redeemable_due_items(projection: dict[str, Any]) -> list[dict[str, Any]]:
+    """Due items that selection/completion would actually redeem, in due order.
+
+    资格判据只存在 ``resolve_due_review_probe`` 一份（exact-match:
+    pack_id+probe_id+retest_available+cycle_anchor）——本函数逐条委托它过滤，
+    不复制口径。首页 next_step 的 review_due 臂只许消费本列表：发出的每个
+    probe 必然能被复习入口原样兑付（禁发死 CTA）。
+    """
+    redeemable: list[dict[str, Any]] = []
+    for item in list(projection.get("due") or []):
+        if not isinstance(item, dict):
+            continue
+        resolved = resolve_due_review_probe(
+            projection,
+            pack_id=str(item.get("pack_id") or ""),
+            probe_id=str(item.get("probe_id") or ""),
+        )
+        if resolved is not None:
+            redeemable.append(resolved)
+    return redeemable
+
+
 __all__ = [
     "ReviewHorizonUnavailable",
     "build_review_due_projection",
+    "list_redeemable_due_items",
     "resolve_due_review_probe",
     "resolve_review_exam_date",
+    "review_module_enabled",
 ]

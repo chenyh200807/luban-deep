@@ -19,9 +19,16 @@ _GREEN = [
     {"pack_id": "N01", "title": "网络计划关键线路", "retest_available": True},
     {"pack_id": "F16", "title": "屋面防水起鼓割补", "retest_available": True},
 ]
+# 形状对齐 review_due 投影 due 行（list_redeemable_due_items 过滤后的可兑付条目；
+# 收权 2026-07-20：review 臂候选源 = 复习页同一 pack 级投影，不再是弱点节点 queue）。
 _REVIEW_ITEM = {
+    "pack_id": "N01",
+    "title": "网络计划关键线路",
     "probe_id": "rvp_x1",
-    "intent": {"concept_id": "N01", "concept_label": "网络计划", "training_intent_id": "rvp_x1"},
+    "due_at": "2026-07-20",
+    "state": "fresh",
+    "retest_available": True,
+    "cycle_anchor": "cycle-1",
 }
 _ACTIVE_INTENT = {
     "training_intent_id": "ti_1",
@@ -38,7 +45,7 @@ def _lifecycle(states: dict[str, str]) -> dict:
 def test_priority_review_beats_practice_beats_learn() -> None:
     # 三权威同时非空 → 到期复赢。
     step = build_home_next_step_projection(
-        revalidation_items=[_REVIEW_ITEM],
+        review_due_items=[_REVIEW_ITEM],
         active_training_intents=[_ACTIVE_INTENT],
         pack_lifecycle=_lifecycle({"A01": "unlearned"}),
         green_lessons=_GREEN,
@@ -50,7 +57,7 @@ def test_priority_review_beats_practice_beats_learn() -> None:
 
     # 无到期复 → 活跃练赢。
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[_ACTIVE_INTENT],
         pack_lifecycle=_lifecycle({"A01": "unlearned"}),
         green_lessons=_GREEN,
@@ -67,7 +74,7 @@ def test_intent_without_pack_binding_must_not_shadow_learn_next() -> None:
     # 治本:解析不出可路由 target 的 intent 不得胜出——落到下一优先级臂,
     # 且不静默丢:保留在 skipped_intents 诊断里。
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[{"training_intent_id": "legacy-ti", "concept_label": "旧处方"}],
         pack_lifecycle={"packs": {}},
         green_lessons=_GREEN,
@@ -81,7 +88,7 @@ def test_intent_without_pack_binding_must_not_shadow_learn_next() -> None:
 
     # 只剩学 → 第一个 未学∧绿灯。
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[],
         pack_lifecycle=_lifecycle({"A01": "practiced", "N01": "unlearned"}),
         green_lessons=_GREEN,
@@ -98,7 +105,7 @@ def test_intent_with_unroutable_pack_falls_through_to_learn_next() -> None:
         {"pack_id": "F16", "title": "屋面防水起鼓割补", "retest_available": False},
     ]
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[
             {"training_intent_id": "ti_stopped", "concept_label": "防水工程", "target_pack_id": "F16"},
         ],
@@ -115,7 +122,7 @@ def test_intent_with_unroutable_pack_falls_through_to_learn_next() -> None:
 
     # 不在绿灯集合的 pack 同样不可路由(fail-closed 同形)。
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[
             {"training_intent_id": "ti_ghost", "concept_label": "幽灵包", "target_pack_id": "Z99"},
         ],
@@ -128,7 +135,7 @@ def test_intent_with_unroutable_pack_falls_through_to_learn_next() -> None:
 
 def test_later_routable_intent_wins_while_earlier_skips_are_kept_as_diagnostics() -> None:
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[
             {"training_intent_id": "ti_stopped", "concept_label": "防水工程", "target_pack_id": "X03"},
             {"training_intent_id": "ti_ok", "concept_label": "网络计划", "target_pack_id": "N01"},
@@ -154,7 +161,7 @@ def test_learn_next_prefers_supply_ready_station_so_video_to_practice_completes(
         {"pack_id": "N01", "title": "网络计划关键线路", "retest_available": True},
     ]
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[],
         pack_lifecycle=_lifecycle({"A01": "unlearned", "N01": "unlearned"}),
         green_lessons=green,
@@ -174,7 +181,7 @@ def test_learn_next_falls_back_to_first_unlearned_when_no_station_supply_ready()
         {"pack_id": "N01", "title": "网络计划关键线路", "retest_available": False},
     ]
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[],
         pack_lifecycle=_lifecycle({"A01": "unlearned", "N01": "unlearned"}),
         green_lessons=green,
@@ -191,7 +198,7 @@ def test_fallback_arm_prefers_supply_ready_green_station() -> None:
         {"pack_id": "N01", "title": "网络计划关键线路", "retest_available": True},
     ]
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[],
         pack_lifecycle=_lifecycle({"A01": "mastered", "N01": "mastered"}),
         green_lessons=green,
@@ -204,7 +211,7 @@ def test_fallback_arm_prefers_supply_ready_green_station() -> None:
 def test_cold_start_fallback_is_never_blank() -> None:
     # 冷启动零证据：前三臂全空 → fallback 必非空（day-0 不白屏），群体理由。
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[],
         pack_lifecycle={"packs": {}},
         green_lessons=_GREEN,
@@ -219,7 +226,7 @@ def test_cold_start_fallback_is_never_blank() -> None:
 
 def test_all_learned_falls_back_to_registry_first_green() -> None:
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[],
         pack_lifecycle=_lifecycle({"A01": "mastered", "N01": "practiced", "F16": "practiced"}),
         green_lessons=_GREEN,
@@ -232,10 +239,10 @@ def test_all_learned_falls_back_to_registry_first_green() -> None:
 
 def test_every_arm_emits_all_four_audit_fields() -> None:
     cases = [
-        dict(revalidation_items=[_REVIEW_ITEM], active_training_intents=[], pack_lifecycle={}, green_lessons=_GREEN),
-        dict(revalidation_items=[], active_training_intents=[_ACTIVE_INTENT], pack_lifecycle={}, green_lessons=_GREEN),
-        dict(revalidation_items=[], active_training_intents=[], pack_lifecycle=_lifecycle({"A01": "unlearned"}), green_lessons=_GREEN),
-        dict(revalidation_items=[], active_training_intents=[], pack_lifecycle=_lifecycle({"A01": "mastered", "N01": "mastered"}), green_lessons=_GREEN),
+        dict(review_due_items=[_REVIEW_ITEM], active_training_intents=[], pack_lifecycle={}, green_lessons=_GREEN),
+        dict(review_due_items=[], active_training_intents=[_ACTIVE_INTENT], pack_lifecycle={}, green_lessons=_GREEN),
+        dict(review_due_items=[], active_training_intents=[], pack_lifecycle=_lifecycle({"A01": "unlearned"}), green_lessons=_GREEN),
+        dict(review_due_items=[], active_training_intents=[], pack_lifecycle=_lifecycle({"A01": "mastered", "N01": "mastered"}), green_lessons=_GREEN),
     ]
     for kwargs in cases:
         step = build_home_next_step_projection(**kwargs)
@@ -246,7 +253,7 @@ def test_every_arm_emits_all_four_audit_fields() -> None:
 
 def test_no_green_supply_is_honest_unavailable() -> None:
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[],
         pack_lifecycle={},
         green_lessons=[],
@@ -273,13 +280,13 @@ def test_module_is_pure_no_ledger_write_no_intent_generation() -> None:
     arm_inputs = [
         # 全供给（review 臂早退路径）与 learn 臂路径都要证明不变异。
         dict(
-            revalidation_items=[copy.deepcopy(_REVIEW_ITEM)],
+            review_due_items=[copy.deepcopy(_REVIEW_ITEM)],
             active_training_intents=[copy.deepcopy(_ACTIVE_INTENT)],
             pack_lifecycle=_lifecycle({"A01": "unlearned"}),
             green_lessons=copy.deepcopy(_GREEN),
         ),
         dict(
-            revalidation_items=[],
+            review_due_items=[],
             active_training_intents=[],
             pack_lifecycle=_lifecycle({"A01": "practiced", "N01": "unlearned"}),
             green_lessons=copy.deepcopy(_GREEN),
@@ -321,6 +328,8 @@ def test_home_dashboard_gates_next_step_behind_flag(tmp_path, monkeypatch) -> No
 
     # 评审项 1：unset 用例 env store 里无 flag（get 返回 ""）——不再依赖开发机
     # 磁盘 .env 状态；os.environ 的 delenv/setenv 对 env_store 是无效操作。
+    # review 模块旗标走 os.getenv（与 /review-due 路由同口径），显式清掉保确定性。
+    monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
     _stub_env_store(monkeypatch, {})
     service.get_profile("student_next_step")
 
@@ -358,7 +367,7 @@ def test_learn_arm_respects_prerequisite_order_k01_after_n01() -> None:
         {"pack_id": "N01", "title": "网络计划关键线路"},
     ]
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[],
         pack_lifecycle=_lifecycle({"K01": "unlearned", "N01": "unlearned"}),
         green_lessons=green,
@@ -368,7 +377,7 @@ def test_learn_arm_respects_prerequisite_order_k01_after_n01() -> None:
 
     # 前置已学（practiced）→ 不再挡 K01。
     step = build_home_next_step_projection(
-        revalidation_items=[],
+        review_due_items=[],
         active_training_intents=[],
         pack_lifecycle=_lifecycle({"K01": "unlearned", "N01": "practiced"}),
         green_lessons=green,
@@ -380,15 +389,16 @@ def test_home_next_step_wires_real_intents_claims_and_verified_suppression(
     tmp_path, monkeypatch
 ) -> None:
     # Codex SEV-1:practice 臂曾被硬编码 active_training_intents=[] 断供
-    # (dormant authority),claims=[] 使 mastered 语义被改写;且首页 queue
-    # 没传 prescription_outcomes(已验证 probe 会复活)。接线断言钉死三条输入。
+    # (dormant authority),claims=[] 使 mastered 语义被改写。接线断言钉死输入。
+    # (收权 2026-07-20:review 臂候选源改为 pack 级 review_due 投影,弱点节点
+    # queue 已从首页删除——其接线断言由下方专测覆盖。)
     from types import SimpleNamespace
 
     from deeptutor.services.learner_state import home_next_step_projection as hns
     from deeptutor.services.learner_state import pack_lifecycle_projection as plp
-    from deeptutor.services.learner_state import revalidation_queue as rq
     from deeptutor.services.member_console.service import MemberConsoleService
 
+    monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
     service.get_profile("student_wired")
@@ -442,16 +452,11 @@ def test_home_next_step_wires_real_intents_claims_and_verified_suppression(
         captured["arbiter"] = kwargs
         return {"mode": "practice_active", "source_authority": "training_intent", "source_ref": "ti_active_1", "reason": "x"}
 
-    def _capture_queue(**kwargs):
-        captured["queue"] = kwargs
-        return {"items": [], "source_status": {"candidate_count": 0}}
-
     def _capture_lifecycle(**kwargs):
         captured["lifecycle"] = kwargs
         return {"packs": {}}
 
     monkeypatch.setattr(hns, "build_home_next_step_projection", _capture_arbiter)
-    monkeypatch.setattr(rq, "build_revalidation_queue_projection", _capture_queue)
     monkeypatch.setattr(plp, "project_pack_lifecycle", _capture_lifecycle)
 
     step = service._build_home_next_step(
@@ -466,12 +471,10 @@ def test_home_next_step_wires_real_intents_claims_and_verified_suppression(
     # ②claims 供给:compiled truth 的 weak_points 必须喂 lifecycle(mastered 语义可达)
     assert captured["lifecycle"]["claims"], "claims must come from read_compiled_learning_truth"
     assert captured["lifecycle"]["claims"][0]["evidence_level"] == "L2_real_retest"
-    # ③首页复验臂必须带已验证抑制(与 report 路径同口径)
-    assert "prescription_outcomes" in captured["queue"]
-    assert any(
-        item.get("training_intent_id") == "ti_active_1"
-        for item in captured["queue"]["prescription_outcomes"]
-    )
+    # ③review 模块旗标关 → review 臂零候选、零额外 IO,且非 unavailable
+    # (旗标关=复习页恒空,首页同门,不是故障)。
+    assert captured["arbiter"]["review_due_items"] == []
+    assert captured["arbiter"]["review_due_unavailable"] is False
 
 
 def test_closed_forward_terminal_is_removed_before_home_practice_arbitration(
@@ -482,9 +485,9 @@ def test_closed_forward_terminal_is_removed_before_home_practice_arbitration(
 
     from deeptutor.services.learner_state import home_next_step_projection as hns
     from deeptutor.services.learner_state import pack_lifecycle_projection as plp
-    from deeptutor.services.learner_state import revalidation_queue as rq
     from deeptutor.services.member_console.service import MemberConsoleService
 
+    monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
     common = {
         "event_type": "learning_evidence",
         "evidence_source": "assessment_testset",
@@ -558,11 +561,6 @@ def test_closed_forward_terminal_is_removed_before_home_practice_arbitration(
 
     monkeypatch.setattr(hns, "build_home_next_step_projection", _capture_arbiter)
     monkeypatch.setattr(
-        rq,
-        "build_revalidation_queue_projection",
-        lambda **_kwargs: {"items": []},
-    )
-    monkeypatch.setattr(
         plp,
         "project_pack_lifecycle",
         lambda **_kwargs: {"packs": {}},
@@ -574,3 +572,210 @@ def test_closed_forward_terminal_is_removed_before_home_practice_arbitration(
     )
     assert step["mode"] == "learn_next"
     assert captured["active_training_intents"] == []
+
+
+def test_review_projection_unavailable_arm_skips_with_diagnostic() -> None:
+    # fail-closed:投影不可用 ≠ 无到期——臂空落 learn_next(不遮蔽),
+    # 且落 skipped_intents 诊断(不静默丢)。
+    step = build_home_next_step_projection(
+        review_due_items=[],
+        active_training_intents=[],
+        pack_lifecycle=_lifecycle({"A01": "unlearned"}),
+        green_lessons=_GREEN,
+        review_due_unavailable=True,
+    )
+    assert step["mode"] == MODE_LEARN
+    skipped = step.get("skipped_intents") or []
+    assert any(
+        item.get("skip_reason") == "review_projection_unavailable" for item in skipped
+    )
+
+    # 形状防御:缺 probe_id/pack_id 的畸形条目不得胜出(兑付不了=死 CTA)。
+    step = build_home_next_step_projection(
+        review_due_items=[{"pack_id": "N01", "title": "缺 probe"}],
+        active_training_intents=[],
+        pack_lifecycle=_lifecycle({"A01": "unlearned"}),
+        green_lessons=_GREEN,
+    )
+    assert step["mode"] == MODE_LEARN
+
+
+def _fresh_due_projection(probe_id: str = "rvp_pack_fresh") -> dict:
+    return {
+        "due": [
+            {
+                "pack_id": "N01",
+                "title": "网络计划关键线路",
+                "probe_id": probe_id,
+                "due_at": "2026-07-20",
+                "state": "fresh",
+                "retest_available": True,
+                "cycle_anchor": "cycle-fresh-1",
+            }
+        ],
+        "learned_count": 1,
+        "authority": "revalidation_queue",
+    }
+
+
+def test_pack_level_fresh_due_without_weak_nodes_surfaces_review_due(
+    tmp_path, monkeypatch
+) -> None:
+    # QA 6a127781 回归锚(双权威病):只有 pack 级 fresh 到期、无弱点节点的用户,
+    # 复习页有货 → 首页必出 review_due(此前弱点节点 queue 空 → 伪 learn_next)。
+    # 收权后候选源 = 复习页同一 build_review_due_projection;弱点 queue 不得再被调用。
+    from types import SimpleNamespace
+
+    from deeptutor.services.learner_state import revalidation_queue as rq
+    from deeptutor.services.luban_lesson import review_due as review_due_module
+    from deeptutor.services.member_console.service import MemberConsoleService
+
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "1")
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    captured: dict = {}
+
+    class _FakeLearnerStateService:
+        def read_compiled_learning_truth(self, _user_id: str):
+            return {"weak_points": []}  # 无弱点节点
+
+        def list_learning_evidence_events(self, user_id: str, *, limit=100, since=None):
+            captured["review_events_read"] = {"limit": limit, "since": since}
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    def _forbid_weak_node_queue(**_kwargs):
+        raise AssertionError("weak-node revalidation queue must not decide the home review arm")
+
+    monkeypatch.setattr(rq, "build_revalidation_queue_projection", _forbid_weak_node_queue)
+
+    def _fake_projection(**kwargs):
+        captured["review_projection_kwargs"] = kwargs
+        return _fresh_due_projection()
+
+    monkeypatch.setattr(review_due_module, "build_review_due_projection", _fake_projection)
+
+    step = service._build_home_next_step(
+        learner_user_id="student_fresh_due",
+        snapshot=SimpleNamespace(memory_events=[]),
+        exam_date_iso="2026-09-12",
+    )
+
+    assert step["mode"] == MODE_REVIEW
+    assert step["source_authority"] == "revalidation_queue"
+    # 发出的 probe = 复习入口 resolve_due_review_probe 可原样兑付的那一个。
+    assert step["source_ref"] == "rvp_pack_fresh"
+    assert step["target_pack_id"] == "N01"
+    # 与 /review-due 路由同读法:全量证据事件(非 ≤100 snapshot 窗)+ 地平线透传。
+    assert captured["review_events_read"]["limit"] is None
+    assert captured["review_projection_kwargs"]["exam_date_iso"] == "2026-09-12"
+    assert captured["review_projection_kwargs"]["user_id"] == "student_fresh_due"
+
+
+def test_weak_nodes_without_pack_due_do_not_fake_review_due(tmp_path, monkeypatch) -> None:
+    # 收权语义:弱点节点存在但 pack 级投影无到期 → 首页不得伪出 review_due
+    # (弱点节点若有独立价值留在原消费面 report,不再决定首页 review 臂)。
+    from types import SimpleNamespace
+
+    from deeptutor.services.luban_lesson import review_due as review_due_module
+    from deeptutor.services.member_console.service import MemberConsoleService
+
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "1")
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FakeLearnerStateService:
+        def read_compiled_learning_truth(self, _user_id: str):
+            return {
+                "weak_points": [
+                    {
+                        "concept_id": "1A433000-B041",
+                        "evidence_level": "L2_real_retest",
+                        "decay_state": "active",
+                    }
+                ]
+            }
+
+        def list_learning_evidence_events(self, user_id: str, *, limit=100, since=None):
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+    monkeypatch.setattr(
+        review_due_module,
+        "build_review_due_projection",
+        lambda **_kwargs: {"due": [], "learned_count": 0, "authority": "revalidation_queue"},
+    )
+
+    step = service._build_home_next_step(
+        learner_user_id="student_weak_only",
+        snapshot=SimpleNamespace(memory_events=[]),
+    )
+
+    assert step["mode"] != MODE_REVIEW
+    assert step["source_authority"] != "revalidation_queue"
+
+
+def test_review_projection_failure_keeps_home_fail_closed(tmp_path, monkeypatch) -> None:
+    # 投影读取异常(如 profile/events 存储故障)→ review 臂跳过 + 诊断,
+    # learn_next 不被遮蔽,整个 next_step 不塌成 unavailable。
+    from types import SimpleNamespace
+
+    from deeptutor.services.member_console.service import MemberConsoleService
+
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "1")
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FakeLearnerStateService:
+        def read_compiled_learning_truth(self, _user_id: str):
+            return {"weak_points": []}
+
+        def list_learning_evidence_events(self, user_id: str, *, limit=100, since=None):
+            raise RuntimeError("evidence store down")
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    step = service._build_home_next_step(
+        learner_user_id="student_store_down",
+        snapshot=SimpleNamespace(memory_events=[]),
+    )
+
+    assert step["mode"] == MODE_LEARN
+    skipped = step.get("skipped_intents") or []
+    assert any(
+        item.get("skip_reason") == "review_projection_unavailable" for item in skipped
+    )
+
+
+def test_review_flag_off_means_no_review_io_from_home(tmp_path, monkeypatch) -> None:
+    # 旗标关 = 复习页恒空 → 首页同门:臂空且零额外事件读(热路径不多付 IO),
+    # 也不落 unavailable 诊断(这不是故障)。
+    from types import SimpleNamespace
+
+    from deeptutor.services.member_console.service import MemberConsoleService
+
+    monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FakeLearnerStateService:
+        def read_compiled_learning_truth(self, _user_id: str):
+            return {"weak_points": []}
+
+        def list_learning_evidence_events(self, user_id: str, *, limit=100, since=None):
+            raise AssertionError("review events must not be read when the review module is off")
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    step = service._build_home_next_step(
+        learner_user_id="student_flag_off",
+        snapshot=SimpleNamespace(memory_events=[]),
+    )
+
+    assert step["mode"] == MODE_LEARN
+    assert not any(
+        item.get("skip_reason") == "review_projection_unavailable"
+        for item in (step.get("skipped_intents") or [])
+    )

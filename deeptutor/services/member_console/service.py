@@ -7162,6 +7162,7 @@ class MemberConsoleService:
             next_step = self._build_home_next_step(
                 learner_user_id=learner_user_id,
                 snapshot=snapshot,
+                exam_date_iso=str(member.get("exam_date") or ""),
             )
             from deeptutor.services.learner_state.home_next_step_projection import (
                 MODE_UNAVAILABLE,
@@ -7172,34 +7173,43 @@ class MemberConsoleService:
                 dashboard["next_step"] = next_step
         return dashboard
 
-    def _build_home_next_step(self, *, learner_user_id: str, snapshot: Any | None) -> dict[str, Any]:
+    def _build_home_next_step(
+        self,
+        *,
+        learner_user_id: str,
+        snapshot: Any | None,
+        exam_date_iso: str = "",
+    ) -> dict[str, Any]:
         """融合计划 §3：跨模式「下一步」= home_next_step_projection 单一仲裁。
 
         本方法只组装输入并委托，不做任何规则判断（禁在 member_console 再拼）。
-        三条输入全部真实接线（Codex SEV-1 治本，禁硬编码空供给）：
+        输入全部真实接线（Codex SEV-1 治本，禁硬编码空供给）：
+        - 到期复 = 复习页同一 pack 级投影（build_review_due_projection，调度真值
+          归 revalidation_queue）经 list_redeemable_due_items 过滤的可兑付条目
+          （2026-07-20 收权：弱点节点 queue 不再是首页 review_due 臂的 decider——
+          两源 probe 铸造不同，弱点 probe 在复习入口 exact-match 永远兑付不了）。
+          与 /review-due 路由同门（review_module_enabled）、同一全量证据事件读法；
+          投影异常 → 臂空 + 诊断，不遮蔽 learn_next（fail-closed）。
         - 活跃练 = 同一份 snapshot events 纯派生的处方 outcomes（零新增 IO），
-          只接受 outcome authority 判定的未完成 workflow；同一份 outcomes 同时喂 queue 做已验证抑制
-          （与 report 路径 learning_report_read_model 同口径，防已验证 probe 复活）。
+          只接受 outcome authority 判定的未完成 workflow。
         - claims = read_compiled_learning_truth 的 weak_points（照 report 先例；
           生产 = 1 次 Supabase 读，miss 返回空如实降级，不跑 dry-run 合成——
           对 contracts/learner-state.md:52 cache-miss 回退条款的显式最小偏离）。
+        - exam_date_iso = caller 已加载的 member profile（同一 authority 读侧
+          透传，免二次载入；空 = 合法「未设置」）。
         """
         try:
             from deeptutor.services.learner_state import home_next_step_projection as _hns
             from deeptutor.services.learner_state import pack_lifecycle_projection as _plp
-            from deeptutor.services.learner_state import revalidation_queue as _rq
-            from deeptutor.services.learner_state.learning_state_projection import (
-                project_three_layer_learning_state,
-            )
             from deeptutor.services.learner_state.prescription_outcome_read_model import (
                 build_prescription_outcomes_read_projection,
                 requires_active_practice,
             )
             from deeptutor.services.luban_lesson import list_green_lessons
+            from deeptutor.services.luban_lesson import review_due as _review_due
 
             learner_state_service = self._get_learner_state_service()
             events = self._snapshot_memory_events(snapshot)
-            learning_state = project_three_layer_learning_state(events=events)
             outcomes = build_prescription_outcomes_read_projection(events=events)
             active_intents = [
                 outcome
@@ -7213,17 +7223,34 @@ class MemberConsoleService:
                 logger.warning("Failed to read compiled truth for home next step", exc_info=True)
                 compiled = {}
             claims = list((compiled or {}).get("weak_points") or [])
-            queue = _rq.build_revalidation_queue_projection(
-                user_id=learner_user_id,
-                events=events,
-                learning_state=learning_state,
-                prescription_outcomes=outcomes,
-            )
+            review_due_items: list[dict[str, Any]] = []
+            review_due_unavailable = False
+            if _review_due.review_module_enabled():
+                try:
+                    # 与 /review-due 路由同一读法（全量证据事件，非 ≤100 snapshot
+                    # 窗）——窗口差会重新制造「复习页有货、首页无提示」的分歧。
+                    review_events = learner_state_service.list_learning_evidence_events(
+                        learner_user_id, limit=None, since=None
+                    )
+                    review_due_items = _review_due.list_redeemable_due_items(
+                        _review_due.build_review_due_projection(
+                            user_id=learner_user_id,
+                            events=review_events,
+                            exam_date_iso=str(exam_date_iso or "").strip(),
+                        )
+                    )
+                except Exception:
+                    logger.warning(
+                        "Failed to build review due projection for home next step",
+                        exc_info=True,
+                    )
+                    review_due_unavailable = True
             return _hns.build_home_next_step_projection(
-                revalidation_items=list(queue.get("items") or []),
+                review_due_items=review_due_items,
                 active_training_intents=active_intents,
                 pack_lifecycle=_plp.project_pack_lifecycle(events=events, claims=claims),
                 green_lessons=list_green_lessons(),
+                review_due_unavailable=review_due_unavailable,
             )
         except Exception:
             logger.warning("Failed to build home next step projection", exc_info=True)
