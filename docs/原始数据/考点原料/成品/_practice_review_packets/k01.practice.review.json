@@ -5,7 +5,7 @@
   "source_bundle_sha256": "1db65b0fb64cae5661e911271ea8014617b31440b53426acc1a61cd207245229",
   "compiled_schema_version": "luban_compiled_practice.v3",
   "candidate_count": 15,
-  "eligible_count": 0,
+  "eligible_count": 7,
   "human_gate": {
     "required_roles": [
       "teaching",

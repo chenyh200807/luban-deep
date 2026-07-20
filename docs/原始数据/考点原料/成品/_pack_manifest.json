@@ -454,7 +454,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "d14.practice.authority.json",
-    "authority_sha256": "fc3d59531eb85814028112b939b573110f753400f9a3ccb6499de79ec563699e",
+    "authority_sha256": "74decfeddadcc7f42986fe1a6e5d0baf0f69f1fc1fa11f8d96bb539585b40b06",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -514,7 +514,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "e05.practice.authority.json",
-    "authority_sha256": "1d2dc136ad6edc10575d3c1b9c7dd16e3ef8d549679b6d8b93c70b1809c5cc42",
+    "authority_sha256": "40b2f061e82d0f1d4083be9969409bd3ba0ecfe655991c3251e63b8133298d62",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -586,7 +586,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "f03.practice.authority.json",
-    "authority_sha256": "e8466eca19d4637fe03e8b7c4234547eea0958ee0f776fef507660cd577b8aa2",
+    "authority_sha256": "84b82e3fd46b3fb123cfce4462ae05d6a13f5aef623fb1d9582c5d77e098a4a0",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -732,7 +732,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "g01.practice.authority.json",
-    "authority_sha256": "4453f457233e5b91d35e7aeb1b802a47bdf4bb0f6c6003ab32cc1639f4edba85",
+    "authority_sha256": "91570ba5ba26eab725f307318d6154405ad185b3d05c9a3c203ca2391473d56f",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -912,7 +912,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "k01.practice.authority.json",
-    "authority_sha256": "25f7e1df69da2482c8fb725b31af39f826c8843325d10ed3cd083631c02c1e68",
+    "authority_sha256": "0f9d75982284436c1ba714c851a95eb742ae570ba42061a2cfb8c57823bae967",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1020,7 +1020,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "n03.practice.authority.json",
-    "authority_sha256": "cd35ad712f0532e0a2b63860d83cf2cc1db1d0e649c5c944c792731f9b6491b2",
+    "authority_sha256": "b91e7892a995aeb1e4047b8099a9aaf4db2720001441c143f1f5479869036a66",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1129,7 +1129,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "q03.practice.authority.json",
-    "authority_sha256": "101b2aebfd4ef60100468649b249a471e2b07f069022e1c1b8d618694d9c5e7a",
+    "authority_sha256": "9e5c735e5fe08c56d5b9b260ee07b2fc4743060590392485e166f88de8e41c48",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1274,7 +1274,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "s05.practice.authority.json",
-    "authority_sha256": "1bb9c1193a30d4a2bd56973ad5620592a7e3dcd73d98fcd80261e6c269d517fc",
+    "authority_sha256": "b4c76fb6445a2f7f4447ffe7293b3e8f7921411da4b1c338f648b406aa508f9e",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
