@@ -165,116 +165,12 @@ function _posters(packs, titleIdx, recommendedId) {
   return rows;
 }
 
-// 六步只读服务端 station_journey_projection。next_step 是 CTA 处方，永不参与
-// 完成态推断；缺字段/authority/schema/pack 不匹配均 fail-closed 为 unknown。
-var JOURNEY_STEPS = [
-  { id: "lesson", label: "动画讲懂" },
-  { id: "practice", label: "训练 5 题" },
-  { id: "diagnosis", label: "错因讲评" },
-  { id: "immediate_confirm", label: "轻练确认" },
-  { id: "due_validation", label: "到期验证" },
-  { id: "followup", label: "后续抽查" },
-];
-var JOURNEY_STATUSES = {
-  completed: "done",
-  current: "current",
-  scheduled: "promise",
-  not_applicable: "not-needed",
-  unavailable: "unavailable",
-  available: "future",
-  upcoming: "future",
-  future: "future",
-};
-
-function _unknownJourney() {
-  return {
-    available: false,
-    statusText: "进度暂不可用 · 下拉重试",
-    currentStepId: "",
-    journeyState: "unavailable",
-    currentIndex: 0,
-    total: JOURNEY_STEPS.length,
-    steps: JOURNEY_STEPS.map(function (step) {
-      return { id: step.id, label: step.label, status: "unknown", state: "future" };
-    }),
-  };
-}
-
+// 六步旅程校验/投影收权到共享 util（learn 页与学情页单一权威，禁第二套校验）。
+// next_step 是 CTA 处方，永不参与完成态推断；缺字段/authority/schema/pack 不匹配
+// 均 fail-closed 为 unknown。_stationJourneyFor 保留为薄委托，行为逐字节等价。
+var _stationJourney = require("./station-journey");
 function _stationJourneyFor(report, packId) {
-  var projection = _safeObj(_safeObj(report).station_journey);
-  var normalizedPack = _str(packId).toUpperCase();
-  if (
-    projection.authority !== "station_journey_projection.read_model" ||
-    projection.schema_version !== 1 ||
-    projection.degraded === true ||
-    !normalizedPack
-  ) return _unknownJourney();
-  var pack = _safeObj(_safeObj(projection.packs)[normalizedPack]);
-  var rawSteps = _safeArr(pack.steps);
-  var journeyState = _str(pack.journey_state);
-  if (
-    _str(pack.pack_id).toUpperCase() !== normalizedPack ||
-    ["active", "completed", "unavailable"].indexOf(journeyState) < 0 ||
-    rawSteps.length !== JOURNEY_STEPS.length
-  ) {
-    return _unknownJourney();
-  }
-  var valid = rawSteps.every(function (raw, index) {
-    return _str(_safeObj(raw).id) === JOURNEY_STEPS[index].id && !!JOURNEY_STATUSES[_str(_safeObj(raw).status)];
-  });
-  if (!valid) return _unknownJourney();
-  var currentStepId = _str(pack.current_step_id);
-  var currentIndex = JOURNEY_STEPS.findIndex(function (step) { return step.id === currentStepId; }) + 1;
-  var currentRaw = currentIndex > 0 ? _safeObj(rawSteps[currentIndex - 1]) : {};
-  var actionableSteps = rawSteps.filter(function (raw) {
-    return ["current", "scheduled"].indexOf(_str(_safeObj(raw).status)) >= 0;
-  });
-  var followupStatus = _str(_safeObj(rawSteps[rawSteps.length - 1]).status);
-  var completedHasOpenStep = rawSteps.some(function (raw) {
-    return ["current", "scheduled", "available", "upcoming", "future"].indexOf(
-      _str(_safeObj(raw).status),
-    ) >= 0;
-  });
-  var unavailableCount = rawSteps.filter(function (raw) {
-    return _str(_safeObj(raw).status) === "unavailable";
-  }).length;
-  if (
-    (journeyState === "active" &&
-      (currentIndex <= 0 ||
-        actionableSteps.length !== 1 ||
-        ["current", "scheduled"].indexOf(_str(currentRaw.status)) < 0)) ||
-    (journeyState !== "active" && currentStepId) ||
-    (journeyState === "completed" &&
-      (completedHasOpenStep || followupStatus !== "completed")) ||
-    (journeyState === "unavailable" &&
-      (actionableSteps.length > 0 || unavailableCount === 0))
-  ) return _unknownJourney();
-  var statusText = journeyState === "completed"
-    ? "本轮六步已完成"
-    : journeyState === "unavailable"
-    ? "后续排期暂不可用"
-    : _str(currentRaw.status) === "scheduled"
-    ? "下一步：" + JOURNEY_STEPS[currentIndex - 1].label + " · 待排期"
-    : "当前：" + JOURNEY_STEPS[currentIndex - 1].label;
-  return {
-    available: true,
-    statusText: statusText,
-    currentStepId: currentStepId,
-    currentIndex: journeyState === "completed" ? JOURNEY_STEPS.length : currentIndex,
-    journeyState: journeyState,
-    total: JOURNEY_STEPS.length,
-    steps: rawSteps.map(function (raw, index) {
-      var status = _str(raw.status);
-      return {
-        id: JOURNEY_STEPS[index].id,
-        label: JOURNEY_STEPS[index].label,
-        status: status,
-        state: JOURNEY_STATUSES[status],
-        note: status === "not_applicable" ? "无需" : status === "unavailable" ? "暂不可用" : "",
-        blocking: raw.blocking === true,
-      };
-    }),
-  };
+  return _stationJourney.stationJourneyFor(report, packId);
 }
 
 // 今日任务只投影一个动作。到期验证与课后练共用 retest 内核；前端不判断

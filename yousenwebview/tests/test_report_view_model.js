@@ -379,4 +379,103 @@ assert.strictEqual(fourStateRadar.normalCount, 1, "observed must NOT be folded i
 assert.strictEqual(fourStateRadar.weakCount, 1);
 assert.strictEqual(fourStateRadar.observedCount, 1, "observed (未学) must surface as its own fourth state");
 
+// ── 每站六步进展全景:掌握地图点格「按 pack 取六步」派生 ──────────────
+// 复用共享 stationJourneyFor 的严格校验;缺 pack/降级/校验不过 → ready=false
+// + 中性占位「正在核对服务端学习记录」,前端零阶段推断。
+var journeyReport = {
+  schema_version: 2,
+  station_journey: {
+    authority: "station_journey_projection.read_model",
+    schema_version: 1,
+    degraded: false,
+    packs: {
+      N01: {
+        pack_id: "N01",
+        journey_state: "active",
+        current_step_id: "practice",
+        steps: [
+          { id: "lesson", status: "completed" },
+          { id: "practice", status: "current" },
+          { id: "diagnosis", status: "upcoming" },
+          { id: "immediate_confirm", status: "upcoming" },
+          { id: "due_validation", status: "upcoming" },
+          { id: "followup", status: "future" },
+        ],
+      },
+    },
+  },
+};
+
+// wx 与 yousen 报表 vm 必须给出逐字节相同的派生(单一权威,双树镜像)。
+assert.deepStrictEqual(
+  wxVm.buildStationJourneyPanorama(journeyReport, "N01"),
+  yousenVm.buildStationJourneyPanorama(journeyReport, "N01"),
+);
+
+var panorama = yousenVm.buildStationJourneyPanorama(journeyReport, "n01");
+assert.strictEqual(panorama.ready, true);
+assert.strictEqual(panorama.packId, "N01", "pack id normalized to upper case");
+assert.strictEqual(panorama.steps.length, 6);
+assert.deepStrictEqual(
+  panorama.steps.map(function (s) { return s.label; }),
+  ["动画讲懂", "训练 5 题", "错因讲评", "轻练确认", "到期验证", "后续抽查"],
+  "six canonical steps in fixed order",
+);
+assert.strictEqual(panorama.steps[0].state, "done");
+assert.strictEqual(panorama.steps[1].state, "current");
+assert.strictEqual(panorama.currentStepId, "practice");
+assert.strictEqual(panorama.placeholder, "", "ready panorama carries no placeholder");
+// 就绪文案不得硬编码服务端没签的复习周期(禁"明天/3 天后")。
+panorama.steps.concat([{ label: panorama.statusText }, { label: panorama.foot }]).forEach(function (s) {
+  assert.strictEqual(/明天|昨天|后天|\d+\s*天后/.test(s.label || ""), false,
+    "panorama copy must not fabricate a schedule the server did not sign: " + s.label);
+});
+
+// degraded 投影 → fail-quiet:ready=false + 中性占位,不渲染六步。
+var degradedJourneyReport = JSON.parse(JSON.stringify(journeyReport));
+degradedJourneyReport.station_journey.degraded = true;
+var degradedPanorama = yousenVm.buildStationJourneyPanorama(degradedJourneyReport, "N01");
+assert.strictEqual(degradedPanorama.ready, false, "degraded projection must fail closed");
+assert.strictEqual(degradedPanorama.available, false);
+assert.deepStrictEqual(degradedPanorama.steps, [], "no six-step render under degrade");
+assert.strictEqual(degradedPanorama.placeholder, "正在核对服务端学习记录");
+
+// 投影缺该 pack → 同样 fail-quiet(取投影里没有的 A01)。
+var missingPackPanorama = yousenVm.buildStationJourneyPanorama(journeyReport, "A01");
+assert.strictEqual(missingPackPanorama.ready, false, "absent pack must not borrow another station's progress");
+assert.strictEqual(missingPackPanorama.placeholder, "正在核对服务端学习记录");
+assert.strictEqual(missingPackPanorama.statusText, "");
+
+// 空 report / 垃圾入参不抛,一律占位。
+assert.strictEqual(yousenVm.buildStationJourneyPanorama({}, "N01").ready, false);
+assert.strictEqual(yousenVm.buildStationJourneyPanorama(null, "").placeholder, "正在核对服务端学习记录");
+
+// 未就绪文案红线:禁「看穿/识破/揭穿/露馅」审视词(中性呈现)。
+[degradedPanorama, missingPackPanorama, panorama].forEach(function (p) {
+  ["placeholder", "statusText", "foot"].forEach(function (field) {
+    var text = String(p[field] || "");
+    assert.strictEqual(/看穿|识破|揭穿|露馅/.test(text), false,
+      "panorama copy must stay warm/neutral, no scrutiny words: " + field + "=" + text);
+  });
+});
+
+// 报表页必须消费共享派生并以内联展开面板渲染(不新起 overlay 体系)。
+assert(
+  source.indexOf("buildStationJourneyPanorama") >= 0 &&
+    source.indexOf("stationJourneyPanel") >= 0 &&
+    source.indexOf("openMasteryCell") >= 0,
+  "report page must consume the shared per-station six-step derivation",
+);
+assert(
+  wxmlSource.indexOf("stationJourneyPanel") >= 0 &&
+    wxmlSource.indexOf("lr-sjp-steps") >= 0,
+  "report wxml must render the inline six-step panorama panel",
+);
+// 掌握地图 wxml 不得再宣称审视口吻;点格提示改为看六步进展。
+assert.strictEqual(
+  /看穿|识破|揭穿|露馅/.test(wxmlSource),
+  false,
+  "report wxml must not use scrutiny words in mastery-map / panorama copy",
+);
+
 console.log("PASS test_report_view_model.js");

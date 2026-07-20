@@ -80,7 +80,11 @@ assert(
 // 六步完成态只许消费服务端 projection；仍禁前端自画跨步进度线与伪造勾选。
 assert.strictEqual(learnWxml.indexOf("lr-jline-fill"), -1, "journey must not draw a progress line across unverified steps");
 assert.strictEqual(learnWxml.indexOf("lr-jnode-check"), -1, "journey must not render done checkmarks without completion evidence");
-assert(learnVm.indexOf("station_journey_projection.read_model") >= 0, "journey must consume the canonical server projection");
+// 六步旅程校验收权到共享 util(learn 页与学情页单一权威,禁第二套校验);
+// canonical authority 字符串随之落在 station-journey.js,learn-view-model 只 require 它。
+var stationJourneyVm = read("packageDeeptutor/utils/station-journey.js");
+assert(stationJourneyVm.indexOf("station_journey_projection.read_model") >= 0, "journey must consume the canonical server projection (shared single authority)");
+assert(learnVm.indexOf('require("./station-journey")') >= 0, "learn view-model must consume the shared journey authority, not a second validator");
 assert.strictEqual(learnVm.indexOf("_journeyFor"), -1, "next_step modes must not infer six-step completion");
 assert(
   learnWxml.indexOf("{{vm.nextStation.journey.statusText}}") >= 0 &&

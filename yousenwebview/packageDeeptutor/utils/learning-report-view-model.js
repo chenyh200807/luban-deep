@@ -1,4 +1,6 @@
 var taxonomy = require("./taxonomy");
+// 六步旅程校验/投影 = learn 页与学情页共用的单一权威(禁第二套校验)。
+var stationJourney = require("./station-journey");
 
 function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -2030,8 +2032,40 @@ function toReportPageData(model) {
   };
 }
 
+// 掌握地图「按 pack 取六步」派生(学情页每站全景):复用共享 stationJourneyFor
+// 的严格校验——授权/schema/降级/6 步/顺序不过一律 fail-closed。绝不在前端猜阶段。
+// 服务端投影缺该 pack 或校验不过 → available=false + 中性占位「正在核对服务端学习记录」。
+function buildStationJourneyPanorama(report, packId) {
+  var id = String(packId == null ? "" : packId).trim().toUpperCase();
+  var journey = stationJourney.stationJourneyFor(report, id);
+  var ready = journey.available === true;
+  return {
+    packId: id,
+    // ready = 服务端投影可信且校验通过;否则页面只显中性占位,不渲染六步。
+    ready: ready,
+    available: ready,
+    statusText: ready ? journey.statusText : "",
+    journeyState: journey.journeyState,
+    currentStepId: journey.currentStepId,
+    currentIndex: journey.currentIndex,
+    total: journey.total,
+    steps: ready ? journey.steps : [],
+    // 未就绪一律中性文案,不带任何审视口吻;缺 pack 与降级同一占位。
+    placeholder: ready ? "" : "正在核对服务端学习记录",
+    // 就绪时的收束语随 journeyState 中性呈现,未就绪步骤不臆测。
+    foot: ready
+      ? (journey.journeyState === "unavailable"
+          ? "已完成步骤仍保留，后续排期恢复后会自动更新"
+          : journey.journeyState === "completed"
+          ? "这一站本轮闭环已经完成"
+          : "验证与抽查到期时会出现在这里 · 你只管来")
+      : "",
+  };
+}
+
 module.exports = {
   buildLearningReportViewModel: buildLearningReportViewModel,
   toReportPageData: toReportPageData,
   buildPackMasteryMap: buildPackMasteryMap,
+  buildStationJourneyPanorama: buildStationJourneyPanorama,
 };
