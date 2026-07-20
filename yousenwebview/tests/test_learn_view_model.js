@@ -590,6 +590,92 @@ ok("journey keeps not-needed distinct from unavailable", () => {
   assert.strictEqual(j.steps[3].note, "暂不可用");
 });
 
+// ── 灰点分语义:未就绪步骤 reason → 单条暖提示(等系统/还没到期);未识别 reason fail-quiet 不猜 ──
+function journeyWithSteps(stepPatches, currentStepId) {
+  const report = JSON.parse(JSON.stringify(FULL.report));
+  const pack = report.station_journey.packs.N01;
+  pack.steps = pack.steps.map((step) => {
+    const patch = stepPatches[step.id];
+    return patch ? Object.assign({}, step, patch) : step;
+  });
+  if (currentStepId !== undefined) pack.current_step_id = currentStepId;
+  return buildLearnViewModel({
+    homeDashboard: FULL.homeDashboard,
+    report,
+    lessons: FULL.lessons,
+  }).nextStation.journey;
+}
+
+ok("hint: feedback_unavailable → 讲评生成中(等系统)", () => {
+  const j = journeyWithSteps({ diagnosis: { status: "unavailable", reason: "feedback_unavailable" } });
+  assert.strictEqual(j.steps[2].hint, "讲评生成中 · 稍后回来看");
+  // current=practice 自身无提示 → journey 单条取首个非空 = diagnosis 讲评
+  assert.strictEqual(j.hint, "讲评生成中 · 稍后回来看");
+});
+
+ok("hint: safe_confirm_unavailable / confirm_supply_projection_unavailable → 本站确认练习准备中", () => {
+  const a = journeyWithSteps({ immediate_confirm: { status: "unavailable", reason: "safe_confirm_unavailable" } });
+  assert.strictEqual(a.steps[3].hint, "本站确认练习准备中");
+  const b = journeyWithSteps({ immediate_confirm: { status: "unavailable", reason: "confirm_supply_projection_unavailable" } });
+  assert.strictEqual(b.steps[3].hint, "本站确认练习准备中");
+});
+
+ok("hint: review_projection_unavailable → 复习安排稍后恢复(记录不丢)", () => {
+  const j = journeyWithSteps({ due_validation: { status: "unavailable", reason: "review_projection_unavailable" } });
+  assert.strictEqual(j.steps[4].hint, "复习安排稍后恢复 · 记录已保留");
+});
+
+ok("hint: scheduled 步 → 到期后会出现 · 你只管来(当前步自身提示优先)", () => {
+  const j = journeyWithSteps({
+    practice: { status: "completed" },
+    diagnosis: { status: "not_applicable", reason: "all_correct" },
+    immediate_confirm: { status: "not_applicable", reason: "all_correct" },
+    due_validation: { status: "scheduled", reason: "" },
+    followup: { status: "future" },
+  }, "due_validation");
+  assert.strictEqual(j.available, true);
+  assert.strictEqual(j.steps[4].hint, "到期后会出现 · 你只管来");
+  assert.strictEqual(j.hint, "到期后会出现 · 你只管来");
+});
+
+ok("hint fail-quiet: 未识别 reason 一律不出提示(不猜业务状态)", () => {
+  const j = journeyWithSteps({ diagnosis: { status: "unavailable", reason: "some_brand_new_reason" } });
+  assert.strictEqual(j.steps[2].hint, "");
+  assert.strictEqual(j.hint, "", "无任何可识别提示 → 整条不投");
+});
+
+ok("hint: completed 步不出提示;六步 hint 不堆叠(只投一条)", () => {
+  const j = journeyWithSteps({
+    diagnosis: { status: "unavailable", reason: "feedback_unavailable" },
+    immediate_confirm: { status: "unavailable", reason: "safe_confirm_unavailable" },
+    due_validation: { status: "unavailable", reason: "review_projection_unavailable" },
+  });
+  assert.strictEqual(j.steps[2].hint, "讲评生成中 · 稍后回来看");
+  assert.strictEqual(j.steps[3].hint, "本站确认练习准备中");
+  assert.strictEqual(j.steps[4].hint, "复习安排稍后恢复 · 记录已保留");
+  assert.strictEqual(j.steps[0].hint, "", "completed lesson 步不带提示");
+  // journey 只投一条:current=practice 无提示 → 步序首个 = diagnosis 讲评
+  assert.strictEqual(j.hint, "讲评生成中 · 稍后回来看");
+  // 文案红线:暖·帮你变强,禁审视语气
+  ["看穿", "识破", "揭穿", "露馅"].forEach((banned) => {
+    j.steps.forEach((s) => assert.strictEqual(s.hint.indexOf(banned), -1));
+    assert.strictEqual(j.hint.indexOf(banned), -1);
+  });
+});
+
+ok("unknown journey exposes empty hint on both levels (no fabrication)", () => {
+  const report = Object.assign({}, FULL.report);
+  delete report.station_journey;
+  const j = buildLearnViewModel({
+    homeDashboard: FULL.homeDashboard,
+    report,
+    lessons: FULL.lessons,
+  }).nextStation.journey;
+  assert.strictEqual(j.available, false);
+  assert.strictEqual(j.hint, "");
+  j.steps.forEach((s) => assert.strictEqual(s.hint, ""));
+});
+
 ok("completed and unavailable journeys do not fabricate a current step", () => {
   [
     { state: "completed", statusText: "本轮六步已完成", index: 6 },

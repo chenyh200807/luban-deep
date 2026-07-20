@@ -233,6 +233,9 @@ module.exports = { daysTo: daysTo };
                 </view>
               </view>
             </view>
+            <!-- 灰点分语义:只投一条对学员最有行动意义的提示(等系统/还没到期),
+                 让未就绪的灰点不再"长得都一样"。空则不渲染(fail-quiet)。 -->
+            <text class="lr-journey-hint" wx:if="{{vm.nextStation.journey.hint}}">{{vm.nextStation.journey.hint}}</text>
             <text class="lr-journey-foot">{{!vm.nextStation.journey.available ? '正在核对服务端学习记录' : (vm.nextStation.journey.journeyState === 'unavailable' ? '已完成步骤仍保留，后续排期恢复后会自动更新' : (vm.nextStation.journey.journeyState === 'completed' ? '这一站本轮闭环已经完成' : '验证与抽查到期时会出现在这里 · 你只管来'))}}</text>
           </view>
 

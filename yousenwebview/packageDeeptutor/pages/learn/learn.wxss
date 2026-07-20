@@ -261,6 +261,20 @@
 .lr-jnote { margin-top: -8rpx; font-size: 17rpx; line-height: 1; white-space: nowrap; }
 .lr-jnote--not-needed { color: var(--pk-grn); }
 .lr-jnote--unavailable { color: var(--pk-t3); }
+/* 灰点分语义提示:单条居中竹青胶囊(复用 promise 节点同一 rgba 竹青,不引新配色);
+   区分"等系统/还没到期",避免未就绪灰点长得都一样。颜色随 --pk-grn 主题变量亮/暗自适应。 */
+.lr-journey-hint {
+  align-self: center;
+  margin: -6rpx 0 -2rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(72, 128, 106, 0.08);
+  font-size: 23rpx;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--pk-grn);
+  text-align: center;
+}
 .lr-journey-foot { font-size: 24rpx; line-height: 1.6; color: var(--pk-t3); text-align: center; }
 
 .lr-projection-note { margin: -2rpx 5rpx 2rpx; font-size: 23rpx; line-height: 1.5; color: var(--pk-t3); text-align: center; }
