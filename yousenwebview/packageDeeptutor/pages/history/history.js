@@ -435,8 +435,8 @@ Page({
     surfaceTelemetry.trackModuleView(this, { module: "history", section: "home" });
     this.setData({ isDark: helpers.isDarkOr("light") });
     if (!flags.ensureFeatureEnabled("history")) return;
-    // 五 tab 壳：历史 index=1；内容职责仍只限对话历史与继续对话。
-    helpers.syncTabBar(this, 1, {
+    // 五 tab 壳：历史 index=3；内容职责仍只限对话历史与继续对话。
+    helpers.syncTabBar(this, 3, {
       hidden: !flags.shouldShowWorkspaceShell(),
       isDark: helpers.isDarkOr("light"),
     });
@@ -719,7 +719,7 @@ Page({
       selectedCount: 0,
       allSelected: false,
     });
-    helpers.syncTabBar(this, 1, {
+    helpers.syncTabBar(this, 3, {
       hidden: !flags.shouldShowWorkspaceShell(),
       isDark: helpers.isDarkOr("light"),
     });

@@ -74,9 +74,9 @@ var list = (def && def.data && def.data.list) || [];
 assert(list.length === 5, "shell should expose exactly five tabs");
 var expected = [
   { pagePath: ROUTES.learn, text: "学习" },
-  { pagePath: ROUTES.history, text: "历史" },
-  { pagePath: ROUTES.chat, text: "问鲁班" },
   { pagePath: ROUTES.report, text: "学情" },
+  { pagePath: ROUTES.chat, text: "问鲁班" },
+  { pagePath: ROUTES.history, text: "历史" },
   { pagePath: ROUTES.profile, text: "我的" },
 ];
 expected.forEach(function (want, idx) {
@@ -90,7 +90,7 @@ expected.forEach(function (want, idx) {
 assert(list[2] && list[2].seal === true, "问鲁班 tab (index 2) should carry the central seal marker");
 assert(
   list.some(function (item) { return item.pagePath === ROUTES.history && item.text === "历史"; }),
-  "history must occupy tab index 1",
+  "history must remain a first-class shell tab",
 );
 assert(
   list.every(function (item) { return item.text !== "复习"; }),
@@ -117,12 +117,12 @@ assert(
   "shell root should carry paper/.light dual-theme classes",
 );
 
-// ── 4. 页面 selected 归位:学习0/历史1/问鲁班2/学情3/我的4 ──
+// ── 4. 页面 selected 归位:学习0/学情1/问鲁班2/历史3/我的4 ──
 var pins = [
   { file: "packageDeeptutor/pages/learn/learn.js", needle: "syncTabBar(this, 0", label: "learn selected=0" },
-  { file: "packageDeeptutor/pages/history/history.js", needle: "syncTabBar(this, 1", label: "history selected=1" },
+  { file: "packageDeeptutor/pages/report/report.js", needle: "syncTabBar(this, 1", label: "report selected=1" },
   { file: "packageDeeptutor/pages/chat/chat.js", needle: "syncTabBar(this, 2", label: "chat selected=2" },
-  { file: "packageDeeptutor/pages/report/report.js", needle: "syncTabBar(this, 3", label: "report selected=3" },
+  { file: "packageDeeptutor/pages/history/history.js", needle: "syncTabBar(this, 3", label: "history selected=3" },
   { file: "packageDeeptutor/pages/profile/profile.js", needle: "syncTabBar(this, 4", label: "profile selected=4" },
 ];
 pins.forEach(function (pin) {
