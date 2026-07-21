@@ -2770,3 +2770,40 @@ export async function getBiLearningPreference(
     },
   }
 }
+
+export interface BiMemberEngagement {
+  userId: string
+  days: number
+  /** 该会员每个模块点击/使用了多少次（"A 用户每个模块都点击了多少次"） */
+  moduleBreakdown: BiLearningPrefRow[]
+  /** 该会员每个具体内容/对象(微课/考点卡/考点站…)点击了多少次 */
+  contentBreakdown: BiLearningPrefRow[]
+  /** 该会员每类功能动作点击了多少次 */
+  actionBreakdown: BiLearningPrefRow[]
+}
+
+/**
+ * 单会员点击/使用明细（会员运营 → 会员 360 抽屉用）。
+ * 单一数据权威：与 getBiLearningPreference 共享同一个后端聚合函数
+ * (product_behavior_store.get_engagement_breakdown)，只是收窄到这一个用户，
+ * 不是"单会员行为"的第二套聚合。
+ */
+export async function getBiMemberEngagement(userId: string, days = 30): Promise<BiMemberEngagement> {
+  const raw = unwrapPayload(
+    await fetchBiJson(`/api/v1/bi/member/${encodeURIComponent(userId)}/engagement`, { days })
+  )
+  const record = asRecord(raw)
+  return {
+    userId: toString(record.user_id ?? record.userId, userId),
+    days: toNumber(record.days, days),
+    moduleBreakdown: firstArray(raw, ['module_breakdown', 'moduleBreakdown']).map((item, i) =>
+      normalizeLearningPrefRow(item, `module-${i + 1}`)
+    ),
+    contentBreakdown: firstArray(raw, ['content_breakdown', 'contentBreakdown']).map((item, i) =>
+      normalizeLearningPrefRow(item, `content-${i + 1}`)
+    ),
+    actionBreakdown: firstArray(raw, ['action_breakdown', 'actionBreakdown']).map((item, i) =>
+      normalizeLearningPrefRow(item, `action-${i + 1}`)
+    ),
+  }
+}

@@ -581,6 +581,7 @@ class SQLiteProductBehaviorStore:
         module: str | None = None,
         event_names: Sequence[str] | None = None,
         object_types: Sequence[str] | None = None,
+        user_ids: Sequence[str] | None = None,
         exclude_user_ids: Sequence[str] | None = None,
         exclude_user_id_prefixes: Sequence[str] | None = None,
         limit: int = 50,
@@ -595,6 +596,8 @@ class SQLiteProductBehaviorStore:
           answered/correct 来自 result 字段。
         单一数据权威；bi.py 薄 handler 调它，不进 member_console/service.py（避 learner_state 受保护域）。
         exclude_user_ids 供 demo/eval cohort 隔离（默认排除，防合成数据污染真值）。
+        user_ids（2026-07-21 新增，单会员行为明细 §7）：inclusive 白名单，收窄到指定用户——
+        与全局视图共享同一个聚合函数(同一事实的不同过滤维度)，不新建"单用户行为"的第二套聚合。
         """
         allowed_dims = {"object_id", "object_type", "action", "module"}
         dim = group_dim if group_dim in allowed_dims else "object_id"
@@ -605,6 +608,10 @@ class SQLiteProductBehaviorStore:
         if module:
             where.append("module = ?")
             params.append(str(module))
+        included = sorted({str(u).strip() for u in (user_ids or []) if str(u).strip()})
+        if included:
+            where.append(f"user_id in ({','.join('?' for _ in included)})")
+            params.extend(included)
         events = [str(e).strip() for e in (event_names or []) if str(e).strip()]
         if events:
             where.append(f"event_name in ({','.join('?' for _ in events)})")

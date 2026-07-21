@@ -53,10 +53,12 @@ import {
 } from '@/lib/member-api'
 import {
   getBiInternalAccounts,
+  getBiMemberEngagement,
   getBiMemberOpsPackages,
   markMemberInternalAccount,
   type BiCommercePackage,
   type BiInternalAccountState,
+  type BiMemberEngagement,
 } from '@/lib/bi-api'
 import {
   ALL_COLUMNS,
@@ -346,6 +348,10 @@ export function BiV2MemberOpsPanel({
   const [selectedDetail, setSelectedDetail] = useState<MemberDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
+  // 会员点击/使用明细("A 用户每个模块/内容点了多少次")：独立于 selectedDetail 的懒加载，
+  // 失败不阻断学员 360 主详情——单一数据权威在 getBiMemberEngagement，见 bi-api.ts。
+  const [memberEngagement, setMemberEngagement] = useState<BiMemberEngagement | null>(null)
+  const [engagementLoading, setEngagementLoading] = useState(false)
   const [drawer, setDrawer] = useState<
     'none' | 'member360' | 'conversation' | 'membershipSettings'
   >('none')
@@ -627,6 +633,7 @@ export function BiV2MemberOpsPanel({
       setSelectedMember(row)
       setSelectedDetail(null)
       setDetailError('')
+      setMemberEngagement(null)
       setDrawer('member360')
       if (!flagEnabled) return
       try {
@@ -636,6 +643,15 @@ export function BiV2MemberOpsPanel({
         setDetailError(err instanceof Error ? err.message : '学员 360 加载失败')
       } finally {
         setDetailLoading(false)
+      }
+      // 独立并行拉取点击明细：这条失败不影响上面的主详情已经渲染出来。
+      try {
+        setEngagementLoading(true)
+        setMemberEngagement(await getBiMemberEngagement(row.user_id))
+      } catch {
+        setMemberEngagement(null)
+      } finally {
+        setEngagementLoading(false)
       }
     },
     [flagEnabled]
@@ -1273,6 +1289,8 @@ export function BiV2MemberOpsPanel({
         detail={selectedDetail}
         loading={detailLoading}
         error={detailError}
+        engagement={memberEngagement}
+        engagementLoading={engagementLoading}
         onClose={() => setDrawer('none')}
         onOpenConversation={openConversation}
         onMarkContacted={markContacted}

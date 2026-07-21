@@ -13,6 +13,7 @@ import {
   BI_TRUST_TONE,
   type BiStatusTone,
 } from '@/components/bi-v2'
+import type { BiMemberEngagement } from '@/lib/bi-api'
 import type { MemberDetail } from '@/lib/member-api'
 import type { MemberRow } from './data'
 
@@ -24,6 +25,9 @@ export type Member360DrawerProps = {
   detail?: MemberDetail | null
   loading?: boolean
   error?: string
+  /** 该会员点击/使用明细（每模块/每内容点了多少次）；独立懒加载，与 detail 分离获取 */
+  engagement?: BiMemberEngagement | null
+  engagementLoading?: boolean
   onClose: () => void
   onOpenConversation: () => void
   onMarkContacted: (member: MemberRow) => Promise<void> | void
@@ -41,6 +45,8 @@ export function Member360Drawer({
   detail,
   loading = false,
   error = '',
+  engagement,
+  engagementLoading = false,
   onClose,
   onOpenConversation,
   onMarkContacted,
@@ -223,6 +229,38 @@ export function Member360Drawer({
                 </div>
               ) : (
                 <EmptyBlock>暂无学情模块访问记录。</EmptyBlock>
+              )}
+            </div>
+
+            <div data-testid="bi-member-engagement-breakdown" className="space-y-2">
+              <Subhead title="点击/使用明细（每个模块）" />
+              {engagementLoading ? (
+                <EmptyBlock>正在加载点击明细...</EmptyBlock>
+              ) : engagement?.moduleBreakdown?.length ? (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {engagement.moduleBreakdown.map(row => (
+                    <KV key={row.key} label={moduleLabel(row.key)} value={`${row.eventCount} 次`} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyBlock>暂无点击记录。</EmptyBlock>
+              )}
+            </div>
+
+            <div data-testid="bi-member-content-breakdown" className="space-y-2">
+              <Subhead title="点击/使用明细（每个内容/功能）" />
+              {engagement?.contentBreakdown?.length ? (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {engagement.contentBreakdown.slice(0, 12).map(row => (
+                    <KV
+                      key={row.key}
+                      label={`${row.objectType || 'unknown'}:${row.key}`}
+                      value={`${row.eventCount} 次`}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyBlock>暂无内容级点击记录。</EmptyBlock>
               )}
             </div>
 

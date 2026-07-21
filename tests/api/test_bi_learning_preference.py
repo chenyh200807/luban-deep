@@ -105,3 +105,23 @@ def test_content_dwell_attributes_to_microlesson_from_module_exited(tmp_path: Pa
     result = asyncio.run(bi.bi_learning_preference(days=7, include_demo=True, limit=12, _auth=None))
     micro = [r for r in result["content_top"] if r["key"] == "F16:tp:1"]
     assert micro and micro[0]["avg_dwell_ms"] == 60000
+
+
+def test_member_engagement_endpoint_scopes_to_one_user(tmp_path: Path) -> None:
+    """单会员点击详情端点：只反映该用户自己的行为，不混入其他会员。"""
+    store = reset_product_behavior_store(tmp_path / "behavior.db")
+    _seed(store, event_id="ua1", user_id="u-a", object_type="microlesson", object_id="F16:tp:1", module="learning")
+    _seed(store, event_id="ua2", user_id="u-a", object_type="station", object_id="F16", module="learning")
+    _seed(store, event_id="ua3", user_id="u-a", object_type="variant", object_id="var-1",
+          event_name="retest_item_answered", module="practice", action="complete", result="correct")
+    _seed(store, event_id="ub1", user_id="u-b", object_type="microlesson", object_id="F16:tp:1", module="learning")
+
+    result = asyncio.run(bi.bi_member_engagement(user_id="u-a", days=30, _auth=None))
+    assert result["user_id"] == "u-a"
+    module_keys = {r["key"]: r["event_count"] for r in result["module_breakdown"]}
+    assert module_keys == {"learning": 2, "practice": 1}
+    content_keys = {r["key"] for r in result["content_breakdown"]}
+    assert content_keys == {"F16:tp:1", "F16", "var-1"}
+    # u-b 的事件不应污染 u-a 的明细
+    for row in result["content_breakdown"]:
+        assert row["member_count"] == 1
