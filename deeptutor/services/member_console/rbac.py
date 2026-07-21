@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import Any
 
 # ---- 权限维度 ----
-TABS: tuple[str, ...] = ("overview", "member_ops", "commerce", "feedback", "ops")
+TABS: tuple[str, ...] = ("overview", "member_ops", "commerce", "feedback", "learning_pref", "ops")
 ACTIONS: tuple[str, ...] = ("view", "export", "write", "high_risk")
 
 TAB_LABELS = {
@@ -24,6 +24,8 @@ TAB_LABELS = {
     "member_ops": "会员运营",
     "commerce": "商品账务",
     "feedback": "反馈中心",
+    # 学习模块偏好驾驶舱（2026-07-21）：产品行为 read model 的聚合看板，非 PII，只读为主。
+    "learning_pref": "学习模块偏好",
     "ops": "系统运维",
 }
 ACTION_LABELS = {
