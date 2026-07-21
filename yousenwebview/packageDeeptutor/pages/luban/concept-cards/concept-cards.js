@@ -13,6 +13,7 @@ var route = require("../../../utils/route");
 var runtime = require("../../../utils/runtime");
 var ccvm = require("../../../utils/concept-cards-view-model");
 var ebvm = require("../../../utils/errorbank-view-model");
+var telemetry = require("../../../utils/surface-telemetry");
 
 Page({
   data: {
@@ -78,7 +79,25 @@ Page({
 
   flipCard: function () {
     if (!this.data.currentCard || this.data.finished) return;
-    this.setData({ flipped: !this.data.flipped, quoteOpen: false });
+    var willFlip = !this.data.flipped;
+    this.setData({ flipped: willFlip, quoteOpen: false });
+    // 只在翻到内容面(教材原文并排)时记一次「看了这张考点卡内容」。
+    // 页面级内存去重: 同一 card_id 本次页面展示期内只发一次(翻来翻去/记住了不重发),
+    // 切 pack 时 _loadDeck 清空可重发。禁用 surface-telemetry.trackOnce——它全局
+    // 永久去重会吞掉跨会话复看信号,而复看正是本埋点要统计的量。翻一叠 8 张 ≤8 条,
+    // 不冲背压队列(上限20/in-flight2/rate-limit 120per60s)。
+    if (!willFlip) return;
+    var cardId = String((this.data.currentCard && this.data.currentCard.cardId) || "").trim();
+    if (!cardId) return;
+    if (!this._viewedCardIds) this._viewedCardIds = {};
+    if (this._viewedCardIds[cardId]) return;
+    this._viewedCardIds[cardId] = true;
+    telemetry.trackProductBehavior("learning_action_started", {
+      module: "learning",
+      action: "open_detail",
+      objectType: "concept_card",
+      objectId: cardId,
+    });
   },
 
   toggleQuote: function () {
@@ -224,6 +243,8 @@ Page({
 
   _loadDeck: function (packId) {
     var that = this;
+    // 切 pack = 新一叠卡: 重置内容视图去重集(换 pack 后同一 card_id 可重发)。
+    this._viewedCardIds = {};
     this.setData({ loading: true, errorText: "", activePackId: packId });
     this._probePackPending(packId);
     return api

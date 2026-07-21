@@ -11,6 +11,7 @@ var helpers = require("../../../utils/helpers");
 var route = require("../../../utils/route");
 var runtime = require("../../../utils/runtime");
 var errorbankViewModel = require("../../../utils/errorbank-view-model");
+var telemetry = require("../../../utils/surface-telemetry");
 
 var SETTLED_PREVIEW_COUNT = 2;
 
@@ -48,6 +49,8 @@ Page({
       runtime.redirectToLogin(route.lubanErrorbank());
       return;
     }
+    // 入口曝光(漏斗分母):错因银行只补 module_viewed,不埋页内交互。
+    telemetry.trackModuleView(this, { module: "learning", section: "errorbank" });
     this._probeCache = {}; // packId -> {available: bool, probeId: string}
     this._antidoteCache = {}; // "packId::errorCode" -> {mental_model, textbook_ref} | null
     this._loadAll();
