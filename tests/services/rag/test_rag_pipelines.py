@@ -2348,7 +2348,7 @@ async def test_supabase_search_projects_teaching_metadata_into_answer(
     assert "支架立柱不得混用" in result["answer"]
 
 
-def test_exact_question_review_notes_project_numeric_pitfalls() -> None:
+def test_exact_question_review_notes_project_option_analysis_topic_agnostic() -> None:
     from deeptutor.services.rag.exact_authority import build_mcq_review_notes_from_exact_question
 
     notes = build_mcq_review_notes_from_exact_question(
@@ -2361,12 +2361,14 @@ def test_exact_question_review_notes_project_numeric_pitfalls() -> None:
         }
     )
 
+    # option_analysis 是对题库解析的忠实逐项投影（保留）。
     assert notes["option_analysis"][0]["analysis"] == "55 低于标准值 70，不能满足题干中的“不应小于”要求。"
     assert notes["option_analysis"][-1]["analysis"] == (
         "70 对应题库标准答案；直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。"
     )
-    assert "抓住标准答案对应的规范数值：D. 70。" in notes["scoring_points"]
-    assert notes["mnemonic"] == "直接接土先加厚，保护层记 70。"
+    # 方法脚手架 topic-agnostic：不假设数值形态、不硬编码保护层。
+    assert "对照题库标准答案锁定关键依据：D. 70。" in notes["scoring_points"]
+    assert notes["mnemonic"] == "先圈对象与条件，再对照题库答案：D. 70。"
 
 
 @pytest.mark.asyncio

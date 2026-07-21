@@ -445,28 +445,21 @@ def build_mcq_review_notes_from_exact_question(exact_question: dict[str, Any]) -
         exact_question.get("stem") or exact_question.get("question") or ""
     )
     scoring_subject = _sentence(question or "本题题干")
+    # 通用投影器：方法脚手架只从本题自身字段（题干 / 标准答案）派生，不假设答案
+    # 形态（数值题 / 概念题皆可），不硬编码任何单一题型的字面量。原实现把“混凝土
+    # 保护层 / 规范数值”写死进 pitfalls 与 mnemonic，会跨题泄露到脚手架、养护等
+    # 概念题上（通用闸落不进窄模式就吐罐头模板的病）。逐项真值仍在 option_analysis
+    # ——那才是对题库解析的忠实投影。
     scoring_points = [
-        f"圈出题干对象：{scoring_subject}",
-        f"抓住标准答案对应的规范数值：{correct_text}。",
-        "逐项排除相近但不符合题库解析的干扰数值。",
+        f"圈定题干限定的对象与条件：{scoring_subject}",
+        f"对照题库标准答案锁定关键依据：{correct_text}。",
+        "逐项比对题库解析，排除与之不符的干扰项。",
     ]
-
-    object_hint = "题干限定对象"
-    if "直接接触土体" in question or "直接接触土体" in summary:
-        object_hint = "直接接触土体浇筑的构件"
     pitfalls = [
-        "把相近数值当成规范要求，忽略题干对象。",
-        f"只记住保护层厚度这一考点，没有锁定“{object_hint}”。",
+        "被表述相近的干扰项带走，忽略题干限定的对象与条件。",
+        "只记住结论本身，没有回到题库解析里的判定依据。",
     ]
-
-    memory_value = ""
-    if len(normalized_answer) == 1 and option_values.get(normalized_answer):
-        memory_value = option_values[normalized_answer]
-    mnemonic = (
-        f"直接接土先加厚，保护层记 {memory_value}。"
-        if object_hint == "直接接触土体浇筑的构件" and memory_value
-        else f"先圈对象，再锁答案：{correct_text}。"
-    )
+    mnemonic = f"先圈对象与条件，再对照题库答案：{correct_text}。"
 
     return {
         "option_analysis": _mcq_review_option_rows(
