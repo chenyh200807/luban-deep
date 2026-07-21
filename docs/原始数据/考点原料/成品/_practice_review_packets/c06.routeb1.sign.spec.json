@@ -1,0 +1,46 @@
+{
+  "pack_id": "C06",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (routeB-batch1 8-gap): 新变体逐题锚回编译源/真题原文逐字核对+方向复算;同fact三件套skeleton互异断言;q5作用域收窄至空心砖墙(通用砖墙'不得留直槎'与q4非抗震直槎事实冲突,空心砖卡为无条件表述);异源subagent对抗核验过闸后方发布。",
+  "signed": [
+    {
+      "variant_id": "C06-html-practice-html-q14-44328085df27",
+      "probe_role": "immediate_confirm",
+      "fact_id": "c06-fact-temp-opening-scoring",
+      "skeleton_id": "c06-skel-临时洞口阈值组合",
+      "source_anchor": "kc:1A413030_106_0208:0",
+      "note": "净宽≤1m/距交接面≥500mm/过梁或挑砖封口/预埋拉结筋,教材临时洞口卡逐字核对;干扰项1.2m+400mm双数值错(M08)/漏位置封口(E02)/留交接处(E10,与≥500mm方向相反)复算无误。三件套:与q16(anchor,采分句补写)、新q17(d1,9度墙梁限制)同fact异骨架。"
+    },
+    {
+      "variant_id": "C06-html-practice-html-q17-85eacb08785e",
+      "probe_role": "d1_probe",
+      "fact_id": "c06-fact-temp-opening-scoring",
+      "skeleton_id": "c06-skel-洞口9度墙梁限制",
+      "source_anchor": "kc:1A413030_106_0208:0",
+      "note": "routeB新产。9度抗震区留洞须设计确认+墙梁部分不宜留洞,教材同卡尾句逐字核对('9度抗震区须设计确认;墙梁部分不宜留洞')。干扰项漏设计确认(E02)/墙梁优先留洞(E10方向反)/8度以上一律禁留(M08过度推断)复算无误。skeleton与q14(阈值组合)/q16(补写)互异=高烈度与墙梁限制维。"
+    },
+    {
+      "variant_id": "C06-html-practice-html-q5-8473056ec63b",
+      "probe_role": "anchor",
+      "fact_id": "c06-fact-hollow-brick-corner-toothing",
+      "skeleton_id": "c06-skel-空心砖同时砌筑判据",
+      "source_anchor": "kc:1A413030_109_0213:3",
+      "note": "新fact(空心砖转角交接留槎:同时砌筑/不得留直槎/斜槎≤1.2m)。本题2026-07-21作用域收窄重铸(原q5-adfcc9a1da89题干'砖墙'泛指,与q4已签'非抗震可留直槎+拉结筋'冲突;空心砖组砌卡'转角及交接处应同时砌筑,不得留直槎'为无条件表述,收窄后锚题一致),选项与埋错未动。可达性边界:本fact当前仅q5/q6/q18三件。"
+    },
+    {
+      "variant_id": "C06-html-practice-html-q6-c15b9cac9a05",
+      "probe_role": "immediate_confirm",
+      "fact_id": "c06-fact-hollow-brick-corner-toothing",
+      "skeleton_id": "c06-skel-空心砖斜槎高度1-2",
+      "source_anchor": "kc:1A413030_109_0213:3",
+      "note": "空心砖留斜槎高度不宜大于1.2m,教材空心砖组砌卡逐字核对;干扰项2.0m(M08)/直槎加拉结筋(E07,套非抗震普通砖做法)/无限值(E03)方向复算无误。同fact数值记忆维,与q5判据/q18指错骨架互异。"
+    },
+    {
+      "variant_id": "C06-html-practice-html-q18-178e3f947432",
+      "probe_role": "d1_probe",
+      "fact_id": "c06-fact-hollow-brick-corner-toothing",
+      "skeleton_id": "c06-skel-空心砖留槎指错改正",
+      "source_anchor": "kc:1A413030_109_0213:3",
+      "note": "routeB新产。交底双错指错:留直槎(应同时砌筑/不得留直槎)+斜槎2m(应≤1.2m),教材同卡逐字核对;两个E02干扰各漏一处、E07干扰'方案自行确定'弱化规范硬要求,判错方向复算无误。"
+    }
+  ]
+}

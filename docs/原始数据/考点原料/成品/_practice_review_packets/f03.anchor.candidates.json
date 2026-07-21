@@ -1,6 +1,6 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-21T01:38:05+00:00",
+  "generated_at": "2026-07-21T06:06:52+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "F03",
@@ -8,8 +8,8 @@
   "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
-    "total_items": 15,
-    "items_with_candidates": 15,
+    "total_items": 18,
+    "items_with_candidates": 18,
     "items_empty_handed": 0
   },
   "items": [
@@ -596,6 +596,126 @@
           "match_score": 0.125,
           "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
           "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        }
+      ]
+    },
+    {
+      "variant_id": "F03-html-practice-html-q16-6fe38b4dac44",
+      "candidates": [
+        {
+          "source_anchor": "exam:2020:第12题",
+          "quote": "倒置式屋面基本构造自下而上顺序（ ）。 ①结构层、②保温层、③保护层、④找坡层、⑤找平层、⑥防水层 A. ①②④⑤⑥③ B. ①④⑤⑥②③ C. ①②④⑤⑥③ D. ①④⑤②⑥③ B “结构找坡再找平，防水保温后保护”",
+          "match_score": 0.4737,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "exam:2021:案例题(一)",
+          "quote": "用的建筑工人签订劳务合同； 2. 总包对农民工工资支付工作负总责，要求分包单位做好农民工工资发放工作； 3. 改善工人生活区居住环境，在集中生活区配套了食堂等必要生活设施，并开展物业管理。 项目经理部编制的《屋面工程施工方案》中： 1. 工程采用倒置式屋面，屋面构造层包括防水层、保温层、找平层、找坡层、隔离层、结构层和保护层。构造示意图见图1； 2. 防水层选用三元乙丙高分子防水卷材； 3. 防水",
+          "match_score": 0.2963,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "exam:2021:第1题答案",
+          "quote": "分包单位与招用的建筑工人签订劳务合同； （2）总包对农民工工资支付工作负总责，要求分包单位做好农民工工资发放工作； （3）改善工人生活区居住环境，在集中生活区配套了食堂等必要生活设施，并开展物业管理。 项目经理部编制的《屋面工程施工方案》中： （1）工程采用倒置式屋面，屋面构造层包括防水层、保温层、找平层、找坡层、隔离层、结构层和保护层。构造示意图见图1； （2）防水层选用三元乙丙高分子防水卷材；",
+          "match_score": 0.2963,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "ca:1A413030_134_0258",
+          "quote": "关于外保温外墙防水层设置位置，下列说法正确的是？ 关于外保温外墙防水层设置位置，下列说法正确的是？ | grading_keywords=保温层与基层之间,防水透气膜,找平层,饰面层 外延·外墙防水工程施工(1A413050-R14/R15): 外墙防水设计与施工(防水层/构造). 标🔵外墙外延(F03 题面'屋面/地下'为本体, 外墙防水属邻接外延非屋面/地下构造层次主采分眼)",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "付当期检测费用。 地下室混凝土模板拆除后，发现混凝土墙体、楼板面存在蜂窝、麻面、露筋、裂缝、孔洞和层间错台等质量缺陷。质量缺陷图片资料详见图1-1～图1-6。项目部按要求制定了质量缺陷处理专项方案，按照“凿除孔洞松散混凝土——……——剔除多余混凝土”的工艺流程进行孔洞质量缺陷治理。 项目部编制 1-基础垫层；2-防水找平层；3-防水加强层；4-卷材防水层；5-防水保护层；6-贴止水带；7-止水钢板",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        }
+      ]
+    },
+    {
+      "variant_id": "F03-html-practice-html-q17-3e12f6a80877",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A413030_127_0240",
+          "quote": "下列关于种植屋面构造层次的说法中，正确的是？ 下列关于种植屋面构造层次的说法中，正确的是？ | grading_keywords=基层,绝热层,找平层,普通防水层,耐根穿刺防水层,保护层,排（蓄）水层,过滤层,种植土层,植被层 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层",
+          "match_score": 0.8182,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_127_0240:0",
+          "quote": "m；喷涂聚脲≥2mm。 改性沥青防水卷材≥4mm；聚氯乙烯、TPO、HDPE、EPDM等≥1.2mm；喷涂聚脲≥2mm。 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层; 种植平屋面排水坡度≥2%·天沟檐沟≥1%; 耐根穿刺材料改性沥",
+          "match_score": 0.7636,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_127_0240:1",
+          "quote": "种植屋面构造层次：从下至上依次为：基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。 从下至上依次为：基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→",
+          "match_score": 0.7636,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_127_0240:2",
+          "quote": "种植屋面排水坡度要求：种植平屋面排水坡度不宜小于2%；天沟、檐沟排水坡度不宜小于1%。 种植平屋面排水坡度不宜小于2%；天沟、檐沟排水坡度不宜小于1%。 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层; 种植平屋面排水坡度≥2%·天沟",
+          "match_score": 0.7636,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "exam:2020:第12题",
+          "quote": "倒置式屋面基本构造自下而上顺序（ ）。 ①结构层、②保温层、③保护层、④找坡层、⑤找平层、⑥防水层 A. ①②④⑤⑥③ B. ①④⑤⑥②③ C. ①②④⑤⑥③ D. ①④⑤②⑥③ B “结构找坡再找平，防水保温后保护”",
+          "match_score": 0.3421,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        }
+      ]
+    },
+    {
+      "variant_id": "F03-html-practice-html-q18-f2b998771b44",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A413030_131_0250:0",
+          "quote": "施工缝设置原则：水平施工缝应设在高出底板表面不小于300mm处；距孔洞边缘≥300mm；垂直施工缝避开地下水丰富区，宜结合变形缝。 水平施工缝应设在高出底板表面不小于300mm处；距孔洞边缘≥300mm；垂直施工缝避开地下水丰富区，宜结合变形缝。 本体·施工缝设置及防水构造(1A413050-R23): 水平施工缝设在高出底板表面≥300mm处·距孔洞边缘≥300mm; 垂直施工缝避开地下水丰富区",
+          "match_score": 0.3043,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "ca:1A413030_131_0250",
+          "quote": "关于施工缝的设置，下列说法错误的是？ 关于施工缝的设置，下列说法错误的是？ | grading_keywords=300mm,水平施工缝,垂直施工缝,遇水膨胀止水条,7d净膨胀率,220%,中埋式止水带 本体·施工缝设置及防水构造(1A413050-R23): 水平施工缝设在高出底板表面≥300mm处·距孔洞边缘≥300mm; 垂直施工缝避开地下水丰富区宜结合变形缝; 遇水膨胀止水条7d净膨胀率≤",
+          "match_score": 0.3043,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_131_0250:1",
+          "quote": "遇水膨胀止水条性能要求：遇水膨胀止水条应具缓胀性，7d净膨胀率≤60%最终膨胀率，最终膨胀率≥220%。 遇水膨胀止水条应具缓胀性，7d净膨胀率≤60%最终膨胀率，最终膨胀率≥220%。 本体·施工缝设置及防水构造(1A413050-R23): 水平施工缝设在高出底板表面≥300mm处·距孔洞边缘≥300mm; 垂直施工缝避开地下水丰富区宜结合变形缝; 遇水膨胀止水条7d净膨胀率≤60%最终膨胀率",
+          "match_score": 0.2826,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_131_0250:2",
+          "quote": "；高温期入模温≤30℃；养护≥14d，后浇带≥28d。 宜选低水化热水泥，掺减水剂、缓凝剂、粉煤灰、矿渣粉；设计龄期60d或90d；高温期入模温≤30℃；养护≥14d，后浇带≥28d。 本体·施工缝设置及防水构造(1A413050-R23): 水平施工缝设在高出底板表面≥300mm处·距孔洞边缘≥300mm; 垂直施工缝避开地下水丰富区宜结合变形缝; 遇水膨胀止水条7d净膨胀率≤60%最终膨胀率·",
+          "match_score": 0.2826,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "ca:1A413030_130_0248",
+          "quote": "关于明挖法地下工程施工缝的防水设防措施，下列说法正确的是？ 关于明挖法地下工程施工缝的防水设防措施，下列说法正确的是？ | grading_keywords=不应少于 2 种,中埋式中孔型橡胶止水带,遇水膨胀止水条,预埋注浆管 本体·明挖法地下工程结构接缝防水设防措施(1A413050-R38): 施工缝防水设防≥2种(界面剂/水泥基渗透结晶/遇水膨胀止水条胶/预埋注浆管/中埋式止水带/外贴卷材外",
+          "match_score": 0.1522,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
         }
       ]
     }

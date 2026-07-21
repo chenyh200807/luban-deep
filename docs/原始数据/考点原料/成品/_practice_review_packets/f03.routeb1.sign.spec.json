@@ -1,0 +1,70 @@
+{
+  "pack_id": "F03",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (routeB-batch1 8-gap): 新变体逐题锚回编译源/真题原文逐字核对+方向复算(2020第12题①④⑤⑥②③层序逐位对照);同fact三件套skeleton互异断言;复合fact粒度按C01 post-cast-strip先例并在note声明边界;异源subagent对抗核验过闸后方发布。",
+  "signed": [
+    {
+      "variant_id": "F03-html-practice-html-q5-3abeea20b534",
+      "probe_role": "immediate_confirm",
+      "fact_id": "f03-fact-inverted-roof-order",
+      "skeleton_id": "f03-skel-倒置正置区别辨析",
+      "source_anchor": "exam:2020:第12题",
+      "note": "倒置式=保温层在防水层之上,锚2020真题第12题(答案B=①④⑤⑥②③,防水⑥后保温②)方向复算一致;干扰项取消找坡(E07)/整体上下颠倒(E07)/材料区别耐根穿刺(E07,种植屋面层)判错无误。三件套:与q4(anchor,全层序)、新q16(d1,相邻层定位)同fact异骨架。"
+    },
+    {
+      "variant_id": "F03-html-practice-html-q16-6fe38b4dac44",
+      "probe_role": "d1_probe",
+      "fact_id": "f03-fact-inverted-roof-order",
+      "skeleton_id": "f03-skel-倒置式相邻层定位",
+      "source_anchor": "exam:2020:第12题",
+      "note": "routeB新产。防水层做在找平层上、其上为保温层,由2020真题B序①结构→④找坡→⑤找平→⑥防水→②保温→③保护逐位复算(⑤⑥相邻/⑥②相邻);干扰项正置层序(E07)/防水先于找坡找平(E06)/找平压防水兼保护(E06)方向无误。skeleton与q4(全序排序)/q5(概念辨析)互异=相邻层定位维。"
+    },
+    {
+      "variant_id": "F03-html-practice-html-q7-3d905b13eef6",
+      "probe_role": "anchor",
+      "fact_id": "f03-fact-green-roof-layers",
+      "skeleton_id": "f03-skel-多一道耐根穿刺辨析",
+      "source_anchor": "kc:1A413030_127_0240:1",
+      "note": "新fact(种植屋面构造:层次链+耐根穿刺+数值)。种植屋面在普通防水层之上多一道耐根穿刺防水层,教材层次卡逐字核对(…普通防水层→耐根穿刺防水层→…,两道并存非替换);干扰项多保温层(E07)/仅过滤层(E02)/替换关系(E06)判错无误。可达性边界:本fact当前仅q7/q8/q17三件。"
+    },
+    {
+      "variant_id": "F03-html-practice-html-q8-b70e69ee0b83",
+      "probe_role": "immediate_confirm",
+      "fact_id": "f03-fact-green-roof-layers",
+      "skeleton_id": "f03-skel-种植数值组合",
+      "source_anchor": "kc:1A413030_127_0240:0",
+      "note": "耐根穿刺厚度三档(改性沥青≥4mm/PVC-TPO等≥1.2mm/喷涂聚脲≥2mm)教材厚度卡逐字核对;排水坡度(平屋面≥2%/天沟檐沟≥1%)同chunk坡度卡(kc:0240:2)逐字核对,2024真题第3题(2%)同向印证;干扰项一律1mm(E03)/平屋面1%(E03)/厚度无要求(E02)复算无误。"
+    },
+    {
+      "variant_id": "F03-html-practice-html-q17-3e12f6a80877",
+      "probe_role": "d1_probe",
+      "fact_id": "f03-fact-green-roof-layers",
+      "skeleton_id": "f03-skel-种植自下而上层序",
+      "source_anchor": "kc:1A413030_127_0240:1",
+      "note": "routeB新产。十层链自下而上排序,教材层次卡逐字核对(基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层);三个E06干扰各对调一处(普通/耐根互换、绝热/找平互换+排蓄/过滤互换、保护层前移)逐位复算判错无误;四选项全为等长层序链,无长度/箭头tell。"
+    },
+    {
+      "variant_id": "F03-html-practice-html-q13-0e5175afc021",
+      "probe_role": "anchor",
+      "fact_id": "f03-fact-underground-joint-waterproof",
+      "skeleton_id": "f03-skel-接缝设防种数",
+      "source_anchor": "ca:1A413030_130_0248",
+      "note": "新复合fact(地下工程接缝防水:设防种数+施工缝设置+止水条性能,粒度按C01 post-cast-strip先例)。施工缝设防≥2种/后浇带≥1种,锚明挖法接缝设防卡(grading_keywords=不应少于2种,中埋式中孔型橡胶止水带,遇水膨胀止水条,预埋注浆管)+kc:0248:0/0248:1逐字核对;干扰项均1种(E03)/种数记反(E07)/后浇带免设防(E02)复算无误。可达性边界:本fact当前仅q13/q14/q18三件。"
+    },
+    {
+      "variant_id": "F03-html-practice-html-q14-b00ccaf8e453",
+      "probe_role": "immediate_confirm",
+      "fact_id": "f03-fact-underground-joint-waterproof",
+      "skeleton_id": "f03-skel-水平缝位置止水条数值",
+      "source_anchor": "ca:1A413030_131_0250",
+      "note": "水平施工缝高出底板≥300mm/距孔洞边缘≥300mm(kc:0250:0逐字)+遇水膨胀止水条最终膨胀率≥220%(kc:0250:1逐字,60%为7d净膨胀率上限指标,干扰项两指标互混判错正确);锚施工缝设置卡(grading_keywords=300mm,遇水膨胀止水条,220%)。干扰项留底板面(E10)/100mm(E03)复算无误。"
+    },
+    {
+      "variant_id": "F03-html-practice-html-q18-f2b998771b44",
+      "probe_role": "d1_probe",
+      "fact_id": "f03-fact-underground-joint-waterproof",
+      "skeleton_id": "f03-skel-垂直缝避水结合变形缝",
+      "source_anchor": "kc:1A413030_131_0250:0",
+      "note": "routeB新产。垂直施工缝避开地下水丰富地段+宜与变形缝相结合,教材同卡尾句逐字核对('垂直施工缝避开地下水丰富区,宜结合变形缝');干扰项留富水地段促膨胀(E10方向反)/与变形缝错开(E07与'宜结合'相反)/仅靠设防种数(E03混淆口径)判错无误。skeleton与q13(种数)/q14(水平缝数值)互异=垂直缝位置原则维。"
+    }
+  ]
+}

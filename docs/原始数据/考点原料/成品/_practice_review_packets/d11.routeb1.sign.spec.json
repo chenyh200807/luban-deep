@@ -1,0 +1,22 @@
+{
+  "pack_id": "D11",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (routeB-batch1 8-gap): 新变体逐题锚回编译源原文逐字核对+数值复算;同fact三件套skeleton互异断言;异源subagent对抗核验过闸后方发布。",
+  "signed": [
+    {
+      "variant_id": "D11-html-practice-html-q14-14be1a245a0b",
+      "probe_role": "immediate_confirm",
+      "fact_id": "d11-fact-mesh-overlap-100",
+      "skeleton_id": "d11-skel-搭接50指错改正",
+      "source_anchor": "kc:1A422000_043_0069:0",
+      "note": "交底'搭接50mm'指错→不应小于100mm,教材加强网搭接卡逐字核对('加强网与各基体的搭接宽度不应小于100mm');2023真题第26题C选项以50mm设错同向印证;干扰项80mm仍<100(M08复算)/取消加强网(E07,否定正确措施)方向无误。三件套:与q4(anchor,搭接宽度数值)、新q16(d1,铺设判定)同fact异骨架。"
+    },
+    {
+      "variant_id": "D11-html-practice-html-q16-005de8b5592f",
+      "probe_role": "d1_probe",
+      "fact_id": "d11-fact-mesh-overlap-100",
+      "skeleton_id": "d11-skel-搭接铺设两侧判定",
+      "source_anchor": "kc:1A422000_043_0069:0",
+      "note": "routeB新产。铺设做法判定:每侧各120mm≥100mm为唯一合格项(数值复算:120≥100真;90<100假;单侧铺另一侧0假;'合计100'口径错=与各基体均≥100mm)。教材同卡逐字核对。skeleton与q4(数值直问)/q14(指错改正)互异=场景应用判定维。"
+    }
+  ]
+}
