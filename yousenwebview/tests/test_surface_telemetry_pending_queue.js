@@ -74,7 +74,10 @@ function loadTelemetry(state) {
   );
 })();
 
-(function testAsyncRequestsDoNotResendInFlightQueue() {
+(function testInFlightConcurrencyIsCappedAndEventuallyDrains() {
+  // 2026-07-21 收口:telemetry 是旁路观测,最多占 2 个 wx.request 槽位
+  // (07-19 白屏事故的残留缺口:首轮 flush 仍可 21 并发饿死 lessons/dashboard),
+  // 且必须带显式短 timeout(默认 60s 会让弱网失败前每条占槽 1 分钟)。
   var state = { token: "tok", userId: "member-a", networkOnline: true };
   var loaded = loadTelemetry(state);
   for (var i = 0; i < 10; i++) {
@@ -82,10 +85,44 @@ function loadTelemetry(state) {
       metadata: { module: "learning", action: "view", index: i },
     });
   }
-  assert(loaded.requests.length === 10, "ten in-flight events produce ten requests, not a triangular retry storm");
-  loaded.requests.forEach(function (request) {
-    request.success({ data: { accepted: true, status: "accepted" } });
-  });
+  assert(
+    loaded.requests.length === 2,
+    "in-flight telemetry deliveries are capped at 2, business requests keep the pool (got " +
+      loaded.requests.length +
+      ")",
+  );
+  assert(
+    loaded.requests[0].data.event_id !== loaded.requests[1].data.event_id,
+    "capped deliveries are distinct events, no in-flight resend",
+  );
+  assert(
+    loaded.requests.every(function (request) {
+      return Number(request.timeout) > 0 && Number(request.timeout) <= 15000;
+    }),
+    "telemetry requests carry an explicit short timeout instead of the 60s default",
+  );
+  // 超限事件只入队不丢:后续 settle+track 轮次中最终全部投递。
+  var answered = 0;
+  var storageKey = "deeptutor_surface_telemetry_pending_v1";
+  for (var round = 0; round < 60; round++) {
+    for (; answered < loaded.requests.length; answered++) {
+      loaded.requests[answered].success({
+        data: { accepted: true, status: "accepted" },
+      });
+    }
+    var stored = loaded.storage[storageKey] || [];
+    if (!stored.length) break;
+    loaded.telemetry.track("module_viewed", {
+      metadata: { module: "learning", action: "drain", round: round },
+    });
+  }
+  var remaining = loaded.storage[storageKey] || [];
+  assert(
+    remaining.length === 0,
+    "capped queue fully drains across later tracks, no event lost (left " +
+      remaining.length +
+      ")",
+  );
 })();
 
 (function testAccountSwitchDoesNotReplayPriorOwnerEvents() {
