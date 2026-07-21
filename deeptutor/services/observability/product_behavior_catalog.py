@@ -108,6 +108,14 @@ LEARNING_CONTENT_OBJECT_TYPES = frozenset(
     {"microlesson", "concept_card", "seethrough_day"}
 )
 
+# BI 子模块兴趣("学员对哪个学习子模块感兴趣")的 object_type 口径 = 鲁班学习模块
+# (learn/luban/*)实际发出的对象类型。submodule_interest 必须过滤到这个集合,否则
+# object_type 维度会把 login(password/phone_auth)/chat(first_answer) 等全产品对象也聚进来,
+# 让"学习子模块触达"被登录用户碾压(每个人都登录)——旗舰面板首屏就错。单一 authority。
+LEARNING_MODULE_OBJECT_TYPES = frozenset(
+    {"microlesson", "concept_card", "seethrough_day", "station", "variant", "retest", "full_answer"}
+)
+
 PRODUCT_BEHAVIOR_MODULES = frozenset(
     {
         "learning",
