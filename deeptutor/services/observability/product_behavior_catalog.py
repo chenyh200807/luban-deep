@@ -101,10 +101,11 @@ PRODUCT_BEHAVIOR_OBJECT_TYPES = frozenset(
     }
 )
 
-# BI 内容偏好("哪几个微课/考点讲解被反复看")聚合识别的"学习内容对象"口径。
-# 是 PRODUCT_BEHAVIOR_OBJECT_TYPES 的子集，单一 authority；BI content Top-N 只认这些 object_type。
+# BI 内容偏好("哪几个微课/教学动画卡/考点讲解被反复看")Top-N 识别的"教学内容叶子"口径。
+# 是 PRODUCT_BEHAVIOR_OBJECT_TYPES 的子集，单一 authority；只含真正的教学内容叶子，
+# 不含 station(那是"子模块/容器"，归 submodule_interest 的 object_type 维度)。
 LEARNING_CONTENT_OBJECT_TYPES = frozenset(
-    {"microlesson", "concept_card", "station", "seethrough_day"}
+    {"microlesson", "concept_card", "seethrough_day"}
 )
 
 PRODUCT_BEHAVIOR_MODULES = frozenset(
