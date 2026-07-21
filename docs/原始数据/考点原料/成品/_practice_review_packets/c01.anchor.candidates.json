@@ -1,6 +1,6 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-21T01:34:40+00:00",
+  "generated_at": "2026-07-21T06:08:33+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "C01",
@@ -8,8 +8,8 @@
   "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
-    "total_items": 15,
-    "items_with_candidates": 15,
+    "total_items": 17,
+    "items_with_candidates": 17,
     "items_empty_handed": 0
   },
   "items": [
@@ -573,6 +573,86 @@
           "source_anchor": "cc:1A413030_103_0196:2",
           "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
           "match_score": 0.3111,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        }
+      ]
+    },
+    {
+      "variant_id": "C01-html-practice-html-q17-6759e449aec3",
+      "candidates": [
+        {
+          "source_anchor": "exam:2021:第8题",
+          "quote": "：宜留置在基础、楼板、梁的顶面，梁和吊车梁牛腿、无梁楼板柱帽的下面； 2) 与板连成整体的大截面梁(高超过 1m)，留置在板底面以下 20~30mm 处，当板下有梁托时，留置在梁托下部； 3) 单向板：留置在平行于板的短边的任何位置； 4) 有主次梁的楼板，施工缝应留置在次梁跨中 1/3 范围内； 5) 墙：留置在门洞口过梁跨中 1/3 范围内，也可留在纵横墙的交接处； 6) 双向受力板、大体积混",
+          "match_score": 0.5593,
+          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
+          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+        },
+        {
+          "source_anchor": "kc:1A413030_103_0196:0",
+          "quote": "施工缝留设位置规范：水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0",
+          "match_score": 0.5463,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "kc:1A413030_103_0196:1",
+          "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
+          "match_score": 0.4556,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.4556,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:2",
+          "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
+          "match_score": 0.4556,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        }
+      ]
+    },
+    {
+      "variant_id": "C01-html-practice-html-q18-1212272c719b",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.3733,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "exam:2021:第8题",
+          "quote": "混凝土施工缝留置位置正确的有（）。 A.柱在梁、板顶面 B.单向板在平行于板长边的任何位置 C.有主次梁的楼板在次梁跨中 1/3 范围内 D.墙在纵横墙的交接处 E.双向受力板按设计要求确定 ACDE 【解析】考察考点 1A415041 混凝土结构工程施工 施工缝的留置位置应符合下列规定： 1) 柱：宜留置在基础、楼板、梁的顶面，梁和吊车梁牛腿、无梁楼板柱帽的下面； 2) 与板连成整体的大截面梁(",
+          "match_score": 0.1744,
+          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
+          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+        },
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题3",
+          "quote": " 组边长为 70.7mm 的立方体灌浆料标准养护试件；留置了 1 组边长 70.7mm 的 1）不妥之处： - 模板独立支设（模板及支架独立支设）； - 剔除模板用钢丝网（应保留）； - 基础底板后浇带 10d 后封闭等（应至少 28d 后封闭）。 2）后浇带混凝土施工的主要技术措施： （1）整理钢筋； （2）冲洗松动部分； （3）填充后浇带，可采用微膨胀混凝土； （4）强度等级比原结构强度提高一",
+          "match_score": 0.1483,
+          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
+          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+        },
+        {
+          "source_anchor": "exam:2022:第(三)题",
+          "quote": "管灌注桩基础，钢筋混凝土结构。 施工单位在桩基础专项施工方案中，根据工程所在地含水量较小的土质特点，确定沉管灌注桩选用单打法成桩工艺，其成桩过程包括桩机就位、锤击（振动）沉管、上料等工作内容。 基础底板大体积混凝土浇筑方案确定了包括环境温度、底板表面与大气温差等多项温度控制指标；明确了温控检测点布置方式，要求沿底板厚度方向测温点间距不大500mm。 施工作业班组在一层层、板混凝土强度未达到拆模标准",
+          "match_score": 0.1401,
+          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
+          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:2",
+          "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
+          "match_score": 0.1288,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
           "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }

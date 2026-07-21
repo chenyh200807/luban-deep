@@ -2,10 +2,10 @@
   "schema": "luban_practice_review_packet.v1",
   "pack_id": "D11",
   "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
-  "source_bundle_sha256": "b80b3da302c1d40be7776b8db69253925c9783f58cbd5903b1ba9d0773ee1f21",
+  "source_bundle_sha256": "b804ec12bc74915ea8deef602e96c215eb246adcff5a445c4febafe6a85b2090",
   "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 13,
-  "eligible_count": 9,
+  "candidate_count": 14,
+  "eligible_count": 11,
   "human_gate": {
     "required_roles": [
       "teaching",
@@ -58,9 +58,9 @@
       ],
       "model_answer": "抹灰总厚度≥35mm 时应采取加强措施（分层抹灰、设加强网）；38mm 已达阈值，须加强。",
       "rule_group": "控厚度·条件维",
-      "content_sha256": "60287609aa7b39d115708519ea83b0a4d36492ceee2b25461cfc88008054088c",
+      "content_sha256": "5990dc11218ea9e637a53be5610a660646bbcad0d8e76b813c4e4fc9b91a5be3",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q1",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "d11-fact-plaster-thickness-reinforce",
         "skeleton_id": "d11-skel-总厚35加强判定",
@@ -70,7 +70,7 @@
         "review": {
           "status": "signed",
           "verdict": "approved",
-          "reviewed_content_sha256": "60287609aa7b39d115708519ea83b0a4d36492ceee2b25461cfc88008054088c",
+          "reviewed_content_sha256": "5990dc11218ea9e637a53be5610a660646bbcad0d8e76b813c4e4fc9b91a5be3",
           "signatures": [
             {
               "role": "teaching",
@@ -90,7 +90,7 @@
             "longest_option_checked": true,
             "template_leakage_checked": true
           },
-          "note": "抹灰总厚度≥35mm 应采取加强措施(本题38mm), 教材 kc:...042_0068:0 直引。工单: '分层并设加强网'固定组合为教学扩写; 正确项首位+最长模板泄漏。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+          "note": "抹灰总厚度≥35mm 应采取加强措施(本题38mm), 教材 kc:...042_0068:0 直引。工单: '分层并设加强网'固定组合为教学扩写; 正确项首位+最长模板泄漏。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -140,9 +140,9 @@
       ],
       "model_answer": "内墙普通抹灰层平均总厚度≤20mm；高级抹灰层≤25mm。",
       "rule_group": "控厚度·条件维",
-      "content_sha256": "3e35d3842709081f146a8fe31591cf66935454d7bf3371f5459e3e6bb2b846b8",
+      "content_sha256": "b738083aab8268f8a4c7d9338df40dbcc358142b81527b053540bb62f68bcbd6",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q2",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "d11-fact-plaster-layer-thickness",
         "skeleton_id": "d11-skel-普通高级层厚数值",
@@ -152,7 +152,7 @@
         "review": {
           "status": "signed",
           "verdict": "approved",
-          "reviewed_content_sha256": "3e35d3842709081f146a8fe31591cf66935454d7bf3371f5459e3e6bb2b846b8",
+          "reviewed_content_sha256": "b738083aab8268f8a4c7d9338df40dbcc358142b81527b053540bb62f68bcbd6",
           "signatures": [
             {
               "role": "teaching",
@@ -172,7 +172,7 @@
             "longest_option_checked": true,
             "template_leakage_checked": true
           },
-          "note": "普通抹灰≤20mm/高级≤25mm, 真题 exam:2023:第26题 逐项支持。工单: 干扰项机械换数。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+          "note": "普通抹灰≤20mm/高级≤25mm, 真题 exam:2023:第26题 逐项支持。工单: 干扰项机械换数。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -222,9 +222,9 @@
       ],
       "model_answer": "不同材料基体交接处应设加强网跨越接缝，分摊差动位移防止通缝开裂。",
       "rule_group": "交接防裂·条件维",
-      "content_sha256": "c9ca8d04a9d792a2c9fbe614cc52d79dd75742734c9b6bf72d28f20bbfe4d770",
+      "content_sha256": "86ff9d7cfbc49c6d9dcd35dbb1a7f6baa56c3d08042a46c71d92754a67c07ec4",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q3",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "d11-fact-column-infill-mesh",
         "skeleton_id": "d11-skel-柱填充墙交接设网",
@@ -234,7 +234,7 @@
         "review": {
           "status": "signed",
           "verdict": "approved",
-          "reviewed_content_sha256": "c9ca8d04a9d792a2c9fbe614cc52d79dd75742734c9b6bf72d28f20bbfe4d770",
+          "reviewed_content_sha256": "86ff9d7cfbc49c6d9dcd35dbb1a7f6baa56c3d08042a46c71d92754a67c07ec4",
           "signatures": [
             {
               "role": "teaching",
@@ -254,7 +254,7 @@
             "longest_option_checked": true,
             "template_leakage_checked": true
           },
-          "note": "柱与填充墙接触面应设加强网片, 真题 exam:2024:第14页 逐字直引。'分摊差动位移'为解释性扩写不改措施。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+          "note": "柱与填充墙接触面应设加强网片, 真题 exam:2024:第14页 逐字直引。'分摊差动位移'为解释性扩写不改措施。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -304,9 +304,9 @@
       ],
       "model_answer": "加强网与各基体的搭接宽度不应小于 100mm。",
       "rule_group": "交接防裂·条件维",
-      "content_sha256": "bb226571fbcf001d0917e9d96782c9208065b4e5c3f8f991bdba3279c84783a4",
+      "content_sha256": "3c09061595fb04bd364139f63f9771a22c8bcd1641284b5147d71ea52664ccb7",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q4",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "d11-fact-mesh-overlap-100",
         "skeleton_id": "d11-skel-加强网搭接宽度",
@@ -316,7 +316,7 @@
         "review": {
           "status": "signed",
           "verdict": "approved",
-          "reviewed_content_sha256": "bb226571fbcf001d0917e9d96782c9208065b4e5c3f8f991bdba3279c84783a4",
+          "reviewed_content_sha256": "3c09061595fb04bd364139f63f9771a22c8bcd1641284b5147d71ea52664ccb7",
           "signatures": [
             {
               "role": "teaching",
@@ -336,7 +336,7 @@
             "longest_option_checked": true,
             "template_leakage_checked": true
           },
-          "note": "加强网与各基体搭接宽度≥100mm, 教材 kc:...043_0069:0 直引, 对象方向数值完整。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+          "note": "加强网与各基体搭接宽度≥100mm, 教材 kc:...043_0069:0 直引, 对象方向数值完整。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -386,9 +386,9 @@
       ],
       "model_answer": "用溶剂型涂料时，混凝土/抹灰基层含水率不得大于 8%。",
       "rule_group": "控含水率·条件维",
-      "content_sha256": "75bfb86dae7686693e1a03511131bdd336f1dd5fbaa10b4b86dba96b582cb1cf",
+      "content_sha256": "ff95640043d16aec3e38a2b424d64f23b40460ad875b20aaa247748df3600d16",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q5",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "d11-fact-substrate-moisture-limits",
         "skeleton_id": "d11-skel-溶剂型含水率阈值直问",
@@ -398,7 +398,7 @@
         "review": {
           "status": "signed",
           "verdict": "approved",
-          "reviewed_content_sha256": "75bfb86dae7686693e1a03511131bdd336f1dd5fbaa10b4b86dba96b582cb1cf",
+          "reviewed_content_sha256": "ff95640043d16aec3e38a2b424d64f23b40460ad875b20aaa247748df3600d16",
           "signatures": [
             {
               "role": "teaching",
@@ -418,7 +418,7 @@
             "longest_option_checked": true,
             "template_leakage_checked": true
           },
-          "note": "混凝土/抹灰基层用溶剂型涂料含水率≤8%(题干保留必要条件), 教材 kc:...043_0069:1 直引。三联 immediate_confirm(同含水率分对象 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+          "note": "混凝土/抹灰基层用溶剂型涂料含水率≤8%(题干保留必要条件), 教材 kc:...043_0069:1 直引。三联 immediate_confirm(同含水率分对象 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -468,9 +468,9 @@
       ],
       "model_answer": "用乳液型涂料时，基层含水率不得大于 10%。",
       "rule_group": "控含水率·条件维",
-      "content_sha256": "89c4cf0bd891259d7effb07056b9afeb3d685e3de78057bdd64f77482e4d7a12",
+      "content_sha256": "ae4c0f43f400399cb24d3dedf0c5f3ba2735cb0229c8598c98d8ca5a713dbb6f",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q6",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "d11-fact-substrate-moisture-limits",
         "skeleton_id": "d11-skel-乳液型含水率阈值直问",
@@ -480,7 +480,7 @@
         "review": {
           "status": "signed",
           "verdict": "approved",
-          "reviewed_content_sha256": "89c4cf0bd891259d7effb07056b9afeb3d685e3de78057bdd64f77482e4d7a12",
+          "reviewed_content_sha256": "ae4c0f43f400399cb24d3dedf0c5f3ba2735cb0229c8598c98d8ca5a713dbb6f",
           "signatures": [
             {
               "role": "teaching",
@@ -500,7 +500,7 @@
             "longest_option_checked": true,
             "template_leakage_checked": true
           },
-          "note": "乳液型涂料基层含水率≤10%,教材含水率三档卡逐字核对(8%/10%/12%),2023第2题真题印证10%为正确做法。"
+          "note": "乳液型涂料基层含水率≤10%,教材含水率三档卡逐字核对(8%/10%/12%),2023第2题真题印证10%为正确做法。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -550,9 +550,9 @@
       ],
       "model_answer": "木材基层含水率不得大于 12%。",
       "rule_group": "控含水率·条件维",
-      "content_sha256": "bf845d7755c052f95e1a0bffc05a3f6c28dcbe010a0c9210a33ea160e942ccad",
+      "content_sha256": "13dc421ae4ae8d62bfad391f0002b47676e9275abd1e7381048b8c458153a0e9",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q7",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "d11-fact-substrate-moisture-limits",
         "skeleton_id": "d11-skel-木材含水率阈值直问",
@@ -562,7 +562,7 @@
         "review": {
           "status": "signed",
           "verdict": "approved",
-          "reviewed_content_sha256": "bf845d7755c052f95e1a0bffc05a3f6c28dcbe010a0c9210a33ea160e942ccad",
+          "reviewed_content_sha256": "13dc421ae4ae8d62bfad391f0002b47676e9275abd1e7381048b8c458153a0e9",
           "signatures": [
             {
               "role": "teaching",
@@ -582,7 +582,7 @@
             "longest_option_checked": true,
             "template_leakage_checked": true
           },
-          "note": "木材基层含水率≤12%,同卡逐字核对;干扰项8%/10%错配对象判错正确。"
+          "note": "木材基层含水率≤12%,同卡逐字核对;干扰项8%/10%错配对象判错正确。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -632,9 +632,9 @@
       ],
       "model_answer": "室内抹灰环境温度一般不应低于 5℃。",
       "rule_group": "控环境·条件维",
-      "content_sha256": "116bfab38375e7c4320d2c260dfb86e6aa0800c2da1713aebd57276d228d74a6",
+      "content_sha256": "98b541a883b2d06a22881189b3ff6ff4d8b84194761f048626de0ee81a825ce9",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q8",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -644,7 +644,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "116bfab38375e7c4320d2c260dfb86e6aa0800c2da1713aebd57276d228d74a6",
+          "reviewed_content_sha256": "98b541a883b2d06a22881189b3ff6ff4d8b84194761f048626de0ee81a825ce9",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -702,9 +702,9 @@
       ],
       "model_answer": "外保温薄抹灰是外墙外保温系统的构造层（抹面胶浆+玻纤网），不属于一般/装饰抹灰工序，不能套用一般抹灰的厚度/加强要求。",
       "rule_group": "概念边界·迁移",
-      "content_sha256": "8887e9adf084cd0f036f67eb119dfe1800bb26803e19370438da56dcc7bfffe4",
+      "content_sha256": "cd3b04463841dc03b03d8375e4a5d33e98a930da5be7127b7b0be0194f4ef0ba",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q11",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -714,7 +714,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "8887e9adf084cd0f036f67eb119dfe1800bb26803e19370438da56dcc7bfffe4",
+          "reviewed_content_sha256": "cd3b04463841dc03b03d8375e4a5d33e98a930da5be7127b7b0be0194f4ef0ba",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -772,9 +772,9 @@
       ],
       "model_answer": "涂饰工程应在抹灰、吊顶、地面等湿作业完成后进行。",
       "rule_group": "工序衔接·程序维",
-      "content_sha256": "8589a0146b642258cd820b59f9ef3a2f2fa890ede596b0d0942942ff2ad4577e",
+      "content_sha256": "417508cea3624fd89680d90dea7fe21119393504ab287c7f6dc59f8c32d1cc57",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q12",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "",
         "skeleton_id": "",
@@ -784,7 +784,7 @@
         "review": {
           "status": "pending",
           "verdict": "pending",
-          "reviewed_content_sha256": "8589a0146b642258cd820b59f9ef3a2f2fa890ede596b0d0942942ff2ad4577e",
+          "reviewed_content_sha256": "417508cea3624fd89680d90dea7fe21119393504ab287c7f6dc59f8c32d1cc57",
           "signatures": [],
           "checks": {
             "source_verified": false,
@@ -842,9 +842,9 @@
       ],
       "model_answer": "含水率须分对象：溶剂型≤8%、乳液型≤10%、木材≤12%；统一 10% 对溶剂型偏高、未分对象。",
       "rule_group": "含水率诊断·计算表达维",
-      "content_sha256": "be03e19cd867522e8280b5006e6f7d5108d30347155e7379cd2eb6e8fbcda29d",
+      "content_sha256": "9bb25144625952258cdfa5f99ef8c4661729b0ddf36b0c3ba810660bcc35d468",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q13",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "d11-fact-substrate-moisture-limits",
         "skeleton_id": "d11-skel-含水率统一值纠错诊断",
@@ -854,7 +854,7 @@
         "review": {
           "status": "signed",
           "verdict": "approved",
-          "reviewed_content_sha256": "be03e19cd867522e8280b5006e6f7d5108d30347155e7379cd2eb6e8fbcda29d",
+          "reviewed_content_sha256": "9bb25144625952258cdfa5f99ef8c4661729b0ddf36b0c3ba810660bcc35d468",
           "signatures": [
             {
               "role": "teaching",
@@ -874,7 +874,7 @@
             "longest_option_checked": true,
             "template_leakage_checked": true
           },
-          "note": "统一10%会放宽溶剂型8%上限, 应8/10/12分对象控制, 教材 kc:...043_0069:1 完整支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+          "note": "统一10%会放宽溶剂型8%上限, 应8/10/12分对象控制, 教材 kc:...043_0069:1 完整支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -924,27 +924,39 @@
       ],
       "model_answer": "设加强网正确，但搭接 50mm 不妥——加强网与各基体搭接宽度不应小于 100mm。",
       "rule_group": "交接搭接诊断·计算表达维",
-      "content_sha256": "17cbd31d0773f1392b7d7d1f0be8c5b62fbd0d279cf8cd3a768b83da7e60d24a",
+      "content_sha256": "763781c0b93deefb5a33efa7cc4b54f0f1f6b66fd463a3e3ad6fa97a8fdb03b5",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q14",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "d11-fact-mesh-overlap-100",
+        "skeleton_id": "d11-skel-搭接50指错改正",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A422000_043_0069:0",
+        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "17cbd31d0773f1392b7d7d1f0be8c5b62fbd0d279cf8cd3a768b83da7e60d24a",
-          "signatures": [],
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "763781c0b93deefb5a33efa7cc4b54f0f1f6b66fd463a3e3ad6fa97a8fdb03b5",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T14:32:39+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T14:32:39+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "交底'搭接50mm'指错→不应小于100mm,教材加强网搭接卡逐字核对('加强网与各基体的搭接宽度不应小于100mm');2023真题第26题C选项以50mm设错同向印证;干扰项80mm仍<100(M08复算)/取消加强网(E07,否定正确措施)方向无误。三件套:与q4(anchor,搭接宽度数值)、新q16(d1,铺设判定)同fact异骨架。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -994,9 +1006,9 @@
       ],
       "model_answer": "全是口号、无可判分数值/部位；应补：含水率 8/10/12 分对象、总厚 35 加强+层厚 20/25、交接搭接≥100mm、室内温度≥5℃、厨卫地下室耐水腻子。",
       "rule_group": "采分诊断·末题",
-      "content_sha256": "f901a5c4eb3219fc9c182d84a7060215a87143860257eec4e77be8b91fa7b75c",
+      "content_sha256": "47a68241d4edfb505138112903d068b513218211c729bd700df095bb8634a100",
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q15",
-      "authoring_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
       "decision": {
         "fact_id": "d11-fact-substrate-moisture-limits",
         "skeleton_id": "d11-skel-抹灰质量综合诊断补写",
@@ -1006,7 +1018,7 @@
         "review": {
           "status": "signed",
           "verdict": "approved",
-          "reviewed_content_sha256": "f901a5c4eb3219fc9c182d84a7060215a87143860257eec4e77be8b91fa7b75c",
+          "reviewed_content_sha256": "47a68241d4edfb505138112903d068b513218211c729bd700df095bb8634a100",
           "signatures": [
             {
               "role": "teaching",
@@ -1026,7 +1038,89 @@
             "longest_option_checked": true,
             "template_leakage_checked": true
           },
-          "note": "复合五组事实全有包内原文: 8/10/12(kc:...043_0069:1)/耐水腻子厨卫(kc:...043_0069:2)/地下室(真题耐水腻子题ABE)/35加强+20/25+100搭接+5℃(本锚 exam:2023:第26题)。Codex FATAL 系复合题血统误判(失效模式#4, 且漏看地下室真题证据)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+          "note": "复合五组事实全有包内原文: 8/10/12(kc:...043_0069:1)/耐水腻子厨卫(kc:...043_0069:2)/地下室(真题耐水腻子题ABE)/35加强+20/25+100搭接+5℃(本锚 exam:2023:第26题)。Codex FATAL 系复合题血统误判(失效模式#4, 且漏看地下室真题证据)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "D11-html-practice-html-q16-005de8b5592f",
+      "surface_id": "practice.html",
+      "stem": "不同材料基体交接处抹灰设置加强网，下列哪种铺设做法满足搭接要求？",
+      "options": [
+        {
+          "text": "加强网跨缝铺设，与两侧基体各搭接120mm，固定牢靠后再进行抹灰作业。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "每侧120mm≥100mm，两侧都够宽，这样铺才算数。",
+          "option_id": "D11-html-practice-html-q16-005de8b5592f:option-1"
+        },
+        {
+          "text": "加强网跨缝铺设，与两侧基体各搭接90mm，同时加密固定点以弥补搭接宽度的不足。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "90离100不远，加密固定像是能补。",
+          "loss_reason": "90mm小于100mm下限，固定点再密也替代不了搭接宽度。",
+          "fix": "每侧搭接补足到不小于100mm。",
+          "option_id": "D11-html-practice-html-q16-005de8b5592f:option-2"
+        },
+        {
+          "text": "加强网整幅铺贴在交接缝一侧的基体上，另一侧依靠抹灰砂浆自身的粘结强度过渡。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "整幅铺一侧省事又平整。",
+          "loss_reason": "网没有跨缝，另一侧搭接为零，交接处照样开裂。",
+          "fix": "网必须跨缝，两侧各搭接≥100mm。",
+          "option_id": "D11-html-practice-html-q16-005de8b5592f:option-3"
+        },
+        {
+          "text": "加强网跨缝铺设，两侧搭接宽度合计不小于100mm，各侧的分配宽度可以灵活掌握。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「合计100」听着像同一条规定。",
+          "loss_reason": "口径错了——是与各基体的搭接均不小于100mm，不是两侧合计。",
+          "fix": "改成每侧各不小于100mm。",
+          "option_id": "D11-html-practice-html-q16-005de8b5592f:option-4"
+        }
+      ],
+      "model_answer": "加强网与各基体的搭接宽度不应小于100mm——跨缝铺设且每侧均不小于100mm（如各120mm）才合格。",
+      "rule_group": "交接防裂·应用维",
+      "content_sha256": "02f3b9c8a04bde367966e9e07d196a52efd3c17a0459ec3886d1fd01d6edf58a",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q16",
+      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
+      "decision": {
+        "fact_id": "d11-fact-mesh-overlap-100",
+        "skeleton_id": "d11-skel-搭接铺设两侧判定",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A422000_043_0069:0",
+        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "02f3b9c8a04bde367966e9e07d196a52efd3c17a0459ec3886d1fd01d6edf58a",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T14:32:39+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T14:32:39+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "routeB新产。铺设做法判定:每侧各120mm≥100mm为唯一合格项(数值复算:120≥100真;90<100假;单侧铺另一侧0假;'合计100'口径错=与各基体均≥100mm)。教材同卡逐字核对。skeleton与q4(数值直问)/q14(指错改正)互异=场景应用判定维。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1038,8 +1132,8 @@
     "delegated_at": "2026-07-16",
     "delegated_to": "claude-main-control",
     "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
-    "campaign": "confirm-supply-widen batch1 2026-07-21 (11-pack)",
+    "adversarial_gate": "main-control adjudication 2026-07-21 (routeB-batch1 8-gap): 新变体逐题锚回编译源原文逐字核对+数值复算;同fact三件套skeleton互异断言;异源subagent对抗核验过闸后方发布。",
+    "campaign": "routeB-batch1 8-gap 2026-07-21",
     "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
   }
 }

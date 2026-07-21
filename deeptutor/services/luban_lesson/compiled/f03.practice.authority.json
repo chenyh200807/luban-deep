@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "F03",
   "source_pack_sha256": "12b0066ad4ed932dd0ccdebf292cafb5fa005970a9108b808d4bfed705ff12e7",
-  "source_bundle_sha256": "b6a11b3fa22760d4ce4adda00af6c847ac791c7ff3de832295137ce88d35f4c7",
+  "source_bundle_sha256": "edd5819cd6215f3a646945ff6ab2d27b06cdfaa078b7eb96dc562a1306271baf",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -29,14 +29,22 @@
         "F03-html-practice-html-q2-79c629fb1226",
         "F03-html-practice-html-q3-3ad2bfdbadc0",
         "F03-html-practice-html-q4-5436a7f644e1",
+        "F03-html-practice-html-q5-3abeea20b534",
+        "F03-html-practice-html-q7-3d905b13eef6",
+        "F03-html-practice-html-q8-b70e69ee0b83",
         "F03-html-practice-html-q9-5b914e0773f1",
         "F03-html-practice-html-q10-2d6fe403e5c8",
         "F03-html-practice-html-q11-defc7bbb052d",
         "F03-html-practice-html-q12-6dd197458378",
-        "F03-html-practice-html-q15-add11dbc2a8d"
+        "F03-html-practice-html-q13-0e5175afc021",
+        "F03-html-practice-html-q14-b00ccaf8e453",
+        "F03-html-practice-html-q15-add11dbc2a8d",
+        "F03-html-practice-html-q16-6fe38b4dac44",
+        "F03-html-practice-html-q17-3e12f6a80877",
+        "F03-html-practice-html-q18-f2b998771b44"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTFlOGMzN2QzMDk1IiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03OWM2MjlmYjEyMjYiLCJGMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTNhZDJiZmRiYWRjMCIsIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNTQzNmE3ZjY0NGUxIiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYWRkMTFkYmMyYThkIl0sInBhY2tfaWQiOiJGMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImEwNDgyNWY2YTMwYTZjODA0MDE5YjIxMGZmYzcxOTA1NDFiN2MwOTc2Yjk0OTIwYjM4N2JlMzYyNmZkNDMwOGUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiOGE0MTQyNmYzMjk0ZmE0N2E3ZmNkODhhZTliNDcwYjZiOTAzNGYxMDMzZDJlYjA0NDJhNmJjNDkyMjg2NjQ1MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "245c6f314fed039d525f715a47f7fc361f6f3ec314010eff1ab19b079deca71b"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTFlOGMzN2QzMDk1IiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03OWM2MjlmYjEyMjYiLCJGMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTNhZDJiZmRiYWRjMCIsIkYwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtNTQzNmE3ZjY0NGUxIiwiRjAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYWRkMTFkYmMyYThkIl0sInBhY2tfaWQiOiJGMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImQyOWNhOTljNzMwNjRjZWEyOWY2MTU5ZmZkNzg0MWI4ZDZhNDQ3M2Q5ZjM5ZDk3ZWJiNTM5YWRkMDA3M2MwNGQiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiOGE0MTQyNmYzMjk0ZmE0N2E3ZmNkODhhZTliNDcwYjZiOTAzNGYxMDMzZDJlYjA0NDJhNmJjNDkyMjg2NjQ1MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "258242ca4655c763faa910536c39f18392a774190e115a146a099c5a24880224"
     }
   ],
   "items": [
@@ -91,17 +99,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q1",
       "source_anchor": "kc:1A413030_122_0230:0",
       "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "f03-fact-roof-grade-tiers",
       "skeleton_id": "f03-skel-屋面三级各级道数",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "1af87cdf8911a0a6d2eb8b3b54fda74f011f933f39aea376c620ca92c1bf182d",
+      "content_sha256": "05933a36c6770bbcfdacaec6f3a164be0731a11f6520661c85deb243c38efd88",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "1af87cdf8911a0a6d2eb8b3b54fda74f011f933f39aea376c620ca92c1bf182d",
+        "reviewed_content_sha256": "05933a36c6770bbcfdacaec6f3a164be0731a11f6520661c85deb243c38efd88",
         "signatures": [
           {
             "role": "teaching",
@@ -121,7 +129,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "平屋面防水分一/二/三级三级; 一级≥3道(卷材≥1道)·二级≥2道·三级≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。工单: 正确项恒非首位(选项2), template artifact 需全包扫。"
+        "note": "平屋面防水分一/二/三级三级; 一级≥3道(卷材≥1道)·二级≥2道·三级≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。工单: 正确项恒非首位(选项2), template artifact 需全包扫。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -253,17 +261,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q2",
       "source_anchor": "kc:1A413030_122_0230:0",
       "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "f03-fact-roof-level1-layers",
       "skeleton_id": "f03-skel-屋面一级3道卷材1道",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b7783982e487ff6c799161435a3af12f619bcb9091b10cb7a55c86bf4ad4d779",
+      "content_sha256": "7883eeec3ea30140244cc51b5d411b223b4acd73c70eb92888bea77c9ce79540",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b7783982e487ff6c799161435a3af12f619bcb9091b10cb7a55c86bf4ad4d779",
+        "reviewed_content_sha256": "7883eeec3ea30140244cc51b5d411b223b4acd73c70eb92888bea77c9ce79540",
         "signatures": [
           {
             "role": "teaching",
@@ -283,7 +291,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "屋面一级防水≥3道其中卷材防水层≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。"
+        "note": "屋面一级防水≥3道其中卷材防水层≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -432,17 +440,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q3",
       "source_anchor": "kc:1A413030_122_0230:2",
       "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "f03-fact-roof-basic-principle",
       "skeleton_id": "f03-skel-屋面以防为主年限20附加层",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7d70ba640e36d4fb494c23759ac9b3ae88998832f41d7d4da204979bb67f5575",
+      "content_sha256": "21dd7be910d858bd068aa271c7730242e32312cd8f15a696332f4da0d32c6f6a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7d70ba640e36d4fb494c23759ac9b3ae88998832f41d7d4da204979bb67f5575",
+        "reviewed_content_sha256": "21dd7be910d858bd068aa271c7730242e32312cd8f15a696332f4da0d32c6f6a",
         "signatures": [
           {
             "role": "teaching",
@@ -462,7 +470,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "屋面防水以防为主以排为辅·设计年限≥20年·天沟檐沟变形缝泛水设附加层, 教材 kc:1A413030_122_0230:2 直引。投影 anchor。正确项(年限口径‘工作年限’与教材‘设计年限’同指20年)。"
+        "note": "屋面防水以防为主以排为辅·设计年限≥20年·天沟檐沟变形缝泛水设附加层, 教材 kc:1A413030_122_0230:2 直引。投影 anchor。正确项(年限口径‘工作年限’与教材‘设计年限’同指20年)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -577,17 +585,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q4",
       "source_anchor": "exam:2020:第12题",
       "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "f03-fact-inverted-roof-order",
       "skeleton_id": "f03-skel-倒置式自下而上层序",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "205a1e3593ae81fac2770259ea8a3c8c52e93e969ab7fee9068dbe7adde068ef",
+      "content_sha256": "388837b191a58cebb37a669693c2d7f7427f35d36f1ae39399453d81ab40fe13",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "205a1e3593ae81fac2770259ea8a3c8c52e93e969ab7fee9068dbe7adde068ef",
+        "reviewed_content_sha256": "388837b191a58cebb37a669693c2d7f7427f35d36f1ae39399453d81ab40fe13",
         "signatures": [
           {
             "role": "teaching",
@@ -607,7 +615,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "倒置式屋面自下而上=结构层→找坡层→找平层→防水层→保温层→保护层, 真题 exam:2020:第12题 答案B(①④⑤⑥②③)+口诀‘结构找坡再找平,防水保温后保护’逐字支持。投影 anchor。"
+        "note": "倒置式屋面自下而上=结构层→找坡层→找平层→防水层→保温层→保护层, 真题 exam:2020:第12题 答案B(①④⑤⑥②③)+口诀‘结构找坡再找平,防水保温后保护’逐字支持。投影 anchor。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -788,29 +796,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "exam:2020:第12题",
+      "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
+      "fact_id": "f03-fact-inverted-roof-order",
+      "skeleton_id": "f03-skel-倒置正置区别辨析",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "add0426067adf0a118a9807ae0dbd3137d70c5a9dad2e1af1c2f7ebff1e556d6",
+      "content_sha256": "c4e72cd38c7774b655f7ae2fee3a2305aa1029dad186668a4ad6e9c0778ca95f",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "add0426067adf0a118a9807ae0dbd3137d70c5a9dad2e1af1c2f7ebff1e556d6",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "c4e72cd38c7774b655f7ae2fee3a2305aa1029dad186668a4ad6e9c0778ca95f",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "倒置式=保温层在防水层之上,锚2020真题第12题(答案B=①④⑤⑥②③,防水⑥后保温②)方向复算一致;干扰项取消找坡(E07)/整体上下颠倒(E07)/材料区别耐根穿刺(E07,种植屋面层)判错无误。三件套:与q4(anchor,全层序)、新q16(d1,相邻层定位)同fact异骨架。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：正置式 vs 倒置式",
         "caption": "区分两者的关键是哪一层的位置？",
@@ -991,17 +1011,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8563fa876eeb5334ddf2f6f3c7edcee63092204d22bee515a8a81bfcfa8613ef",
+      "content_sha256": "44e5187db639d5a55581a99e3b72a68c73edd1e03beae972807f922e648f6bf0",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "8563fa876eeb5334ddf2f6f3c7edcee63092204d22bee515a8a81bfcfa8613ef",
+        "reviewed_content_sha256": "44e5187db639d5a55581a99e3b72a68c73edd1e03beae972807f922e648f6bf0",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1139,29 +1159,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_127_0240:1",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
+      "fact_id": "f03-fact-green-roof-layers",
+      "skeleton_id": "f03-skel-多一道耐根穿刺辨析",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d63e690d0e7d117ed8d435545c54ae7e7c3f66b45915a86ff105dd8af9ee535c",
+      "content_sha256": "df3bbe41031472cb1fbaa509aebffbc83d3e684c039bf64c8f6b75b1512a5226",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "d63e690d0e7d117ed8d435545c54ae7e7c3f66b45915a86ff105dd8af9ee535c",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "df3bbe41031472cb1fbaa509aebffbc83d3e684c039bf64c8f6b75b1512a5226",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "新fact(种植屋面构造:层次链+耐根穿刺+数值)。种植屋面在普通防水层之上多一道耐根穿刺防水层,教材层次卡逐字核对(…普通防水层→耐根穿刺防水层→…,两道并存非替换);干扰项多保温层(E07)/仅过滤层(E02)/替换关系(E06)判错无误。可达性边界:本fact当前仅q7/q8/q17三件。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：种植屋面构造",
         "caption": "多出来的是哪一层？",
@@ -1323,29 +1355,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A413030_127_0240:0",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
+      "fact_id": "f03-fact-green-roof-layers",
+      "skeleton_id": "f03-skel-种植数值组合",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7ecb8cfc52ad7df425988d7320b4f398194fbbd19a47c95a924a2166f04156f3",
+      "content_sha256": "1c1ceb1cbc76d44c8bbcf994a8fdbac6447d0b08bf29c41ca4acdde72ec0af8c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "7ecb8cfc52ad7df425988d7320b4f398194fbbd19a47c95a924a2166f04156f3",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "1c1ceb1cbc76d44c8bbcf994a8fdbac6447d0b08bf29c41ca4acdde72ec0af8c",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "耐根穿刺厚度三档(改性沥青≥4mm/PVC-TPO等≥1.2mm/喷涂聚脲≥2mm)教材厚度卡逐字核对;排水坡度(平屋面≥2%/天沟檐沟≥1%)同chunk坡度卡(kc:0240:2)逐字核对,2024真题第3题(2%)同向印证;干扰项一律1mm(E03)/平屋面1%(E03)/厚度无要求(E02)复算无误。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：种植屋面参数",
         "caption": "厚度 / 坡度各是多少？",
@@ -1509,17 +1553,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q9",
       "source_anchor": "exam:2019:第12题",
       "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "f03-fact-underground-structure-method",
       "skeleton_id": "f03-skel-地下四级分级辨析",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "560b2870342eed3a46ebf4b2f6084c641d75e2f1770f91f3a90b1b166c878554",
+      "content_sha256": "3fa355e96e8f15e462e345d2bcf58383f1ae50757540862a2a6891ea4dc4ffc8",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "560b2870342eed3a46ebf4b2f6084c641d75e2f1770f91f3a90b1b166c878554",
+        "reviewed_content_sha256": "3fa355e96e8f15e462e345d2bcf58383f1ae50757540862a2a6891ea4dc4ffc8",
         "signatures": [
           {
             "role": "teaching",
@@ -1539,7 +1583,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "地下工程防水等级四级(屋面三级),2019真题C+GB50108四级定义逐字核对;同判分眼(地下防水设防)的入门辨析,加深surface fact确认池。"
+        "note": "地下工程防水等级四级(屋面三级),2019真题C+GB50108四级定义逐字核对;同判分眼(地下防水设防)的入门辨析,加深surface fact确认池。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -1688,17 +1732,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q10",
       "source_anchor": "kc:1A413030_130_0247:0",
       "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "f03-fact-underground-structure-method",
       "skeleton_id": "f03-skel-地下一级3道P8",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8f2b751c5685540dcebede59aa91503b162660ed223d0cd337c7c48c1c6c0e66",
+      "content_sha256": "6934f4798ca4362af5b7d78b603c359e964cbc67fe59f93fe8c4385acbfcde30",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8f2b751c5685540dcebede59aa91503b162660ed223d0cd337c7c48c1c6c0e66",
+        "reviewed_content_sha256": "6934f4798ca4362af5b7d78b603c359e964cbc67fe59f93fe8c4385acbfcde30",
         "signatures": [
           {
             "role": "teaching",
@@ -1718,7 +1762,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "地下一级防水≥3道·防水混凝土1道应选·外设≥2道(卷材或涂料≥1道)·抗渗≥P8, 教材 kc:1A413030_130_0247:0 直引。三件套 anchor(地下主体结构防水做法 fact)。"
+        "note": "地下一级防水≥3道·防水混凝土1道应选·外设≥2道(卷材或涂料≥1道)·抗渗≥P8, 教材 kc:1A413030_130_0247:0 直引。三件套 anchor(地下主体结构防水做法 fact)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -1867,17 +1911,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q11",
       "source_anchor": "kc:1A413030_130_0247:1",
       "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "f03-fact-underground-structure-method",
       "skeleton_id": "f03-skel-地下三级1道P6",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "24440c7a4584bf3c6ee93b4e0cc04d436fcc22f0c432f3172481f960c9008676",
+      "content_sha256": "5928d02205cf066e3884360baafe3cd87c620ec819908de35881ea2338ae7656",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "24440c7a4584bf3c6ee93b4e0cc04d436fcc22f0c432f3172481f960c9008676",
+        "reviewed_content_sha256": "5928d02205cf066e3884360baafe3cd87c620ec819908de35881ea2338ae7656",
         "signatures": [
           {
             "role": "teaching",
@@ -1897,7 +1941,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "地下三级防水≥1道·防水混凝土1道应选·外设不作要求·抗渗≥P6, 教材 kc:1A413030_130_0247:1 直引。三件套 immediate_confirm(同地下主体结构防水做法 fact, skeleton 异于 q10)。"
+        "note": "地下三级防水≥1道·防水混凝土1道应选·外设不作要求·抗渗≥P6, 教材 kc:1A413030_130_0247:1 直引。三件套 immediate_confirm(同地下主体结构防水做法 fact, skeleton 异于 q10)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -2046,17 +2090,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q12",
       "source_anchor": "kc:1A413030_130_0249:0",
       "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "f03-fact-underground-structure-method",
       "skeleton_id": "f03-skel-防水混凝土试配P8到P10",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "04843f66b7e42156528da5446f77f345f5414da036ddd9f492e20ec0a2e96c6b",
+      "content_sha256": "d84f4f59937c0d2eedd8dd78a2f7339502b122940e83a3edbd188adab24ccffb",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "04843f66b7e42156528da5446f77f345f5414da036ddd9f492e20ec0a2e96c6b",
+        "reviewed_content_sha256": "d84f4f59937c0d2eedd8dd78a2f7339502b122940e83a3edbd188adab24ccffb",
         "signatures": [
           {
             "role": "teaching",
@@ -2076,7 +2120,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "防水混凝土试配抗渗比设计提高0.2MPa(设计P8则试配P10), 教材 kc:1A413030_130_0249:0 直引。三件套 d1_probe(同 fact 之防水混凝土自防水采分点, 第3独立 skeleton)。"
+        "note": "防水混凝土试配抗渗比设计提高0.2MPa(设计P8则试配P10), 教材 kc:1A413030_130_0249:0 直引。三件套 d1_probe(同 fact 之防水混凝土自防水采分点, 第3独立 skeleton)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -2206,29 +2250,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "ca:1A413030_130_0248",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
+      "fact_id": "f03-fact-underground-joint-waterproof",
+      "skeleton_id": "f03-skel-接缝设防种数",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0caa97a74a5bba6977b6817104d3ef69810e469612b08d0641560cbab29cddea",
+      "content_sha256": "94148e082f6b3e0bf81265edd8e6203f0a8dd2997930d4582da612877b61755d",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "0caa97a74a5bba6977b6817104d3ef69810e469612b08d0641560cbab29cddea",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "94148e082f6b3e0bf81265edd8e6203f0a8dd2997930d4582da612877b61755d",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "新复合fact(地下工程接缝防水:设防种数+施工缝设置+止水条性能,粒度按C01 post-cast-strip先例)。施工缝设防≥2种/后浇带≥1种,锚明挖法接缝设防卡(grading_keywords=不应少于2种,中埋式中孔型橡胶止水带,遇水膨胀止水条,预埋注浆管)+kc:0248:0/0248:1逐字核对;干扰项均1种(E03)/种数记反(E07)/后浇带免设防(E02)复算无误。可达性边界:本fact当前仅q13/q14/q18三件。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：接缝防水设防",
         "caption": "施工缝、后浇带各几种？",
@@ -2390,29 +2446,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "ca:1A413030_131_0250",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
+      "fact_id": "f03-fact-underground-joint-waterproof",
+      "skeleton_id": "f03-skel-水平缝位置止水条数值",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "759565755bef5c10c43ce69360e1b1d20ac942cd23bb0ab40d4754889c364a1c",
+      "content_sha256": "60bc133b209935ebcd12184958002b3760cfe4fce1596a289e0eaa44fc90d039",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "759565755bef5c10c43ce69360e1b1d20ac942cd23bb0ab40d4754889c364a1c",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "60bc133b209935ebcd12184958002b3760cfe4fce1596a289e0eaa44fc90d039",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "水平施工缝高出底板≥300mm/距孔洞边缘≥300mm(kc:0250:0逐字)+遇水膨胀止水条最终膨胀率≥220%(kc:0250:1逐字,60%为7d净膨胀率上限指标,干扰项两指标互混判错正确);锚施工缝设置卡(grading_keywords=300mm,遇水膨胀止水条,220%)。干扰项留底板面(E10)/100mm(E03)复算无误。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：水平施工缝设置",
         "caption": "高出底板多少？止水条膨胀率多少？",
@@ -2576,17 +2644,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q15",
       "source_anchor": "kc:1A413030_133_0256:0",
       "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-      "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
       "fact_id": "f03-fact-indoor-waterproof-height",
       "skeleton_id": "f03-skel-室内翻起三档诊断",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2f1bf1e830ec79a6de35099d9ec6254e0a3a6be6c21e499949c4f0f6d1a73c79",
+      "content_sha256": "2d9ef4efd27b4d019e9edb8cf9664ff3d4d00e550efa4f21bdfdf89e3bdce312",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "2f1bf1e830ec79a6de35099d9ec6254e0a3a6be6c21e499949c4f0f6d1a73c79",
+        "reviewed_content_sha256": "2d9ef4efd27b4d019e9edb8cf9664ff3d4d00e550efa4f21bdfdf89e3bdce312",
         "signatures": [
           {
             "role": "teaching",
@@ -2606,7 +2674,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "室内防水翻起 淋浴区≥2000mm·盥洗用水处≥1200mm·其他泛水≥250mm, 教材 kc:1A413030_133_0256:0 直引; 诊断末题正确项=淋浴1800偏低改≥2000/盥洗补≥1200/其他250对。投影 anchor。"
+        "note": "室内防水翻起 淋浴区≥2000mm·盥洗用水处≥1200mm·其他泛水≥250mm, 教材 kc:1A413030_133_0256:0 直引; 诊断末题正确项=淋浴1800偏低改≥2000/盥洗补≥1200/其他250对。投影 anchor。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -2731,6 +2799,611 @@
             "ta": "center",
             "p": "0",
             "lab": "?mm"
+          }
+        ],
+        "h": 100,
+        "w": 334,
+        "bg": "#ffffff"
+      }
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "屋面·倒置相邻层",
+      "stem": "倒置式屋面中，防水层直接做在哪一层上面？它的上一层又是什么？",
+      "model_answer": "防水层做在找平层上面（结构找坡后找平）；防水层之上是保温层，最上面做保护层。",
+      "options": [
+        {
+          "text": "防水层做在保温层上面，其上直接为保护层，与正置式屋面的构造层序完全相同。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "正置式层序背熟了，顺手套上。",
+          "loss_reason": "这正是正置式——倒置式的保温层在防水层之上，不在其下。",
+          "fix": "倒置式：找平→防水→保温→保护。",
+          "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-1"
+        },
+        {
+          "text": "防水层直接做在结构层上面，先做防水再做找坡与找平，让防水层随板面铺贴平整。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "先把水挡住再做面层，听着稳妥。",
+          "loss_reason": "顺序颠倒——找坡、找平在防水之前，防水要做在找平层上。",
+          "fix": "结构层→找坡→找平之后才轮到防水层。",
+          "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-2"
+        },
+        {
+          "text": "防水层做在找平层上面；它的上一层是保温层，保温层之上再做保护层。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "找平托着防水、保温压着防水，相邻关系答准就得分。",
+          "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-3"
+        },
+        {
+          "text": "防水层做在找坡层上面、找平层下面，由找平层压住防水层并兼作保护层使用。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "找坡找平都是垫层，位置容易记混。",
+          "loss_reason": "找平层在防水层之下；保护层是最上面单独一层，不能由找平层兼任。",
+          "fix": "层序：找坡→找平→防水→保温→保护。",
+          "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-4"
+        }
+      ],
+      "variant_id": "F03-html-practice-html-q16-6fe38b4dac44",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q16",
+      "source_anchor": "exam:2020:第12题",
+      "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
+      "fact_id": "f03-fact-inverted-roof-order",
+      "skeleton_id": "f03-skel-倒置式相邻层定位",
+      "probe_role": "d1_probe",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "607dc13fba39d1810c24561720f06793bcbdb6d15940a82bb6f00e67d1cae517",
+      "review": {
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "607dc13fba39d1810c24561720f06793bcbdb6d15940a82bb6f00e67d1cae517",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
+        "checks": {
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "routeB新产。防水层做在找平层上、其上为保温层,由2020真题B序①结构→④找坡→⑤找平→⑥防水→②保温→③保护逐位复算(⑤⑥相邻/⑥②相邻);干扰项正置层序(E07)/防水先于找坡找平(E06)/找平压防水兼保护(E06)方向无误。skeleton与q4(全序排序)/q5(概念辨析)互异=相邻层定位维。"
+      },
+      "eligible": true,
+      "figure": {
+        "label": "题给：倒置式屋面剖面",
+        "caption": "防水层贴着谁？上面压着谁？",
+        "els": [
+          {
+            "x": 12,
+            "top": 8,
+            "w": 102,
+            "h": 24,
+            "bg": "#c9b48a",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "找平层"
+          },
+          {
+            "x": 122,
+            "top": 8,
+            "w": 102,
+            "h": 24,
+            "bg": "#8fae7a",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "保护层"
+          },
+          {
+            "x": 232,
+            "top": 8,
+            "w": 102,
+            "h": 24,
+            "bg": "#6b7378",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "结构层"
+          },
+          {
+            "x": 12,
+            "top": 38,
+            "w": 102,
+            "h": 24,
+            "bg": "#cf8a44",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "保温层"
+          },
+          {
+            "x": 122,
+            "top": 38,
+            "w": 102,
+            "h": 24,
+            "bg": "#c9b48a",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "找坡层"
+          },
+          {
+            "x": 232,
+            "top": 38,
+            "w": 102,
+            "h": 24,
+            "bg": "#2f6db0",
+            "bd": "none",
+            "r": 5,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "防水层"
+          },
+          {
+            "x": 12,
+            "top": 72,
+            "w": 320,
+            "h": 16,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#8b9398",
+            "fs": 10,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0",
+            "lab": "倒置式：这6层自下而上怎么排？保温相对防水放哪？"
+          }
+        ],
+        "h": 94,
+        "w": 334,
+        "bg": "#ffffff"
+      }
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "屋面·种植层序",
+      "stem": "种植屋面的构造层次，自下而上排列正确的是哪一项？",
+      "model_answer": "基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。",
+      "options": [
+        {
+          "text": "基层→绝热层→找平层→耐根穿刺防水层→普通防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "两道防水挨着，先后容易记反。",
+          "loss_reason": "耐根穿刺防水层应在普通防水层之上，两道的上下位置排反了。",
+          "fix": "先普通防水层，再耐根穿刺防水层。",
+          "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-1"
+        },
+        {
+          "text": "基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "耐根穿刺在普通防水之上、保护层之下，十层链背顺就稳了。",
+          "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-2"
+        },
+        {
+          "text": "基层→找平层→绝热层→普通防水层→耐根穿刺防水层→保护层→过滤层→排（蓄）水层→种植土层→植被层。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "中段抢眼，两头的层容易松懈。",
+          "loss_reason": "绝热层应在找平层之下，过滤层应在排（蓄）水层之上，两处对调了。",
+          "fix": "绝热→找平在下段；排（蓄）水→过滤在上段。",
+          "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-3"
+        },
+        {
+          "text": "基层→绝热层→找平层→普通防水层→保护层→耐根穿刺防水层→排（蓄）水层→过滤层→种植土层→植被层。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "想让保护层先护住普通防水。",
+          "loss_reason": "耐根穿刺防水层应紧跟普通防水层之上，保护层再压其上。",
+          "fix": "普通防水→耐根穿刺→保护层。",
+          "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-4"
+        }
+      ],
+      "variant_id": "F03-html-practice-html-q17-3e12f6a80877",
+      "surface_id": "practice.html",
+      "source_index": 16,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q17",
+      "source_anchor": "kc:1A413030_127_0240:1",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
+      "fact_id": "f03-fact-green-roof-layers",
+      "skeleton_id": "f03-skel-种植自下而上层序",
+      "probe_role": "d1_probe",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "4bba63450eaf4b95b4e61ab8735872c64e258f38fc1437f11fe1336bc3948ba8",
+      "review": {
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "4bba63450eaf4b95b4e61ab8735872c64e258f38fc1437f11fe1336bc3948ba8",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
+        "checks": {
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "routeB新产。十层链自下而上排序,教材层次卡逐字核对(基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层);三个E06干扰各对调一处(普通/耐根互换、绝热/找平互换+排蓄/过滤互换、保护层前移)逐位复算判错无误;四选项全为等长层序链,无长度/箭头tell。"
+      },
+      "eligible": true,
+      "figure": {
+        "label": "题给：种植屋面构造层",
+        "caption": "十层构造 · 自下而上怎么排？",
+        "els": [
+          {
+            "x": 70,
+            "top": 6,
+            "w": 200,
+            "h": 16,
+            "bg": "#3fa06a",
+            "bd": "none",
+            "r": 3,
+            "fg": "#fff",
+            "fs": 9.5,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0 10px",
+            "lab": "植被 / 种植土"
+          },
+          {
+            "x": 70,
+            "top": 24,
+            "w": 200,
+            "h": 16,
+            "bg": "#6aa0c0",
+            "bd": "none",
+            "r": 3,
+            "fg": "#fff",
+            "fs": 9.5,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0 10px",
+            "lab": "过滤 / 排(蓄)水"
+          },
+          {
+            "x": 70,
+            "top": 42,
+            "w": 200,
+            "h": 16,
+            "bg": "#8fae7a",
+            "bd": "none",
+            "r": 3,
+            "fg": "#fff",
+            "fs": 9.5,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0 10px",
+            "lab": "保护层"
+          },
+          {
+            "x": 70,
+            "top": 60,
+            "w": 200,
+            "h": 16,
+            "bg": "#cf4436",
+            "bd": "none",
+            "r": 3,
+            "fg": "#fff",
+            "fs": 9.5,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0 10px",
+            "lab": "? 防根扎穿 ?"
+          },
+          {
+            "x": 70,
+            "top": 78,
+            "w": 200,
+            "h": 16,
+            "bg": "#2f6db0",
+            "bd": "none",
+            "r": 3,
+            "fg": "#fff",
+            "fs": 9.5,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0 10px",
+            "lab": "普通防水 / 基层"
+          },
+          {
+            "x": 276,
+            "top": 52,
+            "w": 58,
+            "h": 16,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#2c8a5b",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0",
+            "lab": "根系↓"
+          }
+        ],
+        "h": 100,
+        "w": 334,
+        "bg": "#ffffff"
+      }
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "地下·垂直施工缝",
+      "stem": "地下工程垂直施工缝的留设位置，选出正确、能得分的作答。",
+      "model_answer": "垂直施工缝应避开地下水丰富的地段，并宜与变形缝相结合。",
+      "options": [
+        {
+          "text": "垂直施工缝应避开地下水丰富的地段留设，并宜与变形缝相结合。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "避开富水地段+结合变形缝，两个关键词都落纸就得分。",
+          "option_id": "F03-html-practice-html-q18-f2b998771b44:option-1"
+        },
+        {
+          "text": "垂直施工缝宜留设在地下水丰富的地段，借助水压促使遇水膨胀止水条尽快膨胀密封。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "止水条遇水才膨胀，听着像该往水多处放。",
+          "loss_reason": "方向反了——垂直缝要避开富水地段，缝越少接触水越安全。",
+          "fix": "避开地下水丰富地段留设垂直缝。",
+          "option_id": "F03-html-practice-html-q18-f2b998771b44:option-2"
+        },
+        {
+          "text": "垂直施工缝应与变形缝相互错开布置，避免两种缝叠合削弱同一断面的防水能力。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「缝别扎堆」像是构造常识。",
+          "loss_reason": "规定恰是宜与变形缝相结合，借变形缝的止水构造一并设防。",
+          "fix": "垂直缝宜结合变形缝布置。",
+          "option_id": "F03-html-practice-html-q18-f2b998771b44:option-3"
+        },
+        {
+          "text": "垂直施工缝的位置不作专门限制，只要接缝的防水设防措施不少于2种即可满足要求。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "把设防种数当成万能兜底。",
+          "loss_reason": "2种是施工缝设防种数的规定，位置上仍要避开富水地段、宜结合变形缝。",
+          "fix": "位置与设防种数两条都要满足。",
+          "option_id": "F03-html-practice-html-q18-f2b998771b44:option-4"
+        }
+      ],
+      "variant_id": "F03-html-practice-html-q18-f2b998771b44",
+      "surface_id": "practice.html",
+      "source_index": 17,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q18",
+      "source_anchor": "kc:1A413030_131_0250:0",
+      "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+      "source_html_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
+      "fact_id": "f03-fact-underground-joint-waterproof",
+      "skeleton_id": "f03-skel-垂直缝避水结合变形缝",
+      "probe_role": "d1_probe",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "d47272c61326cbf6d101f6ef56198f8bcb2d8c9870f2dcf90417159b6a626f39",
+      "review": {
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "d47272c61326cbf6d101f6ef56198f8bcb2d8c9870f2dcf90417159b6a626f39",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
+        "checks": {
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "routeB新产。垂直施工缝避开地下水丰富地段+宜与变形缝相结合,教材同卡尾句逐字核对('垂直施工缝避开地下水丰富区,宜结合变形缝');干扰项留富水地段促膨胀(E10方向反)/与变形缝错开(E07与'宜结合'相反)/仅靠设防种数(E03混淆口径)判错无误。skeleton与q13(种数)/q14(水平缝数值)互异=垂直缝位置原则维。"
+      },
+      "eligible": true,
+      "figure": {
+        "label": "题给：垂直施工缝留设",
+        "caption": "避开哪里？宜与什么结合？",
+        "els": [
+          {
+            "x": 60,
+            "top": 70,
+            "w": 220,
+            "h": 20,
+            "bg": "#6b7378",
+            "bd": "none",
+            "r": 2,
+            "fg": "#e9edf0",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "底板"
+          },
+          {
+            "x": 150,
+            "top": 12,
+            "w": 44,
+            "h": 58,
+            "bg": "#8a9095",
+            "bd": "none",
+            "r": 2,
+            "fg": "#23282b",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": ""
+          },
+          {
+            "x": 150,
+            "top": 40,
+            "w": 44,
+            "h": 4,
+            "bg": "#cf4436",
+            "bd": "none",
+            "r": 1,
+            "fg": "#23282b",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": ""
+          },
+          {
+            "x": 198,
+            "top": 34,
+            "w": 70,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#cf4436",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0",
+            "lab": "施工缝"
+          },
+          {
+            "x": 6,
+            "top": 46,
+            "w": 58,
+            "h": 28,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#cf4436",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-end",
+            "ta": "right",
+            "p": "0",
+            "lab": "高出底板?mm"
+          },
+          {
+            "x": 198,
+            "top": 52,
+            "w": 130,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#cf8a44",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0",
+            "lab": "设防?种 · 止水条?%"
           }
         ],
         "h": 100,

@@ -424,8 +424,8 @@ def test_all_registered_finished_practices_compile_full_private_pools_and_five_q
     assert len(pack_ids) == 40
     assert all(authority is not None for authority in authorities)
     assert sum(len(authority["surfaces"]) for authority in authorities if authority) == 43
-    # 641 = 633 + 2026-07-20 补题批(C02/N02/F16/F02 各 6→8)。
-    assert sum(len(authority["items"]) for authority in authorities if authority) == 641
+    # 649 = 641 + 2026-07-21 路线B批1(C01+2/C06+2/D11+1/F03+3 新 d1_probe 补三件套)。
+    assert sum(len(authority["items"]) for authority in authorities if authority) == 649
     for authority in authorities:
         assert authority is not None
         assert len({item["variant_id"] for item in authority["items"]}) == len(

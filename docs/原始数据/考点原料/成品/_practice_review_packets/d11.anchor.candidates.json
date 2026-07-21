@@ -1,6 +1,6 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-21T01:34:40+00:00",
+  "generated_at": "2026-07-21T06:06:52+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "D11",
@@ -8,8 +8,8 @@
   "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
-    "total_items": 13,
-    "items_with_candidates": 13,
+    "total_items": 14,
+    "items_with_candidates": 14,
     "items_empty_handed": 0
   },
   "items": [
@@ -528,6 +528,46 @@
           "source_anchor": "kc:1A422000_043_0069:1",
           "quote": "基层含水率控制：混凝土或抹灰基层在用溶剂型涂料时，含水率不得大于 8%；乳液型涂料时不得大于 10%；木材基层不得大于 12%。 混凝土或抹灰基层在用溶剂型涂料时，含水率不得大于 8%；乳液型涂料时不得大于 10%；木材基层不得大于 12%。 本体·supporting 注册表辅锚(名实相符): 不同材料基体交接处抹灰防裂措施——加强网与各基体搭接宽度≥100mm + 抹灰基层含水率(溶剂型≤8%",
           "match_score": 0.2532,
+          "source_file": "docs/原始数据/考点原料/_D11_compiled_source.json",
+          "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5"
+        }
+      ]
+    },
+    {
+      "variant_id": "D11-html-practice-html-q16-005de8b5592f",
+      "candidates": [
+        {
+          "source_anchor": "kc:1A422000_043_0069:0",
+          "quote": "抹灰防裂加强网搭接宽度：不同材料基体交接处抹灰时，加强网与各基体的搭接宽度不应小于 100mm。 不同材料基体交接处抹灰时，加强网与各基体的搭接宽度不应小于 100mm。 本体·supporting 注册表辅锚(名实相符): 不同材料基体交接处抹灰防裂措施——加强网与各基体搭接宽度≥100mm + 抹灰基层含水率(溶剂型≤8%/乳液型≤10%/木材≤12%) + 厨卫找平层耐水腻子 (门窗射钉禁令",
+          "match_score": 0.427,
+          "source_file": "docs/原始数据/考点原料/_D11_compiled_source.json",
+          "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5"
+        },
+        {
+          "source_anchor": "kc:1A422000_042_0068:0",
+          "quote": "抹灰工程加强措施：抹灰总厚度≥35mm时，应采取加强措施；不同材料基体交接处，加强网搭接宽度≥100mm。 抹灰总厚度≥35mm时，应采取加强措施；不同材料基体交接处，加强网搭接宽度≥100mm。 本体·primary 注册表主锚(名实相符): 抹灰工程加强措施——抹灰总厚度≥35mm时应采取加强措施; 不同材料基体交接处加强网搭接宽度≥100mm — D11 抹灰本体最核心判分眼",
+          "match_score": 0.3922,
+          "source_file": "docs/原始数据/考点原料/_D11_compiled_source.json",
+          "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5"
+        },
+        {
+          "source_anchor": "ca:1A422000_043_0069",
+          "quote": "关于建筑装饰装修中基层处理的要求，下列说法错误的是？ 关于建筑装饰装修中基层处理的要求，下列说法错误的是？ | grading_keywords=抗碱封闭底漆,界面剂,含水率,耐水腻子 本体·supporting 注册表辅锚(名实相符): 不同材料基体交接处抹灰防裂措施——加强网与各基体搭接宽度≥100mm + 抹灰基层含水率(溶剂型≤8%/乳液型≤10%/木材≤12%) + 厨卫找平层耐水腻子 ",
+          "match_score": 0.3892,
+          "source_file": "docs/原始数据/考点原料/_D11_compiled_source.json",
+          "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5"
+        },
+        {
+          "source_anchor": "kc:1A422000_043_0069:1",
+          "quote": "基层含水率控制：混凝土或抹灰基层在用溶剂型涂料时，含水率不得大于 8%；乳液型涂料时不得大于 10%；木材基层不得大于 12%。 混凝土或抹灰基层在用溶剂型涂料时，含水率不得大于 8%；乳液型涂料时不得大于 10%；木材基层不得大于 12%。 本体·supporting 注册表辅锚(名实相符): 不同材料基体交接处抹灰防裂措施——加强网与各基体搭接宽度≥100mm + 抹灰基层含水率(溶剂型≤8%",
+          "match_score": 0.3703,
+          "source_file": "docs/原始数据/考点原料/_D11_compiled_source.json",
+          "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5"
+        },
+        {
+          "source_anchor": "kc:1A422000_043_0069:2",
+          "quote": "厨房卫生间耐水腻子：厨房、卫生间墙面的找平层应使用耐水腻子。 厨房、卫生间墙面的找平层应使用耐水腻子。 本体·supporting 注册表辅锚(名实相符): 不同材料基体交接处抹灰防裂措施——加强网与各基体搭接宽度≥100mm + 抹灰基层含水率(溶剂型≤8%/乳液型≤10%/木材≤12%) + 厨卫找平层耐水腻子 (门窗射钉禁令同chunk名实不符已剔)",
+          "match_score": 0.3703,
           "source_file": "docs/原始数据/考点原料/_D11_compiled_source.json",
           "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5"
         }
