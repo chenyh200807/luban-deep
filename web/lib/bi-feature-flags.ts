@@ -11,7 +11,8 @@ export type BiFlagKey =
   | "BI_OVERVIEW_V2_ENABLED"
   | "BI_COMMERCE_V2_ENABLED"
   | "BI_FEEDBACK_V2_ENABLED"
-  | "BI_SYSTEM_OPS_V2_ENABLED";
+  | "BI_SYSTEM_OPS_V2_ENABLED"
+  | "BI_LEARNING_PREF_V2_ENABLED";
 
 export type BiFlagSnapshot = Record<BiFlagKey, boolean>;
 
@@ -22,6 +23,7 @@ const FLAG_KEYS: readonly BiFlagKey[] = [
   "BI_COMMERCE_V2_ENABLED",
   "BI_FEEDBACK_V2_ENABLED",
   "BI_SYSTEM_OPS_V2_ENABLED",
+  "BI_LEARNING_PREF_V2_ENABLED",
 ] as const;
 
 const TRUE_TOKENS = new Set(["1", "true", "yes", "on"]);
@@ -62,6 +64,7 @@ export function defaultBiFlags(): BiFlagSnapshot {
     BI_COMMERCE_V2_ENABLED: false,
     BI_FEEDBACK_V2_ENABLED: false,
     BI_SYSTEM_OPS_V2_ENABLED: false,
+    BI_LEARNING_PREF_V2_ENABLED: false,
   };
 }
 
