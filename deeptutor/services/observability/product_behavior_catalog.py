@@ -70,6 +70,43 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
 # 与 read_model.build_retest_items 的 mode 同口径;白名单外值 ingest 拒收(防拼写漂移)。
 PRODUCT_BEHAVIOR_PRACTICE_MODES = frozenset({"forward", "review"})
 
+# object_type 注册表（2026-07-21 登记，学习模块偏好埋点计划 §6-P1）：
+# 收权此前"用了 14 个值却从未登记"的自由维度，建立单一 authority + 防拼写漂移。
+# 前 14 个是回填的既有在产值（grep yousenwebview/ 得），后 2 个是本次新增的学习内容对象。
+# ⚠️ Deviation D1：本次为**软注册表**——validate_product_behavior_event 仍不对 object_type
+# 翻硬 400 enforcement，因为硬 fail-closed 会波及全产品所有 surface(chat/assessment/login…),
+# 是独立迁移(blast radius 超本需求)。此 frozenset 现阶段是: ①单一 authority 文档；
+# ②BI 内容偏好聚合识别"学习内容对象"的口径来源(LEARNING_CONTENT_OBJECT_TYPES)。
+# follow-up: 全产品 fail-closed 迁移(枚举须无遗漏 + 加漂移测试)后再翻硬 400。
+PRODUCT_BEHAVIOR_OBJECT_TYPES = frozenset(
+    {
+        # —— 回填既有在产值（不可删，删了破坏历史数据口径）——
+        "assessment_quiz",
+        "diagnosis",
+        "first_answer",
+        "full_answer",
+        "notebook_card",
+        "password",
+        "phone_auth",
+        "question",
+        "retest",
+        "script",
+        "seethrough_day",
+        "sms_code",
+        "station",
+        "variant",
+        # —— 本次新增：学习内容对象（②内容偏好的 object 级真值）——
+        "microlesson",  # 微课/教学动画卡/考点讲解一集，object_id=<pack>:<teaching_point_id>:<episode>
+        "concept_card",  # 考点卡翻卡，object_id=<card_id>
+    }
+)
+
+# BI 内容偏好("哪几个微课/考点讲解被反复看")聚合识别的"学习内容对象"口径。
+# 是 PRODUCT_BEHAVIOR_OBJECT_TYPES 的子集，单一 authority；BI content Top-N 只认这些 object_type。
+LEARNING_CONTENT_OBJECT_TYPES = frozenset(
+    {"microlesson", "concept_card", "station", "seethrough_day"}
+)
+
 PRODUCT_BEHAVIOR_MODULES = frozenset(
     {
         "learning",
