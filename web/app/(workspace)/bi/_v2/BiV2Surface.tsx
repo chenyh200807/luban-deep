@@ -70,8 +70,8 @@ const SECTIONS: BiSideNavItem<BiV2Section>[] = [
   },
   {
     key: 'learning-pref',
-    label: '学习模块偏好',
-    summary: '学习子模块触达 × 深度、内容复看 Top、练习正确率；小样本 · 停留时长口径。',
+    label: '产品功能偏好',
+    summary: '各产品模块的触达与深度、教学内容复看与点击量、功能使用与练习热度；小样本 · 停留时长口径。',
     icon: GraduationCap,
   },
   {

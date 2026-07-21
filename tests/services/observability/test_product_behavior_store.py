@@ -119,6 +119,22 @@ def test_engagement_breakdown_computes_practice_accuracy(tmp_path: Path) -> None
     assert row["accuracy"] == round(2 / 3, 4)
 
 
+def test_engagement_breakdown_supports_module_dim(tmp_path: Path) -> None:
+    """全模块偏好("产品功能偏好")：group_dim=module 按模块聚合所有被监测模块。"""
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(store, event_id="l1", user_id="u1", module="learning")
+    _record(store, event_id="l2", user_id="u2", module="learning")
+    _record(store, event_id="c1", user_id="u1", module="chat")
+    _record(store, event_id="f1", user_id="u1", module="first_run", event_name="first_run_started")
+    rows = store.get_engagement_breakdown(group_dim="module", days=7)
+    keys = {r["key"]: r["member_count"] for r in rows}
+    assert keys["learning"] == 2  # 两个独立用户
+    assert keys["chat"] == 1
+    assert keys["first_run"] == 1
+    # 按触达降序：learning(2) 在最前
+    assert rows[0]["key"] == "learning"
+
+
 def test_engagement_breakdown_excludes_demo_cohort_by_prefix(tmp_path: Path) -> None:
     store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
     _record(store, event_id="real1", user_id="u-real", object_id="F16:tp1:1")

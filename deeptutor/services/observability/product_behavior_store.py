@@ -596,7 +596,7 @@ class SQLiteProductBehaviorStore:
         单一数据权威；bi.py 薄 handler 调它，不进 member_console/service.py（避 learner_state 受保护域）。
         exclude_user_ids 供 demo/eval cohort 隔离（默认排除，防合成数据污染真值）。
         """
-        allowed_dims = {"object_id", "object_type", "action"}
+        allowed_dims = {"object_id", "object_type", "action", "module"}
         dim = group_dim if group_dim in allowed_dims else "object_id"
         since = self._since_ms(days)
 

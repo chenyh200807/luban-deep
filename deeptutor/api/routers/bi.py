@@ -211,11 +211,23 @@ async def bi_learning_preference(
             days=days, exclude_user_id_prefixes=exclude_prefixes, **kwargs
         )
 
-    # 子模块兴趣（触达×深度，题眼）：**必须过滤到学习模块 object_type**，否则 login/chat 等
-    # 全产品对象会污染榜首（每个人都登录，phone_auth/password 会碾压 station/microlesson）。
+    # 全模块偏好（"产品功能偏好"总览）：按 module 聚合**所有**被监测模块
+    # (chat/learning/practice/first_run/assessment/history/notebook/learning_report/profile…)，
+    # 触达×深度一眼看哪个产品模块最受欢迎。login 是鉴权噪音，排除。
+    module_preference = [
+        row for row in breakdown(group_dim="module", limit=30) if row["key"] != "login"
+    ]
+    # 子模块兴趣（学习模块内部，触达×深度题眼）：过滤到学习 object_type，否则被 login/chat 碾压。
     submodule_interest = breakdown(
         group_dim="object_type",
         object_types=sorted(LEARNING_MODULE_OBJECT_TYPES),
+        limit=20,
+    )
+    # 各主题练习热度（"哪个主题的练习被做了多少次"）：按 pack 聚合复测/闯关完成事件。
+    practice_by_topic = breakdown(
+        group_dim="object_id",
+        event_names=["learning_action_completed"],
+        object_types=["retest", "full_answer"],
         limit=20,
     )
     # 内容复看 Top（"哪几个微课/考点讲解被反复看"）。
@@ -242,6 +254,7 @@ async def bi_learning_preference(
         "days": days,
         "demo_included": bool(include_demo),
         "completion_source": "dwell",
+        "module_preference": module_preference,
         "submodule_interest": submodule_interest,
         "content_top": content_top,
         "feature_usage": feature_usage,
@@ -250,6 +263,7 @@ async def bi_learning_preference(
             "correct_count": correct,
             "accuracy": round(correct / answered, 4) if answered else None,
             "by_object_type": practice_all[:20],
+            "by_topic": practice_by_topic,
         },
     }
 

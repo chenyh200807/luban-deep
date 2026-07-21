@@ -2678,6 +2678,8 @@ export interface BiLearningPracticeSummary {
   correctCount: number
   accuracy: number | null
   byObjectType: BiLearningPracticeByType[]
+  /** 各主题(pack)练习热度：key=pack_id，eventCount=该主题练习被做的次数，按热度降序 */
+  byTopic: BiLearningPrefRow[]
 }
 
 export interface BiLearningPreferenceData {
@@ -2685,6 +2687,8 @@ export interface BiLearningPreferenceData {
   demoIncluded: boolean
   /** 观看口径来源，当前为 'dwell'（停留时长；完播率不可采） */
   completionSource: string
+  /** 全产品模块偏好（chat/learning/practice/first_run/assessment/history/notebook/learning_report/profile…），按触达降序，login 已排除 */
+  modulePreference: BiLearningPrefRow[]
   submoduleInterest: BiLearningPrefRow[]
   contentTop: BiLearningPrefRow[]
   featureUsage: BiLearningPrefRow[]
@@ -2735,6 +2739,9 @@ export async function getBiLearningPreference(
     days: toNumber(record.days, days),
     demoIncluded: record.demo_included === true || record.demoIncluded === true,
     completionSource: toString(record.completion_source ?? record.completionSource, 'dwell'),
+    modulePreference: firstArray(raw, ['module_preference', 'modulePreference']).map((item, i) =>
+      normalizeLearningPrefRow(item, `module-${i + 1}`)
+    ),
     submoduleInterest: firstArray(raw, ['submodule_interest', 'submoduleInterest']).map((item, i) =>
       normalizeLearningPrefRow(item, `submodule-${i + 1}`)
     ),
@@ -2757,6 +2764,9 @@ export async function getBiLearningPreference(
           accuracy: nullableRate(row.accuracy),
         }
       }),
+      byTopic: firstArray(practiceRecord, ['by_topic', 'byTopic']).map((item, i) =>
+        normalizeLearningPrefRow(item, `topic-${i + 1}`)
+      ),
     },
   }
 }

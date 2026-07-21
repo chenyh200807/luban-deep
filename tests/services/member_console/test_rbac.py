@@ -158,7 +158,7 @@ def test_learning_pref_tab_registered_and_granted():
     且 super_admin/admin/analyst 默认可 view（analyst 只读），否则 BI 前端 accessibleSections
     永远拿不到 learning_pref，独立看板 tab 会被隐藏。"""
     assert "learning_pref" in rbac.TABS
-    assert rbac.TAB_LABELS["learning_pref"] == "学习模块偏好"
+    assert rbac.TAB_LABELS["learning_pref"] == "产品功能偏好"
     assert "learning_pref" in rbac.accessible_tabs("super_admin")
     assert "learning_pref" in rbac.accessible_tabs("admin")
     assert "learning_pref" in rbac.accessible_tabs("analyst")

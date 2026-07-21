@@ -46,6 +46,12 @@ def test_learning_preference_endpoint_shapes_and_excludes_demo(tmp_path: Path) -
     prod = asyncio.run(bi.bi_learning_preference(days=7, include_demo=False, limit=12, _auth=None))
     assert prod["completion_source"] == "dwell"
     assert prod["demo_included"] is False
+    # 全模块偏好("产品功能偏好")：真实用户的 learning/practice 模块应出现
+    demo_all = asyncio.run(bi.bi_learning_preference(days=7, include_demo=True, limit=12, _auth=None))
+    module_keys = {r["key"] for r in demo_all["module_preference"]}
+    assert {"learning", "practice"} <= module_keys
+    assert "login" not in module_keys  # 鉴权噪音排除
+    assert "by_topic" in demo_all["practice"]
     # 内容 Top 只含真实用户（demo 排除后 member_count=1）
     content = prod["content_top"]
     assert content and content[0]["key"] == "F16:tp1:1"

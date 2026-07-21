@@ -24,8 +24,9 @@ TAB_LABELS = {
     "member_ops": "会员运营",
     "commerce": "商品账务",
     "feedback": "反馈中心",
-    # 学习模块偏好驾驶舱（2026-07-21）：产品行为 read model 的聚合看板，非 PII，只读为主。
-    "learning_pref": "学习模块偏好",
+    # 产品功能偏好驾驶舱（2026-07-21）：全产品模块/功能/内容/练习的行为偏好聚合看板，
+    # 非 PII，只读为主。内部 key/flag 沿用 learning_pref（历史命名，避免改 env/section 键的连锁）。
+    "learning_pref": "产品功能偏好",
     "ops": "系统运维",
 }
 ACTION_LABELS = {
