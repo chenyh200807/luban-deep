@@ -198,6 +198,9 @@ function _retestTask(concept, packId, reason, practiceKind, taskState) {
         ? "这次验证暂时没有安全题；学习记录仍会保留"
         : "这一站的课后题正在教研签发中 · 先看讲解打底"
       : "",
+    // 到期验证优先时换轻练入口隐藏(红队 A2);一句暖说明让"入口消失"不像功能坏了——
+    // 完成到期验证后练习入口自然回来。禁审视词,给确定性。仅 review_due 携带。
+    reentryNote: reviewDue ? "完成验证后，练习入口马上回来" : "",
     task_type: reviewDue ? "review_due" : "light_practice",
     task_state: reviewDue ? "review_due" : "practice_active",
     action_kind: "retest",

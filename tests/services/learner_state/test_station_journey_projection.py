@@ -264,6 +264,43 @@ def test_confirm_supply_failure_keeps_distinct_degraded_provenance() -> None:
     assert projection["degraded_sources"] == ["variant_probe_supply"]
 
 
+def test_confirm_unavailable_reads_as_covered_when_due_validation_on_track() -> None:
+    """确认供给未开但到期验证已在轨(scheduled)时,confirm reason 改发
+    `confirm_covered_by_due_validation`——语义是「并入到期验证」而非「不可用」。
+    status 仍留 unavailable(不造新相位),blocking 仍 False,不误挡学下一站。"""
+    projection = project_station_journeys(
+        events=_completion("forward", at="2026-07-18T09:00:00+08:00"),
+        pack_lifecycle=_lifecycle(),
+        pack_review=_review(),  # enabled → due_validation 落 scheduled
+        confirm_fact_resolver=lambda _pack: set(),  # 供给空 → safe_confirm_unavailable
+    )
+    journey = projection["packs"]["N01"]
+    statuses = _statuses(journey)
+    confirm = next(step for step in journey["steps"] if step["id"] == "immediate_confirm")
+    assert statuses["due_validation"] == "scheduled"
+    assert confirm["status"] == "unavailable"
+    assert confirm["reason"] == "confirm_covered_by_due_validation"
+    assert confirm["blocking"] is False
+    assert projection["degraded"] is False
+
+
+def test_confirm_unavailable_keeps_original_reason_when_due_validation_off_track() -> None:
+    """到期验证也不在轨(复习投影降级 unavailable)时,confirm 不得谎报「已并入」——
+    保持原 `safe_confirm_unavailable`,让呈现层如实降级。"""
+    projection = project_station_journeys(
+        events=_completion("forward", at="2026-07-18T09:00:00+08:00"),
+        pack_lifecycle=_lifecycle(),
+        pack_review=_review(enabled=False),  # 复习不可用 → due_validation unavailable
+        confirm_fact_resolver=lambda _pack: set(),
+    )
+    journey = projection["packs"]["N01"]
+    statuses = _statuses(journey)
+    confirm = next(step for step in journey["steps"] if step["id"] == "immediate_confirm")
+    assert statuses["due_validation"] == "unavailable"
+    assert confirm["status"] == "unavailable"
+    assert confirm["reason"] == "safe_confirm_unavailable"
+
+
 def test_confirm_then_d1_then_followup_use_chained_canonical_terminals() -> None:
     forward = _completion("forward", at="2026-07-18T09:00:00+08:00")
     confirm = _completion(

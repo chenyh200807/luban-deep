@@ -255,6 +255,20 @@ def _project_pack(
             "due_validation", "unavailable", blocking=False, reason="review_projection_unavailable"
         )
 
+    # 轻练确认是错后加分项,不是记忆闭环的唯一兜底:本站确认供给未开
+    # (safe_confirm_unavailable)但到期验证已在轨(scheduled/current/completed)
+    # 时,本轮错题 fact 由第 5 步到期验证卷兜底必考——语义是「并入到期验证」而非
+    # 「不可用」。发精确 reason 供呈现层映射(status 仍留 unavailable,不造新相位,
+    # 防契约面扩散)。到期验证不在轨(降级 unavailable)时保持原 reason,不误报。
+    # 只改 safe_confirm_unavailable;confirm_supply_projection_unavailable 的降级
+    # 溯源(variant_probe_supply)不并入。
+    if (
+        confirm_step["status"] == "unavailable"
+        and confirm_step["reason"] == "safe_confirm_unavailable"
+        and validation_step["status"] in {"scheduled", "current", "completed"}
+    ):
+        confirm_step["reason"] = "confirm_covered_by_due_validation"
+
     if review_streak >= 2:
         followup_step = _step(
             "followup",
