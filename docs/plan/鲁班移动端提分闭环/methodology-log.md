@@ -9,6 +9,20 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-21 · 采分点恢复(第三幕):真相是 Battle2 把段折叠了 → owner 拍板恢复 → 关键决策=列 OPTIONAL 不列必备(不反转成本保证)
+
+**①现象**:接前两幕。owner 继续追问"现在的回答会有采分点吗?老蓝版明明有"。这是第三个线索,再次不能想当然。
+
+**②发现路径**:查 `submission_grader_schema.py` + git。git 铁证 commit `c5bdffe58`("判分输出减半 -39.6%,schema v2 必备 7→4 段"):老蓝版 MCQ 讲评是 **7 段**含独立采分点/知识点;Battle2 提速降本把它收成 4 段,别名 `"采分点"→correct_answer`(折叠)、knowledge_point 并入。**owner 记忆完全正确——采分点没坏没丢,是被一次成本战役刻意合并了**,且 flag `DEEPTUTOR_MCQ_FEEDBACK_COMPACT` 默认关(可回调)。用 AskUserQuestion 给三挡(独立成段/只恢复标签/完整回退7段),owner 选**独立成段+得分要点**。
+
+**③分析**:GATE trace(实现专家)厘清两条易混内容路由:**路 A**=SubmissionGrader 返回的 **raw markdown 直渲**(前端 `ai-message-state.js:249,277` 正则已认"采分点/得分点"标题→独立教学卡,零前端改动);**路 B**=exact_authority 的 metadata.scoring_points(#548 那条,另一 surface,不碰)。∴ 可见采分点靠 **prompt 让 LLM 吐 `### 采分点`**;schema 侧的 alias un-fold 只为解析结构正确(progressive_disclosure/missing_required),不是渲染开关。两条 load-bearing 事实主控独立验证:①公开边界 `_redact_dict_for_public`(unified_ws.py:461)只删 `_HIDDEN_PAYLOAD_KEYS` 的**结构化 scoring_points dict key** + 扫 footer_text,`response` markdown 正文标量原样透传→采分点**不被擦**;②前端正则认采分点。
+
+**④修法与理由(关键成本决策)**:prompt 两变体(system + system_compact)加 `### 采分点`=得分要点(选对判据+错选失分点);schema 别名 `采分点→scoring_points`(un-fold)+ `_resolve_alias` 改**最长匹配**(根治 "采分点命中" 被通用 "采分点" 截胡的子串序隐患)。**核心决策=采分点列 `OPTIONAL_SECTION_KEYS` 而非 `CHOICE_EXTRA_KEYS`(必备)**:实现专家初版列必备,会让每道缺采分点的选择错题触发第二次全量 LLM(repair),**直接反转 Battle2「compact 形状跳过 repair」的成本保证**(金丝雀测试 `test_grader_compact_shape_without_optional_sections_skips_repair` 因此变红——这红是信号不是噪声)。改判 OPTIONAL:可见采分点走 prompt markdown 直渲(owner 看到的就是它),schema 分类只影响 repair;OPTIONAL=prompt 可靠产出 + 零 repair 成本 + 保住 Battle2 保证。若 eval 证实 LLM 漏采分点率高,再提升为必备(一行)。less is more:不加 repair 机器,让 prompt 承担,eval 定夺。
+
+**⑤验证与教训**:实现专家因 API 断线死在半路(改了 3 文件,增量落盘到位),主控从 checkpoint 接管:纠正必备→OPTIONAL、重写 6 个按"必备"写的测试为 OPTIONAL 语义、修 fallback 诚实测试的子串误判。测试 31(submission_grader)+ 111(question agent/review/user_visible)+ 90(progressive_disclosure/redact/contract)+ 93(其它消费方)全绿。教训:一,owner 的历史记忆("老蓝版有")往往指向被某次优化悄悄改掉的行为,查 git 比查现状更快见真章;二,恢复一个被成本战役折叠的东西,**默认别反转那次战役的成本保证**——能靠 prompt(可见层)达成的,就别动 repair(成本层),把"要不要更贵地保证"留给 eval;三,金丝雀测试变红要判"信号还是噪声"——本次它精确指出了成本反转,是资产。**未做(诚实边界):LLM 实际能否稳定写出好采分点=行为质量,单元测试证不了,上线前需一轮 eval(billable)或 test2 真机抽验;未跑前不宣称"采分点已经好了"。**
+
+---
+
 ## 2026-07-21 · 采分点复盘:我连错两次结论 → owner 直觉纠偏 → GATE 拦下"接线"大改 → 真交付是删一处跨题硬编码
 
 **①现象**:接上一条"复测三问"。owner 对"选择题错题卡为什么没有采分点"连续质疑我两次,每次都推翻了我的上一个结论。这条专记**方法层的两次翻车**——比结论值钱。
