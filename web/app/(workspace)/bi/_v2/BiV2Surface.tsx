@@ -8,6 +8,7 @@ import {
   MessageSquareWarning,
   Wrench,
   ShieldCheck,
+  GraduationCap,
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -28,6 +29,9 @@ const BiV2FeedbackPanel = dynamic(() =>
   import('./feedback/BiV2FeedbackPanel').then(module => module.BiV2FeedbackPanel)
 )
 const BiV2OpsPanel = dynamic(() => import('./ops/BiV2OpsPanel').then(module => module.BiV2OpsPanel))
+const BiV2LearningPrefPanel = dynamic(() =>
+  import('./learning-pref/BiV2LearningPrefPanel').then(module => module.BiV2LearningPrefPanel)
+)
 const BiAdminConsole = dynamic(() => import('../_components/BiAdminConsole').then(module => module.BiAdminConsole))
 
 export type BiV2Section =
@@ -35,6 +39,7 @@ export type BiV2Section =
   | 'member-ops'
   | 'commerce'
   | 'feedback'
+  | 'learning-pref'
   | 'ops'
   | 'permissions'
 
@@ -64,6 +69,12 @@ const SECTIONS: BiSideNavItem<BiV2Section>[] = [
     icon: MessageSquareWarning,
   },
   {
+    key: 'learning-pref',
+    label: '产品功能偏好',
+    summary: '各产品模块的触达与深度、教学内容复看与点击量、功能使用与练习热度；小样本 · 停留时长口径。',
+    icon: GraduationCap,
+  },
+  {
     key: 'ops',
     label: '系统运维',
     summary: '成本质量、数据可信、操作审计、权限审计、上线面板。',
@@ -82,6 +93,7 @@ function isSectionEnabled(section: BiV2Section, flags: BiFlagSnapshot) {
   if (section === 'member-ops') return flags.BI_CRM_V2_ENABLED
   if (section === 'commerce') return flags.BI_COMMERCE_V2_ENABLED
   if (section === 'feedback') return flags.BI_FEEDBACK_V2_ENABLED
+  if (section === 'learning-pref') return flags.BI_LEARNING_PREF_V2_ENABLED
   // 权限管理是基础治理能力，始终可用（不受单 tab 灰度 flag 控制）。
   if (section === 'permissions') return true
   return flags.BI_SYSTEM_OPS_V2_ENABLED
@@ -92,6 +104,7 @@ const BACKEND_TAB_TO_SECTION: Record<string, BiV2Section> = {
   member_ops: 'member-ops',
   commerce: 'commerce',
   feedback: 'feedback',
+  learning_pref: 'learning-pref',
   ops: 'ops',
 }
 
@@ -285,6 +298,8 @@ function BiV2AuthenticatedSurface({
     )
   } else if (section === 'feedback') {
     panel = <BiV2FeedbackPanel flagEnabled={flags.BI_FEEDBACK_V2_ENABLED} />
+  } else if (section === 'learning-pref') {
+    panel = <BiV2LearningPrefPanel flagEnabled={flags.BI_LEARNING_PREF_V2_ENABLED} />
   } else if (section === 'ops') {
     panel = <BiV2OpsPanel flagEnabled={flags.BI_SYSTEM_OPS_V2_ENABLED} />
   } else if (section === 'permissions') {

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -125,6 +126,11 @@ class SQLiteProductBehaviorStore:
             )
             conn.execute(
                 "create index if not exists idx_pbe_event_time on product_behavior_events(event_name, occurred_at_ms)"
+            )
+            # 学习模块偏好计划 §6-P1：object 级 Top-N(内容偏好/练习正确率)全局聚合走此索引，
+            # 否则 get_engagement_breakdown 的 BI-wide 查询全表扫。
+            conn.execute(
+                "create index if not exists idx_pbe_object on product_behavior_events(object_type, object_id, occurred_at_ms)"
             )
 
     def record_event(self, event: dict[str, Any]) -> dict[str, Any]:
@@ -566,6 +572,131 @@ class SQLiteProductBehaviorStore:
 
     def get_learning_report_section_breakdown(self, user_id: str, *, days: int = 7) -> list[dict[str, Any]]:
         return self.get_learning_report_section_breakdown_for_identity_group([user_id], days=days)
+
+    def get_engagement_breakdown(
+        self,
+        *,
+        group_dim: str = "object_id",
+        days: int = 7,
+        module: str | None = None,
+        event_names: Sequence[str] | None = None,
+        object_types: Sequence[str] | None = None,
+        exclude_user_ids: Sequence[str] | None = None,
+        exclude_user_id_prefixes: Sequence[str] | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """学习模块偏好计划 §6-P1 的单一参数化 object 级聚合（泛化自 section breakdown）。
+
+        一次 group-by 同时支撑三个偏好切面（同事实的不同 group_dim，非三套 authority）：
+        - 内容偏好（"哪几个微课/考点讲解被反复看"）：group_dim=object_id,
+          object_types=LEARNING_CONTENT_OBJECT_TYPES, module=learning。
+        - 功能偏好（"哪些功能被点得多"）：group_dim=object_id|action, module=learning。
+        - 练习正确率（"练习做了多少+对不对"）：event_names=[retest_item_answered],
+          answered/correct 来自 result 字段。
+        单一数据权威；bi.py 薄 handler 调它，不进 member_console/service.py（避 learner_state 受保护域）。
+        exclude_user_ids 供 demo/eval cohort 隔离（默认排除，防合成数据污染真值）。
+        """
+        allowed_dims = {"object_id", "object_type", "action", "module"}
+        dim = group_dim if group_dim in allowed_dims else "object_id"
+        since = self._since_ms(days)
+
+        where = ["occurred_at_ms >= ?"]
+        params: list[Any] = [since]
+        if module:
+            where.append("module = ?")
+            params.append(str(module))
+        events = [str(e).strip() for e in (event_names or []) if str(e).strip()]
+        if events:
+            where.append(f"event_name in ({','.join('?' for _ in events)})")
+            params.extend(events)
+        otypes = [str(o).strip() for o in (object_types or []) if str(o).strip()]
+        if otypes:
+            where.append(f"object_type in ({','.join('?' for _ in otypes)})")
+            params.extend(otypes)
+        excluded = sorted({str(u).strip() for u in (exclude_user_ids or []) if str(u).strip()})
+        if excluded:
+            where.append(f"user_id not in ({','.join('?' for _ in excluded)})")
+            params.extend(excluded)
+        # demo/eval cohort 隔离（D 红线）：按账号前缀排除合成数据，防污染真值。
+        # SQLite LIKE 的 _ / % 是通配符，需转义 + 声明 escape，否则 'eval_' 会误匹配 'evalX'。
+        excluded_prefixes = sorted({str(p).strip() for p in (exclude_user_id_prefixes or []) if str(p).strip()})
+        for prefix in excluded_prefixes:
+            where.append(r"user_id not like ? escape '\'")
+            params.append(prefix.replace("\\", r"\\").replace("%", r"\%").replace("_", r"\_") + "%")
+        # 分组维度为空的事件不计入（如 object_id 维度下未带 object 的埋点）。
+        where.append(f"{dim} != ''")
+
+        sql = f"""
+            select {dim} as k, object_type, user_id, visit_id, result,
+                   visible_ms, duration_ms, count(*) as event_count
+            from product_behavior_events
+            where {' and '.join(where)}
+            group by {dim}, object_type, user_id, visit_id, result, visible_ms, duration_ms
+        """
+        with self._connect() as conn:
+            rows = conn.execute(sql, tuple(params)).fetchall()
+
+        buckets: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            key = str(row["k"])
+            event_count = int(row["event_count"] or 0)
+            bucket = buckets.setdefault(
+                key,
+                {
+                    "key": key,
+                    "object_types": {},
+                    "members": set(),
+                    "visits": set(),
+                    "event_count": 0,
+                    "answered_count": 0,
+                    "correct_count": 0,
+                    "_dwell_sum": 0,
+                    "_dwell_n": 0,
+                },
+            )
+            object_type = str(row["object_type"] or "")
+            if object_type:
+                bucket["object_types"][object_type] = bucket["object_types"].get(object_type, 0) + event_count
+            user_id = str(row["user_id"] or "")
+            visit_id = str(row["visit_id"] or "")
+            if user_id:
+                bucket["members"].add(user_id)
+                if visit_id:
+                    bucket["visits"].add((user_id, visit_id))
+            bucket["event_count"] += event_count
+            result = str(row["result"] or "")
+            if result in {"correct", "incorrect"}:
+                bucket["answered_count"] += event_count
+                if result == "correct":
+                    bucket["correct_count"] += event_count
+            dwell_ms = int(row["visible_ms"] or row["duration_ms"] or 0)
+            if dwell_ms > 0:
+                bucket["_dwell_sum"] += dwell_ms * event_count
+                bucket["_dwell_n"] += event_count
+
+        breakdown: list[dict[str, Any]] = []
+        for bucket in buckets.values():
+            member_count = len(bucket["members"])
+            answered = bucket["answered_count"]
+            dominant_type = ""
+            if bucket["object_types"]:
+                dominant_type = max(bucket["object_types"].items(), key=lambda kv: kv[1])[0]
+            breakdown.append(
+                {
+                    "key": bucket["key"],
+                    "object_type": dominant_type,
+                    "member_count": member_count,
+                    "visit_count": len(bucket["visits"]),
+                    "event_count": bucket["event_count"],
+                    "answered_count": answered,
+                    "correct_count": bucket["correct_count"],
+                    "accuracy": round(bucket["correct_count"] / answered, 4) if answered else None,
+                    "repeat_rate": round(bucket["event_count"] / member_count, 4) if member_count else 0.0,
+                    "avg_dwell_ms": int(bucket["_dwell_sum"] / bucket["_dwell_n"]) if bucket["_dwell_n"] else 0,
+                }
+            )
+        breakdown.sort(key=lambda item: (item["member_count"], item["event_count"]), reverse=True)
+        return breakdown[: max(1, int(limit))] if limit else breakdown
 
     def get_member_timeline_for_identity_group(
         self,

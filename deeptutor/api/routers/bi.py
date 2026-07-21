@@ -24,6 +24,15 @@ from deeptutor.api.routers.member import (
 from deeptutor.services.config import get_env_store
 from deeptutor.services.bi_service import get_bi_service
 from deeptutor.services.member_console.service import get_member_console_service
+from deeptutor.services.observability import get_product_behavior_store
+from deeptutor.services.observability.product_behavior_catalog import (
+    LEARNING_CONTENT_OBJECT_TYPES,
+    LEARNING_MODULE_OBJECT_TYPES,
+)
+
+# demo/eval cohort 账号前缀（AGENTS Eval Runner Identity 单一口径）；学习偏好看板默认排除,
+# 防合成演示数据污染生产真值（计划 §6-P4 红线）。
+_LEARNING_PREF_DEMO_PREFIXES = ("qa_eval_", "eval_", "qa_")
 
 
 def _bi_public_enabled() -> bool:
@@ -178,6 +187,85 @@ async def bi_tools(
     _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_tool_stats(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
+
+
+@router.get("/learning-preference")
+async def bi_learning_preference(
+    days: int = Query(7, ge=1, le=365),
+    include_demo: bool = Query(False),
+    limit: int = Query(12, ge=1, le=50),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
+) -> dict[str, Any]:
+    """学习模块偏好驾驶舱数据（计划 §6-P1）。
+
+    单一数据权威 = product_behavior_store.get_engagement_breakdown（一个参数化聚合的多个 group_dim）；
+    薄 handler 只组装/转发，不碰受保护的 member_console/service.py。
+    完播率架构不可采（web-view 沙箱，计划 §5），改用停留时长 → completion_source='dwell'。
+    include_demo=False 时按 eval cohort 前缀排除合成数据（生产真值口径）。
+    """
+    store = get_product_behavior_store()
+    exclude_prefixes = None if include_demo else _LEARNING_PREF_DEMO_PREFIXES
+
+    def breakdown(**kwargs: Any) -> list[dict[str, Any]]:
+        return store.get_engagement_breakdown(
+            days=days, exclude_user_id_prefixes=exclude_prefixes, **kwargs
+        )
+
+    # 全模块偏好（"产品功能偏好"总览）：按 module 聚合**所有**被监测模块
+    # (chat/learning/practice/first_run/assessment/history/notebook/learning_report/profile…)，
+    # 触达×深度一眼看哪个产品模块最受欢迎。login 是鉴权噪音，排除。
+    module_preference = [
+        row for row in breakdown(group_dim="module", limit=30) if row["key"] != "login"
+    ]
+    # 子模块兴趣（学习模块内部，触达×深度题眼）：过滤到学习 object_type，否则被 login/chat 碾压。
+    submodule_interest = breakdown(
+        group_dim="object_type",
+        object_types=sorted(LEARNING_MODULE_OBJECT_TYPES),
+        limit=20,
+    )
+    # 各主题练习热度（"哪个主题的练习被做了多少次"）：按 pack 聚合复测/闯关完成事件。
+    practice_by_topic = breakdown(
+        group_dim="object_id",
+        event_names=["learning_action_completed"],
+        object_types=["retest", "full_answer"],
+        limit=20,
+    )
+    # 内容复看 Top（"哪几个微课/考点讲解被反复看"）。
+    content_top = breakdown(
+        group_dim="object_id",
+        object_types=sorted(LEARNING_CONTENT_OBJECT_TYPES),
+        limit=limit,
+    )
+    # 功能偏好（学习驾驶舱"哪些功能被点得多"）：只认 learning_action_started，排除
+    # module_viewed(view)/module_exited(return) 生命周期动作，否则"浏览/返回"混进功能榜。
+    feature_usage = breakdown(
+        group_dim="action",
+        module="learning",
+        event_names=["learning_action_started"],
+        limit=20,
+    )
+    # 练习量 + 正确率（retest_item_answered 的 result=correct/incorrect）。
+    # 全局总量走 limit=0 不截断（防 object_type 基数超 20 时少计）；明细展示取 Top 20。
+    practice_all = breakdown(group_dim="object_type", event_names=["retest_item_answered"], limit=0)
+    answered = sum(int(row["answered_count"]) for row in practice_all)
+    correct = sum(int(row["correct_count"]) for row in practice_all)
+
+    return {
+        "days": days,
+        "demo_included": bool(include_demo),
+        "completion_source": "dwell",
+        "module_preference": module_preference,
+        "submodule_interest": submodule_interest,
+        "content_top": content_top,
+        "feature_usage": feature_usage,
+        "practice": {
+            "answered_count": answered,
+            "correct_count": correct,
+            "accuracy": round(correct / answered, 4) if answered else None,
+            "by_object_type": practice_all[:20],
+            "by_topic": practice_by_topic,
+        },
+    }
 
 
 @router.get("/knowledge")

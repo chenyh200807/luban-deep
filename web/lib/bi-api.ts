@@ -2643,3 +2643,130 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     moduleIssues,
   }
 }
+
+/* ============================================================================
+ * 学习模块偏好（P3 埋点计划）——消费 /api/v1/bi/learning-preference。
+ * 全 C 级指标（product_behavior_store）；口径见 bi_metrics.py behavior.learning.*。
+ * 诚实性：accuracy 用 number|null 保留"无作答=不可算"，绝不 0 冒充；
+ * completion_source 透传（当前 dwell，完播率架构不可采）。
+ * ========================================================================== */
+export interface BiLearningPrefRow {
+  /** submodule=object_type / content=object_id / feature=action */
+  key: string
+  objectType: string
+  memberCount: number
+  visitCount: number
+  eventCount: number
+  answeredCount: number
+  correctCount: number
+  /** 正确率 0-1；无作答/不可算时为 null（不补 0） */
+  accuracy: number | null
+  /** 复看率（view / 独立观看人数） */
+  repeatRate: number
+  avgDwellMs: number
+}
+
+export interface BiLearningPracticeByType {
+  objectType: string
+  answeredCount: number
+  correctCount: number
+  accuracy: number | null
+}
+
+export interface BiLearningPracticeSummary {
+  answeredCount: number
+  correctCount: number
+  accuracy: number | null
+  byObjectType: BiLearningPracticeByType[]
+  /** 各主题(pack)练习热度：key=pack_id，eventCount=该主题练习被做的次数，按热度降序 */
+  byTopic: BiLearningPrefRow[]
+}
+
+export interface BiLearningPreferenceData {
+  days: number
+  demoIncluded: boolean
+  /** 观看口径来源，当前为 'dwell'（停留时长；完播率不可采） */
+  completionSource: string
+  /** 全产品模块偏好（chat/learning/practice/first_run/assessment/history/notebook/learning_report/profile…），按触达降序，login 已排除 */
+  modulePreference: BiLearningPrefRow[]
+  submoduleInterest: BiLearningPrefRow[]
+  contentTop: BiLearningPrefRow[]
+  featureUsage: BiLearningPrefRow[]
+  practice: BiLearningPracticeSummary
+}
+
+/** accuracy 语义：null（不可算）与 0（真的全错）不可混淆，保留 null。 */
+function nullableRate(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = toNumber(value, Number.NaN)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function normalizeLearningPrefRow(item: unknown, fallbackKey = ''): BiLearningPrefRow {
+  const record = asRecord(item)
+  return {
+    key: toString(
+      record.key ?? record.object_type ?? record.object_id ?? record.action,
+      fallbackKey
+    ),
+    objectType: toString(record.object_type ?? record.objectType, ''),
+    memberCount: toNumber(record.member_count ?? record.memberCount, 0),
+    visitCount: toNumber(record.visit_count ?? record.visitCount, 0),
+    eventCount: toNumber(record.event_count ?? record.eventCount, 0),
+    answeredCount: toNumber(record.answered_count ?? record.answeredCount, 0),
+    correctCount: toNumber(record.correct_count ?? record.correctCount, 0),
+    accuracy: nullableRate(record.accuracy),
+    repeatRate: toNumber(record.repeat_rate ?? record.repeatRate, 0),
+    avgDwellMs: toNumber(record.avg_dwell_ms ?? record.avgDwellMs, 0),
+  }
+}
+
+export async function getBiLearningPreference(
+  days = 7,
+  includeDemo = false,
+  limit = 12
+): Promise<BiLearningPreferenceData> {
+  const raw = unwrapPayload(
+    await fetchBiJson('/api/v1/bi/learning-preference', {
+      days,
+      include_demo: includeDemo,
+      limit,
+    })
+  )
+  const record = asRecord(raw)
+  const practiceRecord = asRecord(firstRecord(raw, ['practice']))
+  return {
+    days: toNumber(record.days, days),
+    demoIncluded: record.demo_included === true || record.demoIncluded === true,
+    completionSource: toString(record.completion_source ?? record.completionSource, 'dwell'),
+    modulePreference: firstArray(raw, ['module_preference', 'modulePreference']).map((item, i) =>
+      normalizeLearningPrefRow(item, `module-${i + 1}`)
+    ),
+    submoduleInterest: firstArray(raw, ['submodule_interest', 'submoduleInterest']).map((item, i) =>
+      normalizeLearningPrefRow(item, `submodule-${i + 1}`)
+    ),
+    contentTop: firstArray(raw, ['content_top', 'contentTop']).map((item, i) =>
+      normalizeLearningPrefRow(item, `content-${i + 1}`)
+    ),
+    featureUsage: firstArray(raw, ['feature_usage', 'featureUsage']).map((item, i) =>
+      normalizeLearningPrefRow(item, `feature-${i + 1}`)
+    ),
+    practice: {
+      answeredCount: toNumber(practiceRecord.answered_count ?? practiceRecord.answeredCount, 0),
+      correctCount: toNumber(practiceRecord.correct_count ?? practiceRecord.correctCount, 0),
+      accuracy: nullableRate(practiceRecord.accuracy),
+      byObjectType: firstArray(practiceRecord, ['by_object_type', 'byObjectType']).map((item, i) => {
+        const row = asRecord(item)
+        return {
+          objectType: toString(row.object_type ?? row.objectType ?? row.key, `type-${i + 1}`),
+          answeredCount: toNumber(row.answered_count ?? row.answeredCount, 0),
+          correctCount: toNumber(row.correct_count ?? row.correctCount, 0),
+          accuracy: nullableRate(row.accuracy),
+        }
+      }),
+      byTopic: firstArray(practiceRecord, ['by_topic', 'byTopic']).map((item, i) =>
+        normalizeLearningPrefRow(item, `topic-${i + 1}`)
+      ),
+    },
+  }
+}

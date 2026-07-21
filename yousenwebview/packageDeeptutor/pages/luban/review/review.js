@@ -16,6 +16,7 @@ var route = require("../../../utils/route");
 var runtime = require("../../../utils/runtime");
 var mistakeBookViewModel = require("../../../utils/mistake-book-view-model");
 var reviewViewModel = require("../../../utils/review-view-model");
+var telemetry = require("../../../utils/surface-telemetry");
 
 Page({
   data: {
@@ -42,6 +43,8 @@ Page({
       runtime.redirectToLogin(route.lubanReview());
       return;
     }
+    // 入口曝光(漏斗分母):复习页只补 module_viewed,不埋页内交互。
+    telemetry.trackModuleView(this, { module: "learning", section: "review" });
     this._loadAll();
   },
 

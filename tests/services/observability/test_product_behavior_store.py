@@ -37,6 +37,119 @@ def test_store_dedupes_events_and_builds_member_summary(tmp_path: Path) -> None:
     assert summary["trust_level"] == "B"
 
 
+def _record(store: SQLiteProductBehaviorStore, **overrides) -> None:
+    """record_event 从 properties_json 读维度字段（与 surface_events ingest 同路径），
+    故 object_type/object_id/result 等必须放进 properties_json，不能只放顶层。"""
+    now_ms = int(time.time() * 1000)
+    dims = {
+        key: overrides.pop(key)
+        for key in ("object_type", "object_id", "result", "practice_mode", "visible_ms", "duration_ms")
+        if key in overrides
+    }
+    properties = {"object_type": "microlesson", "object_id": "F16:tp1:1", **dims}
+    base = {
+        "event_id": overrides.pop("event_id"),
+        "event_name": "learning_action_started",
+        "event_version": 1,
+        "occurred_at_ms": now_ms,
+        "received_at_ms": now_ms + 10,
+        "user_id": "u1",
+        "visit_id": "visit-1",
+        "session_id": "",
+        "turn_id": "",
+        "surface": "wechat_yousenwebview",
+        "module": "learning",
+        "section": "",
+        "action": "open_detail",
+        "properties_json": properties,
+    }
+    base.update(overrides)
+    store.record_event(base)
+
+
+def test_engagement_breakdown_ranks_content_and_computes_repeat_rate(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    # 微课 A：u1 看 2 次(不同 visit) + u2 看 1 次 → members=2, events=3, repeat=1.5
+    _record(store, event_id="a1", user_id="u1", visit_id="v1", object_id="F16:tp1:1")
+    _record(store, event_id="a2", user_id="u1", visit_id="v2", object_id="F16:tp1:1")
+    _record(store, event_id="a3", user_id="u2", visit_id="v3", object_id="F16:tp1:1")
+    # 微课 B：u1 看 1 次 → members=1, events=1
+    _record(store, event_id="b1", user_id="u1", visit_id="v1", object_id="F16:tp2:1")
+    # 考点卡（另一 object_type，也是学习内容）
+    _record(store, event_id="c1", user_id="u2", visit_id="v3", object_type="concept_card", object_id="card-9")
+
+    content = store.get_engagement_breakdown(
+        group_dim="object_id",
+        object_types=["microlesson", "concept_card"],
+        days=7,
+    )
+    top = content[0]
+    assert top["key"] == "F16:tp1:1"
+    assert top["object_type"] == "microlesson"
+    assert top["member_count"] == 2
+    assert top["visit_count"] == 3
+    assert top["event_count"] == 3
+    assert top["repeat_rate"] == 1.5
+    # 按 member_count 降序：微课 A(2) 在考点卡(1)/微课 B(1) 之前
+    assert content[0]["member_count"] >= content[1]["member_count"]
+
+
+def test_engagement_breakdown_computes_practice_accuracy(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    for idx, result in enumerate(["correct", "correct", "incorrect"]):
+        _record(
+            store,
+            event_id=f"p{idx}",
+            event_name="retest_item_answered",
+            module="practice",
+            action="complete",
+            object_type="variant",
+            object_id=f"var-{idx}",
+            result=result,
+            practice_mode="review",
+        )
+    rows = store.get_engagement_breakdown(
+        group_dim="object_type", event_names=["retest_item_answered"], days=7
+    )
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["key"] == "variant"
+    assert row["answered_count"] == 3
+    assert row["correct_count"] == 2
+    assert row["accuracy"] == round(2 / 3, 4)
+
+
+def test_engagement_breakdown_supports_module_dim(tmp_path: Path) -> None:
+    """全模块偏好("产品功能偏好")：group_dim=module 按模块聚合所有被监测模块。"""
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(store, event_id="l1", user_id="u1", module="learning")
+    _record(store, event_id="l2", user_id="u2", module="learning")
+    _record(store, event_id="c1", user_id="u1", module="chat")
+    _record(store, event_id="f1", user_id="u1", module="first_run", event_name="first_run_started")
+    rows = store.get_engagement_breakdown(group_dim="module", days=7)
+    keys = {r["key"]: r["member_count"] for r in rows}
+    assert keys["learning"] == 2  # 两个独立用户
+    assert keys["chat"] == 1
+    assert keys["first_run"] == 1
+    # 按触达降序：learning(2) 在最前
+    assert rows[0]["key"] == "learning"
+
+
+def test_engagement_breakdown_excludes_demo_cohort_by_prefix(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(store, event_id="real1", user_id="u-real", object_id="F16:tp1:1")
+    _record(store, event_id="demo1", user_id="eval_demo_1", object_id="F16:tp1:1")
+    _record(store, event_id="demo2", user_id="qa_eval_seed", object_id="F16:tp1:1")
+
+    with_demo = store.get_engagement_breakdown(group_dim="object_id", days=7)
+    assert with_demo[0]["member_count"] == 3
+
+    without_demo = store.get_engagement_breakdown(
+        group_dim="object_id", days=7, exclude_user_id_prefixes=("qa_eval_", "eval_", "qa_")
+    )
+    assert without_demo[0]["member_count"] == 1
+
+
 def test_store_builds_learning_report_section_breakdown(tmp_path: Path) -> None:
     store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
     now_ms = int(time.time() * 1000)
