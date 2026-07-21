@@ -414,3 +414,13 @@
 | 结果账本 | implementation-notes.md | 做了什么+验证数字 | 每次落地 |
 | 项目记忆 | Claude memory | 可复用 playbook/事实 | 反复出现的模式 |
 | 跨项目 skill | ~/.claude/skills | 方法论 | 极少数普适规律 |
+
+---
+
+## 2026-07-21 学习模块偏好埋点 + BI 驾驶舱(功能完整管线丢弃消费粒度)
+
+1. **现象**:owner 要"看学员喜欢学习模块的哪些功能/哪几个教学视频反复看/练习做了多少",同步到 BI 一个一目了然的独立驾驶舱看板,用于判断产品进化方向。
+2. **发现路径**:4 专家 panel 并行深读真实代码(数据权威/BI可视化+创始人决策/埋点完整性/一等怀疑者)+指挥官裁决。两次歧路:(a) 初判"学习模块=主包 freeCourse polyv 公开课",owner 纠正"不用接"——真靶=packageDeeptutor 鲁班 learn/luban 学习模块(微课/考点卡/看穿/复测);(b) owner 选了"完播率"信号,专家 C 实证证伪:微课在 web-view 内 H5 播放,station.wxml 无 bindmessage、H5 卡从不 postMessage 进度、微信 web-view 消息非实时——完播率架构拿不到,动画卡更无"完播"语义。
+3. **分析**:shape = `producer/consumer granularity mismatch` + `dormant/unregistered dimension`。数据早在管线里——`object_type` 已进聚合 SQL 的 group by(store.py:422)、`visible_ms/duration_ms` 已进表,却在两处被压平:后端 Python fold 只按 module 折叠丢了 object 粒度、前端 producer 把 episode 压成 pack;同时 object_type 用了 14 个值从未收成注册表。90% 是"捞回丢弃的粒度+收权维度+补断头 producer",不是加数据源。专家 A↔D 冲突(逻辑放 service.py 还是新 endpoint)裁决:新切面经薄 bi.py 读 store(不碰受保护的 learner_state 域 service.py),两 caller 读同一 store 函数≠第二 authority。
+4. **修法**:①store 单一参数化 `get_engagement_breakdown(group_dim=object_id|object_type|action)` 一函数多切面(非三聚合)+idx_pbe_object;②薄 bi.py `/api/v1/bi/learning-preference`;③catalog object_type 软注册表(Deviation D1:不翻硬400,全产品 fail-closed 迁移 blast radius 超本需求,留 follow-up);④完播率→停留时长(completion_source=dwell,绝不显示假完播%);⑤前端补 4 处断头 producer(全复用 trackProductBehavior,teaching_point_id 取不到退化为<pack>:tp:<episode> 恢复 episode 粒度);⑥BI 独立 tab 复用 bi-cockpit 零新原语,题眼=触达×深度错位(泡沫vs金矿);⑦demo 走 eval 前缀隔离。**独立对抗 review 抓 3 SEV-2**:submodule 无过滤致 login/password 碾压榜首、停留时长与对象脱钩生产恒0、seeder 不忠实=假绿——全修+回归测试。
+5. **验证+教训**:81 后端测试绿+tsc/eslint exit0+contract_guard 未触受保护域+demo 端到端(默认排除0行/include_demo后96题64.6%正确率+题眼可见)。**可迁移**:①owner 说"视频/功能"先确认是哪个同名模块(两个"学习"靶),别押;②owner 选的信号也要过可行性证伪(完播率架构拿不到就诚实降级,别硬做);③"加聚合"冲动先查数据是否已在管线里(object_type 早在 group by,是消费粒度丢了不是缺数据);④自己写的特性必过独立对抗 review——旗舰面板"漏一个 module 过滤"就把 login 排到"学习子模块"榜首,自审最易漏这种"看着跑得通其实测错东西"。
