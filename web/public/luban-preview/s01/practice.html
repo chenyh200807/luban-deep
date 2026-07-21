@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<style id="lz-fit-boot">.lz-card,.lz-fitwrap{zoom:var(--lz-fit,1);margin:0 auto;}body.luban-fs .lz-card{zoom:1!important;}</style><script>(function(){var r=document.documentElement;function f(){try{r.style.setProperty('--lz-fit',String(Math.min(window.innerWidth/390,2.0)))}catch(e){}}f();window.addEventListener('resize',f);window.addEventListener('orientationchange',f);})();</script>
 </head>
 <body>
 <x-dc>
@@ -48,7 +49,7 @@
 </helmet>
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
 <div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
-  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+  <div class="lz-fitwrap" style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
 
     <!-- HEADER -->
     <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">

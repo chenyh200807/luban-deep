@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<style id="lz-fit-boot">.lz-card,.lz-fitwrap{zoom:var(--lz-fit,1);margin:0 auto;}body.luban-fs .lz-card{zoom:1!important;}</style><script>(function(){var r=document.documentElement;function f(){try{r.style.setProperty('--lz-fit',String(Math.min(window.innerWidth/390,2.0)))}catch(e){}}f();window.addEventListener('resize',f);window.addEventListener('orientationchange',f);})();</script>
 </head>
 <body>
 <x-dc>
@@ -47,7 +48,7 @@
 </style>
 </helmet>
 <div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
-  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+  <div class="lz-fitwrap" style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
 
     <!-- HEADER -->
     <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">

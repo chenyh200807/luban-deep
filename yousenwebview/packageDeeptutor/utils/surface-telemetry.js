@@ -14,6 +14,12 @@ var inFlightEventIds = {};
 var BACKOFF_ACTIVATE_AFTER_FAILURES = 2;
 var BACKOFF_BASE_MS = 2000;
 var BACKOFF_MAX_MS = 60000;
+// 并发收口(2026-07-21,补齐 07-19 只修一半的缺口):退避只挡了"连续失败后",
+// 首轮 flush 仍可 21 并发打满 wx.request 10 槽饿死业务请求;且无 timeout 时
+// 默认 60s,弱网下每条失败前占槽 1 分钟。telemetry 是旁路观测,永远只许占
+// 少量槽位、快速失败;事件已先入队,超限/超时都不丢事件。
+var MAX_IN_FLIGHT_DELIVERIES = 2;
+var DELIVERY_TIMEOUT_MS = 10000;
 var consecutiveDeliveryFailures = 0;
 var deliveryBackoffUntilMs = 0;
 
@@ -103,6 +109,10 @@ function deliverEvent(event, token) {
     return;
   }
   if (inFlightEventIds[event.eventId]) return;
+  if (Object.keys(inFlightEventIds).length >= MAX_IN_FLIGHT_DELIVERIES) {
+    // 事件已在 pending 队列(deliverEvent 入口先 enqueue),下轮 flush 自然补发。
+    return;
+  }
   inFlightEventIds[event.eventId] = true;
   var headers = {
     "Content-Type": "application/json",
@@ -113,6 +123,7 @@ function deliverEvent(event, token) {
     wx.request({
       url: baseUrl + "/api/v1/observability/surface-events",
       method: "POST",
+      timeout: DELIVERY_TIMEOUT_MS,
       header: headers,
       data: {
         event_id: event.eventId,
