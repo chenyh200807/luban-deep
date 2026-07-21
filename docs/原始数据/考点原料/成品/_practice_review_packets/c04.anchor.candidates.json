@@ -1,11 +1,11 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-18T01:48:00+00:00",
+  "generated_at": "2026-07-21T01:34:40+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "C04",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/c04.practice.review.json",
-  "score_threshold": 0.1,
+  "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
     "total_items": 17,
@@ -14,7 +14,7 @@
   },
   "items": [
     {
-      "variant_id": "C04-html-practice-html-q1-3f9696fe7b90",
+      "variant_id": "C04-html-practice-html-q1-42d9eca247e1",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_099_0186:0",
@@ -36,11 +36,18 @@
           "match_score": 0.2308,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "kc:1A436000_115_0189:1",
+          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 取应急措施；待修复或排除险情后，方可继续施工。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定：",
+          "match_score": 0.2293,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q2-57b7aba68476",
+      "variant_id": "C04-html-practice-html-q2-ec4c52a11d33",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_099_0185:0",
@@ -62,11 +69,25 @@
           "match_score": 0.3235,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "exam:2022:第(三)题",
+          "quote": "方式，要求沿底板厚度方向测温点间距不大500mm。 施工作业班组在一层层、板混凝土强度未达到拆模标准（见表3）情况下，进行了部分模板拆除：拆模后，发现梁底表面出现了夹渣、麻面等质量缺陷。监理工程师要求进行整改。 #### 表3 底模及支架拆除得混凝土强度要求 | 构建类型 | 构建跨度（m） | 达到设计的混凝土立方体抗压强度标准的百分率（%） | |----------|------- 【参考答",
+          "match_score": 0.3059,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "ca:1A413030_099_0185",
+          "quote": "下列关于底模拆除时混凝土强度要求的说法中，正确的是？ 1 底模及支架拆除时的混凝土强度要求 | 构件类型 | 构件跨度（m） | 达到设计的混凝土立方体抗压强度标准值的百分率（%） | |----------|--------------",
+          "match_score": 0.2608,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q3-fd09f109c0de",
+      "variant_id": "C04-html-practice-html-q3-f9c7755968bb",
       "candidates": [
         {
           "source_anchor": "exam:2021:第9题",
@@ -88,11 +109,25 @@
           "match_score": 0.2527,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "exam:2016:案例5",
+          "quote": "施工现场消防技术方案中，临时施工道路( 宽4 米) 与施工( 消防) 用主水管沿在建 筑住宅楼环状布置。消火栓设在施工道路内侧，距中线5 米，在建住宅楼外边线距道路中 线9 米。施工用水管计算中，现场 不妥之处一：各层各留一组 C30 混凝土同条件养护试件。 正确做法：每次取样应至少留置一组标准养护试件，同一强度等级的同条件养护试件，其留置数量应 根据混凝土工程量和重要性来确定，不宜少于 10 组",
+          "match_score": 0.24,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "kc:1A413030_093_0174:2",
+          "quote": "钻芯法钻孔数量与位置：桩径<1.2m：1~2孔；1.2~1.6m：2孔；>1.6m：3孔；钻孔位置在距桩中心(0.15~0.25)D范围内均匀对称布置。 应低于设计强度 70% 且不应低于 15MPa。 ② 采用钻芯法检测，受检桩混凝土龄期应达到 28d，或者同条件养护试块强度达到设计强度要求。 ③ 一般承载力检测前的休止时间：砂土地",
+          "match_score": 0.2194,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q4-2f60c2911a87",
+      "variant_id": "C04-html-practice-html-q4-7919150be099",
       "candidates": [
         {
           "source_anchor": "exam:2024:第10题",
@@ -114,6 +149,20 @@
           "match_score": 0.2296,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "exam:2015:案例1",
+          "quote": "由于项目功能调整变更设计，导致工作C 中途出现停歇，持续时间比原计划超出2 个月，造成施工人员窝工损 (1) 不需要组织专家论证，只需要编制模板工程专项施工方案。需要编制专项施工方案和组织专家 论证的梁跨度分别为 10m 以上、18m 以上。 (2) 长度超过 4m 的梁板应按照设计起拱，若设计无要求时，可以按照梁跨度的 1/1000~3/1000 起拱。 因此梁的起拱高度为 10.5mm-31.",
+          "match_score": 0.2167,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "ca:1A413030_105_0201",
+          "quote": "关于后张法预应力施工中混凝土强度的要求，下列说法正确的是？ 度，应符合下列规定： ① 不应低于设计混凝土强度等级值的 75%； ② 不应低于锚具供应商提供的产品技术手册要求的混凝土最低强度要求； ③ 后张法预应力梁和板，现浇结构混凝土的龄期分别",
+          "match_score": 0.2037,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
@@ -140,11 +189,25 @@
           "match_score": 0.2115,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "exam:2017:问题1-5",
+          "quote": "承包人提供的相关文件、资料、证件等。经有关主管部门（市政、交通、环保等）同意后，方可进行断路施工。 （2）施工单位做好相关的保护、防护方案和防护措施； （3）夜间施工，施工单位还应当申领夜间施工许可证； （4）事先公告附近居民（事先告示）； （5）设有标志。 【解析】本题考查的是专项施工方案论证、临时用电安全、混凝土强度检测及工程验收流程。关键点在于：1）专家论证范围包括深基坑、高大模板等；2）临",
+          "match_score": 0.1955,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "ca:1A413030_099_0185",
+          "quote": "下列关于底模拆除时混凝土强度要求的说法中，正确的是？ 1 底模及支架拆除时的混凝土强度要求 | 构件类型 | 构件跨度（m） | 达到设计的混凝土立方体抗压强度标准值的百分率（%） | |----------|--------------",
+          "match_score": 0.1909,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q6-30a632b3e3e3",
+      "variant_id": "C04-html-practice-html-q6-2f57a323a8d4",
       "candidates": [
         {
           "source_anchor": "exam:2015:第10题",
@@ -166,11 +229,25 @@
           "match_score": 0.2016,
           "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
           "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A413030_093_0174:2",
+          "quote": "钻芯法钻孔数量与位置：桩径<1.2m：1~2孔；1.2~1.6m：2孔；>1.6m：3孔；钻孔位置在距桩中心(0.15~0.25)D范围内均匀对称布置。 应低于设计强度 70% 且不应低于 15MPa。 ② 采用钻芯法检测，受检桩混凝土龄期应达到 28d，或者同条件养护试块强度达到设计强度要求。 ③ 一般承载力检测前的休止时间：砂土地",
+          "match_score": 0.1828,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "exam:2016:案例1",
+          "quote": "灌注桩筏板基础，现浇钢筋混凝土框架- 剪力墙结构，建设单位与施工 单位按照《建设工程施工合同( 示范文本)》(GF—2013—0201) 签订了施工合同，约定竣工 时需向建设单位移交变形测量报告，部分主要材料由建设单位采购提供。施工单位委托第 三方测量单位进行施工阶段的建筑变形测量。 基础桩设计桩径Φ800mm、长度35m—42m，混凝土强度等级C30，共计900 根。施 工单位编制的桩基施工方案",
+          "match_score": 0.1828,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q7-f2123ca6fc06",
+      "variant_id": "C04-html-practice-html-q7-3ffbbfe53889",
       "candidates": [
         {
           "source_anchor": "exam:2015:第10题",
@@ -192,11 +269,25 @@
           "match_score": 0.359,
           "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
           "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A413030_099_0185:0",
+          "quote": "底模拆除强度要求：板类构件：跨度≤2m时，强度≥50%；2m<跨度≤8m时，强度≥75%；跨度>8m时，强度≥100%。梁、拱、壳：跨度≤8m时，强度≥75%；跨度>8m时，强度≥100%。悬臂构件：强度≥100%。 ### 模板拆除要求 （1）底模及支架拆除时的混凝土强度应符合表 3.4-1 的规定。 #### 表 3.4-1 底模及支架拆除时的混凝土强度要求 | 构件类型 | 构件跨度",
+          "match_score": 0.3538,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A413000_080_0151:0",
+          "quote": "板桩围护墙施工要点：板桩施工时，同一标高处的接头不应超过50%；混凝土板桩吊运需达70%强度，施打需达100%；拔桩后必须注浆夯实。 等较深的基坑。 - 深度不宜大于 12m。 ### （6）板桩围护墙 板桩包括混凝土板桩和钢板桩，结合内支撑（以钢支撑为主）使用，具有截水的作用。板桩施工要求有： 1. 宜采用振",
+          "match_score": 0.3402,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q8-c68c8fecf91c",
+      "variant_id": "C04-html-practice-html-q8-2b14a42136a2",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_099_0187:0",
@@ -218,11 +309,25 @@
           "match_score": 0.3261,
           "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
           "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A436000_116_0190:2",
+          "quote": "拆模区域安全措施：拆模时下方不能有人，应设警戒线；传递模板时需上下呼应，协调一致。 模板及支架的顺序进行。 ⑤ 拆模时下方不能有人，拆模区应设警戒线，以防止人误入。拆除的模板向下运送传递时，一定要做到上下呼应，协调一致。 ⑥ 楼板底模板拆除不能采取无控制大片塌落的方",
+          "match_score": 0.1739,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "exam:2022:第3题",
+          "quote": "其进行了检查，检查结果如表 5-1。 表 5-1 满堂脚手架检查结果（部分） | 检查内容 | 施工方案 | 架体稳定 | 杆件锁件 | 脚手板 | | 构件材质 | 荷载 | 合计 | |---|---|---|---|---|---|---|---|---| | 满分值 | 10 | 10 | 10 | 10 | 10 | 10 | 10 | 100 | | 得分值 | 10 | 10 | 1",
+          "match_score": 0.1522,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q9-d4ccff294645",
+      "variant_id": "C04-html-practice-html-q9-8e78bc057706",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_099_0187:0",
@@ -244,11 +349,25 @@
           "match_score": 0.2031,
           "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
           "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A436000_115_0189:1",
+          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 取应急措施；待修复或排除险情后，方可继续施工。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定：",
+          "match_score": 0.1562,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A413030_099_0186:0",
+          "quote": "侧模拆除条件：不承重侧模（梁、柱、墙）只需保证表面和棱角不受损即可拆除。墙体大模板在常温下强度达1N/mm²即可拆除。 ### 侧模拆除要求 （2）不承重的侧模板，包括梁、柱、墙的侧模板，只要混凝土强度保证其表面、棱角不因拆模而受损坏，即可拆除。一般",
+          "match_score": 0.1406,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q10-b28be6000d66",
+      "variant_id": "C04-html-practice-html-q10-cc8cd2310b2d",
       "candidates": [
         {
           "source_anchor": "kc:1A436000_116_0190:1",
@@ -270,11 +389,25 @@
           "match_score": 0.4407,
           "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
           "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "exam:2016:案例2",
+          "quote": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构 网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。 地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监 理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架 全部拆除。 “两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设 计要求，",
+          "match_score": 0.322,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "kc:1A436000_115_0189:1",
+          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 取应急措施；待修复或排除险情后，方可继续施工。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定：",
+          "match_score": 0.2712,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q11-613dbebeb7fa",
+      "variant_id": "C04-html-practice-html-q11-9b697dcf9983",
       "candidates": [
         {
           "source_anchor": "exam:2016:案例2",
@@ -296,11 +429,25 @@
           "match_score": 0.2083,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "kc:1A436000_116_0190:1",
+          "quote": "拆模前强度要求：拆模前必须确保同条件养护试块强度达到规定要求，由技术负责人批准。 ### 模板拆除的安全控制要点 ② 拆模作业之前必须填写拆模申请，并在同条件养护试块强度记录达到规定要求时，技术负责人方能批准拆模。 ③ 冬期施工的模板拆除应遵守冬期施工的有关规定，",
+          "match_score": 0.1944,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "exam:2016:第30题",
+          "quote": "求赔偿停工、窝工等损失。 索赔二 ：施工单位对剥离检验及恢复发生的费用索赔 4 万元成立。 理由：无论何时甲方提出对工程部位进行剥离检验的要求时，乙方应按要求进行剥露、若剥离检查无 问题，且在索赔时限内，因此施工方因此产生的费用损失可以索赔。 【案例二】参考答案： 1. 不正确。前置条件： (1) 底模应该在预应力张拉后拆除； (2) 底膜及支架拆除时的混凝土强度应符合同条件养护试件的强度要求； ",
+          "match_score": 0.1806,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q12-e98be625c74a",
+      "variant_id": "C04-html-practice-html-q12-d1448a6fdfbb",
       "candidates": [
         {
           "source_anchor": "kc:1A436000_116_0190:2",
@@ -322,11 +469,25 @@
           "match_score": 0.1571,
           "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
           "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A436000_116_0190:0",
+          "quote": "模板拆除顺序原则：先支的后拆，后支的先拆；先拆非承重模板，后拆承重模板及支架。 ### 模板拆除的安全控制要点 ② 拆模作业之前必须填写拆模申请，并在同条件养护试块强度记录达到规定要求时，技术负责人方能批准拆模。",
+          "match_score": 0.1571,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A436000_116_0190:1",
+          "quote": "拆模前强度要求：拆模前必须确保同条件养护试块强度达到规定要求，由技术负责人批准。 ### 模板拆除的安全控制要点 ② 拆模作业之前必须填写拆模申请，并在同条件养护试块强度记录达到规定要求时，技术负责人方能批准拆模。 ③ 冬期施工的模板拆除应遵守冬期施工的有关规定，",
+          "match_score": 0.1571,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q13-0def06881ec4",
+      "variant_id": "C04-html-practice-html-q13-280ed0f7c3b5",
       "candidates": [
         {
           "source_anchor": "exam:2016:案例2",
@@ -348,11 +509,25 @@
           "match_score": 0.4481,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "kc:1A411011_032_0056:0",
+          "quote": "混凝土强度等级最低要求：预应力构件 ≥ C40；钢混组合 ≥ C30；重复荷载/抗震二级/500MPa钢筋构件 ≥ C30。 # 混凝土结构构件强度等级要求 其他预应力混凝土结构构件的混凝土强度等级不应低于 C40。钢－混凝土组合结构构件的混凝土强度等级不应低于 C30。 ② 承受重复荷载作用的钢筋混凝土结构构",
+          "match_score": 0.4474,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "exam:2016:第1题",
+          "quote": "设计使用年限为50 年，处于一般环境大截面钢筋混凝土柱，其混凝土强度等级不应低 于( )。 A. C15 B. C20 C. C25 D. C30 B 【解析】设计使用年限为50 年其混凝土强度等级不应低于C20。",
+          "match_score": 0.4361,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q14-df0f3507700f",
+      "variant_id": "C04-html-practice-html-q14-9f16628a4fc2",
       "candidates": [
         {
           "source_anchor": "exam:2016:案例2",
@@ -374,11 +549,25 @@
           "match_score": 0.3673,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "exam:2022:第4题",
+          "quote": "预应力混凝土上楼板结构的混凝土最低强度等级不应低于（ ）。 A. C25 B. C30 C. C35 D. C40 B 专业语感大动脉，强度系列14级：预应力混凝土楼板需较高强度，最低C30。",
+          "match_score": 0.3525,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "exam:2015:第10题",
+          "quote": "某跨度8m 的混凝土楼板，设计强度等级C30，模板采用快拆支架体系，支架立杆间距 2m，拆模时混凝土的最低强度是( )MPa。 A. 15 B. 22.5 C. 25.5 D. 30 A 【解析】本题考查的是模板工程。快拆支架体系的支架立杆间距不应大于2m。拆模时应保留立杆并 顶托支承楼板，拆模时的混凝土强度可取构件跨度为2m，拆模时的最低强度为设计强度的50%，所以选 项A 正确。",
+          "match_score": 0.35,
+          "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
+          "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q15-d09997019a40",
+      "variant_id": "C04-html-practice-html-q15-bcbe6c953a3c",
       "candidates": [
         {
           "source_anchor": "kc:1A436000_116_0190:1",
@@ -400,11 +589,25 @@
           "match_score": 0.2208,
           "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
           "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "ca:1A413030_099_0186",
+          "quote": "墙体大模板在常温下混凝土强度达到1N/mm²即可拆除，对吗？ 损坏，即可拆除。一般墙体大模板在常温条件下，混凝土强度达到 1N/mm²，即可拆除。",
+          "match_score": 0.2,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A436000_115_0189:1",
+          "quote": "模板拆除强度要求：不承重侧模：混凝土强度能保护表面棱角即可拆除；承重底模：需同条件试块强度达标；后张法预应力构件：侧模先拆，底模待张拉完成；若强度不足，应暂停拆模。 取应急措施；待修复或排除险情后，方可继续施工。 （2）保证模板拆除施工安全的基本要求 ① 现浇混凝土结构模板及其支架构件的混凝土强度应符合设计要求。当设计无要求时，应符合下列规定：",
+          "match_score": 0.1633,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q16-bd3fe10391f8",
+      "variant_id": "C04-html-practice-html-q16-9e7403065dc9",
       "candidates": [
         {
           "source_anchor": "ca:1A413030_099_0186",
@@ -426,11 +629,25 @@
           "match_score": 0.2308,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "kc:1A436000_116_0190:0",
+          "quote": "模板拆除顺序原则：先支的后拆，后支的先拆；先拆非承重模板，后拆承重模板及支架。 ### 模板拆除的安全控制要点 ② 拆模作业之前必须填写拆模申请，并在同条件养护试块强度记录达到规定要求时，技术负责人方能批准拆模。",
+          "match_score": 0.1909,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "kc:1A413030_099_0187:0",
+          "quote": "模板拆除顺序：模板拆除遵循‘后支先拆、先支后拆’和‘非承重先拆、承重后拆’的原则。快拆支架体系中，立杆间距≤2m，拆模时需保留立杆并顶托支承楼板。 ### 模板拆除顺序 （3）模板的拆除顺序：一般按后支先拆、先支后拆，先拆除非承重部分后拆除承重部分的拆除顺序进行。 （4）快拆支架体系",
+          "match_score": 0.1567,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     },
     {
-      "variant_id": "C04-html-practice-html-q17-c25503c0f053",
+      "variant_id": "C04-html-practice-html-q17-6663aca3d45f",
       "candidates": [
         {
           "source_anchor": "ca:1A413030_099_0186",
@@ -452,6 +669,20 @@
           "match_score": 0.2577,
           "source_file": "docs/原始数据/考点原料/_C04_exam_evidence.json",
           "source_sha256": "8726bb45d3a516dba0878ce830d9cddf05587e537f19951a81e57cfe6c367500"
+        },
+        {
+          "source_anchor": "kc:1A413030_099_0185:0",
+          "quote": "底模拆除强度要求：板类构件：跨度≤2m时，强度≥50%；2m<跨度≤8m时，强度≥75%；跨度>8m时，强度≥100%。梁、拱、壳：跨度≤8m时，强度≥75%；跨度>8m时，强度≥100%。悬臂构件：强度≥100%。 ### 模板拆除要求 （1）底模及支架拆除时的混凝土强度应符合表 3.4-1 的规定。 #### 表 3.4-1 底模及支架拆除时的混凝土强度要求 | 构件类型 | 构件跨度",
+          "match_score": 0.2231,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
+        },
+        {
+          "source_anchor": "ca:1A413030_099_0185",
+          "quote": "下列关于底模拆除时混凝土强度要求的说法中，正确的是？ 1 底模及支架拆除时的混凝土强度要求 | 构件类型 | 构件跨度（m） | 达到设计的混凝土立方体抗压强度标准值的百分率（%） | |----------|--------------",
+          "match_score": 0.1909,
+          "source_file": "docs/原始数据/考点原料/_C04_compiled_source.json",
+          "source_sha256": "97a89d695e3ef36d182e039153a4566d4963379707d42c15df263d4a984495d0"
         }
       ]
     }

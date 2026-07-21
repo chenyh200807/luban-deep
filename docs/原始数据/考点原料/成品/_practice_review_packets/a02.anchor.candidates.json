@@ -1,11 +1,11 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-18T03:51:56+00:00",
+  "generated_at": "2026-07-21T01:38:05+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "A02",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/a02.practice.review.json",
-  "score_threshold": 0.1,
+  "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
     "total_items": 24,
@@ -14,7 +14,7 @@
   },
   "items": [
     {
-      "variant_id": "A02-html-practice-html-q1-728f764294c4",
+      "variant_id": "A02-html-practice-html-q1-c0fe26842e1b",
       "candidates": [
         {
           "source_anchor": "ca:1A438000_150_0241",
@@ -36,11 +36,25 @@
           "match_score": 0.25,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "kc:1A438000_150_0241:0",
+          "quote": "材料进场验收三要素：材料进场必须进行凭证、数量、规格、外观验收，挂牌标识，建立收料台账。 材料进场必须进行凭证、数量、规格、外观验收，挂牌标识，建立收料台账。 本体·registry support 1A438000-B060 材料进场的验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观验收·挂牌标识·建立收料台账); 料具码放高度≤1.5m·库外材料下垫上盖; 不合格材料处理流程",
+          "match_score": 0.2308,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_150_0241:1",
+          "quote": "材料堆放高度限制：料具码放高度不得超过1.5米，库外材料应下垫上盖。 料具码放高度不得超过1.5米，库外材料应下垫上盖。 本体·registry support 1A438000-B060 材料进场的验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观验收·挂牌标识·建立收料台账); 料具码放高度≤1.5m·库外材料下垫上盖; 不合格材料处理流程(申请→审批→通知→见证退场→记录确认",
+          "match_score": 0.2308,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q2-2de44e410ea8",
+      "variant_id": "A02-html-practice-html-q2-df88cc2082ba",
       "candidates": [
         {
           "source_anchor": "kc:1A438000_151_0243:0",
@@ -62,11 +76,25 @@
           "match_score": 0.275,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2015:第23题",
+          "quote": "关于有机防火封堵材料特点的说法，正确的有( )。 A. 不能重复使用 B. 遇火时发泡膨胀 C. 优异的水密性能 D. 优异的气密性能 E. 可塑性好 BCDE 【解析】本题考查的是防火堵料。有机防火堵料又称可塑性防火堵料，它是以合成树脂为胶粘剂，并 配以防火助剂、填料制成的。此类堵料在使用过程长期不硬化，可塑性好，容易封堵各种不规则形状的孔 洞，能够重复使用。遇火时发泡膨胀，因此具有优异的防火、",
+          "match_score": 0.225,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "ca:1A422000_039_0063",
+          "quote": "关于预制构件进场时的结构性能检验，下列说法正确的是？ 关于预制构件进场时的结构性能检验，下列说法正确的是？ | grading_keywords=结构性能检验,梁板类简支受弯,叠合板底板,实体检验 本体·预制构件进场结构性能检验+灌浆连接+外墙接缝防水检验(1A422000-B013/B045/B050): 预制构件结构性能检验(梁板类简支受弯必须检/叠合板底板可不检/其他除设计要求外不检); 套",
+          "match_score": 0.2,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q3-1ce285425843",
+      "variant_id": "A02-html-practice-html-q3-edb54e5e59a8",
       "candidates": [
         {
           "source_anchor": "exam:2016:第17题",
@@ -88,11 +116,25 @@
           "match_score": 0.6,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:2",
+          "quote": "混凝土外加剂禁令：预应力混凝土结构中严禁使用含氯化物的外加剂。 预应力混凝土结构中严禁使用含氯化物的外加剂。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼·数字密集). 真",
+          "match_score": 0.6,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:3",
+          "quote": "小砌块养护要求：小砌块在厂内养护龄期及其后停放期总时间不得少于28天。 小砌块在厂内养护龄期及其后停放期总时间不得少于28天。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼",
+          "match_score": 0.6,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q4-34f5c52d4995",
+      "variant_id": "A02-html-practice-html-q4-1f46fc7ac6a8",
       "candidates": [
         {
           "source_anchor": "exam:2016:第17题",
@@ -114,11 +156,25 @@
           "match_score": 0.4,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:2",
+          "quote": "外加剂。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼·数字密集). 真题 {2016,第17题}(钢筋复试5项·成型钢筋免弯曲性能)/{2017,第14题}(外加剂氯离子",
+          "match_score": 0.4,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:3",
+          "quote": "放期总时间不得少于28天。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼·数字密集). 真题 {2016,第17题}(钢筋复试5项·成型钢筋免弯曲性能)/{2017,第14",
+          "match_score": 0.4,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q5-74031676375f",
+      "variant_id": "A02-html-practice-html-q5-1f6d5b85acae",
       "candidates": [
         {
           "source_anchor": "kc:1A438000_152_0245:0",
@@ -140,11 +196,25 @@
           "match_score": 0.6667,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:3",
+          "quote": "小砌块养护要求：小砌块在厂内养护龄期及其后停放期总时间不得少于28天。 小砌块在厂内养护龄期及其后停放期总时间不得少于28天。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼",
+          "match_score": 0.6667,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:4",
+          "quote": "预拌混凝土复试内容：预拌混凝土复试包括：坍落度、抗压强度、抗渗等级等。 预拌混凝土复试包括：坍落度、抗压强度、抗渗等级等。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼·数",
+          "match_score": 0.6667,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q6-e70083cce5ee",
+      "variant_id": "A02-html-practice-html-q6-3773c9a8f524",
       "candidates": [
         {
           "source_anchor": "exam:2017:第14题",
@@ -166,11 +236,25 @@
           "match_score": 0.375,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:1",
+          "quote": "水泥复试内容：水泥复试包括：胶砂强度、氯离子含量、安定性、凝结时间。 水泥复试包括：胶砂强度、氯离子含量、安定性、凝结时间。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼·",
+          "match_score": 0.375,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:2",
+          "quote": "混凝土外加剂禁令：预应力混凝土结构中严禁使用含氯化物的外加剂。 预应力混凝土结构中严禁使用含氯化物的外加剂。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼·数字密集). 真",
+          "match_score": 0.375,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q7-dc4024b2b8e6",
+      "variant_id": "A02-html-practice-html-q7-b93861f4712e",
       "candidates": [
         {
           "source_anchor": "exam:2020:第30题",
@@ -192,11 +276,25 @@
           "match_score": 0.5357,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "ca:1A422000_047_0073",
+          "quote": "数+气密性+太阳得热系数+可见光透射比; 夏热冬暖地区=气密性+太阳得热系数+可见光透射比; 所有地区=透光遮阳材料太阳光透射比反射比+中空玻璃密封性. 墙体保温控制点(保温层厚度≥设计/保温板粘结牢固拉伸粘结强度达标/厚度>20mm分层施工/锚固件数量位置深度符合设计/锚固力现场拉拔/板缝不渗漏). 门窗保温进场复验=A02材料进场复验本体. 真题 {2022,第22题}(墙体保温砌块进场复验)",
+          "match_score": 0.4286,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A422000_047_0073:0",
+          "quote": "系数+可见光透射比; 夏热冬暖地区=气密性+太阳得热系数+可见光透射比; 所有地区=透光遮阳材料太阳光透射比反射比+中空玻璃密封性. 墙体保温控制点(保温层厚度≥设计/保温板粘结牢固拉伸粘结强度达标/厚度>20mm分层施工/锚固件数量位置深度符合设计/锚固力现场拉拔/板缝不渗漏). 门窗保温进场复验=A02材料进场复验本体. 真题 {2022,第22题}(墙体保温砌块进场复验)/{2020,第30",
+          "match_score": 0.3571,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q8-17c5eaf32718",
+      "variant_id": "A02-html-practice-html-q8-5e25509aefb1",
       "candidates": [
         {
           "source_anchor": "exam:2022:第22题",
@@ -218,11 +316,25 @@
           "match_score": 0.5,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A422000_047_0073:1",
+          "quote": "系数+气密性+太阳得热系数+可见光透射比; 夏热冬暖地区=气密性+太阳得热系数+可见光透射比; 所有地区=透光遮阳材料太阳光透射比反射比+中空玻璃密封性. 墙体保温控制点(保温层厚度≥设计/保温板粘结牢固拉伸粘结强度达标/厚度>20mm分层施工/锚固件数量位置深度符合设计/锚固力现场拉拔/板缝不渗漏). 门窗保温进场复验=A02材料进场复验本体. 真题 {2022,第22题}(墙体保温砌块进场复验",
+          "match_score": 0.5,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": " 测项目进行了见证取样或抽样检查。 事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 保温隔热材料，其导热系数、密度、抗压强度或压缩强度、燃烧性能应符合设计要求。对其检验时 应核查质量证明文件及进场复验报告( 复验应为见证取样送检)。并对保温材料的导热系数、密度、抗压 强度或压缩强度",
+          "match_score": 0.4167,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q9-ca178721a3a7",
+      "variant_id": "A02-html-practice-html-q9-f756a6bc65f7",
       "candidates": [
         {
           "source_anchor": "ca:1A422000_047_0073",
@@ -244,11 +356,25 @@
           "match_score": 0.5185,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "exam:2024:第14页",
+          "quote": "测试）和无损检测（如超声波探伤）。 2. 预制构件实体检验除钢筋规格外，还需检查钢筋数量、间距、保护层厚度、混凝土强度等。 3. 填充墙裂缝多发生在应力集中部位，如柱边、梁底、门窗洞口。防治措施包括错缝砌筑、设置构造钢筋、延迟砌筑、加强网片等。 4. 装饰抹灰除一般通病外，还可能出现色差、掉角、脱皮等问题。幕墙检验除气密性、水密性外，还需检测抗风压性能和层间变形性能。 5. 建筑节能围护结构包括墙",
+          "match_score": 0.2963,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2017:案例二",
+          "quote": "监理工程师核查了其导热系数、燃烧性能等质量证明文件；在监理工程师见证下对保温、粘结和增强材料进行了复验取样。 项目部针对屋面卷材防水层出现的起鼓（直径＞30mm）问题，制定了割补法处理方案。方 1. 不妥当。应由施工总承包单位项目负责人或项目经理组织编制，经企业组织管理层审核后报监理单位审批。管理记录还应包括：施工日记和专项施工记录、交底记录、上岗培训记录和岗位资格证明、图纸、变更设计接收和发放的",
+          "match_score": 0.2593,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q10-f02b45be1743",
+      "variant_id": "A02-html-practice-html-q10-ff6ac7e5fb44",
       "candidates": [
         {
           "source_anchor": "exam:2017:第13题",
@@ -270,11 +396,25 @@
           "match_score": 0.45,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": " 测项目进行了见证取样或抽样检查。 事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 保温隔热材料，其导热系数、密度、抗压强度或压缩强度、燃烧性能应符合设计要求。对其检验时 应核查质量证明文件及进场复验报告( 复验应为见证取样送检)。并对保温材料的导热系数、密度、抗压 强度或压缩强度",
+          "match_score": 0.35,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "kc:1A438000_153_0246:0",
+          "quote": "或降级使用。 本体·材料试验检验·材料进场验收流程+质量责任划分(1A438000-B059): 材料进场验收流程(材料进场→提供合格证→现场验证[品种型号规格数量外观见证取样]→记录报监理审批→合格使用不合格禁用或降级); 材料质量责任划分(项目采购物资业主验证≠项目免责·业主采购物资项目验证≠业主免责). 材料进场验收流程+责任=A02材料进场本体. 真题 {2017,第13题}(施工单位验证",
+          "match_score": 0.3,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q11-ba42137ceead",
+      "variant_id": "A02-html-practice-html-q11-626ea542c1d5",
       "candidates": [
         {
           "source_anchor": "exam:2023:案例一",
@@ -296,11 +436,25 @@
           "match_score": 0.3529,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2017:案例二",
+          "quote": "监理工程师核查了其导热系数、燃烧性能等质量证明文件；在监理工程师见证下对保温、粘结和增强材料进行了复验取样。 项目部针对屋面卷材防水层出现的起鼓（直径＞30mm）问题，制定了割补法处理方案。方 1. 不妥当。应由施工总承包单位项目负责人或项目经理组织编制，经企业组织管理层审核后报监理单位审批。管理记录还应包括：施工日记和专项施工记录、交底记录、上岗培训记录和岗位资格证明、图纸、变更设计接收和发放的",
+          "match_score": 0.2941,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "kc:1A438000_153_0246:0",
+          "quote": "材料进场验收流程：材料进场 → 提供合格证 → 现场验证（品种/型号/规格/数量/外观/见证取样）→ 记录并报监理审批 → 合格则使用，不合格则禁止使用或降级使用。 材料进场 → 提供合格证 → 现场验证（品种/型号/规格/数量/外观/见证取样）→ 记录并报监理审批 → 合格则使用，不合格则禁止使用或降级使用。 本体·材料试验检验·材料进场验收流程+质量责任划分(1A438000-B059): 材",
+          "match_score": 0.2353,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q12-446155cc0383",
+      "variant_id": "A02-html-practice-html-q12-45170f84cd3d",
       "candidates": [
         {
           "source_anchor": "exam:2019:第30题",
@@ -322,11 +476,25 @@
           "match_score": 0.3429,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "位为贯彻落实《建设工程质量检测管理办法》（住房和城乡建设部第57号令）要求，在工程施工质量检测管理中做了以下工作： 1. 建设单位委托具有相应资质的检测机构负责本工程质量检测工作。 2. 监理工程师对混凝土试件制作与送样进行了见证。试验员如实记录了其取样、现场检测等情况，制作了见证记录。 3. 混凝土试样送检时，试验员向检测机构填报了检测委托单。 4. 总包项目部按照建设单位要求，每月向检测机构支",
+          "match_score": 0.3429,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": " 测项目进行了见证取样或抽样检查。 事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 保温隔热材料，其导热系数、密度、抗压强度或压缩强度、燃烧性能应符合设计要求。对其检验时 应核查质量证明文件及进场复验报告( 复验应为见证取样送检)。并对保温材料的导热系数、密度、抗压 强度或压缩强度",
+          "match_score": 0.2,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q13-3b9117dade9d",
+      "variant_id": "A02-html-practice-html-q13-ce624802ca83",
       "candidates": [
         {
           "source_anchor": "exam:2020:第23题",
@@ -348,11 +516,25 @@
           "match_score": 0.1944,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "kc:1A434020_085_0138:0",
+          "quote": "装饰装修隐蔽验收项目：主要隐蔽验收项目包括：龙骨隔墙、地垄墙钢筋绑扎、石材钢骨架焊接、隔墙岩棉、木/钢板饰面基层、卫生间防水、吊项工程暗龙骨、明龙骨。 主要隐蔽验收项目包括：龙骨隔墙、地垄墙钢筋绑扎、石材钢骨架焊接、隔墙岩棉、木/钢板饰面基层、卫生间防水、吊项工程暗龙骨、明龙骨。 本体·装饰装修主要隐蔽验收项目(primary 1A434020-B018 chunk·名实分层: leaf名'检验批",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "ca:1A434020_085_0138",
+          "quote": "下列哪项属于装饰装修工程的主要隐蔽验收项目？ 下列哪项属于装饰装修工程的主要隐蔽验收项目？ | grading_keywords=龙骨隔墙,地垄墙钢筋绑扎,石材钢骨架焊接,卫生间防水,暗龙骨,明龙骨 本体·装饰装修主要隐蔽验收项目(primary 1A434020-B018 chunk·名实分层: leaf名'检验批分项分部验收内容'字面像A01层级, 实际弹药=隐蔽验收项目卡[与B022/B02",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q14-72b5a25a7159",
+      "variant_id": "A02-html-practice-html-q14-c86d7130f9c2",
       "candidates": [
         {
           "source_anchor": "exam:2020:第23题",
@@ -374,11 +556,25 @@
           "match_score": 0.2963,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "exam:2017:第13题",
+          "quote": "关于施工现场材料检验的说法, 正确的是（ ）。 A. 建筑材料复试送检的检测试样可以在施工现场外抽取 B. 工程取样送检见证人由监理单位书面确认 C. 施工单位的验证不能代替建设单位所采购物资的质量责任 D. 建设单位的验证可以代替施工单位所采购物资的质量责任 C 【解析】A错误，复试试样应在施工现场内抽取；B错误，见证人由建设单位书面确认，而非监理单位；C正确，施工单位对所采购材料负有最终质量责",
+          "match_score": 0.2963,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2019:第5题",
+          "quote": "n\\n(3) 作业点离易燃物的距离不小于20m\\n\\n4. 墙体节能工程隐蔽工程验收的部位或内容还包括：保温层附着的基层及其表面处理；保温板粘结或固定；锚固件；增强网铺设；墙体热桥部位处理；预埋件和设备穿越墙体处的保温层；保温层厚度；保温层接缝；抹灰层厚度；门窗洞口四周的保温层；变形缝；女儿墙压顶等。\\n\\n5. 绿色建筑运行评价指标体系中的指标共有6类：节地与室外环境、节能与能源利用、节水与水资",
+          "match_score": 0.2593,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q15-b1f434775314",
+      "variant_id": "A02-html-practice-html-q15-4c93a5575998",
       "candidates": [
         {
           "source_anchor": "kc:1A422000_049_0075:0",
@@ -400,11 +596,25 @@
           "match_score": 0.6923,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "ca:1A422000_049_0075",
+          "quote": "节能隐蔽验收(基层及表面处理/保温材料种类厚度敷设方法缝隙填充/屋面热桥部位处理/隔汽层); 地面节能隐蔽验收(基层及表面处理/保温材料种类厚度/保温材料粘结/地面热桥部位处理); 现场检验抽样规定(外墙节能构造检验≥3处每种·外窗气密性检验≥3樘每类·每30000m²视为一个单位工程抽样). 节能隐蔽验收=A02隐蔽验收本体. 真题 {2019,第1题}(墙体节能隐蔽验收8项)案例侧印证. 逐项",
+          "match_score": 0.6923,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "exam:2019:第5题",
+          "quote": "m 4. 墙体节能工程隐蔽工程验收的部位或内容还包括：保温层附着的基层及其表面处理；保温板粘结或固定；锚固件；增强网铺设；墙体热桥部位处理；预埋件和设备穿越墙体处的保温层；保温层厚度；保温层接缝；抹灰层厚度；门窗洞口四周的保温层；变形缝；女儿墙压顶等。 5. 绿色建筑运行评价指标体系中的指标共有6类：节地与室外环境、节能与能源利用、节水与水资源利用、节材与材料资源利用、室内环境质量、运营管理。 不",
+          "match_score": 0.5385,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q16-d7713c32b71f",
+      "variant_id": "A02-html-practice-html-q16-4c0f8c232f8a",
       "candidates": [
         {
           "source_anchor": "kc:1A434020_085_0136:2",
@@ -426,11 +636,25 @@
           "match_score": 0.4082,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "ca:1A434020_085_0136",
+          "quote": "下列哪项不属于结构实体检验的内容？ 下列哪项不属于结构实体检验的内容？ | grading_keywords=混凝土强度,钢筋保护层厚度,结构位置与尺寸偏差,同条件养护试件,回弹－取芯法 本体·结构实体检验组织(1A434020-B020): 结构实体检验必须含混凝土强度/钢筋保护层厚度/结构位置与尺寸偏差+合同约定项目; 由监理单位组织施工单位实施·监理见证全过程·专项方案需监理审批; 混凝土强",
+          "match_score": 0.4082,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "exam:2017:第2题",
+          "quote": "【背景资料】 施工单位为接驳市政水管，安排人员在夜间挖沟、断路施工，被主管部门查处，要求停工整改。在地下室结构实体采用回弹法进行强度检验中，出现个别部位C35混凝土强度不足，项目部质量经理随机安排公司实验室检测人员采用钻芯法对该部位实体混凝土进行检测，并将检验报告报监理工程师。监理工程师认为其做法不妥，要求整改。整改后钻芯检测的试样强度分别为28.5MPa、31MPa、32MPa。 该建设单位项目",
+          "match_score": 0.3673,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q17-90b5ddd915c1",
+      "variant_id": "A02-html-practice-html-q17-0419846e9399",
       "candidates": [
         {
           "source_anchor": "ca:1A434020_085_0136",
@@ -452,11 +676,25 @@
           "match_score": 0.871,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "kc:1A434020_085_0136:0",
+          "quote": "结构实体检验内容：结构实体检验必须包含：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差，以及合同约定项目。 结构实体检验必须包含：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差，以及合同约定项目。 本体·结构实体检验组织(1A434020-B020): 结构实体检验必须含混凝土强度/钢筋保护层厚度/结构位置与尺寸偏差+合同约定项目; 由监理单位组织施工单位实施·监理见证全过程·专项方案需监理审批;",
+          "match_score": 0.8065,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A434020_085_0136:1",
+          "quote": "结构实体检验实施主体：结构实体检验由监理单位组织施工单位实施，监理见证全过程。专项方案需监理审批。 结构实体检验由监理单位组织施工单位实施，监理见证全过程。专项方案需监理审批。 本体·结构实体检验组织(1A434020-B020): 结构实体检验必须含混凝土强度/钢筋保护层厚度/结构位置与尺寸偏差+合同约定项目; 由监理单位组织施工单位实施·监理见证全过程·专项方案需监理审批; 混凝土强度优先同条",
+          "match_score": 0.7742,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q18-33bdeb6868f6",
+      "variant_id": "A02-html-practice-html-q18-ebd8dae881ed",
       "candidates": [
         {
           "source_anchor": "kc:LEC_1A431070_P0033_001:0",
@@ -482,7 +720,7 @@
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q19-58d1a8122a7a",
+      "variant_id": "A02-html-practice-html-q19-6e7a247d54d9",
       "candidates": [
         {
           "source_anchor": "ca:1A422000_039_0063",
@@ -504,11 +742,25 @@
           "match_score": 0.5789,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A422000_039_0063:2",
+          "quote": "，面积≥10m²，进行现场淋水试验。 每1000m²外墙面积划为一检验批，不足1000m²也划为一批；每批抽查一处，面积≥10m²，进行现场淋水试验。 本体·预制构件进场结构性能检验+灌浆连接+外墙接缝防水检验(1A422000-B013/B045/B050): 预制构件结构性能检验(梁板类简支受弯必须检/叠合板底板可不检/其他除设计要求外不检); 套筒灌浆连接(灌浆饱满密实所有出口出浆·灌浆料强",
+          "match_score": 0.5789,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "exam:2024:第14页",
+          "quote": "构，部分楼板采用预制钢筋混凝土看合板，砌体采用空心混凝土砌块，外立面为玻璃和石材幕墙，部分内墙采用装饰抹灰工艺。 项目部建立了质量保证体系并制定质量管理制度，要求施工重要工序和关键节点工序交接检查时严格执行“三检”制度，采用目测法、实测法及试验法对现场工程质量进行检查。 叠合板预制构件未进行结构性能检验，无驻厂监督生产。进场后，项目部会同监理工程师按规定对叠合板预制构件主要受力钢筋规格等项目进行实",
+          "match_score": 0.3421,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q20-837eed700d60",
+      "variant_id": "A02-html-practice-html-q20-a9b8d20d67c5",
       "candidates": [
         {
           "source_anchor": "ca:1A438000_150_0241",
@@ -530,11 +782,25 @@
           "match_score": 0.3846,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_150_0241:2",
+          "quote": "不合格材料处理流程：不合格材料退场需经申请→审批→通知→见证退场→记录确认→报告提交。 不合格材料退场需经申请→审批→通知→见证退场→记录确认→报告提交。 本体·registry support 1A438000-B060 材料进场的验收与保管(名实相符): 材料进场验收三要素(凭证/数量规格/外观验收·挂牌标识·建立收料台账); 料具码放高度≤1.5m·库外材料下垫上盖; 不合格材料处理流程(申",
+          "match_score": 0.3846,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_153_0246:0",
+          "quote": "验证（品种/型号/规格/数量/外观/见证取样）→ 记录并报监理审批 → 合格则使用，不合格则禁止使用或降级使用。 本体·材料试验检验·材料进场验收流程+质量责任划分(1A438000-B059): 材料进场验收流程(材料进场→提供合格证→现场验证[品种型号规格数量外观见证取样]→记录报监理审批→合格使用不合格禁用或降级); 材料质量责任划分(项目采购物资业主验证≠项目免责·业主采购物资项目验证≠业",
+          "match_score": 0.3333,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q21-0f835a0744d8",
+      "variant_id": "A02-html-practice-html-q21-d07659eb1cf6",
       "candidates": [
         {
           "source_anchor": "exam:2023:案例一",
@@ -556,11 +822,25 @@
           "match_score": 0.2615,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2019:第30题",
+          "quote": "关于试验见证与送样的说法, 正确的有（ ）。 A. 见证人员变化时, 应办理书面变更手续 B. 见证人员应填写见证记录 C. 施工单位在试样送检后通知见证人员 D. 见证人员与备案不符时, 检测机构不得接受试样 E. 检测机构接收试样应核实见证人员或见证记录 ABDE 【解析】A正确，变更需书面手续；B正确，见证记录是必要文件；C错误，应为‘送检前’通知，而非‘后’；D正确，不符合备案则拒收；E正",
+          "match_score": 0.2,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2017:第2题",
+          "quote": "妥，要求整改。整改后钻芯检测的试样强度分别为28.5MPa、31MPa、32MPa。 该建设单位项目负责人组织对工程进行检查验收，施工单位分别填写了《单位工程竣工验收记录表》中的“验收记录”、“验收结论”、“综合验收结论”。“综合验收结论”为“合格”。参加验收单位人员分别进行了签字。政府质量监督部门认为一些做法不妥，要求改正。 【问题】 2. 指出图5中措施做法的不妥之处。正常情况下，现场临时配电",
+          "match_score": 0.1846,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q22-845784d54c63",
+      "variant_id": "A02-html-practice-html-q22-c536c553c201",
       "candidates": [
         {
           "source_anchor": "kc:1A438000_152_0245:0",
@@ -582,11 +862,25 @@
           "match_score": 0.413,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:3",
+          "quote": "小砌块养护要求：小砌块在厂内养护龄期及其后停放期总时间不得少于28天。 小砌块在厂内养护龄期及其后停放期总时间不得少于28天。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼",
+          "match_score": 0.413,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "kc:1A438000_152_0245:4",
+          "quote": "预拌混凝土复试内容：预拌混凝土复试包括：坍落度、抗压强度、抗渗等级等。 预拌混凝土复试包括：坍落度、抗压强度、抗渗等级等。 本体·主要材料复试内容(1A438000-B007·gold): 钢筋复试(屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差); 水泥复试(胶砂强度/氯离子含量/安定性/凝结时间); 预应力混凝土结构中严禁使用含氯化物的外加剂. 材料复试内容=A02材料进场复试本体(判分眼·数",
+          "match_score": 0.413,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q23-2c77f3eb587d",
+      "variant_id": "A02-html-practice-html-q23-93210b2e4030",
       "candidates": [
         {
           "source_anchor": "kc:1A434020_085_0136:2",
@@ -608,11 +902,25 @@
           "match_score": 0.2769,
           "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
           "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "ca:1A434020_085_0136",
+          "quote": "下列哪项不属于结构实体检验的内容？ 下列哪项不属于结构实体检验的内容？ | grading_keywords=混凝土强度,钢筋保护层厚度,结构位置与尺寸偏差,同条件养护试件,回弹－取芯法 本体·结构实体检验组织(1A434020-B020): 结构实体检验必须含混凝土强度/钢筋保护层厚度/结构位置与尺寸偏差+合同约定项目; 由监理单位组织施工单位实施·监理见证全过程·专项方案需监理审批; 混凝土强",
+          "match_score": 0.2769,
+          "source_file": "docs/原始数据/考点原料/_A02_compiled_source.json",
+          "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2"
+        },
+        {
+          "source_anchor": "exam:2017:第2题",
+          "quote": "【背景资料】 施工单位为接驳市政水管，安排人员在夜间挖沟、断路施工，被主管部门查处，要求停工整改。在地下室结构实体采用回弹法进行强度检验中，出现个别部位C35混凝土强度不足，项目部质量经理随机安排公司实验室检测人员采用钻芯法对该部位实体混凝土进行检测，并将检验报告报监理工程师。监理工程师认为其做法不妥，要求整改。整改后钻芯检测的试样强度分别为28.5MPa、31MPa、32MPa。 该建设单位项目",
+          "match_score": 0.2769,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }
       ]
     },
     {
-      "variant_id": "A02-html-practice-html-q24-f646548dd749",
+      "variant_id": "A02-html-practice-html-q24-91944375eac0",
       "candidates": [
         {
           "source_anchor": "kc:1A434020_085_0138:0",
@@ -632,6 +940,20 @@
           "source_anchor": "exam:2017:第2题",
           "quote": "妥，要求整改。整改后钻芯检测的试样强度分别为28.5MPa、31MPa、32MPa。 该建设单位项目负责人组织对工程进行检查验收，施工单位分别填写了《单位工程竣工验收记录表》中的“验收记录”、“验收结论”、“综合验收结论”。“综合验收结论”为“合格”。参加验收单位人员分别进行了签字。政府质量监督部门认为一些做法不妥，要求改正。 【问题】 4. 说明混凝土结构实体检验管理的正确做法。该钻芯检验部位C",
           "match_score": 0.1538,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2020:第23题",
+          "quote": "建筑幕墙的防雷做法正确的有（ ）。 A. 避雷接地一般每三层与均压环连接 B. 防雷构造连接不必进行隐蔽工程验收 C. 防雷连接的钢构件上完成后都应进行防锈油漆 D. 在有镀膜的构件上进行防雷连接应除去其镀膜层 E. 幕墙的金属框架应与主体结构的防雷体系可靠连接 ACDE 解析：防雷连接必须进行隐蔽工程验收，故B错误；其余选项均符合规范要求。",
+          "match_score": 0.1538,
+          "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
+          "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
+        },
+        {
+          "source_anchor": "exam:2020:案例三问题",
+          "quote": "，招标文件应当规定一个适当的投标有效期，以保证投标人有足够的时间完成评标和与中标人签订合同。投标有效期从投标人提交投标文件截止之日起计算。 2. （本小题3.5分） （1）不合理。 承包人将构件集中堆放，由于堆放层数过多，导致下层部分构件出现裂缝，是承包人的责任，应予赔偿。 （2）可获得赔偿一个月的材料保管费。 3. （本小题10.5分） （1）叠合板钢筋隐蔽验收项目： ①钢筋的连接方式、接头位置",
+          "match_score": 0.1282,
           "source_file": "docs/原始数据/考点原料/_A02_exam_evidence.json",
           "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375"
         }

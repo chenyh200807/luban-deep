@@ -30,6 +30,8 @@
         "N03-html-practice-html-q3-bdaf1c44f8bc",
         "N03-html-practice-html-q4-49ae2a47bd94",
         "N03-html-practice-html-q6-988dcc45afab",
+        "N03-html-practice-html-q12-ec5949f5d91d",
+        "N03-html-practice-html-q13-756762132051",
         "N03-html-practice-html-q14-f318a76d28d9",
         "N03-html-practice-html-q15-8f2328daa71d"
       ],
@@ -2698,29 +2700,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A433000_052_0077:0",
+      "source_sha256": "162b5b5e70715dc73d59fda06190800b43185749ff23452d15164156b2a2ee28",
       "source_html_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "n03-fact-判型成倍数等步距异节奏",
+      "skeleton_id": "n03-skel-等节奏判型K等t",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "1bbe8ee99d7ddaa9b5af4e2488dcc2df3bfbd06f34ca6484d3371559efdd1ce6",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "1bbe8ee99d7ddaa9b5af4e2488dcc2df3bfbd06f34ca6484d3371559efdd1ce6",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:27+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:27+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "节拍全等判等节奏,K=t=4,队数=过程数连续无空闲,教材等节奏特点四条逐字核对+复算(gcd干扰项判错正确)。判型fact覆盖三型判定判据。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：四段节拍 4/4/4/4（月）",
         "caption": "这是什么流水？K=？",
@@ -2865,29 +2879,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A433000_052_0076:0",
+      "source_sha256": "162b5b5e70715dc73d59fda06190800b43185749ff23452d15164156b2a2ee28",
       "source_html_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "n03-fact-判型成倍数等步距异节奏",
+      "skeleton_id": "n03-skel-无节奏判型大差法",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "40e1f9daec8148ec870736f2f5d9665c1e7b2d0bcf9908acb6f33c2dad1bf52c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "40e1f9daec8148ec870736f2f5d9665c1e7b2d0bcf9908acb6f33c2dad1bf52c",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:27+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:27+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "节拍2/4/3/5不全等不成倍数判无节奏,大差法求步距,队数=过程数,教材无节奏特点逐字核对+成倍性复核(3不整除2)。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：四段节拍 2/4/3/5（天）",
         "caption": "既不全等也不成倍数",

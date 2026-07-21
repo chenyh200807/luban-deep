@@ -32,6 +32,9 @@
         "D14-html-practice-html-q6-6fa91fc40768",
         "D14-html-practice-html-q8-11e90142fc80",
         "D14-html-practice-html-q9-35b59fc2fead",
+        "D14-html-practice-html-q12-29e4d467b914",
+        "D14-html-practice-html-q13-aaa319b8d902",
+        "D14-html-practice-html-q14-1e2658f141e3",
         "D14-html-practice-html-q16-81bcaf7123e6"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTEtNDRlNGQ1NDFjNDc5IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00Y2E2NzdmZWNjMmYiLCJEMTQtaHRtbC1wcmFjdGljZS1odG1sLXEzLWI0MWEyYWQxMGFhNyIsIkQxNC1odG1sLXByYWN0aWNlLWh0bWwtcTQtNmQwOTgwZjNhMWI4IiwiRDE0LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtODFiY2FmNzEyM2U2Il0sInBhY2tfaWQiOiJEMTQiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImZkNTgxNTFmMjdlZWZkMmI4Y2VjNjYxYjM3ODE3YTNmZTQ0YmVlNGU3NzZmYThkZTM1NDlmOWY3ZDYxNzNiNDAiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWY0NDBhYTc2Y2EwODNiOGVmMzFhYTEzZmYxOGE0NDlmZTI2N2FjMDdjN2NjNTI2NDBjM2RhZmFhNDRiODc3NSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
@@ -2570,29 +2573,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A422000_043_0069:0",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-door-window-quality",
+      "skeleton_id": "d14-skel-砌体射钉禁令",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a088d648c80a9c63882191cb515e61db37d18f1b2e0016749a71828ec2cf9fe4",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a088d648c80a9c63882191cb515e61db37d18f1b2e0016749a71828ec2cf9fe4",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "砌体上安装门窗严禁射钉固定,教材门窗安装禁令卡逐字核对。复合fact(门窗安装+节能通病+节能查验),非surface仅d1可达。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：砌体墙上安装门窗",
         "caption": "混凝土可钉 · 砌体？",
@@ -2788,29 +2803,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A434000_080_0129:0",
+      "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-door-window-quality",
+      "skeleton_id": "d14-skel-节能通病五指标",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "678033e2c15959c225c013c53c48ab77f1bbc9fdcd8a2472db1dd1a9ead0e58f",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "678033e2c15959c225c013c53c48ab77f1bbc9fdcd8a2472db1dd1a9ead0e58f",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "门窗节能常见问题五指标(类型不符/传热系数超标/气密性差/露点高/透射比不符),教材逐字核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：门窗节能排查",
         "caption": "落到五个可检测指标",
@@ -2972,29 +2999,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q14",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2016:第20题",
+      "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513",
       "source_html_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d14-fact-door-window-quality",
+      "skeleton_id": "d14-skel-节能查验与外窗三性",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "205fa497f30e465ab92b2b7fcea975586b9c747072173747591f0b54dbdb3a72",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "205fa497f30e465ab92b2b7fcea975586b9c747072173747591f0b54dbdb3a72",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "节能查验对象(墙体材料/保温材料/门窗/采暖制冷/照明)锚2016真题解析逐字;外窗检测气密/水密/抗风压锚2019第2题真题答案。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：现场节能查验与外窗检测",
         "caption": "必查对象 · 外窗三项检测",

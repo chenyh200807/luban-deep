@@ -1,16 +1,16 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-20T09:10:10+00:00",
+  "generated_at": "2026-07-21T01:38:05+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "F03",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/f03.practice.review.json",
-  "score_threshold": 0.25,
+  "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
     "total_items": 15,
-    "items_with_candidates": 13,
-    "items_empty_handed": 2
+    "items_with_candidates": 15,
+    "items_empty_handed": 0
   },
   "items": [
     {
@@ -34,6 +34,20 @@
           "source_anchor": "kc:1A413030_122_0230:1",
           "quote": "料。 本体·屋面防水等级与做法(1A413050-R19/R20/R21/R36/R39, 即 primary 1A413100/1A413102 territory; ⚠️源库 leaf_name_path 错挂'地基与基础>建筑物类别', 直读 compiled_context 真实=屋面防水设防): 平屋面防水等级一/二/三级; 一级≥3道(卷材≥1道)·二级≥2道(卷材≥1道)·三级≥1道",
           "match_score": 0.5509,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_122_0230:2",
+          "quote": "封。 本体·屋面防水等级与做法(1A413050-R19/R20/R21/R36/R39, 即 primary 1A413100/1A413102 territory; ⚠️源库 leaf_name_path 错挂'地基与基础>建筑物类别', 直读 compiled_context 真实=屋面防水设防): 平屋面防水等级一/二/三级; 一级≥3道(卷材≥1道)·二级≥2道(卷材≥1道)·三级≥1道",
+          "match_score": 0.5509,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_130_0247:0",
+          "quote": "水等级要求：防水做法不应少于 3 道，防水混凝土为 1 道且应选，外设防水层不少于 2 道（其中防水卷材或防水涂料不少于 1 道），现浇混凝土结构最低抗渗等级为 P8。 本体·明挖法地下工程主体结构防水做法(1A413050-R37): 一级防水≥3道·防水混凝土1道(应选)·外设防水层≥2道(卷材或涂料≥1道)·抗渗≥P8; 三级防水≥1道·防水混凝土1道(应选)·外设防水层不作要求·抗渗≥P6",
+          "match_score": 0.4717,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
         }
@@ -62,6 +76,20 @@
           "match_score": 0.4867,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "ca:1A413030_130_0247",
+          "quote": "关于明挖法地下工程一级防水等级的防水做法，下列说法正确的是？ 关于明挖法地下工程一级防水等级的防水做法，下列说法正确的是？ | grading_keywords=不应少于 3 道,防水混凝土为 1 道,外设防水层不少于 2 道,P8 本体·明挖法地下工程主体结构防水做法(1A413050-R37): 一级防水≥3道·防水混凝土1道(应选)·外设防水层≥2道(卷材或涂料≥1道)·抗渗≥P8; 三级防",
+          "match_score": 0.4633,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_130_0247:1",
+          "quote": "不作要求，现浇混凝土结构最低抗渗等级为 P6。 三级防水等级要求：防水做法不应少于 1 道，防水混凝土为 1 道且应选，外设防水层不作要求，现浇混凝土结构最低抗渗等级为 P6。 本体·明挖法地下工程主体结构防水做法(1A413050-R37): 一级防水≥3道·防水混凝土1道(应选)·外设防水层≥2道(卷材或涂料≥1道)·抗渗≥P8; 三级防水≥1道·防水混凝土1道(应选)·外设防水层不作要求·抗",
+          "match_score": 0.4517,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
         }
       ]
     },
@@ -88,6 +116,20 @@
           "match_score": 0.6379,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_122_0230:1",
+          "quote": "imary 1A413100/1A413102 territory; ⚠️源库 leaf_name_path 错挂'地基与基础>建筑物类别', 直读 compiled_context 真实=屋面防水设防): 平屋面防水等级一/二/三级; 一级≥3道(卷材≥1道)·二级≥2道(卷材≥1道)·三级≥1道(可任选卷材/涂料); 屋面防水以防为主以排为辅·设计年限≥20年·泛水/天沟/檐沟/变形缝设附加层",
+          "match_score": 0.6259,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "exam:2021:案例题(一)",
+          "quote": "层施工完成后进行雨后观察或淋水、蓄水试验，持续时间应符合规范要求。合格后再进行隔离层施工。 图1：倒置式屋面构造示意图（部分） 问题： 4. 常用屋面隔离层材料有哪些？屋面防水层淋水、蓄水试 （1）常用屋面隔离层包括：干铺塑料膜；土工布；卷材；铺抹低强度等级砂浆。 （2）屋面淋水时间2h；蓄水时间24h。 隔离层用于防止保温层与防水层粘结，常用材料为塑料膜、土工布等；淋水试验不少于2小时，蓄水试验",
+          "match_score": 0.4086,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
         }
       ]
     },
@@ -114,6 +156,20 @@
           "match_score": 0.4655,
           "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
           "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "ca:1A413030_127_0240",
+          "quote": "下列关于种植屋面构造层次的说法中，正确的是？ 下列关于种植屋面构造层次的说法中，正确的是？ | grading_keywords=基层,绝热层,找平层,普通防水层,耐根穿刺防水层,保护层,排（蓄）水层,过滤层,种植土层,植被层 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层",
+          "match_score": 0.3103,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_127_0240:0",
+          "quote": "耐根穿刺防水材料厚度标准：改性沥青防水卷材≥4mm；聚氯乙烯、TPO、HDPE、EPDM等≥1.2mm；喷涂聚脲≥2mm。 改性沥青防水卷材≥4mm；聚氯乙烯、TPO、HDPE、EPDM等≥1.2mm；喷涂聚脲≥2mm。 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(",
+          "match_score": 0.2931,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
         }
       ]
     },
@@ -126,6 +182,27 @@
           "match_score": 0.2632,
           "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
           "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "exam:2021:案例题(一)",
+          "quote": "用的建筑工人签订劳务合同； 2. 总包对农民工工资支付工作负总责，要求分包单位做好农民工工资发放工作； 3. 改善工人生活区居住环境，在集中生活区配套了食堂等必要生活设施，并开展物业管理。 项目经理部编制的《屋面工程施工方案》中： 1. 工程采用倒置式屋面，屋面构造层包括防水层、保温层、找平层、找坡层、隔离层、结构层和保护层。构造示意图见图1； 2. 防水层选用三元乙丙高分子防水卷材； 3. 防水",
+          "match_score": 0.1613,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "exam:2021:第1题答案",
+          "quote": "分包单位与招用的建筑工人签订劳务合同； （2）总包对农民工工资支付工作负总责，要求分包单位做好农民工工资发放工作； （3）改善工人生活区居住环境，在集中生活区配套了食堂等必要生活设施，并开展物业管理。 项目经理部编制的《屋面工程施工方案》中： （1）工程采用倒置式屋面，屋面构造层包括防水层、保温层、找平层、找坡层、隔离层、结构层和保护层。构造示意图见图1； （2）防水层选用三元乙丙高分子防水卷材；",
+          "match_score": 0.1613,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "ca:1A413030_134_0258",
+          "quote": "关于外保温外墙防水层设置位置，下列说法正确的是？ 关于外保温外墙防水层设置位置，下列说法正确的是？ | grading_keywords=保温层与基层之间,防水透气膜,找平层,饰面层 外延·外墙防水工程施工(1A413050-R14/R15): 外墙防水设计与施工(防水层/构造). 标🔵外墙外延(F03 题面'屋面/地下'为本体, 外墙防水属邻接外延非屋面/地下构造层次主采分眼)",
+          "match_score": 0.129,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
         }
       ]
     },
@@ -145,12 +222,69 @@
           "match_score": 0.6316,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "施工的要求有：填充墙与柱连接钢筋为2φ6@600)，伸入墙内500mm；填充墙与结构梁下最后三皮砖空隙部位，在墙体砌筑7d后，采取两边对称斜砌填实；化学植筋连接筋φ6做拉拔试验时，将轴向受拉非破坏承载力检验值设为5.0kN，层面持荷时间2min，期间各检测结果符合相关要求，即判定该试样合格。 层面防水层选用2mm厚的改性沥青防水卷材，铺贴顺序和方向按照平行于屋脊、上下层不得相互垂直等要求， 【参考",
+          "match_score": 0.236,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "exam:2024:第14页",
+          "quote": "测试）和无损检测（如超声波探伤）。 2. 预制构件实体检验除钢筋规格外，还需检查钢筋数量、间距、保护层厚度、混凝土强度等。 3. 填充墙裂缝多发生在应力集中部位，如柱边、梁底、门窗洞口。防治措施包括错缝砌筑、设置构造钢筋、延迟砌筑、加强网片等。 4. 装饰抹灰除一般通病外，还可能出现色差、掉角、脱皮等问题。幕墙检验除气密性、水密性外，还需检测抗风压性能和层间变形性能。 5. 建筑节能围护结构包括墙",
+          "match_score": 0.2237,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "exam:2015:第26题",
+          "quote": "关于防水混凝土施工的说法，正确的有( )。 A. 连续性浇筑，少留施工缝 B. 宜采用高频机械分层振捣密实 C. 施工缝宜留置在受剪力较大部位 D. 养护时间不少于7 天 E. 冬期施工入模温度不应低于5℃ ABE 【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应 留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应",
+          "match_score": 0.2114,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
         }
       ]
     },
     {
       "variant_id": "F03-html-practice-html-q7-3d905b13eef6",
-      "candidates": []
+      "candidates": [
+        {
+          "source_anchor": "ca:1A413030_127_0240",
+          "quote": "下列关于种植屋面构造层次的说法中，正确的是？ 下列关于种植屋面构造层次的说法中，正确的是？ | grading_keywords=基层,绝热层,找平层,普通防水层,耐根穿刺防水层,保护层,排（蓄）水层,过滤层,种植土层,植被层 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层",
+          "match_score": 0.2258,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_127_0240:0",
+          "quote": "耐根穿刺防水材料厚度标准：改性沥青防水卷材≥4mm；聚氯乙烯、TPO、HDPE、EPDM等≥1.2mm；喷涂聚脲≥2mm。 改性沥青防水卷材≥4mm；聚氯乙烯、TPO、HDPE、EPDM等≥1.2mm；喷涂聚脲≥2mm。 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(",
+          "match_score": 0.2097,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_127_0240:1",
+          "quote": "种植屋面构造层次：从下至上依次为：基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。 从下至上依次为：基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→",
+          "match_score": 0.2097,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_127_0240:2",
+          "quote": "种植屋面排水坡度要求：种植平屋面排水坡度不宜小于2%；天沟、檐沟排水坡度不宜小于1%。 种植平屋面排水坡度不宜小于2%；天沟、檐沟排水坡度不宜小于1%。 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层; 种植平屋面排水坡度≥2%·天沟",
+          "match_score": 0.2097,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "exam:2020:第12题",
+          "quote": "倒置式屋面基本构造自下而上顺序（ ）。 ①结构层、②保温层、③保护层、④找坡层、⑤找平层、⑥防水层 A. ①②④⑤⑥③ B. ①④⑤⑥②③ C. ①②④⑤⑥③ D. ①④⑤②⑥③ B “结构找坡再找平，防水保温后保护”",
+          "match_score": 0.1316,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        }
+      ]
     },
     {
       "variant_id": "F03-html-practice-html-q8-b70e69ee0b83",
@@ -175,12 +309,62 @@
           "match_score": 0.661,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_127_0240:1",
+          "quote": "保护层→排（蓄）水层→过滤层→种植土层→植被层。 本体·种植屋面构造层次+排水坡度+耐根穿刺(1A413050-R31/R32/R34): 种植屋面构造层次自下而上=基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层; 种植平屋面排水坡度≥2%·天沟檐沟≥1%; 耐根穿刺材料改性沥青卷材≥4mm/PVC等≥1.2mm/喷涂聚脲≥2mm. **逐层次顺序",
+          "match_score": 0.6475,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "exam:2024:第3题",
+          "quote": "种植平屋面坡度不应小于（ ）。 A. 2% B. 5% C. 10% D. 20% A 【解析】种植平屋面排水坡度不宜小于2%；天沟、檐沟的排水坡度不宜小于1%。",
+          "match_score": 0.3774,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
         }
       ]
     },
     {
       "variant_id": "F03-html-practice-html-q9-5b914e0773f1",
-      "candidates": []
+      "candidates": [
+        {
+          "source_anchor": "ca:1A413030_122_0230",
+          "quote": "关于平屋面防水等级的要求，下列说法正确的是？ 关于平屋面防水等级的要求，下列说法正确的是？ | grading_keywords=一级,不应少于3道,卷材防水层不应少于1道,二级,不应少于2道,三级,不应少于1道,任选 本体·屋面防水等级与做法(1A413050-R19/R20/R21/R36/R39, 即 primary 1A413100/1A413102 territory; ⚠️源库 lea",
+          "match_score": 0.22,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "exam:2019:第12题",
+          "quote": "地下工程防水等级分为（ ）。 A. 二级 B. 三级 C. 四级 D. 五级 C 根据《地下工程防水技术规范》GB 50108，地下工程防水等级分为四级，分别为：一级（不允许渗水）、二级（不允许漏水，结构表面可有少量湿渍）、三级（有少量漏水点，不得有线流和漏泥砂）、四级（有漏水点，不得有线流和漏泥砂）。因此正确答案为C。",
+          "match_score": 0.22,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
+        },
+        {
+          "source_anchor": "ca:1A413030_130_0247",
+          "quote": "关于明挖法地下工程一级防水等级的防水做法，下列说法正确的是？ 关于明挖法地下工程一级防水等级的防水做法，下列说法正确的是？ | grading_keywords=不应少于 3 道,防水混凝土为 1 道,外设防水层不少于 2 道,P8 本体·明挖法地下工程主体结构防水做法(1A413050-R37): 一级防水≥3道·防水混凝土1道(应选)·外设防水层≥2道(卷材或涂料≥1道)·抗渗≥P8; 三级防",
+          "match_score": 0.2,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_122_0230:0",
+          "quote": "平屋面防水等级与做法：平屋面防水等级分为一、二、三级。一级防水不应少于3道，其中卷材防水层不少于1道；二级不应少于2道，卷材防水层不少于1道；三级不应少于1道，可任选卷材或涂料。 平屋面防水等级分为一、二、三级。一级防水不应少于3道，其中卷材防水层不少于1道；二级不应少于2道，卷材防水层不少于1道；三级不应少于1道，可任选卷材或涂料。 本体·屋面防水等级与做法(1A413050-R19/R20/R",
+          "match_score": 0.18,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_122_0230:1",
+          "quote": "料。 本体·屋面防水等级与做法(1A413050-R19/R20/R21/R36/R39, 即 primary 1A413100/1A413102 territory; ⚠️源库 leaf_name_path 错挂'地基与基础>建筑物类别', 直读 compiled_context 真实=屋面防水设防): 平屋面防水等级一/二/三级; 一级≥3道(卷材≥1道)·二级≥2道(卷材≥1道)·三级≥1道",
+          "match_score": 0.16,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        }
+      ]
     },
     {
       "variant_id": "F03-html-practice-html-q10-2d6fe403e5c8",
@@ -203,6 +387,20 @@
           "source_anchor": "ca:1A413030_130_0247",
           "quote": "关于明挖法地下工程一级防水等级的防水做法，下列说法正确的是？ 关于明挖法地下工程一级防水等级的防水做法，下列说法正确的是？ | grading_keywords=不应少于 3 道,防水混凝土为 1 道,外设防水层不少于 2 道,P8 本体·明挖法地下工程主体结构防水做法(1A413050-R37): 一级防水≥3道·防水混凝土1道(应选)·外设防水层≥2道(卷材或涂料≥1道)·抗渗≥P8; 三级防",
           "match_score": 0.6952,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_122_0230:0",
+          "quote": "平屋面防水等级与做法：平屋面防水等级分为一、二、三级。一级防水不应少于3道，其中卷材防水层不少于1道；二级不应少于2道，卷材防水层不少于1道；三级不应少于1道，可任选卷材或涂料。 平屋面防水等级分为一、二、三级。一级防水不应少于3道，其中卷材防水层不少于1道；二级不应少于2道，卷材防水层不少于1道；三级不应少于1道，可任选卷材或涂料。 本体·屋面防水等级与做法(1A413050-R19/R20/R",
+          "match_score": 0.3945,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "ca:1A413030_122_0230",
+          "quote": "关于平屋面防水等级的要求，下列说法正确的是？ 关于平屋面防水等级的要求，下列说法正确的是？ | grading_keywords=一级,不应少于3道,卷材防水层不应少于1道,二级,不应少于2道,三级,不应少于1道,任选 本体·屋面防水等级与做法(1A413050-R19/R20/R21/R36/R39, 即 primary 1A413100/1A413102 territory; ⚠️源库 lea",
+          "match_score": 0.3381,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
         }
@@ -231,6 +429,20 @@
           "match_score": 0.6862,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_122_0230:0",
+          "quote": "平屋面防水等级与做法：平屋面防水等级分为一、二、三级。一级防水不应少于3道，其中卷材防水层不少于1道；二级不应少于2道，卷材防水层不少于1道；三级不应少于1道，可任选卷材或涂料。 平屋面防水等级分为一、二、三级。一级防水不应少于3道，其中卷材防水层不少于1道；二级不应少于2道，卷材防水层不少于1道；三级不应少于1道，可任选卷材或涂料。 本体·屋面防水等级与做法(1A413050-R19/R20/R",
+          "match_score": 0.3569,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "ca:1A413030_122_0230",
+          "quote": "关于平屋面防水等级的要求，下列说法正确的是？ 关于平屋面防水等级的要求，下列说法正确的是？ | grading_keywords=一级,不应少于3道,卷材防水层不应少于1道,二级,不应少于2道,三级,不应少于1道,任选 本体·屋面防水等级与做法(1A413050-R19/R20/R21/R36/R39, 即 primary 1A413100/1A413102 territory; ⚠️源库 lea",
+          "match_score": 0.3569,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
         }
       ]
     },
@@ -255,6 +467,20 @@
           "source_anchor": "kc:1A413030_130_0249:1",
           "quote": "0～160mm。 防水混凝土胶凝材料总用量不宜小于 320kg/m³，水泥用量不宜小于 260kg/m³；水胶比不得大于 0.50，有侵蚀性介质时水胶比不宜大于 0.45；入泵坍落度宜控制在 120～160mm。 本体·防水混凝土(结构自防水)施工要求(1A413050-R26/R27/R40): 抗渗等级≥P6·试配比设计提高0.2MPa(设计P8则试配P10); 胶凝材料≥320kg/m³·水",
           "match_score": 0.4898,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_130_0249:2",
+          "quote": "防水混凝土浇筑要求：防水混凝土应分层连续浇筑，分层厚度不得大于 500mm，并应采用机械振捣，避免漏振、欠振和超振。 防水混凝土应分层连续浇筑，分层厚度不得大于 500mm，并应采用机械振捣，避免漏振、欠振和超振。 本体·防水混凝土(结构自防水)施工要求(1A413050-R26/R27/R40): 抗渗等级≥P6·试配比设计提高0.2MPa(设计P8则试配P10); 胶凝材料≥320kg/m³·",
+          "match_score": 0.4898,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "ca:1A413030_130_0247",
+          "quote": "关于明挖法地下工程一级防水等级的防水做法，下列说法正确的是？ 关于明挖法地下工程一级防水等级的防水做法，下列说法正确的是？ | grading_keywords=不应少于 3 道,防水混凝土为 1 道,外设防水层不少于 2 道,P8 本体·明挖法地下工程主体结构防水做法(1A413050-R37): 一级防水≥3道·防水混凝土1道(应选)·外设防水层≥2道(卷材或涂料≥1道)·抗渗≥P8; 三级防",
+          "match_score": 0.2068,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
         }
@@ -283,6 +509,20 @@
           "match_score": 0.6391,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "ca:1A413030_131_0250",
+          "quote": "关于施工缝的设置，下列说法错误的是？ 关于施工缝的设置，下列说法错误的是？ | grading_keywords=300mm,水平施工缝,垂直施工缝,遇水膨胀止水条,7d净膨胀率,220%,中埋式止水带 本体·施工缝设置及防水构造(1A413050-R23): 水平施工缝设在高出底板表面≥300mm处·距孔洞边缘≥300mm; 垂直施工缝避开地下水丰富区宜结合变形缝; 遇水膨胀止水条7d净膨胀率≤",
+          "match_score": 0.4641,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_131_0250:0",
+          "quote": "m；垂直施工缝避开地下水丰富区，宜结合变形缝。 本体·施工缝设置及防水构造(1A413050-R23): 水平施工缝设在高出底板表面≥300mm处·距孔洞边缘≥300mm; 垂直施工缝避开地下水丰富区宜结合变形缝; 遇水膨胀止水条7d净膨胀率≤60%最终膨胀率·最终膨胀率≥220%. (注: 同chunk大体积防水混凝土龄期60d/90d·养护≥14d后浇带≥28d属地下防水混凝土养护亦F03本体",
+          "match_score": 0.4312,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
         }
       ]
     },
@@ -309,6 +549,20 @@
           "match_score": 0.6,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "kc:1A413030_131_0250:2",
+          "quote": "；高温期入模温≤30℃；养护≥14d，后浇带≥28d。 宜选低水化热水泥，掺减水剂、缓凝剂、粉煤灰、矿渣粉；设计龄期60d或90d；高温期入模温≤30℃；养护≥14d，后浇带≥28d。 本体·施工缝设置及防水构造(1A413050-R23): 水平施工缝设在高出底板表面≥300mm处·距孔洞边缘≥300mm; 垂直施工缝避开地下水丰富区宜结合变形缝; 遇水膨胀止水条7d净膨胀率≤60%最终膨胀率·",
+          "match_score": 0.6,
+          "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
+          "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "exam:2024:第13页",
+          "quote": "(3) 灌注桩顶部泛浆高度不应小于500mm；(4) 基坑内支撑的拆除顺序应与支撑结构的设计工况一致；(5) 应由建设方委托具备相应资质的第三方进行基坑监测。 3. A—技术；B—商务；C—工程；D—质量；E—质量。 4. 抗渗混凝土的最小受冻临界强度值：20MPa。 5. ①低温型灌浆料施工开始24h内的灌浆部位温度不低于-5℃；②灌浆施工过程中施工环境温度不低于0℃。 【解析】 1. 关键线路",
+          "match_score": 0.2625,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
         }
       ]
     },
@@ -335,6 +589,13 @@
           "match_score": 0.3756,
           "source_file": "docs/原始数据/考点原料/_F03_compiled_source.json",
           "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207"
+        },
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": " 测项目进行了见证取样或抽样检查。 事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防 水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。 事件四：工程采用新型保 错误之一：泛水高度为 200mm。正确做法：泛水高度至少为 250mm。 错误之二：阴阳角基层卷材防水为直角形式。 正确做法：阴阳角基层卷材做成 45 度角或圆弧型。 错误之三：女儿墙泛水处防水层没",
+          "match_score": 0.125,
+          "source_file": "docs/原始数据/考点原料/_F03_exam_evidence.json",
+          "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02"
         }
       ]
     }

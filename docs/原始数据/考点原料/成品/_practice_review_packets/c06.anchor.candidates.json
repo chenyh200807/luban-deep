@@ -1,11 +1,11 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-18T02:18:19+00:00",
+  "generated_at": "2026-07-21T01:34:40+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "C06",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/c06.practice.review.json",
-  "score_threshold": 0.25,
+  "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
     "total_items": 16,
@@ -14,7 +14,7 @@
   },
   "items": [
     {
-      "variant_id": "C06-html-practice-html-q1-059b37587342",
+      "variant_id": "C06-html-practice-html-q1-70cb991e6e11",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_107_0210:1",
@@ -36,11 +36,25 @@
           "match_score": 0.4021,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "ca:1A413030_109_0213",
+          "quote": "关于烧结空心砖砌体施工，下列说法错误的是？ 关于烧结空心砖砌体施工，下列说法错误的是？ | grading_keywords=侧立砌筑,孔洞水平,3皮普通砖,10mm灰缝,8~12mm,刮浆法,上下错缝,咬槎搭砌,不得留直槎,斜槎≤1.2m,防渗漏 本体·烧结空心砖砌体: 侧立砌筑孔洞水平 + 底部3皮普通砖 + 上下错缝交接处咬槎搭砌/转角交接同时砌筑不得留直槎/斜槎高度≤1.2m — 咬槎/留",
+          "match_score": 0.4021,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:0",
+          "quote": "烧结砖砌体施工要点：烧结砖砌体施工中，灰缝宽度宜为 10mm，且不应小于 8mm，也不应大于 12mm。 烧结砖砌体施工中，灰缝宽度宜为 10mm，且不应小于 8mm，也不应大于 12mm。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎",
+          "match_score": 0.3875,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q2-c943f4f66e88",
+      "variant_id": "C06-html-practice-html-q2-8852f4bfc13d",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_107_0210:1",
@@ -62,11 +76,25 @@
           "match_score": 0.5579,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "ca:1A413030_107_0210",
+          "quote": "关于烧结砖砌体施工中灰缝宽度的要求，下列说法正确的是？ 关于烧结砖砌体施工中灰缝宽度的要求，下列说法正确的是？ | grading_keywords=10mm,8mm,12mm,灰缝宽度 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎(先",
+          "match_score": 0.5395,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:2",
+          "quote": "mm，凹凸尺寸宜为 60mm。沿墙高每 500mm 设置拉结钢筋。 构造柱与砌体连接处应砌成马牙槎，先退后进，每个马牙槎沿高度方向尺寸不宜超过 300mm，凹凸尺寸宜为 60mm。沿墙高每 500mm 设置拉结钢筋。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加",
+          "match_score": 0.5211,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q3-f2a1a2da34e2",
+      "variant_id": "C06-html-practice-html-q3-a0c105bea82f",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_107_0210:0",
@@ -88,11 +116,25 @@
           "match_score": 0.5154,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:2",
+          "quote": "mm，凹凸尺寸宜为 60mm。沿墙高每 500mm 设置拉结钢筋。 构造柱与砌体连接处应砌成马牙槎，先退后进，每个马牙槎沿高度方向尺寸不宜超过 300mm，凹凸尺寸宜为 60mm。沿墙高每 500mm 设置拉结钢筋。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加",
+          "match_score": 0.5154,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_109_0213:3",
+          "quote": "空心砖组砌要求：应上下错缝，交接处咬槎搭砌；转角及交接处应同时砌筑，不得留直槎；斜槎高度不宜大于1.2m。 应上下错缝，交接处咬槎搭砌；转角及交接处应同时砌筑，不得留直槎；斜槎高度不宜大于1.2m。 本体·烧结空心砖砌体: 侧立砌筑孔洞水平 + 底部3皮普通砖 + 上下错缝交接处咬槎搭砌/转角交接同时砌筑不得留直槎/斜槎高度≤1.2m — 咬槎/留槎本体",
+          "match_score": 0.4346,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q4-ff391baa6a20",
+      "variant_id": "C06-html-practice-html-q4-9392bb287fc2",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_107_0210:1",
@@ -100,11 +142,39 @@
           "match_score": 0.4186,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:0",
+          "quote": "m。 烧结砖砌体施工中，灰缝宽度宜为 10mm，且不应小于 8mm，也不应大于 12mm。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎(先退后进/沿高≤300mm/凹凸60mm/沿墙高每500mm拉结钢筋) — C06 判分眼最集中卡",
+          "match_score": 0.2093,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:2",
+          "quote": "mm，凹凸尺寸宜为 60mm。沿墙高每 500mm 设置拉结钢筋。 构造柱与砌体连接处应砌成马牙槎，先退后进，每个马牙槎沿高度方向尺寸不宜超过 300mm，凹凸尺寸宜为 60mm。沿墙高每 500mm 设置拉结钢筋。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加",
+          "match_score": 0.2093,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "ca:1A413030_107_0210",
+          "quote": "关于烧结砖砌体施工中灰缝宽度的要求，下列说法正确的是？ 关于烧结砖砌体施工中灰缝宽度的要求，下列说法正确的是？ | grading_keywords=10mm,8mm,12mm,灰缝宽度 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎(先",
+          "match_score": 0.2093,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "ca:1A413030_106_0205",
+          "quote": "在抗震设防地区，基础墙防潮层不宜采用哪种材料？ 在抗震设防地区，基础墙防潮层不宜采用哪种材料？ | grading_keywords=卷材,水泥砂浆,防水剂,20mm 本体外延·基础墙防潮层(1:2.5水泥砂浆+防水剂/20mm/抗震区严禁卷材)",
+          "match_score": 0.1463,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q5-709dd117003d",
+      "variant_id": "C06-html-practice-html-q5-adfcc9a1da89",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_109_0214:1",
@@ -126,11 +196,25 @@
           "match_score": 0.3182,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_109_0213:4",
+          "quote": "外墙面防渗漏措施：外墙面采用空心砖砌筑时，必须采取防雨水渗漏的措施。 外墙面采用空心砖砌筑时，必须采取防雨水渗漏的措施。 本体·烧结空心砖砌体: 侧立砌筑孔洞水平 + 底部3皮普通砖 + 上下错缝交接处咬槎搭砌/转角交接同时砌筑不得留直槎/斜槎高度≤1.2m — 咬槎/留槎本体",
+          "match_score": 0.3182,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_109_0214:0",
+          "quote": "轻骨料砌块填充材料施工：当小砌块墙体孔洞中需填充隔热或隔声材料时，应逐皮填充，填满但不得捣实。 当小砌块墙体孔洞中需填充隔热或隔声材料时，应逐皮填充，填满但不得捣实。 本体·轻骨料砌块: 纵横墙交接转角同时砌筑/不能同时砌筑应留斜槎(斜槎水平投影≥高2/3)/孔洞填充逐皮填满不捣实 — 留斜槎本体",
+          "match_score": 0.3182,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q6-29b7b907e57e",
+      "variant_id": "C06-html-practice-html-q6-c15b9cac9a05",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_109_0213:3",
@@ -152,11 +236,25 @@
           "match_score": 0.5333,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_109_0213:2",
+          "quote": "灰缝尺寸控制：水平灰缝和竖向灰缝宽度宜为10mm，最小8mm，最大12mm；竖缝采用刮浆法。 水平灰缝和竖向灰缝宽度宜为10mm，最小8mm，最大12mm；竖缝采用刮浆法。 本体·烧结空心砖砌体: 侧立砌筑孔洞水平 + 底部3皮普通砖 + 上下错缝交接处咬槎搭砌/转角交接同时砌筑不得留直槎/斜槎高度≤1.2m — 咬槎/留槎本体",
+          "match_score": 0.5121,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_109_0213:4",
+          "quote": "外墙面防渗漏措施：外墙面采用空心砖砌筑时，必须采取防雨水渗漏的措施。 外墙面采用空心砖砌筑时，必须采取防雨水渗漏的措施。 本体·烧结空心砖砌体: 侧立砌筑孔洞水平 + 底部3皮普通砖 + 上下错缝交接处咬槎搭砌/转角交接同时砌筑不得留直槎/斜槎高度≤1.2m — 咬槎/留槎本体",
+          "match_score": 0.5121,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q7-2480b254a219",
+      "variant_id": "C06-html-practice-html-q7-9c9fd7cc2114",
       "candidates": [
         {
           "source_anchor": "exam:2015:第12题",
@@ -171,11 +269,32 @@
           "match_score": 0.4,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:0",
+          "quote": "m。 烧结砖砌体施工中，灰缝宽度宜为 10mm，且不应小于 8mm，也不应大于 12mm。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎(先退后进/沿高≤300mm/凹凸60mm/沿墙高每500mm拉结钢筋) — C06 判分眼最集中卡",
+          "match_score": 0.2286,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:1",
+          "quote": " 度及以上地区，临时断处应砌成斜槎，普通砖斜槎水平投影长度 ≥ 高度的 2/3；多孔砖斜槎长高比 ≥ 1/2。非抗震区可留直槎，但需加拉结筋。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎(先退后进/沿高≤300mm/凹凸60mm/沿墙",
+          "match_score": 0.2286,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "ca:1A413030_107_0210",
+          "quote": "关于烧结砖砌体施工中灰缝宽度的要求，下列说法正确的是？ 关于烧结砖砌体施工中灰缝宽度的要求，下列说法正确的是？ | grading_keywords=10mm,8mm,12mm,灰缝宽度 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎(先",
+          "match_score": 0.2286,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q8-4c39e7a33228",
+      "variant_id": "C06-html-practice-html-q8-376c80e70ec2",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_107_0210:2",
@@ -197,11 +316,25 @@
           "match_score": 0.6244,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:1",
+          "quote": " 度及以上地区，临时断处应砌成斜槎，普通砖斜槎水平投影长度 ≥ 高度的 2/3；多孔砖斜槎长高比 ≥ 1/2。非抗震区可留直槎，但需加拉结筋。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎(先退后进/沿高≤300mm/凹凸60mm/沿墙",
+          "match_score": 0.6244,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "进行实体检测。锚固钢筋拉拔试验的轴向受拉非破坏承载力检验值应为6.0kN。抽检钢筋在检验值作用下应基材无裂缝、钢筋无滑移宏观裂损现象；持荷2min期间荷载值降低不大于5%。 3. (1) 铺贴方法还有：冷粘法、热熔法、自粘法、焊接法、机械固定法等。 (2) 铺贴顺序和方向要求还有：①卷材防水层施工时，应先进行细部构造处理，然后由屋面最低标高向上铺贴；②檐沟、天沟卷材施工时，宜顺檐沟、天沟方向铺贴，",
+          "match_score": 0.2012,
+          "source_file": "docs/原始数据/考点原料/_C06_exam_evidence.json",
+          "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q9-d2b7b60599c6",
+      "variant_id": "C06-html-practice-html-q9-6f46b593092d",
       "candidates": [
         {
           "source_anchor": "exam:2020:第11题",
@@ -223,11 +356,25 @@
           "match_score": 0.25,
           "source_file": "docs/原始数据/考点原料/_C06_exam_evidence.json",
           "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d"
+        },
+        {
+          "source_anchor": "exam:2022:第6题",
+          "quote": "C. 楼梯栏板采用无筋砖砌体 D. 出屋面楼梯间构造柱与顶部圈梁连接 D 抗震真理楼梯间，语感排除 ABC 7.3.6 楼、屋盖的钢筋混凝土梁或屋架应与墙、柱(包括构造柱)或圈梁可靠连接；不得采用独立砖柱。跨度不小于 6m 大梁的支承构件应采用组合砌体等加强措施。 7.3.8 配式楼梯段应与平台板的梁可靠连接，8、9 度时不应采用装配式楼梯段，不应采用墙中悬挑式踏步或踏步竖肋插入墙体的楼梯，不应采",
+          "match_score": 0.2045,
+          "source_file": "docs/原始数据/考点原料/_C06_exam_evidence.json",
+          "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:0",
+          "quote": "m。 烧结砖砌体施工中，灰缝宽度宜为 10mm，且不应小于 8mm，也不应大于 12mm。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎(先退后进/沿高≤300mm/凹凸60mm/沿墙高每500mm拉结钢筋) — C06 判分眼最集中卡",
+          "match_score": 0.1364,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q10-a00eb0bc5d64",
+      "variant_id": "C06-html-practice-html-q10-72d17a63480d",
       "candidates": [
         {
           "source_anchor": "exam:2018:第11题",
@@ -249,11 +396,25 @@
           "match_score": 0.2903,
           "source_file": "docs/原始数据/考点原料/_C06_exam_evidence.json",
           "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d"
+        },
+        {
+          "source_anchor": "exam:2015:第12题",
+          "quote": "关于砖砌体施工要点的说法，正确的是( )。 A. 半盲孔多孔砖的封底面应朝下砌筑 B. 多孔砖的孔洞应垂直于受压面砌筑 C. 马牙槎从每层柱脚开始先进后退设置 D. 多孔砖应饱和吸水后进行砌筑 B 【解析】本题考查的是砖砌体工程。选项A：半盲孔多孔的封底面应朝上砌筑；选项C：马牙槎从每 层柱脚开始，应先退后进；选项D：砌筑烧结普通砖、烧结多孔砖、蒸压灰砂砖、蒸压粉煤灰砖砌体时， 砖应提前适度湿润，",
+          "match_score": 0.2258,
+          "source_file": "docs/原始数据/考点原料/_C06_exam_evidence.json",
+          "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d"
+        },
+        {
+          "source_anchor": "exam:2022:第16题",
+          "quote": "【问题】防水水泥砂浆施工做法正确的是（ ）。 A.采用抹压法，一遍成活 B.上下层接槎位置错开200mm C.转角处接槎 D.养护时间7d B 解析：防水机理不渗漏，语感排除ACD。机理如下： - 防水砂浆应采用抹压法施工，分遍成活。各层应紧密结合，每层应连续施工。 - 当需留槎时，上下层接槎位置应错开100mm以上，离转角200mm内不得留接槎。 - 养护时间不少于7d。 A错误：应分遍成活，不",
+          "match_score": 0.2258,
+          "source_file": "docs/原始数据/考点原料/_C06_exam_evidence.json",
+          "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q11-bcd8e09ef9ed",
+      "variant_id": "C06-html-practice-html-q11-e7b67e14abcc",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_109_0212:1",
@@ -275,11 +436,25 @@
           "match_score": 0.4211,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_109_0212:0",
+          "quote": "填充墙拉结筋检测要求：当填充墙拉结筋采用化学植筋方式时，必须进行实体检测。 当填充墙拉结筋采用化学植筋方式时，必须进行实体检测。 本体·填充墙施工: 拉结筋化学植筋须实体检测 + 连接构造不得随意改变须设计同意 + 钻孔镂槽切锯须专用工具严禁剔凿/预留洞预埋件砌前设置",
+          "match_score": 0.3684,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "门审批后实施。质量计划要求项目部施工过程中建立包括使用机具和设备管理记录，图纸、设计变更收发记录，检查和整改复查记录，质量管理文件及其他记录等质量管理记录制度。 240mm厚灰砂砖填充墙与主体结构连接施工的要求有：填充墙与柱连接钢筋为2φ6@600)，伸入墙内500mm；填充墙与结构梁下最后三皮砖空隙部位，在墙体砌筑7d后，采取两边对称斜砌填实；化学植筋连接筋φ6做拉拔试验时，将轴向受拉非破坏承载",
+          "match_score": 0.3158,
+          "source_file": "docs/原始数据/考点原料/_C06_exam_evidence.json",
+          "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q12-2fd2caf96fac",
+      "variant_id": "C06-html-practice-html-q12-b308365138b7",
       "candidates": [
         {
           "source_anchor": "exam:2016:案例2",
@@ -301,11 +476,25 @@
           "match_score": 0.4393,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "ca:1A413030_108_0211",
+          "quote": "关于混凝土小型空心砌块砌体工程，下列说法错误的是？ 关于混凝土小型空心砌块砌体工程，下列说法错误的是？ | grading_keywords=28d,反砌,C20,1/2,φ4钢筋网片,400mm,10mm,8mm,12mm,1.4m 本体外延·小砌块/填充墙: 龄期≥28d/底面朝上反砌/灰缝10mm/日砌高≤1.4m + 砌块禁用条件(防潮层下/长期浸水/化学侵蚀/温度>80℃/振动) + 厨",
+          "match_score": 0.425,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_108_0211:1",
+          "quote": "填充墙禁用条件：轻骨料混凝土小型空心砌块或蒸压加气混凝土砌块不得用于：防潮层以下、长期浸水、化学侵蚀、表面温度＞80℃、振动源环境。 轻骨料混凝土小型空心砌块或蒸压加气混凝土砌块不得用于：防潮层以下、长期浸水、化学侵蚀、表面温度＞80℃、振动源环境。 本体外延·小砌块/填充墙: 龄期≥28d/底面朝上反砌/灰缝10mm/日砌高≤1.4m + 砌块禁用条件(防潮层下/长期浸水/化学侵蚀/温度>80℃",
+          "match_score": 0.3964,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q13-57e0d724bc35",
+      "variant_id": "C06-html-practice-html-q13-c27ef9191e58",
       "candidates": [
         {
           "source_anchor": "exam:2019:第1题",
@@ -327,11 +516,25 @@
           "match_score": 0.5049,
           "source_file": "docs/原始数据/考点原料/_C06_exam_evidence.json",
           "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d"
+        },
+        {
+          "source_anchor": "kc:1A434000_074_0116:0",
+          "quote": "[🔵验收/通病外延] 填充墙裂缝防治措施：柱或墙边设置间距≤500mm的2φ6钢筋；填充墙与主体间空隙待砌筑14天后施工；空心砖墙内侧半砖斜砌；窗台改细石混凝土并配筋；接触处设加强网片。 柱或墙边设置间距≤500mm的2φ6钢筋；填充墙与主体间空隙待砌筑14天后施工；空心砖墙内侧半砖斜砌；窗台改细石混凝土并配筋；接触处设加强网片。 外延·填充墙裂缝防治(Q03质量通病territory, 且chu",
+          "match_score": 0.3683,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "ca:1A434000_074_0116",
+          "quote": "下列哪项不是防止填充墙与主体结构交接处裂缝的有效措施？ 下列哪项不是防止填充墙与主体结构交接处裂缝的有效措施？ | grading_keywords=500mm,2φ6钢筋,14d后施工,半砖斜砌,加强网片 外延·填充墙裂缝防治(Q03质量通病territory, 且chunk名实不符混焊缝/地基/防水多卡): 柱墙边2φ6@≤500mm/填充墙与主体间空隙砌后14d再施工/空心砖内侧半砖斜砌/加",
+          "match_score": 0.3683,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q14-8f09ea2ca634",
+      "variant_id": "C06-html-practice-html-q14-44328085df27",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_106_0208:0",
@@ -353,11 +556,25 @@
           "match_score": 0.3375,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "ca:1A413030_106_0209",
+          "quote": "下列哪些部位不得设置施工脚手眼？ 下列哪些部位不得设置施工脚手眼？ | grading_keywords=120mm厚墙,清水墙,过梁三角区,窗间墙<1m,门窗洞口旁,梁下500mm,轻质墙,夹心墙外叶 本体外延·脚手眼禁止部位: 120mm墙/清水墙/料石墙/独立柱/过梁三角区/窗间墙<1m/门窗洞口旁/梁下500mm/轻质墙/夹心墙外叶",
+          "match_score": 0.3375,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:0",
+          "quote": "烧结砖砌体施工要点：烧结砖砌体施工中，灰缝宽度宜为 10mm，且不应小于 8mm，也不应大于 12mm。 烧结砖砌体施工中，灰缝宽度宜为 10mm，且不应小于 8mm，也不应大于 12mm。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎",
+          "match_score": 0.3125,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q15-321eb3ad0978",
+      "variant_id": "C06-html-practice-html-q15-adc2627d1e58",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_107_0210:2",
@@ -379,11 +596,25 @@
           "match_score": 0.4349,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:1",
+          "quote": " 度及以上地区，临时断处应砌成斜槎，普通砖斜槎水平投影长度 ≥ 高度的 2/3；多孔砖斜槎长高比 ≥ 1/2。非抗震区可留直槎，但需加拉结筋。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎(先退后进/沿高≤300mm/凹凸60mm/沿墙",
+          "match_score": 0.4349,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "进行实体检测。锚固钢筋拉拔试验的轴向受拉非破坏承载力检验值应为6.0kN。抽检钢筋在检验值作用下应基材无裂缝、钢筋无滑移宏观裂损现象；持荷2min期间荷载值降低不大于5%。 3. (1) 铺贴方法还有：冷粘法、热熔法、自粘法、焊接法、机械固定法等。 (2) 铺贴顺序和方向要求还有：①卷材防水层施工时，应先进行细部构造处理，然后由屋面最低标高向上铺贴；②檐沟、天沟卷材施工时，宜顺檐沟、天沟方向铺贴，",
+          "match_score": 0.2475,
+          "source_file": "docs/原始数据/考点原料/_C06_exam_evidence.json",
+          "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d"
         }
       ]
     },
     {
-      "variant_id": "C06-html-practice-html-q16-d0b8b0f4eb46",
+      "variant_id": "C06-html-practice-html-q16-0f022e9e1016",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_106_0208:0",
@@ -396,6 +627,27 @@
           "source_anchor": "ca:1A413030_106_0208",
           "quote": "关于临时施工洞口的说法，正确的有哪些？ 关于临时施工洞口的说法，正确的有哪些？ | grading_keywords=净宽≤1m,距交接面≥500mm,设置过梁,预埋拉结筋,抗震9度需设计确认 本体·primary 临时施工洞口: 净宽≤1m、距交接面≥500mm、宜设过梁或挑砖封口、预埋拉结筋、9度抗震须设计确认、墙梁部分不宜留洞",
           "match_score": 0.4188,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "ca:1A413030_106_0209",
+          "quote": "下列哪些部位不得设置施工脚手眼？ 下列哪些部位不得设置施工脚手眼？ | grading_keywords=120mm厚墙,清水墙,过梁三角区,窗间墙<1m,门窗洞口旁,梁下500mm,轻质墙,夹心墙外叶 本体外延·脚手眼禁止部位: 120mm墙/清水墙/料石墙/独立柱/过梁三角区/窗间墙<1m/门窗洞口旁/梁下500mm/轻质墙/夹心墙外叶",
+          "match_score": 0.2487,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_106_0209:0",
+          "quote": "施工脚手眼禁止设置部位：施工脚手眼不得设置在：120mm厚墙、清水墙、料石墙、独立柱、过梁三角区、窗间墙<1m、门窗洞口旁、梁下500mm、轻质墙、夹心墙外叶、设计禁止处。 施工脚手眼不得设置在：120mm厚墙、清水墙、料石墙、独立柱、过梁三角区、窗间墙<1m、门窗洞口旁、梁下500mm、轻质墙、夹心墙外叶、设计禁止处。 本体外延·脚手眼禁止部位: 120mm墙/清水墙/料石墙/独立柱/过梁三角区",
+          "match_score": 0.248,
+          "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
+          "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
+        },
+        {
+          "source_anchor": "kc:1A413030_107_0210:0",
+          "quote": "烧结砖砌体施工要点：烧结砖砌体施工中，灰缝宽度宜为 10mm，且不应小于 8mm，也不应大于 12mm。 烧结砖砌体施工中，灰缝宽度宜为 10mm，且不应小于 8mm，也不应大于 12mm。 本体·primary 主轴: 烧结砖砌体(灰缝10mm/8~12mm) + 斜槎/直槎规则(8度及以上须斜槎/普通砖斜槎水平投影≥高2/3、多孔砖斜槎长高比≥1/2/非抗震可直槎但加拉结筋) + 构造柱马牙槎",
+          "match_score": 0.2242,
           "source_file": "docs/原始数据/考点原料/_C06_compiled_source.json",
           "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c"
         }

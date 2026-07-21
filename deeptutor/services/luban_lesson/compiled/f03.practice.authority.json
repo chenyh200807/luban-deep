@@ -29,6 +29,7 @@
         "F03-html-practice-html-q2-79c629fb1226",
         "F03-html-practice-html-q3-3ad2bfdbadc0",
         "F03-html-practice-html-q4-5436a7f644e1",
+        "F03-html-practice-html-q9-5b914e0773f1",
         "F03-html-practice-html-q10-2d6fe403e5c8",
         "F03-html-practice-html-q11-defc7bbb052d",
         "F03-html-practice-html-q12-6dd197458378",
@@ -1506,29 +1507,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:第12题",
+      "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
       "source_html_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "f03-fact-underground-structure-method",
+      "skeleton_id": "f03-skel-地下四级分级辨析",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "560b2870342eed3a46ebf4b2f6084c641d75e2f1770f91f3a90b1b166c878554",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "560b2870342eed3a46ebf4b2f6084c641d75e2f1770f91f3a90b1b166c878554",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "地下工程防水等级四级(屋面三级),2019真题C+GB50108四级定义逐字核对;同判分眼(地下防水设防)的入门辨析,加深surface fact确认池。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：地下工程防水等级",
         "caption": "分几级？和屋面一样吗？",

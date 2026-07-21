@@ -1,0 +1,86 @@
+{
+  "pack_id": "A02",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+  "signed": [
+    {
+      "variant_id": "A02-html-practice-html-q7-b93861f4712e",
+      "probe_role": "immediate_confirm",
+      "fact_id": "a02-fact-safety-energy-env-recheck",
+      "skeleton_id": "a02-skel-屋面保温复验三项",
+      "source_anchor": "exam:2020:第30题",
+      "note": "屋面保温复验导热系数/密度/燃烧性能,2020真题ABD逐字核对。补全surface anchor fact的confirm形态。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q8-5e25509aefb1",
+      "probe_role": "immediate_confirm",
+      "fact_id": "a02-fact-safety-energy-env-recheck",
+      "skeleton_id": "a02-skel-墙体保温砌块复验三项",
+      "source_anchor": "exam:2022:第22题",
+      "note": "墙体保温砌块复验导热系数/抗压强度/吸水率,2022真题ACD逐字核对。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q9-f756a6bc65f7",
+      "probe_role": "d1_probe",
+      "fact_id": "a02-fact-safety-energy-env-recheck",
+      "skeleton_id": "a02-skel-门窗节能气候区参数",
+      "source_anchor": "kc:1A422000_047_0073:0",
+      "note": "严寒寒冷地区门窗节能复验=传热系数+气密性,教材气候区分类卡逐字核对。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q5-1f6d5b85acae",
+      "probe_role": "anchor",
+      "fact_id": "a02-fact-material-recheck-items",
+      "skeleton_id": "a02-skel-水泥复试四项",
+      "source_anchor": "kc:1A438000_152_0245:1",
+      "note": "水泥复试胶砂强度/氯离子含量/安定性/凝结时间,教材gold卡逐字核对。复合fact(B007材料复试内容卡:钢筋/水泥/外加剂),非surface fact仅d1可达。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q22-c536c553c201",
+      "probe_role": "immediate_confirm",
+      "fact_id": "a02-fact-material-recheck-items",
+      "skeleton_id": "a02-skel-钢筋复试五项诊断",
+      "source_anchor": "kc:1A438000_152_0245:0",
+      "note": "钢筋复试五项(屈服/抗拉/伸长率/弯曲/重量偏差)诊断补齐,教材逐字核对。注:本题语义亦属rebar-recheck-five,该surface fact因缺第二候选无法独立补全,归入本复合fact,工单记录。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q6-3773c9a8f524",
+      "probe_role": "d1_probe",
+      "fact_id": "a02-fact-material-recheck-items",
+      "skeleton_id": "a02-skel-氯离子首检外加剂",
+      "source_anchor": "exam:2017:第14题",
+      "note": "有氯离子要求时首检外加剂,2017真题B逐字核对(外加剂是氯离子主要来源)。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q17-0419846e9399",
+      "probe_role": "anchor",
+      "fact_id": "a02-fact-structural-entity-inspection",
+      "skeleton_id": "a02-skel-实体检验内容三项",
+      "source_anchor": "kc:1A434020_085_0136:0",
+      "note": "结构实体检验必含混凝土强度/钢筋保护层厚度/结构位置与尺寸偏差+合同约定,教材逐字+2025真题参考答案互证。新fact非surface仅d1可达。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q16-4c0f8c232f8a",
+      "probe_role": "immediate_confirm",
+      "fact_id": "a02-fact-structural-entity-inspection",
+      "skeleton_id": "a02-skel-强度检验复核顺序",
+      "source_anchor": "kc:1A434020_085_0136:2",
+      "note": "优先同条件养护试件,不足回弹-取芯(教材逐字);仍存疑钻芯且须有资质第三方(2017真题第2题案例:自有实验室钻芯被判不妥)。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q23-93210b2e4030",
+      "probe_role": "d1_probe",
+      "fact_id": "a02-fact-structural-entity-inspection",
+      "skeleton_id": "a02-skel-实体强度采分句",
+      "source_anchor": "kc:1A434020_085_0136:2",
+      "note": "同条件→回弹取芯→钻芯第三方采分句形态,同源教材+2017真题案例核对。"
+    },
+    {
+      "variant_id": "A02-html-practice-html-q11-626ea542c1d5",
+      "probe_role": "immediate_confirm",
+      "fact_id": "a02-fact-witness-sampling-chain",
+      "skeleton_id": "a02-skel-见证记录填写主体",
+      "source_anchor": "exam:2023:案例一",
+      "note": "见证记录由见证人员填写,2023真题案例一官方答案'应由见证人员记录'+2019第30题B项互证。"
+    }
+  ]
+}

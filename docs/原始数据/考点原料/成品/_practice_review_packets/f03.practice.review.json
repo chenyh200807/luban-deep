@@ -5,7 +5,7 @@
   "source_bundle_sha256": "b6a11b3fa22760d4ce4adda00af6c847ac791c7ff3de832295137ce88d35f4c7",
   "compiled_schema_version": "luban_compiled_practice.v3",
   "candidate_count": 15,
-  "eligible_count": 8,
+  "eligible_count": 9,
   "human_gate": {
     "required_roles": [
       "teaching",
@@ -670,23 +670,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q9",
       "authoring_sha256": "92635ebd50dfbe2e8d3e3dca65384af7f354769ec8de45f8d839b050335800cf",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "f03-fact-underground-structure-method",
+        "skeleton_id": "f03-skel-地下四级分级辨析",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2019:第12题",
+        "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "560b2870342eed3a46ebf4b2f6084c641d75e2f1770f91f3a90b1b166c878554",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:26+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "地下工程防水等级四级(屋面三级),2019真题C+GB50108四级定义逐字核对;同判分眼(地下防水设防)的入门辨析,加深surface fact确认池。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1166,8 +1178,8 @@
     "delegated_at": "2026-07-16",
     "delegated_to": "claude-main-control",
     "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "opus-adjudication 2026-07-20 全量清尾批(owner指令); 逐题正确项引文回 _F03_compiled_source.json / _F03_exam_evidence.json 核对(8/8 True, 见 sign_f03.log); 每锚均为该题 machine candidate; 待 fable 对抗核验",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "adversarial_gate": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+    "campaign": "confirm-supply-widen batch1 2026-07-21 (11-pack)",
     "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
   }
 }

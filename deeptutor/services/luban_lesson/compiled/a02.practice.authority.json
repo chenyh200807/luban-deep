@@ -29,9 +29,19 @@
         "A02-html-practice-html-q2-df88cc2082ba",
         "A02-html-practice-html-q3-edb54e5e59a8",
         "A02-html-practice-html-q4-1f46fc7ac6a8",
+        "A02-html-practice-html-q5-1f6d5b85acae",
+        "A02-html-practice-html-q6-3773c9a8f524",
+        "A02-html-practice-html-q7-b93861f4712e",
+        "A02-html-practice-html-q8-5e25509aefb1",
+        "A02-html-practice-html-q9-f756a6bc65f7",
         "A02-html-practice-html-q10-ff6ac7e5fb44",
+        "A02-html-practice-html-q11-626ea542c1d5",
         "A02-html-practice-html-q12-45170f84cd3d",
-        "A02-html-practice-html-q21-d07659eb1cf6"
+        "A02-html-practice-html-q16-4c0f8c232f8a",
+        "A02-html-practice-html-q17-0419846e9399",
+        "A02-html-practice-html-q21-d07659eb1cf6",
+        "A02-html-practice-html-q22-c536c553c201",
+        "A02-html-practice-html-q23-93210b2e4030"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYzBmZTI2ODQyZTFiIiwiQTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1kZjg4Y2MyMDgyYmEiLCJBMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWVkYjU0ZTVlNTlhOCIsIkEwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWY0NmZjN2FjNmE4IiwiQTAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMjEtZDA3NjU5ZWIxY2Y2Il0sInBhY2tfaWQiOiJBMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjRmODBmOGMxZWMzNzMyOWVjZjdmNTI0NzE0NjAzZmJiNzdkZjIzMWFkMTdhNzM5ZTAwN2FmODM0Nzc5NGEzYzMiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNWVhMjMyYmViNjc0MjhmY2FkOTkwNmVhMTRhMTcxNzE4NGYxNDdkNTZkNDUyYTQ3NTNmMGRmMzA4Y2NhZTBmMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
       "published_practice_sha256": "75fe5774c0f2658838df95f2e84f4de8bf0b39dbce5a262f992186b3e78b32cb"
@@ -778,29 +788,41 @@
       "source_group": "A",
       "source_group_index": 4,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A438000_152_0245:1",
+      "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-material-recheck-items",
+      "skeleton_id": "a02-skel-水泥复试四项",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "fa831dc1516af6f2d6cdb0c3540ebef0db75fe53bad65b1a0461f6aa8c5ecc3a",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "fa831dc1516af6f2d6cdb0c3540ebef0db75fe53bad65b1a0461f6aa8c5ecc3a",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "水泥复试胶砂强度/氯离子含量/安定性/凝结时间,教材gold卡逐字核对。复合fact(B007材料复试内容卡:钢筋/水泥/外加剂),非surface fact仅d1可达。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",
@@ -920,29 +942,41 @@
       "source_group": "A",
       "source_group_index": 5,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2017:第14题",
+      "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-material-recheck-items",
+      "skeleton_id": "a02-skel-氯离子首检外加剂",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "d69be2d2de6790dabc612ac76f477a752c884c8a1ac56fd870d6dcde77352053",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "d69be2d2de6790dabc612ac76f477a752c884c8a1ac56fd870d6dcde77352053",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "有氯离子要求时首检外加剂,2017真题B逐字核对(外加剂是氯离子主要来源)。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",
@@ -1062,29 +1096,41 @@
       "source_group": "A",
       "source_group_index": 6,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2020:第30题",
+      "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-safety-energy-env-recheck",
+      "skeleton_id": "a02-skel-屋面保温复验三项",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "ac93719e963c2642843636ab2074f6aba8b8b3e09d0a618e2089a479ba01505f",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "ac93719e963c2642843636ab2074f6aba8b8b3e09d0a618e2089a479ba01505f",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "屋面保温复验导热系数/密度/燃烧性能,2020真题ABD逐字核对。补全surface anchor fact的confirm形态。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",
@@ -1204,29 +1250,41 @@
       "source_group": "A",
       "source_group_index": 7,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2022:第22题",
+      "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-safety-energy-env-recheck",
+      "skeleton_id": "a02-skel-墙体保温砌块复验三项",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "8b5daf68615a1ec80db395f1ffa373404ac0f781734c9c1500c80a0ba708a79a",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "8b5daf68615a1ec80db395f1ffa373404ac0f781734c9c1500c80a0ba708a79a",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "墙体保温砌块复验导热系数/抗压强度/吸水率,2022真题ACD逐字核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",
@@ -1346,29 +1404,41 @@
       "source_group": "A",
       "source_group_index": 8,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A422000_047_0073:0",
+      "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-safety-energy-env-recheck",
+      "skeleton_id": "a02-skel-门窗节能气候区参数",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "a54f8dfa6f517394fc7bedf4b68c483101bda01eec74824b430fdbcf5821f6ae",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "a54f8dfa6f517394fc7bedf4b68c483101bda01eec74824b430fdbcf5821f6ae",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "严寒寒冷地区门窗节能复验=传热系数+气密性,教材气候区分类卡逐字核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",
@@ -1627,29 +1697,41 @@
       "source_group": "A",
       "source_group_index": 10,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2023:案例一",
+      "source_sha256": "c298f32bde491135775c574c677a958adf9e6c520c4f459cdac47aabe65ea375",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-witness-sampling-chain",
+      "skeleton_id": "a02-skel-见证记录填写主体",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "80bfa065f47b90676ba21ca3bc44a3b6f47b38d24ce55d3cd35f3342744f7359",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "80bfa065f47b90676ba21ca3bc44a3b6f47b38d24ce55d3cd35f3342744f7359",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "见证记录由见证人员填写,2023真题案例一官方答案'应由见证人员记录'+2019第30题B项互证。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",
@@ -2349,29 +2431,41 @@
       "source_group": "A",
       "source_group_index": 15,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q16",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A434020_085_0136:2",
+      "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-structural-entity-inspection",
+      "skeleton_id": "a02-skel-强度检验复核顺序",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "b869340298d8a51214d3af779bdeab481062dd1bc99795b758b3a1a4a785ed34",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "b869340298d8a51214d3af779bdeab481062dd1bc99795b758b3a1a4a785ed34",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "优先同条件养护试件,不足回弹-取芯(教材逐字);仍存疑钻芯且须有资质第三方(2017真题第2题案例:自有实验室钻芯被判不妥)。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",
@@ -2506,29 +2600,41 @@
       "source_group": "A",
       "source_group_index": 16,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q17",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A434020_085_0136:0",
+      "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-structural-entity-inspection",
+      "skeleton_id": "a02-skel-实体检验内容三项",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "f7458f4ad0f9edf7b5191cd4fe2976788ba790e45b812834041de7bdd9fa48dd",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "f7458f4ad0f9edf7b5191cd4fe2976788ba790e45b812834041de7bdd9fa48dd",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "结构实体检验必含混凝土强度/钢筋保护层厚度/结构位置与尺寸偏差+合同约定,教材逐字+2025真题参考答案互证。新fact非surface仅d1可达。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",
@@ -3288,29 +3394,41 @@
       "source_group": "Dg",
       "source_group_index": 1,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q22",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A438000_152_0245:0",
+      "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-material-recheck-items",
+      "skeleton_id": "a02-skel-钢筋复试五项诊断",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "977d56697d6d74d1730533bcc89ca8c4cd643185601efbb03fcd20dd496cbb84",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "977d56697d6d74d1730533bcc89ca8c4cd643185601efbb03fcd20dd496cbb84",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "钢筋复试五项(屈服/抗拉/伸长率/弯曲/重量偏差)诊断补齐,教材逐字核对。注:本题语义亦属rebar-recheck-five,该surface fact因缺第二候选无法独立补全,归入本复合fact,工单记录。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",
@@ -3415,29 +3533,41 @@
       "source_group": "Dg",
       "source_group_index": 2,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q23",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A434020_085_0136:2",
+      "source_sha256": "3bede0ef909316da64469897a4f44a7018de2b53ce653d76f6aaa5544d495af2",
       "source_html_sha256": "d4c5846f7836b75387c9e229ce28e970ad904f055d7fa7fb6d3cf3299a7f5e88",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "a02-fact-structural-entity-inspection",
+      "skeleton_id": "a02-skel-实体强度采分句",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "8d45ffe98202e984139d38f45b9acb63355a145cfa3dc93f2f54e089adb48d94",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "8d45ffe98202e984139d38f45b9acb63355a145cfa3dc93f2f54e089adb48d94",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "同条件→回弹取芯→钻芯第三方采分句形态,同源教材+2017真题案例核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "",
         "caption": "",

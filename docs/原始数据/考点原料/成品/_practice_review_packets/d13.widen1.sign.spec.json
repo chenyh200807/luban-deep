@@ -1,0 +1,54 @@
+{
+  "pack_id": "D13",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+  "signed": [
+    {
+      "variant_id": "D13-html-practice-html-q9-3ad62d731773",
+      "probe_role": "anchor",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-框架连主体总要求",
+      "source_anchor": "exam:2020:第23题",
+      "note": "金属框架与主体防雷体系可靠连接,2020真题E项(ACDE)+2019第29题E项(BCE)跨年互证+教材kc:148_0287:0。新fact非surface,confirm入口不可达仅d1可达。"
+    },
+    {
+      "variant_id": "D13-html-practice-html-q10-b24a91fde64a",
+      "probe_role": "immediate_confirm",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-立柱柔性导线10m",
+      "source_anchor": "kc:1A413030_148_0287:0",
+      "note": "铝合金立柱每10m内柔性导线连通上下柱,教材防雷连接要点逐字核对。"
+    },
+    {
+      "variant_id": "D13-html-practice-html-q11-a38f96505935",
+      "probe_role": "d1_probe",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-均压环三层焊接",
+      "source_anchor": "exam:2020:第23题",
+      "note": "预埋件圆钢/扁钢与均压环焊接(教材kc:148_0287)+避雷接地一般每三层连接(2020真题A项正确);干扰项'每一层'判错正确。"
+    },
+    {
+      "variant_id": "D13-html-practice-html-q12-d53d3a2222a9",
+      "probe_role": "immediate_confirm",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-除镀膜层",
+      "source_anchor": "exam:2020:第23题",
+      "note": "有镀膜构件防雷连接应除去镀膜层,2020真题D项正确;2019第29题D'不应破坏镀膜层'判错,跨年互证方向一致。"
+    },
+    {
+      "variant_id": "D13-html-practice-html-q13-0e7b79cdf924",
+      "probe_role": "d1_probe",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-隐蔽验收程序",
+      "source_anchor": "exam:2020:第23题",
+      "note": "防雷构造连接必须隐蔽工程验收,2020真题B项'不必验收'判错反推。"
+    },
+    {
+      "variant_id": "D13-html-practice-html-q5-d02aebd6f3a8",
+      "probe_role": "immediate_confirm",
+      "fact_id": "d13-fact-interfloor-firestop",
+      "skeleton_id": "d13-skel-尺寸部位配对辨析",
+      "source_anchor": "kc:1A413030_148_0286:0",
+      "note": "200mm=窗槛墙空腔填塞高度(教材逐字);100mm=楼板缝隙封堵岩棉/矿棉厚度(exam:2015案例2'厚度不应小于100mm'逐字,亦为机器候选)。"
+    }
+  ]
+}

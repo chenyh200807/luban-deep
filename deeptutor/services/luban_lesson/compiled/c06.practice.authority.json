@@ -32,6 +32,10 @@
         "C06-html-practice-html-q7-9c9fd7cc2114",
         "C06-html-practice-html-q8-376c80e70ec2",
         "C06-html-practice-html-q9-6f46b593092d",
+        "C06-html-practice-html-q11-e7b67e14abcc",
+        "C06-html-practice-html-q12-b308365138b7",
+        "C06-html-practice-html-q13-c27ef9191e58",
+        "C06-html-practice-html-q15-adc2627d1e58",
         "C06-html-practice-html-q16-0f022e9e1016"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNzBjYjk5MWU2ZTExIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ODUyZjRiZmMxM2QiLCJDMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwYzEwNWJlYTgyZiIsIkMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtOTM5MmJiMjg3ZmMyIiwiQzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMGYwMjJlOWUxMDE2Il0sInBhY2tfaWQiOiJDMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBkODczZGI1NDcyYTNiMzE3OTU3MTU1ZDA0MmNjNTFjNWUzNGY0MmM4Njk3NTRlYzM3Y2U3ZjE4Njk1ODAyNTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZGY1YWM3MzAzOTE0YjEyZGNhMzg5ZTBmYjU1YTZkMmY3MzgzMjc5Y2NlZjk5N2E5YjNkZTU2MDRjMTA1ODg4MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
@@ -2777,29 +2781,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A413030_109_0212",
+      "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c",
       "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c06-fact-infill-wall-construction",
+      "skeleton_id": "c06-skel-拉结连接构造",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "ee78ec3e313e622ac25037e63e23175b01b44282d5b04569faa3f21115adcf8a",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "ee78ec3e313e622ac25037e63e23175b01b44282d5b04569faa3f21115adcf8a",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "化学植筋实体检测/连接构造须设计同意/严禁剔凿,教材填充墙施工卡三条逐字核对(kc:0212:0/1/2)。复合fact按C01 post-cast-strip粒度先例,覆盖填充墙施工要点;非surface fact,confirm入口不可达仅d1可达。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：填充墙与主体连接",
         "caption": "植筋 / 改构造 / 剔凿",
@@ -3267,29 +3283,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2016:案例2",
+      "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d",
       "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c06-fact-infill-wall-construction",
+      "skeleton_id": "c06-skel-小砌块龄期搭接饱满度",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "b93d79e772dc02804aaed25c7a875f3cce86b1ee4b33a65a7b4d6baa1b2358eb",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "b93d79e772dc02804aaed25c7a875f3cce86b1ee4b33a65a7b4d6baa1b2358eb",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "龄期≥28d/单排孔搭接≥1/2/竖缝饱满度≥90%,锚2016真题官方答案三处不妥改正逐字核对;80%为砖填充墙口径,小砌块竖缝90%判据正确。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：混凝土小型空心砌块填充墙",
         "caption": "龄期 / 搭接 / 饱满度",
@@ -3451,29 +3479,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:第1题",
+      "source_sha256": "ef182966464ddd979e5c700b0e508b5cb89847be7682786c877f9e6a7292232d",
       "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c06-fact-infill-wall-construction",
+      "skeleton_id": "c06-skel-顶砌14d斜砌顶紧",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "672b61f454fd7d59e4892b36bcf44c998d2f1db826cbb596076fd0f26ee90b4e",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "672b61f454fd7d59e4892b36bcf44c998d2f1db826cbb596076fd0f26ee90b4e",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "顶部最后3皮砖待下部墙砌完14d后斜砌,锚2019真题官方答案'下部墙砌完14d后砌筑'+2016案例2同判。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：填充墙砌至梁(板)底",
         "caption": "顶部最后几皮何时砌？",
@@ -4125,29 +4165,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_107_0210:2",
+      "source_sha256": "b74acd27aff5e3bf30d118681467bd7d70123232c521d373bfc9123192774c2c",
       "source_html_sha256": "f57cf2a4976feeb8f66d313b1c95addbd1a1ec9fe06c1052512e2fa67cf9c421",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c06-fact-gouzao-column-toothing",
+      "skeleton_id": "c06-skel-三错综合诊断",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "f20f9b1f7908d5d65651c825d1a551f4bce669510c5ba749af81dd1f961fb1a6",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "f20f9b1f7908d5d65651c825d1a551f4bce669510c5ba749af81dd1f961fb1a6",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "三错诊断:先退后进/沿高≤300凹凸60每500拉结筋(教材逐字)+先绑筋→砌墙→浇柱顺序(2015第12题C判错+2018第11题解析)。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "模拟考生作答（待诊断）",
         "caption": "构造柱三处作答·哪里失分？",

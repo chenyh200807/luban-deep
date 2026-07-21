@@ -1,0 +1,38 @@
+{
+  "pack_id": "C06",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+  "signed": [
+    {
+      "variant_id": "C06-html-practice-html-q11-e7b67e14abcc",
+      "probe_role": "anchor",
+      "fact_id": "c06-fact-infill-wall-construction",
+      "skeleton_id": "c06-skel-拉结连接构造",
+      "source_anchor": "ca:1A413030_109_0212",
+      "note": "化学植筋实体检测/连接构造须设计同意/严禁剔凿,教材填充墙施工卡三条逐字核对(kc:0212:0/1/2)。复合fact按C01 post-cast-strip粒度先例,覆盖填充墙施工要点;非surface fact,confirm入口不可达仅d1可达。"
+    },
+    {
+      "variant_id": "C06-html-practice-html-q12-b308365138b7",
+      "probe_role": "immediate_confirm",
+      "fact_id": "c06-fact-infill-wall-construction",
+      "skeleton_id": "c06-skel-小砌块龄期搭接饱满度",
+      "source_anchor": "exam:2016:案例2",
+      "note": "龄期≥28d/单排孔搭接≥1/2/竖缝饱满度≥90%,锚2016真题官方答案三处不妥改正逐字核对;80%为砖填充墙口径,小砌块竖缝90%判据正确。"
+    },
+    {
+      "variant_id": "C06-html-practice-html-q13-c27ef9191e58",
+      "probe_role": "d1_probe",
+      "fact_id": "c06-fact-infill-wall-construction",
+      "skeleton_id": "c06-skel-顶砌14d斜砌顶紧",
+      "source_anchor": "exam:2019:第1题",
+      "note": "顶部最后3皮砖待下部墙砌完14d后斜砌,锚2019真题官方答案'下部墙砌完14d后砌筑'+2016案例2同判。"
+    },
+    {
+      "variant_id": "C06-html-practice-html-q15-adc2627d1e58",
+      "probe_role": "immediate_confirm",
+      "fact_id": "c06-fact-gouzao-column-toothing",
+      "skeleton_id": "c06-skel-三错综合诊断",
+      "source_anchor": "kc:1A413030_107_0210:2",
+      "note": "三错诊断:先退后进/沿高≤300凹凸60每500拉结筋(教材逐字)+先绑筋→砌墙→浇柱顺序(2015第12题C判错+2018第11题解析)。"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "pack_id": "D14",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+  "signed": [
+    {
+      "variant_id": "D14-html-practice-html-q12-29e4d467b914",
+      "probe_role": "anchor",
+      "fact_id": "d14-fact-door-window-quality",
+      "skeleton_id": "d14-skel-砌体射钉禁令",
+      "source_anchor": "kc:1A422000_043_0069:0",
+      "note": "砌体上安装门窗严禁射钉固定,教材门窗安装禁令卡逐字核对。复合fact(门窗安装+节能通病+节能查验),非surface仅d1可达。"
+    },
+    {
+      "variant_id": "D14-html-practice-html-q13-aaa319b8d902",
+      "probe_role": "immediate_confirm",
+      "fact_id": "d14-fact-door-window-quality",
+      "skeleton_id": "d14-skel-节能通病五指标",
+      "source_anchor": "kc:1A434000_080_0129:0",
+      "note": "门窗节能常见问题五指标(类型不符/传热系数超标/气密性差/露点高/透射比不符),教材逐字核对。"
+    },
+    {
+      "variant_id": "D14-html-practice-html-q14-1e2658f141e3",
+      "probe_role": "d1_probe",
+      "fact_id": "d14-fact-door-window-quality",
+      "skeleton_id": "d14-skel-节能查验与外窗三性",
+      "source_anchor": "exam:2016:第20题",
+      "note": "节能查验对象(墙体材料/保温材料/门窗/采暖制冷/照明)锚2016真题解析逐字;外窗检测气密/水密/抗风压锚2019第2题真题答案。"
+    }
+  ]
+}

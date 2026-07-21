@@ -30,8 +30,15 @@
         "G02-html-practice-html-q4-e8c12baa9ebd",
         "G02-html-practice-html-q5-d0716f0544c2",
         "G02-html-practice-html-q6-8717ba7ee8c4",
+        "G02-html-practice-html-q7-7c97057ddfa5",
+        "G02-html-practice-html-q8-3f33d90c2a60",
+        "G02-html-practice-html-q9-4b20c6851996",
+        "G02-html-practice-html-q10-4b31f1746445",
+        "G02-html-practice-html-q11-e51b22e76127",
         "G02-html-practice-html-q12-642136774e88",
-        "G02-html-practice-html-q16-1b6787678428"
+        "G02-html-practice-html-q15-849d8405eed0",
+        "G02-html-practice-html-q16-1b6787678428",
+        "G02-html-practice-html-q17-34f224888892"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTItYzE4MjAxZGM2ZjQ4IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMy0wOTJjYzcwOWVjM2QiLCJHMDItaHRtbC1wcmFjdGljZS1odG1sLXE0LWU4YzEyYmFhOWViZCIsIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTUtZDA3MTZmMDU0NGMyIiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMWI2Nzg3Njc4NDI4Il0sInBhY2tfaWQiOiJHMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjFkMDQ2MjgxZjg1ZDZiNDY2MmQ3Mjg2NDYwNWYzOTk0MGRjMWQ5Y2NiZjBhZjI4YTJhNGVkM2NhNWZhYzliMjUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMTM2MWQyMmMzNzRmMDllODk2ZTdmYTIyYTI2YTE2MTI0NjdmZTc3YzdhOGY2NmJlNjUyMDk0ZDNkNmFmZGM1ZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
       "published_practice_sha256": "c9fa23540bce94042348316a215878b59451c32053ec120d33a9b901f5262b17"
@@ -1322,29 +1329,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413000_085_0158:2",
+      "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
       "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-vibratory-compaction-backfill",
+      "skeleton_id": "g02-skel-平碾参数档",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "aef9e4ecf8e4f060578704608aeeea964042ffa9a2efc9d2c081834faa45c591",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "aef9e4ecf8e4f060578704608aeeea964042ffa9a2efc9d2c081834faa45c591",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "平碾250~300mm/6~8遍,教材填土压实参数表逐字核对;干扰项250-350/3-4为振动压实机档判错正确。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：压实机具参数表",
         "caption": "平碾 铺厚? 遍数?",
@@ -1659,29 +1678,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2020:第29题",
+      "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
       "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-vibratory-compaction-backfill",
+      "skeleton_id": "g02-skel-逐层合格程序",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "4d6e76ef62e0defc007514e146da89ffe86660c61be580abd3b3279841ad9619",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "4d6e76ef62e0defc007514e146da89ffe86660c61be580abd3b3279841ad9619",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "下层压实系数试验合格后进行上层施工,2020真题C(ACE)逐字核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：上下层回填",
         "caption": "下层要不要先合格？",
@@ -1792,29 +1823,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:第16题",
+      "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
       "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-fill-soil-selection",
+      "skeleton_id": "g02-skel-含水率密实度机理",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "878d6fa12c6e055883eeefc8e1851d3ec976a2fc52107d086fbee5d5722e4ecb",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "878d6fa12c6e055883eeefc8e1851d3ec976a2fc52107d086fbee5d5722e4ecb",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "含水率过大或过小均致密实度不足,2019真题A逐字核对;对应选料卡'含水量不符合压实要求'禁用判据的机理。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：含水率与压实",
         "caption": "哪种含水率压不实？",
@@ -1942,29 +1985,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A434000_064_0095:0",
+      "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
       "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-vibratory-compaction-backfill",
+      "skeleton_id": "g02-skel-完工检验两项",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "33c4293817331300e82dc274c099c5e35a8e560b8977c30d08fe54269b7acdab",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "33c4293817331300e82dc274c099c5e35a8e560b8977c30d08fe54269b7acdab",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "施工结束后进行标高及压实系数检验,教材逐字核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：施工后检验",
         "caption": "回填完检什么？",
@@ -2109,29 +2164,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A434000_064_0095",
+      "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
       "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-vibratory-compaction-backfill",
+      "skeleton_id": "g02-skel-过程必查三项",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "e81a9871b78531baaf1f71aaaf303912d70ef0d0de483a3e9b9133e38507d00a",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "e81a9871b78531baaf1f71aaaf303912d70ef0d0de483a3e9b9133e38507d00a",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "必查=填筑厚度/含水量控制/压实系数,排水系统非必查,教材判分眼卡grading_keywords逐项核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：验收检查项",
         "caption": "哪些是必查内容？",
@@ -2741,29 +2808,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q15",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2018:案例分析(三)问题2",
+      "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
       "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-fill-soil-selection",
+      "skeleton_id": "g02-skel-建筑垃圾混入判断",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "261a66531dbfc59f618099af0b0651d1eaf936bedfb7f0258be91d047c4b7f84",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "261a66531dbfc59f618099af0b0651d1eaf936bedfb7f0258be91d047c4b7f84",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "回填土料不得混建筑垃圾,2018真题不妥之处1官方答案逐字核对。补全surface anchor fact的confirm形态。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：回填土料含建筑垃圾",
         "caption": "这样回填妥不妥？",
@@ -3087,29 +3166,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q17",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "ca:1A413000_085_0158",
+      "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
       "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "g02-fact-vibratory-compaction-backfill",
+      "skeleton_id": "g02-skel-四步采分句综合",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "6fa25e613035e3b35070acc3396f20df991a9ab722308268afcaea519012fad4",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "6fa25e613035e3b35070acc3396f20df991a9ab722308268afcaea519012fad4",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "四步采分句(选料禁用清单/最低处起对称分层/机具参数250-350·3-4/标高+压实系数·标准击实法),逐数值核对教材参数表+2018真题四处不妥官方答案;干扰项三错(统一送检/按含水量/冬期加厚)分别被2018不妥4/2016第8题D/2020第29题D证错。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：土方回填四步",
         "caption": "四步各写什么采分句？",

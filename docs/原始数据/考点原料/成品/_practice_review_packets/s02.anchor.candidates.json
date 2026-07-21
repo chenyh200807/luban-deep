@@ -1,13 +1,13 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-20T12:36:10+00:00",
+  "generated_at": "2026-07-21T01:38:05+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "S02",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/s02.practice.review.json",
   "score_threshold": 0.12,
   "warnings": [
-    "[S02] exam_evidence 不存在: /Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/docs/原始数据/考点原料/_S02_exam_evidence.json — 降级只用 compiled_source"
+    "[S02] exam_evidence 不存在: /Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/.claude/worktrees/agent-adb12867a114cc505/docs/原始数据/考点原料/_S02_exam_evidence.json — 降级只用 compiled_source"
   ],
   "coverage": {
     "total_items": 19,
