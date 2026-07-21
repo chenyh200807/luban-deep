@@ -9,6 +9,29 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-21 · 复测三问:一个伪需求(采分点) + 一个收权(选项锁死) + 一个执行层病(交卷 500)
+
+**①现象**:owner 真机三反馈。(1) 选择题错题卡有「知识点」但没「采分点」,疑心知识点是采分点被改名/降级了。(2) 换皮复测里选项**一点就锁死**,同题内没点"下一题"也不能改选,误触即定死。(3) 交卷**经常**「服务暂时不可用,请稍后再试」,直觉是架构/流程设计问题。
+
+**②发现路径(含走错的岔路)**:三路并行只读测绘 + 主控独立核验(不信自证)。
+- 问题1岔路:owner 提出关键假设"用了 Supabase RAG 就该召回采分点吧?"——这把"设计边界"改写成可验证事实,值得实测而非拍脑袋。派内容检索专家追 kb_chunks 入库流程 + submission_grader 实际检索链路。撞脸陷阱:RAG 里有个 `compiled_learning_truth` source group 名字像采分点,实为 per-user 学习弱点画像,差点误判成"采分点在 RAG 里"。
+- 问题2岔路:初判"点即锁"是通病要全改,差点连判断题一起动;读代码发现判断题 ship 了 `expected_ok` 到客户端、点击**当场揭示对错**,锁定是对的(揭示后还能改=作弊)——精确 scoping 只切 MCQ。
+- 问题3岔路:错误串 `describeRequestError` 让人一度以为是前端文案随便报;grep 定位实为后端真返回 5xx/超时。再一岔:怀疑 auto-synthesis 全账本重算是主犯——查 flag `LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED` 默认 False,排除,主犯是事件循环阻塞本身。
+
+**③分析**:三个**不同**的病,不是一簇同源(无需宏观指挥官收口)。
+- (1) **伪需求**:编译采分点从未进 kb_chunks 向量库(全仓唯一入库=教材 backfill,source_type 只有 textbook/exam/standard/questions_bank);采分点是本地 JSON(`case_rubric_scored.json`)被 `load_rubric` 直读、**只服务案例题**;选择题走 legacy 分支永不触发 load_rubric;且选择题在编译库里**根本没有逐点 rubric 资产**(只有 `objective_answer_key` = 答案+一句解析)。"知识点"是 LLM 基于教材 chunk grounding 现写的散文,与采分点是两个从不 join 的东西。RAG 召回的是采分点的**来源素材**(教材原文),≠ 采分点本身。
+- (2) **duplicate decision / 过早写入**:MCQ 的"选择"和"定稿(answered)"混成同一个写入点(`onOptionTap` 一点就 answered=true+计数+末题即提交),与"末题统一提交"架构自相矛盾(提交批量、锁定却逐次),且 MCQ 不揭示答案,锁定零防作弊价值纯伤体验。
+- (3) **同步阻塞全家桶(三结构病之一)**:`async def retest_complete`/`retest_items` 整段无 await 却内联多次同步 Supabase 往返(交卷 8~15 次),霸占事件循环线程 → 并发天花板 → 单请求慢即全体饿死 → 撞前端 15s 死线(且 POST 不在可重试集)→"经常"。
+
+**④修法与理由**:
+- (1) **不改代码**。硬让选择题生成"采分点"= 让 LLM 编造不存在的逐点 rubric 冒充编译真值,正踩"编译库干净但运行时现编"老病。收口为概念澄清:选择题的采分点等价物 = 正确答案与依据 + 逐项解析;案例题采分点链路本就存在且正确。
+- (2) **收权(减法)**:MCQ 的 `answered` 唯一由 `nextQuestion`(离开该题的动作)写入;`onOptionTap` 塌成纯草稿(只写 `selectedOptionId`,可反复改选);计数/末题 finalize/提交全收敛到 `nextQuestion`(新增 `_finalizeCurrent` 幂等定稿)。**判断题一字不动**。两个写入点收成一个 authority,less is more。
+- (3) **执行层修正(thin wrapper)**:两处纯同步内核按仓库既有惯例 `await asyncio.to_thread(...)` 丢线程池(rate_limit.py/luban_preview 同款),事件循环得以并发服务其它请求。**不改任何业务逻辑/权威/状态**。刻意拒绝三个治标补丁:不加 `except Exception` 兜底(掩盖真 bug)、不动 auto-synthesis(flag 默认关非主犯)、不加前端自动重试(已有手动"重试保存",治标)。线程安全 GATE 先过再改:唯一共享可变态是 per-user 缓存(GIL 原子 fail-open),并发正确性由下层 Postgres 原子 claim_retest_probe + 确定性 uuid5 event_id + request_hash 幂等保证;且该单例今天已在 FastAPI 线程池(sync def 路由)+ 多 worker 下并发,to_thread 不引入新并发类。
+
+**⑤验证与教训**:前端 yousenwebview 全量 **119/119** 零 FAIL(新增 `test_retest_mcq_reselect.js` 证 tap A→B 可改选/离开才定稿/重复 finalize 不重复计数/判断题不变);后端 `test_luban_retest_complete_endpoint.py` **29 passed**(新增 off-loop 线程断言×2 + **并发反饥饿行为测试**:两个各阻塞 0.25s 的并发交卷 <0.45s 完成,串行会 ≥0.5s);`pytest -k retest` 148 passed,3 failed 已证实为缺 artifacts 数据 fixture 的**既存环境问题**(干净 base 同样失败,非回归)。教训:一,owner 的"照理说应该…"假设值得实测,常能把"设计边界"证成"伪需求"或反之——但要区分 RAG 召回**来源素材** vs 召回**编译产物**;二,"点即锁"这类交互病先分清哪些形态**故意揭示答案**(判断题该锁)哪些不(MCQ 不该锁),别一刀切;三,`async def` 里整段无 await 是"同步阻塞全家桶"的最强静态指纹,`to_thread` 是顺惯例的 thin 修法,但移走阻塞=解开并发,动手前必须过线程安全 GATE(否则把串行 bug 换成并发 bug)。**未部署**:后端改 Python 需 rebuild 部署 test2 才生效;前端需 DevTools 上传;未部署前不宣称"线上已修好"。
+
+---
+
 ## 2026-07-21 · webview 留白"时有时无" + 供给错误卡第 4 修:两个都是"不变量挂在偶然路径上"
 
 **①现象**:owner 真机反馈两症状:(a) 讲解卡/随堂练两侧留白,同一手机时有时无;(b)「教学内容没有加载成功/连接服务器失败」错误卡反复出现,"上次修过但没根治"。

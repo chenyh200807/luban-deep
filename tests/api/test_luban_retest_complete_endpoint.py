@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import threading
+import time
 from types import SimpleNamespace
 
 from fastapi import HTTPException
@@ -137,6 +139,131 @@ def test_retest_complete_maps_retryable_probe_authority_failures(
 
     assert exc.value.status_code == expected_status
     assert exc.value.detail == expected_detail
+
+
+def test_retest_complete_runs_off_the_event_loop_thread(monkeypatch) -> None:
+    """根因修：8~15 次同步 Supabase 往返的 complete() 必须在 worker 线程执行，
+    绝不霸占事件循环线程（否则单请求慢 = 全并发饿死 → 撞前端 15s 死线）。
+
+    断言：complete() 观测到的执行线程 != 事件循环所在的主线程（asyncio.run 在主
+    线程跑协程；asyncio.to_thread 把可调用体派发到线程池 worker）。"""
+    captured: dict = {}
+
+    class _Service:
+        def __init__(self, **_kwargs):
+            pass
+
+        def complete(self, **kwargs):
+            captured["thread"] = threading.current_thread()
+            return {"sync_status": "synced", "completion_id": kwargs["completion_id"]}
+
+    monkeypatch.setattr(learner_state_module, "get_learner_state_service", object)
+    monkeypatch.setattr(writeback_module, "RetestWritebackService", _Service)
+    body = router.RetestCompletionRequest(
+        completion_id="completion-offloop",
+        selection_id="signed-selection",
+        mode="forward",
+        day_index=2026192,
+        answers=[router.RetestAnswerRequest(variant_id="F16-v1", choice_ok=False)],
+    )
+
+    result = asyncio.run(
+        router.retest_complete(
+            "F16",
+            body,
+            current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+        )
+    )
+
+    assert result["sync_status"] == "synced"
+    assert captured["thread"] is not threading.main_thread()
+
+
+def test_retest_items_runs_off_the_event_loop_thread(monkeypatch) -> None:
+    """同款结构病的 load 路径：retest_items 的同步 Supabase 选题内核同样必须在
+    worker 线程执行。断言 build_retest_items（builder 内核）观测到的线程 != 主线程。"""
+    captured: dict = {}
+
+    def _build(*_args, **_kwargs):
+        captured["thread"] = threading.current_thread()
+        return [
+            {
+                "answer_type": "single_choice",
+                "variant_id": "F16-html-q0",
+                "rule_group": "group-0",
+                "stem": "stem-0",
+                "options": [{"option_id": "q0:a", "text": "A"}],
+            }
+        ]
+
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+    monkeypatch.setattr(router, "build_retest_items", _build)
+    monkeypatch.setattr(
+        router,
+        "retest_supply_identity",
+        lambda *a, **k: {"kind": "compiled_html", "digest": "a" * 64},
+    )
+    monkeypatch.setattr(
+        router,
+        "compiled_practice_pool_meta",
+        lambda *a, **k: {"core_total": 16, "rule_groups_total": 6},
+    )
+    monkeypatch.setattr(router, "issue_retest_selection", lambda **k: "signed-one")
+
+    result = asyncio.run(
+        router.retest_items(
+            "F16",
+            mode="forward",
+            current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+        )
+    )
+
+    assert result["practice_source"] == "compiled_html"
+    assert captured["thread"] is not threading.main_thread()
+
+
+def test_concurrent_retest_completes_do_not_starve_each_other(monkeypatch) -> None:
+    """反饥饿行为证据：两个并发 complete()（各阻塞 0.25s）在线程池重叠执行，
+    总墙钟时间 < 2x 单请求。若仍内联在事件循环上就会被串行化（≥0.5s）。"""
+
+    class _Service:
+        def __init__(self, **_kwargs):
+            pass
+
+        def complete(self, **kwargs):
+            time.sleep(0.25)  # 模拟 8~15 次同步 Supabase 往返的阻塞 I/O
+            return {"sync_status": "synced", "completion_id": kwargs["completion_id"]}
+
+    monkeypatch.setattr(learner_state_module, "get_learner_state_service", object)
+    monkeypatch.setattr(writeback_module, "RetestWritebackService", _Service)
+
+    def _body(cid: str) -> "router.RetestCompletionRequest":
+        return router.RetestCompletionRequest(
+            completion_id=cid,
+            selection_id="signed-selection",
+            mode="forward",
+            day_index=2026192,
+            answers=[router.RetestAnswerRequest(variant_id="F16-v1", choice_ok=False)],
+        )
+
+    async def _run_two() -> list[dict]:
+        return await asyncio.gather(
+            router.retest_complete(
+                "F16", _body("c-a"), current_user=SimpleNamespace(user_id="ua")
+            ),
+            router.retest_complete(
+                "F16", _body("c-b"), current_user=SimpleNamespace(user_id="ub")
+            ),
+        )
+
+    start = time.monotonic()
+    results = asyncio.run(_run_two())
+    elapsed = time.monotonic() - start
+
+    assert {r["completion_id"] for r in results} == {"c-a", "c-b"}
+    # 两个 0.25s 阻塞若串行 ≈0.5s；重叠执行应显著更快。0.45s 阈值留足调度余量。
+    assert elapsed < 0.45, f"concurrent completes serialized on the loop: {elapsed:.3f}s"
 
 
 def test_retest_item_supply_is_hidden_when_rollout_is_off(monkeypatch) -> None:
