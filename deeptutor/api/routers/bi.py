@@ -25,7 +25,10 @@ from deeptutor.services.config import get_env_store
 from deeptutor.services.bi_service import get_bi_service
 from deeptutor.services.member_console.service import get_member_console_service
 from deeptutor.services.observability import get_product_behavior_store
-from deeptutor.services.observability.product_behavior_catalog import LEARNING_CONTENT_OBJECT_TYPES
+from deeptutor.services.observability.product_behavior_catalog import (
+    LEARNING_CONTENT_OBJECT_TYPES,
+    LEARNING_MODULE_OBJECT_TYPES,
+)
 
 # demo/eval cohort 账号前缀（AGENTS Eval Runner Identity 单一口径）；学习偏好看板默认排除,
 # 防合成演示数据污染生产真值（计划 §6-P4 红线）。
@@ -208,20 +211,32 @@ async def bi_learning_preference(
             days=days, exclude_user_id_prefixes=exclude_prefixes, **kwargs
         )
 
-    # 子模块兴趣（触达×深度，题眼）：按 object_type 聚合学习内容/练习对象。
-    submodule_interest = breakdown(group_dim="object_type", limit=20)
+    # 子模块兴趣（触达×深度，题眼）：**必须过滤到学习模块 object_type**，否则 login/chat 等
+    # 全产品对象会污染榜首（每个人都登录，phone_auth/password 会碾压 station/microlesson）。
+    submodule_interest = breakdown(
+        group_dim="object_type",
+        object_types=sorted(LEARNING_MODULE_OBJECT_TYPES),
+        limit=20,
+    )
     # 内容复看 Top（"哪几个微课/考点讲解被反复看"）。
     content_top = breakdown(
         group_dim="object_id",
         object_types=sorted(LEARNING_CONTENT_OBJECT_TYPES),
         limit=limit,
     )
-    # 功能偏好（学习驾驶舱"哪些功能被点得多"）。
-    feature_usage = breakdown(group_dim="action", module="learning", limit=20)
+    # 功能偏好（学习驾驶舱"哪些功能被点得多"）：只认 learning_action_started，排除
+    # module_viewed(view)/module_exited(return) 生命周期动作，否则"浏览/返回"混进功能榜。
+    feature_usage = breakdown(
+        group_dim="action",
+        module="learning",
+        event_names=["learning_action_started"],
+        limit=20,
+    )
     # 练习量 + 正确率（retest_item_answered 的 result=correct/incorrect）。
-    practice_rows = breakdown(group_dim="object_type", event_names=["retest_item_answered"], limit=20)
-    answered = sum(int(row["answered_count"]) for row in practice_rows)
-    correct = sum(int(row["correct_count"]) for row in practice_rows)
+    # 全局总量走 limit=0 不截断（防 object_type 基数超 20 时少计）；明细展示取 Top 20。
+    practice_all = breakdown(group_dim="object_type", event_names=["retest_item_answered"], limit=0)
+    answered = sum(int(row["answered_count"]) for row in practice_all)
+    correct = sum(int(row["correct_count"]) for row in practice_all)
 
     return {
         "days": days,
@@ -234,7 +249,7 @@ async def bi_learning_preference(
             "answered_count": answered,
             "correct_count": correct,
             "accuracy": round(correct / answered, 4) if answered else None,
-            "by_object_type": practice_rows,
+            "by_object_type": practice_all[:20],
         },
     }
 
