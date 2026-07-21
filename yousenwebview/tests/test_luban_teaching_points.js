@@ -55,6 +55,9 @@ var sandbox = {
         },
       };
     }
+    if (request === "../../../utils/surface-telemetry") {
+      return { trackProductBehavior: function () {}, trackModuleView: function () {}, trackModuleExit: function () {} };
+    }
     throw new Error("unexpected require: " + request);
   },
   wx: {

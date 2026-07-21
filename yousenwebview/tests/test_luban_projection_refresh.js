@@ -57,6 +57,7 @@ async function testStationsNormalizesToTeachingPoints() {
     "../../../utils/learn-view-model": {
       buildLearnViewModel: function () { return { posters: [], litCount: 0, packUniverse: 40 }; },
     },
+    "../../../utils/surface-telemetry": { trackProductBehavior: function () {}, trackModuleView: function () {}, trackModuleExit: function () {} },
   }, {
     redirectTo: function (payload) { redirectedTo = payload.url; },
   });
@@ -90,6 +91,7 @@ async function testReviewRefresh() {
     "../../../utils/review-view-model": {
       buildReviewViewModel: function () { return { dueEntries: [] }; },
     },
+    "../../../utils/surface-telemetry": { trackProductBehavior: function () {}, trackModuleView: function () {}, trackModuleExit: function () {} },
   });
 
   page.onLoad();

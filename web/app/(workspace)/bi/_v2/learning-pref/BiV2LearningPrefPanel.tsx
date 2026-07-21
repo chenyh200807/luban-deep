@@ -294,7 +294,7 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
                 全产品功能偏好总览：<strong>learning / chat / practice / first_run / assessment /
                 history / notebook / learning_report / profile</strong> 等所有被监测模块都在这（login
                 已排除）。<strong>左=谁被点得多（触达人数）</strong>，
-                <strong>右=谁被深度使用（人均深度）</strong>——回答"哪个产品模块最受欢迎、哪个被深度使用"。
+                <strong>右=谁被深度使用（人均深度）</strong>——回答&ldquo;哪个产品模块最受欢迎、哪个被深度使用&rdquo;。
               </div>
               <div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
                 <CockpitPanel

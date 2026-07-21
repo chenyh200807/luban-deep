@@ -43,6 +43,7 @@ function makePage(definition) {
     "../../../utils/route": { lubanStations: () => "/packageDeeptutor/pages/luban/teaching-points/teaching-points" },
     "../../../utils/runtime": { redirectToLogin: (target) => { redirected = target; } },
     "../../../utils/learn-view-model": { buildLearnViewModel: () => ({}) },
+    "../../../utils/surface-telemetry": { trackProductBehavior() {}, trackModuleView() {}, trackModuleExit() {} },
   }));
   page.onLoad();
   assert.strictEqual(redirected, "/packageDeeptutor/pages/luban/teaching-points/teaching-points");
@@ -98,6 +99,7 @@ function makePage(definition) {
     "../../../utils/route": { lubanStations: () => "/packageDeeptutor/pages/luban/teaching-points/teaching-points" },
     "../../../utils/runtime": { redirectToLogin: (target) => { stationsRedirect = target; } },
     "../../../utils/learn-view-model": { buildLearnViewModel: () => ({}) },
+    "../../../utils/surface-telemetry": { trackProductBehavior() {}, trackModuleView() {}, trackModuleExit() {} },
   }));
   stationsPage.onLoad();
   await new Promise((resolve) => setTimeout(resolve, 0));
