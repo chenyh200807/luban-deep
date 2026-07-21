@@ -138,6 +138,124 @@ function boardBackgroundFromRenderer(rendererSrc) {
   return lum !== null && lum > 0.62 ? "#23282b" : "#ffffff";
 }
 
+// ── S07 模板分支适配器 ──────────────────────────────────────────────
+// S07 的题给图形不是 figFor/fig(name) 生成 els, 而是模板 sc-if 分支形态:
+// viewmodel 按 q.fig 键("ruler"/"pipe"/"group"/"diag")点亮 figRuler/figPipe/
+// figGroup/figDiag 布尔位, 模板各分支写死图形标记, 数据来自题目字段。此适配器
+// 把模板各分支的标记与内联样式(全部来自 P40_S07.practice.dc.html 逐行常量)
+// 翻译成与站内其它 44 源同构的 els 列表(334px 板坐标)。零臆造: 每个色值/文案/
+// 档位区间均转写自模板, 数据(deathVal/lossVal 等)取题目字段(与 viewmodel 同默认)。
+
+// 模板 <!-- fig: ruler --> 四档色带常量(bg/fg 逐段, 三行区间文案)。
+const S07_SEG_BG = ["#dff0e6", "#fdeed1", "#fadcd6", "#f1c9c1"];
+const S07_SEG_FG = ["#2c8a5b", "#c98a3e", "#cf4436", "#a3271c"];
+const S07_RULER_HEADERS = ["一般", "较大", "重大", "特别重大"];
+const S07_RULER_ROWS = [
+  { label: "死亡", labelFg: "#cf4436", segFs: 8, segs: ["<3", "3~10", "10~30", "≥30"], valKey: "deathVal", colKey: "deathColor" },
+  { label: "重伤", labelFg: "#8b9398", segFs: 7.5, segs: ["<10", "10~50", "50~100", "≥100"], valKey: "injuryVal", colKey: "injuryColor" },
+  { label: "损失", labelFg: "#8b9398", segFs: 7.5, segs: ["<1000万", "1000~5000万", "5000万~1亿", "≥1亿"], valKey: "lossVal", colKey: "lossColor" },
+];
+// ruler 行几何: 左标签列 58, 四段色带 58→288, 右侧数值列 46(合计 334)。
+const S07_SEG_X = [58, 115, 173, 230];
+const S07_SEG_W = [57, 58, 57, 58];
+const S07_VAL_X = 288;
+const S07_VAL_W = 46;
+
+function s07El(over) {
+  // 只用 EL_FIELDS 白名单; 文字元素默认透明底(渲染器跳过 transparent)。
+  return Object.assign({ bg: "transparent", p: "0" }, over);
+}
+
+function s07RulerEls(q) {
+  const els = [];
+  // 表头四档名(对齐四段色带)。
+  for (let i = 0; i < 4; i += 1) {
+    els.push(s07El({ x: S07_SEG_X[i], top: 0, w: S07_SEG_W[i], h: 12, fg: "#5c6469", fs: 8, fw: "800", ta: "center", lab: S07_RULER_HEADERS[i] }));
+  }
+  const rowTops = [15, 40, 63];
+  const rowH = [20, 18, 18];
+  S07_RULER_ROWS.forEach((row, r) => {
+    const top = rowTops[r], h = rowH[r];
+    // 行标签(死亡/重伤/损失), 左对齐。
+    els.push(s07El({ x: 0, top: top, w: 58, h: h, fg: row.labelFg, fs: 10, fw: "800", ta: "left", jc: "flex-start", ai: "center", lab: row.label }));
+    // 四段色带。
+    for (let i = 0; i < 4; i += 1) {
+      els.push(s07El({ x: S07_SEG_X[i], top: top, w: S07_SEG_W[i], h: h, bg: S07_SEG_BG[i], fg: S07_SEG_FG[i], fs: row.segFs, ta: "center", ai: "center", jc: "center", lab: row.segs[i] }));
+    }
+    // 右侧题给数值(色随题目字段, 默认灰 #9aa0a3 与 viewmodel 一致)。
+    els.push(s07El({ x: S07_VAL_X, top: top, w: S07_VAL_W, h: h, fg: q[row.colKey] || "#9aa0a3", fs: 11, fw: "900", ta: "center", lab: String(q[row.valKey] || "—") }));
+  });
+  return { els: els, figH: 85 };
+}
+
+function s07PipeEls() {
+  // <!-- fig: pipeline -->: 现场人员 —立即→ ？ —逐级→ 市级住建。
+  const top = 8, h = 44;
+  const els = [
+    s07El({ x: 6, top: top, w: 58, h: h, bg: "#fff", bd: "2px solid #23282b", r: 8, fg: "#23282b", fs: 9.5, fw: "800", ta: "center", lab: "现场人员" }),
+    s07El({ x: 68, top: top, w: 42, h: h, fg: "#cf4436", fs: 11, fw: "900", ta: "center", lab: "立即→" }),
+    s07El({ x: 114, top: top, w: 50, h: h, bg: "#fff", bd: "2px dashed #cf4436", r: 8, fg: "#cf4436", fs: 18, fw: "900", ta: "center", lab: "？" }),
+    s07El({ x: 168, top: top, w: 42, h: h, fg: "#2f6db0", fs: 11, fw: "900", ta: "center", lab: "逐级→" }),
+    s07El({ x: 214, top: top, w: 58, h: h, bg: "#fff", bd: "2px solid #2f6db0", r: 8, fg: "#2f6db0", fs: 9.5, fw: "800", ta: "center", lab: "市级住建" }),
+  ];
+  return { els: els, figH: 58 };
+}
+
+function s07GroupEls() {
+  // <!-- fig: group -->: 已写三家单位(绿) + 四个法定空位(？虚线金)。
+  const els = [
+    s07El({ x: 0, top: 0, w: 334, h: 13, fg: "#2c8a5b", fs: 9, fw: "800", ta: "center", lab: "学生只写了 ↓" }),
+  ];
+  const filled = ["施工单位", "建设单位", "监理单位"];
+  const filledX = [60, 134, 208];
+  filled.forEach((t, i) => {
+    els.push(s07El({ x: filledX[i], top: 18, w: 66, h: 22, bg: "#e8f4ee", fg: "#2c8a5b", bd: "1.5px solid #b6ddc8", r: 13, fs: 10, fw: "700", ta: "center", lab: t }));
+  });
+  const gapX = [67, 119, 171, 223];
+  gapX.forEach((x) => {
+    els.push(s07El({ x: x, top: 46, w: 44, h: 22, bg: "#fff", fg: "#c9a24a", bd: "1.5px dashed #d8b24a", r: 13, fs: 11, fw: "900", ta: "center", lab: "？" }));
+  });
+  return { els: els, figH: 72 };
+}
+
+function s07DiagEls(q) {
+  // <!-- fig: diagnose -->: 标题 + 虚线卡内逐行考生作答(diagLines)。
+  const lines = Array.isArray(q.diagLines) ? q.diagLines : [];
+  const boxTop = 17, pad = 10, lineH = 22;
+  const boxH = pad * 2 + Math.max(lines.length, 1) * lineH;
+  const els = [
+    s07El({ x: 0, top: 0, w: 334, h: 14, fg: "#cf4436", fs: 9, fw: "800", ta: "left", jc: "flex-start", lab: "某考生的作答（请诊断）" }),
+    // 卡片底(先入数组=底层, 后续行文本叠其上)。
+    s07El({ x: 0, top: boxTop, w: 334, h: boxH, bg: "#fbfaf3", bd: "1.5px dashed #cf8a44", r: 8 }),
+  ];
+  lines.forEach((ln, i) => {
+    els.push(s07El({ x: 12, top: boxTop + pad + i * lineH, w: 310, h: lineH, fg: "#3a3f42", fs: 12, ta: "left", jc: "flex-start", ai: "center", lab: String((ln && ln.t) || "") }));
+  });
+  return { els: els, figH: boxTop + boxH + 2 };
+}
+
+// S07 figLabel/figCaption 从 viewmodel(renderVals)对该题的取值逻辑逐字推导。
+function s07FigLabel(q) {
+  if (q.fig === "ruler") return (q.lossVal || "—") !== "—" ? "变化图 · 含经济损失" : "题给数据图";
+  if (q.fig === "pipe") return "上报路径图";
+  if (q.fig === "group") return "调查组诊断图";
+  return "作答诊断图";
+}
+
+function s07FigCaption(q) {
+  if (q.fig === "ruler" || q.fig === "diag") return String(q.diagBg || "");
+  if (q.fig === "pipe") return "报告对象 / 时限 / 内容 —— 你来补";
+  return "法定成员的空位，等你填满（漏一类扣一处）";
+}
+
+function s07FigRaw(q) {
+  if (q.fig === "ruler") return s07RulerEls(q);
+  if (q.fig === "pipe") return s07PipeEls();
+  if (q.fig === "group") return s07GroupEls();
+  if (q.fig === "diag") return s07DiagEls(q);
+  return null;
+}
+
 function normalizeFig(raw, label, caption, boardBg) {
   const els = (raw && Array.isArray(raw.els) ? raw.els : []).map(normalizeEl);
   if (!els.length) return null;
@@ -198,8 +316,22 @@ function main() {
       const fig = normalizeFig(raw, q.figLabel || q.top, q.figCaption || q.sub, boardBg);
       if (fig) out[String(idx)] = fig;
     });
+  } else if (/\{\{\s*figRuler\s*\}\}/.test(html) && rows.some((q) => q && q.fig)) {
+    // 模板分支形态(S07): viewmodel 按 q.fig 键点亮 figRuler/figPipe/figGroup/
+    // figDiag, 模板各分支写死图形标记。适配器把分支翻译成 els(见 s07*Els)。
+    const boardBgS07 = "#ffffff"; // 模板 FIGURE 卡 background:#fff。
+    rows.forEach((q, idx) => {
+      if (!q || !q.fig) return;
+      const raw = s07FigRaw(q);
+      if (!raw) {
+        process.stderr.write(`SKIP q${idx + 1} S07 unknown fig key: ${q.fig}\n`);
+        return;
+      }
+      const fig = normalizeFig(raw, s07FigLabel(q), s07FigCaption(q), boardBgS07);
+      if (fig) out[String(idx)] = fig;
+    });
   } else {
-    // 模板分支形态(S07): 图形在模板标记里, 无法泛化求值——显式跳过。
+    // 其它模板分支形态: 图形在模板标记里, 无法泛化求值——显式跳过。
     process.stderr.write("SKIP station: no evaluable fig renderer (template-branch figures)\n");
   }
 
