@@ -761,15 +761,15 @@ def test_question_review_builds_qapair_from_matching_evidence_bundle(
     assert (qa_pair.get("metadata") or {}).get("source_group") == "TEXTBOOK"
     metadata = qa_pair.get("metadata") or {}
     assert metadata.get("scoring_points") == [
-        "圈出题干对象：一般环境中，直接接触土体浇筑的构件，其钢筋的混凝土保护层厚度不应小于（ ）mm。",
-        "抓住标准答案对应的规范数值：D. 70。",
-        "逐项排除相近但不符合题库解析的干扰数值。",
+        "圈定题干限定的对象与条件：一般环境中，直接接触土体浇筑的构件，其钢筋的混凝土保护层厚度不应小于（ ）mm。",
+        "对照题库标准答案锁定关键依据：D. 70。",
+        "逐项比对题库解析，排除与之不符的干扰项。",
     ]
     assert metadata.get("pitfalls") == [
-        "把相近数值当成规范要求，忽略题干对象。",
-        "只记住保护层厚度这一考点，没有锁定“直接接触土体浇筑的构件”。",
+        "被表述相近的干扰项带走，忽略题干限定的对象与条件。",
+        "只记住结论本身，没有回到题库解析里的判定依据。",
     ]
-    assert metadata.get("mnemonic") == "直接接土先加厚，保护层记 70。"
+    assert metadata.get("mnemonic") == "先圈对象与条件，再对照题库答案：D. 70。"
     option_analysis = metadata.get("option_analysis") or []
     assert len(option_analysis) == 4
     assert option_analysis[0]["key"] == "A"

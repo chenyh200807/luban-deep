@@ -179,16 +179,17 @@ def test_build_mcq_review_notes_projects_exact_question_teaching_payload() -> No
         }
     )
 
+    # 方法脚手架 topic-agnostic：只从本题字段派生，不假设数值形态、不硬编码保护层。
     assert notes["scoring_points"] == [
-        "圈出题干对象：一般环境中，直接接触土体浇筑的构件，其钢筋的混凝土保护层厚度不应小于（ ）mm。",
-        "抓住标准答案对应的规范数值：D. 70。",
-        "逐项排除相近但不符合题库解析的干扰数值。",
+        "圈定题干限定的对象与条件：一般环境中，直接接触土体浇筑的构件，其钢筋的混凝土保护层厚度不应小于（ ）mm。",
+        "对照题库标准答案锁定关键依据：D. 70。",
+        "逐项比对题库解析，排除与之不符的干扰项。",
     ]
     assert notes["pitfalls"] == [
-        "把相近数值当成规范要求，忽略题干对象。",
-        "只记住保护层厚度这一考点，没有锁定“直接接触土体浇筑的构件”。",
+        "被表述相近的干扰项带走，忽略题干限定的对象与条件。",
+        "只记住结论本身，没有回到题库解析里的判定依据。",
     ]
-    assert notes["mnemonic"] == "直接接土先加厚，保护层记 70。"
+    assert notes["mnemonic"] == "先圈对象与条件，再对照题库答案：D. 70。"
     assert notes["option_analysis"][0] == {
         "key": "A",
         "verdict": "不正确",
@@ -199,6 +200,33 @@ def test_build_mcq_review_notes_projects_exact_question_teaching_payload() -> No
         "verdict": "正确",
         "analysis": "70 对应题库标准答案；直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。",
     }
+
+
+def test_build_mcq_review_notes_has_no_cross_topic_leak_on_conceptual_question() -> None:
+    """回归证伪:概念题(立杆严禁搭接,非数值/非保护层题)的方法脚手架里,绝不能出现
+    上一版硬编码进 pitfalls/mnemonic 的“保护层厚度 / 直接接土 / 规范数值”字面量——
+    那是通用投影器把单一题型假设跨题泄露的病。脚手架应只引用本题自身字段。"""
+    notes = build_mcq_review_notes_from_exact_question(
+        {
+            "answer_kind": "mcq",
+            "stem": "关于模板支撑立杆的连接方式，下列说法正确的是（ ）。",
+            "options": {
+                "A": "立杆可以采用搭接，搭接长度不小于500mm。",
+                "B": "立杆必须采用对接或套接，严禁搭接。",
+                "C": "立杆搭接与水平杆要求一致。",
+                "D": "立杆连接方式不影响承载力。",
+            },
+            "correct_answer": "B",
+            "analysis": "模板支撑立杆必须采用对接或套接，严禁搭接；搭接仅适用于水平杆等非承重杆件。",
+        }
+    )
+
+    scaffold_text = " ".join(notes["scoring_points"] + notes["pitfalls"] + [notes["mnemonic"]])
+    for leaked in ("保护层", "直接接土", "直接接触土体", "规范数值", "干扰数值"):
+        assert leaked not in scaffold_text, f"跨题泄露的硬编码字面量: {leaked}"
+    # 脚手架必须引用本题的标准答案(topic-faithful),而非别题模板。
+    assert "B. 立杆必须采用对接或套接，严禁搭接。" in notes["mnemonic"]
+    assert notes["option_analysis"][1]["verdict"] == "正确"
 
 
 def test_normalize_exact_authority_display_text_unescapes_literal_newlines() -> None:
