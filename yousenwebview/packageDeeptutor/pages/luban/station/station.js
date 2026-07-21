@@ -12,15 +12,14 @@
 // 白名单外事件名会被 ingest 拒收，故不用任务稿的 luban_* 自由名）：
 // - 站进入 = module_viewed（object_type=station, object_id=pack_id）
 // - 卡片打开 = learning_action_started（action=start_training,
-//   object_id="<pack>:lesson"）
+//   object_type=microlesson, object_id="<pack>:tp:<episode>" —— 带 episode 粒度）
+// - 停留时长 = module_viewed/module_exited（onShow/onHide 对，dwell 计时）
 const api = require("../../../utils/api");
 const helpers = require("../../../utils/helpers");
 const auth = require("../../../utils/auth");
 const route = require("../../../utils/route");
 const runtime = require("../../../utils/runtime");
 const telemetry = require("../../../utils/surface-telemetry");
-
-var TIER_LESSON = "lesson";
 
 function appendCardEntryTicket(cardUrl, ticket) {
   var source = String(cardUrl || "");
@@ -69,6 +68,22 @@ Page({
     this._loadDetail();
   },
 
+  // 停留时长信号(观看时长的唯一正解——完播率架构拿不到):onShow 起计,
+  // onHide/onUnload 结算 durationMs(trackModuleExit)。与 onLoad 的 station-enter
+  // module_viewed(带 object_type=station 的进站漏斗事件)并存——此处是 dwell 计时对,
+  // trackModuleView 的 __productBehaviorVisit 守卫保证同一页实例只起计一次。
+  onShow() {
+    telemetry.trackModuleView(this, { module: "learning", section: "station" });
+  },
+
+  onHide() {
+    telemetry.trackModuleExit(this);
+  },
+
+  onUnload() {
+    telemetry.trackModuleExit(this);
+  },
+
   retry() {
     this.setData({ loading: true, errorText: "" });
     this._loadDetail();
@@ -101,11 +116,15 @@ Page({
 
   _showLessonCard() {
     this.setData({ currentUrl: this.data.cardUrl });
+    // 微课集打开(episode 粒度)。teaching_point_id 不在 lesson detail 响应内
+    // (后端仅在教学集列表派生 `<pack>:lesson:<index>`),故 object_id 用 tp 占位符
+    // 保留 episode 粒度——旧值 `<pack>:lesson` 把同 pack 多集压成一条,粒度丢失。
+    // 与 teaching-points 列表页 openEpisode 同构 object_id,可 join 成漏斗。
     telemetry.trackProductBehavior("learning_action_started", {
       module: "learning",
       action: "start_training",
-      objectType: "station",
-      objectId: this.data.packId + ":" + TIER_LESSON,
+      objectType: "microlesson",
+      objectId: this.data.packId + ":tp:" + this.data.episodeIndex,
     });
   },
 
