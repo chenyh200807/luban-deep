@@ -1,1222 +1,1255 @@
 {
- "schema": "luban_practice_review_packet.v1",
- "pack_id": "Q02",
- "source_pack_sha256": "81d50133b6f7f8f7b777d40c46a67bd6a69096d6a7f4d69a546fdb8af7f639c4",
- "source_bundle_sha256": "33e81401660c82765b492dc7923a478d2852de5f1b62e55f3c98bf8c94e035f3",
- "compiled_schema_version": "luban_compiled_practice.v3",
- "candidate_count": 16,
- "eligible_count": 7,
- "human_gate": {
-  "required_roles": [
-   "teaching",
-   "scoring"
+  "schema": "luban_practice_review_packet.v1",
+  "pack_id": "Q02",
+  "source_pack_sha256": "81d50133b6f7f8f7b777d40c46a67bd6a69096d6a7f4d69a546fdb8af7f639c4",
+  "source_bundle_sha256": "33e81401660c82765b492dc7923a478d2852de5f1b62e55f3c98bf8c94e035f3",
+  "compiled_schema_version": "luban_compiled_practice.v3",
+  "candidate_count": 16,
+  "eligible_count": 9,
+  "human_gate": {
+    "required_roles": [
+      "teaching",
+      "scoring"
+    ],
+    "machine_must_not_sign": true
+  },
+  "items": [
+    {
+      "variant_id": "Q02-html-practice-html-q1-2ee93b76d576",
+      "surface_id": "practice.html",
+      "stem": "案例问：底板大体积混凝土为防止温度裂缝，应从哪些方面采取技术措施？选出骨架完整、能得分的作答。",
+      "options": [
+        {
+          "text": "加强混凝土的保温保湿养护，严格控制里表温差，防止底板出现温度裂缝。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "养护和温差确实是核心，看着已经答到点上了。",
+          "loss_reason": "只沾养护测温一组的边，材料、配合比、施工三组整组漏。",
+          "fix": "四组逐组扫：材料、配合比、施工、养护测温各写一句。",
+          "option_id": "Q02-html-practice-html-q1-2ee93b76d576:option-1"
+        },
+        {
+          "text": "从材料、配合比、施工、养护测温四个方面分别采取措施，每组写明具体做法并带数值。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四组组名先立骨架，再逐组填「动作+数值」，这就是满分结构。",
+          "option_id": "Q02-html-practice-html-q1-2ee93b76d576:option-2"
+        },
+        {
+          "text": "施工中应当精心组织、加强管理，严格按照规范和专项方案落实各项温控要求，确保工程质量。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "句句都「对」，考场一紧张最爱这么写。",
+          "loss_reason": "口号化表达，没有一个可判分的动作和数值。",
+          "fix": "落成动作+数值，如「保湿养护≥14d、里表温差≤25℃」。",
+          "option_id": "Q02-html-practice-html-q1-2ee93b76d576:option-3"
+        },
+        {
+          "text": "选用低水化热水泥并掺粉煤灰、磨细矿渣粉，从源头减少水化热，避免温升过高。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "材料组答得很专业，容易以为这就够了。",
+          "loss_reason": "只有材料一组，配合比、施工、养护测温三组全漏。",
+          "fix": "材料句之外，另外三组各补一句带数值的措施。",
+          "option_id": "Q02-html-practice-html-q1-2ee93b76d576:option-4"
+        }
+      ],
+      "model_answer": "按四组作答：材料·降热源／配合比·控总热／施工·控入模分层／养护测温·控温差，每组句里嵌数值。",
+      "rule_group": "措施·四组骨架",
+      "content_sha256": "44b86efe2d41ccf1ff93c654d674ebf668ee48a068d6addc99a881090943e9d1",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q1",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "q02-fact-crack-prevention-four-groups",
+        "skeleton_id": "q02-skel-防裂四组措施骨架",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_095_0180:0",
+        "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "44b86efe2d41ccf1ff93c654d674ebf668ee48a068d6addc99a881090943e9d1",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "四组措施各有源: 配合比组=本锚 kc:...095_0180:0(0.45/170kg/180mm 等)直引; 材料组(低水化热掺合料)/施工组(分层300~500)/养护测温组(≥14d+四温控)=kc:...096_0181 及大体积防水控制原文(复合多源工单)。Codex FATAL 系复合题血统误判。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q2-bdf6a72816e9",
+      "surface_id": "practice.html",
+      "stem": "案例问：大体积混凝土施工的温控指标有哪些？选出指标齐全、能得分的作答。",
+      "options": [
+        {
+          "text": "控制混凝土浇筑体的温升值不超过50℃，并加强测温监控，发现温升过快及时处理。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "温升是最出名的指标，答了就觉得答完了。",
+          "loss_reason": "四指标漏三：里表温差、降温速率、拆保温温差全没写。",
+          "fix": "四个一起写：≤50℃、≤25℃、≤2.0℃/d、≤20℃。",
+          "option_id": "Q02-html-practice-html-q2-bdf6a72816e9:option-1"
+        },
+        {
+          "text": "温升值≤50℃、里表温差≤20℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤25℃。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "四个指标都在，乍一看很齐全。",
+          "loss_reason": "20℃与25℃方向写反：里表是25℃、拆保温才是20℃。",
+          "fix": "里表温差≤25℃（剖面里），拆保温温差≤20℃（表面到大气）。",
+          "option_id": "Q02-html-practice-html-q2-bdf6a72816e9:option-2"
+        },
+        {
+          "text": "温升值、里表温差、降温速率、拆保温温差四项指标都应控制在规范允许范围之内。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "四项名目全点到了，像是踩全了。",
+          "loss_reason": "关键词缺失——四项全没数值，采分眼正是那四个数。",
+          "fix": "补数值：≤50℃、≤25℃、≤2.0℃/d、≤20℃。",
+          "option_id": "Q02-html-practice-html-q2-bdf6a72816e9:option-3"
+        },
+        {
+          "text": "温升值≤50℃、里表温差≤25℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤20℃。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四指标齐、数值方向全对：50、25、2.0、20 一串背。",
+          "option_id": "Q02-html-practice-html-q2-bdf6a72816e9:option-4"
+        }
+      ],
+      "model_answer": "①温升值≤50℃ ②里表温差≤25℃ ③降温速率≤2.0℃/d ④拆除保温覆盖时表面与大气温差≤20℃。",
+      "rule_group": "温控四指标·条件维",
+      "content_sha256": "19c0d52a6e0faed13c31823caf001e319f46cde61e0e6b04458e451c641e7af0",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q2",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "q02-fact-four-temp-limits",
+        "skeleton_id": "q02-skel-四温控指标数值",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A413030_096_0181:0",
+        "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "19c0d52a6e0faed13c31823caf001e319f46cde61e0e6b04458e451c641e7af0",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "温升≤50℃/里表≤25℃/降温≤2.0℃/d/拆保温≤20℃, 教材 kc:...096_0181:0 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q3-b43d41f5737d",
+      "surface_id": "practice.html",
+      "stem": "技术交底写明：「底板混凝土浇筑后保湿养护7d」。指出不妥之处并改正，选出能拿全分的作答。",
+      "options": [
+        {
+          "text": "保湿养护7d不妥，大体积混凝土水化热大、收缩持续时间长，应当适当延长养护时间。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "指出了不妥、也讲了道理，看着挺完整。",
+          "loss_reason": "「适当延长」没有14d——正确数值才是采分眼。",
+          "fix": "补上「应≥14d」这个数。",
+          "option_id": "Q02-html-practice-html-q3-b43d41f5737d:option-1"
+        },
+        {
+          "text": "保湿养护7d符合要求：采用硅酸盐水泥的混凝土养护不得少于7d，交底并无不妥之处。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "7d确实是一般混凝土的常见口径，很眼熟。",
+          "loss_reason": "把一般混凝土7d错套到大体积，大体积应≥14d。",
+          "fix": "大体积/防水混凝土保湿养护≥14d。",
+          "option_id": "Q02-html-practice-html-q3-b43d41f5737d:option-2"
+        },
+        {
+          "text": "不妥：养护方式错误。理由：大体积混凝土应蓄水养护而非覆盖养护。正确做法：改为蓄水养护14d。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "也是三段式也有14d，格式很像满分。",
+          "loss_reason": "题干挑的是时间7d，不是方式；自设靶子答非所问。",
+          "fix": "紧扣题干数值纠错：7d改为≥14d。",
+          "option_id": "Q02-html-practice-html-q3-b43d41f5737d:option-3"
+        },
+        {
+          "text": "不妥：保湿养护7d；理由：大体积混凝土保湿养护应≥14d；正确做法：养护不少于14d。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三段式齐全且带正确数值14d，这是纠错题的满分格式。",
+          "option_id": "Q02-html-practice-html-q3-b43d41f5737d:option-4"
+        }
+      ],
+      "model_answer": "不妥之处：保湿养护7d。理由：大体积混凝土保湿养护时间应≥14d。正确做法：保湿养护不少于14d。",
+      "rule_group": "判断纠错·养护时间",
+      "content_sha256": "5f8401a53c4e9fe1f4a45dca1b825aac2fd33c7f100871f845dee2046cc4b807",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q3",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "q02-fact-curing-14d",
+        "skeleton_id": "q02-skel-养护7d不妥改正",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2023:第16题",
+        "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "5f8401a53c4e9fe1f4a45dca1b825aac2fd33c7f100871f845dee2046cc4b807",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "大体积保湿养护≥14d, 本锚真题解析逐字『C错：保湿养护持续时间不少于14d』; 教材 kc:...096_0181『保湿养护时间：≥14d』同文。Codex FATAL 系漏看真题 analysis。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q4-bfb29285340d",
+      "surface_id": "practice.html",
+      "stem": "技术交底写明：「拆除保温覆盖时，浇筑体表面与大气温差不大于25℃」。判断并选出能得分的作答。",
+      "options": [
+        {
+          "text": "不妥：25℃是里表温差限值；拆保温时表面与大气温差应≤20℃，达标后方可拆除。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点破「25℃是里表的」并给出20℃，两个数都落位。",
+          "option_id": "Q02-html-practice-html-q4-bfb29285340d:option-1"
+        },
+        {
+          "text": "妥当：拆除保温覆盖时该温差限值就是25℃，与里表温差的控制要求一致，交底数值并无问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "25℃这个数在本考点确实存在，容易对上号。",
+          "loss_reason": "把里表温差25℃错套到拆保温，拆保温限值是20℃。",
+          "fix": "拆保温≤20℃（表面到大气），25℃是剖面里的里表温差。",
+          "option_id": "Q02-html-practice-html-q4-bfb29285340d:option-2"
+        },
+        {
+          "text": "不妥：只要保湿养护满14d即可拆除保温覆盖，不必再对温差另提数值要求。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「满14d就能拆」符合到点拆模的直觉。",
+          "loss_reason": "拆保温看的是温差条件不是天数，不查温差表面急冷开裂。",
+          "fix": "写明「表面与大气温差≤20℃方可拆除」。",
+          "option_id": "Q02-html-practice-html-q4-bfb29285340d:option-3"
+        },
+        {
+          "text": "不妥：拆保温时的温差限值偏大，应从严控制，待温差再小一些时拆除更为稳妥。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向判对了（25偏大），感觉已经答中。",
+          "loss_reason": "没给出20℃这个正确数值，纠错不带数等于半句。",
+          "fix": "补上「应≤20℃」。",
+          "option_id": "Q02-html-practice-html-q4-bfb29285340d:option-4"
+        }
+      ],
+      "model_answer": "不妥。理由：拆保温时表面与大气温差应≤20℃（25℃是里表温差限值，二者勿混）。正确做法：温差≤20℃方可拆除。",
+      "rule_group": "判断纠错·拆保温",
+      "content_sha256": "7a79b2e85f91c8624a42cc72b8cfd1bb3a2c29d4ddeb5f679d1fb68ce57c38c1",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q4",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "q02-fact-insulation-removal-20c",
+        "skeleton_id": "q02-skel-拆保温温差判定",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2021:第13题",
+        "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "7a79b2e85f91c8624a42cc72b8cfd1bb3a2c29d4ddeb5f679d1fb68ce57c38c1",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "拆保温时表面与大气温差≤20℃, 真题 exam:2021:第13题 原题直判(B)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q5-6d014202d1e5",
+      "surface_id": "practice.html",
+      "stem": "案例计算题（如配合比换算）要拿全过程分，作答结构应当怎么写？选出完整口径。",
+      "options": [
+        {
+          "text": "直接写出最终的数值结论并标明单位，计算过程在草稿纸上完成即可，不必誊写上卷。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "平时刷题就习惯只报得数，图快。",
+          "loss_reason": "阅卷按步给分，卷面无算式，公式分、列式分全丢。",
+          "fix": "公式和列式都要誊上答题纸。",
+          "option_id": "Q02-html-practice-html-q5-6d014202d1e5:option-1"
+        },
+        {
+          "text": "写出公式并代入数据列式，算出数值结论带上单位，计算作答到此即告完成。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "三步都全了，看着已经闭环。",
+          "loss_reason": "漏第④步回判——不对回规范限值，丢定性分。",
+          "fix": "末尾补一句「经复核，水胶比≤0.45，满足要求」。",
+          "option_id": "Q02-html-practice-html-q5-6d014202d1e5:option-2"
+        },
+        {
+          "text": "先亮公式，再代入数据列式，然后写数值结论带上单位，最后回判规范限值是否满足。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "公式、列式、数值、回判——四步链一步不缺，步步是分。",
+          "option_id": "Q02-html-practice-html-q5-6d014202d1e5:option-3"
+        },
+        {
+          "text": "先写数值结论让阅卷一眼看到答案，再倒推补一段大致的计算说明即可。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "「结论先行」在论述题里确实常被推荐。",
+          "loss_reason": "计算题按链路采分，倒装且「大致说明」不构成列式。",
+          "fix": "按①公式②列式③数值④回判的顺序写。",
+          "option_id": "Q02-html-practice-html-q5-6d014202d1e5:option-4"
+        }
+      ],
+      "model_answer": "四步链：①亮公式（判据）②代入题干数据列式 ③写数值结论带单位 ④回判规范限值（如水胶比≤0.45）。",
+      "rule_group": "计算·四步链",
+      "content_sha256": "44e507f5ddb35d8450178076cbb7b3c69b8fb794c05d082da41ba99280f54dc5",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q5",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "q02-fact-mix-conversion-and-limits",
+        "skeleton_id": "q02-skel-计算作答四步链",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A413030_095_0180:0",
+        "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "44e507f5ddb35d8450178076cbb7b3c69b8fb794c05d082da41ba99280f54dc5",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:27+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:27+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "计算题四步链(公式→列式→结论带单位→回判限值),回判示例水胶比≤0.45有教材大体积配合比卡逐字锚;四步结构为判分口径,类比本包q16采分诊断先例。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q6-0c83adccd53a",
+      "surface_id": "practice.html",
+      "stem": "设计水泥用量400kg/m³，粉煤灰掺量20%（等量替换水泥）。求每立方米水泥、粉煤灰用量，选出能得过程分的作答。",
+      "options": [
+        {
+          "text": "水泥用量为320kg/m³，粉煤灰用量为80kg/m³，两项均已按掺量换算完成。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "数全对，感觉稳了。",
+          "loss_reason": "没有「×(1−20%)」的算式，过程分拿不到。",
+          "fix": "把两条算式原样写上答题纸。",
+          "option_id": "Q02-html-practice-html-q6-0c83adccd53a:option-1"
+        },
+        {
+          "text": "水泥=400−20=380kg/m³，粉煤灰=20kg/m³，按掺量数值20直接从设计水泥用量中扣减求得。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "「掺20就减20」，顺手一减。",
+          "loss_reason": "把百分比当成公斤数，等量替换是按20%的比例替换。",
+          "fix": "400×20%=80替换，水泥=400×(1−20%)=320。",
+          "option_id": "Q02-html-practice-html-q6-0c83adccd53a:option-2"
+        },
+        {
+          "text": "水泥=400×(1−20%)=320kg/m³，粉煤灰=400×20%=80kg/m³，列式与数值齐全。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「×(1−20%)」这一笔就是过程分，两条算式都要落卷。",
+          "option_id": "Q02-html-practice-html-q6-0c83adccd53a:option-3"
+        },
+        {
+          "text": "水泥仍为400kg/m³，另外加入粉煤灰80kg/m³，两种胶凝材料用量分别计取。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "「掺」字容易理解成「额外加」。",
+          "loss_reason": "等量替换是「替」不是「加」，胶材总量应保持400。",
+          "fix": "水泥减到320、粉煤灰80，合计仍400。",
+          "option_id": "Q02-html-practice-html-q6-0c83adccd53a:option-4"
+        }
+      ],
+      "model_answer": "水泥=400×(1−20%)=320kg/m³；粉煤灰=400×20%=80kg/m³（胶材总量仍400）。",
+      "rule_group": "计算·等量替换",
+      "content_sha256": "d340c176c24003bd5387976c03aded1111453b36cc3da026c3f15366b9de3a6d",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q6",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "q02-fact-mix-conversion-and-limits",
+        "skeleton_id": "q02-skel-配合比换算计算",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2019:案例一(一)背景资料",
+        "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "d340c176c24003bd5387976c03aded1111453b36cc3da026c3f15366b9de3a6d",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "水泥 400×0.8=320kg/m³, 粉煤灰 400×20%=80kg/m³, 真题背景+答案逐字。三联 immediate_confirm(同换算限值 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q7-826f6c14f838",
+      "surface_id": "practice.html",
+      "stem": "实测中砂含水率4%、碎石含水率1.2%。由设计配合比换算施工配合比时，用水量应如何处理？",
+      "options": [
+        {
+          "text": "按设计配合比的用水量直接投料拌制，含水率的波动由现场坍落度试验随时调整。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "「看坍落度调」听着很实操。",
+          "loss_reason": "不扣自带水，实际水胶比直接超限——题干给含水率就是要你扣。",
+          "fix": "先扣骨料自带水，再定实际加水量。",
+          "option_id": "Q02-html-practice-html-q7-826f6c14f838:option-1"
+        },
+        {
+          "text": "在设计用水量之外再增加4%和1.2%的水，用于补偿骨料表面吸附的水分损失。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "见到百分比就想「补偿」。",
+          "loss_reason": "方向反了——骨料是带着水进来的，应扣不应加。",
+          "fix": "实际加水=设计水−骨料带入的水。",
+          "option_id": "Q02-html-practice-html-q7-826f6c14f838:option-2"
+        },
+        {
+          "text": "从设计用水量中扣除砂石自带的水求出实际加水量，砂石称量按含水率相应增加。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「扣自带水+砂石称量相应加」两句齐，换算才算完整。",
+          "option_id": "Q02-html-practice-html-q7-826f6c14f838:option-3"
+        },
+        {
+          "text": "只需扣除中砂带入的水量即可，碎石含水率1.2%数值很小，可以忽略不计。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "1.2%看着确实不起眼。",
+          "loss_reason": "漏了碎石折算，换算要求砂、石都按实测含水率折。",
+          "fix": "砂、石都按实测含水率折算。",
+          "option_id": "Q02-html-practice-html-q7-826f6c14f838:option-4"
+        }
+      ],
+      "model_answer": "骨料自带水计入用水：实际加水=设计用水−砂石带入的水；砂、石称量按含水率相应增加。",
+      "rule_group": "计算·扣含水率",
+      "content_sha256": "cdb623dcf6a72817dec52098ffe508757dcd319f2eaad1d7fd127e5db1a959b5",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q7",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "q02-fact-mix-conversion-and-limits",
+        "skeleton_id": "q02-skel-含水率扣减方向",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "exam:2019:案例一(一)背景资料",
+        "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "cdb623dcf6a72817dec52098ffe508757dcd319f2eaad1d7fd127e5db1a959b5",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:27+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:27+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "施工配合比换算:实际加水=设计用水−砂石带入水,砂石称量按含水率增加,锚2019真题案例一(中砂4%/碎石1.2%同题背景);漏碎石折算判错正确。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q8-960ccb6cc929",
+      "surface_id": "practice.html",
+      "stem": "配合比换算完成后，第④步「回判」应写哪句才能把计算链闭环？选出得分口径。",
+      "options": [
+        {
+          "text": "数值结论已经写清并带上单位，计算链即告完成，不需要再补充其他的说明性文字。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得算完就完了，回判像是多余。",
+          "loss_reason": "缺第④步回判，丢定性分，链没闭环。",
+          "fix": "末尾补「经复核，水胶比≤0.45，满足要求」。",
+          "option_id": "Q02-html-practice-html-q8-960ccb6cc929:option-1"
+        },
+        {
+          "text": "回判是把计算结果与设计强度对比，写明混凝土强度满足C35设计要求即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「回判」听着像是对强度。",
+          "loss_reason": "本题回判对象是配合比限值（水胶比0.45），不是强度评定。",
+          "fix": "对回水胶比≤0.45等配合比红线。",
+          "option_id": "Q02-html-practice-html-q8-960ccb6cc929:option-2"
+        },
+        {
+          "text": "写一句经复核各项指标均满足规范要求，对计算结果进行总体性的确认收尾。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "也算「回判」，读着挺像样。",
+          "loss_reason": "不点名0.45这个限值，关键词缺失。",
+          "fix": "点名「水胶比≤0.45」再下满足结论。",
+          "option_id": "Q02-html-practice-html-q8-960ccb6cc929:option-3"
+        },
+        {
+          "text": "写明经复核水胶比不大于0.45、满足大体积配合比要求，把结果对回规范限值。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点名限值0.45+满足结论，一句定性把链闭环。",
+          "option_id": "Q02-html-practice-html-q8-960ccb6cc929:option-4"
+        }
+      ],
+      "model_answer": "回判句：经复核，水胶比不大于0.45（拌合水不超过170kg/m³），满足大体积混凝土配合比要求。",
+      "rule_group": "计算·回判收尾",
+      "content_sha256": "ace8fadd4869ab64c595bf73d794a6a6fda53f01c9e8f0ec5d06a2acce292ed7",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q8",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "q02-fact-mix-conversion-and-limits",
+        "skeleton_id": "q02-skel-水胶比限值判断",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A413030_095_0180:0",
+        "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "ace8fadd4869ab64c595bf73d794a6a6fda53f01c9e8f0ec5d06a2acce292ed7",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "大体积水胶比≤0.45 限值判据, 教材 kc:...095_0180:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q9-b28490ae260e",
+      "surface_id": "practice.html",
+      "stem": "厚大体积混凝土基础选用水泥，选出品种与理由都正确、能得分的作答。",
+      "options": [
+        {
+          "text": "宜选强度等级高的硅酸盐水泥，早期强度高、成型快，利于底板尽早达到设计强度。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「强度高=好混凝土」的直觉太顺了。",
+          "loss_reason": "硅酸盐早强高、水化热大，大体积正是忌用。",
+          "fix": "大体积选低水化热的矿渣/火山灰/粉煤灰/复合水泥。",
+          "option_id": "Q02-html-practice-html-q9-b28490ae260e:option-1"
+        },
+        {
+          "text": "宜选矿渣、火山灰、粉煤灰或复合水泥，水化热小；忌用水化热大的硅酸盐水泥。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「宜四类+忌硅酸盐」两头都写，理由落在水化热上。",
+          "option_id": "Q02-html-practice-html-q9-b28490ae260e:option-2"
+        },
+        {
+          "text": "宜选矿渣、火山灰类水泥，其早期强度增长快、可缩短养护时间，适合大体积基础。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "结论选对了，理由看着也顺。",
+          "loss_reason": "理由说反了：这类水泥水化热小、后期强度增长快，不是早强快。",
+          "fix": "理由写「水化热小、后期强度增长快」。",
+          "option_id": "Q02-html-practice-html-q9-b28490ae260e:option-3"
+        },
+        {
+          "text": "水泥品种不限，关键在于掺入足量粉煤灰与磨细矿渣粉，即可有效降低水化热。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "掺合料确实降热，像是抓住了本质。",
+          "loss_reason": "回避了水泥选型采分点——「宜四类、忌硅酸盐」没写。",
+          "fix": "品种句+掺合料句都要写。",
+          "option_id": "Q02-html-practice-html-q9-b28490ae260e:option-4"
+        }
+      ],
+      "model_answer": "宜选矿渣、火山灰、粉煤灰、复合等低水化热水泥（后期强度增长快）；忌用硅酸盐水泥（早期强度高、水化热大）。",
+      "rule_group": "材料·选水泥",
+      "content_sha256": "cf777297d69994ddd097fefac77368eabbe9b0db4c357ce9d9e795525246f72f",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q9",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "cf777297d69994ddd097fefac77368eabbe9b0db4c357ce9d9e795525246f72f",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q10-5321a39b4c4f",
+      "surface_id": "practice.html",
+      "stem": "大体积混凝土外加剂的选用，选出正确且能得分的作答。",
+      "options": [
+        {
+          "text": "宜掺早强剂加快混凝土硬化，缩短温升持续时间，使底板尽快度过危险期。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「快点硬就快点安全」很符合直觉。",
+          "loss_reason": "早强剂加速水化=放热更猛更集中，大体积不宜用。",
+          "fix": "大体积要缓凝削峰，不是催熟。",
+          "option_id": "Q02-html-practice-html-q10-5321a39b4c4f:option-1"
+        },
+        {
+          "text": "缓凝剂与早强剂配合使用：前期缓凝控制温升，后期早强加快强度增长。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「两头都占」看着聪明。",
+          "loss_reason": "早强剂对大体积本身就不宜用，不存在这种配合口径。",
+          "fix": "只写缓凝剂适用、早强剂不宜。",
+          "option_id": "Q02-html-practice-html-q10-5321a39b4c4f:option-2"
+        },
+        {
+          "text": "按泵送施工要求选用泵送剂即可，温度控制主要依靠养护措施而不靠外加剂。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "现场确实常按泵送配外加剂。",
+          "loss_reason": "漏「缓凝剂适用、早强剂不宜」这组采分点。",
+          "fix": "补缓凝剂、早强剂两句。",
+          "option_id": "Q02-html-practice-html-q10-5321a39b4c4f:option-3"
+        },
+        {
+          "text": "宜掺缓凝剂延缓放热峰、利于散热；早强剂不宜用于大体积混凝土。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「缓凝适用+早强不宜」一对句子都写，才算答全。",
+          "option_id": "Q02-html-practice-html-q10-5321a39b4c4f:option-4"
+        }
+      ],
+      "model_answer": "宜掺缓凝剂（延缓放热峰、利于散热）；早强剂不宜用于大体积混凝土。",
+      "rule_group": "材料·外加剂",
+      "content_sha256": "b00399bc1d236a011a35fe8567968eb1f178677a6dda32b934045abeebef5e34",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q10",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "b00399bc1d236a011a35fe8567968eb1f178677a6dda32b934045abeebef5e34",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q11-cb8615b8f603",
+      "surface_id": "practice.html",
+      "stem": "大体积混凝土配合比的控制指标，选出数值全部正确的作答。",
+      "options": [
+        {
+          "text": "水胶比≤0.50，粉煤灰≤50%、矿渣粉≤40%且总掺量≤50%，拌合水≤170kg/m³、坍落度≤180mm。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "0.50是防水混凝土的熟数，很容易串过来。",
+          "loss_reason": "大体积水胶比限值是0.45，0.50是防水混凝土口径。",
+          "fix": "大体积写≤0.45。",
+          "option_id": "Q02-html-practice-html-q11-cb8615b8f603:option-1"
+        },
+        {
+          "text": "水胶比≤0.45，粉煤灰≤50%、矿渣粉≤40%且总掺量≤50%，拌合水≤170kg/m³、坍落度≤180mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "记口诀：0.45红线、灰五渣四总不过半、水170坍180。",
+          "option_id": "Q02-html-practice-html-q11-cb8615b8f603:option-2"
+        },
+        {
+          "text": "水胶比≤0.45，粉煤灰≤40%、矿渣粉≤50%且总掺量≤50%，拌合水≤170kg/m³、坍落度≤180mm。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只把50和40换了个位，极难察觉。",
+          "loss_reason": "掺量限值写反：粉煤灰≤50%、矿渣粉≤40%。",
+          "fix": "记「灰五渣四」，总掺量不过半。",
+          "option_id": "Q02-html-practice-html-q11-cb8615b8f603:option-3"
+        },
+        {
+          "text": "水胶比≤0.45，粉煤灰≤50%、矿渣粉≤40%且总掺量≤50%，拌合水≤180kg/m³、坍落度≤170mm。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "170和180两个数都对，只是位置对调。",
+          "loss_reason": "拌合水≤170kg/m³、坍落度≤180mm，对调即错。",
+          "fix": "水170、坍180，别互换。",
+          "option_id": "Q02-html-practice-html-q11-cb8615b8f603:option-4"
+        }
+      ],
+      "model_answer": "水胶比≤0.45；粉煤灰≤50%、矿渣粉≤40%、总掺量≤50%；拌合水≤170kg/m³、坍落度≤180mm。",
+      "rule_group": "配合比·限值",
+      "content_sha256": "dc4db8fbe74546d7a08fb403cb900e68eba1640e82820295f614c69ebb2d0a36",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q11",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "dc4db8fbe74546d7a08fb403cb900e68eba1640e82820295f614c69ebb2d0a36",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q12-ab183503cf7c",
+      "surface_id": "practice.html",
+      "stem": "底板大体积混凝土的浇筑工艺与入模温度控制，选出正确且能得分的作答。",
+      "options": [
+        {
+          "text": "底板混凝土宜一次整体浇筑到顶、不留任何间歇，避免出现施工缝，同时加大浇筑层厚以加快施工进度。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「连续浇完最省事」符合抢工期的直觉。",
+          "loss_reason": "不分层热更聚，层厚300~500mm是硬口径。",
+          "fix": "分层浇筑、层厚300~500mm。",
+          "option_id": "Q02-html-practice-html-q12-ab183503cf7c:option-1"
+        },
+        {
+          "text": "整体分层或推移式连续浇筑，层厚300~500mm；入模温度5~30℃，高温期不超过30℃。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "工艺+层厚+入模温度三个数值全落位。",
+          "option_id": "Q02-html-practice-html-q12-ab183503cf7c:option-2"
+        },
+        {
+          "text": "分层浇筑层厚300~500mm；入模温度不低于5℃是为了防止混凝土早期受冻破坏。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "5℃与冬施防冻的5℃数值相同，很容易混。",
+          "loss_reason": "大体积5~30℃控的是温升起点，与冬施防冻是两码事。",
+          "fix": "写「入模5~30℃控温升」，勿套防冻口径。",
+          "option_id": "Q02-html-practice-html-q12-ab183503cf7c:option-3"
+        },
+        {
+          "text": "采用整体分层或推移式连续浇筑，分层厚度按方案确定，入模温度控制在合理范围。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "措辞四平八稳，不会「写错」。",
+          "loss_reason": "300~500mm与5~30℃两个数值全缺，采分眼没踩。",
+          "fix": "数值补齐：层厚300~500mm、入模5~30℃。",
+          "option_id": "Q02-html-practice-html-q12-ab183503cf7c:option-4"
+        }
+      ],
+      "model_answer": "宜整体分层或推移式连续浇筑，浇筑层厚300~500mm；入模温度5~30℃，高温期大体积不超过30℃。",
+      "rule_group": "施工·浇筑入模",
+      "content_sha256": "0e1f94f52f279c04d87707da834fe94d1f276530b7eb072a9eee106093510010",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q12",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "0e1f94f52f279c04d87707da834fe94d1f276530b7eb072a9eee106093510010",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q13-3ace0b0cc94e",
+      "surface_id": "practice.html",
+      "stem": "底板超长，采用跳仓法施工。选出口径正确、能得分的作答。",
+      "options": [
+        {
+          "text": "跳仓法分块单向尺寸不宜大于40m，隔仓跳打，各仓依次连续浇筑连成整体。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "40m是采分数值，配上「隔仓跳打、依次连续」的做法句。",
+          "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-1"
+        },
+        {
+          "text": "跳仓法分块单向尺寸不宜大于50m，隔仓跳打，各仓依次连续浇筑连成整体。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "50m是真题里挂出来的干扰值，特别眼熟。",
+          "loss_reason": "官方口径是40m，50m正是被判错的选项。",
+          "fix": "记死「跳仓分块单向≤40m」。",
+          "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-2"
+        },
+        {
+          "text": "分块越大越好以减少仓缝数量，仓缝按后浇带构造处理并预留足够时间再封闭。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「缝少=隐患少」听着有理。",
+          "loss_reason": "跳仓靠小块先各自收缩释放约束，分块过大失去意义且40m是上限。",
+          "fix": "分块单向≤40m，隔仓跳打。",
+          "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-3"
+        },
+        {
+          "text": "采用跳仓法时按专项方案确定分块并组织浇筑，减少大体积整浇产生的约束应力。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "原理说得对，像是懂行。",
+          "loss_reason": "40m这个采分数值没写，方案两个字兜不住分。",
+          "fix": "补「单向尺寸≤40m」。",
+          "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-4"
+        }
+      ],
+      "model_answer": "跳仓法最大分块单向尺寸不宜大于40m，隔仓跳打、各仓依次连续浇筑（真题按1/3长×1/3宽分9仓、每仓浇筑3d）。",
+      "rule_group": "施工·跳仓法",
+      "content_sha256": "5b0ff93647dc5cae5379ce6e2608ad8f873b3a8eedf6334de4b2ab02e5634dff",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q13",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "5b0ff93647dc5cae5379ce6e2608ad8f873b3a8eedf6334de4b2ab02e5634dff",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q14-30af33a00faf",
+      "surface_id": "practice.html",
+      "stem": "厚2.0m底板的测温点沿厚度方向如何布置？选出能得分的作答。",
+      "options": [
+        {
+          "text": "沿厚度至少布表层、底层、中心测点，间距不大于500mm，表层温度取表面下50mm处。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三层位+500mm+表层50mm，三个采分眼全踩。",
+          "option_id": "Q02-html-practice-html-q14-30af33a00faf:option-1"
+        },
+        {
+          "text": "在底板中心埋设测温点连续监测中心温度，即可掌握混凝土内部的温升情况。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「测最热的芯部」看着抓住了要害。",
+          "loss_reason": "只测中心算不出里表温差，三层位与间距全漏。",
+          "fix": "表/底/中心三层位+间距≤500mm。",
+          "option_id": "Q02-html-practice-html-q14-30af33a00faf:option-2"
+        },
+        {
+          "text": "沿厚度方向布置表层、底层与中心三处测点，测点间距不宜大于1000mm即可满足布点要求。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "三层位齐了，间距看着也「差不多」。",
+          "loss_reason": "间距限值是500mm，1000mm超限一倍。",
+          "fix": "间距≤500mm。",
+          "option_id": "Q02-html-practice-html-q14-30af33a00faf:option-3"
+        },
+        {
+          "text": "表层温度直接取混凝土表面的温度读数，与底层、中心温度对比计算里表温差。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「表层=表面」，字面上很顺。",
+          "loss_reason": "表层温度宜取表面以下50mm处，表面读数受环境干扰。",
+          "fix": "写「表层取表面下50mm处温度」。",
+          "option_id": "Q02-html-practice-html-q14-30af33a00faf:option-4"
+        }
+      ],
+      "model_answer": "沿厚度方向至少布表层、底层、中心三处测点，测点间距不宜大于500mm；表层温度取表面以下50mm处。",
+      "rule_group": "测温·布点",
+      "content_sha256": "945d8352b8d7c976a2f3c15692f6f32791b71601c499125e216e77c76c405d7d",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q14",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "945d8352b8d7c976a2f3c15692f6f32791b71601c499125e216e77c76c405d7d",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q15-eed5e139b54a",
+      "surface_id": "practice.html",
+      "stem": "大体积混凝土测温的频次要求，选出数值齐全且正确的作答。",
+      "options": [
+        {
+          "text": "浇筑后前三天每昼夜测温不少于4次，此后视温度变化情况适当减少测温次数。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「前紧后松」很像现场实际做法。",
+          "loss_reason": "每轴≥4点、入模每台班≥2次两项漏写。",
+          "fix": "三个频次一起写：4点、4次、2次。",
+          "option_id": "Q02-html-practice-html-q15-eed5e139b54a:option-1"
+        },
+        {
+          "text": "每条轴线不少于2个测点，每昼夜测温不少于4次，入模温度每台班不少于4次。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数都是2和4，顺序一晃就过去了。",
+          "loss_reason": "4/4/2串位：每轴≥4点、每台班≥2次。",
+          "fix": "记「轴4·昼夜4·台班2」。",
+          "option_id": "Q02-html-practice-html-q15-eed5e139b54a:option-2"
+        },
+        {
+          "text": "每条轴线不少于4个测点，每昼夜测温不少于4次，入模温度每台班不少于2次。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "口诀「轴4·昼夜4·台班2」，三个频次一口气写全。",
+          "option_id": "Q02-html-practice-html-q15-eed5e139b54a:option-3"
+        },
+        {
+          "text": "安排专人按方案要求定时测温并如实记录，发现数据异常及时向技术负责人报告。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "管理动作齐全，读着很规范。",
+          "loss_reason": "口号化，三个频次数值一个没有。",
+          "fix": "写明4点、4次、2次。",
+          "option_id": "Q02-html-practice-html-q15-eed5e139b54a:option-4"
+        }
+      ],
+      "model_answer": "每条轴线不少于4个测点；每昼夜测温不少于4次；入模温度每台班不少于2次（口诀：轴4·昼夜4·台班2）。",
+      "rule_group": "测温·频次",
+      "content_sha256": "d6a5019e80376d68d31620324fef187c0acf10e8fb64a46f7d4192e3f3813f96",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q15",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "",
+        "skeleton_id": "",
+        "probe_role": "",
+        "source_anchor": "",
+        "source_sha256": "",
+        "review": {
+          "status": "pending",
+          "verdict": "pending",
+          "reviewed_content_sha256": "d6a5019e80376d68d31620324fef187c0acf10e8fb64a46f7d4192e3f3813f96",
+          "signatures": [],
+          "checks": {
+            "source_verified": false,
+            "answer_verified": false,
+            "diagnosis_verified": false,
+            "longest_option_checked": false,
+            "template_leakage_checked": false
+          }
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    },
+    {
+      "variant_id": "Q02-html-practice-html-q16-c02651c51c2c",
+      "surface_id": "practice.html",
+      "stem": "学生作答：①措施——加强养护、控制温差；②养护7d后拆除保温；③水泥=320kg/m³。选出最准确的诊断与补写方向。",
+      "options": [
+        {
+          "text": "三处都失分：措施按四组补句带数值；养护应≥14d且拆保温查温差≤20℃；计算补列式与回判。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处逐一按采分句补写——这就是「会写答案」的收官动作。",
+          "option_id": "Q02-html-practice-html-q16-c02651c51c2c:option-1"
+        },
+        {
+          "text": "③水泥320kg/m³与标准数值完全一致，说明计算已经掌握，只需把①②的表述略作润色即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值对就以为计算过关——最危险的误判。",
+          "loss_reason": "320无列式无回判照丢过程分；①②是硬伤不是润色问题。",
+          "fix": "三处都按采分句重写。",
+          "option_id": "Q02-html-practice-html-q16-c02651c51c2c:option-2"
+        },
+        {
+          "text": "主要问题在②：7d应改为不少于14d；①的方向正确、③的数值无误，均可保留原样。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到7d这个最显眼的错，就以为只此一处。",
+          "loss_reason": "漏诊①口号化整组漏、③缺算式回判两处失分。",
+          "fix": "三处逐一补写，不止改7d。",
+          "option_id": "Q02-html-practice-html-q16-c02651c51c2c:option-3"
+        },
+        {
+          "text": "问题在于表述不够规范流畅，建议使用规范术语重新组织语言，使卷面更加整洁。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「表述不规范」是万能评语，怎么说都不错。",
+          "loss_reason": "诊断本身口号化——没指出漏组、漏数值、漏算式哪一处。",
+          "fix": "按四组、四指标、四步链逐项对照找漏。",
+          "option_id": "Q02-html-practice-html-q16-c02651c51c2c:option-4"
+        }
+      ],
+      "model_answer": "三处都要补：①措施口号化且整组漏——按四组补句带数值；②7d应≥14d，且拆保温须查表面与大气温差≤20℃；③补算式400×(1−20%)=320、粉煤灰80kg/m³并回判水胶比≤0.45。",
+      "rule_group": "采分诊断·末题",
+      "content_sha256": "941d97ac9835304925b6c39b28610e6849fa325dc94518a5d588e5ecd23bad5b",
+      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q16",
+      "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
+      "decision": {
+        "fact_id": "q02-fact-mix-conversion-and-limits",
+        "skeleton_id": "q02-skel-大体积综合诊断补写",
+        "probe_role": "anchor",
+        "source_anchor": "exam:2019:案例一(一)背景资料",
+        "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
+        "review": {
+          "status": "signed",
+          "verdict": "approved",
+          "reviewed_content_sha256": "941d97ac9835304925b6c39b28610e6849fa325dc94518a5d588e5ecd23bad5b",
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+              "signed_at": "2026-07-18T19:31:39+08:00"
+            }
+          ],
+          "checks": {
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "三诊断各有源: 320/80 换算=本锚 exam:2019 案例(20%等量替换400kg)+第1题答案; 拆保温≤20℃=exam:2021:13; 养护≥14d=exam:2023:16 解析+kc:096_0181。『补列式与回判』为答题方法表述(工单: 宜避免旁置阅卷口吻)。Codex FATAL 系复合题血统误判(失效模式#4)。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        },
+        "revoked": false,
+        "revocation_refs": []
+      }
+    }
   ],
-  "machine_must_not_sign": true
- },
- "items": [
-  {
-   "variant_id": "Q02-html-practice-html-q1-2ee93b76d576",
-   "surface_id": "practice.html",
-   "stem": "案例问：底板大体积混凝土为防止温度裂缝，应从哪些方面采取技术措施？选出骨架完整、能得分的作答。",
-   "options": [
-    {
-     "text": "加强混凝土的保温保湿养护，严格控制里表温差，防止底板出现温度裂缝。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "养护和温差确实是核心，看着已经答到点上了。",
-     "loss_reason": "只沾养护测温一组的边，材料、配合比、施工三组整组漏。",
-     "fix": "四组逐组扫：材料、配合比、施工、养护测温各写一句。",
-     "option_id": "Q02-html-practice-html-q1-2ee93b76d576:option-1"
-    },
-    {
-     "text": "从材料、配合比、施工、养护测温四个方面分别采取措施，每组写明具体做法并带数值。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "四组组名先立骨架，再逐组填「动作+数值」，这就是满分结构。",
-     "option_id": "Q02-html-practice-html-q1-2ee93b76d576:option-2"
-    },
-    {
-     "text": "施工中应当精心组织、加强管理，严格按照规范和专项方案落实各项温控要求，确保工程质量。",
-     "is_correct": false,
-     "source_error_code": "E04",
-     "temptation": "句句都「对」，考场一紧张最爱这么写。",
-     "loss_reason": "口号化表达，没有一个可判分的动作和数值。",
-     "fix": "落成动作+数值，如「保湿养护≥14d、里表温差≤25℃」。",
-     "option_id": "Q02-html-practice-html-q1-2ee93b76d576:option-3"
-    },
-    {
-     "text": "选用低水化热水泥并掺粉煤灰、磨细矿渣粉，从源头减少水化热，避免温升过高。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "材料组答得很专业，容易以为这就够了。",
-     "loss_reason": "只有材料一组，配合比、施工、养护测温三组全漏。",
-     "fix": "材料句之外，另外三组各补一句带数值的措施。",
-     "option_id": "Q02-html-practice-html-q1-2ee93b76d576:option-4"
-    }
-   ],
-   "model_answer": "按四组作答：材料·降热源／配合比·控总热／施工·控入模分层／养护测温·控温差，每组句里嵌数值。",
-   "rule_group": "措施·四组骨架",
-   "content_sha256": "44b86efe2d41ccf1ff93c654d674ebf668ee48a068d6addc99a881090943e9d1",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q1",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "q02-fact-crack-prevention-four-groups",
-    "skeleton_id": "q02-skel-防裂四组措施骨架",
-    "probe_role": "anchor",
-    "source_anchor": "kc:1A413030_095_0180:0",
-    "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
-    "review": {
-     "status": "signed",
-     "verdict": "approved",
-     "reviewed_content_sha256": "44b86efe2d41ccf1ff93c654d674ebf668ee48a068d6addc99a881090943e9d1",
-     "signatures": [
-      {
-       "role": "teaching",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      },
-      {
-       "role": "scoring",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      }
-     ],
-     "checks": {
-      "source_verified": true,
-      "answer_verified": true,
-      "diagnosis_verified": true,
-      "longest_option_checked": true,
-      "template_leakage_checked": true
-     },
-     "note": "四组措施各有源: 配合比组=本锚 kc:...095_0180:0(0.45/170kg/180mm 等)直引; 材料组(低水化热掺合料)/施工组(分层300~500)/养护测温组(≥14d+四温控)=kc:...096_0181 及大体积防水控制原文(复合多源工单)。Codex FATAL 系复合题血统误判。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q2-bdf6a72816e9",
-   "surface_id": "practice.html",
-   "stem": "案例问：大体积混凝土施工的温控指标有哪些？选出指标齐全、能得分的作答。",
-   "options": [
-    {
-     "text": "控制混凝土浇筑体的温升值不超过50℃，并加强测温监控，发现温升过快及时处理。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "温升是最出名的指标，答了就觉得答完了。",
-     "loss_reason": "四指标漏三：里表温差、降温速率、拆保温温差全没写。",
-     "fix": "四个一起写：≤50℃、≤25℃、≤2.0℃/d、≤20℃。",
-     "option_id": "Q02-html-practice-html-q2-bdf6a72816e9:option-1"
-    },
-    {
-     "text": "温升值≤50℃、里表温差≤20℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤25℃。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "四个指标都在，乍一看很齐全。",
-     "loss_reason": "20℃与25℃方向写反：里表是25℃、拆保温才是20℃。",
-     "fix": "里表温差≤25℃（剖面里），拆保温温差≤20℃（表面到大气）。",
-     "option_id": "Q02-html-practice-html-q2-bdf6a72816e9:option-2"
-    },
-    {
-     "text": "温升值、里表温差、降温速率、拆保温温差四项指标都应控制在规范允许范围之内。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "四项名目全点到了，像是踩全了。",
-     "loss_reason": "关键词缺失——四项全没数值，采分眼正是那四个数。",
-     "fix": "补数值：≤50℃、≤25℃、≤2.0℃/d、≤20℃。",
-     "option_id": "Q02-html-practice-html-q2-bdf6a72816e9:option-3"
-    },
-    {
-     "text": "温升值≤50℃、里表温差≤25℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤20℃。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "四指标齐、数值方向全对：50、25、2.0、20 一串背。",
-     "option_id": "Q02-html-practice-html-q2-bdf6a72816e9:option-4"
-    }
-   ],
-   "model_answer": "①温升值≤50℃ ②里表温差≤25℃ ③降温速率≤2.0℃/d ④拆除保温覆盖时表面与大气温差≤20℃。",
-   "rule_group": "温控四指标·条件维",
-   "content_sha256": "19c0d52a6e0faed13c31823caf001e319f46cde61e0e6b04458e451c641e7af0",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q2",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "q02-fact-four-temp-limits",
-    "skeleton_id": "q02-skel-四温控指标数值",
-    "probe_role": "anchor",
-    "source_anchor": "kc:1A413030_096_0181:0",
-    "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
-    "review": {
-     "status": "signed",
-     "verdict": "approved",
-     "reviewed_content_sha256": "19c0d52a6e0faed13c31823caf001e319f46cde61e0e6b04458e451c641e7af0",
-     "signatures": [
-      {
-       "role": "teaching",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      },
-      {
-       "role": "scoring",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      }
-     ],
-     "checks": {
-      "source_verified": true,
-      "answer_verified": true,
-      "diagnosis_verified": true,
-      "longest_option_checked": true,
-      "template_leakage_checked": true
-     },
-     "note": "温升≤50℃/里表≤25℃/降温≤2.0℃/d/拆保温≤20℃, 教材 kc:...096_0181:0 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q3-b43d41f5737d",
-   "surface_id": "practice.html",
-   "stem": "技术交底写明：「底板混凝土浇筑后保湿养护7d」。指出不妥之处并改正，选出能拿全分的作答。",
-   "options": [
-    {
-     "text": "保湿养护7d不妥，大体积混凝土水化热大、收缩持续时间长，应当适当延长养护时间。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "指出了不妥、也讲了道理，看着挺完整。",
-     "loss_reason": "「适当延长」没有14d——正确数值才是采分眼。",
-     "fix": "补上「应≥14d」这个数。",
-     "option_id": "Q02-html-practice-html-q3-b43d41f5737d:option-1"
-    },
-    {
-     "text": "保湿养护7d符合要求：采用硅酸盐水泥的混凝土养护不得少于7d，交底并无不妥之处。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "7d确实是一般混凝土的常见口径，很眼熟。",
-     "loss_reason": "把一般混凝土7d错套到大体积，大体积应≥14d。",
-     "fix": "大体积/防水混凝土保湿养护≥14d。",
-     "option_id": "Q02-html-practice-html-q3-b43d41f5737d:option-2"
-    },
-    {
-     "text": "不妥：养护方式错误。理由：大体积混凝土应蓄水养护而非覆盖养护。正确做法：改为蓄水养护14d。",
-     "is_correct": false,
-     "source_error_code": "E05",
-     "temptation": "也是三段式也有14d，格式很像满分。",
-     "loss_reason": "题干挑的是时间7d，不是方式；自设靶子答非所问。",
-     "fix": "紧扣题干数值纠错：7d改为≥14d。",
-     "option_id": "Q02-html-practice-html-q3-b43d41f5737d:option-3"
-    },
-    {
-     "text": "不妥：保湿养护7d；理由：大体积混凝土保湿养护应≥14d；正确做法：养护不少于14d。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "三段式齐全且带正确数值14d，这是纠错题的满分格式。",
-     "option_id": "Q02-html-practice-html-q3-b43d41f5737d:option-4"
-    }
-   ],
-   "model_answer": "不妥之处：保湿养护7d。理由：大体积混凝土保湿养护时间应≥14d。正确做法：保湿养护不少于14d。",
-   "rule_group": "判断纠错·养护时间",
-   "content_sha256": "5f8401a53c4e9fe1f4a45dca1b825aac2fd33c7f100871f845dee2046cc4b807",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q3",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "q02-fact-curing-14d",
-    "skeleton_id": "q02-skel-养护7d不妥改正",
-    "probe_role": "anchor",
-    "source_anchor": "exam:2023:第16题",
-    "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
-    "review": {
-     "status": "signed",
-     "verdict": "approved",
-     "reviewed_content_sha256": "5f8401a53c4e9fe1f4a45dca1b825aac2fd33c7f100871f845dee2046cc4b807",
-     "signatures": [
-      {
-       "role": "teaching",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      },
-      {
-       "role": "scoring",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      }
-     ],
-     "checks": {
-      "source_verified": true,
-      "answer_verified": true,
-      "diagnosis_verified": true,
-      "longest_option_checked": true,
-      "template_leakage_checked": true
-     },
-     "note": "大体积保湿养护≥14d, 本锚真题解析逐字『C错：保湿养护持续时间不少于14d』; 教材 kc:...096_0181『保湿养护时间：≥14d』同文。Codex FATAL 系漏看真题 analysis。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q4-bfb29285340d",
-   "surface_id": "practice.html",
-   "stem": "技术交底写明：「拆除保温覆盖时，浇筑体表面与大气温差不大于25℃」。判断并选出能得分的作答。",
-   "options": [
-    {
-     "text": "不妥：25℃是里表温差限值；拆保温时表面与大气温差应≤20℃，达标后方可拆除。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "点破「25℃是里表的」并给出20℃，两个数都落位。",
-     "option_id": "Q02-html-practice-html-q4-bfb29285340d:option-1"
-    },
-    {
-     "text": "妥当：拆除保温覆盖时该温差限值就是25℃，与里表温差的控制要求一致，交底数值并无问题。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "25℃这个数在本考点确实存在，容易对上号。",
-     "loss_reason": "把里表温差25℃错套到拆保温，拆保温限值是20℃。",
-     "fix": "拆保温≤20℃（表面到大气），25℃是剖面里的里表温差。",
-     "option_id": "Q02-html-practice-html-q4-bfb29285340d:option-2"
-    },
-    {
-     "text": "不妥：只要保湿养护满14d即可拆除保温覆盖，不必再对温差另提数值要求。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "「满14d就能拆」符合到点拆模的直觉。",
-     "loss_reason": "拆保温看的是温差条件不是天数，不查温差表面急冷开裂。",
-     "fix": "写明「表面与大气温差≤20℃方可拆除」。",
-     "option_id": "Q02-html-practice-html-q4-bfb29285340d:option-3"
-    },
-    {
-     "text": "不妥：拆保温时的温差限值偏大，应从严控制，待温差再小一些时拆除更为稳妥。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "方向判对了（25偏大），感觉已经答中。",
-     "loss_reason": "没给出20℃这个正确数值，纠错不带数等于半句。",
-     "fix": "补上「应≤20℃」。",
-     "option_id": "Q02-html-practice-html-q4-bfb29285340d:option-4"
-    }
-   ],
-   "model_answer": "不妥。理由：拆保温时表面与大气温差应≤20℃（25℃是里表温差限值，二者勿混）。正确做法：温差≤20℃方可拆除。",
-   "rule_group": "判断纠错·拆保温",
-   "content_sha256": "7a79b2e85f91c8624a42cc72b8cfd1bb3a2c29d4ddeb5f679d1fb68ce57c38c1",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q4",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "q02-fact-insulation-removal-20c",
-    "skeleton_id": "q02-skel-拆保温温差判定",
-    "probe_role": "anchor",
-    "source_anchor": "exam:2021:第13题",
-    "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
-    "review": {
-     "status": "signed",
-     "verdict": "approved",
-     "reviewed_content_sha256": "7a79b2e85f91c8624a42cc72b8cfd1bb3a2c29d4ddeb5f679d1fb68ce57c38c1",
-     "signatures": [
-      {
-       "role": "teaching",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      },
-      {
-       "role": "scoring",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      }
-     ],
-     "checks": {
-      "source_verified": true,
-      "answer_verified": true,
-      "diagnosis_verified": true,
-      "longest_option_checked": true,
-      "template_leakage_checked": true
-     },
-     "note": "拆保温时表面与大气温差≤20℃, 真题 exam:2021:第13题 原题直判(B)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q5-6d014202d1e5",
-   "surface_id": "practice.html",
-   "stem": "案例计算题（如配合比换算）要拿全过程分，作答结构应当怎么写？选出完整口径。",
-   "options": [
-    {
-     "text": "直接写出最终的数值结论并标明单位，计算过程在草稿纸上完成即可，不必誊写上卷。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "平时刷题就习惯只报得数，图快。",
-     "loss_reason": "阅卷按步给分，卷面无算式，公式分、列式分全丢。",
-     "fix": "公式和列式都要誊上答题纸。",
-     "option_id": "Q02-html-practice-html-q5-6d014202d1e5:option-1"
-    },
-    {
-     "text": "写出公式并代入数据列式，算出数值结论带上单位，计算作答到此即告完成。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "三步都全了，看着已经闭环。",
-     "loss_reason": "漏第④步回判——不对回规范限值，丢定性分。",
-     "fix": "末尾补一句「经复核，水胶比≤0.45，满足要求」。",
-     "option_id": "Q02-html-practice-html-q5-6d014202d1e5:option-2"
-    },
-    {
-     "text": "先亮公式，再代入数据列式，然后写数值结论带上单位，最后回判规范限值是否满足。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "公式、列式、数值、回判——四步链一步不缺，步步是分。",
-     "option_id": "Q02-html-practice-html-q5-6d014202d1e5:option-3"
-    },
-    {
-     "text": "先写数值结论让阅卷一眼看到答案，再倒推补一段大致的计算说明即可。",
-     "is_correct": false,
-     "source_error_code": "E05",
-     "temptation": "「结论先行」在论述题里确实常被推荐。",
-     "loss_reason": "计算题按链路采分，倒装且「大致说明」不构成列式。",
-     "fix": "按①公式②列式③数值④回判的顺序写。",
-     "option_id": "Q02-html-practice-html-q5-6d014202d1e5:option-4"
-    }
-   ],
-   "model_answer": "四步链：①亮公式（判据）②代入题干数据列式 ③写数值结论带单位 ④回判规范限值（如水胶比≤0.45）。",
-   "rule_group": "计算·四步链",
-   "content_sha256": "44e507f5ddb35d8450178076cbb7b3c69b8fb794c05d082da41ba99280f54dc5",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q5",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "44e507f5ddb35d8450178076cbb7b3c69b8fb794c05d082da41ba99280f54dc5",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q6-0c83adccd53a",
-   "surface_id": "practice.html",
-   "stem": "设计水泥用量400kg/m³，粉煤灰掺量20%（等量替换水泥）。求每立方米水泥、粉煤灰用量，选出能得过程分的作答。",
-   "options": [
-    {
-     "text": "水泥用量为320kg/m³，粉煤灰用量为80kg/m³，两项均已按掺量换算完成。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "数全对，感觉稳了。",
-     "loss_reason": "没有「×(1−20%)」的算式，过程分拿不到。",
-     "fix": "把两条算式原样写上答题纸。",
-     "option_id": "Q02-html-practice-html-q6-0c83adccd53a:option-1"
-    },
-    {
-     "text": "水泥=400−20=380kg/m³，粉煤灰=20kg/m³，按掺量数值20直接从设计水泥用量中扣减求得。",
-     "is_correct": false,
-     "source_error_code": "E09",
-     "temptation": "「掺20就减20」，顺手一减。",
-     "loss_reason": "把百分比当成公斤数，等量替换是按20%的比例替换。",
-     "fix": "400×20%=80替换，水泥=400×(1−20%)=320。",
-     "option_id": "Q02-html-practice-html-q6-0c83adccd53a:option-2"
-    },
-    {
-     "text": "水泥=400×(1−20%)=320kg/m³，粉煤灰=400×20%=80kg/m³，列式与数值齐全。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "「×(1−20%)」这一笔就是过程分，两条算式都要落卷。",
-     "option_id": "Q02-html-practice-html-q6-0c83adccd53a:option-3"
-    },
-    {
-     "text": "水泥仍为400kg/m³，另外加入粉煤灰80kg/m³，两种胶凝材料用量分别计取。",
-     "is_correct": false,
-     "source_error_code": "E09",
-     "temptation": "「掺」字容易理解成「额外加」。",
-     "loss_reason": "等量替换是「替」不是「加」，胶材总量应保持400。",
-     "fix": "水泥减到320、粉煤灰80，合计仍400。",
-     "option_id": "Q02-html-practice-html-q6-0c83adccd53a:option-4"
-    }
-   ],
-   "model_answer": "水泥=400×(1−20%)=320kg/m³；粉煤灰=400×20%=80kg/m³（胶材总量仍400）。",
-   "rule_group": "计算·等量替换",
-   "content_sha256": "d340c176c24003bd5387976c03aded1111453b36cc3da026c3f15366b9de3a6d",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q6",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "q02-fact-mix-conversion-and-limits",
-    "skeleton_id": "q02-skel-配合比换算计算",
-    "probe_role": "immediate_confirm",
-    "source_anchor": "exam:2019:案例一(一)背景资料",
-    "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
-    "review": {
-     "status": "signed",
-     "verdict": "approved",
-     "reviewed_content_sha256": "d340c176c24003bd5387976c03aded1111453b36cc3da026c3f15366b9de3a6d",
-     "signatures": [
-      {
-       "role": "teaching",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      },
-      {
-       "role": "scoring",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      }
-     ],
-     "checks": {
-      "source_verified": true,
-      "answer_verified": true,
-      "diagnosis_verified": true,
-      "longest_option_checked": true,
-      "template_leakage_checked": true
-     },
-     "note": "水泥 400×0.8=320kg/m³, 粉煤灰 400×20%=80kg/m³, 真题背景+答案逐字。三联 immediate_confirm(同换算限值 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q7-826f6c14f838",
-   "surface_id": "practice.html",
-   "stem": "实测中砂含水率4%、碎石含水率1.2%。由设计配合比换算施工配合比时，用水量应如何处理？",
-   "options": [
-    {
-     "text": "按设计配合比的用水量直接投料拌制，含水率的波动由现场坍落度试验随时调整。",
-     "is_correct": false,
-     "source_error_code": "E08",
-     "temptation": "「看坍落度调」听着很实操。",
-     "loss_reason": "不扣自带水，实际水胶比直接超限——题干给含水率就是要你扣。",
-     "fix": "先扣骨料自带水，再定实际加水量。",
-     "option_id": "Q02-html-practice-html-q7-826f6c14f838:option-1"
-    },
-    {
-     "text": "在设计用水量之外再增加4%和1.2%的水，用于补偿骨料表面吸附的水分损失。",
-     "is_correct": false,
-     "source_error_code": "E09",
-     "temptation": "见到百分比就想「补偿」。",
-     "loss_reason": "方向反了——骨料是带着水进来的，应扣不应加。",
-     "fix": "实际加水=设计水−骨料带入的水。",
-     "option_id": "Q02-html-practice-html-q7-826f6c14f838:option-2"
-    },
-    {
-     "text": "从设计用水量中扣除砂石自带的水求出实际加水量，砂石称量按含水率相应增加。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "「扣自带水+砂石称量相应加」两句齐，换算才算完整。",
-     "option_id": "Q02-html-practice-html-q7-826f6c14f838:option-3"
-    },
-    {
-     "text": "只需扣除中砂带入的水量即可，碎石含水率1.2%数值很小，可以忽略不计。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "1.2%看着确实不起眼。",
-     "loss_reason": "漏了碎石折算，换算要求砂、石都按实测含水率折。",
-     "fix": "砂、石都按实测含水率折算。",
-     "option_id": "Q02-html-practice-html-q7-826f6c14f838:option-4"
-    }
-   ],
-   "model_answer": "骨料自带水计入用水：实际加水=设计用水−砂石带入的水；砂、石称量按含水率相应增加。",
-   "rule_group": "计算·扣含水率",
-   "content_sha256": "cdb623dcf6a72817dec52098ffe508757dcd319f2eaad1d7fd127e5db1a959b5",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q7",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "cdb623dcf6a72817dec52098ffe508757dcd319f2eaad1d7fd127e5db1a959b5",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q8-960ccb6cc929",
-   "surface_id": "practice.html",
-   "stem": "配合比换算完成后，第④步「回判」应写哪句才能把计算链闭环？选出得分口径。",
-   "options": [
-    {
-     "text": "数值结论已经写清并带上单位，计算链即告完成，不需要再补充其他的说明性文字。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "觉得算完就完了，回判像是多余。",
-     "loss_reason": "缺第④步回判，丢定性分，链没闭环。",
-     "fix": "末尾补「经复核，水胶比≤0.45，满足要求」。",
-     "option_id": "Q02-html-practice-html-q8-960ccb6cc929:option-1"
-    },
-    {
-     "text": "回判是把计算结果与设计强度对比，写明混凝土强度满足C35设计要求即可。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "「回判」听着像是对强度。",
-     "loss_reason": "本题回判对象是配合比限值（水胶比0.45），不是强度评定。",
-     "fix": "对回水胶比≤0.45等配合比红线。",
-     "option_id": "Q02-html-practice-html-q8-960ccb6cc929:option-2"
-    },
-    {
-     "text": "写一句经复核各项指标均满足规范要求，对计算结果进行总体性的确认收尾。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "也算「回判」，读着挺像样。",
-     "loss_reason": "不点名0.45这个限值，关键词缺失。",
-     "fix": "点名「水胶比≤0.45」再下满足结论。",
-     "option_id": "Q02-html-practice-html-q8-960ccb6cc929:option-3"
-    },
-    {
-     "text": "写明经复核水胶比不大于0.45、满足大体积配合比要求，把结果对回规范限值。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "点名限值0.45+满足结论，一句定性把链闭环。",
-     "option_id": "Q02-html-practice-html-q8-960ccb6cc929:option-4"
-    }
-   ],
-   "model_answer": "回判句：经复核，水胶比不大于0.45（拌合水不超过170kg/m³），满足大体积混凝土配合比要求。",
-   "rule_group": "计算·回判收尾",
-   "content_sha256": "ace8fadd4869ab64c595bf73d794a6a6fda53f01c9e8f0ec5d06a2acce292ed7",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q8",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "q02-fact-mix-conversion-and-limits",
-    "skeleton_id": "q02-skel-水胶比限值判断",
-    "probe_role": "d1_probe",
-    "source_anchor": "kc:1A413030_095_0180:0",
-    "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
-    "review": {
-     "status": "signed",
-     "verdict": "approved",
-     "reviewed_content_sha256": "ace8fadd4869ab64c595bf73d794a6a6fda53f01c9e8f0ec5d06a2acce292ed7",
-     "signatures": [
-      {
-       "role": "teaching",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      },
-      {
-       "role": "scoring",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      }
-     ],
-     "checks": {
-      "source_verified": true,
-      "answer_verified": true,
-      "diagnosis_verified": true,
-      "longest_option_checked": true,
-      "template_leakage_checked": true
-     },
-     "note": "大体积水胶比≤0.45 限值判据, 教材 kc:...095_0180:0 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q9-b28490ae260e",
-   "surface_id": "practice.html",
-   "stem": "厚大体积混凝土基础选用水泥，选出品种与理由都正确、能得分的作答。",
-   "options": [
-    {
-     "text": "宜选强度等级高的硅酸盐水泥，早期强度高、成型快，利于底板尽早达到设计强度。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "「强度高=好混凝土」的直觉太顺了。",
-     "loss_reason": "硅酸盐早强高、水化热大，大体积正是忌用。",
-     "fix": "大体积选低水化热的矿渣/火山灰/粉煤灰/复合水泥。",
-     "option_id": "Q02-html-practice-html-q9-b28490ae260e:option-1"
-    },
-    {
-     "text": "宜选矿渣、火山灰、粉煤灰或复合水泥，水化热小；忌用水化热大的硅酸盐水泥。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "「宜四类+忌硅酸盐」两头都写，理由落在水化热上。",
-     "option_id": "Q02-html-practice-html-q9-b28490ae260e:option-2"
-    },
-    {
-     "text": "宜选矿渣、火山灰类水泥，其早期强度增长快、可缩短养护时间，适合大体积基础。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "结论选对了，理由看着也顺。",
-     "loss_reason": "理由说反了：这类水泥水化热小、后期强度增长快，不是早强快。",
-     "fix": "理由写「水化热小、后期强度增长快」。",
-     "option_id": "Q02-html-practice-html-q9-b28490ae260e:option-3"
-    },
-    {
-     "text": "水泥品种不限，关键在于掺入足量粉煤灰与磨细矿渣粉，即可有效降低水化热。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "掺合料确实降热，像是抓住了本质。",
-     "loss_reason": "回避了水泥选型采分点——「宜四类、忌硅酸盐」没写。",
-     "fix": "品种句+掺合料句都要写。",
-     "option_id": "Q02-html-practice-html-q9-b28490ae260e:option-4"
-    }
-   ],
-   "model_answer": "宜选矿渣、火山灰、粉煤灰、复合等低水化热水泥（后期强度增长快）；忌用硅酸盐水泥（早期强度高、水化热大）。",
-   "rule_group": "材料·选水泥",
-   "content_sha256": "cf777297d69994ddd097fefac77368eabbe9b0db4c357ce9d9e795525246f72f",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q9",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "cf777297d69994ddd097fefac77368eabbe9b0db4c357ce9d9e795525246f72f",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q10-5321a39b4c4f",
-   "surface_id": "practice.html",
-   "stem": "大体积混凝土外加剂的选用，选出正确且能得分的作答。",
-   "options": [
-    {
-     "text": "宜掺早强剂加快混凝土硬化，缩短温升持续时间，使底板尽快度过危险期。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "「快点硬就快点安全」很符合直觉。",
-     "loss_reason": "早强剂加速水化=放热更猛更集中，大体积不宜用。",
-     "fix": "大体积要缓凝削峰，不是催熟。",
-     "option_id": "Q02-html-practice-html-q10-5321a39b4c4f:option-1"
-    },
-    {
-     "text": "缓凝剂与早强剂配合使用：前期缓凝控制温升，后期早强加快强度增长。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "「两头都占」看着聪明。",
-     "loss_reason": "早强剂对大体积本身就不宜用，不存在这种配合口径。",
-     "fix": "只写缓凝剂适用、早强剂不宜。",
-     "option_id": "Q02-html-practice-html-q10-5321a39b4c4f:option-2"
-    },
-    {
-     "text": "按泵送施工要求选用泵送剂即可，温度控制主要依靠养护措施而不靠外加剂。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "现场确实常按泵送配外加剂。",
-     "loss_reason": "漏「缓凝剂适用、早强剂不宜」这组采分点。",
-     "fix": "补缓凝剂、早强剂两句。",
-     "option_id": "Q02-html-practice-html-q10-5321a39b4c4f:option-3"
-    },
-    {
-     "text": "宜掺缓凝剂延缓放热峰、利于散热；早强剂不宜用于大体积混凝土。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "「缓凝适用+早强不宜」一对句子都写，才算答全。",
-     "option_id": "Q02-html-practice-html-q10-5321a39b4c4f:option-4"
-    }
-   ],
-   "model_answer": "宜掺缓凝剂（延缓放热峰、利于散热）；早强剂不宜用于大体积混凝土。",
-   "rule_group": "材料·外加剂",
-   "content_sha256": "b00399bc1d236a011a35fe8567968eb1f178677a6dda32b934045abeebef5e34",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q10",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "b00399bc1d236a011a35fe8567968eb1f178677a6dda32b934045abeebef5e34",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q11-cb8615b8f603",
-   "surface_id": "practice.html",
-   "stem": "大体积混凝土配合比的控制指标，选出数值全部正确的作答。",
-   "options": [
-    {
-     "text": "水胶比≤0.50，粉煤灰≤50%、矿渣粉≤40%且总掺量≤50%，拌合水≤170kg/m³、坍落度≤180mm。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "0.50是防水混凝土的熟数，很容易串过来。",
-     "loss_reason": "大体积水胶比限值是0.45，0.50是防水混凝土口径。",
-     "fix": "大体积写≤0.45。",
-     "option_id": "Q02-html-practice-html-q11-cb8615b8f603:option-1"
-    },
-    {
-     "text": "水胶比≤0.45，粉煤灰≤50%、矿渣粉≤40%且总掺量≤50%，拌合水≤170kg/m³、坍落度≤180mm。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "记口诀：0.45红线、灰五渣四总不过半、水170坍180。",
-     "option_id": "Q02-html-practice-html-q11-cb8615b8f603:option-2"
-    },
-    {
-     "text": "水胶比≤0.45，粉煤灰≤40%、矿渣粉≤50%且总掺量≤50%，拌合水≤170kg/m³、坍落度≤180mm。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "只把50和40换了个位，极难察觉。",
-     "loss_reason": "掺量限值写反：粉煤灰≤50%、矿渣粉≤40%。",
-     "fix": "记「灰五渣四」，总掺量不过半。",
-     "option_id": "Q02-html-practice-html-q11-cb8615b8f603:option-3"
-    },
-    {
-     "text": "水胶比≤0.45，粉煤灰≤50%、矿渣粉≤40%且总掺量≤50%，拌合水≤180kg/m³、坍落度≤170mm。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "170和180两个数都对，只是位置对调。",
-     "loss_reason": "拌合水≤170kg/m³、坍落度≤180mm，对调即错。",
-     "fix": "水170、坍180，别互换。",
-     "option_id": "Q02-html-practice-html-q11-cb8615b8f603:option-4"
-    }
-   ],
-   "model_answer": "水胶比≤0.45；粉煤灰≤50%、矿渣粉≤40%、总掺量≤50%；拌合水≤170kg/m³、坍落度≤180mm。",
-   "rule_group": "配合比·限值",
-   "content_sha256": "dc4db8fbe74546d7a08fb403cb900e68eba1640e82820295f614c69ebb2d0a36",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q11",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "dc4db8fbe74546d7a08fb403cb900e68eba1640e82820295f614c69ebb2d0a36",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q12-ab183503cf7c",
-   "surface_id": "practice.html",
-   "stem": "底板大体积混凝土的浇筑工艺与入模温度控制，选出正确且能得分的作答。",
-   "options": [
-    {
-     "text": "底板混凝土宜一次整体浇筑到顶、不留任何间歇，避免出现施工缝，同时加大浇筑层厚以加快施工进度。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "「连续浇完最省事」符合抢工期的直觉。",
-     "loss_reason": "不分层热更聚，层厚300~500mm是硬口径。",
-     "fix": "分层浇筑、层厚300~500mm。",
-     "option_id": "Q02-html-practice-html-q12-ab183503cf7c:option-1"
-    },
-    {
-     "text": "整体分层或推移式连续浇筑，层厚300~500mm；入模温度5~30℃，高温期不超过30℃。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "工艺+层厚+入模温度三个数值全落位。",
-     "option_id": "Q02-html-practice-html-q12-ab183503cf7c:option-2"
-    },
-    {
-     "text": "分层浇筑层厚300~500mm；入模温度不低于5℃是为了防止混凝土早期受冻破坏。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "5℃与冬施防冻的5℃数值相同，很容易混。",
-     "loss_reason": "大体积5~30℃控的是温升起点，与冬施防冻是两码事。",
-     "fix": "写「入模5~30℃控温升」，勿套防冻口径。",
-     "option_id": "Q02-html-practice-html-q12-ab183503cf7c:option-3"
-    },
-    {
-     "text": "采用整体分层或推移式连续浇筑，分层厚度按方案确定，入模温度控制在合理范围。",
-     "is_correct": false,
-     "source_error_code": "E03",
-     "temptation": "措辞四平八稳，不会「写错」。",
-     "loss_reason": "300~500mm与5~30℃两个数值全缺，采分眼没踩。",
-     "fix": "数值补齐：层厚300~500mm、入模5~30℃。",
-     "option_id": "Q02-html-practice-html-q12-ab183503cf7c:option-4"
-    }
-   ],
-   "model_answer": "宜整体分层或推移式连续浇筑，浇筑层厚300~500mm；入模温度5~30℃，高温期大体积不超过30℃。",
-   "rule_group": "施工·浇筑入模",
-   "content_sha256": "0e1f94f52f279c04d87707da834fe94d1f276530b7eb072a9eee106093510010",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q12",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "0e1f94f52f279c04d87707da834fe94d1f276530b7eb072a9eee106093510010",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q13-3ace0b0cc94e",
-   "surface_id": "practice.html",
-   "stem": "底板超长，采用跳仓法施工。选出口径正确、能得分的作答。",
-   "options": [
-    {
-     "text": "跳仓法分块单向尺寸不宜大于40m，隔仓跳打，各仓依次连续浇筑连成整体。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "40m是采分数值，配上「隔仓跳打、依次连续」的做法句。",
-     "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-1"
-    },
-    {
-     "text": "跳仓法分块单向尺寸不宜大于50m，隔仓跳打，各仓依次连续浇筑连成整体。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "50m是真题里挂出来的干扰值，特别眼熟。",
-     "loss_reason": "官方口径是40m，50m正是被判错的选项。",
-     "fix": "记死「跳仓分块单向≤40m」。",
-     "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-2"
-    },
-    {
-     "text": "分块越大越好以减少仓缝数量，仓缝按后浇带构造处理并预留足够时间再封闭。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "「缝少=隐患少」听着有理。",
-     "loss_reason": "跳仓靠小块先各自收缩释放约束，分块过大失去意义且40m是上限。",
-     "fix": "分块单向≤40m，隔仓跳打。",
-     "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-3"
-    },
-    {
-     "text": "采用跳仓法时按专项方案确定分块并组织浇筑，减少大体积整浇产生的约束应力。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "原理说得对，像是懂行。",
-     "loss_reason": "40m这个采分数值没写，方案两个字兜不住分。",
-     "fix": "补「单向尺寸≤40m」。",
-     "option_id": "Q02-html-practice-html-q13-3ace0b0cc94e:option-4"
-    }
-   ],
-   "model_answer": "跳仓法最大分块单向尺寸不宜大于40m，隔仓跳打、各仓依次连续浇筑（真题按1/3长×1/3宽分9仓、每仓浇筑3d）。",
-   "rule_group": "施工·跳仓法",
-   "content_sha256": "5b0ff93647dc5cae5379ce6e2608ad8f873b3a8eedf6334de4b2ab02e5634dff",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q13",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "5b0ff93647dc5cae5379ce6e2608ad8f873b3a8eedf6334de4b2ab02e5634dff",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q14-30af33a00faf",
-   "surface_id": "practice.html",
-   "stem": "厚2.0m底板的测温点沿厚度方向如何布置？选出能得分的作答。",
-   "options": [
-    {
-     "text": "沿厚度至少布表层、底层、中心测点，间距不大于500mm，表层温度取表面下50mm处。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "三层位+500mm+表层50mm，三个采分眼全踩。",
-     "option_id": "Q02-html-practice-html-q14-30af33a00faf:option-1"
-    },
-    {
-     "text": "在底板中心埋设测温点连续监测中心温度，即可掌握混凝土内部的温升情况。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "「测最热的芯部」看着抓住了要害。",
-     "loss_reason": "只测中心算不出里表温差，三层位与间距全漏。",
-     "fix": "表/底/中心三层位+间距≤500mm。",
-     "option_id": "Q02-html-practice-html-q14-30af33a00faf:option-2"
-    },
-    {
-     "text": "沿厚度方向布置表层、底层与中心三处测点，测点间距不宜大于1000mm即可满足布点要求。",
-     "is_correct": false,
-     "source_error_code": "E10",
-     "temptation": "三层位齐了，间距看着也「差不多」。",
-     "loss_reason": "间距限值是500mm，1000mm超限一倍。",
-     "fix": "间距≤500mm。",
-     "option_id": "Q02-html-practice-html-q14-30af33a00faf:option-3"
-    },
-    {
-     "text": "表层温度直接取混凝土表面的温度读数，与底层、中心温度对比计算里表温差。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "「表层=表面」，字面上很顺。",
-     "loss_reason": "表层温度宜取表面以下50mm处，表面读数受环境干扰。",
-     "fix": "写「表层取表面下50mm处温度」。",
-     "option_id": "Q02-html-practice-html-q14-30af33a00faf:option-4"
-    }
-   ],
-   "model_answer": "沿厚度方向至少布表层、底层、中心三处测点，测点间距不宜大于500mm；表层温度取表面以下50mm处。",
-   "rule_group": "测温·布点",
-   "content_sha256": "945d8352b8d7c976a2f3c15692f6f32791b71601c499125e216e77c76c405d7d",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q14",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "945d8352b8d7c976a2f3c15692f6f32791b71601c499125e216e77c76c405d7d",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q15-eed5e139b54a",
-   "surface_id": "practice.html",
-   "stem": "大体积混凝土测温的频次要求，选出数值齐全且正确的作答。",
-   "options": [
-    {
-     "text": "浇筑后前三天每昼夜测温不少于4次，此后视温度变化情况适当减少测温次数。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "「前紧后松」很像现场实际做法。",
-     "loss_reason": "每轴≥4点、入模每台班≥2次两项漏写。",
-     "fix": "三个频次一起写：4点、4次、2次。",
-     "option_id": "Q02-html-practice-html-q15-eed5e139b54a:option-1"
-    },
-    {
-     "text": "每条轴线不少于2个测点，每昼夜测温不少于4次，入模温度每台班不少于4次。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "数都是2和4，顺序一晃就过去了。",
-     "loss_reason": "4/4/2串位：每轴≥4点、每台班≥2次。",
-     "fix": "记「轴4·昼夜4·台班2」。",
-     "option_id": "Q02-html-practice-html-q15-eed5e139b54a:option-2"
-    },
-    {
-     "text": "每条轴线不少于4个测点，每昼夜测温不少于4次，入模温度每台班不少于2次。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "口诀「轴4·昼夜4·台班2」，三个频次一口气写全。",
-     "option_id": "Q02-html-practice-html-q15-eed5e139b54a:option-3"
-    },
-    {
-     "text": "安排专人按方案要求定时测温并如实记录，发现数据异常及时向技术负责人报告。",
-     "is_correct": false,
-     "source_error_code": "E04",
-     "temptation": "管理动作齐全，读着很规范。",
-     "loss_reason": "口号化，三个频次数值一个没有。",
-     "fix": "写明4点、4次、2次。",
-     "option_id": "Q02-html-practice-html-q15-eed5e139b54a:option-4"
-    }
-   ],
-   "model_answer": "每条轴线不少于4个测点；每昼夜测温不少于4次；入模温度每台班不少于2次（口诀：轴4·昼夜4·台班2）。",
-   "rule_group": "测温·频次",
-   "content_sha256": "d6a5019e80376d68d31620324fef187c0acf10e8fb64a46f7d4192e3f3813f96",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q15",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "",
-    "skeleton_id": "",
-    "probe_role": "",
-    "source_anchor": "",
-    "source_sha256": "",
-    "review": {
-     "status": "pending",
-     "verdict": "pending",
-     "reviewed_content_sha256": "d6a5019e80376d68d31620324fef187c0acf10e8fb64a46f7d4192e3f3813f96",
-     "signatures": [],
-     "checks": {
-      "source_verified": false,
-      "answer_verified": false,
-      "diagnosis_verified": false,
-      "longest_option_checked": false,
-      "template_leakage_checked": false
-     }
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
-  },
-  {
-   "variant_id": "Q02-html-practice-html-q16-c02651c51c2c",
-   "surface_id": "practice.html",
-   "stem": "学生作答：①措施——加强养护、控制温差；②养护7d后拆除保温；③水泥=320kg/m³。选出最准确的诊断与补写方向。",
-   "options": [
-    {
-     "text": "三处都失分：措施按四组补句带数值；养护应≥14d且拆保温查温差≤20℃；计算补列式与回判。",
-     "is_correct": true,
-     "source_error_code": "",
-     "temptation": "",
-     "loss_reason": "",
-     "fix": "三处逐一按采分句补写——这就是「会写答案」的收官动作。",
-     "option_id": "Q02-html-practice-html-q16-c02651c51c2c:option-1"
-    },
-    {
-     "text": "③水泥320kg/m³与标准数值完全一致，说明计算已经掌握，只需把①②的表述略作润色即可。",
-     "is_correct": false,
-     "source_error_code": "E07",
-     "temptation": "数值对就以为计算过关——最危险的误判。",
-     "loss_reason": "320无列式无回判照丢过程分；①②是硬伤不是润色问题。",
-     "fix": "三处都按采分句重写。",
-     "option_id": "Q02-html-practice-html-q16-c02651c51c2c:option-2"
-    },
-    {
-     "text": "主要问题在②：7d应改为不少于14d；①的方向正确、③的数值无误，均可保留原样。",
-     "is_correct": false,
-     "source_error_code": "E02",
-     "temptation": "抓到7d这个最显眼的错，就以为只此一处。",
-     "loss_reason": "漏诊①口号化整组漏、③缺算式回判两处失分。",
-     "fix": "三处逐一补写，不止改7d。",
-     "option_id": "Q02-html-practice-html-q16-c02651c51c2c:option-3"
-    },
-    {
-     "text": "问题在于表述不够规范流畅，建议使用规范术语重新组织语言，使卷面更加整洁。",
-     "is_correct": false,
-     "source_error_code": "E04",
-     "temptation": "「表述不规范」是万能评语，怎么说都不错。",
-     "loss_reason": "诊断本身口号化——没指出漏组、漏数值、漏算式哪一处。",
-     "fix": "按四组、四指标、四步链逐项对照找漏。",
-     "option_id": "Q02-html-practice-html-q16-c02651c51c2c:option-4"
-    }
-   ],
-   "model_answer": "三处都要补：①措施口号化且整组漏——按四组补句带数值；②7d应≥14d，且拆保温须查表面与大气温差≤20℃；③补算式400×(1−20%)=320、粉煤灰80kg/m³并回判水胶比≤0.45。",
-   "rule_group": "采分诊断·末题",
-   "content_sha256": "941d97ac9835304925b6c39b28610e6849fa325dc94518a5d588e5ecd23bad5b",
-   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q16",
-   "authoring_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-   "decision": {
-    "fact_id": "q02-fact-mix-conversion-and-limits",
-    "skeleton_id": "q02-skel-大体积综合诊断补写",
-    "probe_role": "anchor",
-    "source_anchor": "exam:2019:案例一(一)背景资料",
-    "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
-    "review": {
-     "status": "signed",
-     "verdict": "approved",
-     "reviewed_content_sha256": "941d97ac9835304925b6c39b28610e6849fa325dc94518a5d588e5ecd23bad5b",
-     "signatures": [
-      {
-       "role": "teaching",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      },
-      {
-       "role": "scoring",
-       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
-      }
-     ],
-     "checks": {
-      "source_verified": true,
-      "answer_verified": true,
-      "diagnosis_verified": true,
-      "longest_option_checked": true,
-      "template_leakage_checked": true
-     },
-     "note": "三诊断各有源: 320/80 换算=本锚 exam:2019 案例(20%等量替换400kg)+第1题答案; 拆保温≤20℃=exam:2021:13; 养护≥14d=exam:2023:16 解析+kc:096_0181。『补列式与回判』为答题方法表述(工单: 宜避免旁置阅卷口吻)。Codex FATAL 系复合题血统误判(失效模式#4)。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
-    },
-    "revoked": false,
-    "revocation_refs": []
-   }
+  "verdict_authority": {
+    "mode": "owner_delegated",
+    "delegated_at": "2026-07-16",
+    "delegated_to": "claude-main-control",
+    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
+    "adversarial_gate": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+    "campaign": "confirm-supply-widen batch1 2026-07-21 (11-pack)",
+    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
   }
- ]
 }

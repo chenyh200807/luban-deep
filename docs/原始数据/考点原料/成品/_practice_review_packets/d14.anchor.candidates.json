@@ -1,6 +1,6 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-20T09:17:49+00:00",
+  "generated_at": "2026-07-21T01:38:05+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "D14",
@@ -36,6 +36,20 @@
           "match_score": 0.5471,
           "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
           "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "ca:1A413030_139_0268",
+          "quote": "关于纸面石膏板安装的说法，错误的是？ 关于纸面石膏板安装的说法，错误的是？ | grading_keywords=1200mm,300mm,150～170mm,自由状态下固定,防锈处理 吊顶·本体 primary 吊顶安装要求(判分眼): 主龙骨≤1200mm悬臂≤300mm接头错开; 次龙骨≤600mm不搭接洞口设附加龙骨; 纸面石膏板中间向四周自由固定/长边纵向/螺钉150~170mm/钉眼防",
+          "match_score": 0.5333,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A434000_078_0124:0",
+          "quote": "石膏板顶棚防裂要点：石膏板顶棚防裂关键点：① 吊筋间距≤1200mm；② 拼缝错缝，不密拼；③ 螺钉固定牢固；④ 转角处加强处理；⑤ 嵌缝饱满。 石膏板顶棚防裂关键点：① 吊筋间距≤1200mm；② 拼缝错缝，不密拼；③ 螺钉固定牢固；④ 转角处加强处理；⑤ 嵌缝饱满。 吊顶·质量通病本体 轻钢龙骨石膏板吊顶开裂: 防裂5要点=吊筋≤1200mm/拼缝错缝不密拼/螺钉固定牢固/转角加强/嵌缝饱满",
+          "match_score": 0.1912,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
         }
       ]
     },
@@ -62,6 +76,20 @@
           "match_score": 0.1926,
           "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
           "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
+        },
+        {
+          "source_anchor": "kc:1A413030_139_0268:1",
+          "quote": "次龙骨安装要求：次龙骨间距≤600mm，不得搭接，洞口周边需设附加龙骨。 次龙骨间距≤600mm，不得搭接，洞口周边需设附加龙骨。 吊顶·本体 primary 吊顶安装要求(判分眼): 主龙骨≤1200mm悬臂≤300mm接头错开; 次龙骨≤600mm不搭接洞口设附加龙骨; 纸面石膏板中间向四周自由固定/长边纵向/螺钉150~170mm/钉眼防锈/双层接缝错开",
+          "match_score": 0.1824,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A413030_139_0268:2",
+          "quote": "纸面石膏板安装要点：从中间向四周自由固定，长边沿纵向铺设，螺钉间距150～170mm，钉眼防锈处理，双层板接缝错开。 从中间向四周自由固定，长边沿纵向铺设，螺钉间距150～170mm，钉眼防锈处理，双层板接缝错开。 吊顶·本体 primary 吊顶安装要求(判分眼): 主龙骨≤1200mm悬臂≤300mm接头错开; 次龙骨≤600mm不搭接洞口设附加龙骨; 纸面石膏板中间向四周自由固定/长边纵向/",
+          "match_score": 0.1721,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
         }
       ]
     },
@@ -88,6 +116,20 @@
           "match_score": 0.6203,
           "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
           "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "ca:1A413030_139_0268",
+          "quote": "关于纸面石膏板安装的说法，错误的是？ 关于纸面石膏板安装的说法，错误的是？ | grading_keywords=1200mm,300mm,150～170mm,自由状态下固定,防锈处理 吊顶·本体 primary 吊顶安装要求(判分眼): 主龙骨≤1200mm悬臂≤300mm接头错开; 次龙骨≤600mm不搭接洞口设附加龙骨; 纸面石膏板中间向四周自由固定/长边纵向/螺钉150~170mm/钉眼防",
+          "match_score": 0.6085,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A413030_138_0267:0",
+          "quote": "吊项吊杆安装要点：吊杆>1500mm设反支撑；>2500mm设钢结构转换层；遇梁风管需设横担；不得直接吊挂于设备；预埋杆件需焊接；灯具风口设附加龙骨。 吊杆>1500mm设反支撑；>2500mm设钢结构转换层；遇梁风管需设横担；不得直接吊挂于设备；预埋杆件需焊接；灯具风口设附加龙骨。 吊顶·本体 暗龙骨吊顶施工工艺(判分眼): 吊杆>1500mm反支撑/>2500mm钢结构转换层/遇梁风管横担/不",
+          "match_score": 0.2,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
         }
       ]
     },
@@ -111,6 +153,20 @@
         {
           "source_anchor": "kc:1A413030_139_0268:0",
           "quote": "主龙骨安装要点：主龙骨间距≤1200mm；悬臂段≤300mm；接头应错开。 主龙骨间距≤1200mm；悬臂段≤300mm；接头应错开。 吊顶·本体 primary 吊顶安装要求(判分眼): 主龙骨≤1200mm悬臂≤300mm接头错开; 次龙骨≤600mm不搭接洞口设附加龙骨; 纸面石膏板中间向四周自由固定/长边纵向/螺钉150~170mm/钉眼防锈/双层接缝错开",
+          "match_score": 0.3677,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A413030_139_0268:1",
+          "quote": "次龙骨安装要求：次龙骨间距≤600mm，不得搭接，洞口周边需设附加龙骨。 次龙骨间距≤600mm，不得搭接，洞口周边需设附加龙骨。 吊顶·本体 primary 吊顶安装要求(判分眼): 主龙骨≤1200mm悬臂≤300mm接头错开; 次龙骨≤600mm不搭接洞口设附加龙骨; 纸面石膏板中间向四周自由固定/长边纵向/螺钉150~170mm/钉眼防锈/双层接缝错开",
+          "match_score": 0.3677,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A413030_139_0268:2",
+          "quote": "纸面石膏板安装要点：从中间向四周自由固定，长边沿纵向铺设，螺钉间距150～170mm，钉眼防锈处理，双层板接缝错开。 从中间向四周自由固定，长边沿纵向铺设，螺钉间距150～170mm，钉眼防锈处理，双层板接缝错开。 吊顶·本体 primary 吊顶安装要求(判分眼): 主龙骨≤1200mm悬臂≤300mm接头错开; 次龙骨≤600mm不搭接洞口设附加龙骨; 纸面石膏板中间向四周自由固定/长边纵向/",
           "match_score": 0.3677,
           "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
           "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
@@ -140,6 +196,20 @@
           "match_score": 0.1364,
           "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
           "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
+        },
+        {
+          "source_anchor": "ca:1A413030_138_0267",
+          "quote": "当吊杆长度超过多少时，应设置反支撑？ 当吊杆长度超过多少时，应设置反支撑？ | grading_keywords=1500mm,2500mm,反支撑,钢结构转换层,横担 吊顶·本体 暗龙骨吊顶施工工艺(判分眼): 吊杆>1500mm反支撑/>2500mm钢结构转换层/遇梁风管横担/不直接吊挂设备/预埋杆件焊接/灯具风口附加龙骨. ⚠️源库标签污染=吊顶内容误挂地基leaf 1A413022, 取作",
+          "match_score": 0.1207,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "exam:2024:第26题",
+          "quote": "关于吊顶的说法正确的（ ）。 A. 在吊顶施工前，应进行水管试压检验合格 B. 吊杆长度2700mm，应设置反支撑 C. 吊杆遇到风管时，应吊挂在风管上 D. 主龙骨应平行房间长向安装 E. 次龙骨应搭接安装 AD B错误；吊杆长度2700mm，应设置反支撑。 C错误；在梁上或风管等机电设备上设置吊挂杆件，需进行跨越施工。 E错误；次龙骨不得搭接。",
+          "match_score": 0.1207,
+          "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
+          "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
         }
       ]
     },
@@ -166,6 +236,20 @@
           "match_score": 0.4912,
           "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
           "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A413030_140_0272:3",
+          "quote": "勾缝要求：勾缝应清晰、顺直、平整、光滑、深浅一致，缝色与石材颜色基本一致。 勾缝应清晰、顺直、平整、光滑、深浅一致，缝色与石材颜色基本一致。 地面·本体 石材饰面施工: 基层→放线→试拼→铺砂浆→铺石材→养护→勾缝; 石材铺前浸湿晾干防吸水空鼓; 浅色石材白水泥",
+          "match_score": 0.4737,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "exam:2025:第15题",
+          "quote": "地面瓷砖面层施工工艺顺序正确的是（ ）。 ①基底处理②放线③铺设结合层砂浆④浸砖⑤铺砖 A.①②③④⑤ B.①②④③⑤ C.①③②④⑤ D.①②④⑤③ B 解析：瓷砖面层施工，工艺流程：基底处理→放线→浸砖→铺设结合层砂浆→铺砖→养护→勾缝。",
+          "match_score": 0.2727,
+          "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
+          "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
         }
       ]
     },
@@ -192,6 +276,20 @@
           "match_score": 0.1887,
           "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
           "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
+        },
+        {
+          "source_anchor": "kc:1A413030_140_0272:0",
+          "quote": "石材施工流程：基层处理 → 放线 → 试拼 → 铺砂浆 → 铺石材 → 养护 → 勾缝 基层处理 → 放线 → 试拼 → 铺砂浆 → 铺石材 → 养护 → 勾缝 地面·本体 石材饰面施工: 基层→放线→试拼→铺砂浆→铺石材→养护→勾缝; 石材铺前浸湿晾干防吸水空鼓; 浅色石材白水泥",
+          "match_score": 0.1569,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A413030_140_0272:1",
+          "quote": "石材浸湿处理：大理石、花岗石铺设前应浸湿、晾干，防止吸水导致空鼓。 大理石、花岗石铺设前应浸湿、晾干，防止吸水导致空鼓。 地面·本体 石材饰面施工: 基层→放线→试拼→铺砂浆→铺石材→养护→勾缝; 石材铺前浸湿晾干防吸水空鼓; 浅色石材白水泥",
+          "match_score": 0.1509,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
         }
       ]
     },
@@ -218,6 +316,20 @@
           "match_score": 0.3636,
           "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
           "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
+        },
+        {
+          "source_anchor": "kc:1A413030_140_0272:0",
+          "quote": "石材施工流程：基层处理 → 放线 → 试拼 → 铺砂浆 → 铺石材 → 养护 → 勾缝 基层处理 → 放线 → 试拼 → 铺砂浆 → 铺石材 → 养护 → 勾缝 地面·本体 石材饰面施工: 基层→放线→试拼→铺砂浆→铺石材→养护→勾缝; 石材铺前浸湿晾干防吸水空鼓; 浅色石材白水泥",
+          "match_score": 0.3137,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "ca:1A413030_140_0273",
+          "quote": "某项目在铺贴瓷砖时未进行浸砖处理，导致空鼓，请分析原因并提出预防措施。 某项目在铺贴瓷砖时未进行浸砖处理，导致空鼓，请分析原因并提出预防措施。 | grading_keywords=浸砖,脱模剂,阴干,空鼓,结合层砂浆 地面·本体 瓷砖面层施工: 铺贴前清脱模剂/充分浸泡阴干; 未浸砖致空鼓(grading_kw=浸砖/脱模剂/阴干/空鼓/结合层砂浆)",
+          "match_score": 0.2545,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
         }
       ]
     },
@@ -242,6 +354,13 @@
           "source_anchor": "exam:2021:案例三",
           "quote": "表面收缩裂缝。项目部质量专题会议分析其主要原因是骨料含泥量过大和水泥及掺合料的用量超出规范要求等，要求及时采取防治措施。 二次结构填充墙施工时，为抢工期，项目工部门安排作业人员将刚生产7天的蒸压加气淮问凝土砌块用于砌筑作业要求砌体灰缝厚度、饱满度等质量满足要求。后被监理工程师发现，责令停工整改。 项目经理巡查到二层样板间时，地面瓷砖铺设施工人员正按照基层处理、放线、浸砖等工艺流程进行施工。 其检查",
           "match_score": 0.1618,
+          "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
+          "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
+        },
+        {
+          "source_anchor": "exam:2024:第14页",
+          "quote": "检验，无驻厂监督生产。进场后，项目部会同监理工程师按规定对叠合板预制构件主要受力钢筋规格等项目进行实体检验，合格后批准使用。 项目部在自检中发现填充墙与主体结构交接处出现裂缝，技术人员制定了包括柱边设置间距500mm的2φ6钢筋、里口用半砖斜砌墙等专项防治措施，要求现场严格执行。 公司在装饰抹灰检查中发现有抹灰层脱层、空鼓，面层爆灰、裂缝、表面不平整、接槎和抹纹明显等与一般抹灰相同的质量通 1. ",
+          "match_score": 0.1324,
           "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
           "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
         }
@@ -270,6 +389,20 @@
           "match_score": 0.6267,
           "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
           "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A413030_141_0274:0",
+          "quote": "竹、木地板施工流程：施工流程为：基层处理 → 安装木搁栅 → 铺毛地板 → 铺设竹、木地板 → 成品保护。 施工流程为：基层处理 → 安装木搁栅 → 铺毛地板 → 铺设竹、木地板 → 成品保护。 地面·本体 竹木地板: 基层→木搁栅→毛地板→竹木地板→成品保护; 毛地板开槽深板厚1/3/间距200mm/与搁栅垂直; 靠墙第一块离墙10mm/由内向外/顺光顺行走",
+          "match_score": 0.615,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A413030_139_0268:0",
+          "quote": "主龙骨安装要点：主龙骨间距≤1200mm；悬臂段≤300mm；接头应错开。 主龙骨间距≤1200mm；悬臂段≤300mm；接头应错开。 吊顶·本体 primary 吊顶安装要求(判分眼): 主龙骨≤1200mm悬臂≤300mm接头错开; 次龙骨≤600mm不搭接洞口设附加龙骨; 纸面石膏板中间向四周自由固定/长边纵向/螺钉150~170mm/钉眼防锈/双层接缝错开",
+          "match_score": 0.24,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
         }
       ]
     },
@@ -296,6 +429,20 @@
           "match_score": 0.6383,
           "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
           "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A413030_141_0275:0",
+          "quote": "地毯施工流程：施工流程为：基层处理 → 放线 → 地毯剪裁 → 钉倒刺板条 → 铺衬垫 → 铺设地毯 → 细部收口。 施工流程为：基层处理 → 放线 → 地毯剪裁 → 钉倒刺板条 → 铺衬垫 → 铺设地毯 → 细部收口。 地面·本体 地毯面层: 基层→放线→剪裁→钉倒刺板→铺衬垫→铺地毯→收口; 裁剪比施工面长20mm/倒刺板距踢脚8~10mm/衬垫离倒刺板10mm; 先固定长边撑子拉伸",
+          "match_score": 0.6033,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "exam:2019:第5题",
+          "quote": "【背景资料】 某高级住宅工程，建筑面积8000m²，由3栋塔楼构成，地下2层（含车库），地上28层，底板厚度800mm，由A施工总承包单位承建。合同约定工程最终达到绿色建筑评价二星级。 工程开始施工正值冬季，A施工单位项目部编制了冬期施工专项方案，根据当地资源和气候情况对底板混凝土的养护采用综合蓄热法，对底板混凝土的测温方案和温差控制、温降梯度，及混凝土养护时间提出了控制指标要求。 项目部置顶了项",
+          "match_score": 0.185,
+          "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
+          "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
         }
       ]
     },
@@ -320,6 +467,13 @@
           "source_anchor": "ca:1A422000_043_0069",
           "quote": "关于建筑装饰装修中基层处理的要求，下列说法错误的是？ 关于建筑装饰装修中基层处理的要求，下列说法错误的是？ | grading_keywords=抗碱封闭底漆,界面剂,含水率,耐水腻子 门窗·本体 门窗安装要求(判分眼极窄): 在砌体上安装门窗严禁用射钉固定. ⚠️同chunk混入涂饰料(含水率8%/10%/12%·耐水腻子)标🔵邻接非门窗本体",
           "match_score": 0.2679,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A422000_043_0069:2",
+          "quote": "厨房卫生间耐水腻子：厨房、卫生间墙面的找平层应使用耐水腻子。 厨房、卫生间墙面的找平层应使用耐水腻子。 门窗·本体 门窗安装要求(判分眼极窄): 在砌体上安装门窗严禁用射钉固定. ⚠️同chunk混入涂饰料(含水率8%/10%/12%·耐水腻子)标🔵邻接非门窗本体",
+          "match_score": 0.25,
           "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
           "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
         }
@@ -374,6 +528,20 @@
           "match_score": 0.2222,
           "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
           "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
+        },
+        {
+          "source_anchor": "exam:2019:第2题",
+          "quote": "收合格；检查了外窗气密性能等有关安全和功能检测项目合格报告，观感质量符合要求。 【问题】 4. 门窗子分部工程中还包括哪些分项工程？门窗工程有关安全和功能检测的项目还有哪些？ 子分部工程包括木门窗安装，金属门窗安装，塑料门窗安装，特种门窗安装，门窗玻璃安装分项工程。门窗工程的安全和功能检测项目有建筑外窗的气密性能、水密性能和抗风压性能。 【解析】根据《建筑装饰装修工程质量验收规范》GB 50210",
+          "match_score": 0.1728,
+          "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
+          "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
+        },
+        {
+          "source_anchor": "exam:2019:第5题",
+          "quote": "；锚固件；增强网铺设；墙体热桥部位处理；预埋件和设备穿越墙体处的保温层；保温层厚度；保温层接缝；抹灰层厚度；门窗洞口四周的保温层；变形缝；女儿墙压顶等。 5. 绿色建筑运行评价指标体系中的指标共有6类：节地与室外环境、节能与能源利用、节水与水资源利用、节材与材料资源利用、室内环境质量、运营管理。 不参与设计评价的指标有：运营管理。 绿色建筑评价各等级的评价总得分标准是：一星级≥40分，二星级≥60",
+          "match_score": 0.1358,
+          "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
+          "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
         }
       ]
     },
@@ -426,6 +594,20 @@
           "match_score": 0.1591,
           "source_file": "docs/原始数据/考点原料/_D14_exam_evidence.json",
           "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513"
+        },
+        {
+          "source_anchor": "kc:1A413030_139_0268:0",
+          "quote": "主龙骨安装要点：主龙骨间距≤1200mm；悬臂段≤300mm；接头应错开。 主龙骨间距≤1200mm；悬臂段≤300mm；接头应错开。 吊顶·本体 primary 吊顶安装要求(判分眼): 主龙骨≤1200mm悬臂≤300mm接头错开; 次龙骨≤600mm不搭接洞口设附加龙骨; 纸面石膏板中间向四周自由固定/长边纵向/螺钉150~170mm/钉眼防锈/双层接缝错开",
+          "match_score": 0.1528,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
+        },
+        {
+          "source_anchor": "kc:1A422000_043_0069:2",
+          "quote": "厨房卫生间耐水腻子：厨房、卫生间墙面的找平层应使用耐水腻子。 厨房、卫生间墙面的找平层应使用耐水腻子。 门窗·本体 门窗安装要求(判分眼极窄): 在砌体上安装门窗严禁用射钉固定. ⚠️同chunk混入涂饰料(含水率8%/10%/12%·耐水腻子)标🔵邻接非门窗本体",
+          "match_score": 0.1475,
+          "source_file": "docs/原始数据/考点原料/_D14_compiled_source.json",
+          "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465"
         }
       ]
     }

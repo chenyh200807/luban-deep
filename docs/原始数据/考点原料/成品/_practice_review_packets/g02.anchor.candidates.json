@@ -1,11 +1,11 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-18T02:43:16+00:00",
+  "generated_at": "2026-07-21T01:38:05+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "G02",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/g02.practice.review.json",
-  "score_threshold": 0.08,
+  "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
     "total_items": 15,
@@ -14,7 +14,7 @@
   },
   "items": [
     {
-      "variant_id": "G02-html-practice-html-q2-613193ea6d75",
+      "variant_id": "G02-html-practice-html-q2-c18201dc6f48",
       "candidates": [
         {
           "source_anchor": "exam:2022:第21题",
@@ -36,11 +36,25 @@
           "match_score": 0.6172,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A413000_085_0158:1",
+          "quote": "填方边坡坡度规定：填方高度<10m时，边坡坡度1:1.5；>10m时，上部1:1.5，下部1:1.75。 填方高度<10m时，边坡坡度1:1.5；>10m时，上部1:1.5，下部1:1.75。 本体·registry support 土方填筑与压实(判分眼): 填方土料禁用淤泥/淤泥质土/有机质>5%/含水量不符压实要求的黏性土; 填方边坡<10m 1:1.5/>10m 上1:1.5下1:1.75",
+          "match_score": 0.5516,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A413000_085_0158:2",
+          "quote": "---|--------------------| | 平碾 | 250~300 | 6~8 | | 振动压实机 | 250~350 | 3~4 | | 柴油打夯机 | 200~250 | 3~4 | | 人工打夯 | < 200 | 3~4 | 本体·registry support 土方填筑与压实(判分眼): 填方土料禁用淤泥/淤泥质土/有机质>5%/含水量不符压实要求的黏性土; 填方边坡<1",
+          "match_score": 0.5516,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q3-97671409244c",
+      "variant_id": "G02-html-practice-html-q3-092cc709ec3d",
       "candidates": [
         {
           "source_anchor": "exam:2016:第8题",
@@ -62,11 +76,25 @@
           "match_score": 0.1463,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "exam:2015:第8题",
+          "quote": "在进行土方平衡调配时，需要重点考虑的性能参数是( )。 A. 天然含水量 B. 天然密度 C. 密实度 D. 可松性 D 【解析】本题考查的是岩土的工程性能。土的可松性：天然土经开挖后，其体积因松散而增加，虽经 振动夯实，仍不能完全恢复到原来的体积，这种性质称为土的可松性。它是挖填土方时，计算土方机械生 产率、回填土方量、运输机具数量、进行场地平整规划竖向设计、土方平衡调配的重要参数。",
+          "match_score": 0.1463,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
+        },
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题2",
+          "quote": "【背景资料】 某新建高层住宅工程建筑面积 16000 m²，地下一层，地上十二层。二层以下为现浇钢筋混凝土结构，二层以上为装配式混凝土结构，预制墙板钢筋采用套筒灌浆连接施工工艺。 施工总承包合同签订后，施工单位项目经理遵循项目质量管理程序，按照质量管理 PDCA 循环工作方法持续改进质量工作。 监理工程师在检查土方回填施工时发现：回填土料混有建筑垃圾；土料铺填厚度大于 400mm；采用振动压实机压",
+          "match_score": 0.1463,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q4-9a0b35a1c05a",
+      "variant_id": "G02-html-practice-html-q4-e8c12baa9ebd",
       "candidates": [
         {
           "source_anchor": "exam:2018:案例分析(三)问题2",
@@ -81,18 +109,11 @@
           "match_score": 0.1429,
           "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
           "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
-        },
-        {
-          "source_anchor": "exam:2016:第8题",
-          "quote": "关于土方回填施工工艺的说法，错误的是( )。 A. 土料应尽量采用同类土 B. 应从场地最低处开始 C. 应在相对两侧对称回填 D. 虚铺厚度根据含水量确定 D 【解析】填土应从场地最低处开始，由下而上整个宽度分层铺填。每层虚铺厚度应根据夯实机械确定。",
-          "match_score": 0.119,
-          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
-          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q5-7d9d763971e5",
+      "variant_id": "G02-html-practice-html-q5-d0716f0544c2",
       "candidates": [
         {
           "source_anchor": "exam:2016:第8题",
@@ -114,11 +135,25 @@
           "match_score": 0.1463,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题2",
+          "quote": "0mm；正确做法：振动压实机土料铺填厚度 250-350mm 不妥之处 3：采用振动压实机压实 2 遍成活；正确做法：采用振动压实机压实 3-4 遍成活 不妥之处 4：环刀法取的土样统一送检测单位检测压实系数；正确做法：采用标准的击实法检测 根据《建筑地基基础施工质量验收规范》GB50202-2018，回填土不得含有建筑垃圾；铺填厚度应控制在 250-350mm；压实遍数不少于 3-4 遍；压实系",
+          "match_score": 0.1463,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
+        },
+        {
+          "source_anchor": "exam:2020:第29题",
+          "quote": "关于土方回填的说法，正确的是（ ）。 A. 回填料应控制含水率 B. 根据回填土的要求，确定压实遍数 C. 下层的压实系数试验合格后，进行上层施工 D. 冬期回填时，分层厚度可适当增加 E. 先有取样点布置图，后有实验结果表 ACE 解析：冬期回填时，分层厚度应减小，而不是增加；实验结果表应在取样后生成，但顺序不是强制要求。",
+          "match_score": 0.1463,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q6-62bc9be3d96c",
+      "variant_id": "G02-html-practice-html-q6-8717ba7ee8c4",
       "candidates": [
         {
           "source_anchor": "kc:1A413000_085_0158:2",
@@ -140,11 +175,25 @@
           "match_score": 0.4931,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A413000_085_0158:0",
+          "quote": " 填方土料不得选用淤泥、淤泥质土、有机质大于5%的土、含水量不符合压实要求的黏性土。 本体·registry support 土方填筑与压实(判分眼): 填方土料禁用淤泥/淤泥质土/有机质>5%/含水量不符压实要求的黏性土; 填方边坡<10m 1:1.5/>10m 上1:1.5下1:1.75; 填土压实参数表(平碾250-300mm/6-8遍·振动压实机250-350mm/3-4遍·柴油打夯机20",
+          "match_score": 0.469,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A413000_085_0158:1",
+          "quote": "5。 填方高度<10m时，边坡坡度1:1.5；>10m时，上部1:1.5，下部1:1.75。 本体·registry support 土方填筑与压实(判分眼): 填方土料禁用淤泥/淤泥质土/有机质>5%/含水量不符压实要求的黏性土; 填方边坡<10m 1:1.5/>10m 上1:1.5下1:1.75; 填土压实参数表(平碾250-300mm/6-8遍·振动压实机250-350mm/3-4遍·柴油打",
+          "match_score": 0.469,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q7-593dad823ddc",
+      "variant_id": "G02-html-practice-html-q7-7c97057ddfa5",
       "candidates": [
         {
           "source_anchor": "kc:1A413000_085_0158:2",
@@ -166,11 +215,25 @@
           "match_score": 0.4615,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "ca:1A413000_085_0158",
+          "quote": "关于填方回填的土料要求，下列说法错误的是？ 关于填方回填的土料要求，下列说法错误的是？ | grading_keywords=淤泥,有机质>5%,含水量不符,同类土 本体·registry support 土方填筑与压实(判分眼): 填方土料禁用淤泥/淤泥质土/有机质>5%/含水量不符压实要求的黏性土; 填方边坡<10m 1:1.5/>10m 上1:1.5下1:1.75; 填土压实参数表(平碾25",
+          "match_score": 0.4615,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题2",
+          "quote": "0mm；正确做法：振动压实机土料铺填厚度 250-350mm 不妥之处 3：采用振动压实机压实 2 遍成活；正确做法：采用振动压实机压实 3-4 遍成活 不妥之处 4：环刀法取的土样统一送检测单位检测压实系数；正确做法：采用标准的击实法检测 根据《建筑地基基础施工质量验收规范》GB50202-2018，回填土不得含有建筑垃圾；铺填厚度应控制在 250-350mm；压实遍数不少于 3-4 遍；压实系",
+          "match_score": 0.4015,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q8-0a6ebb0ea2f6",
+      "variant_id": "G02-html-practice-html-q8-3f33d90c2a60",
       "candidates": [
         {
           "source_anchor": "exam:2020:第29题",
@@ -192,11 +255,25 @@
           "match_score": 0.2564,
           "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
           "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
+        },
+        {
+          "source_anchor": "exam:2017:案例一",
+          "quote": "7天（应≥14天）；4. 检测时间不正确，应在工程完工至少7d后、交付使用前进行；检测项目还包括甲醛、氨、苯、氡。 【解析】1. 资源需求计划除材料外，还包括劳动力、机械、设备、预制构件、加工品、计量测量仪器、资金等。2. 压缩应优先选择赶工费用低且可压缩时间长的工序，故先压缩主体结构（2700元/天，可压2天），再压缩室内装修（3000元/天，可压8天）。3. 防水层施工规范要求：用水应为合格饮",
+          "match_score": 0.2308,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
+        },
+        {
+          "source_anchor": "kc:1A434000_064_0095:0",
+          "quote": "土方回填压实系数检验：施工结束后应进行标高及压实系数检验。 施工结束后应进行标高及压实系数检验。 本体·压实检测判分眼(施工质量管理章): 土方回填施工结束后应进行标高及压实系数检验; 质量检查必须检查内容=填筑厚度/含水量控制/压实系数(排水系统非必查). **逐条核真**. 注意: 环刀法/灌砂法/灌水法具体方法编译库无锚, 靠真题侧",
+          "match_score": 0.1795,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q9-0f8887a6e8c9",
+      "variant_id": "G02-html-practice-html-q9-4b20c6851996",
       "candidates": [
         {
           "source_anchor": "exam:2019:第16题",
@@ -218,11 +295,25 @@
           "match_score": 0.1556,
           "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
           "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
+        },
+        {
+          "source_anchor": "ca:1A413000_085_0158",
+          "quote": "关于填方回填的土料要求，下列说法错误的是？ 关于填方回填的土料要求，下列说法错误的是？ | grading_keywords=淤泥,有机质>5%,含水量不符,同类土 本体·registry support 土方填筑与压实(判分眼): 填方土料禁用淤泥/淤泥质土/有机质>5%/含水量不符压实要求的黏性土; 填方边坡<10m 1:1.5/>10m 上1:1.5下1:1.75; 填土压实参数表(平碾25",
+          "match_score": 0.1333,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A413000_076_0145:0",
+          "quote": "[🔵邻接/通识/安全外延] 土的物理性质指标：黏聚力：颗粒间黏结形成的强度；天然含水量：水质量/固体质量×100%；天然密度：单位体积质量；干密度：固体质量/总体积；密实度：颗粒填充程度；可松性：开挖后体积增大且不可恢复。 黏聚力：颗粒间黏结形成的强度；天然含水量：水质量/固体质量×100%；天然密度：单位体积质量；干密度：固体质量/总体积；密实度：颗粒填充程度；可松性：开挖后体积增大且不可恢复。",
+          "match_score": 0.1333,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q10-bb16c258fab8",
+      "variant_id": "G02-html-practice-html-q10-4b31f1746445",
       "candidates": [
         {
           "source_anchor": "kc:1A434000_064_0095:0",
@@ -244,11 +335,25 @@
           "match_score": 0.6452,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "ca:1A434000_064_0095",
+          "quote": "关于土方回填施工过程中的质量检查，以下哪项不属于必须检查的内容？ 关于土方回填施工过程中的质量检查，以下哪项不属于必须检查的内容？ | grading_keywords=排水系统,填筑厚度,含水量控制,压实系数 本体·压实检测判分眼(施工质量管理章): 土方回填施工结束后应进行标高及压实系数检验; 质量检查必须检查内容=填筑厚度/含水量控制/压实系数(排水系统非必查). **逐条核真**. 注意:",
+          "match_score": 0.6452,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题2",
+          "quote": "混凝土结构，二层以上为装配式混凝土结构，预制墙板钢筋采用套筒灌浆连接施工工艺。 施工总承包合同签订后，施工单位项目经理遵循项目质量管理程序，按照质量管理 PDCA 循环工作方法持续改进质量工作。 监理工程师在检查土方回填施工时发现：回填土料混有建筑垃圾；土料铺填厚度大于 400mm；采用振动压实机压实 2 遍成活；每天将回填 2-3 层的环刀法取的土样统一送检测单位检测压实系数。对此出整改要求。 ",
+          "match_score": 0.2903,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q11-a07c6231235c",
+      "variant_id": "G02-html-practice-html-q11-e51b22e76127",
       "candidates": [
         {
           "source_anchor": "ca:1A434000_064_0095",
@@ -270,11 +375,25 @@
           "match_score": 0.5714,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A434000_064_0095:2",
+          "quote": "强夯地基施工后检验内容：施工结束后，应进行地基承载力、地基土的强度、变形指标及其他设计要求指标检验。 施工结束后，应进行地基承载力、地基土的强度、变形指标及其他设计要求指标检验。 本体·压实检测判分眼(施工质量管理章): 土方回填施工结束后应进行标高及压实系数检验; 质量检查必须检查内容=填筑厚度/含水量控制/压实系数(排水系统非必查). **逐条核真**. 注意: 环刀法/灌砂法/灌水法具体方法",
+          "match_score": 0.5714,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题2",
+          "quote": "0mm；正确做法：振动压实机土料铺填厚度 250-350mm 不妥之处 3：采用振动压实机压实 2 遍成活；正确做法：采用振动压实机压实 3-4 遍成活 不妥之处 4：环刀法取的土样统一送检测单位检测压实系数；正确做法：采用标准的击实法检测 根据《建筑地基基础施工质量验收规范》GB50202-2018，回填土不得含有建筑垃圾；铺填厚度应控制在 250-350mm；压实遍数不少于 3-4 遍；压实系",
+          "match_score": 0.2381,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q12-fe42944fdb14",
+      "variant_id": "G02-html-practice-html-q12-642136774e88",
       "candidates": [
         {
           "source_anchor": "exam:2018:案例分析(三)问题2",
@@ -296,11 +415,25 @@
           "match_score": 0.1667,
           "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
           "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
+        },
+        {
+          "source_anchor": "kc:1A434000_064_0095:1",
+          "quote": "地基承载力检验频率：地基承载力的检验数量每300m²不应少于1点，超过3000m²时每500m²不应少于1点。每单位工程不应少于3点。 地基承载力的检验数量每300m²不应少于1点，超过3000m²时每500m²不应少于1点。每单位工程不应少于3点。 本体·压实检测判分眼(施工质量管理章): 土方回填施工结束后应进行标高及压实系数检验; 质量检查必须检查内容=填筑厚度/含水量控制/压实系数(排水系",
+          "match_score": 0.1481,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A434000_064_0095:0",
+          "quote": "土方回填压实系数检验：施工结束后应进行标高及压实系数检验。 施工结束后应进行标高及压实系数检验。 本体·压实检测判分眼(施工质量管理章): 土方回填施工结束后应进行标高及压实系数检验; 质量检查必须检查内容=填筑厚度/含水量控制/压实系数(排水系统非必查). **逐条核真**. 注意: 环刀法/灌砂法/灌水法具体方法编译库无锚, 靠真题侧",
+          "match_score": 0.1296,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q13-bc035f734186",
+      "variant_id": "G02-html-practice-html-q13-4732d73472a3",
       "candidates": [
         {
           "source_anchor": "exam:2020:第29题",
@@ -322,11 +455,25 @@
           "match_score": 0.1282,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "exam:2017:案例一",
+          "quote": "【背景资料】某新建别墅群项目，总建筑面积 45000m²，各幢别墅均为地下 1 层，地上 3 层，砖混结构。某施工总承包单位项目部按幢编制了单幢工程施工进度计划。某幢计划工期为 180d，施工进度计划见图 1。 现场监理工程师在审核该进度计划后，要求施工单位制定进度计划和包括材料需求计划在内的资源需求计划，以确保该幢工程在计划日历天内竣工。该别墅工程开工后第 46 天进行的进度检查时发现，土方工程",
+          "match_score": 0.1282,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
+        },
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题2",
+          "quote": " 组边长为 70.7mm 的立方体灌浆料标准养护试件；留置了 1 组边长 70.7mm 的 不妥之处 1：回填土料混有建筑垃圾；正确做法：回填土料不允许有建筑垃圾 不妥之处 2：土料铺填厚度大于 400mm；正确做法：振动压实机土料铺填厚度 250-350mm 不妥之处 3：采用振动压实机压实 2 遍成活；正确做法：采用振动压实机压实 3-4 遍成活 不妥之处 4：环刀法取的土样统一送检测单位检测",
+          "match_score": 0.1282,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q15-ab9568929a91",
+      "variant_id": "G02-html-practice-html-q15-849d8405eed0",
       "candidates": [
         {
           "source_anchor": "exam:2018:案例分析(三)问题2",
@@ -348,11 +495,18 @@
           "match_score": 0.1569,
           "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
           "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
+        },
+        {
+          "source_anchor": "exam:2017:案例一",
+          "quote": "用普通硅酸盐水泥、自来水、中砂、防水剂等材料拌和，中砂含泥量不得大于 3%；防水层施工前应采用强度等级 M5 的普通砂浆将基层表面的孔洞、缝隙堵塞抹平；防水层施工要求一遍成型，铺抹时应压实、表面应提 1. 劳动力、施工机械和设备、预制构件和加工品、计量测量检验仪器、资金需求计划；2. 先压缩主体结构2天，再压缩室内装修3天；3. 不妥之处：①用自来水拌和（应使用符合标准的自来水或饮用水）；②中砂含",
+          "match_score": 0.1373,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q16-d5e2e8aea5ac",
+      "variant_id": "G02-html-practice-html-q16-1b6787678428",
       "candidates": [
         {
           "source_anchor": "exam:2018:案例分析(三)问题2",
@@ -374,11 +528,25 @@
           "match_score": 0.3398,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A413000_085_0158:1",
+          "quote": "5。 填方高度<10m时，边坡坡度1:1.5；>10m时，上部1:1.5，下部1:1.75。 本体·registry support 土方填筑与压实(判分眼): 填方土料禁用淤泥/淤泥质土/有机质>5%/含水量不符压实要求的黏性土; 填方边坡<10m 1:1.5/>10m 上1:1.5下1:1.75; 填土压实参数表(平碾250-300mm/6-8遍·振动压实机250-350mm/3-4遍·柴油打",
+          "match_score": 0.3398,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A413000_085_0158:2",
+          "quote": "---|--------------------| | 平碾 | 250~300 | 6~8 | | 振动压实机 | 250~350 | 3~4 | | 柴油打夯机 | 200~250 | 3~4 | | 人工打夯 | < 200 | 3~4 | 本体·registry support 土方填筑与压实(判分眼): 填方土料禁用淤泥/淤泥质土/有机质>5%/含水量不符压实要求的黏性土; 填方边坡<1",
+          "match_score": 0.3389,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
         }
       ]
     },
     {
-      "variant_id": "G02-html-practice-html-q17-e1127d9b2a1b",
+      "variant_id": "G02-html-practice-html-q17-34f224888892",
       "candidates": [
         {
           "source_anchor": "kc:1A413000_085_0158:2",
@@ -400,6 +568,20 @@
           "match_score": 0.4909,
           "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
           "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "kc:1A413000_085_0158:1",
+          "quote": "5。 填方高度<10m时，边坡坡度1:1.5；>10m时，上部1:1.5，下部1:1.75。 本体·registry support 土方填筑与压实(判分眼): 填方土料禁用淤泥/淤泥质土/有机质>5%/含水量不符压实要求的黏性土; 填方边坡<10m 1:1.5/>10m 上1:1.5下1:1.75; 填土压实参数表(平碾250-300mm/6-8遍·振动压实机250-350mm/3-4遍·柴油打",
+          "match_score": 0.4909,
+          "source_file": "docs/原始数据/考点原料/_G02_compiled_source.json",
+          "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0"
+        },
+        {
+          "source_anchor": "exam:2018:案例分析(三)问题2",
+          "quote": "混凝土结构，二层以上为装配式混凝土结构，预制墙板钢筋采用套筒灌浆连接施工工艺。 施工总承包合同签订后，施工单位项目经理遵循项目质量管理程序，按照质量管理 PDCA 循环工作方法持续改进质量工作。 监理工程师在检查土方回填施工时发现：回填土料混有建筑垃圾；土料铺填厚度大于 400mm；采用振动压实机压实 2 遍成活；每天将回填 2-3 层的环刀法取的土样统一送检测单位检测压实系数。对此出整改要求。 ",
+          "match_score": 0.3246,
+          "source_file": "docs/原始数据/考点原料/_G02_exam_evidence.json",
+          "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047"
         }
       ]
     }

@@ -1,11 +1,11 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-18T01:43:10+00:00",
+  "generated_at": "2026-07-21T01:34:40+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "C01",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/c01.practice.review.json",
-  "score_threshold": 0.1,
+  "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
     "total_items": 15,
@@ -14,7 +14,7 @@
   },
   "items": [
     {
-      "variant_id": "C01-html-practice-html-q1-acc6b596f503",
+      "variant_id": "C01-html-practice-html-q1-b9e7d1d4282c",
       "candidates": [
         {
           "source_anchor": "exam:2021:第8题",
@@ -28,26 +28,40 @@
           "quote": "度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀",
           "match_score": 0.4195,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
-          "source_anchor": "exam:2024:第14页",
-          "quote": "【背景资料】某施工单位中标新建教学楼工程，建筑面积2.46万平方米，地上4层钢筋混凝土框架-剪力墙结构，部分楼板采用预制钢筋混凝土看合板，砌体采用空心混凝土砌块，外立面为玻璃和石材幕墙，部分内墙采用装饰抹灰工艺。 项目部建立了质量保证体系并制定质量管理制度，要求施工重要工序和关键节点工序交接检查时严格执行“三检”制度，采用目测法、实测法及试验法对现场工程质量进行检查。 叠合板预制构件未进行结构性能",
-          "match_score": 0.3598,
-          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
-          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.4195,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:3",
+          "quote": "当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝。 当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥",
+          "match_score": 0.4024,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:2",
+          "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
+          "match_score": 0.3987,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q2-ef00f8f4d305",
+      "variant_id": "C01-html-practice-html-q2-6243d5fb9605",
       "candidates": [
         {
           "source_anchor": "ca:1A413030_103_0196",
           "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
           "match_score": 0.3333,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
           "source_anchor": "exam:2015:第26题",
@@ -62,18 +76,32 @@
           "match_score": 0.1556,
           "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
           "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+        },
+        {
+          "source_anchor": "exam:2021:第6题",
+          "quote": " 【解析】考察考点 1A415045 钢-混凝土组合结构工程施工 选项 A，型钢混凝土结构的钢筋绑扎，与钢筋混凝土结构中的钢筋绑扎基本相同。由于柱的纵向钢筋不能穿过梁的翼缘，因此柱的纵向钢筋只能设在柱截面的四角或无梁的部位。 选项 B、C，在梁柱节点部位，柱的箍筋要在型钢梁腹板上已留好的孔中穿过，由于整根箍筋无法穿过，只好将箍筋分段，再用电弧焊焊接。不宜将箍筋焊在梁的腹板上，因为节点处受力较复杂。",
+          "match_score": 0.1333,
+          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
+          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q3-1e65c200f4eb",
+      "variant_id": "C01-html-practice-html-q3-420249562481",
       "candidates": [
         {
           "source_anchor": "cc:1A413030_103_0196:3",
           "quote": "当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝。 当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥",
           "match_score": 0.4902,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.2549,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
           "source_anchor": "exam:2015:第26题",
@@ -83,23 +111,37 @@
           "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
         },
         {
-          "source_anchor": "exam:2021:第8题",
-          "quote": "混凝土施工缝留置位置正确的有（）。 A.柱在梁、板顶面 B.单向板在平行于板长边的任何位置 C.有主次梁的楼板在次梁跨中 1/3 范围内 D.墙在纵横墙的交接处 E.双向受力板按设计要求确定 ACDE 【解析】考察考点 1A415041 混凝土结构工程施工 施工缝的留置位置应符合下列规定： 1) 柱：宜留置在基础、楼板、梁的顶面，梁和吊车梁牛腿、无梁楼板柱帽的下面； 2) 与板连成整体的大截面梁(",
-          "match_score": 0.1373,
-          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
-          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+          "source_anchor": "kc:1A413030_103_0196:0",
+          "quote": "施工缝留设位置规范：水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0",
+          "match_score": 0.1765,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "kc:1A413030_103_0196:1",
+          "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
+          "match_score": 0.1765,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q4-cab9423f74d4",
+      "variant_id": "C01-html-practice-html-q4-c2bf08e2ffaa",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_103_0196:0",
           "quote": "施工缝留设位置规范：水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0",
           "match_score": 0.4591,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.3841,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
           "source_anchor": "exam:2021:第8题",
@@ -109,16 +151,23 @@
           "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
         },
         {
-          "source_anchor": "exam:2015:第26题",
-          "quote": "关于防水混凝土施工的说法，正确的有( )。 A. 连续性浇筑，少留施工缝 B. 宜采用高频机械分层振捣密实 C. 施工缝宜留置在受剪力较大部位 D. 养护时间不少于7 天 E. 冬期施工入模温度不应低于5℃ ABE 【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应 留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应",
-          "match_score": 0.2773,
-          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
-          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+          "source_anchor": "kc:1A413030_103_0196:1",
+          "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
+          "match_score": 0.2886,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:2",
+          "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
+          "match_score": 0.2886,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q5-5ecb69769696",
+      "variant_id": "C01-html-practice-html-q5-2888cb8fc63d",
       "candidates": [
         {
           "source_anchor": "exam:2021:第8题",
@@ -132,26 +181,40 @@
           "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
           "match_score": 0.4867,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
-          "source_anchor": "exam:2024:第14页",
-          "quote": "【背景资料】某施工单位中标新建教学楼工程，建筑面积2.46万平方米，地上4层钢筋混凝土框架-剪力墙结构，部分楼板采用预制钢筋混凝土看合板，砌体采用空心混凝土砌块，外立面为玻璃和石材幕墙，部分内墙采用装饰抹灰工艺。 项目部建立了质量保证体系并制定质量管理制度，要求施工重要工序和关键节点工序交接检查时严格执行“三检”制度，采用目测法、实测法及试验法对现场工程质量进行检查。 叠合板预制构件未进行结构性能",
-          "match_score": 0.3622,
-          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
-          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+          "source_anchor": "kc:1A413030_103_0196:0",
+          "quote": "施工缝留设位置规范：水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0",
+          "match_score": 0.4244,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:3",
+          "quote": "当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝。 当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥",
+          "match_score": 0.4089,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "kc:1A413030_103_0196:1",
+          "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
+          "match_score": 0.3933,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q6-b89d5a8ce30f",
+      "variant_id": "C01-html-practice-html-q6-da41b3b80179",
       "candidates": [
         {
           "source_anchor": "ca:1A413030_103_0196",
           "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
           "match_score": 0.4468,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
           "source_anchor": "exam:2021:第8题",
@@ -161,16 +224,30 @@
           "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
         },
         {
-          "source_anchor": "exam:2024:第14页",
-          "quote": "【背景资料】某施工单位中标新建教学楼工程，建筑面积2.46万平方米，地上4层钢筋混凝土框架-剪力墙结构，部分楼板采用预制钢筋混凝土看合板，砌体采用空心混凝土砌块，外立面为玻璃和石材幕墙，部分内墙采用装饰抹灰工艺。 项目部建立了质量保证体系并制定质量管理制度，要求施工重要工序和关键节点工序交接检查时严格执行“三检”制度，采用目测法、实测法及试验法对现场工程质量进行检查。 叠合板预制构件未进行结构性能",
+          "source_anchor": "kc:1A413030_103_0196:1",
+          "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
+          "match_score": 0.1992,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "kc:1A413030_103_0196:0",
+          "quote": "施工缝留设位置规范：水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0",
           "match_score": 0.1879,
-          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
-          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:2",
+          "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
+          "match_score": 0.1879,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q8-66d34c05639c",
+      "variant_id": "C01-html-practice-html-q8-9a311fd327f4",
       "candidates": [
         {
           "source_anchor": "exam:2015:第26题",
@@ -191,38 +268,59 @@
           "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
           "match_score": 0.4094,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.3875,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:3",
+          "quote": "当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝。 当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥",
+          "match_score": 0.3875,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q9-16bd09afecef",
+      "variant_id": "C01-html-practice-html-q9-0c0fa6184859",
       "candidates": [
         {
           "source_anchor": "kc:1A434000_074_0116:0",
           "quote": "地下防水施工缝渗漏原因：施工缝未清理干净 → 混凝土粘结不良 → 渗漏；未按规范处理施工缝 → 接槎明显；钢筋密集 → 浇捣困难 → 混凝土不密实。 施工缝未清理干净 → 混凝土粘结不良 → 渗漏；未按规范处理施工缝 → 接槎明显；钢筋密集 → 浇捣困难 → 混凝土不密实。 support外延·地下防水施工缝渗漏成因(施工缝未清理干净→粘结不良→渗漏; 未按规范处理施工缝→接槎明显; 钢筋密集→浇",
           "match_score": 0.2931,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
           "source_anchor": "ca:1A434000_075_0117",
           "quote": "g leaf): leaf 名义=混凝土施工缝及接槎部位质量通病防治, 但 compiled_context 实际两卡=防水混凝土裂缝渗漏防治+管道穿墙渗漏(名实不符·内容已漂移到防水渗漏). 诚实处置: 不把防水渗漏卡当 C01 施工缝采分点(标🔵外延), 仅保留 B037 leaf 作注册表 supporting 锚 + 其 EP(渗漏成因)作邻接外延参照. 真施工缝接槎采分点不在此 chun",
           "match_score": 0.1552,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
           "source_anchor": "ca:1A413030_103_0196",
           "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
           "match_score": 0.1207,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "exam:2015:第26题",
+          "quote": "关于防水混凝土施工的说法，正确的有( )。 A. 连续性浇筑，少留施工缝 B. 宜采用高频机械分层振捣密实 C. 施工缝宜留置在受剪力较大部位 D. 养护时间不少于7 天 E. 冬期施工入模温度不应低于5℃ ABE 【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应 留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应",
+          "match_score": 0.1207,
+          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
+          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q10-a29d3be91ddf",
+      "variant_id": "C01-html-practice-html-q10-16347cd357c5",
       "candidates": [
         {
           "source_anchor": "exam:2019:案例一(一)背景资料",
@@ -243,12 +341,26 @@
           "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
           "match_score": 0.1636,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.1636,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:2",
+          "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
+          "match_score": 0.1636,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q11-181529315ae5",
+      "variant_id": "C01-html-practice-html-q11-4f752e82aefe",
       "candidates": [
         {
           "source_anchor": "exam:2019:案例一(一)背景资料",
@@ -269,12 +381,26 @@
           "quote": "度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀",
           "match_score": 0.2545,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.2545,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "kc:1A413030_103_0196:1",
+          "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
+          "match_score": 0.2365,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q12-dd4a33b3812b",
+      "variant_id": "C01-html-practice-html-q12-01ffccfd9bec",
       "candidates": [
         {
           "source_anchor": "exam:2018:案例分析(三)问题3",
@@ -300,7 +426,7 @@
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q13-41249b14bfc5",
+      "variant_id": "C01-html-practice-html-q13-1ea21c18131e",
       "candidates": [
         {
           "source_anchor": "exam:2018:案例分析(三)问题3",
@@ -314,19 +440,33 @@
           "quote": "度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀",
           "match_score": 0.5516,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
-          "source_anchor": "exam:2024:第14页",
-          "quote": "构，部分楼板采用预制钢筋混凝土看合板，砌体采用空心混凝土砌块，外立面为玻璃和石材幕墙，部分内墙采用装饰抹灰工艺。 项目部建立了质量保证体系并制定质量管理制度，要求施工重要工序和关键节点工序交接检查时严格执行“三检”制度，采用目测法、实测法及试验法对现场工程质量进行检查。 叠合板预制构件未进行结构性能检验，无驻厂监督生产。进场后，项目部会同监理工程师按规定对叠合板预制构件主要受力钢筋规格等项目进行实",
-          "match_score": 0.4312,
-          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
-          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+          "source_anchor": "cc:1A413030_103_0196:2",
+          "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
+          "match_score": 0.5516,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "kc:1A413030_103_0196:1",
+          "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
+          "match_score": 0.5406,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.5406,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q14-2f040e518766",
+      "variant_id": "C01-html-practice-html-q14-3009d6de866e",
       "candidates": [
         {
           "source_anchor": "exam:2018:案例分析(三)问题3",
@@ -348,11 +488,18 @@
           "match_score": 0.1613,
           "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
           "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+        },
+        {
+          "source_anchor": "kc:1A413030_098_0184:0",
+          "quote": "模板安装要点：模板安装应与钢筋安装配合，梁柱节点模板宜在钢筋安装后安装；后浇带模板应独立设置；架体下严禁有人。 模板安装应与钢筋安装配合，梁柱节点模板宜在钢筋安装后安装；后浇带模板应独立设置；架体下严禁有人。 本体外延·后浇带模板:后浇带模板应独立设置 — 只取后浇带模板卡(真题2018案例三反向考'不应独立支设'), 其余模板安装卡绕开",
+          "match_score": 0.129,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q15-897464688b02",
+      "variant_id": "C01-html-practice-html-q15-dd906fe33c11",
       "candidates": [
         {
           "source_anchor": "exam:2018:案例分析(三)问题3",
@@ -366,26 +513,40 @@
           "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
           "match_score": 0.2587,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
-          "source_anchor": "exam:2018:案例分析(三)问题2",
-          "quote": "实 2 遍成活；每天将回填 2-3 层的环刀法取的土样统一送检测单位检测压实系数。对此出整改要求。 “后浇带施工专项方案”中确定：模板独立支设；剔除模板用钢丝网；因设计无要求，基础底板后浇带 10d 后封闭等。 监理工程师在检查第 4 层外墙体安装质量时发现：钢筋套筒连接灌浆满足规范要求；留置了 3 组边长为 70.7mm 的立方体灌浆料标准养护试件；留置了 1 组边长 70.7mm 的 不妥之处",
-          "match_score": 0.1663,
-          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
-          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+          "source_anchor": "cc:1A413030_103_0196:2",
+          "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
+          "match_score": 0.2545,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "kc:1A413030_103_0196:0",
+          "quote": "度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀",
+          "match_score": 0.2348,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "ca:1A413030_103_0196",
+          "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
+          "match_score": 0.2348,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     },
     {
-      "variant_id": "C01-html-practice-html-q16-b53b81b63fc4",
+      "variant_id": "C01-html-practice-html-q16-dfc0380cc564",
       "candidates": [
         {
           "source_anchor": "ca:1A413030_103_0196",
           "quote": "关于施工缝的留设位置，下列说法正确的是？ 关于施工缝的留设位置，下列说法正确的是？ | grading_keywords=受剪力较小,设计单位确认,1.2N/mm²,凿毛处理,30mm砂浆,14d养护 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接",
           "match_score": 0.5056,
           "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
-          "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0"
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         },
         {
           "source_anchor": "exam:2018:案例分析(三)问题3",
@@ -395,11 +556,25 @@
           "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
         },
         {
-          "source_anchor": "exam:2015:第26题",
-          "quote": "关于防水混凝土施工的说法，正确的有( )。 A. 连续性浇筑，少留施工缝 B. 宜采用高频机械分层振捣密实 C. 施工缝宜留置在受剪力较大部位 D. 养护时间不少于7 天 E. 冬期施工入模温度不应低于5℃ ABE 【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应 留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应",
-          "match_score": 0.1889,
-          "source_file": "docs/原始数据/考点原料/_C01_exam_evidence.json",
-          "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab"
+          "source_anchor": "kc:1A413030_103_0196:1",
+          "quote": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝",
+          "match_score": 0.3222,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "kc:1A413030_103_0196:0",
+          "quote": "度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 水平施工缝：柱/墙距结构上表面0~100mm或0~300mm；竖向施工缝：次梁跨度1/3范围内；楼梯梯段：端部1/3范围内；墙：洞口连梁跨中1/3或墙交界处。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀",
+          "match_score": 0.3111,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
+        },
+        {
+          "source_anchor": "cc:1A413030_103_0196:2",
+          "quote": "混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 ### 混凝土施工缝和后浇带 （4）浇筑混凝土应连续进行。 本体·primary 施工缝留设位置(水平柱墙0~100/0~300mm、竖向次梁跨度1/3、楼梯端部1/3、墙洞口连梁跨中1/3或墙交界)+后浇带要点(微膨胀混凝土/强度提高一级/养护≥14d/接缝按施工缝处理)+浇筑连续性(初凝前留缝)",
+          "match_score": 0.3111,
+          "source_file": "docs/原始数据/考点原料/_C01_compiled_source.json",
+          "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee"
         }
       ]
     }

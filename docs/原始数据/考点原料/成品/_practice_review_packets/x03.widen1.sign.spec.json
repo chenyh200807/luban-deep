@@ -1,0 +1,62 @@
+{
+  "pack_id": "X03",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+  "signed": [
+    {
+      "variant_id": "X03-html-practice-html-q8-d2d7a4bad7b1",
+      "probe_role": "anchor",
+      "fact_id": "x03-fact-four-savings",
+      "skeleton_id": "x03-skel-节能四节措施",
+      "source_anchor": "kc:1A437000_140_0223:2",
+      "note": "四节节能=节能设备/最低照度/分时段/可再生能源,教材逐字核对;与建筑节能工程(围护验收)辨析正确。新fact非surface仅d1可达。"
+    },
+    {
+      "variant_id": "X03-html-practice-html-q7-7fa6c80481cc",
+      "probe_role": "immediate_confirm",
+      "fact_id": "x03-fact-four-savings",
+      "skeleton_id": "x03-skel-节水循环回灌",
+      "source_anchor": "kc:1A437000_140_0223:1",
+      "note": "冲洗用水设循环装置/抽水量>50万m³须回灌地下水,教材逐字核对。"
+    },
+    {
+      "variant_id": "X03-html-practice-html-q6-bab2eefe747c",
+      "probe_role": "d1_probe",
+      "fact_id": "x03-fact-four-savings",
+      "skeleton_id": "x03-skel-节地归类判断",
+      "source_anchor": "exam:2017:第16题",
+      "note": "绿化代替场地硬化=节地与施工用地保护,2017真题B逐字核对。"
+    },
+    {
+      "variant_id": "X03-html-practice-html-q10-89ab4b0c45e8",
+      "probe_role": "anchor",
+      "fact_id": "x03-fact-env-protection-measures",
+      "skeleton_id": "x03-skel-扬尘三环节",
+      "source_anchor": "kc:1A437000_141_0225:1",
+      "note": "扬尘控制:源头覆盖固化绿化/物料篷盖(教材防尘卡逐字)+路径自动喷淋雾炮(kc:149_0293扬尘三件套)+出口冲洗池。新fact非surface仅d1可达。"
+    },
+    {
+      "variant_id": "X03-html-practice-html-q11-dbe2999e7964",
+      "probe_role": "immediate_confirm",
+      "fact_id": "x03-fact-env-protection-measures",
+      "skeleton_id": "x03-skel-噪声四措施",
+      "source_anchor": "kc:1A437000_149_0294:0",
+      "note": "噪声控制:低噪声设备→隔声屏/罩→封闭木工房→优化工艺,教材逐字核对。"
+    },
+    {
+      "variant_id": "X03-html-practice-html-q13-ebd6bd5a44e3",
+      "probe_role": "immediate_confirm",
+      "fact_id": "x03-fact-env-protection-measures",
+      "skeleton_id": "x03-skel-污水泥浆处置",
+      "source_anchor": "kc:1A437000_013_0019:1",
+      "note": "工程泥浆经泥浆池/封闭容器收集未处理不得排放(教材逐字);临时排水许可证由市政管理部门发证经编译源真题注{2020,第16题}D市政核实。"
+    },
+    {
+      "variant_id": "X03-html-practice-html-q12-f346e1ec99de",
+      "probe_role": "d1_probe",
+      "fact_id": "x03-fact-env-protection-measures",
+      "skeleton_id": "x03-skel-夜间光污染三动作",
+      "source_anchor": "kc:1A437000_139_0222:2",
+      "note": "夜间施工办许可证公告居民/照明加灯罩透光集中/电焊遮挡防弧光,教材逐字核对+2017真题案例印证。"
+    }
+  ]
+}

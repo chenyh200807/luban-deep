@@ -29,8 +29,14 @@
         "D13-html-practice-html-q2-8731158f9009",
         "D13-html-practice-html-q3-fb2ecdf90653",
         "D13-html-practice-html-q4-2d4088f977f1",
+        "D13-html-practice-html-q5-d02aebd6f3a8",
         "D13-html-practice-html-q7-9851ec162e2f",
         "D13-html-practice-html-q8-765a4e3803b3",
+        "D13-html-practice-html-q9-3ad62d731773",
+        "D13-html-practice-html-q10-b24a91fde64a",
+        "D13-html-practice-html-q11-a38f96505935",
+        "D13-html-practice-html-q12-d53d3a2222a9",
+        "D13-html-practice-html-q13-0e7b79cdf924",
         "D13-html-practice-html-q15-5ec84ba4a21d"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjE5NmVjOWJmMzcxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04NzMxMTU4ZjkwMDkiLCJEMTMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZiMmVjZGY5MDY1MyIsIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmQ0MDg4Zjk3N2YxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtNWVjODRiYTRhMjFkIl0sInBhY2tfaWQiOiJEMTMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6Ijg5ODc2MzY2YTI2YTYzZjcwMGZmNjk1NDY0MTM1MDRlN2VlZmE0YWFmYzU3MWUxZGUyYTI2ZTg4MTA0OTdkZDciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYTAyZTQzYWJjZjVlMTBlNmFkYzI1ODdhZjlhNmYxOTkxOTYzMTc0NzU1M2YwZmE5Zjg2OGRhOWUxZmRkZDkxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
@@ -1058,29 +1064,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_148_0286:0",
+      "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826",
       "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-interfloor-firestop",
+      "skeleton_id": "d13-skel-尺寸部位配对辨析",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "c28528e96c7fdd495167a1adeca22be837eab2990b3fc53753327d9dd5b248fd",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "c28528e96c7fdd495167a1adeca22be837eab2990b3fc53753327d9dd5b248fd",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "200mm=窗槛墙空腔填塞高度(教材逐字);100mm=楼板缝隙封堵岩棉/矿棉厚度(exam:2015案例2'厚度不应小于100mm'逐字,亦为机器候选)。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：两处尺寸易混",
         "caption": "空腔 200 vs 楼板缝 100，部位不同",
@@ -1784,29 +1802,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2020:第23题",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-框架连主体总要求",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "b134dd41de9b2ea6c3cf865ba5ce71febd867deaaae63215eb87b7c72a135ff7",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "b134dd41de9b2ea6c3cf865ba5ce71febd867deaaae63215eb87b7c72a135ff7",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "金属框架与主体防雷体系可靠连接,2020真题E项(ACDE)+2019第29题E项(BCE)跨年互证+教材kc:148_0287:0。新fact非surface,confirm入口不可达仅d1可达。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：幕墙金属框架防雷",
         "caption": "雷电流要顺着框架泄放入地",
@@ -2002,29 +2032,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_148_0287:0",
+      "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826",
       "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-立柱柔性导线10m",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "9e70984c347179f5d132bf24bb2cd9c5bf961f16b1b4b46a035d3f8fc53772a6",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "9e70984c347179f5d132bf24bb2cd9c5bf961f16b1b4b46a035d3f8fc53772a6",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "铝合金立柱每10m内柔性导线连通上下柱,教材防雷连接要点逐字核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：铝合金立柱伸缩缝",
         "caption": "伸缩缝断路，怎么跨缝连通",
@@ -2169,29 +2211,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2020:第23题",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-均压环三层焊接",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "f25bedcd3d2e045c374388697f05683e4593343debc6d2651e1bbc0f50864cde",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "f25bedcd3d2e045c374388697f05683e4593343debc6d2651e1bbc0f50864cde",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "预埋件圆钢/扁钢与均压环焊接(教材kc:148_0287)+避雷接地一般每三层连接(2020真题A项正确);干扰项'每一层'判错正确。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：预埋件与均压环",
         "caption": "焊接连通 + 每三层",
@@ -2455,29 +2509,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2020:第23题",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-除镀膜层",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "ef1f1efe575624ec8dcfadf627be87bc8cf6728f74bdca864a6ab912946086c6",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "ef1f1efe575624ec8dcfadf627be87bc8cf6728f74bdca864a6ab912946086c6",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "有镀膜构件防雷连接应除去镀膜层,2020真题D项正确;2019第29题D'不应破坏镀膜层'判错,跨年互证方向一致。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：有镀膜构件防雷连接",
         "caption": "镀膜绝缘，连接前要做什么",
@@ -2622,29 +2688,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2020:第23题",
+      "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
       "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d13-fact-curtainwall-lightning",
+      "skeleton_id": "d13-skel-隐蔽验收程序",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "362a9459ebf94c16cffe2d380a1eab72a3b46905fdf041635a486c7a1ce74171",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "362a9459ebf94c16cffe2d380a1eab72a3b46905fdf041635a486c7a1ce74171",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "防雷构造连接必须隐蔽工程验收,2020真题B项'不必验收'判错反推。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：防雷构造连接验收",
         "caption": "隐蔽工程验收做不做？",

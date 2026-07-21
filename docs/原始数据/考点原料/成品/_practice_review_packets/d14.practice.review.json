@@ -5,7 +5,7 @@
   "source_bundle_sha256": "16900a43d8eadb137d2ea780ebe801895ae8a617ed4209b370217f95260d51d1",
   "compiled_schema_version": "luban_compiled_practice.v3",
   "candidate_count": 16,
-  "eligible_count": 8,
+  "eligible_count": 11,
   "human_gate": {
     "required_roles": [
       "teaching",
@@ -916,23 +916,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q12",
       "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "d14-fact-door-window-quality",
+        "skeleton_id": "d14-skel-砌体射钉禁令",
+        "probe_role": "anchor",
+        "source_anchor": "kc:1A422000_043_0069:0",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "a088d648c80a9c63882191cb515e61db37d18f1b2e0016749a71828ec2cf9fe4",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:26+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "砌体上安装门窗严禁射钉固定,教材门窗安装禁令卡逐字核对。复合fact(门窗安装+节能通病+节能查验),非surface仅d1可达。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -986,23 +998,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q13",
       "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "d14-fact-door-window-quality",
+        "skeleton_id": "d14-skel-节能通病五指标",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A434000_080_0129:0",
+        "source_sha256": "efb2aee163c0fa7974efd34f1e7b98abeafe607f8d36c3e9ef5f41b5b849f465",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "678033e2c15959c225c013c53c48ab77f1bbc9fdcd8a2472db1dd1a9ead0e58f",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:26+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "门窗节能常见问题五指标(类型不符/传热系数超标/气密性差/露点高/透射比不符),教材逐字核对。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1056,23 +1080,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D14/P40_D14.practice.dc.html#Q14",
       "authoring_sha256": "3b8d1b2b95bb930bb139d0f9c4133dba298e1461d10d16b4279362df486c587e",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "d14-fact-door-window-quality",
+        "skeleton_id": "d14-skel-节能查验与外窗三性",
+        "probe_role": "d1_probe",
+        "source_anchor": "exam:2016:第20题",
+        "source_sha256": "bb4f838b19c839681d2c58e7da5f764ba39349daad3e780a0fe6f2fb64e12513",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "205fa497f30e465ab92b2b7fcea975586b9c747072173747591f0b54dbdb3a72",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:26+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:26+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "节能查验对象(墙体材料/保温材料/门窗/采暖制冷/照明)锚2016真题解析逐字;外窗检测气密/水密/抗风压锚2019第2题真题答案。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1236,8 +1272,8 @@
     "delegated_at": "2026-07-16",
     "delegated_to": "claude-main-control",
     "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "opus-adjudication 2026-07-20 全量清尾批(owner指令);逐题引文回 _D14_compiled_source.json 采分点原文核对;5 surface 锚全教材忠实, 三件套取地面板块湿贴防空鼓 fact(q9/q8/q6);q16 无候选经 prefill --threshold 0.12 放宽后拿到 kc:1A422000_043_0069:0 单锚;待 fable 对抗核验",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "adversarial_gate": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+    "campaign": "confirm-supply-widen batch1 2026-07-21 (11-pack)",
     "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
   }
 }

@@ -1,20 +1,20 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-18T02:18:19+00:00",
+  "generated_at": "2026-07-21T01:34:40+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "C05",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/c05.practice.review.json",
-  "score_threshold": 0.25,
+  "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
     "total_items": 15,
-    "items_with_candidates": 14,
-    "items_empty_handed": 1
+    "items_with_candidates": 15,
+    "items_empty_handed": 0
   },
   "items": [
     {
-      "variant_id": "C05-html-practice-html-q1-a8bb0089be20",
+      "variant_id": "C05-html-practice-html-q1-a5bca5899d01",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_100_0190:0",
@@ -29,11 +29,32 @@
           "match_score": 0.2951,
           "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
           "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "kc:1A421000_014_0020:0",
+          "quote": "禁止使用的施工工艺清单：禁止使用：钢筋保护层垫块（现场简易）、卷扬机调直、饰面砖水泥砂浆粘贴、钢筋热弯、石材及瓷板落后挂接工艺。 固定的专业预制厂（场）或钢筋加工厂（场）内，对直径大于或等于22mm的钢筋进行连接作业时，不得使用钢筋闪光对焊工艺。可使用套筒冷挤压连接、滚压直螺纹套筒连接等机械连接工艺替代。 （2）限",
+          "match_score": 0.2131,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "exam:2019:第8题",
+          "quote": "直接承受动力荷载的结构构件中，直径为20mm纵向受力钢筋的连接宜选用（ ）。 A. 绑扎连接 B. 直螺纹套筒连接 C. 帮条焊 D. 搭接焊 B 直接承受动力荷载的结构构件中，钢筋接头宜采用机械连接（如直螺纹套筒连接）。焊接接头会产生热影响区，不利于承受动力荷载。绑扎连接适用于小直径钢筋。",
+          "match_score": 0.1967,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "kc:1A421000_014_0020:1",
+          "quote": "限制使用的人工挖孔工艺条件：人工挖孔工艺不得用于地下水丰富、软弱土层、流沙等不良地质条件区域；孔内空气污染物超标；机械成孔设备可达区域。 滚压直螺纹套筒连接等机械连接工艺替代。 （2）限制使用基桩人工挖孔工艺，存在下列条件之一的区域不得使用。可使用冲击钻、回转钻、旋挖钻等机械成孔工艺替代。 ① 地下水丰富、软弱土层、流沙",
+          "match_score": 0.1803,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q2-1a3530671de1",
+      "variant_id": "C05-html-practice-html-q2-4e09bb4adee8",
       "candidates": [
         {
           "source_anchor": "exam:2022:第14题",
@@ -55,11 +76,25 @@
           "match_score": 0.3452,
           "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
           "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下： 1. 受拉接头不宜大于 50%； 2. 受压接头不宜大于 75%； 3. 直接承受动力荷载的结构构件不宜采用焊接； 4. 直接承受动力荷载的结构构件采用机 ①“项目部在开工后编制了项目质量计划”；正确做法：项目质量计划应在项目策划过程中编制。②“根据工程进展实施",
+          "match_score": 0.3306,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2019:第5题",
+          "quote": "【背景资料】 某高级住宅工程，建筑面积8000m²，由3栋塔楼构成，地下2层（含车库），地上28层，底板厚度800mm，由A施工总承包单位承建。合同约定工程最终达到绿色建筑评价二星级。 工程开始施工正值冬季，A施工单位项目部编制了冬期施工专项方案，根据当地资源和气候情况对底板混凝土的养护采用综合蓄热法，对底板混凝土的测温方案和温差控制、温降梯度，及混凝土养护时间提出了控制指标要求。 项目部置顶了项",
+          "match_score": 0.3226,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q3-53335854e455",
+      "variant_id": "C05-html-practice-html-q3-0c2622a7c65c",
       "candidates": [
         {
           "source_anchor": "exam:2019:第8题",
@@ -81,11 +116,25 @@
           "match_score": 0.4185,
           "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
           "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2017:案例三",
+          "quote": "内配双层钢筋网、主筋为Φ20 螺纹钢，基础筏板下三七灰土夯实，无混凝土垫层。 施工单位安全生产管理部门在安全文明施工巡检时，发现工程告示牌及含施工总平面布置图的五牌一图布置在了现场主入口处围墙外侧。要求项目部将五牌一图布置在主入口内侧。 项目制定的基础筏板钢筋施工技术方案中规定：钢筋保护层厚度控制在 40mm；主筋通过直螺纹连接接长，钢筋交叉点按照相隔交错扎牢，绑扎点的钢筋扣绑扎方向要求一致；上、",
+          "match_score": 0.3862,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2015:案例3",
+          "quote": "2) 悬挑式钢平台的搁支点与上部拉结点，必须位于建筑物上，不得设置在脚手架等施工设备上。 (3) 斜拉杆或钢丝绳，构造上宜两边各设前后两道，两道中的每一道均应作单道受力计算。 (4) 应设置 4 个经过验算的吊环。吊运平台时应使用卡环，不得使吊钩直接钩挂吊环。吊环应用甲类 3 号沸腾钢制作。 (5) 钢平台安装时，钢丝绳应采用专用的挂钩挂牢，采取其他方式时卡头的卡子不得少于 3 个，建筑 物锐角利",
+          "match_score": 0.3754,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q4-ad6cb81072cf",
+      "variant_id": "C05-html-practice-html-q4-858e499f5e74",
       "candidates": [
         {
           "source_anchor": "kc:1A434000_066_0097:0",
@@ -107,11 +156,25 @@
           "match_score": 0.583,
           "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
           "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "kc:1A413000_080_0151:0",
+          "quote": "板桩围护墙施工要点：板桩施工时，同一标高处的接头不应超过50%；混凝土板桩吊运需达70%强度，施打需达100%；拔桩后必须注浆夯实。 等较深的基坑。 - 深度不宜大于 12m。 ### （6）板桩围护墙 板桩包括混凝土板桩和钢板桩，结合内支撑（以钢支撑为主）使用，具有截水的作用。板桩施工要求有： 1. 宜采用振",
+          "match_score": 0.3875,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "kc:1A434000_076_0118:0",
+          "quote": "卷材屋面流淌治理方法：中等流淌可采用三种方法治理：切割法、局部切除重铺、钉钉子法。 ### 卷材屋面流淌 #### （1）通病现象： ① 严重流淌：流淌面积占屋面 50% 以上，大部分流淌距离超过卷材搭接长度。 ② 中等流",
+          "match_score": 0.3344,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q5-4c47d02bfc5a",
+      "variant_id": "C05-html-practice-html-q5-6be5db89240b",
       "candidates": [
         {
           "source_anchor": "kc:1A411011_036_0063:2",
@@ -133,11 +196,25 @@
           "match_score": 0.3438,
           "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
           "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "ca:1A422000_032_0054",
+          "quote": "地下连续墙的墙体厚度通常有哪些选项？ 施。 （2）地下连续墙的墙体厚度宜根据成槽机的规格，选取 600mm、800mm、1000mm 或 1200mm。 （3）地下连续墙的槽段接头应按下列原则选用： ① 地下连续墙宜采用圆",
+          "match_score": 0.3438,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "ca:1A436000_117_0191",
+          "quote": "关于钢结构施工中安全通道的要求，下列说法正确的是？ 分层连续搭设。 ② 钢结构施工的平面安全通道宽度不宜小于 600mm，且两侧应设置安全护栏或防护钢丝绳。 ③ 在钢梁或钢桁架上行走的作业人员应佩戴双钩安全带。 #### （5）洞口和临",
+          "match_score": 0.3406,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q6-d3c7fe14fab1",
+      "variant_id": "C05-html-practice-html-q6-bac427403b54",
       "candidates": [
         {
           "source_anchor": "exam:2025:第12题",
@@ -159,11 +236,25 @@
           "match_score": 0.5774,
           "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
           "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下： 1. 受拉接头不宜大于 50%； 2. 受压接头不宜大于 75%； 3. 直接承受动力荷载的结构构件不宜采用焊接； 4. 直接承受动力荷载的结构构件采用机 (1) 不妥之处：①“找平层的分格缝设置不当”。②“屋面板因温度变化产生胀缩”。③“卷材搭接长度太小”。(",
+          "match_score": 0.44,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "@600，伸入墙内500mm。\\n\\n正确做法：柱边应设置间距不大于500mm的2φ6钢筋，且应在砌体内锚固长度不小于1000mm。\\n\\n不妥之处二：填充墙与结构梁下最后三皮砖空隙部位，在墙体砌筑7d后，采取两边对称斜砌填实。\\n\\n正确做法：填充墙梁下口最后3皮砖应在下部墙砌完14d后砌筑，并由中间开始向两边斜砌。\\n\\n不妥之处三：化学植筋连接筋φ6做拉拔试验时，将轴向受拉非破坏承载力检验值",
+          "match_score": 0.3933,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q7-fe802505d488",
+      "variant_id": "C05-html-practice-html-q7-479126da25f0",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_100_0190:2",
@@ -185,11 +276,25 @@
           "match_score": 0.2578,
           "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
           "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "exam:2016:案例1",
+          "quote": "【背景资料】某综合楼工程，地下三层，地上二十层，总建筑面积68000m2。地基基础 设计等级为甲级，灌注桩筏板基础，现浇钢筋混凝土框架- 剪力墙结构，建设单位与施工 单位按照《建设工程施工合同( 示范文本)》(GF—2013—0201) 签订了施工合同，约定竣工 时需向建设单位移交变形测量报告，部分主要材料由建设单位采购提供。施工单位委托第 三方测量单位进行施工阶段的建筑变形测量。 基础桩设计桩径",
+          "match_score": 0.2578,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "材无裂缝、钢筋无滑移宏观裂损现象；持荷2min期间荷载值降低不大于5%。 3. (1) 铺贴方法还有：冷粘法、热熔法、自粘法、焊接法、机械固定法等。 (2) 铺贴顺序和方向要求还有：①卷材防水层施工时，应先进行细部构造处理，然后由屋面最低标高向上铺贴；②檐沟、天沟卷材施工时，宜顺檐沟、天沟方向铺贴，搭接缝应顺流水方向。 4. (1) 截面积2.5m²错误，截面积不应小于4mm²； (2) 黄色标错",
+          "match_score": 0.2578,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q8-f9d6202c0ad7",
+      "variant_id": "C05-html-practice-html-q8-9097a8ff7f1d",
       "candidates": [
         {
           "source_anchor": "exam:2025:第27题",
@@ -204,11 +309,32 @@
           "match_score": 0.3607,
           "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
           "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "exam:2016:案例2",
+          "quote": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构 网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。 地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监 理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架 全部拆除。 “两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设 计要求，",
+          "match_score": 0.1803,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2020:第22题",
+          "quote": "钢筋代换时应满足构造要求有（ ）。 A. 裂缝宽度验算 B. 配筋率 C. 钢筋间距 D. 保护层厚度 E. 钢筋锚固长度 CDE 解析：‘长宽抗展承载力’指设计要求；‘长厚面积小间距’指构造要求，包括搭接长度、锚固长度、保护层厚度、钢筋间距和最大配筋率。",
+          "match_score": 0.1803,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护 结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板， 防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件： 事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构 件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求， 责令施工单位进",
+          "match_score": 0.1639,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q9-c9e2d32a6af5",
+      "variant_id": "C05-html-practice-html-q9-030af0a6cc15",
       "candidates": [
         {
           "source_anchor": "exam:2020:第22题",
@@ -216,11 +342,39 @@
           "match_score": 0.4839,
           "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
           "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2025:第27题",
+          "quote": "受力钢筋代换应满足的基本要求有（ ）。 A.代换后面积等于设计面积 B.等强度代换 C.等面积代换 D.等刚度代换 E.代换后应满足构造要求 BCE 受力钢筋代换应满足的基本要求：等强度代换、等面积代换，代换后应满足构造要求。等刚度代换不属于钢筋代换的基本要求。",
+          "match_score": 0.2093,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2015:第3题",
+          "quote": "关于一般环境条件下建筑结构混凝土板构造要求的说法，错误的是( )。 A. 屋面板厚度一般不小于60mm B. 楼板厚度一般不小于80mm C. 楼板的保护层厚度不小于35mm D. 楼板受力钢筋间距不宜大于250mm C 【解析】本题考查的是建筑结构的构造要求。板的厚度与计算跨度有关，屋面板一般不小于60mm, 楼 板一般不小于80mm，板的支承长度不能小于规范规定的长度，板的保护层厚度一般为15",
+          "match_score": 0.1935,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2024:第14页",
+          "quote": "置间距500mm的2φ6钢筋、里口用半砖斜砌墙等专项防治措施，要求现场严格执行。 公司在装饰抹灰检查中发现有抹灰层脱层、空鼓，面层爆灰、裂缝、表面不平整、接槎和抹纹明显等与一般抹灰相同的质量通 1. “三检”制度是指自检、互检、专检；现场试验法检查的两种方法是理化试验和无损检测。 2. 叠合板预制构件进场后的实体检验项目还包括：受力钢筋数量、间距、保护层厚度、混凝土强度。 3. 填充墙与主体结构交",
+          "match_score": 0.1935,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "kc:1A422000_029_0049:0",
+          "quote": "防水混凝土结构厚度：防水混凝土结构厚度不应小于 250mm。 ### 防水混凝土结构厚度要求 ② 防水混凝土结构厚度不应小于 250mm； ### 防水混凝土裂缝控制 ③ 防水混凝土的裂缝宽度不",
+          "match_score": 0.1923,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q10-dabaf07630f0",
+      "variant_id": "C05-html-practice-html-q10-629bcdfa1082",
       "candidates": [
         {
           "source_anchor": "exam:2017:第19题",
@@ -228,11 +382,25 @@
           "match_score": 0.3478,
           "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
           "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下： 1. 受拉接头不宜大于 50%； 2. 受压接头不宜大于 75%； 3. 直接承受动力荷载的结构构件不宜采用焊接； 4. 直接承受动力荷载的结构构件采用机 (1) 不妥之处：①“受压接头不宜大于 75%”；正确做法：受压接头可不受限制。②“直接承受动力荷载的结构",
+          "match_score": 0.2174,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "ca:1A413030_104_0199",
+          "quote": "下列哪种设备不属于预应力张拉用液压千斤顶？ ## 2) 预应力筋、锚、夹具与张拉设备 预应力筋可分为：钢丝、钢绞线、螺纹钢筋、非金属预应力筋等。金属类预应力筋下料时应采用砂轮锯或切断机切断，不得采用电弧切割。预应力锚具、夹具按",
+          "match_score": 0.1304,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q11-e9109bc8bea5",
+      "variant_id": "C05-html-practice-html-q11-1d4cf137eaa8",
       "candidates": [
         {
           "source_anchor": "exam:2022:第28题",
@@ -254,11 +422,25 @@
           "match_score": 0.3342,
           "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
           "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "kc:1A422000_039_0063:1",
+          "quote": "灌浆连接质量控制要点：套筒灌浆连接要求灌浆饱满密实，所有出口出浆；灌浆料强度需做试块检测，尺寸为40×40×160mm，标养28天。 . 混凝土预制构件安装与连接的主控项目 （1）钢筋采用套筒灌浆连接、浆锚搭接连接时，灌浆应饱满、密实，所有出口均应出浆。 （2）钢筋套筒灌浆连接及浆锚搭接连接的灌浆料强度应符合标准的规",
+          "match_score": 0.2982,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "kc:1A411011_031_0055:0",
+          "quote": "混凝土结构最小截面尺寸：矩形截面框架梁宽度≥200mm；框架柱边长≥300mm，圆柱直径≥350mm；高层剪力墙厚度≥160mm，多层≥140mm；现浇实心楼板≥80mm（住宅≥100mm）；实心屋面板≥100mm；空心楼板顶/底板≥50mm；预制叠合板预制底板及后浇层≥50mm。 ### 1. 混凝土结构体系 （1）混凝土结构体系应满足工程的承载能力、刚度和延性性能要求。 （2）混凝土结构体系设",
+          "match_score": 0.25,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q12-9bed4272deb9",
+      "variant_id": "C05-html-practice-html-q12-831cb6ca880c",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_100_0190:1",
@@ -266,11 +448,39 @@
           "match_score": 0.5,
           "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
           "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "kc:1A412000_039_0067:0",
+          "quote": "热轧钢筋强度标准值：热轧钢筋分为光圆钢筋（HPB300）和带肋钢筋（HRB400、HRB500、HRB600），其屈服强度标准值分别为 300MPa、400MPa、500MPa、600MPa；极限强度不小于 420MPa、540MPa、630MPa、730MPa。 ### 钢筋混凝土结构用钢 钢筋混凝土结构用钢筋品种有热轧钢筋、余热处理钢筋、冷轧带肋钢筋及预应力筋，预应力筋有螺纹钢筋、钢丝和钢绞线",
+          "match_score": 0.2396,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "kc:1A438000_153_0299:1",
+          "quote": "钢筋冷拉与焊接温度限制：钢筋调直冷拉温度不宜低于 -20℃；预应力钢筋张拉温度不宜低于 -15℃；环境温度 < -20℃ 时，不得对 HRB400 及以上钢筋进行冷弯加工。 宜控制在 20℃以内，且不应超过 30℃。 ### 3. 钢筋工程 #### （1）钢筋调直与冷拉温度 钢筋调直冷拉温度不宜低于 -20℃。预应力钢筋张拉温度不宜低于 -15℃。当",
+          "match_score": 0.1771,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "exam:2019:第1题",
+          "quote": "设为5.0kN，层面持荷时间2min，期间各检测结果符合相关要求，即判定该试样合格。\\n\\n正确做法：充墙与承重墙、柱、梁的连接钢筋，当采用化学植筋的连接方式时，应进行实体检测。锚固钢筋拉拔试验的轴向受拉非破坏承载力检验值应为6.0kN。抽检钢筋在检验值作用下应基材无裂缝、钢筋无滑移宏观裂损现象；持荷2min期间荷载值降低不大于5%。\\n\\n3. (1) 铺贴方法还有：冷粘法、热熔法、自粘法 【参",
+          "match_score": 0.1687,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "kc:1A413000_078_0149:1",
+          "quote": "土钉成孔直径范围：成孔注浆型钢筋土钉成孔直径宜为70～120mm。 ～2m；土钉倾角宜为5°～20°。 ④ 成孔注浆型钢筋土钉成孔直径宜为70～120mm；土钉钢筋宜选用HRB400、HRB500钢筋，直径16～32mm；土钉孔注浆材料可选用水泥浆或水泥",
+          "match_score": 0.1684,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q13-a76354083964",
+      "variant_id": "C05-html-practice-html-q13-d47cfa864586",
       "candidates": [
         {
           "source_anchor": "kc:1A413030_109_0216:0",
@@ -292,15 +502,65 @@
           "match_score": 0.2698,
           "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
           "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "ca:1A412000_039_0067",
+          "quote": "下列关于热轧带肋钢筋的说法中，错误的是？ 0 | 不小于 420 | 6～25 | | 带肋钢筋 | HRB400 | 400 | 540 | 6～50 | | | HRBF400 | 400 | 540 | 6～50",
+          "match_score": 0.2381,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下： 1. 受拉接头不宜大于 50%； 2. 受压接头不宜大于 75%； 3. 直接承受动力荷载的结构构件不宜采用焊接； 4. 直接承受动力荷载的结构构件采用机 ①“项目部在开工后编制了项目质量计划”；正确做法：项目质量计划应在项目策划过程中编制。②“根据工程进展实施",
+          "match_score": 0.2308,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
         }
       ]
     },
     {
-      "variant_id": "C05-html-practice-html-q14-699863839d98",
-      "candidates": []
+      "variant_id": "C05-html-practice-html-q14-ff5f56e11bd1",
+      "candidates": [
+        {
+          "source_anchor": "ca:1A412000_039_0067",
+          "quote": "下列关于热轧带肋钢筋的说法中，错误的是？ 0 | 不小于 420 | 6～25 | | 带肋钢筋 | HRB400 | 400 | 540 | 6～50 | | | HRBF400 | 400 | 540 | 6～50",
+          "match_score": 0.1905,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "ca:1A413030_100_0190",
+          "quote": "下列关于钢筋连接的说法中，错误的是？ ### 钢筋连接 （1）钢筋的连接方法有：焊接、机械连接和绑扎连接三种。 （2）钢筋常用的焊接方法有：闪光对焊、电弧焊（包括帮条焊、搭接焊、熔槽焊、剖口焊、预埋件角",
+          "match_score": 0.1746,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "exam:2022:第14题",
+          "quote": "宜采用绑扎搭接接头的是（ ）。 A.直径28mm受拉钢筋 B.直径25mm受压钢筋 C.桁架拉杆纵向受力钢筋 D.行车梁纵向受力钢筋 B 专业语感258，拉25、压28、不宜绑扎。即：受拉钢筋直径≤25mm可绑扎，受压钢筋直径≤28mm可绑扎。因此，",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2023:第1题",
+          "quote": "筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下： 1. 受拉接头不宜大于 50%； 2. 受压接头不宜大于 75%； 3. 直接承受动力荷载的结构构件不宜采用焊接； 4. 直接承受动力荷载的结构构件采用机 ①“项目部在开工后编制了项目质量计划”；正确做法：项目质量计划应在项目策划过程中编制。②“根据工程进展实施",
+          "match_score": 0.1667,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "exam:2019:第8题",
+          "quote": "直接承受动力荷载的结构构件中，直径为20mm纵向受力钢筋的连接宜选用（ ）。 A. 绑扎连接 B. 直螺纹套筒连接 C. 帮条焊 D. 搭接焊 B 直接承受动力荷载的结构构件中，钢筋接头宜采用机械连接（如直螺纹套筒连接）。焊接接头会产生热影响区，不利于承受动力荷载。绑扎连接适用于小直径钢筋。",
+          "match_score": 0.16,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        }
+      ]
     },
     {
-      "variant_id": "C05-html-practice-html-q15-c6ed1b359fba",
+      "variant_id": "C05-html-practice-html-q15-a25ea0fb11d3",
       "candidates": [
         {
           "source_anchor": "exam:2023:第1题",
@@ -320,6 +580,20 @@
           "source_anchor": "exam:2022:第14题",
           "quote": "宜采用绑扎搭接接头的是（ ）。 A.直径28mm受拉钢筋 B.直径25mm受压钢筋 C.桁架拉杆纵向受力钢筋 D.行车梁纵向受力钢筋 B 专业语感258，拉25、压28、不宜绑扎。即：受拉钢筋直径≤25mm可绑扎，受压钢筋直径≤28mm可绑扎。因此，",
           "match_score": 0.325,
+          "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
+          "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
+        },
+        {
+          "source_anchor": "kc:1A434000_066_0097:0",
+          "quote": "钢筋接头面积百分率控制：受拉接头不宜大于50%，受压接头可不受限制；直接承受动力荷载的构件不宜焊接，机械连接不超过50%。 ### 钢筋连接质量控制 （4）当纵向受力钢筋采用机械连接接头或焊接接头时，同一连接区段内纵向受力钢筋的接头面积百分率应符合设计要求；",
+          "match_score": 0.3075,
+          "source_file": "docs/原始数据/考点原料/_C05_compiled_source.json",
+          "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f"
+        },
+        {
+          "source_anchor": "exam:2015:案例2",
+          "quote": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护 结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板， 防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件： 事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构 件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求， 责令施工单位进",
+          "match_score": 0.1967,
           "source_file": "docs/原始数据/考点原料/_C05_exam_evidence.json",
           "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946"
         }

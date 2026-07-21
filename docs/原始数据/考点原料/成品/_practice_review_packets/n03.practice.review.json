@@ -5,7 +5,7 @@
   "source_bundle_sha256": "aa5e7c5996cfd657722183d80e51b388d0068d9cf80711789b1b87eeb55ff189",
   "compiled_schema_version": "luban_compiled_practice.v3",
   "candidate_count": 15,
-  "eligible_count": 7,
+  "eligible_count": 9,
   "human_gate": {
     "required_roles": [
       "teaching",
@@ -892,23 +892,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q12",
       "authoring_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "n03-fact-判型成倍数等步距异节奏",
+        "skeleton_id": "n03-skel-等节奏判型K等t",
+        "probe_role": "immediate_confirm",
+        "source_anchor": "kc:1A433000_052_0077:0",
+        "source_sha256": "162b5b5e70715dc73d59fda06190800b43185749ff23452d15164156b2a2ee28",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "1bbe8ee99d7ddaa9b5af4e2488dcc2df3bfbd06f34ca6484d3371559efdd1ce6",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:27+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:27+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "节拍全等判等节奏,K=t=4,队数=过程数连续无空闲,教材等节奏特点四条逐字核对+复算(gcd干扰项判错正确)。判型fact覆盖三型判定判据。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -962,23 +974,35 @@
       "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_N03/P40_N03.practice.dc.html#Q13",
       "authoring_sha256": "b2acc47d12515ced7911fd694815e2957ec642a0342c5f9f87ebcc8635aff1c2",
       "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
+        "fact_id": "n03-fact-判型成倍数等步距异节奏",
+        "skeleton_id": "n03-skel-无节奏判型大差法",
+        "probe_role": "d1_probe",
+        "source_anchor": "kc:1A433000_052_0076:0",
+        "source_sha256": "162b5b5e70715dc73d59fda06190800b43185749ff23452d15164156b2a2ee28",
         "review": {
-          "status": "pending",
-          "verdict": "pending",
+          "status": "signed",
+          "verdict": "approved",
           "reviewed_content_sha256": "40e1f9daec8148ec870736f2f5d9665c1e7b2d0bcf9908acb6f33c2dad1bf52c",
-          "signatures": [],
+          "signatures": [
+            {
+              "role": "teaching",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:27+08:00"
+            },
+            {
+              "role": "scoring",
+              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+              "signed_at": "2026-07-21T09:53:27+08:00"
+            }
+          ],
           "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
+            "source_verified": true,
+            "answer_verified": true,
+            "diagnosis_verified": true,
+            "longest_option_checked": true,
+            "template_leakage_checked": true
+          },
+          "note": "节拍2/4/3/5不全等不成倍数判无节奏,大差法求步距,队数=过程数,教材无节奏特点逐字核对+成倍性复核(3不整除2)。"
         },
         "revoked": false,
         "revocation_refs": []
@@ -1154,8 +1178,8 @@
     "delegated_at": "2026-07-16",
     "delegated_to": "claude-main-control",
     "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "opus-adjudication 2026-07-20 全量清尾批(owner指令);逐题引文回_N03_exam_evidence.json原文核对+计算复算;数值算例锚以真题为准(compiled_source诚实分工);待 fable 对抗核验",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+    "adversarial_gate": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+    "campaign": "confirm-supply-widen batch1 2026-07-21 (11-pack)",
     "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
   }
 }

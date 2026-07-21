@@ -29,7 +29,9 @@
         "C01-html-practice-html-q2-6243d5fb9605",
         "C01-html-practice-html-q3-420249562481",
         "C01-html-practice-html-q4-c2bf08e2ffaa",
+        "C01-html-practice-html-q10-16347cd357c5",
         "C01-html-practice-html-q11-4f752e82aefe",
+        "C01-html-practice-html-q12-01ffccfd9bec",
         "C01-html-practice-html-q13-1ea21c18131e",
         "C01-html-practice-html-q15-dd906fe33c11"
       ],
@@ -1573,29 +1575,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_103_0196:1",
+      "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee",
       "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c01-fact-post-cast-strip",
+      "skeleton_id": "c01-skel-后浇带材料选用",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "6f9ef13024b1aa0dfde07cd057ac58a4c69f6e5878c4b0f2f344f0e70dafbf59",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "6f9ef13024b1aa0dfde07cd057ac58a4c69f6e5878c4b0f2f344f0e70dafbf59",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "后浇带用微膨胀混凝土,教材chunk直言'后浇带使用微膨胀混凝土'逐字核对;补偿收缩机理为标准教学表述。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：后浇带填充混凝土",
         "caption": "普通同强度 vs 微膨胀",
@@ -2055,29 +2069,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2018:案例分析(三)问题3",
+      "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
       "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "c01-fact-post-cast-strip",
+      "skeleton_id": "c01-skel-底板封闭时机28d",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "4149b9f45cd57f62bd680430a2369f56effc1ec4abc600f6d07006ed16597863",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "4149b9f45cd57f62bd680430a2369f56effc1ec4abc600f6d07006ed16597863",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:25+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "基础底板后浇带≥28d封闭,锚2018真题官方答案'应至少28d后封闭'(带基础底板限定,与q16缺限定词版本相反,本题限定词齐全)。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：底板后浇带封闭时机",
         "caption": "两侧主体收缩 · 何时封闭？",

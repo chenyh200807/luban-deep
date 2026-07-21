@@ -55,7 +55,8 @@ FINISHED = (
     / "diagram_microlesson"
     / "finished"
 )
-REVIEWER = "owner-delegated:claude-main-control:2026-07-18"
+DEFAULT_REVIEWER = "owner-delegated:claude-main-control:2026-07-18"
+DEFAULT_CAMPAIGN = "practice-mass-signing 2026-07-18 (39-pack)"
 CHECKS = (
     "source_verified",
     "answer_verified",
@@ -92,10 +93,10 @@ def _resolve_sha(candidates: dict, variant_id: str, source_anchor: str) -> str:
     raise SystemExit(f"ABORT: variant {variant_id} absent from anchor candidates")
 
 
-def _signed_review(content_sha: str, note: str, signed_at: str) -> dict:
+def _signed_review(content_sha: str, note: str, signed_at: str, reviewer: str) -> dict:
     sig = lambda role: {  # noqa: E731
         "role": role,
-        "reviewer_id": REVIEWER,
+        "reviewer_id": reviewer,
         "signed_at": signed_at,
     }
     return {
@@ -113,6 +114,16 @@ def main(argv: list[str]) -> int:
     ap.add_argument("pack")
     ap.add_argument("--spec", required=True)
     ap.add_argument("--now", default=None, help="ISO signed_at; default now CST")
+    ap.add_argument(
+        "--reviewer",
+        default=DEFAULT_REVIEWER,
+        help="owner-delegated reviewer_id stamped on both roles",
+    )
+    ap.add_argument(
+        "--campaign",
+        default=DEFAULT_CAMPAIGN,
+        help="campaign label recorded in packet verdict_authority",
+    )
     args = ap.parse_args(argv)
 
     pack = args.pack.upper()
@@ -154,7 +165,7 @@ def main(argv: list[str]) -> int:
             "probe_role": role,
             "source_anchor": anchor,
             "source_sha256": source_sha,
-            "review": _signed_review(content_sha, note, signed_at),
+            "review": _signed_review(content_sha, note, signed_at, args.reviewer),
             "revoked": False,
             "revocation_refs": [],
         }
@@ -169,7 +180,7 @@ def main(argv: list[str]) -> int:
             spec.get("adversarial_gate_ref")
             or "codex-cross-model, adjudicated by main control"
         ),
-        "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
+        "campaign": str(args.campaign),
         "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。",
     }
 

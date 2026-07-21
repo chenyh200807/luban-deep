@@ -30,6 +30,8 @@
         "D11-html-practice-html-q3-1991f820d89e",
         "D11-html-practice-html-q4-97aa7bdee8b7",
         "D11-html-practice-html-q5-1b514bb621b0",
+        "D11-html-practice-html-q6-5f46149bfe85",
+        "D11-html-practice-html-q7-ab7a6f9f45d1",
         "D11-html-practice-html-q13-46f470a28169",
         "D11-html-practice-html-q15-cd860a8acf74"
       ],
@@ -1186,29 +1188,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A422000_043_0069:1",
+      "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
       "source_html_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d11-fact-substrate-moisture-limits",
+      "skeleton_id": "d11-skel-乳液型含水率阈值直问",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "89c4cf0bd891259d7effb07056b9afeb3d685e3de78057bdd64f77482e4d7a12",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "89c4cf0bd891259d7effb07056b9afeb3d685e3de78057bdd64f77482e4d7a12",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "乳液型涂料基层含水率≤10%,教材含水率三档卡逐字核对(8%/10%/12%),2023第2题真题印证10%为正确做法。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "图示：基层含水率上限",
         "caption": "乳液型涂料 · 基层含水率≤？",
@@ -1472,29 +1486,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A422000_043_0069:1",
+      "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
       "source_html_sha256": "96a19aca886e73b7fc82cf2467f78508436279745202fd2da7da0faa754b189a",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "d11-fact-substrate-moisture-limits",
+      "skeleton_id": "d11-skel-木材含水率阈值直问",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "bf845d7755c052f95e1a0bffc05a3f6c28dcbe010a0c9210a33ea160e942ccad",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "bf845d7755c052f95e1a0bffc05a3f6c28dcbe010a0c9210a33ea160e942ccad",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "木材基层含水率≤12%,同卡逐字核对;干扰项8%/10%错配对象判错正确。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "图示：基层含水率上限",
         "caption": "木材基层 · 含水率≤？",

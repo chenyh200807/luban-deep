@@ -29,6 +29,13 @@
         "X03-html-practice-html-q2-889e43029c6d",
         "X03-html-practice-html-q3-5435fcbead15",
         "X03-html-practice-html-q4-a50ad1e7b1b6",
+        "X03-html-practice-html-q6-bab2eefe747c",
+        "X03-html-practice-html-q7-7fa6c80481cc",
+        "X03-html-practice-html-q8-d2d7a4bad7b1",
+        "X03-html-practice-html-q10-89ab4b0c45e8",
+        "X03-html-practice-html-q11-dbe2999e7964",
+        "X03-html-practice-html-q12-f346e1ec99de",
+        "X03-html-practice-html-q13-ebd6bd5a44e3",
         "X03-html-practice-html-q14-1c0363621efa",
         "X03-html-practice-html-q15-adb9aff306e7",
         "X03-html-practice-html-q16-3c13f34dbc94"
@@ -905,29 +912,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2017:第16题",
+      "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a",
       "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-four-savings",
+      "skeleton_id": "x03-skel-节地归类判断",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "bb78ddbf3907961e980e68c4834e9b4b276819d07456cdfba8a1d03b9e7f171b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "bb78ddbf3907961e980e68c4834e9b4b276819d07456cdfba8a1d03b9e7f171b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "绿化代替场地硬化=节地与施工用地保护,2017真题B逐字核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "四节归类框",
         "caption": "绿化代替场地硬化 · 归进哪一节",
@@ -1072,29 +1091,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_140_0223:1",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-four-savings",
+      "skeleton_id": "x03-skel-节水循环回灌",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "8583b0252f68d8503a7427ffe7b71465e0bbdcc4be7c52d16e89aa3cd306bd8b",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "8583b0252f68d8503a7427ffe7b71465e0bbdcc4be7c52d16e89aa3cd306bd8b",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "冲洗用水设循环装置/抽水量>50万m³须回灌地下水,教材逐字核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "节水 · 循环装置 + 回灌",
         "caption": "冲洗用水 / 抽水回灌 · 哪句可得分",
@@ -1205,29 +1236,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q8",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_140_0223:2",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-four-savings",
+      "skeleton_id": "x03-skel-节能四节措施",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "7cede91efb97db9dffd4fbc2485f35ac0215b97dee8c3f58bb16469ff192fb65",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "7cede91efb97db9dffd4fbc2485f35ac0215b97dee8c3f58bb16469ff192fb65",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "四节节能=节能设备/最低照度/分时段/可再生能源,教材逐字核对;与建筑节能工程(围护验收)辨析正确。新fact非surface仅d1可达。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "两个「节能」对比",
         "caption": "四节·节能 vs 建筑节能工程 · 哪句对",
@@ -1556,29 +1599,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q10",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_141_0225:1",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-env-protection-measures",
+      "skeleton_id": "x03-skel-扬尘三环节",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "c5589dd2c0586d63b3311f1ad9613b775e860178635482b02e6985b5c90bdc56",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "c5589dd2c0586d63b3311f1ad9613b775e860178635482b02e6985b5c90bdc56",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "扬尘控制:源头覆盖固化绿化/物料篷盖(教材防尘卡逐字)+路径自动喷淋雾炮(kc:149_0293扬尘三件套)+出口冲洗池。新fact非surface仅d1可达。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "扬尘三件套 · 源头/路径/出口",
         "caption": "立体防尘 · 哪项没缺环节",
@@ -1791,29 +1846,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q11",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_149_0294:0",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-env-protection-measures",
+      "skeleton_id": "x03-skel-噪声四措施",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "66b15a3d9b26b9360d8901cd69c80655af2c8706c360745352ff374c4aa0c41c",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "66b15a3d9b26b9360d8901cd69c80655af2c8706c360745352ff374c4aa0c41c",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "噪声控制:低噪声设备→隔声屏/罩→封闭木工房→优化工艺,教材逐字核对。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "噪声四步 · 源强到受体",
         "caption": "设备/隔声/封闭/工艺 · 哪项写全",
@@ -1975,29 +2042,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q12",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_139_0222:2",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-env-protection-measures",
+      "skeleton_id": "x03-skel-夜间光污染三动作",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "9009bf1fe054c784fa89be1e548846d4db4c67e09796eee452be867d59b4278f",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "9009bf1fe054c784fa89be1e548846d4db4c67e09796eee452be867d59b4278f",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "夜间施工办许可证公告居民/照明加灯罩透光集中/电焊遮挡防弧光,教材逐字核对+2017真题案例印证。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "夜间施工现场",
         "caption": "许可 / 灯罩 / 电焊遮挡 · 哪句可得分",
@@ -2142,29 +2221,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q13",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A437000_013_0019:1",
+      "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
       "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "x03-fact-env-protection-measures",
+      "skeleton_id": "x03-skel-污水泥浆处置",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "641a9eb69dfa052822926b2e370b863ac7731b2d5a2ccf4f86f2c542a3d7e9b1",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "641a9eb69dfa052822926b2e370b863ac7731b2d5a2ccf4f86f2c542a3d7e9b1",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:26+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "工程泥浆经泥浆池/封闭容器收集未处理不得排放(教材逐字);临时排水许可证由市政管理部门发证经编译源真题注{2020,第16题}D市政核实。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "泥浆收集 / 污水许可",
         "caption": "能不能就地排 · 许可谁发",

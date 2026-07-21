@@ -1,0 +1,22 @@
+{
+  "pack_id": "N03",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (confirm-supply widen batch1): 每题锚回编译源/真题原文逐字核对+数值复算;对抗抓雷已剔除(C01 q14教材vs真题源冲突、C01 q16缺基础底板限定、A02 q15墙体/屋面张冠李戴、G02 q13官方解析自相矛盾);复合fact粒度按C01 post-cast-strip先例并在note逐条声明可达性边界。",
+  "signed": [
+    {
+      "variant_id": "N03-html-practice-html-q12-ec5949f5d91d",
+      "probe_role": "immediate_confirm",
+      "fact_id": "n03-fact-判型成倍数等步距异节奏",
+      "skeleton_id": "n03-skel-等节奏判型K等t",
+      "source_anchor": "kc:1A433000_052_0077:0",
+      "note": "节拍全等判等节奏,K=t=4,队数=过程数连续无空闲,教材等节奏特点四条逐字核对+复算(gcd干扰项判错正确)。判型fact覆盖三型判定判据。"
+    },
+    {
+      "variant_id": "N03-html-practice-html-q13-756762132051",
+      "probe_role": "d1_probe",
+      "fact_id": "n03-fact-判型成倍数等步距异节奏",
+      "skeleton_id": "n03-skel-无节奏判型大差法",
+      "source_anchor": "kc:1A433000_052_0076:0",
+      "note": "节拍2/4/3/5不全等不成倍数判无节奏,大差法求步距,队数=过程数,教材无节奏特点逐字核对+成倍性复核(3不整除2)。"
+    }
+  ]
+}

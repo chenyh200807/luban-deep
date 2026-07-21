@@ -29,7 +29,9 @@
         "Q02-html-practice-html-q2-bdf6a72816e9",
         "Q02-html-practice-html-q3-b43d41f5737d",
         "Q02-html-practice-html-q4-bfb29285340d",
+        "Q02-html-practice-html-q5-6d014202d1e5",
         "Q02-html-practice-html-q6-0c83adccd53a",
+        "Q02-html-practice-html-q7-826f6c14f838",
         "Q02-html-practice-html-q8-960ccb6cc929",
         "Q02-html-practice-html-q16-c02651c51c2c"
       ],
@@ -973,29 +975,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "kc:1A413030_095_0180:0",
+      "source_sha256": "4234c4f8dfc8db45aa461ad806fbf72a5e5f048005ca6d668bb4699c3c5a2e05",
       "source_html_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "q02-fact-mix-conversion-and-limits",
+      "skeleton_id": "q02-skel-计算作答四步链",
+      "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "44e507f5ddb35d8450178076cbb7b3c69b8fb794c05d082da41ba99280f54dc5",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "44e507f5ddb35d8450178076cbb7b3c69b8fb794c05d082da41ba99280f54dc5",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:27+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:27+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "计算题四步链(公式→列式→结论带单位→回判限值),回判示例水胶比≤0.45有教材大体积配合比卡逐字锚;四步结构为判分口径,类比本包q16采分诊断先例。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "图示：计算题的四道门（顺序待定）",
         "caption": "过程分按步给 · 四道门怎么过？",
@@ -1353,29 +1367,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q7",
-      "source_anchor": "",
-      "source_sha256": "",
+      "source_anchor": "exam:2019:案例一(一)背景资料",
+      "source_sha256": "0f054d38323c95a8dd63797e2aed31d6366d99b123ebeee8362ff4589d223e2e",
       "source_html_sha256": "d9eb7c9fe127777e1e48a50ffb8dffd56f30d4966b8abc4aefc537714e18066d",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "fact_id": "q02-fact-mix-conversion-and-limits",
+      "skeleton_id": "q02-skel-含水率扣减方向",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
       "content_sha256": "cdb623dcf6a72817dec52098ffe508757dcd319f2eaad1d7fd127e5db1a959b5",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
+        "status": "signed",
+        "verdict": "approved",
         "reviewed_content_sha256": "cdb623dcf6a72817dec52098ffe508757dcd319f2eaad1d7fd127e5db1a959b5",
-        "signatures": [],
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:27+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T09:53:27+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "施工配合比换算:实际加水=设计用水−砂石带入水,砂石称量按含水率增加,锚2019真题案例一(中砂4%/碎石1.2%同题背景);漏碎石折算判错正确。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：骨料是湿的（水从哪儿扣？）",
         "caption": "中砂含水4% · 碎石含水1.2% · 用水量咋处理",

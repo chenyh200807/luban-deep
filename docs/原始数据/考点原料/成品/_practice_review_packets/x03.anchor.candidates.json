@@ -1,11 +1,11 @@
 {
   "machine_candidates_only": true,
-  "generated_at": "2026-07-18T03:53:13+00:00",
+  "generated_at": "2026-07-21T01:38:05+00:00",
   "generator": "scripts/prefill_practice_review_anchors.py",
   "note": "机器预填的来源锚候选, 仅供 owner 签发时参考。本文件绝不代表人工裁决: 不写审核包、不填 decision 字段、不签名 (human_gate.machine_must_not_sign=true)。匹配方法=题干+正确项+model_answer 对 compiled_source 采分点与 exam_evidence 真题的汉字二元组重合度(0.7)+数值/术语命中率(0.3), 无 LLM。",
   "pack_id": "X03",
   "packet_file": "docs/原始数据/考点原料/成品/_practice_review_packets/x03.practice.review.json",
-  "score_threshold": 0.1,
+  "score_threshold": 0.12,
   "warnings": [],
   "coverage": {
     "total_items": 15,
@@ -14,7 +14,7 @@
   },
   "items": [
     {
-      "variant_id": "X03-html-practice-html-q1-1ec18c6e2879",
+      "variant_id": "X03-html-practice-html-q1-392b2c69dc20",
       "candidates": [
         {
           "source_anchor": "ca:1A437000_143_0229",
@@ -36,11 +36,25 @@
           "match_score": 0.3951,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "exam:2016:第18题",
+          "quote": "关于施工文明施工的说法，错误的是( )。 A. 现场宿舍必须设置开启式窗户 B. 现场食堂必须办理卫生许可证 C. 施工现场必须实行封闭管理 D. 施工现场办公区与生活区必须分开设置 D 【解析】现场宿舍必须设置可开启式窗户，现场食堂必须办理卫生许可证，炊事人员必须持身体健康 证上岗；施工现场必须实施封闭管理。办公区、生活区、生产区宜分区域设置。",
+          "match_score": 0.358,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
+        },
+        {
+          "source_anchor": "exam:2015:第30题",
+          "quote": "关于施工现场消防管理的说法，正确的有( )。 A. 动火证当日有效 B. 施工现场严禁吸烟 C. 应配备义务消防人员 D. 易燃材料仓库应设在上风方向 E. 油漆料库内应设置调料间 ABC 【解析】本题考查的是施工现场消防管理。动火证当日有效并按规定开具，动火地点变换，要重新办 理动火证手续；施工现场严禁吸烟；项目部应根据工程规模、施工人数，建立相应的消防组织，配备足够 的义务消防员。D 易燃材料",
+          "match_score": 0.1605,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q2-b496fe8fb1aa",
+      "variant_id": "X03-html-practice-html-q2-889e43029c6d",
       "candidates": [
         {
           "source_anchor": "kc:1A437000_143_0229:1",
@@ -62,11 +76,25 @@
           "match_score": 0.378,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "exam:2017:案例三",
+          "quote": "基础，建筑高度 12m；地下室为钢筋混凝土框架结构，地上部分为钢结构；筏板基础混凝土等级为 C30，内配双层钢筋网、主筋为Φ20 螺纹钢，基础筏板下三七灰土夯实，无混凝土垫层。 施工单位安全生产管理部门在安全文明施工巡检时，发现工程告示牌及含施工总平面布置图的五牌一图布置在了现场主入口处围墙外侧。要求项目部将五牌一图布置在主入口内侧。 项目制定的基础筏板钢筋施工技术方案中规定：钢筋保护层厚度控制在",
+          "match_score": 0.1707,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
+        },
+        {
+          "source_anchor": "kc:1A437000_136_0219:1",
+          "quote": "采用装配式或利用在建结构，生产区、办公区、生活区应相对隔离，临时用房宜重复利用。 本体·绿色施工方案编制(leaf 1A437000-B088/B089): 绿色施工方案应含减少资源浪费和环境污染措施·明确组织管理体系技术要求·优先先进技术可重复利用设施. **注: 同chunk施工场地布置原则(临设占地最小化/生产办公生活区隔离/临时用房重复利用)=偏X01平面布置territory标🔵邻接; ",
+          "match_score": 0.1463,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q3-9bb6264d8af5",
+      "variant_id": "X03-html-practice-html-q3-5435fcbead15",
       "candidates": [
         {
           "source_anchor": "kc:1A437000_141_0225:0",
@@ -88,11 +116,25 @@
           "match_score": 0.6365,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "exam:2024:第27题",
+          "quote": "施工现场生活区围挡应采用（ ）定型材料。 A. 可拆卸 B. 可循环 C. 标准化 D. 有机类 E. 无机类 ABC 解析：《建筑工人施工现场生活环境基本配置指南》规定，生活区应采用可循环、可拆卸、标准化的专用金属定型材料进行围挡，围挡高度不得低于1.8米。因此正确答案为ABC。",
+          "match_score": 0.3365,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
+        },
+        {
+          "source_anchor": "ca:1A437000_143_0229",
+          "quote": "下列哪项不属于施工现场文明施工管理的基本要求？ 下列哪项不属于施工现场文明施工管理的基本要求？ | grading_keywords=围挡标准化,材料码放整齐,生活设施整洁,职工行为文明 本体·registry support 1A437000-B071 现场文明施工管理主要内容(leaf B042/B051/B071/B072/B073, 名实相符): 文明施工基本要求'六化'(围挡大门标牌标准",
+          "match_score": 0.1346,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q4-6fc7530044e5",
+      "variant_id": "X03-html-practice-html-q4-a50ad1e7b1b6",
       "candidates": [
         {
           "source_anchor": "exam:2017:案例三",
@@ -114,11 +156,25 @@
           "match_score": 0.1781,
           "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
           "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
+        },
+        {
+          "source_anchor": "exam:2020:第16题",
+          "quote": "施工现场污水排放需申领《临时排水许可证》，当地政府发证的主管部门是（ ）。 A. 环境保护管理部门 B. 环境管理部门 C. 安全生产监督管理部门 D. 市政管理部门 D 关于绿色施工手续办理，考生须知： (1) 市区内施工，项目应在开工15d前向工程所在地环保部门申报登记。 (2) 夜间施工，应制定施工降噪措施，施工前应办理《夜间施工许可证》。 (3) 现场污水排放应向“市政主管部门”领取《临时",
+          "match_score": 0.1644,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
+        },
+        {
+          "source_anchor": "exam:2023:第17页",
+          "quote": "| A | 9000m³ | 2000 元/m³ | 1800 | | B | 12000m³ | 2500 元/m³ | 3000 | | C | 15000m³ | 2200 元/m³ | 3300 | | D | 4000m³ | 3000 元/m³ | 1200 | 措施费为分部分项工程费16%，安全文明施 现场文明、安全有序、整洁卫生、不扰民、绿色环保。 施工平面管理不仅满足施工需求，还",
+          "match_score": 0.1644,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q6-58d599496816",
+      "variant_id": "X03-html-practice-html-q6-bab2eefe747c",
       "candidates": [
         {
           "source_anchor": "exam:2017:第16题",
@@ -140,11 +196,25 @@
           "match_score": 0.3091,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_141_0224:1",
+          "quote": "体·节地与绿色施工创新(leaf 1A437000-B085/B093): 节地(临设按最小面积·优化深基坑减土方扰动·红线外优先荒地废地·利用原有设施·道路永临结合原则); 绿色施工创新9项(装配式/信息化/基坑地下工程/建材设备绿色评价/钢结构预应力新型结构/高性能混凝土/高强耐候钢/新型模架/建筑垃圾回收). 真题{2017,第16题}'绿化代替场地硬化=节地与施工用地保护'直命. 节地/四",
+          "match_score": 0.3091,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_141_0225:0",
+          "quote": "施工现场围挡要求：围挡应采用可循环、可拆卸、标准化的定型材料，高度不得低于1.8m。 围挡应采用可循环、可拆卸、标准化的定型材料，高度不得低于1.8m。 本体·围挡与防尘措施(leaf 1A437000-B007/B048): 围挡采用可循环可拆卸标准化定型材料·高度不得低于1.8m(真题{2024,第27题}围挡可拆卸/可循环/标准化直命); 防尘=主要通道材料加工区地面硬化·裸露场地土方覆盖固",
+          "match_score": 0.1455,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q7-e6cd16886f24",
+      "variant_id": "X03-html-practice-html-q7-7fa6c80481cc",
       "candidates": [
         {
           "source_anchor": "kc:1A437000_140_0223:1",
@@ -166,11 +236,25 @@
           "match_score": 0.5579,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "ca:1A437000_140_0223",
+          "quote": "-B094/B095/B096): 节材(商品混凝土/预拌砂浆/高强钢筋高性能混凝土·非木质新材料替代木质板材·外墙保温板替代混凝土模板); 节水(搅拌养护用水节水措施·冲洗用水设循环装置·抽水量>50万m³须回灌地下水); 节能(优先节能设备·临时照明按最低照度·空调风扇分时段·优先太阳能地热可再生能源). ⚠️绿色施工'节能'=四节本体, ≠建筑节能工程(围护保温验收, 标🔵绕开). 逐项核真",
+          "match_score": 0.5333,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "ca:1A437000_136_0219",
+          "quote": "？ 根据《建筑工程绿色施工规范》GB/T 50905—2014，以下哪项不属于绿色施工方案编制的基本要求？ | grading_keywords=减少资源浪费,环境污染措施,组织管理体系,先进工艺,节约人力资源 本体·绿色施工方案编制(leaf 1A437000-B088/B089): 绿色施工方案应含减少资源浪费和环境污染措施·明确组织管理体系技术要求·优先先进技术可重复利用设施. **注: 同",
+          "match_score": 0.386,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q8-d80d47179e19",
+      "variant_id": "X03-html-practice-html-q8-d2d7a4bad7b1",
       "candidates": [
         {
           "source_anchor": "kc:1A437000_140_0223:2",
@@ -192,11 +276,25 @@
           "match_score": 0.4286,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_140_0223:0",
+          "quote": " 1A437000-B094/B095/B096): 节材(商品混凝土/预拌砂浆/高强钢筋高性能混凝土·非木质新材料替代木质板材·外墙保温板替代混凝土模板); 节水(搅拌养护用水节水措施·冲洗用水设循环装置·抽水量>50万m³须回灌地下水); 节能(优先节能设备·临时照明按最低照度·空调风扇分时段·优先太阳能地热可再生能源). ⚠️绿色施工'节能'=四节本体, ≠建筑节能工程(围护保温验收, 标🔵",
+          "match_score": 0.4167,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "exam:2019:第5题",
+          "quote": "n\\n(3) 作业点离易燃物的距离不小于20m\\n\\n4. 墙体节能工程隐蔽工程验收的部位或内容还包括：保温层附着的基层及其表面处理；保温板粘结或固定；锚固件；增强网铺设；墙体热桥部位处理；预埋件和设备穿越墙体处的保温层；保温层厚度；保温层接缝；抹灰层厚度；门窗洞口四周的保温层；变形缝；女儿墙压顶等。\\n\\n5. 绿色建筑运行评价指标体系中的指标共有6类：节地与室外环境、节能与能源利用、节水与水资",
+          "match_score": 0.2024,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q9-346958028b96",
+      "variant_id": "X03-html-practice-html-q9-ebe949983f8c",
       "candidates": [
         {
           "source_anchor": "kc:1A437000_139_0222:0",
@@ -218,11 +316,25 @@
           "match_score": 0.4444,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_139_0222:2",
+          "quote": "。 夜间施工需办理许可证并公告居民；照明灯应加灯罩，透光集中；电焊作业须遮挡防弧光外泄。 本体·registry support 1A437000-B087 绿色施工及环境保护要求(leaf B027/B069/B082/B087/B090/B091, 名实相符): 绿色施工评价流程(基本规定→指标→要素→批次→阶段→单位工程)·绿色施工管理五具备(健全管理体系/齐全策划文件/醒目宣传标志/典型图",
+          "match_score": 0.4444,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "exam:2018:问题1",
+          "quote": "施。在“绿色施工专项方案”的节能与能源利用中，分别设定了生产等用电项的控制指标，规定了包括分区计星等定期管理要求，制定了指标控制预防与纠正措施。 在一次塔吊起吊荷载达到其额定起重星95%的起吊作业中，安全人员让操作人员先将重物吊起离地面15cm然后对重物的平稳性，设备和绑扎等各项内容进行了检 1) 原则：适应性、高效性、稳定性、安全性（经济性）；方法：单位工程量成本比较法、折算费用法（等值成本法）",
+          "match_score": 0.2222,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q10-2cd479081298",
+      "variant_id": "X03-html-practice-html-q10-89ab4b0c45e8",
       "candidates": [
         {
           "source_anchor": "kc:1A437000_141_0225:0",
@@ -244,11 +356,25 @@
           "match_score": 0.375,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_149_0293:0",
+          "quote": "扬尘控制技术要点：自动喷淋 + 雾炮除尘 + 车辆冲洗 = 全面控尘 自动喷淋 + 雾炮除尘 + 车辆冲洗 = 全面控尘 本体·施工扬尘控制技术(leaf 1A437000-B044): 自动喷淋+雾炮除尘+车辆冲洗=全面控尘(扬尘控制三件套). 扬尘/降尘=X03环境保护本体. 逐项核真",
+          "match_score": 0.3043,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "ca:1A437000_149_0293",
+          "quote": "下列哪项不属于施工扬尘控制技术？ 下列哪项不属于施工扬尘控制技术？ | grading_keywords=自动喷淋,雾炮,车辆冲洗 本体·施工扬尘控制技术(leaf 1A437000-B044): 自动喷淋+雾炮除尘+车辆冲洗=全面控尘(扬尘控制三件套). 扬尘/降尘=X03环境保护本体. 逐项核真",
+          "match_score": 0.2941,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q11-60521b3ad397",
+      "variant_id": "X03-html-practice-html-q11-dbe2999e7964",
       "candidates": [
         {
           "source_anchor": "kc:1A437000_149_0294:0",
@@ -270,11 +396,25 @@
           "match_score": 0.1404,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "exam:2023:第27题",
+          "quote": "下列行为中，属于施工单位违反民用建筑节能规定的有（ ）。 A. 未对进入施工现场的保温材料进行查验 B. 使用不符合施工图设计要求的墙体材料 C. 使用列入禁止使用目录的施工工艺 D. 明示或暗示设计单位违反民用建筑节能强制性标准进行设计 E. 墙体保温工程施工时未进行旁站和平行检验 ABC 【解析】施工单位有下列行为之一的，由县级以上地方人民政府建设主管部门责令改正，处以下罚款；情节严重的责令停",
+          "match_score": 0.1404,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
+        },
+        {
+          "source_anchor": "kc:1A437000_138_0221:1",
+          "quote": "[🔵职业卫生/分部工艺/场地布置外延] 钢结构绿色施工要点：钢结构深化设计应优化节点构造以减少钢材用量；安装宜采用高强度螺栓连接；大跨度结构宜采用机械化安装方式；现场涂料应无污染、耐候性好。 钢结构深化设计应优化节点构造以减少钢材用量；安装宜采用高强度螺栓连接；大跨度结构宜采用机械化安装方式；现场涂料应无污染、耐候性好。 本体·各分部绿色施工要点+混凝土余料污水回收(leaf 1A437000-B",
+          "match_score": 0.1228,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q12-bb0e04e2f314",
+      "variant_id": "X03-html-practice-html-q12-f346e1ec99de",
       "candidates": [
         {
           "source_anchor": "kc:1A437000_139_0222:2",
@@ -296,11 +436,25 @@
           "match_score": 0.2969,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_139_0222:1",
+          "quote": "B087 绿色施工及环境保护要求(leaf B027/B069/B082/B087/B090/B091, 名实相符): 绿色施工评价流程(基本规定→指标→要素→批次→阶段→单位工程)·绿色施工管理五具备(健全管理体系/齐全策划文件/醒目宣传标志/典型图片影像/合同含绿色施工要求)·夜间施工环保(办许可证公告居民/照明加灯罩透光集中/电焊遮挡防弧光)·环境保护技术要点. 绿色施工组织管理=X03本体",
+          "match_score": 0.2969,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "exam:2017:问题1-5",
+          "quote": "最后总配电箱。 3、（1）承包人应提前通知要求发包人办理相关申请批准手续，并按发包人的要求，提供需要承包人提供的相关文件、资料、证件等。经有关主管部门（市政、交通、环保等）同意后，方可进行断路施工。 （2）施工单位做好相关的保护、防护方案和防护措施； （3）夜间施工，施工单位还应当申领夜间施工许可证； （4）事先公告附近居民（事先告示）； （5）设有标志。 【解析】本题考查的是专项施工方案论证、临",
+          "match_score": 0.1562,
+          "source_file": "docs/原始数据/考点原料/_X03_exam_evidence.json",
+          "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q13-3b432e4f169d",
+      "variant_id": "X03-html-practice-html-q13-ebd6bd5a44e3",
       "candidates": [
         {
           "source_anchor": "ca:1A437000_013_0019",
@@ -322,11 +476,25 @@
           "match_score": 0.338,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_013_0019:3",
+          "quote": "再生骨料混凝土要求：再生骨料混凝土应满足强度、耐久性及和易性要求，并符合相关标准规定。 再生骨料混凝土应满足强度、耐久性及和易性要求，并符合相关标准规定。 本体·建筑垃圾与泥浆管理(leaf 1A437000-B014/B041/B099): 建筑垃圾堆放不宜高于3m·超3m须堆体地基稳定性验算·工程泥浆经泥浆池或封闭容器收集存放未处理不得随意排放·金属弃料宜再利用无机非金属宜再生利用·再生骨料混",
+          "match_score": 0.338,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_013_0019:4",
+          "quote": "建筑垃圾计量与台账：施工单位应对建筑垃圾分类计量并建立台账，未分类的垃圾不得运输出场。 施工单位应对建筑垃圾分类计量并建立台账，未分类的垃圾不得运输出场。 本体·建筑垃圾与泥浆管理(leaf 1A437000-B014/B041/B099): 建筑垃圾堆放不宜高于3m·超3m须堆体地基稳定性验算·工程泥浆经泥浆池或封闭容器收集存放未处理不得随意排放·金属弃料宜再利用无机非金属宜再生利用·再生骨料混",
+          "match_score": 0.338,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q14-e6276e8c6094",
+      "variant_id": "X03-html-practice-html-q14-1c0363621efa",
       "candidates": [
         {
           "source_anchor": "kc:1A437000_013_0019:0",
@@ -348,11 +516,25 @@
           "match_score": 0.615,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_013_0019:2",
+          "quote": " 金属类工程弃料宜再利用，无机非金属类宜再生利用；有色金属与黑色金属不得混杂处理。 本体·建筑垃圾与泥浆管理(leaf 1A437000-B014/B041/B099): 建筑垃圾堆放不宜高于3m·超3m须堆体地基稳定性验算·工程泥浆经泥浆池或封闭容器收集存放未处理不得随意排放·金属弃料宜再利用无机非金属宜再生利用·再生骨料混凝土满足强度耐久和易性·建筑垃圾分类计量建台账未分类不得运出场. 固体废",
+          "match_score": 0.6062,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_013_0019:3",
+          "quote": "土应满足强度、耐久性及和易性要求，并符合相关标准规定。 本体·建筑垃圾与泥浆管理(leaf 1A437000-B014/B041/B099): 建筑垃圾堆放不宜高于3m·超3m须堆体地基稳定性验算·工程泥浆经泥浆池或封闭容器收集存放未处理不得随意排放·金属弃料宜再利用无机非金属宜再生利用·再生骨料混凝土满足强度耐久和易性·建筑垃圾分类计量建台账未分类不得运出场. 固体废弃物/建筑垃圾=X03环境保",
+          "match_score": 0.6062,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q15-130d497b6a54",
+      "variant_id": "X03-html-practice-html-q15-adb9aff306e7",
       "candidates": [
         {
           "source_anchor": "exam:2025:参考答案 (二)",
@@ -374,11 +556,25 @@
           "match_score": 0.1389,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "ca:1A437000_139_0222",
+          "quote": "ords=绿色施工评价,阶段评价,单位工程评价,三方签认,竣工前 本体·registry support 1A437000-B087 绿色施工及环境保护要求(leaf B027/B069/B082/B087/B090/B091, 名实相符): 绿色施工评价流程(基本规定→指标→要素→批次→阶段→单位工程)·绿色施工管理五具备(健全管理体系/齐全策划文件/醒目宣传标志/典型图片影像/合同含绿色施工要",
+          "match_score": 0.1327,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_136_0219:2",
+          "quote": "[🔵职业卫生/分部工艺/场地布置外延] 地基与基础工程环保措施：土方堆放需加盖或植被覆盖；运输车辆防遗撒；泥浆应设专用池储存；土石方宜采用逆作法施工。 土方堆放需加盖或植被覆盖；运输车辆防遗撒；泥浆应设专用池储存；土石方宜采用逆作法施工。 本体·绿色施工方案编制(leaf 1A437000-B088/B089): 绿色施工方案应含减少资源浪费和环境污染措施·明确组织管理体系技术要求·优先先进技术可",
+          "match_score": 0.1327,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
       ]
     },
     {
-      "variant_id": "X03-html-practice-html-q16-bbe15ebcc71a",
+      "variant_id": "X03-html-practice-html-q16-3c13f34dbc94",
       "candidates": [
         {
           "source_anchor": "ca:1A437000_013_0019",
@@ -398,6 +594,20 @@
           "source_anchor": "kc:1A437000_013_0019:0",
           "quote": "施工现场建筑垃圾堆放不宜高于3m；超过3m时必须进行堆体和地基的稳定性验算。 本体·建筑垃圾与泥浆管理(leaf 1A437000-B014/B041/B099): 建筑垃圾堆放不宜高于3m·超3m须堆体地基稳定性验算·工程泥浆经泥浆池或封闭容器收集存放未处理不得随意排放·金属弃料宜再利用无机非金属宜再生利用·再生骨料混凝土满足强度耐久和易性·建筑垃圾分类计量建台账未分类不得运出场. 固体废弃物/",
           "match_score": 0.2447,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_013_0019:3",
+          "quote": "土应满足强度、耐久性及和易性要求，并符合相关标准规定。 本体·建筑垃圾与泥浆管理(leaf 1A437000-B014/B041/B099): 建筑垃圾堆放不宜高于3m·超3m须堆体地基稳定性验算·工程泥浆经泥浆池或封闭容器收集存放未处理不得随意排放·金属弃料宜再利用无机非金属宜再生利用·再生骨料混凝土满足强度耐久和易性·建筑垃圾分类计量建台账未分类不得运出场. 固体废弃物/建筑垃圾=X03环境保",
+          "match_score": 0.2408,
+          "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
+          "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
+        },
+        {
+          "source_anchor": "kc:1A437000_013_0019:1",
+          "quote": "必须通过泥浆池或封闭容器收集、存放，未经处理不得就地或随意排放。 本体·建筑垃圾与泥浆管理(leaf 1A437000-B014/B041/B099): 建筑垃圾堆放不宜高于3m·超3m须堆体地基稳定性验算·工程泥浆经泥浆池或封闭容器收集存放未处理不得随意排放·金属弃料宜再利用无机非金属宜再生利用·再生骨料混凝土满足强度耐久和易性·建筑垃圾分类计量建台账未分类不得运出场. 固体废弃物/建筑垃圾=X",
+          "match_score": 0.2375,
           "source_file": "docs/原始数据/考点原料/_X03_compiled_source.json",
           "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2"
         }
