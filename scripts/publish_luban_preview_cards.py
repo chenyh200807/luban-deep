@@ -471,6 +471,68 @@ def _fit_css(card_bg: str) -> str:
     )
 
 
+# 宽度自适应的唯一发布权威：head 级同步注入，对每张发布页（teach 两代母版 +
+# practice）无条件生效。2026-07-21 复发根因：fit 注入曾排在 ctrlHidden/S07
+# early-return 之后，62/74 讲解卡与 40/40 练习页零自适应，>390 CSS px 机型两侧
+# 露底；旧 componentDidMount 路径还有首帧竞态。此处内联同步脚本在首帧前置
+# --lz-fit，与旧卡 updateFitZoom 同公式同值幂等共存。
+_FIT_BOOT_ID = "lz-fit-boot"
+_FIT_BOOT_TAG = (
+    f'<style id="{_FIT_BOOT_ID}">'
+    ".lz-card,.lz-fitwrap{zoom:var(--lz-fit,1);margin:0 auto;}"
+    "body.luban-fs .lz-card{zoom:1!important;}</style>"
+    "<script>(function(){var r=document.documentElement;function f(){try{"
+    "r.style.setProperty('--lz-fit',String(Math.min(window.innerWidth/390,"
+    f"{_FIT_ZOOM_CAP})))"
+    "}catch(e){}}f();window.addEventListener('resize',f);"
+    "window.addEventListener('orientationchange',f);})();</script>"
+)
+
+
+def _inject_width_fit(text: str) -> str:
+    """无条件把宽度自适应权威注入 <head>；幂等，缺锚点 fail-closed。"""
+    if _FIT_BOOT_ID in text:
+        return text
+    if "</head>" not in text:
+        raise TransformError("anchor [head-close] not found for width-fit")
+    return text.replace("</head>", _FIT_BOOT_TAG + "\n</head>", 1)
+
+
+def _mark_practice_fit_shells(text: str) -> str:
+    """给 practice 的 390px 内容柱/覆层挂 lz-fitwrap，供 fit 权威缩放。
+
+    语料两种壳形态：无 class 的 style-first div（39/40 纸色母版）→ 打标
+    lz-fitwrap；a02 银行抽题母版壳自带 class="lz-card" → 已被 fit 规则覆盖。
+    两者皆无才 fail-closed（未知母版不许静默发布成不铺满页）。
+
+    只标「不嵌套在已缩放容器内」的顶层壳：zoom 在嵌套元素上会相乘
+    （外壳 1.1 × 内层 1.1 = 1.21 过放），fixed 覆层等内层 390px 节点随外壳
+    缩放即可，不得二次打标。幂等：已标 div 不再匹配，其内层被嵌套判据跳过。
+    """
+    zoomed_positions = [
+        match.start()
+        for match in re.finditer(r'<div class="lz-(?:card|fitwrap)"', text)
+    ]
+    new_positions: list[int] = []
+    for match in re.finditer(r'<div style="(?=[^"]*max-width:390px)', text):
+        position = match.start()
+        nested = any(
+            start < position
+            and len(re.findall(r"<div\b", text[start:position]))
+            > len(re.findall(r"</div>", text[start:position]))
+            for start in zoomed_positions + new_positions
+        )
+        if not nested:
+            new_positions.append(position)
+    if not new_positions and not zoomed_positions:
+        raise TransformError("anchor [practice-fit-shell] not found (max-width:390px)")
+    prefix_old = '<div style="'
+    prefix_new = '<div class="lz-fitwrap" style="'
+    for position in reversed(new_positions):
+        text = text[:position] + prefix_new + text[position + len(prefix_old):]
+    return text
+
+
 _CARD_BG_RE = re.compile(r'class="lz-card"[^>]*?background:(#[0-9a-fA-F]{3,8})')
 _BODY_BG_RE = re.compile(r"body\{background:#[0-9a-fA-F]{3,8};font-family")
 
@@ -831,6 +893,8 @@ def _card_entry_bridge(pack_id: str) -> str:
 
 
 def transform_teach(text: str, pack_id: str, *, sheet_runtime_tag: str | None = None) -> str:
+    # 0. 宽度自适应权威必须先于任何母版 early-return（62 卡零 fit 的复发根因）。
+    text = _inject_width_fit(text)
     # 1. 字体自托管 + 微信 JSSDK（练习完成收据仍使用）+ 卡内问答上推动画。
     preload_element = _audio_preload_element(text)
     text = _sub(
@@ -1069,6 +1133,8 @@ def transform_practice(
         literal_pattern=False,
     )
     text = _AUTHORING_CLAUDE_RE.sub("authoring preview bridge", text)
+    # 宽度自适应与 teach 卡同一权威：练习页 390px 纸色内容柱在深墨底上留白最刺眼。
+    text = _inject_width_fit(_mark_practice_fit_shells(text))
     return transform_compiled_practice_html(
         pack_id,
         surface=compiled_surface,
@@ -1811,6 +1877,51 @@ def apply_reachability_gate_to_hosted() -> list[str]:
     return changed
 
 
+def apply_width_fit_to_hosted() -> list[str]:
+    """把宽度自适应权威调和到已托管存量页（source-independent，幂等）。
+
+    多数 finished teach 源在本仓不完整，无法整卡重发；fit 注入只依赖已托管
+    HTML 的 ``</head>`` 锚点，可确定性直接调和。practice 也一并调和（注入不
+    触碰内嵌 receipt，与 ``--practice-only`` 从源重建的产物字节一致）。改动
+    ``lesson.html`` 后按 reachability-gate 同一约束重算
+    ``published_lesson_sha256`` 并刷新 manifest。返回被改动的 pack 列表。
+    """
+    changed: list[str] = []
+    for sid in sorted(STATIONS):
+        dst = HOST / sid
+        if not dst.is_dir():
+            continue
+        touched = False
+        for page in sorted(dst.glob("lesson*.html")):
+            original = page.read_text(encoding="utf-8")
+            updated = _inject_width_fit(original)
+            if updated != original:
+                page.write_text(updated, encoding="utf-8")
+                touched = True
+        for page in sorted(dst.glob("practice*.html")):
+            original = page.read_text(encoding="utf-8")
+            updated = _inject_width_fit(_mark_practice_fit_shells(original))
+            if updated != original:
+                page.write_text(updated, encoding="utf-8")
+                touched = True
+        authority_path = AUTHORITY_HOST / f"{sid}.practice.authority.json"
+        if authority_path.is_file() and (dst / "lesson.html").is_file():
+            authority = json.loads(authority_path.read_text(encoding="utf-8"))
+            new_lesson_sha = _sha256(dst / "lesson.html")
+            if str(authority.get("published_lesson_sha256") or "") != new_lesson_sha:
+                authority["published_lesson_sha256"] = new_lesson_sha
+                authority_path.write_text(
+                    json.dumps(authority, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                touched = True
+        if touched:
+            changed.append(sid)
+    if changed:
+        _refresh_pack_manifest()
+    return changed
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="发布注册的鲁班 finished 成品卡")
     parser.add_argument(
@@ -1842,6 +1953,12 @@ def main(argv: list[str]) -> int:
         "决策卡（仅与 --write-practice-audit-packet 联用）",
     )
     parser.add_argument(
+        "--apply-width-fit",
+        action="store_true",
+        help="只把宽度自适应权威调和到已托管存量页(lesson*/practice* head 注入"
+        " + 重算 lesson sha + 刷新 manifest),零重编,source-independent",
+    )
+    parser.add_argument(
         "--apply-reachability-gate",
         action="store_true",
         help="只把 reachability gate 双向对账到已托管存量卡片（降级非 supply_ready 包"
@@ -1850,6 +1967,17 @@ def main(argv: list[str]) -> int:
     )
     parser.add_argument("stations", nargs="*", help="可选站点 ID；缺省发布全部注册站点")
     args = parser.parse_args(argv)
+    if args.apply_width_fit:
+        if (
+            args.apply_reachability_gate
+            or args.practice_only
+            or args.check
+            or args.write_practice_audit_packet
+        ):
+            parser.error("--apply-width-fit cannot combine with other modes")
+        changed = apply_width_fit_to_hosted()
+        print(f"width-fit: reconciled {len(changed)} pack(s): {' '.join(changed)}")
+        return 0
     if args.apply_reachability_gate:
         if args.practice_only or args.check or args.write_practice_audit_packet:
             parser.error(
