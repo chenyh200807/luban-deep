@@ -87,11 +87,14 @@ def seed(db_path: Path) -> dict[str, int]:
                 visit = f"{user}-v{r}"
                 _mk(store, now_ms, seq, event_name="learning_action_started", module="learning",
                     action="open_detail", object_type="microlesson", object_id=tp_id, user_id=user, visit_id=visit)
-                # 进站停留（观看时长信号，代替完播率）
+                # 进站曝光（station-enter，object_type=station，对齐 producer onLoad）
                 _mk(store, now_ms, seq, event_name="module_viewed", module="learning",
                     action="view", object_type="station", object_id=tp_id.split(":")[0], user_id=user, visit_id=visit)
+                # 停留时长（观看时长信号，代替完播率）：exit 打微课对象，忠实于修正后的
+                # station producer(onHide/onUnload 传 objectType=microlesson)，否则 demo 有停留
+                # 而生产恒 0 = 假绿。
                 _mk(store, now_ms, seq, event_name="module_exited", module="learning", action="return",
-                    object_type="station", object_id=tp_id.split(":")[0], user_id=user, visit_id=visit,
+                    object_type="microlesson", object_id=tp_id, user_id=user, visit_id=visit,
                     visible_ms=45_000 + r * 12_000)
 
     # 考点卡复看
@@ -103,8 +106,8 @@ def seed(db_path: Path) -> dict[str, int]:
                     action="open_detail", object_type="concept_card", object_id=card_id,
                     user_id=user, visit_id=f"{user}-cv{r}")
 
-    # 功能偏好（驾驶舱功能卡点击）
-    for action in ("start_training", "start_retest", "view", "open_detail"):
+    # 功能偏好（驾驶舱功能卡点击）——真实的功能启动动作，不含 view/return 生命周期动作
+    for action in ("start_training", "start_retest", "start_review", "open_detail"):
         for u in range(4):
             user = f"{_DEMO_PREFIX}u{u:02d}"
             _mk(store, now_ms, seq, event_name="learning_action_started", module="learning",

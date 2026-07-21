@@ -77,11 +77,17 @@ Page({
   },
 
   onHide() {
-    telemetry.trackModuleExit(this);
+    telemetry.trackModuleExit(this, {
+      objectType: "microlesson",
+      objectId: this.data.packId + ":tp:" + this.data.episodeIndex,
+    });
   },
 
   onUnload() {
-    telemetry.trackModuleExit(this);
+    telemetry.trackModuleExit(this, {
+      objectType: "microlesson",
+      objectId: this.data.packId + ":tp:" + this.data.episodeIndex,
+    });
   },
 
   retry() {
