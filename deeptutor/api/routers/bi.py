@@ -268,6 +268,41 @@ async def bi_learning_preference(
     }
 
 
+@router.get("/member/{user_id}/engagement")
+async def bi_member_engagement(
+    user_id: str,
+    days: int = Query(30, ge=1, le=365),
+    # 会员运营 member_ops 权限门（不用 public_ok）：与 /learner/{user_id} 同理，防止水平越权
+    # (任意登录用户替换 user_id 读到别人的点击明细)。
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    """单会员点击/使用明细（"A 用户每个模块/内容点了多少次"）。
+
+    单一数据权威 = product_behavior_store.get_engagement_breakdown 的同一个函数，
+    只是新增 user_ids inclusive 过滤收窄到这一个用户——与全局"产品功能偏好"面板共享
+    聚合逻辑，不新建"单会员行为"的第二套聚合。薄 handler，不碰 member_console/service.py。
+    """
+    store = get_product_behavior_store()
+
+    def breakdown(**kwargs: Any) -> list[dict[str, Any]]:
+        return store.get_engagement_breakdown(days=days, user_ids=[user_id], **kwargs)
+
+    # 每个模块点了多少次（"A 用户每个模块都点击了多少次"，最直接的诉求）。
+    module_breakdown = [row for row in breakdown(group_dim="module", limit=30) if row["key"] != "login"]
+    # 每个具体内容/对象点了多少次（哪个微课/考点卡/考点站被这个人点了几次）。
+    content_breakdown = breakdown(group_dim="object_id", limit=30)
+    # 每类动作点了多少次（学习驾驶舱功能偏好，收窄到这个人）。
+    action_breakdown = breakdown(group_dim="action", module="learning", event_names=["learning_action_started"], limit=20)
+
+    return {
+        "user_id": user_id,
+        "days": days,
+        "module_breakdown": module_breakdown,
+        "content_breakdown": content_breakdown,
+        "action_breakdown": action_breakdown,
+    }
+
+
 @router.get("/knowledge")
 async def bi_knowledge(
     days: int = Query(30, ge=1, le=365),

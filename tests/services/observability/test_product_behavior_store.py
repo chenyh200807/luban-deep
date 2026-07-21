@@ -119,6 +119,28 @@ def test_engagement_breakdown_computes_practice_accuracy(tmp_path: Path) -> None
     assert row["accuracy"] == round(2 / 3, 4)
 
 
+def test_engagement_breakdown_user_ids_filter_scopes_to_one_member(tmp_path: Path) -> None:
+    """单会员行为明细 §7：user_ids 是 inclusive 白名单，收窄到指定用户，
+    与全局视图共享同一个聚合函数(不新建"单用户行为"的第二套聚合)。"""
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(store, event_id="a1", user_id="u-a", object_id="F16:tp1:1", module="learning")
+    _record(store, event_id="a2", user_id="u-a", object_id="F16:tp2:1", module="learning")
+    _record(store, event_id="b1", user_id="u-b", object_id="F16:tp1:1", module="learning")
+
+    # 全局视图(无过滤): F16:tp1:1 触达2人(u-a+u-b), F16:tp2:1 触达1人
+    all_rows = store.get_engagement_breakdown(group_dim="object_id", days=7)
+    assert {r["key"]: r["member_count"] for r in all_rows} == {"F16:tp1:1": 2, "F16:tp2:1": 1}
+
+    # 单会员视图: 只看 u-a，两个内容各1次，u-b 的事件不计入
+    u_a_rows = store.get_engagement_breakdown(group_dim="object_id", days=7, user_ids=["u-a"])
+    assert {r["key"]: r["event_count"] for r in u_a_rows} == {"F16:tp1:1": 1, "F16:tp2:1": 1}
+    assert all(r["member_count"] == 1 for r in u_a_rows)
+
+    # 按 module 维度收窄到单会员("每个模块点了多少次")
+    module_rows = store.get_engagement_breakdown(group_dim="module", days=7, user_ids=["u-a"])
+    assert {r["key"]: r["event_count"] for r in module_rows} == {"learning": 2}
+
+
 def test_engagement_breakdown_supports_module_dim(tmp_path: Path) -> None:
     """全模块偏好("产品功能偏好")：group_dim=module 按模块聚合所有被监测模块。"""
     store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
