@@ -40,6 +40,11 @@ var snapshotLayerReady = Boolean(
 // 空/失败 → 降级 'Kaiti SC', serif(paper-ink.wxss font-family 已兜底)。
 const LONG_CANG_FONT_URL = "";
 
+// 供给 last-known-good 兜底窗:供给清单是慢变 sha 版本化 manifest 投影,
+// 瞬时请求失败时可用超过 30min 秒渲染窗的旧快照继续供学(stale 投影、
+// 动作禁点);上限 7 天防无限期幽灵供给。仅作 reader 策略,不新增写者。
+var SUPPLY_LKG_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -323,7 +328,8 @@ Page({
       var reportResult = res[1] || { ok: false };
       var lessons = api.unwrapResponse(res[2]) || {};
       if (!readModelAdmissionReady || !reportSnapshot.isLubanLessonsPayload(lessons)) {
-        throw new Error("lesson authority payload invalid");
+        // 中文文案:describeRequestError 会把非 HTTP_ 前缀的 message 原样透给用户。
+        throw new Error("教学清单数据异常，请稍后重试");
       }
       var homePayload = homeResult.ok ? api.unwrapResponse(homeResult.value) || {} : {};
       var reportPayload = reportResult.ok ? api.unwrapResponse(reportResult.value) || {} : {};
@@ -392,9 +398,31 @@ Page({
         that._requireAuth();
         return null;
       }
-      var fallbackVm = that.data.vm || buildLearnViewModel({});
+      // 供给显示仲裁收权(2026-07-21 根治第 4 修):供给清单是慢变 manifest 投影,
+      // 「供给不存在」的错误终态只在「从未有任何已知供给」时合法。单次请求的
+      // 瞬时失败(网络抖动/并发槽占满/超时)只意味着本次刷新失败,无权把已在屏
+      // 或 last-known-good 的供给替换成整页错误卡(transport ≠ terminal truth)。
+      var fallbackVm = that.data.vm;
+      if (!(fallbackVm && fallbackVm.hasSupply) && snapshotLayerReady) {
+        var lkg = reportCache.read(startedUserId, SUPPLY_LKG_MAX_AGE_MS);
+        if (lkg && reportSnapshot.isLubanLessonsPayload(lkg.lessons || {})) {
+          var lkgVm = buildLearnViewModel({
+            homeDashboard: lkg.homeDashboard || {},
+            report: lkg.report || {},
+            lessons: lkg.lessons || {},
+            actionsEnabled: false,
+            projectionState: "stale",
+          });
+          if (lkgVm.hasSupply) fallbackVm = lkgVm;
+        }
+      }
+      if (fallbackVm && fallbackVm.hasSupply) {
+        // 有供给可学:静默保供给,刷新失败不上错误终态(下次 onShow 仍会刷新)。
+        that.setData({ vm: fallbackVm, loading: false, supplyError: "" });
+        return null;
+      }
       that.setData({
-        vm: fallbackVm,
+        vm: that.data.vm || buildLearnViewModel({}),
         loading: false,
         supplyError: api.describeRequestError(
           err,

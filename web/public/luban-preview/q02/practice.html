@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<style id="lz-fit-boot">.lz-card,.lz-fitwrap{zoom:var(--lz-fit,1);margin:0 auto;}body.luban-fs .lz-card{zoom:1!important;}</style><script>(function(){var r=document.documentElement;function f(){try{r.style.setProperty('--lz-fit',String(Math.min(window.innerWidth/390,2.0)))}catch(e){}}f();window.addEventListener('resize',f);window.addEventListener('orientationchange',f);})();</script>
 </head>
 <body>
 <x-dc>
@@ -181,7 +182,7 @@
 
     <!-- ASK-AI OVERLAY -->
     <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+    <div class="lz-fitwrap" style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
       <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
       <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
         <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>

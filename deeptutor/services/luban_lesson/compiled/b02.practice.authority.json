@@ -32,7 +32,7 @@
         "B02-html-practice-html-q5-e68bd3e889d0"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZGMyMjk5MGYxYzk1IiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ZjcwYTliNzRhZDUiLCJCMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTZhMTQwYzBhMzhjMyIsIkIwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtODE3YjUwMTc3ZGE4IiwiQjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNS1lNjhiZDNlODg5ZDAiXSwicGFja19pZCI6IkIwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiOTYxODg1NTZjY2FjMDA3OWVhNDVhMDkzNDZhZjQxNmIxZmJkY2Q1NGY5Yzk0NWFjODFhZjgzYWU5MjFiZGI5YiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJkNTI5MmM0NzYyNTdmODA2YTQ4ZWIwZjhiOGZjOGZhY2RhZWM4ZTcyNjgxNTdhZTliZDIwY2QxMmUyN2MwNzhlIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "e7e82a9873a1fdbaceec7987108d91077e80c33da206e8c4a55c6fdc452cea09"
+      "published_practice_sha256": "ec6b4865617ab2957c4e3696063c85ef7af1bc907637ad50a66679b3f5cbf44a"
     },
     {
       "surface_id": "practice2.html",
@@ -64,7 +64,7 @@
         "B02-html-practice2-html-q16-1f8abfd02855"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXExLWExNmJlYjg1MTJmMCIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXEyLTU2MDFhN2I1NGZjOSIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXEzLTFjZDMxMzkzNzk5MyIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXE0LTMxYWMzNDk0ODI1NCIsIkIwMi1odG1sLXByYWN0aWNlMi1odG1sLXE1LTJlMDE3OWQ1ZmJlOSJdLCJwYWNrX2lkIjoiQjAyIiwicHJvamVjdGlvbl9kaWdlc3QiOiJiNmY2MDIzODBlZTRlYTRkZjJiZjdjNGQwNjVhOWJlNjdjY2YzNzZkMzg5NDMyMjRlNzM2MGJjM2IzY2Q3ZjBmIiwic2NoZW1hIjoibHViYW5fcHJhY3RpY2VfcHJvamVjdGlvbl9yZWNlaXB0LnYxIiwic291cmNlX2RpZ2VzdCI6ImQ1MDJiN2M4YmZiNTJmZTYwNGNjM2M3OGQxODVlNjI5OTBjNjQ1OTlhZjNlZDc0MTI2OTNmZWFlN2U2MDNjNjYiLCJzdXJmYWNlX2lkIjoicHJhY3RpY2UyLmh0bWwifQ",
-      "published_practice_sha256": "0bd4c55b486f9bd09d0f5a6c4849ef0273d989ca40cc35c397ee6550f0e2247f"
+      "published_practice_sha256": "638c340df8e4eb6b2a50ebd6759f4f6db49c70a45b3949f6ddd5ff194bf2dba7"
     }
   ],
   "items": [
@@ -6968,5 +6968,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "81d625e09ddf0ca26c65ae72457e5da084817ede0a04733a648a20b23d5120a2"
+  "published_lesson_sha256": "b875012be7b721a77bcfd642b328822a6c7db2662cd239e1ef48988638c6f93b"
 }

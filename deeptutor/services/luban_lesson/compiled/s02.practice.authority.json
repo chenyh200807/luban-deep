@@ -35,7 +35,7 @@
         "S02-html-practice-html-q17-4ea34f3f27c0"
       ],
       "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNTBmMDljYmE4NDI2IiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1lMmZiN2NiMTdjMjMiLCJTMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTRmZDYzMzU5ODJlZiIsIlMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZGI4NThhZjE3YjViIiwiUzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTctNGVhMzRmM2YyN2MwIl0sInBhY2tfaWQiOiJTMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImVjZjg1OWU2MjdmZjdhMTNlYjNhNTUyMzU4YTlkY2UyMGNlZGFjNGQ3NzQxN2ZkZjJhN2M5MjU5MDA4NjhhNTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmIyYjY1N2FmMzBjYjAzZDNkNGNhN2Q1YTdiODE0MGQyMjdmOTQ3MjJhMTIzZjQ3ZWYzNmVmZDM0MmIyZTBjOCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "445c7ef3585804d0de6ef6b328511518c62ce3066a74ffefcfacba86cdf0b864"
+      "published_practice_sha256": "17064cffef9d8bd422c8393b56c6524ce78a4e9d4adf3e7bff038336138f7f1c"
     }
   ],
   "items": [
@@ -3768,5 +3768,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "80565f60aa854c02308fa0fa40f416f9945f0409e081ef5de61b99ea32f56a24"
+  "published_lesson_sha256": "e356cd820b16593422321c3b8e75a0aa22571ac344bd98c94c5cc8b881b7913a"
 }
