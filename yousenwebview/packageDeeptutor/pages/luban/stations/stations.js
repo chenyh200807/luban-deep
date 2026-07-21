@@ -8,6 +8,7 @@ const helpers = require("../../../utils/helpers");
 const route = require("../../../utils/route");
 const runtime = require("../../../utils/runtime");
 const { buildLearnViewModel } = require("../../../utils/learn-view-model");
+const telemetry = require("../../../utils/surface-telemetry");
 
 Page({
   data: {
@@ -29,6 +30,9 @@ Page({
     var sbh = info.statusBarHeight || 0;
     this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: helpers.isDarkOr("light") });
     if (!this._requireAuth()) return;
+    // 入口曝光(漏斗分母):本页是历史深链兼容入口,曝光后即 redirect 到教学集页。
+    // 在 redirect 前记一条 module_viewed,捕获仍走旧深链进来的用户量。
+    telemetry.trackModuleView(this, { module: "learning", section: "stations" });
     // 历史深链兼容：完整路线已经收权到 74 集 C 版教学页。
     // redirectTo 替换旧页面，避免返回栈里残留一张状态染色路线。
     if (typeof wx !== "undefined" && wx.redirectTo) {
