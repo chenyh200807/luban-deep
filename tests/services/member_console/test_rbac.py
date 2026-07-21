@@ -151,3 +151,18 @@ def test_roles_payload_reflects_stored_edits():
     assert operator["default_matrix"]["commerce"] == []  # 默认仍空
     super_role = next(r for r in p["roles"] if r["key"] == "super_admin")
     assert super_role["editable"] is False
+
+
+def test_learning_pref_tab_registered_and_granted():
+    """学习模块偏好 tab（2026-07-21）register-before-use：进 TABS 注册表 + 有标签，
+    且 super_admin/admin/analyst 默认可 view（analyst 只读），否则 BI 前端 accessibleSections
+    永远拿不到 learning_pref，独立看板 tab 会被隐藏。"""
+    assert "learning_pref" in rbac.TABS
+    assert rbac.TAB_LABELS["learning_pref"] == "学习模块偏好"
+    assert "learning_pref" in rbac.accessible_tabs("super_admin")
+    assert "learning_pref" in rbac.accessible_tabs("admin")
+    assert "learning_pref" in rbac.accessible_tabs("analyst")
+    assert rbac.can("analyst", "learning_pref", "view")
+    assert not rbac.can("analyst", "learning_pref", "write")
+    # operator 权限矩阵是显式 dict（不含 learning_pref）→ 看不到，符合"看不到成本/运维"同类边界
+    assert "learning_pref" not in rbac.accessible_tabs("operator")
