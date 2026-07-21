@@ -9,7 +9,17 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
-## 2026-07-16 · 计划评审要对照在册拍板与真实流量;两个 AI 同一工作区必须先冻结再接管
+## 2026-07-21 · webview 留白"时有时无" + 供给错误卡第 4 修:两个都是"不变量挂在偶然路径上"
+
+**①现象**:owner 真机反馈两症状:(a) 讲解卡/随堂练两侧留白,同一手机时有时无;(b)「教学内容没有加载成功/连接服务器失败」错误卡反复出现,"上次修过但没根治"。
+
+**②发现路径(含岔路)**:双专家并行只读测绘。岔路一:留白最初怀疑机型/viewport 玄学——117/117 工件 viewport 全同,排除;真判别子是 CSS 宽 >390px 机型 × 进的是哪代工件。岔路二:错误卡若按"网络问题"去加重试,就会成为第 4 个无效补丁——git 考古发现 07-14/07-18/07-19 已修 3 次(呈现层/准入层/telemetry 退避),各修一个 decider,全没触碰断点,这正是 patch-spiral 实锤信号。
+
+**③分析**:(a) 留白根因=发布器 fit 注入排在 ctrlHidden/S07 early-return **之后**,62/74 讲解卡+40/40 练习页零自适应;已修的 12 卡还依赖 componentDidMount 运行时 JS(首帧竞态)。shared shape=呈现不变量无单一权威,挂在偶然分支上。(b) 错误卡断点=learn.js catch 把单次 HTTP 瞬时失败直接提升为"供给不存在"终态(transport 冒充 terminal truth);放大器=noRetry 单发×单域名×telemetry 首轮 21 并发抢槽(07-19 只修一半:退避挡不住首轮,且 wx.request 无 timeout 默认 60s 占槽)×每次 onShow 重抽。全量测绘出 13 个各自为政的客户端 decider。
+
+**④修法与理由**:(a) 收权单一发布权威 `_inject_width_fit`:head 级同步内联,对每张发布页无条件注入(zoom var --lz-fit,首帧即生效);practice 壳打标 lz-fitwrap——踩过一坑:fixed 覆层 DOM 嵌套在外壳内,双打标=zoom 相乘 1.21 过放,改为只标非嵌套顶层。30 站 teach 源不在仓(bus factor=1 旧患),加 `--apply-width-fit` source-independent 托管调和(照抄 reachability-gate 的 sha 重钉纪律)。(b) 显示仲裁收权:错误终态只在"从未有任何已知供给"时合法;瞬时失败静默保供给(已在屏 vm → 7 天 last-known-good 快照,纯 reader 策略复用 report-cache,零新 writer 零新存储);telemetry in-flight≤2+显式 10s timeout。**不加**lessons 重试——那是第 N+1 个 decider。
+
+**⑤验证与教训**:74/74 lesson+43/43 practice 含 lz-fit-boot;`--practice-only --check` 绿;publisher pytest 46 passed;`--apply-width-fit` 幂等 0 改动;yousenwebview 全量 JS 测试 0 失败(supply authority 新增 3 仲裁案例;telemetry"10 并发=10 请求"旧不变量按收权重写为"≤2 封顶+最终全投递")。教训:同一 bug 类修到第 3 次还复发,必须停手先测绘全 decider 再收权;确定性发布不变量必须放在 early-return 够不着的位置;zoom 类缩放在嵌套节点上会相乘,打标只能标顶层。**未完成**:生产未部署(web/public 烘焙镜像需全量 rebuild+容器内 grep lz-fit-boot 反自证)、小程序需 DevTools 上传、>390px 真机人眼验收未做——未做前不宣称"线上已修好"。
 
 **①现象**:owner 要求对 07-15 计划做对抗评审并按"现有能力先上一版"收尾。评审发现计划自身工程事实全部属实(633/17/1899 等数字可精确复现、A01 变形缝有文件级铁证),但 §6 建了一套 7 日 A/A + powered A/B 统计体制;同时工作区躺着 ~3000 行未提交改动,来源不明。
 
