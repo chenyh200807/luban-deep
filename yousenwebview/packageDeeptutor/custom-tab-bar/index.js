@@ -1,5 +1,5 @@
 // 共享五 tab 纸墨壳(单一壳权威,禁页面内联第二套 tabbar):
-// 学习 / 历史 / 问鲁班(中央朱红章) / 学情 / 我的。
+// 学习 / 学情 / 问鲁班(中央朱红章) / 历史 / 我的。
 // 复测是学习任务状态，不再占一等模块位置；历史只承载对话列表。
 var route = require("../utils/route");
 var runtime = require("../utils/runtime");
@@ -23,10 +23,9 @@ function getBaseList() {
       icon: "tab-learn",
     },
     {
-      pagePath: route.history(),
-      text: "历史",
-      // 复用现有“时间回转”图形；这是视觉 token，不再承载复习业务语义。
-      icon: "tab-review",
+      pagePath: route.report(),
+      text: "学情",
+      icon: "tab-report",
     },
     {
       pagePath: route.chat(),
@@ -34,9 +33,10 @@ function getBaseList() {
       seal: true,
     },
     {
-      pagePath: route.report(),
-      text: "学情",
-      icon: "tab-report",
+      pagePath: route.history(),
+      text: "历史",
+      // 复用现有“时间回转”图形；这是视觉 token，不再承载复习业务语义。
+      icon: "tab-review",
     },
     {
       pagePath: route.profile(),

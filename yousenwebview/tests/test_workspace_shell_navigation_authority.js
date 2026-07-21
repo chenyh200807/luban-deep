@@ -99,9 +99,9 @@ function loadTabBar(selected) {
   return { component: component, calls: calls };
 }
 
-// 五 tab 壳顺序: 学习0 / 历史1 / 问鲁班2 / 学情3 / 我的4
+// 五 tab 壳顺序: 学习0 / 学情1 / 问鲁班2 / 历史3 / 我的4
 var fromChat = loadTabBar(2);
-fromChat.component.switchTab({ currentTarget: { dataset: { index: 3 } } });
+fromChat.component.switchTab({ currentTarget: { dataset: { index: 1 } } });
 assert(
   fromChat.calls.setWorkspaceBack.length === 1 &&
     fromChat.calls.setWorkspaceBack[0].url === "/packageDeeptutor/pages/chat/chat" &&
@@ -115,7 +115,7 @@ assert(
   "shell should still relaunch to the selected page",
 );
 
-var fromReport = loadTabBar(3);
+var fromReport = loadTabBar(1);
 fromReport.component.switchTab({ currentTarget: { dataset: { index: 2 } } });
 assert(
   fromReport.calls.setWorkspaceBack.length === 1 &&
@@ -125,7 +125,7 @@ assert(
 );
 
 // 历史是正式 tab：离开时必须保留历史作为返回目标。
-var fromHistory = loadTabBar(1);
+var fromHistory = loadTabBar(3);
 fromHistory.component.switchTab({ currentTarget: { dataset: { index: 2 } } });
 assert(
   fromHistory.calls.setWorkspaceBack.length === 1 &&
