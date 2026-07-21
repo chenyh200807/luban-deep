@@ -620,6 +620,20 @@ ok("hint: safe_confirm_unavailable / confirm_supply_projection_unavailable → �
   assert.strictEqual(b.steps[3].hint, "本站确认练习准备中");
 });
 
+ok("confirm_covered_by_due_validation → 并入验证(not-needed 轻量态 · 暖 hint)", () => {
+  const j = journeyWithSteps({ immediate_confirm: { status: "unavailable", reason: "confirm_covered_by_due_validation" } });
+  // status 仍 unavailable,但呈现覆写为 not-needed 轻量态 + note 并入验证
+  assert.strictEqual(j.steps[3].status, "unavailable");
+  assert.strictEqual(j.steps[3].state, "not-needed");
+  assert.strictEqual(j.steps[3].note, "并入验证");
+  assert.strictEqual(j.steps[3].hint, "本轮已并入到期验证 · 验证卷会考到");
+  // 文案红线:暖·帮你变强,禁审视语气
+  ["看穿", "识破", "揭穿", "露馅"].forEach((banned) => {
+    assert.strictEqual(j.steps[3].hint.indexOf(banned), -1);
+    assert.strictEqual(j.steps[3].note.indexOf(banned), -1);
+  });
+});
+
 ok("hint: review_projection_unavailable → 复习安排稍后恢复(记录不丢)", () => {
   const j = journeyWithSteps({ due_validation: { status: "unavailable", reason: "review_projection_unavailable" } });
   assert.strictEqual(j.steps[4].hint, "复习安排稍后恢复 · 记录已保留");
