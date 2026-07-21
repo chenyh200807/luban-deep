@@ -46,6 +46,9 @@ function _journeyStepHint(status, reason) {
   var r = _str(reason);
   // 等系统:错因讲评内容尚未生成
   if (r === "feedback_unavailable") return "讲评生成中 · 稍后回来看";
+  // 并入到期验证:确认供给未开但到期验证已在轨——错后加分项由第 5 步验证卷兜底,
+  // 不是"没开发完"。暖基调,给学员确定性("会考到"),禁审视语气。
+  if (r === "confirm_covered_by_due_validation") return "本轮已并入到期验证 · 验证卷会考到";
   // 等系统:本站确认练习供给未开 / 供给投影降级
   if (r === "safe_confirm_unavailable" || r === "confirm_supply_projection_unavailable") {
     return "本站确认练习准备中";
@@ -163,6 +166,13 @@ function stationJourneyFor(report, packId) {
       hint: status === "completed" ? "" : _journeyStepHint(status, raw.reason),
       blocking: raw.blocking === true,
     };
+    // 「并入到期验证」reason(status 仍 unavailable)覆写呈现:用现有 not-needed
+    // 轻量态而非 unavailable 灰态,note 从「暂不可用」改「并入验证」。纯 reason→呈现
+    // 映射,不新造状态机(status/blocking 不动,一致性校验仍以 raw.status 为准)。
+    if (_str(raw.reason) === "confirm_covered_by_due_validation") {
+      mapped.state = JOURNEY_STATUSES.not_applicable;
+      mapped.note = "并入验证";
+    }
     // 轻练确认重入口只读透传:仅 current+safe_confirm_available 且服务端两字段
     // 齐全时携带(facts 非空字符串数组 + anchor 非空)。任何缺失/其他状态一律不
     // 带字段 → 消费端(学情全景 CTA)fail-closed 不亮不猜。零客户端推导。

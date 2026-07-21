@@ -1,0 +1,46 @@
+{
+  "pack_id": "C01",
+  "adversarial_gate_ref": "main-control adjudication 2026-07-21 (routeB-batch1 8-gap): 新变体逐题锚回编译源/真题原文逐字核对+方向复算;同fact三件套skeleton互异断言;异源subagent对抗核验过闸后方发布。",
+  "signed": [
+    {
+      "variant_id": "C01-html-practice-html-q5-2888cb8fc63d",
+      "probe_role": "immediate_confirm",
+      "fact_id": "c01-fact-joint-location-by-member",
+      "skeleton_id": "c01-skel-次梁跨中1-3聚焦",
+      "source_anchor": "exam:2021:第8题",
+      "note": "有主次梁楼板留次梁跨中1/3,锚2021真题第8题选项C(答案ACDE含C)逐字核对;干扰项主梁错位(E07)/支座受剪力大(E10)/缺1/3范围(E03)方向均复算无误。三件套:与q1(anchor,构件枚举)、新q17(d1,楼梯墙聚焦)同fact异骨架。"
+    },
+    {
+      "variant_id": "C01-html-practice-html-q17-6759e449aec3",
+      "probe_role": "d1_probe",
+      "fact_id": "c01-fact-joint-location-by-member",
+      "skeleton_id": "c01-skel-楼梯墙位置聚焦",
+      "source_anchor": "kc:1A413030_103_0196:0",
+      "note": "routeB新产。楼梯梯段端部1/3+墙洞口连梁跨中1/3或墙交界处,教材位置卡kc:0196:0逐字核对(用教材原词'连梁'与'交界处';2021真题D'墙在纵横墙的交接处'同向印证)。skeleton与q1(全构件枚举)/q5(次梁聚焦)互异=构件子集聚焦楼梯+墙。"
+    },
+    {
+      "variant_id": "C01-html-practice-html-q6-da41b3b80179",
+      "probe_role": "anchor",
+      "fact_id": "c01-fact-joint-treatment-process",
+      "skeleton_id": "c01-skel-处理工序链选择",
+      "source_anchor": "ca:1A413030_103_0196",
+      "note": "新复合fact(施工缝处理工序:1.2N/mm²门槛→凿毛→清理→30mm砂浆→浇筑+不清理后果),锚primary卡grading_keywords(1.2N/mm²,凿毛处理,30mm砂浆)逐字核对。可达性边界:本fact当前仅q6/q9/q18三件,d1可达、confirm入口经q6。干扰项先浇后凿(E06)/省略工序(E03)/12N/mm²(M08)方向复算无误。"
+    },
+    {
+      "variant_id": "C01-html-practice-html-q9-0c0fa6184859",
+      "probe_role": "immediate_confirm",
+      "fact_id": "c01-fact-joint-treatment-process",
+      "skeleton_id": "c01-skel-接槎不清理后果",
+      "source_anchor": "kc:1A434000_074_0116:0",
+      "note": "接槎未清理→粘结不良→接槎明显易渗漏,教材渗漏成因卡逐字核对(施工缝未清理干净→混凝土粘结不良→渗漏;未按规范处理施工缝→接槎明显)。同fact后果维,与q6工序链/q18指错补写骨架互异。"
+    },
+    {
+      "variant_id": "C01-html-practice-html-q18-1212272c719b",
+      "probe_role": "d1_probe",
+      "fact_id": "c01-fact-joint-treatment-process",
+      "skeleton_id": "c01-skel-处理工序指错补写",
+      "source_anchor": "ca:1A413030_103_0196",
+      "note": "routeB新产。交底指错题:1.2N/mm²门槛正确保留、缺凿毛+清理+30mm砂浆为指错点,grading_keywords(1.2N/mm²,凿毛处理,30mm砂浆)逐字核对;M08干扰12N/mm²数值复算(1.2×10=12为典型小数点错位);E10干扰'保留浮浆'与kc:0116:0成因卡方向相反判错正确。"
+    }
+  ]
+}

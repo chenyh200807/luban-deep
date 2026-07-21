@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "C01",
   "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
-  "source_bundle_sha256": "9ba051a8e275727bfbcefdfb44e996badfd3b9559876dafbf60f9458434ba81c",
+  "source_bundle_sha256": "9ebf307c9b0fc915ae6c05ed32f3fcf397249faee79b77e4b37c4a0216243363",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -29,14 +29,19 @@
         "C01-html-practice-html-q2-6243d5fb9605",
         "C01-html-practice-html-q3-420249562481",
         "C01-html-practice-html-q4-c2bf08e2ffaa",
+        "C01-html-practice-html-q5-2888cb8fc63d",
+        "C01-html-practice-html-q6-da41b3b80179",
+        "C01-html-practice-html-q9-0c0fa6184859",
         "C01-html-practice-html-q10-16347cd357c5",
         "C01-html-practice-html-q11-4f752e82aefe",
         "C01-html-practice-html-q12-01ffccfd9bec",
         "C01-html-practice-html-q13-1ea21c18131e",
-        "C01-html-practice-html-q15-dd906fe33c11"
+        "C01-html-practice-html-q15-dd906fe33c11",
+        "C01-html-practice-html-q17-6759e449aec3",
+        "C01-html-practice-html-q18-1212272c719b"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjllN2QxZDQyODJjIiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi02MjQzZDVmYjk2MDUiLCJDMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQyMDI0OTU2MjQ4MSIsIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzJiZjA4ZTJmZmFhIiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZGQ5MDZmZTMzYzExIl0sInBhY2tfaWQiOiJDMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImFlOWFmZTliOGMxZjg4MzkzZWY3MTQwOGNiY2Y5MGRlYzQzMzgxMTc4YjNmODM5NGJlYmZmOTQxOWUyN2VhNzYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjRkNjE3MjhjMDI5Y2NkNjNiMGQ1ZTE3OTYwYzc3Yzg1MDcxODFiYTk0MDkxMWIyMTI2Y2UwYjZjZTY3ZTVkYSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "b2d937c57903ea2a1f137ca0c0d6a805e1f413799bbaf5b4c2fde006712fec40"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjllN2QxZDQyODJjIiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi02MjQzZDVmYjk2MDUiLCJDMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQyMDI0OTU2MjQ4MSIsIkMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtYzJiZjA4ZTJmZmFhIiwiQzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZGQ5MDZmZTMzYzExIl0sInBhY2tfaWQiOiJDMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjM4OGI3OTAzZDk2NWFlMjI5NzllOWQ3N2YxZjM4YTljODRhY2Q0OTZiMDk0NTllYzFiODQzNDAwZjlhNzlmZjYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjRkNjE3MjhjMDI5Y2NkNjNiMGQ1ZTE3OTYwYzc3Yzg1MDcxODFiYTk0MDkxMWIyMTI2Y2UwYjZjZTY3ZTVkYSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "d6905297fa8bef5576975e6b514b9e0f62231a6f3551999f770189f2f235cc42"
     }
   ],
   "items": [
@@ -91,17 +96,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q1",
       "source_anchor": "exam:2021:第8题",
       "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "c01-fact-joint-location-by-member",
       "skeleton_id": "c01-skel-构件留置位置枚举",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "39a4f81fc5d19ce3cfe80ff0e0e3041f6299fb336b5a78c2ad2c9cc34e77f66d",
+      "content_sha256": "8760e5c2435313a4d0d65f518f4d757e111e38d8ac07e72b589e4521d40bb7af",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "39a4f81fc5d19ce3cfe80ff0e0e3041f6299fb336b5a78c2ad2c9cc34e77f66d",
+        "reviewed_content_sha256": "8760e5c2435313a4d0d65f518f4d757e111e38d8ac07e72b589e4521d40bb7af",
         "signatures": [
           {
             "role": "teaching",
@@ -121,7 +126,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "施工缝各构件留置位置,锚2021真题(ACDE)。工单:柱位置可补全基础顶面等教材范围(现仅梁板顶面,非错但不穷尽)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "施工缝各构件留置位置,锚2021真题(ACDE)。工单:柱位置可补全基础顶面等教材范围(现仅梁板顶面,非错但不穷尽)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-21 routeB批1 file级re-stamp(二次):q18干扰项长度tell修复致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -287,17 +292,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q2",
       "source_anchor": "ca:1A413030_103_0196",
       "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "c01-fact-joint-shear-position",
       "skeleton_id": "c01-skel-受剪力较小判据",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "740df5ebdb232a91cf031f2e71bc52118d750445e838e3d86e61ae5f23ff3cfb",
+      "content_sha256": "c57b44fa02e2c84c96b2136faaed8f0f070dcd05bf8d589c5cf24fe45f16c494",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "740df5ebdb232a91cf031f2e71bc52118d750445e838e3d86e61ae5f23ff3cfb",
+        "reviewed_content_sha256": "c57b44fa02e2c84c96b2136faaed8f0f070dcd05bf8d589c5cf24fe45f16c494",
         "signatures": [
           {
             "role": "teaching",
@@ -317,7 +322,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "受剪力较小+必要时设计确认,教材primary scoring card(grading_keywords 含受剪力较小/设计单位确认)。工单:distractor 措辞'被剪力撕开'可改精确表述。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "受剪力较小+必要时设计确认,教材primary scoring card(grading_keywords 含受剪力较小/设计单位确认)。工单:distractor 措辞'被剪力撕开'可改精确表述。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-21 routeB批1 file级re-stamp(二次):q18干扰项长度tell修复致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -466,17 +471,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q3",
       "source_anchor": "cc:1A413030_103_0196:3",
       "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "c01-fact-joint-continuity-timing",
       "skeleton_id": "c01-skel-初凝前浇次层",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "896a884739ae0050196a0a0e5a1e9053f325de17530181e137b9d2b9023368ef",
+      "content_sha256": "fb200a67bb25344e4a49adc205256522af9b68cca25ec00a7c5db4361e3639ae",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "896a884739ae0050196a0a0e5a1e9053f325de17530181e137b9d2b9023368ef",
+        "reviewed_content_sha256": "fb200a67bb25344e4a49adc205256522af9b68cca25ec00a7c5db4361e3639ae",
         "signatures": [
           {
             "role": "teaching",
@@ -496,7 +501,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "初凝前浇次层否则留缝,教材直引。工单:distractor'成通缝'为冷缝口语,可规范化。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "初凝前浇次层否则留缝,教材直引。工单:distractor'成通缝'为冷缝口语,可规范化。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-21 routeB批1 file级re-stamp(二次):q18干扰项长度tell修复致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -628,17 +633,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q4",
       "source_anchor": "kc:1A413030_103_0196:0",
       "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "c01-fact-joint-horizontal-distance",
       "skeleton_id": "c01-skel-水平缝数值0-100-0-300",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "06a01a2d4421a10d2d8636e442eebc097077a54a2a6434a49e16f1512717d839",
+      "content_sha256": "ac9f4d2ae95fd058e19c26f2501b6fe2c5724022e039b543be721cf88a52e3e6",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "06a01a2d4421a10d2d8636e442eebc097077a54a2a6434a49e16f1512717d839",
+        "reviewed_content_sha256": "ac9f4d2ae95fd058e19c26f2501b6fe2c5724022e039b543be721cf88a52e3e6",
         "signatures": [
           {
             "role": "teaching",
@@ -658,7 +663,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "柱0~100mm/墙0~300mm,教材数值直引,清洁锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "柱0~100mm/墙0~300mm,教材数值直引,清洁锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-21 routeB批1 file级re-stamp(二次):q18干扰项长度tell修复致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -839,29 +844,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q5",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "exam:2021:第8题",
+      "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
+      "fact_id": "c01-fact-joint-location-by-member",
+      "skeleton_id": "c01-skel-次梁跨中1-3聚焦",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f71d613b5a1e0a183486044f3e6022ae5b0e57fe46ecf744d2ba75c083bd7ad3",
+      "content_sha256": "b873d279ba5f06acad72b3b8e6e18d3ae18df11e7c215ca2e75d4258b5602cff",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "f71d613b5a1e0a183486044f3e6022ae5b0e57fe46ecf744d2ba75c083bd7ad3",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "b873d279ba5f06acad72b3b8e6e18d3ae18df11e7c215ca2e75d4258b5602cff",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "有主次梁楼板留次梁跨中1/3,锚2021真题第8题选项C(答案ACDE含C)逐字核对;干扰项主梁错位(E07)/支座受剪力大(E10)/缺1/3范围(E03)方向均复算无误。三件套:与q1(anchor,构件枚举)、新q17(d1,楼梯墙聚焦)同fact异骨架。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：有主次梁的楼板",
         "caption": "施工缝留在哪一段？",
@@ -1006,29 +1023,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q6",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "ca:1A413030_103_0196",
+      "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
+      "fact_id": "c01-fact-joint-treatment-process",
+      "skeleton_id": "c01-skel-处理工序链选择",
+      "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ee995a61d4175cf975d23a8d72d79f12631535a9bd7e3bc241df92e940f2978e",
+      "content_sha256": "73d1c2efd7f91b81d4c886acb751b2d4a6a0c332f71bd191cd2fbc2b73e7b317",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "ee995a61d4175cf975d23a8d72d79f12631535a9bd7e3bc241df92e940f2978e",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "73d1c2efd7f91b81d4c886acb751b2d4a6a0c332f71bd191cd2fbc2b73e7b317",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "新复合fact(施工缝处理工序:1.2N/mm²门槛→凿毛→清理→30mm砂浆→浇筑+不清理后果),锚primary卡grading_keywords(1.2N/mm²,凿毛处理,30mm砂浆)逐字核对。可达性边界:本fact当前仅q6/q9/q18三件,d1可达、confirm入口经q6。干扰项先浇后凿(E06)/省略工序(E03)/12N/mm²(M08)方向复算无误。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：旧缝重新浇筑处理",
         "caption": "达强度 → ? → ? → ? → 浇筑",
@@ -1277,17 +1306,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "58023658d22278c2e35eda1a93813550159456d005571a78ce453e836b8a8092",
+      "content_sha256": "64bd5676be88b8bf4144af2069ca50b48126ef4824c1d9a9ebe2564e24cd184d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "58023658d22278c2e35eda1a93813550159456d005571a78ce453e836b8a8092",
+        "reviewed_content_sha256": "64bd5676be88b8bf4144af2069ca50b48126ef4824c1d9a9ebe2564e24cd184d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1408,29 +1437,41 @@
       "source_group": "Q",
       "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q9",
-      "source_anchor": "",
-      "source_sha256": "",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
-      "fact_id": "",
-      "skeleton_id": "",
-      "probe_role": "",
+      "source_anchor": "kc:1A434000_074_0116:0",
+      "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
+      "fact_id": "c01-fact-joint-treatment-process",
+      "skeleton_id": "c01-skel-接槎不清理后果",
+      "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2979021d73da243a108f287871c7a5a49cce5c266cbdb3959abd853a7db0c14b",
+      "content_sha256": "fad00c9ed726e74cc98b494692b3096bfadbf944c91992a92914217647282c61",
       "review": {
-        "status": "pending",
-        "verdict": "pending",
-        "reviewed_content_sha256": "2979021d73da243a108f287871c7a5a49cce5c266cbdb3959abd853a7db0c14b",
-        "signatures": [],
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "fad00c9ed726e74cc98b494692b3096bfadbf944c91992a92914217647282c61",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
         "checks": {
-          "source_verified": false,
-          "answer_verified": false,
-          "diagnosis_verified": false,
-          "longest_option_checked": false,
-          "template_leakage_checked": false
-        }
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "接槎未清理→粘结不良→接槎明显易渗漏,教材渗漏成因卡逐字核对(施工缝未清理干净→混凝土粘结不良→渗漏;未按规范处理施工缝→接槎明显)。同fact后果维,与q6工序链/q18指错补写骨架互异。"
       },
-      "eligible": false,
+      "eligible": true,
       "figure": {
         "label": "题给：施工缝/接槎处理",
         "caption": "不清理干净会怎样？",
@@ -1577,17 +1618,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q10",
       "source_anchor": "kc:1A413030_103_0196:1",
       "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "c01-fact-post-cast-strip",
       "skeleton_id": "c01-skel-后浇带材料选用",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6f9ef13024b1aa0dfde07cd057ac58a4c69f6e5878c4b0f2f344f0e70dafbf59",
+      "content_sha256": "17daa789f66c1d332ecfeb759b8d0cbd00e1a738803406e8d63cc06a2e18ad75",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "6f9ef13024b1aa0dfde07cd057ac58a4c69f6e5878c4b0f2f344f0e70dafbf59",
+        "reviewed_content_sha256": "17daa789f66c1d332ecfeb759b8d0cbd00e1a738803406e8d63cc06a2e18ad75",
         "signatures": [
           {
             "role": "teaching",
@@ -1607,7 +1648,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "后浇带用微膨胀混凝土,教材chunk直言'后浇带使用微膨胀混凝土'逐字核对;补偿收缩机理为标准教学表述。"
+        "note": "后浇带用微膨胀混凝土,教材chunk直言'后浇带使用微膨胀混凝土'逐字核对;补偿收缩机理为标准教学表述。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-21 routeB批1 file级re-stamp(二次):q18干扰项长度tell修复致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -1875,17 +1916,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q11",
       "source_anchor": "exam:2018:案例分析(三)问题3",
       "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "c01-fact-post-cast-strip",
       "skeleton_id": "c01-skel-后浇带强度等级",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c92062b202eefdbb3ed96c938e197b0548b916410612250ac6e03102bfff57e9",
+      "content_sha256": "20a29db649d6f0da82df3f5cf746155033233ef0fecce8c078317296eb08fb24",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "c92062b202eefdbb3ed96c938e197b0548b916410612250ac6e03102bfff57e9",
+        "reviewed_content_sha256": "20a29db649d6f0da82df3f5cf746155033233ef0fecce8c078317296eb08fb24",
         "signatures": [
           {
             "role": "teaching",
@@ -1905,7 +1946,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "后浇带强度比原结构提高一级(C30→C35),真题答案含'强度等级比原结构强度提高一级';教材kc:...:1亦言'强度提高一级'。工单:distractor'内聚支撑'措辞可改'补偿收缩'。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "后浇带强度比原结构提高一级(C30→C35),真题答案含'强度等级比原结构强度提高一级';教材kc:...:1亦言'强度提高一级'。工单:distractor'内聚支撑'措辞可改'补偿收缩'。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-21 routeB批1 file级re-stamp(二次):q18干扰项长度tell修复致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -2071,17 +2112,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q12",
       "source_anchor": "exam:2018:案例分析(三)问题3",
       "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "c01-fact-post-cast-strip",
       "skeleton_id": "c01-skel-底板封闭时机28d",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "4149b9f45cd57f62bd680430a2369f56effc1ec4abc600f6d07006ed16597863",
+      "content_sha256": "414602e013eed88b36286d9c9ffcb6f956e18ab9b0936f46f43b5fdbc6c6cb8b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "4149b9f45cd57f62bd680430a2369f56effc1ec4abc600f6d07006ed16597863",
+        "reviewed_content_sha256": "414602e013eed88b36286d9c9ffcb6f956e18ab9b0936f46f43b5fdbc6c6cb8b",
         "signatures": [
           {
             "role": "teaching",
@@ -2101,7 +2142,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "基础底板后浇带≥28d封闭,锚2018真题官方答案'应至少28d后封闭'(带基础底板限定,与q16缺限定词版本相反,本题限定词齐全)。"
+        "note": "基础底板后浇带≥28d封闭,锚2018真题官方答案'应至少28d后封闭'(带基础底板限定,与q16缺限定词版本相反,本题限定词齐全)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-21 routeB批1 file级re-stamp(二次):q18干扰项长度tell修复致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -2250,17 +2291,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q13",
       "source_anchor": "exam:2018:案例分析(三)问题3",
       "source_sha256": "6c65c66d20cb6d056871ce5a0fd2c1b06e316ff3377b3b7fd8cc8dd65dfad2ab",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "c01-fact-post-cast-strip",
       "skeleton_id": "c01-skel-后浇带技术措施",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "88b44b961ea716ae4ede73ca9e7dd2462c07d2e71526bdba2b3d265878681838",
+      "content_sha256": "00dc526624a757f87bce17a4a257d7fd44fe866d3c81d126d75842291f342d97",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "88b44b961ea716ae4ede73ca9e7dd2462c07d2e71526bdba2b3d265878681838",
+        "reviewed_content_sha256": "00dc526624a757f87bce17a4a257d7fd44fe866d3c81d126d75842291f342d97",
         "signatures": [
           {
             "role": "teaching",
@@ -2280,7 +2321,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "后浇带技术措施(整理钢筋/冲洗/微膨胀/提高一级/≥14d养护/按缝处理),锚2018真题标准答案(列整理钢筋/冲洗/微膨胀/提高一级/14d)。工单:'接缝按施工缝处理'一项provenance在教材kc:...:1侧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "后浇带技术措施(整理钢筋/冲洗/微膨胀/提高一级/≥14d养护/按缝处理),锚2018真题标准答案(列整理钢筋/冲洗/微膨胀/提高一级/14d)。工单:'接缝按施工缝处理'一项provenance在教材kc:...:1侧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-21 routeB批1 file级re-stamp(二次):q18干扰项长度tell修复致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -2446,17 +2487,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2ab1b4b3c992be0492bf6ca735a15f98859e3ad6d61f3b526d536d7c27f6ec6b",
+      "content_sha256": "6dc4d891da3d6361b2c3d212ede6054a299198961ae7cc34c0d01a5603052a9f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "2ab1b4b3c992be0492bf6ca735a15f98859e3ad6d61f3b526d536d7c27f6ec6b",
+        "reviewed_content_sha256": "6dc4d891da3d6361b2c3d212ede6054a299198961ae7cc34c0d01a5603052a9f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2749,17 +2790,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q15",
       "source_anchor": "kc:1A413030_103_0196:1",
       "source_sha256": "9089a1c7b944355f53c358d003cc398e95156a7539e7e166a978984d2b9072e0",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "c01-fact-post-cast-strip",
       "skeleton_id": "c01-skel-后浇带诊断补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c9334e2ce2c627d15d58c8594a8099a52dcea66cf4d2ff7438ffc55778382561",
+      "content_sha256": "0648eb581321d88979b8598e8c13b1f658fb14f7553e805360ef968532bd90af",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "c9334e2ce2c627d15d58c8594a8099a52dcea66cf4d2ff7438ffc55778382561",
+        "reviewed_content_sha256": "0648eb581321d88979b8598e8c13b1f658fb14f7553e805360ef968532bd90af",
         "signatures": [
           {
             "role": "teaching",
@@ -2779,7 +2820,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "后浇带诊断:微膨胀/提高一级/≥14d/28d封闭。教材chunk直言'后浇带使用微膨胀混凝土'(非'可采用'),答案模态与教材一致;28d封闭为基础底板真题锚(exam:2018)补充。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "后浇带诊断:微膨胀/提高一级/≥14d/28d封闭。教材chunk直言'后浇带使用微膨胀混凝土'(非'可采用'),答案模态与教材一致;28d封闭为基础底板真题锚(exam:2018)补充。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-21 routeB批1 file级re-stamp(二次):q18干扰项长度tell修复致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
       },
       "eligible": true,
       "figure": {
@@ -2894,17 +2935,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q16",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "b273cc6440c416e7e2b4970fa15f3528ebfa1145ffac9fbff665f33cc8a0abe5",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b83f05d4bc10d781adbc41b03f41a85756c28f46e515a0b98f7ab9c0ecd4e543",
+      "content_sha256": "59d66403b4b974e4d6cdbfb4d323b593cf615908925e34e3a22b4b17b930933f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "b83f05d4bc10d781adbc41b03f41a85756c28f46e515a0b98f7ab9c0ecd4e543",
+        "reviewed_content_sha256": "59d66403b4b974e4d6cdbfb4d323b593cf615908925e34e3a22b4b17b930933f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2989,6 +3030,483 @@
           }
         ],
         "h": 96,
+        "w": 334,
+        "bg": "#ffffff"
+      }
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工缝·楼梯与墙",
+      "stem": "楼梯梯段与墙体的施工缝位置，选出两处都对、能得分的作答。",
+      "model_answer": "楼梯梯段留端部1/3范围内；墙留门洞口连梁跨中1/3范围内，或纵横墙交界处。",
+      "options": [
+        {
+          "text": "楼梯梯段的施工缝留在梯段跨中1/3范围内，墙的施工缝留在门洞口连梁的支座部位，两处均便于支设模板作业。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「跨中1/3」眼熟就往楼梯上套。",
+          "loss_reason": "跨中1/3是次梁楼板的规定——楼梯应留端部1/3，墙应留连梁跨中1/3，两处构件对错位。",
+          "fix": "楼梯留梯段端部1/3；墙留门洞口连梁跨中1/3或纵横墙交界处。",
+          "option_id": "C01-html-practice-html-q17-6759e449aec3:option-1"
+        },
+        {
+          "text": "楼梯与墙体的施工缝均应留置在受剪力较大的部位，让新旧混凝土在主要受力处结合为整体。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「受力大处接得牢」听着有道理。",
+          "loss_reason": "方向反了——施工缝是薄弱面，应留在受剪力较小、便于施工的部位。",
+          "fix": "留受剪力较小处；楼梯端部1/3、墙连梁跨中1/3正是按此原则定的。",
+          "option_id": "C01-html-practice-html-q17-6759e449aec3:option-2"
+        },
+        {
+          "text": "楼梯梯段留端部1/3范围内；墙留门洞口连梁跨中1/3范围内，也可留在纵横墙交界处。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两个构件位置带着范围词写全，位置题就稳了。",
+          "option_id": "C01-html-practice-html-q17-6759e449aec3:option-3"
+        },
+        {
+          "text": "楼梯梯段的施工缝留在端部附近即可，不必限定1/3范围；墙的施工缝留在纵横墙交界处一带即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "位置记了个大概，觉得写出部位就行。",
+          "loss_reason": "缺「1/3范围内」这个关键限定词，范围不写清要扣分。",
+          "fix": "端部1/3、连梁跨中1/3——范围词必须落在答题纸上。",
+          "option_id": "C01-html-practice-html-q17-6759e449aec3:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q17-6759e449aec3",
+      "surface_id": "practice.html",
+      "source_index": 16,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q17",
+      "source_anchor": "kc:1A413030_103_0196:0",
+      "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
+      "fact_id": "c01-fact-joint-location-by-member",
+      "skeleton_id": "c01-skel-楼梯墙位置聚焦",
+      "probe_role": "d1_probe",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "e4314fad9a3917dc2d6ee0eaee8b753e53d16245d8b4475bffff590e499c331a",
+      "review": {
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "e4314fad9a3917dc2d6ee0eaee8b753e53d16245d8b4475bffff590e499c331a",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
+        "checks": {
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "routeB新产。楼梯梯段端部1/3+墙洞口连梁跨中1/3或墙交界处,教材位置卡kc:0196:0逐字核对(用教材原词'连梁'与'交界处';2021真题D'墙在纵横墙的交接处'同向印证)。skeleton与q1(全构件枚举)/q5(次梁聚焦)互异=构件子集聚焦楼梯+墙。"
+      },
+      "eligible": true,
+      "figure": {
+        "label": "题给：楼梯梯段与墙体留缝",
+        "caption": "楼梯留哪段？墙留哪里？",
+        "els": [
+          {
+            "x": 6,
+            "top": 6,
+            "w": 100,
+            "h": 40,
+            "bg": "#f6f3ea",
+            "bd": "1.5px solid #2f6db0",
+            "r": 8,
+            "fg": "#2f6db0",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0 4px",
+            "lab": "柱·梁板顶面"
+          },
+          {
+            "x": 114,
+            "top": 6,
+            "w": 100,
+            "h": 40,
+            "bg": "#f6f3ea",
+            "bd": "1.5px solid #7c93a3",
+            "r": 8,
+            "fg": "#7c93a3",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0 4px",
+            "lab": "单向板·平行短边"
+          },
+          {
+            "x": 222,
+            "top": 6,
+            "w": 100,
+            "h": 40,
+            "bg": "#f6f3ea",
+            "bd": "1.5px solid #2c8a5b",
+            "r": 8,
+            "fg": "#2c8a5b",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0 4px",
+            "lab": "次梁·跨中1/3"
+          },
+          {
+            "x": 6,
+            "top": 54,
+            "w": 100,
+            "h": 40,
+            "bg": "#f6f3ea",
+            "bd": "1.5px solid #cf8a44",
+            "r": 8,
+            "fg": "#cf8a44",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0 4px",
+            "lab": "墙·0~300/交接"
+          },
+          {
+            "x": 114,
+            "top": 54,
+            "w": 100,
+            "h": 40,
+            "bg": "#f6f3ea",
+            "bd": "1.5px solid #d9a521",
+            "r": 8,
+            "fg": "#d9a521",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0 4px",
+            "lab": "楼梯·端部1/3"
+          },
+          {
+            "x": 222,
+            "top": 54,
+            "w": 100,
+            "h": 40,
+            "bg": "#f6f3ea",
+            "bd": "1.5px solid #8a6ea0",
+            "r": 8,
+            "fg": "#8a6ea0",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0 4px",
+            "lab": "双向板·按设计"
+          }
+        ],
+        "h": 100,
+        "w": 334,
+        "bg": "#ffffff"
+      }
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "施工缝·处理指错",
+      "stem": "某交底写：「已浇混凝土强度达到1.2N/mm²后，将缝面清扫干净即可浇筑新混凝土」。选出指错与补写都对的作答。",
+      "model_answer": "指错：清扫后直接浇筑不妥。补写：达1.2N/mm²后凿毛，清理松动石子和浮浆，铺30mm水泥砂浆，再浇筑振捣养护。",
+      "options": [
+        {
+          "text": "交底内容符合要求：达到强度门槛后将缝面清扫干净即可浇筑新混凝土，凿毛与铺水泥砂浆属于辅助工序，省略不影响接缝质量。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "强度数值对了，就以为整句都对。",
+          "loss_reason": "漏了凿毛、铺30mm砂浆两道关键工序，界面咬合不足会开裂渗水。",
+          "fix": "凿毛、清理、铺30mm砂浆一步不能省。",
+          "option_id": "C01-html-practice-html-q18-1212272c719b:option-1"
+        },
+        {
+          "text": "强度门槛1.2N/mm²正确；但清扫后直接浇筑不妥，还应凿毛并清理松动石子浮浆，铺30mm水泥砂浆后再浇筑。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "数值认对、缺的工序补全，指错题就答成了采分句。",
+          "option_id": "C01-html-practice-html-q18-1212272c719b:option-2"
+        },
+        {
+          "text": "强度门槛应改为12N/mm²，缝面处理仍按交底执行，清扫干净后即可继续浇筑新混凝土接槎。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得1.2偏小，顺手挪了小数点。",
+          "loss_reason": "门槛就是1.2N/mm²，改成12反把对的改错，缺漏的工序也没补上。",
+          "fix": "1.2N/mm²记准，再补凿毛→清理→铺浆。",
+          "option_id": "C01-html-practice-html-q18-1212272c719b:option-3"
+        },
+        {
+          "text": "错误在于不该清扫缝面，应保留表面浮浆作为新旧混凝土之间的粘结过渡层，利用浮浆胶结性能直接浇筑接槎。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「留层浆好粘接」听着像老师傅经验。",
+          "loss_reason": "方向反了——浮浆是隔离层，必须清掉并凿毛，留着才会粘结不良。",
+          "fix": "凿毛并清理松动石子和浮浆，再铺砂浆浇筑。",
+          "option_id": "C01-html-practice-html-q18-1212272c719b:option-4"
+        }
+      ],
+      "variant_id": "C01-html-practice-html-q18-1212272c719b",
+      "surface_id": "practice.html",
+      "source_index": 17,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C01/P40_C01.practice.dc.html#Q18",
+      "source_anchor": "ca:1A413030_103_0196",
+      "source_sha256": "ada2e222dd07dfa4de8085bacd69d7b9e94448edb98255586253c71830148aee",
+      "source_html_sha256": "84a8f660a7cd1e42d5f907c3f9646de2d29cdaca5daa57c58e174de771d635a2",
+      "fact_id": "c01-fact-joint-treatment-process",
+      "skeleton_id": "c01-skel-处理工序指错补写",
+      "probe_role": "d1_probe",
+      "revoked": false,
+      "revocation_refs": [],
+      "content_sha256": "4c249d3f1118bfc1be6bdbc8e1e1b8b546e917022c88ffae11fb2d90b5b9dc17",
+      "review": {
+        "status": "signed",
+        "verdict": "approved",
+        "reviewed_content_sha256": "4c249d3f1118bfc1be6bdbc8e1e1b8b546e917022c88ffae11fb2d90b5b9dc17",
+        "signatures": [
+          {
+            "role": "teaching",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          },
+          {
+            "role": "scoring",
+            "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+            "signed_at": "2026-07-21T14:32:39+08:00"
+          }
+        ],
+        "checks": {
+          "source_verified": true,
+          "answer_verified": true,
+          "diagnosis_verified": true,
+          "longest_option_checked": true,
+          "template_leakage_checked": true
+        },
+        "note": "routeB新产。交底指错题:1.2N/mm²门槛正确保留、缺凿毛+清理+30mm砂浆为指错点,grading_keywords(1.2N/mm²,凿毛处理,30mm砂浆)逐字核对;M08干扰12N/mm²数值复算(1.2×10=12为典型小数点错位);E10干扰'保留浮浆'与kc:0116:0成因卡方向相反判错正确。"
+      },
+      "eligible": true,
+      "figure": {
+        "label": "题给：施工缝处理交底（含不妥）",
+        "caption": "清扫后直接浇 · 差了哪几步？",
+        "els": [
+          {
+            "x": 8,
+            "top": 14,
+            "w": 56,
+            "h": 34,
+            "bg": "#2f6db0",
+            "bd": "none",
+            "r": 7,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "1"
+          },
+          {
+            "x": 8,
+            "top": 52,
+            "w": 56,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#2f6db0",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "1.2N"
+          },
+          {
+            "x": 72,
+            "top": 14,
+            "w": 56,
+            "h": 34,
+            "bg": "#cf8a44",
+            "bd": "none",
+            "r": 7,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "2"
+          },
+          {
+            "x": 72,
+            "top": 52,
+            "w": 56,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#cf8a44",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "凿毛"
+          },
+          {
+            "x": 136,
+            "top": 14,
+            "w": 56,
+            "h": 34,
+            "bg": "#7c93a3",
+            "bd": "none",
+            "r": 7,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "3"
+          },
+          {
+            "x": 136,
+            "top": 52,
+            "w": 56,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#7c93a3",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "清理"
+          },
+          {
+            "x": 200,
+            "top": 14,
+            "w": 56,
+            "h": 34,
+            "bg": "#8a6d1f",
+            "bd": "none",
+            "r": 7,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "4"
+          },
+          {
+            "x": 200,
+            "top": 52,
+            "w": 56,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#8a6d1f",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "30mm"
+          },
+          {
+            "x": 264,
+            "top": 14,
+            "w": 56,
+            "h": 34,
+            "bg": "#2c8a5b",
+            "bd": "none",
+            "r": 7,
+            "fg": "#fff",
+            "fs": 11,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "5"
+          },
+          {
+            "x": 264,
+            "top": 52,
+            "w": 56,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#2c8a5b",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "center",
+            "ta": "center",
+            "p": "0",
+            "lab": "浇筑"
+          },
+          {
+            "x": 8,
+            "top": 70,
+            "w": 300,
+            "h": 14,
+            "bg": "transparent",
+            "bd": "none",
+            "r": 4,
+            "fg": "#8b9398",
+            "fs": 9,
+            "fw": "800",
+            "ai": "center",
+            "jc": "flex-start",
+            "ta": "left",
+            "p": "0",
+            "lab": "达强度→凿毛→清理→砂浆→浇筑（不可颠倒）"
+          }
+        ],
+        "h": 88,
         "w": 334,
         "bg": "#ffffff"
       }

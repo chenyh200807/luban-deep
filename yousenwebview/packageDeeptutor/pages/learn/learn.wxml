@@ -271,6 +271,8 @@ module.exports = { daysTo: daysTo };
           </view>
         </view>
         <text class="pk-desc lr-supply-note" wx:if="{{vm.taskCard.supplyNote}}">{{vm.taskCard.supplyNote}}</text>
+        <!-- 到期验证优先时换轻练入口隐藏(红队 A2 不动):一句说明让入口"消失"不像功能坏了 -->
+        <text class="pk-desc lr-supply-note" wx:if="{{vm.taskCard.reentryNote}}">{{vm.taskCard.reentryNote}}</text>
 
         <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.taskCard.reason}}">
           <text class="lr-why-label">为什么推荐</text>
