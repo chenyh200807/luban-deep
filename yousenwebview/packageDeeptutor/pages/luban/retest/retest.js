@@ -388,7 +388,12 @@ Page({
     }
   },
 
-  // 编译 HTML 单选题：客户端只记录 option identity，不持有正确答案。
+  // 编译 HTML 单选题：客户端只记录 option identity（可变草稿），不持有正确答案。
+  // 收权纪律：tap 只写 selectedOptionId，是"已选未定稿"的可变草稿——用户离开本题
+  // 前可反复改选（再点别的选项覆盖），高亮天然跟随 selectedOptionId。定稿（answered）、
+  // 计数、提交全部收敛到 nextQuestion（离开本题的唯一动作），此处一概不写。
+  // 未定稿选择不落盘：draft 只承载已定稿项（_persistDraft filter by answered，restore 据
+  // selected_option_id 标 answered），避免给 draft/restore 引入"未定稿"第二子态。
   onOptionTap(event) {
     var dataset = (event && event.currentTarget && event.currentTarget.dataset) || {};
     var index = Number(dataset.index);
@@ -396,29 +401,35 @@ Page({
     var items = this.data.items;
     if (!Number.isFinite(index) || index < 0 || index >= items.length || !optionId) return;
     var item = items[index];
+    // 已定稿（answered）的单选题锁定不可改（离开即锁,防离开后作弊/漂移）;
+    // 未定稿的当前题允许反复改选。
     if (!item || item.answered || item.answer_type !== "single_choice") return;
     if (!(item.options || []).some(function (option) { return option.option_id === optionId; })) return;
 
-    var answeredCount = this.data.answeredCount + 1;
-    var allAnswered = answeredCount >= this.data.total && this.data.total > 0;
-    var patch = { answeredCount: answeredCount, done: false };
-    patch["items[" + index + "].answered"] = true;
+    var patch = {};
     patch["items[" + index + "].selectedOptionId"] = optionId;
     this.setData(patch);
-    var draftItems = items.slice();
-    draftItems[index] = Object.assign({}, item, {
-      answered: true,
-      selectedOptionId: optionId,
-    });
-    this._persistDraft(draftItems);
-    if (allAnswered) {
-      var all = items.slice();
-      all[index] = Object.assign({}, item, {
-        answered: true,
-        selectedOptionId: optionId,
-      });
-      this._submitCompletion(all);
-    }
+  },
+
+  // 单选题定稿唯一权威：离开当前题时才把该题 answered=true、answeredCount 累加、持久化草稿。
+  // 幂等：已定稿或非单选题一律 no-op（answered 幂等标记防重复计数）；未选择不能定稿。
+  // 判断题（onChoiceTap）在点击当场即已定稿,此处不再处理。
+  _finalizeCurrent() {
+    var index = this.data.currentIndex;
+    var items = this.data.items;
+    var item = items[index];
+    if (!item) return { items: items, finalized: false };
+    if (item.answered || item.answer_type !== "single_choice") return { items: items, finalized: false };
+    if (!item.selectedOptionId) return { items: items, finalized: false };
+
+    var answeredCount = this.data.answeredCount + 1;
+    var patch = { answeredCount: answeredCount, done: false };
+    patch["items[" + index + "].answered"] = true;
+    this.setData(patch);
+    var finalizedItems = items.slice();
+    finalizedItems[index] = Object.assign({}, item, { answered: true });
+    this._persistDraft(finalizedItems);
+    return { items: finalizedItems, finalized: true };
   },
 
   _draftKey() {
@@ -519,15 +530,22 @@ Page({
     return ids.length;
   },
 
-  // 单题流推进: 下一题 / 最后一题 → 今日收据
+  // 单题流推进（MCQ 定稿唯一入口）: 离开当前题时先定稿该题,再翻页 / 末题统一提交。
+  // "下一题/查看结果"的动作 = 离开该题的动作 = 定稿时机（业务事实 root-cause 第 2 点）。
   nextQuestion() {
+    var finalized = this._finalizeCurrent();
+    var items = finalized.items;
     var next = this.data.currentIndex + 1;
-    if (next >= this.data.total) {
-      if (this.data.syncStatus === "synced") this.setData({ showReceipt: true });
-      else if (this.data.syncStatus === "error") this.retryCompletion();
+    if (next < this.data.total) {
+      this.setData({ currentIndex: next });
       return;
     }
-    this.setData({ currentIndex: next });
+    // 末题：离开本题 = 统一提交（服务端重判唯一入口,架构不变）。
+    if (this.data.syncStatus === "synced") { this.setData({ showReceipt: true }); return; }
+    if (this.data.syncStatus === "syncing") return;
+    if (this.data.syncStatus === "error") { this.retryCompletion(); return; }
+    if (!items.length || items.some(function (item) { return !item.answered; })) return;
+    this._submitCompletion(items.slice());
   },
 
   retryCompletion() {

@@ -114,9 +114,10 @@
               </view>
             </view>
 
-            <!-- 印章反馈(答后滑入) -->
-            <view class="rt-pending" wx:if="{{items[currentIndex].answer_type === 'single_choice' && items[currentIndex].answered}}">
-              <text>已选。五题答完后由服务器统一判分并写入学习证据。</text>
+            <!-- 单选题：选了就能进(出现条件=已有 selectedOptionId,非 answered)。 -->
+            <!-- 定稿(answered)在点"下一题/查看结果"离开本题时才发生,离开前可反复改选。 -->
+            <view class="rt-pending" wx:if="{{items[currentIndex].answer_type === 'single_choice' && items[currentIndex].selectedOptionId}}">
+              <text>已选。可以再改；离开本题后,五题答完由服务器统一判分并写入学习证据。</text>
               <view class="pk-btn-ink rt-next" bindtap="nextQuestion">
                 {{currentIndex + 1 < total ? '下一题' : (syncStatus === 'syncing' ? '正在判分并保存…' : (syncStatus === 'error' ? '重试保存' : '查看结果'))}}
               </view>

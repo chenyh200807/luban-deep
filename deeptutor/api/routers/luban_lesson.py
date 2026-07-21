@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import os
 
 from fastapi import Depends, HTTPException
@@ -185,6 +186,41 @@ async def retest_items(
 
     未识别的 mode 归一为 review（thin 归一，不新增第二 builder/第二端点）。
     """
+    # 同款「同步阻塞全家桶」：整段 body 无 await，却做 list_learning_evidence_events /
+    # build_review_due_projection / build_variant_probe_items / build_retest_items 等
+    # 多次同步 Supabase 往返。半修 retest_complete 而放任此 load 路径，事件循环仍被
+    # 阻塞。按同一惯例把纯同步内核丢线程池，参数显式传入（避免闭包内 `mode` 重赋值
+    # 触发 UnboundLocalError），行为逐字节不变。
+    return await asyncio.to_thread(
+        _retest_items_sync,
+        pack_id,
+        limit,
+        mode,
+        practice_surface,
+        projection_receipt,
+        probe_id,
+        confirm_facts,
+        confirm_anchor,
+        current_user,
+    )
+
+
+def _retest_items_sync(
+    pack_id: str,
+    limit: int,
+    mode: str,
+    practice_surface: str,
+    projection_receipt: str,
+    probe_id: str,
+    confirm_facts: str,
+    confirm_anchor: str,
+    current_user: AuthContext,
+) -> dict:
+    """题面投影同步内核——由 ``retest_items`` 经 ``asyncio.to_thread`` 调度执行。
+
+    抽出的全部是原 ``retest_items`` body（逐字节不变）；HTTPException 在线程内抛出
+    经 ``to_thread`` 原样传回路由并出栈。拆成模块级具名函数（非闭包）以便所有依赖仍
+    以裸名从模块全局解析——既有 monkeypatch 测试不受影响。"""
     from datetime import datetime, timedelta, timezone
 
     # §9-D2: "天"按服务端 UTC+8 日历日折算, 客户端不自算
@@ -413,7 +449,12 @@ async def retest_complete(
         RetestWritebackService,
     )
 
-    try:
+    def _run_complete() -> dict:
+        # 服务端统一重判 + 写 terminal 学习证据是 8~15 次同步 Supabase 往返的阻塞
+        # I/O（三结构病之一「同步阻塞全家桶」）。整段无 await，直接内联会霸占事件
+        # 循环线程 → 并发天花板 → 撞前端 15s 死线。按仓库既有惯例把纯同步可调用体
+        # 丢到线程池（rate_limit.py:102-107 / luban_preview 同款），事件循环得以并发
+        # 服务其它请求；complete() 内部的原子幂等 claim + 确定性 event_id 保证并发正确性。
         return RetestWritebackService(
             learner_state_service=get_learner_state_service(),
             review_exam_date_resolver=_exam_date_for,
@@ -428,6 +469,9 @@ async def retest_complete(
             training_intent_id=body.training_intent_id,
             probe_id=body.probe_id,
         )
+
+    try:
+        return await asyncio.to_thread(_run_complete)
     except RetestIdempotencyConflict as exc:
         raise HTTPException(status_code=409, detail="retest completion conflict") from exc
     except RetestCompletionInProgress as exc:

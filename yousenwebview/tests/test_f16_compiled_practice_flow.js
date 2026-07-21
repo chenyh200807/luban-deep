@@ -143,11 +143,14 @@ function loadPage(options) {
 }
 
 async function answerFive(setup) {
+  // 收权后新流:onOptionTap 只记录可变草稿选择;定稿/计数/提交收敛到 nextQuestion
+  // (离开该题的动作)。第 5 题同样要按"查看结果"(=nextQuestion)才统一提交,故每题选完
+  // 都推进一次(末题的 nextQuestion 触发 _submitCompletion)。
   for (var index = 0; index < 5; index++) {
     setup.page.onOptionTap({
       currentTarget: { dataset: { index: index, optionId: "q" + (index + 1) + ":b" } },
     });
-    if (index < 4) setup.page.nextQuestion();
+    setup.page.nextQuestion();
   }
   await flush();
   await flush();
