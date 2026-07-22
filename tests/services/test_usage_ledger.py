@@ -335,3 +335,48 @@ def test_usage_window_summary_can_match_provider_account_scope(tmp_path) -> None
     assert summary["totals"]["currency_amounts"] == {"CNY": 1.0}
     assert summary["by_model"][0]["currency_amounts"] == {"CNY": 1.0}
     assert summary["by_model"][0]["total_tokens"] == 10
+
+
+def test_usage_window_summary_filters_to_canonical_turn_ids(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+    for turn_id, amount in (("business-turn", 0.25), ("other-turn", 7.7), ("", 9.0)):
+        ledger.record_usage_event(
+            usage_source="provider",
+            usage_details={"total": 10.0},
+            cost_details={"total": amount, "currency": "USD"},
+            model="shared-model",
+            metadata={"provider_name": "dashscope"},
+            turn_id=turn_id,
+        )
+
+    summary = ledger.get_window_summary(
+        start_ts=0,
+        end_ts=9_999_999_999,
+        turn_ids={"business-turn"},
+    )
+
+    assert summary["totals"]["total_cost_usd"] == 0.25
+    assert summary["totals"]["linked_turns"] == 1
+    assert summary["totals"]["provider_calls"] == 1
+    assert summary["by_model"][0]["currency_amounts"] == {"USD": 0.25}
+
+
+def test_usage_window_summary_empty_turn_scope_is_empty(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+    ledger.record_usage_event(
+        usage_source="provider",
+        usage_details={"total": 10.0},
+        cost_details={"total": 1.0, "currency": "USD"},
+        model="shared-model",
+        metadata={"provider_name": "dashscope"},
+        turn_id="some-turn",
+    )
+
+    summary = ledger.get_window_summary(
+        start_ts=0,
+        end_ts=9_999_999_999,
+        turn_ids=set(),
+    )
+
+    assert summary["totals"]["provider_calls"] == 0
+    assert summary["by_model"] == []

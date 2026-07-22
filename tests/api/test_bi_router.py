@@ -567,7 +567,8 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
             )()
 
     class _FakeUsageLedger:
-        def get_window_summary(self, *, start_ts, end_ts, provider_name=None):
+        def get_window_summary(self, *, start_ts, end_ts, provider_name=None, turn_ids=None):
+            linked_turns = len(turn_ids or []) if turn_ids is not None else 3
             return {
                 "totals": {
                     "input_tokens": 90000,
@@ -578,6 +579,11 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
                     "estimated_total_cost_usd": 3.02,
                     "measured_total_tokens": 100000,
                     "estimated_total_tokens": 14000,
+                    "linked_turns": linked_turns,
+                    "provider_calls": 120,
+                    "currency_amounts": {"USD": 5.46},
+                    "cost_currency_status": "single_currency",
+                    "cost_currency": "USD",
                 },
                 "by_model": [
                     {

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 import json
+from pathlib import Path
 import sqlite3
 import time
-from collections.abc import Sequence
-from pathlib import Path
 from typing import Any
 
-from deeptutor.services.observability.product_behavior_catalog import find_forbidden_product_behavior_field
+from deeptutor.services.observability.product_behavior_catalog import (
+    find_forbidden_product_behavior_field,
+)
 
 
 def _safe_properties_json(value: Any) -> str:

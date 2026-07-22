@@ -23,7 +23,7 @@ def _seeded_ledger(tmp_path: Path, *costs: float) -> UsageLedger:
         ledger.record_usage_event(
             usage_source="provider",
             usage_details={"input": 100.0, "output": 50.0, "total": 150.0},
-            cost_details={"total": cost},
+            cost_details={"total": cost, "currency": "USD"},
             model="deepseek-v4-flash",
             metadata={"provider_name": "dashscope"},
             turn_id=f"ledger_turn_{index}",
@@ -876,9 +876,10 @@ def test_boss_workbench_exposes_daily_cost_from_usage_ledger(
     overview = asyncio.run(service.get_overview(days=7))
     boss = overview["boss_workbench"]
 
-    assert boss["daily_cost"]["today_usd"] == 0.125
-    assert boss["daily_cost"]["window_total_usd"] == 0.125
-    assert boss["daily_cost"]["series"][-1]["cost_usd"] == 0.125
+    assert boss["daily_cost"]["today_usd"] is None
+    assert boss["daily_cost"]["window_total_usd"] is None
+    assert boss["daily_cost"]["status"] == "insufficient_turn_linkage"
+    assert overview["summary"]["platform_cost_by_currency"] == {"USD": 0.125}
     assert boss["daily_cost"]["source"] == "usage_ledger"
     assert any(item["label"] == "今日成本" for item in boss["kpis"])
 
@@ -886,7 +887,7 @@ def test_boss_workbench_exposes_daily_cost_from_usage_ledger(
 def test_boss_workbench_counts_only_registered_member_activity(
     store: SQLiteSessionStore, tmp_path: Path
 ) -> None:
-    # 会话/回合仍按注册会员 scope；平台成本来自 UsageLedger 全量（P2-F1b：成本不是会员子集事实）
+    # 经营成本只认同一 turn-id cohort；未关联 ledger 事件只保留在平台成本中。
     service = BIService(
         session_store=store,
         member_service=_RegisteredMemberService(),
@@ -956,7 +957,8 @@ def test_boss_workbench_counts_only_registered_member_activity(
     assert overview["summary"]["active_learners"] == 1
     assert overview["summary"]["total_turns"] == 2
     assert overview["summary"]["success_turn_rate"] == 100
-    assert overview["boss_workbench"]["daily_cost"]["window_total_usd"] == 0.3
+    assert overview["boss_workbench"]["daily_cost"]["window_total_usd"] is None
+    assert overview["summary"]["platform_cost_by_currency"] == {"USD": 0.3}
     assert not any("失败回合" in item for item in overview["risk_alerts"])
     assert sum(point["sessions"] for point in trend["points"]) == 2
     assert max(point["active"] for point in trend["points"]) == 1
@@ -1066,8 +1068,9 @@ def test_business_bi_endpoints_share_registered_turn_scope(
     commerce = asyncio.run(service.get_commerce(limit=500))
     assert overview["unit_economics"]["revenue_status"] == commerce["summary"]["revenue_status"]
     assert overview["unit_economics"]["revenue_status"] != "pending"
-    assert overview["unit_economics"]["cost_per_effective_learning_usd"] == 0.25
-    assert overview["unit_economics"]["value"] == 0.25
+    assert overview["unit_economics"]["cost_per_effective_learning_usd"] is None
+    assert overview["unit_economics"]["value"] is None
+    assert overview["summary"]["platform_cost_by_currency"] == {"USD": 0.25}
     assert overview["teaching_effect"]["chapter_progress"][0]["name"] == "地基基础"
     assert overview["teaching_effect"]["chapter_progress"][0]["mastery"] == 58
     assert overview["teaching_effect"]["chapter_progress"][0]["member_count"] == 1
@@ -1124,6 +1127,56 @@ def test_business_turn_window_uses_created_at_not_updated_at(
         ("deep_question", 1)
     ]
     assert overview["active_trend"]["points"][0]["turns"] == 1
+
+
+def test_cost_and_capability_share_registered_turn_scope(
+    store: SQLiteSessionStore, tmp_path: Path
+) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "scoped_usage.db")
+    service = BIService(
+        session_store=store,
+        member_service=_RegisteredMemberService(),
+        usage_ledger=ledger,
+    )
+
+    async def _seed() -> tuple[str, str]:
+        real_session = await store.create_session(title="real", session_id="real_cost")
+        await store.update_session_preferences(
+            real_session["id"], {"user_id": "member_1", "source": "wx_miniprogram"}
+        )
+        real_turn = await store.create_turn(real_session["id"], capability="chat")
+        await store.update_turn_status(real_turn["id"], "completed")
+        anon_session = await store.create_session(title="anon", session_id="anon_cost")
+        anon_turn = await store.create_turn(anon_session["id"], capability="deep_question")
+        await store.update_turn_status(anon_turn["id"], "completed")
+        return real_turn["id"], anon_turn["id"]
+
+    real_turn_id, anon_turn_id = asyncio.run(_seed())
+    for turn_id, cost in ((real_turn_id, 0.25), (anon_turn_id, 7.70), ("", 9.0)):
+        ledger.record_usage_event(
+            usage_source="provider",
+            usage_details={"input": 100, "output": 50, "total": 150},
+            cost_details={"total": cost, "currency": "USD"},
+            model="deepseek-v4-flash",
+            metadata={"provider_name": "dashscope", "billing_currency": "USD"},
+            turn_id=turn_id,
+        )
+
+    overview = asyncio.run(service.get_overview(days=7))
+    capabilities = asyncio.run(service.get_capability_stats(days=7))
+    costs = asyncio.run(service.get_cost_stats(days=7))
+    total_cost_card = next(card for card in costs["cards"] if card["label"] == "总成本")
+    avg_cost_card = next(card for card in costs["cards"] if card["label"] == "平均回合成本")
+
+    assert overview["summary"]["total_turns"] == 1
+    assert sum(item["turns"] for item in capabilities["items"]) == 1
+    assert costs["business_turn_count"] == 1
+    assert costs["business_turns_with_usage"] == 1
+    assert total_cost_card["value"] == 0.25
+    assert avg_cost_card["value"] == 0.25
+    assert costs["business_scope"]["currency_amounts"] == {"USD": 0.25}
+    assert costs["platform_scope"]["currency_amounts"] == {"USD": 16.95}
+    assert overview["summary"]["total_cost_usd"] == 0.25
 
 
 def test_north_star_does_not_count_empty_registered_member_sessions(

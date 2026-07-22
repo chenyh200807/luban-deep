@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 import json
 from pathlib import Path
@@ -66,6 +67,7 @@ class UsageLedgerTotals:
     provider_calls: int = 0
     unattributed_provider_calls: int = 0
     billable_turns: int = 0
+    linked_turns: int = 0
     metadata_breakdown: dict[str, int] = field(default_factory=dict)
     currency_amounts: dict[str, float] = field(default_factory=dict)
     unknown_currency_amount: float = 0.0
@@ -124,6 +126,7 @@ class UsageLedgerTotals:
             "provider_calls": int(self.provider_calls),
             "unattributed_provider_calls": int(self.unattributed_provider_calls),
             "billable_turns": int(self.billable_turns),
+            "linked_turns": int(self.linked_turns),
             "calls_per_billable_turn": self.calls_per_billable_turn,
             "metadata_breakdown": dict(self.metadata_breakdown),
             "currency_amounts": {
@@ -328,6 +331,7 @@ class UsageLedger:
         environment: str | None = None,
         cost_center: str | None = None,
         api_key_fingerprint: str | None = None,
+        turn_ids: Sequence[str] | None = None,
     ) -> UsageLedgerTotals:
         clauses = ["created_at >= ?", "created_at <= ?"]
         params: list[Any] = [float(start_ts), float(end_ts)]
@@ -355,6 +359,12 @@ class UsageLedger:
 
         totals = UsageLedgerTotals()
         billable_turn_ids: set[str] = set()
+        linked_turn_ids: set[str] = set()
+        requested_turn_ids = (
+            {_as_str(value) for value in turn_ids if _as_str(value)}
+            if turn_ids is not None
+            else None
+        )
         requested_environment = _as_str(environment)
         requested_cost_center = _as_str(cost_center)
         requested_api_key = _as_str(api_key_fingerprint)
@@ -375,6 +385,12 @@ class UsageLedger:
             if requested_cost_center and row_cost_center != requested_cost_center:
                 continue
             if requested_api_key and row_api_key != requested_api_key:
+                continue
+            row_turn_id = _as_str(row["turn_id"])
+            row_scope_id = _as_str(row["scope_id"])
+            if requested_turn_ids is not None and not (
+                row_turn_id in requested_turn_ids or row_scope_id in requested_turn_ids
+            ):
                 continue
 
             billable_turn_id = _as_str(
@@ -400,6 +416,9 @@ class UsageLedger:
             totals.provider_calls += 1
             if is_billable:
                 billable_turn_ids.add(billable_turn_id)
+            linked_turn_id = row_turn_id or row_scope_id
+            if linked_turn_id:
+                linked_turn_ids.add(linked_turn_id)
             if not row_environment or not row_cost_center or not row_api_key:
                 totals.unattributed_provider_calls += 1
 
@@ -467,6 +486,7 @@ class UsageLedger:
                 totals.unknown_currency_amount += amount
 
         totals.billable_turns = len(billable_turn_ids)
+        totals.linked_turns = len(linked_turn_ids)
         return totals
 
     def get_window_summary(
@@ -475,6 +495,7 @@ class UsageLedger:
         start_ts: float,
         end_ts: float,
         provider_name: str | None = None,
+        turn_ids: Sequence[str] | None = None,
     ) -> dict[str, Any]:
         """窗口聚合：totals（measured/estimated 分列）+ by_model + by_usage_source。
 
@@ -484,12 +505,24 @@ class UsageLedger:
             start_ts=start_ts,
             end_ts=end_ts,
             provider_name=provider_name,
+            turn_ids=turn_ids,
         )
         where_sql = "created_at >= ? AND created_at <= ?"
         params: list[Any] = [float(start_ts), float(end_ts)]
         if provider_name:
             where_sql += " AND provider_name = ?"
             params.append(_as_str(provider_name))
+        if turn_ids is not None:
+            normalized_turn_ids = sorted({_as_str(value) for value in turn_ids if _as_str(value)})
+            if not normalized_turn_ids:
+                where_sql += " AND 0"
+            else:
+                turn_ids_json = json.dumps(normalized_turn_ids)
+                where_sql += (
+                    " AND (turn_id IN (SELECT value FROM json_each(?))"
+                    " OR scope_id IN (SELECT value FROM json_each(?)))"
+                )
+                params.extend([turn_ids_json, turn_ids_json])
 
         group_sql = """
             SELECT
