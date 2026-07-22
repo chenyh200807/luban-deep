@@ -1,6 +1,6 @@
 name: Wallet Consistency Cron
 
-# Daily read-only audit of wallet projection vs wallet_ledger.
+# Daily read-only audit of wallet projection and financial authority anomalies.
 # scripts/audit_wallet_projection_consistency.py --execute runs SELECT-only SQL
 # (json_build_object over wallets/wallet_ledger) and prints a JSON summary whose
 # result.ledger_sum_diff_count is the count of users whose wallets.balance_micros
@@ -42,18 +42,22 @@ jobs:
           set -o pipefail
           python3 scripts/audit_wallet_projection_consistency.py --execute | tee audit_output.json
 
-          # Parse the trustworthy ledger-sum drift count from the JSON summary.
+          # Parse the trustworthy ledger-sum drift and financial-authority anomaly counts.
           # status != "ok" means the audit never ran (e.g. missing DB url) -> -1 (failure).
           # Otherwise read result.ledger_sum_diff_count; fail (exit 1) when drift > 0
           # so the run goes red and can be alerted on.
-          drift="$(python3 -c 'import json; s=json.load(open("audit_output.json", encoding="utf-8")); print(int((s.get("result") or {}).get("ledger_sum_diff_count", -1)) if s.get("status")=="ok" else -1)')"
+          counts="$(python3 -c 'import json; s=json.load(open("audit_output.json", encoding="utf-8")); r=s.get("result") or {}; keys=("ledger_sum_diff_count","duplicate_idempotency_count","identity_merge_wallet_mutation_count","suspicious_positive_delta_count"); print(" ".join(str(int(r.get(k,-1))) for k in keys) if s.get("status")=="ok" else "-1 -1 -1 -1")')"
+          read -r drift duplicate identity_merge suspicious_credit <<< "${counts}"
 
           echo "ledger_sum_diff_count=${drift}"
+          echo "duplicate_idempotency_count=${duplicate}"
+          echo "identity_merge_wallet_mutation_count=${identity_merge}"
+          echo "suspicious_positive_delta_count=${suspicious_credit}"
 
-          if [ "${drift}" = "0" ]; then
-            echo "Wallet projection consistent: no ledger-sum drift."
+          if [ "${drift}" = "0" ] && [ "${duplicate}" = "0" ] && [ "${identity_merge}" = "0" ] && [ "${suspicious_credit}" = "0" ]; then
+            echo "Wallet authority audit passed: no projection drift or financial anomalies."
           else
-            echo "::error::Wallet projection drift detected (ledger_sum_diff_count=${drift}). See audit_output.json."
+            echo "::error::Wallet authority anomaly detected. See audit_output.json."
             exit 1
           fi
 
@@ -64,3 +68,4 @@ jobs:
           name: wallet-projection-consistency
           path: audit_output.json
           if-no-files-found: ignore
+          retention-days: 1

@@ -1244,6 +1244,13 @@ def test_mobile_chat_start_turn_does_not_read_ledger_for_removed_usage_windows(m
 
 
 def test_billing_usage_defaults_follow_membership_balance_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    packages = [
+        {"id": "vip", "tier": "vip", "points": 9000},
+        {"id": "svip", "tier": "svip", "points": 12500},
+        {"id": "supreme_svip", "tier": "supreme_svip", "points": 50000},
+    ]
+    monkeypatch.setattr(mobile_module.member_service, "list_membership_packages", lambda: packages)
+
     vip = mobile_module._build_billing_usage_payload([], plan_id="vip")
     svip = mobile_module._build_billing_usage_payload([], plan_id="svip")
     supreme = mobile_module._build_billing_usage_payload([], plan_id="supreme_svip")
@@ -1265,6 +1272,8 @@ def test_billing_usage_defaults_follow_membership_balance_model(monkeypatch: pyt
     assert mobile_module._billing_usage_reference_points_for_plan("supreme_svip") == 50000
     assert mobile_module._billing_usage_reference_points_for_plan("advance") == 9000
     assert mobile_module._billing_usage_reference_points_for_plan("sprint") == 12500
+    with pytest.raises(RuntimeError, match="paid billing entitlement unavailable"):
+        mobile_module._billing_usage_reference_points_for_plan("trial")
 
 
 def test_billing_usage_percent_uses_wallet_snapshot_not_polluted_ledger_history() -> None:
@@ -1296,7 +1305,6 @@ def test_billing_usage_percent_uses_wallet_snapshot_not_polluted_ledger_history(
             created_at="2026-07-21T01:20:36+00:00",
         ),
     ]
-
     payload = mobile_module._build_billing_usage_payload(
         entries,
         plan_id="supreme_svip",
@@ -1389,8 +1397,18 @@ def test_billing_usage_does_not_depend_on_ledger_storage(
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
             raise AssertionError("billing usage must not read wallet ledger")
 
+    class ReadOnlyMemberService:
+        @staticmethod
+        def get_billing_entitlement_read_model(user_id: str):
+            assert user_id == "wallet_demo"
+            return {
+                "tier": "advance",
+                "packages": [{"id": "vip", "tier": "vip", "points": 9000}],
+            }
+
     monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: True)
     monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
+    monkeypatch.setattr(mobile_module, "member_service", ReadOnlyMemberService())
     monkeypatch.setattr(
         mobile_module,
         "_resolve_authenticated_user_id",
@@ -1417,6 +1435,57 @@ def test_billing_usage_does_not_depend_on_ledger_storage(
     assert body["display"]["plan_id"] == "vip"
     assert body["display"]["limited_by"] == "membership_balance"
     assert body["quota"]["rows"] == []
+
+
+def test_billing_usage_degrades_when_wallet_user_has_no_persisted_entitlement(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from deeptutor.services.member_console.service import MemberConsoleService
+
+    class ConfiguredWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return mobile_module.WalletSnapshot(
+                user_id=user_id,
+                balance_micros=8_500_000_000,
+                frozen_micros=0,
+                plan_id="vip",
+                version=1,
+                created_at=mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ).isoformat(),
+            )
+
+    read_only_member_service = MemberConsoleService()
+    read_only_member_service._data_path = tmp_path / "member_console.json"
+
+    monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: True)
+    monkeypatch.setattr(mobile_module, "wallet_service", ConfiguredWalletService())
+    monkeypatch.setattr(mobile_module, "member_service", read_only_member_service)
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "unknown-wallet-user",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get(
+            "/api/v1/billing/usage",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "degraded"
+    assert response.json()["display"]["primary_label"] == "权益暂不可用"
+    assert response.json()["display"]["plan_id"] == ""
+    assert "reference_points" not in response.json()["display"]
+    assert not read_only_member_service._data_path.exists()
 
 
 def test_billing_usage_requires_authentication(
@@ -1475,8 +1544,18 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
             assert offset == 0
             return events
 
+    class ReadOnlyMemberService:
+        @staticmethod
+        def get_billing_entitlement_read_model(user_id: str):
+            assert user_id == "wallet_demo"
+            return {
+                "tier": "vip",
+                "packages": [{"id": "vip", "tier": "vip", "points": 9000}],
+            }
+
     monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: False)
     monkeypatch.setattr(mobile_module, "wallet_service", WalletServiceWithoutUsageLedger())
+    monkeypatch.setattr(mobile_module, "member_service", ReadOnlyMemberService())
     monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: FakeUsageMeter())
     monkeypatch.setattr(
         mobile_module,
@@ -1500,7 +1579,6 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     assert body["status"] == "ok"
     assert body["usage_source"] == "member_usage_meter"
     assert body["charging_status"] == "metered_not_charged"
-    # enforcement-off 内测统一按 450 次基准展示，不读取会员 tier 或 wallet plan。
     assert body["display"]["primary_label"] == "剩余 90%"
     assert body["display"]["primary_percent"] == 90
     assert "primary_used_uses" not in body["display"]

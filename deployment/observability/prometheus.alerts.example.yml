@@ -37,6 +37,87 @@ groups:
           summary: DeepTutor circuit breaker is open
           description: A provider circuit breaker has opened and requests are being blocked.
 
+      - alert: DeepTutorBillingCaptureError
+        expr: sum(increase(deeptutor_billing_capture_total{status="failed",reason=~"capture_error|usage_meter_error"}[5m])) > 0 and sum(resets(deeptutor_billing_capture_total[5m])) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: DeepTutor billing capture failed
+          description: At least one charge attempt or usage-meter write failed; inspect the canonical wallet ledger before retrying or adjusting balances.
+
+      - alert: DeepTutorBillingEnforcementDisabled
+        expr: sum(increase(deeptutor_billing_capture_total{status="metered_not_charged",reason="billing_enforcement_disabled"}[5m])) > 0 and sum(resets(deeptutor_billing_capture_total[5m])) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: DeepTutor billing enforcement is disabled
+          description: A production-shaped turn was metered without charging because billing enforcement is off; confirm an intentional maintenance window or restore enforcement.
+
+      - alert: DeepTutorBillingContextIncomplete
+        expr: sum(increase(deeptutor_billing_capture_total{status="skipped",reason=~"missing_wallet|empty_content"}[5m])) > 0 and sum(resets(deeptutor_billing_capture_total[5m])) == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: DeepTutor billing context is incomplete
+          description: A mini-program billing path reached terminal capture without wallet authority or visible content; inspect start-turn context propagation before assuming the turn is free.
+
+      # Fail-closed umbrella: every paid mini-program terminal outcome must be
+      # captured.  The only deliberate non-capture outcomes are server-verified
+      # internal/eval bypasses and a reserved free trial.  No account identifier is
+      # needed: status/reason/chargeable are bounded enums.
+      #
+      # The cross-worker exporter sums process-local counters. A worker replacement
+      # can therefore lower the aggregate. ``increase`` cannot distinguish that
+      # partial reset from a real counter reset, so suppress this event rule while a
+      # reset is present and let DeepTutorBillingCounterReset fail closed instead.
+      - alert: DeepTutorChargeableTurnNotCaptured
+        expr: sum(increase(deeptutor_billing_capture_total{chargeable="yes",status!="captured",reason!~"internal_qa_billing_bypass|eval_billing_bypass|free_trial"}[5m])) > 0 and sum(resets(deeptutor_billing_capture_total[5m])) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: A chargeable turn reached a non-captured terminal state
+          description: A paid mini-program turn ended without canonical wallet capture; stop treating billing as healthy and inspect context propagation, terminal classification, and the wallet ledger.
+
+      - alert: DeepTutorBillingCounterReset
+        expr: sum(resets(deeptutor_billing_capture_total[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Billing telemetry reset during the alert window
+          description: A worker restart made the merged billing counter non-monotonic, so event increases are temporarily untrustworthy; verify worker health and audit the canonical wallet ledger for the affected window.
+
+      - alert: DeepTutorNonChargeableCaptured
+        expr: sum(increase(deeptutor_billing_capture_total{status="captured",chargeable="no"}[5m])) > 0 and sum(resets(deeptutor_billing_capture_total[5m])) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: A non-chargeable response was captured
+          description: Billing reported a wallet capture for output classified as non-chargeable; stop financial writes and inspect the turn and ledger authorities.
+
+      - alert: DeepTutorSuspiciousWalletCredit
+        expr: (sum(increase(deeptutor_wallet_mutation_requested_points_total{direction="credit",cause=~"identity_merge|manual_adjust"}[10m])) > 0 or sum(increase(deeptutor_wallet_mutation_requested_points_total{direction="credit",cause="signup_bonus"}[10m])) > 100000) and sum(resets(deeptutor_wallet_mutation_requested_points_total[10m])) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: A suspicious wallet credit was requested
+          description: An identity-merge/manual adjustment credit or unusually large signup bonus was requested; the canonical wallet ledger must be audited before treating it as applied.
+
+      - alert: DeepTutorWalletCounterReset
+        expr: sum(resets(deeptutor_wallet_mutation_requested_points_total[10m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Wallet telemetry reset during the alert window
+          description: A worker restart made the merged wallet counter non-monotonic, so requested-credit increases are temporarily untrustworthy; verify worker health and audit the canonical wallet ledger for the affected window.
+
       # Self-monitoring: if Prometheus cannot scrape /metrics/prometheus the rest of
       # these alerts go silently blind. This fires when the deeptutor target is down,
       # so a dead observability path is itself an alert instead of a quiet gap.

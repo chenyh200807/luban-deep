@@ -5793,6 +5793,39 @@ class MemberConsoleService:
     def list_membership_packages(self) -> list[dict[str, Any]]:
         return deepcopy(self._load().get("packages") or self._default_packages())
 
+    def get_billing_entitlement_read_model(self, user_id: str) -> dict[str, Any] | None:
+        """Return the persisted billing entitlement without creating or repairing state."""
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id or not self._data_path.exists():
+            return None
+        with self._lock:
+            try:
+                data = json.loads(self._data_path.read_text(encoding="utf-8"))
+            except (OSError, TypeError, ValueError):
+                return None
+        members = data.get("members")
+        if not isinstance(members, list):
+            return None
+        member = next(
+            (
+                item
+                for item in members
+                if isinstance(item, dict)
+                and str(item.get("user_id") or "").strip() == normalized_user_id
+            ),
+            None,
+        )
+        if member is None:
+            return None
+        packages = data.get("packages")
+        return {
+            "user_id": normalized_user_id,
+            "tier": str(member.get("tier") or "").strip(),
+            "status": str(member.get("status") or "").strip(),
+            "expire_at": str(member.get("expire_at") or "").strip(),
+            "packages": deepcopy(packages) if isinstance(packages, list) else [],
+        }
+
     def upsert_membership_package(
         self,
         *,

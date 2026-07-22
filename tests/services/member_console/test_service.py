@@ -703,6 +703,16 @@ def test_get_profile_persists_first_real_member(tmp_path: Path) -> None:
     assert any(member["user_id"] == "ghost_user" for member in data["members"])
 
 
+def test_billing_entitlement_read_model_does_not_persist_unknown_member(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    entitlement = service.get_billing_entitlement_read_model("unknown-wallet-user")
+
+    assert entitlement is None
+    assert not service._data_path.exists()
+
+
 def test_get_profile_exposes_only_raw_external_auth_eval_identity(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

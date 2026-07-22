@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-import sqlite3
 from pathlib import Path
+import sqlite3
+
+import pytest
 
 from scripts.audit_wallet_projection_consistency import (
     audit_wallet_projection_consistency,
     build_wallet_projection_audit_sql,
 )
 from scripts.rebuild_wallet_balance_from_ledger import build_rebuild_wallet_projection_sql
-from scripts.wallet_authority_common import resolve_wallet_env
+from scripts.wallet_authority_common import WalletAuthorityEnv
 
 
 def test_build_wallet_projection_audit_sql_checks_projection_vs_ledger() -> None:
@@ -23,7 +25,7 @@ def test_build_wallet_projection_audit_sql_checks_projection_vs_ledger() -> None
 def test_audit_wallet_projection_consistency_blocks_without_postgres(tmp_path: Path) -> None:
     summary = audit_wallet_projection_consistency(
         output_dir=tmp_path,
-        env=resolve_wallet_env(repo_root=tmp_path, environ={}),
+        env=WalletAuthorityEnv(),
         limit=10,
         execute=False,
     )
@@ -50,6 +52,116 @@ def test_audit_sql_adds_trustworthy_ledger_sum_crosscheck() -> None:
     assert "expected_balance_micros" in sql
     # Legacy after-image check is kept for continuity (but is the polluted one).
     assert "balance_after_diff_count" in sql
+    assert "duplicate_idempotency_count" in sql
+    assert "identity_merge_wallet_mutation_count" in sql
+    assert "suspicious_positive_delta_count" in sql
+    assert "delta_micros > 0" in sql
+    assert "delta_micros > 100000000000" not in sql
+    assert "operator_type" in sql
+
+
+@pytest.mark.parametrize(
+    ("classification", "required_sql"),
+    [
+        (
+            "verified_manual_purchase",
+            (
+                "event_type, '')) = 'grant'",
+                "reference_type, '')) = 'purchase'",
+                "reason, '')) = 'manual_membership_purchase'",
+                "operator_type, '')) = 'admin'",
+                "metadata->>'source', '')) = 'bi_manual_membership'",
+                "metadata->>'channel', '')) = 'manual_membership'",
+                "metadata->>'operator_id'",
+                "idempotency_key",
+            ),
+        ),
+        (
+            "verified_payment_purchase",
+            (
+                "event_type, '')) = 'grant'",
+                "reference_type, '')) in ('order', 'payment', 'wechat_pay')",
+                "metadata->>'source', '')) = 'payment_webhook'",
+                "metadata->>'payment_status'",
+                "metadata->>'provider_transaction_id'",
+                "operator_type, '')) = 'system'",
+                "idempotency_key",
+            ),
+        ),
+        (
+            "verified_manual_reversal",
+            (
+                "event_type, '')) = 'refund'",
+                "reference_type, '')) = 'refund'",
+                "reason, '')) = 'manual_membership_reversal'",
+                "metadata->>'source', '')) = 'bi_manual_membership_reversal'",
+                "metadata->>'reversal_of_purchase_id'",
+                "metadata->>'operator_id'",
+                "idempotency_key",
+            ),
+        ),
+        (
+            "verified_payment_refund",
+            (
+                "event_type, '')) = 'refund'",
+                "metadata->>'source', '')) = 'payment_webhook'",
+                "metadata->>'refund_status'",
+                "metadata->>'original_payment_id'",
+                "operator_type, '')) = 'system'",
+                "idempotency_key",
+            ),
+        ),
+        (
+            "verified_admin_adjustment",
+            (
+                "event_type, '')) = 'admin_adjust'",
+                "reference_type, '')) = 'ticket'",
+                "operator_type, '')) = 'admin'",
+                "reason, '')) <> 'admin_adjust'",
+                "metadata->>'source'",
+                "metadata->>'ticket_id'",
+                "metadata->>'operator_id'",
+                "idempotency_key",
+            ),
+        ),
+    ],
+)
+def test_positive_delta_sql_allowlist_behavior_matrix(
+    classification: str,
+    required_sql: tuple[str, ...],
+) -> None:
+    """Each allowed positive-delta class must carry its complete provenance proof.
+
+    The generated CASE is the production SQL authority. Extracting each branch
+    keeps the matrix coupled to that SQL rather than to a second Python classifier.
+    """
+    sql = build_wallet_projection_audit_sql(limit=25).lower()
+    marker = f"then '{classification}'"
+    assert marker in sql
+    branch = sql.split(marker, 1)[0].rsplit("when", 1)[1]
+    for required in required_sql:
+        assert required in branch
+
+
+def test_positive_delta_sql_is_fail_closed_and_artifacts_are_identifier_safe() -> None:
+    sql = build_wallet_projection_audit_sql(limit=25).lower()
+    output_sql = sql.split("select json_build_object(", 1)[1]
+
+    assert "else 'unallowlisted_positive_delta'" in sql
+    assert "where allowlist_class = 'unallowlisted_positive_delta'" in sql
+    assert "row_to_json" not in output_sql
+    assert "'user_id'" not in output_sql
+    assert "'idempotency_key'" not in output_sql
+    assert "'reference_id'" not in output_sql
+    assert "'operator_id'" not in output_sql
+    assert "'reason'" not in output_sql
+    assert "'ledger_hash'" in output_sql
+    assert "'user_hash'" in output_sql
+    assert "'idempotency_hash'" in output_sql
+    assert "'event_type', lower(coalesce" not in output_sql
+    assert "'reference_type', lower(coalesce" not in output_sql
+    assert "'operator_type', lower(coalesce" not in output_sql
+    assert "else 'other'" in output_sql
 
 
 def test_rebuild_sql_uses_ledger_sum_basis_not_after_image() -> None:

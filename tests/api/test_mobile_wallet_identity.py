@@ -99,13 +99,17 @@ def test_billing_wallet_prefers_canonical_uid_claim(monkeypatch: pytest.MonkeyPa
 
     future_expire = (datetime.now(ZoneInfo("Asia/Shanghai")) + timedelta(days=30)).isoformat()
 
-    def _fake_get_profile(user_id: str) -> dict[str, object]:
-        captured["profile_user_id"] = user_id
+    def _fake_get_billing_entitlement(user_id: str) -> dict[str, object]:
+        captured["entitlement_user_id"] = user_id
         return {"user_id": user_id, "tier": "vip", "status": "active", "expire_at": future_expire}
 
     monkeypatch.setattr(mobile_module.member_service, "verify_access_token", _fake_verify_access_token)
     monkeypatch.setattr(mobile_module.member_service, "get_wallet", _fake_get_wallet)
-    monkeypatch.setattr(mobile_module.member_service, "get_profile", _fake_get_profile)
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_billing_entitlement_read_model",
+        _fake_get_billing_entitlement,
+    )
     monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
 
     with TestClient(_build_app()) as client:
@@ -119,7 +123,7 @@ def test_billing_wallet_prefers_canonical_uid_claim(monkeypatch: pytest.MonkeyPa
     assert "teaching_video_limit" in response.json()
     assert response.json()["teaching_video_limit"] is None
     assert captured["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
-    assert captured["profile_user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert captured["entitlement_user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
 
 
 def test_profile_endpoint_uses_single_canonical_identity(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -266,6 +270,15 @@ def test_billing_usage_returns_snapshot_membership_balance_percent(monkeypatch: 
     monkeypatch.setattr(mobile_module, "datetime", _FixedDateTime)
     monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: True)
     monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_billing_entitlement_read_model",
+        lambda user_id: {
+            "user_id": user_id,
+            "tier": "advance",
+            "packages": [{"id": "vip", "tier": "vip", "points": 9000}],
+        },
+    )
+    monkeypatch.setattr(
         mobile_module,
         "resolve_auth_context",
         lambda _authorization: mobile_module.AuthContext(
@@ -364,7 +377,6 @@ def test_billing_usage_uses_current_entitlement_when_wallet_plan_is_stale(
 ) -> None:
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     raw_auth_user_id = "legacy_auth_chenyh2008"
-
     monkeypatch.setattr(
         mobile_module,
         "resolve_auth_context",
@@ -376,12 +388,27 @@ def test_billing_usage_uses_current_entitlement_when_wallet_plan_is_stale(
         ),
     )
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: canonical_uid)
-    profile_lookups: list[str] = []
+    entitlement_lookups: list[str] = []
     monkeypatch.setattr(
         mobile_module.member_service,
-        "get_profile",
-        lambda user_id: profile_lookups.append(user_id) or {"user_id": user_id, "tier": "supreme_svip"},
+        "get_billing_entitlement_read_model",
+        lambda user_id: entitlement_lookups.append(user_id)
+        or {
+            "user_id": user_id,
+            "tier": "supreme_svip",
+            "packages": [
+                {
+                    "id": "supreme_svip",
+                    "tier": "supreme_svip",
+                    "points": 50000,
+                }
+            ],
+        },
     )
+    def _unexpected_profile_read(_user_id: str):
+        raise AssertionError("billing usage must not call the bootstrapping profile reader")
+
+    monkeypatch.setattr(mobile_module.member_service, "get_profile", _unexpected_profile_read)
 
     class _FakeWalletService:
         is_configured = True
@@ -407,7 +434,7 @@ def test_billing_usage_uses_current_entitlement_when_wallet_plan_is_stale(
         response = client.get("/api/v1/billing/usage", headers={"Authorization": "Bearer test-token"})
 
     assert response.status_code == 200
-    assert profile_lookups == [canonical_uid]
+    assert entitlement_lookups == [canonical_uid]
     assert response.json()["display"] == {
         "primary_label": "剩余 97%",
         "primary_percent": 97,
@@ -820,12 +847,12 @@ def test_wallet_endpoints_treat_invalid_uuid_wallet_lookup_as_empty_wallet(
 @pytest.mark.parametrize(
     ("tier", "is_active", "expected"),
     [
-        ("", False, 20),
-        ("vip", False, 20),  # expired paid tier → default
-        ("starter_19", False, 20),  # expired starter → default
-        ("trial", True, 20),  # active trial (no paid membership) → default
-        ("free", True, 20),
-        ("unknown_tier", True, 20),
+        ("", False, 10),
+        ("vip", False, 10),  # expired paid tier → default
+        ("starter_19", False, 10),  # expired starter → default
+        ("trial", True, 10),  # active trial (no paid membership) → default
+        ("free", True, 10),
+        ("unknown_tier", True, 10),
         ("starter_19", True, 30),
         ("light_98", True, None),
         ("vip", True, None),
@@ -847,10 +874,10 @@ def test_membership_is_active_by_expire_at() -> None:
     assert mobile_module._membership_is_active(None) is False
 
 
-def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
+def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_10(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # 过期 light_98 会员:虽然 tier 是无限档,但已过期 → 回落到默认 20。
+    # 过期 light_98 会员:虽然 tier 是无限档,但已过期 → 回落到默认 10。
     past_expire = (datetime.now(ZoneInfo("Asia/Shanghai")) - timedelta(days=1)).isoformat()
 
     monkeypatch.setattr(
@@ -866,7 +893,7 @@ def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_expired")
     monkeypatch.setattr(
         mobile_module.member_service,
-        "get_profile",
+        "get_billing_entitlement_read_model",
         lambda user_id: {
             "user_id": user_id,
             "tier": "light_98",
@@ -893,7 +920,49 @@ def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
         response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
 
     assert response.status_code == 200
-    assert response.json()["teaching_video_limit"] == 20
+    assert response.json()["teaching_video_limit"] == 10
+
+
+def test_billing_wallet_teaching_video_limit_inactive_membership_defaults_to_10(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    future_expire = (datetime.now(ZoneInfo("Asia/Shanghai")) + timedelta(days=30)).isoformat()
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda _authorization: mobile_module.AuthContext(
+            user_id="user_suspended",
+            provider="local",
+            token="test-token",
+            claims={"uid": "user_suspended"},
+        ),
+    )
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_suspended")
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_billing_entitlement_read_model",
+        lambda user_id: {
+            "user_id": user_id,
+            "tier": "vip",
+            "status": "suspended",
+            "expire_at": future_expire,
+        },
+    )
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return _FakeWalletSnapshot(user_id=user_id, balance_micros=0, version=1)
+
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    assert response.json()["teaching_video_limit"] == 10
 
 
 def test_billing_wallet_teaching_video_limit_active_starter_is_30(
@@ -914,7 +983,7 @@ def test_billing_wallet_teaching_video_limit_active_starter_is_30(
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_starter")
     monkeypatch.setattr(
         mobile_module.member_service,
-        "get_profile",
+        "get_billing_entitlement_read_model",
         lambda user_id: {
             "user_id": user_id,
             "tier": "starter_19",
