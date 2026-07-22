@@ -278,10 +278,10 @@ def _billing_package_by_id(package_id: str) -> dict[str, Any] | None:
 
 # 教学视频权益上限:按当前有效会员 tier 派生。None = 无限;整数 = 上限条数。
 # 分档(单一权威,便于单测):
-#   无有效会员 / 会员已过期            → 10
+#   无有效会员 / 会员已过期            → 20
 #   有效 tier == starter_19            → 30
 #   有效 tier ∈ {light_98,vip,svip,supreme_svip} → None(无限)
-_TEACHING_VIDEO_DEFAULT_LIMIT = 10
+_TEACHING_VIDEO_DEFAULT_LIMIT = 20
 _TEACHING_VIDEO_STARTER_LIMIT = 30
 _TEACHING_VIDEO_UNLIMITED_TIERS = frozenset(
     {"light_98", "vip", "svip", "supreme_svip"}
@@ -327,7 +327,7 @@ def _teaching_video_limit_for_user(user_id: str) -> int | None:
     """Resolve the current teaching-video limit for a member.
 
     Authority for tier + expiry = the persisted, non-bootstrapping entitlement
-    read model. Any lookup failure fails safe to the no-membership default (10)
+    read model. Any lookup failure fails safe to the no-membership default (20)
     rather than creating member state or 500-ing the wallet.
     """
     tier = ""
@@ -3060,6 +3060,7 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
     snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     wallet_payload["user_id"] = user_id
+    wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(wallet_user_id)
     wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(wallet_user_id)
     if wallet_user_id:
         _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")

@@ -1041,7 +1041,7 @@ class MemberConsoleService:
                 package["per_turn_price"] = f"{per_turn_price:.3f}".rstrip("0").rstrip(".")
             except (TypeError, ValueError, ZeroDivisionError):
                 package["per_turn_price"] = ""
-        # 入门两档为「防漂移锚点」：无论来自 _default_packages 还是持久化 packages,
+        # 消费者档位为「防漂移锚点」：无论来自 _default_packages 还是持久化 packages,
         # 均在此处硬钉成唯一定价真值,消费/发点路径(_resolve_membership_package)也走这里,
         # 因此改价必须同步改这里(否则发点会被钉回旧值 → 资损)。
         if package["id"] == "starter_19":
@@ -1068,6 +1068,24 @@ class MemberConsoleService:
                     "days": 180,
                     "price": "68",
                     "per_turn_price": "0.453",
+                }
+            )
+        elif package["id"] == "svip":
+            package.update(
+                {
+                    "id": "svip",
+                    "tier": "svip",
+                    "label": "SVIP",
+                    "points": 12500,
+                    "turns": 625,
+                    "days": 180,
+                    "price": "268",
+                    "original_price": "398",
+                    "badge": "最高性价比",
+                    "per": "625 次 AI 学习额度",
+                    "per_turn_price": "0.429",
+                    "audience": "基础偏弱、需要长期稳定答疑陪跑的考生",
+                    "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
                 }
             )
         return package

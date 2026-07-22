@@ -662,6 +662,25 @@ def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
     assert wallet["packages"][-1]["turns"] == 2500
 
 
+def test_normalize_repriced_svip_overrides_stale_persisted_catalog() -> None:
+    normalized = MemberConsoleService._normalize_membership_package(
+        {
+            "id": "svip",
+            "label": "旧SVIP",
+            "points": 28000,
+            "turns": 1400,
+            "price": "598",
+            "original_price": "798",
+        }
+    )
+
+    assert normalized["points"] == 12500
+    assert normalized["turns"] == 625
+    assert normalized["price"] == "268"
+    assert normalized["original_price"] == "398"
+    assert normalized["per"] == "625 次 AI 学习额度"
+
+
 def test_non_production_bootstrap_defaults_to_empty_members_without_demo_seed_flag(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

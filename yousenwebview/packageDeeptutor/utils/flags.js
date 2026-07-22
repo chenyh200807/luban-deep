@@ -4,7 +4,7 @@ var runtime = require("./runtime");
 
 // 免费引子:开关关(默认)时,「全部教学集」页只开放前 N 集,其余显示「待开放」。
 // 想改「免费给几集」只动这个常量,不用翻页面逻辑。
-var TEACHING_VIDEO_FREE_LIMIT = 10;
+var TEACHING_VIDEO_FREE_LIMIT = 20;
 
 var DEFAULT_FLAGS = {
   workspaceEnabled: true,

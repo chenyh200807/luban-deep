@@ -120,6 +120,12 @@ member_console_controls:
       - The control is an audited admin write and requires X-Idempotency-Key.
 
 mobile_http_read_models:
+  billing_wallet:
+    path: /api/v1/billing/wallet
+    authority: canonical entitlement read model + membership package catalog
+    semantics:
+      - teaching_video_limit is 20 for users without a valid membership or with an expired membership, 30 for starter_19, and null for light_98/vip/svip/supreme_svip.
+      - The wallet adapter only projects this entitlement; clients must not recompute the limit from tier or wallet plan_id.
   billing_usage:
     path: /api/v1/billing/usage
     authority: wallet_snapshot_or_member_usage_meter
