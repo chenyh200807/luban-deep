@@ -154,6 +154,7 @@ class BIService:
         deepseek_billing_client=None,
         usage_ledger=None,
         wallet_service=None,
+        product_behavior_store=None,
     ) -> None:
         self._store = session_store or get_sqlite_session_store()
         self._member_service = member_service or get_member_console_service()
@@ -165,6 +166,7 @@ class BIService:
         self._deepseek_billing_client = deepseek_billing_client
         self._usage_ledger = usage_ledger or get_usage_ledger()
         self._wallet_service = wallet_service or get_wallet_service()
+        self._product_behavior_store = product_behavior_store or get_product_behavior_store()
         # (monotonic_ts, ids) — 内部账号排除集缓存，见 _internal_account_exclusion_ids。
         self._internal_exclusion_cache: tuple[float, frozenset[str]] | None = None
         # 同一 canonical ledger 的完整短时快照；首屏与审计投影复用，写后失效。
@@ -350,6 +352,35 @@ class BIService:
             if normalized:
                 values.add(normalized)
         return values
+
+    def get_non_business_identity_ids(self) -> frozenset[str]:
+        """Resolve the single exclusion set used by business-real BI readers."""
+        identities = set(self._internal_account_exclusion_ids())
+        list_internal = getattr(self._member_service, "list_internal_test_user_ids", None)
+        if callable(list_internal):
+            try:
+                identities.update(
+                    str(value or "").strip()
+                    for value in list_internal()
+                    if str(value or "").strip()
+                )
+            except Exception:  # noqa: BLE001
+                logger.warning("explicit machine identity authority unavailable", exc_info=True)
+        return frozenset(identities)
+
+    @classmethod
+    def _member_behavior_identity_groups(
+        cls,
+        members: list[dict[str, Any]],
+    ) -> dict[str, list[str]]:
+        groups: dict[str, list[str]] = {}
+        for member in members:
+            canonical = str(
+                member.get("canonical_user_id") or member.get("user_id") or ""
+            ).strip()
+            if canonical:
+                groups[canonical] = sorted(cls._member_identity_values(member))
+        return groups
 
     @classmethod
     def _is_registered_member(cls, member: dict[str, Any]) -> bool:
@@ -910,6 +941,7 @@ class BIService:
         *,
         summary: dict[str, Any],
         daily_cost: dict[str, Any],
+        revenue_summary: dict[str, Any],
     ) -> dict[str, Any]:
         metric = cls._metric_definition_payload("cost_per_effective_learning")
         effective_members = _safe_int(summary.get("active_learners"))
@@ -918,27 +950,65 @@ class BIService:
         return {
             **metric,
             "value": _round(cost_per_effective, 4),
-            "revenue_status": "pending",
-            "summary": "收入事实未接入，当前只展示成本侧单位经济模型。",
+            "revenue_status": str(revenue_summary.get("revenue_status") or "authority_unavailable"),
+            "revenue_scope": str(revenue_summary.get("revenue_scope") or ""),
+            "revenue_cny": revenue_summary.get("revenue_cny"),
+            "summary": "收入只采用 wallet ledger 中有结算证据的净额；订单漏斗仍待独立 payment-order authority。",
             "window_total_cost_usd": _round(window_cost, 4),
             "cost_per_effective_learning_usd": _round(cost_per_effective, 4),
             "source": daily_cost.get("source") or "usage_ledger",
         }
 
     @classmethod
-    def _build_data_trust_payload(cls, *, context: _BiContext) -> dict[str, Any]:
+    def _build_data_trust_payload(
+        cls,
+        *,
+        context: _BiContext,
+        behavior_quality: dict[str, Any],
+        revenue_summary: dict[str, Any],
+        attribution: dict[str, Any],
+    ) -> dict[str, Any]:
+        revenue_status = str(revenue_summary.get("revenue_status") or "authority_unavailable")
+        revenue_module_status = (
+            "partial"
+            if revenue_status in {"confirmed_manual_partial", "confirmed_settlement_partial"}
+            else "degraded"
+        )
+        attribution_coverage = _safe_float(attribution.get("coverage_rate"))
+        behavior_status = str(behavior_quality.get("status") or "unavailable")
+        behavior_coverage = behavior_quality.get("coverage") or {}
+        version_coverage = _safe_float((behavior_coverage.get("version") or {}).get("coverage_rate"))
+        platform_coverage = _safe_float((behavior_coverage.get("platform") or {}).get("coverage_rate"))
         degraded_modules = [
             {
                 "id": "product_behavior",
                 "label": "产品行为事实层",
-                "status": "pending",
-                "detail": "生产 product_behavior_events 无数据流入（客户端埋点未随小程序发版）；behavior.* 指标暂不可用。",
+                "status": behavior_status,
+                "detail": (
+                    f"canonical product_behavior_events 最近 {behavior_quality.get('window_days', 0)} 天"
+                    f"真实会员事件 {_safe_int(behavior_quality.get('event_count'))} 条，"
+                    f"版本覆盖 {round(version_coverage * 100, 1)}%，"
+                    f"平台覆盖 {round(platform_coverage * 100, 1)}%。"
+                ),
             },
             {
                 "id": "revenue",
                 "label": "收入 authority",
-                "status": "pending",
-                "detail": "支付、钱包和手工开通记录尚未确认单一 revenue authority。",
+                "status": revenue_module_status,
+                "detail": (
+                    f"wallet ledger revenue_status={revenue_status}; "
+                    "只确认带金额与结算证据的净收入，未把会员等级冒充实收。"
+                ),
+            },
+            {
+                "id": "acquisition_attribution",
+                "label": "获客归因覆盖",
+                "status": "ready" if attribution_coverage >= 0.95 else "degraded",
+                "detail": (
+                    f"首触渠道覆盖率 {round(attribution_coverage * 100, 1)}%；"
+                    f"{_safe_int(attribution.get('unattributed_count'))} 名会员不可归因。"
+                    "scene 只作入口形态，绝不回填营销渠道。"
+                ),
             },
             {
                 "id": "learning_outcome",
@@ -957,7 +1027,11 @@ class BIService:
                 }
             )
         return {
-            "status": "ready",
+            "status": (
+                "degraded"
+                if any(item["status"] not in {"ready", "partial"} for item in degraded_modules)
+                else "ready"
+            ),
             "value": None,
             "value_status": "not_computed_v1",
             "trust_model": "A/B 可用于首页决策；C/D 必须降级或待接入展示。",
@@ -1389,6 +1463,24 @@ class BIService:
             _members_snapshot=member_snapshot,
         )
         member_dashboard = member_stats.get("dashboard", {})
+        attribution = member_stats.get("attribution", {})
+        try:
+            behavior_quality = self._product_behavior_store.get_data_quality_snapshot(
+                days=days,
+                identity_groups=self._member_behavior_identity_groups(member_snapshot),
+                exclude_user_ids=self.get_non_business_identity_ids(),
+            )
+        except Exception:  # noqa: BLE001
+            logger.warning("product behavior quality authority unavailable", exc_info=True)
+            behavior_quality = {
+                "available": False,
+                "status": "unavailable",
+                "window_days": days,
+                "event_count": 0,
+                "coverage": {},
+            }
+        commerce = await self.get_commerce(limit=500, _members_snapshot=member_snapshot)
+        revenue_summary = commerce.get("summary") or {}
         daily_cost = self._build_daily_cost_payload(context, usage_summary, days=days)
 
         risk_alerts = []
@@ -1493,8 +1585,17 @@ class BIService:
                 member_stats=member_stats,
             ),
             "ai_quality": self._build_ai_quality_payload(summary=summary, context=context),
-            "unit_economics": self._build_unit_economics_payload(summary=summary, daily_cost=daily_cost),
-            "data_trust": self._build_data_trust_payload(context=context),
+            "unit_economics": self._build_unit_economics_payload(
+                summary=summary,
+                daily_cost=daily_cost,
+                revenue_summary=revenue_summary,
+            ),
+            "data_trust": self._build_data_trust_payload(
+                context=context,
+                behavior_quality=behavior_quality,
+                revenue_summary=revenue_summary,
+                attribution=attribution,
+            ),
             "active_trend": self._build_active_trend_payload(context, days=days),
         }
 
@@ -1906,12 +2007,16 @@ class BIService:
         now = datetime.now(timezone.utc)
         channel_counter: Counter[str] = Counter()
         new_member_channel_counter: Counter[str] = Counter()
+        scene_counter: Counter[str] = Counter()
         for member in members:
             reg_channel = (
                 str((member.get("identity_metadata") or {}).get("reg_channel") or "").strip()
                 or "unknown"
             )
             channel_counter[reg_channel] += 1
+            reg_scene = str((member.get("identity_metadata") or {}).get("reg_scene") or "").strip()
+            if reg_scene:
+                scene_counter[reg_scene] += 1
             if self._is_member_created_within_days(
                 str(member.get("created_at") or ""), now=now, days=days
             ):
@@ -1922,6 +2027,10 @@ class BIService:
             key=lambda item: item.get("expire_at") or "",
         )[:5]
 
+        attributed_count = sum(
+            count for channel, count in channel_counter.items() if channel != "unknown"
+        )
+        unattributed_count = channel_counter.get("unknown", 0)
         return {
             "window_days": days,
             "dashboard": dashboard,
@@ -1939,6 +2048,20 @@ class BIService:
                     "value": value,
                 }
                 for key, value in channel_counter.most_common()
+            ],
+            "attribution": {
+                "authority": "member_directory.identity_metadata.reg_channel",
+                "status": "ready" if members and unattributed_count == 0 else "degraded",
+                "member_count": len(members),
+                "attributed_count": attributed_count,
+                "unattributed_count": unattributed_count,
+                "coverage_rate": _round(attributed_count / max(len(members), 1), 4),
+                "unknown_semantics": "unattributed_not_organic",
+                "historical_recovery": "unavailable_without_auditable_campaign_mapping",
+            },
+            "registration_scenes": [
+                {"scene": key, "count": value, "label": key, "value": value}
+                for key, value in scene_counter.most_common()
             ],
             "tiers": [{"tier": key, "count": value, "label": key, "value": value} for key, value in tier_counter.most_common()],
             "risks": [{"risk_level": key, "count": value, "label": key, "value": value} for key, value in risk_counter.most_common()],
@@ -3371,12 +3494,32 @@ class BIService:
             cls._is_commerce_recharge_row(row) and cls._commerce_revenue_cny(row) == 0
             for row in recharge_rows
         )
-        revenue_status = (
-            "insufficient_evidence" if has_unpriced_recharge else "confirmed_manual_partial"
-        )
+        provider_settled_count = 0
+        operator_confirmed_count = 0
+        unclassified_settlement_count = 0
+        for row, amount, _effective_at in revenue_rows:
+            if amount <= 0:
+                continue
+            metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+            authority = str(metadata.get("settlement_authority") or "").strip()
+            channel = str(metadata.get("channel") or metadata.get("source") or "").strip()
+            if authority == "wechat_pay_notification":
+                provider_settled_count += 1
+            elif authority == "operator_attestation" or channel in {
+                "manual_membership",
+                "bi_manual_membership",
+            }:
+                operator_confirmed_count += 1
+            else:
+                unclassified_settlement_count += 1
+        revenue_status = "confirmed_manual_partial"
+        if provider_settled_count:
+            revenue_status = "confirmed_settlement_partial"
+        if has_unpriced_recharge or unclassified_settlement_count:
+            revenue_status = "insufficient_evidence"
         return {
             "revenue_status": revenue_status,
-            "revenue_scope": "wallet_ledger_manual_membership_only",
+            "revenue_scope": "wallet_ledger_settled_purchases_partial",
             "revenue_cny": _round(sum(amount for _row, amount, _effective_at in revenue_rows), 2),
             "today_revenue_cny": _round(today_revenue, 2),
             "recent_revenue_cny": _round(sum(amount for _row, amount, _effective_at in revenue_rows), 2),
@@ -3385,6 +3528,9 @@ class BIService:
             "latest_revenue_at": str(latest_row[0].get("effective_at") or "") if latest_row else "",
             "revenue_count": len(revenue_rows),
             "reversal_count": sum(1 for _row, amount, _effective_at in revenue_rows if amount < 0),
+            "provider_settled_count": provider_settled_count,
+            "operator_confirmed_count": operator_confirmed_count,
+            "unclassified_settlement_count": unclassified_settlement_count,
         }
 
     def _build_commerce_anomalies(
@@ -3458,11 +3604,17 @@ class BIService:
         authority, packages = self._load_commerce_packages([])
         return {"packages": packages, "authority": authority}
 
-    async def get_commerce(self, limit: int = 100) -> dict[str, Any]:
+    async def get_commerce(
+        self,
+        limit: int = 100,
+        _members_snapshot: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         safe_limit = max(1, min(int(limit or 100), 500))
         members = [
             item
-            for item in self._load_all_members()
+            for item in (
+                _members_snapshot if _members_snapshot is not None else self._load_all_members()
+            )
             if self._is_registered_member(item)
         ]
         package_authority, packages = self._load_commerce_packages(members)

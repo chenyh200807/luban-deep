@@ -2044,7 +2044,7 @@ def test_bi_overview_wires_unit_economics_and_ai_quality_values(bi_service: BISe
     dt = overview["data_trust"]
     assert "value" in dt  # v1 显式 null + 状态，禁止缺键
     behavior_modules = [m for m in dt["degraded_modules"] if m["id"] == "product_behavior"]
-    assert behavior_modules and behavior_modules[0]["status"] == "pending"
+    assert behavior_modules and behavior_modules[0]["status"] in {"ready", "degraded", "empty"}
 
 
 def test_bi_all_emitted_card_labels_resolve_to_registry(bi_service: BIService) -> None:

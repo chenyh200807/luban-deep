@@ -208,14 +208,21 @@ async def bi_learning_preference(
     单一数据权威 = product_behavior_store.get_engagement_breakdown（一个参数化聚合的多个 group_dim）；
     薄 handler 只组装/转发，不碰受保护的 member_console/service.py。
     当前仅可采页面驻留，不能冒充播放器实际播放或完播 → time_source='page_dwell'。
-    include_demo=False 时按 eval cohort 前缀排除合成数据（生产真值口径）。
+    include_demo=False 时由 BIService 的统一非业务身份 authority 排除 UUID/prefix eval
+    与人工内部账号（生产真值口径）。
     """
     store = get_product_behavior_store()
     exclude_prefixes = None if include_demo else _LEARNING_PREF_DEMO_PREFIXES
+    exclude_user_ids = (
+        None if include_demo else get_bi_service().get_non_business_identity_ids()
+    )
 
     def breakdown(**kwargs: Any) -> list[dict[str, Any]]:
         return store.get_engagement_breakdown(
-            days=days, exclude_user_id_prefixes=exclude_prefixes, **kwargs
+            days=days,
+            exclude_user_ids=exclude_user_ids,
+            exclude_user_id_prefixes=exclude_prefixes,
+            **kwargs,
         )
 
     # 全模块偏好（"产品功能偏好"总览）：按 module 聚合**所有**被监测模块

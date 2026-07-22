@@ -267,6 +267,10 @@ def test_member_stats_groups_channels_from_identity_metadata() -> None:
     assert channels["test1"]["new_count"] == 2
     assert channels["unknown"]["count"] == 1
     assert channels["unknown"]["new_count"] == 0
+    assert stats["attribution"]["coverage_rate"] == pytest.approx(2 / 3, abs=0.0001)
+    assert stats["registration_scenes"] == [
+        {"scene": "1047", "count": 1, "label": "1047", "value": 1}
+    ]
 
 
 def test_member_stats_channels_all_unknown_when_no_attribution() -> None:
@@ -311,6 +315,16 @@ def test_member_stats_channels_all_unknown_when_no_attribution() -> None:
         {"channel": "unknown", "count": 3, "new_count": 2, "label": "unknown", "value": 3}
     ]
     assert sum(row["count"] for row in stats["channels"]) == 3
+    assert stats["attribution"] == {
+        "authority": "member_directory.identity_metadata.reg_channel",
+        "status": "degraded",
+        "member_count": 3,
+        "attributed_count": 0,
+        "unattributed_count": 3,
+        "coverage_rate": 0.0,
+        "unknown_semantics": "unattributed_not_organic",
+        "historical_recovery": "unavailable_without_auditable_campaign_mapping",
+    }
 
 
 def test_member_stats_channels_empty_when_no_members() -> None:
@@ -490,7 +504,7 @@ def test_commerce_summarizes_manual_membership_revenue_from_wallet_ledger(
     assert payload["summary"]["recharge_count"] == 2
     assert payload["summary"]["revenue_cny"] == 796
     assert payload["summary"]["revenue_status"] == "confirmed_manual_partial"
-    assert payload["summary"]["revenue_scope"] == "wallet_ledger_manual_membership_only"
+    assert payload["summary"]["revenue_scope"] == "wallet_ledger_settled_purchases_partial"
     assert payload["summary"]["today_revenue_cny"] == 198
     assert payload["summary"]["recent_revenue_cny"] == 796
     assert payload["summary"]["latest_revenue_amount_cny"] == 198
@@ -1049,14 +1063,21 @@ def test_business_bi_endpoints_share_registered_turn_scope(
         "ai_quality",
     }
     assert overview["ai_quality"]["engineering_success_rate"] == 100
-    assert overview["unit_economics"]["revenue_status"] == "pending"
+    commerce = asyncio.run(service.get_commerce(limit=500))
+    assert overview["unit_economics"]["revenue_status"] == commerce["summary"]["revenue_status"]
+    assert overview["unit_economics"]["revenue_status"] != "pending"
     assert overview["unit_economics"]["cost_per_effective_learning_usd"] == 0.25
     assert overview["unit_economics"]["value"] == 0.25
     assert overview["teaching_effect"]["chapter_progress"][0]["name"] == "地基基础"
     assert overview["teaching_effect"]["chapter_progress"][0]["mastery"] == 58
     assert overview["teaching_effect"]["chapter_progress"][0]["member_count"] == 1
     assert all(item["name"] != "内部压测" for item in overview["teaching_effect"]["chapter_progress"])
-    assert overview["data_trust"]["status"] == "ready"
+    assert overview["data_trust"]["status"] == "degraded"
+    behavior_module = next(
+        item for item in overview["data_trust"]["degraded_modules"]
+        if item["id"] == "product_behavior"
+    )
+    assert behavior_module["status"] != "pending"
     assert all(
         {"metric_id", "label", "definition", "authority", "trust_level", "owner", "drilldown"}
         <= set(metric)

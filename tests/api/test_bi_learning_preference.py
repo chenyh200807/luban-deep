@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -72,6 +73,26 @@ def test_learning_preference_endpoint_shapes_and_excludes_demo(tmp_path: Path) -
     assert demo_view["demo_included"] is True
     # 含 demo 后微课观看人数升到 2
     assert demo_view["content_top"][0]["member_count"] == 2
+
+
+def test_learning_preference_excludes_exact_uuid_machine_identity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    store = reset_product_behavior_store(tmp_path / "behavior.db")
+    machine_uuid = "0f6d0f92-46bf-4e36-a16a-e23d4ef813c4"
+    _seed(store, event_id="real", user_id="u-real", object_type="microlesson", object_id="real-card")
+    _seed(store, event_id="machine", user_id=machine_uuid, object_type="microlesson", object_id="machine-card")
+    monkeypatch.setattr(
+        bi,
+        "get_bi_service",
+        lambda: SimpleNamespace(get_non_business_identity_ids=lambda: frozenset({machine_uuid})),
+    )
+
+    result = asyncio.run(
+        bi.bi_learning_preference(days=7, include_demo=False, limit=12, _auth=None)
+    )
+
+    assert {row["key"] for row in result["content_top"]} == {"real-card"}
 
 
 def test_submodule_interest_excludes_non_learning_object_types(tmp_path: Path) -> None:
