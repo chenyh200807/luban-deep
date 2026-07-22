@@ -26,6 +26,43 @@ _FUC_BUCKET_BOUNDS_MS: tuple[float, ...] = (
 # label set stays bounded.
 _FUC_KNOWN_SOURCES = frozenset({"content.delta", "result.response"})
 
+_BILLING_CAPTURE_STATUSES = frozenset(
+    {
+        "captured",
+        "bypassed",
+        "metered_not_charged",
+        "released",
+        "free_trial_update_failed",
+        "skipped",
+        "failed",
+    }
+)
+_BILLING_CAPTURE_REASONS = frozenset(
+    {
+        "-",
+        "internal_qa_billing_bypass",
+        "eval_billing_bypass",
+        "billing_enforcement_disabled",
+        "non_chargeable_assistant_content",
+        "usage_meter_error",
+        "insufficient_balance",
+        "capture_error",
+        "free_trial",
+        "free_trial_not_charged",
+        "free_trial_reservation_not_finalized",
+        "missing_free_trial_reservation_key",
+        "missing_context",
+        "wrong_source",
+        "missing_wallet",
+        "empty_content",
+    }
+)
+_WALLET_MUTATION_EVENT_TYPES = frozenset({"debit", "grant", "refund", "admin_adjust"})
+_WALLET_MUTATION_OUTCOMES = frozenset({"success", "insufficient_balance", "error"})
+_WALLET_MUTATION_CAUSES = frozenset(
+    {"ai_usage", "purchase", "signup_bonus", "identity_merge", "manual_adjust", "refund", "other"}
+)
+
 
 # Assessment deep-explanation LLM call wall-clock (ms). This is a one-shot
 # (non-streaming) paid explanation generated outside the turn pipeline, so it has
@@ -172,6 +209,12 @@ class TurnRuntimeMetrics:
         # (SUMMARY.md + PROFILE.md) gate hit rate; same discipline as summary_maintainer
         # and it must ship in the same PR as the gate itself.
         self._memory_maintainer_counts: Counter[str] = Counter()
+        # Billing and wallet telemetry is observe-only. Labels are deliberately
+        # bounded and contain no user/account identifiers, phone numbers, or
+        # idempotency keys so the metrics remain safe and low-cardinality.
+        self._billing_capture_counts: Counter[str] = Counter()
+        self._wallet_mutation_counts: Counter[str] = Counter()
+        self._wallet_mutation_points_totals: defaultdict[str, float] = defaultdict(float)
         # Battle1 W1-T6: event-loop lag sentinel (真闭环). A 0.5s sampler feeds
         # record_loop_lag; any future hot-path blocking (new sync SDK, CPU-heavy work)
         # necessarily inflates these and trips the existing Prometheus alert chain,
@@ -282,6 +325,56 @@ class TurnRuntimeMetrics:
         with self._lock:
             self._memory_maintainer_counts[f"{decision_key}|{outcome_key}"] += 1
 
+    def record_billing_capture(
+        self,
+        *,
+        status: str,
+        reason: str = "",
+        chargeable: bool | None = None,
+    ) -> None:
+        """Count one terminal billing-capture outcome without PII labels."""
+        status_key = str(status or "").strip().lower()
+        if status_key not in _BILLING_CAPTURE_STATUSES:
+            status_key = "other"
+        reason_key = str(reason or "").strip().lower() or "-"
+        if reason_key not in _BILLING_CAPTURE_REASONS:
+            reason_key = "other"
+        chargeable_key = "yes" if chargeable is True else "no" if chargeable is False else "unknown"
+        with self._lock:
+            self._billing_capture_counts[f"{status_key}|{reason_key}|{chargeable_key}"] += 1
+
+    def record_wallet_mutation(
+        self,
+        *,
+        event_type: str,
+        delta_micros: int,
+        outcome: str,
+        cause: str = "",
+    ) -> None:
+        """Count one wallet mutation result and its absolute point amount.
+
+        This observes RPC results/attempts; the wallet ledger remains the only
+        financial authority. The metric never carries account identity.
+        """
+        event_key = str(event_type or "").strip().lower()
+        if event_key not in _WALLET_MUTATION_EVENT_TYPES:
+            event_key = "other"
+        outcome_key = str(outcome or "").strip().lower()
+        if outcome_key not in _WALLET_MUTATION_OUTCOMES:
+            outcome_key = "error"
+        cause_key = str(cause or "").strip().lower()
+        if cause_key not in _WALLET_MUTATION_CAUSES:
+            cause_key = "other"
+        try:
+            delta_value = int(delta_micros)
+        except (TypeError, ValueError):
+            delta_value = 0
+        direction = "credit" if delta_value > 0 else "debit" if delta_value < 0 else "zero"
+        key = f"{event_key}|{direction}|{cause_key}|{outcome_key}"
+        with self._lock:
+            self._wallet_mutation_counts[key] += 1
+            self._wallet_mutation_points_totals[key] += abs(delta_value) / 1_000_000.0
+
     def record_ws_open(self) -> None:
         with self._lock:
             self._ws_active_connections += 1
@@ -371,6 +464,29 @@ class TurnRuntimeMetrics:
                         "count": int(value),
                     }
                     for key, value in sorted(self._memory_maintainer_counts.items())
+                ],
+                "billing_capture_counts": [
+                    {
+                        "status": key.split("|", 1)[0],
+                        "reason": key.split("|", 2)[1],
+                        "chargeable": key.split("|", 2)[2],
+                        "count": int(value),
+                    }
+                    for key, value in sorted(self._billing_capture_counts.items())
+                ],
+                "wallet_mutation_counts": [
+                    {
+                        "event_type": key.split("|", 3)[0],
+                        "direction": key.split("|", 3)[1],
+                        "cause": key.split("|", 3)[2],
+                        "outcome": key.split("|", 3)[3],
+                        "count": int(value),
+                        "points_total": round(
+                            float(self._wallet_mutation_points_totals.get(key) or 0.0),
+                            6,
+                        ),
+                    }
+                    for key, value in sorted(self._wallet_mutation_counts.items())
                 ],
                 "loop_lag_max_seconds": round(float(self._loop_lag_max_seconds), 6),
                 "loop_lag_over_200ms_total": int(self._loop_lag_over_200ms_total),
@@ -548,6 +664,33 @@ def render_prometheus_metrics(
                 "outcome": gate_entry.get("outcome", ""),
             },
         )
+
+    lines.append("# HELP deeptutor_billing_capture_total Terminal billing capture outcomes by bounded status, reason, and chargeability.")
+    lines.append("# TYPE deeptutor_billing_capture_total counter")
+    for entry in turn_snapshot.get("billing_capture_counts") or []:
+        emit(
+            "deeptutor_billing_capture_total",
+            entry.get("count", 0),
+            {
+                "status": entry.get("status", ""),
+                "reason": entry.get("reason", ""),
+                "chargeable": entry.get("chargeable", ""),
+            },
+        )
+
+    lines.append("# HELP deeptutor_wallet_mutation_total Wallet mutation RPC results by event type, direction, and outcome.")
+    lines.append("# TYPE deeptutor_wallet_mutation_total counter")
+    lines.append("# HELP deeptutor_wallet_mutation_requested_points_total Absolute requested wallet mutation points; the ledger remains applied-balance authority.")
+    lines.append("# TYPE deeptutor_wallet_mutation_requested_points_total counter")
+    for entry in turn_snapshot.get("wallet_mutation_counts") or []:
+        labels = {
+            "event_type": entry.get("event_type", ""),
+            "direction": entry.get("direction", ""),
+            "cause": entry.get("cause", ""),
+            "outcome": entry.get("outcome", ""),
+        }
+        emit("deeptutor_wallet_mutation_total", entry.get("count", 0), labels)
+        emit("deeptutor_wallet_mutation_requested_points_total", entry.get("points_total", 0), labels)
 
     lines.append("# HELP deeptutor_turn_loop_lag_max_seconds Max observed event-loop lag (expected vs. actual sleep skew) since process start.")
     lines.append("# TYPE deeptutor_turn_loop_lag_max_seconds gauge")

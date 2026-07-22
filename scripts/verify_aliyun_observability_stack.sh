@@ -46,7 +46,12 @@ oks = []
 
 EXPECTED_RULES = {
     "DeepTutorNotReady", "DeepTutorServerErrors", "DeepTutorProviderThresholdExceeded",
-    "DeepTutorCircuitBreakerOpen", "DeepTutorMetricsScrapeDown", "AlertmanagerDown",
+    "DeepTutorCircuitBreakerOpen", "DeepTutorBillingCaptureError",
+    "DeepTutorBillingEnforcementDisabled", "DeepTutorBillingContextIncomplete",
+    "DeepTutorChargeableTurnNotCaptured", "DeepTutorBillingCounterReset",
+    "DeepTutorNonChargeableCaptured", "DeepTutorSuspiciousWalletCredit",
+    "DeepTutorWalletCounterReset",
+    "DeepTutorMetricsScrapeDown", "AlertmanagerDown",
 }
 
 

@@ -209,6 +209,7 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
 - 会员套餐目录可以通过 audited admin endpoint 增删改，并由 `member_console.packages` 作为 BI
   commerce 的套餐目录 authority；这只改变后续可售 / 可人工开通的套餐配置，不回写历史购买流水，
   不改变 wallet ledger 的收入事实，也不得成为 learner-state 或会员余额的第二套 authority。
+- billing / paywall 读取会员 tier、状态、到期时间与套餐目录时，只能使用 exact canonical user id 的只读 entitlement read model；未知用户必须返回 unavailable / degraded，不得创建默认 trial 会员、保存修复状态或通过 alias 猜测权益。身份合并也不得移动、复制或重建钱包余额；任何财务修复必须走 canonical wallet ledger 的显式审计流程。
 - BI / member-console 可以提供传统会员管理式的人工开通 / 续费入口，但该入口必须同时满足三条边界：
   权益变更写 `member_console` 审计，点数 / 收入事实写 `WalletService.grant_points()` 产生的
   `wallet_ledger` purchase 流水，前端和 BI commerce 不得自造收入表或把人工开通写成 learner-state

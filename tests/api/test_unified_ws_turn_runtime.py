@@ -3920,6 +3920,10 @@ async def test_turn_runtime_marks_capability_failure_failed_without_raw_public_e
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
+    from deeptutor.api.runtime_metrics import get_turn_runtime_metrics, reset_turn_runtime_metrics
+
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    reset_turn_runtime_metrics()
     store = SQLiteSessionStore(tmp_path / "chat_history.db")
     runtime = TurnRuntimeManager(store)
 
@@ -3950,6 +3954,10 @@ async def test_turn_runtime_marks_capability_failure_failed_without_raw_public_e
         def get_manifests(self) -> list[dict[str, object]]:
             return []
 
+    class FailingWalletService:
+        def record_usage_points(self, **_kwargs):
+            raise AssertionError("typed terminal failure must never debit the wallet")
+
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr(
@@ -3967,6 +3975,10 @@ async def test_turn_runtime_marks_capability_failure_failed_without_raw_public_e
             refresh_from_turn=_noop_refresh,
         ),
     )
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FailingWalletService(),
+    )
 
     _session, turn = await runtime.start_turn(
         {
@@ -3977,7 +3989,14 @@ async def test_turn_runtime_marks_capability_failure_failed_without_raw_public_e
             "knowledge_bases": [],
             "attachments": [],
             "language": "zh",
-            "config": {},
+            "config": {
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": "student_demo",
+                    "wallet_user_id": "wallet_demo",
+                    "learning_user_id": "student_demo",
+                }
+            },
         }
     )
 
@@ -4013,6 +4032,15 @@ async def test_turn_runtime_marks_capability_failure_failed_without_raw_public_e
     assert assistant_messages
     assert assistant_messages[-1]["metadata"]["terminal_status"] == "failed"
     assert "raw provider secret boom" not in assistant_messages[-1]["content"]
+    assert get_turn_runtime_metrics().snapshot()["billing_capture_counts"] == [
+        {
+            "status": "released",
+            "reason": "non_chargeable_assistant_content",
+            "chargeable": "no",
+            "count": 1,
+        }
+    ]
+    reset_turn_runtime_metrics()
 
 
 @pytest.mark.asyncio
@@ -9739,6 +9767,89 @@ def test_turn_runtime_releases_free_trial_reservation_for_non_chargeable_answer(
             },
         }
     ]
+
+
+def test_turn_runtime_does_not_charge_paid_wallet_for_non_chargeable_answer(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    from deeptutor.api.runtime_metrics import get_turn_runtime_metrics, reset_turn_runtime_metrics
+
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    reset_turn_runtime_metrics()
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+
+    class FailingWalletService:
+        def record_usage_points(self, **_kwargs):
+            raise AssertionError("non-chargeable terminal output must never debit a paid wallet")
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FailingWalletService(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "student_demo",
+        },
+        "模型调用失败，请稍后重试。",
+        session_id="session-1",
+        turn_id="turn-provider-error",
+        usage_summary={"total_tokens": 0, "total_calls": 0},
+        chargeable_assistant_content=False,
+    )
+
+    assert result == {
+        "status": "released",
+        "reason": "non_chargeable_assistant_content",
+        "wallet_user_id": "wallet_demo",
+        "idempotency_key": "mini_program_capture:turn-provider-error",
+        "captured_micros": 0,
+    }
+    assert get_turn_runtime_metrics().snapshot()["billing_capture_counts"] == [
+        {
+            "status": "released",
+            "reason": "non_chargeable_assistant_content",
+            "chargeable": "no",
+            "count": 1,
+        }
+    ]
+    reset_turn_runtime_metrics()
+
+
+def test_turn_runtime_marks_non_wallet_terminal_paths_chargeability_unknown(tmp_path) -> None:
+    from deeptutor.api.runtime_metrics import get_turn_runtime_metrics, reset_turn_runtime_metrics
+
+    reset_turn_runtime_metrics()
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+
+    assert runtime._capture_mobile_points(None, "ordinary web answer") is None
+    assert (
+        runtime._capture_mobile_points(
+            {"source": "web", "user_id": "student_demo"},
+            "ordinary web answer",
+        )
+        is None
+    )
+
+    assert get_turn_runtime_metrics().snapshot()["billing_capture_counts"] == [
+        {
+            "status": "skipped",
+            "reason": "missing_context",
+            "chargeable": "unknown",
+            "count": 1,
+        },
+        {
+            "status": "skipped",
+            "reason": "wrong_source",
+            "chargeable": "unknown",
+            "count": 1,
+        },
+    ]
+    reset_turn_runtime_metrics()
 
 
 def test_turn_runtime_reports_free_trial_finalize_failure(

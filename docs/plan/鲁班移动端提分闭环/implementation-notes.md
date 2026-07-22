@@ -567,3 +567,9 @@ owner 决策升级:上一节的"全局开关控制 20 集"改成**按付费状�
 - **测试**:后端定价/入门发点/顶档/管理端撤销/视频三档+过期→20 全绿(逐个点名 28+12 passed);前端 billing 42 断言 + teaching-points + flags 全绿;前端全量 117/118(唯一 FAIL=上文 polyv WIP,无关)。
 - **[隔离污染 · 非本次回归]** `test_mobile_router.py` 全量文件跑时 `test_billing_usage_...enforcement_off` 在 `plan_id=='svip'` 处失败(得 'vip'),但**单独跑 PASS**;`sprint→svip` 解析不依赖 svip 价格,逻辑上与本次改动无关(改动前该断言同样会被走到),系前置测试泄漏共享状态的已知套件污染(见 memory「全量pytest有隔离污染」)。
 - **[未做 · 待上阿里云里程碑]** 真机微信支付端到端(能否为 9.9/68/268 开出预支付单并到账)= 单元+契约级已验,live 收款要一次测试部署单独验;付费墙 live 行为(付费用户真看到 70+、免费卡 20)同理。未部署前不宣称"生产已能收费"。
+
+### 2026-07-22(再续) · 免费教学视频上限 20 → 10
+
+- owner 明确把无有效会员/过期会员的 `teaching_video_limit` 从 20 调整为 10；`starter_19` 仍为 30，`light_98/vip/svip/supreme_svip` 仍为无限。
+- 单一权威仍是 `GET /api/v1/billing/wallet.teaching_video_limit`。teaching-points 只消费服务端字段；字段缺失、请求失败或非法值时，前端 fail-closed 回落 10，不另算会员等级。
+- 会员权益读取改用 canonical wallet id 对应的只读 entitlement read model，不调用会 bootstrap/保存默认会员的 `get_profile`。

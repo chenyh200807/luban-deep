@@ -626,3 +626,88 @@ def test_merge_metric_snapshots_assessment_explanation_none_when_idle() -> None:
         [{"turn": worker_a.snapshot()}, {"turn": worker_b.snapshot()}]
     )["turn"]["assessment_explanation_ms"]
     assert merged is None
+
+
+def test_billing_and_wallet_metrics_are_bounded_pii_free_and_rendered() -> None:
+    metrics = TurnRuntimeMetrics()
+    metrics.record_billing_capture(status="captured", reason="", chargeable=True)
+    metrics.record_billing_capture(
+        status="15558866508",
+        reason="2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+        chargeable=False,
+    )
+    metrics.record_wallet_mutation(
+        event_type="grant",
+        delta_micros=1_200_000_000,
+        outcome="success",
+        cause="identity_merge",
+    )
+
+    snapshot = metrics.snapshot()
+    assert {"status": "captured", "reason": "-", "chargeable": "yes", "count": 1} in snapshot[
+        "billing_capture_counts"
+    ]
+    assert {"status": "other", "reason": "other", "chargeable": "no", "count": 1} in snapshot[
+        "billing_capture_counts"
+    ]
+    assert {
+        "event_type": "grant",
+        "direction": "credit",
+        "cause": "identity_merge",
+        "outcome": "success",
+        "count": 1,
+        "points_total": 1200.0,
+    } in snapshot["wallet_mutation_counts"]
+
+    body = render_prometheus_metrics(
+        http_snapshot={},
+        turn_snapshot=snapshot,
+        surface_snapshot={},
+        readiness_snapshot={},
+        provider_error_rates={},
+        circuit_breakers={},
+        release_snapshot={},
+    )
+    assert 'deeptutor_billing_capture_total{chargeable="yes",reason="-",status="captured"} 1' in body
+    assert (
+        'deeptutor_wallet_mutation_requested_points_total{cause="identity_merge",direction="credit",'
+        'event_type="grant",outcome="success"} 1200.0'
+    ) in body
+    assert "15558866508" not in body
+    assert "2d9eac15-5d26-4e93-941b-9ec6345ce6d9" not in body
+
+
+def test_billing_and_wallet_metrics_merge_across_workers() -> None:
+    worker_a = TurnRuntimeMetrics()
+    worker_a.record_billing_capture(status="failed", reason="capture_error", chargeable=True)
+    worker_a.record_wallet_mutation(
+        event_type="admin_adjust",
+        delta_micros=500_000_000,
+        outcome="success",
+        cause="manual_adjust",
+    )
+    worker_b = TurnRuntimeMetrics()
+    worker_b.record_billing_capture(status="failed", reason="capture_error", chargeable=True)
+    worker_b.record_wallet_mutation(
+        event_type="admin_adjust",
+        delta_micros=250_000_000,
+        outcome="success",
+        cause="manual_adjust",
+    )
+
+    merged = merge_metric_snapshots(
+        [{"turn": worker_a.snapshot()}, {"turn": worker_b.snapshot()}]
+    )["turn"]
+    assert merged["billing_capture_counts"] == [
+        {"status": "failed", "reason": "capture_error", "chargeable": "yes", "count": 2}
+    ]
+    assert merged["wallet_mutation_counts"] == [
+        {
+            "event_type": "admin_adjust",
+            "direction": "credit",
+            "cause": "manual_adjust",
+            "outcome": "success",
+            "count": 2,
+            "points_total": 750.0,
+        }
+    ]

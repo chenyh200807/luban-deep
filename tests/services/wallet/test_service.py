@@ -622,3 +622,74 @@ def test_grant_points_posts_positive_grant_mutation() -> None:
     assert result.event_type == "grant"
     assert result.delta_micros == 600000000
     assert result.balance_micros == 1200000000
+
+
+def test_wallet_mutation_choke_point_records_identity_merge_and_insufficient_metrics(
+    monkeypatch,
+) -> None:
+    from deeptutor.api.runtime_metrics import get_turn_runtime_metrics, reset_turn_runtime_metrics
+
+    reset_turn_runtime_metrics()
+    service = SupabaseWalletService(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+    )
+
+    monkeypatch.setattr(
+        service,
+        "_rpc_row",
+        lambda **_kwargs: {
+            "ledger_event_id": "evt-merge",
+            "user_id": "wallet-demo",
+            "event_type": "grant",
+            "delta_micros": 1_200_000_000,
+            "balance_micros": 1_200_000_000,
+            "frozen_micros": 0,
+            "version": 1,
+            "idempotency_key": "merge-once",
+            "reference_type": "member_merge",
+            "reference_id": "merge-1",
+            "created_at": "2026-07-22T00:00:00Z",
+        },
+    )
+    service.grant_points(
+        user_id="wallet-demo",
+        amount_micros=1_200_000_000,
+        reference_type="member_merge",
+        reference_id="merge-1",
+        idempotency_key="merge-once",
+        reason="member_merge",
+    )
+
+    def _insufficient(**_kwargs):
+        raise WalletInsufficientBalanceError("insufficient")
+
+    monkeypatch.setattr(service, "_rpc_row", _insufficient)
+    with pytest.raises(WalletInsufficientBalanceError):
+        service.debit_points(
+            user_id="wallet-demo",
+            amount_micros=20_000_000,
+            reference_type="ai_usage",
+            reference_id="turn-1",
+            idempotency_key="capture:turn-1",
+        )
+
+    assert get_turn_runtime_metrics().snapshot()["wallet_mutation_counts"] == [
+        {
+            "event_type": "debit",
+            "direction": "debit",
+            "cause": "ai_usage",
+            "outcome": "insufficient_balance",
+            "count": 1,
+            "points_total": 20.0,
+        },
+        {
+            "event_type": "grant",
+            "direction": "credit",
+            "cause": "identity_merge",
+            "outcome": "success",
+            "count": 1,
+            "points_total": 1200.0,
+        },
+    ]
+    reset_turn_runtime_metrics()

@@ -39,6 +39,59 @@ def _coerce_int(value: Any) -> int:
         return 0
 
 
+def _wallet_mutation_cause(
+    *,
+    event_type: str,
+    reference_type: str,
+    reason: str,
+    operator_type: str,
+    metadata: dict[str, Any] | None,
+) -> str:
+    tokens = " ".join(
+        (
+            _normalize_text(event_type),
+            _normalize_text(reference_type),
+            _normalize_text(reason),
+            _normalize_text(operator_type),
+            _normalize_text((metadata or {}).get("source")) if isinstance(metadata, dict) else "",
+        )
+    ).lower()
+    if "member_merge" in tokens or "identity_merge" in tokens:
+        return "identity_merge"
+    if "signup_bonus" in tokens:
+        return "signup_bonus"
+    if "purchase" in tokens or "payment" in tokens:
+        return "purchase"
+    if "refund" in tokens or "reversal" in tokens:
+        return "refund"
+    if "admin_adjust" in tokens or _normalize_text(operator_type).lower() == "admin":
+        return "manual_adjust"
+    if "capture" in tokens or "ai_usage" in tokens:
+        return "ai_usage"
+    return "other"
+
+
+def _record_wallet_mutation_metric(
+    *,
+    event_type: str,
+    delta_micros: int,
+    outcome: str,
+    cause: str,
+) -> None:
+    try:
+        from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
+
+        get_turn_runtime_metrics().record_wallet_mutation(
+            event_type=event_type,
+            delta_micros=delta_micros,
+            outcome=outcome,
+            cause=cause,
+        )
+    except Exception:
+        # Observability must never change wallet mutation behavior.
+        pass
+
+
 @dataclass(frozen=True, slots=True)
 class WalletSnapshot:
     user_id: str
@@ -544,22 +597,47 @@ class SupabaseWalletService:
         if normalized_delta == 0:
             raise ValueError("delta_micros must be non-zero")
 
-        row = self._rpc_row(
-            function_name="apply_wallet_mutation",
-            payload={
-                "p_user_id": _normalize_text(user_id),
-                "p_event_type": _normalize_text(event_type),
-                "p_delta_micros": normalized_delta,
-                "p_reference_type": _normalize_text(reference_type),
-                "p_reference_id": _normalize_text(reference_id),
-                "p_reason": _normalize_text(reason) or _normalize_text(event_type),
-                "p_idempotency_key": _normalize_text(idempotency_key),
-                "p_operator_type": _normalize_text(operator_type) or "system",
-                "p_operator_id": _normalize_text(operator_id),
-                "p_metadata": dict(metadata or {}),
-            },
+        normalized_event_type = _normalize_text(event_type)
+        cause = _wallet_mutation_cause(
+            event_type=normalized_event_type,
+            reference_type=reference_type,
+            reason=reason,
+            operator_type=operator_type,
+            metadata=metadata,
         )
-        return WalletMutationResult(
+        try:
+            row = self._rpc_row(
+                function_name="apply_wallet_mutation",
+                payload={
+                    "p_user_id": _normalize_text(user_id),
+                    "p_event_type": normalized_event_type,
+                    "p_delta_micros": normalized_delta,
+                    "p_reference_type": _normalize_text(reference_type),
+                    "p_reference_id": _normalize_text(reference_id),
+                    "p_reason": _normalize_text(reason) or normalized_event_type,
+                    "p_idempotency_key": _normalize_text(idempotency_key),
+                    "p_operator_type": _normalize_text(operator_type) or "system",
+                    "p_operator_id": _normalize_text(operator_id),
+                    "p_metadata": dict(metadata or {}),
+                },
+            )
+        except WalletInsufficientBalanceError:
+            _record_wallet_mutation_metric(
+                event_type=normalized_event_type,
+                delta_micros=normalized_delta,
+                outcome="insufficient_balance",
+                cause=cause,
+            )
+            raise
+        except Exception:
+            _record_wallet_mutation_metric(
+                event_type=normalized_event_type,
+                delta_micros=normalized_delta,
+                outcome="error",
+                cause=cause,
+            )
+            raise
+        result = WalletMutationResult(
             ledger_event_id=_normalize_text(row.get("ledger_event_id")),
             user_id=_normalize_text(row.get("user_id")),
             event_type=_normalize_text(row.get("event_type")),
@@ -572,6 +650,13 @@ class SupabaseWalletService:
             reference_id=_normalize_text(row.get("reference_id")),
             created_at=_normalize_text(row.get("created_at")),
         )
+        _record_wallet_mutation_metric(
+            event_type=normalized_event_type,
+            delta_micros=normalized_delta,
+            outcome="success",
+            cause=cause,
+        )
+        return result
 
     def _build_ledger_entry(self, row: dict[str, Any]) -> WalletLedgerEntry:
         return WalletLedgerEntry(

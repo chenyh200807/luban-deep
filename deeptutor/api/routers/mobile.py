@@ -168,8 +168,6 @@ _BILLING_PLAN_ALIASES = {
     "trial": "vip",
     "starter_19": "starter_19",
     "light_98": "light_98",
-    "starter_19": "starter_19",
-    "light_98": "light_98",
     "vip": "vip",
     "standard": "vip",
     "starter": "vip",
@@ -280,10 +278,10 @@ def _billing_package_by_id(package_id: str) -> dict[str, Any] | None:
 
 # 教学视频权益上限:按当前有效会员 tier 派生。None = 无限;整数 = 上限条数。
 # 分档(单一权威,便于单测):
-#   无有效会员 / 会员已过期            → 20
+#   无有效会员 / 会员已过期            → 10
 #   有效 tier == starter_19            → 30
 #   有效 tier ∈ {light_98,vip,svip,supreme_svip} → None(无限)
-_TEACHING_VIDEO_DEFAULT_LIMIT = 20
+_TEACHING_VIDEO_DEFAULT_LIMIT = 10
 _TEACHING_VIDEO_STARTER_LIMIT = 30
 _TEACHING_VIDEO_UNLIMITED_TIERS = frozenset(
     {"light_98", "vip", "svip", "supreme_svip"}
@@ -311,7 +309,7 @@ def resolve_teaching_video_limit(tier: str | None, is_active: bool) -> int | Non
 def _membership_is_active(expire_at: Any) -> bool:
     """会员是否在有效期内:expire_at 在未来(含此刻)=有效;空/已过期=无效。
 
-    复用 member_service.get_profile 暴露的 expire_at 作为过期真值,避免自造第二权威。
+    复用只读 entitlement read model 暴露的 expire_at 作为过期真值,避免自造第二权威。
     """
     text = str(expire_at or "").strip()
     if not text:
@@ -328,20 +326,24 @@ def _membership_is_active(expire_at: Any) -> bool:
 def _teaching_video_limit_for_user(user_id: str) -> int | None:
     """Resolve the current teaching-video limit for a member.
 
-    Authority for tier + expiry = member_service.get_profile. Any lookup failure
-    fails safe to the no-membership default (20) rather than 500-ing the wallet.
+    Authority for tier + expiry = the persisted, non-bootstrapping entitlement
+    read model. Any lookup failure fails safe to the no-membership default (10)
+    rather than creating member state or 500-ing the wallet.
     """
     tier = ""
+    status = ""
     expire_at = ""
     try:
-        profile = member_service.get_profile(user_id)
+        profile = member_service.get_billing_entitlement_read_model(user_id)
     except Exception:
         logger.warning("teaching_video_limit profile lookup failed for user_id=%s", _log_safe_id(user_id), exc_info=True)
         profile = None
     if isinstance(profile, dict):
         tier = str(profile.get("tier") or "")
+        status = str(profile.get("status") or "")
         expire_at = str(profile.get("expire_at") or "")
-    return resolve_teaching_video_limit(tier, _membership_is_active(expire_at))
+    is_active = status.strip().lower() == "active" and _membership_is_active(expire_at)
+    return resolve_teaching_video_limit(tier, is_active)
 
 
 def _price_to_fen(value: Any) -> int:
@@ -536,9 +538,17 @@ def _normalize_billing_plan_id(plan_id: str | None) -> str:
     return _BILLING_PLAN_ALIASES.get(raw, "vip")
 
 
-def _billing_usage_reference_points_for_plan(plan_id: str | None) -> int:
+def _billing_usage_reference_points_for_plan(
+    plan_id: str | None,
+    *,
+    packages: list[dict[str, Any]] | None = None,
+) -> int:
+    raw_plan_id = str(plan_id or "").strip().lower()
+    if raw_plan_id in {"", "trial"}:
+        raise RuntimeError("paid billing entitlement unavailable")
     normalized = _normalize_billing_plan_id(plan_id)
-    for package in member_service.list_membership_packages():
+    package_rows = member_service.list_membership_packages() if packages is None else packages
+    for package in package_rows:
         if not isinstance(package, dict):
             continue
         raw_package_id = str(package.get("tier") or package.get("id") or "").strip().lower()
@@ -857,6 +867,7 @@ def _build_billing_usage_payload(
     now: datetime | None = None,
     plan_id: str | None = None,
     balance_micros: int | None = None,
+    reference_points: int | None = None,
     limit_points_by_window: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
@@ -885,7 +896,11 @@ def _build_billing_usage_payload(
         latest_balance_micros + total_used_micros,
         latest_balance_micros,
     )
-    package_reference_micros = int(_billing_usage_reference_points_for_plan(plan_id)) * 1_000_000
+    package_reference_micros = int(
+        reference_points
+        if reference_points is not None
+        else _billing_usage_reference_points_for_plan(plan_id)
+    ) * 1_000_000
     reference_micros = (
         observed_reference_micros
         if observed_reference_micros > total_used_micros
@@ -988,6 +1003,7 @@ def _build_internal_beta_usage_payload(
     events: list[Any],
     *,
     plan_id: str | None,
+    reference_points: int | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
@@ -1000,6 +1016,7 @@ def _build_internal_beta_usage_payload(
         entries,
         now=current,
         plan_id=plan_id,
+        reference_points=reference_points,
     )
     return payload
 
@@ -1011,6 +1028,12 @@ def _billing_storage_unavailable(exc: Exception, *, source: str) -> HTTPExceptio
 
 
 def _degraded_billing_usage_payload(*, plan_id: str | None = None) -> dict[str, Any]:
+    raw_plan_id = str(plan_id or "").strip().lower()
+    display_plan_id = (
+        raw_plan_id
+        if raw_plan_id in {"", "trial"}
+        else _normalize_billing_plan_id(raw_plan_id)
+    )
     return {
         "status": "degraded",
         "reason": "billing_storage_unavailable",
@@ -1018,7 +1041,7 @@ def _degraded_billing_usage_payload(*, plan_id: str | None = None) -> dict[str, 
             "primary_label": "权益暂不可用",
             "primary_percent": 100,
             "limited_by": "membership_balance",
-            "plan_id": _normalize_billing_plan_id(plan_id),
+            "plan_id": display_plan_id,
         },
         "quota": {
             "rows": [],
@@ -3037,7 +3060,7 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
     snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     wallet_payload["user_id"] = user_id
-    wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(user_id)
+    wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(wallet_user_id)
     if wallet_user_id:
         _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")
     return wallet_payload
@@ -3049,18 +3072,24 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
     wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
+    plan_id = ""
     try:
         snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     except Exception as exc:
         _billing_storage_unavailable(exc, source="billing_usage_wallet")
         return _degraded_billing_usage_payload()
     try:
-        profile = member_service.get_profile(wallet_user_id)
-        plan_id = str((profile or {}).get("tier") or "").strip()
-        _billing_usage_reference_points_for_plan(plan_id)
+        entitlement = member_service.get_billing_entitlement_read_model(wallet_user_id)
+        if entitlement is None:
+            raise RuntimeError("billing entitlement unavailable")
+        plan_id = str(entitlement.get("tier") or "").strip()
+        reference_points = _billing_usage_reference_points_for_plan(
+            plan_id,
+            packages=list(entitlement.get("packages") or []),
+        )
     except Exception as exc:
         _billing_storage_unavailable(exc, source="billing_usage_entitlement")
-        return _degraded_billing_usage_payload()
+        return _degraded_billing_usage_payload(plan_id=plan_id)
     if not is_billing_enforcement_enabled():
         try:
             events = _load_member_usage_meter_events(
@@ -3072,7 +3101,8 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
             events = []
         payload = _build_internal_beta_usage_payload(
             events,
-            plan_id="vip",
+            plan_id=plan_id,
+            reference_points=reference_points,
         )
         payload["usage_source"] = "member_usage_meter"
         payload["charging_status"] = "metered_not_charged"
@@ -3081,6 +3111,7 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
         [],
         plan_id=plan_id,
         balance_micros=snapshot.balance_micros,
+        reference_points=reference_points,
     )
 
 

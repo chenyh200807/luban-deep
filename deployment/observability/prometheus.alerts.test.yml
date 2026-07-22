@@ -99,6 +99,171 @@ tests:
         alertname: DeepTutorCircuitBreakerOpen
         exp_alerts: []
 
+  # ---- Billing capture failures and authority violations ----
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_billing_capture_total{status="failed",reason="capture_error",chargeable="yes"}'
+        values: "0+1x5"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorBillingCaptureError
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: DeepTutor billing capture failed
+              description: At least one charge attempt or usage-meter write failed; inspect the canonical wallet ledger before retrying or adjusting balances.
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_billing_capture_total{status="metered_not_charged",reason="billing_enforcement_disabled",chargeable="yes"}'
+        values: "0+1x5"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorBillingEnforcementDisabled
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: DeepTutor billing enforcement is disabled
+              description: A production-shaped turn was metered without charging because billing enforcement is off; confirm an intentional maintenance window or restore enforcement.
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_billing_capture_total{status="skipped",reason="missing_wallet",chargeable="yes"}'
+        values: "0+1x5"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorBillingContextIncomplete
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: DeepTutor billing context is incomplete
+              description: A mini-program billing path reached terminal capture without wallet authority or visible content; inspect start-turn context propagation before assuming the turn is free.
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_billing_capture_total{status="captured",reason="-",chargeable="no"}'
+        values: "0+1x5"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorNonChargeableCaptured
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: A non-chargeable response was captured
+              description: Billing reported a wallet capture for output classified as non-chargeable; stop financial writes and inspect the turn and ledger authorities.
+
+  # Every chargeable paid terminal outcome that is not captured is illegal.  Cover
+  # the early skips explicitly; missing_context/wrong_source are only excluded when
+  # the runtime truthfully labels their non-wallet path as chargeable="unknown".
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_billing_capture_total{status="skipped",reason="missing_context",chargeable="yes"}'
+        values: "0+1x5"
+      - series: 'deeptutor_billing_capture_total{status="skipped",reason="wrong_source",chargeable="yes"}'
+        values: "0+1x5"
+      - series: 'deeptutor_billing_capture_total{status="skipped",reason="missing_wallet",chargeable="yes"}'
+        values: "0+1x5"
+      - series: 'deeptutor_billing_capture_total{status="skipped",reason="empty_content",chargeable="yes"}'
+        values: "0+1x5"
+      - series: 'deeptutor_billing_capture_total{status="released",reason="other",chargeable="yes"}'
+        values: "0+1x5"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorChargeableTurnNotCaptured
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: A chargeable turn reached a non-captured terminal state
+              description: A paid mini-program turn ended without canonical wallet capture; stop treating billing as healthy and inspect context propagation, terminal classification, and the wallet ledger.
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_billing_capture_total{status="skipped",reason="missing_context",chargeable="unknown"}'
+        values: "0+1x5"
+      - series: 'deeptutor_billing_capture_total{status="bypassed",reason="internal_qa_billing_bypass",chargeable="yes"}'
+        values: "0+1x5"
+      - series: 'deeptutor_billing_capture_total{status="bypassed",reason="eval_billing_bypass",chargeable="yes"}'
+        values: "0+1x5"
+      - series: 'deeptutor_billing_capture_total{status="metered_not_charged",reason="free_trial",chargeable="yes"}'
+        values: "0+1x5"
+      - series: 'deeptutor_billing_capture_total{status="captured",reason="-",chargeable="yes"}'
+        values: "0+1x5"
+      - series: 'deeptutor_billing_capture_total{status="released",reason="non_chargeable_assistant_content",chargeable="no"}'
+        values: "0+1x5"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorChargeableTurnNotCaptured
+        exp_alerts: []
+
+  # A partial multi-worker restart lowers the merged counter. Do not misreport it
+  # as a new chargeable event; fail closed with a dedicated telemetry-integrity alert.
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_billing_capture_total{status="failed",reason="capture_error",chargeable="yes"}'
+        values: "10 10 2 2 2"
+      - series: 'deeptutor_billing_capture_total{status="metered_not_charged",reason="billing_enforcement_disabled",chargeable="yes"}'
+        values: "10 10 2 2 2"
+      - series: 'deeptutor_billing_capture_total{status="skipped",reason="missing_wallet",chargeable="yes"}'
+        values: "10 10 2 2 2"
+      - series: 'deeptutor_billing_capture_total{status="captured",reason="-",chargeable="no"}'
+        values: "10 10 2 2 2"
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: DeepTutorBillingCaptureError
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: DeepTutorBillingEnforcementDisabled
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: DeepTutorBillingContextIncomplete
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: DeepTutorChargeableTurnNotCaptured
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: DeepTutorNonChargeableCaptured
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: DeepTutorBillingCounterReset
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: Billing telemetry reset during the alert window
+              description: A worker restart made the merged billing counter non-monotonic, so event increases are temporarily untrustworthy; verify worker health and audit the canonical wallet ledger for the affected window.
+
+  # ---- Suspicious positive wallet requests; ledger remains applied authority ----
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_wallet_mutation_requested_points_total{event_type="grant",direction="credit",cause="identity_merge",outcome="success"}'
+        values: "0+100x5"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorSuspiciousWalletCredit
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: A suspicious wallet credit was requested
+              description: An identity-merge/manual adjustment credit or unusually large signup bonus was requested; the canonical wallet ledger must be audited before treating it as applied.
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_wallet_mutation_requested_points_total{event_type="grant",direction="credit",cause="purchase",outcome="success"}'
+        values: "0+50000x5"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorSuspiciousWalletCredit
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_wallet_mutation_requested_points_total{event_type="grant",direction="credit",cause="identity_merge",outcome="success"}'
+        values: "1000 1000 100 100 100"
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: DeepTutorSuspiciousWalletCredit
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: DeepTutorWalletCounterReset
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: Wallet telemetry reset during the alert window
+              description: A worker restart made the merged wallet counter non-monotonic, so requested-credit increases are temporarily untrustworthy; verify worker health and audit the canonical wallet ledger for the affected window.
+
   # ---- DeepTutorMetricsScrapeDown (up{job="deeptutor"} == 0, for 2m) ----
   - interval: 1m
     input_series:

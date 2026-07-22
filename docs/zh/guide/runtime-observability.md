@@ -101,6 +101,13 @@ bash scripts/verify_aliyun_observability.sh
 - `deeptutor_circuit_breaker_failure_count`
 - `deeptutor_circuit_breaker_open`
 - `deeptutor_circuit_breaker_half_open`
+- `deeptutor_billing_capture_total{status,reason,chargeable}`
+- `deeptutor_wallet_mutation_total{event_type,direction,cause,outcome}`
+- `deeptutor_wallet_mutation_requested_points_total{event_type,direction,cause,outcome}`
+
+账务指标只使用固定低基数标签，不包含用户 ID、手机号、钱包 UUID、turn/session
+或幂等键。`wallet_mutation_requested_points_total` 表示 RPC 请求/返回的观测量；
+幂等重放是否真正产生新入账仍只能由 canonical `wallet_ledger` 审计确认。
 
 ## Prometheus 接入样例
 
@@ -134,12 +141,23 @@ bash scripts/verify_aliyun_observability.sh
 
 ## 最小告警建议
 
-如果只先接 4 条，优先级建议如下：
+基础可用性优先接以下 4 条：
 
 1. `DeepTutorNotReady`
 2. `DeepTutorServerErrors`
 3. `DeepTutorProviderThresholdExceeded`
 4. `DeepTutorCircuitBreakerOpen`
+
+涉及真实钱包时还必须接入：
+
+1. `DeepTutorBillingCaptureError`
+2. `DeepTutorBillingEnforcementDisabled`
+3. `DeepTutorBillingContextIncomplete`
+4. `DeepTutorChargeableTurnNotCaptured`
+5. `DeepTutorBillingCounterReset`
+6. `DeepTutorNonChargeableCaptured`
+7. `DeepTutorSuspiciousWalletCredit`
+8. `DeepTutorWalletCounterReset`
 
 如果你想减少人工核对，这个工作流会在相关文件变更时自动校验：
 

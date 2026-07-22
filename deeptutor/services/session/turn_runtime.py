@@ -3113,14 +3113,45 @@ class TurnRuntimeManager:
         turn_id: str = "",
         usage_summary: dict[str, Any] | None = None,
         chargeable_assistant_content: bool = True,
+        non_chargeable_release_reason: str = "non_chargeable_assistant_content",
     ) -> dict[str, Any] | None:
+        def _finish(
+            value: dict[str, Any] | None,
+            *,
+            status: str,
+            reason: str = "",
+        ) -> dict[str, Any] | None:
+            try:
+                # ``chargeable`` is only authoritative on the canonical mini-program
+                # billing path.  This method is also invoked for ordinary web/API
+                # turns, where missing_context/wrong_source means "not a wallet
+                # consumer", not "a paid turn escaped capture".  Keep that bounded
+                # distinction as ``unknown`` instead of producing a false production
+                # billing alarm for every non-mobile turn.
+                metric_chargeable = (
+                    bool(chargeable_assistant_content)
+                    if isinstance(billing_context, dict)
+                    and billing_context.get("source") == "wx_miniprogram"
+                    else None
+                )
+                get_turn_runtime_metrics().record_billing_capture(
+                    status=status,
+                    reason=reason,
+                    chargeable=metric_chargeable,
+                )
+            except Exception:
+                logger.debug("billing capture metric failed", exc_info=True)
+            return value
+
         if not billing_context:
-            return None
+            return _finish(None, status="skipped", reason="missing_context")
         if billing_context.get("source") != "wx_miniprogram":
-            return None
+            return _finish(None, status="skipped", reason="wrong_source")
         user_id = str(billing_context.get("wallet_user_id") or "").strip()
-        if not user_id or not str(assistant_content or "").strip():
-            return None
+        if not user_id:
+            return _finish(None, status="skipped", reason="missing_wallet")
+        if not str(assistant_content or "").strip():
+            return _finish(None, status="skipped", reason="empty_content")
         idempotency_key = (
             f"mini_program_capture:{turn_id}"
             if str(turn_id or "").strip()
@@ -3129,12 +3160,12 @@ class TurnRuntimeManager:
         if internal_qa_billing_bypass_allowed(
             *_internal_qa_billing_context_identity_candidates(billing_context)
         ):
-            return {
+            return _finish({
                 "status": "bypassed",
                 "reason": "internal_qa_billing_bypass",
                 "wallet_user_id": user_id,
                 "idempotency_key": idempotency_key,
-            }
+            }, status="bypassed", reason="internal_qa_billing_bypass")
         # Eval-mode bypass: the marker is only ever set server-side after the
         # start-turn endpoint verified the eval signature for a QA-cohort
         # identity, so a real paying user can never carry it. Skip the debit.
@@ -3143,20 +3174,37 @@ class TurnRuntimeManager:
                 "eval billing bypass: skipping mini-program capture turn_id=%s",
                 str(turn_id or "").strip(),
             )
-            return {
+            return _finish({
                 "status": "bypassed",
                 "reason": "eval_billing_bypass",
                 "wallet_user_id": user_id,
                 "idempotency_key": idempotency_key,
-            }
+            }, status="bypassed", reason="eval_billing_bypass")
         if str(billing_context.get("free_trial") or "").strip().lower() == "reserved":
-            return self._finalize_free_trial_reservation(
+            result = self._finalize_free_trial_reservation(
                 billing_context,
                 session_id=session_id,
                 turn_id=turn_id,
                 idempotency_key=idempotency_key,
                 chargeable=chargeable_assistant_content,
-                release_reason="non_chargeable_assistant_content",
+                release_reason=non_chargeable_release_reason,
+            )
+            return _finish(
+                result,
+                status=str((result or {}).get("status") or "released"),
+                reason=str((result or {}).get("reason") or "non_chargeable_assistant_content"),
+            )
+        if not chargeable_assistant_content:
+            return _finish(
+                {
+                    "status": "released",
+                    "reason": "non_chargeable_assistant_content",
+                    "wallet_user_id": user_id,
+                    "idempotency_key": idempotency_key,
+                    "captured_micros": 0,
+                },
+                status="released",
+                reason="non_chargeable_assistant_content",
             )
         amount_points, billing_metadata = _billing_capture_amount_from_usage_summary(usage_summary)
         capture_metadata = {
@@ -3195,7 +3243,7 @@ class TurnRuntimeManager:
                     status="metered_not_charged",
                     metadata=capture_metadata,
                 )
-                return {
+                return _finish({
                     "status": "metered_not_charged",
                     "reason": "billing_enforcement_disabled",
                     "wallet_user_id": user_id,
@@ -3206,15 +3254,15 @@ class TurnRuntimeManager:
                     "captured_micros": 0,
                     "requested_micros": int(amount_points) * 1_000_000,
                     "balance_after_micros": 0,
-                }
+                }, status="metered_not_charged", reason="billing_enforcement_disabled")
             except Exception as exc:
                 logger.warning("Failed to meter usage for user %s: %s", user_id, exc, exc_info=True)
-                return {
+                return _finish({
                     "status": "failed",
                     "reason": "usage_meter_error",
                     "wallet_user_id": user_id,
                     "idempotency_key": idempotency_key,
-                }
+                }, status="failed", reason="usage_meter_error")
         try:
             from deeptutor.services.wallet import WalletInsufficientBalanceError, get_wallet_service
 
@@ -3227,7 +3275,7 @@ class TurnRuntimeManager:
                 reason="capture",
                 metadata=capture_metadata,
             )
-            return {
+            return _finish({
                 "status": "captured",
                 "wallet_user_id": user_id,
                 "idempotency_key": idempotency_key,
@@ -3237,23 +3285,23 @@ class TurnRuntimeManager:
                 "captured_micros": int(getattr(result, "captured_micros", 0) or 0),
                 "requested_micros": int(getattr(result, "requested_micros", 0) or 0),
                 "balance_after_micros": int(getattr(result, "balance_after_micros", 0) or 0),
-            }
+            }, status="captured")
         except WalletInsufficientBalanceError as exc:
             logger.warning("Insufficient wallet balance for user %s: %s", user_id, exc)
-            return {
+            return _finish({
                 "status": "failed",
                 "reason": "insufficient_balance",
                 "wallet_user_id": user_id,
                 "idempotency_key": idempotency_key,
-            }
+            }, status="failed", reason="insufficient_balance")
         except Exception as exc:
             logger.warning("Failed to capture points for user %s: %s", user_id, exc, exc_info=True)
-            return {
+            return _finish({
                 "status": "failed",
                 "reason": "capture_error",
                 "wallet_user_id": user_id,
                 "idempotency_key": idempotency_key,
-            }
+            }, status="failed", reason="capture_error")
 
     def _record_mobile_learning(
         self,
@@ -6445,12 +6493,16 @@ class TurnRuntimeManager:
                 ),
             )
             billing_capture = await asyncio.to_thread(
-                self._finalize_free_trial_reservation,
+                self._capture_mobile_points,
                 billing_context,
+                public_assistant_content,
                 session_id=session_id,
                 turn_id=turn_id,
-                chargeable=False,
-                release_reason="turn_timeout" if timed_out else "turn_cancelled",
+                usage_summary=usage_summary,
+                chargeable_assistant_content=False,
+                non_chargeable_release_reason=(
+                    "turn_timeout" if timed_out else "turn_cancelled"
+                ),
             )
             if billing_capture:
                 trace_metadata["billing_capture"] = billing_capture
@@ -6521,12 +6573,14 @@ class TurnRuntimeManager:
                 ),
             )
             billing_capture = await asyncio.to_thread(
-                self._finalize_free_trial_reservation,
+                self._capture_mobile_points,
                 billing_context,
+                public_assistant_content,
                 session_id=session_id,
                 turn_id=turn_id,
-                chargeable=False,
-                release_reason="turn_exception",
+                usage_summary=usage_summary,
+                chargeable_assistant_content=False,
+                non_chargeable_release_reason="turn_exception",
             )
             if billing_capture:
                 trace_metadata["billing_capture"] = billing_capture

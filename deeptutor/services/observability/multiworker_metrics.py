@@ -299,6 +299,44 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         for (decision, outcome), count in sorted(memory_gate_count.items())
     ]
 
+    billing_count: dict[tuple[str, str, str], int] = defaultdict(int)
+    for x in snaps:
+        for entry in x.get("billing_capture_counts") or []:
+            key = (
+                str(entry.get("status", "")),
+                str(entry.get("reason", "")),
+                str(entry.get("chargeable", "")),
+            )
+            billing_count[key] += int(entry.get("count", 0))
+    billing_capture_counts = [
+        {"status": status, "reason": reason, "chargeable": chargeable, "count": count}
+        for (status, reason, chargeable), count in sorted(billing_count.items())
+    ]
+
+    wallet_count: dict[tuple[str, str, str, str], int] = defaultdict(int)
+    wallet_points: dict[tuple[str, str, str, str], float] = defaultdict(float)
+    for x in snaps:
+        for entry in x.get("wallet_mutation_counts") or []:
+            key = (
+                str(entry.get("event_type", "")),
+                str(entry.get("direction", "")),
+                str(entry.get("cause", "")),
+                str(entry.get("outcome", "")),
+            )
+            wallet_count[key] += int(entry.get("count", 0))
+            wallet_points[key] += float(entry.get("points_total", 0.0))
+    wallet_mutation_counts = [
+        {
+            "event_type": event_type,
+            "direction": direction,
+            "cause": cause,
+            "outcome": outcome,
+            "count": count,
+            "points_total": round(wallet_points[(event_type, direction, cause, outcome)], 6),
+        }
+        for (event_type, direction, cause, outcome), count in sorted(wallet_count.items())
+    ]
+
     # Battle2 S3-T3: TTFVT histogram, summed per content_source across workers.
     # Missing this merge would make histogram_quantile systematically under-count
     # (a scrape only sees the worker that answered it) under UVICORN_WORKERS>1.
@@ -387,6 +425,8 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         "response_mode_counts": response_mode_counts,
         "summary_maintainer_counts": summary_maintainer_counts,
         "memory_maintainer_counts": memory_maintainer_counts,
+        "billing_capture_counts": billing_capture_counts,
+        "wallet_mutation_counts": wallet_mutation_counts,
         # Battle1 W1-T6: event-loop lag sentinel. Max across workers (worst worker
         # dominates); over-200ms + samples summed. Missing this merge would silently
         # drop the lag signal under UVICORN_WORKERS>1.
