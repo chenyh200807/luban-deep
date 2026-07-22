@@ -1192,7 +1192,7 @@ def test_mobile_chat_start_turn_requires_authentication() -> None:
     assert response.json()["detail"] == "Authentication required"
 
 
-def test_mobile_chat_start_turn_does_not_block_on_removed_usage_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_mobile_chat_start_turn_does_not_read_ledger_for_removed_usage_windows(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
 
     class FakeTurnRuntime:
@@ -1216,24 +1216,7 @@ def test_mobile_chat_start_turn_does_not_block_on_removed_usage_windows(monkeypa
 
         @staticmethod
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
-            captured["wallet_user_id"] = user_id
-            captured["limit"] = limit
-            captured["offset"] = offset
-            return [
-                mobile_module.WalletLedgerEntry(
-                    id="evt_quota_1",
-                    user_id=user_id,
-                    event_type="debit",
-                    delta_micros=-20_000_000,
-                    balance_after_micros=80_000_000,
-                    frozen_after_micros=0,
-                    reference_type="ai_usage",
-                    reference_id="turn_quota_1",
-                    idempotency_key="capture:turn_quota_1",
-                    metadata={"reason": "capture"},
-                    created_at=mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ).isoformat(),
-                )
-            ]
+            raise AssertionError("positive wallet gate must not read usage ledger")
 
     monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
@@ -1257,9 +1240,6 @@ def test_mobile_chat_start_turn_does_not_block_on_removed_usage_windows(monkeypa
         )
 
     assert response.status_code == 200
-    assert captured["wallet_user_id"] == "wallet_demo"
-    assert captured["limit"] == mobile_module._BILLING_USAGE_LEDGER_WINDOW
-    assert captured["offset"] == 0
     assert captured["started"] is True
 
 
@@ -1281,10 +1261,55 @@ def test_billing_usage_defaults_follow_membership_balance_model(monkeypatch: pyt
     assert svip["quota"]["rows"] == []
     assert supreme["quota"]["rows"] == []
     assert mobile_module._billing_usage_reference_points_for_plan("vip") == 9000
-    assert mobile_module._billing_usage_reference_points_for_plan("svip") == 28000
+    assert mobile_module._billing_usage_reference_points_for_plan("svip") == 12500
     assert mobile_module._billing_usage_reference_points_for_plan("supreme_svip") == 50000
     assert mobile_module._billing_usage_reference_points_for_plan("advance") == 9000
-    assert mobile_module._billing_usage_reference_points_for_plan("sprint") == 28000
+    assert mobile_module._billing_usage_reference_points_for_plan("sprint") == 12500
+
+
+def test_billing_usage_percent_uses_wallet_snapshot_not_polluted_ledger_history() -> None:
+    entries = [
+        mobile_module.WalletLedgerEntry(
+            id="historical_merge_grant",
+            user_id="wallet_demo",
+            event_type="grant",
+            delta_micros=1_196_261_000_000,
+            balance_after_micros=1_196_261_000_000,
+            frozen_after_micros=0,
+            reference_type="member_merge",
+            reference_id="legacy_merge",
+            idempotency_key="legacy_merge:grant",
+            metadata={"reason": "member_merge_repair"},
+            created_at="2026-06-23T08:56:30+00:00",
+        ),
+        mobile_module.WalletLedgerEntry(
+            id="recent_capture",
+            user_id="wallet_demo",
+            event_type="debit",
+            delta_micros=-20_000_000,
+            balance_after_micros=48_540_000_000,
+            frozen_after_micros=0,
+            reference_type="ai_usage",
+            reference_id="turn_recent",
+            idempotency_key="mini_program_capture:turn_recent",
+            metadata={"reason": "capture"},
+            created_at="2026-07-21T01:20:36+00:00",
+        ),
+    ]
+
+    payload = mobile_module._build_billing_usage_payload(
+        entries,
+        plan_id="supreme_svip",
+        balance_micros=48_540_000_000,
+    )
+
+    assert payload["display"] == {
+        "primary_label": "剩余 97%",
+        "primary_percent": 97,
+        "reference_points": 50000,
+        "limited_by": "membership_balance",
+        "plan_id": "supreme_svip",
+    }
 
 
 def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailable(
@@ -1343,7 +1368,7 @@ def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailabl
     assert captured["payload"]["config"]["billing_context"]["wallet_user_id"] == "wallet_demo"
 
 
-def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable(
+def test_billing_usage_does_not_depend_on_ledger_storage(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FailingWalletService:
@@ -1362,7 +1387,7 @@ def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable
 
         @staticmethod
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
-            raise RuntimeError("supabase payment required")
+            raise AssertionError("billing usage must not read wallet ledger")
 
     monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: True)
     monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
@@ -1386,7 +1411,9 @@ def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
-    assert body["display"]["primary_label"] == "剩余 100%"
+    assert body["display"]["primary_label"] == "剩余 1%"
+    assert body["display"]["primary_percent"] == 1
+    assert body["display"]["reference_points"] == 9000
     assert body["display"]["plan_id"] == "vip"
     assert body["display"]["limited_by"] == "membership_balance"
     assert body["quota"]["rows"] == []
@@ -1473,12 +1500,13 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     assert body["status"] == "ok"
     assert body["usage_source"] == "member_usage_meter"
     assert body["charging_status"] == "metered_not_charged"
-    assert body["display"]["primary_label"] == "剩余 97%"
-    assert body["display"]["primary_percent"] == 97
+    # enforcement-off 内测统一按 450 次基准展示，不读取会员 tier 或 wallet plan。
+    assert body["display"]["primary_label"] == "剩余 90%"
+    assert body["display"]["primary_percent"] == 90
     assert "primary_used_uses" not in body["display"]
     assert "primary_limit_uses" not in body["display"]
     assert "primary_remaining_uses" not in body["display"]
-    assert body["display"]["plan_id"] == "svip"
+    assert body["display"]["plan_id"] == "vip"
 
 
 def test_billing_usage_returns_degraded_payload_when_wallet_storage_unavailable(

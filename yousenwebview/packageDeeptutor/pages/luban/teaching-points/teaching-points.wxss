@@ -13,6 +13,7 @@
 .tp-hero { display: flex; flex-direction: column; gap: 8rpx; padding: 10rpx 4rpx 30rpx; }
 .tp-title { font-size: 38rpx; line-height: 1.3; font-weight: 850; color: var(--pk-t1); }
 .tp-desc { font-size: 24rpx; line-height: 1.6; color: var(--pk-t3); }
+.tp-desc--free { margin-top: 4rpx; color: var(--pk-red); font-weight: 700; }
 .tp-loading, .tp-empty { padding: 80rpx 0; text-align: center; font-size: 26rpx; color: var(--pk-t3); }
 .tp-error { margin-top: 32rpx; padding: 28rpx; display: flex; flex-direction: column; align-items: center; gap: 18rpx; border: 1rpx solid var(--pk-bd); border-radius: 24rpx; background: var(--pk-card); color: var(--pk-warn); font-size: 26rpx; }
 .tp-retry { padding: 14rpx 38rpx; border-radius: 999rpx; background: var(--pk-ink-btn); color: var(--pk-ink-btn-t); font-weight: 800; }
@@ -59,6 +60,10 @@
   transition: transform .16s ease, opacity .16s ease;
 }
 .tp-card:active { transform: translateY(3rpx) scale(.985); opacity: .86; }
+/* 待开放(免费引子上限之外):灰度压暗,相对卡片本色,明暗两态自洽;仍可见但显然未开放。 */
+.tp-card--locked { filter: grayscale(.9); opacity: .46; }
+.tp-card--locked:active { transform: none; opacity: .46; }
+.tp-card--locked .tp-card-play { font-weight: 700; }
 .tp-card--ink {
   color: #f4f3ec;
   background-color: #26241f;

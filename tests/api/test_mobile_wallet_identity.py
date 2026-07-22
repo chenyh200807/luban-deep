@@ -97,8 +97,15 @@ def test_billing_wallet_prefers_canonical_uid_claim(monkeypatch: pytest.MonkeyPa
         captured["user_id"] = user_id
         return {"balance": 360, "tier": "free", "expire_at": "", "packages": []}
 
+    future_expire = (datetime.now(ZoneInfo("Asia/Shanghai")) + timedelta(days=30)).isoformat()
+
+    def _fake_get_profile(user_id: str) -> dict[str, object]:
+        captured["profile_user_id"] = user_id
+        return {"user_id": user_id, "tier": "vip", "status": "active", "expire_at": future_expire}
+
     monkeypatch.setattr(mobile_module.member_service, "verify_access_token", _fake_verify_access_token)
     monkeypatch.setattr(mobile_module.member_service, "get_wallet", _fake_get_wallet)
+    monkeypatch.setattr(mobile_module.member_service, "get_profile", _fake_get_profile)
     monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
 
     with TestClient(_build_app()) as client:
@@ -108,7 +115,11 @@ def test_billing_wallet_prefers_canonical_uid_claim(monkeypatch: pytest.MonkeyPa
     assert response.json()["balance"] == 360
     assert response.json()["balance_micros"] == 360_000_000
     assert response.json()["points"] == 360
+    # 有效 vip 会员 → 教学视频无限(JSON null)
+    assert "teaching_video_limit" in response.json()
+    assert response.json()["teaching_video_limit"] is None
     assert captured["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert captured["profile_user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
 
 
 def test_profile_endpoint_uses_single_canonical_identity(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -242,7 +253,7 @@ def test_billing_points_and_ledger_use_wallet_service(monkeypatch: pytest.Monkey
     assert captured["ledger_offset"] == 0
 
 
-def test_billing_usage_returns_membership_balance_percent(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_billing_usage_returns_snapshot_membership_balance_percent(monkeypatch: pytest.MonkeyPatch) -> None:
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     now = datetime(2026, 4, 21, 12, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
 
@@ -341,9 +352,69 @@ def test_billing_usage_returns_membership_balance_percent(monkeypatch: pytest.Mo
 
     assert response.status_code == 200
     body = response.json()
-    assert body["display"]["primary_label"] == "剩余 40%"
+    assert body["display"]["primary_label"] == "剩余 2%"
+    assert body["display"]["primary_percent"] == 2
+    assert body["display"]["reference_points"] == 9000
     assert body["display"]["limited_by"] == "membership_balance"
     assert body["quota"]["rows"] == []
+
+
+def test_billing_usage_uses_current_entitlement_when_wallet_plan_is_stale(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    raw_auth_user_id = "legacy_auth_chenyh2008"
+
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda _authorization: mobile_module.AuthContext(
+            user_id=raw_auth_user_id,
+            provider="local",
+            token="test-token",
+            claims={"uid": canonical_uid, "canonical_uid": canonical_uid},
+        ),
+    )
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: canonical_uid)
+    profile_lookups: list[str] = []
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: profile_lookups.append(user_id) or {"user_id": user_id, "tier": "supreme_svip"},
+    )
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return mobile_module.WalletSnapshot(
+                user_id=user_id,
+                balance_micros=48_540_000_000,
+                frozen_micros=0,
+                plan_id="trial",
+                version=85,
+                created_at="2026-07-21T01:20:36+00:00",
+            )
+
+        @staticmethod
+        def list_wallet_ledger(*_args, **_kwargs):
+            raise AssertionError("billing usage must not read wallet ledger")
+
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/usage", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    assert profile_lookups == [canonical_uid]
+    assert response.json()["display"] == {
+        "primary_label": "剩余 97%",
+        "primary_percent": 97,
+        "reference_points": 50000,
+        "limited_by": "membership_balance",
+        "plan_id": "supreme_svip",
+    }
 
 
 def test_billing_ledger_merges_legacy_capture_history(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -742,3 +813,132 @@ def test_wallet_endpoints_treat_invalid_uuid_wallet_lookup_as_empty_wallet(
     assert wallet_response.json()["balance"] == 0
     assert ledger_response.status_code == 200
     assert ledger_response.json() == {"entries": [], "has_more": False, "total": 0}
+
+
+# --- teaching_video_limit (pure resolver) --------------------------------------
+
+@pytest.mark.parametrize(
+    ("tier", "is_active", "expected"),
+    [
+        ("", False, 20),
+        ("vip", False, 20),  # expired paid tier → default
+        ("starter_19", False, 20),  # expired starter → default
+        ("trial", True, 20),  # active trial (no paid membership) → default
+        ("free", True, 20),
+        ("unknown_tier", True, 20),
+        ("starter_19", True, 30),
+        ("light_98", True, None),
+        ("vip", True, None),
+        ("svip", True, None),
+        ("supreme_svip", True, None),
+    ],
+)
+def test_resolve_teaching_video_limit_tiers(tier: str, is_active: bool, expected: int | None) -> None:
+    assert mobile_module.resolve_teaching_video_limit(tier, is_active) == expected
+
+
+def test_membership_is_active_by_expire_at() -> None:
+    tz = ZoneInfo("Asia/Shanghai")
+    future = (datetime.now(tz) + timedelta(days=1)).isoformat()
+    past = (datetime.now(tz) - timedelta(days=1)).isoformat()
+    assert mobile_module._membership_is_active(future) is True
+    assert mobile_module._membership_is_active(past) is False
+    assert mobile_module._membership_is_active("") is False
+    assert mobile_module._membership_is_active(None) is False
+
+
+def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 过期 light_98 会员:虽然 tier 是无限档,但已过期 → 回落到默认 20。
+    past_expire = (datetime.now(ZoneInfo("Asia/Shanghai")) - timedelta(days=1)).isoformat()
+
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda _authorization: mobile_module.AuthContext(
+            user_id="user_expired",
+            provider="local",
+            token="test-token",
+            claims={"uid": "user_expired"},
+        ),
+    )
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_expired")
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: {
+            "user_id": user_id,
+            "tier": "light_98",
+            "status": "active",
+            "expire_at": past_expire,
+        },
+    )
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return _FakeWalletSnapshot(user_id=user_id, balance_micros=0, version=1)
+
+        @staticmethod
+        def list_wallet_ledger(_user_id: str, *, limit: int = 20, offset: int = 0):
+            del limit, offset
+            return []
+
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    assert response.json()["teaching_video_limit"] == 20
+
+
+def test_billing_wallet_teaching_video_limit_active_starter_is_30(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    future_expire = (datetime.now(ZoneInfo("Asia/Shanghai")) + timedelta(days=90)).isoformat()
+
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda _authorization: mobile_module.AuthContext(
+            user_id="user_starter",
+            provider="local",
+            token="test-token",
+            claims={"uid": "user_starter"},
+        ),
+    )
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_starter")
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: {
+            "user_id": user_id,
+            "tier": "starter_19",
+            "status": "active",
+            "expire_at": future_expire,
+        },
+    )
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return _FakeWalletSnapshot(user_id=user_id, balance_micros=400_000_000, version=1)
+
+        @staticmethod
+        def list_wallet_ledger(_user_id: str, *, limit: int = 20, offset: int = 0):
+            del limit, offset
+            return []
+
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    assert response.json()["teaching_video_limit"] == 30

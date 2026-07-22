@@ -64,7 +64,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
             usageCalls++;
             return Promise.resolve(
               usagePayload || {
-                display: { primary_label: "剩余 75%", primary_percent: 75 },
+                display: { primary_label: "剩余 75%", primary_percent: 75, reference_points: 12000 },
                 quota: {
                   rows: [
                     {
@@ -278,8 +278,31 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     );
     await page._loadUsage();
     assert(
-      page.data.usagePrimaryLabel === "剩余 99.8%",
-      "billing should show remaining percent instead of internal wallet points",
+      page.data.usagePrimaryLabel === "剩余 75%",
+      "billing should project the backend authoritative remaining percent",
+    );
+    var truncatedLedger = loadBillingPage(
+      { display: { primary_label: "剩余 75%", primary_percent: 75, reference_points: 12000 } },
+      { balance: 9000 },
+      {
+        entries: Array.from({ length: 20 }, function (_, index) {
+          return {
+            id: "recent_" + index,
+            event_type: "debit",
+            reason: "capture",
+            delta: -20,
+            balance_after: 9000 - index * 20,
+            reference_type: "ai_usage",
+            created_at: "2026-07-21T01:20:36+00:00",
+          };
+        }),
+        has_more: true,
+      },
+    );
+    await truncatedLedger.page._loadUsage();
+    assert(
+      truncatedLedger.page.data.usagePrimaryLabel === "剩余 75%",
+      "billing ledger pagination must not change the backend authoritative percent",
     );
     assert(
       page.data.ledgerRows.length === 1,
@@ -290,11 +313,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing should normalize wallet debit ledger reason",
     );
     assert(
-      page.data.ledgerRows[0].usageLabel === "-0.22%",
+      page.data.ledgerRows[0].usageLabel === "-0.17%",
       "billing should render wallet debit as percent-only usage",
     );
     assert(
-      page.data.ledgerRows[0].balanceLabel === "剩余 99.6%",
+      page.data.ledgerRows[0].balanceLabel === "剩余 74.8%",
       "billing should render remaining wallet percent after debit",
     );
     assert(
@@ -306,20 +329,28 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing fallback should default to VIP after pricing migration",
     );
     assert(
-      page.data.packages.length === 3,
-      "billing fallback should expose all three launch packages",
+      page.data.packages.length === 4,
+      "billing fallback should expose the four consumer launch packages (598/998 removed, 268 added)",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
-      "billing fallback package ids should match backend launch packages",
+      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip",
+      "billing fallback package ids should match consumer launch packages (no supreme_svip)",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.name; }).join(",") === "VIP,SVIP,至尊SVIP",
+      page.data.packages.map(function (pkg) { return pkg.name; }).join(",") === "入门体验,进阶,VIP,SVIP",
       "billing fallback package names should use public labels",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
-      "billing fallback prices should match launch pricing",
+      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "9.9,68,198,268",
+      "billing fallback prices should match launch pricing (ascending, entry tiers included)",
+    );
+    assert(
+      page.data.packages.map(function (pkg) { return pkg.originalPrice; }).join(",") === "29,98,298,398",
+      "billing fallback should carry strike-through original prices for all four tiers",
+    );
+    assert(
+      page.data.packages[0].badge === "限时上线",
+      "entry tier (9.9) should carry the 限时上线 badge",
     );
     await page.openCheckout();
     assert(
@@ -383,11 +414,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     });
     await staleWallet.page._loadUsage();
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip",
       "billing should ignore stale backend package ids and keep launch packages",
     );
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "9.9,68,198,268",
       "billing should not show stale backend prices",
     );
 

@@ -91,6 +91,13 @@ http_routes:
   - {prefix: /api/v1/wechat, reason: "WeChat mini-program login adapters."}
 
 member_console_controls:
+  member_identity_merge:
+    path: /api/v1/bi/member/merge-accounts
+    authority: MemberConsoleService identity only; wallet_ledger remains unchanged
+    semantics:
+      - Account merge consolidates identity and membership entitlement, but never transfers wallet balance or writes wallet ledger events.
+      - Financial balance transfer requires a separate audited wallet operation with proven credit provenance; identity equality alone is insufficient authorization to move funds.
+      - This control must not call admin_adjust_points or synthesize member_identity_merge credits and debits.
   account_deletion:
     path: /api/v1/bi/member/{user_id}/account
     authority: MemberConsoleService -> external_auth
@@ -115,13 +122,15 @@ member_console_controls:
 mobile_http_read_models:
   billing_usage:
     path: /api/v1/billing/usage
-    authority: wallet_snapshot + wallet_ledger_or_member_usage_meter
+    authority: wallet_snapshot_or_member_usage_meter
     semantics:
       - Wallet snapshot read failure returns status=degraded and no quota rows.
-      - When billing enforcement is enabled, wallet ledger is the canonical commerce
-        usage authority; ledger read failure must not make the whole usage read model
-        unavailable, and the adapter returns status=ok with empty usage entries and
-        the snapshot plan.
+      - When billing enforcement is enabled, primary_percent is derived only from
+        canonical wallet snapshot balance and the current member entitlement tier's
+        reference_points from the canonical membership package catalog.
+        Billing usage does not read wallet ledger; ledger history is exposed through
+        the separate billing ledger read model and cannot redefine the percentage denominator.
+        Wallet plan_id is a projection and must not override the current entitlement/catalog authority.
       - When billing enforcement is disabled for internal beta, MemberUsageMeter may
         provide the non-financial usage display source with charging_status=metered_not_charged;
         it must not mutate wallet balance or wallet ledger. The temporary default display

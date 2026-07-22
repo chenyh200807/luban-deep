@@ -163,14 +163,13 @@ _FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT = 3
 _FREE_TRIAL_RESERVED_TTL = timedelta(minutes=20)
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
-_BILLING_PLAN_REFERENCE_POINTS = {
-    "vip": 9000,
-    "svip": 28000,
-    "supreme_svip": 50000,
-}
 _BILLING_PLAN_ALIASES = {
     "": "vip",
     "trial": "vip",
+    "starter_19": "starter_19",
+    "light_98": "light_98",
+    "starter_19": "starter_19",
+    "light_98": "light_98",
     "vip": "vip",
     "standard": "vip",
     "starter": "vip",
@@ -277,6 +276,72 @@ def _billing_package_by_id(package_id: str) -> dict[str, Any] | None:
         if str(package.get("id") or "").strip() == normalized_package_id:
             return dict(package)
     return None
+
+
+# 教学视频权益上限:按当前有效会员 tier 派生。None = 无限;整数 = 上限条数。
+# 分档(单一权威,便于单测):
+#   无有效会员 / 会员已过期            → 20
+#   有效 tier == starter_19            → 30
+#   有效 tier ∈ {light_98,vip,svip,supreme_svip} → None(无限)
+_TEACHING_VIDEO_DEFAULT_LIMIT = 20
+_TEACHING_VIDEO_STARTER_LIMIT = 30
+_TEACHING_VIDEO_UNLIMITED_TIERS = frozenset(
+    {"light_98", "vip", "svip", "supreme_svip"}
+)
+
+
+def resolve_teaching_video_limit(tier: str | None, is_active: bool) -> int | None:
+    """Pure teaching-video entitlement resolver (unit-testable, no IO)."""
+    if not is_active:
+        return _TEACHING_VIDEO_DEFAULT_LIMIT
+    getter = getattr(member_service, "canonical_membership_package_id", None)
+    normalized = str(tier or "").strip().lower()
+    if callable(getter):
+        try:
+            normalized = str(getter(tier) or "").strip().lower()
+        except Exception:
+            normalized = str(tier or "").strip().lower()
+    if normalized == "starter_19":
+        return _TEACHING_VIDEO_STARTER_LIMIT
+    if normalized in _TEACHING_VIDEO_UNLIMITED_TIERS:
+        return None
+    return _TEACHING_VIDEO_DEFAULT_LIMIT
+
+
+def _membership_is_active(expire_at: Any) -> bool:
+    """会员是否在有效期内:expire_at 在未来(含此刻)=有效;空/已过期=无效。
+
+    复用 member_service.get_profile 暴露的 expire_at 作为过期真值,避免自造第二权威。
+    """
+    text = str(expire_at or "").strip()
+    if not text:
+        return False
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=_BILLING_USAGE_TZ)
+    return parsed >= datetime.now(_BILLING_USAGE_TZ)
+
+
+def _teaching_video_limit_for_user(user_id: str) -> int | None:
+    """Resolve the current teaching-video limit for a member.
+
+    Authority for tier + expiry = member_service.get_profile. Any lookup failure
+    fails safe to the no-membership default (20) rather than 500-ing the wallet.
+    """
+    tier = ""
+    expire_at = ""
+    try:
+        profile = member_service.get_profile(user_id)
+    except Exception:
+        logger.warning("teaching_video_limit profile lookup failed for user_id=%s", _log_safe_id(user_id), exc_info=True)
+        profile = None
+    if isinstance(profile, dict):
+        tier = str(profile.get("tier") or "")
+        expire_at = str(profile.get("expire_at") or "")
+    return resolve_teaching_video_limit(tier, _membership_is_active(expire_at))
 
 
 def _price_to_fen(value: Any) -> int:
@@ -473,7 +538,17 @@ def _normalize_billing_plan_id(plan_id: str | None) -> str:
 
 def _billing_usage_reference_points_for_plan(plan_id: str | None) -> int:
     normalized = _normalize_billing_plan_id(plan_id)
-    return int(_BILLING_PLAN_REFERENCE_POINTS.get(normalized) or _BILLING_PLAN_REFERENCE_POINTS["vip"])
+    for package in member_service.list_membership_packages():
+        if not isinstance(package, dict):
+            continue
+        raw_package_id = str(package.get("tier") or package.get("id") or "").strip().lower()
+        package_id = _BILLING_PLAN_ALIASES.get(raw_package_id, raw_package_id)
+        if package_id != normalized:
+            continue
+        reference_points = max(0, int(package.get("points") or 0))
+        if reference_points > 0:
+            return reference_points
+    raise RuntimeError(f"billing plan reference unavailable: {normalized}")
 
 
 def _parse_ledger_datetime(value: str) -> datetime | None:
@@ -781,6 +856,7 @@ def _build_billing_usage_payload(
     *,
     now: datetime | None = None,
     plan_id: str | None = None,
+    balance_micros: int | None = None,
     limit_points_by_window: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
@@ -820,13 +896,19 @@ def _build_billing_usage_payload(
         if latest_balance_micros > 0 or total_credit_micros > 0
         else max(0, reference_micros - total_used_micros)
     )
-    remaining_percent = int(round((remaining_basis_micros / reference_micros) * 100)) if entries else 100
+    if balance_micros is not None:
+        reference_micros = max(1, package_reference_micros)
+        remaining_basis_micros = max(0, int(balance_micros))
+        remaining_percent = int(round((remaining_basis_micros / reference_micros) * 100))
+    else:
+        remaining_percent = int(round((remaining_basis_micros / reference_micros) * 100)) if entries else 100
     remaining_percent = max(0, min(100, remaining_percent))
     return {
         "status": "ok",
         "display": {
             "primary_label": f"剩余 {remaining_percent}%",
             "primary_percent": remaining_percent,
+            "reference_points": int(reference_micros / 1_000_000),
             "limited_by": "membership_balance",
             "plan_id": _normalize_billing_plan_id(plan_id),
         },
@@ -834,29 +916,6 @@ def _build_billing_usage_payload(
             "rows": [],
         },
     }
-
-
-def _load_billing_usage_entries(
-    authorization: str | None,
-    *,
-    wallet_user_id: str,
-    limit: int,
-) -> list[WalletLedgerEntry]:
-    wallet_rows = wallet_service.list_wallet_ledger(
-        wallet_user_id,
-        limit=limit,
-        offset=0,
-    )
-    legacy_rows = (
-        _load_legacy_wallet_ledger_entries(
-            authorization,
-            wallet_user_id=wallet_user_id,
-            limit=limit,
-        )
-        if _env_flag_enabled(_BILLING_INCLUDE_LEGACY_LEDGER)
-        else []
-    )
-    return _merge_wallet_ledger_entries(wallet_rows, legacy_rows)
 
 
 def _usage_meter_event_created_at_iso(event: Any) -> str:
@@ -1281,43 +1340,7 @@ def _assert_billing_quota_available(
                 exc,
             )
             raise _insufficient_wallet_balance_exception(available_micros) from exc
-    try:
-        usage_payload = _build_billing_usage_payload(
-            _load_billing_usage_entries(
-                authorization,
-                wallet_user_id=normalized_user_id,
-                limit=_BILLING_USAGE_LEDGER_WINDOW,
-            ),
-            plan_id=_wallet_snapshot_or_zero(normalized_user_id).plan_id,
-        )
-    except Exception as exc:
-        status_code = getattr(getattr(exc, "response", None), "status_code", None)
-        logger.warning(
-            "billing quota gate skipped: wallet_user_id=%s status=%s error=%s",
-            _log_safe_id(normalized_user_id),
-            status_code,
-            exc,
-        )
-        return {}
-    rows = ((usage_payload.get("quota") or {}).get("rows") or []) if isinstance(usage_payload, dict) else []
-    exhausted = [
-        row
-        for row in rows
-        if isinstance(row, dict) and int(row.get("remaining_percent") or 0) <= 0
-    ]
-    if not exhausted:
-        return {}
-    primary = min(exhausted, key=lambda row: int(row.get("remaining_percent") or 0))
-    raise HTTPException(
-        status_code=429,
-        detail={
-            "code": "billing_quota_exceeded",
-            "message": "Usage quota exceeded.",
-            "limited_by": str(primary.get("key") or ""),
-            "reset_at": str(primary.get("reset_at") or ""),
-            "quota": rows,
-        },
-    )
+    return {}
 
 
 def _legacy_ledger_event_type(reason: str, delta_points: int) -> str:
@@ -3014,6 +3037,7 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
     snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     wallet_payload["user_id"] = user_id
+    wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(user_id)
     if wallet_user_id:
         _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")
     return wallet_payload
@@ -3021,7 +3045,7 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
 
 @router.get("/billing/usage")
 async def billing_usage(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    _resolve_authenticated_user_id(authorization)
+    user_id = _resolve_authenticated_user_id(authorization)
     wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
@@ -3029,6 +3053,13 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
         snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     except Exception as exc:
         _billing_storage_unavailable(exc, source="billing_usage_wallet")
+        return _degraded_billing_usage_payload()
+    try:
+        profile = member_service.get_profile(wallet_user_id)
+        plan_id = str((profile or {}).get("tier") or "").strip()
+        _billing_usage_reference_points_for_plan(plan_id)
+    except Exception as exc:
+        _billing_storage_unavailable(exc, source="billing_usage_entitlement")
         return _degraded_billing_usage_payload()
     if not is_billing_enforcement_enabled():
         try:
@@ -3041,23 +3072,15 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
             events = []
         payload = _build_internal_beta_usage_payload(
             events,
-            plan_id=snapshot.plan_id,
+            plan_id="vip",
         )
         payload["usage_source"] = "member_usage_meter"
         payload["charging_status"] = "metered_not_charged"
         return payload
-    try:
-        entries = _load_billing_usage_entries(
-            authorization,
-            wallet_user_id=wallet_user_id,
-            limit=_BILLING_USAGE_LEDGER_WINDOW,
-        )
-    except Exception as exc:
-        _billing_storage_unavailable(exc, source="billing_usage_ledger")
-        entries = []
     return _build_billing_usage_payload(
-        entries,
-        plan_id=snapshot.plan_id,
+        [],
+        plan_id=plan_id,
+        balance_micros=snapshot.balance_micros,
     )
 
 
