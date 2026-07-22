@@ -922,29 +922,29 @@ class MemberConsoleService:
         return [
             {
                 "id": "starter_19",
-                "label": "体验包",
-                "points": 800,
-                "turns": 40,
+                "label": "入门体验",
+                "points": 400,
+                "turns": 20,
                 "days": 180,
-                "price": "19",
+                "price": "9.9",
                 "original_price": "29",
                 "badge": "新手体验",
-                "per": "40 次 AI 学习额度",
-                "per_turn_price": "0.475",
+                "per": "20 次 AI 学习额度",
+                "per_turn_price": "0.495",
                 "audience": "刚开始体验、偶尔答疑的考生",
                 "desc": "AI智能答疑、AI案例批改、错因专训、学习记录",
             },
             {
                 "id": "light_98",
-                "label": "轻量包",
-                "points": 4400,
-                "turns": 220,
+                "label": "进阶",
+                "points": 3000,
+                "turns": 150,
                 "days": 180,
-                "price": "98",
-                "original_price": "149",
+                "price": "68",
+                "original_price": "98",
                 "badge": "轻量优选",
-                "per": "220 次 AI 学习额度",
-                "per_turn_price": "0.445",
+                "per": "150 次 AI 学习额度",
+                "per_turn_price": "0.453",
                 "audience": "阶段备考、需要稳定答疑的考生",
                 "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、学习报告",
             },
@@ -963,17 +963,19 @@ class MemberConsoleService:
                 "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告",
             },
             {
+                # 顶档(消费者面 4 档最高档):598→268 重定价(去掉 598/998,supreme_svip 仅留管理端手动开通)。
+                # points 12500 使点/元(46.6)高于 vip 45.5,守"越贵越划算"。
                 "id": "svip",
                 "label": "SVIP",
-                "points": 28000,
-                "turns": 1400,
+                "points": 12500,
+                "turns": 625,
                 "days": 180,
-                "price": "598",
-                "original_price": "798",
-                "badge": "班主任督学",
-                "per": "1400 次 AI 学习额度",
-                "per_turn_price": "0.427",
-                "audience": "基础偏弱、学习时间充裕、疑问频繁的考生",
+                "price": "268",
+                "original_price": "398",
+                "badge": "最高性价比",
+                "per": "625 次 AI 学习额度",
+                "per_turn_price": "0.429",
+                "audience": "基础偏弱、需要长期稳定答疑陪跑的考生",
                 "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
             },
             {
@@ -1039,17 +1041,20 @@ class MemberConsoleService:
                 package["per_turn_price"] = f"{per_turn_price:.3f}".rstrip("0").rstrip(".")
             except (TypeError, ValueError, ZeroDivisionError):
                 package["per_turn_price"] = ""
+        # 入门两档为「防漂移锚点」：无论来自 _default_packages 还是持久化 packages,
+        # 均在此处硬钉成唯一定价真值,消费/发点路径(_resolve_membership_package)也走这里,
+        # 因此改价必须同步改这里(否则发点会被钉回旧值 → 资损)。
         if package["id"] == "starter_19":
             package.update(
                 {
                     "id": "starter_19",
                     "tier": "starter_19",
-                    "label": "体验包",
-                    "points": 800,
-                    "turns": 40,
+                    "label": "入门体验",
+                    "points": 400,
+                    "turns": 20,
                     "days": 180,
-                    "price": "19",
-                    "per_turn_price": "0.475",
+                    "price": "9.9",
+                    "per_turn_price": "0.495",
                 }
             )
         elif package["id"] == "light_98":
@@ -1057,12 +1062,12 @@ class MemberConsoleService:
                 {
                     "id": "light_98",
                     "tier": "light_98",
-                    "label": "轻量包",
-                    "points": 4400,
-                    "turns": 220,
+                    "label": "进阶",
+                    "points": 3000,
+                    "turns": 150,
                     "days": 180,
-                    "price": "98",
-                    "per_turn_price": "0.445",
+                    "price": "68",
+                    "per_turn_price": "0.453",
                 }
             )
         return package
@@ -4139,10 +4144,17 @@ class MemberConsoleService:
             }
 
         candidates = [member for member in members if str(member.get("user_id") or "").strip()]
+        # Build the identity-ownership map from the FULL member set, not just the
+        # registration-date-eligible slice.  A canonical First Run completion marker
+        # is ground truth; the panel contract is "完成只认 learner-state 权威标记"
+        # (completion is recognized ONLY by the learner-state authority).  If we
+        # only read canonical truth for eligible members, a genuine completion by a
+        # member who registered before the operation start date is silently hidden
+        # as "not_eligible" without the marker ever being read.  Including every
+        # member here also makes the collision guard strictly more correct: an
+        # identity claimed by two distinct members must not be trusted for either.
         identity_owners: dict[str, set[str]] = {}
         for member in candidates:
-            if not self._is_first_run_eligible(member):
-                continue
             user_id = str(member.get("user_id") or "").strip()
             for identity in self._member_behavior_identity_group(member):
                 identity_owners.setdefault(identity, set()).add(user_id)
@@ -4158,10 +4170,35 @@ class MemberConsoleService:
             profiles = {}
             canonical_truth_available = False
 
+        def _canonical_projection(member: dict[str, Any]) -> dict[str, Any]:
+            projection = project_first_run_completion({})
+            for identity in self._member_behavior_identity_group(member):
+                if identity not in safe_identities:
+                    continue
+                candidate = project_first_run_completion(profiles.get(identity))
+                if candidate["completed"]:
+                    return candidate
+            return projection
+
         def load(member: dict[str, Any]) -> tuple[str, dict[str, Any]]:
             user_id = str(member.get("user_id") or "").strip()
             summary = dict(summaries.get(user_id) or self._fallback_member_behavior_summary())
             evidence_status = str(summary.get("first_run_evidence_status") or "not_started")
+            # Authority-first: a confirmed canonical completion marker wins over the
+            # registration-date eligibility gate.  Without this, a member who truly
+            # completed First Run but registered before FIRST_RUN_OPERATION_START_AT
+            # is reported "not_eligible" and their real completion never surfaces.
+            projection = _canonical_projection(member) if canonical_truth_available else project_first_run_completion({})
+            if projection["completed"]:
+                summary.update(
+                    {
+                        "first_run_status": "completed",
+                        "first_run_completed_at": projection["completed_at"],
+                        "first_run_script_version": projection["script_version"],
+                        "first_run_truth_source": projection["source"],
+                    }
+                )
+                return user_id, summary
             if not self._is_first_run_eligible(member):
                 summary.update(
                     {
@@ -4176,18 +4213,8 @@ class MemberConsoleService:
                 summary["first_run_status"] = "truth_unavailable"
                 return user_id, summary
             try:
-                projection = project_first_run_completion({})
-                for identity in self._member_behavior_identity_group(member):
-                    if identity not in safe_identities:
-                        continue
-                    candidate = project_first_run_completion(profiles.get(identity))
-                    if candidate["completed"]:
-                        projection = candidate
-                        break
                 status = (
-                    "completed"
-                    if projection["completed"]
-                    else "sync_anomaly"
+                    "sync_anomaly"
                     if evidence_status == "completed"
                     else "in_progress"
                     if evidence_status in {"in_progress", "legacy_completion_signal"}
@@ -6457,72 +6484,6 @@ class MemberConsoleService:
         )
         return best_role
 
-    def _wallet_balance_micros_for_merge(self, wallet_service: Any, user_id: str) -> int:
-        get_wallet = getattr(wallet_service, "get_wallet", None)
-        if not callable(get_wallet):
-            return 0
-        snapshot = get_wallet(user_id)
-        return max(0, int(getattr(snapshot, "balance_micros", 0) or 0)) if snapshot is not None else 0
-
-    def _apply_wallet_account_merge(
-        self,
-        *,
-        target_user_id: str,
-        source_user_ids: list[str],
-        operator: str,
-        reason: str,
-        idempotency_key: str,
-    ) -> list[dict[str, Any]]:
-        wallet_service = self._get_wallet_service()
-        if not getattr(wallet_service, "is_configured", False):
-            return []
-        admin_adjust_points = getattr(wallet_service, "admin_adjust_points", None)
-        if not callable(admin_adjust_points):
-            return []
-        adjustments: list[dict[str, Any]] = []
-        for source_user_id in source_user_ids:
-            source_balance_micros = self._wallet_balance_micros_for_merge(wallet_service, source_user_id)
-            if source_balance_micros <= 0:
-                continue
-            reference_id = f"{target_user_id}:{source_user_id}"
-            metadata = {
-                "source": "member_identity_merge",
-                "target_user_id": target_user_id,
-                "source_user_id": source_user_id,
-                "operator_id": operator,
-                "reason": reason,
-            }
-            credit = admin_adjust_points(
-                user_id=target_user_id,
-                delta_micros=source_balance_micros,
-                reference_id=reference_id,
-                idempotency_key=f"member_identity_merge:{idempotency_key}:{source_user_id}:credit",
-                reason="member_identity_merge",
-                metadata=metadata,
-                operator_type="admin",
-                operator_id=operator,
-            )
-            debit = admin_adjust_points(
-                user_id=source_user_id,
-                delta_micros=-source_balance_micros,
-                reference_id=reference_id,
-                idempotency_key=f"member_identity_merge:{idempotency_key}:{source_user_id}:debit",
-                reason="member_identity_merge",
-                metadata=metadata,
-                operator_type="admin",
-                operator_id=operator,
-            )
-            adjustments.append(
-                {
-                    "source_user_id": source_user_id,
-                    "target_user_id": target_user_id,
-                    "points_transferred": int(source_balance_micros / 1_000_000),
-                    "credit_ledger_event_id": str(getattr(credit, "ledger_event_id", "") or ""),
-                    "debit_ledger_event_id": str(getattr(debit, "ledger_event_id", "") or ""),
-                }
-            )
-        return adjustments
-
     def _merge_member_accounts_locked(
         self,
         data: dict[str, Any],
@@ -6587,41 +6548,6 @@ class MemberConsoleService:
             target["last_active_at"] = self._later_iso(target.get("last_active_at"), source.get("last_active_at"))
             if str(source.get("status") or "").strip() == "active" or _parse_time(target.get("expire_at")) > _now():
                 target["status"] = "active"
-
-            source_points = max(0, int(source.get("points_balance") or 0))
-            if source_points:
-                target["points_balance"] = max(0, int(target.get("points_balance") or 0)) + source_points
-                source["points_balance"] = 0
-                points_transferred += source_points
-                target.setdefault("ledger", []).insert(
-                    0,
-                    {
-                        "id": f"merge_{uuid.uuid4().hex[:12]}",
-                        "delta": source_points,
-                        "reason": "member_identity_merge",
-                        "created_at": now,
-                        "metadata": {
-                            "source_user_id": source_id,
-                            "target_user_id": canonical_target_id,
-                            "operator": operator,
-                            "reason": reason,
-                        },
-                    },
-                )
-                source.setdefault("ledger", []).insert(
-                    0,
-                    {
-                        "id": f"merge_out_{uuid.uuid4().hex[:12]}",
-                        "delta": -source_points,
-                        "reason": "member_identity_merge",
-                        "created_at": now,
-                        "metadata": {
-                            "target_user_id": canonical_target_id,
-                            "operator": operator,
-                            "reason": reason,
-                        },
-                    },
-                )
 
             if not self._is_meaningful_phone(target.get("phone")) and self._is_meaningful_phone(source.get("phone")):
                 target["phone"] = _normalize_phone_input(str(source.get("phone") or ""))
@@ -6719,15 +6645,6 @@ class MemberConsoleService:
         )
         if admin_role:
             result["admin_role_after"] = admin_role
-        wallet_adjustments = self._apply_wallet_account_merge(
-            target_user_id=canonical_target,
-            source_user_ids=normalized_sources,
-            operator=normalized_operator,
-            reason=str(reason or "").strip(),
-            idempotency_key=normalized_key,
-        )
-        if wallet_adjustments:
-            result["wallet_adjustments"] = wallet_adjustments
         return result
 
     def delete_member_account(

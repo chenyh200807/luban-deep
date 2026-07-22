@@ -132,9 +132,13 @@ function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
   var balance = Number(wallet.balance || wallet.points || wallet.display_balance || 0);
   if (isNaN(balance)) balance = 0;
   balance = Math.max(0, Math.round(balance));
-  var denominator = _displayDenominator(balance, ledgerEntries);
-  var remainingPercent = _percent(balance, denominator);
-  var remainingLabel = "剩余 " + _formatPrimaryPercent(remainingPercent);
+  var display = data && data.display && typeof data.display === "object" ? data.display : {};
+  var remainingPercent = Number(display.primary_percent);
+  if (isNaN(remainingPercent)) remainingPercent = 0;
+  remainingPercent = Math.max(0, Math.min(100, remainingPercent));
+  var remainingLabel = String(display.primary_label || ("剩余 " + _formatPrimaryPercent(remainingPercent)));
+  var denominator = Number(display.reference_points || 0);
+  if (!denominator || denominator < 0) denominator = Math.max(1, balance);
   return {
     usagePrimaryLabel: remainingLabel,
     usageGaugeLabel: _formatGaugePercent(remainingPercent),
@@ -169,6 +173,27 @@ function _normalizePackages(rawPackages) {
 function _launchPackages() {
   return [
     {
+      id: "starter_19",
+      name: "入门体验",
+      label: "入门体验",
+      price: "9.9",
+      original_price: "29",
+      points: 400,
+      turns: 20,
+      desc: "先花几块钱试水，覆盖一次完整的答疑与错题讲解体验。",
+      badge: "限时上线",
+    },
+    {
+      id: "light_98",
+      name: "进阶",
+      price: "68",
+      original_price: "98",
+      points: 3000,
+      turns: 150,
+      desc: "适合轻量备考，够用一轮阶段性答疑与练习闭环。",
+      badge: "轻量优选",
+    },
+    {
       id: "vip",
       name: "VIP",
       price: "198",
@@ -181,31 +206,24 @@ function _launchPackages() {
     {
       id: "svip",
       name: "SVIP",
-      price: "598",
-      original_price: "798",
-      points: 28000,
-      turns: 1400,
-      desc: "适合高频训练、深度解析和复测闭环。",
-      badge: "推荐",
-    },
-    {
-      id: "supreme_svip",
-      name: "至尊SVIP",
-      price: "998",
-      original_price: "1298",
-      points: 50000,
-      turns: 2500,
-      desc: "适合长周期强化学习和集中冲刺。",
-      badge: "",
+      price: "268",
+      original_price: "398",
+      points: 12500,
+      turns: 625,
+      desc: "适合长期稳定备考、需要高频答疑与复测闭环的考生。",
+      badge: "最高性价比",
     },
   ];
 }
 
+// 消费者面 4 档:9.9/68/198/268。supreme_svip(998)不在此白名单——后端保留其定义
+// 仅供管理端手动开通/撤销,消费者 billing 页不展示、不可自助购买。
 function _isLaunchPackageId(packageId) {
   return {
+    starter_19: true,
+    light_98: true,
     vip: true,
     svip: true,
-    supreme_svip: true,
   }[String(packageId || "").trim()] === true;
 }
 
@@ -274,17 +292,6 @@ function _degradedUsageState(display) {
 function _ledgerEntries(raw) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
   return Array.isArray(data.entries) ? data.entries : [];
-}
-
-function _displayDenominator(balance, entries) {
-  var positive = 0;
-  var debits = 0;
-  (Array.isArray(entries) ? entries : []).forEach(function (entry) {
-    var delta = Number(entry.delta || 0);
-    if (delta > 0) positive += delta;
-    if (delta < 0) debits += Math.abs(delta);
-  });
-  return Math.max(1, Math.round(positive), Math.round(balance + debits), Math.round(balance));
 }
 
 function _percent(value, denominator) {

@@ -16,6 +16,7 @@
         <text class="pk-kicker">鲁班学习双轮 · 已发布视频</text>
         <text class="tp-title">{{topicUniverse}} 个考点 · {{teachingPointUniverse}} 集讲解</text>
         <text class="tp-desc">每一集可单独播放；练习、进度与掌握仍归属原考点。</text>
+        <text class="tp-desc tp-desc--free" wx:if="{{unlockedCount < teachingPointUniverse}}">当前免费开放前 {{unlockedCount}} 集，其余待开放。</text>
       </view>
 
       <view class="tp-loading" wx:if="{{loading}}"><text>正在整理教学集…</text></view>
@@ -45,11 +46,12 @@
               wx:for="{{chapter.cards}}"
               wx:for-item="card"
               wx:key="id"
-              class="tp-card tp-card--{{card.tone}}"
+              class="tp-card tp-card--{{card.tone}} {{card.locked ? 'tp-card--locked' : ''}}"
               bindtap="openEpisode"
               data-pack-id="{{card.packId}}"
               data-episode="{{card.index}}"
               data-card-url="{{card.cardUrl}}"
+              data-locked="{{card.locked}}"
             >
               <view class="tp-card-top">
                 <text class="tp-card-id">{{card.packId}}</text>
@@ -65,7 +67,7 @@
                     class="tp-card-dot {{dot.active ? 'is-active' : ''}}"
                   ></view>
                 </view>
-                <text class="tp-card-play">{{card.label}} · 动画精讲</text>
+                <text class="tp-card-play">{{card.locked ? '待开放' : card.label + ' · 动画精讲'}}</text>
                 <text class="tp-card-progress">第 {{card.index}} / {{card.total}} 讲</text>
               </view>
             </view>

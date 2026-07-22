@@ -53,7 +53,7 @@ class _FakeMemberConsole:
         return {
             "member": {"user_id": kwargs["target_user_id"], "tier": "supreme_svip"},
             "merged_source_ids": kwargs["source_user_ids"],
-            "points_transferred": 730,
+            "points_transferred": 0,
             "audit_id": "audit_merge_1",
             "deduped": False,
             "admin_role_after": "super_admin",
@@ -195,7 +195,8 @@ def test_bi_member_merge_accounts_requires_high_risk_and_idempotency(
 
     assert missing_key.status_code == 400
     assert merged.status_code == 200
-    assert merged.json()["points_transferred"] == 730
+    assert merged.json()["points_transferred"] == 0
+    assert "wallet_adjustments" not in merged.json()
     assert svc.calls == [
         {
             "fn": "merge_member_accounts",

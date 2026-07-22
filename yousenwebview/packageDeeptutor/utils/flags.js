@@ -2,6 +2,10 @@ var route = require("./route");
 var hostRuntime = require("./host-runtime");
 var runtime = require("./runtime");
 
+// 免费引子:开关关(默认)时,「全部教学集」页只开放前 N 集,其余显示「待开放」。
+// 想改「免费给几集」只动这个常量,不用翻页面逻辑。
+var TEACHING_VIDEO_FREE_LIMIT = 20;
+
 var DEFAULT_FLAGS = {
   workspaceEnabled: true,
   historyEnabled: true,
@@ -11,6 +15,9 @@ var DEFAULT_FLAGS = {
   // Task C 入口收权(双轮 spike):登录后是否落"学习双轮"而非"问鲁班(chat)"。
   // 护栏1=默认关:关时 host 落地行为逐字节不变(仅 spike cohort 由 host 运行时 flag 开)。
   doubleWheelLandingEnabled: false,
+  // 教学视频免费引子开关:关(默认)= 只开放前 TEACHING_VIDEO_FREE_LIMIT 集、其余待开放;
+  // 开 = 全解锁。当前免费期先保持关,只放引子,后续要放全部时翻此 flag(或由 host 运行时覆盖)。
+  teachingVideoFullAccessEnabled: false,
 };
 
 var FEATURE_META = {
@@ -141,6 +148,22 @@ function shouldLandOnDoubleWheel() {
   return getWorkspaceFlags().doubleWheelLandingEnabled === true;
 }
 
+// 教学视频可开放集数上限(纯函数,便于单测)。serverLimit = 服务端
+// GET /api/v1/billing/wallet 下发的 teaching_video_limit(前端不自算,只消费)。
+// 决策优先级:
+//   1. 全局促销总开关 teachingVideoFullAccessEnabled===true → null(无限,最高优先级);
+//   2. 否则看服务端 serverLimit:null → null(服务端明确无限);有效非负整数 → 用它;
+//   3. 服务端值拿不到(undefined/字段缺失/请求失败/非法) → 回落 TEACHING_VIDEO_FREE_LIMIT。
+// fail-closed:严格只在 promo 开关或服务端明确 null 时才无限,绝不因拿不到就放全部。
+function resolveTeachingVideoLimit(serverLimit) {
+  if (getWorkspaceFlags().teachingVideoFullAccessEnabled === true) return null;
+  if (serverLimit === null) return null;
+  if (typeof serverLimit === "number" && isFinite(serverLimit) && serverLimit >= 0) {
+    return Math.floor(serverLimit);
+  }
+  return TEACHING_VIDEO_FREE_LIMIT;
+}
+
 // Task C 登录后落地目标决策(单一权威纯函数,便于测试):
 // - flag 关 → 原样返回 target(host 逐字节不变);
 // - flag 开且目标是问鲁班(chat)→ 翻到 learnUrl(护栏2:仅翻 chat→learn,不动其它显式深链)。
@@ -153,11 +176,13 @@ function resolvePostAuthLanding(target, learnUrl) {
 }
 
 module.exports = {
+  TEACHING_VIDEO_FREE_LIMIT: TEACHING_VIDEO_FREE_LIMIT,
   getWorkspaceFlags: getWorkspaceFlags,
   isWorkspaceEnabled: isWorkspaceEnabled,
   isFeatureEnabled: isFeatureEnabled,
   shouldShowWorkspaceShell: shouldShowWorkspaceShell,
   shouldLandOnDoubleWheel: shouldLandOnDoubleWheel,
+  resolveTeachingVideoLimit: resolveTeachingVideoLimit,
   resolvePostAuthLanding: resolvePostAuthLanding,
   getFeatureByRoute: getFeatureByRoute,
   isRouteEnabled: isRouteEnabled,

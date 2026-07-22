@@ -541,3 +541,29 @@
 - `Q18-1A434000::qga_v0` blocked（score_sum_mismatch，10/11 自证卡总分和门）；Day4 真判前必先解此治理 block，本轮 Day4 诚实走 open_skill/L0 + 已签发 P10/P11 文本投影核对绕开。
 - test2 部署线曾是分叉于 origin/main 的 `bcdc4a5d`，2026-07-08 发布（42681ace6）已合上；若日后发现 bcdc4a5d 独有生产内容丢失，此为源头。
 - full-answer POST 鉴权失败返回 HTTP 200（body 是 401 形状）而非 401 状态码——cosmetic 不一致，功能安全（未登录不判分），可后补对齐状态码。
+
+### 2026-07-22 · 教学视频免费引子开关(前 20 集免费,其余待开放)
+
+owner 意图:9/68/69 元入门体验型套餐(佑森后端配置价,非前端硬编码;前端源码+老蓝锚点 e8d7493d1 全搜不到),要拿鲁班教学视频当引子——免费开放 N 集,用已有的学习偏好点击埋点看学员是否喜欢这个模块,再决定要不要上付费墙。裁决=Model A 度量优先:先只做免费引子上限,**不接支付**。
+
+- **开关**:`packageDeeptutor/utils/flags.js` 加 `teachingVideoFullAccessEnabled`(默认 `false`=引子态)+ 常量 `TEACHING_VIDEO_FREE_LIMIT=20`(改"免费给几集"只动这个数)+ 纯函数 `resolveTeachingVideoLimit()`(严格 `===true` 才全解锁,缺省/异常回引子态 fail-closed;可被 host 运行时 flag 覆盖,无需重传小程序)。
+- **落点**:`teaching-points`(全部教学集)页。owner 二次拍板=超出上限的集**不隐藏,显示"待开放"**。`buildChapterSections(rawPoints, limit)` 加全局跨章计数,index≥limit 打 `locked:true`。
+- **关键不变量守护**:待开放集**不丢卡**——`_load` 有"可见集数==后端全集数"投影完整性校验(publishedTeachingPointCount!==visible 抛错),锁态只是显示层 flag,`lessonCount` 不变,校验依然通过。若当初用"截断丢卡"实现会直接触发 mismatch。
+- **埋点 0 改动**:教学视频点击(`microlesson`)和练习作答(`retest`/`full_answer`)早已在发 surface-telemetry 并被本分支 `bi.py` `get_engagement_breakdown` 按 object_type 消费。owner 说"练习题也要"实为要测两个模块的偏好,**练习不设上限**(选项 A),已在数据里。
+- **openEpisode 拦截**:待开放集点击只 toast「这一集待开放」,不跳转、不发播放埋点(避免污染 microlesson 触达指标)。
+- **Deviations**:①顶部计数保留后端全集数 + 新增「当前免费开放前 N 集,其余待开放」提示行(学员看得到还有多少集,引子暗示非硬藏);②`buildChapterSections` limit 参数缺省=不限,保旧测试调用(`buildChapterSections(points)`)与旧行为一致。
+- **测试**:扩展已注册的 `test_luban_teaching_points.js`(不新建文件避免 contract_guard):25 集 payload 验证前 20 解锁/后 5 待开放/总数 25 不丢卡、limit=null 全解锁;页面级 onLoad(mock 上限 2)验证 locked+unlockedCount;待开放点击不跳转;wxml 源断言 tp-card--locked/data-locked/待开放。**117/118 yousenwebview 测试 PASS**。
+- **[非本次改动 · 须 owner 处置]** 唯一 FAIL=`test_freeCourseDetails_polyv_secret_boundary.js`,系会话开始时工作区已有的未提交 WIP(把 polyv 视频签名从服务端下发改回客户端硬编码密钥 `mnABa9XMn8`)所致;stash 我的改动后仍 FAIL,与本次无关。该 WIP 违反"客户端不得持有 polyv 签名密钥"边界护栏,建议 owner 决定回滚或改走服务端签名。另有游离文件 `pages/freeCourseDetails.js`(与目录内文件逐字相同的副本),疑似 DevTools 误建,未跟踪。
+
+### 2026-07-22(续) · 教学视频付费墙 + 4 档定价(全栈,派 2 独立 agent + 主控集成)
+
+owner 决策升级:上一节的"全局开关控制 20 集"改成**按付费状态的三档付费墙** + **真实收费 4 档套餐**。派后端/前端两个独立 agent(文件互斥:deeptutor/ vs yousenwebview/),主控定契约 + 集成 + 亲核钱的逻辑。
+
+- **契约(单一权威在服务端)**:`GET /api/v1/billing/wallet` 响应加 `teaching_video_limit`(int=上限/`null`=无限)。服务端按**当前有效会员 tier** 算(`resolve_teaching_video_limit`,mobile.py):无有效会员/过期→20、starter_19(9.9)→30、light_98/vip/svip/supreme_svip→null;复用 `member_service.get_profile` 的 tier+expire_at(不自造第二权威),查失败 fail-safe 到 20 不 500。前端 teaching-points `_loadTeachingVideoLimit()` 调 getWallet 读该字段,`hasOwnProperty` 保留显式 null=无限,`.catch`+缺失→回落 20(fail-closed,绝不误放全部);promo 全局开关 `teachingVideoFullAccessEnabled` 优先级最高(促销总开关)。
+- **4 档定价**(线上 45 点/元、越贵越划算、带原价划线):入门体验 9.9(原29/400点/20次,角标**限时上线**)、进阶 68(原98/3000点/150次)、VIP 198(原298/9000点/450次)、SVIP 268(原398/12500点/625次)。点/元 40.4<44.1<45.5<46.6 单调递增。
+- **[资损核心 · agent 揪出主控没料到的雷]** 发点真值 = 套餐 `points` 字段(`_apply_wechat_payment_success→manual_membership_purchase→_resolve_membership_package→_normalize_membership_package→grant_points`)。`_normalize_membership_package` 里有个**硬编码 pinning 覆盖块**会把 starter_19/light_98 强刷回旧值(800/4400),且在发点路径上——只改 `_default_packages` 会被静默刷回=资损。两处都改。测试钉死:买 9.9 发 400 点/收 990 分、买 68 发 3000 点/收 6800 分,精确无浮点漂移。收费流程 `openCheckout` 不分套餐、走同一 `createBillingCheckout→wx.requestPayment` 官方微信支付,新档自动继承(owner 强调"参考 198 那些一样能正常收费")。
+- **[取舍 · owner 拍板去掉 598/998]** svip 598→268 重定价(顶档);supreme_svip(998)**后端定义保留、仅前端 `_isLaunchPackageId` 白名单剔除**——因其被管理端"手动开通会员+撤销"流程(service.py:6214-6340)硬编码引用,删定义会打断该流程。故消费者面只见 4 档,998 留作管理端手动开通/撤销。已明确告知 owner。
+- **[连带]** svip 参考点数 28000→12500(`_billing_usage_reference_points_for_plan` 优先读套餐 points,MAP 是兜底;两处都同步)。usage 测试某 svip member 剩余投影 97%→90%(分母变小、metered 占比变大),同算法同逻辑,正当连带非算法变更,断言已更新。
+- **测试**:后端定价/入门发点/顶档/管理端撤销/视频三档+过期→20 全绿(逐个点名 28+12 passed);前端 billing 42 断言 + teaching-points + flags 全绿;前端全量 117/118(唯一 FAIL=上文 polyv WIP,无关)。
+- **[隔离污染 · 非本次回归]** `test_mobile_router.py` 全量文件跑时 `test_billing_usage_...enforcement_off` 在 `plan_id=='svip'` 处失败(得 'vip'),但**单独跑 PASS**;`sprint→svip` 解析不依赖 svip 价格,逻辑上与本次改动无关(改动前该断言同样会被走到),系前置测试泄漏共享状态的已知套件污染(见 memory「全量pytest有隔离污染」)。
+- **[未做 · 待上阿里云里程碑]** 真机微信支付端到端(能否为 9.9/68/268 开出预支付单并到账)= 单元+契约级已验,live 收款要一次测试部署单独验;付费墙 live 行为(付费用户真看到 70+、免费卡 20)同理。未部署前不宣称"生产已能收费"。

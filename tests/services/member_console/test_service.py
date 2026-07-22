@@ -603,10 +603,12 @@ def test_production_bootstrap_starts_without_demo_members(
         "svip",
         "supreme_svip",
     ]
-    assert [package["price"] for package in data["packages"]] == ["19", "98", "198", "598", "998"]
-    assert [package["original_price"] for package in data["packages"]] == ["29", "149", "298", "798", "1298"]
-    assert [package["turns"] for package in data["packages"]] == [40, 220, 450, 1400, 2500]
-    assert [package["points"] for package in data["packages"]] == [800, 4400, 9000, 28000, 50000]
+    # svip 顶档 598→268 重定价(12500 点);supreme_svip(998)后端保留仅供管理端手动开通,
+    # 不在消费者 billing 白名单(见前端 _isLaunchPackageId)。
+    assert [package["price"] for package in data["packages"]] == ["9.9", "68", "198", "268", "998"]
+    assert [package["original_price"] for package in data["packages"]] == ["29", "98", "298", "398", "1298"]
+    assert [package["turns"] for package in data["packages"]] == [20, 150, 450, 625, 2500]
+    assert [package["points"] for package in data["packages"]] == [400, 3000, 9000, 12500, 50000]
 
 
 def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
@@ -3178,7 +3180,7 @@ def test_member_console_overlay_promotion_apply_uses_real_services_and_audits_sk
 
 
 @pytest.mark.asyncio
-async def test_bind_phone_for_wechat_merges_into_existing_phone_user(tmp_path: Path) -> None:
+async def test_bind_phone_for_wechat_does_not_merge_financial_balance(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
@@ -3210,12 +3212,12 @@ async def test_bind_phone_for_wechat_merges_into_existing_phone_user(tmp_path: P
     assert result["user"]["user_id"] == "student_risk"
 
     data = service._load()
-    assert service._find_member(data, "student_demo")["points_balance"] == 0
+    assert service._find_member(data, "student_demo")["points_balance"] == 123
     assert service._ensure_member(data, "student_demo")["user_id"] == "student_risk"
-    assert service.get_wallet("student_risk")["balance"] == 579
+    assert service.get_wallet("student_risk")["balance"] == 456
 
 
-def test_merge_member_accounts_consolidates_entitlement_points_identity_and_admin_role(
+def test_merge_member_accounts_consolidates_identity_without_moving_wallet_balance(
     tmp_path: Path,
 ) -> None:
     service = MemberConsoleService()
@@ -3316,35 +3318,20 @@ def test_merge_member_accounts_consolidates_entitlement_points_identity_and_admi
     assert result["member"]["user_id"] == target_uid
     assert result["member"]["tier"] == "supreme_svip"
     assert result["member"]["expire_at"] == "2027-06-15T09:13:15+08:00"
-    assert result["member"]["points_balance"] == 930
+    assert result["member"]["points_balance"] == 200
     assert result["member"]["wx_openid"] == "wx_openid_merge_demo"
-    assert result["points_transferred"] == 730
-    assert result["wallet_adjustments"] == [
-        {
-            "source_user_id": wx_uid,
-            "target_user_id": target_uid,
-            "points_transferred": 30,
-            "credit_ledger_event_id": "ledger_adjust_1",
-            "debit_ledger_event_id": "ledger_adjust_2",
-        },
-        {
-            "source_user_id": account_uid,
-            "target_user_id": target_uid,
-            "points_transferred": 700,
-            "credit_ledger_event_id": "ledger_adjust_3",
-            "debit_ledger_event_id": "ledger_adjust_4",
-        },
-    ]
+    assert result["points_transferred"] == 0
+    assert "wallet_adjustments" not in result
     assert service.get_admin_role(target_uid) == rbac.ROLE_SUPER_ADMIN
-    assert wallet_service.snapshots[target_uid].balance_micros == 930 * 1_000_000
-    assert wallet_service.snapshots[wx_uid].balance_micros == 0
-    assert wallet_service.snapshots[account_uid].balance_micros == 0
+    assert wallet_service.snapshots[target_uid].balance_micros == 200 * 1_000_000
+    assert wallet_service.snapshots[wx_uid].balance_micros == 30 * 1_000_000
+    assert wallet_service.snapshots[account_uid].balance_micros == 700 * 1_000_000
 
     data = service._load()
     assert service._find_member(data, wx_uid)["merged_into"] == target_uid
     assert service._find_member(data, account_uid)["merged_into"] == target_uid
-    assert service._find_member(data, wx_uid)["points_balance"] == 0
-    assert service._find_member(data, account_uid)["points_balance"] == 0
+    assert service._find_member(data, wx_uid)["points_balance"] == 30
+    assert service._find_member(data, account_uid)["points_balance"] == 700
     assert service._ensure_member(data, wx_uid)["user_id"] == target_uid
     assert service._ensure_member(data, account_uid)["user_id"] == target_uid
 
@@ -3356,8 +3343,8 @@ def test_merge_member_accounts_consolidates_entitlement_points_identity_and_admi
         idempotency_key="merge-6508-once",
     )
     assert repeated["deduped"] is True
-    assert service.get_wallet(target_uid)["balance"] == 930
-    assert wallet_service.snapshots[target_uid].balance_micros == 930 * 1_000_000
+    assert service.get_wallet(target_uid)["balance"] == 200
+    assert wallet_service.snapshots[target_uid].balance_micros == 200 * 1_000_000
 
 
 def test_submit_assessment_updates_today_progress_and_chapter_practice(tmp_path: Path) -> None:
@@ -5428,6 +5415,60 @@ def test_first_run_dashboard_uses_canonical_marker_and_exposes_sync_anomaly() ->
     assert first_run["truth_coverage_rate"] == 1.0
 
 
+def test_first_run_canonical_completion_wins_over_registration_date_gate() -> None:
+    """A confirmed canonical First Run marker must surface as completed even for a
+    member who registered before FIRST_RUN_OPERATION_START_AT.
+
+    Contract: the panel subtitle is "完成只认 learner-state 权威标记" — completion is
+    recognized ONLY by the learner-state authority marker.  The registration-date
+    eligibility gate governs the not-started denominator; it must never suppress a
+    proven completion into "not_eligible" without reading the marker.
+    """
+    service = MemberConsoleService()
+    pre_gate_created_at = datetime(2026, 6, 13, 12, 0, tzinfo=timezone(timedelta(hours=8))).isoformat()
+    member_defaults = {
+        "created_at": pre_gate_created_at,
+        "status": "active",
+        "risk_level": "low",
+        "tier": "vip",
+        "expire_at": datetime(2026, 8, 12, tzinfo=timezone.utc).isoformat(),
+        "auto_renew": False,
+    }
+    members = [
+        {**member_defaults, "user_id": "pre-gate-completed"},
+        {**member_defaults, "user_id": "pre-gate-never-ran"},
+    ]
+    summaries = {
+        "pre-gate-completed": {"first_run_evidence_status": "completed"},
+        "pre-gate-never-ran": {"first_run_evidence_status": "not_started"},
+    }
+
+    class _CanonicalReader:
+        def read_existing_profiles(self, user_ids: list[str]) -> dict[str, dict[str, object]]:
+            return {
+                user_id: {
+                    "learning_preferences": {
+                        "first_run": {
+                            "script_version": "first_run_script.v1@2026-07-11",
+                            "completed_at": "2026-07-17T12:28:58+08:00",
+                            "source": "explicit_first_run_v1",
+                        }
+                    }
+                }
+                for user_id in user_ids
+                if user_id == "pre-gate-completed"
+            }
+
+    service._get_learner_state_service = lambda: _CanonicalReader()  # type: ignore[method-assign]
+    projected = service._overlay_canonical_first_run(members, summaries)
+
+    # The pre-gate member with a real canonical marker is now surfaced as completed.
+    assert projected["pre-gate-completed"]["first_run_status"] == "completed"
+    assert projected["pre-gate-completed"]["first_run_completed_at"] == "2026-07-17T12:28:58+08:00"
+    # A pre-gate member without any canonical completion stays not_eligible.
+    assert projected["pre-gate-never-ran"]["first_run_status"] == "not_eligible"
+
+
 def test_first_run_dashboard_excludes_unavailable_truth_from_confirmed_rate() -> None:
     service = MemberConsoleService()
     now = datetime.now(timezone.utc)
@@ -6567,6 +6608,48 @@ def test_manual_membership_purchase_records_wallet_revenue_and_entitlement(
     audit = service.get_audit_log(action="manual_membership_purchase")["items"][0]
     assert audit["target_user"] == "manual_user_1"
     assert audit["after"]["ledger_event_id"] == "ledger_manual_1"
+
+
+@pytest.mark.parametrize(
+    ("package_id", "expected_points", "expected_amount_cny"),
+    [
+        ("starter_19", 400, 9.9),
+        ("light_98", 3000, 68),
+    ],
+)
+def test_manual_membership_purchase_grants_entry_tier_points(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    package_id: str,
+    expected_points: int,
+    expected_amount_cny: float,
+) -> None:
+    # 资损防线:入门两档发点必须走套餐 points 真值(经 _resolve_membership_package →
+    # _normalize_membership_package 硬锚)。钉死 grant_points 的 amount_micros。
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    result = service.manual_membership_purchase(
+        user_id=f"entry_{package_id}",
+        package_id=package_id,
+        days=180,
+        operator="wechat_pay",
+        reason="wechat_pay_success",
+        idempotency_key=f"entry-{package_id}",
+    )
+
+    assert result["package"]["id"] == package_id
+    assert result["points"] == expected_points
+    assert result["amount_cny"] == expected_amount_cny
+    assert len(wallet_service.grants) == 1
+    grant = wallet_service.grants[0]
+    assert grant["amount_micros"] == expected_points * 1_000_000
+    assert grant["metadata"]["package_id"] == package_id
+
+    ledger = service.get_ledger(f"entry_{package_id}", limit=1, offset=0)["entries"][0]
+    assert ledger["delta"] == expected_points
 
 
 def test_managed_membership_package_persists_and_can_be_purchased(

@@ -8,6 +8,7 @@ const route = require("../../../utils/route");
 const runtime = require("../../../utils/runtime");
 const packNames = require("../../../utils/pack-short-names");
 const telemetry = require("../../../utils/surface-telemetry");
+const flags = require("../../../utils/flags");
 
 // 五章只是 40 pack 路线的版式分段，不参与知识分类、练习或掌握判定。
 const CHAPTER_LAYOUT = [
@@ -74,10 +75,15 @@ function buildEpisodeGroups(rawPoints) {
     .filter(function (group) { return group; });
 }
 
-function buildChapterSections(rawPoints) {
+// limit: 免费引子可开放的教学集上限(全局跨章计数)。null/undefined = 不限(全解锁)。
+// 超出上限的卡不丢弃,只打 locked=true 显示「待开放」——保住「可见集数==后端全集数」的投影完整性,
+// 同时让学员看得到还有多少集待开放(引子暗示,不是硬藏)。
+function buildChapterSections(rawPoints, limit) {
   const groups = buildEpisodeGroups(rawPoints);
   const groupsByPack = Object.create(null);
   groups.forEach(function (group) { groupsByPack[group.packId] = group; });
+  const freeLimit = limit === null || limit === undefined ? Infinity : limit;
+  let globalIndex = 0;
   return CHAPTER_LAYOUT.map(function (chapter) {
     // 章节归属是显式展示配置；不能按 API 字母序每 8 个硬切，否则进度款会落进基础施工。
     const chapterGroups = chapter.packIds.map(function (packId) { return groupsByPack[packId]; })
@@ -88,6 +94,8 @@ function buildChapterSections(rawPoints) {
         const localIndex = cards.length;
         const row = Math.floor(localIndex / 3);
         const column = localIndex % 3;
+        const locked = globalIndex >= freeLimit;
+        globalIndex += 1;
         cards.push({
           id: episode.id,
           packId: group.packId,
@@ -98,6 +106,7 @@ function buildChapterSections(rawPoints) {
           label: episode.label,
           labelShort: episode.total === 1 ? "讲" : episode.label.slice(0, 1),
           cardUrl: episode.cardUrl,
+          locked: locked,
           tone: C_TONE_PATTERN[row % C_TONE_PATTERN.length][column],
           dots: Array.from({ length: episode.total }, function (_unused, dotIndex) {
             return { key: dotIndex + 1, active: dotIndex + 1 === episode.index };
@@ -126,6 +135,7 @@ Page({
     chapterSections: [],
     teachingPointUniverse: 0,
     topicUniverse: 0,
+    unlockedCount: 0,
   },
 
   onLoad: function () {
@@ -167,6 +177,11 @@ Page({
     const packId = String(dataset.packId || "").trim();
     const index = Number(dataset.episode);
     if (!packId || !Number.isInteger(index) || index < 1) return;
+    // 待开放集(免费引子上限之外):不跳转、不发播放埋点,只如实提示。
+    if (dataset.locked) {
+      if (typeof wx !== "undefined" && wx.showToast) wx.showToast({ title: "这一集待开放", icon: "none" });
+      return;
+    }
     if (!dataset.cardUrl) {
       if (typeof wx !== "undefined" && wx.showToast) wx.showToast({ title: "视频正在部署，请稍后再试", icon: "none" });
       return;
@@ -191,17 +206,40 @@ Page({
     }
   },
 
+  // 教学视频付费墙上限来自服务端:GET /api/v1/billing/wallet 的 teaching_video_limit。
+  // 前端不自算,只消费。请求失败/未登录/字段缺失 → 返回 undefined,交给 flags 层 fail-closed 回引子。
+  _loadTeachingVideoLimit: function () {
+    return api.getWallet()
+      .then(function (raw) {
+        const wallet = api.unwrapResponse ? api.unwrapResponse(raw) : (raw || {});
+        if (wallet && Object.prototype.hasOwnProperty.call(wallet, "teaching_video_limit")) {
+          return wallet.teaching_video_limit; // 整数=上限;null=服务端明确无限。
+        }
+        return undefined; // 字段缺失 → fail-closed。
+      })
+      .catch(function () {
+        return undefined; // 请求失败/未登录 → fail-closed,绝不因拿不到就放全部。
+      });
+  },
+
   _load: function () {
     const that = this;
     if (!this._requireAuth()) return Promise.resolve();
-    return api.getLubanLessons({ silent: true, suppressAuthRedirect: true })
-      .then(function (response) {
+    return Promise.all([
+      api.getLubanLessons({ silent: true, suppressAuthRedirect: true }),
+      that._loadTeachingVideoLimit(),
+    ])
+      .then(function (results) {
+        const response = results[0];
+        const serverLimit = results[1];
         if (!auth.isLoggedIn()) {
           that._requireAuth();
           return null;
         }
         const body = api.unwrapResponse(response) || {};
-        const chapters = buildChapterSections(body.teaching_points);
+        // 最终上限:promo 总开关 > 服务端 teaching_video_limit > fail-closed 引子(20)。
+        const freeLimit = flags.resolveTeachingVideoLimit(serverLimit);
+        const chapters = buildChapterSections(body.teaching_points, freeLimit);
         const visibleTeachingPointCount = chapters.reduce(function (total, chapter) {
           return total + chapter.lessonCount;
         }, 0);
@@ -216,10 +254,15 @@ Page({
         if (publishedTopicCount !== visibleTopicCount) {
           throw new Error("teaching_topic_projection_mismatch");
         }
+        // 已开放集数:免费引子态 = min(上限, 全集);全解锁态 = 全集。> 上限的部分显示「待开放」。
+        const unlockedCount = freeLimit === null || freeLimit === undefined
+          ? visibleTeachingPointCount
+          : Math.min(freeLimit, visibleTeachingPointCount);
         that.setData({
           chapterSections: chapters,
           teachingPointUniverse: publishedTeachingPointCount,
           topicUniverse: publishedTopicCount,
+          unlockedCount: unlockedCount,
           loading: false,
           errorText: "",
         });
