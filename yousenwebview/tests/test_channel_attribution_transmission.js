@@ -77,6 +77,31 @@ function loadApiModule(storageState, capture) {
   return sandbox.module.exports;
 }
 
+function loadAppForAttribution(storageState) {
+  var source = fs.readFileSync(path.join(__dirname, "../app.js"), "utf8");
+  var appConfig = null;
+  var sandbox = {
+    console: { info: function () {}, warn: function () {}, error: function () {} },
+    __wxConfig: { envVersion: "release", platform: "ios" },
+    require: function (request) {
+      if (request === "./api/baseApi") return { GetSysInfo: "/sys" };
+      if (request === "./utils/config") return { baseUrl: "https://host.example.com" };
+      throw new Error("unexpected require: " + request);
+    },
+    wx: {
+      getStorageSync: function (key) { return storageState[key]; },
+      setStorageSync: function (key, value) { storageState[key] = value; },
+      removeStorageSync: function (key) { delete storageState[key]; },
+    },
+    App: function (config) { appConfig = config; },
+    getCurrentPages: function () { return []; },
+    setTimeout: function () {},
+    clearTimeout: function () {},
+  };
+  vm.runInNewContext(source, sandbox, { filename: "yousenwebview/app.js" });
+  return appConfig;
+}
+
 (function testProductionApiCarriesChannelAttribution() {
   var storage = { reg_attribution: { ch: "campaign_7", scene: "1047" } };
   var capture = {};
@@ -91,6 +116,31 @@ function loadApiModule(storageState, capture) {
   var bindData = capture.options && capture.options.data;
   assert(bindData.channel === "campaign_7", "bind body carries channel");
   assert(bindData.scene === "1047", "bind body carries scene");
+})();
+
+(function testExplicitUnlimitedCodeSceneCarriesCampaignWithoutConfusingLaunchScene() {
+  var encodedStorage = {};
+  var encodedApp = loadAppForAttribution(encodedStorage);
+  encodedApp._captureChannelAttribution({
+    scene: 1047,
+    query: { scene: "ch%3Dcampaign_9%26landing%3Dlearn" },
+  });
+  assert(
+    encodedStorage.reg_attribution.ch === "campaign_9",
+    "explicit ch token in encoded query.scene becomes campaign channel",
+  );
+  assert(
+    encodedStorage.reg_attribution.scene === "1047",
+    "numeric launch scene remains the WeChat entry scenario",
+  );
+
+  var numericStorage = {};
+  var numericApp = loadAppForAttribution(numericStorage);
+  numericApp._captureChannelAttribution({ scene: 1005, query: { scene: "1005" } });
+  assert(
+    numericStorage.reg_attribution.ch === "",
+    "numeric scene never masquerades as a campaign channel",
+  );
 })();
 
 (function testProductionEntryAndRegisterAreWired() {

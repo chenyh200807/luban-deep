@@ -186,6 +186,159 @@ class SQLiteProductBehaviorStore:
     def _since_ms(self, days: int) -> int:
         return int((time.time() - max(1, days) * 86400) * 1000)
 
+    def get_data_quality_snapshot(
+        self,
+        *,
+        days: int = 7,
+        identity_groups: dict[str, list[str]] | None = None,
+        exclude_user_ids: Sequence[str] | None = None,
+    ) -> dict[str, Any]:
+        """Return the canonical readiness evidence for product-behavior BI readers.
+
+        ``identity_groups`` collapses aliases belonging to one business member.  When
+        supplied, only unambiguous identities in those groups are in scope.  Exact
+        exclusions are applied before both event and member counts so eval/internal
+        identities cannot make the quality signal look healthy.
+        """
+        window_days = max(1, int(days or 1))
+        excluded = {
+            str(user_id or "").strip()
+            for user_id in (exclude_user_ids or [])
+            if str(user_id or "").strip()
+        }
+        identity_to_groups: dict[str, set[str]] = {}
+        if identity_groups is not None:
+            for group_key, identities in identity_groups.items():
+                normalized_group = str(group_key or "").strip()
+                if not normalized_group:
+                    continue
+                for identity in identities:
+                    normalized_identity = str(identity or "").strip()
+                    if normalized_identity and normalized_identity not in excluded:
+                        identity_to_groups.setdefault(normalized_identity, set()).add(normalized_group)
+            identity_to_group = {
+                identity: next(iter(group_keys))
+                for identity, group_keys in identity_to_groups.items()
+                if len(group_keys) == 1
+            }
+            scoped_user_ids = sorted(identity_to_group)
+            identity_collision_count = sum(1 for groups in identity_to_groups.values() if len(groups) > 1)
+        else:
+            identity_to_group = {}
+            scoped_user_ids = []
+            identity_collision_count = 0
+
+        where = ["occurred_at_ms >= ?"]
+        params: list[Any] = [self._since_ms(window_days)]
+        if identity_groups is not None:
+            if not scoped_user_ids:
+                return self._empty_data_quality_snapshot(
+                    days=window_days,
+                    identity_collision_count=identity_collision_count,
+                )
+            where.append(f"user_id in ({','.join('?' for _ in scoped_user_ids)})")
+            params.extend(scoped_user_ids)
+        elif excluded:
+            sorted_excluded = sorted(excluded)
+            where.append(f"user_id not in ({','.join('?' for _ in sorted_excluded)})")
+            params.extend(sorted_excluded)
+
+        try:
+            with self._connect() as conn:
+                rows = conn.execute(
+                    f"""
+                    select user_id, count(*) as event_count,
+                           max(occurred_at_ms) as last_event_at_ms,
+                           sum(case when release_id != '' then 1 else 0 end) as release_id_count,
+                           sum(case when app_version != '' then 1 else 0 end) as app_version_count,
+                           sum(case when release_id != '' or app_version != '' then 1 else 0 end) as version_count,
+                           sum(case when platform != '' then 1 else 0 end) as platform_count
+                    from product_behavior_events
+                    where {' and '.join(where)}
+                    group by user_id
+                    """,
+                    tuple(params),
+                ).fetchall()
+        except sqlite3.Error:
+            snapshot = self._empty_data_quality_snapshot(
+                days=window_days,
+                identity_collision_count=identity_collision_count,
+            )
+            snapshot.update({"available": False, "status": "unavailable"})
+            return snapshot
+
+        event_count = sum(int(row["event_count"] or 0) for row in rows)
+        if not event_count:
+            return self._empty_data_quality_snapshot(
+                days=window_days,
+                identity_collision_count=identity_collision_count,
+            )
+
+        release_id_count = sum(int(row["release_id_count"] or 0) for row in rows)
+        app_version_count = sum(int(row["app_version_count"] or 0) for row in rows)
+        version_count = sum(int(row["version_count"] or 0) for row in rows)
+        platform_count = sum(int(row["platform_count"] or 0) for row in rows)
+        member_keys = {
+            identity_to_group.get(str(row["user_id"]), str(row["user_id"]))
+            for row in rows
+        }
+
+        def coverage(populated_count: int) -> dict[str, Any]:
+            return {
+                "populated_event_count": populated_count,
+                "coverage_rate": round(populated_count / event_count, 4),
+            }
+
+        release_coverage = coverage(release_id_count)
+        app_coverage = coverage(app_version_count)
+        version_coverage = coverage(version_count)
+        platform_coverage = coverage(platform_count)
+        status = (
+            "ready"
+            if version_coverage["coverage_rate"] == 1.0
+            and platform_coverage["coverage_rate"] == 1.0
+            and identity_collision_count == 0
+            else "degraded"
+        )
+        return {
+            "available": True,
+            "status": status,
+            "window_days": window_days,
+            "event_count": event_count,
+            "user_count": len(member_keys),
+            "last_event_at_ms": max(int(row["last_event_at_ms"] or 0) for row in rows),
+            "identity_collision_count": identity_collision_count,
+            "coverage": {
+                "release_id": release_coverage,
+                "app_version": app_coverage,
+                "version": version_coverage,
+                "platform": platform_coverage,
+            },
+        }
+
+    def _empty_data_quality_snapshot(
+        self,
+        *,
+        days: int,
+        identity_collision_count: int = 0,
+    ) -> dict[str, Any]:
+        empty_coverage = {"populated_event_count": 0, "coverage_rate": 0.0}
+        return {
+            "available": True,
+            "status": "empty",
+            "window_days": days,
+            "event_count": 0,
+            "user_count": 0,
+            "last_event_at_ms": 0,
+            "identity_collision_count": identity_collision_count,
+            "coverage": {
+                "release_id": dict(empty_coverage),
+                "app_version": dict(empty_coverage),
+                "version": dict(empty_coverage),
+                "platform": dict(empty_coverage),
+            },
+        }
+
     def _empty_summary(self) -> dict[str, Any]:
         return {
             "learning_report_open_count_7d": 0,

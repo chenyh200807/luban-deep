@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 import time
 from pathlib import Path
 
@@ -65,6 +66,74 @@ def _record(store: SQLiteProductBehaviorStore, **overrides) -> None:
     }
     base.update(overrides)
     store.record_event(base)
+
+
+def test_data_quality_snapshot_collapses_identity_groups_and_excludes_internal_ids(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(
+        store,
+        event_id="legacy",
+        user_id="legacy-u1",
+        app_version="ignored-top-level",
+        properties_json={"app_version": "1.2.3", "platform": "ios"},
+    )
+    _record(
+        store,
+        event_id="canonical",
+        user_id="canonical-u1",
+        properties_json={"app_version": "1.2.3", "platform": "ios"},
+    )
+    _record(
+        store,
+        event_id="internal",
+        user_id="machine-uuid",
+        properties_json={"app_version": "1.2.3", "platform": "devtools"},
+    )
+
+    snapshot = store.get_data_quality_snapshot(
+        days=7,
+        identity_groups={
+            "member-1": ["legacy-u1", "canonical-u1"],
+            "internal": ["machine-uuid"],
+        },
+        exclude_user_ids=["machine-uuid"],
+    )
+
+    assert snapshot["available"] is True
+    assert snapshot["status"] == "ready"
+    assert snapshot["event_count"] == 2
+    assert snapshot["user_count"] == 1
+    assert snapshot["last_event_at_ms"] > 0
+    assert snapshot["coverage"]["release_id"]["coverage_rate"] == 0.0
+    assert snapshot["coverage"]["app_version"]["coverage_rate"] == 1.0
+    assert snapshot["coverage"]["platform"]["coverage_rate"] == 1.0
+
+
+def test_data_quality_snapshot_is_empty_or_degraded_without_version_evidence(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    assert store.get_data_quality_snapshot(days=7)["status"] == "empty"
+
+    _record(store, event_id="missing-metadata", user_id="u1")
+    snapshot = store.get_data_quality_snapshot(days=7)
+
+    assert snapshot["status"] == "degraded"
+    assert snapshot["event_count"] == 1
+    assert snapshot["user_count"] == 1
+    assert snapshot["coverage"]["app_version"]["populated_event_count"] == 0
+
+
+def test_data_quality_snapshot_reports_store_unavailability(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+
+    def fail_connect():
+        raise sqlite3.OperationalError("database unavailable")
+
+    monkeypatch.setattr(store, "_connect", fail_connect)
+    snapshot = store.get_data_quality_snapshot(days=7)
+
+    assert snapshot["available"] is False
+    assert snapshot["status"] == "unavailable"
+    assert snapshot["event_count"] == 0
 
 
 def test_engagement_breakdown_ranks_content_and_computes_repeat_rate(tmp_path: Path) -> None:

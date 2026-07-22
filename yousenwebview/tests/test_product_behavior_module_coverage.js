@@ -20,6 +20,12 @@ require.cache[require.resolve(endpointsPath)] = {
   exports: { getPrimaryBaseUrl: function () { return "https://example.invalid"; } },
 };
 global.wx = {
+  getAccountInfoSync: function () {
+    return { miniProgram: { version: "2.4.1", envVersion: "release" } };
+  },
+  getSystemInfoSync: function () {
+    return { platform: "ios", version: "8.0.60" };
+  },
   getStorageSync: function (key) { return storage[key]; },
   setStorageSync: function (key, value) { storage[key] = value; },
   request: function (payload) {
@@ -52,6 +58,27 @@ telemetry.trackProductBehavior("learning_action_completed", {
   eventVersion: 2,
 });
 assert.strictEqual(requests[2].metadata.event_version, 2, "event version must reach server metadata");
+assert.strictEqual(requests[2].metadata.app_version, "2.4.1", "helper must attach the real mini-program version");
+assert.strictEqual(requests[2].metadata.platform, "ios", "helper must attach the runtime platform");
+assert.strictEqual(requests[2].metadata.release_id, "", "helper must not fabricate release lineage");
+
+global.wx.getAccountInfoSync = function () {
+  return { miniProgram: { version: "", envVersion: "trial" } };
+};
+global.wx.getSystemInfoSync = function () {
+  return { platform: "devtools", version: "8.0.60" };
+};
+requests.length = 0;
+delete require.cache[require.resolve(telemetryPath)];
+telemetry = require(telemetryPath);
+telemetry.trackProductBehavior("module_viewed", { module: "learning", action: "view" });
+assert.strictEqual(
+  requests[0].metadata.app_version,
+  "trial:8.0.60",
+  "helper must provide envVersion plus WeChat version when no build version exists",
+);
+assert.strictEqual(requests[0].metadata.platform, "devtools");
+assert.strictEqual(requests[0].metadata.release_id, "", "fallback must still not invent release lineage");
 
 var requiredPages = {
   "pages/learn/learn.js": "learning",

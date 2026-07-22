@@ -67,6 +67,23 @@ function clearStoredToken() {
   wx.removeStorageSync(USER_ID_KEY);
 }
 
+function extractCampaignChannel(rawScene) {
+  let decoded = String(rawScene || "").trim();
+  if (!decoded || /^\d+$/.test(decoded)) return "";
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch (_err) {}
+  const fields = decoded.split("&");
+  for (let index = 0; index < fields.length; index += 1) {
+    const separator = fields[index].indexOf("=");
+    if (separator < 0) continue;
+    const key = fields[index].slice(0, separator).trim();
+    if (key !== "ch") continue;
+    return fields[index].slice(separator + 1).trim().slice(0, 64);
+  }
+  return "";
+}
+
 function clearCrossHomeNavLock() {
   crossHomeNavLockExpiresAt = 0;
   if (crossHomeNavLockTimer) {
@@ -613,7 +630,7 @@ App({
     try {
       const opts = options || {};
       const query = opts.query || {};
-      const channel = String(query.ch || "").slice(0, 64);
+      const channel = String(query.ch || extractCampaignChannel(query.scene)).slice(0, 64);
       const scene = opts.scene ? String(opts.scene) : "";
       if (channel) {
         wx.setStorageSync("reg_attribution", { ch: channel, scene: scene });
