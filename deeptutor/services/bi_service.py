@@ -1045,8 +1045,8 @@ class BIService:
                     s.preferences_json
                 FROM turns t
                 INNER JOIN sessions s ON s.id = t.session_id
-                WHERE t.updated_at >= ?
-                ORDER BY t.updated_at DESC
+                WHERE t.created_at >= ?
+                ORDER BY t.created_at DESC
                 """,
                 (window_start,),
                 limit=row_limit,
@@ -1177,6 +1177,18 @@ class BIService:
 
     async def _load_context(self, days: int) -> _BiContext:
         return await self._load_context_since(self._window_start(days))
+
+    async def _load_business_context(
+        self,
+        days: int,
+        *,
+        members: list[dict[str, Any]] | None = None,
+    ) -> _BiContext:
+        """Load the canonical registered-member cohort for operating BI."""
+        return self._scope_context_to_registered_members(
+            await self._load_context(days),
+            members=members,
+        )
 
     def _load_all_members(self) -> list[dict[str, Any]]:
         """BI 会员口径唯一入口。
@@ -1334,10 +1346,7 @@ class BIService:
             item for item in self._load_all_members() if self._is_registered_member(item)
         ]
         context = self._apply_filters(
-            self._scope_context_to_registered_members(
-                await self._load_context(days),
-                members=member_snapshot,
-            ),
+            await self._load_business_context(days, members=member_snapshot),
             self._normalize_filters(capability, entrypoint, tier),
         )
 
@@ -1519,7 +1528,7 @@ class BIService:
             )
 
         for turn in context.turns:
-            bucket = ensure_bucket(_date_bucket(_safe_float(turn.get("updated_at"))))
+            bucket = ensure_bucket(_date_bucket(_safe_float(turn.get("created_at"))))
             bucket["turns"] += 1
             if turn.get("status") == "completed":
                 bucket["successful"] += 1
@@ -1561,7 +1570,7 @@ class BIService:
         tier: str | None = None,
     ) -> dict[str, Any]:
         context = self._apply_filters(
-            self._scope_context_to_registered_members(await self._load_context(days)),
+            await self._load_business_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
         return self._build_active_trend_payload(context, days=days)
@@ -1574,7 +1583,7 @@ class BIService:
         tier: str | None = None,
     ) -> dict[str, Any]:
         context = self._apply_filters(
-            self._scope_context_to_registered_members(await self._load_context(days)),
+            await self._load_business_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
         activity_by_actor: dict[str, set[str]] = defaultdict(set)
@@ -1614,7 +1623,7 @@ class BIService:
         tier: str | None = None,
     ) -> dict[str, Any]:
         context = self._apply_filters(
-            await self._load_context(days),
+            await self._load_business_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
         event_by_turn = {event["turn_id"]: event for event in context.result_events}
@@ -1694,7 +1703,7 @@ class BIService:
         tier: str | None = None,
     ) -> dict[str, Any]:
         context = self._apply_filters(
-            await self._load_context(days),
+            await self._load_business_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
         result_by_turn = {event["turn_id"]: event for event in context.result_events}
@@ -1778,7 +1787,7 @@ class BIService:
         tier: str | None = None,
     ) -> dict[str, Any]:
         context = self._apply_filters(
-            await self._load_context(days),
+            await self._load_business_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
         rag_turn_ids = {
@@ -3561,7 +3570,7 @@ class BIService:
         tier: str | None = None,
     ) -> dict[str, Any]:
         context = self._apply_filters(
-            await self._load_context(days),
+            await self._load_business_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
         high_cost_turns = []

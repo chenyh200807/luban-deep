@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from datetime import datetime, timedelta, timezone
+import logging
 from pathlib import Path
+import sqlite3
+import time
 from types import SimpleNamespace
 
 import pytest
@@ -946,7 +948,7 @@ def test_boss_workbench_counts_only_registered_member_activity(
     assert max(point["active"] for point in trend["points"]) == 1
 
 
-def test_overview_exposes_top_tier_bi_payloads_without_counting_unregistered_activity(
+def test_business_bi_endpoints_share_registered_turn_scope(
     store: SQLiteSessionStore, tmp_path: Path
 ) -> None:
     service = BIService(
@@ -962,9 +964,22 @@ def test_overview_exposes_top_tier_bi_payloads_without_counting_unregistered_act
             {
                 "source": "wx_miniprogram",
                 "user_id": user_id,
+                "knowledge_bases": ["construction-exam"],
             },
         )
         turn = await store.create_turn(session["id"], capability="chat")
+        await store.append_turn_event(
+            turn["id"],
+            {
+                "type": "tool_call",
+                "content": "rag",
+                "metadata": {"args": {"query": session_id}},
+            },
+        )
+        await store.append_turn_event(
+            turn["id"],
+            {"type": "tool_result", "metadata": {"tool": "rag"}},
+        )
         await store.append_turn_event(
             turn["id"],
             {
@@ -983,10 +998,41 @@ def test_overview_exposes_top_tier_bi_payloads_without_counting_unregistered_act
     async def _seed() -> None:
         await _create_session("real_member", "member_1", status="completed", cost=0.25)
         await _create_session("anonymous_probe", "", status="failed", cost=7.7)
+        await _create_session("eval_probe", "qa_eval_turn_scope", status="completed", cost=8.8)
 
     asyncio.run(_seed())
 
     overview = asyncio.run(service.get_overview(days=7))
+    capabilities = asyncio.run(service.get_capability_stats(days=7))
+    tools = asyncio.run(service.get_tool_stats(days=7))
+    knowledge = asyncio.run(service.get_knowledge_stats(days=7))
+    anomalies = asyncio.run(service.get_anomalies(days=7))
+
+    assert overview["summary"]["total_turns"] == sum(
+        item["turns"] for item in capabilities["items"]
+    ) == 1
+    assert [item["capability"] for item in capabilities["items"]] == ["chat"]
+    assert tools["items"] == [
+        {
+            "tool_name": "rag",
+            "label": "rag",
+            "value": 1,
+            "calls": 1,
+            "result_events": 1,
+            "turns_with_tool": 1,
+            "success_rate": 100.0,
+            "avg_cost_per_turn_usd": 0.25,
+            "avg_tokens_per_turn": 100.0,
+            "hint": "成功率 100.0%",
+            "secondary": "均成本 $0.25",
+            "capabilities": [{"capability": "chat", "count": 2}],
+            "entrypoints": [{"entrypoint": "wx_miniprogram", "count": 2}],
+        }
+    ]
+    assert knowledge["items"][0]["kb_name"] == "construction-exam"
+    assert knowledge["items"][0]["session_count"] == 1
+    assert knowledge["items"][0]["rag_turns"] == 1
+    assert {item["session_id"] for item in anomalies["items"]} == {"real_member"}
 
     assert overview["north_star"]["metric_id"] == "effective_learning_members"
     assert overview["north_star"]["label"] == "有效学习成功会员数"
@@ -1016,6 +1062,47 @@ def test_overview_exposes_top_tier_bi_payloads_without_counting_unregistered_act
         <= set(metric)
         for metric in overview["data_trust"]["metric_definitions"]
     )
+
+
+def test_business_turn_window_uses_created_at_not_updated_at(
+    store: SQLiteSessionStore,
+) -> None:
+    service = BIService(session_store=store, member_service=_RegisteredMemberService())
+
+    async def _seed() -> tuple[str, str]:
+        session = await store.create_session(title="Window", session_id="window_session")
+        await store.update_session_preferences(
+            session["id"],
+            {"source": "wx_miniprogram", "user_id": "member_1"},
+        )
+        old_turn = await store.create_turn(session["id"], capability="chat")
+        await store.update_turn_status(old_turn["id"], "completed")
+        new_turn = await store.create_turn(session["id"], capability="deep_question")
+        await store.update_turn_status(new_turn["id"], "completed")
+        return old_turn["id"], new_turn["id"]
+
+    old_turn_id, new_turn_id = asyncio.run(_seed())
+    now = time.time()
+    outside_window = now - (8 * 86400)
+    with sqlite3.connect(store.db_path) as conn:
+        conn.execute(
+            "UPDATE turns SET created_at = ?, updated_at = ? WHERE id = ?",
+            (outside_window, now, old_turn_id),
+        )
+        conn.execute(
+            "UPDATE turns SET created_at = ?, updated_at = ? WHERE id = ?",
+            (now, outside_window, new_turn_id),
+        )
+        conn.commit()
+
+    overview = asyncio.run(service.get_overview(days=7))
+    capabilities = asyncio.run(service.get_capability_stats(days=7))
+
+    assert overview["summary"]["total_turns"] == 1
+    assert [(item["capability"], item["turns"]) for item in capabilities["items"]] == [
+        ("deep_question", 1)
+    ]
+    assert overview["active_trend"]["points"][0]["turns"] == 1
 
 
 def test_north_star_does_not_count_empty_registered_member_sessions(
