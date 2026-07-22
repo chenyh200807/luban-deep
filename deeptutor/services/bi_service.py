@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+import asyncio
+from collections import Counter, defaultdict
 import csv
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
 import io
 import json
 import logging
-import math
-import sqlite3
-import time
-from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import re
+import sqlite3
+import time
 from typing import Any
 
 from deeptutor.services.bi_metrics import BI_METRICS, metric_by_id
@@ -167,6 +167,9 @@ class BIService:
         self._wallet_service = wallet_service or get_wallet_service()
         # (monotonic_ts, ids) — 内部账号排除集缓存，见 _internal_account_exclusion_ids。
         self._internal_exclusion_cache: tuple[float, frozenset[str]] | None = None
+        # 同一 canonical ledger 的完整短时快照；首屏与审计投影复用，写后失效。
+        self._internal_accounts_snapshot_cache: tuple[float, dict[str, Any]] | None = None
+        self._internal_accounts_generation = 0
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._store.db_path)
@@ -372,12 +375,16 @@ class BIService:
                 values.add(normalized)
         return values
 
-    def _registered_member_identity_index(self) -> dict[str, str]:
-        try:
-            members = self._load_all_members()
-        except Exception:
-            logger.warning("Failed to load member identities for BI activity scope", exc_info=True)
-            return {}
+    def _registered_member_identity_index(
+        self,
+        members: list[dict[str, Any]] | None = None,
+    ) -> dict[str, str]:
+        if members is None:
+            try:
+                members = self._load_all_members()
+            except Exception:
+                logger.warning("Failed to load member identities for BI activity scope", exc_info=True)
+                return {}
         identity_index: dict[str, str] = {}
         for member in members:
             if not self._normalize_member_phone(member.get("phone")):
@@ -403,8 +410,13 @@ class BIService:
                 return canonical
         return ""
 
-    def _scope_context_to_registered_members(self, context: _BiContext) -> _BiContext:
-        identity_index = self._registered_member_identity_index()
+    def _scope_context_to_registered_members(
+        self,
+        context: _BiContext,
+        *,
+        members: list[dict[str, Any]] | None = None,
+    ) -> _BiContext:
+        identity_index = self._registered_member_identity_index(members)
         if not identity_index:
             return _BiContext(
                 sessions=[],
@@ -1318,8 +1330,14 @@ class BIService:
         entrypoint: str | None = None,
         tier: str | None = None,
     ) -> dict[str, Any]:
+        member_snapshot = [
+            item for item in self._load_all_members() if self._is_registered_member(item)
+        ]
         context = self._apply_filters(
-            self._scope_context_to_registered_members(await self._load_context(days)),
+            self._scope_context_to_registered_members(
+                await self._load_context(days),
+                members=member_snapshot,
+            ),
             self._normalize_filters(capability, entrypoint, tier),
         )
 
@@ -1359,6 +1377,7 @@ class BIService:
             capability=capability,
             entrypoint=entrypoint,
             tier=tier,
+            _members_snapshot=member_snapshot,
         )
         member_dashboard = member_stats.get("dashboard", {})
         daily_cost = self._build_daily_cost_payload(context, usage_summary, days=days)
@@ -1467,19 +1486,15 @@ class BIService:
             "ai_quality": self._build_ai_quality_payload(summary=summary, context=context),
             "unit_economics": self._build_unit_economics_payload(summary=summary, daily_cost=daily_cost),
             "data_trust": self._build_data_trust_payload(context=context),
+            "active_trend": self._build_active_trend_payload(context, days=days),
         }
 
-    async def get_active_trend(
-        self,
-        days: int = 30,
-        capability: str | None = None,
-        entrypoint: str | None = None,
-        tier: str | None = None,
-    ) -> dict[str, Any]:
-        context = self._apply_filters(
-            self._scope_context_to_registered_members(await self._load_context(days)),
-            self._normalize_filters(capability, entrypoint, tier),
-        )
+    def _build_active_trend_payload(self, context: _BiContext, *, days: int) -> dict[str, Any]:
+        """Project the trend from an already loaded BI context.
+
+        The overview and compatibility endpoint share this pure projection so
+        the v2 first screen does not pay for a second full context scan.
+        """
         bucket_map: dict[str, dict[str, Any]] = {}
 
         def ensure_bucket(key: str) -> dict[str, Any]:
@@ -1499,7 +1514,9 @@ class BIService:
         for session in context.sessions:
             bucket = ensure_bucket(_date_bucket(_safe_float(session.get("updated_at"))))
             bucket["sessions"] += 1
-            bucket["learners"].add(self._resolve_actor_id(session["session_id"], session["preferences"]))
+            bucket["learners"].add(
+                self._resolve_actor_id(session["session_id"], session["preferences"])
+            )
 
         for turn in context.turns:
             bucket = ensure_bucket(_date_bucket(_safe_float(turn.get("updated_at"))))
@@ -1513,7 +1530,9 @@ class BIService:
 
         for event in context.result_events:
             bucket = ensure_bucket(_date_bucket(_safe_float(event.get("created_at"))))
-            bucket["cost_usd"] += _safe_float((event.get("cost_summary") or {}).get("total_cost_usd"))
+            bucket["cost_usd"] += _safe_float(
+                (event.get("cost_summary") or {}).get("total_cost_usd")
+            )
 
         points = []
         for key in sorted(bucket_map):
@@ -1532,8 +1551,20 @@ class BIService:
                     "successful": bucket["successful"],
                 }
             )
-
         return {"window_days": days, "points": points}
+
+    async def get_active_trend(
+        self,
+        days: int = 30,
+        capability: str | None = None,
+        entrypoint: str | None = None,
+        tier: str | None = None,
+    ) -> dict[str, Any]:
+        context = self._apply_filters(
+            self._scope_context_to_registered_members(await self._load_context(days)),
+            self._normalize_filters(capability, entrypoint, tier),
+        )
+        return self._build_active_trend_payload(context, days=days)
 
     async def get_retention(
         self,
@@ -1842,10 +1873,13 @@ class BIService:
         capability: str | None = None,
         entrypoint: str | None = None,
         tier: str | None = None,
+        _members_snapshot: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         members = [
             item
-            for item in self._load_all_members()
+            for item in (
+                _members_snapshot if _members_snapshot is not None else self._load_all_members()
+            )
             if self._is_registered_member(item)
         ]
         tier_filter = str(tier or "").strip().lower()
@@ -3321,7 +3355,19 @@ class BIService:
             for _row, amount, effective_at in revenue_rows
             if effective_at is not None and effective_at.astimezone(business_tz).date() == business_now.date()
         )
+        # Online payment orders are not yet an authority.  A wallet row without
+        # amount_cny proves that a recharge-like event happened, but cannot prove
+        # the CNY amount.  Do not let the UI collapse that unknown into ¥0.
+        has_unpriced_recharge = any(
+            cls._is_commerce_recharge_row(row) and cls._commerce_revenue_cny(row) == 0
+            for row in recharge_rows
+        )
+        revenue_status = (
+            "insufficient_evidence" if has_unpriced_recharge else "confirmed_manual_partial"
+        )
         return {
+            "revenue_status": revenue_status,
+            "revenue_scope": "wallet_ledger_manual_membership_only",
             "revenue_cny": _round(sum(amount for _row, amount, _effective_at in revenue_rows), 2),
             "today_revenue_cny": _round(today_revenue, 2),
             "recent_revenue_cny": _round(sum(amount for _row, amount, _effective_at in revenue_rows), 2),
@@ -3438,8 +3484,14 @@ class BIService:
         ledger_rows = sorted(operational_rows, key=self._commerce_ledger_sort_key, reverse=True)[:safe_limit]
         recharge_rows = [row for row in ledger_rows if self._is_commerce_recharge_row(row)][:safe_limit]
         recharge_records = [self._commerce_recharge_record(row) for row in recharge_rows]
-        revenue_event_rows = [row for row in ledger_rows if self._commerce_revenue_cny(row) != 0][:safe_limit]
-        revenue_summary = self._build_commerce_revenue_summary(revenue_event_rows)
+        revenue_evidence_rows = [
+            row
+            for row in ledger_rows
+            if self._is_commerce_recharge_row(row) or self._is_commerce_reversal_row(row)
+        ][:safe_limit]
+        revenue_summary = self._build_commerce_revenue_summary(revenue_evidence_rows)
+        if wallet_status != "ok":
+            revenue_summary["revenue_status"] = "authority_unavailable"
         paid_member_ids = {
             user_id
             for row in recharge_rows
@@ -3775,6 +3827,13 @@ class BIService:
             "GET",
             params={"select": "user_id,is_internal,operator_id,reason,created_at", "order": "created_at.desc", "limit": "2000"},
         )
+        return self._internal_account_states_from_rows(rows)
+
+    @staticmethod
+    def _internal_account_states_from_rows(
+        rows: list[dict[str, Any]],
+    ) -> dict[str, dict[str, Any]]:
+        """Project latest per-user state from the descending audit ledger."""
         states: dict[str, dict[str, Any]] = {}
         for row in rows:
             uid = str(row.get("user_id") or "").strip()
@@ -3782,10 +3841,74 @@ class BIService:
                 states[uid] = row
         return states
 
+    def _load_internal_accounts_snapshot(self, *, limit: int) -> dict[str, Any]:
+        """Read the audit ledger once and derive both display projections.
+
+        ``bi_internal_accounts`` remains the only authority.  The current-state
+        map and the bounded audit list are two projections of the same ordered
+        response, so issuing separate remote reads only adds latency and can
+        expose internally inconsistent snapshots.
+        """
+        safe_limit = max(1, min(int(limit or 200), 1000))
+        rows = self._supabase_internal_accounts(
+            "GET",
+            params={"select": "*", "order": "created_at.desc", "limit": "2000"},
+        )
+        states = self._internal_account_states_from_rows(rows)
+        internal_users = [row for row in states.values() if row.get("is_internal")]
+        return {
+            "available": True,
+            "states": states,
+            "internal_accounts": internal_users,
+            "audit": rows[:safe_limit],
+            "total_internal": len(internal_users),
+        }
+
+    async def get_internal_accounts_snapshot(self, *, limit: int = 200) -> dict[str, Any]:
+        """Non-blocking endpoint projection from one remote ledger read."""
+        safe_limit = max(1, min(int(limit or 200), 1000))
+        now = time.monotonic()
+        cached = self._internal_accounts_snapshot_cache
+        if cached is not None and now - cached[0] < _INTERNAL_ACCOUNTS_EXCLUSION_TTL_SECONDS:
+            snapshot = cached[1]
+            return {**snapshot, "audit": snapshot["audit"][:safe_limit]}
+        try:
+            read_generation = self._internal_accounts_generation
+            snapshot = await asyncio.to_thread(
+                self._load_internal_accounts_snapshot,
+                limit=1000,
+            )
+            if read_generation == self._internal_accounts_generation:
+                self._internal_accounts_snapshot_cache = (now, snapshot)
+                self._internal_exclusion_cache = (
+                    now,
+                    frozenset(
+                        uid
+                        for uid, row in snapshot["states"].items()
+                        if bool(row.get("is_internal"))
+                    ),
+                )
+            return {**snapshot, "audit": snapshot["audit"][:safe_limit]}
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("get_internal_accounts_snapshot failed: %s", exc)
+            unavailable_snapshot = {
+                "available": False,
+                "states": {},
+                "internal_accounts": [],
+                "audit": [],
+                "total_internal": None,
+            }
+            if read_generation == self._internal_accounts_generation:
+                self._internal_accounts_snapshot_cache = (
+                    time.monotonic(),
+                    unavailable_snapshot,
+                )
+            return unavailable_snapshot
+
     async def get_internal_account_states(self) -> dict[str, dict[str, Any]]:
         """当前各 user_id 的内部账号状态（取每个 user_id 最新一条记录）。"""
         try:
-            return self._load_internal_account_states()
+            return await asyncio.to_thread(self._load_internal_account_states)
         except Exception as exc:  # noqa: BLE001
             logger.warning("get_internal_account_states failed: %s", exc)
             return {}
@@ -3801,12 +3924,16 @@ class BIService:
         cached = self._internal_exclusion_cache
         if cached is not None and now - cached[0] < _INTERNAL_ACCOUNTS_EXCLUSION_TTL_SECONDS:
             return cached[1]
+        read_generation = self._internal_accounts_generation
         try:
             states = self._load_internal_account_states()
         except Exception as exc:  # noqa: BLE001
             logger.warning("internal account exclusion unavailable, fail-open: %s", exc)
             ids = cached[1] if cached is not None else frozenset()
-            if getattr(self._wallet_service, "is_configured", False):
+            if (
+                read_generation == self._internal_accounts_generation
+                and getattr(self._wallet_service, "is_configured", False)
+            ):
                 # 只有"配置了但读失败"才值得用缓存挡住重试风暴；
                 # 未配置（本地/测试）时保持零缓存零成本的快速失败。
                 self._internal_exclusion_cache = (now, ids)
@@ -3814,7 +3941,8 @@ class BIService:
         ids = frozenset(
             uid for uid, row in states.items() if bool(row.get("is_internal"))
         )
-        self._internal_exclusion_cache = (now, ids)
+        if read_generation == self._internal_accounts_generation:
+            self._internal_exclusion_cache = (now, ids)
         return ids
 
     async def mark_internal_account(
@@ -3836,19 +3964,24 @@ class BIService:
         if len(rsn) < 5:
             raise ValueError("reason must be at least 5 characters")
         try:
-            rows = self._supabase_internal_accounts(
+            rows = await asyncio.to_thread(
+                self._supabase_internal_accounts,
                 "POST",
                 body={"user_id": uid, "is_internal": bool(is_internal), "operator_id": op, "reason": rsn},
             )
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError(f"mark_internal_account failed: {exc}") from exc
+        self._internal_accounts_generation += 1
+        self._internal_exclusion_cache = None
+        self._internal_accounts_snapshot_cache = None
         return rows[0] if rows else {"user_id": uid, "is_internal": bool(is_internal), "operator_id": op, "reason": rsn}
 
     async def get_internal_account_audit_log(self, *, limit: int = 200) -> list[dict[str, Any]]:
         """所有内部账号标记/取消记录，按时间倒序（用于审计）。"""
         safe_limit = max(1, min(int(limit or 200), 1000))
         try:
-            return self._supabase_internal_accounts(
+            return await asyncio.to_thread(
+                self._supabase_internal_accounts,
                 "GET",
                 params={"select": "*", "order": "created_at.desc", "limit": str(safe_limit)},
             )

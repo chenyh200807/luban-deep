@@ -139,6 +139,10 @@ export interface MemberListResponse {
 export interface MemberOpsOverview {
   dashboard: MemberDashboard
   list: MemberListResponse
+  internal_accounts: {
+    available: boolean
+    total_internal: number | null
+  }
 }
 
 export interface MemberNote {

@@ -246,14 +246,14 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [filter, setFilter] = useState<Filter>(DEFAULT_FILTER)
   const [groupByOwner, setGroupByOwner] = useState(false)
   const [payload, setPayload] = useState<BiFeedbackPayload | null>(null)
-  const [loading, setLoading] = useState(flagEnabled)
+  const [loading, setLoading] = useState(flagEnabled && workspaceView === 'feedback')
   const [error, setError] = useState('')
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null)
   const [inviteFilter, setInviteFilter] = useState<InviteTestFilter>(DEFAULT_INVITE_FILTER)
   const [inviteStats, setInviteStats] = useState<BiInviteTestStats | null>(null)
   const [inviteApplications, setInviteApplications] = useState<BiInviteTestApplication[]>([])
   const [inviteTotal, setInviteTotal] = useState(0)
-  const [inviteLoading, setInviteLoading] = useState(flagEnabled)
+  const [inviteLoading, setInviteLoading] = useState(flagEnabled && workspaceView === 'invite-test')
   const [inviteError, setInviteError] = useState('')
   const [selectedInvite, setSelectedInvite] = useState<BiInviteTestApplication | null>(null)
   const [pendingInviteDeleteId, setPendingInviteDeleteId] = useState('')
@@ -263,7 +263,9 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [lubanStats, setLubanStats] = useState<BiLubanFeedbackStats | null>(null)
   const [lubanResponses, setLubanResponses] = useState<BiLubanFeedbackResponse[]>([])
   const [lubanTotal, setLubanTotal] = useState(0)
-  const [lubanLoading, setLubanLoading] = useState(flagEnabled)
+  const [lubanLoading, setLubanLoading] = useState(
+    flagEnabled && workspaceView === 'luban-feedback'
+  )
   const [lubanError, setLubanError] = useState('')
   const [selectedLubanFeedback, setSelectedLubanFeedback] =
     useState<BiLubanFeedbackResponse | null>(null)
@@ -389,16 +391,16 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   }, [flagEnabled, lubanFilter.q, lubanFilter.source_page, lubanFilter.status])
 
   useEffect(() => {
-    void loadFeedback()
-  }, [loadFeedback])
+    if (workspaceView === 'feedback') void loadFeedback()
+  }, [loadFeedback, workspaceView])
 
   useEffect(() => {
-    void loadInviteTest()
-  }, [loadInviteTest])
+    if (workspaceView === 'invite-test') void loadInviteTest()
+  }, [loadInviteTest, workspaceView])
 
   useEffect(() => {
-    void loadLubanFeedback()
-  }, [loadLubanFeedback])
+    if (workspaceView === 'luban-feedback') void loadLubanFeedback()
+  }, [loadLubanFeedback, workspaceView])
 
   function switchWorkspaceView(next: FeedbackWorkspaceView) {
     setWorkspaceView(next)
@@ -3429,4 +3431,3 @@ function lubanStatusTone(status: string | undefined): BiStatusTone {
   if (status === 'archived') return 'slate'
   return 'amber'
 }
-

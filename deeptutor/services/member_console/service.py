@@ -1429,24 +1429,27 @@ class MemberConsoleService:
             session_id = str(row.get("session_id") or row.get("id") or "").strip()
             if not session_id:
                 continue
-            try:
-                raw_messages = self._store._get_messages_sync(session_id)  # noqa: SLF001 - member 360 is sync.
-            except Exception:
-                logger.warning(
-                    "Failed to load member conversation messages: user_id=%s session_id=%s",
-                    requested_user_id,
-                    session_id,
-                    exc_info=True,
-                )
-                raw_messages = []
-
-            visible_messages = [
-                message
-                for message in raw_messages
-                if str(message.get("role") or "").strip() in {"user", "assistant"}
-                and str(message.get("content") or "").strip()
-            ][-message_limit:]
-            if not visible_messages:
+            raw_messages: list[dict[str, Any]] = []
+            visible_messages: list[dict[str, Any]] = []
+            if include_messages:
+                try:
+                    raw_messages = self._store._get_messages_sync(session_id)  # noqa: SLF001 - audited detail path is sync.
+                except Exception:
+                    logger.warning(
+                        "Failed to load member conversation messages: user_id=%s session_id=%s",
+                        requested_user_id,
+                        session_id,
+                        exc_info=True,
+                    )
+                visible_messages = [
+                    message
+                    for message in raw_messages
+                    if str(message.get("role") or "").strip() in {"user", "assistant"}
+                    and str(message.get("content") or "").strip()
+                ][-message_limit:]
+                if not visible_messages:
+                    continue
+            elif int(row.get("message_count") or 0) <= 0 and not str(row.get("last_message") or "").strip():
                 continue
             conversation = {
                 "session_id": session_id,
@@ -4325,8 +4328,10 @@ class MemberConsoleService:
         members: list[dict[str, Any]],
         *,
         days: int,
+        behavior_summaries: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        behavior_summaries = self._load_member_behavior_summaries_for_members(members)
+        if behavior_summaries is None:
+            behavior_summaries = self._load_member_behavior_summaries_for_members(members)
         product_usage = self._load_product_usage_overview_for_members(members)
         eligible_summaries = [
             summary
@@ -4527,6 +4532,7 @@ class MemberConsoleService:
         behavior_cohort: str | None = None,
         has_heartbeat_job: bool | None = None,
         has_overlay_candidates: bool | None = None,
+        excluded_user_ids: set[str] | frozenset[str] | None = None,
     ) -> dict[str, Any]:
         data = self._load()
         members = self._merge_session_activity_for_member_list(
@@ -4535,6 +4541,21 @@ class MemberConsoleService:
                 include_session_activity_supplements=True,
             )
         )
+        excluded = {
+            str(value).strip() for value in (excluded_user_ids or set()) if str(value).strip()
+        }
+        if excluded:
+            members = [
+                member
+                for member in members
+                if not excluded.intersection(
+                    {
+                        str(member.get("user_id") or "").strip(),
+                        str(member.get("canonical_user_id") or "").strip(),
+                        *(str(value).strip() for value in member.get("alias_user_ids") or []),
+                    }
+                )
+            ]
         if not str(search or "").strip():
             members = self._filter_bi_operational_members(members)
         return self._list_members_from_projection(
@@ -4587,6 +4608,7 @@ class MemberConsoleService:
         behavior_cohort: str | None,
         has_heartbeat_job: bool | None,
         has_overlay_candidates: bool | None,
+        behavior_summaries: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         search_text = str(search or "").strip().lower()
         now = _now()
@@ -4664,9 +4686,9 @@ class MemberConsoleService:
                 if member_has_overlay_candidates != has_overlay_candidates:
                     continue
             filtered.append(item)
-        behavior_summaries: dict[str, dict[str, Any]] | None = None
         if behavior_cohort:
-            behavior_summaries = self._load_member_behavior_summaries_in_batches(filtered)
+            if behavior_summaries is None:
+                behavior_summaries = self._load_member_behavior_summaries_in_batches(filtered)
             filtered = [
                 item
                 for item in filtered
@@ -4772,6 +4794,7 @@ class MemberConsoleService:
         behavior_cohort: str | None = None,
         has_heartbeat_job: bool | None = None,
         has_overlay_candidates: bool | None = None,
+        excluded_user_ids: set[str] | frozenset[str] | None = None,
     ) -> dict[str, Any]:
         """Build the member-ops first screen from one canonical directory projection."""
         data = self._load()
@@ -4781,10 +4804,29 @@ class MemberConsoleService:
                 include_session_activity_supplements=True,
             )
         )
+        excluded = {str(value).strip() for value in (excluded_user_ids or set()) if str(value).strip()}
+        if excluded:
+            members = [
+                member
+                for member in members
+                if not excluded.intersection(
+                    {
+                        str(member.get("user_id") or "").strip(),
+                        str(member.get("canonical_user_id") or "").strip(),
+                        *(str(value).strip() for value in member.get("alias_user_ids") or []),
+                    }
+                )
+            ]
         operational_members = self._filter_bi_operational_members(members)
         list_members = members if str(search or "").strip() else operational_members
+        behavior_summaries = self._load_member_behavior_summaries_for_members(operational_members)
         return {
-            "dashboard": self._build_member_dashboard(data, operational_members, days=days),
+            "dashboard": self._build_member_dashboard(
+                data,
+                operational_members,
+                days=days,
+                behavior_summaries=behavior_summaries,
+            ),
             "list": self._list_members_from_projection(
                 list_members,
                 page=page,
@@ -4808,6 +4850,7 @@ class MemberConsoleService:
                 behavior_cohort=behavior_cohort,
                 has_heartbeat_job=has_heartbeat_job,
                 has_overlay_candidates=has_overlay_candidates,
+                behavior_summaries=behavior_summaries if list_members is operational_members else None,
             ),
         }
 

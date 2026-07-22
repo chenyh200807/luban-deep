@@ -650,7 +650,7 @@ test("BI v2 member ops opens 360 and loads conversation details from the read en
   await expect(page.getByRole("button", { name: "应用视图 视图 1" })).toBeVisible();
   expect(unexpectedPrompt).toBe(false);
 
-  await page.getByRole("button", { name: "打开 user_1 学员 360" }).click();
+  await page.getByRole("row", { name: "打开 139****0001 学员 360" }).click();
   await expect(page.getByRole("dialog", { name: "学员 360 · 139****0001" })).toBeVisible();
   await page.getByRole("button", { name: "标记已联系", exact: true }).click();
   await expect.poll(() => memberOpsActionIdempotencyKey).toMatch(/^[A-Za-z0-9_-]{1,128}$/);

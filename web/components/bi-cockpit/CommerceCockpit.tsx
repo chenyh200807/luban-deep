@@ -56,8 +56,26 @@ const SEV_COLOR: Record<string, string> = {
   low: SEMANTIC.neutral,
 }
 
-export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
+export function CommerceCockpit({
+  data,
+  loading = false,
+  error = '',
+}: {
+  data: BiCommerceData | null
+  loading?: boolean
+  error?: string
+}) {
+  if (!data) {
+    return (
+      <CockpitBg className="p-4 md:p-5">
+        <div className="flex min-h-32 items-center justify-center rounded-2xl border border-dashed border-white/10 text-sm text-slate-400">
+          {loading ? '正在读取账务快照' : error ? '账务口径暂不可确认' : '暂无账务快照'}
+        </div>
+      </CockpitBg>
+    )
+  }
   const s = data?.summary
+  const revenueConfirmed = s?.revenueStatus === 'confirmed_manual_partial'
   const ledger: ReadonlyArray<BiCommerceLedgerRow> = data?.ledger ?? []
   const packages: ReadonlyArray<BiCommercePackage> = data?.packages ?? []
   const recharges: ReadonlyArray<BiCommerceRechargeRecord> = data?.rechargeRecords ?? []
@@ -84,24 +102,36 @@ export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
 
       <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-3">
         <CockpitKpi
-          label="最近收入"
-          value={money(num(s?.recentRevenueCny))}
+          label="已确认近期实收"
+          value={revenueConfirmed ? money(num(s?.recentRevenueCny)) : '待确认'}
           tone="emerald"
           icon={<CreditCard className="h-4 w-4" />}
-          sub={`${fmt(num(s?.revenueCount))} 笔已入账`}
+          sub={
+            revenueConfirmed
+              ? `${fmt(num(s?.revenueCount))} 笔钱包账本已确认`
+              : s?.revenueStatus === 'authority_unavailable'
+                ? '钱包账本暂不可用'
+                : '存在充值事件，但缺少可核验金额'
+          }
         />
         <CockpitKpi
-          label="今日收入"
-          value={money(num(s?.todayRevenueCny))}
+          label="今日已确认实收"
+          value={revenueConfirmed ? money(num(s?.todayRevenueCny)) : '待确认'}
           tone="cyan"
           icon={<Wallet className="h-4 w-4" />}
         />
         <CockpitKpi
-          label="最新一笔"
-          value={money(num(s?.latestRevenueAmountCny))}
+          label="最新已确认实收"
+          value={revenueConfirmed ? money(num(s?.latestRevenueAmountCny)) : '待确认'}
           tone="gold"
           icon={<CreditCard className="h-4 w-4" />}
-          sub={s?.latestRevenueMemberId ? `会员 ${s.latestRevenueMemberId}` : '暂无收入'}
+          sub={
+            !revenueConfirmed
+              ? '线上支付订单 authority 尚未接入'
+              : s?.latestRevenueMemberId
+                ? `会员 ${s.latestRevenueMemberId}`
+                : '当前窗口无已确认人工实收'
+          }
         />
       </div>
 

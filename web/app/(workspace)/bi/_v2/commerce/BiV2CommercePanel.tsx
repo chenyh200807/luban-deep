@@ -359,7 +359,7 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
         </BiNotice>
       ) : null}
 
-      <CommerceCockpit data={data} />
+      <CommerceCockpit data={data} loading={loading} error={error} />
 
       <ManualMembershipPurchasePanel
         packages={activePackageRows}

@@ -7,7 +7,11 @@ from typing import Any
 
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, status
 
-from deeptutor.api.dependencies.auth import AuthContext, _has_metrics_token_access, resolve_auth_context
+from deeptutor.api.dependencies.auth import (
+    AuthContext,
+    _has_metrics_token_access,
+    resolve_auth_context,
+)
 from deeptutor.api.routers.member import (
     AccountMergeRequest,
     BatchActionRequest,
@@ -21,8 +25,8 @@ from deeptutor.api.routers.member import (
     RevokeRequest,
     UpdateRequest,
 )
-from deeptutor.services.config import get_env_store
 from deeptutor.services.bi_service import get_bi_service
+from deeptutor.services.config import get_env_store
 from deeptutor.services.member_console.service import get_member_console_service
 from deeptutor.services.observability import get_product_behavior_store
 from deeptutor.services.observability.product_behavior_catalog import (
@@ -532,6 +536,21 @@ async def bi_member_dashboard(
     return get_member_console_service().get_dashboard(days=days)
 
 
+async def _required_internal_account_snapshot() -> tuple[dict[str, Any], frozenset[str]]:
+    snapshot = await get_bi_service().get_internal_accounts_snapshot(limit=1)
+    if not snapshot.get("available"):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Internal-account authority unavailable; member overview scope cannot be confirmed",
+        )
+    exclusion_ids = frozenset(
+        str(user_id)
+        for user_id, state in snapshot.get("states", {}).items()
+        if isinstance(state, dict) and state.get("is_internal")
+    )
+    return snapshot, exclusion_ids
+
+
 @router.get("/member/list")
 async def bi_member_list(
     page: int = Query(1, ge=1),
@@ -557,7 +576,9 @@ async def bi_member_list(
     has_overlay_candidates: bool | None = None,
     _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ) -> dict[str, Any]:
-    return get_member_console_service().list_members(
+    _snapshot, exclusion_ids = await _required_internal_account_snapshot()
+    return await asyncio.to_thread(
+        get_member_console_service().list_members,
         page=page,
         page_size=page_size,
         sort=sort,
@@ -579,6 +600,7 @@ async def bi_member_list(
         behavior_cohort=behavior_cohort,
         has_heartbeat_job=has_heartbeat_job,
         has_overlay_candidates=has_overlay_candidates,
+        excluded_user_ids=exclusion_ids,
     )
 
 
@@ -608,7 +630,9 @@ async def bi_member_ops_overview(
     has_overlay_candidates: bool | None = None,
     _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ) -> dict[str, Any]:
-    return get_member_console_service().get_member_ops_overview(
+    internal_snapshot, exclusion_ids = await _required_internal_account_snapshot()
+    payload = await asyncio.to_thread(
+        get_member_console_service().get_member_ops_overview,
         days=days,
         page=page,
         page_size=page_size,
@@ -631,7 +655,18 @@ async def bi_member_ops_overview(
         behavior_cohort=behavior_cohort,
         has_heartbeat_job=has_heartbeat_job,
         has_overlay_candidates=has_overlay_candidates,
+        excluded_user_ids=exclusion_ids,
     )
+    payload["authority"] = {
+        **(payload.get("authority") if isinstance(payload.get("authority"), dict) else {}),
+        "internal_accounts": "bi_internal_accounts",
+        "internal_accounts_available": bool(internal_snapshot.get("available")),
+    }
+    payload["internal_accounts"] = {
+        "available": True,
+        "total_internal": internal_snapshot.get("total_internal"),
+    }
+    return payload
 
 
 @router.get("/member/packages")
@@ -1503,12 +1538,7 @@ async def bi_internal_accounts(
     auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ):
     """内部账号列表 + 完整审计流水（仅 member_ops view 及以上可访问）。"""
-    states, audit = await asyncio.gather(
-        get_bi_service().get_internal_account_states(),
-        get_bi_service().get_internal_account_audit_log(limit=limit),
-    )
-    internal_users = [v for v in states.values() if v.get("is_internal")]
-    return {"states": states, "internal_accounts": internal_users, "audit": audit, "total_internal": len(internal_users)}
+    return await get_bi_service().get_internal_accounts_snapshot(limit=limit)
 
 
 @router.post("/member/{user_id}/internal-account")

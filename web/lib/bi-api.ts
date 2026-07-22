@@ -308,6 +308,8 @@ export interface BiOverviewData {
   aiQuality?: BiAiQualityPayload
   unitEconomics?: BiUnitEconomicsPayload
   dataTrust?: BiDataTrustPayload
+  /** Active trend projected from the same server snapshot as the overview cards. */
+  activeTrend?: BiTrendPoint[]
   /** UsageLedger 逐日成本序列（成本日趋势图单源；reducer 透传，不再依赖 active-trend 的 cost） */
   dailyCostSeries?: BiBossDailyCostPoint[]
 }
@@ -599,6 +601,8 @@ export interface BiCommerceData {
     anomalyCount: number
     creditPoints: number
     debitPoints: number
+    revenueStatus: string
+    revenueScope: string
     revenueCny: number
     todayRevenueCny: number
     recentRevenueCny: number
@@ -1687,6 +1691,9 @@ function parseBiOverviewBundle(raw: unknown): BiOverviewBundle {
     aiQuality: normalizeAiQualityPayload(raw),
     unitEconomics: normalizeUnitEconomicsPayload(raw),
     dataTrust: normalizeDataTrustPayload(raw),
+    activeTrend: firstArray(firstRecord(raw, ['active_trend']), ['points']).map(
+      (item, index) => normalizeTrendPoint(item, `Day ${index + 1}`)
+    ),
     dailyCostSeries:
       normalizeBossDailyCost(asRecord(firstRecord(raw, ['boss_workbench', 'boss', 'workbench'])))
         ?.series ?? [],
@@ -2000,22 +2007,27 @@ export type BiInternalAccountState = {
 }
 
 export type BiInternalAccountsData = {
+  available: boolean
   states: Record<string, BiInternalAccountState>
   internal_accounts: BiInternalAccountState[]
   audit: BiInternalAccountState[]
-  total_internal: number
+  total_internal: number | null
 }
 
 export async function getBiInternalAccounts(limit = 200): Promise<BiInternalAccountsData> {
   const raw = unwrapPayload(await fetchBiJson('/api/v1/bi/member-ops/internal-accounts', { limit }))
   const record = asRecord(raw)
   return {
+    available: record.available === true,
     states: (asRecord(record.states) as Record<string, BiInternalAccountState>) ?? {},
     internal_accounts: (Array.isArray(record.internal_accounts)
       ? record.internal_accounts
       : []) as BiInternalAccountState[],
     audit: (Array.isArray(record.audit) ? record.audit : []) as BiInternalAccountState[],
-    total_internal: toNumber(record.total_internal, 0),
+    total_internal:
+      record.total_internal === null || record.total_internal === undefined
+        ? null
+        : toNumber(record.total_internal, 0),
   }
 }
 
@@ -2056,6 +2068,8 @@ export async function getBiCommerce(options: { limit?: number } = {}): Promise<B
       anomalyCount: toNumber(summary.anomaly_count ?? summary.anomalyCount, 0),
       creditPoints: toNumber(summary.credit_points ?? summary.creditPoints, 0),
       debitPoints: toNumber(summary.debit_points ?? summary.debitPoints, 0),
+      revenueStatus: toString(summary.revenue_status ?? summary.revenueStatus, ''),
+      revenueScope: toString(summary.revenue_scope ?? summary.revenueScope, ''),
       revenueCny: toNumber(summary.revenue_cny ?? summary.revenueCny, 0),
       todayRevenueCny: toNumber(summary.today_revenue_cny ?? summary.todayRevenueCny, 0),
       recentRevenueCny: toNumber(summary.recent_revenue_cny ?? summary.recentRevenueCny, 0),

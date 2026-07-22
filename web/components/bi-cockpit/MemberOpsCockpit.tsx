@@ -9,7 +9,7 @@ import { Activity, BarChart3, Gauge, HeartPulse, PieChart, Sparkles, Users } fro
 import type { MemberDashboard } from '@/lib/member-api'
 import { CockpitBar, CockpitDonut, CockpitGauge, type Datum } from './Charts'
 import { CockpitBg, CockpitKpi, CockpitPanel, SectionLabel } from './Layout'
-import { SEMANTIC, SERIES_COLORS } from './theme'
+import { SERIES_COLORS } from './theme'
 
 const num = (n: number | null | undefined) => (typeof n === 'number' && isFinite(n) ? n : 0)
 const fmt = (n: number) => num(n).toLocaleString()
@@ -22,8 +22,25 @@ function Empty({ mini = false }: { mini?: boolean }) {
   )
 }
 
-export function MemberOpsCockpit({ dashboard }: { dashboard: MemberDashboard | null }) {
+export function MemberOpsCockpit({
+  dashboard,
+  loading = false,
+  error = '',
+}: {
+  dashboard: MemberDashboard | null
+  loading?: boolean
+  error?: string
+}) {
   const d = dashboard
+  if (!d) {
+    return (
+      <CockpitBg className="p-4 md:p-5">
+        <div className="grid min-h-36 place-items-center rounded-xl border border-dashed border-white/10 px-4 text-center text-sm text-slate-400">
+          {loading ? '正在加载真实会员经营数据…' : error ? '会员经营数据暂不可用，请稍后刷新。' : '暂无会员经营数据。'}
+        </div>
+      </CockpitBg>
+    )
+  }
   const tier = (d?.tier_breakdown ?? []).map(t => ({ name: tierLabel(t.tier), value: num(t.count) })).filter(x => x.value > 0)
   const expiry = (d?.expiry_breakdown ?? []).map(e => ({ name: e.label, value: num(e.count) })).filter(x => x.value > 0)
 
@@ -31,14 +48,6 @@ export function MemberOpsCockpit({ dashboard }: { dashboard: MemberDashboard | n
   const active = num(d?.active_count)
   const expiring = num(d?.expiring_soon_count)
   const churn = num(d?.churn_risk_count)
-  const other = Math.max(0, total - active - expiring - churn)
-  const statusComp: Datum[] = [
-    { name: '活跃', value: active, color: SEMANTIC.positive },
-    { name: '即将到期', value: expiring, color: SEMANTIC.warning },
-    { name: '流失风险', value: churn, color: SEMANTIC.danger },
-    { name: '其它', value: other, color: SEMANTIC.neutral },
-  ].filter(x => x.value > 0)
-
   const bh = d?.behavior_health
   const behavior: Datum[] = bh
     ? [
@@ -64,26 +73,23 @@ export function MemberOpsCockpit({ dashboard }: { dashboard: MemberDashboard | n
 
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-9">
         <CockpitKpi label="会员总数" value={fmt(total)} tone="cyan" icon={<Users className="h-4 w-4" />} />
-        <CockpitKpi label="活跃" value={fmt(active)} tone="emerald" sub={total > 0 ? `${Math.round((active / total) * 100)}%` : undefined} />
+        <CockpitKpi label="权益有效" value={fmt(active)} tone="emerald" sub={total > 0 ? `${Math.round((active / total) * 100)}%` : undefined} />
         <CockpitKpi label="即将到期" value={fmt(expiring)} tone="amber" />
         <CockpitKpi label="今日新增" value={fmt(num(d?.new_today_count))} tone="teal" />
         <CockpitKpi label="近7天新增" value={fmt(num(d?.new_7d_count))} tone="sky" />
         <CockpitKpi label="近30天新增" value={fmt(num(d?.new_30d_count))} tone="violet" />
         <CockpitKpi label="流失风险" value={fmt(churn)} tone="rose" />
-        <CockpitKpi label="健康分" value={num(d?.health_score)} tone="violet" icon={<HeartPulse className="h-4 w-4" />} />
+        <CockpitKpi label="权益有效率" value={num(d?.health_score)} unit="%" tone="violet" icon={<HeartPulse className="h-4 w-4" />} />
         <CockpitKpi label="自动续费覆盖" value={num(d?.auto_renew_coverage)} unit="%" tone="gold" />
       </div>
 
       <SectionLabel icon={<PieChart className="h-4 w-4" />}>会员结构</SectionLabel>
-      <div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <CockpitPanel glow title="Tier 分布" icon={<PieChart className="h-4 w-4" />}>
           {tier.length ? <CockpitDonut data={tier} centerLabel="会员" centerValue={fmt(total)} /> : <Empty />}
         </CockpitPanel>
-        <CockpitPanel title="状态构成" hint="活跃 / 到期 / 风险" icon={<PieChart className="h-4 w-4" />}>
-          {statusComp.length ? <CockpitDonut data={statusComp} centerLabel="会员" centerValue={fmt(total)} /> : <Empty />}
-        </CockpitPanel>
-        <CockpitPanel title="会员健康分" icon={<Gauge className="h-4 w-4" />}>
-          <CockpitGauge value={num(d?.health_score)} label="健康分" suffix="" color={SERIES_COLORS[2]} />
+        <CockpitPanel title="权益有效率" hint="权益状态为有效的会员占比" icon={<Gauge className="h-4 w-4" />}>
+          <CockpitGauge value={num(d?.health_score)} label="权益有效率" suffix="%" color={SERIES_COLORS[2]} />
         </CockpitPanel>
       </div>
 
