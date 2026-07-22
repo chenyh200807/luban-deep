@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+import asyncio
+from collections import Counter, defaultdict
 import csv
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
 import io
 import json
 import logging
-import math
-import sqlite3
-import time
-from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import re
+import sqlite3
+import time
 from typing import Any
 
 from deeptutor.services.bi_metrics import BI_METRICS, metric_by_id
@@ -3775,6 +3775,13 @@ class BIService:
             "GET",
             params={"select": "user_id,is_internal,operator_id,reason,created_at", "order": "created_at.desc", "limit": "2000"},
         )
+        return self._internal_account_states_from_rows(rows)
+
+    @staticmethod
+    def _internal_account_states_from_rows(
+        rows: list[dict[str, Any]],
+    ) -> dict[str, dict[str, Any]]:
+        """Project latest per-user state from the descending audit ledger."""
         states: dict[str, dict[str, Any]] = {}
         for row in rows:
             uid = str(row.get("user_id") or "").strip()
@@ -3782,10 +3789,40 @@ class BIService:
                 states[uid] = row
         return states
 
+    def _load_internal_accounts_snapshot(self, *, limit: int) -> dict[str, Any]:
+        """Read the audit ledger once and derive both display projections.
+
+        ``bi_internal_accounts`` remains the only authority.  The current-state
+        map and the bounded audit list are two projections of the same ordered
+        response, so issuing separate remote reads only adds latency and can
+        expose internally inconsistent snapshots.
+        """
+        safe_limit = max(1, min(int(limit or 200), 1000))
+        rows = self._supabase_internal_accounts(
+            "GET",
+            params={"select": "*", "order": "created_at.desc", "limit": "2000"},
+        )
+        states = self._internal_account_states_from_rows(rows)
+        internal_users = [row for row in states.values() if row.get("is_internal")]
+        return {
+            "states": states,
+            "internal_accounts": internal_users,
+            "audit": rows[:safe_limit],
+            "total_internal": len(internal_users),
+        }
+
+    async def get_internal_accounts_snapshot(self, *, limit: int = 200) -> dict[str, Any]:
+        """Non-blocking endpoint projection from one remote ledger read."""
+        try:
+            return await asyncio.to_thread(self._load_internal_accounts_snapshot, limit=limit)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("get_internal_accounts_snapshot failed: %s", exc)
+            return {"states": {}, "internal_accounts": [], "audit": [], "total_internal": 0}
+
     async def get_internal_account_states(self) -> dict[str, dict[str, Any]]:
         """当前各 user_id 的内部账号状态（取每个 user_id 最新一条记录）。"""
         try:
-            return self._load_internal_account_states()
+            return await asyncio.to_thread(self._load_internal_account_states)
         except Exception as exc:  # noqa: BLE001
             logger.warning("get_internal_account_states failed: %s", exc)
             return {}
@@ -3836,19 +3873,22 @@ class BIService:
         if len(rsn) < 5:
             raise ValueError("reason must be at least 5 characters")
         try:
-            rows = self._supabase_internal_accounts(
+            rows = await asyncio.to_thread(
+                self._supabase_internal_accounts,
                 "POST",
                 body={"user_id": uid, "is_internal": bool(is_internal), "operator_id": op, "reason": rsn},
             )
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError(f"mark_internal_account failed: {exc}") from exc
+        self._internal_exclusion_cache = None
         return rows[0] if rows else {"user_id": uid, "is_internal": bool(is_internal), "operator_id": op, "reason": rsn}
 
     async def get_internal_account_audit_log(self, *, limit: int = 200) -> list[dict[str, Any]]:
         """所有内部账号标记/取消记录，按时间倒序（用于审计）。"""
         safe_limit = max(1, min(int(limit or 200), 1000))
         try:
-            return self._supabase_internal_accounts(
+            return await asyncio.to_thread(
+                self._supabase_internal_accounts,
                 "GET",
                 params={"select": "*", "order": "created_at.desc", "limit": str(safe_limit)},
             )

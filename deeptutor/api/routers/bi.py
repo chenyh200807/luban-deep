@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-import asyncio
 from datetime import date
 import re
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, status
 
-from deeptutor.api.dependencies.auth import AuthContext, _has_metrics_token_access, resolve_auth_context
+from deeptutor.api.dependencies.auth import (
+    AuthContext,
+    _has_metrics_token_access,
+    resolve_auth_context,
+)
 from deeptutor.api.routers.member import (
     AccountMergeRequest,
     BatchActionRequest,
@@ -21,8 +24,8 @@ from deeptutor.api.routers.member import (
     RevokeRequest,
     UpdateRequest,
 )
-from deeptutor.services.config import get_env_store
 from deeptutor.services.bi_service import get_bi_service
+from deeptutor.services.config import get_env_store
 from deeptutor.services.member_console.service import get_member_console_service
 from deeptutor.services.observability import get_product_behavior_store
 from deeptutor.services.observability.product_behavior_catalog import (
@@ -1503,12 +1506,7 @@ async def bi_internal_accounts(
     auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ):
     """内部账号列表 + 完整审计流水（仅 member_ops view 及以上可访问）。"""
-    states, audit = await asyncio.gather(
-        get_bi_service().get_internal_account_states(),
-        get_bi_service().get_internal_account_audit_log(limit=limit),
-    )
-    internal_users = [v for v in states.values() if v.get("is_internal")]
-    return {"states": states, "internal_accounts": internal_users, "audit": audit, "total_internal": len(internal_users)}
+    return await get_bi_service().get_internal_accounts_snapshot(limit=limit)
 
 
 @router.post("/member/{user_id}/internal-account")
