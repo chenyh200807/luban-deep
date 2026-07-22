@@ -40,11 +40,17 @@ def test_learning_preference_endpoint_shapes_and_excludes_demo(tmp_path: Path) -
           event_name="retest_item_answered", module="practice", action="complete", result="correct")
     _seed(store, event_id="p2", user_id="u-real", object_type="variant", object_id="var-2",
           event_name="retest_item_answered", module="practice", action="complete", result="incorrect")
+    # 模块触达只认真实 module_viewed，不把答题/退出等任意事件冒充页面触达。
+    _seed(store, event_id="lv1", user_id="u-real", object_type="station", object_id="F16",
+          event_name="module_viewed", module="learning", action="view")
+    _seed(store, event_id="pv1", user_id="u-real", object_type="practice_home", object_id="practice",
+          event_name="module_viewed", module="practice", action="view")
     # demo/eval cohort：应被默认口径排除
     _seed(store, event_id="d1", user_id="eval_demo", object_type="microlesson", object_id="F16:tp1:1")
 
     prod = asyncio.run(bi.bi_learning_preference(days=7, include_demo=False, limit=12, _auth=None))
-    assert prod["completion_source"] == "dwell"
+    assert prod["completion_source"] == "page_dwell"
+    assert prod["time_source"] == "page_dwell"
     assert prod["demo_included"] is False
     # 全模块偏好("产品功能偏好")：真实用户的 learning/practice 模块应出现
     demo_all = asyncio.run(bi.bi_learning_preference(days=7, include_demo=True, limit=12, _auth=None))
@@ -56,6 +62,7 @@ def test_learning_preference_endpoint_shapes_and_excludes_demo(tmp_path: Path) -
     content = prod["content_top"]
     assert content and content[0]["key"] == "F16:tp1:1"
     assert content[0]["member_count"] == 1
+    assert content[0]["display_label"].startswith("未识别微课")
     # 练习量 + 正确率
     assert prod["practice"]["answered_count"] == 2
     assert prod["practice"]["correct_count"] == 1
@@ -105,6 +112,9 @@ def test_content_dwell_attributes_to_microlesson_from_module_exited(tmp_path: Pa
     result = asyncio.run(bi.bi_learning_preference(days=7, include_demo=True, limit=12, _auth=None))
     micro = [r for r in result["content_top"] if r["key"] == "F16:tp:1"]
     assert micro and micro[0]["avg_dwell_ms"] == 60000
+    assert micro[0]["total_dwell_ms"] == 60000
+    assert micro[0]["dwell_event_count"] == 1
+    assert micro[0]["display_label"] == "微课｜屋面防水起鼓割补 · 完整讲解"
 
 
 def test_member_engagement_endpoint_scopes_to_one_user(tmp_path: Path) -> None:
@@ -125,3 +135,22 @@ def test_member_engagement_endpoint_scopes_to_one_user(tmp_path: Path) -> None:
     # u-b 的事件不应污染 u-a 的明细
     for row in result["content_breakdown"]:
         assert row["member_count"] == 1
+        assert row["display_label"]
+        assert row["display_context"].startswith("微信小程序")
+
+
+def test_member_engagement_returns_every_content_row_without_top_100_truncation(tmp_path: Path) -> None:
+    store = reset_product_behavior_store(tmp_path / "behavior.db")
+    for index in range(105):
+        _seed(
+            store,
+            event_id=f"content-{index}",
+            user_id="u-many",
+            object_type="concept_card",
+            object_id=f"card-{index}",
+            visit_id=f"visit-{index}",
+        )
+
+    result = asyncio.run(bi.bi_member_engagement(user_id="u-many", days=30, _auth=None))
+
+    assert len(result["content_breakdown"]) == 105

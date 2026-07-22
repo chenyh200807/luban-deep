@@ -584,6 +584,7 @@ class SQLiteProductBehaviorStore:
         user_ids: Sequence[str] | None = None,
         exclude_user_ids: Sequence[str] | None = None,
         exclude_user_id_prefixes: Sequence[str] | None = None,
+        order_by: str = "member_count",
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         """学习模块偏好计划 §6-P1 的单一参数化 object 级聚合（泛化自 section breakdown）。
@@ -634,11 +635,13 @@ class SQLiteProductBehaviorStore:
         where.append(f"{dim} != ''")
 
         sql = f"""
-            select {dim} as k, object_type, user_id, visit_id, result,
-                   visible_ms, duration_ms, count(*) as event_count
+            select {dim} as k, object_type, user_id, visit_id, event_name, action, result, error_code,
+                   visible_ms, duration_ms, count(*) as event_count,
+                   max(occurred_at_ms) as last_event_at_ms
             from product_behavior_events
             where {' and '.join(where)}
-            group by {dim}, object_type, user_id, visit_id, result, visible_ms, duration_ms
+            group by {dim}, object_type, user_id, visit_id, event_name, action, result, error_code,
+                     visible_ms, duration_ms
         """
         with self._connect() as conn:
             rows = conn.execute(sql, tuple(params)).fetchall()
@@ -654,11 +657,20 @@ class SQLiteProductBehaviorStore:
                     "object_types": {},
                     "members": set(),
                     "visits": set(),
+                    "_meaningful_visits_by_user": {},
                     "event_count": 0,
+                    "view_count": 0,
+                    "start_count": 0,
+                    "selection_count": 0,
+                    "content_open_count": 0,
+                    "completion_count": 0,
+                    "exit_count": 0,
+                    "error_count": 0,
                     "answered_count": 0,
                     "correct_count": 0,
                     "_dwell_sum": 0,
                     "_dwell_n": 0,
+                    "_last_event_at_ms": 0,
                 },
             )
             object_type = str(row["object_type"] or "")
@@ -671,6 +683,40 @@ class SQLiteProductBehaviorStore:
                 if visit_id:
                     bucket["visits"].add((user_id, visit_id))
             bucket["event_count"] += event_count
+            event_name = str(row["event_name"] or "")
+            if event_name == "module_viewed":
+                bucket["view_count"] += event_count
+            elif event_name == "learning_action_started":
+                bucket["start_count"] += event_count
+                action = str(row["action"] or "")
+                if action == "open_detail":
+                    bucket["selection_count"] += event_count
+                elif action == "start_training":
+                    bucket["content_open_count"] += event_count
+            meaningful = (
+                (dim == "module" and event_name == "module_viewed")
+                or (dim != "module" and event_name == "module_viewed" and object_type == "station")
+                or (
+                    dim != "module"
+                    and event_name == "learning_action_started"
+                    and (object_type != "microlesson" or str(row["action"] or "") == "start_training")
+                )
+            )
+            if meaningful and user_id and visit_id:
+                bucket["_meaningful_visits_by_user"].setdefault(user_id, set()).add(visit_id)
+            elif event_name == "learning_action_completed":
+                bucket["completion_count"] += event_count
+            elif event_name == "module_exited":
+                bucket["exit_count"] += event_count
+            if (
+                event_name == "event_error"
+                or str(row["result"] or "") in {"error", "fail", "failed"}
+                or bool(str(row["error_code"] or "").strip())
+            ):
+                bucket["error_count"] += event_count
+            bucket["_last_event_at_ms"] = max(
+                bucket["_last_event_at_ms"], int(row["last_event_at_ms"] or 0)
+            )
             result = str(row["result"] or "")
             if result in {"correct", "incorrect"}:
                 bucket["answered_count"] += event_count
@@ -684,25 +730,67 @@ class SQLiteProductBehaviorStore:
         breakdown: list[dict[str, Any]] = []
         for bucket in buckets.values():
             member_count = len(bucket["members"])
+            meaningful_visits = bucket["_meaningful_visits_by_user"]
+            engaged_member_count = len(meaningful_visits)
+            meaningful_visit_count = sum(len(visits) for visits in meaningful_visits.values())
+            repeat_user_count = sum(1 for visits in meaningful_visits.values() if len(visits) >= 2)
             answered = bucket["answered_count"]
             dominant_type = ""
             if bucket["object_types"]:
                 dominant_type = max(bucket["object_types"].items(), key=lambda kv: kv[1])[0]
+            engagement_count = (
+                bucket["content_open_count"]
+                if dominant_type == "microlesson"
+                else bucket["start_count"] or bucket["view_count"]
+            )
             breakdown.append(
                 {
                     "key": bucket["key"],
                     "object_type": dominant_type,
                     "member_count": member_count,
                     "visit_count": len(bucket["visits"]),
+                    "engaged_member_count": engaged_member_count,
+                    "meaningful_visit_count": meaningful_visit_count,
+                    "repeat_user_count": repeat_user_count,
+                    "repeat_user_rate": (
+                        round(repeat_user_count / engaged_member_count, 4)
+                        if engaged_member_count
+                        else None
+                    ),
                     "event_count": bucket["event_count"],
+                    "view_count": bucket["view_count"],
+                    "start_count": bucket["start_count"],
+                    "selection_count": bucket["selection_count"],
+                    "content_open_count": bucket["content_open_count"],
+                    "completion_count": bucket["completion_count"],
+                    "exit_count": bucket["exit_count"],
+                    "error_count": bucket["error_count"],
+                    "engagement_count": engagement_count,
                     "answered_count": answered,
                     "correct_count": bucket["correct_count"],
                     "accuracy": round(bucket["correct_count"] / answered, 4) if answered else None,
+                    # 旧客户端兼容字段；它只是原始事件密度，不得再解释为复看率。
                     "repeat_rate": round(bucket["event_count"] / member_count, 4) if member_count else 0.0,
+                    "raw_event_density": round(bucket["event_count"] / member_count, 4) if member_count else 0.0,
+                    "total_dwell_ms": bucket["_dwell_sum"],
                     "avg_dwell_ms": int(bucket["_dwell_sum"] / bucket["_dwell_n"]) if bucket["_dwell_n"] else 0,
+                    "dwell_event_count": bucket["_dwell_n"],
+                    "last_event_at_ms": bucket["_last_event_at_ms"],
                 }
             )
-        breakdown.sort(key=lambda item: (item["member_count"], item["event_count"]), reverse=True)
+        allowed_order = {
+            "member_count",
+            "event_count",
+            "engagement_count",
+            "view_count",
+            "start_count",
+            "content_open_count",
+        }
+        order_key = order_by if order_by in allowed_order else "member_count"
+        breakdown.sort(
+            key=lambda item: (item[order_key], item["member_count"], item["event_count"]),
+            reverse=True,
+        )
         return breakdown[: max(1, int(limit))] if limit else breakdown
 
     def get_member_timeline_for_identity_group(

@@ -33,6 +33,9 @@ from deeptutor.services.observability.product_behavior_catalog import (
     LEARNING_CONTENT_OBJECT_TYPES,
     LEARNING_MODULE_OBJECT_TYPES,
 )
+from deeptutor.services.observability.product_behavior_projection import (
+    project_product_behavior_rows,
+)
 
 # demo/eval cohort 账号前缀（AGENTS Eval Runner Identity 单一口径）；学习偏好看板默认排除,
 # 防合成演示数据污染生产真值（计划 §6-P4 红线）。
@@ -204,7 +207,7 @@ async def bi_learning_preference(
 
     单一数据权威 = product_behavior_store.get_engagement_breakdown（一个参数化聚合的多个 group_dim）；
     薄 handler 只组装/转发，不碰受保护的 member_console/service.py。
-    完播率架构不可采（web-view 沙箱，计划 §5），改用停留时长 → completion_source='dwell'。
+    当前仅可采页面驻留，不能冒充播放器实际播放或完播 → time_source='page_dwell'。
     include_demo=False 时按 eval cohort 前缀排除合成数据（生产真值口径）。
     """
     store = get_product_behavior_store()
@@ -218,9 +221,11 @@ async def bi_learning_preference(
     # 全模块偏好（"产品功能偏好"总览）：按 module 聚合**所有**被监测模块
     # (chat/learning/practice/first_run/assessment/history/notebook/learning_report/profile…)，
     # 触达×深度一眼看哪个产品模块最受欢迎。login 是鉴权噪音，排除。
-    module_preference = [
-        row for row in breakdown(group_dim="module", limit=30) if row["key"] != "login"
-    ]
+    module_preference = project_product_behavior_rows(
+        row
+        for row in breakdown(group_dim="module", event_names=["module_viewed"], limit=30)
+        if row["key"] != "login"
+    )
     # 子模块兴趣（学习模块内部，触达×深度题眼）：过滤到学习 object_type，否则被 login/chat 碾压。
     submodule_interest = breakdown(
         group_dim="object_type",
@@ -235,10 +240,13 @@ async def bi_learning_preference(
         limit=20,
     )
     # 内容复看 Top（"哪几个微课/考点讲解被反复看"）。
-    content_top = breakdown(
-        group_dim="object_id",
-        object_types=sorted(LEARNING_CONTENT_OBJECT_TYPES),
-        limit=limit,
+    content_top = project_product_behavior_rows(
+        breakdown(
+            group_dim="object_id",
+            object_types=sorted(LEARNING_CONTENT_OBJECT_TYPES),
+            order_by="engagement_count",
+            limit=limit,
+        )
     )
     # 功能偏好（学习驾驶舱"哪些功能被点得多"）：只认 learning_action_started，排除
     # module_viewed(view)/module_exited(return) 生命周期动作，否则"浏览/返回"混进功能榜。
@@ -257,7 +265,9 @@ async def bi_learning_preference(
     return {
         "days": days,
         "demo_included": bool(include_demo),
-        "completion_source": "dwell",
+        # completion_source 为旧客户端兼容别名；值也明确为 page_dwell，禁止再解释成完播。
+        "completion_source": "page_dwell",
+        "time_source": "page_dwell",
         "module_preference": module_preference,
         "submodule_interest": submodule_interest,
         "content_top": content_top,
@@ -292,9 +302,13 @@ async def bi_member_engagement(
         return store.get_engagement_breakdown(days=days, user_ids=[user_id], **kwargs)
 
     # 每个模块点了多少次（"A 用户每个模块都点击了多少次"，最直接的诉求）。
-    module_breakdown = [row for row in breakdown(group_dim="module", limit=30) if row["key"] != "login"]
+    module_breakdown = project_product_behavior_rows(
+        row for row in breakdown(group_dim="module", limit=30) if row["key"] != "login"
+    )
     # 每个具体内容/对象点了多少次（哪个微课/考点卡/考点站被这个人点了几次）。
-    content_breakdown = breakdown(group_dim="object_id", limit=30)
+    content_breakdown = project_product_behavior_rows(
+        breakdown(group_dim="object_id", order_by="engagement_count", limit=0)
+    )
     # 每类动作点了多少次（学习驾驶舱功能偏好，收窄到这个人）。
     action_breakdown = breakdown(group_dim="action", module="learning", event_names=["learning_action_started"], limit=20)
 
