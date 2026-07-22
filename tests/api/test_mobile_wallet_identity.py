@@ -107,19 +107,6 @@ def test_billing_wallet_prefers_canonical_uid_claim(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(mobile_module.member_service, "get_wallet", _fake_get_wallet)
     monkeypatch.setattr(
         mobile_module.member_service,
-        "list_membership_packages",
-        lambda: [
-            {
-                "id": "starter_19",
-                "price": "19",
-                "points": 800,
-                "turns": 40,
-                "teaching_video_limit": 30,
-            }
-        ],
-    )
-    monkeypatch.setattr(
-        mobile_module.member_service,
         "get_billing_entitlement_read_model",
         _fake_get_billing_entitlement,
     )
@@ -132,15 +119,6 @@ def test_billing_wallet_prefers_canonical_uid_claim(monkeypatch: pytest.MonkeyPa
     assert response.json()["balance"] == 360
     assert response.json()["balance_micros"] == 360_000_000
     assert response.json()["points"] == 360
-    assert response.json()["packages"] == [
-        {
-            "id": "starter_19",
-            "price": "19",
-            "points": 800,
-            "turns": 40,
-            "teaching_video_limit": 30,
-        }
-    ]
     # 有效 vip 会员 → 教学视频无限(JSON null)
     assert "teaching_video_limit" in response.json()
     assert response.json()["teaching_video_limit"] is None
@@ -1008,3 +986,43 @@ def test_billing_wallet_teaching_video_limit_active_starter_is_30(
 
     assert response.status_code == 200
     assert response.json()["teaching_video_limit"] == 30
+
+
+def test_billing_wallet_projects_persisted_package_catalog(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package = {
+        "id": "starter_19",
+        "price": "19",
+        "points": 800,
+        "turns": 40,
+        "teaching_video_limit": 30,
+    }
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "verify_access_token",
+        lambda _token: {"uid": "user_demo", "canonical_uid": "user_demo"},
+    )
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_demo")
+    monkeypatch.setattr(mobile_module.member_service, "list_membership_packages", lambda: [package])
+    monkeypatch.setattr(mobile_module.member_service, "get_teaching_video_limit", lambda _user_id: 30)
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return _FakeWalletSnapshot(user_id=user_id, balance_micros=400_000_000, version=1)
+
+        @staticmethod
+        def list_wallet_ledger(_user_id: str, *, limit: int = 20, offset: int = 0):
+            del limit, offset
+            return []
+
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    assert response.json()["packages"] == [package]

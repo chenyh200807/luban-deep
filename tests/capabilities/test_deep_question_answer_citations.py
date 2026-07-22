@@ -170,8 +170,8 @@ async def test_deep_question_post_submit_result_appends_citations(monkeypatch: p
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     response = result_event.metadata["response"]
-    assert response == "双扇防火门应按顺序关闭。〔1〕\n\n关闭顺序是本题的采分关键。〔2〕"
-    assert "〔1〕" in response
+    assert response == "双扇防火门应按顺序关闭。\n\n关闭顺序是本题的采分关键。"
+    assert "〔1〕" not in response
     assert "依据" not in response
     assert result_event.metadata["citation_bundle"]["footer_text"].startswith("依据\n〔1〕建筑防火门规范考点")
     assert result_event.metadata["citation_bundle"]["citation_state"] in {"supported", "partial"}
@@ -257,7 +257,8 @@ async def test_deep_question_followup_result_uses_question_context_evidence_refs
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     response = result_event.metadata["response"]
     bundle = result_event.metadata["citation_bundle"]
-    assert "建筑物由结构体系、围护体系和设备体系组成。〔1〕" in response
+    assert response == "建筑物由结构体系、围护体系和设备体系组成。"
+    assert "〔1〕" not in response
     assert bundle["refs"][0]["title"] == "2026 建筑实务教材：建筑物的构成"
     assert "建筑工程设计技术" in bundle["refs"][0]["locator"]
     assert bundle["refs"][0]["source_span"]["page"] == "2"

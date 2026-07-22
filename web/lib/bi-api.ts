@@ -42,7 +42,6 @@ export interface BiBossDailyCostPoint {
   costUsd: number
   tokens: number
   turns: number
-  teachingVideoLimit: number | null
 }
 
 export interface BiBossDailyCost {
@@ -538,6 +537,7 @@ export interface BiCommercePackage {
   tier: string
   points: number
   turns: number
+  teachingVideoLimit: number | null
   priceCny: number
   originalPriceCny: number
   badge: string
