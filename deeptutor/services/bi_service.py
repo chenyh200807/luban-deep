@@ -196,6 +196,11 @@ class BIService:
         return self._usage_ledger.get_window_summary(**kwargs)
 
     @staticmethod
+    def _has_complete_usage_linkage(turn_ids: set[str], totals: dict[str, Any]) -> bool:
+        """A cohort cost is publishable only when every terminal turn is linked."""
+        return not turn_ids or _safe_int(totals.get("linked_turns")) == len(turn_ids)
+
+    @staticmethod
     def _window_start(days: int) -> float:
         safe_days = max(1, min(int(days or 30), 365))
         return time.time() - (safe_days * 86400)
@@ -1474,19 +1479,24 @@ class BIService:
             self._resolve_entrypoint(session["preferences"]) for session in context.sessions
         )
 
-        business_turn_ids = {
+        terminal_business_turn_ids = {
             str(turn.get("id") or "").strip()
             for turn in context.turns
             if str(turn.get("id") or "").strip()
+            and str(turn.get("status") or "") != "running"
         }
-        usage_summary = self._usage_window_summary(days, turn_ids=business_turn_ids)
+        usage_summary = self._usage_window_summary(days, turn_ids=terminal_business_turn_ids)
         platform_usage_summary = self._usage_window_summary(days)
         usage_totals = usage_summary.get("totals") or {}
         platform_usage_totals = platform_usage_summary.get("totals") or {}
         total_tokens = _safe_int(usage_totals.get("total_tokens"))
+        usage_linkage_complete = self._has_complete_usage_linkage(
+            terminal_business_turn_ids,
+            usage_totals,
+        )
         total_cost_raw = usage_totals.get("total_cost_usd")
         total_cost = _safe_float(total_cost_raw) if total_cost_raw is not None else None
-        if business_turn_ids and _safe_int(usage_totals.get("linked_turns")) == 0:
+        if not usage_linkage_complete:
             total_cost = None
         success_turns = sum(1 for turn in context.turns if turn.get("status") == "completed")
         avg_depth = self._average([_safe_int(session.get("message_count")) for session in context.sessions])
@@ -1535,9 +1545,12 @@ class BIService:
         revenue_summary = commerce.get("summary") or {}
         cost_quality = evaluate_calibration(load_calibration(self._cost_calibration_path()))
         daily_cost = self._build_daily_cost_payload(context, usage_summary, days=days)
-        if business_turn_ids and _safe_int(usage_totals.get("linked_turns")) == 0:
+        if not usage_linkage_complete:
             daily_cost["today_usd"] = None
             daily_cost["window_total_usd"] = None
+            daily_cost["average_daily_usd"] = None
+            for point in daily_cost.get("series") or []:
+                point["cost_usd"] = None
             daily_cost["status"] = "insufficient_turn_linkage"
 
         risk_alerts = []
@@ -1563,20 +1576,24 @@ class BIService:
             "measured_total_cost_usd": (
                 _round(_safe_float(usage_totals.get("measured_total_cost_usd")), 4)
                 if usage_totals.get("measured_total_cost_usd") is not None
-                and (not business_turn_ids or _safe_int(usage_totals.get("linked_turns")) > 0)
+                and usage_linkage_complete
                 else None
             ),
             "estimated_total_cost_usd": (
                 _round(_safe_float(usage_totals.get("estimated_total_cost_usd")), 4)
                 if usage_totals.get("estimated_total_cost_usd") is not None
-                and (not business_turn_ids or _safe_int(usage_totals.get("linked_turns")) > 0)
+                and usage_linkage_complete
                 else None
             ),
             "cost_provenance": "usage_ledger",
-            "cost_scope": "registered_member_turn_ids",
+            "cost_scope": "registered_member_terminal_turn_ids",
+            "terminal_business_turns": len(terminal_business_turn_ids),
             "usage_linked_turns": _safe_int(usage_totals.get("linked_turns")),
+            "usage_linkage_complete": usage_linkage_complete,
             "usage_turn_coverage": _round(
-                _safe_int(usage_totals.get("linked_turns")) / max(len(context.turns), 1), 4
+                _safe_int(usage_totals.get("linked_turns"))
+                / max(len(terminal_business_turn_ids), 1),
+                4,
             ),
             "platform_cost_by_currency": dict(platform_usage_totals.get("currency_amounts") or {}),
             "platform_total_tokens": _safe_int(platform_usage_totals.get("total_tokens")),
@@ -1803,7 +1820,6 @@ class BIService:
             await self._load_business_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
-        event_by_turn = {event["turn_id"]: event for event in context.result_events}
         grouped: dict[str, dict[str, Any]] = defaultdict(
             lambda: {
                 "capability": "",
@@ -1811,8 +1827,7 @@ class BIService:
                 "completed_turns": 0,
                 "failed_turns": 0,
                 "running_turns": 0,
-                "total_tokens": 0,
-                "total_cost_usd": 0.0,
+                "terminal_turn_ids": set(),
                 "latency_ms_samples": [],
                 "entrypoints": Counter(),
             }
@@ -1830,6 +1845,10 @@ class BIService:
                 group["failed_turns"] += 1
             elif status == "running":
                 group["running_turns"] += 1
+            else:
+                group["terminal_turn_ids"].add(str(turn.get("id") or ""))
+            if status in {"completed", "failed", "cancelled"}:
+                group["terminal_turn_ids"].add(str(turn.get("id") or ""))
 
             created_at = _safe_float(turn.get("created_at"))
             finished_at = _safe_float(turn.get("finished_at"))
@@ -1837,12 +1856,23 @@ class BIService:
                 group["latency_ms_samples"].append((finished_at - created_at) * 1000)
 
             group["entrypoints"][self._resolve_entrypoint(turn["preferences"])] += 1
-            cost_summary = (event_by_turn.get(turn["id"]) or {}).get("cost_summary") or {}
-            group["total_tokens"] += _safe_int(cost_summary.get("total_tokens"))
-            group["total_cost_usd"] += _safe_float(cost_summary.get("total_cost_usd"))
-
         items = []
         for capability, group in grouped.items():
+            usage_totals = (
+                self._usage_window_summary(
+                    days,
+                    turn_ids={value for value in group["terminal_turn_ids"] if value},
+                ).get("totals")
+                or {}
+            )
+            raw_cost = usage_totals.get("total_cost_usd")
+            total_cost = _safe_float(raw_cost) if raw_cost is not None else None
+            linkage_complete = self._has_complete_usage_linkage(
+                group["terminal_turn_ids"],
+                usage_totals,
+            )
+            if not linkage_complete:
+                total_cost = None
             items.append(
                 {
                     "capability": capability,
@@ -1854,10 +1884,23 @@ class BIService:
                     "running_turns": group["running_turns"],
                     "success_rate": _round(group["completed_turns"] / max(group["turns"], 1) * 100, 1),
                     "avg_latency_ms": _round(self._average(group["latency_ms_samples"]), 1),
-                    "total_tokens": group["total_tokens"],
-                    "total_cost_usd": _round(group["total_cost_usd"], 4),
+                    "total_tokens": _safe_int(usage_totals.get("total_tokens")),
+                    "total_cost_usd": _round(total_cost, 4) if total_cost is not None else None,
+                    "cost_provenance": "usage_ledger_by_terminal_turn_ids",
+                    "cost_currency_status": usage_totals.get("cost_currency_status"),
+                    "usage_linkage_complete": linkage_complete,
+                    "currency_amounts": dict(usage_totals.get("currency_amounts") or {}),
+                    "usage_turn_coverage": _round(
+                        _safe_int(usage_totals.get("linked_turns"))
+                        / max(len(group["terminal_turn_ids"]), 1),
+                        4,
+                    ),
                     "hint": f"成功率 {_round(group['completed_turns'] / max(group['turns'], 1) * 100, 1)}% · 均耗时 {_round(self._average(group['latency_ms_samples']), 1)}ms",
-                    "secondary": f"成本 ${_round(group['total_cost_usd'], 4)}",
+                    "secondary": (
+                        f"成本 ${_round(total_cost, 4)}"
+                        if total_cost is not None
+                        else "成本证据不足"
+                    ),
                     "entrypoints": [
                         {"entrypoint": name, "count": count}
                         for name, count in group["entrypoints"].most_common()
@@ -1883,7 +1926,11 @@ class BIService:
             await self._load_business_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
-        result_by_turn = {event["turn_id"]: event for event in context.result_events}
+        terminal_context_turn_ids = {
+            str(turn.get("id") or "")
+            for turn in context.turns
+            if str(turn.get("status") or "") != "running"
+        }
         grouped: dict[str, dict[str, Any]] = defaultdict(
             lambda: {
                 "tool_name": "",
@@ -1892,8 +1939,6 @@ class BIService:
                 "turn_ids": set(),
                 "capabilities": Counter(),
                 "entrypoints": Counter(),
-                "total_cost_usd": 0.0,
-                "total_tokens": 0,
             }
         )
 
@@ -1912,15 +1957,19 @@ class BIService:
             group["capabilities"][str(event.get("capability") or "chat")] += 1
             group["entrypoints"][self._resolve_entrypoint(event["preferences"])] += 1
 
-        for tool_name, group in grouped.items():
-            for turn_id in group["turn_ids"]:
-                cost_summary = (result_by_turn.get(turn_id) or {}).get("cost_summary") or {}
-                group["total_cost_usd"] += _safe_float(cost_summary.get("total_cost_usd"))
-                group["total_tokens"] += _safe_int(cost_summary.get("total_tokens"))
-
         items = []
         for _, group in grouped.items():
             turn_count = len(group["turn_ids"])
+            scoped_turn_ids = set(group["turn_ids"]) & terminal_context_turn_ids
+            usage_totals = (
+                self._usage_window_summary(days, turn_ids=scoped_turn_ids).get("totals") or {}
+            )
+            raw_cost = usage_totals.get("total_cost_usd")
+            total_cost = _safe_float(raw_cost) if raw_cost is not None else None
+            linkage_complete = self._has_complete_usage_linkage(scoped_turn_ids, usage_totals)
+            if not linkage_complete:
+                total_cost = None
+            avg_cost = total_cost / len(scoped_turn_ids) if total_cost is not None and scoped_turn_ids else None
             items.append(
                 {
                     "tool_name": group["tool_name"],
@@ -1930,10 +1979,21 @@ class BIService:
                     "result_events": group["result_events"],
                     "turns_with_tool": turn_count,
                     "success_rate": _round(group["result_events"] / max(group["calls"], 1) * 100, 1),
-                    "avg_cost_per_turn_usd": _round(group["total_cost_usd"] / max(turn_count, 1), 4),
-                    "avg_tokens_per_turn": _round(group["total_tokens"] / max(turn_count, 1), 1),
+                    "avg_cost_per_turn_usd": _round(avg_cost, 4) if avg_cost is not None else None,
+                    "avg_tokens_per_turn": _round(
+                        _safe_int(usage_totals.get("total_tokens")) / max(len(scoped_turn_ids), 1),
+                        1,
+                    ),
+                    "cost_provenance": "usage_ledger_by_terminal_turn_ids",
+                    "cost_currency_status": usage_totals.get("cost_currency_status"),
+                    "usage_linkage_complete": linkage_complete,
+                    "currency_amounts": dict(usage_totals.get("currency_amounts") or {}),
                     "hint": f"成功率 {_round(group['result_events'] / max(group['calls'], 1) * 100, 1)}%",
-                    "secondary": f"均成本 ${_round(group['total_cost_usd'] / max(turn_count, 1), 4)}",
+                    "secondary": (
+                        f"均成本 ${_round(avg_cost, 4)}"
+                        if avg_cost is not None
+                        else "成本证据不足"
+                    ),
                     "capabilities": [
                         {"capability": name, "count": count}
                         for name, count in group["capabilities"].most_common()
@@ -2499,21 +2559,26 @@ class BIService:
         platform_totals = platform_usage_summary.get("totals") or {}
         total_cost_raw = totals.get("total_cost_usd")
         total_cost = _safe_float(total_cost_raw) if total_cost_raw is not None else None
-        if terminal_turn_ids and _safe_int(totals.get("linked_turns")) == 0:
+        usage_linkage_complete = self._has_complete_usage_linkage(terminal_turn_ids, totals)
+        if not usage_linkage_complete:
             total_cost = None
         total_tokens = _safe_int(totals.get("total_tokens"))
         measured_raw = totals.get("measured_total_cost_usd")
         measured_cost = _safe_float(measured_raw) if measured_raw is not None else None
         estimated_raw = totals.get("estimated_total_cost_usd")
         estimated_cost = _safe_float(estimated_raw) if estimated_raw is not None else None
-        if terminal_turn_ids and _safe_int(totals.get("linked_turns")) == 0:
+        if not usage_linkage_complete:
             measured_cost = None
             estimated_cost = None
         currency_status = str(totals.get("cost_currency_status") or "unknown_currency")
         cost_hint = (
             f"最近 {days} 天 · measured ${_round(measured_cost, 4)} / estimated ${_round(estimated_cost, 4)}"
             if total_cost is not None
-            else f"最近 {days} 天 · 币种口径不可合并（{currency_status}）"
+            else (
+                f"最近 {days} 天 · turn_id 关联不完整，成本不可用"
+                if not usage_linkage_complete
+                else f"最近 {days} 天 · 币种口径不可合并（{currency_status}）"
+            )
         )
 
         cards = [
@@ -2550,11 +2615,19 @@ class BIService:
         models = []
         for row in usage_summary.get("by_model") or []:
             raw_cost = row.get("total_cost_usd")
-            numeric_cost = _safe_float(raw_cost) if raw_cost is not None else None
+            numeric_cost = (
+                _safe_float(raw_cost)
+                if raw_cost is not None and usage_linkage_complete
+                else None
+            )
             model_name = str(row.get("model") or "unknown")
             row_currency = str(row.get("cost_currency") or "").upper()
             native_cost_raw = (row.get("currency_amounts") or {}).get(row_currency)
-            native_cost = _safe_float(native_cost_raw) if native_cost_raw is not None else None
+            native_cost = (
+                _safe_float(native_cost_raw)
+                if native_cost_raw is not None and usage_linkage_complete
+                else None
+            )
             models.append({
                 "label": row.get("model") or "unknown",
                 "value": _round(numeric_cost, 4) if numeric_cost is not None else None,
@@ -2584,7 +2657,7 @@ class BIService:
                 "label": row.get("usage_source") or "unknown",
                 "value": (
                     _round(_safe_float(row.get("total_cost_usd")), 4)
-                    if row.get("total_cost_usd") is not None
+                    if row.get("total_cost_usd") is not None and usage_linkage_complete
                     else None
                 ),
                 "events": _safe_int(row.get("events")),
@@ -2609,6 +2682,7 @@ class BIService:
             "business_turn_count": len(context.turns),
             "terminal_business_turn_count": len(terminal_turn_ids),
             "business_turns_with_usage": _safe_int(totals.get("linked_turns")),
+            "business_turn_usage_complete": usage_linkage_complete,
             "business_turn_usage_coverage": _round(
                 _safe_int(totals.get("linked_turns")) / max(len(terminal_turn_ids), 1), 4
             ),
@@ -3489,18 +3563,26 @@ class BIService:
             "trust": "C",
         }
 
-    def _load_commerce_wallet_ledger_rows(self, *, limit: int) -> tuple[str, list[dict[str, Any]], str]:
+    def _load_commerce_wallet_ledger_rows(
+        self, *, limit: int
+    ) -> tuple[str, list[dict[str, Any]], str, bool]:
         if not bool(getattr(self._wallet_service, "is_configured", False)):
-            return "unconfigured", [], "Supabase wallet service is not configured"
+            return "unconfigured", [], "Supabase wallet service is not configured", False
         list_recent = getattr(self._wallet_service, "list_recent_wallet_ledger", None)
         if not callable(list_recent):
-            return "unsupported", [], "Wallet service has no global recent-ledger reader"
+            return "unsupported", [], "Wallet service has no global recent-ledger reader", False
         try:
-            entries = list_recent(limit=limit, offset=0)
+            entries = list(list_recent(limit=limit + 1, offset=0))
         except Exception as exc:
             logger.warning("Failed to load commerce wallet_ledger rows", exc_info=True)
-            return "error", [], self._safe_exception_summary(exc)
-        return "ok", [self._serialize_wallet_commerce_ledger_entry(entry) for entry in entries], ""
+            return "error", [], self._safe_exception_summary(exc), False
+        truncated = len(entries) > limit
+        return (
+            "ok",
+            [self._serialize_wallet_commerce_ledger_entry(entry) for entry in entries[:limit]],
+            "",
+            truncated,
+        )
 
     @staticmethod
     def _safe_exception_summary(exc: Exception) -> str:
@@ -3731,7 +3813,7 @@ class BIService:
                 operator_confirmed_count += 1
             else:
                 unclassified_settlement_count += 1
-        revenue_status = "confirmed_manual_partial"
+        revenue_status = "empty" if not revenue_rows else "confirmed_manual_partial"
         if provider_settled_count:
             revenue_status = "confirmed_settlement_partial"
         if has_unpriced_recharge or unclassified_settlement_count:
@@ -3837,9 +3919,12 @@ class BIService:
             if self._is_registered_member(item)
         ]
         package_authority, packages = self._load_commerce_packages(members)
-        wallet_status, wallet_rows, wallet_error = self._load_commerce_wallet_ledger_rows(
-            limit=safe_limit,
-        )
+        (
+            wallet_status,
+            wallet_rows,
+            wallet_error,
+            wallet_truncated,
+        ) = self._load_commerce_wallet_ledger_rows(limit=safe_limit)
         legacy_rows = []
         if wallet_status != "ok" or not wallet_rows:
             legacy_rows = self._load_commerce_legacy_ledger_rows(
@@ -3872,6 +3957,15 @@ class BIService:
         revenue_summary = self._build_commerce_revenue_summary(revenue_evidence_rows)
         if wallet_status != "ok":
             revenue_summary["revenue_status"] = "authority_unavailable"
+        elif wallet_truncated:
+            revenue_summary["revenue_status"] = "insufficient_evidence"
+        revenue_summary.update(
+            {
+                "evidence_scope": "latest_wallet_ledger_slice",
+                "evidence_limit": safe_limit,
+                "evidence_truncated": wallet_truncated,
+            }
+        )
         paid_member_ids = {
             user_id
             for row in recharge_rows
@@ -3895,6 +3989,10 @@ class BIService:
         warnings = []
         if wallet_status != "ok":
             warnings.append(f"wallet_ledger status={wallet_status}: {wallet_error or 'unavailable'}")
+        if wallet_truncated:
+            warnings.append(
+                f"wallet_ledger 超过最近 {safe_limit} 条证据窗口；收入只表示该切片，禁止解释为全量收入。"
+            )
         if not wallet_rows and legacy_rows:
             warnings.append("当前使用 member_console legacy ledger 兜底；正式财务对账以 wallet_ledger 为 A 级 authority。")
         if non_recharge_credit_count:

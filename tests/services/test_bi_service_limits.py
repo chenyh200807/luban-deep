@@ -535,7 +535,7 @@ def test_commerce_does_not_present_unknown_recharge_amount_as_zero(
         wallet_service=_SignupBonusWalletService(),
     )
     service._load_commerce_wallet_ledger_rows = (  # type: ignore[method-assign]
-        lambda *, limit: ("ok", [unknown_amount_row], "")
+        lambda *, limit: ("ok", [unknown_amount_row], "", False)
     )
 
     payload = asyncio.run(service.get_commerce(limit=10))
@@ -543,6 +543,44 @@ def test_commerce_does_not_present_unknown_recharge_amount_as_zero(
     assert payload["summary"]["revenue_status"] == "insufficient_evidence"
     assert payload["summary"]["revenue_count"] == 0
     assert payload["summary"]["revenue_cny"] == 0
+
+
+def test_commerce_empty_and_truncated_revenue_evidence_fail_closed(
+    store: SQLiteSessionStore,
+) -> None:
+    assert BIService._build_commerce_revenue_summary([])["revenue_status"] == "empty"
+    service = BIService(
+        session_store=store,
+        member_service=_CommerceMemberService(),
+        wallet_service=_SignupBonusWalletService(),
+    )
+    purchase_row = {
+        "id": "purchase_truncated",
+        "user_id": "member_paid_today",
+        "kind": "credit",
+        "event_type": "grant",
+        "amount": 9000,
+        "reference_type": "purchase",
+        "reference_id": "purchase_truncated",
+        "idempotency_key": "purchase:manual:truncated",
+        "effective_at": "2026-07-22T10:00:00+08:00",
+        "metadata": {
+            "channel": "manual_membership",
+            "amount_cny": 198,
+            "settlement_authority": "operator_attestation",
+        },
+        "authority": "wallet_ledger",
+    }
+    service._load_commerce_wallet_ledger_rows = (  # type: ignore[method-assign]
+        lambda *, limit: ("ok", [purchase_row], "", True)
+    )
+
+    payload = asyncio.run(service.get_commerce(limit=10))
+
+    assert payload["summary"]["revenue_status"] == "insufficient_evidence"
+    assert payload["summary"]["evidence_truncated"] is True
+    assert payload["summary"]["evidence_scope"] == "latest_wallet_ledger_slice"
+    assert any("禁止解释为全量收入" in warning for warning in payload["warnings"])
     assert payload["summary"]["recharge_count"] == 1
 
 
@@ -584,7 +622,7 @@ def test_commerce_retains_reversal_rows_in_integrated_revenue_summary(
         wallet_service=_SignupBonusWalletService(),
     )
     service._load_commerce_wallet_ledger_rows = (  # type: ignore[method-assign]
-        lambda *, limit: ("ok", rows, "")
+        lambda *, limit: ("ok", rows, "", False)
     )
 
     payload = asyncio.run(service.get_commerce(limit=10))
@@ -1037,10 +1075,14 @@ def test_business_bi_endpoints_share_registered_turn_scope(
             "result_events": 1,
             "turns_with_tool": 1,
             "success_rate": 100.0,
-            "avg_cost_per_turn_usd": 0.25,
-            "avg_tokens_per_turn": 100.0,
+            "avg_cost_per_turn_usd": None,
+            "avg_tokens_per_turn": 0.0,
+            "cost_provenance": "usage_ledger_by_terminal_turn_ids",
+            "cost_currency_status": "empty",
+            "usage_linkage_complete": False,
+            "currency_amounts": {},
             "hint": "成功率 100.0%",
-            "secondary": "均成本 $0.25",
+            "secondary": "成本证据不足",
             "capabilities": [{"capability": "chat", "count": 2}],
             "entrypoints": [{"entrypoint": "wx_miniprogram", "count": 2}],
         }
@@ -1170,6 +1212,8 @@ def test_cost_and_capability_share_registered_turn_scope(
 
     assert overview["summary"]["total_turns"] == 1
     assert sum(item["turns"] for item in capabilities["items"]) == 1
+    assert capabilities["items"][0]["total_cost_usd"] == 0.25
+    assert capabilities["items"][0]["cost_provenance"] == "usage_ledger_by_terminal_turn_ids"
     assert costs["business_turn_count"] == 1
     assert costs["business_turns_with_usage"] == 1
     assert total_cost_card["value"] == 0.25
@@ -1177,6 +1221,79 @@ def test_cost_and_capability_share_registered_turn_scope(
     assert costs["business_scope"]["currency_amounts"] == {"USD": 0.25}
     assert costs["platform_scope"]["currency_amounts"] == {"USD": 16.95}
     assert overview["summary"]["total_cost_usd"] == 0.25
+
+
+def test_partial_turn_linkage_fails_closed_across_business_cost_surfaces(
+    store: SQLiteSessionStore, tmp_path: Path
+) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "partial_usage.db")
+    service = BIService(
+        session_store=store,
+        member_service=_RegisteredMemberService(),
+        usage_ledger=ledger,
+    )
+
+    async def _seed() -> list[str]:
+        turn_ids = []
+        for index in range(2):
+            session = await store.create_session(
+                title=f"partial-{index}",
+                session_id=f"partial-{index}",
+            )
+            await store.update_session_preferences(
+                session["id"],
+                {"user_id": "member_1", "source": "wx_miniprogram"},
+            )
+            turn = await store.create_turn(session["id"], capability="chat")
+            await store.append_turn_event(
+                turn["id"],
+                {"type": "tool_call", "content": "rag", "metadata": {"args": {}}},
+            )
+            await store.append_turn_event(
+                turn["id"],
+                {"type": "tool_result", "metadata": {"tool": "rag"}},
+            )
+            await store.update_turn_status(turn["id"], "completed")
+            turn_ids.append(turn["id"])
+        return turn_ids
+
+    turn_ids = asyncio.run(_seed())
+    ledger.record_usage_event(
+        usage_source="provider",
+        usage_details={"input": 100, "output": 50, "total": 150},
+        cost_details={"total": 0.25, "currency": "USD"},
+        model="deepseek-v4-flash",
+        metadata={"provider_name": "dashscope", "billing_currency": "USD"},
+        turn_id=turn_ids[0],
+    )
+
+    overview = asyncio.run(service.get_overview(days=7))
+    capabilities = asyncio.run(service.get_capability_stats(days=7))
+    tools = asyncio.run(service.get_tool_stats(days=7))
+    costs = asyncio.run(service.get_cost_stats(days=7))
+
+    assert overview["summary"]["usage_turn_coverage"] == 0.5
+    assert overview["summary"]["usage_linkage_complete"] is False
+    assert overview["summary"]["total_cost_usd"] is None
+    assert overview["summary"]["measured_total_cost_usd"] is None
+    assert overview["boss_workbench"]["daily_cost"]["window_total_usd"] is None
+    assert all(
+        point["cost_usd"] is None
+        for point in overview["boss_workbench"]["daily_cost"]["series"]
+    )
+    assert capabilities["items"][0]["usage_turn_coverage"] == 0.5
+    assert capabilities["items"][0]["usage_linkage_complete"] is False
+    assert capabilities["items"][0]["total_cost_usd"] is None
+    assert tools["items"][0]["usage_linkage_complete"] is False
+    assert tools["items"][0]["avg_cost_per_turn_usd"] is None
+    assert costs["business_turn_usage_coverage"] == 0.5
+    assert costs["business_turn_usage_complete"] is False
+    assert next(card for card in costs["cards"] if card["label"] == "总成本")["value"] is None
+    assert next(card for card in costs["cards"] if card["label"] == "平均回合成本")[
+        "value"
+    ] is None
+    assert all(item["value"] is None for item in costs["models"])
+    assert all(item["value"] is None for item in costs["providers"])
 
 
 def test_north_star_does_not_count_empty_registered_member_sessions(
