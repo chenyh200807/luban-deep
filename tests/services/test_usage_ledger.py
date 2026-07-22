@@ -218,7 +218,7 @@ def test_usage_ledger_window_summary_breaks_down_by_model_and_source(tmp_path) -
     ledger.record_usage_event(
         usage_source="provider",
         usage_details={"input": 100.0, "output": 50.0, "total": 150.0},
-        cost_details={"total": 0.10},
+        cost_details={"total": 0.10, "currency": "USD"},
         model="deepseek-v4-flash",
         metadata={"provider_name": "dashscope"},
         turn_id="t1",
@@ -226,7 +226,7 @@ def test_usage_ledger_window_summary_breaks_down_by_model_and_source(tmp_path) -
     ledger.record_usage_event(
         usage_source="provider",
         usage_details={"input": 200.0, "output": 0.0, "total": 200.0},
-        cost_details={"total": 0.05},
+        cost_details={"total": 0.05, "currency": "USD"},
         model="gte-rerank",
         metadata={"provider_name": "dashscope"},
         turn_id="t2",
@@ -234,7 +234,7 @@ def test_usage_ledger_window_summary_breaks_down_by_model_and_source(tmp_path) -
     ledger.record_usage_event(
         usage_source="tiktoken",
         usage_details={"input": 30.0, "output": 10.0, "total": 40.0},
-        cost_details={"total": 0.02},
+        cost_details={"total": 0.02, "currency": "USD"},
         model="deepseek-v4-flash",
         metadata={"provider_name": "dashscope"},
         turn_id="t1",
@@ -264,3 +264,74 @@ def test_usage_ledger_window_summary_empty_window(tmp_path) -> None:
     assert summary["totals"]["total_cost_usd"] == 0.0
     assert summary["by_model"] == []
     assert summary["by_usage_source"] == []
+
+
+def test_usage_ledger_mixed_currency_does_not_fabricate_usd_scalar(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+    for model, amount, currency in (("usd-model", 1.0, "USD"), ("cny-model", 1.0, "CNY")):
+        ledger.record_usage_event(
+            usage_source="provider",
+            usage_details={"total": 10.0},
+            cost_details={"total": amount, "currency": currency},
+            model=model,
+            metadata={"provider_name": "dashscope"},
+        )
+
+    totals = ledger.get_totals(start_ts=0, end_ts=9_999_999_999).to_dict()
+    assert totals["total_cost_usd"] is None
+    assert totals["cost_currency_status"] == "mixed_currency"
+    assert totals["currency_amounts"] == {"USD": 1.0, "CNY": 1.0}
+
+
+def test_usage_ledger_unknown_currency_does_not_default_to_usd(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+    ledger.record_usage_event(
+        usage_source="provider",
+        usage_details={"total": 10.0},
+        cost_details={"total": 2.0},
+        model="unknown-currency-model",
+        metadata={"provider_name": "dashscope"},
+    )
+
+    totals = ledger.get_totals(start_ts=0, end_ts=9_999_999_999).to_dict()
+    assert totals["total_cost_usd"] is None
+    assert totals["cost_currency_status"] == "unknown_currency"
+    assert totals["unknown_currency_amount"] == 2.0
+
+
+def test_usage_ledger_single_cny_preserves_amount_without_usd_label(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+    ledger.record_usage_event(
+        usage_source="provider",
+        usage_details={"total": 10.0},
+        cost_details={"total": 3.0, "currency": "CNY"},
+        model="cny-model",
+        metadata={"provider_name": "dashscope"},
+    )
+
+    totals = ledger.get_totals(start_ts=0, end_ts=9_999_999_999).to_dict()
+    assert totals["total_cost_usd"] is None
+    assert totals["cost_currency_status"] == "single_currency"
+    assert totals["cost_currency"] == "CNY"
+    assert totals["currency_amounts"] == {"CNY": 3.0}
+
+
+def test_usage_window_summary_can_match_provider_account_scope(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+    for provider, currency in (("dashscope", "CNY"), ("deepseek", "USD")):
+        ledger.record_usage_event(
+            usage_source="provider",
+            usage_details={"total": 10.0},
+            cost_details={"total": 1.0, "currency": currency},
+            model="shared-model",
+            metadata={"provider_name": provider},
+        )
+
+    summary = ledger.get_window_summary(
+        start_ts=0,
+        end_ts=9_999_999_999,
+        provider_name="dashscope",
+    )
+    assert summary["totals"]["currency_amounts"] == {"CNY": 1.0}
+    assert summary["by_model"][0]["currency_amounts"] == {"CNY": 1.0}
+    assert summary["by_model"][0]["total_tokens"] == 10

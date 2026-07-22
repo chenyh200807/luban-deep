@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 import importlib
 from pathlib import Path
 import sqlite3
@@ -567,7 +567,7 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
             )()
 
     class _FakeUsageLedger:
-        def get_window_summary(self, *, start_ts, end_ts):
+        def get_window_summary(self, *, start_ts, end_ts, provider_name=None):
             return {
                 "totals": {
                     "input_tokens": 90000,
@@ -1895,6 +1895,11 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert reconciliation_body["system_global_bailian"]["total_tokens"] == 1720
         assert reconciliation_body["system_global_bailian"]["estimated_total_cost_usd"] == 0.0058
         assert reconciliation_body["reconciliation"]["billing_cycle"] == billing_cycle
+        cycle_start, cycle_end = bi_service._billing_cycle_bounds(billing_cycle)
+        assert reconciliation_body["time_range"] == {
+            "start_ts": cycle_start,
+            "end_ts": cycle_end,
+        }
         assert reconciliation_body["reconciliation"]["billing_scope_system_cost_usd"] == 0.0181
         assert reconciliation_body["reconciliation"]["token_delta"] == 540
         assert reconciliation_body["reconciliation"]["cost_delta_usd"] == 0.01558
@@ -2015,6 +2020,22 @@ def test_bi_cost_stats_reads_usage_ledger_authority(bi_service: BIService) -> No
     assert models["deepseek-v4-flash"] == 5.0
     providers = {row["label"]: row["value"] for row in payload["providers"]}
     assert providers["provider"] == 2.44
+
+
+def test_cost_calibration_refresh_fails_closed_without_exact_account_currency_scope(
+    bi_service: BIService,
+) -> None:
+    payload = asyncio.run(
+        bi_service.refresh_cost_calibration(
+            billing_cycle="2026-06",
+            generated_at=datetime.now(timezone.utc).isoformat(),
+        )
+    )
+
+    assert payload["scope"]["status"] == "insufficient_evidence"
+    assert payload["scope"]["official_token_scope_status"] == "insufficient_evidence"
+    assert payload["global"]["token_coverage_status"] == "insufficient_evidence"
+    assert payload["applicability"]["applicable"] is False
 
 
 def test_bi_overview_cost_matches_cost_endpoint_single_authority(bi_service: BIService) -> None:

@@ -31,6 +31,27 @@ def _as_str(value: Any) -> str:
     return str(value or "").strip()
 
 
+def _currency_status(
+    currency_amounts: dict[str, float], *, unknown_amount: float = 0.0
+) -> tuple[str, str]:
+    currencies = sorted(
+        currency for currency, amount in currency_amounts.items() if _safe_float(amount) != 0.0
+    )
+    if _safe_float(unknown_amount) != 0.0:
+        return "unknown_currency", ""
+    if not currencies:
+        return "empty", ""
+    if len(currencies) == 1:
+        return "single_currency", currencies[0]
+    return "mixed_currency", ""
+
+
+def _usd_scalar(value: float, *, status: str, currency: str) -> float | None:
+    if status == "empty" or (status == "single_currency" and currency == "USD"):
+        return round(float(value or 0.0), 8)
+    return None
+
+
 @dataclass(slots=True)
 class UsageLedgerTotals:
     measured_input_tokens: int = 0
@@ -47,7 +68,8 @@ class UsageLedgerTotals:
     billable_turns: int = 0
     metadata_breakdown: dict[str, int] = field(default_factory=dict)
     currency_amounts: dict[str, float] = field(default_factory=dict)
-    provider_amounts: dict[str, float] = field(default_factory=dict)
+    unknown_currency_amount: float = 0.0
+    provider_amounts: dict[str, dict[str, float]] = field(default_factory=dict)
     cost_center_amounts: dict[str, dict[str, float]] = field(default_factory=dict)
     coverage_start_ts: float | None = None
     coverage_end_ts: float | None = None
@@ -75,19 +97,29 @@ class UsageLedgerTotals:
         return round(float(self.provider_calls) / float(self.billable_turns), 4)
 
     def to_dict(self) -> dict[str, Any]:
+        currency_status, currency = _currency_status(
+            self.currency_amounts,
+            unknown_amount=self.unknown_currency_amount,
+        )
         return {
             "input_tokens": int(self.input_tokens),
             "output_tokens": int(self.output_tokens),
             "total_tokens": int(self.total_tokens),
-            "total_cost_usd": round(float(self.total_cost or 0.0), 8),
+            "total_cost_usd": _usd_scalar(
+                self.total_cost, status=currency_status, currency=currency
+            ),
             "measured_input_tokens": int(self.measured_input_tokens),
             "measured_output_tokens": int(self.measured_output_tokens),
             "measured_total_tokens": int(self.measured_total_tokens),
-            "measured_total_cost_usd": round(float(self.measured_total_cost or 0.0), 8),
+            "measured_total_cost_usd": _usd_scalar(
+                self.measured_total_cost, status=currency_status, currency=currency
+            ),
             "estimated_input_tokens": int(self.estimated_input_tokens),
             "estimated_output_tokens": int(self.estimated_output_tokens),
             "estimated_total_tokens": int(self.estimated_total_tokens),
-            "estimated_total_cost_usd": round(float(self.estimated_total_cost or 0.0), 8),
+            "estimated_total_cost_usd": _usd_scalar(
+                self.estimated_total_cost, status=currency_status, currency=currency
+            ),
             "events": int(self.events),
             "provider_calls": int(self.provider_calls),
             "unattributed_provider_calls": int(self.unattributed_provider_calls),
@@ -98,9 +130,15 @@ class UsageLedgerTotals:
                 key: round(float(value or 0.0), 8)
                 for key, value in self.currency_amounts.items()
             },
+            "cost_currency_status": currency_status,
+            "cost_currency": currency or None,
+            "unknown_currency_amount": round(float(self.unknown_currency_amount or 0.0), 8),
             "provider_amounts": {
-                key: round(float(value or 0.0), 8)
-                for key, value in self.provider_amounts.items()
+                provider: {
+                    currency_key: round(float(amount or 0.0), 8)
+                    for currency_key, amount in amounts.items()
+                }
+                for provider, amounts in self.provider_amounts.items()
             },
             "cost_center_amounts": {
                 center: {
@@ -420,22 +458,38 @@ class UsageLedger:
                     totals.currency_amounts.get(currency, 0.0) + amount
                 )
                 provider = _as_str(row["provider_name"]) or "unknown"
-                totals.provider_amounts[provider] = (
-                    totals.provider_amounts.get(provider, 0.0) + amount
-                )
+                provider_amounts = totals.provider_amounts.setdefault(provider, {})
+                provider_amounts[currency] = provider_amounts.get(currency, 0.0) + amount
                 if row_cost_center:
                     center_amounts = totals.cost_center_amounts.setdefault(row_cost_center, {})
                     center_amounts[currency] = center_amounts.get(currency, 0.0) + amount
+            elif amount:
+                totals.unknown_currency_amount += amount
 
         totals.billable_turns = len(billable_turn_ids)
         return totals
 
-    def get_window_summary(self, *, start_ts: float, end_ts: float) -> dict[str, Any]:
+    def get_window_summary(
+        self,
+        *,
+        start_ts: float,
+        end_ts: float,
+        provider_name: str | None = None,
+    ) -> dict[str, Any]:
         """窗口聚合：totals（measured/estimated 分列）+ by_model + by_usage_source。
 
         BI 成本读数的唯一权威入口（P2 收权，2026-06-12）。
         """
-        totals = self.get_totals(start_ts=start_ts, end_ts=end_ts)
+        totals = self.get_totals(
+            start_ts=start_ts,
+            end_ts=end_ts,
+            provider_name=provider_name,
+        )
+        where_sql = "created_at >= ? AND created_at <= ?"
+        params: list[Any] = [float(start_ts), float(end_ts)]
+        if provider_name:
+            where_sql += " AND provider_name = ?"
+            params.append(_as_str(provider_name))
 
         group_sql = """
             SELECT
@@ -445,32 +499,110 @@ class UsageLedger:
                 SUM(measured_total_cost) AS measured_cost,
                 SUM(estimated_total_cost) AS estimated_cost
             FROM llm_usage_events
-            WHERE created_at >= ? AND created_at <= ?
+            WHERE {where_sql}
             GROUP BY {column}
             ORDER BY SUM(measured_total_cost + estimated_total_cost) DESC, COUNT(*) DESC
         """
         with self._connect() as conn:
             model_rows = conn.execute(
-                group_sql.format(column="model"), (float(start_ts), float(end_ts))
+                group_sql.format(column="model", where_sql=where_sql), params
             ).fetchall()
             source_rows = conn.execute(
-                group_sql.format(column="usage_source"), (float(start_ts), float(end_ts))
+                group_sql.format(column="usage_source", where_sql=where_sql), params
             ).fetchall()
             day_rows = conn.execute(
-                group_sql.format(column="date(created_at, 'unixepoch', 'localtime')"),
-                (float(start_ts), float(end_ts)),
+                group_sql.format(
+                    column="date(created_at, 'unixepoch', 'localtime')",
+                    where_sql=where_sql,
+                ),
+                params,
             ).fetchall()
+            currency_rows = conn.execute(
+                f"""
+                SELECT
+                    model,
+                    usage_source,
+                    date(created_at, 'unixepoch', 'localtime') AS day_key,
+                    measured_total_cost,
+                    estimated_total_cost,
+                    metadata_json
+                FROM llm_usage_events
+                WHERE {where_sql}
+                """,
+                params,
+            ).fetchall()
+
+        currency_grains: dict[str, dict[str, dict[str, Any]]] = {
+            "model": {},
+            "usage_source": {},
+            "date": {},
+        }
+        for row in currency_rows:
+            try:
+                metadata = json.loads(row["metadata_json"] or "{}")
+            except json.JSONDecodeError:
+                metadata = {}
+            if not isinstance(metadata, dict):
+                metadata = {}
+            cost_payload = metadata.get("cost_details")
+            if not isinstance(cost_payload, dict):
+                cost_payload = {}
+            currency = _as_str(
+                metadata.get("billing_currency")
+                or metadata.get("pricing_currency")
+                or cost_payload.get("currency")
+            ).upper()
+            measured = _safe_float(row["measured_total_cost"])
+            estimated = _safe_float(row["estimated_total_cost"])
+            for dimension, raw_key in (
+                ("model", row["model"]),
+                ("usage_source", row["usage_source"]),
+                ("date", row["day_key"]),
+            ):
+                key = _as_str(raw_key) or "unknown"
+                grain = currency_grains[dimension].setdefault(
+                    key,
+                    {"amounts": {}, "unknown": 0.0},
+                )
+                if currency:
+                    grain["amounts"][currency] = (
+                        grain["amounts"].get(currency, 0.0) + measured + estimated
+                    )
+                else:
+                    grain["unknown"] += measured + estimated
 
         def _group_payload(row: Any, key_name: str) -> dict[str, Any]:
             measured = _safe_float(row["measured_cost"])
             estimated = _safe_float(row["estimated_cost"])
+            group_key = _as_str(row["group_key"]) or "unknown"
+            grain = currency_grains[key_name].get(
+                group_key, {"amounts": {}, "unknown": measured + estimated}
+            )
+            amounts = {
+                currency: round(float(amount or 0.0), 8)
+                for currency, amount in grain["amounts"].items()
+                if _safe_float(amount) != 0.0
+            }
+            status, currency = _currency_status(
+                amounts, unknown_amount=_safe_float(grain["unknown"])
+            )
             return {
-                key_name: _as_str(row["group_key"]) or "unknown",
+                key_name: group_key,
                 "events": _safe_int(row["events"]),
                 "total_tokens": _safe_int(row["total_tokens"]),
-                "measured_total_cost_usd": round(measured, 8),
-                "estimated_total_cost_usd": round(estimated, 8),
-                "total_cost_usd": round(measured + estimated, 8),
+                "measured_total_cost_usd": _usd_scalar(
+                    measured, status=status, currency=currency
+                ),
+                "estimated_total_cost_usd": _usd_scalar(
+                    estimated, status=status, currency=currency
+                ),
+                "total_cost_usd": _usd_scalar(
+                    measured + estimated, status=status, currency=currency
+                ),
+                "currency_amounts": amounts,
+                "cost_currency_status": status,
+                "cost_currency": currency or None,
+                "unknown_currency_amount": round(_safe_float(grain["unknown"]), 8),
             }
 
         by_day = sorted(

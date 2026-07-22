@@ -34,8 +34,10 @@ from deeptutor.services.observability import (
     get_usage_ledger,
 )
 from deeptutor.services.observability.cost_calibration import (
+    CALIBRATION_SNAPSHOT_VERSION,
     apply_calibration,
     compute_calibration,
+    evaluate_calibration,
     factor_map,
     load_calibration,
     save_calibration,
@@ -568,13 +570,17 @@ class BIService:
                 "cost_usd": 0.0,
                 "tokens": 0,
                 "turns": 0,
+                "cost_available": True,
             }
 
         for row in usage_summary.get("by_day") or []:
             key = str(row.get("date") or "")
             if key not in buckets:
                 continue
-            buckets[key]["cost_usd"] += _safe_float(row.get("total_cost_usd"))
+            if row.get("total_cost_usd") is None:
+                buckets[key]["cost_available"] = False
+            else:
+                buckets[key]["cost_usd"] += _safe_float(row.get("total_cost_usd"))
             buckets[key]["tokens"] += _safe_int(row.get("total_tokens"))
 
         for turn in context.turns:
@@ -586,20 +592,29 @@ class BIService:
             {
                 "date": item["date"],
                 "label": item["label"],
-                "cost_usd": _round(item["cost_usd"], 4),
+                "cost_usd": _round(item["cost_usd"], 4) if item["cost_available"] else None,
                 "tokens": item["tokens"],
                 "turns": item["turns"],
             }
             for item in buckets.values()
         ]
         today_key = today.date().isoformat()
-        window_total = sum(item["cost_usd"] for item in series)
+        cost_available = all(item["cost_usd"] is not None for item in series)
+        window_total = sum(item["cost_usd"] for item in series) if cost_available else None
+        today_bucket = buckets.get(today_key, {})
         return {
-            "today_usd": _round(buckets.get(today_key, {}).get("cost_usd", 0.0), 4),
-            "window_total_usd": _round(window_total, 4),
-            "average_daily_usd": _round(window_total / window_days, 4),
+            "today_usd": (
+                _round(today_bucket.get("cost_usd", 0.0), 4)
+                if today_bucket.get("cost_available", True)
+                else None
+            ),
+            "window_total_usd": _round(window_total, 4) if window_total is not None else None,
+            "average_daily_usd": (
+                _round(window_total / window_days, 4) if window_total is not None else None
+            ),
             "series": series,
             "source": "usage_ledger",
+            "cost_status": "ok" if cost_available else "insufficient_evidence",
         }
 
     @staticmethod
@@ -945,17 +960,24 @@ class BIService:
     ) -> dict[str, Any]:
         metric = cls._metric_definition_payload("cost_per_effective_learning")
         effective_members = _safe_int(summary.get("active_learners"))
-        window_cost = _safe_float(daily_cost.get("window_total_usd"))
-        cost_per_effective = window_cost / effective_members if effective_members else 0.0
+        window_cost_raw = daily_cost.get("window_total_usd")
+        window_cost = _safe_float(window_cost_raw) if window_cost_raw is not None else None
+        cost_per_effective = (
+            window_cost / effective_members
+            if window_cost is not None and effective_members
+            else None
+        )
         return {
             **metric,
-            "value": _round(cost_per_effective, 4),
+            "value": _round(cost_per_effective, 4) if cost_per_effective is not None else None,
             "revenue_status": str(revenue_summary.get("revenue_status") or "authority_unavailable"),
             "revenue_scope": str(revenue_summary.get("revenue_scope") or ""),
             "revenue_cny": revenue_summary.get("revenue_cny"),
             "summary": "收入只采用 wallet ledger 中有结算证据的净额；订单漏斗仍待独立 payment-order authority。",
-            "window_total_cost_usd": _round(window_cost, 4),
-            "cost_per_effective_learning_usd": _round(cost_per_effective, 4),
+            "window_total_cost_usd": _round(window_cost, 4) if window_cost is not None else None,
+            "cost_per_effective_learning_usd": (
+                _round(cost_per_effective, 4) if cost_per_effective is not None else None
+            ),
             "source": daily_cost.get("source") or "usage_ledger",
         }
 
@@ -1435,7 +1457,8 @@ class BIService:
         usage_summary = self._usage_window_summary(days)
         usage_totals = usage_summary.get("totals") or {}
         total_tokens = _safe_int(usage_totals.get("total_tokens"))
-        total_cost = _safe_float(usage_totals.get("total_cost_usd"))
+        total_cost_raw = usage_totals.get("total_cost_usd")
+        total_cost = _safe_float(total_cost_raw) if total_cost_raw is not None else None
         success_turns = sum(1 for turn in context.turns if turn.get("status") == "completed")
         avg_depth = self._average([_safe_int(session.get("message_count")) for session in context.sessions])
         notebook_save_count = len(context.notebook_entries)
@@ -1502,10 +1525,19 @@ class BIService:
             "avg_session_depth": _round(avg_depth, 1),
             "notebook_saves": notebook_save_count,
             "total_tokens": total_tokens,
-            "total_cost_usd": _round(total_cost, 4),
-            "measured_total_cost_usd": _round(_safe_float(usage_totals.get("measured_total_cost_usd")), 4),
-            "estimated_total_cost_usd": _round(_safe_float(usage_totals.get("estimated_total_cost_usd")), 4),
+            "total_cost_usd": _round(total_cost, 4) if total_cost is not None else None,
+            "measured_total_cost_usd": (
+                _round(_safe_float(usage_totals.get("measured_total_cost_usd")), 4)
+                if usage_totals.get("measured_total_cost_usd") is not None
+                else None
+            ),
+            "estimated_total_cost_usd": (
+                _round(_safe_float(usage_totals.get("estimated_total_cost_usd")), 4)
+                if usage_totals.get("estimated_total_cost_usd") is not None
+                else None
+            ),
             "cost_provenance": "usage_ledger",
+            "cost_currency_status": usage_totals.get("cost_currency_status"),
             "active_members": member_dashboard.get("active_count", 0),
             "expiring_soon_count": member_dashboard.get("expiring_soon_count", 0),
         }
@@ -2413,19 +2445,28 @@ class BIService:
         )
         usage_summary = self._usage_window_summary(days)
         totals = usage_summary.get("totals") or {}
-        total_cost = _safe_float(totals.get("total_cost_usd"))
+        total_cost_raw = totals.get("total_cost_usd")
+        total_cost = _safe_float(total_cost_raw) if total_cost_raw is not None else None
         total_tokens = _safe_int(totals.get("total_tokens"))
-        measured_cost = _safe_float(totals.get("measured_total_cost_usd"))
-        estimated_cost = _safe_float(totals.get("estimated_total_cost_usd"))
+        measured_raw = totals.get("measured_total_cost_usd")
+        measured_cost = _safe_float(measured_raw) if measured_raw is not None else None
+        estimated_raw = totals.get("estimated_total_cost_usd")
+        estimated_cost = _safe_float(estimated_raw) if estimated_raw is not None else None
+        currency_status = str(totals.get("cost_currency_status") or "unknown_currency")
+        cost_hint = (
+            f"最近 {days} 天 · measured ${_round(measured_cost, 4)} / estimated ${_round(estimated_cost, 4)}"
+            if total_cost is not None
+            else f"最近 {days} 天 · 币种口径不可合并（{currency_status}）"
+        )
 
         cards = [
             {
                 "label": "总成本",
                 "metric_id": "total_cost_usd",
-                "value": _round(total_cost, 4),
-                "measured_value": _round(measured_cost, 4),
-                "estimated_value": _round(estimated_cost, 4),
-                "hint": f"最近 {days} 天 · measured ${_round(measured_cost, 4)} / estimated ${_round(estimated_cost, 4)}",
+                "value": _round(total_cost, 4) if total_cost is not None else None,
+                "measured_value": _round(measured_cost, 4) if measured_cost is not None else None,
+                "estimated_value": _round(estimated_cost, 4) if estimated_cost is not None else None,
+                "hint": cost_hint,
             },
             {
                 "label": "总 Token",
@@ -2436,32 +2477,63 @@ class BIService:
             {
                 "label": "平均回合成本",
                 "metric_id": "avg_turn_cost_usd",
-                "value": _round(total_cost / max(len(context.turns), 1), 4),
+                "value": (
+                    _round(total_cost / max(len(context.turns), 1), 4)
+                    if total_cost is not None
+                    else None
+                ),
                 "hint": f"回合数 {len(context.turns)} · 分子含非回合内调用",
             },
         ]
         # 自校准（P2）：用已存的 model 级校准系数把内账估算拉向官方真值。
         calibration = load_calibration(self._cost_calibration_path())
+        calibration_applicability = evaluate_calibration(calibration)
         factors = factor_map(calibration)
-        models = [
-            {
+        calibration_currency = str((calibration.get("scope") or {}).get("currency") or "").upper()
+        models = []
+        for row in usage_summary.get("by_model") or []:
+            raw_cost = row.get("total_cost_usd")
+            numeric_cost = _safe_float(raw_cost) if raw_cost is not None else None
+            model_name = str(row.get("model") or "unknown")
+            row_currency = str(row.get("cost_currency") or "").upper()
+            native_cost_raw = (row.get("currency_amounts") or {}).get(row_currency)
+            native_cost = _safe_float(native_cost_raw) if native_cost_raw is not None else None
+            models.append({
                 "label": row.get("model") or "unknown",
-                "value": _round(_safe_float(row.get("total_cost_usd")), 4),
-                "calibrated_value": _round(
-                    apply_calibration(
-                        str(row.get("model") or "unknown"),
-                        _safe_float(row.get("total_cost_usd")),
-                        factors,
-                    ),
-                    4,
+                "value": _round(numeric_cost, 4) if numeric_cost is not None else None,
+                "calibrated_value": (
+                    _round(apply_calibration(model_name, numeric_cost, factors), 4)
+                    if numeric_cost is not None
+                    and model_name in factors
+                    and row_currency == calibration_currency
+                    else None
                 ),
+                "native_value": _round(native_cost, 4) if native_cost is not None else None,
+                "calibrated_native_value": (
+                    _round(apply_calibration(model_name, native_cost, factors), 4)
+                    if native_cost is not None
+                    and model_name in factors
+                    and row_currency == calibration_currency
+                    else None
+                ),
+                "currency": row_currency or None,
                 "events": _safe_int(row.get("events")),
                 "tokens": _safe_int(row.get("total_tokens")),
-            }
-            for row in usage_summary.get("by_model") or []
-        ]
+                "currency_amounts": dict(row.get("currency_amounts") or {}),
+                "cost_currency_status": row.get("cost_currency_status"),
+            })
         providers = [
-            {"label": row.get("usage_source") or "unknown", "value": _round(_safe_float(row.get("total_cost_usd")), 4), "events": _safe_int(row.get("events"))}
+            {
+                "label": row.get("usage_source") or "unknown",
+                "value": (
+                    _round(_safe_float(row.get("total_cost_usd")), 4)
+                    if row.get("total_cost_usd") is not None
+                    else None
+                ),
+                "events": _safe_int(row.get("events")),
+                "currency_amounts": dict(row.get("currency_amounts") or {}),
+                "cost_currency_status": row.get("cost_currency_status"),
+            }
             for row in usage_summary.get("by_usage_source") or []
         ]
         return {
@@ -2474,6 +2546,9 @@ class BIService:
             "official_anchor": calibration.get("global") or {},
             "calibration_refreshed_at": calibration.get("refreshed_at"),
             "calibration_billing_cycle": calibration.get("billing_cycle"),
+            "calibration_applicability": calibration_applicability,
+            "currency_amounts": dict(totals.get("currency_amounts") or {}),
+            "cost_currency_status": currency_status,
         }
 
     def _cost_calibration_path(self) -> Path:
@@ -2493,20 +2568,68 @@ class BIService:
         official_total_tokens = _safe_int((recon.get("bailian") or {}).get("total_tokens"))
         cycle_start_ts, cycle_end_ts = self._billing_cycle_bounds(billing_cycle)
         cycle_summary = self._usage_ledger.get_window_summary(
-            start_ts=cycle_start_ts, end_ts=cycle_end_ts
+            start_ts=cycle_start_ts,
+            end_ts=cycle_end_ts,
+            provider_name="dashscope",
+        )
+        billing_payload = recon.get("bailian_billing") or {}
+        telemetry_payload = recon.get("bailian") or {}
+        billing_currency = str(billing_payload.get("currency") or "").upper()
+        rows = list(cycle_summary.get("by_model") or [])
+        currency_scope_ok = bool(rows) and bool(billing_currency) and all(
+            row.get("cost_currency_status") == "single_currency"
+            and str(row.get("cost_currency") or "").upper() == billing_currency
+            for row in rows
         )
         internal_by_model = {
             str(row.get("model") or "unknown"): {
                 "total_tokens": _safe_int(row.get("total_tokens")),
-                "internal_cost": _safe_float(row.get("total_cost_usd")),
+                "internal_cost": _safe_float(
+                    (row.get("currency_amounts") or {}).get(billing_currency)
+                ),
             }
-            for row in cycle_summary.get("by_model") or []
+            for row in rows
+            if currency_scope_ok
         }
-        calibration = compute_calibration(
-            official_amounts, internal_by_model, official_total_tokens=official_total_tokens or None
+        now_ts = time.time()
+        exact_token_scope = (
+            telemetry_payload.get("status") == "ok"
+            and bool((recon.get("filters") or {}).get("apikey_id"))
+            and cycle_end_ts <= now_ts
+            and (recon.get("time_range") or {}).get("start_ts") == cycle_start_ts
+            and (recon.get("time_range") or {}).get("end_ts") == cycle_end_ts
         )
+        calibration = compute_calibration(
+            official_amounts,
+            internal_by_model,
+            official_total_tokens=(official_total_tokens or None) if exact_token_scope else None,
+        )
+        for payload in (calibration.get("models") or {}).values():
+            payload["currency"] = billing_currency
+        calibration["snapshot_version"] = CALIBRATION_SNAPSHOT_VERSION
         calibration["refreshed_at"] = generated_at
         calibration["billing_cycle"] = billing_cycle
+        calibration["scope"] = {
+            "status": (
+                "matched"
+                if billing_payload.get("status") == "ok"
+                and bool(official_amounts)
+                and currency_scope_ok
+                else "insufficient_evidence"
+            ),
+            "provider_name": "dashscope",
+            "billing_cycle": billing_cycle,
+            "start_ts": cycle_start_ts,
+            "end_ts": cycle_end_ts,
+            "apikey_id": (recon.get("filters") or {}).get("apikey_id") or "",
+            "currency": billing_currency,
+            "currency_status": "single_currency" if currency_scope_ok else "ambiguous_currency",
+            "official_token_scope_status": "exact" if exact_token_scope else "insufficient_evidence",
+        }
+        calibration["global"]["token_coverage_status"] = (
+            "ok" if exact_token_scope and official_total_tokens > 0 else "insufficient_evidence"
+        )
+        calibration["applicability"] = evaluate_calibration(calibration)
         save_calibration(self._cost_calibration_path(), calibration)
         return calibration
 
@@ -2649,6 +2772,11 @@ class BIService:
             if explicit_billing_cycle
             else self._iter_billing_cycles(window_start, now_ts)
         )
+        reconciliation_start_ts, reconciliation_end_ts = window_start, now_ts
+        if explicit_billing_cycle:
+            reconciliation_start_ts, reconciliation_end_ts = self._billing_cycle_bounds(
+                explicit_billing_cycle
+            )
 
         context = self._apply_filters(await self._load_context(days), filters)
 
@@ -2736,8 +2864,8 @@ class BIService:
         if use_dashscope:
             try:
                 system_global_totals = self._usage_ledger.get_totals(
-                    start_ts=window_start,
-                    end_ts=now_ts,
+                    start_ts=reconciliation_start_ts,
+                    end_ts=reconciliation_end_ts,
                     provider_name="dashscope",
                     model=model,
                 )
@@ -2757,7 +2885,7 @@ class BIService:
                 )
                 if (
                     coverage_start_ts is None
-                    or float(coverage_start_ts) > float(window_start)
+                    or float(coverage_start_ts) > float(reconciliation_start_ts)
                 ):
                     warnings.append("全量 LLM usage ledger 尚未覆盖整个查询窗口；system_global_bailian 仅代表新账期/新部署后的调用。")
             except Exception as exc:
@@ -2803,8 +2931,8 @@ class BIService:
             else:
                 try:
                     bailian_totals = await self._bailian_telemetry_client.get_usage_totals(
-                        start_ts=window_start,
-                        end_ts=now_ts,
+                        start_ts=reconciliation_start_ts,
+                        end_ts=reconciliation_end_ts,
                         workspace_id=effective_workspace_id,
                         apikey_id=effective_apikey_id,
                         model=model,
@@ -2892,16 +3020,23 @@ class BIService:
         recon_system_output = (
             _safe_int(system_global_payload.get("output_tokens")) if _recon_ok else system_output
         )
+        global_cost_raw = system_global_payload.get("total_cost_usd")
         recon_system_cost = (
-            _safe_float(system_global_payload.get("total_cost_usd")) if _recon_ok else system_cost
+            (_safe_float(global_cost_raw) if global_cost_raw is not None else None)
+            if _recon_ok
+            else system_cost
         )
 
         token_delta = recon_system_total - _safe_int(bailian_payload.get("total_tokens"))
         input_delta = recon_system_input - _safe_int(bailian_payload.get("input_tokens"))
         output_delta = recon_system_output - _safe_int(bailian_payload.get("output_tokens"))
-        cost_delta = _round(
-            recon_system_cost - _safe_float(bailian_payload.get("estimated_total_cost_usd")),
-            8,
+        cost_delta = (
+            _round(
+                recon_system_cost - _safe_float(bailian_payload.get("estimated_total_cost_usd")),
+                8,
+            )
+            if recon_system_cost is not None
+            else None
         )
         if telemetry_status == "ok" and not effective_apikey_id:
             warnings.append("当前未按 apikey_id 过滤百炼外部账，结果可能包含控制台或其他调用。")
@@ -2941,7 +3076,10 @@ class BIService:
                     if hasattr(cycle_totals, "to_dict")
                     else dict(cycle_totals or {})
                 )
-                billing_scope_system_cost = _safe_float(cycle_dict.get("total_cost_usd"))
+                cycle_cost_raw = cycle_dict.get("total_cost_usd")
+                billing_scope_system_cost = (
+                    _safe_float(cycle_cost_raw) if cycle_cost_raw is not None else None
+                )
             else:
                 billing_scope_system_cost = 0.0
                 for event in cycle_context.result_events:
@@ -2951,7 +3089,7 @@ class BIService:
                     rollup = self._rollup_cost_summary(event.get("cost_summary") or {})
                     billing_scope_system_cost += rollup.effective_total_cost
 
-            if billing_status == "ok":
+            if billing_status == "ok" and billing_scope_system_cost is not None:
                 billing_cost_delta = _round(
                     billing_scope_system_cost - _safe_float(bailian_billing_payload.get("pretax_amount")),
                     8,
@@ -3064,8 +3202,8 @@ class BIService:
         return {
             "window_days": days,
             "time_range": {
-                "start_ts": window_start,
-                "end_ts": now_ts,
+                "start_ts": reconciliation_start_ts,
+                "end_ts": reconciliation_end_ts,
             },
             "filters": {
                 "provider": effective_provider,
@@ -3131,9 +3269,11 @@ class BIService:
                         / _safe_float(bailian_payload.get("estimated_total_cost_usd")),
                         6,
                     )
-                    if _safe_float(bailian_payload.get("estimated_total_cost_usd")) > 0
+                    if recon_system_cost is not None
+                    and _safe_float(bailian_payload.get("estimated_total_cost_usd")) > 0
                     else None
                 ),
+                "cost_status": "ok" if recon_system_cost is not None else "insufficient_evidence",
                 "billing_cycle": explicit_billing_cycle,
                 "billing_scope_system_cost_usd": (
                     _round(float(billing_scope_system_cost), 8)
