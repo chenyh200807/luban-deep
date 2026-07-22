@@ -4532,6 +4532,7 @@ class MemberConsoleService:
         behavior_cohort: str | None = None,
         has_heartbeat_job: bool | None = None,
         has_overlay_candidates: bool | None = None,
+        excluded_user_ids: set[str] | frozenset[str] | None = None,
     ) -> dict[str, Any]:
         data = self._load()
         members = self._merge_session_activity_for_member_list(
@@ -4540,6 +4541,21 @@ class MemberConsoleService:
                 include_session_activity_supplements=True,
             )
         )
+        excluded = {
+            str(value).strip() for value in (excluded_user_ids or set()) if str(value).strip()
+        }
+        if excluded:
+            members = [
+                member
+                for member in members
+                if not excluded.intersection(
+                    {
+                        str(member.get("user_id") or "").strip(),
+                        str(member.get("canonical_user_id") or "").strip(),
+                        *(str(value).strip() for value in member.get("alias_user_ids") or []),
+                    }
+                )
+            ]
         if not str(search or "").strip():
             members = self._filter_bi_operational_members(members)
         return self._list_members_from_projection(

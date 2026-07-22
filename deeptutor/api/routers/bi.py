@@ -536,6 +536,21 @@ async def bi_member_dashboard(
     return get_member_console_service().get_dashboard(days=days)
 
 
+async def _required_internal_account_snapshot() -> tuple[dict[str, Any], frozenset[str]]:
+    snapshot = await get_bi_service().get_internal_accounts_snapshot(limit=1)
+    if not snapshot.get("available"):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Internal-account authority unavailable; member overview scope cannot be confirmed",
+        )
+    exclusion_ids = frozenset(
+        str(user_id)
+        for user_id, state in snapshot.get("states", {}).items()
+        if isinstance(state, dict) and state.get("is_internal")
+    )
+    return snapshot, exclusion_ids
+
+
 @router.get("/member/list")
 async def bi_member_list(
     page: int = Query(1, ge=1),
@@ -561,7 +576,9 @@ async def bi_member_list(
     has_overlay_candidates: bool | None = None,
     _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ) -> dict[str, Any]:
-    return get_member_console_service().list_members(
+    _snapshot, exclusion_ids = await _required_internal_account_snapshot()
+    return await asyncio.to_thread(
+        get_member_console_service().list_members,
         page=page,
         page_size=page_size,
         sort=sort,
@@ -583,6 +600,7 @@ async def bi_member_list(
         behavior_cohort=behavior_cohort,
         has_heartbeat_job=has_heartbeat_job,
         has_overlay_candidates=has_overlay_candidates,
+        excluded_user_ids=exclusion_ids,
     )
 
 
@@ -612,12 +630,7 @@ async def bi_member_ops_overview(
     has_overlay_candidates: bool | None = None,
     _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ) -> dict[str, Any]:
-    internal_snapshot = await get_bi_service().get_internal_accounts_snapshot(limit=1)
-    exclusion_ids = frozenset(
-        str(user_id)
-        for user_id, state in internal_snapshot.get("states", {}).items()
-        if isinstance(state, dict) and state.get("is_internal")
-    )
+    internal_snapshot, exclusion_ids = await _required_internal_account_snapshot()
     payload = await asyncio.to_thread(
         get_member_console_service().get_member_ops_overview,
         days=days,
@@ -648,6 +661,10 @@ async def bi_member_ops_overview(
         **(payload.get("authority") if isinstance(payload.get("authority"), dict) else {}),
         "internal_accounts": "bi_internal_accounts",
         "internal_accounts_available": bool(internal_snapshot.get("available")),
+    }
+    payload["internal_accounts"] = {
+        "available": True,
+        "total_internal": internal_snapshot.get("total_internal"),
     }
     return payload
 

@@ -1,6 +1,6 @@
 # BI v2 页面读模型收权与会员 360 根治计划
 
-状态：Implementation in progress（2026-07-22）  
+状态：Implemented locally · PR pending（2026-07-22）
 主线：`2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md` 的根因修复，不新建 BI 产品概念。
 
 ## 1. 决策结论

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 import time
 from types import SimpleNamespace
 from typing import Any
@@ -17,6 +18,8 @@ def _service_with_rest(
 ) -> BIService:
     service = object.__new__(BIService)
     service._internal_exclusion_cache = None
+    service._internal_accounts_snapshot_cache = None
+    service._internal_accounts_generation = 0
     monkeypatch.setattr(service, "_supabase_internal_accounts", rest)
     return service
 
@@ -82,6 +85,10 @@ def test_internal_accounts_endpoint_reads_one_snapshot_and_applies_limit(
     assert payload["internal_accounts"] == [rows[1]]
     assert payload["total_internal"] == 1
 
+    cached_payload = asyncio.run(service.get_internal_accounts_snapshot(limit=1))
+    assert len(calls) == 1
+    assert cached_payload["audit"] == rows[:1]
+
 
 def test_internal_accounts_snapshot_does_not_block_event_loop(
     monkeypatch: pytest.MonkeyPatch,
@@ -107,6 +114,26 @@ def test_internal_accounts_snapshot_does_not_block_event_loop(
     asyncio.run(scenario())
 
 
+def test_internal_accounts_snapshot_marks_remote_failure_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+
+    def rest(method: str, *, params=None, body=None):
+        nonlocal calls
+        calls += 1
+        raise RuntimeError("remote unavailable")
+
+    service = _service_with_rest(monkeypatch, rest)
+    payload = asyncio.run(service.get_internal_accounts_snapshot(limit=10))
+
+    assert payload["available"] is False
+    assert payload["states"] == {}
+    assert payload["total_internal"] is None
+    assert asyncio.run(service.get_internal_accounts_snapshot(limit=10))["available"] is False
+    assert calls == 1
+
+
 def test_mark_internal_account_does_not_block_event_loop_and_invalidates_exclusion_cache(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -125,6 +152,10 @@ def test_mark_internal_account_does_not_block_event_loop_and_invalidates_exclusi
 
     service = _service_with_rest(monkeypatch, rest)
     service._internal_exclusion_cache = (time.monotonic(), frozenset({"old-user"}))
+    service._internal_accounts_snapshot_cache = (
+        time.monotonic(),
+        {"available": True, "states": {}, "internal_accounts": [], "audit": [], "total_internal": 0},
+    )
 
     async def scenario() -> None:
         request = asyncio.create_task(
@@ -144,4 +175,39 @@ def test_mark_internal_account_does_not_block_event_loop_and_invalidates_exclusi
         assert result["id"] == "audit-new"
 
     asyncio.run(scenario())
+    assert service._internal_exclusion_cache is None
+    assert service._internal_accounts_snapshot_cache is None
+
+
+def test_internal_account_mark_prevents_inflight_read_from_repopulating_stale_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    read_started = threading.Event()
+    release_read = threading.Event()
+
+    def rest(method: str, *, params=None, body=None):
+        if method == "GET":
+            read_started.set()
+            assert release_read.wait(timeout=2)
+            return [{"user_id": "old-user", "is_internal": True}]
+        assert method == "POST"
+        return [{"user_id": "new-user", "is_internal": True, "id": "audit-new"}]
+
+    service = _service_with_rest(monkeypatch, rest)
+
+    async def scenario() -> None:
+        stale_read = asyncio.create_task(service.get_internal_accounts_snapshot(limit=10))
+        assert await asyncio.to_thread(read_started.wait, 2)
+        await service.mark_internal_account(
+            user_id="new-user",
+            is_internal=True,
+            operator_id="admin",
+            reason="automation account",
+        )
+        release_read.set()
+        await stale_read
+
+    asyncio.run(scenario())
+
+    assert service._internal_accounts_snapshot_cache is None
     assert service._internal_exclusion_cache is None

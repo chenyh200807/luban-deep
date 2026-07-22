@@ -194,13 +194,6 @@ function maskPhone(phone: string): string {
   return `${digits.slice(0, 3)}****${digits.slice(-4)}`
 }
 
-function riskScore(riskLevel: string): number {
-  if (riskLevel === 'high') return 0.85
-  if (riskLevel === 'medium') return 0.55
-  if (riskLevel === 'low') return 0.2
-  return -1
-}
-
 function normalizeRiskLevel(value: string): NonNullable<MemberRow['risk_level']> {
   if (value === 'high' || value === 'medium' || value === 'low') return value
   return 'unknown'
@@ -249,7 +242,9 @@ function toMemberRow(item: MemberListItem): MemberRow {
     phone_masked: maskPhone(item.phone),
     tier,
     status: normalizeStatus(item.status),
-    risk: riskScore(item.risk_level),
+    // Live rows expose the categorical backend authority only. `risk` is a
+    // mock-only legacy sort field and must not invent a probability here.
+    risk: -1,
     risk_level: normalizeRiskLevel(item.risk_level),
     last_active: shortDate(item.last_active_at),
     balance_points: item.points_balance,
@@ -390,10 +385,10 @@ export function BiV2MemberOpsPanel({
   const [membershipActionWriting, setMembershipActionWriting] = useState(false)
   const [membershipActionError, setMembershipActionError] = useState('')
   const [internalStates, setInternalStates] = useState<Record<string, BiInternalAccountState>>({})
+  const [internalTotal, setInternalTotal] = useState<number | null>(null)
   const [internalAccountsStatus, setInternalAccountsStatus] = useState<
     'idle' | 'loading' | 'ready' | 'error'
   >('idle')
-  const [showInternalOnly, setShowInternalOnly] = useState(false)
   const [showInternalAudit, setShowInternalAudit] = useState(false)
   const [internalAudit, setInternalAudit] = useState<BiInternalAccountState[]>([])
   const [internalActionWriting, setInternalActionWriting] = useState(false)
@@ -457,10 +452,14 @@ export function BiV2MemberOpsPanel({
     setInternalAccountsStatus('loading')
     try {
       const internalData = await getBiInternalAccounts()
+      if (!internalData.available) {
+        throw new Error('内部账号 authority 暂不可用')
+      }
       internalAccountsLoadedRef.current = true
       internalStatesRef.current = internalData.states
       setInternalStates(internalData.states)
       setInternalAudit(internalData.audit)
+      setInternalTotal(internalData.total_internal)
       setLiveRows(prev =>
         prev.map(row => ({
           ...row,
@@ -503,8 +502,11 @@ export function BiV2MemberOpsPanel({
       if (requestGeneration !== membersRequestGenerationRef.current) return
       const nextRows = overview.list.items.map(item => ({
         ...toMemberRow(item),
-        is_internal_account: Boolean(internalStatesRef.current[item.user_id]?.is_internal),
+        is_internal_account: false,
       }))
+      internalAccountsLoadedRef.current = true
+      setInternalTotal(overview.internal_accounts.total_internal)
+      setInternalAccountsStatus('ready')
       setDashboard(overview.dashboard)
       setLiveRows(nextRows)
       setTotalRows(overview.list.total)
@@ -512,16 +514,15 @@ export function BiV2MemberOpsPanel({
       setSelectedRows(
         prev => new Set([...prev].filter(id => nextRows.some(row => row.user_id === id)))
       )
-      void loadInternalAccounts()
     } catch (err) {
       if (requestGeneration !== membersRequestGenerationRef.current) return
       setError(err instanceof Error ? err.message : '会员列表加载失败')
+      if (!internalAccountsLoadedRef.current) setInternalAccountsStatus('error')
     } finally {
       if (requestGeneration === membersRequestGenerationRef.current) setLoading(false)
     }
   }, [
     flagEnabled,
-    loadInternalAccounts,
     memberListParams,
   ])
 
@@ -565,16 +566,12 @@ export function BiV2MemberOpsPanel({
     const cohortRows = flagEnabled || !behaviorCohort
       ? filtered
       : filtered.filter(row => row.behavior_cohort === behaviorCohort)
-    const internalFiltered = showInternalOnly
-      ? cohortRows.filter(row => row.is_internal_account)
-      : cohortRows
-    return flagEnabled ? internalFiltered : sortMembers(internalFiltered, sortKey, sortDir)
+    return flagEnabled ? cohortRows : sortMembers(cohortRows, sortKey, sortDir)
   }, [
     behaviorCohort,
     filters,
     flagEnabled,
     globalQuery,
-    showInternalOnly,
     sortDir,
     sortKey,
     sourceRows,
@@ -833,7 +830,11 @@ export function BiV2MemberOpsPanel({
     return result.ok
   }
 
-  async function markInternalAccount(member: MemberRow, isInternal: boolean, reason: string) {
+  async function markInternalAccount(
+    member: Pick<MemberRow, 'user_id' | 'phone_masked'>,
+    isInternal: boolean,
+    reason: string
+  ) {
     if (!flagEnabled || internalActionWriting) return
     setInternalActionError('')
     try {
@@ -844,7 +845,8 @@ export function BiV2MemberOpsPanel({
           ? `已将 ${member.phone_masked} 标记为内部账号`
           : `已取消 ${member.phone_masked} 的内部账号标记`
       )
-      await Promise.all([loadInternalAccounts(true), loadMembers()])
+      await loadMembers()
+      if (showInternalAudit) await loadInternalAccounts(true)
     } catch (err) {
       setInternalActionError(err instanceof Error ? err.message : '内部账号标记失败')
     } finally {
@@ -1118,24 +1120,21 @@ export function BiV2MemberOpsPanel({
       </div>
 
       {(() => {
-        const internalCount = Object.values(internalStates).filter(s => s.is_internal).length
         return (
           <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-2.5">
             <span className="text-xs font-bold text-amber-200">内部账号标记库</span>
             <button
               type="button"
-              onClick={() => setShowInternalOnly(v => !v)}
+              onClick={() => {
+                void loadInternalAccounts(true)
+                setShowInternalAudit(true)
+              }}
               disabled={internalAccountsStatus !== 'ready'}
-              className={`rounded-xl border px-3 py-1 text-xs font-black transition-colors ${
-                showInternalOnly
-                  ? 'border-amber-300/60 bg-amber-300/20 text-amber-100'
-                  : 'border-amber-300/20 bg-amber-300/[0.08] text-amber-200 hover:bg-amber-300/15'
-              }`}
-              aria-pressed={showInternalOnly}
-              title={showInternalOnly ? '取消当前已加载结果筛选' : '仅筛选当前已加载结果中的内部账号'}
+              className="rounded-xl border border-amber-300/20 bg-amber-300/[0.08] px-3 py-1 text-xs font-black text-amber-200 transition-colors hover:bg-amber-300/15"
+              title="查看内部账号状态与审计"
             >
               {internalAccountsStatus === 'ready'
-                ? `${internalCount} 个标记${showInternalOnly ? ' · 当前已加载结果已筛选' : ''}`
+                ? `${internalTotal ?? '—'} 个标记`
                 : internalAccountsStatus === 'error'
                   ? '口径不可确认'
                   : '加载中'}
@@ -1146,14 +1145,6 @@ export function BiV2MemberOpsPanel({
             {internalActionError ? (
               <span className="text-xs text-rose-400">{internalActionError}</span>
             ) : null}
-            <div className="flex-1" />
-            <button
-              type="button"
-              onClick={() => setShowInternalAudit(true)}
-              className="rounded-xl border border-amber-300/20 bg-amber-300/[0.08] px-3 py-1 text-xs text-amber-200 hover:bg-amber-300/15"
-            >
-              查看审计流水
-            </button>
           </div>
         )
       })()}
@@ -1419,7 +1410,16 @@ export function BiV2MemberOpsPanel({
       <InternalAccountAuditPanel
         open={showInternalAudit}
         onClose={() => setShowInternalAudit(false)}
+        states={internalStates}
         audit={internalAudit}
+        writing={internalActionWriting}
+        onUnmark={(state, reason) =>
+          void markInternalAccount(
+            { user_id: state.user_id, phone_masked: state.user_id },
+            false,
+            reason
+          )
+        }
       />
       <ConversationReviewDrawer
         open={drawer === 'conversation'}
@@ -2419,12 +2419,33 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
 function InternalAccountAuditPanel({
   open,
   onClose,
+  states,
   audit,
+  writing,
+  onUnmark,
 }: {
   open: boolean
   onClose: () => void
+  states: Record<string, BiInternalAccountState>
   audit: BiInternalAccountState[]
+  writing: boolean
+  onUnmark: (state: BiInternalAccountState, reason: string) => void
 }) {
+  const currentInternal = Object.values(states).filter(state => state.is_internal)
+  const [unmarkTarget, setUnmarkTarget] = useState<BiInternalAccountState | null>(null)
+  const [unmarkReason, setUnmarkReason] = useState('')
+
+  function cancelUnmark() {
+    setUnmarkTarget(null)
+    setUnmarkReason('')
+  }
+
+  function confirmUnmark() {
+    if (!unmarkTarget || unmarkReason.trim().length < 5 || writing) return
+    onUnmark(unmarkTarget, unmarkReason.trim())
+    cancelUnmark()
+  }
+
   return (
     <BiSidePanel open={open} onClose={onClose} title="内部账号审计流水" width="lg">
       <div className="space-y-2">
@@ -2432,6 +2453,53 @@ function InternalAccountAuditPanel({
           所有标记 /
           取消内部账号的操作均在此留痕，不可删改。管理员可用此审计是否存在以内部名义违规开通。
         </p>
+        {currentInternal.length ? (
+          <div className="space-y-2 rounded-2xl border border-amber-300/15 bg-amber-300/[0.05] p-3">
+            <p className="text-xs font-bold text-amber-200">当前内部账号</p>
+            {currentInternal.map(state => (
+              <div key={state.user_id} className="flex items-center gap-2 text-xs">
+                <code className="min-w-0 flex-1 truncate text-slate-300">{state.user_id}</code>
+                <button
+                  type="button"
+                  disabled={writing}
+                  onClick={() => {
+                    setUnmarkTarget(state)
+                    setUnmarkReason('')
+                  }}
+                  className="rounded-lg border border-amber-300/20 px-2 py-1 text-amber-200 disabled:opacity-50"
+                >
+                  取消内部标记
+                </button>
+              </div>
+            ))}
+            {unmarkTarget ? (
+              <div className="space-y-2 rounded-xl border border-rose-300/20 bg-rose-300/[0.06] p-3">
+                <p className="text-xs text-rose-200">
+                  确认取消 <code>{unmarkTarget.user_id}</code> 的内部标记？该账号将重新进入经营统计口径。
+                </p>
+                <input
+                  value={unmarkReason}
+                  onChange={event => setUnmarkReason(event.target.value)}
+                  placeholder="请输入至少 5 个字的取消原因"
+                  className="w-full rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-xs text-slate-100"
+                />
+                <div className="flex justify-end gap-2">
+                  <button type="button" onClick={cancelUnmark} className="px-2 py-1 text-slate-400">
+                    返回
+                  </button>
+                  <button
+                    type="button"
+                    disabled={writing || unmarkReason.trim().length < 5}
+                    onClick={confirmUnmark}
+                    className="rounded-lg border border-rose-300/30 px-2 py-1 text-rose-200 disabled:opacity-40"
+                  >
+                    确认取消
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         {audit.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-white/10 py-8 text-center text-sm text-slate-500">
             暂无内部账号操作记录

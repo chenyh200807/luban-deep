@@ -56,7 +56,24 @@ const SEV_COLOR: Record<string, string> = {
   low: SEMANTIC.neutral,
 }
 
-export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
+export function CommerceCockpit({
+  data,
+  loading = false,
+  error = '',
+}: {
+  data: BiCommerceData | null
+  loading?: boolean
+  error?: string
+}) {
+  if (!data) {
+    return (
+      <CockpitBg className="p-4 md:p-5">
+        <div className="flex min-h-32 items-center justify-center rounded-2xl border border-dashed border-white/10 text-sm text-slate-400">
+          {loading ? '正在读取账务快照' : error ? '账务口径暂不可确认' : '暂无账务快照'}
+        </div>
+      </CockpitBg>
+    )
+  }
   const s = data?.summary
   const revenueConfirmed = s?.revenueStatus === 'confirmed_manual_partial'
   const ledger: ReadonlyArray<BiCommerceLedgerRow> = data?.ledger ?? []
@@ -92,7 +109,9 @@ export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
           sub={
             revenueConfirmed
               ? `${fmt(num(s?.revenueCount))} 笔钱包账本已确认`
-              : '存在充值事件，但缺少可核验金额'
+              : s?.revenueStatus === 'authority_unavailable'
+                ? '钱包账本暂不可用'
+                : '存在充值事件，但缺少可核验金额'
           }
         />
         <CockpitKpi

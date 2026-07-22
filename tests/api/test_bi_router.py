@@ -889,6 +889,7 @@ def test_member_ops_overview_routes_server_side_filters(
         assert limit == 1
         return {
             "available": True,
+            "total_internal": 1,
             "states": {
                 "internal-user": {"is_internal": True},
                 "real-member": {"is_internal": False},
@@ -921,6 +922,72 @@ def test_member_ops_overview_routes_server_side_filters(
     assert captured["excluded_user_ids"] == frozenset({"internal-user"})
     assert response.json()["authority"]["internal_accounts"] == "bi_internal_accounts"
     assert response.json()["authority"]["internal_accounts_available"] is True
+    assert response.json()["internal_accounts"]["total_internal"] == 1
+    assert "states" not in response.json()["internal_accounts"]
+
+
+def test_member_ops_overview_fails_closed_when_internal_account_authority_is_unavailable(
+    bi_service: BIService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _MemberOpsService:
+        def can_access(self, *_args, **_kwargs) -> bool:
+            return True
+
+        def get_member_ops_overview(self, **kwargs: object) -> dict[str, object]:
+            raise AssertionError("unconfirmed member scope must not be projected")
+
+    async def _unavailable_snapshot(*, limit: int = 1) -> dict[str, object]:
+        return {"available": False, "states": {}, "total_internal": None}
+
+    monkeypatch.setattr(bi_router_module, "get_member_console_service", lambda: _MemberOpsService())
+    monkeypatch.setattr(bi_service, "get_internal_accounts_snapshot", _unavailable_snapshot)
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(
+        user_id="u-admin", is_admin=True
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/bi/member/overview")
+
+    assert response.status_code == 503
+    assert "scope cannot be confirmed" in response.json()["detail"]
+
+
+def test_member_list_pagination_reuses_internal_account_scope(
+    bi_service: BIService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class _MemberOpsService:
+        def can_access(self, *_args, **_kwargs) -> bool:
+            return True
+
+        def list_members(self, **kwargs: object) -> dict[str, object]:
+            captured.update(kwargs)
+            return {"items": [], "total": 0, "page": 2, "page_size": 50, "pages": 2}
+
+    async def _snapshot(*, limit: int = 1) -> dict[str, object]:
+        return {
+            "available": True,
+            "states": {"internal-page-2": {"is_internal": True}},
+            "total_internal": 1,
+        }
+
+    monkeypatch.setattr(bi_router_module, "get_member_console_service", lambda: _MemberOpsService())
+    monkeypatch.setattr(bi_service, "get_internal_accounts_snapshot", _snapshot)
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(
+        user_id="u-admin", is_admin=True
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/bi/member/list?page=2&page_size=50")
+
+    assert response.status_code == 200
+    assert captured["page"] == 2
+    assert captured["excluded_user_ids"] == frozenset({"internal-page-2"})
 
 
 def test_bi_rbac_permission_management_endpoints_allow_admin(

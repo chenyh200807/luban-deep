@@ -2007,22 +2007,27 @@ export type BiInternalAccountState = {
 }
 
 export type BiInternalAccountsData = {
+  available: boolean
   states: Record<string, BiInternalAccountState>
   internal_accounts: BiInternalAccountState[]
   audit: BiInternalAccountState[]
-  total_internal: number
+  total_internal: number | null
 }
 
 export async function getBiInternalAccounts(limit = 200): Promise<BiInternalAccountsData> {
   const raw = unwrapPayload(await fetchBiJson('/api/v1/bi/member-ops/internal-accounts', { limit }))
   const record = asRecord(raw)
   return {
+    available: record.available === true,
     states: (asRecord(record.states) as Record<string, BiInternalAccountState>) ?? {},
     internal_accounts: (Array.isArray(record.internal_accounts)
       ? record.internal_accounts
       : []) as BiInternalAccountState[],
     audit: (Array.isArray(record.audit) ? record.audit : []) as BiInternalAccountState[],
-    total_internal: toNumber(record.total_internal, 0),
+    total_internal:
+      record.total_internal === null || record.total_internal === undefined
+        ? null
+        : toNumber(record.total_internal, 0),
   }
 }
 
