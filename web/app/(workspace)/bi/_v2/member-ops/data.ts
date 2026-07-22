@@ -1,9 +1,10 @@
 export type MemberRow = {
   user_id: string
   phone_masked: string
-  tier: 'trial' | 'vip' | 'svip' | 'supreme_svip'
-  status: 'active' | 'expiring' | 'expired' | 'paused'
+  tier: 'trial' | 'vip' | 'svip' | 'supreme_svip' | 'unknown'
+  status: 'active' | 'expiring' | 'expired' | 'paused' | 'unknown'
   risk: number
+  risk_level?: 'low' | 'medium' | 'high' | 'unknown'
   last_active: string
   balance_points: number
   expires_at: string
@@ -11,12 +12,13 @@ export type MemberRow = {
   channel?: string
   auto_renew?: boolean
   review_due?: number
-  paid_at_first?: string
-  region?: string
-  notes_count?: number
-  feedback_count?: number
+  display_name?: string
+  segment?: string
   behavior_learning_report_7d?: number
   behavior_history_7d?: number
+  behavior_action_start_7d?: number
+  behavior_first_run_status?: string
+  behavior_top_module_7d?: string
   behavior_cohort?: string
   behavior_trust?: string
   behavior_next_action?: string
@@ -36,10 +38,8 @@ export type MemberColumnKey =
   | 'expires_at'
   | 'registered_at'
   | 'channel'
-  | 'paid_first'
-  | 'region'
-  | 'notes'
-  | 'feedback'
+  | 'segment'
+  | 'review_due'
   | 'behavior_report'
   | 'behavior_history'
   | 'behavior_cohort'
@@ -62,10 +62,8 @@ export const ALL_COLUMNS: MemberColumnDef[] = [
   { key: 'expires_at', label: '到期', sortable: true },
   { key: 'registered_at', label: '注册时间', sortable: true },
   { key: 'channel', label: '注册渠道' },
-  { key: 'paid_first', label: '首充' },
-  { key: 'region', label: '地区' },
-  { key: 'notes', label: '备注数', align: 'right' },
-  { key: 'feedback', label: '反馈数', align: 'right' },
+  { key: 'segment', label: '用户分群' },
+  { key: 'review_due', label: '待复习', align: 'right' },
   { key: 'behavior_report', label: '学情7日', align: 'right' },
   { key: 'behavior_history', label: '历史7日', align: 'right' },
   { key: 'behavior_cohort', label: '行为队列' },
@@ -83,6 +81,7 @@ export const DEFAULT_COLUMNS: MemberColumnKey[] = [
   'behavior_next_action',
   'last_active',
   'balance',
+  'review_due',
   'registered_at',
   'expires_at',
 ]
@@ -126,10 +125,8 @@ export type MemberSortKey = Extract<
   | 'balance'
   | 'expires_at'
   | 'registered_at'
-  | 'paid_first'
-  | 'region'
-  | 'notes'
-  | 'feedback'
+  | 'segment'
+  | 'review_due'
 >
 
 export type SavedView = {
@@ -150,13 +147,11 @@ const SEED_MEMBERS: MemberRow[] = [
     tier: 'vip',
     status: 'expiring',
     risk: 0.82,
+    risk_level: 'high',
     last_active: '2 小时前',
     balance_points: 312,
     expires_at: '2026-05-25',
-    paid_at_first: '2025-12-12',
-    region: '浙江',
-    notes_count: 2,
-    feedback_count: 1,
+    review_due: 2,
   },
   {
     user_id: 'u_8519',
@@ -164,13 +159,11 @@ const SEED_MEMBERS: MemberRow[] = [
     tier: 'svip',
     status: 'active',
     risk: 0.41,
+    risk_level: 'medium',
     last_active: '刚刚',
     balance_points: 8210,
     expires_at: '2026-12-31',
-    paid_at_first: '2025-08-09',
-    region: '北京',
-    notes_count: 4,
-    feedback_count: 0,
+    review_due: 4,
   },
   {
     user_id: 'u_8633',
@@ -178,13 +171,11 @@ const SEED_MEMBERS: MemberRow[] = [
     tier: 'vip',
     status: 'expired',
     risk: 0.95,
+    risk_level: 'high',
     last_active: '8 天前',
     balance_points: 0,
     expires_at: '2026-05-15',
-    paid_at_first: '2025-04-22',
-    region: '广东',
-    notes_count: 1,
-    feedback_count: 3,
+    review_due: 1,
   },
   {
     user_id: 'u_8702',
@@ -192,12 +183,11 @@ const SEED_MEMBERS: MemberRow[] = [
     tier: 'trial',
     status: 'active',
     risk: 0.55,
+    risk_level: 'medium',
     last_active: '12 小时前',
     balance_points: 50,
     expires_at: '2026-06-02',
-    region: '江苏',
-    notes_count: 0,
-    feedback_count: 0,
+    review_due: 0,
   },
   {
     user_id: 'u_8788',
@@ -205,13 +195,11 @@ const SEED_MEMBERS: MemberRow[] = [
     tier: 'vip',
     status: 'active',
     risk: 0.32,
+    risk_level: 'low',
     last_active: '3 小时前',
     balance_points: 1240,
     expires_at: '2026-07-18',
-    paid_at_first: '2026-01-04',
-    region: '上海',
-    notes_count: 1,
-    feedback_count: 1,
+    review_due: 1,
   },
   {
     user_id: 'u_8801',
@@ -219,13 +207,11 @@ const SEED_MEMBERS: MemberRow[] = [
     tier: 'svip',
     status: 'paused',
     risk: 0.61,
+    risk_level: 'medium',
     last_active: '1 天前',
     balance_points: 4480,
     expires_at: '2026-11-09',
-    paid_at_first: '2025-09-21',
-    region: '四川',
-    notes_count: 3,
-    feedback_count: 2,
+    review_due: 3,
   },
   {
     user_id: 'u_8866',
@@ -233,12 +219,11 @@ const SEED_MEMBERS: MemberRow[] = [
     tier: 'trial',
     status: 'expiring',
     risk: 0.74,
+    risk_level: 'high',
     last_active: '5 小时前',
     balance_points: 20,
     expires_at: '2026-05-24',
-    region: '山东',
-    notes_count: 0,
-    feedback_count: 0,
+    review_due: 0,
   },
   {
     user_id: 'u_8932',
@@ -246,13 +231,11 @@ const SEED_MEMBERS: MemberRow[] = [
     tier: 'vip',
     status: 'active',
     risk: 0.21,
+    risk_level: 'low',
     last_active: '6 小时前',
     balance_points: 980,
     expires_at: '2026-09-30',
-    paid_at_first: '2026-03-01',
-    region: '福建',
-    notes_count: 0,
-    feedback_count: 0,
+    review_due: 0,
   },
 ]
 
@@ -298,7 +281,7 @@ export function filterMembers(
     if (filters.tier && row.tier !== filters.tier) return false
     if (filters.status && row.status !== filters.status) return false
     if (filters.riskMin > 0 && row.risk < filters.riskMin) return false
-    if (filters.notPaid && row.paid_at_first) return false
+    if (filters.notPaid && row.tier !== 'trial') return false
     if (filters.registeredFrom && row.registered_at && row.registered_at < filters.registeredFrom)
       return false
     if (filters.registeredTo && row.registered_at && row.registered_at > filters.registeredTo)
@@ -317,7 +300,8 @@ export function filterMembers(
       const matches =
         row.user_id.toLowerCase().includes(q) ||
         row.phone_masked.replace(/[^0-9]/g, '').includes(q.replace(/[^0-9]/g, '')) ||
-        (row.region ?? '').toLowerCase().includes(q)
+        (row.display_name ?? '').toLowerCase().includes(q) ||
+        (row.segment ?? '').toLowerCase().includes(q)
       if (!matches) return false
     }
     return true
@@ -336,11 +320,9 @@ export function sortMembers(
 function compareMemberRows(a: MemberRow, b: MemberRow, key: MemberSortKey): number {
   if (key === 'risk') return a.risk - b.risk
   if (key === 'balance') return a.balance_points - b.balance_points
-  if (key === 'notes') return (a.notes_count ?? 0) - (b.notes_count ?? 0)
-  if (key === 'feedback') return (a.feedback_count ?? 0) - (b.feedback_count ?? 0)
+  if (key === 'review_due') return (a.review_due ?? -1) - (b.review_due ?? -1)
   if (key === 'expires_at') return compareDateLike(a.expires_at, b.expires_at)
   if (key === 'registered_at') return compareDateLike(a.registered_at ?? '', b.registered_at ?? '')
-  if (key === 'paid_first') return compareDateLike(a.paid_at_first ?? '', b.paid_at_first ?? '')
   if (key === 'last_active') return compareDateLike(a.last_active, b.last_active)
   if (key === 'phone') return compareText(a.phone_masked, b.phone_masked)
   return compareText(String(a[key] ?? ''), String(b[key] ?? ''))

@@ -87,6 +87,7 @@ const STATUS_TONE = {
   expiring: 'amber',
   expired: 'rose',
   paused: 'slate',
+  unknown: 'slate',
 } as const
 
 const TIER_TONE = {
@@ -94,6 +95,7 @@ const TIER_TONE = {
   vip: 'sky',
   svip: 'amber',
   supreme_svip: 'emerald',
+  unknown: 'slate',
 } as const
 
 const BEHAVIOR_COHORTS = [
@@ -196,14 +198,27 @@ function riskScore(riskLevel: string): number {
   if (riskLevel === 'high') return 0.85
   if (riskLevel === 'medium') return 0.55
   if (riskLevel === 'low') return 0.2
-  return 0
+  return -1
+}
+
+function normalizeRiskLevel(value: string): NonNullable<MemberRow['risk_level']> {
+  if (value === 'high' || value === 'medium' || value === 'low') return value
+  return 'unknown'
+}
+
+function riskLevelLabel(value?: MemberRow['risk_level']): string {
+  if (value === 'high') return '高'
+  if (value === 'medium') return '中'
+  if (value === 'low') return '低'
+  return '未知'
 }
 
 function normalizeStatus(status: string): MemberRow['status'] {
+  if (status === 'active') return 'active'
   if (status === 'expiring_soon') return 'expiring'
   if (status === 'revoked') return 'paused'
   if (status === 'expired') return 'expired'
-  return 'active'
+  return 'unknown'
 }
 
 function shortDate(value: string): string {
@@ -235,6 +250,7 @@ function toMemberRow(item: MemberListItem): MemberRow {
     tier,
     status: normalizeStatus(item.status),
     risk: riskScore(item.risk_level),
+    risk_level: normalizeRiskLevel(item.risk_level),
     last_active: shortDate(item.last_active_at),
     balance_points: item.points_balance,
     registered_at: toDateInputValue(item.created_at),
@@ -242,12 +258,13 @@ function toMemberRow(item: MemberListItem): MemberRow {
     auto_renew: item.auto_renew,
     review_due: item.review_due,
     expires_at: shortDate(item.expire_at),
-    paid_at_first: tier === 'trial' ? undefined : shortDate(item.created_at),
-    region: item.segment || item.display_name,
-    notes_count: item.review_due,
-    feedback_count: 0,
+    display_name: item.display_name || '',
+    segment: item.segment || '',
     behavior_learning_report_7d: behavior?.learning_report_open_count_7d ?? 0,
     behavior_history_7d: behavior?.history_open_count_7d ?? 0,
+    behavior_action_start_7d: behavior?.action_start_count_7d,
+    behavior_first_run_status: behavior?.first_run_status,
+    behavior_top_module_7d: behavior?.top_module_7d,
     behavior_cohort: behaviorCohort,
     behavior_trust: behavior?.trust_level || 'C',
     behavior_next_action: behavior?.next_action || behaviorNextAction(behaviorCohort),
@@ -258,14 +275,14 @@ function toMemberRow(item: MemberListItem): MemberRow {
 }
 
 function canUpgradeToVip(member: MemberRow): boolean {
-  return member.tier !== 'vip' && member.tier !== 'svip' && member.tier !== 'supreme_svip'
+  return member.tier === 'trial'
 }
 
 function normalizeMembershipTier(value: string): MemberRow['tier'] {
   if (value === 'vip' || value === 'svip' || value === 'trial' || value === 'supreme_svip') {
     return value
   }
-  return 'trial'
+  return 'unknown'
 }
 
 function tierLabel(value: string): string {
@@ -284,6 +301,7 @@ function findPackageForTier(
   packages: ReadonlyArray<BiCommercePackage>,
   tier: MemberRow['tier']
 ): BiCommercePackage | undefined {
+  if (tier === 'unknown') return undefined
   return packages.find(pkg => isActivePackage(pkg) && normalizeMembershipTier(pkg.tier) === tier)
 }
 
@@ -352,6 +370,7 @@ export function BiV2MemberOpsPanel({
   // 失败不阻断学员 360 主详情——单一数据权威在 getBiMemberEngagement，见 bi-api.ts。
   const [memberEngagement, setMemberEngagement] = useState<BiMemberEngagement | null>(null)
   const [engagementLoading, setEngagementLoading] = useState(false)
+  const [engagementError, setEngagementError] = useState('')
   const [drawer, setDrawer] = useState<
     'none' | 'member360' | 'conversation' | 'membershipSettings'
   >('none')
@@ -371,6 +390,9 @@ export function BiV2MemberOpsPanel({
   const [membershipActionWriting, setMembershipActionWriting] = useState(false)
   const [membershipActionError, setMembershipActionError] = useState('')
   const [internalStates, setInternalStates] = useState<Record<string, BiInternalAccountState>>({})
+  const [internalAccountsStatus, setInternalAccountsStatus] = useState<
+    'idle' | 'loading' | 'ready' | 'error'
+  >('idle')
   const [showInternalOnly, setShowInternalOnly] = useState(false)
   const [showInternalAudit, setShowInternalAudit] = useState(false)
   const [internalAudit, setInternalAudit] = useState<BiInternalAccountState[]>([])
@@ -380,6 +402,8 @@ export function BiV2MemberOpsPanel({
   const internalStatesRef = useRef<Record<string, BiInternalAccountState>>({})
   const internalAccountsLoadedRef = useRef(false)
   const internalAccountsLoadingRef = useRef(false)
+  const membersRequestGenerationRef = useRef(0)
+  const memberDetailRequestGenerationRef = useRef(0)
   const memberOpsAction = useAuditedAction({ actionType: 'member.ops_action.record' })
   const opsActionWriting = memberOpsAction.state.phase === 'writing'
   const opsActionError =
@@ -430,6 +454,7 @@ export function BiV2MemberOpsPanel({
   const loadInternalAccounts = useCallback(async (force = false) => {
     if (internalAccountsLoadingRef.current || (!force && internalAccountsLoadedRef.current)) return
     internalAccountsLoadingRef.current = true
+    setInternalAccountsStatus('loading')
     try {
       const internalData = await getBiInternalAccounts()
       internalAccountsLoadedRef.current = true
@@ -442,8 +467,10 @@ export function BiV2MemberOpsPanel({
           is_internal_account: Boolean(internalData.states[row.user_id]?.is_internal),
         }))
       )
+      setInternalAccountsStatus('ready')
     } catch {
       internalAccountsLoadedRef.current = false
+      setInternalAccountsStatus('error')
     } finally {
       internalAccountsLoadingRef.current = false
     }
@@ -457,6 +484,7 @@ export function BiV2MemberOpsPanel({
   }, [])
 
   const loadMembers = useCallback(async () => {
+    const requestGeneration = ++membersRequestGenerationRef.current
     if (!flagEnabled) {
       setLiveRows([])
       setDashboard(null)
@@ -469,8 +497,10 @@ export function BiV2MemberOpsPanel({
     }
     try {
       setLoading(true)
+      setLoadingMore(false)
       setError('')
       const overview = await getMemberOpsOverview(memberListParams(1))
+      if (requestGeneration !== membersRequestGenerationRef.current) return
       const nextRows = overview.list.items.map(item => ({
         ...toMemberRow(item),
         is_internal_account: Boolean(internalStatesRef.current[item.user_id]?.is_internal),
@@ -484,13 +514,10 @@ export function BiV2MemberOpsPanel({
       )
       void loadInternalAccounts()
     } catch (err) {
+      if (requestGeneration !== membersRequestGenerationRef.current) return
       setError(err instanceof Error ? err.message : '会员列表加载失败')
-      setLiveRows([])
-      setDashboard(null)
-      setTotalRows(0)
-      setTotalPages(1)
     } finally {
-      setLoading(false)
+      if (requestGeneration === membersRequestGenerationRef.current) setLoading(false)
     }
   }, [
     flagEnabled,
@@ -505,9 +532,11 @@ export function BiV2MemberOpsPanel({
   const loadMoreMembers = useCallback(async () => {
     const nextPage = Math.floor(liveRows.length / 50) + 1
     if (!flagEnabled || loadingMore || loading || nextPage > totalPages) return
+    const requestGeneration = membersRequestGenerationRef.current
     try {
       setLoadingMore(true)
       const list = await listMembers(memberListParams(nextPage))
+      if (requestGeneration !== membersRequestGenerationRef.current) return
       setLiveRows(prev => {
         const seen = new Set(prev.map(row => row.user_id))
         return [
@@ -523,9 +552,10 @@ export function BiV2MemberOpsPanel({
       setTotalRows(list.total)
       setTotalPages(list.pages)
     } catch (err) {
+      if (requestGeneration !== membersRequestGenerationRef.current) return
       setError(err instanceof Error ? err.message : '加载更多会员失败')
     } finally {
-      setLoadingMore(false)
+      if (requestGeneration === membersRequestGenerationRef.current) setLoadingMore(false)
     }
   }, [flagEnabled, internalStates, liveRows.length, loading, loadingMore, memberListParams, totalPages])
 
@@ -630,29 +660,57 @@ export function BiV2MemberOpsPanel({
   // when in fact nothing was sent to the server).
   const openMember360 = useCallback(
     async (row: MemberRow) => {
+      const requestGeneration = ++memberDetailRequestGenerationRef.current
       setSelectedMember(row)
       setSelectedDetail(null)
       setDetailError('')
       setMemberEngagement(null)
+      setEngagementError('')
       setDrawer('member360')
-      if (!flagEnabled) return
-      try {
-        setDetailLoading(true)
-        setSelectedDetail(await getMemberDetail(row.user_id))
-      } catch (err) {
-        setDetailError(err instanceof Error ? err.message : '学员 360 加载失败')
-      } finally {
+      if (!flagEnabled) {
         setDetailLoading(false)
-      }
-      // 独立并行拉取点击明细：这条失败不影响上面的主详情已经渲染出来。
-      try {
-        setEngagementLoading(true)
-        setMemberEngagement(await getBiMemberEngagement(row.user_id))
-      } catch {
-        setMemberEngagement(null)
-      } finally {
         setEngagementLoading(false)
+        return
       }
+      setDetailLoading(true)
+      setEngagementLoading(true)
+
+      // 两个 authoritative read 同时发起、独立落屏。generation guard 保证快速点 A→B
+      // 时，A 的慢响应不能覆盖 B 的抽屉。
+      const detailRequest = getMemberDetail(row.user_id)
+        .then(detail => {
+          if (requestGeneration === memberDetailRequestGenerationRef.current) {
+            setSelectedDetail(detail)
+          }
+        })
+        .catch(err => {
+          if (requestGeneration === memberDetailRequestGenerationRef.current) {
+            setDetailError(err instanceof Error ? err.message : '学员 360 加载失败')
+          }
+        })
+        .finally(() => {
+          if (requestGeneration === memberDetailRequestGenerationRef.current) {
+            setDetailLoading(false)
+          }
+        })
+      const engagementRequest = getBiMemberEngagement(row.user_id)
+        .then(engagement => {
+          if (requestGeneration === memberDetailRequestGenerationRef.current) {
+            setMemberEngagement(engagement)
+          }
+        })
+        .catch(err => {
+          if (requestGeneration === memberDetailRequestGenerationRef.current) {
+            setEngagementError(err instanceof Error ? err.message : '点击明细加载失败')
+          }
+        })
+        .finally(() => {
+          if (requestGeneration === memberDetailRequestGenerationRef.current) {
+            setEngagementLoading(false)
+          }
+        })
+
+      await Promise.allSettled([detailRequest, engagementRequest])
     },
     [flagEnabled]
   )
@@ -667,9 +725,14 @@ export function BiV2MemberOpsPanel({
 
   function openConversation(row?: MemberRow) {
     if (row) {
+      memberDetailRequestGenerationRef.current += 1
       setSelectedMember(row)
       setSelectedDetail(null)
       setDetailError('')
+      setDetailLoading(false)
+      setMemberEngagement(null)
+      setEngagementLoading(false)
+      setEngagementError('')
       setConversationReturnTo('none')
     } else {
       setConversationReturnTo('member360')
@@ -681,6 +744,7 @@ export function BiV2MemberOpsPanel({
     async (row?: MemberRow) => {
       const member = row ?? selectedMember
       if (!member) return
+      const requestGeneration = ++memberDetailRequestGenerationRef.current
       setSelectedMember(member)
       setSelectedDetail(null)
       setDetailError('')
@@ -692,11 +756,17 @@ export function BiV2MemberOpsPanel({
           getMemberDetail(member.user_id),
           membershipPackages.length ? Promise.resolve(membershipPackages) : loadMembershipPackages(),
         ])
-        setSelectedDetail(detail)
+        if (requestGeneration === memberDetailRequestGenerationRef.current) {
+          setSelectedDetail(detail)
+        }
       } catch (err) {
-        setDetailError(err instanceof Error ? err.message : '会员详情加载失败')
+        if (requestGeneration === memberDetailRequestGenerationRef.current) {
+          setDetailError(err instanceof Error ? err.message : '会员详情加载失败')
+        }
       } finally {
-        setDetailLoading(false)
+        if (requestGeneration === memberDetailRequestGenerationRef.current) {
+          setDetailLoading(false)
+        }
       }
     },
     [flagEnabled, loadMembershipPackages, membershipPackages, selectedMember]
@@ -982,15 +1052,16 @@ export function BiV2MemberOpsPanel({
 
   const columnDefs = useMemo<BiTableColumn<MemberRow>[]>(
     () =>
-      columns.map(key => {
-        const def = ALL_COLUMNS.find(c => c.key === key)!
-        return {
+      columns.flatMap(key => {
+        const def = ALL_COLUMNS.find(c => c.key === key)
+        if (!def) return []
+        return [{
           key,
           label: def.label,
           align: def.align,
           sortable: def.sortable,
           render: row => renderCell(row, key),
-        }
+        }]
       }),
     [columns]
   )
@@ -1036,29 +1107,42 @@ export function BiV2MemberOpsPanel({
         </BiNotice>
       ) : null}
       {opsActionNotice ? <BiNotice tone="emerald">{opsActionNotice}</BiNotice> : null}
+      {error && liveRows.length > 0 ? (
+        <BiNotice tone="amber" role="status">
+          刷新失败，继续显示上次成功数据：{error}
+        </BiNotice>
+      ) : null}
 
       <div data-testid="bi-member-behavior-health-strip">
-        <MemberOpsCockpit dashboard={dashboard} />
+        <MemberOpsCockpit dashboard={dashboard} loading={loading} error={error} />
       </div>
 
       {(() => {
         const internalCount = Object.values(internalStates).filter(s => s.is_internal).length
         return (
           <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-2.5">
-            <span className="text-xs font-bold text-amber-200">内部账号</span>
+            <span className="text-xs font-bold text-amber-200">内部账号标记库</span>
             <button
               type="button"
               onClick={() => setShowInternalOnly(v => !v)}
+              disabled={internalAccountsStatus !== 'ready'}
               className={`rounded-xl border px-3 py-1 text-xs font-black transition-colors ${
                 showInternalOnly
                   ? 'border-amber-300/60 bg-amber-300/20 text-amber-100'
                   : 'border-amber-300/20 bg-amber-300/[0.08] text-amber-200 hover:bg-amber-300/15'
               }`}
               aria-pressed={showInternalOnly}
-              title={showInternalOnly ? '点击取消仅显示内部账号' : '点击仅显示内部账号'}
+              title={showInternalOnly ? '取消当前已加载结果筛选' : '仅筛选当前已加载结果中的内部账号'}
             >
-              {internalCount} 个{showInternalOnly ? ' · 已筛选' : ''}
+              {internalAccountsStatus === 'ready'
+                ? `${internalCount} 个标记${showInternalOnly ? ' · 当前已加载结果已筛选' : ''}`
+                : internalAccountsStatus === 'error'
+                  ? '口径不可确认'
+                  : '加载中'}
             </button>
+            {internalAccountsStatus === 'error' ? (
+              <span className="text-xs text-rose-300">内部账号标记读取失败，未把空结果当作 0。</span>
+            ) : null}
             {internalActionError ? (
               <span className="text-xs text-rose-400">{internalActionError}</span>
             ) : null}
@@ -1190,8 +1274,10 @@ export function BiV2MemberOpsPanel({
         rowKey={r => r.user_id}
         status={
           loading
-            ? 'loading'
-            : error
+            ? rows.length > 0
+              ? 'stale'
+              : 'loading'
+            : error && rows.length === 0
               ? 'error'
               : rows.length === 0
                 ? flagEnabled && !hasActiveTableFilters
@@ -1200,6 +1286,7 @@ export function BiV2MemberOpsPanel({
                 : 'ok'
         }
         errorMessage={error}
+        staleNote="正在刷新，当前显示上次成功数据。"
         emptyTitle="暂无会员"
         emptyHint="当前会员服务没有返回符合条件的会员。"
         noResultsHint={
@@ -1291,6 +1378,7 @@ export function BiV2MemberOpsPanel({
         error={detailError}
         engagement={memberEngagement}
         engagementLoading={engagementLoading}
+        engagementError={engagementError}
         onClose={() => setDrawer('none')}
         onOpenConversation={openConversation}
         onMarkContacted={markContacted}
@@ -2282,21 +2370,19 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
       <span
         className={`${BI_STATUS_PILL_TONE[STATUS_TONE[row.status]]} rounded px-1.5 py-0.5 text-[10px]`}
       >
-        {row.status}
+        {statusLabel(row.status)}
       </span>
     )
-  if (key === 'risk') return <span className="tabular-nums">{row.risk.toFixed(2)}</span>
+  if (key === 'risk') return <span>{riskLevelLabel(row.risk_level)}</span>
   if (key === 'last_active') return <span className="text-slate-300">{row.last_active}</span>
   if (key === 'balance')
     return <BiMoneyCell amount={row.balance_points} currency="POINT" align="right" />
   if (key === 'expires_at') return <span className="text-slate-300">{row.expires_at}</span>
   if (key === 'registered_at') return <span className="text-slate-300">{row.registered_at ?? '—'}</span>
   if (key === 'channel') return <span className="text-slate-300">{row.channel || '—'}</span>
-  if (key === 'paid_first')
-    return <span className="text-slate-300">{row.paid_at_first ?? '—'}</span>
-  if (key === 'region') return row.region ?? '—'
-  if (key === 'notes') return <span className="tabular-nums">{row.notes_count ?? 0}</span>
-  if (key === 'feedback') return <span className="tabular-nums">{row.feedback_count ?? 0}</span>
+  if (key === 'segment') return row.segment || '—'
+  if (key === 'review_due')
+    return <span className="tabular-nums">{row.review_due ?? '未知'}</span>
   if (key === 'behavior_report')
     return <span className="tabular-nums">{row.behavior_learning_report_7d ?? 0}</span>
   if (key === 'behavior_history')

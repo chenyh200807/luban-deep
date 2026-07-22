@@ -28,6 +28,7 @@ export type Member360DrawerProps = {
   /** 该会员点击/使用明细（每模块/每内容点了多少次）；独立懒加载，与 detail 分离获取 */
   engagement?: BiMemberEngagement | null
   engagementLoading?: boolean
+  engagementError?: string
   onClose: () => void
   onOpenConversation: () => void
   onMarkContacted: (member: MemberRow) => Promise<void> | void
@@ -47,6 +48,7 @@ export function Member360Drawer({
   error = '',
   engagement,
   engagementLoading = false,
+  engagementError = '',
   onClose,
   onOpenConversation,
   onMarkContacted,
@@ -64,21 +66,21 @@ export function Member360Drawer({
   const behavior = detail?.behavior
   const behaviorSummary = behavior?.summary
   const behaviorTrust = normalizeTrust(behaviorSummary?.trust_level ?? member.behavior_trust)
-  const tier = (detail?.tier ?? member.tier).toUpperCase()
+  const tier = detail?.tier ?? member.tier
   const status = detail?.status ?? member.status
-  const displayName = detail?.display_name || member.region || '未命名学员'
-  const risk = member.risk
+  const displayName = detail?.display_name || member.display_name || '未命名学员'
+  const riskLevel = normalizeRiskLevel(detail?.risk_level ?? member.risk_level)
   const cohort = behaviorSummary?.cohort ?? member.behavior_cohort ?? ''
   const nextAction = behaviorSummary?.next_action ?? member.behavior_next_action ?? behaviorNextAction(cohort)
   const learningReportCount = behaviorSummary?.learning_report_open_count_7d ?? member.behavior_learning_report_7d ?? 0
   const historyCount = behaviorSummary?.history_open_count_7d ?? member.behavior_history_7d ?? 0
-  const actionCount = behaviorSummary?.action_start_count_7d ?? 0
+  const actionCount = behaviorSummary?.action_start_count_7d ?? member.behavior_action_start_7d
   const eventCount = behaviorSummary?.event_count_7d ?? member.behavior_event_count_7d ?? 0
-  const firstRunStatus = behaviorSummary?.first_run_status ?? 'not_started'
-  const topModule = behaviorSummary?.top_module_7d ?? ''
+  const firstRunStatus = behaviorSummary?.first_run_status ?? member.behavior_first_run_status
+  const topModule = behaviorSummary?.top_module_7d ?? member.behavior_top_module_7d ?? ''
   const notes = detail?.recent_notes ?? []
   const ledger = detail?.recent_ledger ?? []
-  const canUpgradeToVip = tier !== 'VIP' && tier !== 'SVIP'
+  const canUpgradeToVip = tier === 'trial'
 
   async function submitNote() {
     if (!member) return
@@ -164,7 +166,7 @@ export function Member360Drawer({
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="truncate text-lg font-black text-slate-50">{member.phone_masked}</h3>
                 <BiStatusPill tone={statusTone(status)} label={statusLabel(status)} size="md" />
-                <BiStatusPill tone={tierTone(tier)} label={tier} size="md" />
+                <BiStatusPill tone={tierTone(tier)} label={tierLabel(tier)} size="md" />
               </div>
               <div className="mt-1 font-mono text-[11px] text-cyan-100/70">{member.user_id}</div>
             </div>
@@ -176,7 +178,7 @@ export function Member360Drawer({
 
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
             <DecisionTile label="行为队列" value={behaviorCohortLabel(cohort)} tone={BI_TRUST_TONE[behaviorTrust]} />
-            <DecisionTile label="风险" value={`${riskLabel(risk)} · ${risk.toFixed(2)}`} tone={BI_STATUS_PILL_TONE[riskTone(risk)]} />
+            <DecisionTile label="风险" value={riskLabel(riskLevel)} tone={BI_STATUS_PILL_TONE[riskTone(riskLevel)]} />
             <DecisionTile label="行为可信度" value={`${behaviorTrust} 级`} tone={BI_TRUST_TONE[behaviorTrust]} />
           </div>
 
@@ -200,7 +202,7 @@ export function Member360Drawer({
             value={<BiMoneyCell amount={detail?.wallet?.balance ?? member.balance_points} currency="POINT" align="left" />}
           />
           <MetricTile label="学习天数" value={String(detail?.study_days ?? '—')} />
-          <MetricTile label="待复习" value={String(detail?.review_due ?? member.notes_count ?? 0)} />
+          <MetricTile label="待复习" value={String(detail?.review_due ?? member.review_due ?? '未知')} />
           <MetricTile label="最近活跃" value={formatDateTime(detail?.last_active_at) || member.last_active} />
         </section>
 
@@ -210,8 +212,8 @@ export function Member360Drawer({
               <EvidenceStat label="行为样本" value={eventCount} />
               <EvidenceStat label="学情" value={learningReportCount} />
               <EvidenceStat label="历史" value={historyCount} />
-              <EvidenceStat label="行动" value={actionCount} />
-              <EvidenceStat label="First Run" value={firstRunStatusLabel(firstRunStatus)} />
+              <EvidenceStat label="行动" value={actionCount ?? (loading ? '加载中' : '未知')} />
+              <EvidenceStat label="First Run" value={firstRunStatusLabel(firstRunStatus, loading)} />
               <EvidenceStat label="高使用模块" value={moduleLabel(topModule)} />
             </div>
 
@@ -236,6 +238,8 @@ export function Member360Drawer({
               <Subhead title="点击/使用明细（每个模块）" />
               {engagementLoading ? (
                 <EmptyBlock>正在加载点击明细...</EmptyBlock>
+              ) : engagementError ? (
+                <EmptyBlock>点击明细暂不可用：{engagementError}</EmptyBlock>
               ) : engagement?.moduleBreakdown?.length ? (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {engagement.moduleBreakdown.map(row => (
@@ -249,7 +253,11 @@ export function Member360Drawer({
 
             <div data-testid="bi-member-content-breakdown" className="space-y-2">
               <Subhead title="点击/使用明细（每个内容/功能）" />
-              {engagement?.contentBreakdown?.length ? (
+              {engagementLoading ? (
+                <EmptyBlock>正在加载内容级点击明细...</EmptyBlock>
+              ) : engagementError ? (
+                <EmptyBlock>内容级点击明细暂不可用。</EmptyBlock>
+              ) : engagement?.contentBreakdown?.length ? (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {engagement.contentBreakdown.slice(0, 12).map(row => (
                     <KV
@@ -310,8 +318,12 @@ export function Member360Drawer({
                   打开工作台
                 </BiButton>
               </div>
-              {conversations.length === 0 ? (
-                <EmptyBlock>当前 360 快照没有最近会话。</EmptyBlock>
+              {loading && !detail ? (
+                <EmptyBlock>正在加载最近会话...</EmptyBlock>
+              ) : error && !detail ? (
+                <EmptyBlock>最近会话暂不可用。</EmptyBlock>
+              ) : conversations.length === 0 ? (
+                <EmptyBlock>当前 360 快照暂无最近会话。</EmptyBlock>
               ) : (
                 <ul className="space-y-2">
                   {conversations.slice(0, 3).map(session => (
@@ -366,10 +378,10 @@ export function Member360Drawer({
             <div className="grid gap-2 sm:grid-cols-2">
               <KV label="昵称" value={displayName} />
               <KV label="手机号" value={member.phone_masked} />
-              <KV label="Tier" value={tier} />
+              <KV label="Tier" value={tierLabel(tier)} />
               <KV label="状态" value={statusLabel(status)} />
               <KV label="到期" value={formatDate(detail?.expire_at) || member.expires_at} />
-              <KV label="首充" value={formatDate(detail?.created_at) || member.paid_at_first || '未付费'} />
+              <KV label="注册时间" value={formatDate(detail?.created_at) || member.registered_at || '未知'} />
               <KV label="今日目标" value={`${detail?.daily_target ?? '—'}`} />
               <KV label="考试日期" value={formatDate(detail?.exam_date) || '—'} />
             </div>
@@ -412,9 +424,8 @@ export function Member360Drawer({
           </Section>
         </section>
 
-        <BiNotice tone="amber">
-          危险动作（撤销会员 / 补点数 / 异常处理）当前禁用：等 etag / version / undo_token
-          后端就绪后启用。
+        <BiNotice tone="sky">
+          套餐、有效期与取消会员集中在“会员设置”中处理；写操作按权限校验并记录审计。
         </BiNotice>
       </div>
     </BiSidePanel>
@@ -464,7 +475,7 @@ function formatDelta(value: number): string {
 }
 
 function statusLabel(status: string): string {
-  if (status === 'active') return '活跃'
+  if (status === 'active') return '权益有效'
   if (status === 'expiring' || status === 'expiring_soon') return '将到期'
   if (status === 'expired') return '已到期'
   if (status === 'paused' || status === 'revoked') return '暂停'
@@ -479,20 +490,35 @@ function statusTone(status: string): BiStatusTone {
 }
 
 function tierTone(tier: string): BiStatusTone {
-  if (tier === 'SVIP') return 'amber'
-  if (tier === 'VIP') return 'sky'
+  if (tier === 'svip' || tier === 'supreme_svip') return 'amber'
+  if (tier === 'vip') return 'sky'
   return 'slate'
 }
 
-function riskLabel(value: number): string {
-  if (value >= 0.7) return '高'
-  if (value >= 0.4) return '中'
-  return '低'
+function tierLabel(tier: string): string {
+  if (tier === 'trial') return '体验'
+  if (tier === 'vip') return 'VIP'
+  if (tier === 'svip') return 'SVIP'
+  if (tier === 'supreme_svip') return '至尊SVIP'
+  return '未知'
 }
 
-function riskTone(value: number): BiStatusTone {
-  if (value >= 0.7) return 'rose'
-  if (value >= 0.4) return 'amber'
+function normalizeRiskLevel(value?: string): NonNullable<MemberRow['risk_level']> {
+  if (value === 'high' || value === 'medium' || value === 'low') return value
+  return 'unknown'
+}
+
+function riskLabel(value: NonNullable<MemberRow['risk_level']>): string {
+  if (value === 'high') return '高'
+  if (value === 'medium') return '中'
+  if (value === 'low') return '低'
+  return '未知'
+}
+
+function riskTone(value: NonNullable<MemberRow['risk_level']>): BiStatusTone {
+  if (value === 'high') return 'rose'
+  if (value === 'medium') return 'amber'
+  if (value === 'unknown') return 'slate'
   return 'emerald'
 }
 
@@ -504,13 +530,15 @@ function behaviorCohortLabel(cohort?: string): string {
   return cohort || '正常观察'
 }
 
-function firstRunStatusLabel(status: string): string {
+function firstRunStatusLabel(status?: string, loading = false): string {
+  if (!status) return loading ? '加载中' : '未知'
   if (status === 'completed') return '已完成'
+  if (status === 'not_started') return '未开始'
   if (status === 'in_progress') return '进行中'
   if (status === 'sync_anomaly') return '同步异常'
   if (status === 'truth_unavailable') return '真相不可用'
   if (status === 'not_eligible') return '不在覆盖范围'
-  return '未开始'
+  return '未知'
 }
 
 function moduleLabel(module: string): string {
