@@ -42,6 +42,7 @@ export interface BiBossDailyCostPoint {
   costUsd: number
   tokens: number
   turns: number
+  teachingVideoLimit: number | null
 }
 
 export interface BiBossDailyCost {
@@ -980,6 +981,10 @@ function normalizeCommercePackage(item: unknown): BiCommercePackage {
     tier: toString(record.tier ?? record.plan ?? record.level, ''),
     points: toNumber(record.points, 0),
     turns: toNumber(record.turns, 0),
+    teachingVideoLimit:
+      record.teaching_video_limit === null
+        ? null
+        : toNumber(record.teaching_video_limit ?? record.teachingVideoLimit, 20),
     priceCny: toNumber(record.price_cny ?? record.priceCny ?? record.price, 0),
     originalPriceCny: toNumber(record.original_price ?? record.originalPrice, 0),
     badge: toString(record.badge, ''),

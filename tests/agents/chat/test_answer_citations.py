@@ -6,7 +6,7 @@ from deeptutor.core.stream_bus import StreamBus
 
 
 @pytest.mark.asyncio
-async def test_chat_emit_sources_and_result_appends_paper_style_citations(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_chat_emit_sources_and_result_keeps_citations_structured(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
     stream = StreamBus()
     pipeline = AgenticChatPipeline(language="zh")
@@ -39,8 +39,8 @@ async def test_chat_emit_sources_and_result_appends_paper_style_citations(monkey
 
     result = next(event for event in stream._history if event.type == StreamEventType.RESULT)
     response = result.metadata["response"]
-    assert response == "屋面防水等级应根据工程重要性确定。〔1〕"
-    assert "〔1〕" in response
+    assert response == "屋面防水等级应根据工程重要性确定。"
+    assert "〔1〕" not in response
     assert "依据" not in response
     assert result.metadata["citation_bundle"]["footer_text"].startswith("依据\n〔1〕2026 建筑实务教材")
     assert result.metadata["citation_bundle"]["citation_state"] in {"supported", "partial"}
@@ -53,7 +53,7 @@ async def test_chat_emit_sources_and_result_appends_paper_style_citations(monkey
 
 
 @pytest.mark.asyncio
-async def test_chat_emit_sources_and_result_only_streams_unseen_citation_suffix(
+async def test_chat_emit_sources_and_result_does_not_stream_structured_citation_suffix(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
@@ -88,13 +88,13 @@ async def test_chat_emit_sources_and_result_only_streams_unseen_citation_suffix(
     )
 
     result = next(event for event in stream._history if event.type == StreamEventType.RESULT)
-    assert result.metadata["response"] == "屋面防水等级应根据工程重要性确定。〔1〕"
+    assert result.metadata["response"] == "屋面防水等级应根据工程重要性确定。"
     content = "".join(
         str(event.content or "")
         for event in stream._history
         if event.type == StreamEventType.CONTENT
     )
-    assert content == "〔1〕"
+    assert content == ""
 
 
 @pytest.mark.asyncio

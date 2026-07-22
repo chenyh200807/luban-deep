@@ -160,60 +160,11 @@ function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
 }
 
 function _normalizePackages(rawPackages) {
-  var source = Array.isArray(rawPackages) && rawPackages.length
-    ? rawPackages
-    : _launchPackages();
+  var source = Array.isArray(rawPackages) ? rawPackages : [];
   var normalized = source.map(_normalizePackageItem).filter(function (pkg) {
     return !!pkg.id && _isLaunchPackageId(pkg.id);
   });
-  if (normalized.length) return normalized;
-  return _launchPackages().map(_normalizePackageItem);
-}
-
-function _launchPackages() {
-  return [
-    {
-      id: "starter_19",
-      name: "入门体验",
-      label: "入门体验",
-      price: "9.9",
-      original_price: "29",
-      points: 400,
-      turns: 20,
-      desc: "先花几块钱试水，覆盖一次完整的答疑与错题讲解体验。",
-      badge: "限时上线",
-    },
-    {
-      id: "light_98",
-      name: "进阶",
-      price: "68",
-      original_price: "98",
-      points: 3000,
-      turns: 150,
-      desc: "适合轻量备考，够用一轮阶段性答疑与练习闭环。",
-      badge: "轻量优选",
-    },
-    {
-      id: "vip",
-      name: "VIP",
-      price: "198",
-      original_price: "298",
-      points: 9000,
-      turns: 450,
-      desc: "适合稳定备考，覆盖日常答疑、错题讲解和阶段训练。",
-      badge: "",
-    },
-    {
-      id: "svip",
-      name: "SVIP",
-      price: "268",
-      original_price: "398",
-      points: 12500,
-      turns: 625,
-      desc: "适合长期稳定备考、需要高频答疑与复测闭环的考生。",
-      badge: "最高性价比",
-    },
-  ];
+  return normalized;
 }
 
 // 消费者面 4 档:9.9/68/198/268。supreme_svip(998)不在此白名单——后端保留其定义

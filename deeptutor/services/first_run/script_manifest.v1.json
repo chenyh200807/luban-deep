@@ -1,6 +1,6 @@
 {
   "schema_id": "first_run_script.v1",
-  "release_status": "signed",
+  "release_status": "blocked_pending_human_verdict",
   "questions": [
     {
       "question_id": "first_run.v1:qigu_gebu",
@@ -10,11 +10,8 @@
       "concept_id": "1A434000-B017",
       "concept_label": "屋面卷材起鼓",
       "candidate_status": "initial_gold_candidate",
-      "review_status": "signed",
-      "review_refs": [
-        "teacher_review:owner_cainkyking:2026-07-12:first_run.v1:qigu_gebu:2f040012810b901343d2dcd5399df6fc675fa0d89aa706cd5cfd6ede95ea0b3d",
-        "teacher_review:claude_fable_owner_delegate:2026-07-12:first_run.v1:qigu_gebu:2f040012810b901343d2dcd5399df6fc675fa0d89aa706cd5cfd6ede95ea0b3d"
-      ],
+      "review_status": "pending_dual_teacher_verdict",
+      "review_refs": [],
       "source_refs": [
         "v_case_rubric_scored_pgo:Q18-1A434000:P11",
         "textbook:1A434000_076_0119::C0"
@@ -38,11 +35,8 @@
       "concept_id": "1A434000-B077",
       "concept_label": "项目质量计划编制要求",
       "candidate_status": "initial_gold_candidate",
-      "review_status": "signed",
-      "review_refs": [
-        "teacher_review:owner_cainkyking:2026-07-12:first_run.v1:zhiliang_jihua:a154b56b92fdcfa70a92141369be2d0306a3d7f7f183899cb4b29869f61283e5",
-        "teacher_review:claude_fable_owner_delegate:2026-07-12:first_run.v1:zhiliang_jihua:a154b56b92fdcfa70a92141369be2d0306a3d7f7f183899cb4b29869f61283e5"
-      ],
+      "review_status": "pending_dual_teacher_verdict",
+      "review_refs": [],
       "source_refs": [
         "v_case_rubric_scored_pgo:Q18-1A434000:P2",
         "textbook:1A434000_062_0093"
@@ -66,11 +60,8 @@
       "concept_id": "1A434000-B013",
       "concept_label": "填充墙砌筑不当",
       "candidate_status": "initial_gold_candidate",
-      "review_status": "signed",
-      "review_refs": [
-        "teacher_review:owner_cainkyking:2026-07-12:first_run.v1:tianchongqiang_fangbie:da852e636f301b9eb851f5e6a33e9c460902ae90f0bd97d66718e14a17ceb186",
-        "teacher_review:claude_fable_owner_delegate:2026-07-12:first_run.v1:tianchongqiang_fangbie:da852e636f301b9eb851f5e6a33e9c460902ae90f0bd97d66718e14a17ceb186"
-      ],
+      "review_status": "pending_dual_teacher_verdict",
+      "review_refs": [],
       "source_refs": [
         "textbook:1A434000_074_0116::C2",
         "exam_evidence:_F04:fill_wall_last_three_courses_14d"
@@ -94,11 +85,8 @@
       "concept_id": "1A437000-B035",
       "concept_label": "建筑垃圾减量化",
       "candidate_status": "outside_initial_gold_candidates",
-      "review_status": "signed",
-      "review_refs": [
-        "teacher_review:owner_cainkyking:2026-07-12:first_run.v1:zhuangpeishi_laji:20709b4196b6bdd2393902c5b52aaaa3bacc16e545da7ecc70d41a5bf7b1582f",
-        "teacher_review:claude_fable_owner_delegate:2026-07-12:first_run.v1:zhuangpeishi_laji:20709b4196b6bdd2393902c5b52aaaa3bacc16e545da7ecc70d41a5bf7b1582f"
-      ],
+      "review_status": "pending_dual_teacher_verdict",
+      "review_refs": [],
       "source_refs": [
         "exam:2025:Q2025-01:question3.1",
         "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2025.json"
@@ -114,11 +102,5 @@
         "right": "A"
       }
     }
-  ],
-  "release_signoff": {
-    "who": "owner_cainkyking",
-    "via": "claude_fable_owner_delegate",
-    "basis": "owner本人2026-07-12对话授权'签'；四题内容源自签发采分点(Q18/编译库对齐,commit 454cf17e系),owner本周多轮真机过目",
-    "at": "2026-07-12"
-  }
+  ]
 }

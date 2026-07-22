@@ -46,6 +46,7 @@ scope_rule:
     - os.environ["NAME"] / os.environ.get("NAME")
     - env_store.get("NAME") / get_env_store().get("NAME")
     - runtime_env.env_flag("NAME")   # ← the machine signal "this is a boolean flag"
+    - shell ${NAME} / $NAME           # scripts/*.sh; script-local assignments are excluded
   must_register_if_any:
     - production_env_reference        # any UPPER_SNAKE literal read in deeptutor/ or scripts/
     - feature_flag_read               # any name read through env_flag()  → must be a registered feature_flag
@@ -241,6 +242,18 @@ aliases:
   - {alias: BAILIAN_BILLING_APIKEY_ID, canonical: BAILIAN_BILLING_ACCESS_KEY_ID}
   - {alias: BAILIAN_TELEMETRY_APIKEY_ID, canonical: BAILIAN_TELEMETRY_ACCESS_KEY_ID}
   - {alias: CORS_ORIGIN, canonical: CORS_ORIGINS}
+
+# ── Transient command envs (script-local process/SSH IPC, not operator config) ──
+# These names exist only to pass release metadata into an embedded Python process.
+# They are not secrets, deployment configuration, or long-lived runtime authority.
+transient_command_envs:
+  - {name: RELEASE_GIT_SHA, owner: release_script}
+  - {name: RELEASE_SERVICE_VERSION, owner: release_script}
+  - {name: RELEASE_GIT_DIRTY, owner: release_script}
+  - {name: RELEASE_DEPLOY_MANIFEST_HASH, owner: release_script}
+  - {name: RELEASE_EXCLUDES_JSON, owner: release_script}
+  - {name: RELEASE_BRANCH, owner: release_script}
+  - {name: RELEASE_COMMIT, owner: release_script}
 
 # ── Grandfathered envs (存量 — the full referenced set, current state) ────────
 # Every UPPER_SNAKE env literal read in deeptutor/ + scripts/ today. Adding a row
@@ -485,6 +498,7 @@ grandfathered_envs:
   - RAG_PROVIDER
   - REDIS_URL
   - RELEASE_ID
+  - RELEASE_KEEP
   - REMOTE_DIR
   - SEARCH_API_KEY
   - SEARCH_BASE_URL
@@ -568,3 +582,61 @@ grandfathered_envs:
   - WECHAT_QA_BASE_URL
   - WX_DEVTOOLS_CLI
   - X_DATABASE_URL
+  # Shell production baseline discovered when the canonical scanner expanded
+  # from Python-only to scripts/*.sh. These are operator/CI inputs; script-local
+  # variables without an external read are excluded by the scanner.
+  - ALERTMANAGER_PORT
+  - ALERTMANAGER_URL
+  - ALLOW_DIRTY_DEPLOY
+  - ALLOW_MAIN_BRANCH_DEPLOY
+  - APT_MIRROR
+  - AUDIT
+  - BACKUP_KEEP
+  - BASELINE_FILE
+  - DEEPTUTOR_BACKUP_DIR
+  - DEEPTUTOR_CONTAINER
+  - DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE
+  - DEEPTUTOR_HISTORICAL_QUESTION_BANK_DIR
+  - DEEPTUTOR_RUNTIME_ENV
+  - DEEPTUTOR_STACK_ROOT
+  - DISK_PREFLIGHT_MIN_GB
+  - EXAM_QUALITY_BASELINE
+  - EXAM_QUALITY_FLOOR
+  - EXAM_QUALITY_LOG
+  - EXAM_QUALITY_MODEL
+  - FAIL_ON_HARD_ERRORS
+  - FAIL_ON_NEW
+  - FORCE_FULL_REBUILD
+  - HERMES_EDU_COMMIT_PREFIX
+  - HERMES_EDU_REF
+  - HERMES_EDU_REPO_URL
+  - HOME
+  - HOST_OUTPUT_DIR
+  - IMAGE_NAME
+  - LUBAN_TEST_BACKEND_PORT
+  - MIG_DIR
+  - MONITORED_TABLES
+  - NEXT_PUBLIC_API_BASE_EXTERNAL
+  - PIP_INDEX_URL
+  - PROBE_INTERVAL_SECONDS
+  - PROBE_RETRIES
+  - PROBE_TIMEOUT_SECONDS
+  - PROM_PORT
+  - PUBLIC_BASE_URL
+  - PUBLIC_HOST
+  - PWD
+  - PYTHONIOENCODING
+  - REMOTE_HOST
+  - REQUIRE_FORCE_RLS
+  - RUN_NAME
+  - RUSTUP_DIST_SERVER
+  - RUSTUP_UPDATE_ROOT
+  - SEARXNG_INTERNAL_URL
+  - SEARXNG_LOCAL_URL
+  - SECURITY_MIRROR
+  - SHARED_LANGFUSE_NETWORK
+  - SOURCE_JSON_HOST
+  - STALENESS_SECONDS
+  - STAMP
+  - STRICT
+  - WEB_PORT

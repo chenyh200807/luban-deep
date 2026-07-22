@@ -135,7 +135,8 @@ def load_env_registry(path: Path = REGISTRY_PATH) -> dict[str, Any]:
     """Load + index ``contracts/env_registry.yaml`` into lookup structures.
 
     ``registered_envs`` is the UNION of every registered name (feature_flags ∪
-    credentials ∪ aliases ∪ grandfathered_envs) — rule (a) keys off it.
+    credentials ∪ aliases ∪ transient_command_envs ∪ grandfathered_envs)
+    — rule (a) keys off it.
     ``registered_flags`` is just the feature_flags name set — rule (b) keys off it.
     """
     payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
@@ -154,6 +155,9 @@ def load_env_registry(path: Path = REGISTRY_PATH) -> dict[str, Any]:
             registered_envs.add(str(entry["alias"]))
         if isinstance(entry, dict) and entry.get("canonical"):
             registered_envs.add(str(entry["canonical"]))
+    for entry in payload.get("transient_command_envs") or []:
+        if isinstance(entry, dict) and entry.get("name"):
+            registered_envs.add(str(entry["name"]))
     for name in payload.get("grandfathered_envs") or []:
         registered_envs.add(str(name))
 
@@ -180,6 +184,59 @@ def collect_env_reference_usages(files: list[tuple[str, str]]) -> list[EnvRefUsa
                 usages.append(
                     EnvRefUsage(path=path, lineno=lineno, env_name=match.group(1))
                 )
+        if path.endswith(".sh"):
+            usages.extend(_collect_shell_env_reference_usages(path, body))
+    return usages
+
+
+_SHELL_ENV_REF_RE = re.compile(
+    rf"\$(?:\{{\s*{_ENV_NAME}(?:[:?+\-=][^}}]*)?\}}|{_ENV_NAME}\b)"
+)
+_SHELL_ASSIGNMENT_RE = re.compile(
+    rf"(?:^|[;\s])(?:export\s+|readonly\s+|local\s+)?{_ENV_NAME}\s*="
+)
+_SHELL_FOR_RE = re.compile(rf"^\s*for\s+{_ENV_NAME}\s+in\b")
+
+
+def _collect_shell_env_reference_usages(path: str, body: str) -> list[EnvRefUsage]:
+    """Collect shell parameter reads while ignoring variables defined by the script.
+
+    Shell locals are implementation details, not environment resources. A self-default
+    assignment such as ``RELEASE_KEEP=${RELEASE_KEEP:-5}`` is different: its RHS reads
+    operator input before defining the local, so that reference remains governed.
+    """
+    lines = body.splitlines()
+    locally_defined: set[str] = set()
+    usages: list[EnvRefUsage] = []
+    for lineno, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        assignments = list(_SHELL_ASSIGNMENT_RE.finditer(line))
+        # A shell for-variable exists before the loop body on the same line.
+        locally_defined.update(match.group(1) for match in _SHELL_FOR_RE.finditer(line))
+        for match in _SHELL_ENV_REF_RE.finditer(line):
+            env_name = match.group(1) or match.group(2)
+            if env_name in locally_defined:
+                continue
+            same_line_assignment = next(
+                (
+                    assignment
+                    for assignment in assignments
+                    if assignment.group(1) == env_name and assignment.start() < match.start()
+                ),
+                None,
+            )
+            if same_line_assignment is not None:
+                between = line[same_line_assignment.end() : match.start()]
+                # Expansion in an assignment RHS happens before that assignment
+                # takes effect. After a command separator, the assigned value is
+                # already local and must not be governed as an environment read.
+                if re.search(r";|&&|\|\|", between):
+                    continue
+            usages.append(EnvRefUsage(path=path, lineno=lineno, env_name=env_name))
+        # Assignment becomes local only after all expansions on that command line.
+        locally_defined.update(assignment.group(1) for assignment in assignments)
     return usages
 
 
@@ -316,7 +373,9 @@ def _git_current_candidate_files() -> list[str]:
         ["git", "diff", "--name-only"],
         ["git", "ls-files", "--others", "--exclude-standard"],
     ):
-        result = subprocess.run(command, check=True, capture_output=True, text=True)
+        result = subprocess.run(
+            command, check=True, capture_output=True, text=True, cwd=REPO_ROOT
+        )
         files.update(line.strip() for line in result.stdout.splitlines() if line.strip())
     return sorted(files)
 
@@ -325,7 +384,12 @@ def _git_current_candidate_files() -> list[str]:
 # shell-word-split). The CI used ``$(git ls-files …)`` unquoted, so a tracked path
 # containing a space would be split into two bogus arguments. ``--all`` lets CI call
 # the scanner with no shell expansion (``python check_env_registry.py --all``).
-_SCAN_ALL_GLOBS = ("deeptutor/**/*.py", "scripts/**/*.py")
+_SCAN_ALL_GLOBS = (
+    "deeptutor/**/*.py",
+    "scripts/**/*.py",
+    "scripts/*.sh",
+    "scripts/**/*.sh",
+)
 
 
 def _git_tracked_in_scope_files() -> list[str]:
@@ -339,6 +403,7 @@ def _git_tracked_in_scope_files() -> list[str]:
         check=True,
         capture_output=True,
         text=True,
+        cwd=REPO_ROOT,
     )
     return [p for p in result.stdout.split("\0") if p]
 

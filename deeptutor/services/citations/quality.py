@@ -46,26 +46,11 @@ def validate_cited_answer(answer: CitedAnswer) -> None:
     if _contains_hidden_authority(response):
         raise CitationQualityError("hidden authority found in public response")
     inline_markers = {int(match.group(1)) for match in _INLINE_MARKER_RE.finditer(response)}
+    if inline_markers:
+        raise CitationQualityError("public response contains inline citation marker")
     expected = set(range(1, len(answer.bundle.refs) + 1))
     if answer.bundle.citation_state == "no_public_source":
-        if inline_markers:
-            raise CitationQualityError("no-public-source answer cannot contain citation markers")
         return
-    marker_by_citation_id = {
-        ref.citation_id: int(match.group(1))
-        for ref in answer.bundle.refs
-        if (match := _MARKER_RE.fullmatch(ref.marker))
-    }
-    claim_markers = {
-        marker
-        for claim in answer.bundle.claims
-        for citation_id in claim.citation_ids
-        if (marker := marker_by_citation_id.get(citation_id)) is not None
-    }
-    if claim_markers - inline_markers:
-        raise CitationQualityError("public response missing claim citation marker")
-    if inline_markers - claim_markers:
-        raise CitationQualityError("public response contains orphan citation marker")
     for ref in answer.bundle.refs:
         if any(
             _contains_hidden_authority(value, exact_field_name=True)

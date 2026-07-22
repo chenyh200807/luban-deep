@@ -280,7 +280,7 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
 
 实现设计见：
 
-- [2026-04-15-bot-learner-overlay-service-design.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/plan/学习脑与学员记忆/2026-04-15-bot-learner-overlay-service-design.md)
+- [2026-04-15-bot-learner-overlay-service-design.md](../docs/plan/学习脑与学员记忆/2026-04-15-bot-learner-overlay-service-design.md)
 
 但必须满足以下硬约束：
 
@@ -965,7 +965,10 @@ learner_memory_events(memory_kind=learning_evidence)`；中途状态只允许保
 隔离的客户端 checkpoint，不建立第二套服务端 session 或推荐表。
 
 1. `first_run_script.v1` 是四道静态题的唯一内容与答案 authority。每题必须有稳定
-   `question_id`、source refs、content hash 与两条独立教研 review refs；任一题未 signed 时
+   `question_id`、source refs、content hash 与两条独立教研 review refs；review ref 必须是
+   结构化 `human + teaching_reviewer + approve + delegated=false` attestation，reviewer_id
+   必须存在于独立 `first_run_reviewer_registry.v1` active allowlist，日期不得晚于当前日期；
+   legacy 字符串、自报 human、未登记 reviewer 与未来日期一律 fail closed。任一题未 signed 时
    completion 必须 fail closed，前端 `script-data.js` 只能是 hash-pinned 展示镜像。
 2. 客户端 completion 只能提交 `completion_id`、`script_version`、`completed_at`、四条
    `question_id/selected_key/duration_ms` 与显式偏好；禁止提交正式 score、correct、mastery、

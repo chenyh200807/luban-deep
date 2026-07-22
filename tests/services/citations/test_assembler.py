@@ -4,7 +4,7 @@ from deeptutor.services.citations.runtime import citation_metrics
 from deeptutor.services.citations.schema import CitationPolicy
 
 
-def test_assembles_inline_markers_with_footer_references() -> None:
+def test_assembles_structured_references_without_mutating_response() -> None:
     cited = assemble_cited_answer(
         "屋面防水等级应根据工程重要性确定。\n\n设防要求要结合渗漏后果判断。",
         sources=[
@@ -28,9 +28,8 @@ def test_assembles_inline_markers_with_footer_references() -> None:
         policy=CitationPolicy(),
     )
 
-    assert cited.response == "屋面防水等级应根据工程重要性确定。〔1〕\n\n设防要求要结合渗漏后果判断。〔2〕"
-    assert "〔1〕" in cited.response
-    assert "〔2〕" in cited.response
+    assert cited.response == "屋面防水等级应根据工程重要性确定。\n\n设防要求要结合渗漏后果判断。"
+    assert "〔1〕" not in cited.response
     assert "依据" not in cited.response
     assert cited.bundle.footer_text.startswith("依据\n〔1〕2026 建筑实务教材")
     assert "〔2〕屋面工程技术规范｜GB 50345-2012 第 3.0.1 条" in cited.bundle.footer_text
@@ -86,7 +85,7 @@ def test_footer_keeps_all_public_refs_while_body_marks_used_ref() -> None:
         policy=CitationPolicy(),
     )
 
-    assert cited.response == "屋面防水等级应根据工程重要性确定。〔1〕"
+    assert cited.response == "屋面防水等级应根据工程重要性确定。"
     assert "〔2〕" not in cited.response
     assert len(cited.bundle.refs) == 2
     assert "〔1〕2026 建筑实务教材" in cited.bundle.footer_text
@@ -115,7 +114,7 @@ def test_footer_refs_keep_contiguous_markers_without_body_renumbering() -> None:
         policy=CitationPolicy(),
     )
 
-    assert cited.response == "临时用电组织设计应包含用电负荷计算。〔2〕"
+    assert cited.response == "临时用电组织设计应包含用电负荷计算。"
     assert [ref.marker for ref in cited.bundle.refs] == ["〔1〕", "〔2〕"]
     validate_cited_answer(cited)
 
@@ -139,8 +138,8 @@ def test_does_not_mark_markdown_headings_as_cited_claims() -> None:
 
     assert "## 结论〔1〕" not in cited.response
     assert "## 采分点〔1〕" not in cited.response
-    assert "楼地面应满足隔声、保温、防水、防火要求。〔1〕" in cited.response
-    assert "- 铺装面层应平整、防滑、耐磨、易清洁。〔1〕" in cited.response
+    assert "楼地面应满足隔声、保温、防水、防火要求。" in cited.response
+    assert "- 铺装面层应平整、防滑、耐磨、易清洁。" in cited.response
     assert [claim.text for claim in cited.bundle.claims] == [
         "楼地面应满足隔声、保温、防水、防火要求。",
         "- 铺装面层应平整、防滑、耐磨、易清洁。",
@@ -175,7 +174,7 @@ def test_student_surface_prefers_textbook_reference_over_standard_when_available
     )
 
     assert "防火门等级要与使用部位匹配" in cited.response
-    assert "〔1〕" in cited.response
+    assert "〔1〕" not in cited.response
     assert any(ref.source_type == "textbook" for ref in cited.bundle.refs)
     assert any(ref.title.startswith("2026 建筑实务教材") for ref in cited.bundle.refs)
     assert "GB 50016-2019 建筑防火" in cited.bundle.footer_text
@@ -208,7 +207,7 @@ def test_student_surface_keeps_standard_reference_for_explicit_standard_claim() 
         policy=CitationPolicy(surface="student"),
     )
 
-    assert "〔2〕" in cited.response
+    assert "〔2〕" not in cited.response
     assert any(ref.source_type == "standard" for ref in cited.bundle.refs)
     assert "GB 50016-2019 建筑防火" in cited.bundle.footer_text
     validate_cited_answer(cited)
@@ -239,9 +238,9 @@ def test_strips_model_generated_inline_reference_noise() -> None:
         policy=CitationPolicy(),
     )
 
-    assert cited.response == "屋面防水等级应根据工程重要性确定。〔1〕\n\n## 采分点\n- 按重要程度判断。〔1〕"
+    assert cited.response == "屋面防水等级应根据工程重要性确定。\n\n## 采分点\n- 按重要程度判断。"
     assert "依据：" not in cited.response
-    assert "〔1〕" in cited.response
+    assert "〔1〕" not in cited.response
     assert "〔1〕2026 建筑实务教材" in cited.bundle.footer_text
     validate_cited_answer(cited)
 
@@ -263,7 +262,7 @@ def test_preserves_legal_document_numbers_and_teaching_basis_lines() -> None:
     assert "建办质〔2020〕8号" in cited.response
     assert "依据：关键线路决定总工期。" in cited.response
     assert "采分点：先判断，再写依据。" in cited.response
-    assert "〔1〕" in cited.response
+    assert "〔1〕" not in cited.response.replace("〔2020〕", "")
     validate_cited_answer(cited)
 
 
@@ -300,7 +299,7 @@ def test_strips_old_answer_footer_only_when_footer_has_reference_shape() -> None
         policy=CitationPolicy(),
     )
 
-    assert cited.response == "屋面防水等级应根据工程重要性确定。〔1〕"
+    assert cited.response == "屋面防水等级应根据工程重要性确定。"
     validate_cited_answer(cited)
 
 
@@ -325,8 +324,8 @@ def test_strips_last_reference_footer_without_removing_teaching_basis_section() 
 
     assert "依据\n关键线路决定总工期。" in cited.response
     assert "采分点：先判断，再写依据。" in cited.response
-    assert cited.response.endswith("采分点：先判断，再写依据。〔1〕")
-    assert "〔1〕" in cited.response
+    assert cited.response.endswith("采分点：先判断，再写依据。")
+    assert "〔1〕" not in cited.response
     validate_cited_answer(cited)
 
 

@@ -702,6 +702,11 @@ async def bi_upsert_membership_package(
 ) -> dict[str, Any]:
     key = _validate_idempotency_key(idempotency_key)
     try:
+        optional_entitlement = (
+            {"teaching_video_limit": body.teaching_video_limit}
+            if "teaching_video_limit" in body.model_fields_set
+            else {}
+        )
         return get_member_console_service().upsert_membership_package(
             package_id=package_id,
             label=body.label,
@@ -717,6 +722,7 @@ async def bi_upsert_membership_package(
             operator=auth.user_id,
             reason=body.reason,
             idempotency_key=key,
+            **optional_entitlement,
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

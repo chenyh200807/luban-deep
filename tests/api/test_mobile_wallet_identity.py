@@ -107,6 +107,19 @@ def test_billing_wallet_prefers_canonical_uid_claim(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(mobile_module.member_service, "get_wallet", _fake_get_wallet)
     monkeypatch.setattr(
         mobile_module.member_service,
+        "list_membership_packages",
+        lambda: [
+            {
+                "id": "starter_19",
+                "price": "19",
+                "points": 800,
+                "turns": 40,
+                "teaching_video_limit": 30,
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
         "get_billing_entitlement_read_model",
         _fake_get_billing_entitlement,
     )
@@ -119,6 +132,15 @@ def test_billing_wallet_prefers_canonical_uid_claim(monkeypatch: pytest.MonkeyPa
     assert response.json()["balance"] == 360
     assert response.json()["balance_micros"] == 360_000_000
     assert response.json()["points"] == 360
+    assert response.json()["packages"] == [
+        {
+            "id": "starter_19",
+            "price": "19",
+            "points": 800,
+            "turns": 40,
+            "teaching_video_limit": 30,
+        }
+    ]
     # 有效 vip 会员 → 教学视频无限(JSON null)
     assert "teaching_video_limit" in response.json()
     assert response.json()["teaching_video_limit"] is None
@@ -861,17 +883,7 @@ def test_wallet_endpoints_treat_invalid_uuid_wallet_lookup_as_empty_wallet(
     ],
 )
 def test_resolve_teaching_video_limit_tiers(tier: str, is_active: bool, expected: int | None) -> None:
-    assert mobile_module.resolve_teaching_video_limit(tier, is_active) == expected
-
-
-def test_membership_is_active_by_expire_at() -> None:
-    tz = ZoneInfo("Asia/Shanghai")
-    future = (datetime.now(tz) + timedelta(days=1)).isoformat()
-    past = (datetime.now(tz) - timedelta(days=1)).isoformat()
-    assert mobile_module._membership_is_active(future) is True
-    assert mobile_module._membership_is_active(past) is False
-    assert mobile_module._membership_is_active("") is False
-    assert mobile_module._membership_is_active(None) is False
+    assert mobile_module.member_service.resolve_teaching_video_limit(tier, is_active) == expected
 
 
 def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
@@ -893,13 +905,8 @@ def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_expired")
     monkeypatch.setattr(
         mobile_module.member_service,
-        "get_billing_entitlement_read_model",
-        lambda user_id: {
-            "user_id": user_id,
-            "tier": "light_98",
-            "status": "active",
-            "expire_at": past_expire,
-        },
+        "get_teaching_video_limit",
+        lambda user_id: 20,
     )
 
     class _FakeWalletService:
@@ -940,13 +947,8 @@ def test_billing_wallet_teaching_video_limit_inactive_membership_defaults_to_20(
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_suspended")
     monkeypatch.setattr(
         mobile_module.member_service,
-        "get_billing_entitlement_read_model",
-        lambda user_id: {
-            "user_id": user_id,
-            "tier": "vip",
-            "status": "suspended",
-            "expire_at": future_expire,
-        },
+        "get_teaching_video_limit",
+        lambda user_id: 20,
     )
 
     class _FakeWalletService:
@@ -983,13 +985,8 @@ def test_billing_wallet_teaching_video_limit_active_starter_is_30(
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_starter")
     monkeypatch.setattr(
         mobile_module.member_service,
-        "get_billing_entitlement_read_model",
-        lambda user_id: {
-            "user_id": user_id,
-            "tier": "starter_19",
-            "status": "active",
-            "expire_at": future_expire,
-        },
+        "get_teaching_video_limit",
+        lambda user_id: 30,
     )
 
     class _FakeWalletService:

@@ -10,7 +10,7 @@
 
 机器可读索引在：
 
-- [contracts/index.yaml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/index.yaml)
+- [contracts/index.yaml](contracts/index.yaml)
 
 ## 第一性原则
 
@@ -55,8 +55,8 @@ DeepTutor 必须优先保证：
 
 专项文档：
 
-- [contracts/turn.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/turn.md)
-- [docs/zh/guide/unified-turn-contract.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/zh/guide/unified-turn-contract.md)
+- [contracts/turn.md](contracts/turn.md)
+- [docs/zh/guide/unified-turn-contract.md](docs/zh/guide/unified-turn-contract.md)
 
 ### 2. Capability Contract
 
@@ -68,7 +68,7 @@ DeepTutor 必须优先保证：
 
 专项文档：
 
-- [contracts/capability.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/capability.md)
+- [contracts/capability.md](contracts/capability.md)
 
 ### 3. RAG Contract
 
@@ -81,7 +81,7 @@ DeepTutor 必须优先保证：
 
 专项文档：
 
-- [contracts/rag.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/rag.md)
+- [contracts/rag.md](contracts/rag.md)
 
 ### 4. Config Runtime Contract
 
@@ -93,7 +93,7 @@ DeepTutor 必须优先保证：
 
 专项文档：
 
-- [contracts/config-runtime.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/config-runtime.md)
+- [contracts/config-runtime.md](contracts/config-runtime.md)
 
 ### 5. Learner State Contract
 
@@ -106,7 +106,7 @@ DeepTutor 必须优先保证：
 
 专项文档：
 
-- [contracts/learner-state.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/learner-state.md)
+- [contracts/learner-state.md](contracts/learner-state.md)
 
 ### 6. Account/Auth Credential Boundary
 
@@ -116,7 +116,7 @@ DeepTutor 必须优先保证：
 
 专项索引：
 
-- [contracts/index.yaml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/index.yaml) 的 `mobile_http_auth_controls`
+- [contracts/index.yaml](contracts/index.yaml) 的 `mobile_http_auth_controls`
 
 硬约束：
 
@@ -158,7 +158,7 @@ DeepTutor 必须优先保证：
 工作顺序固定：
 
 1. 先读本文件
-2. 再读 [contracts/index.yaml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/index.yaml)
+2. 再读 [contracts/index.yaml](contracts/index.yaml)
 3. 按索引命中的 domain 加载对应专项 contract
 4. 确认是否还需要改 schema
 5. 再改业务代码
@@ -204,7 +204,7 @@ CI 不会对全仓库一刀切，只会盯 contract 边界。
 
 当前 guard：
 
-- [scripts/check_contract_guard.py](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/check_contract_guard.py)
+- [scripts/check_contract_guard.py](scripts/check_contract_guard.py)
 
 它根据 `contracts/index.yaml` 判断：
 

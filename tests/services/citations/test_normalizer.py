@@ -163,6 +163,31 @@ def test_source_span_allows_named_textbook_section_without_synthetic_section_pre
     assert "第 建筑物的构成与设计要求 节" not in refs[0].locator
 
 
+def test_student_surface_rejects_explicit_private_or_internal_sources() -> None:
+    refs = normalize_citation_sources(
+        [
+            {"id": "private", "visibility": "private", "title": "PRIVATE", "content": "SECRET"},
+            {"id": "internal", "metadata": {"visibility": "internal"}, "content": "HIDDEN"},
+            {"id": "public", "visibility": "public", "title": "教材", "content": "公开内容"},
+        ],
+        policy=CitationPolicy(surface="student"),
+    )
+
+    assert [(ref.title, ref.public_quote, ref.visibility) for ref in refs] == [
+        ("教材", "公开内容", "public")
+    ]
+
+
+def test_reviewer_surface_preserves_private_visibility_for_public_projection_filter() -> None:
+    refs = normalize_citation_sources(
+        [{"id": "private", "visibility": "private", "title": "内部证据", "content": "仅 reviewer"}],
+        policy=CitationPolicy(surface="reviewer"),
+    )
+
+    assert refs[0].visibility == "private"
+    assert refs[0].to_public_dict() == {}
+
+
 def test_filters_hidden_grading_authority_for_student_surface() -> None:
     refs = normalize_citation_sources(
         [

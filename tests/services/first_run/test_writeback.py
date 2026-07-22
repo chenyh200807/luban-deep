@@ -103,10 +103,24 @@ def signed_manifest(monkeypatch: pytest.MonkeyPatch) -> None:
         question_id = str(question["question_id"])
         content_sha256 = str(question["content_sha256"])
         question["review_refs"] = [
-            f"teacher_review:teacher-one:2026-07-11:{question_id}:{content_sha256}",
-            f"teacher_review:teacher-two:2026-07-11:{question_id}:{content_sha256}",
+            {
+                "reviewer_id": reviewer_id,
+                "reviewer_kind": "human",
+                "reviewer_role": "teaching_reviewer",
+                "verdict": "approve",
+                "delegated": False,
+                "reviewed_on": "2026-07-11",
+                "question_id": question_id,
+                "content_sha256": content_sha256,
+            }
+            for reviewer_id in ("teacher-one", "teacher-two")
         ]
     monkeypatch.setattr(manifest_module, "load_first_run_manifest", lambda: manifest)
+    monkeypatch.setattr(
+        manifest_module,
+        "load_first_run_reviewer_registry",
+        lambda: {"teacher-one", "teacher-two"},
+    )
 
 
 def _completion(

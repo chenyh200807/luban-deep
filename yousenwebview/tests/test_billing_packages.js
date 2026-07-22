@@ -6,6 +6,13 @@ var pass = 0;
 var fail = 0;
 var errors = [];
 
+var SERVER_PACKAGES = [
+  { id: "starter_19", name: "入门体验", price: "9.9", original_price: "29", points: 400, turns: 20, badge: "限时上线" },
+  { id: "light_98", name: "进阶", price: "68", original_price: "98", points: 3000, turns: 150, badge: "轻量优选" },
+  { id: "vip", name: "VIP", price: "198", original_price: "298", points: 9000, turns: 450 },
+  { id: "svip", name: "SVIP", price: "268", original_price: "398", points: 12500, turns: 625, badge: "最高性价比" },
+];
+
 function assert(condition, message) {
   if (condition) {
     pass++;
@@ -79,7 +86,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
           },
           getWallet: function () {
             walletCalls++;
-            return Promise.resolve(walletPayload || { balance: 9000 });
+            return Promise.resolve(walletPayload || { balance: 9000, packages: SERVER_PACKAGES });
           },
           getLedger: function () {
             ledgerCalls++;
@@ -326,27 +333,27 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     );
     assert(
       page.data.selectedPackageId === "vip",
-      "billing fallback should default to VIP after pricing migration",
+      "billing should retain the selected package from the server catalog",
     );
     assert(
       page.data.packages.length === 4,
-      "billing fallback should expose the four consumer launch packages (598/998 removed, 268 added)",
+      "billing should expose the four server-authoritative consumer packages",
     );
     assert(
       page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip",
-      "billing fallback package ids should match consumer launch packages (no supreme_svip)",
+      "billing server package ids should match consumer launch packages (no supreme_svip)",
     );
     assert(
       page.data.packages.map(function (pkg) { return pkg.name; }).join(",") === "入门体验,进阶,VIP,SVIP",
-      "billing fallback package names should use public labels",
+      "billing server package names should use public labels",
     );
     assert(
       page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "9.9,68,198,268",
-      "billing fallback prices should match launch pricing (ascending, entry tiers included)",
+      "billing server prices should match launch pricing (ascending, entry tiers included)",
     );
     assert(
       page.data.packages.map(function (pkg) { return pkg.originalPrice; }).join(",") === "29,98,298,398",
-      "billing fallback should carry strike-through original prices for all four tiers",
+      "billing server catalog should carry strike-through original prices for all four tiers",
     );
     assert(
       page.data.packages[0].badge === "限时上线",
@@ -414,12 +421,12 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     });
     await staleWallet.page._loadUsage();
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip",
-      "billing should ignore stale backend package ids and keep launch packages",
+      staleWallet.page.data.packages.length === 0,
+      "billing must fail closed instead of replacing an unknown server catalog with client prices",
     );
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "9.9,68,198,268",
-      "billing should not show stale backend prices",
+      staleWallet.page.data.selectedPackage === null,
+      "billing must leave checkout unselected when no canonical package is available",
     );
 
     var degraded = loadBillingPage({

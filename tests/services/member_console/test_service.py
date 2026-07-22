@@ -662,7 +662,7 @@ def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
     assert wallet["packages"][-1]["turns"] == 2500
 
 
-def test_normalize_repriced_svip_overrides_stale_persisted_catalog() -> None:
+def test_normalize_membership_package_preserves_persisted_commerce_authority() -> None:
     normalized = MemberConsoleService._normalize_membership_package(
         {
             "id": "svip",
@@ -674,11 +674,96 @@ def test_normalize_repriced_svip_overrides_stale_persisted_catalog() -> None:
         }
     )
 
-    assert normalized["points"] == 12500
-    assert normalized["turns"] == 625
-    assert normalized["price"] == "268"
-    assert normalized["original_price"] == "398"
-    assert normalized["per"] == "625 次 AI 学习额度"
+    assert normalized["points"] == 28000
+    assert normalized["turns"] == 1400
+    assert normalized["price"] == "598"
+    assert normalized["original_price"] == "798"
+    assert normalized["per"] == "1400 次 AI 学习额度"
+    assert normalized["teaching_video_limit"] is None
+
+
+def test_package_catalog_repricing_migrates_once_then_preserves_admin_updates(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._data_path.write_text(
+        json.dumps(
+            {
+                "members": [],
+                "packages": [
+                    {
+                        "id": "svip",
+                        "label": "SVIP",
+                        "points": 28000,
+                        "turns": 1400,
+                        "price": "598",
+                        "original_price": "798",
+                    }
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    migrated = service._load()
+    svip = next(item for item in migrated["packages"] if item["id"] == "svip")
+    assert migrated["package_catalog_schema_version"] == 1
+    assert (svip["price"], svip["points"], svip["turns"]) == ("268", 12500, 625)
+
+    service.upsert_membership_package(
+        package_id="svip",
+        label="运营新SVIP",
+        tier="svip",
+        points=14000,
+        turns=700,
+        teaching_video_limit=50,
+        price="298",
+        operator="admin",
+        reason="post-migration catalog update",
+        idempotency_key="catalog-after-migration",
+    )
+    reloaded = service._load()
+    updated = next(item for item in reloaded["packages"] if item["id"] == "svip")
+    assert (updated["price"], updated["points"], updated["turns"]) == ("298", 14000, 700)
+    assert updated["teaching_video_limit"] == 50
+
+
+def test_package_catalog_migration_does_not_overwrite_unrecognized_admin_values(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._data_path.write_text(
+        json.dumps(
+            {
+                "members": [],
+                "packages": [
+                    {
+                        "id": "vip",
+                        "label": "企业VIP",
+                        "points": 12345,
+                        "turns": 678,
+                        "price": "321",
+                        "teaching_video_limit": 88,
+                    }
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    loaded = service._load()
+    vip = next(item for item in loaded["packages"] if item["id"] == "vip")
+    assert (vip["label"], vip["price"], vip["points"], vip["turns"]) == (
+        "企业VIP",
+        "321",
+        12345,
+        678,
+    )
+    assert vip["teaching_video_limit"] == 88
 
 
 def test_non_production_bootstrap_defaults_to_empty_members_without_demo_seed_flag(
@@ -6717,6 +6802,7 @@ def test_managed_membership_package_persists_and_can_be_purchased(
         tier="svip",
         points=36000,
         turns=1800,
+        teaching_video_limit=None,
         price="698",
         original_price="898",
         badge="高频答疑",
@@ -6734,7 +6820,21 @@ def test_managed_membership_package_persists_and_can_be_purchased(
 
     assert package["id"] == "svip_plus"
     assert package["label"] == "SVIP Plus"
+    assert package["teaching_video_limit"] is None
     assert [item["id"] for item in reloaded.list_membership_packages()][-1] == "svip_plus"
+
+    edited = reloaded.upsert_membership_package(
+        package_id="svip_plus",
+        label="SVIP Plus edited",
+        tier="svip",
+        points=36000,
+        turns=1800,
+        price="698",
+        operator="admin_demo",
+        reason="legacy client edit without entitlement field",
+        idempotency_key="package-upsert-legacy-client",
+    )
+    assert edited["teaching_video_limit"] is None
 
     result = reloaded.manual_membership_purchase(
         user_id="manual_user_svip_plus",
