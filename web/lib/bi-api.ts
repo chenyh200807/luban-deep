@@ -2662,7 +2662,7 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
  * 学习模块偏好（P3 埋点计划）——消费 /api/v1/bi/learning-preference。
  * 全 C 级指标（product_behavior_store）；口径见 bi_metrics.py behavior.learning.*。
  * 诚实性：accuracy 用 number|null 保留"无作答=不可算"，绝不 0 冒充；
- * completion_source 透传（当前 dwell，完播率架构不可采）。
+ * time_source 透传（当前 page_dwell，只代表页面驻留，不能解释为播放器时长）。
  * ========================================================================== */
 export interface BiLearningPrefRow {
   /** submodule=object_type / content=object_id / feature=action */
@@ -2670,14 +2670,34 @@ export interface BiLearningPrefRow {
   objectType: string
   memberCount: number
   visitCount: number
+  engagedMemberCount: number
+  meaningfulVisitCount: number
+  repeatUserCount: number
+  repeatUserRate: number | null
   eventCount: number
+  viewCount: number
+  startCount: number
+  selectionCount: number
+  contentOpenCount: number
+  completionCount: number
+  exitCount: number
+  errorCount: number
+  engagementCount: number
   answeredCount: number
   correctCount: number
   /** 正确率 0-1；无作答/不可算时为 null（不补 0） */
   accuracy: number | null
-  /** 复看率（view / 独立观看人数） */
+  /** @deprecated 旧接口兼容：原始事件/人数的事件密度，不是复看率；产品判断使用 repeatUserRate */
   repeatRate: number
+  rawEventDensity: number
+  /** 有效 visible_ms/duration_ms 样本的总停留时长；没有证据时为 0，须结合 dwellEventCount 展示 */
+  totalDwellMs: number
   avgDwellMs: number
+  dwellEventCount: number
+  lastEventAtMs: number
+  displayLabel: string
+  displayContext: string
+  contentKind: string
 }
 
 export interface BiLearningPracticeByType {
@@ -2699,8 +2719,9 @@ export interface BiLearningPracticeSummary {
 export interface BiLearningPreferenceData {
   days: number
   demoIncluded: boolean
-  /** 观看口径来源，当前为 'dwell'（停留时长；完播率不可采） */
+  /** 旧字段名兼容；值为 page_dwell（页面驻留；不是播放器时长/完播率） */
   completionSource: string
+  timeSource: string
   /** 全产品模块偏好（chat/learning/practice/first_run/assessment/history/notebook/learning_report/profile…），按触达降序，login 已排除 */
   modulePreference: BiLearningPrefRow[]
   submoduleInterest: BiLearningPrefRow[]
@@ -2726,12 +2747,31 @@ function normalizeLearningPrefRow(item: unknown, fallbackKey = ''): BiLearningPr
     objectType: toString(record.object_type ?? record.objectType, ''),
     memberCount: toNumber(record.member_count ?? record.memberCount, 0),
     visitCount: toNumber(record.visit_count ?? record.visitCount, 0),
+    engagedMemberCount: toNumber(record.engaged_member_count ?? record.engagedMemberCount, 0),
+    meaningfulVisitCount: toNumber(record.meaningful_visit_count ?? record.meaningfulVisitCount, 0),
+    repeatUserCount: toNumber(record.repeat_user_count ?? record.repeatUserCount, 0),
+    repeatUserRate: nullableRate(record.repeat_user_rate ?? record.repeatUserRate),
     eventCount: toNumber(record.event_count ?? record.eventCount, 0),
+    viewCount: toNumber(record.view_count ?? record.viewCount, 0),
+    startCount: toNumber(record.start_count ?? record.startCount, 0),
+    selectionCount: toNumber(record.selection_count ?? record.selectionCount, 0),
+    contentOpenCount: toNumber(record.content_open_count ?? record.contentOpenCount, 0),
+    completionCount: toNumber(record.completion_count ?? record.completionCount, 0),
+    exitCount: toNumber(record.exit_count ?? record.exitCount, 0),
+    errorCount: toNumber(record.error_count ?? record.errorCount, 0),
+    engagementCount: toNumber(record.engagement_count ?? record.engagementCount, 0),
     answeredCount: toNumber(record.answered_count ?? record.answeredCount, 0),
     correctCount: toNumber(record.correct_count ?? record.correctCount, 0),
     accuracy: nullableRate(record.accuracy),
     repeatRate: toNumber(record.repeat_rate ?? record.repeatRate, 0),
+    rawEventDensity: toNumber(record.raw_event_density ?? record.rawEventDensity, 0),
+    totalDwellMs: toNumber(record.total_dwell_ms ?? record.totalDwellMs, 0),
     avgDwellMs: toNumber(record.avg_dwell_ms ?? record.avgDwellMs, 0),
+    dwellEventCount: toNumber(record.dwell_event_count ?? record.dwellEventCount, 0),
+    lastEventAtMs: toNumber(record.last_event_at_ms ?? record.lastEventAtMs, 0),
+    displayLabel: toString(record.display_label ?? record.displayLabel, ''),
+    displayContext: toString(record.display_context ?? record.displayContext, ''),
+    contentKind: toString(record.content_kind ?? record.contentKind, ''),
   }
 }
 
@@ -2752,7 +2792,8 @@ export async function getBiLearningPreference(
   return {
     days: toNumber(record.days, days),
     demoIncluded: record.demo_included === true || record.demoIncluded === true,
-    completionSource: toString(record.completion_source ?? record.completionSource, 'dwell'),
+    completionSource: toString(record.completion_source ?? record.completionSource, 'page_dwell'),
+    timeSource: toString(record.time_source ?? record.timeSource, 'page_dwell'),
     modulePreference: firstArray(raw, ['module_preference', 'modulePreference']).map((item, i) =>
       normalizeLearningPrefRow(item, `module-${i + 1}`)
     ),

@@ -4,13 +4,13 @@
 /**
  * 产品功能偏好驾驶舱（P3 埋点计划 · 专家 B 布局）。
  * 覆盖全产品模块（chat/learning/practice/first_run/assessment/history/notebook/
- * learning_report/profile…）的触达×深度、教学内容复看与点击量、功能使用与练习热度。
+ * learning_report/profile…）的页面触达、有效使用、教学内容复用与练习结果。
  *
  * thin wrapper：全复用 components/bi-cockpit 图表原语（CockpitBar / CockpitKpi /
  * CockpitBg / CockpitPanel / SectionLabel），零新增图表原语。
  *
  * 诚实性护栏（焊入 UI，不可省）：
- *  - completion_source=dwell：观看口径一律标"停留时长"，绝不显示"完播率%"。
+ *  - 页面停留不等于视频播放：一律标"页面停留"，绝不显示"播放时长/完播率"。
  *  - 低流量小样本：顶部醒目提示 + memberCount<10 行挂 C 级灰徽标。
  *  - demo：include_demo 开关，demoIncluded=true 时顶部合成数据 banner。
  *  - 空数据走 Empty，绝不补 0 冒充。
@@ -88,12 +88,12 @@ function pctOrDash(rate: number | null): string {
   if (rate === null) return '—'
   return `${Math.round(num(rate) * 100)}%`
 }
-/** 人均深度 = 事件数 / 触达人数（去入口曝光偏置）。 */
+/** 人均有效会话 = meaningful visit / 已有效使用人数；原始事件总数只作诊断。 */
 function depthOf(row: BiLearningPrefRow): number {
-  return row.memberCount > 0 ? row.eventCount / row.memberCount : 0
+  return row.engagedMemberCount > 0 ? row.meaningfulVisitCount / row.engagedMemberCount : 0
 }
 function repeatRateOf(row: BiLearningPrefRow): number {
-  return row.memberCount > 0 ? row.visitCount / row.memberCount : 0
+  return row.repeatUserRate ?? 0
 }
 
 /* ------------------------------------------------------------------- 小组件 */
@@ -182,26 +182,28 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
 
   // KPI 汇总（跨模块无法去重合并，触达取峰值模块作 floor；人均深度用总量比）。
   const peakReach = submodules.reduce((m, r) => Math.max(m, r.memberCount), 0)
-  const totalEvents = submodules.reduce((s, r) => s + r.eventCount, 0)
-  const totalReachSum = submodules.reduce((s, r) => s + r.memberCount, 0)
-  const avgDepth = totalReachSum > 0 ? totalEvents / totalReachSum : 0
+  const totalMeaningfulVisits = submodules.reduce((s, r) => s + r.meaningfulVisitCount, 0)
+  const totalEngaged = submodules.reduce((s, r) => s + r.engagedMemberCount, 0)
+  const avgDepth = totalEngaged > 0 ? totalMeaningfulVisits / totalEngaged : 0
+  const contentWithRepeatEvidence = contentTop.filter(r => r.repeatUserRate !== null)
   const avgContentRepeat =
-    contentTop.length > 0
-      ? contentTop.reduce((s, r) => s + r.repeatRate, 0) / contentTop.length
+    contentWithRepeatEvidence.length > 0
+      ? contentWithRepeatEvidence.reduce((s, r) => s + num(r.repeatUserRate), 0) /
+        contentWithRepeatEvidence.length
       : 0
-  const avgDwellMs =
-    submodules.length > 0
-      ? submodules.reduce((s, r) => s + r.avgDwellMs, 0) / submodules.length
-      : 0
+  const dwellSamples = submodules.reduce((s, r) => s + r.dwellEventCount, 0)
+  const avgDwellMs = dwellSamples
+    ? submodules.reduce((s, r) => s + r.totalDwellMs, 0) / dwellSamples
+    : 0
 
-  // 全模块偏好双条（题眼，第一屏）：左=触达人数(member_count)，右=人均深度(repeat_rate)。
+  // 全模块使用双条：左=页面触达人数，右=每名有效使用者的独立有效会话。
   const moduleReachBars: Datum[] = modulePref.map(r => ({
     name: moduleLabel(r.objectType || r.key),
     value: r.memberCount,
   }))
   const moduleDepthBars: Datum[] = modulePref.map(r => ({
     name: moduleLabel(r.objectType || r.key),
-    value: Math.round(r.repeatRate * 10) / 10,
+    value: Math.round(depthOf(r) * 10) / 10,
   }))
   // 模块兴趣双条（题眼）：左=触达人数，右=人均深度。
   const reachBars: Datum[] = submodules.map(r => ({
@@ -212,10 +214,10 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
     name: objectTypeLabel(r.objectType || r.key),
     value: Math.round(depthOf(r) * 10) / 10,
   }))
-  // 内容点击/播放 Top：按 event_count（被点击/播放总次数）——"哪个视频被点了多少次"。
+  // 内容有效打开 Top：微课用 station 的 start_training，不把列表选集/退出混成播放次数。
   const contentClickBars: Datum[] = contentTop.map(r => ({
-    name: `${objectTypeLabel(r.objectType)}·${r.key}`,
-    value: r.eventCount,
+    name: r.displayLabel || `${objectTypeLabel(r.objectType)}·${r.key}`,
+    value: r.engagementCount,
   }))
   const featureBars: Datum[] = featureUsage.map(r => ({
     name: actionLabel(r.key),
@@ -288,13 +290,13 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
           {modulePref.length ? (
             <>
               <SectionLabel icon={<LayoutGrid className="h-4 w-4" />}>
-                产品模块偏好 · 触达 × 深度
+                产品模块使用 · 页面触达 × 有效会话
               </SectionLabel>
               <div className="mb-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] px-3 py-2 text-[11px] leading-relaxed text-amber-100/90">
                 全产品功能偏好总览：<strong>learning / chat / practice / first_run / assessment /
                 history / notebook / learning_report / profile</strong> 等所有被监测模块都在这（login
                 已排除）。<strong>左=谁被点得多（触达人数）</strong>，
-                <strong>右=谁被深度使用（人均深度）</strong>——回答&ldquo;哪个产品模块最受欢迎、哪个被深度使用&rdquo;。
+                <strong>右=谁被持续使用（人均有效会话）</strong>。这回答“发生了多少使用”，不把使用量直接等同喜欢。
               </div>
               <div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
                 <CockpitPanel
@@ -310,8 +312,8 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
                   )}
                 </CockpitPanel>
                 <CockpitPanel
-                  title="模块人均深度（repeat_rate）"
-                  hint="后端 repeat_rate 口径（人均复用深度）；标签取整，条长为真实比值"
+                  title="模块人均有效会话"
+                  hint="仅按 module_viewed 的独立 visit 计算，不混入退出/完成等生命周期事件"
                   icon={<LineChart className="h-4 w-4" />}
                 >
                   {moduleDepthBars.length ? (
@@ -332,7 +334,7 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
                       {moduleLabel(r.objectType || r.key)}
                     </span>
                     <span className="tabular-nums text-slate-400">
-                      {fmtInt(r.memberCount)} 人 · 深度 {fmtRatio(r.repeatRate)}
+                      {fmtInt(r.memberCount)} 人 · 会话 {fmtRatio(depthOf(r))}
                     </span>
                     {r.memberCount < SMALL_SAMPLE ? <SmallSamplePill /> : null}
                   </span>
@@ -358,12 +360,11 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
               sub="总事件 / 总触达人次"
             />
             <CockpitKpi
-              label="内容复看均值"
-              value={fmtRatio(avgContentRepeat)}
-              unit="×"
+              label="内容复用用户率"
+              value={pctOrDash(contentWithRepeatEvidence.length ? avgContentRepeat : null)}
               tone="amber"
               icon={<Repeat className="h-4 w-4" />}
-              sub="Top 内容复看率均值"
+              sub="至少 2 个独立有效会话的用户占比"
             />
             <CockpitKpi
               label="练习答题量"
@@ -387,7 +388,7 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
               unit="s"
               tone="rose"
               icon={<LineChart className="h-4 w-4" />}
-              sub="停留时长口径（完播率不可采）"
+              sub={`页面停留加权均值 · ${fmtInt(dwellSamples)} 个有效样本`}
             />
           </div>
 
@@ -408,34 +409,34 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
               {reachBars.length ? <CockpitBar data={reachBars} /> : <Empty />}
             </CockpitPanel>
             <CockpitPanel
-              title="子模块人均深度（事件/人）"
-              hint="去入口曝光偏置；标签取整，条长为真实比值"
+              title="子模块人均有效会话"
+              hint="有效会话 / 有效使用人数；原始事件总数只用于诊断"
               icon={<LineChart className="h-4 w-4" />}
             >
               {depthBars.length ? <CockpitBar data={depthBars} color="#F2B85C" /> : <Empty />}
             </CockpitPanel>
           </div>
 
-          {/* ---------- 内容点击/播放 Top + 练习正确率 ---------- */}
+          {/* ---------- 内容有效打开 Top + 练习正确率 ---------- */}
           <SectionLabel icon={<MousePointerClick className="h-4 w-4" />}>
-            内容点击/播放 · 复看 · 练习正确率
+            内容有效打开 · 复用 · 练习正确率
           </SectionLabel>
           <div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
             <CockpitPanel
-              title="教学内容点击/播放 Top"
-              hint="微课/考点卡/看穿讲解被点击/播放总次数（观看=停留时长口径，非完播率）"
+              title="教学内容有效打开 Top"
+              hint="微课按进入微课页计，不把列表选集和离开事件重复算作播放"
               icon={<MousePointerClick className="h-4 w-4" />}
             >
               {contentClickBars.length ? (
                 <div className="space-y-3">
-                  {/* 主条=点击/播放次数（"哪个视频被点了多少次"一眼可见） */}
+                  {/* 微课主条只计 station start_training，不混入列表选集和退出事件。 */}
                   <CockpitBar data={contentClickBars} color={SERIES_COLORS[0]} />
                   <div className="overflow-x-auto text-[11px] text-slate-300">
                     <div className="grid min-w-[420px] grid-cols-[1fr_auto_auto_auto] gap-2 border-b border-white/10 px-2 py-1 text-slate-500">
                       <span>内容</span>
-                      <span className="text-right">点击/播放</span>
-                      <span className="text-right">观看人数</span>
-                      <span className="text-right">复看率</span>
+                      <span className="text-right">有效打开</span>
+                      <span className="text-right">使用人数</span>
+                      <span className="text-right">复用用户率</span>
                     </div>
                     {contentTop.map(r => (
                       <div
@@ -444,15 +445,15 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
                       >
                         <span className="flex min-w-0 items-center gap-1.5">
                           <span className="truncate">
-                            {objectTypeLabel(r.objectType)}·{r.key}
+                            {r.displayLabel || `${objectTypeLabel(r.objectType)}·${r.key}`}
                           </span>
                           {r.memberCount < SMALL_SAMPLE ? <SmallSamplePill /> : null}
                         </span>
                         <span className="text-right font-bold tabular-nums text-slate-100">
-                          {fmtInt(r.eventCount)} 次
+                          {fmtInt(r.engagementCount)} 次
                         </span>
-                        <span className="text-right tabular-nums">{fmtInt(r.memberCount)}</span>
-                        <span className="text-right tabular-nums">{fmtRatio(r.repeatRate)}×</span>
+                        <span className="text-right tabular-nums">{fmtInt(r.engagedMemberCount)}</span>
+                        <span className="text-right tabular-nums">{pctOrDash(r.repeatUserRate)}</span>
                       </div>
                     ))}
                   </div>
@@ -567,8 +568,8 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
               <span className="text-right">复访</span>
               <span className="text-right">答题</span>
               <span className="text-right">正确率</span>
-              <span className="text-right">复看率</span>
-              <span className="text-right">平均停留</span>
+              <span className="text-right">复用用户率</span>
+              <span className="text-right">页面平均停留</span>
             </div>
             {submodules.map(r => (
               <div
@@ -586,16 +587,15 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
                 <span className="text-right tabular-nums">{fmtRatio(repeatRateOf(r))}</span>
                 <span className="text-right tabular-nums">{fmtInt(r.answeredCount)}</span>
                 <span className="text-right tabular-nums">{pctOrDash(r.accuracy)}</span>
-                <span className="text-right tabular-nums">{fmtRatio(r.repeatRate)}×</span>
+                <span className="text-right tabular-nums">{pctOrDash(r.repeatUserRate)}</span>
                 <span className="text-right tabular-nums">{fmtRatio(r.avgDwellMs / 1000)}s</span>
               </div>
             ))}
           </div>
           <p className="mt-2 text-[10.5px] leading-relaxed text-slate-500">
-            口径：深度=事件/触达，复访=访问/触达；观看/复看均为<strong>停留时长口径</strong>
-            （completion_source={data?.completionSource || 'dwell'}，完播率受 web-view
-            沙箱限制不可采，故不呈现完播率%）。完成/快退口径埋点待小程序发版通电。全部指标 C
-            级，低触达行仅方向参考。
+            口径：页面触达只用 module_viewed；有效会话只用明确开始事件；复用用户率=窗口内至少
+            2 个独立有效会话的用户 / 有效使用用户。页面停留不是播放器实际播放时长，当前不能计算完播率。
+            原始事件总数仅用于诊断，不参与“喜欢/不喜欢”结论。全部指标 C 级，低触达行仅方向参考。
           </p>
         </CockpitBg>
       )}

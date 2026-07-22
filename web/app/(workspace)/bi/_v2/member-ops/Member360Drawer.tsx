@@ -81,6 +81,11 @@ export function Member360Drawer({
   const notes = detail?.recent_notes ?? []
   const ledger = detail?.recent_ledger ?? []
   const canUpgradeToVip = tier === 'trial'
+  const videoRows = engagement?.contentBreakdown.filter(row => row.contentKind === 'video') ?? []
+  const otherContentRows = engagement?.contentBreakdown.filter(row => row.contentKind !== 'video') ?? []
+  const contentLabelById = new Map(
+    (engagement?.contentBreakdown ?? []).map(row => [row.key, row.displayLabel || row.key])
+  )
 
   async function submitNote() {
     if (!member) return
@@ -235,15 +240,15 @@ export function Member360Drawer({
             </div>
 
             <div data-testid="bi-member-engagement-breakdown" className="space-y-2">
-              <Subhead title="点击/使用明细（每个模块）" />
+              <Subhead title="模块使用漏斗（微信小程序）" />
               {engagementLoading ? (
                 <EmptyBlock>正在加载点击明细...</EmptyBlock>
               ) : engagementError ? (
                 <EmptyBlock>点击明细暂不可用：{engagementError}</EmptyBlock>
               ) : engagement?.moduleBreakdown?.length ? (
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div className="space-y-2">
                   {engagement.moduleBreakdown.map(row => (
-                    <KV key={row.key} label={moduleLabel(row.key)} value={`${row.eventCount} 次`} />
+                    <ModuleUsageCard key={row.key} row={row} />
                   ))}
                 </div>
               ) : (
@@ -251,24 +256,37 @@ export function Member360Drawer({
               )}
             </div>
 
-            <div data-testid="bi-member-content-breakdown" className="space-y-2">
-              <Subhead title="点击/使用明细（每个内容/功能）" />
+            <div data-testid="bi-member-video-dwell-breakdown" className="space-y-2">
+              <Subhead title="微课使用明细（近 30 天 · 每一集）" />
               {engagementLoading ? (
-                <EmptyBlock>正在加载内容级点击明细...</EmptyBlock>
+                <EmptyBlock>正在加载微课打开与页面停留时长...</EmptyBlock>
               ) : engagementError ? (
-                <EmptyBlock>内容级点击明细暂不可用。</EmptyBlock>
-              ) : engagement?.contentBreakdown?.length ? (
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {engagement.contentBreakdown.slice(0, 12).map(row => (
-                    <KV
-                      key={row.key}
-                      label={`${row.objectType || 'unknown'}:${row.key}`}
-                      value={`${row.eventCount} 次`}
-                    />
+                <EmptyBlock>微课使用明细暂不可用。</EmptyBlock>
+              ) : videoRows.length ? (
+                <div className="space-y-2">
+                  {videoRows.map(row => (
+                    <BehaviorContentCard key={row.key} row={row} showDwell />
                   ))}
                 </div>
               ) : (
-                <EmptyBlock>暂无内容级点击记录。</EmptyBlock>
+                <EmptyBlock>近 30 天暂无可归属到具体微课集的使用记录。</EmptyBlock>
+              )}
+            </div>
+
+            <div data-testid="bi-member-content-breakdown" className="space-y-2">
+              <Subhead title="其他内容/功能明细（微信小程序）" />
+              {engagementLoading ? (
+                <EmptyBlock>正在加载内容级使用明细...</EmptyBlock>
+              ) : engagementError ? (
+                <EmptyBlock>内容级使用明细暂不可用。</EmptyBlock>
+              ) : otherContentRows.length ? (
+                <div className="space-y-2">
+                  {otherContentRows.map(row => (
+                    <BehaviorContentCard key={row.key} row={row} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyBlock>暂无其他内容级使用记录。</EmptyBlock>
               )}
             </div>
 
@@ -282,19 +300,23 @@ export function Member360Drawer({
                       className="rounded-2xl border border-white/10 bg-white/[0.04] p-3"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-bold text-slate-100">{event.event_name}</span>
+                        <span className="font-bold text-slate-100">{behaviorEventLabel(event.event_name)}</span>
                         <span className="text-[11px] text-slate-500">
                           {formatBehaviorTime(event.occurred_at_ms)}
                         </span>
                       </div>
-                      <div className="mt-1 text-[11px] text-slate-400">
-                        {event.surface || 'unknown'} / {event.module || 'unknown'} / {event.section || 'unknown'} / {event.action || 'unknown'}
+                      <div className="mt-1 text-xs font-semibold text-cyan-50/85">
+                        {event.object_id && contentLabelById.get(event.object_id)
+                          ? contentLabelById.get(event.object_id)
+                          : wechatModuleContext(event.module, event.section)}
                       </div>
-                      <div className="mt-1 flex flex-wrap gap-1.5 text-[10px] text-slate-500">
+                      <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-slate-500">
                         {event.object_type || event.object_id ? (
-                          <span>对象 {event.object_type || 'unknown'}:{event.object_id || 'unknown'}</span>
+                          <span>技术标识 {event.object_type || 'unknown'}:{event.object_id || 'unknown'}</span>
                         ) : null}
-                        {event.duration_ms ? <span>停留 {event.duration_ms}ms</span> : null}
+                        {event.visible_ms || event.duration_ms ? (
+                          <span>本次停留 {formatDuration(event.visible_ms || event.duration_ms || 0)}</span>
+                        ) : null}
                         {event.result ? <span>结果 {event.result}</span> : null}
                         {event.error_code ? <span>错误 {event.error_code}</span> : null}
                       </div>
@@ -447,6 +469,33 @@ function formatBehaviorTime(value: number): string {
   }).format(value)
 }
 
+function formatDuration(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '暂无有效时长'
+  const totalSeconds = Math.round(value / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  if (hours) return `${hours} 小时 ${minutes} 分`
+  if (minutes) return `${minutes} 分 ${seconds} 秒`
+  return `${seconds} 秒`
+}
+
+function behaviorEventLabel(eventName: string): string {
+  return ({
+    module_viewed: '进入页面',
+    module_exited: '离开页面',
+    learning_action_started: '打开内容/开始操作',
+    learning_action_completed: '完成操作',
+    first_run_question_completed: '完成首次体验题',
+  } as Record<string, string>)[eventName] || eventName || '未知行为'
+}
+
+function wechatModuleContext(module: string, section: string): string {
+  const moduleName = moduleLabel(module)
+  const sectionLabel = section && section !== 'home' ? ` · ${section}` : ''
+  return `微信小程序 · ${moduleName}${sectionLabel}`
+}
+
 function formatDateTime(value?: string): string {
   if (!value) return ''
   const parsed = Date.parse(value)
@@ -542,7 +591,7 @@ function firstRunStatusLabel(status?: string, loading = false): string {
 }
 
 function moduleLabel(module: string): string {
-  return ({ learning: '学习', chat: '问鲁班', history: '历史', learning_report: '学情', notebook: '错题本', practice: '练习', assessment: '测评', profile: '我的' } as Record<string, string>)[module] || module || '暂无'
+  return ({ learning: '学习', chat: '问鲁班', first_run: '首次体验', history: '历史', learning_report: '学情', notebook: '错题本', practice: '练习', assessment: '测评', profile: '我的' } as Record<string, string>)[module] || module || '暂无'
 }
 
 function behaviorNextAction(cohort?: string): string {
@@ -617,6 +666,74 @@ function KV({ label, value }: { label: string; value: React.ReactNode }) {
     <div className="flex items-baseline justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2">
       <span className="shrink-0 text-slate-400">{label}</span>
       <span className="min-w-0 break-words text-right font-bold text-slate-100">{value}</span>
+    </div>
+  )
+}
+
+function BehaviorContentCard({
+  row,
+  showDwell = false,
+}: {
+  row: BiMemberEngagement['contentBreakdown'][number]
+  showDwell?: boolean
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+      <div className="break-words text-sm font-black leading-5 text-slate-100">
+        {row.displayLabel || `未识别内容（原始 ID：${row.key}）`}
+      </div>
+      <div className="mt-1 text-[11px] text-cyan-100/65">
+        {row.displayContext || '微信小程序 · 内容'}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] sm:grid-cols-4">
+        <span className="text-slate-400">
+          {showDwell ? '微课页打开' : '访问'}{' '}
+          <b className="text-slate-100">{showDwell ? row.contentOpenCount : row.visitCount} 次</b>
+        </span>
+        {showDwell ? (
+          <>
+            <span className="text-slate-400">页面总停留 <b className="text-slate-100">{formatDuration(row.totalDwellMs)}</b></span>
+            <span className="text-slate-400">平均页面停留 <b className="text-slate-100">{formatDuration(row.avgDwellMs)}</b></span>
+            <span className="text-slate-400">有效时长 <b className="text-slate-100">{row.dwellEventCount} 次</b></span>
+          </>
+        ) : (
+          <span className="text-slate-400">行为 <b className="text-slate-100">{row.eventCount} 次</b></span>
+        )}
+      </div>
+      <div className="mt-2 flex flex-wrap justify-between gap-2 text-[10px] text-slate-500">
+        <span>原始 ID：{row.key}</span>
+        <span>最近使用：{formatBehaviorTime(row.lastEventAtMs)}</span>
+      </div>
+      {showDwell && row.dwellEventCount === 0 ? (
+        <div className="mt-2 text-[10px] font-semibold text-amber-300/85">
+          有观看访问，但暂无可验证的离开/后台时长事件，不能推断实际观看时长。
+        </div>
+      ) : null}
+      {showDwell ? (
+        <div className="mt-2 text-[10px] text-slate-500">
+          选集 {row.selectionCount} 次；停留口径为微课页面驻留，并非播放器实际播放时长或完播率。
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function ModuleUsageCard({ row }: { row: BiMemberEngagement['moduleBreakdown'][number] }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+      <div className="font-black text-slate-100">
+        {row.displayLabel || `微信小程序 · ${moduleLabel(row.key)}`}
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-2 text-[11px] sm:grid-cols-5">
+        <span className="text-slate-400">进入 <b className="text-slate-100">{row.viewCount}</b></span>
+        <span className="text-slate-400">开始 <b className="text-slate-100">{row.startCount}</b></span>
+        <span className="text-slate-400">完成 <b className="text-slate-100">{row.completionCount}</b></span>
+        <span className="text-slate-400">退出 <b className="text-slate-100">{row.exitCount}</b></span>
+        <span className="text-slate-400">错误 <b className="text-slate-100">{row.errorCount}</b></span>
+      </div>
+      <div className="mt-2 text-[10px] text-slate-500">
+        独立有效会话 {row.meaningfulVisitCount} 次 · 复用用户 {row.repeatUserCount} 人
+      </div>
     </div>
   )
 }

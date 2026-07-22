@@ -52,11 +52,22 @@ test('member ops exposes product behavior UI anchors', async () => {
   assert.ok(drawer.includes('data-testid="bi-member-learning-report-breakdown"'))
   assert.ok(drawer.includes('data-testid="bi-member-360-summary"'))
   assert.ok(drawer.includes('data-testid="bi-member-first-run-status"'))
+  assert.ok(drawer.includes('data-testid="bi-member-video-dwell-breakdown"'))
+  assert.ok(drawer.includes('row.totalDwellMs'))
+  assert.ok(drawer.includes('row.dwellEventCount'))
   const cockpit = await readWeb('components/bi-cockpit/MemberOpsCockpit.tsx')
   assert.ok(cockpit.includes('data-testid="bi-member-module-usage"'))
   assert.ok(cockpit.includes('data-testid="bi-member-first-run-funnel"'))
   assert.ok(cockpit.includes('First Run 完成漏斗'))
   assert.ok(cockpit.includes('模块使用 (近 7 天)'))
+})
+
+test('member ops shows authorized full phone and defaults to newest registration', async () => {
+  const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+  assert.ok(panel.includes("phone_masked: item.phone || '—'"))
+  assert.ok(!panel.includes('function maskPhone('))
+  assert.ok(panel.includes("useState<MemberSortKey>('registered_at')"))
+  assert.ok(panel.includes("useState<MemberSortDir>('desc')"))
 })
 
 test('member ops exposes member search by phone or account', async () => {

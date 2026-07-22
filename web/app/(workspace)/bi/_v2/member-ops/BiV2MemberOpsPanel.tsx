@@ -188,12 +188,6 @@ const API_STATUS: Partial<Record<MemberFilters['status'], string>> = {
   paused: 'revoked',
 }
 
-function maskPhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length < 7) return phone || '—'
-  return `${digits.slice(0, 3)}****${digits.slice(-4)}`
-}
-
 function normalizeRiskLevel(value: string): NonNullable<MemberRow['risk_level']> {
   if (value === 'high' || value === 'medium' || value === 'low') return value
   return 'unknown'
@@ -239,7 +233,8 @@ function toMemberRow(item: MemberListItem): MemberRow {
   const behaviorCohort = behavior?.cohort || ''
   return {
     user_id: item.user_id,
-    phone_masked: maskPhone(item.phone),
+    // 该页面受 member_ops/view 权限保护，服务端已返回完整手机号；不再由前端二次脱敏。
+    phone_masked: item.phone || '—',
     tier,
     status: normalizeStatus(item.status),
     // Live rows expose the categorical backend authority only. `risk` is a
@@ -339,8 +334,8 @@ export function BiV2MemberOpsPanel({
 }: BiV2MemberOpsPanelProps) {
   const [filters, setFilters] = useState<MemberFilters>(DEFAULT_FILTERS)
   const [memberSearchDraft, setMemberSearchDraft] = useState(globalQuery)
-  const [sortKey, setSortKey] = useState<MemberSortKey>('expires_at')
-  const [sortDir, setSortDir] = useState<MemberSortDir>('asc')
+  const [sortKey, setSortKey] = useState<MemberSortKey>('registered_at')
+  const [sortDir, setSortDir] = useState<MemberSortDir>('desc')
   const [behaviorCohort, setBehaviorCohort] = useState('')
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [columns, setColumns] = useState<MemberColumnKey[]>(DEFAULT_COLUMNS)
@@ -613,7 +608,11 @@ export function BiV2MemberOpsPanel({
       return
     }
     setSortKey(nextKey)
-    setSortDir(nextKey === 'risk' || nextKey === 'balance' ? 'desc' : 'asc')
+    setSortDir(
+      nextKey === 'risk' || nextKey === 'balance' || nextKey === 'registered_at'
+        ? 'desc'
+        : 'asc'
+    )
   }
 
   function toggleColumn(key: MemberColumnKey) {

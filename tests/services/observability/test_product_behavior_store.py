@@ -90,8 +90,127 @@ def test_engagement_breakdown_ranks_content_and_computes_repeat_rate(tmp_path: P
     assert top["visit_count"] == 3
     assert top["event_count"] == 3
     assert top["repeat_rate"] == 1.5
+    assert top["total_dwell_ms"] == 0
+    assert top["dwell_event_count"] == 0
+    assert top["last_event_at_ms"] > 0
     # 按 member_count 降序：微课 A(2) 在考点卡(1)/微课 B(1) 之前
     assert content[0]["member_count"] >= content[1]["member_count"]
+
+
+def test_engagement_breakdown_returns_complete_video_dwell_evidence(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(store, event_id="view", object_id="F16:tp:1")
+    _record(store, event_id="exit-1", event_name="module_exited", object_id="F16:tp:1", visible_ms=30_000)
+    _record(store, event_id="exit-2", event_name="module_exited", object_id="F16:tp:1", duration_ms=90_000)
+
+    row = store.get_engagement_breakdown(group_dim="object_id", days=7)[0]
+
+    assert row["total_dwell_ms"] == 120_000
+    assert row["avg_dwell_ms"] == 60_000
+    assert row["dwell_event_count"] == 2
+    assert row["start_count"] == 1
+    assert row["selection_count"] == 1
+    assert row["content_open_count"] == 0
+    assert row["exit_count"] == 2
+    assert row["view_count"] == 0
+    assert row["last_event_at_ms"] > 0
+
+
+def test_engagement_breakdown_separates_episode_selection_from_content_open(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(store, event_id="selected", object_id="F16:tp:1", action="open_detail")
+    _record(store, event_id="opened", object_id="F16:tp:1", action="start_training")
+
+    row = store.get_engagement_breakdown(group_dim="object_id", days=7)[0]
+
+    assert row["event_count"] == 2
+    assert row["start_count"] == 2
+    assert row["selection_count"] == 1
+    assert row["content_open_count"] == 1
+    assert row["engaged_member_count"] == 1
+    assert row["meaningful_visit_count"] == 1
+    assert row["repeat_user_count"] == 0
+    assert row["repeat_user_rate"] == 0.0
+
+
+def test_engagement_breakdown_repeat_rate_uses_distinct_meaningful_visits(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(store, event_id="select-1", object_id="F16:tp:1", action="open_detail", visit_id="list-1")
+    _record(store, event_id="open-1", object_id="F16:tp:1", action="start_training", visit_id="station-1")
+    _record(store, event_id="exit-1", event_name="module_exited", object_id="F16:tp:1", visit_id="station-1")
+    _record(store, event_id="select-2", object_id="F16:tp:1", action="open_detail", visit_id="list-2")
+    _record(store, event_id="open-2", object_id="F16:tp:1", action="start_training", visit_id="station-2")
+
+    row = store.get_engagement_breakdown(group_dim="object_id", days=7)[0]
+
+    assert row["event_count"] == 5
+    assert row["engaged_member_count"] == 1
+    assert row["meaningful_visit_count"] == 2
+    assert row["repeat_user_count"] == 1
+    assert row["repeat_user_rate"] == 1.0
+
+
+def test_engagement_breakdown_orders_content_by_effective_open_not_raw_density(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    for index in range(4):
+        _record(
+            store,
+            event_id=f"noisy-{index}",
+            event_name="module_exited",
+            object_id="noisy:tp:1",
+            user_id=f"u-{index}",
+        )
+    _record(
+        store,
+        event_id="opened",
+        object_id="opened:tp:1",
+        action="start_training",
+    )
+
+    rows = store.get_engagement_breakdown(
+        group_dim="object_id", order_by="engagement_count", days=7
+    )
+
+    assert rows[0]["key"] == "opened:tp:1"
+    assert rows[0]["engagement_count"] == 1
+    assert rows[1]["event_count"] == 4
+    assert rows[1]["engagement_count"] == 0
+
+
+def test_engagement_breakdown_treats_station_view_as_meaningful_visit(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(
+        store,
+        event_id="station-view",
+        event_name="module_viewed",
+        object_type="station",
+        object_id="A01",
+        action="view",
+    )
+
+    row = store.get_engagement_breakdown(group_dim="object_type", days=7)[0]
+
+    assert row["key"] == "station"
+    assert row["engaged_member_count"] == 1
+    assert row["meaningful_visit_count"] == 1
+
+
+def test_engagement_breakdown_counts_event_error_failures(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(
+        store,
+        event_id="assessment-error",
+        event_name="event_error",
+        object_type="quiz",
+        object_id="quiz-1",
+        module="assessment",
+        action="submit",
+        result="fail",
+    )
+
+    row = store.get_engagement_breakdown(group_dim="module", days=7)[0]
+
+    assert row["error_count"] == 1
 
 
 def test_engagement_breakdown_computes_practice_accuracy(tmp_path: Path) -> None:
