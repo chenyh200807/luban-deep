@@ -542,6 +542,14 @@
 - test2 部署线曾是分叉于 origin/main 的 `bcdc4a5d`，2026-07-08 发布（42681ace6）已合上；若日后发现 bcdc4a5d 独有生产内容丢失，此为源头。
 - full-answer POST 鉴权失败返回 HTTP 200（body 是 401 形状）而非 401 状态码——cosmetic 不一致，功能安全（未登录不判分），可后补对齐状态码。
 
+### 2026-07-20 · 课后轻练/换皮复测视觉升格(PR #539)
+
+owner 对照视频后 practice 富页反馈原生轻练"特别素",并质疑为何不直接套用富页。裁决:不套用——富页(station web-view 编译 HTML)答案烘焙前端,只能对答案不能做学习证据入口;原生 retest 页是服务端判分+学习记录唯一入口,且换皮复测/错后确认的变体题不在 HTML 里。方案=把富页结构化视觉语言搬进原生页:rule_group 考法 chip、进度条、选项字母章 A/B/C/D、收据错题四层诊断升格为赭红左轨裁决卡(含教材原文卡)、新增答对竹青✓卡清单。Deviations:①选中态从竹青改墨——竹青是"答对"信号,判分权在服务端不预支;②test_retest_completion_authority 四层诊断断言从扁平字符串对齐到 rt-vrow 结构(缺失整行隐藏合同不变)。数据红线不动:内容全部签发字段逐字,letter 是纯呈现层座位号。
+
+### 2026-07-21 · 题给视觉面板恢复(PR #540, owner 拍板乙方案=完整视觉)
+
+owner 指出原生轻练丢失了成品练习页的题给图形信息(影响理解/记忆脚手架)。关键洞察:各站手写 figFor/fig(name) 绘制代码的输出是确定性定位元素列表——编译期用 Node vm 沙箱求值一遍,把绘制结果作为结构化数据挂进 authority item.figure(呈现层附件,不入 content_sha256 白名单→签名裁决零触碰),投影单点透传,原生页纯几何缩放渲染(594rpx 画板,figure 原配色=内容插图不受 UI 四色纪律约束,外框纸墨)。Deviations:①S07 是模板分支形态(figRuler/figPipe 写死在标记里)不可泛化求值,显式 SKIP 记缺口待单独处理;②板底色启发从逐题中位数改为站级(渲染器 D() 默认 fg 亮度)——逐题会被 chip 白字污染;③40 站重发布实测唯一变化=authority JSON+manifest 重钉,hosts/receipts/packets 字节稳定。双判据:check=0+status 清零(承接 #521 漏 stage 教训)。
+
 ### 2026-07-22 · 教学视频免费引子开关(前 20 集免费,其余待开放)
 
 owner 意图:9/68/69 元入门体验型套餐(佑森后端配置价,非前端硬编码;前端源码+老蓝锚点 e8d7493d1 全搜不到),要拿鲁班教学视频当引子——免费开放 N 集,用已有的学习偏好点击埋点看学员是否喜欢这个模块,再决定要不要上付费墙。裁决=Model A 度量优先:先只做免费引子上限,**不接支付**。
@@ -567,9 +575,8 @@ owner 决策升级:上一节的"全局开关控制 20 集"改成**按付费状�
 - **测试**:后端定价/入门发点/顶档/管理端撤销/视频三档+过期→20 全绿(逐个点名 28+12 passed);前端 billing 42 断言 + teaching-points + flags 全绿;前端全量 117/118(唯一 FAIL=上文 polyv WIP,无关)。
 - **[隔离污染 · 非本次回归]** `test_mobile_router.py` 全量文件跑时 `test_billing_usage_...enforcement_off` 在 `plan_id=='svip'` 处失败(得 'vip'),但**单独跑 PASS**;`sprint→svip` 解析不依赖 svip 价格,逻辑上与本次改动无关(改动前该断言同样会被走到),系前置测试泄漏共享状态的已知套件污染(见 memory「全量pytest有隔离污染」)。
 - **[未做 · 待上阿里云里程碑]** 真机微信支付端到端(能否为 9.9/68/268 开出预支付单并到账)= 单元+契约级已验,live 收款要一次测试部署单独验;付费墙 live 行为(付费用户真看到 70+、免费卡 20)同理。未部署前不宣称"生产已能收费"。
+### 2026-07-22(再续) · 免费教学视频上限 10 → 20（本次合并裁决）
 
-### 2026-07-22(再续) · 免费教学视频上限 20 → 10
-
-- owner 明确把无有效会员/过期会员的 `teaching_video_limit` 从 20 调整为 10；`starter_19` 仍为 30，`light_98/vip/svip/supreme_svip` 仍为无限。
-- 单一权威仍是 `GET /api/v1/billing/wallet.teaching_video_limit`。teaching-points 只消费服务端字段；字段缺失、请求失败或非法值时，前端 fail-closed 回落 10，不另算会员等级。
-- 会员权益读取改用 canonical wallet id 对应的只读 entitlement read model，不调用会 bootstrap/保存默认会员的 `get_profile`。
+- 本次合并将无有效会员/过期会员的 `teaching_video_limit` 默认恢复为 20；`starter_19` 仍为 30，`light_98/vip/svip/supreme_svip` 仍为无限。
+- 单一权威仍是 `GET /api/v1/billing/wallet.teaching_video_limit`。teaching-points 只消费服务端字段；字段缺失、请求失败或非法值时，前端 fail-closed 回落 20，不另算会员等级。
+- 会员权益读取使用 canonical wallet id 对应的只读 entitlement read model，不调用会 bootstrap/保存默认会员的 `get_profile`。

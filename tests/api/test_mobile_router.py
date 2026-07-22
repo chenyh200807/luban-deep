@@ -1396,7 +1396,6 @@ def test_billing_usage_does_not_depend_on_ledger_storage(
         @staticmethod
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
             raise AssertionError("billing usage must not read wallet ledger")
-
     class ReadOnlyMemberService:
         @staticmethod
         def get_billing_entitlement_read_model(user_id: str):
@@ -1579,6 +1578,7 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     assert body["status"] == "ok"
     assert body["usage_source"] == "member_usage_meter"
     assert body["charging_status"] == "metered_not_charged"
+    # enforcement-off 内测统一按 450 次基准展示，不读取会员 tier 或 wallet plan。
     assert body["display"]["primary_label"] == "剩余 90%"
     assert body["display"]["primary_percent"] == 90
     assert "primary_used_uses" not in body["display"]

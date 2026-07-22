@@ -237,7 +237,7 @@ Page({
           return null;
         }
         const body = api.unwrapResponse(response) || {};
-        // 最终上限:promo 总开关 > 服务端 teaching_video_limit > fail-closed 引子(10)。
+        // 最终上限:promo 总开关 > 服务端 teaching_video_limit > fail-closed 引子(20)。
         const freeLimit = flags.resolveTeachingVideoLimit(serverLimit);
         const chapters = buildChapterSections(body.teaching_points, freeLimit);
         const visibleTeachingPointCount = chapters.reduce(function (total, chapter) {
