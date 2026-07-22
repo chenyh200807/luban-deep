@@ -542,6 +542,15 @@ def test_rag_evidence_bundle_v1_fields_pinned_match_producer() -> None:
     )
 
 
+def test_observability_evidence_bundle_v1_fields_pinned_match_producer() -> None:
+    from deeptutor.services.observability.evidence_bundle import MANIFEST_FIELDS, SCHEMA_ID
+
+    assert SCHEMA_ID == "deeptutor_observability_evidence_bundle.v1"
+    entry = _t2_entry(SCHEMA_ID)
+    assert entry.get("needs_field_canonicalization") is False
+    assert tuple(entry.get("canonical_fields") or ()) == MANIFEST_FIELDS
+
+
 def test_compiled_practice_v3_and_projection_receipt_fields_match_producer() -> None:
     from deeptutor.services.luban_lesson.practice_html import (
         AUTHORITY_FIELDS,

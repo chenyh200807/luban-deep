@@ -34,6 +34,8 @@ from deeptutor.services.observability.change_impact import collect_git_changed_f
 from deeptutor.services.observability.change_impact import required_readiness_checks  # noqa: E402
 from deeptutor.services.observability.change_impact import render_change_impact_markdown  # noqa: E402
 from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
+from deeptutor.services.observability.evidence_bundle import load_evidence_bundle  # noqa: E402
+from deeptutor.services.observability.evidence_bundle import write_evidence_bundle  # noqa: E402
 from deeptutor.services.observability.metrics_loader import load_metrics_snapshot as load_metrics_snapshot_shared  # noqa: E402
 from deeptutor.services.observability.om_snapshot import build_om_run  # noqa: E402
 from deeptutor.services.observability.oa_runner import build_oa_run  # noqa: E402
@@ -723,11 +725,53 @@ def main() -> None:
     parser.add_argument("--report-date")
     parser.add_argument("--timezone", default=DEFAULT_REPORT_TIMEZONE)
     parser.add_argument("--output-dir")
+    parser.add_argument(
+        "--evidence-bundle-manifest",
+        help="Validate a governed cross-surface bundle instead of contacting a local runtime",
+    )
+    parser.add_argument("--expected-git-sha", help="Candidate SHA expected in a consumed bundle")
     args = parser.parse_args()
 
     store = get_control_plane_store()
     output_dir = Path(args.output_dir).expanduser().resolve() if args.output_dir else store.base_dir / "_daily"
     output_dir.mkdir(parents=True, exist_ok=True)
+    evidence_bundle_manifest = getattr(args, "evidence_bundle_manifest", None)
+    if evidence_bundle_manifest:
+        if not getattr(args, "report_date", None):
+            raise SystemExit("evidence_bundle_report_date_required")
+        expected_git_sha = str(getattr(args, "expected_git_sha", None) or "").strip()
+        if not expected_git_sha:
+            raise SystemExit("evidence_bundle_expected_git_sha_required")
+        requested_window = _resolve_report_window(
+            report_date=str(args.report_date),
+            timezone=str(getattr(args, "timezone", DEFAULT_REPORT_TIMEZONE) or DEFAULT_REPORT_TIMEZONE),
+        )
+        manifest_path = Path(evidence_bundle_manifest).expanduser().resolve()
+        bundle = load_evidence_bundle(manifest_path)
+        if str(bundle["release"].get("git_sha") or "").strip() != expected_git_sha:
+            raise SystemExit("evidence_bundle_candidate_release_mismatch")
+        receipt = {
+            "validated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "manifest_path": str(manifest_path),
+            "bundle_id": bundle["bundle_id"],
+            "status": bundle["status"],
+            "release": bundle["release"],
+            "execution_surface": bundle["execution_surface"],
+            "records": bundle["records"],
+            "window": requested_window,
+            "runtime_authority": bundle["runtime_authority"],
+        }
+        receipt_path = output_dir / "evidence_bundle_validation.json"
+        if bundle["status"] != "COMPLETE":
+            _write_json(receipt_path, receipt)
+            raise SystemExit(f"evidence_bundle_blocked: receipt={receipt_path}")
+        daily_window = ((bundle.get("payloads") or {}).get("daily_trends") or {}).get("window") or {}
+        if any(daily_window.get(field) != requested_window[field] for field in requested_window):
+            raise SystemExit("evidence_bundle_window_mismatch")
+        _write_json(receipt_path, receipt)
+        print(f"Evidence bundle validated: {manifest_path}")
+        print(f"Validation receipt: {receipt_path}")
+        return
     current_release = get_release_lineage_snapshot()
     changed_files = args.changed_file or collect_git_changed_files(base_ref=args.base_ref)
     report_window = _resolve_report_window(
@@ -749,8 +793,17 @@ def main() -> None:
             metrics_error=_metrics_error_provenance(api_base_url=args.api_base_url, exc=exc),
         )
         _write_json(runtime_authority_path, runtime_authority)
+        bundle_path = write_evidence_bundle(
+            output_dir=output_dir,
+            status="BLOCKED",
+            release=current_release,
+            runtime_authority=runtime_authority,
+            api_base_url=args.api_base_url,
+            source_store_uri=store.base_dir.as_uri(),
+        )
         raise SystemExit(
-            f"runtime_authority_blocked: live metrics unavailable; evidence={runtime_authority_path}"
+            f"runtime_authority_blocked: live metrics unavailable; evidence={runtime_authority_path}; "
+            f"bundle={bundle_path}"
         ) from exc
     runtime_authority = evaluate_runtime_authority(
         expected_release=current_release,
@@ -758,6 +811,14 @@ def main() -> None:
     )
     _write_json(runtime_authority_path, runtime_authority)
     if runtime_authority["status"] != "PASS":
+        bundle_path = write_evidence_bundle(
+            output_dir=output_dir,
+            status="BLOCKED",
+            release=current_release,
+            runtime_authority=runtime_authority,
+            api_base_url=args.api_base_url,
+            source_store_uri=store.base_dir.as_uri(),
+        )
         raise SystemExit(
             f"runtime_authority_{str(runtime_authority['status']).lower()}: "
             f"{runtime_authority['reason']}; evidence={runtime_authority_path}"
@@ -937,6 +998,39 @@ def main() -> None:
     )
     run_history = build_daily_run_history(store_dir=store.base_dir)
     _write_json(output_dir / "run_history_latest.json", run_history)
+    try:
+        bundle_path = write_evidence_bundle(
+            output_dir=output_dir,
+            status="COMPLETE",
+            release=current_release,
+            runtime_authority=runtime_authority,
+            api_base_url=args.api_base_url,
+            source_store_uri=store.base_dir.as_uri(),
+            payloads={
+                "om_runs": om_payload,
+                "arr_runs": arr_payload,
+                "benchmark_runs": benchmark_payload,
+                "aae_composite_runs": aae_payload,
+                "observer_snapshots": observer_payload,
+                "change_impact_runs": change_impact_payload,
+                "oa_runs": oa_payload,
+                "plan_completion_audits": plan_completion_payload,
+                "readiness_checks": readiness_payload,
+                "release_gate_runs": gate_payload,
+                "daily_trends": daily_payload,
+            },
+        )
+    except ValueError as exc:
+        blocked_authority = {**runtime_authority, "status": "BLOCKED", "reason": str(exc)}
+        bundle_path = write_evidence_bundle(
+            output_dir=output_dir,
+            status="BLOCKED",
+            release=current_release,
+            runtime_authority=blocked_authority,
+            api_base_url=args.api_base_url,
+            source_store_uri=store.base_dir.as_uri(),
+        )
+        raise SystemExit(f"evidence_bundle_blocked: {exc}; bundle={bundle_path}") from exc
 
     print(f"Daily observability completed: {daily_payload['run_id']}")
     print(f"Observer JSON: {observer_artifacts['json_path']}")
@@ -945,6 +1039,7 @@ def main() -> None:
     print(f"ReleaseGate JSON: {gate_paths['json_path']}")
     print(f"DailyTrend JSON: {daily_paths['json_path']}")
     print(f"RunHistory JSON: {output_dir / 'run_history_latest.json'}")
+    print(f"Evidence Bundle: {bundle_path}")
 
 
 if __name__ == "__main__":

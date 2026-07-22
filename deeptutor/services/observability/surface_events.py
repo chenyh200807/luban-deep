@@ -11,6 +11,7 @@ from deeptutor.services.observability.product_behavior_catalog import (
     PRODUCT_BEHAVIOR_EVENT_NAMES,
     validate_product_behavior_event,
 )
+from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +78,16 @@ class SurfaceEventStore:
         product_event: dict[str, Any] | None = None
         product_behavior_status = ""
         if event_name in PRODUCT_BEHAVIOR_EVENT_NAMES:
+            runtime_release_id = str(get_release_lineage_snapshot().get("release_id") or "").strip()
+            if not runtime_release_id:
+                raise ValueError("runtime release lineage is unavailable")
+            client_release_id = str(normalized_metadata.get("release_id") or "").strip()
+            if client_release_id and client_release_id != runtime_release_id:
+                logger.warning(
+                    "Ignoring client-owned product behavior release_id: event_id=%s",
+                    event_id,
+                )
+            normalized_metadata = {**normalized_metadata, "release_id": runtime_release_id}
             product_event = validate_product_behavior_event(
                 event_name,
                 {
