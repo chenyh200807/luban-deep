@@ -1817,7 +1817,7 @@ def test_billing_wechat_notify_grants_membership_purchase(
 
     monkeypatch.setattr(
         mobile_module.member_service,
-        "manual_membership_purchase",
+        "settled_membership_purchase",
         fake_purchase,
         raising=False,
     )
@@ -1829,9 +1829,14 @@ def test_billing_wechat_notify_grants_membership_purchase(
     assert response.json() == {"code": "SUCCESS", "message": "成功"}
     assert captured["user_id"] == "student_demo"
     assert captured["package_id"] == "vip"
-    assert captured["operator"] == "wechat_pay"
     assert captured["idempotency_key"] == "wechat_pay:420000000000"
     assert captured["amount_cny"] == 198
+    evidence = captured["settlement_evidence"]
+    assert isinstance(evidence, dict)
+    assert evidence["settlement_authority"] == "wechat_pay_notification"
+    assert evidence["provider_transaction_id"] == "420000000000"
+    assert evidence["provider_order_id"] == "dtw_order_1"
+    assert evidence["amount_minor"] == 19800
 
 
 def test_billing_checkout_rejects_unknown_channel(monkeypatch: pytest.MonkeyPatch) -> None:

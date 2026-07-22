@@ -144,6 +144,20 @@ mobile_http_read_models:
         public display labels remain percentage-based rather than exposing remaining turn counts.
       - Usage windows are display read models only; they are not capability routing,
         request config, learner-state, or turn authority.
+  wechat_payment_settlement:
+    path: /api/v1/billing/wechat/notify
+    authority: verified WeChat Pay notification -> MemberConsoleService settled purchase writer -> wallet_ledger
+    semantics:
+      - A provider-settled purchase must preserve settlement authority, channel,
+        currency, amount_minor, provider transaction id, provider order id, and paid_at
+        in the append-only wallet ledger event before entitlement is projected.
+      - The WeChat notification adapter may validate and normalize provider input but
+        must not route a verified provider settlement through the manual-membership
+        authority or overwrite it with manual source/channel metadata.
+      - Signature verification, package amount, CNY currency, and provider transaction
+        id fail closed; invalid or incomplete evidence grants neither points nor entitlement.
+      - Operator-attested manual purchases remain a separate adapter over the same
+        canonical purchase writer and must stay distinguishable from provider settlement.
 
 mobile_http_auth_controls:
   password_reset:

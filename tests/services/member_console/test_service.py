@@ -6646,6 +6646,14 @@ def test_manual_membership_purchase_records_wallet_revenue_and_entitlement(
                 "wallet_user_id": "manual_user_1",
                 "days": 365,
                 "reason": "线下收款",
+                "settlement_authority": "operator_attestation",
+                "settlement_status": "settled",
+                "currency": "CNY",
+                "amount_minor": None,
+                "provider_transaction_id": "",
+                "provider_order_id": "",
+                "paid_at": "",
+                "evidence_version": 1,
             },
             "operator_type": "admin",
             "operator_id": "admin_demo",
@@ -6659,6 +6667,47 @@ def test_manual_membership_purchase_records_wallet_revenue_and_entitlement(
     audit = service.get_audit_log(action="manual_membership_purchase")["items"][0]
     assert audit["target_user"] == "manual_user_1"
     assert audit["after"]["ledger_event_id"] == "ledger_manual_1"
+
+
+def test_settled_membership_purchase_preserves_provider_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    result = service.settled_membership_purchase(
+        user_id="wechat_paid_user",
+        package_id="vip",
+        days=365,
+        idempotency_key="wechat_pay:tx_123",
+        amount_cny=198,
+        settlement_evidence={
+            "settlement_authority": "wechat_pay_notification",
+            "settlement_status": "settled",
+            "payment_channel": "wechat_pay",
+            "currency": "CNY",
+            "amount_minor": 19800,
+            "provider_transaction_id": "tx_123",
+            "provider_order_id": "order_123",
+            "paid_at": "2026-07-22T10:30:00+08:00",
+            "evidence_version": 1,
+        },
+    )
+
+    assert result["member"]["tier"] == "vip"
+    grant = wallet_service.grants[0]
+    assert grant["reason"] == "settled_membership_purchase"
+    assert grant["operator_type"] == "payment_provider"
+    assert grant["metadata"]["source"] == "wechat_pay_notification"
+    assert grant["metadata"]["channel"] == "wechat_pay"
+    assert grant["metadata"]["provider_transaction_id"] == "tx_123"
+    assert grant["metadata"]["provider_order_id"] == "order_123"
+    assert grant["metadata"]["amount_minor"] == 19800
+    assert grant["metadata"]["currency"] == "CNY"
+    audit = service.get_audit_log(action="settled_membership_purchase")["items"][0]
+    assert audit["target_user"] == "wechat_paid_user"
 
 
 @pytest.mark.parametrize(

@@ -6066,6 +6066,74 @@ class MemberConsoleService:
         display_name: str = "",
         amount_cny: float | int | str | None = None,
     ) -> dict[str, Any]:
+        """Thin operator adapter over the canonical settled-purchase writer."""
+        return self._apply_membership_purchase(
+            user_id=user_id,
+            package_id=package_id,
+            days=days,
+            operator=operator,
+            reason=reason,
+            idempotency_key=idempotency_key,
+            phone=phone,
+            display_name=display_name,
+            amount_cny=amount_cny,
+            settlement_evidence={
+                "settlement_authority": "operator_attestation",
+                "settlement_status": "settled",
+                "payment_channel": "manual_membership",
+                "currency": "CNY",
+            },
+        )
+
+    def settled_membership_purchase(
+        self,
+        *,
+        user_id: str,
+        package_id: str,
+        days: int,
+        idempotency_key: str,
+        settlement_evidence: dict[str, Any],
+        amount_cny: float | int | str | None = None,
+    ) -> dict[str, Any]:
+        """Record a provider-settled purchase without erasing payment provenance."""
+        evidence = dict(settlement_evidence or {})
+        authority = str(evidence.get("settlement_authority") or "").strip()
+        status = str(evidence.get("settlement_status") or "").strip()
+        currency = str(evidence.get("currency") or "").strip().upper()
+        transaction_id = str(evidence.get("provider_transaction_id") or "").strip()
+        if authority != "wechat_pay_notification":
+            raise ValueError("unsupported settlement_authority")
+        if status != "settled":
+            raise ValueError("settlement_status must be settled")
+        if currency != "CNY":
+            raise ValueError("settlement currency must be CNY")
+        if not transaction_id:
+            raise ValueError("provider_transaction_id is required")
+        return self._apply_membership_purchase(
+            user_id=user_id,
+            package_id=package_id,
+            days=days,
+            operator="wechat_pay",
+            reason="wechat_pay_success",
+            idempotency_key=idempotency_key,
+            amount_cny=amount_cny,
+            settlement_evidence=evidence,
+        )
+
+    def _apply_membership_purchase(
+        self,
+        *,
+        user_id: str,
+        package_id: str,
+        days: int,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str,
+        phone: str = "",
+        display_name: str = "",
+        amount_cny: float | int | str | None = None,
+        settlement_evidence: dict[str, Any],
+    ) -> dict[str, Any]:
         normalized_user_id = str(user_id or "").strip()
         normalized_operator = str(operator or "").strip() or "admin"
         normalized_key = str(idempotency_key or "").strip()
@@ -6074,11 +6142,19 @@ class MemberConsoleService:
         if not normalized_key:
             raise ValueError("idempotency_key is required")
         safe_days = max(1, min(int(days or 0), 3650))
+        evidence = dict(settlement_evidence or {})
+        settlement_authority = str(evidence.get("settlement_authority") or "").strip()
+        is_operator_attested = settlement_authority == "operator_attestation"
+        audit_action = "manual_membership_purchase" if is_operator_attested else "settled_membership_purchase"
+        purchase_kind = "manual_membership" if is_operator_attested else "wechat_pay"
+        source = "bi_manual_membership" if is_operator_attested else "wechat_pay_notification"
+        channel = str(evidence.get("payment_channel") or purchase_kind).strip()
+        operator_type = "admin" if is_operator_attested else "payment_provider"
 
         def _load_purchase_inputs(data: dict[str, Any]) -> dict[str, Any]:
             existing_audit_id = self._find_audit_id_by_idempotency_key(
                 data,
-                "manual_membership_purchase",
+                audit_action,
                 normalized_key,
                 operator=normalized_operator,
             )
@@ -6115,9 +6191,14 @@ class MemberConsoleService:
         if points <= 0:
             raise ValueError("package points must be positive")
         amount = self._package_amount_cny(package, amount_cny)
+        if not is_operator_attested:
+            expected_amount = self._package_amount_cny(package)
+            amount_minor = int(evidence.get("amount_minor") or 0)
+            if amount != expected_amount or amount_minor != int(round(float(amount) * 100)):
+                raise ValueError("settlement amount does not match package")
         package_tier = str(package.get("tier") or package.get("id") or "").strip()
         package_label = str(package.get("label") or package.get("name") or package.get("id") or "").strip()
-        purchase_id = f"manual_membership_{uuid.uuid4().hex[:12]}"
+        purchase_id = f"{purchase_kind}_{uuid.uuid4().hex[:12]}"
 
         if phone or display_name:
             def _persist_manual_identity(data: dict[str, Any]) -> None:
@@ -6139,19 +6220,19 @@ class MemberConsoleService:
                 user_id=wallet_user_id,
                 opening_points=0,
                 plan_id=package_tier,
-                reference_type="manual_membership_purchase",
+                reference_type=audit_action,
                 reference_id=purchase_id,
-                idempotency_key=f"wallet_seed:manual_membership:{normalized_key}",
+                idempotency_key=f"wallet_seed:{purchase_kind}:{normalized_key}",
                 metadata={
-                    "source": "bi_manual_membership",
+                    "source": source,
                     "operator_id": normalized_operator,
                     "legacy_user_id": normalized_user_id,
                     "wallet_user_id": wallet_user_id,
                 },
             )
         metadata = {
-            "source": "bi_manual_membership",
-            "channel": "manual_membership",
+            "source": source,
+            "channel": channel,
             "package_id": str(package.get("id") or "").strip(),
             "package_label": package_label,
             "tier": package_tier,
@@ -6161,16 +6242,24 @@ class MemberConsoleService:
             "wallet_user_id": wallet_user_id,
             "days": safe_days,
             "reason": str(reason or "").strip(),
+            "settlement_authority": settlement_authority,
+            "settlement_status": str(evidence.get("settlement_status") or "").strip(),
+            "currency": str(evidence.get("currency") or "").strip().upper(),
+            "amount_minor": evidence.get("amount_minor"),
+            "provider_transaction_id": str(evidence.get("provider_transaction_id") or "").strip(),
+            "provider_order_id": str(evidence.get("provider_order_id") or "").strip(),
+            "paid_at": str(evidence.get("paid_at") or "").strip(),
+            "evidence_version": int(evidence.get("evidence_version") or 1),
         }
         mutation = wallet_service.grant_points(
             user_id=wallet_user_id,
             amount_micros=points * 1_000_000,
             reference_type="purchase",
             reference_id=purchase_id,
-            idempotency_key=f"purchase:manual_membership:{normalized_key}",
-            reason="manual_membership_purchase",
+            idempotency_key=f"purchase:{purchase_kind}:{normalized_key}",
+            reason=audit_action,
             metadata=metadata,
-            operator_type="admin",
+            operator_type=operator_type,
             operator_id=normalized_operator,
         )
         ledger_event_id = str(getattr(mutation, "ledger_event_id", "") or "")
@@ -6179,7 +6268,7 @@ class MemberConsoleService:
         def _apply_entitlement(data: dict[str, Any]) -> dict[str, Any]:
             existing_audit_id = self._find_audit_id_by_idempotency_key(
                 data,
-                "manual_membership_purchase",
+                audit_action,
                 normalized_key,
                 operator=normalized_operator,
             )
@@ -6203,7 +6292,7 @@ class MemberConsoleService:
             ledger_entry = {
                 "id": ledger_event_id or purchase_id,
                 "delta": points,
-                "reason": "manual_membership_purchase",
+                "reason": audit_action,
                 "created_at": created_at,
                 "metadata": metadata,
             }
@@ -6211,9 +6300,9 @@ class MemberConsoleService:
             after = deepcopy(member)
             audit = self._append_audit(
                 data,
-                action="manual_membership_purchase",
+                action=audit_action,
                 target_user=normalized_user_id,
-                reason=str(reason or "").strip() or "manual_membership_purchase",
+                reason=str(reason or "").strip() or audit_action,
                 before=before,
                 after={
                     "member": after,
@@ -6228,7 +6317,7 @@ class MemberConsoleService:
             )
             self._remember_idempotency_key(
                 data,
-                "manual_membership_purchase",
+                audit_action,
                 normalized_key,
                 audit["id"],
                 operator=normalized_operator,

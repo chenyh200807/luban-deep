@@ -1209,14 +1209,23 @@ def _apply_wechat_payment_success(transaction: dict[str, Any]) -> dict[str, Any]
     transaction_id = str(transaction.get("transaction_id") or transaction.get("out_trade_no") or "").strip()
     if not transaction_id:
         raise WechatPayNotificationError("missing transaction id")
-    return member_service.manual_membership_purchase(
+    return member_service.settled_membership_purchase(
         user_id=attach["user_id"],
         package_id=attach["package_id"],
         days=int(attach.get("days") or 365),
-        operator="wechat_pay",
-        reason="wechat_pay_success",
         idempotency_key=f"wechat_pay:{transaction_id}",
         amount_cny=actual_fen / 100,
+        settlement_evidence={
+            "settlement_authority": "wechat_pay_notification",
+            "settlement_status": "settled",
+            "payment_channel": "wechat_pay",
+            "currency": str((transaction.get("amount") or {}).get("currency") or "CNY"),
+            "amount_minor": actual_fen,
+            "provider_transaction_id": transaction_id,
+            "provider_order_id": str(transaction.get("out_trade_no") or "").strip(),
+            "paid_at": str(transaction.get("success_time") or "").strip(),
+            "evidence_version": 1,
+        },
     )
 
 
