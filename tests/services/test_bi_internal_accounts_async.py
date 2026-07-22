@@ -78,6 +78,7 @@ def test_internal_accounts_endpoint_reads_one_snapshot_and_applies_limit(
     ]
     assert payload["audit"] == rows[:2]
     assert payload["states"] == {"user-a": rows[0], "user-b": rows[1]}
+    assert payload["available"] is True
     assert payload["internal_accounts"] == [rows[1]]
     assert payload["total_internal"] == 1
 
@@ -101,6 +102,7 @@ def test_internal_accounts_snapshot_does_not_block_event_loop(
         payload = request.result()
         assert ticks >= 3, "event-loop ticker must keep running while REST waits in a worker thread"
         assert payload["states"] == {}
+        assert payload["available"] is True
 
     asyncio.run(scenario())
 

@@ -196,7 +196,7 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.equal(panel.includes('运营授予权益'), false)
 })
 
-test('commerce cockpit exposes yuan revenue summary from wallet ledger', async () => {
+test('commerce cockpit shows only confirmed manual revenue and fails closed on unknown amount', async () => {
   const cockpit = await readWeb('components/bi-cockpit/CommerceCockpit.tsx')
   const api = await readWeb('lib/bi-api.ts')
   const service = await readWeb('../deeptutor/services/bi_service.py')
@@ -207,11 +207,15 @@ test('commerce cockpit exposes yuan revenue summary from wallet ledger', async (
   assert.ok(api.includes('latestRevenueAmountCny: number'))
   assert.ok(api.includes('latestRevenueMemberId: string'))
   assert.ok(api.includes('reversalCount: number'))
-  assert.ok(cockpit.includes('最近收入'))
-  assert.ok(cockpit.includes('今日收入'))
-  assert.ok(cockpit.includes('最新一笔'))
+  assert.ok(api.includes('revenueStatus: string'))
+  assert.ok(cockpit.includes('已确认近期实收'))
+  assert.ok(cockpit.includes('今日已确认实收'))
+  assert.ok(cockpit.includes('最新已确认实收'))
+  assert.ok(cockpit.includes("s?.revenueStatus === 'confirmed_manual_partial'"))
+  assert.ok(cockpit.includes('存在充值事件，但缺少可核验金额'))
   assert.ok(cockpit.includes('¥'))
   assert.ok(service.includes('"revenue_cny"'))
+  assert.ok(service.includes('"insufficient_evidence"'))
   assert.ok(service.includes('"latest_revenue_amount_cny"'))
   assert.ok(service.includes('"reversal_count"'))
 })

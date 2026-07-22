@@ -21,8 +21,6 @@ import {
   BI_SEVERITY_TONE,
 } from '@/components/bi-v2'
 import {
-  getBiAnomalies,
-  getBiActiveTrend,
   getBiOverview,
   type BiTrendPoint,
   type BiAlertItem,
@@ -32,7 +30,6 @@ import {
 import { findMetricByLabel, type BiV2MetricDef } from '@/lib/bi-v2-metric-registry.generated'
 import { OverviewCockpit } from '@/components/bi-cockpit/OverviewCockpit'
 import type { CockpitWindowDays } from '@/components/bi-cockpit/GlobalControlBar'
-import { reduceOverviewBundle } from './overview-bundle-reducer'
 
 type DataSource = 'mock' | 'live' | 'loading' | 'error'
 
@@ -244,7 +241,7 @@ function buildOverviewModules({
 }
 
 export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
-  const [bundle, setBundle] = useState<LiveBundle>(MOCK_BUNDLE)
+  const [bundle, setBundle] = useState<LiveBundle>(flagEnabled ? EMPTY_BUNDLE : MOCK_BUNDLE)
   const [source, setSource] = useState<DataSource>(flagEnabled ? 'loading' : 'mock')
   // 全局控制条的时间范围：单一窗口状态，三条读模型 GET 共用
   const [days, setDays] = useState<CockpitWindowDays>(30)
@@ -262,26 +259,25 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
     const ctrl = new AbortController()
     inflightRef.current = ctrl
     setSource('loading')
-    // Round 4 follow-up (B-P2-11): the three GETs are independent reads of
-    // separate read-models; running them in parallel cuts the user-perceived
-    // refresh latency from sum-of-three to max-of-three while keeping per-fetch
-    // error isolation. Reducer logic lives in `overview-bundle-reducer.ts` for
-    // unit-testability without an `.tsx` loader.
-    const [overviewResult, trendResult, anomaliesResult] = await Promise.allSettled([
-      getBiOverview({ days }),
-      getBiActiveTrend({ days }),
-      getBiAnomalies({ days }),
-    ])
-    if (ctrl.signal.aborted) return
-    const { bundle: nextBundle, source: nextSource } = reduceOverviewBundle({
-      overview: overviewResult,
-      trend: trendResult,
-      anomalies: anomaliesResult,
-      now: Date.now(),
-      emptyBundle: EMPTY_BUNDLE,
-    })
-    setBundle(nextBundle)
-    setSource(nextSource)
+    try {
+      const overview = await getBiOverview({ days })
+      if (ctrl.signal.aborted) return
+      setBundle({
+        cards: overview.cards,
+        alerts: overview.alerts,
+        trend: overview.activeTrend ?? [],
+        generatedAt: Date.now(),
+        partial: false,
+        errors: [],
+        overview,
+      })
+      setSource('live')
+    } catch (error) {
+      if (ctrl.signal.aborted) return
+      const message = error instanceof Error ? error.message : String(error)
+      setBundle(current => ({ ...current, partial: true, errors: [`overview: ${message}`] }))
+      setSource('error')
+    }
   }, [flagEnabled, days])
 
   useEffect(() => {
@@ -295,7 +291,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
   const activeCard = findCard(bundle.cards, ['活跃学习会话', '活跃学习者', '活跃'])
   const successCard = findCard(bundle.cards, ['成功率', '回合成功'])
   const costCard = findCard(bundle.cards, ['总成本', '成本'])
-  const commandScore = parsePercent(successCard?.value) ?? (source === 'live' ? 82 : 0)
+  const commandScore = parsePercent(successCard?.value)
   const primaryAlert = bundle.alerts[0]
   const primaryMetric = bundle.cards[0]
   const modules = buildOverviewModules({
@@ -374,7 +370,7 @@ function OverviewCommandHero({
 }: {
   source: DataSource
   generatedAt: number
-  commandScore: number
+  commandScore: number | null
   primaryMetric?: BiMetricCard
   primaryAlert?: BiAlertItem
   onReload: () => void
@@ -432,16 +428,18 @@ function OverviewCommandHero({
           <div
             className="absolute inset-0 rounded-full shadow-[0_0_42px_rgba(94,221,234,0.2)]"
             style={{
-              background: `conic-gradient(#5eddea 0 ${commandScore * 3.6}deg, rgba(255,255,255,0.12) ${commandScore * 3.6}deg 360deg)`,
+              background: `conic-gradient(#5eddea 0 ${(commandScore ?? 0) * 3.6}deg, rgba(255,255,255,0.12) ${(commandScore ?? 0) * 3.6}deg 360deg)`,
             }}
             aria-hidden
           />
           <div className="absolute inset-7 rounded-full bg-[#152341] shadow-inner shadow-black/40" />
           <div className="relative text-center">
-            <div className="text-4xl font-black tabular-nums text-cyan-100">{commandScore}%</div>
-            <div className="mt-1 text-[11px] font-bold text-slate-400">经营健康度</div>
+            <div className="text-4xl font-black tabular-nums text-cyan-100">
+              {commandScore === null ? '—' : `${commandScore}%`}
+            </div>
+            <div className="mt-1 text-[11px] font-bold text-slate-400">AI 回合成功率</div>
             <div className="mt-2 rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-[11px] font-black text-amber-100">
-              可追溯
+              {commandScore === null ? '证据不足' : '可追溯'}
             </div>
           </div>
         </div>

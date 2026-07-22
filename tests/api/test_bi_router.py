@@ -884,6 +884,18 @@ def test_member_ops_overview_routes_server_side_filters(
             }
 
     monkeypatch.setattr(bi_router_module, "get_member_console_service", lambda: _MemberOpsService())
+
+    async def _internal_snapshot(*, limit: int = 1) -> dict[str, object]:
+        assert limit == 1
+        return {
+            "available": True,
+            "states": {
+                "internal-user": {"is_internal": True},
+                "real-member": {"is_internal": False},
+            },
+        }
+
+    monkeypatch.setattr(bi_service, "get_internal_accounts_snapshot", _internal_snapshot)
     app = _build_app(bi_service)
     app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(
         user_id="u-admin", is_admin=True
@@ -906,6 +918,9 @@ def test_member_ops_overview_routes_server_side_filters(
     assert captured["auto_renew"] is False
     assert captured["channel"] == "wechat_qr"
     assert captured["behavior_cohort"] == "chat_only"
+    assert captured["excluded_user_ids"] == frozenset({"internal-user"})
+    assert response.json()["authority"]["internal_accounts"] == "bi_internal_accounts"
+    assert response.json()["authority"]["internal_accounts_available"] is True
 
 
 def test_bi_rbac_permission_management_endpoints_allow_admin(

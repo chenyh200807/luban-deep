@@ -1467,19 +1467,15 @@ class BIService:
             "ai_quality": self._build_ai_quality_payload(summary=summary, context=context),
             "unit_economics": self._build_unit_economics_payload(summary=summary, daily_cost=daily_cost),
             "data_trust": self._build_data_trust_payload(context=context),
+            "active_trend": self._build_active_trend_payload(context, days=days),
         }
 
-    async def get_active_trend(
-        self,
-        days: int = 30,
-        capability: str | None = None,
-        entrypoint: str | None = None,
-        tier: str | None = None,
-    ) -> dict[str, Any]:
-        context = self._apply_filters(
-            self._scope_context_to_registered_members(await self._load_context(days)),
-            self._normalize_filters(capability, entrypoint, tier),
-        )
+    def _build_active_trend_payload(self, context: _BiContext, *, days: int) -> dict[str, Any]:
+        """Project the trend from an already loaded BI context.
+
+        The overview and compatibility endpoint share this pure projection so
+        the v2 first screen does not pay for a second full context scan.
+        """
         bucket_map: dict[str, dict[str, Any]] = {}
 
         def ensure_bucket(key: str) -> dict[str, Any]:
@@ -1499,7 +1495,9 @@ class BIService:
         for session in context.sessions:
             bucket = ensure_bucket(_date_bucket(_safe_float(session.get("updated_at"))))
             bucket["sessions"] += 1
-            bucket["learners"].add(self._resolve_actor_id(session["session_id"], session["preferences"]))
+            bucket["learners"].add(
+                self._resolve_actor_id(session["session_id"], session["preferences"])
+            )
 
         for turn in context.turns:
             bucket = ensure_bucket(_date_bucket(_safe_float(turn.get("updated_at"))))
@@ -1513,7 +1511,9 @@ class BIService:
 
         for event in context.result_events:
             bucket = ensure_bucket(_date_bucket(_safe_float(event.get("created_at"))))
-            bucket["cost_usd"] += _safe_float((event.get("cost_summary") or {}).get("total_cost_usd"))
+            bucket["cost_usd"] += _safe_float(
+                (event.get("cost_summary") or {}).get("total_cost_usd")
+            )
 
         points = []
         for key in sorted(bucket_map):
@@ -1532,8 +1532,20 @@ class BIService:
                     "successful": bucket["successful"],
                 }
             )
-
         return {"window_days": days, "points": points}
+
+    async def get_active_trend(
+        self,
+        days: int = 30,
+        capability: str | None = None,
+        entrypoint: str | None = None,
+        tier: str | None = None,
+    ) -> dict[str, Any]:
+        context = self._apply_filters(
+            self._scope_context_to_registered_members(await self._load_context(days)),
+            self._normalize_filters(capability, entrypoint, tier),
+        )
+        return self._build_active_trend_payload(context, days=days)
 
     async def get_retention(
         self,
@@ -3321,7 +3333,17 @@ class BIService:
             for _row, amount, effective_at in revenue_rows
             if effective_at is not None and effective_at.astimezone(business_tz).date() == business_now.date()
         )
+        # Online payment orders are not yet an authority.  A wallet row without
+        # amount_cny proves that a recharge-like event happened, but cannot prove
+        # the CNY amount.  Do not let the UI collapse that unknown into ¥0.
+        revenue_status = (
+            "insufficient_evidence"
+            if recharge_rows and not revenue_rows
+            else "confirmed_manual_partial"
+        )
         return {
+            "revenue_status": revenue_status,
+            "revenue_scope": "wallet_ledger_manual_membership_only",
             "revenue_cny": _round(sum(amount for _row, amount, _effective_at in revenue_rows), 2),
             "today_revenue_cny": _round(today_revenue, 2),
             "recent_revenue_cny": _round(sum(amount for _row, amount, _effective_at in revenue_rows), 2),
@@ -3805,6 +3827,7 @@ class BIService:
         states = self._internal_account_states_from_rows(rows)
         internal_users = [row for row in states.values() if row.get("is_internal")]
         return {
+            "available": True,
             "states": states,
             "internal_accounts": internal_users,
             "audit": rows[:safe_limit],
@@ -3817,7 +3840,13 @@ class BIService:
             return await asyncio.to_thread(self._load_internal_accounts_snapshot, limit=limit)
         except Exception as exc:  # noqa: BLE001
             logger.warning("get_internal_accounts_snapshot failed: %s", exc)
-            return {"states": {}, "internal_accounts": [], "audit": [], "total_internal": 0}
+            return {
+                "available": False,
+                "states": {},
+                "internal_accounts": [],
+                "audit": [],
+                "total_internal": None,
+            }
 
     async def get_internal_account_states(self) -> dict[str, dict[str, Any]]:
         """当前各 user_id 的内部账号状态（取每个 user_id 最新一条记录）。"""

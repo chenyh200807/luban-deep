@@ -344,7 +344,7 @@ function BiV2AuthenticatedSurface({
         )}
         pageTitle={current.label}
         pageSummary={current.summary}
-        footer="一级导航固定 5 主区 · 当前仅展示已接入的真实读模型，技术口径在模块详情中查看。"
+        footer="当前 7 个可用主区 · 仅展示已接入的真实读模型，技术口径在模块详情中查看。"
       >
         {panel}
       </BiAppShell>

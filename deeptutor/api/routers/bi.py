@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import date
 import re
 from typing import Any
@@ -611,7 +612,14 @@ async def bi_member_ops_overview(
     has_overlay_candidates: bool | None = None,
     _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ) -> dict[str, Any]:
-    return get_member_console_service().get_member_ops_overview(
+    internal_snapshot = await get_bi_service().get_internal_accounts_snapshot(limit=1)
+    exclusion_ids = frozenset(
+        str(user_id)
+        for user_id, state in internal_snapshot.get("states", {}).items()
+        if isinstance(state, dict) and state.get("is_internal")
+    )
+    payload = await asyncio.to_thread(
+        get_member_console_service().get_member_ops_overview,
         days=days,
         page=page,
         page_size=page_size,
@@ -634,7 +642,14 @@ async def bi_member_ops_overview(
         behavior_cohort=behavior_cohort,
         has_heartbeat_job=has_heartbeat_job,
         has_overlay_candidates=has_overlay_candidates,
+        excluded_user_ids=exclusion_ids,
     )
+    payload["authority"] = {
+        **(payload.get("authority") if isinstance(payload.get("authority"), dict) else {}),
+        "internal_accounts": "bi_internal_accounts",
+        "internal_accounts_available": bool(internal_snapshot.get("available")),
+    }
+    return payload
 
 
 @router.get("/member/packages")

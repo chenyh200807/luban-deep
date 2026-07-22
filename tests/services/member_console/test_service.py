@@ -2388,6 +2388,16 @@ def test_member_360_and_conversation_list_hide_messages_before_audit(tmp_path: P
     )()
     service._get_overlay_service = lambda: type("OverlayService", (), {"list_user_overlays": lambda *_args, **_kwargs: []})()  # type: ignore[method-assign]
 
+    message_reads = 0
+    original_get_messages = service._store._get_messages_sync
+
+    def _count_message_reads(session_id: str):
+        nonlocal message_reads
+        message_reads += 1
+        return original_get_messages(session_id)
+
+    service._store._get_messages_sync = _count_message_reads  # type: ignore[method-assign]
+
     payload = service.get_member_360("student_demo")
 
     assert len(payload["recent_conversations"]) == 1
@@ -2401,6 +2411,7 @@ def test_member_360_and_conversation_list_hide_messages_before_audit(tmp_path: P
     assert list_payload["total"] == 1
     assert list_payload["items"][0]["session_id"] == "tb_student_demo"
     assert "messages" not in list_payload["items"][0]
+    assert message_reads == 0
 
 
 def test_list_member_conversations_filters_and_sorts_workspace_queue(tmp_path: Path) -> None:
@@ -5315,6 +5326,14 @@ def test_member_ops_overview_filters_registration_and_reads_directory_once(
     )
     service = MemberConsoleService(member_directory=directory)
     service._data_path = tmp_path / "member_console.json"
+    behavior_loads: list[list[str]] = []
+    original_behavior_loader = service._load_member_behavior_summaries_for_members
+
+    def _count_behavior_loads(members: list[dict[str, object]]):
+        behavior_loads.append([str(item["user_id"]) for item in members])
+        return original_behavior_loader(members)
+
+    monkeypatch.setattr(service, "_load_member_behavior_summaries_for_members", _count_behavior_loads)
 
     payload = service.get_member_ops_overview(
         page=1,
@@ -5327,13 +5346,16 @@ def test_member_ops_overview_filters_registration_and_reads_directory_once(
         not_paid=True,
         auto_renew=False,
         channel="wechat_qr",
+        excluded_user_ids={"wrong_channel"},
     )
 
     assert len(directory.calls) == 1
-    assert payload["dashboard"]["total_count"] == 3
+    assert payload["dashboard"]["total_count"] == 2
     assert [item["user_id"] for item in payload["list"]["items"]] == ["target"]
     assert payload["list"]["filters"]["registered_from"] == "2026-07-12"
     assert payload["list"]["filters"]["channel"] == "wechat_qr"
+    assert len(behavior_loads) == 1
+    assert set(behavior_loads[0]) == {"target", "too_old"}
 
 
 def test_member_dashboard_projects_product_usage_overview_without_frontend_reaggregation(

@@ -441,6 +441,7 @@ def test_commerce_does_not_count_legacy_credit_as_recharge(store: SQLiteSessionS
     assert payload["summary"]["ledger_count"] == 1
     assert payload["summary"]["member_count"] == 0
     assert payload["summary"]["recharge_count"] == 0
+    assert payload["summary"]["revenue_status"] == "confirmed_manual_partial"
     assert payload["recharge_records"] == []
     assert payload["ledger"][0]["kind"] == "credit"
     assert any("不计入充值记录" in warning for warning in payload["warnings"])
@@ -486,12 +487,33 @@ def test_commerce_summarizes_manual_membership_revenue_from_wallet_ledger(
     assert payload["authority"]["wallet_ledger"] == "wallet_ledger"
     assert payload["summary"]["recharge_count"] == 2
     assert payload["summary"]["revenue_cny"] == 796
+    assert payload["summary"]["revenue_status"] == "confirmed_manual_partial"
+    assert payload["summary"]["revenue_scope"] == "wallet_ledger_manual_membership_only"
     assert payload["summary"]["today_revenue_cny"] == 198
     assert payload["summary"]["recent_revenue_cny"] == 796
     assert payload["summary"]["latest_revenue_amount_cny"] == 198
     assert payload["summary"]["latest_revenue_member_id"] == "member_paid_today"
     assert payload["summary"]["latest_revenue_at"]
     assert payload["summary"]["revenue_count"] == 2
+
+
+def test_commerce_does_not_present_unknown_recharge_amount_as_zero() -> None:
+    summary = BIService._build_commerce_revenue_summary(
+        [
+            {
+                "id": "manual-recharge-without-amount",
+                "user_id": "member_unknown_amount",
+                "event_type": "grant",
+                "reference_type": "manual_membership",
+                "effective_at": "2026-07-22T10:00:00+08:00",
+                "metadata": {"channel": "manual_membership"},
+            }
+        ]
+    )
+
+    assert summary["revenue_status"] == "insufficient_evidence"
+    assert summary["revenue_count"] == 0
+    assert summary["revenue_cny"] == 0
 
 
 def test_commerce_excludes_pre_launch_wallet_ledger_rows(
@@ -824,7 +846,20 @@ def test_boss_workbench_counts_only_registered_member_activity(
 
     asyncio.run(_seed())
 
+    context_loads = 0
+    original_load_context = service._load_context
+
+    async def _count_context_loads(days: int):
+        nonlocal context_loads
+        context_loads += 1
+        return await original_load_context(days)
+
+    service._load_context = _count_context_loads  # type: ignore[method-assign]
     overview = asyncio.run(service.get_overview(days=7))
+    assert context_loads == 1
+    assert sum(point["sessions"] for point in overview["active_trend"]["points"]) == 2
+    assert max(point["active"] for point in overview["active_trend"]["points"]) == 1
+
     trend = asyncio.run(service.get_active_trend(days=7))
 
     assert overview["summary"]["total_sessions"] == 2
