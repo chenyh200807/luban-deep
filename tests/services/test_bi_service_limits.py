@@ -917,9 +917,12 @@ def test_boss_workbench_exposes_daily_cost_from_usage_ledger(
     assert boss["daily_cost"]["today_usd"] is None
     assert boss["daily_cost"]["window_total_usd"] is None
     assert boss["daily_cost"]["status"] == "insufficient_turn_linkage"
+    assert boss["daily_cost"]["cost_status"] == "insufficient_turn_linkage"
     assert overview["summary"]["platform_cost_by_currency"] == {"USD": 0.125}
     assert boss["daily_cost"]["source"] == "usage_ledger"
-    assert any(item["label"] == "今日成本" for item in boss["kpis"])
+    today_cost_kpi = next(item for item in boss["kpis"] if item["label"] == "今日成本")
+    assert today_cost_kpi["value"] is None
+    assert today_cost_kpi["hint"] == "UsageLedger 成本证据不足"
 
 
 def test_boss_workbench_counts_only_registered_member_activity(
@@ -1000,6 +1003,7 @@ def test_boss_workbench_counts_only_registered_member_activity(
     assert not any("失败回合" in item for item in overview["risk_alerts"])
     assert sum(point["sessions"] for point in trend["points"]) == 2
     assert max(point["active"] for point in trend["points"]) == 1
+    assert all("cost" not in point and "cost_usd" not in point for point in trend["points"])
 
 
 def test_business_bi_endpoints_share_registered_turn_scope(
@@ -1076,7 +1080,7 @@ def test_business_bi_endpoints_share_registered_turn_scope(
             "turns_with_tool": 1,
             "success_rate": 100.0,
             "avg_cost_per_turn_usd": None,
-            "avg_tokens_per_turn": 0.0,
+            "avg_tokens_per_turn": None,
             "cost_provenance": "usage_ledger_by_terminal_turn_ids",
             "cost_currency_status": "empty",
             "usage_linkage_complete": False,
@@ -1090,7 +1094,7 @@ def test_business_bi_endpoints_share_registered_turn_scope(
     assert knowledge["items"][0]["kb_name"] == "construction-exam"
     assert knowledge["items"][0]["session_count"] == 1
     assert knowledge["items"][0]["rag_turns"] == 1
-    assert {item["session_id"] for item in anomalies["items"]} == {"real_member"}
+    assert not any(item["kind"] == "high_cost_turn" for item in anomalies["items"])
 
     assert overview["north_star"]["metric_id"] == "effective_learning_members"
     assert overview["north_star"]["label"] == "有效学习成功会员数"
@@ -1275,24 +1279,35 @@ def test_partial_turn_linkage_fails_closed_across_business_cost_surfaces(
     assert overview["summary"]["usage_turn_coverage"] == 0.5
     assert overview["summary"]["usage_linkage_complete"] is False
     assert overview["summary"]["total_cost_usd"] is None
+    assert overview["summary"]["total_tokens"] is None
     assert overview["summary"]["measured_total_cost_usd"] is None
     assert overview["boss_workbench"]["daily_cost"]["window_total_usd"] is None
     assert all(
         point["cost_usd"] is None
         for point in overview["boss_workbench"]["daily_cost"]["series"]
     )
+    assert all(
+        point["tokens"] is None
+        for point in overview["boss_workbench"]["daily_cost"]["series"]
+    )
     assert capabilities["items"][0]["usage_turn_coverage"] == 0.5
     assert capabilities["items"][0]["usage_linkage_complete"] is False
     assert capabilities["items"][0]["total_cost_usd"] is None
+    assert capabilities["items"][0]["total_tokens"] is None
     assert tools["items"][0]["usage_linkage_complete"] is False
     assert tools["items"][0]["avg_cost_per_turn_usd"] is None
+    assert tools["items"][0]["avg_tokens_per_turn"] is None
     assert costs["business_turn_usage_coverage"] == 0.5
     assert costs["business_turn_usage_complete"] is False
     assert next(card for card in costs["cards"] if card["label"] == "总成本")["value"] is None
+    assert next(card for card in costs["cards"] if card["label"] == "总 Token")[
+        "value"
+    ] is None
     assert next(card for card in costs["cards"] if card["label"] == "平均回合成本")[
         "value"
     ] is None
     assert all(item["value"] is None for item in costs["models"])
+    assert all(item["tokens"] is None for item in costs["models"])
     assert all(item["value"] is None for item in costs["providers"])
 
 

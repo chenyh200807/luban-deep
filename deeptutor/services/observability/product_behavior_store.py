@@ -134,6 +134,19 @@ class SQLiteProductBehaviorStore:
             conn.execute(
                 "create index if not exists idx_pbe_object on product_behavior_events(object_type, object_id, occurred_at_ms)"
             )
+            # 同一播放器 session 的 sequence 是语义幂等键。仍写唯一
+            # product_behavior_events authority，不新建 video analytics 表。
+            conn.execute(
+                """
+                create unique index if not exists idx_pbe_playback_sequence
+                on product_behavior_events(
+                  user_id,
+                  json_extract(properties_json, '$.playback_session_id'),
+                  cast(json_extract(properties_json, '$.sequence') as integer)
+                )
+                where event_name = 'microlesson_playback'
+                """
+            )
 
     def record_event(self, event: dict[str, Any]) -> dict[str, Any]:
         raw_properties = _safe_properties(event.get("properties_json"))
@@ -947,6 +960,360 @@ class SQLiteProductBehaviorStore:
             reverse=True,
         )
         return breakdown[: max(1, int(limit))] if limit else breakdown
+
+    def get_microlesson_playback_breakdown(
+        self,
+        *,
+        days: int = 7,
+        exclude_user_ids: Sequence[str] | None = None,
+        exclude_user_id_prefixes: Sequence[str] | None = None,
+        limit: int = 50,
+    ) -> dict[str, Any]:
+        """Project player/section facts from the canonical behavior ledger.
+
+        ``section_enter`` means reached, never watched. A section counts as
+        watched only when the same playback session has active playback time
+        and a server-validated section progress of at least 90%. Contiguous
+        progress stops at the first not-watched section, so jumping to section
+        7 cannot fabricate completion of sections 1-6.
+        """
+        where = [
+            "occurred_at_ms >= ?",
+            "event_name = 'microlesson_playback'",
+            "object_type = 'microlesson'",
+            "object_id != ''",
+        ]
+        params: list[Any] = [self._since_ms(days)]
+        excluded = sorted(
+            {
+                str(user_id).strip()
+                for user_id in (exclude_user_ids or [])
+                if str(user_id).strip()
+            }
+        )
+        if excluded:
+            where.append(
+                f"user_id not in ({','.join('?' for _ in excluded)})"
+            )
+            params.extend(excluded)
+        for prefix in sorted(
+            {
+                str(value).strip()
+                for value in (exclude_user_id_prefixes or [])
+                if str(value).strip()
+            }
+        ):
+            where.append(r"user_id not like ? escape '\'")
+            params.append(
+                prefix.replace("\\", r"\\")
+                .replace("%", r"\%")
+                .replace("_", r"\_")
+                + "%"
+            )
+        with self._connect() as conn:
+            rows = conn.execute(
+                f"""
+                select user_id, visit_id, object_id, section, action,
+                       duration_ms, occurred_at_ms, properties_json
+                from product_behavior_events
+                where {' and '.join(where)}
+                order by occurred_at_ms asc, event_id asc
+                """,
+                tuple(params),
+            ).fetchall()
+
+        sessions: dict[tuple[str, str, str], dict[str, Any]] = {}
+        for row in rows:
+            try:
+                properties = json.loads(str(row["properties_json"] or "{}"))
+            except json.JSONDecodeError:
+                properties = {}
+            if not isinstance(properties, dict):
+                properties = {}
+            user_id = str(row["user_id"] or "")
+            session_id = str(
+                properties.get("playback_session_id")
+                or row["visit_id"]
+                or ""
+            )
+            object_id = str(row["object_id"] or "")
+            if not user_id or not session_id or not object_id:
+                continue
+            session = sessions.setdefault(
+                (user_id, session_id, object_id),
+                {
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "object_id": object_id,
+                    "play_count": 0,
+                    "completed": False,
+                    "total_active_ms": 0,
+                    "max_progress_pct": 0,
+                    "sections": {},
+                    "last_event_at_ms": 0,
+                },
+            )
+            action = str(row["action"] or "")
+            if action in {"play", "replay"}:
+                session["play_count"] += 1
+            if action == "complete":
+                session["completed"] = True
+            active_ms = max(0, int(row["duration_ms"] or 0))
+            session["total_active_ms"] += active_ms
+            session["max_progress_pct"] = max(
+                session["max_progress_pct"],
+                int(properties.get("progress_pct") or 0),
+            )
+            session["last_event_at_ms"] = max(
+                session["last_event_at_ms"],
+                int(row["occurred_at_ms"] or 0),
+            )
+            section_id = str(row["section"] or "")
+            if not section_id:
+                continue
+            section = session["sections"].setdefault(
+                section_id,
+                {
+                    "section_id": section_id,
+                    "section_index": int(
+                        properties.get("section_index") or 0
+                    ),
+                    "section_label": str(
+                        properties.get("section_label") or ""
+                    ),
+                    "section_group": str(
+                        properties.get("section_group") or ""
+                    ),
+                    "entered": False,
+                    "active_ms": 0,
+                    "max_progress_pct": 0,
+                    "entry_trigger": "",
+                    "section_start_ms": int(
+                        properties.get("section_start_ms") or 0
+                    ),
+                    "section_end_ms": int(
+                        properties.get("section_end_ms") or 0
+                    ),
+                    "watched_intervals": [],
+                },
+            )
+            if action == "section_enter":
+                section["entered"] = True
+                section["entry_trigger"] = str(
+                    properties.get("reason") or ""
+                )
+            else:
+                # Any validated playback transition proves the player reached
+                # this section even if a legacy client missed section_enter.
+                section["entered"] = True
+                if action == "seek":
+                    # The real runtime emits one canonical seek transition for
+                    # both scrub and section-chip jumps. Do not require a
+                    # synthetic second section_enter event to recover source.
+                    section["entry_trigger"] = str(
+                        properties.get("reason") or ""
+                    )
+            section["active_ms"] += active_ms
+            section["max_progress_pct"] = max(
+                section["max_progress_pct"],
+                int(properties.get("section_progress_pct") or 0),
+            )
+            if action == "checkpoint" and active_ms > 0:
+                section_start = int(section["section_start_ms"])
+                section_end = int(section["section_end_ms"])
+                interval_start = max(
+                    section_start,
+                    int(properties.get("from_position_ms") or 0),
+                )
+                interval_end = min(
+                    section_end,
+                    int(properties.get("to_position_ms") or 0),
+                )
+                if interval_end > interval_start:
+                    section["watched_intervals"].append(
+                        (interval_start, interval_end)
+                    )
+
+        content_buckets: dict[str, dict[str, Any]] = {}
+        section_buckets: dict[tuple[str, str], dict[str, Any]] = {}
+        for session in sessions.values():
+            for section in session["sections"].values():
+                intervals = sorted(section["watched_intervals"])
+                covered_ms = 0
+                covered_end = 0
+                for interval_start, interval_end in intervals:
+                    if covered_ms == 0:
+                        covered_end = interval_end
+                        covered_ms = interval_end - interval_start
+                    elif interval_start <= covered_end:
+                        if interval_end > covered_end:
+                            covered_ms += interval_end - covered_end
+                            covered_end = interval_end
+                    else:
+                        covered_end = interval_end
+                        covered_ms += interval_end - interval_start
+                section["unique_covered_ms"] = covered_ms
+                section_duration = max(
+                    0,
+                    int(section["section_end_ms"])
+                    - int(section["section_start_ms"]),
+                )
+                section["watched"] = (
+                    section_duration > 0
+                    and covered_ms * 10 >= section_duration * 9
+                    and int(section["max_progress_pct"]) >= 90
+                )
+            watched_indexes = {
+                int(section["section_index"])
+                for section in session["sections"].values()
+                if int(section["section_index"]) > 0
+                and section["watched"]
+            }
+            contiguous_index = 0
+            while contiguous_index + 1 in watched_indexes:
+                contiguous_index += 1
+            reached_index = max(
+                (
+                    int(section["section_index"])
+                    for section in session["sections"].values()
+                ),
+                default=0,
+            )
+            content = content_buckets.setdefault(
+                session["object_id"],
+                {
+                    "object_id": session["object_id"],
+                    "members": set(),
+                    "sessions": 0,
+                    "play_count": 0,
+                    "completed_sessions": 0,
+                    "total_active_ms": 0,
+                    "progress_25_sessions": 0,
+                    "progress_50_sessions": 0,
+                    "progress_75_sessions": 0,
+                    "progress_90_sessions": 0,
+                    "max_reached_section_index": 0,
+                    "max_contiguous_watched_section_index": 0,
+                    "last_event_at_ms": 0,
+                },
+            )
+            content["members"].add(session["user_id"])
+            content["sessions"] += 1
+            content["play_count"] += session["play_count"]
+            content["completed_sessions"] += int(session["completed"])
+            content["total_active_ms"] += session["total_active_ms"]
+            for checkpoint in (25, 50, 75, 90):
+                if session["max_progress_pct"] >= checkpoint:
+                    content[f"progress_{checkpoint}_sessions"] += 1
+            content["max_reached_section_index"] = max(
+                content["max_reached_section_index"], reached_index
+            )
+            content["max_contiguous_watched_section_index"] = max(
+                content["max_contiguous_watched_section_index"],
+                contiguous_index,
+            )
+            content["last_event_at_ms"] = max(
+                content["last_event_at_ms"], session["last_event_at_ms"]
+            )
+
+            for section in session["sections"].values():
+                key = (session["object_id"], section["section_id"])
+                bucket = section_buckets.setdefault(
+                    key,
+                    {
+                        "object_id": session["object_id"],
+                        "section_id": section["section_id"],
+                        "section_index": section["section_index"],
+                        "section_label": section["section_label"],
+                        "section_group": section["section_group"],
+                        "members": set(),
+                        "sessions": 0,
+                        "watched_sessions": 0,
+                        "total_active_ms": 0,
+                        "auto_entries": 0,
+                        "seek_entries": 0,
+                        "chip_entries": 0,
+                    },
+                )
+                bucket["members"].add(session["user_id"])
+                bucket["sessions"] += 1
+                watched = bool(section["watched"])
+                bucket["watched_sessions"] += int(watched)
+                bucket["total_active_ms"] += int(section["active_ms"])
+                trigger = str(section["entry_trigger"] or "")
+                if trigger == "auto":
+                    bucket["auto_entries"] += 1
+                elif trigger == "chip":
+                    bucket["chip_entries"] += 1
+                elif trigger in {"scrub", "seek"}:
+                    bucket["seek_entries"] += 1
+
+        content_rows = []
+        for bucket in content_buckets.values():
+            session_count = int(bucket.pop("sessions"))
+            members = bucket.pop("members")
+            completed = int(bucket["completed_sessions"])
+            content_rows.append(
+                {
+                    **bucket,
+                    "member_count": len(members),
+                    "playback_session_count": session_count,
+                    "completion_rate": (
+                        round(completed / session_count, 4)
+                        if session_count
+                        else None
+                    ),
+                    "avg_active_ms": (
+                        int(bucket["total_active_ms"] / session_count)
+                        if session_count
+                        else 0
+                    ),
+                }
+            )
+        content_rows.sort(
+            key=lambda row: (
+                row["playback_session_count"],
+                row["total_active_ms"],
+            ),
+            reverse=True,
+        )
+        section_rows = []
+        for bucket in section_buckets.values():
+            session_count = int(bucket.pop("sessions"))
+            members = bucket.pop("members")
+            watched = int(bucket["watched_sessions"])
+            section_rows.append(
+                {
+                    **bucket,
+                    "member_count": len(members),
+                    "reached_session_count": session_count,
+                    "watched_rate": (
+                        round(watched / session_count, 4)
+                        if session_count
+                        else None
+                    ),
+                }
+            )
+        section_rows.sort(
+            key=lambda row: (
+                row["object_id"],
+                int(row["section_index"]),
+                row["section_id"],
+            )
+        )
+        safe_limit = max(1, int(limit or 50))
+        return {
+            "available": bool(rows),
+            "time_source": "player_active_time",
+            "trust_level": "C",
+            "evidence_class": "server_validated_client_playback_claim",
+            "mastery_eligible": False,
+            "use_boundary": "product_interest_only",
+            "event_count": len(rows),
+            "playback_session_count": len(sessions),
+            "content": content_rows[:safe_limit],
+            "sections": section_rows[: safe_limit * 20],
+        }
 
     def get_member_timeline_for_identity_group(
         self,

@@ -500,11 +500,17 @@ Page({
       result: "granted",
     });
     self.setData({ loading: true, errorMsg: "" });
+    var attribution = api.regAttribution();
     api
       .request({
         url: "/api/v1/auth/verify-code",
         method: "POST",
-        data: { phone: phone, code: code },
+        data: {
+          phone: phone,
+          code: code,
+          channel: attribution.channel,
+          scene: attribution.scene,
+        },
         noAuth: true,
       })
       .then(function (resp) {

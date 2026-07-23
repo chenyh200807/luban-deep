@@ -264,10 +264,15 @@ function getRuntimeMetadata() {
       wechatVersion = String(systemInfo.version || "").trim();
     }
   } catch (_) {}
-  if (!appVersion) {
-    appVersion = [envVersion, wechatVersion].filter(Boolean).join(":");
-  }
-  runtimeMetadata = { appVersion: appVersion, platform: platform };
+  // app_version means the Mini Program release version only. envVersion and
+  // the WeChat client version are different facts and must never be folded
+  // into a fake application version merely to make coverage look healthy.
+  runtimeMetadata = {
+    appVersion: appVersion,
+    envVersion: envVersion,
+    wechatVersion: wechatVersion,
+    platform: platform,
+  };
   return runtimeMetadata;
 }
 
@@ -295,6 +300,8 @@ function trackProductBehavior(eventName, payload) {
       error_code: data.errorCode || "",
       release_id: data.releaseId || "",
       app_version: data.appVersion || runtime.appVersion,
+      env_version: data.envVersion || runtime.envVersion,
+      wechat_version: data.wechatVersion || runtime.wechatVersion,
       platform: data.platform || runtime.platform,
       device_model: data.deviceModel || "",
       network_type: data.networkType || "",

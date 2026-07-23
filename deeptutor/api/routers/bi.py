@@ -207,7 +207,8 @@ async def bi_learning_preference(
 
     单一数据权威 = product_behavior_store.get_engagement_breakdown（一个参数化聚合的多个 group_dim）；
     薄 handler 只组装/转发，不碰受保护的 member_console/service.py。
-    当前仅可采页面驻留，不能冒充播放器实际播放或完播 → time_source='page_dwell'。
+    页面驻留与播放器事实分列：旧客户端保留 page_dwell，新 H5 runtime 的
+    playback/section 只读同一 product_behavior_events authority。
     include_demo=False 时由 BIService 的统一非业务身份 authority 排除 UUID/prefix eval
     与人工内部账号（生产真值口径）。
     """
@@ -268,17 +269,30 @@ async def bi_learning_preference(
     practice_all = breakdown(group_dim="object_type", event_names=["retest_item_answered"], limit=0)
     answered = sum(int(row["answered_count"]) for row in practice_all)
     correct = sum(int(row["correct_count"]) for row in practice_all)
+    playback = store.get_microlesson_playback_breakdown(
+        days=days,
+        exclude_user_ids=exclude_user_ids,
+        exclude_user_id_prefixes=exclude_prefixes,
+        limit=limit,
+    )
 
     return {
         "days": days,
         "demo_included": bool(include_demo),
-        # completion_source 为旧客户端兼容别名；值也明确为 page_dwell，禁止再解释成完播。
-        "completion_source": "page_dwell",
-        "time_source": "page_dwell",
+        # 旧客户端只有页面驻留；播放器覆盖不能反向冒充全量覆盖。
+        "completion_source": (
+            "mixed_explicit_playback_and_page_dwell"
+            if playback["available"]
+            else "page_dwell"
+        ),
+        "time_source": (
+            "mixed" if playback["available"] else "page_dwell"
+        ),
         "module_preference": module_preference,
         "submodule_interest": submodule_interest,
         "content_top": content_top,
         "feature_usage": feature_usage,
+        "playback": playback,
         "practice": {
             "answered_count": answered,
             "correct_count": correct,

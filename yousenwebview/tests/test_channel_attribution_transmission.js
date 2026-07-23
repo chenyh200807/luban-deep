@@ -118,6 +118,25 @@ function loadAppForAttribution(storageState) {
   assert(bindData.scene === "1047", "bind body carries scene");
 })();
 
+(function testEpisodeCardEntryCapabilityCarriesTheSelectedEpisode() {
+  var storage = {};
+  var capture = {};
+  var api = loadApiModule(storage, capture);
+
+  api.issueLubanCardEntry("d14", 2);
+
+  assert(
+    capture.options.url ===
+      "https://api.example.com/api/v1/luban/lessons/d14/card-entry",
+    "card-entry request uses the canonical pack route",
+  );
+  assert(capture.options.method === "POST", "card-entry capability is minted with POST");
+  assert(
+    capture.options.data && capture.options.data.episode === 2,
+    "card-entry capability request carries the selected episode",
+  );
+})();
+
 (function testExplicitUnlimitedCodeSceneCarriesCampaignWithoutConfusingLaunchScene() {
   var encodedStorage = {};
   var encodedApp = loadAppForAttribution(encodedStorage);

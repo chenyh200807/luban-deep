@@ -1,0 +1,95 @@
+{
+  "episodes": [
+    {
+      "content_revision": "ddc16b07ba2884309ad3d6abcb6f95141aaa364cfa12c483fe7aaf608bdb5dbe",
+      "duration_ms": 298752,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "S02:lesson:1",
+      "sections": [
+        {
+          "end_ms": 24788,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 56848,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "危大门槛",
+          "start_ms": 24788
+        },
+        {
+          "end_ms": 84708,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "风速红线",
+          "start_ms": 56848
+        },
+        {
+          "end_ms": 116960,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "安全装置",
+          "start_ms": 84708
+        },
+        {
+          "end_ms": 143404,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "倾覆链",
+          "start_ms": 116960
+        },
+        {
+          "end_ms": 176544,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "脱钩链",
+          "start_ms": 143404
+        },
+        {
+          "end_ms": 209484,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 176544
+        },
+        {
+          "end_ms": 236328,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 209484
+        },
+        {
+          "end_ms": 259116,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 236328
+        },
+        {
+          "end_ms": 298752,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 259116
+        }
+      ]
+    }
+  ],
+  "pack_id": "S02",
+  "schema_version": "luban_playback_manifest.v1"
+}

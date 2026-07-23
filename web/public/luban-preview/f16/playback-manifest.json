@@ -1,0 +1,103 @@
+{
+  "episodes": [
+    {
+      "content_revision": "b573b1569ef77a352f71e075d50371de6e8dca51ed7616a53a5d202ef1d07f5e",
+      "duration_ms": 253892,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "F16:lesson:1",
+      "sections": [
+        {
+          "end_ms": 19508,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 37936,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "看病根",
+          "start_ms": 19508
+        },
+        {
+          "end_ms": 55140,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "分档",
+          "start_ms": 37936
+        },
+        {
+          "end_ms": 78176,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "割补前半",
+          "start_ms": 55140
+        },
+        {
+          "end_ms": 94516,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "割补后半",
+          "start_ms": 78176
+        },
+        {
+          "end_ms": 118224,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "检验清单",
+          "start_ms": 94516
+        },
+        {
+          "end_ms": 138884,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "究因口诀",
+          "start_ms": 118224
+        },
+        {
+          "end_ms": 163736,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 138884
+        },
+        {
+          "end_ms": 194492,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 163736
+        },
+        {
+          "end_ms": 223184,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 194492
+        },
+        {
+          "end_ms": 253892,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 223184
+        }
+      ]
+    }
+  ],
+  "pack_id": "F16",
+  "schema_version": "luban_playback_manifest.v1"
+}

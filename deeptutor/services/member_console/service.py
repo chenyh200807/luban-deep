@@ -160,6 +160,8 @@ _EXPLICIT_IDENTITY_METADATA_FIELDS = (
     "agent_tool",
     "eval_run_id",
     "phone_binding_method",
+    "reg_channel",
+    "reg_scene",
 )
 _EVAL_RUNNER_IDENTITY_METADATA = {
     "account_kind": "eval_runner",
@@ -8895,16 +8897,22 @@ class MemberConsoleService:
             raise ValueError("该手机号已被注册，请直接登录或找回密码")
         if self._local_member_user_ids_for_phone(normalized_phone):
             raise ValueError("该手机号已被注册，请直接登录或找回密码")
-        external_user = create_external_auth_user(username, password, phone=phone)
+        first_touch_metadata = _channel_attribution_metadata(channel, scene)
+        external_user = create_external_auth_user(
+            username,
+            password,
+            phone=phone,
+            identity_metadata=first_touch_metadata or None,
+        )
         member = self._ensure_member_for_external_auth(username, external_user)
         auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
         token = self._issue_access_token(
             user_id=auth_identity["user_id"],
             canonical_uid=auth_identity["canonical_uid"],
         )
+        # External auth owns durable first-touch. The DB alias is only its
+        # best-effort projection and must never be the sole copy.
         identity_metadata = self._explicit_identity_metadata(external_user)
-        # 注册渠道归因：register 走到这里必然是新会员（重复手机号在上方已拒绝）。
-        identity_metadata.update(_channel_attribution_metadata(channel, scene))
         self._persist_phone_identity(
             phone=normalized_phone,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
@@ -9614,7 +9622,14 @@ class MemberConsoleService:
                 exc,
             )
 
-    def verify_phone_code(self, phone: str, code: str) -> dict[str, Any]:
+    def verify_phone_code(
+        self,
+        phone: str,
+        code: str,
+        *,
+        channel: str = "",
+        scene: str = "",
+    ) -> dict[str, Any]:
         normalized = _normalize_phone_input(phone)
         if not normalized:
             raise ValueError("手机号格式不正确")
@@ -9674,7 +9689,25 @@ class MemberConsoleService:
             )
             return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
         else:
-            external_user = ensure_external_auth_user_for_phone(verified_phone)
+            # The Supabase phone alias is a projection and may be delayed or
+            # unavailable. External auth owns whether this phone identity
+            # already existed; use that authority before deciding whether the
+            # current launch may become immutable first-touch attribution.
+            existing_external_user = get_external_auth_user_by_phone(
+                verified_phone
+            )
+            first_touch_metadata = (
+                _channel_attribution_metadata(channel, scene)
+                if existing_external_user is None
+                else {}
+            )
+            external_user = (
+                existing_external_user
+                or ensure_external_auth_user_for_phone(
+                    verified_phone,
+                    identity_metadata=first_touch_metadata or None,
+                )
+            )
             external_username = str(external_user.get("username") or "").strip()
             member = self._ensure_member_for_external_auth(external_username, external_user)
             auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
@@ -9683,9 +9716,14 @@ class MemberConsoleService:
                 canonical_uid=auth_identity["canonical_uid"],
             )
             # 手机号持久化到 Supabase（不影响认证主流程）
+            # Only this branch creates a new canonical phone identity, so only
+            # it may write immutable first-touch attribution. Existing-member
+            # SMS login above must never overwrite registration provenance.
+            identity_metadata = self._explicit_identity_metadata(external_user)
             self._persist_phone_identity(
                 phone=verified_phone,
                 canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+                identity_metadata=identity_metadata or None,
             )
             return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 

@@ -50,6 +50,7 @@
               bindtap="openEpisode"
               data-pack-id="{{card.packId}}"
               data-episode="{{card.index}}"
+              data-teaching-point-id="{{card.id}}"
               data-card-url="{{card.cardUrl}}"
               data-locked="{{card.locked}}"
             >

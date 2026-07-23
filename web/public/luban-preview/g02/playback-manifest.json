@@ -1,0 +1,103 @@
+{
+  "episodes": [
+    {
+      "content_revision": "a6b292e16ade552fa5975de903cff37fe8cad31949e558772d2d9ad42a7442e1",
+      "duration_ms": 204044,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "G02:lesson:1",
+      "sections": [
+        {
+          "end_ms": 14324,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 30592,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "选料",
+          "start_ms": 14324
+        },
+        {
+          "end_ms": 44484,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "铺填",
+          "start_ms": 30592
+        },
+        {
+          "end_ms": 58256,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "虚铺·含水率",
+          "start_ms": 44484
+        },
+        {
+          "end_ms": 72940,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "压实",
+          "start_ms": 58256
+        },
+        {
+          "end_ms": 89688,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "检测",
+          "start_ms": 72940
+        },
+        {
+          "end_ms": 106844,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "口诀",
+          "start_ms": 89688
+        },
+        {
+          "end_ms": 134144,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 106844
+        },
+        {
+          "end_ms": 159956,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 134144
+        },
+        {
+          "end_ms": 178736,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 159956
+        },
+        {
+          "end_ms": 204044,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 178736
+        }
+      ]
+    }
+  ],
+  "pack_id": "G02",
+  "schema_version": "luban_playback_manifest.v1"
+}

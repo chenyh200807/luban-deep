@@ -16,10 +16,8 @@ type BiBossTrendPanelProps = {
 export function BiBossTrendPanel({ loading, days, trend, overview, dailyCost, issue }: BiBossTrendPanelProps) {
   const points = trend.points;
   const activeSeries = points.map((point) => point.active);
-  const costSeries = points.map((point) => point.cost);
   const successSeries = points.map((point) => point.successful);
   const activePath = sparkPath(activeSeries, 540, 180);
-  const costPath = sparkPath(costSeries, 540, 180);
   const successPath = sparkPath(successSeries, 540, 180);
   const activeMin = Math.min(...activeSeries, 0);
   const activeSpan = Math.max(Math.max(...activeSeries, 1) - activeMin, 1);
@@ -32,7 +30,6 @@ export function BiBossTrendPanel({ loading, days, trend, overview, dailyCost, is
         <SectionHeader title="主趋势图" extra={points.length ? `${points.length} 个周期` : loading ? "加载中" : "等待趋势数据"} />
         <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
           <LegendDot color="#C35A2C" label="活跃" />
-          <LegendDot color="#0f766e" label="成本" />
           <LegendDot color="#6d28d9" label="成功" />
         </div>
       </div>
@@ -55,7 +52,6 @@ export function BiBossTrendPanel({ loading, days, trend, overview, dailyCost, is
                 </defs>
                 <path d={`${activePath} L 540 180 L 0 180 Z`} fill="url(#bossActiveFill)" />
                 <path d={activePath} fill="none" stroke="#C35A2C" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" />
-                <path d={costPath} fill="none" stroke="#0f766e" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
                 <path d={successPath} fill="none" stroke="#6d28d9" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
                 {points.map((point, index) => {
                   const x = (index / Math.max(points.length - 1, 1)) * 540;
@@ -69,7 +65,6 @@ export function BiBossTrendPanel({ loading, days, trend, overview, dailyCost, is
                     <p className="text-xs text-[var(--muted-foreground)]">{point.label}</p>
                     <div className="mt-2 grid gap-1 text-sm text-[var(--secondary-foreground)]">
                       <span>活跃 {formatNumber(point.active)}</span>
-                      <span>成本 {formatCurrency(point.cost)}</span>
                       <span>成功 {formatPercent(point.successful)}</span>
                     </div>
                   </div>
@@ -95,13 +90,13 @@ export function BiBossTrendPanel({ loading, days, trend, overview, dailyCost, is
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs tracking-[0.18em] text-emerald-800/70">今日成本</p>
               <span className="rounded-full bg-white/80 px-2 py-1 text-[11px] text-emerald-900">
-                {dailyCost?.source === "turn_result_cost_summary" ? "Langfuse usage" : "趋势回退"}
+                {dailyCost?.source === "usage_ledger" ? "UsageLedger" : "证据不足"}
               </span>
             </div>
-            <p className="mt-2 text-2xl font-semibold text-emerald-950">{formatCurrency(dailyCost?.todayUsd ?? 0)}</p>
+            <p className="mt-2 text-2xl font-semibold text-emerald-950">{formatCurrency(dailyCost?.todayUsd)}</p>
             <div className="mt-2 grid gap-1 text-sm leading-6 text-emerald-900/80">
-              <span>日均成本 {formatCurrency(dailyCost?.averageDailyUsd ?? 0)}</span>
-              <span>{days} 天合计 {formatCurrency(dailyCost?.windowTotalUsd ?? 0)}</span>
+              <span>日均成本 {formatCurrency(dailyCost?.averageDailyUsd)}</span>
+              <span>{days} 天合计 {formatCurrency(dailyCost?.windowTotalUsd)}</span>
             </div>
           </div>
 

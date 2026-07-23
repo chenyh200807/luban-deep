@@ -142,8 +142,8 @@ export function formatPercent(value?: number) {
   return `${numberFormatter.format(value * 100)}%`
 }
 
-export function formatCurrency(value?: number) {
-  if (value === undefined || Number.isNaN(value)) return '--'
+export function formatCurrency(value?: number | null) {
+  if (value === undefined || value === null || Number.isNaN(value)) return '--'
   return `¥${currencyFormatter.format(value)}`
 }
 

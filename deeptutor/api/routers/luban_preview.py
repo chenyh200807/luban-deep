@@ -13,6 +13,7 @@ import asyncio
 from dataclasses import dataclass
 import hashlib
 import logging
+import time
 from uuid import uuid4
 
 from fastapi import Depends, HTTPException, status
@@ -22,6 +23,12 @@ from deeptutor.api._secure_router import public_router
 from deeptutor.api.dependencies.rate_limit import route_rate_limit
 from deeptutor.api.routers.mobile import MobileStartTurnRequest, build_mobile_turn_payload
 from deeptutor.services.luban_lesson import list_green_lessons
+from deeptutor.services.luban_lesson.playback import (
+    PlaybackFactInvalid,
+    normalize_playback_fact,
+)
+from deeptutor.services.observability import get_surface_event_store
+from deeptutor.services.observability.release_lineage import get_release_lineage
 from deeptutor.services.session import get_sqlite_session_store, get_turn_runtime_manager
 
 router = public_router(reason="hosted Luban card bridge requires scoped station capability and rate-limit")
@@ -74,6 +81,24 @@ class LubanPreviewLessonViewedRequest(BaseModel):
     contextId: str = Field(max_length=80)
     cardId: str | None = Field(default=None, max_length=80)
     entryTicket: str = Field(default="", max_length=256)
+
+
+class LubanPreviewPlaybackEventRequest(BaseModel):
+    contextId: str = Field(max_length=80)
+    entryTicket: str = Field(default="", max_length=256)
+    eventId: str = Field(min_length=8, max_length=128)
+    action: str = Field(min_length=1, max_length=32)
+    objectId: str = Field(min_length=1, max_length=128)
+    section: str = Field(min_length=1, max_length=64)
+    occurredAt: int = Field(default=0, ge=0)
+    playbackSessionId: str = Field(min_length=8, max_length=128)
+    sequence: int = Field(ge=1, le=1_000_000)
+    contentRevision: str = Field(min_length=8, max_length=128)
+    positionMs: int = Field(default=0)
+    fromPositionMs: int = Field(default=0)
+    toPositionMs: int = Field(default=0)
+    watchedDeltaMs: int = Field(default=0)
+    reason: str = Field(default="", max_length=32)
 
 
 class LubanPracticeSubmitAnswer(BaseModel):
@@ -219,6 +244,23 @@ async def _resolve_entry_user(*, ticket: str, card: PublishedCardContext) -> str
             detail="学习身份已过期，请返回小程序重新打开这一站。",
         )
     return user_id
+
+
+async def _resolve_entry_access(
+    *,
+    ticket: str,
+    card: PublishedCardContext,
+) -> dict[str, object]:
+    access = await get_sqlite_session_store().resolve_luban_card_entry_ticket(
+        ticket,
+        pack_id=card.pack_id,
+    )
+    if not str((access or {}).get("user_id") or "").strip():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="学习身份已过期，请返回小程序重新打开这一站。",
+        )
+    return dict(access or {})
 
 
 async def _start_tutorbot_turn(
@@ -486,3 +528,150 @@ async def mark_luban_preview_lesson_viewed(payload: LubanPreviewLessonViewedRequ
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return {"ok": True, "event_id": str(getattr(event, "event_id", "") or "")}
+
+
+@router.post(
+    "/playback-event",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "luban_preview_playback_event",
+                default_max_requests=90,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
+async def record_luban_preview_playback_event(
+    payload: LubanPreviewPlaybackEventRequest,
+) -> dict[str, object]:
+    """Validate an H5 player transition and append it to the behavior authority.
+
+    The browser cannot choose user, release, episode, content revision, or
+    section bounds.  This public route is only a scoped ticket adapter over the
+    existing ``SurfaceEventStore -> product_behavior_events`` writer.
+    """
+    card = await asyncio.to_thread(_resolve_published_card, payload.contextId)
+    if card is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="当前教学卡暂未开放播放记录。",
+        )
+    access = await _resolve_entry_access(
+        ticket=payload.entryTicket,
+        card=card,
+    )
+    user_id = str(access.get("user_id") or "").strip()
+    object_id = str(access.get("resource_id") or "").strip()
+    if not object_id:
+        # Pack-only tickets predate episode binding and cannot prove which
+        # lesson page emitted the event.  Reopen the station to mint a scoped
+        # capability; never guess episode 1.
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="播放身份版本过旧，请返回小程序重新打开这一集。",
+        )
+    try:
+        fact = await asyncio.to_thread(
+            normalize_playback_fact,
+            {
+                "event_id": payload.eventId,
+                "action": payload.action,
+                "object_id": payload.objectId,
+                "section": payload.section,
+                "playback_session_id": payload.playbackSessionId,
+                "sequence": payload.sequence,
+                "content_revision": payload.contentRevision,
+                "position_ms": payload.positionMs,
+                "from_position_ms": payload.fromPositionMs,
+                "to_position_ms": payload.toPositionMs,
+                "watched_delta_ms": payload.watchedDeltaMs,
+                "reason": payload.reason,
+            },
+            pack_id=card.pack_id,
+            object_id=object_id,
+        )
+    except PlaybackFactInvalid as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+    # Server-derived semantic idempotency: the same player session sequence is
+    # one fact even if browser retry code produces a fresh random event id.
+    canonical_event_id = "luban_playback_" + hashlib.sha256(
+        f"{user_id}|{fact['playback_session_id']}|{fact['sequence']}".encode()
+    ).hexdigest()[:32]
+    now_ms = int(time.time() * 1000)
+    release_id = get_release_lineage().release_id
+    metadata = {
+        "event_version": 1,
+        "visit_id": fact["playback_session_id"],
+        "module": "learning",
+        "section": fact["section"],
+        "action": fact["action"],
+        "object_type": "microlesson",
+        "object_id": fact["object_id"],
+        "entry_source": "luban_station",
+        # duration_ms here is actual active playback since the last emitted
+        # transition/checkpoint; page visibility dwell stays a separate fact.
+        "duration_ms": fact["watched_delta_ms"],
+        "visible_ms": 0,
+        "result": (
+            "completed"
+            if fact["action"] == "complete"
+            else str(fact["progress_pct"])
+            if fact["action"] == "checkpoint"
+            else ""
+        ),
+        "release_id": release_id,
+        # app_version is the Mini Program binary version. The H5 card cannot
+        # author that fact; content_revision already carries the exact lesson
+        # asset SHA and must not be folded into a fake app-version coverage.
+        "app_version": "",
+        "platform": "wechat_webview",
+        "client_event_id": fact["event_id"],
+        "playback_session_id": fact["playback_session_id"],
+        "sequence": fact["sequence"],
+        "content_revision": fact["content_revision"],
+        "lesson_file": fact["lesson_file"],
+        "position_ms": fact["position_ms"],
+        "from_position_ms": fact["from_position_ms"],
+        "to_position_ms": fact["to_position_ms"],
+        "watched_delta_ms": fact["watched_delta_ms"],
+        "content_duration_ms": fact["duration_ms"],
+        "progress_pct": fact["progress_pct"],
+        "section_index": fact["section_index"],
+        "section_label": fact["section_label"],
+        "section_group": fact["section_group"],
+        "section_start_ms": fact["section_start_ms"],
+        "section_end_ms": fact["section_end_ms"],
+        "section_progress_pct": fact["section_progress_pct"],
+        "reason": fact["reason"],
+        # Retain client clock only as bounded diagnostics.  SurfaceEventStore
+        # writes business occurred_at from the server receipt clock.
+        "client_occurred_at_ms": payload.occurredAt,
+    }
+    try:
+        result = get_surface_event_store().ingest(
+            {
+                "event_id": canonical_event_id,
+                "surface": "wechat_yousenwebview",
+                "event_name": "microlesson_playback",
+                # playback_session_id is already bounded and names this player
+                # session.  Do not add a transport prefix that can exceed the
+                # canonical 128-char session boundary.
+                "session_id": fact["playback_session_id"],
+                "user_id": user_id,
+                "collected_at_ms": now_ms,
+                "sent_at_ms": now_ms,
+                "metadata": metadata,
+            },
+            validated_event_names=frozenset({"microlesson_playback"}),
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    return {"ok": True, **result}

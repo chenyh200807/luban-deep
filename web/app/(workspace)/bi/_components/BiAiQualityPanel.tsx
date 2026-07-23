@@ -11,7 +11,8 @@ type BiAiQualityPanelProps = {
   unitEconomics?: BiUnitEconomicsPayload;
 };
 
-function formatUsd(value: number) {
+function formatUsd(value: number | null) {
+  if (value === null) return "--";
   return `$${formatNumber(Math.round(value * 10000) / 10000)}`;
 }
 

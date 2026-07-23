@@ -74,11 +74,13 @@ telemetry = require(telemetryPath);
 telemetry.trackProductBehavior("module_viewed", { module: "learning", action: "view" });
 assert.strictEqual(
   requests[0].metadata.app_version,
-  "trial:8.0.60",
-  "helper must provide envVersion plus WeChat version when no build version exists",
+  "",
+  "helper must not fabricate app_version from envVersion or the WeChat client version",
 );
+assert.strictEqual(requests[0].metadata.env_version, "trial");
+assert.strictEqual(requests[0].metadata.wechat_version, "8.0.60");
 assert.strictEqual(requests[0].metadata.platform, "devtools");
-assert.strictEqual(requests[0].metadata.release_id, "", "fallback must still not invent release lineage");
+assert.strictEqual(requests[0].metadata.release_id, "", "client must not invent release lineage");
 
 var requiredPages = {
   "pages/learn/learn.js": "learning",

@@ -1,0 +1,184 @@
+{
+  "episodes": [
+    {
+      "content_revision": "6fd3cb7a2cc7673b7dde3250f3b8ba3b3ce259e7260241f4e40af30ba8384a9c",
+      "duration_ms": 191448,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "N01:lesson:1",
+      "sections": [
+        {
+          "end_ms": 16220,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 35704,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "校逻辑",
+          "start_ms": 16220
+        },
+        {
+          "end_ms": 55884,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "算路径",
+          "start_ms": 35704
+        },
+        {
+          "end_ms": 68624,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "全列出",
+          "start_ms": 55884
+        },
+        {
+          "end_ms": 87364,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "总工期",
+          "start_ms": 68624
+        },
+        {
+          "end_ms": 99768,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "口诀",
+          "start_ms": 87364
+        },
+        {
+          "end_ms": 121836,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 99768
+        },
+        {
+          "end_ms": 145632,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 121836
+        },
+        {
+          "end_ms": 165948,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 145632
+        },
+        {
+          "end_ms": 191448,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 165948
+        }
+      ]
+    },
+    {
+      "content_revision": "83dbe7a702132f63912793653c531e2826bf7a132daa3d2545878682854cbfd0",
+      "duration_ms": 194592,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "N01:lesson:2",
+      "sections": [
+        {
+          "end_ms": 13868,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 32296,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "机动条",
+          "start_ms": 13868
+        },
+        {
+          "end_ms": 47316,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "比时差",
+          "start_ms": 32296
+        },
+        {
+          "end_ms": 62648,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "关键延",
+          "start_ms": 47316
+        },
+        {
+          "end_ms": 84580,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "索赔链",
+          "start_ms": 62648
+        },
+        {
+          "end_ms": 104544,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "调整",
+          "start_ms": 84580
+        },
+        {
+          "end_ms": 127476,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 104544
+        },
+        {
+          "end_ms": 149448,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 127476
+        },
+        {
+          "end_ms": 172668,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 149448
+        },
+        {
+          "end_ms": 194592,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 172668
+        }
+      ]
+    }
+  ],
+  "pack_id": "N01",
+  "schema_version": "luban_playback_manifest.v1"
+}

@@ -1,0 +1,297 @@
+{
+  "episodes": [
+    {
+      "content_revision": "d40e6400dd04c84618921076666ba4d69e59803cb5ee84bc7f9e1a417c301304",
+      "duration_ms": 255812,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "D14:lesson:1",
+      "sections": [
+        {
+          "end_ms": 18260,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 39880,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "工序",
+          "start_ms": 18260
+        },
+        {
+          "end_ms": 58548,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "吊杆门槛",
+          "start_ms": 39880
+        },
+        {
+          "end_ms": 82952,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "主次龙骨",
+          "start_ms": 58548
+        },
+        {
+          "end_ms": 102172,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "石膏板",
+          "start_ms": 82952
+        },
+        {
+          "end_ms": 121920,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "防裂五点",
+          "start_ms": 102172
+        },
+        {
+          "end_ms": 141140,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "口诀",
+          "start_ms": 121920
+        },
+        {
+          "end_ms": 170048,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 141140
+        },
+        {
+          "end_ms": 196652,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 170048
+        },
+        {
+          "end_ms": 226616,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 196652
+        },
+        {
+          "end_ms": 255812,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 226616
+        }
+      ]
+    },
+    {
+      "content_revision": "c8ff3ad82f4eb12a09d9cb048ae05f26e1903dca790f221f238d396f00382310",
+      "duration_ms": 275680,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "D14:lesson:2",
+      "sections": [
+        {
+          "end_ms": 18884,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 38968,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "分材料",
+          "start_ms": 18884
+        },
+        {
+          "end_ms": 58956,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "石材",
+          "start_ms": 38968
+        },
+        {
+          "end_ms": 79808,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "瓷砖",
+          "start_ms": 58956
+        },
+        {
+          "end_ms": 101332,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "空鼓",
+          "start_ms": 79808
+        },
+        {
+          "end_ms": 123768,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "竹木",
+          "start_ms": 101332
+        },
+        {
+          "end_ms": 143804,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "地毯",
+          "start_ms": 123768
+        },
+        {
+          "end_ms": 161632,
+          "group": "lesson",
+          "id": "b7",
+          "index": 8,
+          "label": "口诀",
+          "start_ms": 143804
+        },
+        {
+          "end_ms": 191284,
+          "group": "qa",
+          "id": "q0",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 161632
+        },
+        {
+          "end_ms": 216832,
+          "group": "qa",
+          "id": "q1",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 191284
+        },
+        {
+          "end_ms": 245044,
+          "group": "qa",
+          "id": "q2",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 216832
+        },
+        {
+          "end_ms": 275680,
+          "group": "qa",
+          "id": "q3",
+          "index": 12,
+          "label": "问答",
+          "start_ms": 245044
+        }
+      ]
+    },
+    {
+      "content_revision": "a4960a9b8211ef42447f8429bf4d6b2ba6f9878af560b8d0e9b02aaa584069cb",
+      "duration_ms": 244368,
+      "episode_index": 3,
+      "lesson_file": "lesson3.html",
+      "object_id": "D14:lesson:3",
+      "sections": [
+        {
+          "end_ms": 21836,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 43072,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "禁射钉",
+          "start_ms": 21836
+        },
+        {
+          "end_ms": 64548,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "节能指标",
+          "start_ms": 43072
+        },
+        {
+          "end_ms": 86696,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "查验",
+          "start_ms": 64548
+        },
+        {
+          "end_ms": 112876,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "围护",
+          "start_ms": 86696
+        },
+        {
+          "end_ms": 135144,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "口诀",
+          "start_ms": 112876
+        },
+        {
+          "end_ms": 166956,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 135144
+        },
+        {
+          "end_ms": 192888,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 166956
+        },
+        {
+          "end_ms": 215292,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 192888
+        },
+        {
+          "end_ms": 244368,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 215292
+        }
+      ]
+    }
+  ],
+  "pack_id": "D14",
+  "schema_version": "luban_playback_manifest.v1"
+}

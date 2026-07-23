@@ -912,13 +912,15 @@ function getLubanLessonDetail(packId, opts) {
 
 /** 鲁班 — 已登录站点向同一张 H5 教学卡签发一次性身份承接凭据。
  * 它不是通用登录 token，只能由该卡用于卡内追问和 lesson_viewed 桥接。 */
-function issueLubanCardEntry(packId, opts) {
+function issueLubanCardEntry(packId, episode, opts) {
+  var episodeIndex = Number(episode || 1);
+  if (!Number.isFinite(episodeIndex) || episodeIndex < 1) episodeIndex = 1;
   return request(
     Object.assign(
       {
         url: "/api/v1/luban/lessons/" + encodeURIComponent(String(packId || "")) + "/card-entry",
         method: "POST",
-        data: {},
+        data: { episode: Math.floor(episodeIndex) },
         noRetry: true,
       },
       opts || {},

@@ -1,0 +1,184 @@
+{
+  "episodes": [
+    {
+      "content_revision": "1ecbe2545310e0d55baab3e62ba710ea611fd71596257d4cbdc908c8614d6a0d",
+      "duration_ms": 227520,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "C06:lesson:1",
+      "sections": [
+        {
+          "end_ms": 18644,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 42328,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "直vs斜",
+          "start_ms": 18644
+        },
+        {
+          "end_ms": 65556,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "同时砌",
+          "start_ms": 42328
+        },
+        {
+          "end_ms": 85616,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "斜槎形式",
+          "start_ms": 65556
+        },
+        {
+          "end_ms": 107404,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "斜槎尺寸",
+          "start_ms": 85616
+        },
+        {
+          "end_ms": 129960,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "小砌块",
+          "start_ms": 107404
+        },
+        {
+          "end_ms": 157908,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 129960
+        },
+        {
+          "end_ms": 180384,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 157908
+        },
+        {
+          "end_ms": 202404,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 180384
+        },
+        {
+          "end_ms": 227520,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 202404
+        }
+      ]
+    },
+    {
+      "content_revision": "0157a3a2bace81337e4c03ea3b868b1ebb9d4a655afb7d04a709422c2956c7bd",
+      "duration_ms": 230496,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "C06:lesson:2",
+      "sections": [
+        {
+          "end_ms": 20828,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 44056,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "马牙槎向",
+          "start_ms": 20828
+        },
+        {
+          "end_ms": 63588,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "马牙槎寸",
+          "start_ms": 44056
+        },
+        {
+          "end_ms": 85376,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "柱顺序",
+          "start_ms": 63588
+        },
+        {
+          "end_ms": 107452,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "填充墙",
+          "start_ms": 85376
+        },
+        {
+          "end_ms": 128520,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "临时洞口",
+          "start_ms": 107452
+        },
+        {
+          "end_ms": 153804,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 128520
+        },
+        {
+          "end_ms": 179472,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 153804
+        },
+        {
+          "end_ms": 204204,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 179472
+        },
+        {
+          "end_ms": 230496,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 204204
+        }
+      ]
+    }
+  ],
+  "pack_id": "C06",
+  "schema_version": "luban_playback_manifest.v1"
+}

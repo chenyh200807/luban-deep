@@ -1,0 +1,184 @@
+{
+  "episodes": [
+    {
+      "content_revision": "44f07e5ab18df970d335e9584fd2a9d4d143b56f4c9ee96c9305b5c928d88295",
+      "duration_ms": 211776,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "R01:lesson:1",
+      "sections": [
+        {
+          "end_ms": 18812,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 37888,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "六要素",
+          "start_ms": 18812
+        },
+        {
+          "end_ms": 56292,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "临时设施",
+          "start_ms": 37888
+        },
+        {
+          "end_ms": 77672,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "灭火器",
+          "start_ms": 56292
+        },
+        {
+          "end_ms": 99028,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "特殊场所",
+          "start_ms": 77672
+        },
+        {
+          "end_ms": 116736,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "消防管理",
+          "start_ms": 99028
+        },
+        {
+          "end_ms": 143940,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 116736
+        },
+        {
+          "end_ms": 165216,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 143940
+        },
+        {
+          "end_ms": 185652,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 165216
+        },
+        {
+          "end_ms": 211776,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 185652
+        }
+      ]
+    },
+    {
+      "content_revision": "e1c73afa2b0b079c9dd34c62a5a3a5bd554834c49ac83871db6e49403c4eba69",
+      "duration_ms": 209064,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "R01:lesson:2",
+      "sections": [
+        {
+          "end_ms": 16700,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 37096,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "动火等级",
+          "start_ms": 16700
+        },
+        {
+          "end_ms": 57756,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "分级审批",
+          "start_ms": 37096
+        },
+        {
+          "end_ms": 77480,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "动火证",
+          "start_ms": 57756
+        },
+        {
+          "end_ms": 94732,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "气瓶距离",
+          "start_ms": 77480
+        },
+        {
+          "end_ms": 113496,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "消防检查",
+          "start_ms": 94732
+        },
+        {
+          "end_ms": 141180,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 113496
+        },
+        {
+          "end_ms": 163632,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 141180
+        },
+        {
+          "end_ms": 185076,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 163632
+        },
+        {
+          "end_ms": 209064,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 185076
+        }
+      ]
+    }
+  ],
+  "pack_id": "R01",
+  "schema_version": "luban_playback_manifest.v1"
+}

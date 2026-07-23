@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import Any
 
 PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
@@ -16,6 +17,10 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
         "today_task_started",
         "learning_action_started",
         "learning_action_completed",
+        # 托管微课播放器事实。事件名保持一个，action 区分状态转换；
+        # H5 只提交低权限事实，episode/section/content revision 由服务端发布
+        # manifest 校验后写入同一 product_behavior_events authority。
+        "microlesson_playback",
         "module_returned",
         "module_exited",
         "event_error",
@@ -170,10 +175,23 @@ PRODUCT_BEHAVIOR_ACTIONS = frozenset(
         # 首体验漏斗（2026-07-10 登记）：authorize=登录授权点击, send=聊天消息发送。
         "authorize",
         "send",
+        # 微课播放器状态转换；严禁 RAF/timeupdate 逐帧生产。
+        "play",
+        "pause",
+        "seek",
+        "section_enter",
+        "checkpoint",
+        "exit",
+        "replay",
     }
 )
 
 ALLOWED_SURFACES = frozenset({"web", "wechat_miniprogram", "wechat_yousenwebview"})
+
+# Product behavior durations describe one foreground interaction, not account
+# lifetime.  Bound them at ingest so a broken or hostile client cannot poison
+# BI dwell/playback aggregates with negative, non-finite, or extreme values.
+PRODUCT_BEHAVIOR_DURATION_MAX_MS = 24 * 60 * 60 * 1000
 
 FORBIDDEN_PRODUCT_BEHAVIOR_FIELDS = frozenset(
     {
@@ -208,6 +226,31 @@ def find_forbidden_product_behavior_field(value: Any) -> str:
 
 def _clean_string(value: Any, *, max_length: int = 128) -> str:
     return str(value or "").strip()[:max_length]
+
+
+def _clean_duration_ms(value: Any, *, field_name: str) -> int:
+    if value is None or value == "":
+        return 0
+    if isinstance(value, bool):
+        raise ValueError(f"{field_name} must be a non-negative integer")
+    if isinstance(value, int):
+        normalized = value
+    elif isinstance(value, float):
+        if not math.isfinite(value) or not value.is_integer():
+            raise ValueError(f"{field_name} must be a finite integer")
+        normalized = int(value)
+    elif isinstance(value, str):
+        try:
+            normalized = int(value.strip(), 10)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{field_name} must be a finite integer") from exc
+    else:
+        raise ValueError(f"{field_name} must be a non-negative integer")
+    if normalized < 0 or normalized > PRODUCT_BEHAVIOR_DURATION_MAX_MS:
+        raise ValueError(
+            f"{field_name} must be between 0 and {PRODUCT_BEHAVIOR_DURATION_MAX_MS}"
+        )
+    return normalized
 
 
 def validate_product_behavior_event(event_name: str, metadata: dict[str, Any]) -> dict[str, Any]:
@@ -258,8 +301,11 @@ def validate_product_behavior_event(event_name: str, metadata: dict[str, Any]) -
         "object_id": _clean_string(metadata.get("object_id"), max_length=128),
         "entry_source": _clean_string(metadata.get("entry_source"), max_length=64),
         "referrer_module": _clean_string(metadata.get("referrer_module"), max_length=64),
-        "duration_ms": int(metadata.get("duration_ms") or 0),
-        "visible_ms": int(metadata.get("visible_ms") or 0),
+        "duration_ms": _clean_duration_ms(
+            metadata.get("duration_ms"),
+            field_name="duration_ms",
+        ),
+        "visible_ms": _clean_duration_ms(metadata.get("visible_ms"), field_name="visible_ms"),
         "result": _clean_string(metadata.get("result"), max_length=64),
         "error_code": _clean_string(metadata.get("error_code"), max_length=64),
         "release_id": _clean_string(metadata.get("release_id"), max_length=128),

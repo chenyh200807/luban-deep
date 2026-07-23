@@ -32,6 +32,62 @@ def _seed(store, *, event_id, user_id, object_type, object_id, event_name="learn
     )
 
 
+def _seed_playback(
+    store,
+    *,
+    event_id: str,
+    sequence: int,
+    section_index: int,
+    action: str,
+    active_ms: int,
+    progress_pct: int,
+    section_progress_pct: int,
+) -> None:
+    now_ms = int(time.time() * 1000)
+    session_id = "bi-playback-session"
+    object_id = "F16:lesson:2"
+    section_id = f"section-{section_index}"
+    section_start_ms = (section_index - 1) * 10_000
+    section_end_ms = section_start_ms + 10_000
+    store.record_event(
+        {
+            "event_id": event_id,
+            "event_name": "microlesson_playback",
+            "event_version": 1,
+            "occurred_at_ms": now_ms + sequence,
+            "received_at_ms": now_ms + sequence,
+            "user_id": "u-real",
+            "visit_id": session_id,
+            "session_id": session_id,
+            "surface": "wechat_yousenwebview",
+            "module": "learning",
+            "section": section_id,
+            "action": action,
+            "properties_json": {
+                "visit_id": session_id,
+                "module": "learning",
+                "section": section_id,
+                "action": action,
+                "object_type": "microlesson",
+                "object_id": object_id,
+                "duration_ms": active_ms,
+                "playback_session_id": session_id,
+                "sequence": sequence,
+                "progress_pct": progress_pct,
+                "section_index": section_index,
+                "section_label": f"第{section_index}节",
+                "section_group": "讲解",
+                "section_start_ms": section_start_ms,
+                "section_end_ms": section_end_ms,
+                "from_position_ms": section_start_ms,
+                "to_position_ms": section_start_ms + active_ms,
+                "section_progress_pct": section_progress_pct,
+                "reason": "auto",
+            },
+        }
+    )
+
+
 def test_learning_preference_endpoint_shapes_and_excludes_demo(tmp_path: Path) -> None:
     store = reset_product_behavior_store(tmp_path / "behavior.db")
     # 真实用户：微课 + 练习答题
@@ -73,6 +129,91 @@ def test_learning_preference_endpoint_shapes_and_excludes_demo(tmp_path: Path) -
     assert demo_view["demo_included"] is True
     # 含 demo 后微课观看人数升到 2
     assert demo_view["content_top"][0]["member_count"] == 2
+
+
+def test_learning_preference_projects_explicit_playback_without_reinterpreting_page_dwell(
+    tmp_path: Path,
+) -> None:
+    store = reset_product_behavior_store(tmp_path / "behavior.db")
+    _seed_playback(
+        store,
+        event_id="playback-section-1",
+        sequence=1,
+        section_index=1,
+        action="checkpoint",
+        active_ms=10_000,
+        progress_pct=45,
+        section_progress_pct=100,
+    )
+    _seed_playback(
+        store,
+        event_id="playback-section-2",
+        sequence=2,
+        section_index=2,
+        action="checkpoint",
+        active_ms=10_000,
+        progress_pct=100,
+        section_progress_pct=100,
+    )
+    _seed_playback(
+        store,
+        event_id="playback-complete",
+        sequence=3,
+        section_index=2,
+        action="complete",
+        active_ms=0,
+        progress_pct=100,
+        section_progress_pct=100,
+    )
+
+    result = asyncio.run(
+        bi.bi_learning_preference(
+            days=7, include_demo=True, limit=12, _auth=None
+        )
+    )
+
+    assert (
+        result["completion_source"]
+        == "mixed_explicit_playback_and_page_dwell"
+    )
+    assert result["time_source"] == "mixed"
+    playback = result["playback"]
+    assert playback["available"] is True
+    assert playback["time_source"] == "player_active_time"
+    assert playback["mastery_eligible"] is False
+    assert playback["use_boundary"] == "product_interest_only"
+    assert playback["event_count"] == 3
+    assert playback["playback_session_count"] == 1
+    assert playback["content"] == [
+        {
+            "object_id": "F16:lesson:2",
+            "play_count": 0,
+            "completed_sessions": 1,
+            "total_active_ms": 20_000,
+            "progress_25_sessions": 1,
+            "progress_50_sessions": 1,
+            "progress_75_sessions": 1,
+            "progress_90_sessions": 1,
+            "max_reached_section_index": 2,
+            "max_contiguous_watched_section_index": 2,
+            "last_event_at_ms": playback["content"][0][
+                "last_event_at_ms"
+            ],
+            "member_count": 1,
+            "playback_session_count": 1,
+            "completion_rate": 1.0,
+            "avg_active_ms": 20_000,
+        }
+    ]
+    assert [
+        (
+            row["section_index"],
+            row["reached_session_count"],
+            row["watched_sessions"],
+            row["watched_rate"],
+        )
+        for row in playback["sections"]
+    ] == [(1, 1, 1, 1.0), (2, 1, 1, 1.0)]
 
 
 def test_learning_preference_excludes_exact_uuid_machine_identity(

@@ -23,6 +23,7 @@ import {
   LayoutGrid,
   LineChart,
   MousePointerClick,
+  PlayCircle,
   Repeat,
   Sparkles,
 } from 'lucide-react'
@@ -87,6 +88,11 @@ const SMALL_SAMPLE = 10
 function pctOrDash(rate: number | null): string {
   if (rate === null) return '—'
   return `${Math.round(num(rate) * 100)}%`
+}
+function durationLabel(ms: number): string {
+  const seconds = Math.max(0, Math.round(num(ms) / 1000))
+  const minutes = Math.floor(seconds / 60)
+  return `${minutes}:${String(seconds % 60).padStart(2, '0')}`
 }
 /** 人均有效会话 = meaningful visit / 已有效使用人数；原始事件总数只作诊断。 */
 function depthOf(row: BiLearningPrefRow): number {
@@ -172,12 +178,16 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
   const contentTop = data?.contentTop ?? []
   const featureUsage = data?.featureUsage ?? []
   const practice = data?.practice
+  const playback = data?.playback
+  const playbackContent = playback?.content ?? []
+  const playbackSections = playback?.sections ?? []
   const practiceTopics = practice?.byTopic ?? []
   const hasAny =
     modulePref.length > 0 ||
     submodules.length > 0 ||
     contentTop.length > 0 ||
     featureUsage.length > 0 ||
+    playbackContent.length > 0 ||
     num(practice?.answeredCount) > 0
 
   // KPI 汇总（跨模块无法去重合并，触达取峰值模块作 floor；人均深度用总量比）。
@@ -504,6 +514,114 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
             </CockpitPanel>
           </div>
 
+          {/* ---------- 播放器实际进度与小节漏斗 ---------- */}
+          <SectionLabel icon={<PlayCircle className="h-4 w-4" />}>
+            教学视频实际播放 · 小节到达
+          </SectionLabel>
+          <div className="mb-4 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.05] px-3 py-2 text-[11px] leading-relaxed text-cyan-100/90">
+            这里使用服务端按发布清单校验的客户端播放器事实（C 级），不混入页面停留，也不作为学习掌握度。
+            点击跳到第 7
+            节只算“到达第 7 节”，不会把前 1—6 节伪装成已观看；连续看完位置和最大到达位置分开显示。
+            {!playback?.available ? ' 旧版本尚无播放器遥测，当前不补 0、不猜完播。' : ''}
+          </div>
+          {playbackContent.length ? (
+            <div className="mb-4 space-y-4">
+              {playbackContent.map(content => {
+                const sections = playbackSections.filter(
+                  section => section.objectId === content.objectId
+                )
+                return (
+                  <CockpitPanel
+                    key={content.objectId}
+                    title={content.objectId}
+                    hint={`实际播放 ${fmtInt(content.playbackSessionCount)} 会话 · ${fmtInt(content.memberCount)} 人`}
+                    icon={<PlayCircle className="h-4 w-4" />}
+                  >
+                    <div className="mb-3 grid grid-cols-2 gap-2 md:grid-cols-5">
+                      <div className="rounded-lg bg-white/[0.04] p-2">
+                        <div className="text-[10px] text-slate-500">显式完播</div>
+                        <div className="font-bold text-slate-100">
+                          {pctOrDash(content.completionRate)}
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-white/[0.04] p-2">
+                        <div className="text-[10px] text-slate-500">平均有效播放</div>
+                        <div className="font-bold text-slate-100">
+                          {durationLabel(content.avgActiveMs)}
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-white/[0.04] p-2">
+                        <div className="text-[10px] text-slate-500">到达 90%</div>
+                        <div className="font-bold text-slate-100">
+                          {fmtInt(content.progress90Sessions)} 会话
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-white/[0.04] p-2">
+                        <div className="text-[10px] text-slate-500">最大到达小节</div>
+                        <div className="font-bold text-slate-100">
+                          {content.maxReachedSectionIndex || '—'}
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-white/[0.04] p-2">
+                        <div className="text-[10px] text-slate-500">连续看完小节</div>
+                        <div className="font-bold text-slate-100">
+                          {content.maxContiguousWatchedSectionIndex || '—'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto text-[11px] text-slate-300">
+                      <div className="grid min-w-[720px] grid-cols-[0.5fr_1.5fr_repeat(6,0.8fr)] gap-2 border-b border-white/10 px-2 py-1 text-slate-500">
+                        <span>节</span>
+                        <span>小节</span>
+                        <span className="text-right">到达会话</span>
+                        <span className="text-right">看完会话</span>
+                        <span className="text-right">看完率</span>
+                        <span className="text-right">有效播放</span>
+                        <span className="text-right">跳转进入</span>
+                        <span className="text-right">自动进入</span>
+                      </div>
+                      {sections.map(section => (
+                        <div
+                          key={`${section.objectId}:${section.sectionId}`}
+                          className="grid min-w-[720px] grid-cols-[0.5fr_1.5fr_repeat(6,0.8fr)] gap-2 border-b border-white/5 px-2 py-1.5"
+                        >
+                          <span className="font-mono text-slate-500">
+                            {section.sectionIndex}
+                          </span>
+                          <span className="truncate">
+                            {section.sectionLabel || section.sectionId}
+                          </span>
+                          <span className="text-right tabular-nums">
+                            {fmtInt(section.reachedSessionCount)}
+                          </span>
+                          <span className="text-right tabular-nums">
+                            {fmtInt(section.watchedSessions)}
+                          </span>
+                          <span className="text-right tabular-nums">
+                            {pctOrDash(section.watchedRate)}
+                          </span>
+                          <span className="text-right tabular-nums">
+                            {durationLabel(section.totalActiveMs)}
+                          </span>
+                          <span className="text-right tabular-nums">
+                            {fmtInt(section.chipEntries + section.seekEntries)}
+                          </span>
+                          <span className="text-right tabular-nums">
+                            {fmtInt(section.autoEntries)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </CockpitPanel>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="mb-4">
+              <Empty height={120} />
+            </div>
+          )}
+
           {/* ---------- 各主题练习热度 ---------- */}
           {topicHeatBars.length ? (
             <>
@@ -594,8 +712,9 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
           </div>
           <p className="mt-2 text-[10.5px] leading-relaxed text-slate-500">
             口径：页面触达只用 module_viewed；有效会话只用明确开始事件；复用用户率=窗口内至少
-            2 个独立有效会话的用户 / 有效使用用户。页面停留不是播放器实际播放时长，当前不能计算完播率。
-            原始事件总数仅用于诊断，不参与“喜欢/不喜欢”结论。全部指标 C 级，低触达行仅方向参考。
+            2 个独立有效会话的用户 / 有效使用用户。页面停留与播放器 active-time
+            分列；显式完播只认新课件播放器 complete 事件，旧版本不猜测。原始事件总数仅用于诊断，
+            不参与“喜欢/不喜欢”结论。全部指标 C 级，低触达行仅方向参考。
           </p>
         </CockpitBg>
       )}

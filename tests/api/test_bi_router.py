@@ -1160,6 +1160,32 @@ def test_bi_cost_reconciliation_all_returns_provider_neutral_official_usage(
     assert dashscope["official_usage"]["net_charge_cost"] == {"CNY": 0.0124}
 
 
+def test_bi_cost_reconciliation_fails_closed_when_usage_ledger_is_unavailable(
+    bi_service: BIService,
+) -> None:
+    class FailingUsageLedger:
+        def get_totals(self, **_kwargs):
+            raise RuntimeError("usage ledger unavailable")
+
+    bi_service._usage_ledger = FailingUsageLedger()
+
+    payload = asyncio.run(
+        bi_service.get_cost_reconciliation(
+            days=30,
+            billing_cycle=datetime.now().strftime("%Y-%m"),
+        )
+    )
+
+    assert payload["system"]["authority"] == "usage_ledger"
+    assert payload["system"]["status"] == "error"
+    assert payload["system"]["total_tokens"] is None
+    assert payload["system"]["total_cost_usd"] is None
+    assert payload["reconciliation"]["status"] == "insufficient_evidence"
+    assert payload["reconciliation"]["token_delta"] is None
+    assert payload["reconciliation"]["cost_delta_usd"] is None
+    assert payload["reconciliation"]["billing_scope_system_cost_usd"] is None
+
+
 def test_bi_cost_reconciliation_rejects_metrics_token_only(
     bi_service: BIService,
     monkeypatch,
@@ -1889,12 +1915,13 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         )
         assert reconciliation.status_code == 200
         reconciliation_body = reconciliation.json()
-        assert reconciliation_body["system"]["total_tokens"] == 1500
-        assert reconciliation_body["system"]["measured_total_tokens"] == 1200
-        assert reconciliation_body["system"]["estimated_total_tokens"] == 300
-        assert reconciliation_body["system"]["total_cost_usd"] == 0.0153
+        assert reconciliation_body["system"]["authority"] == "usage_ledger"
+        assert reconciliation_body["system"]["total_tokens"] == 1720
+        assert reconciliation_body["system"]["measured_total_tokens"] == 1300
+        assert reconciliation_body["system"]["estimated_total_tokens"] == 420
+        assert reconciliation_body["system"]["total_cost_usd"] == 0.0181
         assert reconciliation_body["system"]["measured_total_cost_usd"] == 0.0123
-        assert reconciliation_body["system"]["estimated_total_cost_usd"] == 0.003
+        assert reconciliation_body["system"]["estimated_total_cost_usd"] == 0.0058
         assert reconciliation_body["bailian"]["total_tokens"] == 1180
         assert reconciliation_body["bailian"]["estimated_total_cost_usd"] == 0.00252
         assert reconciliation_body["bailian_billing"]["pretax_amount"] == 0.0124
@@ -1975,8 +2002,9 @@ def test_bi_router_boss_homepage_contract_shapes(bi_service: BIService) -> None:
         assert anomalies.status_code == 200
         anomalies_body = anomalies.json()
         assert "items" in anomalies_body
-        anomaly_items = _assert_non_empty_list(anomalies_body["items"], "anomalies.items")
-        assert {"kind", "level", "title", "detail"}.issubset(anomaly_items[0])
+        assert isinstance(anomalies_body["items"], list)
+        if anomalies_body["items"]:
+            assert {"kind", "level", "title", "detail"}.issubset(anomalies_body["items"][0])
 
 
 def test_bi_overview_exposes_risk_queue_and_member_handoff(bi_service: BIService) -> None:

@@ -569,6 +569,34 @@ domains:
       - tests/services/llm/test_factory_langfuse_usage.py
     schema_files: []
 
+  product_behavior_playback:
+    summary: Hosted microlesson playback and section progress facts for BI.
+    authority: published playback manifest -> scoped entry ticket -> SurfaceEventStore -> product_behavior_events
+    contract_files:
+      - contracts/product_behavior_playback.v1.json
+      - contracts/index.yaml
+    protected_patterns:
+      - deeptutor/services/observability/product_behavior_catalog.py
+      - deeptutor/services/observability/product_behavior_store.py
+      - deeptutor/services/observability/surface_events.py
+      - deeptutor/services/luban_lesson/playback.py
+      - deeptutor/api/routers/luban_preview.py
+      - scripts/publish_luban_preview_cards.py
+      - web/public/luban-preview/vendor/luban-playback-telemetry.js
+    sensitive_patterns:
+      - deeptutor/services/luban_lesson/playback.py
+      - deeptutor/api/routers/luban_preview.py
+    test_files:
+      - tests/services/observability/test_product_behavior_catalog.py
+      - tests/services/observability/test_product_behavior_store.py
+      - tests/services/luban_lesson/test_playback.py
+      - tests/api/test_observability_router.py
+      - tests/api/test_luban_preview_router.py
+      - tests/scripts/test_publish_luban_preview_cards.py
+    schema_files:
+      - contracts/product_behavior_playback.v1.json
+      - deeptutor/contracts/product_behavior_playback.v1.json
+
   learner_state:
     summary: Learner long-term state, summary/profile/progress ownership, guide/notebook-card asset boundaries, and heartbeat writeback boundaries.
     contract_files:

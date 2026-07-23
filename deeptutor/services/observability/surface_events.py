@@ -1,16 +1,16 @@
 from __future__ import annotations
 
+from collections import Counter, deque
 import logging
 import threading
 import time
-from collections import Counter
-from collections import deque
-from typing import Any
+from typing import AbstractSet, Any
 
 from deeptutor.services.observability.product_behavior_catalog import (
     PRODUCT_BEHAVIOR_EVENT_NAMES,
     validate_product_behavior_event,
 )
+from deeptutor.services.observability.release_lineage import get_release_lineage
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,8 @@ _ALLOWED_EVENT_NAMES = {
     "surface_render_failed",
     *PRODUCT_BEHAVIOR_EVENT_NAMES,
 }
+
+_SERVER_VALIDATED_PRODUCT_EVENTS = frozenset({"microlesson_playback"})
 
 
 def _normalize_surface(value: str) -> str:
@@ -59,24 +61,40 @@ class SurfaceEventStore:
         self._event_status_counts: Counter[tuple[str, str, str]] = Counter()
         self._accepted_event_counts: Counter[tuple[str, str]] = Counter()
 
-    def ingest(self, payload: dict[str, Any]) -> dict[str, Any]:
+    def ingest(
+        self,
+        payload: dict[str, Any],
+        *,
+        validated_event_names: AbstractSet[str] = frozenset(),
+    ) -> dict[str, Any]:
         event_id = str(payload.get("event_id") or "").strip()
         if not event_id:
             raise ValueError("event_id is required")
 
         surface = _normalize_surface(str(payload.get("surface") or ""))
         event_name = _normalize_event_name(str(payload.get("event_name") or ""))
+        if (
+            event_name in _SERVER_VALIDATED_PRODUCT_EVENTS
+            and event_name not in validated_event_names
+        ):
+            raise ValueError(
+                f"{event_name} requires the server-validated product path"
+            )
         session_id = str(payload.get("session_id") or "").strip()
         turn_id = str(payload.get("turn_id") or "").strip()
         user_id = str(payload.get("user_id") or "").strip()
         metadata = payload.get("metadata")
-        normalized_metadata = metadata if isinstance(metadata, dict) else {}
+        normalized_metadata = dict(metadata) if isinstance(metadata, dict) else {}
         collected_at_ms = int(payload.get("collected_at_ms") or payload.get("client_timestamp_ms") or 0)
         sent_at_ms = int(payload.get("sent_at_ms") or 0)
         ingested_at_ms = int(time.time() * 1000)
         product_event: dict[str, Any] | None = None
         product_behavior_status = ""
         if event_name in PRODUCT_BEHAVIOR_EVENT_NAMES:
+            # The accepting backend is the only authority for runtime release
+            # lineage.  Client app_version remains a client fact, but a blank or
+            # forged release_id must not split BI cohorts.
+            normalized_metadata["release_id"] = get_release_lineage().release_id
             product_event = validate_product_behavior_event(
                 event_name,
                 {
@@ -101,7 +119,6 @@ class SurfaceEventStore:
                 event_id=event_id,
                 event_name=event_name,
                 normalized_metadata=normalized_metadata,
-                collected_at_ms=collected_at_ms,
                 ingested_at_ms=ingested_at_ms,
                 user_id=user_id,
                 session_id=session_id,
@@ -169,7 +186,6 @@ class SurfaceEventStore:
         event_id: str,
         event_name: str,
         normalized_metadata: dict[str, Any],
-        collected_at_ms: int,
         ingested_at_ms: int,
         user_id: str,
         session_id: str,
@@ -185,7 +201,12 @@ class SurfaceEventStore:
                     "event_id": event_id,
                     "event_name": event_name,
                     "event_version": int(normalized_metadata.get("event_version") or 1),
-                    "occurred_at_ms": collected_at_ms or ingested_at_ms,
+                    # BI business windows use the authenticated server receipt
+                    # clock as their sole time authority.  Client clocks remain
+                    # diagnostic-only in the surface ACK record; accepting them
+                    # here would let a future-dated event poison every rolling
+                    # product-behavior window.
+                    "occurred_at_ms": ingested_at_ms,
                     "received_at_ms": ingested_at_ms,
                     "user_id": user_id,
                     "visit_id": product_event["visit_id"],

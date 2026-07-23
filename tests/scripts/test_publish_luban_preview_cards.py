@@ -451,6 +451,474 @@ def test_teach_transform_replaces_authoring_preview_ai_with_tutorbot_adapter() -
     assert rendered.index('data-luban-ask-composer') < rendered.index('<textarea value="{{ askText }}"')
 
 
+def test_playback_manifest_uses_exact_published_episode_and_section_timeline() -> None:
+    source = (
+        _mod.FINISHED / "P40_A01" / "P40_A01.teach.up.dc.html"
+    ).read_text(encoding="utf-8")
+    rendered = _mod.transform_teach(source, "A01")
+
+    manifest = _mod._playback_manifest("A01", {"lesson.html": rendered})
+    episode = manifest["episodes"][0]
+
+    assert manifest["schema_version"] == "luban_playback_manifest.v1"
+    assert episode["object_id"] == "A01:lesson:1"
+    assert episode["lesson_file"] == "lesson.html"
+    assert episode["duration_ms"] == 253820
+    assert episode["content_revision"] == hashlib.sha256(
+        rendered.encode("utf-8")
+    ).hexdigest()
+    assert episode["sections"][0] == {
+        "id": "b0",
+        "index": 1,
+        "label": "破误区",
+        "start_ms": 0,
+        "end_ms": 19220,
+        "group": "lesson",
+    }
+    assert episode["sections"][-1]["id"] == "q3"
+    assert episode["sections"][-1]["group"] == "qa"
+
+
+def test_playback_manifest_fails_closed_on_gap_duplicate_or_duration_drift() -> None:
+    valid = 'DUR=2; beats=[["b0",0,1,"开场"],["q0",1,2,"问答"]];'
+    assert _mod._playback_manifest("X01", {"lesson.html": valid})
+
+    invalid = (
+        'DUR=3; beats=[["b0",0,1,"开场"],["b0",2,3,"重复且跳秒"]];'
+    )
+    with pytest.raises(_mod.TransformError, match="identity|timeline"):
+        _mod._playback_manifest("X01", {"lesson.html": invalid})
+
+
+def test_playback_transform_injects_one_shared_observer_and_pauses_ask_audio() -> None:
+    source = (
+        _mod.FINISHED / "P40_A01" / "P40_A01.teach.up.dc.html"
+    ).read_text(encoding="utf-8")
+    rendered = _mod.transform_teach(source, "A01")
+
+    assert rendered.count("data-luban-playback-runtime") == 1
+    assert rendered.count("LubanPlaybackTelemetry.attach") == 1
+    assert rendered.count("LubanPlaybackTelemetry.toggle") == 1
+    assert rendered.count("LubanPlaybackTelemetry.seek") == 2
+    assert rendered.count("LubanPlaybackTelemetry.complete") == 1
+    assert rendered.count("LubanPlaybackTelemetry.detach") == 1
+    assert (
+        'openAsk(){this.setSpeechPaused(true);'
+        'window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.pause('
+        'this,"ask_open");'
+    ) in rendered
+    assert _mod._inject_playback_telemetry(rendered, "A01") == rendered
+    stale = re.sub(
+        r"(luban-playback-telemetry\.js\?v=)[0-9a-f]{16}",
+        r"\g<1>0000000000000000",
+        rendered,
+    )
+    assert _mod._inject_playback_telemetry(stale, "A01") == rendered
+
+
+def test_all_tracked_hosted_lessons_compile_to_one_contiguous_manifest() -> None:
+    episode_count = 0
+    for station_id, station in _mod.STATIONS.items():
+        pages = {
+            lesson_file: _mod._inject_playback_telemetry(
+                (_mod.HOST / station_id / lesson_file).read_text(encoding="utf-8"),
+                station_id.upper(),
+            )
+            for lesson_file in station.teach
+        }
+        manifest = _mod._playback_manifest(station_id.upper(), pages)
+        assert len(manifest["episodes"]) == len(station.teach)
+        episode_count += len(manifest["episodes"])
+    assert episode_count == 74
+
+
+def test_shared_playback_runtime_emits_transitions_monotonic_checkpoints_and_whitelist() -> None:
+    runtime = _mod.PLAYBACK_RUNTIME.read_text(encoding="utf-8")
+    script = """
+global.window=global;
+let now=0; Date.now=()=>now;
+global.location={pathname:"/luban-preview/a01/lesson.html"};
+global.crypto={randomUUID:()=>"session-1"};
+let interval=null;
+global.setInterval=(fn)=>{interval=fn;return 1;};
+global.clearInterval=()=>{};
+const listeners={};
+global.addEventListener=(name,fn)=>{listeners[name]=fn;};
+global.removeEventListener=()=>{};
+global.document={
+  visibilityState:"visible",
+  addEventListener:(name,fn)=>{listeners[name]=fn;},
+  removeEventListener:()=>{}
+};
+global.__lubanCardEntryTicket="ticket-1";
+const events=[];
+const manifest={episodes:[{
+  object_id:"A01:lesson:1",lesson_file:"lesson.html",
+  content_revision:"sha-1",duration_ms:20000,
+  sections:[
+    {id:"b0",start_ms:0,end_ms:10000},
+    {id:"b1",start_ms:10000,end_ms:20000}
+  ]
+}]};
+global.fetch=async(url,options)=>{
+  if(String(url)==="playback-manifest.json")return {ok:true,json:async()=>manifest};
+  events.push(JSON.parse(options.body)); return {ok:true,json:async()=>({})};
+};
+""" + runtime + """
+const component={
+  state:{t:0,playing:false},
+  setState(next){this.state={...this.state,...next};},
+  setSpeechPaused(){}
+};
+(async()=>{
+  LubanPlaybackTelemetry.attach(component,{packId:"A01",manifestUrl:"playback-manifest.json"});
+  await new Promise((resolve)=>setImmediate(resolve));
+  LubanPlaybackTelemetry.toggle(component); component.state.playing=true;
+  for(let second=1;second<=16;second+=1){
+    now=second*1000; component.state.t=second; interval();
+  }
+  LubanPlaybackTelemetry.seek(component,19,"scrub");
+  component.state={t:19,playing:false};
+  LubanPlaybackTelemetry.complete(component);
+  LubanPlaybackTelemetry.complete(component);
+  component.state={t:20,playing:false};
+  const beforeEndToggle=events.length;
+  LubanPlaybackTelemetry.toggle(component);
+  await new Promise((resolve)=>setImmediate(resolve));
+  const endToggleActions=events.slice(beforeEndToggle).map((event)=>event.action);
+  if(endToggleActions.length!==1||endToggleActions[0]!=="replay")throw new Error("end toggle emitted replay plus play");
+  LubanPlaybackTelemetry.detach(component,"pagehide");
+  await new Promise((resolve)=>setImmediate(resolve));
+  const actions=events.map((event)=>event.action);
+  if(actions.filter((action)=>action==="complete").length!==1)throw new Error("complete duplicated");
+  if(!actions.includes("play")||!actions.includes("section_enter")||!actions.includes("checkpoint")||!actions.includes("seek")||!actions.includes("exit"))throw new Error("transition missing: "+actions);
+  const checkpoint=events.find((event)=>event.action==="checkpoint");
+  if(!(checkpoint.watchedDeltaMs>0))throw new Error("checkpoint has no watched delta");
+  if(checkpoint.section!=="b0"||checkpoint.toPositionMs!==10000||checkpoint.watchedDeltaMs!==10000)throw new Error("cross-section watch was misattributed");
+  const seek=events.find((event)=>event.action==="seek");
+  if(seek.watchedDeltaMs!==0||seek.fromPositionMs!==16000||seek.toPositionMs!==19000)throw new Error("seek inflated watch");
+  events.forEach((event,index)=>{
+    if(event.sequence!==index+1)throw new Error("sequence is not monotonic");
+    const allowed=["contextId","entryTicket","eventId","action","objectId","section","occurredAt","playbackSessionId","sequence","contentRevision","positionMs","fromPositionMs","toPositionMs","watchedDeltaMs","reason"];
+    Object.keys(event).forEach((key)=>{if(!allowed.includes(key))throw new Error("privacy field leaked: "+key);});
+    if(event.contextId!=="A01"||!Number.isInteger(event.occurredAt))throw new Error("delivery identity/clock invalid");
+    if(!["","auto","chip","scrub","user","visibility","pagehide","unmount","ask","ended"].includes(event.reason))throw new Error("reason is outside delivery contract");
+  });
+})().catch((error)=>{console.error(error);process.exit(1);});
+"""
+    checked = subprocess.run(
+        ["node", "-"], input=script, text=True, capture_output=True, check=False
+    )
+    assert checked.returncode == 0, checked.stderr
+
+
+def test_shared_playback_runtime_retries_same_event_three_times_then_stops() -> None:
+    runtime = _mod.PLAYBACK_RUNTIME.read_text(encoding="utf-8")
+    assert "localStorage" not in runtime
+    assert 'cache: "no-store"' in runtime
+    script = """
+global.window=global;
+let now=1000; Date.now=()=>now;
+global.location={pathname:"/luban-preview/a01/lesson.html"};
+global.crypto={randomUUID:()=>"retry-session"};
+global.setInterval=()=>1; global.clearInterval=()=>{};
+const scheduled=[];
+global.setTimeout=(fn)=>{scheduled.push(fn);return scheduled.length;};
+global.clearTimeout=()=>{};
+global.addEventListener=()=>{}; global.removeEventListener=()=>{};
+global.document={visibilityState:"visible",addEventListener:()=>{},removeEventListener:()=>{}};
+global.__lubanCardEntryTicket="ticket-1";
+const manifest={episodes:[{
+  object_id:"A01:lesson:1",lesson_file:"lesson.html",
+  content_revision:"sha-1",duration_ms:20000,
+  sections:[{id:"b0",start_ms:0,end_ms:20000}]
+}]};
+const bodies=[];
+let manifestFetchOptions=null;
+global.fetch=(url,options)=>{
+  if(String(url)==="playback-manifest.json"){manifestFetchOptions=options;return Promise.resolve({ok:true,json:async()=>manifest});}
+  bodies.push(options.body);
+  if(bodies.length===1)return Promise.reject(new Error("network"));
+  if(bodies.length===2)return Promise.resolve({ok:false});
+  return Promise.resolve({ok:true});
+};
+""" + runtime + """
+const component={state:{t:0,playing:false},setState(next){this.state={...this.state,...next};}};
+(async()=>{
+  LubanPlaybackTelemetry.attach(component,{packId:"A01",manifestUrl:"playback-manifest.json"});
+  await new Promise((resolve)=>setImmediate(resolve));
+  if(!manifestFetchOptions||manifestFetchOptions.cache!=="no-store")throw new Error("manifest fetch may use stale cache");
+  LubanPlaybackTelemetry.toggle(component);
+  await new Promise((resolve)=>setImmediate(resolve));
+  if(bodies.length!==1||scheduled.length!==1)throw new Error("first retry not scheduled");
+  scheduled.shift()(); await new Promise((resolve)=>setImmediate(resolve));
+  if(bodies.length!==2||scheduled.length!==1)throw new Error("second retry not scheduled");
+  scheduled.shift()(); await new Promise((resolve)=>setImmediate(resolve));
+  if(bodies.length!==3||scheduled.length!==0)throw new Error("delivery did not stop after success");
+  const payloads=bodies.map((body)=>JSON.parse(body));
+  if(new Set(payloads.map((payload)=>payload.eventId)).size!==1)throw new Error("eventId changed across retry");
+  if(new Set(payloads.map((payload)=>payload.sequence)).size!==1)throw new Error("sequence changed across retry");
+  if(new Set(bodies).size!==1)throw new Error("payload changed across retry");
+  component.state.playing=true;
+  LubanPlaybackTelemetry.toggle(component);
+  await new Promise((resolve)=>setImmediate(resolve));
+  const pausePayload=JSON.parse(bodies[3]);
+  if(pausePayload.action!=="pause"||pausePayload.reason!=="user")throw new Error("pause button reason is not user");
+})().catch((error)=>{console.error(error);process.exit(1);});
+"""
+    checked = subprocess.run(
+        ["node", "-"], input=script, text=True, capture_output=True, check=False
+    )
+    assert checked.returncode == 0, checked.stderr
+
+
+def test_shared_playback_runtime_keeps_boundary_pause_and_seek_watch_in_previous_section() -> None:
+    runtime = _mod.PLAYBACK_RUNTIME.read_text(encoding="utf-8")
+    script = """
+global.window=global;
+let now=0; Date.now=()=>now;
+global.location={pathname:"/luban-preview/a01/lesson.html"};
+let session=0; global.crypto={randomUUID:()=>("boundary-"+(++session))};
+let interval=null; global.setInterval=(fn)=>{interval=fn;return 1;}; global.clearInterval=()=>{};
+global.setTimeout=(fn)=>{fn();return 1;}; global.clearTimeout=()=>{};
+global.addEventListener=()=>{}; global.removeEventListener=()=>{};
+global.document={visibilityState:"visible",addEventListener:()=>{},removeEventListener:()=>{}};
+global.__lubanCardEntryTicket="ticket-1";
+const events=[];
+const manifest={episodes:[{
+  object_id:"A01:lesson:1",lesson_file:"lesson.html",
+  content_revision:"sha-1",duration_ms:20000,
+  sections:[
+    {id:"b0",start_ms:0,end_ms:10000},
+    {id:"b1",start_ms:10000,end_ms:20000}
+  ]
+}]};
+global.fetch=async(url,options)=>{
+  if(String(url)==="playback-manifest.json")return {ok:true,json:async()=>manifest};
+  events.push(JSON.parse(options.body)); return {ok:true};
+};
+""" + runtime + """
+const component={
+  state:{t:0,playing:false},
+  setState(next){this.state={...this.state,...next};},
+  setSpeechPaused(){}
+};
+function advanceToBoundary(){
+  LubanPlaybackTelemetry.toggle(component); component.state.playing=true;
+  for(let second=1;second<=10;second+=1){
+    now+=1000; component.state.t=second; interval();
+  }
+}
+(async()=>{
+  LubanPlaybackTelemetry.attach(component,{packId:"A01",manifestUrl:"playback-manifest.json"});
+  await new Promise((resolve)=>setImmediate(resolve));
+  advanceToBoundary();
+  LubanPlaybackTelemetry.pause(component,"ask_open"); component.state.playing=false;
+  const pauseCheckpoint=events.find((event)=>event.action==="checkpoint"&&event.reason==="ask");
+  if(!pauseCheckpoint||pauseCheckpoint.section!=="b0"||pauseCheckpoint.toPositionMs!==10000)throw new Error("boundary pause moved watch to next section");
+
+  component.state={t:0,playing:false};
+  LubanPlaybackTelemetry.replay(component); component.state.playing=true;
+  for(let second=1;second<=10;second+=1){
+    now+=1000; component.state.t=second; interval();
+  }
+  LubanPlaybackTelemetry.seek(component,15,"scrub");
+  const seekCheckpoint=events.find((event)=>event.action==="checkpoint"&&event.reason==="scrub");
+  if(!seekCheckpoint||seekCheckpoint.section!=="b0"||seekCheckpoint.toPositionMs!==10000)throw new Error("boundary seek moved watch to next section");
+})().catch((error)=>{console.error(error);process.exit(1);});
+"""
+    checked = subprocess.run(
+        ["node", "-"], input=script, text=True, capture_output=True, check=False
+    )
+    assert checked.returncode == 0, checked.stderr
+
+
+def test_playback_reconcile_is_reproducible_and_updates_sha_bound_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    host = tmp_path / "host"
+    station = host / "x01"
+    station.mkdir(parents=True)
+    lesson = station / "lesson.html"
+    lesson.write_text(
+        """<html><head></head><body><script>
+class Component {
+state={t:0,playing:false};
+DUR=2; beats=[["b0",0,1,"开场"],["q0",1,2,"问答"]];
+componentDidMount(){}
+componentWillUnmount(){}
+toggle(){}
+seek(e){}
+jump(i){}
+replay(){}
+openAsk(){}
+loop(){let nt=2;if(nt>=this.DUR){nt=this.DUR;}}
+setSpeechPaused(){}
+}</script></body></html>""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(_mod, "HOST", host)
+    monkeypatch.setattr(_mod, "AUTHORITY_HOST", tmp_path / "authority")
+    monkeypatch.setattr(
+        _mod,
+        "STATIONS",
+        {
+            "x01": _mod.Station(
+                pack_dir="PACK",
+                teach={"lesson.html": "teach.html"},
+                practice={"practice.html": "practice.html"},
+            )
+        },
+    )
+    monkeypatch.setattr(_mod, "_refresh_pack_manifest", lambda: None)
+
+    assert _mod.apply_playback_telemetry_to_hosted() == ["x01"]
+    rendered = lesson.read_text(encoding="utf-8")
+    manifest_text = (station / "playback-manifest.json").read_text(encoding="utf-8")
+    manifest = json.loads(manifest_text)
+    assert rendered.count("data-luban-playback-runtime") == 1
+    assert manifest["episodes"][0]["object_id"] == "X01:lesson:1"
+    assert manifest["episodes"][0]["content_revision"] == hashlib.sha256(
+        rendered.encode("utf-8")
+    ).hexdigest()
+    assert _mod.apply_playback_telemetry_to_hosted() == []
+    assert (station / "playback-manifest.json").read_text(
+        encoding="utf-8"
+    ) == manifest_text
+
+
+def test_playback_reconcile_staging_write_failure_keeps_old_pack_byte_exact(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    host = tmp_path / "host"
+    station = host / "x01"
+    station.mkdir(parents=True)
+    (station / "lesson.html").write_text(
+        """<html><head></head><body><script>
+class Component {
+state={t:0,playing:false};
+DUR=2; beats=[["b0",0,1,"开场"],["q0",1,2,"问答"]];
+componentDidMount(){} componentWillUnmount(){} toggle(){}
+seek(e){} jump(i){} replay(){} openAsk(){}
+loop(){let nt=2;if(nt>=this.DUR){nt=this.DUR;}} setSpeechPaused(){}
+}</script></body></html>""",
+        encoding="utf-8",
+    )
+    (station / "practice.html").write_bytes(b"old-practice")
+    (station / "support.js").write_bytes(b"old-support")
+    authority_root = tmp_path / "authority"
+    authority_root.mkdir()
+    authority = authority_root / "x01.practice.authority.json"
+    authority.write_text('{"published_lesson_sha256":"old"}\n', encoding="utf-8")
+    before_pack = {
+        path.relative_to(station).as_posix(): path.read_bytes()
+        for path in station.rglob("*")
+        if path.is_file()
+    }
+    before_authority = authority.read_bytes()
+    monkeypatch.setattr(_mod, "HOST", host)
+    monkeypatch.setattr(_mod, "AUTHORITY_HOST", authority_root)
+    monkeypatch.setattr(
+        _mod,
+        "STATIONS",
+        {
+            "x01": _mod.Station(
+                pack_dir="PACK",
+                teach={"lesson.html": "teach.html"},
+                practice={"practice.html": "practice.html"},
+            )
+        },
+    )
+    monkeypatch.setattr(_mod, "_refresh_pack_manifest", lambda: None)
+    original_write_text = Path.write_text
+
+    def fail_manifest_write(path: Path, *args: object, **kwargs: object) -> int:
+        if (
+            ".x01.playback-staging-" in path.as_posix()
+            and path.name == "playback-manifest.json"
+        ):
+            raise OSError("injected staging write failure")
+        return original_write_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", fail_manifest_write)
+    with pytest.raises(OSError, match="injected staging write failure"):
+        _mod.apply_playback_telemetry_to_hosted()
+
+    after_pack = {
+        path.relative_to(station).as_posix(): path.read_bytes()
+        for path in station.rglob("*")
+        if path.is_file()
+    }
+    assert after_pack == before_pack
+    assert authority.read_bytes() == before_authority
+    assert not list(host.glob(".x01.playback-*"))
+    assert not list(authority_root.glob(".x01.playback-authority-*"))
+
+
+def test_playback_reconcile_authority_replace_failure_rolls_back_pack(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    host = tmp_path / "host"
+    station = host / "x01"
+    station.mkdir(parents=True)
+    (station / "lesson.html").write_text(
+        """<html><head></head><body><script>
+class Component {
+state={t:0,playing:false};
+DUR=2; beats=[["b0",0,1,"开场"],["q0",1,2,"问答"]];
+componentDidMount(){} componentWillUnmount(){} toggle(){}
+seek(e){} jump(i){} replay(){} openAsk(){}
+loop(){let nt=2;if(nt>=this.DUR){nt=this.DUR;}} setSpeechPaused(){}
+}</script></body></html>""",
+        encoding="utf-8",
+    )
+    (station / "support.js").write_bytes(b"old-support")
+    authority_root = tmp_path / "authority"
+    authority_root.mkdir()
+    authority = authority_root / "x01.practice.authority.json"
+    authority.write_text('{"published_lesson_sha256":"old"}\n', encoding="utf-8")
+    before_pack = {
+        path.relative_to(station).as_posix(): path.read_bytes()
+        for path in station.rglob("*")
+        if path.is_file()
+    }
+    before_authority = authority.read_bytes()
+    monkeypatch.setattr(_mod, "HOST", host)
+    monkeypatch.setattr(_mod, "AUTHORITY_HOST", authority_root)
+    monkeypatch.setattr(
+        _mod,
+        "STATIONS",
+        {
+            "x01": _mod.Station(
+                pack_dir="PACK",
+                teach={"lesson.html": "teach.html"},
+                practice={"practice.html": "practice.html"},
+            )
+        },
+    )
+    monkeypatch.setattr(_mod, "_refresh_pack_manifest", lambda: None)
+    original_replace = Path.replace
+
+    def fail_authority_replace(path: Path, target: Path) -> Path:
+        if ".x01.playback-authority-" in path.as_posix():
+            raise OSError("injected authority replace failure")
+        return original_replace(path, target)
+
+    monkeypatch.setattr(Path, "replace", fail_authority_replace)
+    with pytest.raises(OSError, match="injected authority replace failure"):
+        _mod.apply_playback_telemetry_to_hosted()
+
+    after_pack = {
+        path.relative_to(station).as_posix(): path.read_bytes()
+        for path in station.rglob("*")
+        if path.is_file()
+    }
+    assert after_pack == before_pack
+    assert authority.read_bytes() == before_authority
+    assert not list(host.glob(".x01.playback-*"))
+    assert not list(authority_root.glob(".x01.playback-authority-*"))
+
+
 def test_teaching_card_keeps_first_answer_when_second_question_starts() -> None:
     source = (
         _mod.FINISHED / "P40_F16" / "P40_F16.teach.dc.html"
@@ -740,6 +1208,7 @@ def test_publish_makes_completed_station_directory_publicly_traversable(
             '<audio data-luban-prewarm preload="auto" '
             'src="audio/b0.mp3?v=test" aria-hidden="true" '
             'style="display:none"></audio>'
+            ' DUR=2; beats=[["b0",0,1,"开场"],["q0",1,2,"问答"]];'
         ),
     )
     monkeypatch.setattr(
@@ -757,6 +1226,10 @@ def test_publish_makes_completed_station_directory_publicly_traversable(
     _mod.publish("x01", station, finished_root=tmp_path / "finished")
 
     assert stat.S_IMODE((host / "x01").stat().st_mode) == 0o755
+    manifest = json.loads(
+        (host / "x01" / "playback-manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["episodes"][0]["object_id"] == "X01:lesson:1"
 
 
 def test_derived_html_strips_trailing_whitespace_without_losing_final_newline() -> None:

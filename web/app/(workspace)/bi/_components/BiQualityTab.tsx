@@ -10,7 +10,6 @@ import {
   MetricCard,
   MiniStatCard,
   SectionHeader,
-  formatCurrency,
   formatNumber,
   formatPercent,
   metricToneClasses,
@@ -34,13 +33,10 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
     ...(overview?.alerts ?? []).map((item) => ({ ...item, source: "overview" as const })),
   ];
   const successRates = trend.points.map((point) => toRate(point.successful));
-  const costSeries = trend.points.map((point) => point.cost);
   const activeSeries = trend.points.map((point) => point.active);
   const activePath = sparkPath(activeSeries, 420, 160);
-  const costPath = sparkPath(costSeries, 420, 160);
   const successPath = sparkPath(successRates, 420, 160);
   const maxSuccessSwing = getAdjacentSwing(successRates);
-  const maxCostSwing = getAdjacentSwing(costSeries);
   const maxActiveSwing = getAdjacentSwing(activeSeries);
   const avgRecentSuccess =
     successRates.length > 0
@@ -127,12 +123,11 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
               <div>
                 <p className="text-xs tracking-[0.18em] text-[var(--muted-foreground)]">质量趋势</p>
                 <p className="mt-1 text-sm text-[var(--secondary-foreground)]">
-                  用现有趋势数据观察教学质量、成本压力和活跃波动。
+                  用同口径趋势数据观察教学质量和活跃波动。
                 </p>
               </div>
               <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
                 <LegendDot color="#6d28d9" label="成功率" />
-                <LegendDot color="#0f766e" label="成本压力" />
                 <LegendDot color="#C35A2C" label="活跃" />
               </div>
             </div>
@@ -141,7 +136,6 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
               {trend.points.length ? (
                 <svg viewBox="0 0 420 160" className="h-[240px] w-full">
                   <path d={activePath} fill="none" stroke="#C35A2C" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
-                  <path d={costPath} fill="none" stroke="#0f766e" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
                   <path d={successPath} fill="none" stroke="#6d28d9" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
                   {trend.points.map((point, index) => {
                     const x = (index / Math.max(trend.points.length - 1, 1)) * 420;
@@ -156,16 +150,11 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
               )}
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <MiniStatCard
                 label="成功率波动"
                 value={trend.points.length ? formatPercent(maxSuccessSwing) : "--"}
                 hint="相邻周期最大摆幅"
-              />
-              <MiniStatCard
-                label="成本波动"
-                value={trend.points.length ? formatCurrency(maxCostSwing) : "--"}
-                hint="相邻周期最大成本摆幅"
               />
               <MiniStatCard
                 label="活跃波动"
@@ -182,7 +171,7 @@ export function BiQualityTab({ trend, anomalies, overview, issues }: BiQualityTa
                     {formatPercent(point.successful)}
                   </p>
                   <p className="mt-2 text-xs text-[var(--muted-foreground)]">
-                    活跃 {formatNumber(point.active)} · 成本 {formatCurrency(point.cost)}
+                    活跃 {formatNumber(point.active)}
                   </p>
                 </div>
               ))}

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "deeptutor.product_behavior_playback.v1",
+  "title": "Hosted microlesson playback fact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contextId",
+    "entryTicket",
+    "eventId",
+    "action",
+    "objectId",
+    "section",
+    "occurredAt",
+    "playbackSessionId",
+    "sequence",
+    "contentRevision",
+    "positionMs",
+    "fromPositionMs",
+    "toPositionMs",
+    "watchedDeltaMs",
+    "reason"
+  ],
+  "properties": {
+    "contextId": {"type": "string", "minLength": 1, "maxLength": 80},
+    "entryTicket": {"type": "string", "minLength": 1, "maxLength": 256},
+    "eventId": {"type": "string", "minLength": 8, "maxLength": 128},
+    "action": {
+      "enum": [
+        "play",
+        "pause",
+        "seek",
+        "section_enter",
+        "checkpoint",
+        "exit",
+        "complete",
+        "replay"
+      ]
+    },
+    "objectId": {"type": "string", "minLength": 1, "maxLength": 128},
+    "section": {"type": "string", "minLength": 1, "maxLength": 64},
+    "occurredAt": {"type": "integer", "minimum": 0},
+    "playbackSessionId": {"type": "string", "minLength": 8, "maxLength": 128},
+    "sequence": {"type": "integer", "minimum": 1, "maximum": 1000000},
+    "contentRevision": {"type": "string", "minLength": 8, "maxLength": 128},
+    "positionMs": {"type": "integer", "minimum": 0},
+    "fromPositionMs": {"type": "integer", "minimum": 0},
+    "toPositionMs": {"type": "integer", "minimum": 0},
+    "watchedDeltaMs": {"type": "integer", "minimum": 0, "maximum": 60000},
+    "reason": {
+      "enum": [
+        "",
+        "auto",
+        "chip",
+        "scrub",
+        "user",
+        "visibility",
+        "pagehide",
+        "unmount",
+        "ask",
+        "ended"
+      ]
+    }
+  }
+}

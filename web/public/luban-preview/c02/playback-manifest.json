@@ -1,0 +1,200 @@
+{
+  "episodes": [
+    {
+      "content_revision": "75a38aa2c7810097645d5492f4038b4e8bd0de50571b190488300c86e2c5e861",
+      "duration_ms": 308516,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "C02:lesson:1",
+      "sections": [
+        {
+          "end_ms": 25676,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 50704,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "扣暂列",
+          "start_ms": 25676
+        },
+        {
+          "end_ms": 80028,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "起扣点",
+          "start_ms": 50704
+        },
+        {
+          "end_ms": 106472,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "逐月累计",
+          "start_ms": 80028
+        },
+        {
+          "end_ms": 134980,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "两刀扣款",
+          "start_ms": 106472
+        },
+        {
+          "end_ms": 158760,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "条款体检",
+          "start_ms": 134980
+        },
+        {
+          "end_ms": 179444,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "四步链",
+          "start_ms": 158760
+        },
+        {
+          "end_ms": 213440,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 179444
+        },
+        {
+          "end_ms": 244940,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 213440
+        },
+        {
+          "end_ms": 275192,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 244940
+        },
+        {
+          "end_ms": 308516,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 275192
+        }
+      ]
+    },
+    {
+      "content_revision": "56f5b26fdaac1b5c42c8e6cedf5244bd72994628c04a4894f4c45b8399df9c45",
+      "duration_ms": 260828,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "C02:lesson:2",
+      "sections": [
+        {
+          "end_ms": 21740,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 45184,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "清单责任",
+          "start_ms": 21740
+        },
+        {
+          "end_ms": 71148,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "风险划分",
+          "start_ms": 45184
+        },
+        {
+          "end_ms": 92384,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "调整事项",
+          "start_ms": 71148
+        },
+        {
+          "end_ms": 116068,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "综合单价",
+          "start_ms": 92384
+        },
+        {
+          "end_ms": 136824,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "80%下限",
+          "start_ms": 116068
+        },
+        {
+          "end_ms": 163124,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "资料移交",
+          "start_ms": 136824
+        },
+        {
+          "end_ms": 187664,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 163124
+        },
+        {
+          "end_ms": 211748,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 187664
+        },
+        {
+          "end_ms": 235376,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 211748
+        },
+        {
+          "end_ms": 260828,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 235376
+        }
+      ]
+    }
+  ],
+  "pack_id": "C02",
+  "schema_version": "luban_playback_manifest.v1"
+}

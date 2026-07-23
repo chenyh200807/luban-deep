@@ -2627,6 +2627,8 @@ class PhoneRequest(BaseModel):
 class VerifyCodeRequest(BaseModel):
     phone: str
     code: str
+    channel: str = ""
+    scene: str = ""
 
 
 class PasswordResetRequest(BaseModel):
@@ -2854,7 +2856,12 @@ async def auth_send_code(body: PhoneRequest) -> dict[str, Any]:
 )
 async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
     try:
-        return member_service.verify_phone_code(body.phone, body.code)
+        return member_service.verify_phone_code(
+            body.phone,
+            body.code,
+            channel=body.channel,
+            scene=body.scene,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

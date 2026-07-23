@@ -1797,6 +1797,54 @@ def test_register_with_external_auth_persists_channel_attribution(
     assert persisted["identity_metadata"] == {"reg_channel": "test1", "reg_scene": "1047"}
 
 
+def test_register_first_touch_survives_missing_phone_alias_projection(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """External auth, not the best-effort DB alias, owns durable first touch."""
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _NoAliasStore:
+        is_configured = False
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _NoAliasStore(),
+    )
+    monkeypatch.setattr(service, "_persist_phone_identity", lambda **_kwargs: None)
+
+    service.register_with_external_auth(
+        "new_channel_student",
+        "StrongPass123",
+        "13824681357",
+        channel="campaign@7",
+        scene="1047x",
+    )
+    first_touch = external_auth_module.get_external_auth_user_by_phone("13824681357")
+
+    assert first_touch is not None
+    assert first_touch["reg_channel"] == "campaign7"
+    assert first_touch["reg_scene"] == "1047"
+
+    service.send_phone_code("13824681357")
+    service.verify_phone_code(
+        "13824681357",
+        _active_otp(service),
+        channel="late_campaign",
+        scene="1005",
+    )
+    after_late_login = external_auth_module.get_external_auth_user_by_phone(
+        "13824681357"
+    )
+
+    assert after_late_login is not None
+    assert after_late_login["reg_channel"] == "campaign7"
+    assert after_late_login["reg_scene"] == "1047"
+
+
 @pytest.mark.asyncio
 async def test_bind_phone_for_wechat_first_registration_persists_channel_attribution(
     monkeypatch: pytest.MonkeyPatch,
@@ -4202,6 +4250,87 @@ def test_verify_phone_code_bootstraps_clean_new_member_state(
     assert today["streak_days"] == 0
     assert external_user["phone"] == "+8613955556666"
     assert str(profile["username"]).startswith("user_6666")
+
+
+def test_verify_phone_code_only_attributes_the_first_external_auth_registration(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A missing best-effort DB alias must not turn a later login into first touch."""
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: list[dict[str, object]] = []
+
+    class _NoAliasStore:
+        is_configured = False
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _NoAliasStore(),
+    )
+    monkeypatch.setattr(
+        service,
+        "_persist_phone_identity",
+        lambda **kwargs: persisted.append(kwargs),
+    )
+
+    service.send_phone_code("13955556666")
+    service.verify_phone_code(
+        "13955556666",
+        _active_otp(service),
+        channel="campaign@7",
+        scene="1047x",
+    )
+    first_external_user = external_auth_module.get_external_auth_user_by_phone(
+        "13955556666"
+    )
+    assert first_external_user is not None
+    assert first_external_user["reg_channel"] == "campaign7"
+    assert first_external_user["reg_scene"] == "1047"
+
+    external_users = json.loads(users_file.read_text(encoding="utf-8"))
+    existing_username = next(iter(external_users))
+    external_users[existing_username].update(
+        {
+            "account_kind": "eval_runner",
+            "actor_type": "machine",
+            "created_by": "eval_runner",
+            "is_internal_test": True,
+        }
+    )
+    users_file.write_text(
+        json.dumps(external_users, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    service.send_phone_code("13955556666")
+    service.verify_phone_code(
+        "13955556666",
+        _active_otp(service),
+        channel="retargeting_9",
+        scene="1005",
+    )
+    after_late_login = external_auth_module.get_external_auth_user_by_phone(
+        "13955556666"
+    )
+
+    assert len(persisted) == 2
+    assert persisted[0]["identity_metadata"] == {
+        "reg_channel": "campaign7",
+        "reg_scene": "1047",
+    }
+    assert persisted[1]["identity_metadata"] == {
+        "account_kind": "eval_runner",
+        "actor_type": "machine",
+        "created_by": "eval_runner",
+        "is_internal_test": True,
+        "reg_channel": "campaign7",
+        "reg_scene": "1047",
+    }
+    assert after_late_login is not None
+    assert after_late_login["reg_channel"] == "campaign7"
+    assert after_late_login["reg_scene"] == "1047"
 
 
 def test_verify_phone_code_rejects_invalid_code(tmp_path: Path) -> None:
