@@ -447,6 +447,28 @@ Page({
     this.setData({ stationWhyOpen: !this.data.stationWhyOpen });
   },
 
+  // 佑森首页的唯一跨域返回动作由 app.goHostHome() 持有；学习页只发起请求，
+  // 不重复维护宿主页 URL 或导航锁。
+  goHostHome() {
+    var app = null;
+    try {
+      app = typeof getApp === "function" ? getApp() : null;
+    } catch (_) {
+      app = null;
+    }
+    if (!app || typeof app.goHostHome !== "function") {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "返回佑森首页失败", icon: "none" });
+      return;
+    }
+    app.goHostHome({
+      onFail: function () {
+        if (typeof wx !== "undefined" && wx.showToast)
+          wx.showToast({ title: "返回佑森首页失败", icon: "none" });
+      },
+    });
+  },
+
   // 下一站卡「播放」/ 课程架海报 → 进 spike 站点页(复用两幕 web-view 播放器)
   openStation(event) {
     var ds = (event && event.currentTarget && event.currentTarget.dataset) || {};

@@ -1,12 +1,12 @@
 {
   "pages": [
+    "pages/deeptutorEntry/deeptutorEntry",
     "pages/freeCourse/freeCourse",
     "pages/index/index",
     "pages/view/view",
     "pages/getpeople/getpeople",
     "pages/showqrcode/showqrcode",
     "pages/getphone/getphone",
-    "pages/deeptutorEntry/deeptutorEntry",
     "pages/freeCourseDetails/freeCourseDetails",
     "pages/freeCourseDetailsonline/freeCourseDetailsonline",
     "pages/text/text",

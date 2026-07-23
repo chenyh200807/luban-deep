@@ -102,13 +102,13 @@ function loadBridgePage() {
 var tests = [];
 
 tests.push(function () {
-  return run("Deeptutor bridge remains a registered host entry", function () {
+  return run("app launch page is the Deeptutor bridge", function () {
     var appConfig = JSON.parse(
       fs.readFileSync(path.join(__dirname, "../app.json"), "utf8"),
     );
     assert(
-      appConfig.pages && appConfig.pages.indexOf("pages/deeptutorEntry/deeptutorEntry") >= 0,
-      "app config should keep the Deeptutor bridge as a reachable host entry",
+      appConfig.pages && appConfig.pages[0] === "pages/deeptutorEntry/deeptutorEntry",
+      "app launch page should be the Deeptutor bridge",
     );
     assert(
       appConfig.preloadRule && appConfig.preloadRule["pages/deeptutorEntry/deeptutorEntry"],
