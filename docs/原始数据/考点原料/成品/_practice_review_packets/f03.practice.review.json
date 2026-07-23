@@ -1,1491 +1,1482 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "F03",
-  "source_pack_sha256": "12b0066ad4ed932dd0ccdebf292cafb5fa005970a9108b808d4bfed705ff12e7",
-  "source_bundle_sha256": "edd5819cd6215f3a646945ff6ab2d27b06cdfaa078b7eb96dc562a1306271baf",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 18,
-  "eligible_count": 17,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "F03-html-practice-html-q1-a1e8c37d3095",
-      "surface_id": "practice.html",
-      "stem": "某工程屋面防水设计。关于屋面防水的分级与设防道数，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "屋面防水与地下工程采用相同分级，同样分一、二、三、四级共四级，并按四级分别对应各级的设防道数配置。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "屋面地下都叫防水，顺手记成同一套分级。",
-          "loss_reason": "屋面是三级、地下才四级，分级数记混，等级一错道数全跟着错。",
-          "fix": "屋面防水分三级；四级是地下工程防水等级。",
-          "option_id": "F03-html-practice-html-q1-a1e8c37d3095:option-1"
-        },
-        {
-          "text": "屋面防水分一、二、三级共三级；一级不少于3道(其中卷材≥1道)、二级不少于2道、三级不少于1道。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "分级数写「三级」并把各级道数配套点出，一句到位。",
-          "option_id": "F03-html-practice-html-q1-a1e8c37d3095:option-2"
-        },
-        {
-          "text": "屋面防水虽分为三级，但各级具体设防道数无须逐一记忆，只要答出分级即算完整。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "记住「三级」就以为够了，懒得背道数。",
-          "loss_reason": "漏了各级设防道数这组采分点，只答分级不给全分。",
-          "fix": "补写一级≥3道(卷材≥1道)、二级≥2道、三级≥1道。",
-          "option_id": "F03-html-practice-html-q1-a1e8c37d3095:option-3"
-        },
-        {
-          "text": "屋面防水分三级，其中一级不少于2道、二级不少于1道，卷材与涂料任选、不作配套要求。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "分级对，道数凭印象往小了写。",
-          "loss_reason": "一级道数写少、且漏了「卷材≥1道」这个关键配套，数字错位。",
-          "fix": "一级≥3道且卷材≥1道、二级≥2道、三级≥1道。",
-          "option_id": "F03-html-practice-html-q1-a1e8c37d3095:option-4"
-        }
-      ],
-      "model_answer": "屋面防水分一、二、三级共三级；一级不少于3道(卷材≥1道)、二级不少于2道(卷材≥1道)、三级不少于1道。",
-      "rule_group": "屋面·定级",
-      "content_sha256": "05933a36c6770bbcfdacaec6f3a164be0731a11f6520661c85deb243c38efd88",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q1",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-roof-grade-tiers",
-        "skeleton_id": "f03-skel-屋面三级各级道数",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_122_0230:0",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "05933a36c6770bbcfdacaec6f3a164be0731a11f6520661c85deb243c38efd88",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "平屋面防水分一/二/三级三级; 一级≥3道(卷材≥1道)·二级≥2道·三级≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。工单: 正确项恒非首位(选项2), template artifact 需全包扫。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q2-79c629fb1226",
-      "surface_id": "practice.html",
-      "stem": "某屋面防水等级为一级。关于其设防道数，选出完整、能得分的作答。",
-      "options": [
-        {
-          "text": "屋面一级防水做1道高性能卷材即可，材料性能足够时单道便能顶住、无须再叠加多道设防。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得材料够好、一道省事又省钱。",
-          "loss_reason": "一级要求≥3道，只写1道漏采分；单道被打穿水就进结构。",
-          "fix": "一级≥3道(卷材≥1道)，多道设防才容错。",
-          "option_id": "F03-html-practice-html-q2-79c629fb1226:option-1"
-        },
-        {
-          "text": "屋面一级防水不少于3道，三道如何搭配不限，涂料涂膜叠三层也可视为达标。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "记住「3道」就以为齐了。",
-          "loss_reason": "漏了「其中卷材≥1道」这一硬性配套，三道全涂膜不达标。",
-          "fix": "3道里必须至少1道是卷材防水层。",
-          "option_id": "F03-html-practice-html-q2-79c629fb1226:option-2"
-        },
-        {
-          "text": "屋面一级与地下一级要求一致，需防水混凝土1道加外设防水层2道共3道。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "都是「一级≥3道」，把地下的做法套到屋面。",
-          "loss_reason": "防水混凝土+外设是地下的构成，屋面不用结构自防水这套。",
-          "fix": "屋面一级=≥3道(卷材≥1道)；防水混凝土应选是地下的。",
-          "option_id": "F03-html-practice-html-q2-79c629fb1226:option-3"
-        },
-        {
-          "text": "屋面一级防水设防不少于3道，其中卷材防水层不少于1道，多道叠加、一道破了还有后手。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "道数+「卷材≥1道」配套+多道容错，采分句写全。",
-          "option_id": "F03-html-practice-html-q2-79c629fb1226:option-4"
-        }
-      ],
-      "model_answer": "屋面一级防水设防不少于3道，其中卷材防水层不少于1道；多道设防、一道破了后道兜底。",
-      "rule_group": "屋面·道数",
-      "content_sha256": "7883eeec3ea30140244cc51b5d411b223b4acd73c70eb92888bea77c9ce79540",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q2",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-roof-level1-layers",
-        "skeleton_id": "f03-skel-屋面一级3道卷材1道",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_122_0230:0",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "7883eeec3ea30140244cc51b5d411b223b4acd73c70eb92888bea77c9ce79540",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "屋面一级防水≥3道其中卷材防水层≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q3-3ad2bfdbadc0",
-      "surface_id": "practice.html",
-      "stem": "关于屋面防水的基本要求，选出完整、能得分的作答。",
-      "options": [
-        {
-          "text": "屋面防水以排为主、以防为辅；设计工作年限不少于20年；天沟、泛水等部位加设附加层。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得屋面靠排水、「以排为主」顺口。",
-          "loss_reason": "原则写反了，屋面是「以防为主、以排为辅」，方针错要扣。",
-          "fix": "是以防为主、以排为辅，别把主辅颠倒。",
-          "option_id": "F03-html-practice-html-q3-3ad2bfdbadc0:option-1"
-        },
-        {
-          "text": "屋面防水以防为主、以排为辅；设计工作年限不少于20年；各薄弱部位构造做法相同、无须分别区别处理。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "原则年限都对，就漏了细部。",
-          "loss_reason": "漏了天沟/檐沟/变形缝/泛水设附加层这组采分点。",
-          "fix": "补写泛水等薄弱部位加设附加层。",
-          "option_id": "F03-html-practice-html-q3-3ad2bfdbadc0:option-2"
-        },
-        {
-          "text": "屋面防水以防为主、以排为辅；设计工作年限不少于10年；天沟、泛水等部位加设附加层。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "原则附加层都对，年限凭印象写10年。",
-          "loss_reason": "年限数字写小，屋面防水设计工作年限应≥20年。",
-          "fix": "设计工作年限不少于20年，不是10年。",
-          "option_id": "F03-html-practice-html-q3-3ad2bfdbadc0:option-3"
-        },
-        {
-          "text": "屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位加设附加层。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "排水原则+年限+附加层三件齐，采分句到位。",
-          "option_id": "F03-html-practice-html-q3-3ad2bfdbadc0:option-4"
-        }
-      ],
-      "model_answer": "屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位设附加层。",
-      "rule_group": "屋面·基本要求",
-      "content_sha256": "21dd7be910d858bd068aa271c7730242e32312cd8f15a696332f4da0d32c6f6a",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q3",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-roof-basic-principle",
-        "skeleton_id": "f03-skel-屋面以防为主年限20附加层",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_122_0230:2",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "21dd7be910d858bd068aa271c7730242e32312cd8f15a696332f4da0d32c6f6a",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "屋面防水以防为主以排为辅·设计年限≥20年·天沟檐沟变形缝泛水设附加层, 教材 kc:1A413030_122_0230:2 直引。投影 anchor。正确项(年限口径‘工作年限’与教材‘设计年限’同指20年)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q4-5436a7f644e1",
-      "surface_id": "practice.html",
-      "stem": "某工程屋面采用倒置式保温屋面。写出自下而上的构造层次顺序，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "自下而上：结构层→找坡层→找平层→防水层→保温层→保护层，保温层在防水层之上。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "层序对+点出「保温在防水之上」这一倒置式特征，采分句齐。",
-          "option_id": "F03-html-practice-html-q4-5436a7f644e1:option-1"
-        },
-        {
-          "text": "自下而上：结构层→找坡层→找平层→保温层→防水层→保护层，保温层在防水层之下。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "惯性按正置式排，保温先铺、防水后做。",
-          "loss_reason": "把保温写在防水之下＝正置式，倒置式层序整维错。",
-          "fix": "倒置式保温层在防水层之上，顺序是防水→保温→保护。",
-          "option_id": "F03-html-practice-html-q4-5436a7f644e1:option-2"
-        },
-        {
-          "text": "自下而上：结构层→防水层→保温层→保护层，找坡找平不属构造层可省略。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记住防水保温保护几个大层。",
-          "loss_reason": "漏排找坡层、找平层两道过渡层，层次不全。",
-          "fix": "补齐结构→找坡→找平→防水→保温→保护。",
-          "option_id": "F03-html-practice-html-q4-5436a7f644e1:option-3"
-        },
-        {
-          "text": "自下而上：结构层→找平层→找坡层→防水层→保温层→保护层，先找平再找坡。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "找坡找平都做，顺手把两者调了个位。",
-          "loss_reason": "顺序反了，应先找坡再找平（口诀「结构找坡再找平」）。",
-          "fix": "是找坡层在下、找平层在上：结构→找坡→找平。",
-          "option_id": "F03-html-practice-html-q4-5436a7f644e1:option-4"
-        }
-      ],
-      "model_answer": "倒置式屋面自下而上：结构层→找坡层→找平层→防水层→保温层→保护层（保温层在防水层之上）。",
-      "rule_group": "屋面·层序",
-      "content_sha256": "388837b191a58cebb37a669693c2d7f7427f35d36f1ae39399453d81ab40fe13",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q4",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-inverted-roof-order",
-        "skeleton_id": "f03-skel-倒置式自下而上层序",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2020:第12题",
-        "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "388837b191a58cebb37a669693c2d7f7427f35d36f1ae39399453d81ab40fe13",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "倒置式屋面自下而上=结构层→找坡层→找平层→防水层→保温层→保护层, 真题 exam:2020:第12题 答案B(①④⑤⑥②③)+口诀‘结构找坡再找平,防水保温后保护’逐字支持。投影 anchor。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q5-3abeea20b534",
-      "surface_id": "practice.html",
-      "stem": "倒置式屋面与正置式屋面的关键区别在哪？选出准确、能得分的作答。",
-      "options": [
-        {
-          "text": "倒置式与正置式的区别在于有无找坡层，倒置式取消了找坡层、直接在找平层的表面上铺做防水层。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "记不清特征，抓个「少一层」当区别。",
-          "loss_reason": "两者都有找坡层，区别不在找坡；判别特征找错。",
-          "fix": "区别是保温层在防水层之上（倒置）还是之下（正置）。",
-          "option_id": "F03-html-practice-html-q5-3abeea20b534:option-1"
-        },
-        {
-          "text": "倒置式特征是保温层设在防水层之上，反过来正置式保温在防水之下；保温在上保护防水层、延寿。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点出唯一判别特征「保温相对防水的位置」，并说清好处。",
-          "option_id": "F03-html-practice-html-q5-3abeea20b534:option-2"
-        },
-        {
-          "text": "倒置式是将保护层置于最下、结构层置于最上，使整个构造层序完全上下颠倒。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "望文生义，以为「倒置」是整摞层序翻转。",
-          "loss_reason": "结构层始终在最下、保护层在最上，倒置只针对保温与防水的相对位置。",
-          "fix": "倒置只把保温层挪到防水层之上，其余不倒。",
-          "option_id": "F03-html-practice-html-q5-3abeea20b534:option-3"
-        },
-        {
-          "text": "倒置式与正置式的区别在于防水材料不同，倒置式必须采用耐根穿刺卷材防水。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把种植屋面的耐根穿刺硬套过来。",
-          "loss_reason": "倒置式区别在层位不在材料，耐根穿刺是种植屋面的层。",
-          "fix": "判别特征是保温在防水之上，与材料无关。",
-          "option_id": "F03-html-practice-html-q5-3abeea20b534:option-4"
-        }
-      ],
-      "model_answer": "倒置式的特征是保温层设在防水层之上（正置式保温在防水之下），保温层保护防水层、延长其寿命。",
-      "rule_group": "屋面·层序辨析",
-      "content_sha256": "c4e72cd38c7774b655f7ae2fee3a2305aa1029dad186668a4ad6e9c0778ca95f",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q5",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-inverted-roof-order",
-        "skeleton_id": "f03-skel-倒置正置区别辨析",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "exam:2020:第12题",
-        "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "c4e72cd38c7774b655f7ae2fee3a2305aa1029dad186668a4ad6e9c0778ca95f",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "倒置式=保温层在防水层之上,锚2020真题第12题(答案B=①④⑤⑥②③,防水⑥后保温②)方向复算一致;干扰项取消找坡(E07)/整体上下颠倒(E07)/材料区别耐根穿刺(E07,种植屋面层)判错无误。三件套:与q4(anchor,全层序)、新q16(d1,相邻层定位)同fact异骨架。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q6-f78fcfcf38b6",
-      "surface_id": "practice.html",
-      "stem": "关于屋面隔汽层的位置与构造，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "隔汽层设在防水层之上、保温层之上，将室内湿汽阻挡于最外层，并沿墙面向上高出保温层不少于150mm。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "觉得隔汽要挡在外面、往上放。",
-          "loss_reason": "位置错，隔汽层在结构层上、保温层下，不是放防水层上。",
-          "fix": "隔汽层在结构层之上、保温层之下。",
-          "option_id": "F03-html-practice-html-q6-f78fcfcf38b6:option-1"
-        },
-        {
-          "text": "隔汽层设在结构层之上、保温层之下，气密性好；沿墙面向上连续铺设、高出保温层不少于150mm。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "位置（结构上·保温下）+翻起150mm两个采分点都写到。",
-          "option_id": "F03-html-practice-html-q6-f78fcfcf38b6:option-2"
-        },
-        {
-          "text": "隔汽层设在结构层之上、保温层之下，气密性好，沿墙面铺至与保温层齐平即算到位。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "位置对，翻起高度凭印象写「齐平」。",
-          "loss_reason": "漏了」高出保温层≥150mm「这个数值采分点。",
-          "fix": "沿墙翻起要高出保温层不少于150mm。",
-          "option_id": "F03-html-practice-html-q6-f78fcfcf38b6:option-3"
-        },
-        {
-          "text": "隔汽层设在结构层之上、保温层之下，沿墙面向上翻起、高出保温层不少于50mm。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "位置对，把150记成了50。",
-          "loss_reason": "翻起高度数字写小，应≥150mm不是50mm。",
-          "fix": "高出保温层不少于150mm。",
-          "option_id": "F03-html-practice-html-q6-f78fcfcf38b6:option-4"
-        }
-      ],
-      "model_answer": "隔汽层设在结构层之上、保温层之下，气密性好；沿周边墙面向上连续铺设，高出保温层不少于150mm。",
-      "rule_group": "屋面·隔汽层",
-      "content_sha256": "44e5187db639d5a55581a99e3b72a68c73edd1e03beae972807f922e648f6bf0",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q6",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "44e5187db639d5a55581a99e3b72a68c73edd1e03beae972807f922e648f6bf0",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q7-3d905b13eef6",
-      "surface_id": "practice.html",
-      "stem": "种植屋面比普通屋面在构造上多了关键的一道防水层，是哪一道？选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "种植屋面在普通防水层之上多设一道耐根穿刺防水层，专防植物根系扎穿防水层。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点名「耐根穿刺防水层」并说清作用，采分到位。",
-          "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-1"
-        },
-        {
-          "text": "种植屋面比普通屋面多设一道保温隔热层，用于为植物根部保温、防止冬季冻害。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "想当然以为给植物就多保温。",
-          "loss_reason": "多的是耐根穿刺防水层，不是保温层；层的性质记错。",
-          "fix": "多的是耐根穿刺防水层，防根扎穿。",
-          "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-2"
-        },
-        {
-          "text": "种植屋面比普通屋面仅多设一道过滤层，防水层构造与普通屋面完全相同。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "看到「过滤层」这类新层就以为它是关键。",
-          "loss_reason": "漏了耐根穿刺防水层这道关键采分层，过滤层挡不住根。",
-          "fix": "关键是多一道耐根穿刺防水层。",
-          "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-3"
-        },
-        {
-          "text": "种植屋面将普通防水层替换为一道耐根穿刺层，二者属替换关系、总层数保持不变。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "以为耐根穿刺是替代普通防水。",
-          "loss_reason": "是」多加」一道、普通防水在下耐根穿刺在上，不是替换。",
-          "fix": "普通防水层保留，其上再加耐根穿刺防水层。",
-          "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-4"
-        }
-      ],
-      "model_answer": "种植屋面在普通防水层之上多设一道耐根穿刺防水层，防止植物根系穿破防水层。",
-      "rule_group": "屋面·种植",
-      "content_sha256": "df3bbe41031472cb1fbaa509aebffbc83d3e684c039bf64c8f6b75b1512a5226",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q7",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-green-roof-layers",
-        "skeleton_id": "f03-skel-多一道耐根穿刺辨析",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_127_0240:1",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "df3bbe41031472cb1fbaa509aebffbc83d3e684c039bf64c8f6b75b1512a5226",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "新fact(种植屋面构造:层次链+耐根穿刺+数值)。种植屋面在普通防水层之上多一道耐根穿刺防水层,教材层次卡逐字核对(…普通防水层→耐根穿刺防水层→…,两道并存非替换);干扰项多保温层(E07)/仅过滤层(E02)/替换关系(E06)判错无误。可达性边界:本fact当前仅q7/q8/q17三件。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q8-b70e69ee0b83",
-      "surface_id": "practice.html",
-      "stem": "关于种植屋面耐根穿刺防水层厚度与排水坡度，选出数值正确、能得分的作答。",
-      "options": [
-        {
-          "text": "耐根穿刺各类材料厚度一律不少于1mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "坡度对，厚度嫌麻烦笼统写「≥1mm」。",
-          "loss_reason": "厚度按材料分档，改性沥青要≥4mm，一刀切1mm数值错。",
-          "fix": "改性沥青≥4mm、PVC等≥1.2mm、聚脲≥2mm。",
-          "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-1"
-        },
-        {
-          "text": "耐根穿刺改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面按≥1%控制、天沟檐沟≥1%。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "厚度对，坡度把2%记成1%。",
-          "loss_reason": "种植平屋面坡度应≥2%，写1%数值偏小。",
-          "fix": "种植平屋面≥2%、天沟檐沟≥1%。",
-          "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-2"
-        },
-        {
-          "text": "耐根穿刺厚度由现场确定、无统一硬性要求；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "坡度写对，厚度懒得记具体值。",
-          "loss_reason": "漏了耐根穿刺分材料的最小厚度这组采分数值。",
-          "fix": "补写各材料最小厚度4/1.2/2mm。",
-          "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-3"
-        },
-        {
-          "text": "耐根穿刺改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "厚度分材料写全、坡度两档写全，数值采分齐。",
-          "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-4"
-        }
-      ],
-      "model_answer": "耐根穿刺：改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
-      "rule_group": "屋面·种植数值",
-      "content_sha256": "1c1ceb1cbc76d44c8bbcf994a8fdbac6447d0b08bf29c41ca4acdde72ec0af8c",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q8",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-green-roof-layers",
-        "skeleton_id": "f03-skel-种植数值组合",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A413030_127_0240:0",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "1c1ceb1cbc76d44c8bbcf994a8fdbac6447d0b08bf29c41ca4acdde72ec0af8c",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "耐根穿刺厚度三档(改性沥青≥4mm/PVC-TPO等≥1.2mm/喷涂聚脲≥2mm)教材厚度卡逐字核对;排水坡度(平屋面≥2%/天沟檐沟≥1%)同chunk坡度卡(kc:0240:2)逐字核对,2024真题第3题(2%)同向印证;干扰项一律1mm(E03)/平屋面1%(E03)/厚度无要求(E02)复算无误。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q9-5b914e0773f1",
-      "surface_id": "practice.html",
-      "stem": "关于地下工程防水等级的分级，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "地下工程防水等级与屋面相同，同样分一、二、三级共三级，按三级分别选取相应设防做法。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把屋面三级顺手套到地下。",
-          "loss_reason": "地下是四级、屋面才三级，分级数记混、等级一错全错。",
-          "fix": "地下分四级；三级是屋面防水分级。",
-          "option_id": "F03-html-practice-html-q9-5b914e0773f1:option-1"
-        },
-        {
-          "text": "地下工程防水等级分一、二、三、四、五级共五级，级数越高对应要求越低。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "觉得地下更复杂，多补一级凑「五级」。",
-          "loss_reason": "地下只到四级，写五级分级数多了、数字错。",
-          "fix": "地下工程防水等级共四级，没有五级。",
-          "option_id": "F03-html-practice-html-q9-5b914e0773f1:option-2"
-        },
-        {
-          "text": "地下工程防水等级分一、二、三、四级共四级；屋面防水分三级，两者分级数不同不可互套。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "分级数「四级」写准，并点明与屋面三级的区分，防互套。",
-          "option_id": "F03-html-practice-html-q9-5b914e0773f1:option-3"
-        },
-        {
-          "text": "地下工程防水按有无渗水，仅分为合格与不合格两档，并不细分具体等级。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为渗漏就是「合格/不合格」二分。",
-          "loss_reason": "地下防水按渗漏程度分四级，不是两档。",
-          "fix": "分四级：一级不渗水到四级有漏点。",
-          "option_id": "F03-html-practice-html-q9-5b914e0773f1:option-4"
-        }
-      ],
-      "model_answer": "地下工程防水等级分一、二、三、四级共四级（屋面防水才分三级），分级数不同不可互套。",
-      "rule_group": "地下·定级",
-      "content_sha256": "3fa355e96e8f15e462e345d2bcf58383f1ae50757540862a2a6891ea4dc4ffc8",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q9",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-underground-structure-method",
-        "skeleton_id": "f03-skel-地下四级分级辨析",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "exam:2019:第12题",
-        "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "3fa355e96e8f15e462e345d2bcf58383f1ae50757540862a2a6891ea4dc4ffc8",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T09:53:26+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T09:53:26+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "地下工程防水等级四级(屋面三级),2019真题C+GB50108四级定义逐字核对;同判分眼(地下防水设防)的入门辨析,加深surface fact确认池。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q10-2d6fe403e5c8",
-      "surface_id": "practice.html",
-      "stem": "某地下工程防水等级为一级。关于其防水做法与抗渗，选出完整、能得分的作答。",
-      "options": [
-        {
-          "text": "地下一级防水仅做防水混凝土一道，结构自防水抗渗达P8后便无须再外加防水层。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得防水混凝土P8已很强、省去外设。",
-          "loss_reason": "一级要≥3道，漏了外设防水层≥2道这组采分，只1道不达标。",
-          "fix": "防水混凝土1道＋外设≥2道，共≥3道。",
-          "option_id": "F03-html-practice-html-q10-2d6fe403e5c8:option-1"
-        },
-        {
-          "text": "地下一级防水不少于3道＝防水混凝土1道(应选)＋外设防水层≥2道(卷材或涂料≥1道)，抗渗不低于P8。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "防水混凝土应选＋外设≥2道＋P8，三件配套写全。",
-          "option_id": "F03-html-practice-html-q10-2d6fe403e5c8:option-2"
-        },
-        {
-          "text": "地下一级防水不少于3道＝外设防水层3道，防水混凝土不作要求、抗渗到P8亦可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "记得「3道」和「P8」，把混凝土漏了。",
-          "loss_reason": "漏了」防水混凝土1道应选」这个必选采分项。",
-          "fix": "3道里防水混凝土是应选的1道。",
-          "option_id": "F03-html-practice-html-q10-2d6fe403e5c8:option-3"
-        },
-        {
-          "text": "地下一级防水不少于3道＝防水混凝土1道(应选)＋外设防水层≥2道(卷材或涂料≥1道)，抗渗仅需不低于P6。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "道数配套都对，抗渗把P8记成P6。",
-          "loss_reason": "一级抗渗应≥P8，写P6数字偏低（P6是三级）。",
-          "fix": "一级抗渗不低于P8。",
-          "option_id": "F03-html-practice-html-q10-2d6fe403e5c8:option-4"
-        }
-      ],
-      "model_answer": "地下一级防水做法不少于3道＝防水混凝土1道(应选)＋外设防水层不少于2道(卷材或涂料≥1道)，抗渗不低于P8。",
-      "rule_group": "地下·一级做法",
-      "content_sha256": "6934f4798ca4362af5b7d78b603c359e964cbc67fe59f93fe8c4385acbfcde30",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q10",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-underground-structure-method",
-        "skeleton_id": "f03-skel-地下一级3道P8",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_130_0247:0",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "6934f4798ca4362af5b7d78b603c359e964cbc67fe59f93fe8c4385acbfcde30",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "地下一级防水≥3道·防水混凝土1道应选·外设≥2道(卷材或涂料≥1道)·抗渗≥P8, 教材 kc:1A413030_130_0247:0 直引。三件套 anchor(地下主体结构防水做法 fact)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q11-defc7bbb052d",
-      "surface_id": "practice.html",
-      "stem": "某地下工程防水等级为三级。关于其防水做法与抗渗，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "地下三级防水同样要求不少于3道、外设防水层≥2道、抗渗P8，与一级要求完全相同。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把一级那套硬性要求套到三级。",
-          "loss_reason": "三级只需≥1道、抗渗P6，写成一级要求过度设防、口径错。",
-          "fix": "三级≥1道、P6、外设不作要求。",
-          "option_id": "F03-html-practice-html-q11-defc7bbb052d:option-1"
-        },
-        {
-          "text": "地下三级防水不少于1道，外设防水层不作要求，抗渗则不低于P8。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "道数对，抗渗顺手写成P8。",
-          "loss_reason": "三级抗渗应≥P6，P8是一级的数值，数字错位。",
-          "fix": "三级抗渗不低于P6。",
-          "option_id": "F03-html-practice-html-q11-defc7bbb052d:option-2"
-        },
-        {
-          "text": "地下三级防水不少于1道、防水混凝土1道应选，外设防水层不作要求，抗渗不低于P6。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "道数、外设不作要求、抗渗P6三点写准，与一级区分清。",
-          "option_id": "F03-html-practice-html-q11-defc7bbb052d:option-3"
-        },
-        {
-          "text": "地下三级防水不少于1道，防水混凝土可设可不设、抗渗亦不作要求。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得三级最松、什么都不作要求。",
-          "loss_reason": "漏了防水混凝土1道应选、抗渗≥P6这两个采分点。",
-          "fix": "防水混凝土仍应选1道、抗渗仍≥P6。",
-          "option_id": "F03-html-practice-html-q11-defc7bbb052d:option-4"
-        }
-      ],
-      "model_answer": "地下三级防水做法不少于1道，防水混凝土1道(应选)，外设防水层不作要求，抗渗不低于P6。",
-      "rule_group": "地下·三级",
-      "content_sha256": "5928d02205cf066e3884360baafe3cd87c620ec819908de35881ea2338ae7656",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q11",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-underground-structure-method",
-        "skeleton_id": "f03-skel-地下三级1道P6",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A413030_130_0247:1",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "5928d02205cf066e3884360baafe3cd87c620ec819908de35881ea2338ae7656",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "地下三级防水≥1道·防水混凝土1道应选·外设不作要求·抗渗≥P6, 教材 kc:1A413030_130_0247:1 直引。三件套 immediate_confirm(同地下主体结构防水做法 fact, skeleton 异于 q10)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q12-6dd197458378",
-      "surface_id": "practice.html",
-      "stem": "某地下防水混凝土设计抗渗等级P8。关于试配抗渗的取值，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "防水混凝土试配抗渗比设计提高0.2MPa，设计P8则试配配到P10，预留施工离散富余。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点出「试配比设计提高0.2MPa」并给出P8→P10，采分到位。",
-          "option_id": "F03-html-practice-html-q12-6dd197458378:option-1"
-        },
-        {
-          "text": "防水混凝土试配抗渗直接按设计值选取，设计P8时试配也配到P8、二者取值保持一致、无须再另行提高。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得试配＝设计、按设计值配最省事。",
-          "loss_reason": "试配要比设计提高0.2MPa，直接按P8配现场实测易低于设计。",
-          "fix": "试配比设计提高0.2MPa，P8配到P10。",
-          "option_id": "F03-html-practice-html-q12-6dd197458378:option-2"
-        },
-        {
-          "text": "防水混凝土试配抗渗比设计提高0.2MPa，设计P8时则将试配配到P9。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "知道要提高，把一个抗渗等级差算成0.1MPa。",
-          "loss_reason": "一个抗渗等级是0.2MPa，P8提0.2应到P10不是P9。",
-          "fix": "提高0.2MPa即提高一个等级，P8→P10。",
-          "option_id": "F03-html-practice-html-q12-6dd197458378:option-3"
-        },
-        {
-          "text": "防水混凝土试配抗渗比设计降低0.2MPa，设计P8时试配取P6以便于施工。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为放宽试配好施工。",
-          "loss_reason": "方向反了，试配要比设计」提高」不是降低，降低会不达标。",
-          "fix": "是提高0.2MPa，P8→P10。",
-          "option_id": "F03-html-practice-html-q12-6dd197458378:option-4"
-        }
-      ],
-      "model_answer": "防水混凝土试配抗渗比设计提高0.2MPa，即设计P8时试配配到P10，以预留施工离散的富余。",
-      "rule_group": "地下·结构自防水",
-      "content_sha256": "d84f4f59937c0d2eedd8dd78a2f7339502b122940e83a3edbd188adab24ccffb",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q12",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-underground-structure-method",
-        "skeleton_id": "f03-skel-防水混凝土试配P8到P10",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A413030_130_0249:0",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "d84f4f59937c0d2eedd8dd78a2f7339502b122940e83a3edbd188adab24ccffb",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "防水混凝土试配抗渗比设计提高0.2MPa(设计P8则试配P10), 教材 kc:1A413030_130_0249:0 直引。三件套 d1_probe(同 fact 之防水混凝土自防水采分点, 第3独立 skeleton)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q13-0e5175afc021",
-      "surface_id": "practice.html",
-      "stem": "关于地下工程施工缝、后浇带的防水设防种数，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "施工缝防水设防不少于2种、后浇带不少于1种，中埋止水带、遇水膨胀止水条、外贴卷材等搭配互相兜底。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "两种缝的种数分别写准，并举出有效措施，采分齐。",
-          "option_id": "F03-html-practice-html-q13-0e5175afc021:option-1"
-        },
-        {
-          "text": "施工缝、后浇带均只需设1种防水措施，选用一种可靠的止水带即可满足要求。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "觉得一种可靠措施就够。",
-          "loss_reason": "施工缝要≥2种，写1种数字不足；单措施失效即漏。",
-          "fix": "施工缝≥2种、后浇带≥1种。",
-          "option_id": "F03-html-practice-html-q13-0e5175afc021:option-2"
-        },
-        {
-          "text": "施工缝防水设防不少于1种、后浇带不少于2种，因后浇带更为薄弱故需多设。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得后浇带更弱，把两者种数记反。",
-          "loss_reason": "是施工缝≥2种、后浇带≥1种，两者种数记反了。",
-          "fix": "施工缝2种、后浇带1种，别调换。",
-          "option_id": "F03-html-practice-html-q13-0e5175afc021:option-3"
-        },
-        {
-          "text": "施工缝防水设防不少于2种；后浇带仅以补偿收缩混凝土浇筑密实即可、无须再另行增设任何专门止水措施。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "施工缝对，觉得后浇带浇实就行。",
-          "loss_reason": "漏了后浇带仍需≥1种防水设防这个采分点。",
-          "fix": "后浇带也要≥1种防水设防措施。",
-          "option_id": "F03-html-practice-html-q13-0e5175afc021:option-4"
-        }
-      ],
-      "model_answer": "施工缝防水设防不少于2种、后浇带防水设防不少于1种（中埋止水带、遇水膨胀止水条、注浆管、外贴卷材等搭配）。",
-      "rule_group": "地下·接缝",
-      "content_sha256": "94148e082f6b3e0bf81265edd8e6203f0a8dd2997930d4582da612877b61755d",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q13",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-underground-joint-waterproof",
-        "skeleton_id": "f03-skel-接缝设防种数",
-        "probe_role": "anchor",
-        "source_anchor": "ca:1A413030_130_0248",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "94148e082f6b3e0bf81265edd8e6203f0a8dd2997930d4582da612877b61755d",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "新复合fact(地下工程接缝防水:设防种数+施工缝设置+止水条性能,粒度按C01 post-cast-strip先例)。施工缝设防≥2种/后浇带≥1种,锚明挖法接缝设防卡(grading_keywords=不应少于2种,中埋式中孔型橡胶止水带,遇水膨胀止水条,预埋注浆管)+kc:0248:0/0248:1逐字核对;干扰项均1种(E03)/种数记反(E07)/后浇带免设防(E02)复算无误。可达性边界:本fact当前仅q13/q14/q18三件。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q14-b00ccaf8e453",
-      "surface_id": "practice.html",
-      "stem": "关于地下水平施工缝的设置与遇水膨胀止水条性能，选出数值正确、能得分的作答。",
-      "options": [
-        {
-          "text": "水平施工缝直接留设于底板表面处以便支模，遇水膨胀止水条最终膨胀率不低于220%。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "觉得缝留底板面好支模、好施工。",
-          "loss_reason": "缝留底板面正处积水区易漏，应高出底板≥300mm。",
-          "fix": "水平施工缝高出底板不少于300mm。",
-          "option_id": "F03-html-practice-html-q14-b00ccaf8e453:option-1"
-        },
-        {
-          "text": "水平施工缝高出底板不少于100mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "止水条对，缝高把300记成100。",
-          "loss_reason": "高出底板应≥300mm，写100mm数字偏小。",
-          "fix": "高出底板不少于300mm。",
-          "option_id": "F03-html-practice-html-q14-b00ccaf8e453:option-2"
-        },
-        {
-          "text": "水平施工缝应高出底板不少于300mm、并且距孔洞边缘也不少于300mm；遇水膨胀止水条的最终膨胀率不低于60%。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "把7d净膨胀率≤60%当成了最终膨胀率。",
-          "loss_reason": "60%是7d净膨胀率的上限，最终膨胀率应≥220%，两个指标混了。",
-          "fix": "最终膨胀率不低于220%（7d净膨胀率≤60%最终）。",
-          "option_id": "F03-html-practice-html-q14-b00ccaf8e453:option-3"
-        },
-        {
-          "text": "水平施工缝高出底板不少于300mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "缝位300mm与止水条220%两个数值都写全。",
-          "option_id": "F03-html-practice-html-q14-b00ccaf8e453:option-4"
-        }
-      ],
-      "model_answer": "水平施工缝高出底板不少于300mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。",
-      "rule_group": "地下·施工缝位置",
-      "content_sha256": "60bc133b209935ebcd12184958002b3760cfe4fce1596a289e0eaa44fc90d039",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q14",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-underground-joint-waterproof",
-        "skeleton_id": "f03-skel-水平缝位置止水条数值",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "ca:1A413030_131_0250",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "60bc133b209935ebcd12184958002b3760cfe4fce1596a289e0eaa44fc90d039",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "水平施工缝高出底板≥300mm/距孔洞边缘≥300mm(kc:0250:0逐字)+遇水膨胀止水条最终膨胀率≥220%(kc:0250:1逐字,60%为7d净膨胀率上限指标,干扰项两指标互混判错正确);锚施工缝设置卡(grading_keywords=300mm,遇水膨胀止水条,220%)。干扰项留底板面(E10)/100mm(E03)复算无误。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q15-add11dbc2a8d",
-      "surface_id": "practice.html",
-      "stem": "某学生答室内防水翻起高度：①淋浴区墙面翻起1800mm；②盥洗用水处未写；③其他泛水部位250mm。选出最准确的诊断与采分句补写。",
-      "options": [
-        {
-          "text": "三档中其他泛水250mm正确、淋浴1800mm亦在合理范围，仅需将盥洗用水处补写为1200mm。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "只抓到漏写那档，放过了写小的淋浴。",
-          "loss_reason": "淋浴区应≥2000mm，1800偏低仍要扣，不能只补盥洗。",
-          "fix": "淋浴改≥2000、盥洗补≥1200、其他≥250mm。",
-          "option_id": "F03-html-practice-html-q15-add11dbc2a8d:option-1"
-        },
-        {
-          "text": "淋浴区翻起1800mm即可视为达标、盥洗用水处直接并入其他泛水250mm一并归档处理、无须再单独单列出1200mm一档。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把盥洗并进「其他泛水」少记一档。",
-          "loss_reason": "盥洗用水处是单独一档≥1200mm，并进250mm整档记错。",
-          "fix": "盥洗用水处单列≥1200mm，别并入250mm。",
-          "option_id": "F03-html-practice-html-q15-add11dbc2a8d:option-2"
-        },
-        {
-          "text": "淋浴写1800偏低应改≥2000mm、盥洗漏写应补≥1200mm、其他250mm正确；三档补齐并注明迎水面设防潮/防水。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "逐档诊断+补写完整采分句，这就是「会写答案」。",
-          "option_id": "F03-html-practice-html-q15-add11dbc2a8d:option-3"
-        },
-        {
-          "text": "三档高度均偏小，淋浴应≥2500mm、盥洗应≥1500mm、其他应≥300mm，需全部上调。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "知道要改大，凭感觉把三档都往上抬。",
-          "loss_reason": "标准是2000/1200/250mm，随意上调成2500/1500/300数字全错。",
-          "fix": "淋浴≥2000、盥洗≥1200、其他≥250mm。",
-          "option_id": "F03-html-practice-html-q15-add11dbc2a8d:option-4"
-        }
-      ],
-      "model_answer": "淋浴区应≥2000mm(写1800偏低)、盥洗用水处漏写应补≥1200mm、其他泛水≥250mm正确；补写三档：淋浴≥2000、盥洗≥1200、其他≥250mm，迎水面设防潮/防水。",
-      "rule_group": "室内·翻起 · 诊断末题",
-      "content_sha256": "2d9ef4efd27b4d019e9edb8cf9664ff3d4d00e550efa4f21bdfdf89e3bdce312",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q15",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-indoor-waterproof-height",
-        "skeleton_id": "f03-skel-室内翻起三档诊断",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_133_0256:0",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "2d9ef4efd27b4d019e9edb8cf9664ff3d4d00e550efa4f21bdfdf89e3bdce312",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:02+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "室内防水翻起 淋浴区≥2000mm·盥洗用水处≥1200mm·其他泛水≥250mm, 教材 kc:1A413030_133_0256:0 直引; 诊断末题正确项=淋浴1800偏低改≥2000/盥洗补≥1200/其他250对。投影 anchor。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q16-6fe38b4dac44",
-      "surface_id": "practice.html",
-      "stem": "倒置式屋面中，防水层直接做在哪一层上面？它的上一层又是什么？",
-      "options": [
-        {
-          "text": "防水层做在保温层上面，其上直接为保护层，与正置式屋面的构造层序完全相同。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "正置式层序背熟了，顺手套上。",
-          "loss_reason": "这正是正置式——倒置式的保温层在防水层之上，不在其下。",
-          "fix": "倒置式：找平→防水→保温→保护。",
-          "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-1"
-        },
-        {
-          "text": "防水层直接做在结构层上面，先做防水再做找坡与找平，让防水层随板面铺贴平整。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "先把水挡住再做面层，听着稳妥。",
-          "loss_reason": "顺序颠倒——找坡、找平在防水之前，防水要做在找平层上。",
-          "fix": "结构层→找坡→找平之后才轮到防水层。",
-          "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-2"
-        },
-        {
-          "text": "防水层做在找平层上面；它的上一层是保温层，保温层之上再做保护层。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "找平托着防水、保温压着防水，相邻关系答准就得分。",
-          "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-3"
-        },
-        {
-          "text": "防水层做在找坡层上面、找平层下面，由找平层压住防水层并兼作保护层使用。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "找坡找平都是垫层，位置容易记混。",
-          "loss_reason": "找平层在防水层之下；保护层是最上面单独一层，不能由找平层兼任。",
-          "fix": "层序：找坡→找平→防水→保温→保护。",
-          "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-4"
-        }
-      ],
-      "model_answer": "防水层做在找平层上面（结构找坡后找平）；防水层之上是保温层，最上面做保护层。",
-      "rule_group": "屋面·倒置相邻层",
-      "content_sha256": "607dc13fba39d1810c24561720f06793bcbdb6d15940a82bb6f00e67d1cae517",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q16",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-inverted-roof-order",
-        "skeleton_id": "f03-skel-倒置式相邻层定位",
-        "probe_role": "d1_probe",
-        "source_anchor": "exam:2020:第12题",
-        "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "607dc13fba39d1810c24561720f06793bcbdb6d15940a82bb6f00e67d1cae517",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "routeB新产。防水层做在找平层上、其上为保温层,由2020真题B序①结构→④找坡→⑤找平→⑥防水→②保温→③保护逐位复算(⑤⑥相邻/⑥②相邻);干扰项正置层序(E07)/防水先于找坡找平(E06)/找平压防水兼保护(E06)方向无误。skeleton与q4(全序排序)/q5(概念辨析)互异=相邻层定位维。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q17-3e12f6a80877",
-      "surface_id": "practice.html",
-      "stem": "种植屋面的构造层次，自下而上排列正确的是哪一项？",
-      "options": [
-        {
-          "text": "基层→绝热层→找平层→耐根穿刺防水层→普通防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "两道防水挨着，先后容易记反。",
-          "loss_reason": "耐根穿刺防水层应在普通防水层之上，两道的上下位置排反了。",
-          "fix": "先普通防水层，再耐根穿刺防水层。",
-          "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-1"
-        },
-        {
-          "text": "基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "耐根穿刺在普通防水之上、保护层之下，十层链背顺就稳了。",
-          "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-2"
-        },
-        {
-          "text": "基层→找平层→绝热层→普通防水层→耐根穿刺防水层→保护层→过滤层→排（蓄）水层→种植土层→植被层。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "中段抢眼，两头的层容易松懈。",
-          "loss_reason": "绝热层应在找平层之下，过滤层应在排（蓄）水层之上，两处对调了。",
-          "fix": "绝热→找平在下段；排（蓄）水→过滤在上段。",
-          "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-3"
-        },
-        {
-          "text": "基层→绝热层→找平层→普通防水层→保护层→耐根穿刺防水层→排（蓄）水层→过滤层→种植土层→植被层。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "想让保护层先护住普通防水。",
-          "loss_reason": "耐根穿刺防水层应紧跟普通防水层之上，保护层再压其上。",
-          "fix": "普通防水→耐根穿刺→保护层。",
-          "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-4"
-        }
-      ],
-      "model_answer": "基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。",
-      "rule_group": "屋面·种植层序",
-      "content_sha256": "4bba63450eaf4b95b4e61ab8735872c64e258f38fc1437f11fe1336bc3948ba8",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q17",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-green-roof-layers",
-        "skeleton_id": "f03-skel-种植自下而上层序",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A413030_127_0240:1",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "4bba63450eaf4b95b4e61ab8735872c64e258f38fc1437f11fe1336bc3948ba8",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "routeB新产。十层链自下而上排序,教材层次卡逐字核对(基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层);三个E06干扰各对调一处(普通/耐根互换、绝热/找平互换+排蓄/过滤互换、保护层前移)逐位复算判错无误;四选项全为等长层序链,无长度/箭头tell。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "F03-html-practice-html-q18-f2b998771b44",
-      "surface_id": "practice.html",
-      "stem": "地下工程垂直施工缝的留设位置，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "垂直施工缝应避开地下水丰富的地段留设，并宜与变形缝相结合。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "避开富水地段+结合变形缝，两个关键词都落纸就得分。",
-          "option_id": "F03-html-practice-html-q18-f2b998771b44:option-1"
-        },
-        {
-          "text": "垂直施工缝宜留设在地下水丰富的地段，借助水压促使遇水膨胀止水条尽快膨胀密封。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "止水条遇水才膨胀，听着像该往水多处放。",
-          "loss_reason": "方向反了——垂直缝要避开富水地段，缝越少接触水越安全。",
-          "fix": "避开地下水丰富地段留设垂直缝。",
-          "option_id": "F03-html-practice-html-q18-f2b998771b44:option-2"
-        },
-        {
-          "text": "垂直施工缝应与变形缝相互错开布置，避免两种缝叠合削弱同一断面的防水能力。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「缝别扎堆」像是构造常识。",
-          "loss_reason": "规定恰是宜与变形缝相结合，借变形缝的止水构造一并设防。",
-          "fix": "垂直缝宜结合变形缝布置。",
-          "option_id": "F03-html-practice-html-q18-f2b998771b44:option-3"
-        },
-        {
-          "text": "垂直施工缝的位置不作专门限制，只要接缝的防水设防措施不少于2种即可满足要求。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "把设防种数当成万能兜底。",
-          "loss_reason": "2种是施工缝设防种数的规定，位置上仍要避开富水地段、宜结合变形缝。",
-          "fix": "位置与设防种数两条都要满足。",
-          "option_id": "F03-html-practice-html-q18-f2b998771b44:option-4"
-        }
-      ],
-      "model_answer": "垂直施工缝应避开地下水丰富的地段，并宜与变形缝相结合。",
-      "rule_group": "地下·垂直施工缝",
-      "content_sha256": "d47272c61326cbf6d101f6ef56198f8bcb2d8c9870f2dcf90417159b6a626f39",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q18",
-      "authoring_sha256": "ed3a1934293697a40b53f4cbcb53bdee7443959c23ac0b920e6e68e89acae2b6",
-      "decision": {
-        "fact_id": "f03-fact-underground-joint-waterproof",
-        "skeleton_id": "f03-skel-垂直缝避水结合变形缝",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A413030_131_0250:0",
-        "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "d47272c61326cbf6d101f6ef56198f8bcb2d8c9870f2dcf90417159b6a626f39",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "routeB新产。垂直施工缝避开地下水丰富地段+宜与变形缝相结合,教材同卡尾句逐字核对('垂直施工缝避开地下水丰富区,宜结合变形缝');干扰项留富水地段促膨胀(E10方向反)/与变形缝错开(E07与'宜结合'相反)/仅靠设防种数(E03混淆口径)判错无误。skeleton与q13(种数)/q14(水平缝数值)互异=垂直缝位置原则维。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "F03",
+ "source_pack_sha256": "12b0066ad4ed932dd0ccdebf292cafb5fa005970a9108b808d4bfed705ff12e7",
+ "source_bundle_sha256": "4501d04960506b6071c799e3873849d4575eafbb63312c48d94367923f6e3e56",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 18,
+ "eligible_count": 17,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "main-control adjudication 2026-07-21 (routeB-batch1 8-gap): 新变体逐题锚回编译源/真题原文逐字核对+方向复算(2020第12题①④⑤⑥②③层序逐位对照);同fact三件套skeleton互异断言;复合fact粒度按C01 post-cast-strip先例并在note声明边界;异源subagent对抗核验过闸后方发布。",
-    "campaign": "routeB-batch1 8-gap 2026-07-21",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "F03-html-practice-html-q1-a1e8c37d3095",
+   "surface_id": "practice.html",
+   "stem": "某工程屋面防水设计。关于屋面防水的分级与设防道数，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "屋面防水与地下工程采用相同分级，同样分一、二、三、四级共四级，并按四级分别对应各级的设防道数配置。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "屋面地下都叫防水，顺手记成同一套分级。",
+     "loss_reason": "屋面是三级、地下才四级，分级数记混，等级一错道数全跟着错。",
+     "fix": "屋面防水分三级；四级是地下工程防水等级。",
+     "option_id": "F03-html-practice-html-q1-a1e8c37d3095:option-1"
+    },
+    {
+     "text": "屋面防水分一、二、三级共三级；一级不少于3道(其中卷材≥1道)、二级不少于2道、三级不少于1道。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "分级数写「三级」并把各级道数配套点出，一句到位。",
+     "option_id": "F03-html-practice-html-q1-a1e8c37d3095:option-2"
+    },
+    {
+     "text": "屋面防水虽分为三级，但各级具体设防道数无须逐一记忆，只要答出分级即算完整。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "记住「三级」就以为够了，懒得背道数。",
+     "loss_reason": "漏了各级设防道数这组采分点，只答分级不给全分。",
+     "fix": "补写一级≥3道(卷材≥1道)、二级≥2道、三级≥1道。",
+     "option_id": "F03-html-practice-html-q1-a1e8c37d3095:option-3"
+    },
+    {
+     "text": "屋面防水分三级，其中一级不少于2道、二级不少于1道，卷材与涂料任选、不作配套要求。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "分级对，道数凭印象往小了写。",
+     "loss_reason": "一级道数写少、且漏了「卷材≥1道」这个关键配套，数字错位。",
+     "fix": "一级≥3道且卷材≥1道、二级≥2道、三级≥1道。",
+     "option_id": "F03-html-practice-html-q1-a1e8c37d3095:option-4"
+    }
+   ],
+   "model_answer": "屋面防水分一、二、三级共三级；一级不少于3道(卷材≥1道)、二级不少于2道(卷材≥1道)、三级不少于1道。",
+   "rule_group": "屋面·定级",
+   "content_sha256": "7f895e08eddb467d5fd73c3875fe9d7a811d5e5950ec7bce3ab59a08a7f364e3",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q1",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-roof-grade-tiers",
+    "skeleton_id": "f03-skel-屋面三级各级道数",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_122_0230:0",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "7f895e08eddb467d5fd73c3875fe9d7a811d5e5950ec7bce3ab59a08a7f364e3",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "平屋面防水分一/二/三级三级; 一级≥3道(卷材≥1道)·二级≥2道·三级≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。工单: 正确项恒非首位(选项2), template artifact 需全包扫。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q2-79c629fb1226",
+   "surface_id": "practice.html",
+   "stem": "某屋面防水等级为一级。关于其设防道数，选出完整、能得分的作答。",
+   "options": [
+    {
+     "text": "屋面一级防水做1道高性能卷材即可，材料性能足够时单道便能顶住、无须再叠加多道设防。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得材料够好、一道省事又省钱。",
+     "loss_reason": "一级要求≥3道，只写1道漏采分；单道被打穿水就进结构。",
+     "fix": "一级≥3道(卷材≥1道)，多道设防才容错。",
+     "option_id": "F03-html-practice-html-q2-79c629fb1226:option-1"
+    },
+    {
+     "text": "屋面一级防水不少于3道，三道如何搭配不限，涂料涂膜叠三层也可视为达标。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "记住「3道」就以为齐了。",
+     "loss_reason": "漏了「其中卷材≥1道」这一硬性配套，三道全涂膜不达标。",
+     "fix": "3道里必须至少1道是卷材防水层。",
+     "option_id": "F03-html-practice-html-q2-79c629fb1226:option-2"
+    },
+    {
+     "text": "屋面一级与地下一级要求一致，需防水混凝土1道加外设防水层2道共3道。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "都是「一级≥3道」，把地下的做法套到屋面。",
+     "loss_reason": "防水混凝土+外设是地下的构成，屋面不用结构自防水这套。",
+     "fix": "屋面一级=≥3道(卷材≥1道)；防水混凝土应选是地下的。",
+     "option_id": "F03-html-practice-html-q2-79c629fb1226:option-3"
+    },
+    {
+     "text": "屋面一级防水设防不少于3道，其中卷材防水层不少于1道，多道叠加、一道破了还有后手。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "道数+「卷材≥1道」配套+多道容错，采分句写全。",
+     "option_id": "F03-html-practice-html-q2-79c629fb1226:option-4"
+    }
+   ],
+   "model_answer": "屋面一级防水设防不少于3道，其中卷材防水层不少于1道；多道设防、一道破了后道兜底。",
+   "rule_group": "屋面·道数",
+   "content_sha256": "2880a8de34c372008e3f0abfde4298b081202ec76523ee641de8c18e1039d4f4",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q2",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-roof-level1-layers",
+    "skeleton_id": "f03-skel-屋面一级3道卷材1道",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_122_0230:0",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "2880a8de34c372008e3f0abfde4298b081202ec76523ee641de8c18e1039d4f4",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "屋面一级防水≥3道其中卷材防水层≥1道, 教材 kc:1A413030_122_0230:0 直引。投影 anchor。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q3-3ad2bfdbadc0",
+   "surface_id": "practice.html",
+   "stem": "关于屋面防水的基本要求，选出完整、能得分的作答。",
+   "options": [
+    {
+     "text": "屋面防水以排为主、以防为辅；设计工作年限不少于20年；天沟、泛水等部位加设附加层。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得屋面靠排水、「以排为主」顺口。",
+     "loss_reason": "原则写反了，屋面是「以防为主、以排为辅」，方针错要扣。",
+     "fix": "是以防为主、以排为辅，别把主辅颠倒。",
+     "option_id": "F03-html-practice-html-q3-3ad2bfdbadc0:option-1"
+    },
+    {
+     "text": "屋面防水以防为主、以排为辅；设计工作年限不少于20年；各薄弱部位构造做法相同、无须分别区别处理。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "原则年限都对，就漏了细部。",
+     "loss_reason": "漏了天沟/檐沟/变形缝/泛水设附加层这组采分点。",
+     "fix": "补写泛水等薄弱部位加设附加层。",
+     "option_id": "F03-html-practice-html-q3-3ad2bfdbadc0:option-2"
+    },
+    {
+     "text": "屋面防水以防为主、以排为辅；设计工作年限不少于10年；天沟、泛水等部位加设附加层。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "原则附加层都对，年限凭印象写10年。",
+     "loss_reason": "年限数字写小，屋面防水设计工作年限应≥20年。",
+     "fix": "设计工作年限不少于20年，不是10年。",
+     "option_id": "F03-html-practice-html-q3-3ad2bfdbadc0:option-3"
+    },
+    {
+     "text": "屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位加设附加层。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "排水原则+年限+附加层三件齐，采分句到位。",
+     "option_id": "F03-html-practice-html-q3-3ad2bfdbadc0:option-4"
+    }
+   ],
+   "model_answer": "屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位设附加层。",
+   "rule_group": "屋面·基本要求",
+   "content_sha256": "3dbb2c6101790ee4f0381a424f80e7001b0e69fe29e3e863a0ba99afeeaf7502",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q3",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-roof-basic-principle",
+    "skeleton_id": "f03-skel-屋面以防为主年限20附加层",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_122_0230:2",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "3dbb2c6101790ee4f0381a424f80e7001b0e69fe29e3e863a0ba99afeeaf7502",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "屋面防水以防为主以排为辅·设计年限≥20年·天沟檐沟变形缝泛水设附加层, 教材 kc:1A413030_122_0230:2 直引。投影 anchor。正确项(年限口径‘工作年限’与教材‘设计年限’同指20年)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q4-5436a7f644e1",
+   "surface_id": "practice.html",
+   "stem": "某工程屋面采用倒置式保温屋面。写出自下而上的构造层次顺序，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "自下而上：结构层→找坡层→找平层→防水层→保温层→保护层，保温层在防水层之上。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "层序对+点出「保温在防水之上」这一倒置式特征，采分句齐。",
+     "option_id": "F03-html-practice-html-q4-5436a7f644e1:option-1"
+    },
+    {
+     "text": "自下而上：结构层→找坡层→找平层→保温层→防水层→保护层，保温层在防水层之下。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "惯性按正置式排，保温先铺、防水后做。",
+     "loss_reason": "把保温写在防水之下＝正置式，倒置式层序整维错。",
+     "fix": "倒置式保温层在防水层之上，顺序是防水→保温→保护。",
+     "option_id": "F03-html-practice-html-q4-5436a7f644e1:option-2"
+    },
+    {
+     "text": "自下而上：结构层→防水层→保温层→保护层，找坡找平不属构造层可省略。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只记住防水保温保护几个大层。",
+     "loss_reason": "漏排找坡层、找平层两道过渡层，层次不全。",
+     "fix": "补齐结构→找坡→找平→防水→保温→保护。",
+     "option_id": "F03-html-practice-html-q4-5436a7f644e1:option-3"
+    },
+    {
+     "text": "自下而上：结构层→找平层→找坡层→防水层→保温层→保护层，先找平再找坡。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "找坡找平都做，顺手把两者调了个位。",
+     "loss_reason": "顺序反了，应先找坡再找平（口诀「结构找坡再找平」）。",
+     "fix": "是找坡层在下、找平层在上：结构→找坡→找平。",
+     "option_id": "F03-html-practice-html-q4-5436a7f644e1:option-4"
+    }
+   ],
+   "model_answer": "倒置式屋面自下而上：结构层→找坡层→找平层→防水层→保温层→保护层（保温层在防水层之上）。",
+   "rule_group": "屋面·层序",
+   "content_sha256": "ce4f456a0ffa68d9286adce4efae40f45705c99ee79031b94dc5b58340e0bd8e",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q4",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-inverted-roof-order",
+    "skeleton_id": "f03-skel-倒置式自下而上层序",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2020:第12题",
+    "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "ce4f456a0ffa68d9286adce4efae40f45705c99ee79031b94dc5b58340e0bd8e",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "倒置式屋面自下而上=结构层→找坡层→找平层→防水层→保温层→保护层, 真题 exam:2020:第12题 答案B(①④⑤⑥②③)+口诀‘结构找坡再找平,防水保温后保护’逐字支持。投影 anchor。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q5-3abeea20b534",
+   "surface_id": "practice.html",
+   "stem": "倒置式屋面与正置式屋面的关键区别在哪？选出准确、能得分的作答。",
+   "options": [
+    {
+     "text": "倒置式与正置式的区别在于有无找坡层，倒置式取消了找坡层、直接在找平层的表面上铺做防水层。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "记不清特征，抓个「少一层」当区别。",
+     "loss_reason": "两者都有找坡层，区别不在找坡；判别特征找错。",
+     "fix": "区别是保温层在防水层之上（倒置）还是之下（正置）。",
+     "option_id": "F03-html-practice-html-q5-3abeea20b534:option-1"
+    },
+    {
+     "text": "倒置式特征是保温层设在防水层之上，反过来正置式保温在防水之下；保温在上保护防水层、延寿。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点出唯一判别特征「保温相对防水的位置」，并说清好处。",
+     "option_id": "F03-html-practice-html-q5-3abeea20b534:option-2"
+    },
+    {
+     "text": "倒置式是将保护层置于最下、结构层置于最上，使整个构造层序完全上下颠倒。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "望文生义，以为「倒置」是整摞层序翻转。",
+     "loss_reason": "结构层始终在最下、保护层在最上，倒置只针对保温与防水的相对位置。",
+     "fix": "倒置只把保温层挪到防水层之上，其余不倒。",
+     "option_id": "F03-html-practice-html-q5-3abeea20b534:option-3"
+    },
+    {
+     "text": "倒置式与正置式的区别在于防水材料不同，倒置式必须采用耐根穿刺卷材防水。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把种植屋面的耐根穿刺硬套过来。",
+     "loss_reason": "倒置式区别在层位不在材料，耐根穿刺是种植屋面的层。",
+     "fix": "判别特征是保温在防水之上，与材料无关。",
+     "option_id": "F03-html-practice-html-q5-3abeea20b534:option-4"
+    }
+   ],
+   "model_answer": "倒置式的特征是保温层设在防水层之上（正置式保温在防水之下），保温层保护防水层、延长其寿命。",
+   "rule_group": "屋面·层序辨析",
+   "content_sha256": "7075c30605343381605933c9646e71a1511cbbda80c0b6307aefafe363a4946e",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q5",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-inverted-roof-order",
+    "skeleton_id": "f03-skel-倒置正置区别辨析",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "exam:2020:第12题",
+    "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "7075c30605343381605933c9646e71a1511cbbda80c0b6307aefafe363a4946e",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "倒置式=保温层在防水层之上,锚2020真题第12题(答案B=①④⑤⑥②③,防水⑥后保温②)方向复算一致;干扰项取消找坡(E07)/整体上下颠倒(E07)/材料区别耐根穿刺(E07,种植屋面层)判错无误。三件套:与q4(anchor,全层序)、新q16(d1,相邻层定位)同fact异骨架。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q6-f78fcfcf38b6",
+   "surface_id": "practice.html",
+   "stem": "关于屋面隔汽层的位置与构造，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "隔汽层设在防水层之上、保温层之上，将室内湿汽阻挡于最外层，并沿墙面向上高出保温层不少于150mm。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "觉得隔汽要挡在外面、往上放。",
+     "loss_reason": "位置错，隔汽层在结构层上、保温层下，不是放防水层上。",
+     "fix": "隔汽层在结构层之上、保温层之下。",
+     "option_id": "F03-html-practice-html-q6-f78fcfcf38b6:option-1"
+    },
+    {
+     "text": "隔汽层设在结构层之上、保温层之下，气密性好；沿墙面向上连续铺设、高出保温层不少于150mm。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "位置（结构上·保温下）+翻起150mm两个采分点都写到。",
+     "option_id": "F03-html-practice-html-q6-f78fcfcf38b6:option-2"
+    },
+    {
+     "text": "隔汽层设在结构层之上、保温层之下，气密性好，沿墙面铺至与保温层齐平即算到位。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "位置对，翻起高度凭印象写「齐平」。",
+     "loss_reason": "漏了」高出保温层≥150mm「这个数值采分点。",
+     "fix": "沿墙翻起要高出保温层不少于150mm。",
+     "option_id": "F03-html-practice-html-q6-f78fcfcf38b6:option-3"
+    },
+    {
+     "text": "隔汽层设在结构层之上、保温层之下，沿墙面向上翻起、高出保温层不少于50mm。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "位置对，把150记成了50。",
+     "loss_reason": "翻起高度数字写小，应≥150mm不是50mm。",
+     "fix": "高出保温层不少于150mm。",
+     "option_id": "F03-html-practice-html-q6-f78fcfcf38b6:option-4"
+    }
+   ],
+   "model_answer": "隔汽层设在结构层之上、保温层之下，气密性好；沿周边墙面向上连续铺设，高出保温层不少于150mm。",
+   "rule_group": "屋面·隔汽层",
+   "content_sha256": "ac1c5b6d3d2d7203901f48a52eb4960d58235fbec6e9bf414e39797536e8eaba",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q6",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "ac1c5b6d3d2d7203901f48a52eb4960d58235fbec6e9bf414e39797536e8eaba",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q7-3d905b13eef6",
+   "surface_id": "practice.html",
+   "stem": "种植屋面比普通屋面在构造上多了关键的一道防水层，是哪一道？选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "种植屋面在普通防水层之上多设一道耐根穿刺防水层，专防植物根系扎穿防水层。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点名「耐根穿刺防水层」并说清作用，采分到位。",
+     "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-1"
+    },
+    {
+     "text": "种植屋面比普通屋面多设一道保温隔热层，用于为植物根部保温、防止冬季冻害。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "想当然以为给植物就多保温。",
+     "loss_reason": "多的是耐根穿刺防水层，不是保温层；层的性质记错。",
+     "fix": "多的是耐根穿刺防水层，防根扎穿。",
+     "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-2"
+    },
+    {
+     "text": "种植屋面比普通屋面仅多设一道过滤层，防水层构造与普通屋面完全相同。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "看到「过滤层」这类新层就以为它是关键。",
+     "loss_reason": "漏了耐根穿刺防水层这道关键采分层，过滤层挡不住根。",
+     "fix": "关键是多一道耐根穿刺防水层。",
+     "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-3"
+    },
+    {
+     "text": "种植屋面将普通防水层替换为一道耐根穿刺层，二者属替换关系、总层数保持不变。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "以为耐根穿刺是替代普通防水。",
+     "loss_reason": "是」多加」一道、普通防水在下耐根穿刺在上，不是替换。",
+     "fix": "普通防水层保留，其上再加耐根穿刺防水层。",
+     "option_id": "F03-html-practice-html-q7-3d905b13eef6:option-4"
+    }
+   ],
+   "model_answer": "种植屋面在普通防水层之上多设一道耐根穿刺防水层，防止植物根系穿破防水层。",
+   "rule_group": "屋面·种植",
+   "content_sha256": "84fcf07dca3ab4c9ce6a49e0583d16a1510915fc2971eda522a5622da3970f68",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q7",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-green-roof-layers",
+    "skeleton_id": "f03-skel-多一道耐根穿刺辨析",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_127_0240:1",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "84fcf07dca3ab4c9ce6a49e0583d16a1510915fc2971eda522a5622da3970f68",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "新fact(种植屋面构造:层次链+耐根穿刺+数值)。种植屋面在普通防水层之上多一道耐根穿刺防水层,教材层次卡逐字核对(…普通防水层→耐根穿刺防水层→…,两道并存非替换);干扰项多保温层(E07)/仅过滤层(E02)/替换关系(E06)判错无误。可达性边界:本fact当前仅q7/q8/q17三件。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q8-b70e69ee0b83",
+   "surface_id": "practice.html",
+   "stem": "关于种植屋面耐根穿刺防水层厚度与排水坡度，选出数值正确、能得分的作答。",
+   "options": [
+    {
+     "text": "耐根穿刺各类材料厚度一律不少于1mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "坡度对，厚度嫌麻烦笼统写「≥1mm」。",
+     "loss_reason": "厚度按材料分档，改性沥青要≥4mm，一刀切1mm数值错。",
+     "fix": "改性沥青≥4mm、PVC等≥1.2mm、聚脲≥2mm。",
+     "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-1"
+    },
+    {
+     "text": "耐根穿刺改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面按≥1%控制、天沟檐沟≥1%。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "厚度对，坡度把2%记成1%。",
+     "loss_reason": "种植平屋面坡度应≥2%，写1%数值偏小。",
+     "fix": "种植平屋面≥2%、天沟檐沟≥1%。",
+     "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-2"
+    },
+    {
+     "text": "耐根穿刺厚度由现场确定、无统一硬性要求；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "坡度写对，厚度懒得记具体值。",
+     "loss_reason": "漏了耐根穿刺分材料的最小厚度这组采分数值。",
+     "fix": "补写各材料最小厚度4/1.2/2mm。",
+     "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-3"
+    },
+    {
+     "text": "耐根穿刺改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "厚度分材料写全、坡度两档写全，数值采分齐。",
+     "option_id": "F03-html-practice-html-q8-b70e69ee0b83:option-4"
+    }
+   ],
+   "model_answer": "耐根穿刺：改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
+   "rule_group": "屋面·种植数值",
+   "content_sha256": "f65262b43217d14efd4eea22b523a39a795f39b8c66fa3822658500b82c378eb",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q8",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-green-roof-layers",
+    "skeleton_id": "f03-skel-种植数值组合",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A413030_127_0240:0",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "f65262b43217d14efd4eea22b523a39a795f39b8c66fa3822658500b82c378eb",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "耐根穿刺厚度三档(改性沥青≥4mm/PVC-TPO等≥1.2mm/喷涂聚脲≥2mm)教材厚度卡逐字核对;排水坡度(平屋面≥2%/天沟檐沟≥1%)同chunk坡度卡(kc:0240:2)逐字核对,2024真题第3题(2%)同向印证;干扰项一律1mm(E03)/平屋面1%(E03)/厚度无要求(E02)复算无误。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q9-5b914e0773f1",
+   "surface_id": "practice.html",
+   "stem": "关于地下工程防水等级的分级，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "地下工程防水等级与屋面相同，同样分一、二、三级共三级，按三级分别选取相应设防做法。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把屋面三级顺手套到地下。",
+     "loss_reason": "地下是四级、屋面才三级，分级数记混、等级一错全错。",
+     "fix": "地下分四级；三级是屋面防水分级。",
+     "option_id": "F03-html-practice-html-q9-5b914e0773f1:option-1"
+    },
+    {
+     "text": "地下工程防水等级分一、二、三、四、五级共五级，级数越高对应要求越低。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "觉得地下更复杂，多补一级凑「五级」。",
+     "loss_reason": "地下只到四级，写五级分级数多了、数字错。",
+     "fix": "地下工程防水等级共四级，没有五级。",
+     "option_id": "F03-html-practice-html-q9-5b914e0773f1:option-2"
+    },
+    {
+     "text": "地下工程防水等级分一、二、三、四级共四级；屋面防水分三级，两者分级数不同不可互套。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "分级数「四级」写准，并点明与屋面三级的区分，防互套。",
+     "option_id": "F03-html-practice-html-q9-5b914e0773f1:option-3"
+    },
+    {
+     "text": "地下工程防水按有无渗水，仅分为合格与不合格两档，并不细分具体等级。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为渗漏就是「合格/不合格」二分。",
+     "loss_reason": "地下防水按渗漏程度分四级，不是两档。",
+     "fix": "分四级：一级不渗水到四级有漏点。",
+     "option_id": "F03-html-practice-html-q9-5b914e0773f1:option-4"
+    }
+   ],
+   "model_answer": "地下工程防水等级分一、二、三、四级共四级（屋面防水才分三级），分级数不同不可互套。",
+   "rule_group": "地下·定级",
+   "content_sha256": "317eaf971c316f2ca9aab12eeacabd685fee96139ee60c850eac519a346773a5",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q9",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-underground-structure-method",
+    "skeleton_id": "f03-skel-地下四级分级辨析",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "exam:2019:第12题",
+    "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "317eaf971c316f2ca9aab12eeacabd685fee96139ee60c850eac519a346773a5",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "地下工程防水等级四级(屋面三级),2019真题C+GB50108四级定义逐字核对;同判分眼(地下防水设防)的入门辨析,加深surface fact确认池。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q10-2d6fe403e5c8",
+   "surface_id": "practice.html",
+   "stem": "某地下工程防水等级为一级。关于其防水做法与抗渗，选出完整、能得分的作答。",
+   "options": [
+    {
+     "text": "地下一级防水仅做防水混凝土一道，结构自防水抗渗达P8后便无须再外加防水层。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得防水混凝土P8已很强、省去外设。",
+     "loss_reason": "一级要≥3道，漏了外设防水层≥2道这组采分，只1道不达标。",
+     "fix": "防水混凝土1道＋外设≥2道，共≥3道。",
+     "option_id": "F03-html-practice-html-q10-2d6fe403e5c8:option-1"
+    },
+    {
+     "text": "地下一级防水不少于3道＝防水混凝土1道(应选)＋外设防水层≥2道(卷材或涂料≥1道)，抗渗不低于P8。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "防水混凝土应选＋外设≥2道＋P8，三件配套写全。",
+     "option_id": "F03-html-practice-html-q10-2d6fe403e5c8:option-2"
+    },
+    {
+     "text": "地下一级防水不少于3道＝外设防水层3道，防水混凝土不作要求、抗渗到P8亦可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "记得「3道」和「P8」，把混凝土漏了。",
+     "loss_reason": "漏了」防水混凝土1道应选」这个必选采分项。",
+     "fix": "3道里防水混凝土是应选的1道。",
+     "option_id": "F03-html-practice-html-q10-2d6fe403e5c8:option-3"
+    },
+    {
+     "text": "地下一级防水不少于3道＝防水混凝土1道(应选)＋外设防水层≥2道(卷材或涂料≥1道)，抗渗仅需不低于P6。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "道数配套都对，抗渗把P8记成P6。",
+     "loss_reason": "一级抗渗应≥P8，写P6数字偏低（P6是三级）。",
+     "fix": "一级抗渗不低于P8。",
+     "option_id": "F03-html-practice-html-q10-2d6fe403e5c8:option-4"
+    }
+   ],
+   "model_answer": "地下一级防水做法不少于3道＝防水混凝土1道(应选)＋外设防水层不少于2道(卷材或涂料≥1道)，抗渗不低于P8。",
+   "rule_group": "地下·一级做法",
+   "content_sha256": "1da9857f9c71dc3931bb7dd0764a34c1f0b4994eff91383fae830b9c3c61839d",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q10",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-underground-structure-method",
+    "skeleton_id": "f03-skel-地下一级3道P8",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_130_0247:0",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "1da9857f9c71dc3931bb7dd0764a34c1f0b4994eff91383fae830b9c3c61839d",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "地下一级防水≥3道·防水混凝土1道应选·外设≥2道(卷材或涂料≥1道)·抗渗≥P8, 教材 kc:1A413030_130_0247:0 直引。三件套 anchor(地下主体结构防水做法 fact)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q11-defc7bbb052d",
+   "surface_id": "practice.html",
+   "stem": "某地下工程防水等级为三级。关于其防水做法与抗渗，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "地下三级防水同样要求不少于3道、外设防水层≥2道、抗渗P8，与一级要求完全相同。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把一级那套硬性要求套到三级。",
+     "loss_reason": "三级只需≥1道、抗渗P6，写成一级要求过度设防、口径错。",
+     "fix": "三级≥1道、P6、外设不作要求。",
+     "option_id": "F03-html-practice-html-q11-defc7bbb052d:option-1"
+    },
+    {
+     "text": "地下三级防水不少于1道，外设防水层不作要求，抗渗则不低于P8。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "道数对，抗渗顺手写成P8。",
+     "loss_reason": "三级抗渗应≥P6，P8是一级的数值，数字错位。",
+     "fix": "三级抗渗不低于P6。",
+     "option_id": "F03-html-practice-html-q11-defc7bbb052d:option-2"
+    },
+    {
+     "text": "地下三级防水不少于1道、防水混凝土1道应选，外设防水层不作要求，抗渗不低于P6。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "道数、外设不作要求、抗渗P6三点写准，与一级区分清。",
+     "option_id": "F03-html-practice-html-q11-defc7bbb052d:option-3"
+    },
+    {
+     "text": "地下三级防水不少于1道，防水混凝土可设可不设、抗渗亦不作要求。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得三级最松、什么都不作要求。",
+     "loss_reason": "漏了防水混凝土1道应选、抗渗≥P6这两个采分点。",
+     "fix": "防水混凝土仍应选1道、抗渗仍≥P6。",
+     "option_id": "F03-html-practice-html-q11-defc7bbb052d:option-4"
+    }
+   ],
+   "model_answer": "地下三级防水做法不少于1道，防水混凝土1道(应选)，外设防水层不作要求，抗渗不低于P6。",
+   "rule_group": "地下·三级",
+   "content_sha256": "72e61afae0f9e74d6187833dba00a034ba3a6c1c40025e0648d04b6134f6b361",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q11",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-underground-structure-method",
+    "skeleton_id": "f03-skel-地下三级1道P6",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A413030_130_0247:1",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "72e61afae0f9e74d6187833dba00a034ba3a6c1c40025e0648d04b6134f6b361",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "地下三级防水≥1道·防水混凝土1道应选·外设不作要求·抗渗≥P6, 教材 kc:1A413030_130_0247:1 直引。三件套 immediate_confirm(同地下主体结构防水做法 fact, skeleton 异于 q10)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q12-6dd197458378",
+   "surface_id": "practice.html",
+   "stem": "某地下防水混凝土设计抗渗等级P8。关于试配抗渗的取值，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "防水混凝土试配抗渗比设计提高0.2MPa，设计P8则试配配到P10，预留施工离散富余。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点出「试配比设计提高0.2MPa」并给出P8→P10，采分到位。",
+     "option_id": "F03-html-practice-html-q12-6dd197458378:option-1"
+    },
+    {
+     "text": "防水混凝土试配抗渗直接按设计值选取，设计P8时试配也配到P8、二者取值保持一致、无须再另行提高。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得试配＝设计、按设计值配最省事。",
+     "loss_reason": "试配要比设计提高0.2MPa，直接按P8配现场实测易低于设计。",
+     "fix": "试配比设计提高0.2MPa，P8配到P10。",
+     "option_id": "F03-html-practice-html-q12-6dd197458378:option-2"
+    },
+    {
+     "text": "防水混凝土试配抗渗比设计提高0.2MPa，设计P8时则将试配配到P9。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "知道要提高，把一个抗渗等级差算成0.1MPa。",
+     "loss_reason": "一个抗渗等级是0.2MPa，P8提0.2应到P10不是P9。",
+     "fix": "提高0.2MPa即提高一个等级，P8→P10。",
+     "option_id": "F03-html-practice-html-q12-6dd197458378:option-3"
+    },
+    {
+     "text": "防水混凝土试配抗渗比设计降低0.2MPa，设计P8时试配取P6以便于施工。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为放宽试配好施工。",
+     "loss_reason": "方向反了，试配要比设计」提高」不是降低，降低会不达标。",
+     "fix": "是提高0.2MPa，P8→P10。",
+     "option_id": "F03-html-practice-html-q12-6dd197458378:option-4"
+    }
+   ],
+   "model_answer": "防水混凝土试配抗渗比设计提高0.2MPa，即设计P8时试配配到P10，以预留施工离散的富余。",
+   "rule_group": "地下·结构自防水",
+   "content_sha256": "e750dfc4589ac88c0a71d258f035d4a58cc9cf450975841ac26c0bc14e8240e3",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q12",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-underground-structure-method",
+    "skeleton_id": "f03-skel-防水混凝土试配P8到P10",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A413030_130_0249:0",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "e750dfc4589ac88c0a71d258f035d4a58cc9cf450975841ac26c0bc14e8240e3",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "防水混凝土试配抗渗比设计提高0.2MPa(设计P8则试配P10), 教材 kc:1A413030_130_0249:0 直引。三件套 d1_probe(同 fact 之防水混凝土自防水采分点, 第3独立 skeleton)。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q13-0e5175afc021",
+   "surface_id": "practice.html",
+   "stem": "关于地下工程施工缝、后浇带的防水设防种数，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "施工缝防水设防不少于2种、后浇带不少于1种，中埋止水带、遇水膨胀止水条、外贴卷材等搭配互相兜底。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "两种缝的种数分别写准，并举出有效措施，采分齐。",
+     "option_id": "F03-html-practice-html-q13-0e5175afc021:option-1"
+    },
+    {
+     "text": "施工缝、后浇带均只需设1种防水措施，选用一种可靠的止水带即可满足要求。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "觉得一种可靠措施就够。",
+     "loss_reason": "施工缝要≥2种，写1种数字不足；单措施失效即漏。",
+     "fix": "施工缝≥2种、后浇带≥1种。",
+     "option_id": "F03-html-practice-html-q13-0e5175afc021:option-2"
+    },
+    {
+     "text": "施工缝防水设防不少于1种、后浇带不少于2种，因后浇带更为薄弱故需多设。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得后浇带更弱，把两者种数记反。",
+     "loss_reason": "是施工缝≥2种、后浇带≥1种，两者种数记反了。",
+     "fix": "施工缝2种、后浇带1种，别调换。",
+     "option_id": "F03-html-practice-html-q13-0e5175afc021:option-3"
+    },
+    {
+     "text": "施工缝防水设防不少于2种；后浇带仅以补偿收缩混凝土浇筑密实即可、无须再另行增设任何专门止水措施。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "施工缝对，觉得后浇带浇实就行。",
+     "loss_reason": "漏了后浇带仍需≥1种防水设防这个采分点。",
+     "fix": "后浇带也要≥1种防水设防措施。",
+     "option_id": "F03-html-practice-html-q13-0e5175afc021:option-4"
+    }
+   ],
+   "model_answer": "施工缝防水设防不少于2种、后浇带防水设防不少于1种（中埋止水带、遇水膨胀止水条、注浆管、外贴卷材等搭配）。",
+   "rule_group": "地下·接缝",
+   "content_sha256": "4f3efcf3c5a350590caa335e4d7b1ce01f960d5e35ed77c4609d7cf91ed59392",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q13",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-underground-joint-waterproof",
+    "skeleton_id": "f03-skel-接缝设防种数",
+    "probe_role": "anchor",
+    "source_anchor": "ca:1A413030_130_0248",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "4f3efcf3c5a350590caa335e4d7b1ce01f960d5e35ed77c4609d7cf91ed59392",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "新复合fact(地下工程接缝防水:设防种数+施工缝设置+止水条性能,粒度按C01 post-cast-strip先例)。施工缝设防≥2种/后浇带≥1种,锚明挖法接缝设防卡(grading_keywords=不应少于2种,中埋式中孔型橡胶止水带,遇水膨胀止水条,预埋注浆管)+kc:0248:0/0248:1逐字核对;干扰项均1种(E03)/种数记反(E07)/后浇带免设防(E02)复算无误。可达性边界:本fact当前仅q13/q14/q18三件。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q14-b00ccaf8e453",
+   "surface_id": "practice.html",
+   "stem": "关于地下水平施工缝的设置与遇水膨胀止水条性能，选出数值正确、能得分的作答。",
+   "options": [
+    {
+     "text": "水平施工缝直接留设于底板表面处以便支模，遇水膨胀止水条最终膨胀率不低于220%。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "觉得缝留底板面好支模、好施工。",
+     "loss_reason": "缝留底板面正处积水区易漏，应高出底板≥300mm。",
+     "fix": "水平施工缝高出底板不少于300mm。",
+     "option_id": "F03-html-practice-html-q14-b00ccaf8e453:option-1"
+    },
+    {
+     "text": "水平施工缝高出底板不少于100mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "止水条对，缝高把300记成100。",
+     "loss_reason": "高出底板应≥300mm，写100mm数字偏小。",
+     "fix": "高出底板不少于300mm。",
+     "option_id": "F03-html-practice-html-q14-b00ccaf8e453:option-2"
+    },
+    {
+     "text": "水平施工缝应高出底板不少于300mm、并且距孔洞边缘也不少于300mm；遇水膨胀止水条的最终膨胀率不低于60%。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "把7d净膨胀率≤60%当成了最终膨胀率。",
+     "loss_reason": "60%是7d净膨胀率的上限，最终膨胀率应≥220%，两个指标混了。",
+     "fix": "最终膨胀率不低于220%（7d净膨胀率≤60%最终）。",
+     "option_id": "F03-html-practice-html-q14-b00ccaf8e453:option-3"
+    },
+    {
+     "text": "水平施工缝高出底板不少于300mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "缝位300mm与止水条220%两个数值都写全。",
+     "option_id": "F03-html-practice-html-q14-b00ccaf8e453:option-4"
+    }
+   ],
+   "model_answer": "水平施工缝高出底板不少于300mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。",
+   "rule_group": "地下·施工缝位置",
+   "content_sha256": "ec1b636ce2ef103e657b4bdd585cc17172c99319dd5c0272448cb3f0d8f427d7",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q14",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-underground-joint-waterproof",
+    "skeleton_id": "f03-skel-水平缝位置止水条数值",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "ca:1A413030_131_0250",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "ec1b636ce2ef103e657b4bdd585cc17172c99319dd5c0272448cb3f0d8f427d7",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "水平施工缝高出底板≥300mm/距孔洞边缘≥300mm(kc:0250:0逐字)+遇水膨胀止水条最终膨胀率≥220%(kc:0250:1逐字,60%为7d净膨胀率上限指标,干扰项两指标互混判错正确);锚施工缝设置卡(grading_keywords=300mm,遇水膨胀止水条,220%)。干扰项留底板面(E10)/100mm(E03)复算无误。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q15-add11dbc2a8d",
+   "surface_id": "practice.html",
+   "stem": "某学生答室内防水翻起高度：①淋浴区墙面翻起1800mm；②盥洗用水处未写；③其他泛水部位250mm。选出最准确的诊断与采分句补写。",
+   "options": [
+    {
+     "text": "三档中其他泛水250mm正确、淋浴1800mm亦在合理范围，仅需将盥洗用水处补写为1200mm。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "只抓到漏写那档，放过了写小的淋浴。",
+     "loss_reason": "淋浴区应≥2000mm，1800偏低仍要扣，不能只补盥洗。",
+     "fix": "淋浴改≥2000、盥洗补≥1200、其他≥250mm。",
+     "option_id": "F03-html-practice-html-q15-add11dbc2a8d:option-1"
+    },
+    {
+     "text": "淋浴区翻起1800mm即可视为达标、盥洗用水处直接并入其他泛水250mm一并归档处理、无须再单独单列出1200mm一档。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把盥洗并进「其他泛水」少记一档。",
+     "loss_reason": "盥洗用水处是单独一档≥1200mm，并进250mm整档记错。",
+     "fix": "盥洗用水处单列≥1200mm，别并入250mm。",
+     "option_id": "F03-html-practice-html-q15-add11dbc2a8d:option-2"
+    },
+    {
+     "text": "淋浴写1800偏低应改≥2000mm、盥洗漏写应补≥1200mm、其他250mm正确；三档补齐并注明迎水面设防潮/防水。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "逐档诊断+补写完整采分句，这就是「会写答案」。",
+     "option_id": "F03-html-practice-html-q15-add11dbc2a8d:option-3"
+    },
+    {
+     "text": "三档高度均偏小，淋浴应≥2500mm、盥洗应≥1500mm、其他应≥300mm，需全部上调。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "知道要改大，凭感觉把三档都往上抬。",
+     "loss_reason": "标准是2000/1200/250mm，随意上调成2500/1500/300数字全错。",
+     "fix": "淋浴≥2000、盥洗≥1200、其他≥250mm。",
+     "option_id": "F03-html-practice-html-q15-add11dbc2a8d:option-4"
+    }
+   ],
+   "model_answer": "淋浴区应≥2000mm(写1800偏低)、盥洗用水处漏写应补≥1200mm、其他泛水≥250mm正确；补写三档：淋浴≥2000、盥洗≥1200、其他≥250mm，迎水面设防潮/防水。",
+   "rule_group": "室内·翻起 · 诊断末题",
+   "content_sha256": "ad68e77f09ddd3300cdcc45457a837520b0252ee335a4f8e2f346b01e65d744d",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q15",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-indoor-waterproof-height",
+    "skeleton_id": "f03-skel-室内翻起三档诊断",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_133_0256:0",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "ad68e77f09ddd3300cdcc45457a837520b0252ee335a4f8e2f346b01e65d744d",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "室内防水翻起 淋浴区≥2000mm·盥洗用水处≥1200mm·其他泛水≥250mm, 教材 kc:1A413030_133_0256:0 直引; 诊断末题正确项=淋浴1800偏低改≥2000/盥洗补≥1200/其他250对。投影 anchor。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q16-6fe38b4dac44",
+   "surface_id": "practice.html",
+   "stem": "倒置式屋面中，防水层直接做在哪一层上面？它的上一层又是什么？",
+   "options": [
+    {
+     "text": "防水层做在保温层上面，其上直接为保护层，与正置式屋面的构造层序完全相同。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "正置式层序背熟了，顺手套上。",
+     "loss_reason": "这正是正置式——倒置式的保温层在防水层之上，不在其下。",
+     "fix": "倒置式：找平→防水→保温→保护。",
+     "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-1"
+    },
+    {
+     "text": "防水层直接做在结构层上面，先做防水再做找坡与找平，让防水层随板面铺贴平整。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "先把水挡住再做面层，听着稳妥。",
+     "loss_reason": "顺序颠倒——找坡、找平在防水之前，防水要做在找平层上。",
+     "fix": "结构层→找坡→找平之后才轮到防水层。",
+     "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-2"
+    },
+    {
+     "text": "防水层做在找平层上面；它的上一层是保温层，保温层之上再做保护层。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "找平托着防水、保温压着防水，相邻关系答准就得分。",
+     "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-3"
+    },
+    {
+     "text": "防水层做在找坡层上面、找平层下面，由找平层压住防水层并兼作保护层使用。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "找坡找平都是垫层，位置容易记混。",
+     "loss_reason": "找平层在防水层之下；保护层是最上面单独一层，不能由找平层兼任。",
+     "fix": "层序：找坡→找平→防水→保温→保护。",
+     "option_id": "F03-html-practice-html-q16-6fe38b4dac44:option-4"
+    }
+   ],
+   "model_answer": "防水层做在找平层上面（结构找坡后找平）；防水层之上是保温层，最上面做保护层。",
+   "rule_group": "屋面·倒置相邻层",
+   "content_sha256": "89369bd6e3b7b31e9d8ba00cc1339a769142459234b56390b7578aa45557de58",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q16",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-inverted-roof-order",
+    "skeleton_id": "f03-skel-倒置式相邻层定位",
+    "probe_role": "d1_probe",
+    "source_anchor": "exam:2020:第12题",
+    "source_sha256": "f3c61afc73c278090f702ab5471fe3fa11a504b1ee75410d04513b0da74dab02",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "89369bd6e3b7b31e9d8ba00cc1339a769142459234b56390b7578aa45557de58",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "routeB新产。防水层做在找平层上、其上为保温层,由2020真题B序①结构→④找坡→⑤找平→⑥防水→②保温→③保护逐位复算(⑤⑥相邻/⑥②相邻);干扰项正置层序(E07)/防水先于找坡找平(E06)/找平压防水兼保护(E06)方向无误。skeleton与q4(全序排序)/q5(概念辨析)互异=相邻层定位维。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q17-3e12f6a80877",
+   "surface_id": "practice.html",
+   "stem": "种植屋面的构造层次，自下而上排列正确的是哪一项？",
+   "options": [
+    {
+     "text": "基层→绝热层→找平层→耐根穿刺防水层→普通防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "两道防水挨着，先后容易记反。",
+     "loss_reason": "耐根穿刺防水层应在普通防水层之上，两道的上下位置排反了。",
+     "fix": "先普通防水层，再耐根穿刺防水层。",
+     "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-1"
+    },
+    {
+     "text": "基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "耐根穿刺在普通防水之上、保护层之下，十层链背顺就稳了。",
+     "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-2"
+    },
+    {
+     "text": "基层→找平层→绝热层→普通防水层→耐根穿刺防水层→保护层→过滤层→排（蓄）水层→种植土层→植被层。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "中段抢眼，两头的层容易松懈。",
+     "loss_reason": "绝热层应在找平层之下，过滤层应在排（蓄）水层之上，两处对调了。",
+     "fix": "绝热→找平在下段；排（蓄）水→过滤在上段。",
+     "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-3"
+    },
+    {
+     "text": "基层→绝热层→找平层→普通防水层→保护层→耐根穿刺防水层→排（蓄）水层→过滤层→种植土层→植被层。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "想让保护层先护住普通防水。",
+     "loss_reason": "耐根穿刺防水层应紧跟普通防水层之上，保护层再压其上。",
+     "fix": "普通防水→耐根穿刺→保护层。",
+     "option_id": "F03-html-practice-html-q17-3e12f6a80877:option-4"
+    }
+   ],
+   "model_answer": "基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排（蓄）水层→过滤层→种植土层→植被层。",
+   "rule_group": "屋面·种植层序",
+   "content_sha256": "55baaca49316699f8913a65292e4497b7d7997ffef02cac9685eaa97087f62b9",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q17",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-green-roof-layers",
+    "skeleton_id": "f03-skel-种植自下而上层序",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A413030_127_0240:1",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "55baaca49316699f8913a65292e4497b7d7997ffef02cac9685eaa97087f62b9",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "routeB新产。十层链自下而上排序,教材层次卡逐字核对(基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层);三个E06干扰各对调一处(普通/耐根互换、绝热/找平互换+排蓄/过滤互换、保护层前移)逐位复算判错无误;四选项全为等长层序链,无长度/箭头tell。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "F03-html-practice-html-q18-f2b998771b44",
+   "surface_id": "practice.html",
+   "stem": "地下工程垂直施工缝的留设位置，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "垂直施工缝应避开地下水丰富的地段留设，并宜与变形缝相结合。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "避开富水地段+结合变形缝，两个关键词都落纸就得分。",
+     "option_id": "F03-html-practice-html-q18-f2b998771b44:option-1"
+    },
+    {
+     "text": "垂直施工缝宜留设在地下水丰富的地段，借助水压促使遇水膨胀止水条尽快膨胀密封。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "止水条遇水才膨胀，听着像该往水多处放。",
+     "loss_reason": "方向反了——垂直缝要避开富水地段，缝越少接触水越安全。",
+     "fix": "避开地下水丰富地段留设垂直缝。",
+     "option_id": "F03-html-practice-html-q18-f2b998771b44:option-2"
+    },
+    {
+     "text": "垂直施工缝应与变形缝相互错开布置，避免两种缝叠合削弱同一断面的防水能力。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「缝别扎堆」像是构造常识。",
+     "loss_reason": "规定恰是宜与变形缝相结合，借变形缝的止水构造一并设防。",
+     "fix": "垂直缝宜结合变形缝布置。",
+     "option_id": "F03-html-practice-html-q18-f2b998771b44:option-3"
+    },
+    {
+     "text": "垂直施工缝的位置不作专门限制，只要接缝的防水设防措施不少于2种即可满足要求。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "把设防种数当成万能兜底。",
+     "loss_reason": "2种是施工缝设防种数的规定，位置上仍要避开富水地段、宜结合变形缝。",
+     "fix": "位置与设防种数两条都要满足。",
+     "option_id": "F03-html-practice-html-q18-f2b998771b44:option-4"
+    }
+   ],
+   "model_answer": "垂直施工缝应避开地下水丰富的地段，并宜与变形缝相结合。",
+   "rule_group": "地下·垂直施工缝",
+   "content_sha256": "860da1e1bb5a9623212acf1858df9b827b537f4cc0a99c3499728c2435630f70",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F03/P40_F03.practice.dc.html#Q18",
+   "authoring_sha256": "3d4aaa5e9772a1d5dd4ef8887adaa2d7ed6f06f9bafd49ffdba2d7835bc9266f",
+   "decision": {
+    "fact_id": "f03-fact-underground-joint-waterproof",
+    "skeleton_id": "f03-skel-垂直缝避水结合变形缝",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A413030_131_0250:0",
+    "source_sha256": "22d00346c61a509b36314facada343dfede136c4084acfeae1dafc83dba80207",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "860da1e1bb5a9623212acf1858df9b827b537f4cc0a99c3499728c2435630f70",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "routeB新产。垂直施工缝避开地下水丰富地段+宜与变形缝相结合,教材同卡尾句逐字核对('垂直施工缝避开地下水丰富区,宜结合变形缝');干扰项留富水地段促膨胀(E10方向反)/与变形缝错开(E07与'宜结合'相反)/仅靠设防种数(E03混淆口径)判错无误。skeleton与q13(种数)/q14(水平缝数值)互异=垂直缝位置原则维。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "C05",
   "source_pack_sha256": "48ab7ee6eef1a5f9170f8e4ab40d87259c0899f95df8c0d2f1b77bee6ebb5734",
-  "source_bundle_sha256": "b3da6dceb3b45cbefa1aa8e6af5657c01f6ea20d6ebd11d8cf0aa3dfd0ce2e63",
+  "source_bundle_sha256": "4cd55c099d612529a4c5b7c254693515eecb9e7aaaa04343b89ea3ebae9ea5f2",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -33,8 +33,8 @@
         "C05-html-practice-html-q7-479126da25f0",
         "C05-html-practice-html-q15-a25ea0fb11d3"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTViY2E1ODk5ZDAxIiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00ZTA5YmI0YWRlZTgiLCJDMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLTBjMjYyMmE3YzY1YyIsIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtODU4ZTQ5OWY1ZTc0IiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYTI1ZWEwZmIxMWQzIl0sInBhY2tfaWQiOiJDMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBlZTEwZDRlZmNmYTk5MjQwMmJmM2RjYzU2Y2QzZDAwYTJmYTJjY2U3M2EwZTZiNjVmY2NkODlhMmQzNzcyZjkiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMGIwOTM5MzExODg5ODNiYjlkYWY1ZTUyOTcyMGEyZTg4MWY2YzMzOTJhYjlhMzBlY2I4Mzg4OGFlNWIwYjYxYyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "860ab5f3f9956185f754b972322d4c950f41660ed51e2187adb50190bed65238"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTViY2E1ODk5ZDAxIiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi00ZTA5YmI0YWRlZTgiLCJDMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLTBjMjYyMmE3YzY1YyIsIkMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtODU4ZTQ5OWY1ZTc0IiwiQzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYTI1ZWEwZmIxMWQzIl0sInBhY2tfaWQiOiJDMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjBhMjllNTQwMzYyYzNiYzZlN2M4MmVkZGFhZTY0YzQxN2Q1MjkzY2Y4MDg0YmM5YzQxMjY2ODVkNDZlY2E5NDUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMGIwOTM5MzExODg5ODNiYjlkYWY1ZTUyOTcyMGEyZTg4MWY2YzMzOTJhYjlhMzBlY2I4Mzg4OGFlNWIwYjYxYyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "e71b0db33fe48b0a65a8b8b69578b65ea142a90d4e44743376a018073c7b59c7"
     }
   ],
   "items": [
@@ -89,27 +89,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q1",
       "source_anchor": "kc:1A413030_100_0190:0",
       "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "c05-fact-connection-methods",
       "skeleton_id": "c05-skel-连接方法三类枚举",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b92fb42a9787aedc6fc32bf4dfa3273b4a6fbde1a233c2007aba85e870d1e041",
+      "content_sha256": "188da002064b876a1bc922d25b69ee808759ee6d69e545566cada556b3aee9f9",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b92fb42a9787aedc6fc32bf4dfa3273b4a6fbde1a233c2007aba85e870d1e041",
+        "reviewed_content_sha256": "188da002064b876a1bc922d25b69ee808759ee6d69e545566cada556b3aee9f9",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "钢筋连接方法=焊接/机械连接/绑扎连接三种, 机械连接以剥肋滚压直螺纹套筒最常用, 教材 kc:...100_0190:0 直引。工单: 正确项唯一最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "钢筋连接方法=焊接/机械连接/绑扎连接三种, 机械连接以剥肋滚压直螺纹套筒最常用, 教材 kc:...100_0190:0 直引。工单: 正确项唯一最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -421,27 +421,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q2",
       "source_anchor": "exam:2022:第14题",
       "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "c05-fact-lap-splice-selection",
       "skeleton_id": "c05-skel-绑扎搭接直径判别",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d5b3c63bfd487276d4d97273738fc101d5175d0cd5769f5b8d9c86a93d7cc514",
+      "content_sha256": "27782a89f872e24f5cdba5de2661ae93c2bb61f9db5c608d83b8f2c1e0ff3cc1",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "d5b3c63bfd487276d4d97273738fc101d5175d0cd5769f5b8d9c86a93d7cc514",
+        "reviewed_content_sha256": "27782a89f872e24f5cdba5de2661ae93c2bb61f9db5c608d83b8f2c1e0ff3cc1",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -451,7 +451,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "受压Φ25宜绑扎、受拉Φ28/桁架拉杆/行车梁不宜绑扎, 真题 exam:2022:第14题 逐字一致(答案B)。工单: 尾句‘应机械连接’较真题‘不宜绑扎’偏强(焊接亦可), 作为单选仍是唯一正确项; longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "受压Φ25宜绑扎、受拉Φ28/桁架拉杆/行车梁不宜绑扎, 真题 exam:2022:第14题 逐字一致(答案B)。工单: 尾句‘应机械连接’较真题‘不宜绑扎’偏强(焊接亦可), 作为单选仍是唯一正确项; longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -668,27 +668,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q3",
       "source_anchor": "exam:2019:第8题",
       "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "c05-fact-dynamic-load-mechanical",
       "skeleton_id": "c05-skel-动力荷载优先机械连接",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "256658ea306884727a74112a6592270c9e7c646f848e395bf242616f610510bc",
+      "content_sha256": "c281ff044f86f635b96a5ba01ec9c1bf950459e283e7934293f4af2824428ef6",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "256658ea306884727a74112a6592270c9e7c646f848e395bf242616f610510bc",
+        "reviewed_content_sha256": "c281ff044f86f635b96a5ba01ec9c1bf950459e283e7934293f4af2824428ef6",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -698,7 +698,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "直接承受动力荷载Φ20纵筋宜优先机械连接(直螺纹套筒), 不宜焊接, 真题 exam:2019:第8题 逐字支持(答案B)。工单: 干扰项机制化解释可收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "直接承受动力荷载Φ20纵筋宜优先机械连接(直螺纹套筒), 不宜焊接, 真题 exam:2019:第8题 逐字支持(答案B)。工单: 干扰项机制化解释可收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -898,27 +898,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q4",
       "source_anchor": "exam:2023:第1题",
       "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "c05-fact-rebar-splice-layout",
       "skeleton_id": "c05-skel-接头面积百分率50",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0438404a73e82e8d35258777d053992425a25441f1702f86807a97853b2f6c52",
+      "content_sha256": "fd3762734d2464a77a0164b6726eaf21ddf6c17dead9bc848807f81ed0e0b6af",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "0438404a73e82e8d35258777d053992425a25441f1702f86807a97853b2f6c52",
+        "reviewed_content_sha256": "fd3762734d2464a77a0164b6726eaf21ddf6c17dead9bc848807f81ed0e0b6af",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -928,7 +928,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "直接承受动力荷载机械连接接头面积百分率不应超过50%, 真题 exam:2023:第1题 逐字(‘不应超过50%’, 受压接头不受限)。三联 anchor(钢筋接头构造要求 fact)。Codex severity=none, 本包最干净题。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "直接承受动力荷载机械连接接头面积百分率不应超过50%, 真题 exam:2023:第1题 逐字(‘不应超过50%’, 受压接头不受限)。三联 anchor(钢筋接头构造要求 fact)。Codex severity=none, 本包最干净题。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1111,17 +1111,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "19826f74218fd934c6648233c0f03d7ac90c5626ac93b7645275e85459db3487",
+      "content_sha256": "034838129d4bbb6bc259e8224704907ac82df3948dd5eb9515ce1d50de8fc403",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "19826f74218fd934c6648233c0f03d7ac90c5626ac93b7645275e85459db3487",
+        "reviewed_content_sha256": "034838129d4bbb6bc259e8224704907ac82df3948dd5eb9515ce1d50de8fc403",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1397,27 +1397,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q6",
       "source_anchor": "exam:2025:第12题",
       "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "c05-fact-rebar-splice-layout",
       "skeleton_id": "c05-skel-框架梁接头位置",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "fc50d3f3d0dbf8925089a754883b9963bad750906979cce1129dbbbdaef56e67",
+      "content_sha256": "6e3aac844326d58890d126592bfe76235ef866c096b5aba3bdef2fe1cec476b3",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "fc50d3f3d0dbf8925089a754883b9963bad750906979cce1129dbbbdaef56e67",
+        "reviewed_content_sha256": "6e3aac844326d58890d126592bfe76235ef866c096b5aba3bdef2fe1cec476b3",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1427,7 +1427,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "框架梁上部接头宜设跨中1/3、下部接头宜设梁端1/3, 避开最大拉应力区, 真题 exam:2025:第12题 支持。三联 immediate_confirm(同接头构造 fact: 接头位置与百分率同属钢筋连接接头构造要求)。工单: 正确项附受力解释后偏长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "框架梁上部接头宜设跨中1/3、下部接头宜设梁端1/3, 避开最大拉应力区, 真题 exam:2025:第12题 支持。三联 immediate_confirm(同接头构造 fact: 接头位置与百分率同属钢筋连接接头构造要求)。工单: 正确项附受力解释后偏长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1678,27 +1678,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q7",
       "source_anchor": "kc:1A413030_100_0190:2",
       "source_sha256": "aef1da15f31003efe916a5719c1bba47b36f96ea8022c7ad6699ab79ebde7e8f",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "c05-fact-rebar-splice-layout",
       "skeleton_id": "c05-skel-框架柱首接头下限",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d830e4c57d7b073a8a918da871e9f33770219d5383e54754fabc9ddf0c155e75",
+      "content_sha256": "0387d03aa73c0c07f007071caae4d7a465fe3964c327f7945bb86cc377892cc7",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "d830e4c57d7b073a8a918da871e9f33770219d5383e54754fabc9ddf0c155e75",
+        "reviewed_content_sha256": "0387d03aa73c0c07f007071caae4d7a465fe3964c327f7945bb86cc377892cc7",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1708,7 +1708,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "框架柱第一接头距楼面≥500mm、≥H/6、≥柱截面长边三者取最大值, 教材 kc:...100_0190:2 直引。三联 d1_probe(同接头构造 fact, 第3独立 skeleton: 柱接头位置下限)。工单: 强弱词‘应≥’宜按教材‘不宜小于’收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "框架柱第一接头距楼面≥500mm、≥H/6、≥柱截面长边三者取最大值, 教材 kc:...100_0190:2 直引。三联 d1_probe(同接头构造 fact, 第3独立 skeleton: 柱接头位置下限)。工单: 强弱词‘应≥’宜按教材‘不宜小于’收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1942,17 +1942,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b3899b53995a254a7b2df39b2a19feb792b9e901e35b51af681f63408c013bc3",
+      "content_sha256": "bd292bd4335b4a84e2d09e4434bd0e823a38bf24320c6d025a12b346bfad056f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "b3899b53995a254a7b2df39b2a19feb792b9e901e35b51af681f63408c013bc3",
+        "reviewed_content_sha256": "bd292bd4335b4a84e2d09e4434bd0e823a38bf24320c6d025a12b346bfad056f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2126,17 +2126,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "904c0a4193f3663f0fd19bee964c85402da848f8f0dc179c429eeddc9fbb440e",
+      "content_sha256": "2e8a1ab7d0504a0d3b03c53828f85c56c2686b829eef253550c74e2ab367f51f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "904c0a4193f3663f0fd19bee964c85402da848f8f0dc179c429eeddc9fbb440e",
+        "reviewed_content_sha256": "2e8a1ab7d0504a0d3b03c53828f85c56c2686b829eef253550c74e2ab367f51f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2361,17 +2361,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9610a900aede6553d16c949b067e005694ec86b4d2f5dd25ac6b7373ff1ba9de",
+      "content_sha256": "eab32c2b72e9690d08440d74934183cd9172f121a8e0ee18194fc8662ea59c53",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "9610a900aede6553d16c949b067e005694ec86b4d2f5dd25ac6b7373ff1ba9de",
+        "reviewed_content_sha256": "eab32c2b72e9690d08440d74934183cd9172f121a8e0ee18194fc8662ea59c53",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2664,17 +2664,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "4885cc3d1ca15e492e8c18be8ff72e7d9ec4131053760bd892772aa4a794ec32",
+      "content_sha256": "f6d3103aa978043539e80122dbd463435bedc73c64d8b6dfb905fedab8a22ac0",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "4885cc3d1ca15e492e8c18be8ff72e7d9ec4131053760bd892772aa4a794ec32",
+        "reviewed_content_sha256": "f6d3103aa978043539e80122dbd463435bedc73c64d8b6dfb905fedab8a22ac0",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2831,17 +2831,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6c88ab38c5730b36e2b0d569bec86f97c0beec523598f7d2e476baa1609f6d68",
+      "content_sha256": "0b2e35b5a2dfdefb44e0183f23ba4bb3c610212f7f91450ee82fea3c35447a8d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6c88ab38c5730b36e2b0d569bec86f97c0beec523598f7d2e476baa1609f6d68",
+        "reviewed_content_sha256": "0b2e35b5a2dfdefb44e0183f23ba4bb3c610212f7f91450ee82fea3c35447a8d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3015,17 +3015,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a7e0c70ce1e4fc09daa323c8f9564cf3af8c1075a30fdb7e973639b3ba52ee91",
+      "content_sha256": "f09a9daa67828fb6f2d5c460018f17adad8b0d4ddd0e01b57fc35a80c8766d19",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "a7e0c70ce1e4fc09daa323c8f9564cf3af8c1075a30fdb7e973639b3ba52ee91",
+        "reviewed_content_sha256": "f09a9daa67828fb6f2d5c460018f17adad8b0d4ddd0e01b57fc35a80c8766d19",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3165,17 +3165,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "1ed772a4ef53ff82cf2ce5a0c634e4c888146d25b8ec82b9a027559a9e9c7659",
+      "content_sha256": "765936c06d1b4c3add9865cce85314927955ed3181fb1b2e6819a1f370733494",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "1ed772a4ef53ff82cf2ce5a0c634e4c888146d25b8ec82b9a027559a9e9c7659",
+        "reviewed_content_sha256": "765936c06d1b4c3add9865cce85314927955ed3181fb1b2e6819a1f370733494",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3383,27 +3383,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q15",
       "source_anchor": "exam:2023:第1题",
       "source_sha256": "78b8ab946112767fd40d3128be0690bf37d0440dba9b764e3c0c476c2b169946",
-      "source_html_sha256": "61c040d566498efadc1ff2b93b67073d5ad46c53fb8032e75be624c6853e3d50",
+      "source_html_sha256": "75bf7ce6359021ff1bacb078e26552dcfeeac2c82652cc7c239b54564cb631b9",
       "fact_id": "c05-fact-dynamic-load-diagnosis",
       "skeleton_id": "c05-skel-动力荷载配筋诊断补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "96b1c3ba1c6de6c64e6edfa6cb6e856c43bbc61723eaf7a39d11d73b7b8f0c48",
+      "content_sha256": "230b3d848307159db3d1cdf82d143bf2b4d61ae6735388fba3e7bee2532eda88",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "96b1c3ba1c6de6c64e6edfa6cb6e856c43bbc61723eaf7a39d11d73b7b8f0c48",
+        "reviewed_content_sha256": "230b3d848307159db3d1cdf82d143bf2b4d61ae6735388fba3e7bee2532eda88",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T23:44:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3413,7 +3413,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "动力荷载吊车梁诊断: ①受拉Φ28不宜绑扎应机械 ②不宜→不应超50% ③直尺→通止量规, 三处诊断均正确。exam:2023:第1题 覆盖②(不应超50%)③(通止量规), ①由 exam:2022:第14题 支持=多源工单非血统断(Codex 自认 answer true)。工单: longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "动力荷载吊车梁诊断: ①受拉Φ28不宜绑扎应机械 ②不宜→不应超50% ③直尺→通止量规, 三处诊断均正确。exam:2023:第1题 覆盖②(不应超50%)③(通止量规), ①由 exam:2022:第14题 支持=多源工单非血统断(Codex 自认 answer true)。工单: longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3478,5 +3478,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "969bee6c0077e68ecd7da7507586e1e4e55a8f8569e16b5577bcceddfc1d52b6"
+  "published_lesson_sha256": "07a89c811dd56c0ec9803d19703332620ac20149a8a53b1ddd87401da619f548"
 }

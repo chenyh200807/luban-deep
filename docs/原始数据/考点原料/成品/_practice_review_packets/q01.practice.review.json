@@ -2,7 +2,7 @@
  "schema": "luban_practice_review_packet.v1",
  "pack_id": "Q01",
  "source_pack_sha256": "be6eae789509f1b0c19c808b1a6b822e8d6181553fcda4fcfd60f7c183f56354",
- "source_bundle_sha256": "5143f52d39183620bcc649b1ba4b896e157cace7e70379b39c115109f1984c05",
+ "source_bundle_sha256": "4258e78a7343715f9f3a7ecc57bcb9a298fe92d7be2f429e3f58d2faa9c65206",
  "compiled_schema_version": "luban_compiled_practice.v3",
  "candidate_count": 16,
  "eligible_count": 7,
@@ -58,9 +58,9 @@
    ],
    "model_answer": "普通硅酸盐水泥现浇≥7d；有抗渗要求的≥14d；后浇带养护≥14d。",
    "rule_group": "养护时长·条件维",
-   "content_sha256": "1d5394438519fc703e8a9c4e866e974cee0b1d88573a829fc12f9ffbbafab463",
+   "content_sha256": "ce6b6f0db86557faa5f7d2239f18fd019d17f04acd19af91a687ddec5837555d",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q1",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "q01-fact-curing-days-matrix",
     "skeleton_id": "q01-skel-养护天数条件矩阵",
@@ -70,17 +70,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "1d5394438519fc703e8a9c4e866e974cee0b1d88573a829fc12f9ffbbafab463",
+     "reviewed_content_sha256": "ce6b6f0db86557faa5f7d2239f18fd019d17f04acd19af91a687ddec5837555d",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -90,7 +90,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "普硅7d/抗渗14d/后浇带14d 全矩阵, 教材 kc:...104_0197:0 直引; 真题 exam:2022:第15题(D 抗渗≥14d)佐证。三联 anchor。工单: 唯一完整枚举最长项。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "普硅7d/抗渗14d/后浇带14d 全矩阵, 教材 kc:...104_0197:0 直引; 真题 exam:2022:第15题(D 抗渗≥14d)佐证。三联 anchor。工单: 唯一完整枚举最长项。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -140,9 +140,9 @@
    ],
    "model_answer": "里表温差≤25℃；降温速率≤2.0℃/d；温升≤50℃；入模温度 5~30℃。",
    "rule_group": "大体积温控·条件维",
-   "content_sha256": "da7a278543d7662e3b17d5dd6cbb0ce2e5788563b710fab45ce843b1fb0c229a",
+   "content_sha256": "5af5fd17e1bcdc0f586bd04db73523a1a9c0ba3151214864e6f40af0c613a150",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q2",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "q01-fact-mass-concrete-temps",
     "skeleton_id": "q01-skel-大体积四温控指标",
@@ -152,17 +152,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "da7a278543d7662e3b17d5dd6cbb0ce2e5788563b710fab45ce843b1fb0c229a",
+     "reviewed_content_sha256": "5af5fd17e1bcdc0f586bd04db73523a1a9c0ba3151214864e6f40af0c613a150",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -172,7 +172,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "里表温差≤25℃/降温≤2.0℃/d/温升≤50℃/入模5~30℃, 教材 kc:...096_0181:0 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "里表温差≤25℃/降温≤2.0℃/d/温升≤50℃/入模5~30℃, 教材 kc:...096_0181:0 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -222,9 +222,9 @@
    ],
    "model_answer": "中心-表面温差≤25℃；表面-大气温差≤20℃；温降梯度≤3℃/d；养护≥14d。",
    "rule_group": "冬期温控·条件维",
-   "content_sha256": "c98323178e0b9b820fb89da157efc9b4a8e3e670a95817dfb3ee09569af3caa6",
+   "content_sha256": "37acc5c27d35da0d50df49605db06399a8e36a1b4a97193e33d0a1521203552a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q3",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "q01-fact-winter-curing-limits",
     "skeleton_id": "q01-skel-冬期温控四数值",
@@ -234,17 +234,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "c98323178e0b9b820fb89da157efc9b4a8e3e670a95817dfb3ee09569af3caa6",
+     "reviewed_content_sha256": "37acc5c27d35da0d50df49605db06399a8e36a1b4a97193e33d0a1521203552a",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -254,7 +254,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "中心表面25℃/表面大气20℃/温降3℃/d/14d, 真题 exam:2019:第1题 参考答案逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "中心表面25℃/表面大气20℃/温降3℃/d/14d, 真题 exam:2019:第1题 参考答案逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -304,9 +304,9 @@
    ],
    "model_answer": "安排早间/晚间施工、喷雾降温保湿、连续浇筑；不采用吹风。",
    "rule_group": "高温措施·程序维",
-   "content_sha256": "32eb1b71f1a03787ce473159bc5675d9a82d781dcb8daeaaa30392130b8b505b",
+   "content_sha256": "69c4c1fe35ca0c0ac8486bb0f66a1f0dbf51e2f08ef3eeb54df69be8b58e88c3",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q4",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "q01-fact-hot-weather-measures",
     "skeleton_id": "q01-skel-高温施工措施选择",
@@ -316,17 +316,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "32eb1b71f1a03787ce473159bc5675d9a82d781dcb8daeaaa30392130b8b505b",
+     "reviewed_content_sha256": "69c4c1fe35ca0c0ac8486bb0f66a1f0dbf51e2f08ef3eeb54df69be8b58e88c3",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -336,7 +336,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "早间/晚间/喷雾/连续浇筑(排除吹风), 真题 exam:2016:第30题 ABCD 直判。冷缝机制说明为教学扩写(工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "早间/晚间/喷雾/连续浇筑(排除吹风), 真题 exam:2016:第30题 ABCD 直判。冷缝机制说明为教学扩写(工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -386,9 +386,9 @@
    ],
    "model_answer": "里表温差、冬期中心-表面温差均≤25℃；冬期表面-大气温差≤20℃。",
    "rule_group": "温差辨析·条件维",
-   "content_sha256": "382069e1e391a46fcb49cd0cc2931144eb341adeaa4e363f7c7515afcc471a89",
+   "content_sha256": "cc11599e2145a7590c98fed4f41d421d5c8a5744d5e36434b0e62e9eff221f5f",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q5",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -398,7 +398,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "382069e1e391a46fcb49cd0cc2931144eb341adeaa4e363f7c7515afcc471a89",
+     "reviewed_content_sha256": "cc11599e2145a7590c98fed4f41d421d5c8a5744d5e36434b0e62e9eff221f5f",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -456,9 +456,9 @@
    ],
    "model_answer": "不妥：有抗渗要求应养护≥14d；改正：养护时间不应少于 14d。",
    "rule_group": "判断纠错·条件维",
-   "content_sha256": "b8d7cb72dfbb2470019ac47d71e8576ef087f8161ae7d49a526b36bf48d39150",
+   "content_sha256": "e2b9f5e598308599b93f05a35f2b550cd142d57394ab90980ba74cb76320200e",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q6",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "q01-fact-curing-days-matrix",
     "skeleton_id": "q01-skel-7d不妥判断改正",
@@ -468,17 +468,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "b8d7cb72dfbb2470019ac47d71e8576ef087f8161ae7d49a526b36bf48d39150",
+     "reviewed_content_sha256": "e2b9f5e598308599b93f05a35f2b550cd142d57394ab90980ba74cb76320200e",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -488,7 +488,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "抗渗混凝土养护7d不妥应≥14d, m35 判分卡逐字+exam:2022:第15题 佐证。三联 immediate_confirm(同养护天数 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "抗渗混凝土养护7d不妥应≥14d, m35 判分卡逐字+exam:2022:第15题 佐证。三联 immediate_confirm(同养护天数 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -538,9 +538,9 @@
    ],
    "model_answer": "先分不允许裂缝(控拉应力≤ftk)与允许裂缝(按构件+环境类别控宽度≤限值)；分三级。",
    "rule_group": "裂缝控制目标·后果维",
-   "content_sha256": "f2c0eb3c7c99c9f1e9b5a891d63319ecd63e0e2bb6ea9e5b9c1187a576486f5a",
+   "content_sha256": "519fc0e311d6b273e62cb268484ed0f6230e823cc8da430339f5e1433732e585",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q7",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -550,7 +550,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "f2c0eb3c7c99c9f1e9b5a891d63319ecd63e0e2bb6ea9e5b9c1187a576486f5a",
+     "reviewed_content_sha256": "519fc0e311d6b273e62cb268484ed0f6230e823cc8da430339f5e1433732e585",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -608,9 +608,9 @@
    ],
    "model_answer": "连续浇筑少留施工缝；分层厚度≤500mm；机械振捣避免漏/欠/超振。",
    "rule_group": "防水施工·程序维",
-   "content_sha256": "e2cf126dc2df724a523a2cb2427c4d55e8d22986f1fd37629c7b1f8deb45ec7b",
+   "content_sha256": "55aba3bfb0831904ede7e075f168aef236aead064f3f7ed59c66a58a2adf2b24",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q8",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -620,7 +620,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "e2cf126dc2df724a523a2cb2427c4d55e8d22986f1fd37629c7b1f8deb45ec7b",
+     "reviewed_content_sha256": "55aba3bfb0831904ede7e075f168aef236aead064f3f7ed59c66a58a2adf2b24",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -678,9 +678,9 @@
    ],
    "model_answer": "施工缝不留在剪力最大处，也不留在底板与侧墙交接处，宜留在便于止水的部位。",
    "rule_group": "施工缝位置·程序维",
-   "content_sha256": "2c35b72a35510c58513f26b708cb642ff602dbc4031a45242f71e907955c332b",
+   "content_sha256": "6b2c66be812f04e308ec246f4838b379aa56b413d35a692af54019c57c097a06",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q9",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -690,7 +690,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "2c35b72a35510c58513f26b708cb642ff602dbc4031a45242f71e907955c332b",
+     "reviewed_content_sha256": "6b2c66be812f04e308ec246f4838b379aa56b413d35a692af54019c57c097a06",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -748,9 +748,9 @@
    ],
    "model_answer": "防水混凝土养护时间不少于 14d；冬期入模温度不低于 5℃。",
    "rule_group": "防水养护·条件维",
-   "content_sha256": "f74635e59102f6522a34c8cd458c352152e6603de4d61a802e1604cc267dd252",
+   "content_sha256": "f89eed284b71fbd5d46da90d94268ea55202ea248461cbaa78ba609e5df09ae2",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q10",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "q01-fact-curing-days-matrix",
     "skeleton_id": "q01-skel-冬期入模养护数值",
@@ -760,17 +760,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "f74635e59102f6522a34c8cd458c352152e6603de4d61a802e1604cc267dd252",
+     "reviewed_content_sha256": "f89eed284b71fbd5d46da90d94268ea55202ea248461cbaa78ba609e5df09ae2",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -780,7 +780,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "防水混凝土冬期入模≥5℃且养护≥14d, 教材 kc:...154_0302:0 直引; exam:2015:第26题(D 7d错) 佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "防水混凝土冬期入模≥5℃且养护≥14d, 教材 kc:...154_0302:0 直引; exam:2015:第26题(D 7d错) 佐证。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -830,9 +830,9 @@
    ],
    "model_answer": "用微膨胀混凝土、强度提高一级；养护≥14d；底板后浇带封闭≥28d。",
    "rule_group": "后浇带·条件维",
-   "content_sha256": "dedbc8e74a201ba03dc586b82c0122d229109b1480288ed792bdfb90294e8039",
+   "content_sha256": "41ca97c41b89783a13611afb511c8a0aa44aa226fdf52455e79182ce2042439b",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q11",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -842,7 +842,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "dedbc8e74a201ba03dc586b82c0122d229109b1480288ed792bdfb90294e8039",
+     "reviewed_content_sha256": "41ca97c41b89783a13611afb511c8a0aa44aa226fdf52455e79182ce2042439b",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -900,9 +900,9 @@
    ],
    "model_answer": "需同条件养护试块强度≥设计值75%；C30→30×75%=22.5N/mm²。",
    "rule_group": "拆模强度·计算表达维",
-   "content_sha256": "7524a33ff1f55b92d140831018e7014dd77328db0d851dce1fb849e11b07db1c",
+   "content_sha256": "6dac88471db2257007353e291d42c6b07f2cfe2762ee0f6911e55f83ed41abfe",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q12",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -912,7 +912,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "7524a33ff1f55b92d140831018e7014dd77328db0d851dce1fb849e11b07db1c",
+     "reviewed_content_sha256": "6dac88471db2257007353e291d42c6b07f2cfe2762ee0f6911e55f83ed41abfe",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -970,9 +970,9 @@
    ],
    "model_answer": "窗间墙竖向裂缝不属于地基不均匀下沉的典型现象。",
    "rule_group": "裂缝成因识别·后果维",
-   "content_sha256": "500735ed93e3facb904af74148667223c83469e6568dae34ae2c107587111367",
+   "content_sha256": "3da1d10c3b77472c4eaf19fb719b11317798b3bcc3b61a0b569c45272bd4cbcd",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q13",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -982,7 +982,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "500735ed93e3facb904af74148667223c83469e6568dae34ae2c107587111367",
+     "reviewed_content_sha256": "3da1d10c3b77472c4eaf19fb719b11317798b3bcc3b61a0b569c45272bd4cbcd",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1040,9 +1040,9 @@
    ],
    "model_answer": "收缩与温度作用等间接作用在受约束构件内产生拉应力，超过抗拉强度即开裂。",
    "rule_group": "裂缝机理·后果维",
-   "content_sha256": "e88f825c676d23a16f0fe27ec046f10b3ee2d9ec4dbb03311e0a90083e4ee68a",
+   "content_sha256": "7a320c06e434619234f6161d2e0a195253a5c9417181a989048e4386461740cd",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q14",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1052,7 +1052,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "e88f825c676d23a16f0fe27ec046f10b3ee2d9ec4dbb03311e0a90083e4ee68a",
+     "reviewed_content_sha256": "7a320c06e434619234f6161d2e0a195253a5c9417181a989048e4386461740cd",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1110,9 +1110,9 @@
    ],
    "model_answer": "三处均不妥：防水养护应≥14d；施工缝不应留剪力最大处(避底板侧墙交接)；底板后浇带封闭≥28d。",
    "rule_group": "采分诊断·末题",
-   "content_sha256": "98329a3f1973d1f3511f65359ca79f97384b907679b3a0ca80311780f81bb0d3",
+   "content_sha256": "1f1ba36eb023a55660b33898ec828c8a87bdd1c2adb7612d510f762c371e696d",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q15",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "q01-fact-waterproof-composite-correction",
     "skeleton_id": "q01-skel-防水混凝土综合纠错",
@@ -1122,17 +1122,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "98329a3f1973d1f3511f65359ca79f97384b907679b3a0ca80311780f81bb0d3",
+     "reviewed_content_sha256": "1f1ba36eb023a55660b33898ec828c8a87bdd1c2adb7612d510f762c371e696d",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -1142,7 +1142,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "复合三改正各有源: 施工缝禁位(受剪力较大处)+养护≥14d=本锚 exam:2015:第26题 直判(C/D 错项); 后浇带≥28d 封闭=exam:2018:案例(三)问题3 逐字; 养护14d 另有 m35:Q3。Codex FATAL 系复合题血统误判(失效模式#4), 复合多源工单。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "复合三改正各有源: 施工缝禁位(受剪力较大处)+养护≥14d=本锚 exam:2015:第26题 直判(C/D 错项); 后浇带≥28d 封闭=exam:2018:案例(三)问题3 逐字; 养护14d 另有 m35:Q3。Codex FATAL 系复合题血统误判(失效模式#4), 复合多源工单。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -1192,9 +1192,9 @@
    ],
    "model_answer": "大体积混凝土水胶比不宜大于 0.45；防水混凝土水胶比不大于 0.50(有侵蚀性介质≤0.45)。",
    "rule_group": "水胶比辨析·条件维",
-   "content_sha256": "428fb28d5ffaa31c31fef1bb5130dd3e10cb9b36628107d82672d5f2e2c3720b",
+   "content_sha256": "c6cd9df12cfffbd535dab64df4d77644061471ae69e92546e5f674e0fb40ae8d",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q01/P40_Q01.practice.dc.html#Q16",
-   "authoring_sha256": "2f060d1298529362e6f2026bfa17d0d16072a2ccf920789b6e57597cdd253a77",
+   "authoring_sha256": "833270d1573c4e90a78c9bcfd69dc62b6052f13a67b9abe227ee927662adc2d8",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1204,7 +1204,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "428fb28d5ffaa31c31fef1bb5130dd3e10cb9b36628107d82672d5f2e2c3720b",
+     "reviewed_content_sha256": "c6cd9df12cfffbd535dab64df4d77644061471ae69e92546e5f674e0fb40ae8d",
      "signatures": [],
      "checks": {
       "source_verified": false,

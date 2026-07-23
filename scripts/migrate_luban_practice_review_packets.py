@@ -92,7 +92,13 @@ def _old_items(pack_id: str, snapshot: dict | None) -> tuple[dict, bool]:
     return items, was_ready
 
 
-def migrate(station_id: str, *, snapshot: dict | None, now_iso: str) -> str:
+def migrate(
+    station_id: str,
+    *,
+    snapshot: dict | None,
+    now_iso: str,
+    resign_note: str,
+) -> str:
     st = STATIONS[station_id]
     pack_id = station_id.upper()
     packet_path = PRACTICE_REVIEW_PACKET_DIR / f"{station_id}.practice.review.json"
@@ -147,7 +153,7 @@ def migrate(station_id: str, *, snapshot: dict | None, now_iso: str) -> str:
                 for signature in review.get("signatures") or []
             ]
             note = str(new_review.get("note") or "").strip()
-            new_review["note"] = (note + " | " if note else "") + RESIGN_NOTE
+            new_review["note"] = (note + " | " if note else "") + resign_note
             records[str(item["variant_id"])] = {
                 "fact_id": old["fact_id"],
                 "skeleton_id": old["skeleton_id"],
@@ -192,6 +198,11 @@ def main() -> int:
     parser.add_argument(
         "--now", default=datetime.now(CST).replace(microsecond=0).isoformat()
     )
+    parser.add_argument(
+        "--resign-note",
+        default=RESIGN_NOTE,
+        help="附加到保留签名的可读迁移说明",
+    )
     args = parser.parse_args()
     stations = sorted(STATIONS) if args.all else [name.lower() for name in args.stations]
     if not stations:
@@ -200,7 +211,14 @@ def main() -> int:
     if args.snapshot:
         snapshot = json.loads(Path(args.snapshot).read_text(encoding="utf-8"))
     for station_id in stations:
-        print(migrate(station_id, snapshot=snapshot, now_iso=args.now))
+        print(
+            migrate(
+                station_id,
+                snapshot=snapshot,
+                now_iso=args.now,
+                resign_note=args.resign_note,
+            )
+        )
     return 0
 
 

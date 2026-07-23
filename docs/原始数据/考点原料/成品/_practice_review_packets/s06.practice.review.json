@@ -2,7 +2,7 @@
  "schema": "luban_practice_review_packet.v1",
  "pack_id": "S06",
  "source_pack_sha256": "22438b347c9f36c8fb53a305b4c2f3d5eb07b8d7438b7bdb3d6e24e0d71870d8",
- "source_bundle_sha256": "6ea8c82c1416a812147421b49d312912263acd3da214c0680670d1ffdfc6ef0b",
+ "source_bundle_sha256": "ecd2b2a490f00af3b4c0a5480c8411930196087ef03a57810661b9bb1d8d8d38",
  "compiled_schema_version": "luban_compiled_practice.v3",
  "candidate_count": 16,
  "eligible_count": 7,
@@ -58,9 +58,9 @@
    ],
    "model_answer": "坠落高度基准面 2m 及以上临边作业，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
    "rule_group": "临边触发·条件维",
-   "content_sha256": "14f2f1660a18dcdd539a59fc004ad013346db023c15d85414c63b2ed80036a43",
+   "content_sha256": "19c5ef5d9f06ede48741aa5ecd3a64028c10b142624058757bef05ea92e7f7e2",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q1",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "s06-fact-edge-guard-2m-trigger",
     "skeleton_id": "s06-skel-临边2m触发场景",
@@ -70,17 +70,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "14f2f1660a18dcdd539a59fc004ad013346db023c15d85414c63b2ed80036a43",
+     "reviewed_content_sha256": "19c5ef5d9f06ede48741aa5ecd3a64028c10b142624058757bef05ea92e7f7e2",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -90,7 +90,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "坠落高度≥2m 须设防护栏杆+密目网/工具式栏板封闭, 教材 kc:...121_0195:0 直引。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "坠落高度≥2m 须设防护栏杆+密目网/工具式栏板封闭, 教材 kc:...121_0195:0 直引。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -140,9 +140,9 @@
    ],
    "model_answer": "上杆离地 1.2m、立杆间距≤2m、挡脚板≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
    "rule_group": "栏杆构造·条件维",
-   "content_sha256": "ac7a0cfe2c28cdf81e8264afb7d014229d6a4d8a5791f1aae93be6d47a8d61cd",
+   "content_sha256": "fa3da117342acd2e341aa6e92f121596db76284fbc6651d8c680d0b6c584d278",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q2",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "s06-fact-guardrail-construction",
     "skeleton_id": "s06-skel-栏杆构造四数值",
@@ -152,17 +152,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "ac7a0cfe2c28cdf81e8264afb7d014229d6a4d8a5791f1aae93be6d47a8d61cd",
+     "reviewed_content_sha256": "fa3da117342acd2e341aa6e92f121596db76284fbc6651d8c680d0b6c584d278",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -172,7 +172,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "上杆1.2m/立杆间距≤2m/挡脚板≥180mm/1kN, 教材 kc:...121_0195:2 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "上杆1.2m/立杆间距≤2m/挡脚板≥180mm/1kN, 教材 kc:...121_0195:2 逐项直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -222,9 +222,9 @@
    ],
    "model_answer": "短边≥500mm 洞口临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
    "rule_group": "洞口≥500·条件维",
-   "content_sha256": "9de27e39ea669dd9b247b66ee3ed97e95df0a352ab2de1645ccf2c02b20a6113",
+   "content_sha256": "0e099067336451b94c07b7a8cbd7c42deb36f85262d3502cd6243b63c67e4f79",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q3",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "s06-fact-vertical-opening-500",
     "skeleton_id": "s06-skel-竖向洞口500判定",
@@ -234,17 +234,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "9de27e39ea669dd9b247b66ee3ed97e95df0a352ab2de1645ccf2c02b20a6113",
+     "reviewed_content_sha256": "0e099067336451b94c07b7a8cbd7c42deb36f85262d3502cd6243b63c67e4f79",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -254,7 +254,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "≥500mm 洞口设1.2m栏杆+封闭+挡脚板, 教材 kc:...121_0195:1 直引。工单: '安全平网'附加措辞无锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "≥500mm 洞口设1.2m栏杆+封闭+挡脚板, 教材 kc:...121_0195:1 直引。工单: '安全平网'附加措辞无锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -304,9 +304,9 @@
    ],
    "model_answer": "短边 25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
    "rule_group": "洞口25~500·条件维",
-   "content_sha256": "d94718f358eef18b512c364211f54b2e2676aa17ff95115e4e5197af7379fc57",
+   "content_sha256": "04817a3358afee6ac392f816e2015be8de4e492420c6f129d95c8da742c926e4",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q4",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "s06-fact-opening-cover-300",
     "skeleton_id": "s06-skel-300mm洞口盖板",
@@ -316,17 +316,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "d94718f358eef18b512c364211f54b2e2676aa17ff95115e4e5197af7379fc57",
+     "reviewed_content_sha256": "04817a3358afee6ac392f816e2015be8de4e492420c6f129d95c8da742c926e4",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -336,7 +336,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "300mm 落 25~500mm 档用承重盖板, 教材 kc:...121_0195:1 三档表直引。工单: 固定防移位出处待补。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "300mm 落 25~500mm 档用承重盖板, 教材 kc:...121_0195:1 三档表直引。工单: 固定防移位出处待补。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -386,9 +386,9 @@
    ],
    "model_answer": "栏杆下沿配合密目式安全立网或工具式栏板封闭。",
    "rule_group": "临边封闭·措施维",
-   "content_sha256": "c285c2008dec352d11ca843001b1cae59bbf7dee578bce118afd29825da22aae",
+   "content_sha256": "d80869a00a16c85b3fe2312534877073f569eb08b3fdd8c6146cdcbcec59a682",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q5",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "s06-fact-edge-guard-2m-trigger",
     "skeleton_id": "s06-skel-封闭措施回忆",
@@ -398,17 +398,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "c285c2008dec352d11ca843001b1cae59bbf7dee578bce118afd29825da22aae",
+     "reviewed_content_sha256": "d80869a00a16c85b3fe2312534877073f569eb08b3fdd8c6146cdcbcec59a682",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -418,7 +418,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "密目式安全立网或工具式栏板封闭, 教材直引。Codex severity none。三联 immediate_confirm(同临边防护 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "密目式安全立网或工具式栏板封闭, 教材直引。Codex severity none。三联 immediate_confirm(同临边防护 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -468,9 +468,9 @@
    ],
    "model_answer": "还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。",
    "rule_group": "检查项补全·措施维",
-   "content_sha256": "ebc7c5babd4e7da15217cbb5d117c3084285a9c0f1ecfcb83ccbb0be09336593",
+   "content_sha256": "0e60e724c65ccccf63141bb9c22740c12fd8f3c5d15d691c259c88ca77ad7b8a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q6",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -480,7 +480,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "ebc7c5babd4e7da15217cbb5d117c3084285a9c0f1ecfcb83ccbb0be09336593",
+     "reviewed_content_sha256": "0e60e724c65ccccf63141bb9c22740c12fd8f3c5d15d691c259c88ca77ad7b8a",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -538,9 +538,9 @@
    ],
    "model_answer": "坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。",
    "rule_group": "悬空作业·措施维",
-   "content_sha256": "0f03750f448d686575ccda57abae95f88697f687e9d94694a0130d4e46e73c35",
+   "content_sha256": "ba4af5fe3f5e3a92b7001625e6375e56625fd60d255f574d874e5d3ad96ad7be",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q7",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -550,7 +550,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "0f03750f448d686575ccda57abae95f88697f687e9d94694a0130d4e46e73c35",
+     "reviewed_content_sha256": "ba4af5fe3f5e3a92b7001625e6375e56625fd60d255f574d874e5d3ad96ad7be",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -608,9 +608,9 @@
    ],
    "model_answer": "不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。",
    "rule_group": "梯子纠错·后果维",
-   "content_sha256": "05b56bc68351c8f6aecaeb0b568cb7f76399e080b0af20e69833ee63bcafc3d0",
+   "content_sha256": "280a5191eb47171c5222ccfbc32607de1a29f9cd897239d4c7f7728ed115d9b7",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q8",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -620,7 +620,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "05b56bc68351c8f6aecaeb0b568cb7f76399e080b0af20e69833ee63bcafc3d0",
+     "reviewed_content_sha256": "280a5191eb47171c5222ccfbc32607de1a29f9cd897239d4c7f7728ed115d9b7",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -678,9 +678,9 @@
    ],
    "model_answer": "严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。",
    "rule_group": "严禁行为·后果维",
-   "content_sha256": "800be3c905f89ee349f23994dc841d733247c250d49554d441096a66b241a123",
+   "content_sha256": "31fc532df594375ede7cd59429e312e9406a46ee1725ac1450f6ac11f05bd838",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q9",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -690,7 +690,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "800be3c905f89ee349f23994dc841d733247c250d49554d441096a66b241a123",
+     "reviewed_content_sha256": "31fc532df594375ede7cd59429e312e9406a46ee1725ac1450f6ac11f05bd838",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -748,9 +748,9 @@
    ],
    "model_answer": "同一梯子禁两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。",
    "rule_group": "攀登分档·条件维",
-   "content_sha256": "b0a254b93e05e360406fc9975960ecb7ba2c3eed5d1e1f80b73676fadc859b35",
+   "content_sha256": "40310005f344413dd7cd26a2d9f4eefaf4ed8e00fa5384b5ef343a3bca456253",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q10",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -760,7 +760,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "b0a254b93e05e360406fc9975960ecb7ba2c3eed5d1e1f80b73676fadc859b35",
+     "reviewed_content_sha256": "40310005f344413dd7cd26a2d9f4eefaf4ed8e00fa5384b5ef343a3bca456253",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -818,9 +818,9 @@
    ],
    "model_answer": "不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。",
    "rule_group": "卸料平台纠错·后果维",
-   "content_sha256": "303b8a6bb2fd74707a5cb9288640c6cda5d7a4f649b456798de6459ff62c46e0",
+   "content_sha256": "7ee22bb6bac3b36ee127b5919a171c5c9cd327cf811273881a39e1d643d1649e",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q11",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -830,7 +830,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "303b8a6bb2fd74707a5cb9288640c6cda5d7a4f649b456798de6459ff62c46e0",
+     "reviewed_content_sha256": "7ee22bb6bac3b36ee127b5919a171c5c9cd327cf811273881a39e1d643d1649e",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -888,9 +888,9 @@
    ],
    "model_answer": "坠落高度 15~30m 取半径 5m，下层作业点须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。",
    "rule_group": "交叉作业·条件维",
-   "content_sha256": "338fba0d39d83e572646a8feb40715749c5b826dca9dd03a6d20e0130693be6a",
+   "content_sha256": "73b10bfe035e17c42fa5954cf6eb38507f95521fde5e6ed97e93e25dabb8247e",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q12",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -900,7 +900,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "338fba0d39d83e572646a8feb40715749c5b826dca9dd03a6d20e0130693be6a",
+     "reviewed_content_sha256": "73b10bfe035e17c42fa5954cf6eb38507f95521fde5e6ed97e93e25dabb8247e",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -958,9 +958,9 @@
    ],
    "model_answer": "坡度>25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。",
    "rule_group": "屋面作业·条件维",
-   "content_sha256": "e23798562705f4974a64a794b503555cf3af1ed19f6e8247ff571544b315e98c",
+   "content_sha256": "a8684061603d3a2f3adbd1a9cf21bbbfee621dd00eb7a586b038ba5ec7354cea",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q13",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -970,7 +970,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "e23798562705f4974a64a794b503555cf3af1ed19f6e8247ff571544b315e98c",
+     "reviewed_content_sha256": "a8684061603d3a2f3adbd1a9cf21bbbfee621dd00eb7a586b038ba5ec7354cea",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1028,9 +1028,9 @@
    ],
    "model_answer": "楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。",
    "rule_group": "楼梯口·措施维",
-   "content_sha256": "143e42cd2590ea8071e232980a8ae2583fdbcb3cbf078c80db03235040a2ff9a",
+   "content_sha256": "332b4d12cc129affa1b79127382f5f34f5e161840c9323541aabccf452b8ccb3",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q14",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "s06-fact-edge-guard-2m-trigger",
     "skeleton_id": "s06-skel-楼梯口栏杆应用",
@@ -1040,17 +1040,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "143e42cd2590ea8071e232980a8ae2583fdbcb3cbf078c80db03235040a2ff9a",
+     "reviewed_content_sha256": "332b4d12cc129affa1b79127382f5f34f5e161840c9323541aabccf452b8ccb3",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -1060,7 +1060,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "楼梯口/平台/梯段边设防护栏杆, 教材构造要求直引应用。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "楼梯口/平台/梯段边设防护栏杆, 教材构造要求直引应用。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -1110,9 +1110,9 @@
    ],
    "model_answer": "出入口、通道口上方应搭设防护棚，非机动车道≥3m、机动车道≥4m，坠物影响大时用木板须双层。",
    "rule_group": "通道口·措施维",
-   "content_sha256": "9003d0815d975c0077fed99a35ea1f021908f437db77a8e0ab26ee5d2666c544",
+   "content_sha256": "888ccb252875d4f45a3d78e2716f191bcdf6134bbabcd7532ace0e3c95864f27",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q15",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1122,7 +1122,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "9003d0815d975c0077fed99a35ea1f021908f437db77a8e0ab26ee5d2666c544",
+     "reviewed_content_sha256": "888ccb252875d4f45a3d78e2716f191bcdf6134bbabcd7532ace0e3c95864f27",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1180,9 +1180,9 @@
    ],
    "model_answer": "①警示牌须改实体栏杆+密目网封闭；②竖向≥500 洞口须设 1.2m 栏杆封闭加挡脚板（25~500 才用承重盖板）；③栏杆高应 1.2m（0.9m 是室内扶手）。三处都要补写。",
    "rule_group": "采分诊断·末题",
-   "content_sha256": "66cacca233f1fa4c476f62f4df9ba025e636472620980c9187014b796c586150",
+   "content_sha256": "1168d4487719e470313e3be9443fca80d4118c655bc967ca04b3b0ffeceaf32f",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S06/P40_S06.practice.dc.html#Q16",
-   "authoring_sha256": "89587ac6152fa795d5142ec9a0e74468f5f72ef7926383d3d768c9817ba1b2c7",
+   "authoring_sha256": "5ad5edd7d3dfb21f9eef85ec7d3a0af0f1d67a6784c087429b1acccc624bb5d7",
    "decision": {
     "fact_id": "s06-fact-edge-opening-composite",
     "skeleton_id": "s06-skel-临边洞口综合诊断",
@@ -1192,17 +1192,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "66cacca233f1fa4c476f62f4df9ba025e636472620980c9187014b796c586150",
+     "reviewed_content_sha256": "1168d4487719e470313e3be9443fca80d4118c655bc967ca04b3b0ffeceaf32f",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -1212,7 +1212,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "三诊断均 kc:...121_0195 判分眼族内(洞口三档=本锚; 临边封闭/栏杆高度=:0/:2 补足)=复合多源工单。三处诊断正确且唯一。工单: 正确项81字最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "三诊断均 kc:...121_0195 判分眼族内(洞口三档=本锚; 临边封闭/栏杆高度=:0/:2 补足)=复合多源工单。三处诊断正确且唯一。工单: 正确项81字最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []

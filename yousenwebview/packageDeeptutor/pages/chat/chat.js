@@ -394,7 +394,7 @@ Page({
     entrySource: "",
     // 10d 重铺：上下文带入条（数据源=既有 followupContext/promptIntent 载体，可见化而已）
     contextBanner: "",
-    // 教学卡「问追AI」入口可预置占位文案；默认与原 placeholder 一致
+    // 教学卡「追问AI」入口可预置占位文案；默认与原 placeholder 一致
     inputPlaceholder: "直接问建筑实务：考点、真题、规范、错题",
     workspaceBackVisible: false,
     workspaceBackLabel: "返回",
@@ -490,7 +490,7 @@ Page({
     var entrySource =
       (options && (options.entrySource || options.entry_source || options.source)) ||
       "";
-    // 教学卡「问追AI」深链承接：归并到既有 entrySource 体系，不建第二套参数。
+    // 教学卡「追问AI」深链承接：归并到既有 entrySource 体系，不建第二套参数。
     // 上下文并入既有 promptIntent 载体（concept_id/concept_label 与学习证据字段对齐），
     // 随首问一次性发出后即清，不新建通道。
     var teachPackId = safeDecodeURIComponent(

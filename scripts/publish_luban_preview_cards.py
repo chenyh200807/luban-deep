@@ -29,7 +29,7 @@
      >780px 桌面封顶居中防过度放大）；html/body 背景改为卡自身 .lz-card 深墨底色
      （逐卡运行时提取，锚不中即 fail-closed），残留边距与卡浑然一体。全屏态
      ``body.luban-fs .lz-card{zoom:1!important}`` 归位，退出全屏回到宽度自适应态。
-  4. **「问追AI」保持在教学卡内**：微信 ``web-view`` 会覆盖原生层，不能由站点页
+  4. **「追问AI」保持在教学卡内**：微信 ``web-view`` 会覆盖原生层，不能由站点页
      可靠地叠一个抽屉；问答层因此必须由教学卡本身拥有。发布层不得把 ``openAsk``
      改写为跳转聊天页——那会丢掉正在看的视频和时间轴。卡内既有抽屉从底部推入，
      关闭后仍留在同一教学画面；实际答疑能力仍由既有 TutorBot 主链路负责，不在此
@@ -1922,6 +1922,51 @@ def apply_width_fit_to_hosted() -> list[str]:
     return changed
 
 
+def apply_shared_sheet_runtime_version_to_hosted() -> list[str]:
+    """用唯一自托管 runtime 的 digest 调和全部存量卡的缓存版本。
+
+    已托管卡允许在没有完整 finished 源时进行这一确定性维护：每张 lesson /
+    practice 页面只引用同一个 shared sheet runtime，版本 query 必须由该 runtime
+    文件的内容派生。lesson 内容变更后同步刷新 authority receipt 与 manifest。
+    """
+    digest = _sha256(TUTORBOT_SHEET_RUNTIME)[:16]
+    changed: list[str] = []
+    pattern = re.compile(r"(luban-tutorbot-sheet-runtime\.js\?v=)[0-9a-f]{16}")
+    for sid in sorted(STATIONS):
+        dst = HOST / sid
+        if not dst.is_dir():
+            continue
+        touched = False
+        pages = sorted(dst.glob("lesson*.html")) + sorted(dst.glob("practice*.html"))
+        for page in pages:
+            original = page.read_text(encoding="utf-8")
+            updated, replacements = pattern.subn(rf"\g<1>{digest}", original)
+            if replacements != 1:
+                raise TransformError(
+                    f"shared sheet runtime reference mismatch: {sid}/{page.name}"
+                )
+            if updated != original:
+                page.write_text(updated, encoding="utf-8")
+                touched = True
+        authority_path = AUTHORITY_HOST / f"{sid}.practice.authority.json"
+        lesson = dst / "lesson.html"
+        if authority_path.is_file() and lesson.is_file():
+            authority = json.loads(authority_path.read_text(encoding="utf-8"))
+            new_lesson_sha = _sha256(lesson)
+            if str(authority.get("published_lesson_sha256") or "") != new_lesson_sha:
+                authority["published_lesson_sha256"] = new_lesson_sha
+                authority_path.write_text(
+                    json.dumps(authority, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                touched = True
+        if touched:
+            changed.append(sid)
+    if changed:
+        _refresh_pack_manifest()
+    return changed
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="发布注册的鲁班 finished 成品卡")
     parser.add_argument(
@@ -1965,11 +2010,17 @@ def main(argv: list[str]) -> int:
         "讲解页的练习入口 / 还原 supply_ready 包的活链 + 重算 lesson sha + 刷新"
         " manifest），零重编，source-independent",
     )
+    parser.add_argument(
+        "--refresh-shared-sheet-runtime-version",
+        action="store_true",
+        help="用唯一自托管答疑 runtime 的 digest 调和全部托管页版本并刷新 receipt",
+    )
     parser.add_argument("stations", nargs="*", help="可选站点 ID；缺省发布全部注册站点")
     args = parser.parse_args(argv)
     if args.apply_width_fit:
         if (
             args.apply_reachability_gate
+            or args.refresh_shared_sheet_runtime_version
             or args.practice_only
             or args.check
             or args.write_practice_audit_packet
@@ -1977,6 +2028,14 @@ def main(argv: list[str]) -> int:
             parser.error("--apply-width-fit cannot combine with other modes")
         changed = apply_width_fit_to_hosted()
         print(f"width-fit: reconciled {len(changed)} pack(s): {' '.join(changed)}")
+        return 0
+    if args.refresh_shared_sheet_runtime_version:
+        if args.apply_reachability_gate or args.practice_only or args.check or args.write_practice_audit_packet:
+            parser.error(
+                "--refresh-shared-sheet-runtime-version cannot combine with other modes"
+            )
+        changed = apply_shared_sheet_runtime_version_to_hosted()
+        print(f"shared-sheet-runtime: reconciled {len(changed)} pack(s): {' '.join(changed)}")
         return 0
     if args.apply_reachability_gate:
         if args.practice_only or args.check or args.write_practice_audit_packet:

@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "K01",
   "source_pack_sha256": "53a81cccfc3292efcb9e8827bd7162ae930acdf52d7fe7baaeb12b5c6afc5f03",
-  "source_bundle_sha256": "1db65b0fb64cae5661e911271ea8014617b31440b53426acc1a61cd207245229",
+  "source_bundle_sha256": "8a0ed22ef055f8894601e6629fbfa4b9556dd193a226783cb589ce58f279aece",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -33,8 +33,8 @@
         "K01-html-practice-html-q9-14bc0510238b",
         "K01-html-practice-html-q15-a162a87bca3c"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtNWE1YjI0NmY4MWY5IiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mODUzZDFlNWE4MWUiLCJLMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQ0YjRiYzhhM2I2NSIsIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMTNmMTI5OWE1Y2RiIiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYTE2MmE4N2JjYTNjIl0sInBhY2tfaWQiOiJLMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImZkYzVlZTE3YTg3YWRiMzVkNmI5ZDUyMjk0MmYxNzQyOTFjYzg2ZDA4MTc2ODZlZGQxOTYwMDhhZTEwOTYzMzgiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMDNjYWEwZDhjNGNmMmVlOTMxMzNiM2U0NTdmZjU2MzE3OTcxODBhNDE3NWVlNTQwNzI0YmUzZTIxYjc1NzU5OSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "54d7239e394d990bc533f4b99e4b1e27b65f1acb64ee3e19b9e100c55d4a9b11"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtNWE1YjI0NmY4MWY5IiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1mODUzZDFlNWE4MWUiLCJLMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTQ0YjRiYzhhM2I2NSIsIkswMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMTNmMTI5OWE1Y2RiIiwiSzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYTE2MmE4N2JjYTNjIl0sInBhY2tfaWQiOiJLMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjM3NTM1NDRjZTFmOWNjNDI4MzdmODI3NGYzZTJjMDA0MjA1NDI2Zjg3NDFlODcxMjg5ZmY2N2ZkMzc1ZTlmOWYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMDNjYWEwZDhjNGNmMmVlOTMxMzNiM2U0NTdmZjU2MzE3OTcxODBhNDE3NWVlNTQwNzI0YmUzZTIxYjc1NzU5OSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "154d7a49156b725e9167d06d1f9477da027af47c285e9e7a2e88536f6a921aa9"
     }
   ],
   "items": [
@@ -89,27 +89,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q1",
       "source_anchor": "ca:1A435000_046_0066",
       "source_sha256": "9910c7ca451a956ffd6c2a68e108661e6c95751c7ad0d369635e7ed4a70f4361",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "k01-fact-change-is-employer-cause",
       "skeleton_id": "k01-skel-责任归因分项判工费利",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3dbc4a9a5f649790d2e9b664caf242239eec916348004169d0f859d9d71dc53e",
+      "content_sha256": "c2f8cfbfa89da321d17556ceb11ef5aeea170537030411bf40ee24ef783a1a39",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "3dbc4a9a5f649790d2e9b664caf242239eec916348004169d0f859d9d71dc53e",
+        "reviewed_content_sha256": "c2f8cfbfa89da321d17556ceb11ef5aeea170537030411bf40ee24ef783a1a39",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "设计变更属发包人原因,责任在发包人,应分工期/费用/利润逐项判。教材 ca:1A435000_046_0066『履约事件的索赔』直问『因发包人原因致损失,是否可索赔工期、费用及利润』,kc:...046_0066:3 佐证『发包人原因/变更可加索利润』,责任归因+三分项结构 grounded。q1 原空手,经 prefill --threshold 0.12 放宽召回,已回原文验真非造锚。工单:正确项恒首位/末位倾向(template artifact,全包同病,已记 template_leakage note)。"
+        "note": "设计变更属发包人原因,责任在发包人,应分工期/费用/利润逐项判。教材 ca:1A435000_046_0066『履约事件的索赔』直问『因发包人原因致损失,是否可索赔工期、费用及利润』,kc:...046_0066:3 佐证『发包人原因/变更可加索利润』,责任归因+三分项结构 grounded。q1 原空手,经 prefill --threshold 0.12 放宽召回,已回原文验真非造锚。工单:正确项恒首位/末位倾向(template artifact,全包同病,已记 template_leakage note)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -234,27 +234,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q2",
       "source_anchor": "kc:1A432000_048_0068:0",
       "source_sha256": "9910c7ca451a956ffd6c2a68e108661e6c95751c7ad0d369635e7ed4a70f4361",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "k01-fact-claim-notice-28d",
       "skeleton_id": "k01-skel-28天书面索赔意向通知",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "29385a530ffe2a7a49945b967055268aa2674967ea207ab149b34f9f299a218a",
+      "content_sha256": "a3c1c5a0359e3b63058ac6216e5618b7474532e41f63a63c0528303810dc4a2f",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "29385a530ffe2a7a49945b967055268aa2674967ea207ab149b34f9f299a218a",
+        "reviewed_content_sha256": "a3c1c5a0359e3b63058ac6216e5618b7474532e41f63a63c0528303810dc4a2f",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -264,7 +264,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "合同未约定时索赔意向通知时限=28天内提交书面索赔意向通知书,逾期丧权。教材 kc:1A432000_048_0068:0 逐字直引『承包人应在工程索赔事件发生后合同约定的期限内(未约定的为28天)提交书面索赔意向通知书』。四要素(未约定前提/28天/书面意向/丧权)齐。"
+        "note": "合同未约定时索赔意向通知时限=28天内提交书面索赔意向通知书,逾期丧权。教材 kc:1A432000_048_0068:0 逐字直引『承包人应在工程索赔事件发生后合同约定的期限内(未约定的为28天)提交书面索赔意向通知书』。四要素(未约定前提/28天/书面意向/丧权)齐。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -413,27 +413,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q3",
       "source_anchor": "exam:2018:案例分析(二)问题1-4",
       "source_sha256": "f85dd3e71ec3c8f221b63230673b9b442e3928332708b0e046bc9ab8304cb1ed",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "k01-fact-duration-claim-computation",
       "skeleton_id": "k01-skel-关键线路总时差0满额顺延",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7a61c1f155d9da7b6398c2f29255890934ecfbefb81a3c2d30decdf66072f84f",
+      "content_sha256": "7bd10b63c43a13f53c6fdc3e4629187a40ccb099bc5638095cca855512febb17",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7a61c1f155d9da7b6398c2f29255890934ecfbefb81a3c2d30decdf66072f84f",
+        "reviewed_content_sha256": "7bd10b63c43a13f53c6fdc3e4629187a40ccb099bc5638095cca855512febb17",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -443,7 +443,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "关键线路总时差0,延误直接影响总工期,延误几月顺延几月(复算:延误2→顺延2)。真题 exam:2018:案例分析(二)问题1-4『管道安装位于关键线路上,总时差和自由时差均为0』grounds 关键线路/总时差0规则;q3『延误2→顺延2』是该规则的构造应用(关键线路延误直接顺延=教材 kc:1A432000_048_0068:1 通则,非 q3 机器候选故不作锚)。三件套 fact 的 anchor 之一。工单:正确项非首位。"
+        "note": "关键线路总时差0,延误直接影响总工期,延误几月顺延几月(复算:延误2→顺延2)。真题 exam:2018:案例分析(二)问题1-4『管道安装位于关键线路上,总时差和自由时差均为0』grounds 关键线路/总时差0规则;q3『延误2→顺延2』是该规则的构造应用(关键线路延误直接顺延=教材 kc:1A432000_048_0068:1 通则,非 q3 机器候选故不作锚)。三件套 fact 的 anchor 之一。工单:正确项非首位。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -609,27 +609,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q4",
       "source_anchor": "exam:2015:案例1",
       "source_sha256": "f85dd3e71ec3c8f221b63230673b9b442e3928332708b0e046bc9ab8304cb1ed",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "k01-fact-duration-claim-computation",
       "skeleton_id": "k01-skel-非关键超总时差取差值",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b0f06728f6bd3c43a98d4e3d1ee4ba029c9466e32b2819839d300c338292cdbc",
+      "content_sha256": "b4c762272c89d194c8a9847de7b65db1e3f9566e3a52bfb77f324cb69e19dfa2",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b0f06728f6bd3c43a98d4e3d1ee4ba029c9466e32b2819839d300c338292cdbc",
+        "reviewed_content_sha256": "b4c762272c89d194c8a9847de7b65db1e3f9566e3a52bfb77f324cb69e19dfa2",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -639,7 +639,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "C 非关键工作,总时差1,延误2,只索超出部分,顺延=2−1=1个月。真题 exam:2015:案例1 EXACT『C 为非关键工作,总时差为1个月,设计变更后导致工期延误2个月,对总工期影响只有1个月,所以C工作的工期索赔为1个月』,计算复算 2−1=1 ✓。三件套 fact 的 anchor 之二。"
+        "note": "C 非关键工作,总时差1,延误2,只索超出部分,顺延=2−1=1个月。真题 exam:2015:案例1 EXACT『C 为非关键工作,总时差为1个月,设计变更后导致工期延误2个月,对总工期影响只有1个月,所以C工作的工期索赔为1个月』,计算复算 2−1=1 ✓。三件套 fact 的 anchor 之二。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -805,27 +805,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q5",
       "source_anchor": "exam:2015:案例1",
       "source_sha256": "f85dd3e71ec3c8f221b63230673b9b442e3928332708b0e046bc9ab8304cb1ed",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "k01-fact-duration-claim-computation",
       "skeleton_id": "k01-skel-非关键未超总时差被吸收",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "05d1a4d00b9c393322f6b09434d7aca82c8d98fbd270a37395791e186bee7858",
+      "content_sha256": "35f2a2b92f4ee5421a249f0db208756deb9720d25ff4598765bc266a16344d70",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "05d1a4d00b9c393322f6b09434d7aca82c8d98fbd270a37395791e186bee7858",
+        "reviewed_content_sha256": "35f2a2b92f4ee5421a249f0db208756deb9720d25ff4598765bc266a16344d70",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -835,7 +835,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "E 非关键工作,总时差4,不可抗力延误3,未超总时差被机动时间吸收,工期索赔不成立(顺延0)。真题 exam:2015:案例1 EXACT『E 为非关键工作,总时差为4个月,不可抗力导致工期延误3个月,延误时长未超过总时差,所以工期索赔不成立』,复算 3≤4→0 ✓。三件套 immediate_confirm(同 fact,第3独立 skeleton)。"
+        "note": "E 非关键工作,总时差4,不可抗力延误3,未超总时差被机动时间吸收,工期索赔不成立(顺延0)。真题 exam:2015:案例1 EXACT『E 为非关键工作,总时差为4个月,不可抗力导致工期延误3个月,延误时长未超过总时差,所以工期索赔不成立』,复算 3≤4→0 ✓。三件套 immediate_confirm(同 fact,第3独立 skeleton)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1001,17 +1001,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "61f0e7c03bbcf110559d95628dd5f0879178262d131637564747b8f82eda461b",
+      "content_sha256": "6b0e2bd37c860b032b3f1588fc0aaafbe7b1a23a05791b978336f2c238d71c4b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "61f0e7c03bbcf110559d95628dd5f0879178262d131637564747b8f82eda461b",
+        "reviewed_content_sha256": "6b0e2bd37c860b032b3f1588fc0aaafbe7b1a23a05791b978336f2c238d71c4b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1134,17 +1134,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2915445d7c20b11a78ecb888dba835d3475886c6f9b5e56a2b73ae803b95d3f3",
+      "content_sha256": "fdd68b71e733ce43cc772dbe2d377e045d64fdb5b3bd0fb16c8f1d9ef85d3a7d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "2915445d7c20b11a78ecb888dba835d3475886c6f9b5e56a2b73ae803b95d3f3",
+        "reviewed_content_sha256": "fdd68b71e733ce43cc772dbe2d377e045d64fdb5b3bd0fb16c8f1d9ef85d3a7d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1301,17 +1301,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b63134e03e8cbc557f2882c0e9372dcd2b5d59c525a479695f31b85b7bc82956",
+      "content_sha256": "d280cb9970d1456b6b5c90b378f00114ce502d4d3dae449e19354481414560fa",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "b63134e03e8cbc557f2882c0e9372dcd2b5d59c525a479695f31b85b7bc82956",
+        "reviewed_content_sha256": "d280cb9970d1456b6b5c90b378f00114ce502d4d3dae449e19354481414560fa",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1434,27 +1434,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q9",
       "source_anchor": "kc:1A432000_049_0070:0",
       "source_sha256": "9910c7ca451a956ffd6c2a68e108661e6c95751c7ad0d369635e7ed4a70f4361",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "k01-fact-duration-claim-computation",
       "skeleton_id": "k01-skel-网络分析法定量顺延",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "878044be4d976dd189c427331990916054e2032595594ab1f69157fff05088a7",
+      "content_sha256": "6981c2a2c7c245e1abdc469b2bbf1a3dccb84b484e982284e50dacc568718be3",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "878044be4d976dd189c427331990916054e2032595594ab1f69157fff05088a7",
+        "reviewed_content_sha256": "6981c2a2c7c245e1abdc469b2bbf1a3dccb84b484e982284e50dacc568718be3",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1464,7 +1464,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "工期顺延定量用网络分析法,比较延误前后两次网络计划的总工期之差,非只数单项延误天数。教材 kc:1A432000_049_0070:0 逐字直引『网络分析法:通过分析延误前后的施工网络计划,比较两种工期计算结果,计算出工程应顺延的工程工期』。三件套 d1_probe(第4独立 skeleton)。注:本 fact 跨两关联采分点 048_0068:1(判定关键线路/总时差)+049_0070(网络分析法定量),同属『工期索赔顺延多少』知识核,四题 skeleton 互异。"
+        "note": "工期顺延定量用网络分析法,比较延误前后两次网络计划的总工期之差,非只数单项延误天数。教材 kc:1A432000_049_0070:0 逐字直引『网络分析法:通过分析延误前后的施工网络计划,比较两种工期计算结果,计算出工程应顺延的工程工期』。三件套 d1_probe(第4独立 skeleton)。注:本 fact 跨两关联采分点 048_0068:1(判定关键线路/总时差)+049_0070(网络分析法定量),同属『工期索赔顺延多少』知识核,四题 skeleton 互异。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1630,17 +1630,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "331553379dee2b9f273015573f12a12cea4f3f0b3aa2637fa5f851cce36edde8",
+      "content_sha256": "b055dd711262ee8c09123ff004004ef91c0051db114b6388e26c16084640fcfd",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "331553379dee2b9f273015573f12a12cea4f3f0b3aa2637fa5f851cce36edde8",
+        "reviewed_content_sha256": "b055dd711262ee8c09123ff004004ef91c0051db114b6388e26c16084640fcfd",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1780,17 +1780,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e420503577abfe0f53c2e318fc5ce73a0b172e45c437b69a489c261c4e424a18",
+      "content_sha256": "0510203dac1c7ba0ace7f3896f76be147b342b6a6fe4fbd54df399c677f26cb7",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e420503577abfe0f53c2e318fc5ce73a0b172e45c437b69a489c261c4e424a18",
+        "reviewed_content_sha256": "0510203dac1c7ba0ace7f3896f76be147b342b6a6fe4fbd54df399c677f26cb7",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1964,17 +1964,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "06a691e2c6469593d05a52db50d3d752a66c4ca9543c187903fb5d6e9e737be9",
+      "content_sha256": "2b6eb5f714741f4e4e3a0a956b9c5a25585aa9f708c3ef507dce469e00be3072",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "06a691e2c6469593d05a52db50d3d752a66c4ca9543c187903fb5d6e9e737be9",
+        "reviewed_content_sha256": "2b6eb5f714741f4e4e3a0a956b9c5a25585aa9f708c3ef507dce469e00be3072",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2097,17 +2097,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "28db73f71ec67bafbfbb1c17e5f3bb5a975c19ec588be9b69ad75c70c1e0eff2",
+      "content_sha256": "cf645a16c4888f471a165303592bcb794132e86fe5376be6bdcd759d16fecec6",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "28db73f71ec67bafbfbb1c17e5f3bb5a975c19ec588be9b69ad75c70c1e0eff2",
+        "reviewed_content_sha256": "cf645a16c4888f471a165303592bcb794132e86fe5376be6bdcd759d16fecec6",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2264,17 +2264,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e58a0d1c55a87d2461b5bf29df8f8df910e8be92915b231537119791c511f512",
+      "content_sha256": "5b0e5a800343fdd3ab5adc22fb87900f91a8a6ed6c9f33244c3ed9bea79ce835",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e58a0d1c55a87d2461b5bf29df8f8df910e8be92915b231537119791c511f512",
+        "reviewed_content_sha256": "5b0e5a800343fdd3ab5adc22fb87900f91a8a6ed6c9f33244c3ed9bea79ce835",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2414,27 +2414,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q15",
       "source_anchor": "exam:2015:案例1",
       "source_sha256": "f85dd3e71ec3c8f221b63230673b9b442e3928332708b0e046bc9ab8304cb1ed",
-      "source_html_sha256": "9f81c06dc51ca178c32bb1d310fcf4c4e9ab47d62fa9d7ae27995c83cbe5677d",
+      "source_html_sha256": "ec34e87ecfc78b074a1ce35aae6ffc96b83dc86c0cc088559c0cc40e701a858e",
       "fact_id": "k01-fact-dual-gate-diagnosis",
       "skeleton_id": "k01-skel-末题采分诊断补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "88e19f63739333c737eef9d385dd8417bb2ea7480c65a2796429317942778c76",
+      "content_sha256": "ac30d09ac8dba410f09cb3f05e0498fa1534d20ab581b925ae9125b88e6838dc",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "88e19f63739333c737eef9d385dd8417bb2ea7480c65a2796429317942778c76",
+        "reviewed_content_sha256": "ac30d09ac8dba410f09cb3f05e0498fa1534d20ab581b925ae9125b88e6838dc",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:46:08+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2444,7 +2444,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "末题采分诊断:揪出『工期费用绑死』『非关键不减总时差』两处硬伤,补写工期非关键顺延=2−1=1月、费用属发包人原因成立可加利润、两闸分开判。真题 exam:2015:案例1 支持 C 非关键顺延1月 + 费用『设计变更是非承包商原因导致的自身经济损失,有权提出费用索赔』,复算 2−1=1 ✓。工单:正确项偏长(诊断题固有,不改事实)。"
+        "note": "末题采分诊断:揪出『工期费用绑死』『非关键不减总时差』两处硬伤,补写工期非关键顺延=2−1=1月、费用属发包人原因成立可加利润、两闸分开判。真题 exam:2015:案例1 支持 C 非关键顺延1月 + 费用『设计变更是非承包商原因导致的自身经济损失,有权提出费用索赔』,复算 2−1=1 ✓。工单:正确项偏长(诊断题固有,不改事实)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2526,5 +2526,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "93a32fab4cb2d226cc2470da1ef0268d87be52599e20f37d99382487235720f9"
+  "published_lesson_sha256": "1907c7cf3fea8b03cb7a6a23e5daab7978adf255834ac6aa1dc0b6c398f8707e"
 }
