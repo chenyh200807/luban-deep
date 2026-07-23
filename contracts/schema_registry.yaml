@@ -62,11 +62,11 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 221            # +4 variant-decision governance ids (2026-07-16/17 slice, see tier3 note)
+  full_set_count: 222            # +luban_playback_manifest.v1 runtime playback projection
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 37      # +compiled Practice static projection receipt
+    tier2_runtime_canonical: 38      # +compiled Practice static projection receipt
                                      #  +luban_variant_decision.v1 (variant-probe consumption slice:
                                      #  now read at runtime by luban_lesson router + retest_writeback)
     tier3_ephemeral_artifact: 175    # +luban_variant_decision_candidates.v1
@@ -443,6 +443,30 @@ schemas:
 # warning if a T2 file is touched while marked needs_field_canonicalization, to
 # nudge eventual field-level pinning. T2 grants no official-score / write authority.
 tier2_canonical_contracts:
+  - name: luban_playback_manifest.v1
+    status: runtime_canonical
+    owner: luban_lesson
+    canonical_for: publisher-owned episode, content-revision, duration, and section bounds used to validate every persisted microlesson playback fact
+    module: scripts/publish_luban_preview_cards.py
+    consumed_by: deeptutor/services/luban_lesson/playback.py + web/public/luban-preview/vendor/luban-playback-telemetry.js
+    needs_field_canonicalization: false
+    canonical_fields:
+      - schema_version
+      - pack_id
+      - episodes
+      - object_id
+      - episode_index
+      - lesson_file
+      - content_revision
+      - duration_ms
+      - sections
+      - id
+      - index
+      - label
+      - group
+      - start_ms
+      - end_ms
+
   - name: luban_compiled_practice.v3
     status: runtime_canonical
     owner: luban_lesson
